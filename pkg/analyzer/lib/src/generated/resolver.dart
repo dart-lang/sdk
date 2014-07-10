@@ -1400,6 +1400,9 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.isConst) {
+      _validate(node, null);
+    }
     _validateInstanceCreationArguments(node);
     return super.visitInstanceCreationExpression(node);
   }
@@ -1609,7 +1612,7 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         ErrorCode dataErrorCode = data.errorCode;
         if (identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_INT) || identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM)) {
           _errorReporter.reportErrorForNode(dataErrorCode, data.node, []);
-        } else {
+        } else if (errorCode != null) {
           _errorReporter.reportErrorForNode(errorCode, data.node, []);
         }
       }
@@ -15898,7 +15901,7 @@ class LibraryResolver {
   void _performConstantEvaluation() {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
-      ConstantValueComputer computer = new ConstantValueComputer(_typeProvider);
+      ConstantValueComputer computer = new ConstantValueComputer(_typeProvider, analysisContext.declaredVariables);
       for (Library library in _librariesInCycles) {
         for (Source source in library.compilationUnitSources) {
           try {
@@ -16350,7 +16353,7 @@ class LibraryResolver2 {
   void _performConstantEvaluation() {
     TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
     try {
-      ConstantValueComputer computer = new ConstantValueComputer(_typeProvider);
+      ConstantValueComputer computer = new ConstantValueComputer(_typeProvider, analysisContext.declaredVariables);
       for (ResolvableLibrary library in _librariesInCycle) {
         for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
           CompilationUnit ast = unit.compilationUnit;
@@ -19668,7 +19671,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     } finally {
       _nameScope = outerScope;
     }
-    if (functionElement.enclosingElement is! CompilationUnitElement) {
+    if (functionElement != null && functionElement.enclosingElement is! CompilationUnitElement) {
       _nameScope.define(functionElement);
     }
     return null;

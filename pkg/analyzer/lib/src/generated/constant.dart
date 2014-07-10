@@ -287,6 +287,11 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
  */
 class ConstantValueComputer {
   /**
+   * Parameter to "fromEnvironment" methods that denotes the default value.
+   */
+  static String _DEFAULT_VALUE_PARAM = "defaultValue";
+
+  /**
    * The type provider used to access the known types.
    */
   TypeProvider typeProvider;
@@ -319,11 +324,17 @@ class ConstantValueComputer {
   List<InstanceCreationExpression> _constructorInvocations;
 
   /**
+   * The set of variables declared on the command line using '-D'.
+   */
+  final DeclaredVariables _declaredVariables;
+
+  /**
    * Initialize a newly created constant value computer.
    *
    * @param typeProvider the type provider used to access known types
+   * @param declaredVariables the set of variables declared on the command line using '-D'
    */
-  ConstantValueComputer(TypeProvider typeProvider) {
+  ConstantValueComputer(TypeProvider typeProvider, this._declaredVariables) {
     this.typeProvider = typeProvider;
   }
 
@@ -445,6 +456,42 @@ class ConstantValueComputer {
   ConstructorDeclaration findConstructorDeclaration(ConstructorElement constructor) => constructorDeclarationMap[_getConstructorBase(constructor)];
 
   /**
+   * Check that the arguments to a call to fromEnvironment() are correct.
+   *
+   * @param arguments the AST nodes of the arguments.
+   * @param argumentValues the values of the unnamed arguments.
+   * @param namedArgumentValues the values of the named arguments.
+   * @param expectedDefaultValueType the allowed type of the "defaultValue" parameter (if present).
+   *          Note: "defaultValue" is always allowed to be null.
+   * @return true if the arguments are correct, false if there is an error.
+   */
+  bool _checkFromEnvironmentArguments(NodeList<Expression> arguments, List<DartObjectImpl> argumentValues, HashMap<String, DartObjectImpl> namedArgumentValues, InterfaceType expectedDefaultValueType) {
+    int argumentCount = arguments.length;
+    if (argumentCount < 1 || argumentCount > 2) {
+      return false;
+    }
+    if (arguments[0] is NamedExpression) {
+      return false;
+    }
+    if (!identical(argumentValues[0].type, typeProvider.stringType)) {
+      return false;
+    }
+    if (argumentCount == 2) {
+      if (arguments[1] is! NamedExpression) {
+        return false;
+      }
+      if (!((arguments[1] as NamedExpression).name.label.name == _DEFAULT_VALUE_PARAM)) {
+        return false;
+      }
+      InterfaceType defaultValueType = namedArgumentValues[_DEFAULT_VALUE_PARAM].type;
+      if (!(identical(defaultValueType, expectedDefaultValueType) || identical(defaultValueType, typeProvider.nullType))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Compute a value for the given constant.
    *
    * @param constNode the constant for which a value is to be computed
@@ -465,7 +512,7 @@ class ConstantValueComputer {
         return;
       }
       ConstantVisitor constantVisitor = createConstantVisitor();
-      ValidResult result = _evaluateConstructorCall(expression.argumentList.arguments, constructor, constantVisitor);
+      EvaluationResultImpl result = _evaluateConstructorCall(constNode, expression.argumentList.arguments, constructor, constantVisitor);
       expression.evaluationResult = result;
     } else if (constNode is ConstructorDeclaration) {
       ConstructorDeclaration declaration = constNode;
@@ -489,7 +536,34 @@ class ConstantValueComputer {
     }
   }
 
-  ValidResult _evaluateConstructorCall(NodeList<Expression> arguments, ConstructorElement constructor, ConstantVisitor constantVisitor) {
+  /**
+   * Evaluate a call to fromEnvironment() on the bool, int, or String class.
+   *
+   * @param environmentValue Value fetched from the environment
+   * @param builtInDefaultValue Value that should be used as the default if no "defaultValue"
+   *          argument appears in [namedArgumentValues].
+   * @param namedArgumentValues Named parameters passed to fromEnvironment()
+   * @return A [ValidResult] object corresponding to the evaluated result
+   */
+  ValidResult _computeValueFromEnvironment(DartObject environmentValue, DartObjectImpl builtInDefaultValue, HashMap<String, DartObjectImpl> namedArgumentValues) {
+    DartObjectImpl value = environmentValue as DartObjectImpl;
+    if (value.isUnknown || value.isNull) {
+      // The name either doesn't exist in the environment or we couldn't parse the corresponding
+      // value.  If the code supplied an explicit default, use it.
+      if (namedArgumentValues.containsKey(_DEFAULT_VALUE_PARAM)) {
+        value = namedArgumentValues[_DEFAULT_VALUE_PARAM];
+      } else if (value.isNull) {
+        // The code didn't supply an explicit default.  The name exists in the environment but
+        // we couldn't parse the corresponding value.  So use the built-in default value, because
+        // this is what the VM does.
+        value = builtInDefaultValue;
+      } else {
+      }
+    }
+    return new ValidResult(value);
+  }
+
+  EvaluationResultImpl _evaluateConstructorCall(AstNode node, NodeList<Expression> arguments, ConstructorElement constructor, ConstantVisitor constantVisitor) {
     int argumentCount = arguments.length;
     List<DartObjectImpl> argumentValues = new List<DartObjectImpl>(argumentCount);
     HashMap<String, DartObjectImpl> namedArgumentValues = new HashMap<String, DartObjectImpl>();
@@ -509,10 +583,25 @@ class ConstantValueComputer {
     if (constructor.isFactory) {
       // We couldn't find a non-factory constructor.  See if it's because we reached an external
       // const factory constructor that we can emulate.
-      // TODO(paulberry): if the constructor is one of {bool,int,String}.fromEnvironment(),
-      // we may be able to infer the value based on -D flags provided to the analyzer (see
-      // dartbug.com/17234).
-      if (identical(definingClass, typeProvider.symbolType) && argumentCount == 1) {
+      if (constructor.name == "fromEnvironment") {
+        if (!_checkFromEnvironmentArguments(arguments, argumentValues, namedArgumentValues, definingClass)) {
+          return new ErrorResult.con1(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+        }
+        String variableName = argumentCount < 1 ? null : argumentValues[0].stringValue;
+        if (identical(definingClass, typeProvider.boolType)) {
+          DartObject valueFromEnvironment;
+          valueFromEnvironment = _declaredVariables.getBool(typeProvider, variableName);
+          return _computeValueFromEnvironment(valueFromEnvironment, new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE), namedArgumentValues);
+        } else if (identical(definingClass, typeProvider.intType)) {
+          DartObject valueFromEnvironment;
+          valueFromEnvironment = _declaredVariables.getInt(typeProvider, variableName);
+          return _computeValueFromEnvironment(valueFromEnvironment, new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE), namedArgumentValues);
+        } else if (identical(definingClass, typeProvider.stringType)) {
+          DartObject valueFromEnvironment;
+          valueFromEnvironment = _declaredVariables.getString(typeProvider, variableName);
+          return _computeValueFromEnvironment(valueFromEnvironment, new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE), namedArgumentValues);
+        }
+      } else if (constructor.name == "" && identical(definingClass, typeProvider.symbolType) && argumentCount == 1) {
         String argumentValue = argumentValues[0].stringValue;
         if (argumentValue != null) {
           return constantVisitor._valid(definingClass, new SymbolState(argumentValue));
@@ -605,16 +694,19 @@ class ConstantValueComputer {
         if (superArguments == null) {
           superArguments = new NodeList<Expression>(null);
         }
-        _evaluateSuperConstructorCall(fieldMap, superConstructor, superArguments, initializerVisitor);
+        _evaluateSuperConstructorCall(node, fieldMap, superConstructor, superArguments, initializerVisitor);
       }
     }
     return constantVisitor._valid(definingClass, new GenericState(fieldMap));
   }
 
-  void _evaluateSuperConstructorCall(HashMap<String, DartObjectImpl> fieldMap, ConstructorElement superConstructor, NodeList<Expression> superArguments, ConstantVisitor initializerVisitor) {
+  void _evaluateSuperConstructorCall(AstNode node, HashMap<String, DartObjectImpl> fieldMap, ConstructorElement superConstructor, NodeList<Expression> superArguments, ConstantVisitor initializerVisitor) {
     if (superConstructor != null && superConstructor.isConst) {
-      ValidResult evaluationResult = _evaluateConstructorCall(superArguments, superConstructor, initializerVisitor);
-      fieldMap[GenericState.SUPERCLASS_FIELD] = evaluationResult.value;
+      EvaluationResultImpl evaluationResult = _evaluateConstructorCall(node, superArguments, superConstructor, initializerVisitor);
+      if (evaluationResult is ValidResult) {
+        ValidResult validResult = evaluationResult;
+        fieldMap[GenericState.SUPERCLASS_FIELD] = validResult.value;
+      }
     }
   }
 
@@ -1743,8 +1835,10 @@ class DeclaredVariables {
   }
 
   /**
-   * Return the value of the variable with the given name interpreted as a boolean value, or
-   * `null` if the variable is not defined.
+   * Return the value of the variable with the given name interpreted as a boolean value. If the
+   * variable is not defined (or [variableName] is null), a DartObject representing "unknown"
+   * is returned. If the value can't be parsed as a boolean, a DartObject representing null is
+   * returned.
    *
    * @param typeProvider the type provider used to find the type 'bool'
    * @param variableName the name of the variable whose value is to be returned
@@ -1752,35 +1846,44 @@ class DeclaredVariables {
   DartObject getBool(TypeProvider typeProvider, String variableName) {
     String value = _declaredVariables[variableName];
     if (value == null) {
-      return null;
+      return new DartObjectImpl(typeProvider.boolType, BoolState.UNKNOWN_VALUE);
     }
     if (value == "true") {
-      return new DartObjectImpl(typeProvider.boolType, BoolState.from(true));
+      return new DartObjectImpl(typeProvider.boolType, BoolState.TRUE_STATE);
     } else if (value == "false") {
-      return new DartObjectImpl(typeProvider.boolType, BoolState.from(false));
+      return new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE);
     }
-    return null;
+    return new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
   }
 
   /**
-   * Return the value of the variable with the given name interpreted as an integer value, or
-   * `null` if the variable is not defined.
+   * Return the value of the variable with the given name interpreted as an integer value. If the
+   * variable is not defined (or [variableName] is null), a DartObject representing "unknown"
+   * is returned. If the value can't be parsed as an integer, a DartObject representing null is
+   * returned.
    *
    * @param typeProvider the type provider used to find the type 'int'
    * @param variableName the name of the variable whose value is to be returned
-   * @throws NumberFormatException if the value of the variable is not a valid integer value
    */
   DartObject getInt(TypeProvider typeProvider, String variableName) {
     String value = _declaredVariables[variableName];
     if (value == null) {
-      return null;
+      return new DartObjectImpl(typeProvider.intType, IntState.UNKNOWN_VALUE);
     }
-    return new DartObjectImpl(typeProvider.intType, new IntState(int.parse(value)));
+    int bigInteger;
+    try {
+      bigInteger = int.parse(value);
+    } on FormatException catch (exception) {
+      return new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
+    }
+    return new DartObjectImpl(typeProvider.intType, new IntState(bigInteger));
   }
 
   /**
    * Return the value of the variable with the given name interpreted as a String value, or
-   * `null` if the variable is not defined.
+   * `null` if the variable is not defined. Return the value of the variable with the given
+   * name interpreted as a String value. If the variable is not defined (or [variableName] is
+   * null), a DartObject representing "unknown" is returned.
    *
    * @param typeProvider the type provider used to find the type 'String'
    * @param variableName the name of the variable whose value is to be returned
@@ -1788,7 +1891,7 @@ class DeclaredVariables {
   DartObject getString(TypeProvider typeProvider, String variableName) {
     String value = _declaredVariables[variableName];
     if (value == null) {
-      return null;
+      return new DartObjectImpl(typeProvider.intType, IntState.UNKNOWN_VALUE);
     }
     return new DartObjectImpl(typeProvider.stringType, new StringState(value));
   }
@@ -1984,6 +2087,9 @@ class DoubleState extends NumState {
 
   @override
   bool get isBoolNumStringOrNull => true;
+
+  @override
+  bool get isUnknown => value == null;
 
   @override
   BoolState lessThan(InstanceState rightOperand) {
@@ -3563,6 +3669,9 @@ class IntState extends NumState {
 
   @override
   bool get isBoolNumStringOrNull => true;
+
+  @override
+  bool get isUnknown => value == null;
 
   @override
   BoolState lessThan(InstanceState rightOperand) {

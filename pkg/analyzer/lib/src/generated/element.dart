@@ -18,6 +18,7 @@ import 'sdk.dart' show DartSdk;
 import 'html.dart' show XmlAttributeNode, XmlTagNode;
 import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
 import 'constant.dart' show EvaluationResultImpl;
+import 'resolver.dart';
 import 'utilities_dart.dart';
 
 /**
@@ -5486,6 +5487,16 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return sRetType.isVoid || (tRetType as TypeImpl).isMoreSpecificThan2(sRetType, withDynamic, visitedTypePairs);
   }
 
+  /**
+   * Return `true` if this type is assignable to the given type. A function type <i>T</i> may
+   * be assigned to a function type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff <i>T</i> <:
+   * <i>S</i> (Function Types section of spec). Note that this is more restrictive than the
+   * "may be assigned to" rule for interface types.
+   *
+   *
+   * @param type the type being compared with this type
+   * @return `true` if this type is assignable to the given type
+   */
   @override
   bool isAssignableTo(DartType type) => isSubtypeOf2(type, new HashSet<TypeImpl_TypePair>());
 
@@ -7166,10 +7177,57 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (type is TypeParameterType) {
       return false;
     } else if (type is FunctionType) {
+      // This implementation assumes transitivity
+      // for function type subtyping on the RHS, but a literal reading
+      // of the spec does not specify this. More precisely: if T <: F1 and F1 <: F2 and
+      // F1 and F2 are function types, then we assume T <: F2.
+      //
+      // From the Function Types section of the spec:
+      //
+      //   If a type I includes an instance method named call(), and the type of call()
+      //   is the function type F, then I is considered to be a subtype of F.
+      //
+      // However, the section on Interface Types says
+      //
+      //   T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S.
+      //
+      // after giving rules for << (pronounced "more specific than"). However, the "only if"
+      // direction of the "iff"
+      // in the definition of <: seems to be contradicted by the special case <: rule
+      // quoted from the Function Types section: I see no rule for << which tells us that
+      // I << F if I has call() at type F.
+      //
+      // After defining <: , the spec then
+      // emphasizes that unlike the relation <<, the relation <: is not transitive in general:
+      //
+      //   Note that <: is not a partial order on types, it is only binary relation on types.
+      //   This is because <: is not transitive. If it was, the subtype rule would have a cycle.
+      //   For example: List <: List<String> and List<int> <: List, but List<int> is not a subtype
+      //   of List<String>. Although <: is not a partial order on types, it does contain a partial
+      //   order, namely <<. This means that, barring raw types, intuition about classical subtype
+      //   rules does apply.
+      //
+      // There is no other occurrence of the word "raw" in relation to types in the spec that I can
+      // find, but presumably it's a reference to
+      //
+      //   http://docs.oracle.com/javase/tutorial/java/generics/rawTypes.html
+      //
+      // so e.g. non-generic types are never raw. As pointed out by paulberry, it's not clear
+      // whether a type like T<int, dynamic> should be considered raw or not. On the one hand, it
+      // doesn't correspond to a "raw"-in-the-Java-sense occurrence of T, which would instead
+      // be T<dynamic, dynamic>; on the other hand, it's treated differently by <: and << when
+      // occurring on the left hand side.
       ClassElement element = this.element;
-      MethodElement callMethod = element.lookUpMethod("call", element.library);
-      if (callMethod != null) {
-        return callMethod.type.isSubtypeOf(type);
+      InheritanceManager manager = new InheritanceManager(element.library);
+      FunctionType callType = manager.lookupMemberType(this, "call");
+      if (callType != null) {
+        // A more literal reading of the spec would give something like
+        //
+        //  return callType.equals(type)
+        //
+        // here, but that causes 101 errors in the external tests
+        // (tools/test.py --mode release --compiler dartanalyzer --runtime none).
+        return callType.isSubtypeOf(type);
       }
       return false;
     } else if (type is! InterfaceType) {
@@ -9751,6 +9809,13 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     builder.append(variable.displayName);
     super.appendTo(builder);
   }
+
+  @override
+  String get identifier {
+    String name = displayName;
+    String suffix = isGetter ? "?" : "=";
+    return "${name}${suffix}";
+  }
 }
 
 /**
@@ -10483,14 +10548,14 @@ abstract class TypeImpl implements DartType {
   /**
    * Return `true` if this type is assignable to the given type. A type <i>T</i> may be
    * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
-   * or <i>S</i> <: <i>T</i>.
+   * or <i>S</i> <: <i>T</i> (Interface Types section of spec).
    *
    * The given set of pairs of types (T1, T2), where each pair indicates that we invoked this method
    * because we are in the process of answering the question of whether T1 is a subtype of T2, is
    * used to prevent infinite loops.
    *
    * @param type the type being compared with this type
-   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @param visitedTypePairs the set of pairs of types used to prevent infinite loops
    * @return `true` if this type is assignable to the given type
    */
   bool isAssignableTo2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf2(type, visitedTypePairs) || (type as TypeImpl).isSubtypeOf2(this, visitedTypePairs);
@@ -10516,7 +10581,7 @@ abstract class TypeImpl implements DartType {
    *
    * @param type the type being compared with this type
    * @param withDynamic `true` if "dynamic" should be considered as a subtype of any type
-   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @param visitedTypePairs the set of pairs of types used to prevent infinite loops
    * @return `true` if this type is more specific than the given type
    */
   bool isMoreSpecificThan2(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
@@ -10544,7 +10609,7 @@ abstract class TypeImpl implements DartType {
    * used to prevent infinite loops.
    *
    * @param type the type being compared with this type
-   * @param visitedPairs the set of pairs of types used to prevent infinite loops
+   * @param visitedTypePairs the set of pairs of types used to prevent infinite loops
    * @return `true` if this type is a subtype of the given type
    */
   bool isSubtypeOf2(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {

@@ -913,6 +913,10 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parse3("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "4 score", [ParserErrorCode.EXPECTED_EXECUTABLE]);
   }
 
+  void test_expectedExecutable_topLevel_eof() {
+    ParserTestCase.parse2("parseCompilationUnitMember", <Object> [emptyCommentAndMetadata()], "x", [new AnalysisError.con2(null, 0, 1, ParserErrorCode.EXPECTED_EXECUTABLE, [])]);
+  }
+
   void test_expectedInterpolationIdentifier() {
     ParserTestCase.parse4("parseStringLiteral", "'\$x\$'", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
@@ -1141,6 +1145,10 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parse4("parseForStatement", "for (int a = 0 in foo) {}", [ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH]);
   }
 
+  void test_invalidAwaitInFor() {
+    ParserTestCase.parse4("parseForStatement", "await for (; ;) {}", [ParserErrorCode.INVALID_AWAIT_IN_FOR]);
+  }
+
   void test_invalidCodePoint() {
     ParserTestCase.parse4("parseStringLiteral", "'\\uD900'", [ParserErrorCode.INVALID_CODE_POINT]);
   }
@@ -1163,6 +1171,14 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_invalidOperatorForSuper() {
     ParserTestCase.parse4("parseUnaryExpression", "++super", [ParserErrorCode.INVALID_OPERATOR_FOR_SUPER]);
+  }
+
+  void test_invalidStarAfterAsync() {
+    ParserTestCase.parse3("parseFunctionBody", <Object> [false, null, false], "async* => 0;", [ParserErrorCode.INVALID_STAR_AFTER_ASYNC]);
+  }
+
+  void test_invalidSync() {
+    ParserTestCase.parse3("parseFunctionBody", <Object> [false, null, false], "sync* => 0;", [ParserErrorCode.INVALID_SYNC]);
   }
 
   void test_invalidUnicodeEscape_incomplete_noDigits() {
@@ -1353,6 +1369,10 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_missingPrefixInDeferredImport() {
     ParserTestCase.parseCompilationUnit("import 'foo.dart' deferred;", [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT]);
+  }
+
+  void test_missingStartAfterSync() {
+    ParserTestCase.parse3("parseFunctionBody", <Object> [false, null, false], "sync {}", [ParserErrorCode.MISSING_STAR_AFTER_SYNC]);
   }
 
   void test_missingStatement() {
@@ -1940,6 +1960,10 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedExecutable_topLevel_beforeType);
       });
+      _ut.test('test_expectedExecutable_topLevel_eof', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_expectedExecutable_topLevel_eof);
+      });
       _ut.test('test_expectedInterpolationIdentifier', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_expectedInterpolationIdentifier);
@@ -2148,6 +2172,10 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_initializedVariableInForEach);
       });
+      _ut.test('test_invalidAwaitInFor', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_invalidAwaitInFor);
+      });
       _ut.test('test_invalidCodePoint', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_invalidCodePoint);
@@ -2171,6 +2199,14 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_invalidOperatorForSuper', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_invalidOperatorForSuper);
+      });
+      _ut.test('test_invalidStarAfterAsync', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_invalidStarAfterAsync);
+      });
+      _ut.test('test_invalidSync', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_invalidSync);
       });
       _ut.test('test_invalidUnicodeEscape_incomplete_noDigits', () {
         final __test = new ErrorParserTest();
@@ -2351,6 +2387,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_missingPrefixInDeferredImport', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingPrefixInDeferredImport);
+      });
+      _ut.test('test_missingStartAfterSync', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingStartAfterSync);
       });
       _ut.test('test_missingStatement', () {
         final __test = new ErrorParserTest();
@@ -3296,6 +3336,7 @@ class ParserTestCase extends EngineTestCase {
     Parser parser = new Parser(null, listener);
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.parseDeferredLibraries = true;
+    parser.parseAsync = true;
     Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //
     // Partially test the results.
@@ -5555,6 +5596,13 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(selector);
   }
 
+  void test_parseAwaitExpression() {
+    AwaitExpression expression = ParserTestCase.parse4("parseAwaitExpression", "await x;", []);
+    JUnitTestCase.assertNotNull(expression.awaitKeyword);
+    JUnitTestCase.assertNotNull(expression.expression);
+    JUnitTestCase.assertNotNull(expression.semicolon);
+  }
+
   void test_parseBitwiseAndExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "x & y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
@@ -7428,8 +7476,22 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(parameterList.rightParenthesis);
   }
 
+  void test_parseForStatement_each_await() {
+    ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "await for (element in list) {}", []);
+    JUnitTestCase.assertNotNull(statement.awaitKeyword);
+    JUnitTestCase.assertNotNull(statement.forKeyword);
+    JUnitTestCase.assertNotNull(statement.leftParenthesis);
+    JUnitTestCase.assertNull(statement.loopVariable);
+    JUnitTestCase.assertNotNull(statement.identifier);
+    JUnitTestCase.assertNotNull(statement.inKeyword);
+    JUnitTestCase.assertNotNull(statement.iterator);
+    JUnitTestCase.assertNotNull(statement.rightParenthesis);
+    JUnitTestCase.assertNotNull(statement.body);
+  }
+
   void test_parseForStatement_each_identifier() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (element in list) {}", []);
+    JUnitTestCase.assertNull(statement.awaitKeyword);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNull(statement.loopVariable);
@@ -7442,6 +7504,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseForStatement_each_noType_metadata() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (@A var element in list) {}", []);
+    JUnitTestCase.assertNull(statement.awaitKeyword);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
@@ -7455,6 +7518,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseForStatement_each_type() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (A element in list) {}", []);
+    JUnitTestCase.assertNull(statement.awaitKeyword);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
@@ -7467,6 +7531,7 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseForStatement_each_var() {
     ForEachStatement statement = ParserTestCase.parse4("parseForStatement", "for (var element in list) {}", []);
+    JUnitTestCase.assertNull(statement.awaitKeyword);
     JUnitTestCase.assertNotNull(statement.forKeyword);
     JUnitTestCase.assertNotNull(statement.leftParenthesis);
     JUnitTestCase.assertNotNull(statement.loopVariable);
@@ -7633,7 +7698,45 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseFunctionBody_block() {
     BlockFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "{}");
+    JUnitTestCase.assertNull(functionBody.keyword);
+    JUnitTestCase.assertNull(functionBody.star);
     JUnitTestCase.assertNotNull(functionBody.block);
+    JUnitTestCase.assertFalse(functionBody.isAsynchronous);
+    JUnitTestCase.assertFalse(functionBody.isGenerator);
+    JUnitTestCase.assertTrue(functionBody.isSynchronous);
+  }
+
+  void test_parseFunctionBody_block_async() {
+    BlockFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "async {}");
+    JUnitTestCase.assertNotNull(functionBody.keyword);
+    JUnitTestCase.assertEquals(Parser.ASYNC, functionBody.keyword.lexeme);
+    JUnitTestCase.assertNull(functionBody.star);
+    JUnitTestCase.assertNotNull(functionBody.block);
+    JUnitTestCase.assertTrue(functionBody.isAsynchronous);
+    JUnitTestCase.assertFalse(functionBody.isGenerator);
+    JUnitTestCase.assertFalse(functionBody.isSynchronous);
+  }
+
+  void test_parseFunctionBody_block_asyncGenerator() {
+    BlockFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "async* {}");
+    JUnitTestCase.assertNotNull(functionBody.keyword);
+    JUnitTestCase.assertEquals(Parser.ASYNC, functionBody.keyword.lexeme);
+    JUnitTestCase.assertNotNull(functionBody.star);
+    JUnitTestCase.assertNotNull(functionBody.block);
+    JUnitTestCase.assertTrue(functionBody.isAsynchronous);
+    JUnitTestCase.assertTrue(functionBody.isGenerator);
+    JUnitTestCase.assertFalse(functionBody.isSynchronous);
+  }
+
+  void test_parseFunctionBody_block_syncGenerator() {
+    BlockFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "sync* {}");
+    JUnitTestCase.assertNotNull(functionBody.keyword);
+    JUnitTestCase.assertEquals(Parser.SYNC, functionBody.keyword.lexeme);
+    JUnitTestCase.assertNotNull(functionBody.star);
+    JUnitTestCase.assertNotNull(functionBody.block);
+    JUnitTestCase.assertFalse(functionBody.isAsynchronous);
+    JUnitTestCase.assertTrue(functionBody.isGenerator);
+    JUnitTestCase.assertTrue(functionBody.isSynchronous);
   }
 
   void test_parseFunctionBody_empty() {
@@ -7643,9 +7746,25 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseFunctionBody_expression() {
     ExpressionFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "=> y;");
+    JUnitTestCase.assertNull(functionBody.keyword);
     JUnitTestCase.assertNotNull(functionBody.functionDefinition);
     JUnitTestCase.assertNotNull(functionBody.expression);
     JUnitTestCase.assertNotNull(functionBody.semicolon);
+    JUnitTestCase.assertFalse(functionBody.isAsynchronous);
+    JUnitTestCase.assertFalse(functionBody.isGenerator);
+    JUnitTestCase.assertTrue(functionBody.isSynchronous);
+  }
+
+  void test_parseFunctionBody_expression_async() {
+    ExpressionFunctionBody functionBody = ParserTestCase.parse("parseFunctionBody", <Object> [false, null, false], "async => y;");
+    JUnitTestCase.assertNotNull(functionBody.keyword);
+    JUnitTestCase.assertEquals(Parser.ASYNC, functionBody.keyword.lexeme);
+    JUnitTestCase.assertNotNull(functionBody.functionDefinition);
+    JUnitTestCase.assertNotNull(functionBody.expression);
+    JUnitTestCase.assertNotNull(functionBody.semicolon);
+    JUnitTestCase.assertTrue(functionBody.isAsynchronous);
+    JUnitTestCase.assertFalse(functionBody.isGenerator);
+    JUnitTestCase.assertFalse(functionBody.isSynchronous);
   }
 
   void test_parseFunctionBody_nativeFunctionBody() {
@@ -9463,6 +9582,22 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertSizeOfList(1, clause.mixinTypes);
   }
 
+  void test_parseYieldStatement_each() {
+    YieldStatement statement = ParserTestCase.parse4("parseYieldStatement", "yield* x;", []);
+    JUnitTestCase.assertNotNull(statement.yieldKeyword);
+    JUnitTestCase.assertNotNull(statement.star);
+    JUnitTestCase.assertNotNull(statement.expression);
+    JUnitTestCase.assertNotNull(statement.semicolon);
+  }
+
+  void test_parseYieldStatement_normal() {
+    YieldStatement statement = ParserTestCase.parse4("parseYieldStatement", "yield x;", []);
+    JUnitTestCase.assertNotNull(statement.yieldKeyword);
+    JUnitTestCase.assertNull(statement.star);
+    JUnitTestCase.assertNotNull(statement.expression);
+    JUnitTestCase.assertNotNull(statement.semicolon);
+  }
+
   void test_skipPrefixedIdentifier_invalid() {
     Token following = _skip("skipPrefixedIdentifier", "+");
     JUnitTestCase.assertNull(following);
@@ -10108,6 +10243,10 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseAssignableSelector_none', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseAssignableSelector_none);
+      });
+      _ut.test('test_parseAwaitExpression', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseAwaitExpression);
       });
       _ut.test('test_parseBitwiseAndExpression_normal', () {
         final __test = new SimpleParserTest();
@@ -10853,6 +10992,10 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFinalConstVarOrType_var);
       });
+      _ut.test('test_parseForStatement_each_await', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseForStatement_each_await);
+      });
       _ut.test('test_parseForStatement_each_identifier', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseForStatement_each_identifier);
@@ -10985,6 +11128,18 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFunctionBody_block);
       });
+      _ut.test('test_parseFunctionBody_block_async', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseFunctionBody_block_async);
+      });
+      _ut.test('test_parseFunctionBody_block_asyncGenerator', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseFunctionBody_block_asyncGenerator);
+      });
+      _ut.test('test_parseFunctionBody_block_syncGenerator', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseFunctionBody_block_syncGenerator);
+      });
       _ut.test('test_parseFunctionBody_empty', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFunctionBody_empty);
@@ -10992,6 +11147,10 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseFunctionBody_expression', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFunctionBody_expression);
+      });
+      _ut.test('test_parseFunctionBody_expression_async', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseFunctionBody_expression_async);
       });
       _ut.test('test_parseFunctionBody_nativeFunctionBody', () {
         final __test = new SimpleParserTest();
@@ -11888,6 +12047,14 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseWithClause_single', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseWithClause_single);
+      });
+      _ut.test('test_parseYieldStatement_each', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseYieldStatement_each);
+      });
+      _ut.test('test_parseYieldStatement_normal', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseYieldStatement_normal);
       });
       _ut.test('test_skipPrefixedIdentifier_invalid', () {
         final __test = new SimpleParserTest();

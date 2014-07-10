@@ -1648,6 +1648,10 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("a = b", AstFactory.assignmentExpression(AstFactory.identifier3("a"), TokenType.EQ, AstFactory.identifier3("b")));
   }
 
+  void test_visitAwaitExpression() {
+    _assertSource("await e;", AstFactory.awaitExpression(AstFactory.identifier3("e")));
+  }
+
   void test_visitBinaryExpression() {
     _assertSource("a + b", AstFactory.binaryExpression(AstFactory.identifier3("a"), TokenType.PLUS, AstFactory.identifier3("b")));
   }
@@ -1660,8 +1664,24 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("{break; break;}", AstFactory.block([AstFactory.breakStatement(), AstFactory.breakStatement()]));
   }
 
-  void test_visitBlockFunctionBody() {
+  void test_visitBlockFunctionBody_async() {
+    _assertSource("async {}", AstFactory.asyncBlockFunctionBody([]));
+  }
+
+  void test_visitBlockFunctionBody_async_star() {
+    _assertSource("async* {}", AstFactory.asyncGeneratorBlockFunctionBody([]));
+  }
+
+  void test_visitBlockFunctionBody_simple() {
     _assertSource("{}", AstFactory.blockFunctionBody2([]));
+  }
+
+  void test_visitBlockFunctionBody_sync() {
+    _assertSource("sync {}", AstFactory.syncBlockFunctionBody([]));
+  }
+
+  void test_visitBlockFunctionBody_sync_star() {
+    _assertSource("sync* {}", AstFactory.syncGeneratorBlockFunctionBody([]));
   }
 
   void test_visitBooleanLiteral_false() {
@@ -1982,7 +2002,11 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("@deprecated export 'a.dart';", directive);
   }
 
-  void test_visitExpressionFunctionBody() {
+  void test_visitExpressionFunctionBody_async() {
+    _assertSource("async => a;", AstFactory.asyncExpressionFunctionBody(AstFactory.identifier3("a")));
+  }
+
+  void test_visitExpressionFunctionBody_simple() {
     _assertSource("=> a;", AstFactory.expressionFunctionBody(AstFactory.identifier3("a")));
   }
 
@@ -2029,7 +2053,11 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitForEachStatement_variable() {
-    _assertSource("for (a in b) {}", new ForEachStatement.con2(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), AstFactory.identifier3("a"), TokenFactory.tokenFromKeyword(Keyword.IN), AstFactory.identifier3("b"), TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), AstFactory.block([])));
+    _assertSource("for (a in b) {}", new ForEachStatement.con2(null, TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), AstFactory.identifier3("a"), TokenFactory.tokenFromKeyword(Keyword.IN), AstFactory.identifier3("b"), TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), AstFactory.block([])));
+  }
+
+  void test_visitForEachStatement_variable_await() {
+    _assertSource("await for (a in b) {}", new ForEachStatement.con2(TokenFactory.tokenFromString("await"), TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), AstFactory.identifier3("a"), TokenFactory.tokenFromKeyword(Keyword.IN), AstFactory.identifier3("b"), TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), AstFactory.block([])));
   }
 
   void test_visitFormalParameterList_empty() {
@@ -2790,6 +2818,14 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("with A", AstFactory.withClause([AstFactory.typeName4("A", [])]));
   }
 
+  void test_visitYieldStatement() {
+    _assertSource("yield e;", AstFactory.yieldStatement(AstFactory.identifier3("e")));
+  }
+
+  void test_visitYieldStatement_each() {
+    _assertSource("yield* e;", AstFactory.yieldEachStatement(AstFactory.identifier3("e")));
+  }
+
   /**
    * Assert that a `ToSourceVisitor` will produce the expected source when visiting the given
    * node.
@@ -2834,13 +2870,33 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitAssignmentExpression);
       });
+      _ut.test('test_visitAwaitExpression', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitAwaitExpression);
+      });
       _ut.test('test_visitBinaryExpression', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitBinaryExpression);
       });
-      _ut.test('test_visitBlockFunctionBody', () {
+      _ut.test('test_visitBlockFunctionBody_async', () {
         final __test = new ToSourceVisitorTest();
-        runJUnitTest(__test, __test.test_visitBlockFunctionBody);
+        runJUnitTest(__test, __test.test_visitBlockFunctionBody_async);
+      });
+      _ut.test('test_visitBlockFunctionBody_async_star', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitBlockFunctionBody_async_star);
+      });
+      _ut.test('test_visitBlockFunctionBody_simple', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitBlockFunctionBody_simple);
+      });
+      _ut.test('test_visitBlockFunctionBody_sync', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitBlockFunctionBody_sync);
+      });
+      _ut.test('test_visitBlockFunctionBody_sync_star', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitBlockFunctionBody_sync_star);
       });
       _ut.test('test_visitBlock_empty', () {
         final __test = new ToSourceVisitorTest();
@@ -3146,9 +3202,13 @@ class ToSourceVisitorTest extends EngineTestCase {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitExportDirective_withMetadata);
       });
-      _ut.test('test_visitExpressionFunctionBody', () {
+      _ut.test('test_visitExpressionFunctionBody_async', () {
         final __test = new ToSourceVisitorTest();
-        runJUnitTest(__test, __test.test_visitExpressionFunctionBody);
+        runJUnitTest(__test, __test.test_visitExpressionFunctionBody_async);
+      });
+      _ut.test('test_visitExpressionFunctionBody_simple', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitExpressionFunctionBody_simple);
       });
       _ut.test('test_visitExpressionStatement', () {
         final __test = new ToSourceVisitorTest();
@@ -3193,6 +3253,10 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitForEachStatement_variable', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitForEachStatement_variable);
+      });
+      _ut.test('test_visitForEachStatement_variable_await', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitForEachStatement_variable_await);
       });
       _ut.test('test_visitForStatement_c', () {
         final __test = new ToSourceVisitorTest();
@@ -3857,6 +3921,14 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitWithClause_single', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitWithClause_single);
+      });
+      _ut.test('test_visitYieldStatement', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitYieldStatement);
+      });
+      _ut.test('test_visitYieldStatement_each', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitYieldStatement_each);
       });
     });
   }

@@ -462,6 +462,15 @@ class SourceVisitor implements AstVisitor {
     });
   }
 
+  @override
+  visitAwaitExpression(AwaitExpression node) {
+    token(node.awaitKeyword);
+    space();
+    visit(node.expression);
+    // TODO(scheglov) a bug in the spec, there sould not be a ';'
+    token(node.semicolon);
+  }
+
   visitBinaryExpression(BinaryExpression node) {
     Token operator = node.operator;
     TokenType operatorType = operator.type;
@@ -1430,6 +1439,15 @@ class SourceVisitor implements AstVisitor {
     visitCommaSeparatedNodes(node.mixinTypes);
   }
 
+  @override
+  visitYieldStatement(YieldStatement node) {
+    token(node.yieldKeyword);
+    token(node.star);
+    space();
+    visit(node.expression);
+    token(node.semicolon);
+  }
+
   /// Safely visit the given [node].
   visit(AstNode node) {
     if (node != null) {
@@ -1830,5 +1848,4 @@ class SourceVisitor implements AstVisitor {
   }
 
   String toString() => writer.toString();
-
 }

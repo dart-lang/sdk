@@ -17,6 +17,7 @@ import 'utilities_dart.dart';
 import 'utilities_collection.dart' show TokenMap;
 import 'element.dart';
 import 'constant.dart';
+import 'parser.dart';
 
 /**
  * Instances of the class `AdjacentStrings` represents two or more string literals that are
@@ -991,13 +992,16 @@ class AstCloner implements AstVisitor<AstNode> {
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression(cloneNode(node.leftHandSide), node.operator, cloneNode(node.rightHandSide));
 
   @override
+  AwaitExpression visitAwaitExpression(AwaitExpression node) => new AwaitExpression(node.awaitKeyword, node.expression, node.semicolon);
+
+  @override
   BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression(cloneNode(node.leftOperand), node.operator, cloneNode(node.rightOperand));
 
   @override
   Block visitBlock(Block node) => new Block(node.leftBracket, cloneNodeList(node.statements), node.rightBracket);
 
   @override
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(cloneNode(node.block));
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(node.keyword, node.star, cloneNode(node.block));
 
   @override
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) => new BooleanLiteral(node.literal, node.value);
@@ -1083,7 +1087,7 @@ class AstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(node.functionDefinition, cloneNode(node.expression), node.semicolon);
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(node.keyword, node.functionDefinition, cloneNode(node.expression), node.semicolon);
 
   @override
   ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(cloneNode(node.expression), node.semicolon);
@@ -1101,9 +1105,9 @@ class AstCloner implements AstVisitor<AstNode> {
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2(node.forKeyword, node.leftParenthesis, cloneNode(node.identifier), node.inKeyword, cloneNode(node.iterator), node.rightParenthesis, cloneNode(node.body));
+      return new ForEachStatement.con2(node.awaitKeyword, node.forKeyword, node.leftParenthesis, cloneNode(node.identifier), node.inKeyword, cloneNode(node.iterator), node.rightParenthesis, cloneNode(node.body));
     }
-    return new ForEachStatement.con1(node.forKeyword, node.leftParenthesis, cloneNode(loopVariable), node.inKeyword, cloneNode(node.iterator), node.rightParenthesis, cloneNode(node.body));
+    return new ForEachStatement.con1(node.awaitKeyword, node.forKeyword, node.leftParenthesis, cloneNode(loopVariable), node.inKeyword, cloneNode(node.iterator), node.rightParenthesis, cloneNode(node.body));
   }
 
   @override
@@ -1321,6 +1325,9 @@ class AstCloner implements AstVisitor<AstNode> {
   @override
   WithClause visitWithClause(WithClause node) => new WithClause(node.withKeyword, cloneNodeList(node.mixinTypes));
 
+  @override
+  YieldStatement visitYieldStatement(YieldStatement node) => new YieldStatement(node.yieldKeyword, node.star, node.expression, node.semicolon);
+
   AstNode cloneNode(AstNode node) {
     if (node == null) {
       return null;
@@ -1386,6 +1393,12 @@ class AstComparator implements AstVisitor<bool> {
   bool visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression other = this._other as AssignmentExpression;
     return _isEqualNodes(node.leftHandSide, other.leftHandSide) && _isEqualTokens(node.operator, other.operator) && _isEqualNodes(node.rightHandSide, other.rightHandSide);
+  }
+
+  @override
+  bool visitAwaitExpression(AwaitExpression node) {
+    AwaitExpression other = this._other as AwaitExpression;
+    return _isEqualTokens(node.awaitKeyword, other.awaitKeyword) && _isEqualNodes(node.expression, other.expression) && _isEqualTokens(node.semicolon, other.semicolon);
   }
 
   @override
@@ -1964,6 +1977,12 @@ class AstComparator implements AstVisitor<bool> {
     return _isEqualTokens(node.withKeyword, other.withKeyword) && _isEqualNodeLists(node.mixinTypes, other.mixinTypes);
   }
 
+  @override
+  bool visitYieldStatement(YieldStatement node) {
+    YieldStatement other = this._other as YieldStatement;
+    return _isEqualTokens(node.yieldKeyword, other.yieldKeyword) && _isEqualNodes(node.expression, other.expression) && _isEqualTokens(node.semicolon, other.semicolon);
+  }
+
   /**
    * Return `true` if the given lists of AST nodes have the same size and corresponding
    * elements are equal.
@@ -2303,6 +2322,8 @@ abstract class AstVisitor<R> {
 
   R visitAssignmentExpression(AssignmentExpression node);
 
+  R visitAwaitExpression(AwaitExpression node);
+
   R visitBinaryExpression(BinaryExpression node);
 
   R visitBlock(Block node);
@@ -2494,6 +2515,82 @@ abstract class AstVisitor<R> {
   R visitWhileStatement(WhileStatement node);
 
   R visitWithClause(WithClause node);
+
+  R visitYieldStatement(YieldStatement node);
+}
+
+/**
+ * Instances of the class `AwaitExpression` implement an await expression.
+ */
+class AwaitExpression extends Expression {
+  /**
+   * The 'await' keyword.
+   */
+  Token awaitKeyword;
+
+  /**
+   * The expression whose value is being waited on.
+   */
+  Expression _expression;
+
+  /**
+   * The semicolon following the expression.
+   */
+  Token semicolon;
+
+  /**
+   * Initialize a newly created await expression.
+   *
+   * @param awaitKeyword the 'await' keyword
+   * @param expression the expression whose value is being waited on
+   * @param semicolon the semicolon following the expression
+   */
+  AwaitExpression(this.awaitKeyword, Expression expression, this.semicolon) {
+    this._expression = becomeParentOf(expression);
+  }
+
+  @override
+  accept(AstVisitor visitor) => visitor.visitAwaitExpression(this);
+
+  @override
+  Token get beginToken {
+    if (awaitKeyword != null) {
+      return awaitKeyword;
+    }
+    return _expression.beginToken;
+  }
+
+  @override
+  Token get endToken {
+    if (semicolon != null) {
+      return semicolon;
+    }
+    return _expression.endToken;
+  }
+
+  /**
+   * Return the expression whose value is being waited on.
+   *
+   * @return the expression whose value is being waited on
+   */
+  Expression get expression => _expression;
+
+  @override
+  int get precedence => 0;
+
+  /**
+   * Set the expression whose value is being waited on to the given expression.
+   *
+   * @param expression the expression whose value is being waited on
+   */
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    safelyVisitChild(_expression, visitor);
+  }
 }
 
 /**
@@ -2759,10 +2856,21 @@ class Block extends Statement {
  *
  * <pre>
  * blockFunctionBody ::=
- *     [Block]
+ *     ('async' | 'async' '*' | 'sync' '*')? [Block]
  * </pre>
  */
 class BlockFunctionBody extends FunctionBody {
+  /**
+   * The token representing the 'async' or 'sync' keyword, or `null` if there is no such
+   * keyword.
+   */
+  Token keyword;
+
+  /**
+   * The star optionally following the 'async' or following the 'sync' keyword.
+   */
+  Token star;
+
   /**
    * The block representing the body of the function.
    */
@@ -2771,9 +2879,11 @@ class BlockFunctionBody extends FunctionBody {
   /**
    * Initialize a newly created function body consisting of a block of statements.
    *
+   * @param keyword the token representing the 'async' or 'sync' keyword
+   * @param star the star following the 'async' or 'sync' keyword
    * @param block the block representing the body of the function
    */
-  BlockFunctionBody(Block block) {
+  BlockFunctionBody(this.keyword, this.star, Block block) {
     this._block = becomeParentOf(block);
   }
 
@@ -2792,6 +2902,21 @@ class BlockFunctionBody extends FunctionBody {
 
   @override
   Token get endToken => _block.endToken;
+
+  @override
+  bool get isAsynchronous {
+    if (keyword == null) {
+      return false;
+    }
+    String keywordValue = keyword.lexeme;
+    return keywordValue == Parser.ASYNC;
+  }
+
+  @override
+  bool get isGenerator => star != null;
+
+  @override
+  bool get isSynchronous => keyword == null || keyword.lexeme != Parser.ASYNC;
 
   /**
    * Set the block representing the body of the function to the given block.
@@ -6221,10 +6346,15 @@ abstract class Expression extends AstNode {
  *
  * <pre>
  * expressionFunctionBody ::=
- *     '=>' [Expression] ';'
+ *     'async'? '=>' [Expression] ';'
  * </pre>
  */
 class ExpressionFunctionBody extends FunctionBody {
+  /**
+   * The token representing the 'async' keyword, or `null` if there is no such keyword.
+   */
+  Token keyword;
+
   /**
    * The token introducing the expression that represents the body of the function.
    */
@@ -6243,12 +6373,13 @@ class ExpressionFunctionBody extends FunctionBody {
   /**
    * Initialize a newly created function body consisting of a block of statements.
    *
+   * @param keyword the token representing the 'async' keyword
    * @param functionDefinition the token introducing the expression that represents the body of the
    *          function
    * @param expression the expression representing the body of the function
    * @param semicolon the semicolon terminating the statement
    */
-  ExpressionFunctionBody(this.functionDefinition, Expression expression, this.semicolon) {
+  ExpressionFunctionBody(this.keyword, this.functionDefinition, Expression expression, this.semicolon) {
     this._expression = becomeParentOf(expression);
   }
 
@@ -6272,6 +6403,12 @@ class ExpressionFunctionBody extends FunctionBody {
    * @return the expression representing the body of the function
    */
   Expression get expression => _expression;
+
+  @override
+  bool get isAsynchronous => keyword != null;
+
+  @override
+  bool get isSynchronous => keyword == null;
 
   /**
    * Set the expression representing the body of the function to the given expression.
@@ -6629,11 +6766,16 @@ class FieldFormalParameter extends NormalFormalParameter {
  *
  * <pre>
  * forEachStatement ::=
- *     'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
- *   | 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
+ *     'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
+ *   | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
  * </pre>
  */
 class ForEachStatement extends Statement {
+  /**
+   * The token representing the 'await' keyword, or `null` if there is no 'await' keyword.
+   */
+  Token awaitKeyword;
+
   /**
    * The token representing the 'for' keyword.
    */
@@ -6678,6 +6820,7 @@ class ForEachStatement extends Statement {
   /**
    * Initialize a newly created for-each statement.
    *
+   * @param awaitKeyword the token representing the 'await' keyword
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis
    * @param loopVariable the declaration of the loop variable
@@ -6685,7 +6828,7 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.con1(this.forKeyword, this.leftParenthesis, DeclaredIdentifier loopVariable, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
+  ForEachStatement.con1(this.awaitKeyword, this.forKeyword, this.leftParenthesis, DeclaredIdentifier loopVariable, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
     this._loopVariable = becomeParentOf(loopVariable);
     this._iterator = becomeParentOf(iterator);
     this._body = becomeParentOf(body);
@@ -6694,6 +6837,7 @@ class ForEachStatement extends Statement {
   /**
    * Initialize a newly created for-each statement.
    *
+   * @param awaitKeyword the token representing the 'await' keyword
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis
    * @param identifier the loop variable
@@ -6701,7 +6845,7 @@ class ForEachStatement extends Statement {
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  ForEachStatement.con2(this.forKeyword, this.leftParenthesis, SimpleIdentifier identifier, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
+  ForEachStatement.con2(this.awaitKeyword, this.forKeyword, this.leftParenthesis, SimpleIdentifier identifier, this.inKeyword, Expression iterator, this.rightParenthesis, Statement body) {
     this._identifier = becomeParentOf(identifier);
     this._iterator = becomeParentOf(iterator);
     this._body = becomeParentOf(body);
@@ -7226,6 +7370,26 @@ class FormalParameterList extends AstNode {
  * </pre>
  */
 abstract class FunctionBody extends AstNode {
+  /**
+   * Return `true` if this function body is asynchronous.
+   *
+   * @return `true` if this function body is asynchronous
+   */
+  bool get isAsynchronous => false;
+
+  /**
+   * Return `true` if this function body is a generator.
+   *
+   * @return `true` if this function body is a generator
+   */
+  bool get isGenerator => false;
+
+  /**
+   * Return `true` if this function body is synchronous.
+   *
+   * @return `true` if this function body is synchronous
+   */
+  bool get isSynchronous => true;
 }
 
 /**
@@ -7938,6 +8102,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitAssignmentExpression(AssignmentExpression node) => visitExpression(node);
 
   @override
+  R visitAwaitExpression(AwaitExpression node) => visitExpression(node);
+
+  @override
   R visitBinaryExpression(BinaryExpression node) => visitExpression(node);
 
   @override
@@ -8269,6 +8436,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitWithClause(WithClause node) => visitNode(node);
+
+  @override
+  R visitYieldStatement(YieldStatement node) => visitStatement(node);
 }
 
 class GeneralizingAstVisitor_BreadthFirstVisitor extends GeneralizingAstVisitor<Object> {
@@ -8819,6 +8989,9 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  AwaitExpression visitAwaitExpression(AwaitExpression node) => new AwaitExpression(_mapToken(node.awaitKeyword), _cloneNode(node.expression), _mapToken(node.semicolon));
+
+  @override
   BinaryExpression visitBinaryExpression(BinaryExpression node) {
     BinaryExpression copy = new BinaryExpression(_cloneNode(node.leftOperand), _mapToken(node.operator), _cloneNode(node.rightOperand));
     copy.propagatedElement = node.propagatedElement;
@@ -8832,7 +9005,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   Block visitBlock(Block node) => new Block(_mapToken(node.leftBracket), _cloneNodeList(node.statements), _mapToken(node.rightBracket));
 
   @override
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(_cloneNode(node.block));
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) => new BlockFunctionBody(_mapToken(node.keyword), _mapToken(node.star), _cloneNode(node.block));
 
   @override
   BooleanLiteral visitBooleanLiteral(BooleanLiteral node) {
@@ -8946,7 +9119,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(_mapToken(node.functionDefinition), _cloneNode(node.expression), _mapToken(node.semicolon));
+  ExpressionFunctionBody visitExpressionFunctionBody(ExpressionFunctionBody node) => new ExpressionFunctionBody(_mapToken(node.keyword), _mapToken(node.functionDefinition), _cloneNode(node.expression), _mapToken(node.semicolon));
 
   @override
   ExpressionStatement visitExpressionStatement(ExpressionStatement node) => new ExpressionStatement(_cloneNode(node.expression), _mapToken(node.semicolon));
@@ -8964,9 +9137,9 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   ForEachStatement visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
     if (loopVariable == null) {
-      return new ForEachStatement.con2(_mapToken(node.forKeyword), _mapToken(node.leftParenthesis), _cloneNode(node.identifier), _mapToken(node.inKeyword), _cloneNode(node.iterator), _mapToken(node.rightParenthesis), _cloneNode(node.body));
+      return new ForEachStatement.con2(_mapToken(node.awaitKeyword), _mapToken(node.forKeyword), _mapToken(node.leftParenthesis), _cloneNode(node.identifier), _mapToken(node.inKeyword), _cloneNode(node.iterator), _mapToken(node.rightParenthesis), _cloneNode(node.body));
     }
-    return new ForEachStatement.con1(_mapToken(node.forKeyword), _mapToken(node.leftParenthesis), _cloneNode(loopVariable), _mapToken(node.inKeyword), _cloneNode(node.iterator), _mapToken(node.rightParenthesis), _cloneNode(node.body));
+    return new ForEachStatement.con1(_mapToken(node.awaitKeyword), _mapToken(node.forKeyword), _mapToken(node.leftParenthesis), _cloneNode(loopVariable), _mapToken(node.inKeyword), _cloneNode(node.iterator), _mapToken(node.rightParenthesis), _cloneNode(node.body));
   }
 
   @override
@@ -9339,6 +9512,9 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   WithClause visitWithClause(WithClause node) => new WithClause(_mapToken(node.withKeyword), _cloneNodeList(node.mixinTypes));
+
+  @override
+  YieldStatement visitYieldStatement(YieldStatement node) => new YieldStatement(_mapToken(node.yieldKeyword), _mapToken(node.star), _cloneNode(node.expression), _mapToken(node.semicolon));
 
   AstNode _cloneNode(AstNode node) {
     if (node == null) {
@@ -11640,6 +11816,14 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitAwaitExpression(AwaitExpression node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitBinaryExpression(BinaryExpression node) {
     if (identical(node.leftOperand, _oldNode)) {
       node.leftOperand = _newNode as Expression;
@@ -12630,6 +12814,14 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitWithClause(WithClause node) {
     if (_replaceInList(node.mixinTypes)) {
       return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitYieldStatement(YieldStatement node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as Expression;
     }
     return visitNode(node);
   }
@@ -13722,6 +13914,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R visitAwaitExpression(AwaitExpression node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
     return null;
@@ -14296,6 +14494,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
     node.visitChildren(this);
     return null;
   }
+
+  @override
+  R visitYieldStatement(YieldStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
 }
 
 /**
@@ -14793,6 +14997,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitAssignmentExpression(AssignmentExpression node) => null;
 
   @override
+  R visitAwaitExpression(AwaitExpression node) => null;
+
+  @override
   R visitBinaryExpression(BinaryExpression node) => null;
 
   @override
@@ -15079,6 +15286,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitWithClause(WithClause node) => null;
+
+  @override
+  R visitYieldStatement(YieldStatement node) => null;
 }
 
 /**
@@ -16330,6 +16540,14 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
+  Object visitAwaitExpression(AwaitExpression node) {
+    _writer.print("await ");
+    _visitNode(node.expression);
+    _writer.print(";");
+    return null;
+  }
+
+  @override
   Object visitBinaryExpression(BinaryExpression node) {
     _visitNode(node.leftOperand);
     _writer.print(' ');
@@ -16349,6 +16567,14 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
+    Token keyword = node.keyword;
+    if (keyword != null) {
+      _writer.print(keyword.lexeme);
+      if (node.star != null) {
+        _writer.print('*');
+      }
+      _writer.print(' ');
+    }
     _visitNode(node.block);
     return null;
   }
@@ -16552,6 +16778,11 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    Token keyword = node.keyword;
+    if (keyword != null) {
+      _writer.print(keyword.lexeme);
+      _writer.print(' ');
+    }
     _writer.print("=> ");
     _visitNode(node.expression);
     if (node.semicolon != null) {
@@ -16596,6 +16827,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
+    if (node.awaitKeyword != null) {
+      _writer.print("await ");
+    }
     _writer.print("for (");
     if (loopVariable == null) {
       _visitNode(node.identifier);
@@ -17200,6 +17434,18 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitWithClause(WithClause node) {
     _writer.print("with ");
     _visitNodeListWithSeparator(node.mixinTypes, ", ");
+    return null;
+  }
+
+  @override
+  Object visitYieldStatement(YieldStatement node) {
+    if (node.star != null) {
+      _writer.print("yield* ");
+    } else {
+      _writer.print("yield ");
+    }
+    _visitNode(node.expression);
+    _writer.print(";");
     return null;
   }
 
@@ -17978,6 +18224,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
 
   @override
+  R visitAwaitExpression(AwaitExpression node) => visitNode(node);
+
+  @override
   R visitBinaryExpression(BinaryExpression node) => visitNode(node);
 
   @override
@@ -18269,6 +18518,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitWithClause(WithClause node) => visitNode(node);
+
+  @override
+  R visitYieldStatement(YieldStatement node) => visitNode(node);
 }
 
 /**
@@ -18863,6 +19115,83 @@ class WithClause extends AstNode {
   @override
   void visitChildren(AstVisitor visitor) {
     _mixinTypes.accept(visitor);
+  }
+}
+
+/**
+ * Instances of the class `YieldStatement` implement a yield statement.
+ */
+class YieldStatement extends Statement {
+  /**
+   * The 'yield' keyword.
+   */
+  Token yieldKeyword;
+
+  /**
+   * The star optionally following the 'yield' keyword.
+   */
+  Token star;
+
+  /**
+   * The expression whose value will be yielded.
+   */
+  Expression _expression;
+
+  /**
+   * The semicolon following the expression.
+   */
+  Token semicolon;
+
+  /**
+   * Initialize a newly created yield expression.
+   *
+   * @param yieldKeyword the 'yield' keyword
+   * @param star the star following the 'yield' keyword
+   * @param expression the expression whose value will be yielded
+   * @param semicolon the semicolon following the expression
+   */
+  YieldStatement(this.yieldKeyword, this.star, Expression expression, this.semicolon) {
+    this._expression = becomeParentOf(expression);
+  }
+
+  @override
+  accept(AstVisitor visitor) => visitor.visitYieldStatement(this);
+
+  @override
+  Token get beginToken {
+    if (yieldKeyword != null) {
+      return yieldKeyword;
+    }
+    return _expression.beginToken;
+  }
+
+  @override
+  Token get endToken {
+    if (semicolon != null) {
+      return semicolon;
+    }
+    return _expression.endToken;
+  }
+
+  /**
+   * Return the expression whose value will be yielded.
+   *
+   * @return the expression whose value will be yielded
+   */
+  Expression get expression => _expression;
+
+  /**
+   * Set the expression whose value will be yielded to the given expression.
+   *
+   * @param expression the expression whose value will be yielded
+   */
+  void set expression(Expression expression) {
+    this._expression = becomeParentOf(expression);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    safelyVisitChild(_expression, visitor);
   }
 }
 /**

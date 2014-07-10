@@ -1636,6 +1636,31 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_fromEnvironment_bool_badArgs() {
+    Source source = addSource(EngineTestCase.createSource([
+        "var b1 = const bool.fromEnvironment(1);",
+        "var b2 = const bool.fromEnvironment('x', defaultValue: 1);"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
+  void test_fromEnvironment_bool_badDefault_whenDefined() {
+    // The type of the defaultValue needs to be correct even when the default value
+    // isn't used (because the variable is defined in the environment).
+    analysisContext2.declaredVariables.define("x", "true");
+    Source source = addSource(EngineTestCase.createSource(["var b = const bool.fromEnvironment('x', defaultValue: 1);"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+
   void test_getterAndMethodWithSameName() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  x(y) {}", "  get x => 0;", "}"]));
     resolve(source);
@@ -4572,6 +4597,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_finalNotInitialized_local_const', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_finalNotInitialized_local_const);
+      });
+      _ut.test('test_fromEnvironment_bool_badArgs', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_fromEnvironment_bool_badArgs);
+      });
+      _ut.test('test_fromEnvironment_bool_badDefault_whenDefined', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_fromEnvironment_bool_badDefault_whenDefined);
       });
       _ut.test('test_getterAndMethodWithSameName', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -10184,27 +10217,6 @@ class MemberMapTest extends JUnitTestCase {
 }
 
 class NonErrorResolverTest extends ResolverTestCase {
-  void fail_invalidAssignment_implicitlyImplementFunctionViaCall_2() {
-    // 18341
-    //
-    // Here 'C' checks as a subtype of 'I', but 'C' does not
-    // check as a subtype of 'IntToInt'. Together with
-    // 'test_invalidAssignment_implicitlyImplementFunctionViaCall_1()' we see
-    // that subtyping is not transitive here.
-    Source source = addSource(EngineTestCase.createSource([
-        "class I {",
-        "  int call(int x) => 0;",
-        "}",
-        "class C implements I {",
-        "  noSuchMethod(_) => null;",
-        "}",
-        "typedef int IntToInt(int x);",
-        "IntToInt f = new C();"]));
-    resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-  }
-
   void test_ambiguousExport() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
@@ -11805,7 +11817,7 @@ class NonErrorResolverTest extends ResolverTestCase {
   void test_invalidAssignment_implicitlyImplementFunctionViaCall_1() {
     // 18341
     //
-    // This test and 'fail/test_invalidAssignment_implicitlyImplementFunctionViaCall_2()'
+    // This test and 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()'
     // are closely related: here we see that 'I' checks as a subtype of 'IntToInt'.
     Source source = addSource(EngineTestCase.createSource([
         "class I {",
@@ -11821,10 +11833,31 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_invalidAssignment_implicitlyImplementFunctionViaCall_2() {
+    // 18341
+    //
+    // Here 'C' checks as a subtype of 'I', but 'C' does not
+    // check as a subtype of 'IntToInt'. Together with
+    // 'test_invalidAssignment_implicitlyImplementFunctionViaCall_1()' we see
+    // that subtyping is not transitive here.
+    Source source = addSource(EngineTestCase.createSource([
+        "class I {",
+        "  int call(int x) => 0;",
+        "}",
+        "class C implements I {",
+        "  noSuchMethod(_) => null;",
+        "}",
+        "typedef int IntToInt(int x);",
+        "IntToInt f = new C();"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_invalidAssignment_implicitlyImplementFunctionViaCall_3() {
     // 18341
     //
-    // Like 'fail/test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
+    // Like 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
     // but uses type 'Function' instead of more precise type 'IntToInt' for 'f'.
     Source source = addSource(EngineTestCase.createSource([
         "class I {",
@@ -11835,6 +11868,30 @@ class NonErrorResolverTest extends ResolverTestCase {
         "}",
         "typedef int IntToInt(int x);",
         "Function f = new C();"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidAssignment_implicitlyImplementFunctionViaCall_4() {
+    // 18341
+    //
+    // Like 'test_invalidAssignment_implicitlyImplementFunctionViaCall_2()',
+    // but uses type 'VoidToInt' instead of more precise type 'IntToInt' for 'f'.
+    //
+    // Here 'C <: IntToInt <: VoidToInt', but the spec gives no transitivity rule
+    // for '<:'. However, many of the :/tools/test.py tests assume this transitivity
+    // for 'JsBuilder' objects, assigning them to '(String) -> dynamic'. The declared type of
+    // 'JsBuilder.call' is '(String, [dynamic]) -> Expression'.
+    Source source = addSource(EngineTestCase.createSource([
+        "class I {",
+        "  int call([int x]) => 0;",
+        "}",
+        "class C implements I {",
+        "  noSuchMethod(_) => null;",
+        "}",
+        "typedef int VoidToInt();",
+        "VoidToInt f = new C();"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -14754,9 +14811,17 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invalidAssignment_implicitlyImplementFunctionViaCall_1);
       });
+      _ut.test('test_invalidAssignment_implicitlyImplementFunctionViaCall_2', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_implicitlyImplementFunctionViaCall_2);
+      });
       _ut.test('test_invalidAssignment_implicitlyImplementFunctionViaCall_3', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invalidAssignment_implicitlyImplementFunctionViaCall_3);
+      });
+      _ut.test('test_invalidAssignment_implicitlyImplementFunctionViaCall_4', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_implicitlyImplementFunctionViaCall_4);
       });
       _ut.test('test_invalidAssignment_toDynamic', () {
         final __test = new NonErrorResolverTest();
@@ -25946,7 +26011,14 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get boolType {
     if (_boolType == null) {
-      _boolType = ElementFactory.classElement2("bool", []).type;
+      ClassElementImpl boolElement = ElementFactory.classElement2("bool", []);
+      _boolType = boolElement.type;
+      ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(boolElement, "fromEnvironment", true, []);
+      fromEnvironment.parameters = <ParameterElement> [
+          ElementFactory.requiredParameter2("name", stringType),
+          ElementFactory.namedParameter2("defaultValue", _boolType)];
+      fromEnvironment.factory = true;
+      boolElement.constructors = <ConstructorElement> [fromEnvironment];
     }
     return _boolType;
   }
@@ -26114,6 +26186,12 @@ class TestTypeProvider implements TypeProvider {
           ElementFactory.methodElement("+", _stringType, [_stringType]),
           ElementFactory.methodElement("toLowerCase", _stringType, []),
           ElementFactory.methodElement("toUpperCase", _stringType, [])];
+      ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(stringElement, "fromEnvironment", true, []);
+      fromEnvironment.parameters = <ParameterElement> [
+          ElementFactory.requiredParameter2("name", stringType),
+          ElementFactory.namedParameter2("defaultValue", _stringType)];
+      fromEnvironment.factory = true;
+      stringElement.constructors = <ConstructorElement> [fromEnvironment];
     }
     return _stringType;
   }
@@ -26203,6 +26281,12 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.methodElement("ceil", _intType, []),
         ElementFactory.methodElement("truncate", _intType, []),
         ElementFactory.methodElement("toString", _stringType, [])];
+    ConstructorElementImpl fromEnvironment = ElementFactory.constructorElement(intElement, "fromEnvironment", true, []);
+    fromEnvironment.parameters = <ParameterElement> [
+        ElementFactory.requiredParameter2("name", stringType),
+        ElementFactory.namedParameter2("defaultValue", _intType)];
+    fromEnvironment.factory = true;
+    intElement.constructors = <ConstructorElement> [fromEnvironment];
     List<FieldElement> fields = <FieldElement> [
         ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
         ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType),

@@ -40,13 +40,21 @@ class AstFactory {
 
   static AssignmentExpression assignmentExpression(Expression leftHandSide, TokenType operator, Expression rightHandSide) => new AssignmentExpression(leftHandSide, TokenFactory.tokenFromType(operator), rightHandSide);
 
+  static BlockFunctionBody asyncBlockFunctionBody(List<Statement> statements) => new BlockFunctionBody(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"), null, block(statements));
+
+  static ExpressionFunctionBody asyncExpressionFunctionBody(Expression expression) => new ExpressionFunctionBody(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"), TokenFactory.tokenFromType(TokenType.FUNCTION), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static BlockFunctionBody asyncGeneratorBlockFunctionBody(List<Statement> statements) => new BlockFunctionBody(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"), TokenFactory.tokenFromType(TokenType.STAR), block(statements));
+
+  static AwaitExpression awaitExpression(Expression expression) => new AwaitExpression(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "await"), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
   static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator, Expression rightOperand) => new BinaryExpression(leftOperand, TokenFactory.tokenFromType(operator), rightOperand);
 
   static Block block(List<Statement> statements) => new Block(TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(statements), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
 
-  static BlockFunctionBody blockFunctionBody(Block block) => new BlockFunctionBody(block);
+  static BlockFunctionBody blockFunctionBody(Block block) => new BlockFunctionBody(null, null, block);
 
-  static BlockFunctionBody blockFunctionBody2(List<Statement> statements) => new BlockFunctionBody(block(statements));
+  static BlockFunctionBody blockFunctionBody2(List<Statement> statements) => new BlockFunctionBody(null, null, block(statements));
 
   static BooleanLiteral booleanLiteral(bool value) => new BooleanLiteral(value ? TokenFactory.tokenFromKeyword(Keyword.TRUE) : TokenFactory.tokenFromKeyword(Keyword.FALSE), value);
 
@@ -127,7 +135,7 @@ class AstFactory {
 
   static ExportDirective exportDirective2(String uri, List<Combinator> combinators) => exportDirective(new List<Annotation>(), uri, combinators);
 
-  static ExpressionFunctionBody expressionFunctionBody(Expression expression) => new ExpressionFunctionBody(TokenFactory.tokenFromType(TokenType.FUNCTION), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  static ExpressionFunctionBody expressionFunctionBody(Expression expression) => new ExpressionFunctionBody(null, TokenFactory.tokenFromType(TokenType.FUNCTION), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static ExpressionStatement expressionStatement(Expression expression) => new ExpressionStatement(expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -141,9 +149,9 @@ class AstFactory {
 
   static FieldFormalParameter fieldFormalParameter2(String identifier) => fieldFormalParameter(null, null, identifier);
 
-  static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.con1(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+  static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable, Expression iterator, Statement body) => new ForEachStatement.con1(null, TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), loopVariable, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
 
-  static ForEachStatement forEachStatement2(SimpleIdentifier identifier, Expression iterator, Statement body) => new ForEachStatement.con2(TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), identifier, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
+  static ForEachStatement forEachStatement2(SimpleIdentifier identifier, Expression iterator, Statement body) => new ForEachStatement.con2(null, TokenFactory.tokenFromKeyword(Keyword.FOR), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), identifier, TokenFactory.tokenFromKeyword(Keyword.IN), iterator, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
 
   static FormalParameterList formalParameterList(List<FormalParameter> parameters) => new FormalParameterList(TokenFactory.tokenFromType(TokenType.OPEN_PAREN), list(parameters), null, null, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN));
 
@@ -347,6 +355,10 @@ class AstFactory {
     return new SymbolLiteral(TokenFactory.tokenFromType(TokenType.HASH), new List.from(identifierList));
   }
 
+  static BlockFunctionBody syncBlockFunctionBody(List<Statement> statements) => new BlockFunctionBody(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"), null, block(statements));
+
+  static BlockFunctionBody syncGeneratorBlockFunctionBody(List<Statement> statements) => new BlockFunctionBody(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "sync"), TokenFactory.tokenFromType(TokenType.STAR), block(statements));
+
   static ThisExpression thisExpression() => new ThisExpression(TokenFactory.tokenFromKeyword(Keyword.THIS));
 
   static ThrowExpression throwExpression() => throwExpression2(null);
@@ -425,4 +437,8 @@ class AstFactory {
   static WhileStatement whileStatement(Expression condition, Statement body) => new WhileStatement(TokenFactory.tokenFromKeyword(Keyword.WHILE), TokenFactory.tokenFromType(TokenType.OPEN_PAREN), condition, TokenFactory.tokenFromType(TokenType.CLOSE_PAREN), body);
 
   static WithClause withClause(List<TypeName> types) => new WithClause(TokenFactory.tokenFromKeyword(Keyword.WITH), list(types));
+
+  static YieldStatement yieldEachStatement(Expression expression) => new YieldStatement(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"), TokenFactory.tokenFromType(TokenType.STAR), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+
+  static YieldStatement yieldStatement(Expression expression) => new YieldStatement(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "yield"), null, expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
 }
