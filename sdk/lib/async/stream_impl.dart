@@ -354,10 +354,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
       // future to finish we must not report the error.
       if (_isCanceled && !_waitsForCancel) return;
       _state |= _STATE_IN_CALLBACK;
-      if (!_zone.inSameErrorZone(Zone.current)) {
-        // Errors are not allowed to traverse zone boundaries.
-        Zone.current.handleUncaughtError(error, stackTrace);
-      } else if (_onError is ZoneBinaryCallback) {
+      if (_onError is ZoneBinaryCallback) {
         _zone.runBinaryGuarded(_onError, error, stackTrace);
       } else {
         _zone.runUnaryGuarded(_onError, error);

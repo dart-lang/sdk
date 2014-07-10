@@ -20,6 +20,8 @@ main() {
   catchErrors(() {
     catchErrors(() {
       controller = new StreamController();
+
+      // Assign to "global" `stream`.
       stream = controller.stream
         .map((x) {
           events.add("map $x");
@@ -28,18 +30,25 @@ main() {
         .transform(new StreamTransformer.fromHandlers(
             handleError: (e, st, sink) { sink.add("error $e"); }))
         .asBroadcastStream();
+
+      // Listen to `stream` in the inner zone.
       stream.listen((x) { events.add("stream $x"); });
     }).listen((x) { events.add(x); })
       .asFuture().then((_) { Expect.fail("Unexpected callback"); });
+
+    // Listen to `stream` in the outer zone.
     stream.listen((x) { events.add("stream2 $x"); });
+
+    // Feed the controller from the outer zone.
     controller.add(1);
-    // Errors are not allowed to traverse boundaries. This error should be
-    // caught by the outer catchErrors.
-    controller.addError(2);
+    // `addError` does not count as zone-traversal. It should be caught by
+    // the inner error handler.
+    controller.addError("inner error");
+    new Future.error("caught by outer");
     controller.close();
   }).listen((x) {
                   events.add("outer: $x");
-                  if (x == 2) done.complete(true);
+                  if (x == "caught by outer") done.complete(true);
                 },
             onDone: () { Expect.fail("Unexpected callback"); });
 
@@ -47,9 +56,11 @@ main() {
     // Give handlers time to run.
     Timer.run(() {
       Expect.listEquals(["map 1",
-                        "stream 101",
-                        "stream2 101",
-                        "outer: 2",
+                         "stream 101",
+                         "stream2 101",
+                         "stream error inner error",
+                         "stream2 error inner error",
+                         "outer: caught by outer",
                         ],
                         events);
       asyncEnd();

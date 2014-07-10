@@ -27,20 +27,20 @@ main() {
         .listen((x) { events.add("stream $x"); });
     }).listen((x) { events.add(x); });
     controller.add(1);
-    // Errors are not allowed to traverse boundaries. This error should be
-    // caught by the outer catchErrors.
     controller.addError(2);
+    new Future.error("outer error");
     controller.close();
   }).listen((x) {
               events.add("outer: $x");
-              if (x == 2) done.complete(true);
+              if (x == "outer error") done.complete(true);
             }, onDone: () { Expect.fail("Unexpected callback"); });
 
   done.future.whenComplete(() {
     Timer.run(() {
       Expect.listEquals(["map 1",
-                          "stream 101",
-                          "outer: 2",
+                         "stream 101",
+                         "stream error 2",
+                         "outer: outer error",
                         ],
                         events);
       asyncEnd();
