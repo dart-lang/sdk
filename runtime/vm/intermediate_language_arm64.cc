@@ -4945,12 +4945,16 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = !IsNullCheck() ? 1 : 0;
+  const bool need_mask_temp = IsDenseSwitch() && !IsDenseMask(ComputeCidMask());
+  const intptr_t kNumTemps = !IsNullCheck() ? (need_mask_temp ? 2 : 1) : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   if (!IsNullCheck()) {
     summary->set_temp(0, Location::RequiresRegister());
+    if (need_mask_temp) {
+      summary->set_temp(1, Location::RequiresRegister());
+    }
   }
   return summary;
 }
@@ -4982,17 +4986,64 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(deopt, EQ);
   }
   __ LoadClassId(temp, value, PP);
-  const intptr_t num_checks = unary_checks().NumberOfChecks();
-  for (intptr_t i = cix; i < num_checks; i++) {
-    ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
-    __ CompareImmediate(temp, unary_checks().GetReceiverClassIdAt(i), PP);
-    if (i == (num_checks - 1)) {
-      __ b(deopt, NE);
-    } else {
-      __ b(&is_ok, EQ);
+
+  if (IsDenseSwitch()) {
+    ASSERT(cids_[0] < cids_[cids_.length() - 1]);
+    __ AddImmediate(temp, temp, -cids_[0], PP);
+    __ CompareImmediate(temp, cids_[cids_.length() - 1] - cids_[0], PP);
+    __ b(deopt, HI);
+
+    intptr_t mask = ComputeCidMask();
+    if (!IsDenseMask(mask)) {
+      // Only need mask if there are missing numbers in the range.
+      ASSERT(cids_.length() > 2);
+      Register mask_reg = locs()->temp(1).reg();
+      __ LoadImmediate(mask_reg, 1, PP);
+      __ Lsl(mask_reg, mask_reg, temp);
+      __ TestImmediate(mask_reg, mask, PP);
+      __ b(deopt, EQ);
+    }
+
+  } else {
+    const intptr_t num_checks = unary_checks().NumberOfChecks();
+    for (intptr_t i = cix; i < num_checks; i++) {
+      ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
+      __ CompareImmediate(temp, unary_checks().GetReceiverClassIdAt(i), PP);
+      if (i == (num_checks - 1)) {
+        __ b(deopt, NE);
+      } else {
+        __ b(&is_ok, EQ);
+      }
     }
   }
   __ Bind(&is_ok);
+}
+
+
+LocationSummary* CheckClassIdInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  return summary;
+}
+
+
+void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = locs()->in(0).reg();
+  Location right = locs()->in(1);
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
+  if (right.IsRegister()) {
+    __ cmp(left, Operand(right.reg()));
+  } else {
+    ASSERT(right.IsConstant());
+    const Object& right_const = Smi::Cast(right.constant());
+    __ CompareImmediate(left, reinterpret_cast<int64_t>(right_const.raw()), PP);
+  }
+  __ b(deopt, NE);
 }
 
 

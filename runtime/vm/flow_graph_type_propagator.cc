@@ -276,6 +276,16 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 }
 
 
+void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
+  LoadClassIdInstr* load_cid = check->left()->definition()->AsLoadClassId();
+  ConstantInstr* right_const = check->right()->definition()->AsConstant();
+  if (load_cid != NULL && right_const != NULL) {
+    SetCid(load_cid->object()->definition(),
+           Smi::Cast(right_const->value()).Value());
+  }
+}
+
+
 void FlowGraphTypePropagator::VisitGuardFieldClass(
     GuardFieldClassInstr* guard) {
   const intptr_t cid = guard->field().guarded_cid();

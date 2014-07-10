@@ -1319,6 +1319,7 @@ bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
       RedefinitionInstr(actual->Copy(isolate()));
   redefinition->set_ssa_temp_index(
       owner_->caller_graph()->alloc_ssa_temp_index());
+  redefinition->UpdateType(CompileType::FromCid(receiver_cid));
   redefinition->InsertAfter(callee_graph->graph_entry()->normal_entry());
   Definition* stub = (*call_data.parameter_stubs)[0];
   stub->ReplaceUsesWith(redefinition);
@@ -1433,40 +1434,21 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     // 1. Guard the body with a class id check.
     if ((i == (inlined_variants_.length() - 1)) &&
         non_inlined_variants_.is_empty()) {
-      // If it is the last variant use a check class or check smi
-      // instruction which can deoptimize, followed unconditionally by the
-      // body.  Check a redefinition of the receiver, to prevent the check
-      // from being hoisted.
-      RedefinitionInstr* redefinition =
-          new(isolate()) RedefinitionInstr(new(isolate()) Value(receiver));
-      redefinition->set_ssa_temp_index(
+      // If it is the last variant use a check class id instruction which can
+      // deoptimize, followed unconditionally by the body.
+      const Smi& cid = Smi::ZoneHandle(Smi::New(inlined_variants_[i].cid));
+      ConstantInstr* cid_constant = new(isolate()) ConstantInstr(cid);
+      cid_constant->set_ssa_temp_index(
           owner_->caller_graph()->alloc_ssa_temp_index());
-      cursor = AppendInstruction(cursor, redefinition);
-      if (inlined_variants_[i].cid == kSmiCid) {
-        CheckSmiInstr* check_smi =
-            new CheckSmiInstr(new Value(redefinition),
-                              call_->deopt_id(),
-                              call_->token_pos());
-        check_smi->InheritDeoptTarget(isolate(), call_);
-        cursor = AppendInstruction(cursor, check_smi);
-      } else {
-        const ICData& old_checks = call_->ic_data();
-        const ICData& new_checks = ICData::ZoneHandle(
-            ICData::New(Function::Handle(old_checks.owner()),
-                        String::Handle(old_checks.target_name()),
-                        Array::Handle(old_checks.arguments_descriptor()),
-                        old_checks.deopt_id(),
-                        1));  // Number of args tested.
-        new_checks.AddReceiverCheck(inlined_variants_[i].cid,
-                                    *inlined_variants_[i].target);
-        CheckClassInstr* check_class =
-            new CheckClassInstr(new Value(redefinition),
-                                call_->deopt_id(),
-                                new_checks,
-                                call_->token_pos());
-        check_class->InheritDeoptTarget(isolate(), call_);
-        cursor = AppendInstruction(cursor, check_class);
-      }
+      cursor = AppendInstruction(cursor, cid_constant);
+
+      CheckClassIdInstr* check_class_id =
+          new(isolate()) CheckClassIdInstr(new(isolate()) Value(load_cid),
+                                           new(isolate()) Value(cid_constant),
+                                           call_->deopt_id());
+      check_class_id->InheritDeoptTarget(isolate(), call_);
+      cursor = AppendInstruction(cursor, check_class_id);
+
       // The next instruction is the first instruction of the inlined body.
       // Handle the two possible cases (unshared and shared subsequent
       // predecessors) separately.

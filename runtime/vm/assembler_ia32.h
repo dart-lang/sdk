@@ -594,6 +594,8 @@ class Assembler : public ValueObject {
 
   void bsrl(Register dst, Register src);
 
+  void bt(Register base, Register offset);
+
   void enter(const Immediate& imm);
   void leave();
 
