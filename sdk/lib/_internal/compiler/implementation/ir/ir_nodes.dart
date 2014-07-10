@@ -237,16 +237,26 @@ class InvokeConstructor extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
-class AsCast extends Expression {
+/// "as" casts and "is" checks.
+// We might want to turn "is"-checks into a [Primitive] as it can never diverge.
+// But then we need to special-case for is-checks with an erroneous .type as
+// these will throw.
+class TypeOperator extends Expression {
   final Reference receiver;
   final DartType type;
   final Reference continuation;
+  final String operator;
 
-  AsCast(Primitive receiver, this.type, Continuation cont)
+  TypeOperator(this.operator,
+                Primitive receiver,
+                this.type,
+                Continuation cont)
       : this.receiver = new Reference(receiver),
-        this.continuation = new Reference(cont);
+        this.continuation = new Reference(cont) {
+    assert(operator == "is" || operator == "as");
+  }
 
-  accept(Visitor visitor) => visitor.visitAsCast(this);
+  accept(Visitor visitor) => visitor.visitTypeOperator(this);
 }
 
 /// Invoke [toString] on each argument and concatenate the results.
@@ -447,18 +457,6 @@ class CreateFunction extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateFunction(this);
 }
 
-class IsCheck extends Primitive {
-  final Reference receiver;
-  final DartType type;
-
-  dart2js.Constant get constant => null;
-
-  IsCheck(Primitive receiver, this.type)
-      : this.receiver = new Reference(receiver);
-
-  accept(Visitor visitor) => visitor.visitIsCheck(this);
-}
-
 class Parameter extends Primitive {
   Parameter(Element element) {
     super.hint = element;
@@ -529,14 +527,13 @@ abstract class Visitor<T> {
   T visitInvokeConstructor(InvokeConstructor node) => visitExpression(node);
   T visitConcatenateStrings(ConcatenateStrings node) => visitExpression(node);
   T visitBranch(Branch node) => visitExpression(node);
-  T visitAsCast(AsCast node) => visitExpression(node);
+  T visitTypeOperator(TypeOperator node) => visitExpression(node);
   T visitSetClosureVariable(SetClosureVariable node) => visitExpression(node);
   T visitDeclareFunction(DeclareFunction node) => visitExpression(node);
 
   // Definitions.
   T visitLiteralList(LiteralList node) => visitPrimitive(node);
   T visitLiteralMap(LiteralMap node) => visitPrimitive(node);
-  T visitIsCheck(IsCheck node) => visitPrimitive(node);
   T visitConstant(Constant node) => visitPrimitive(node);
   T visitThis(This node) => visitPrimitive(node);
   T visitReifyTypeVar(ReifyTypeVar node) => visitPrimitive(node);
@@ -787,10 +784,6 @@ class RegisterAllocator extends Visitor {
     node.arguments.forEach(visitReference);
   }
 
-  void visitAsCast(AsCast node) {
-    visitReference(node.receiver);
-  }
-
   void visitInvokeContinuation(InvokeContinuation node) {
     node.arguments.forEach(visitReference);
   }
@@ -827,7 +820,7 @@ class RegisterAllocator extends Visitor {
     }
   }
 
-  void visitIsCheck(IsCheck node) {
+  void visitTypeOperator(TypeOperator node) {
     visitReference(node.receiver);
   }
 

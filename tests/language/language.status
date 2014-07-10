@@ -85,8 +85,11 @@ type_variable_bounds4_test/01: Fail # Issue 14006
 # problems in compile time constants.
 type_check_const_function_typedef2_test/00: Fail, OK
 
-[ ($compiler == none || $compiler == dart2dart) && $runtime != none ]
-dynamic_prefix_core_test/01: Fail # Issue 12478
+[ $compiler == none && $runtime != none ]
+dynamic_prefix_core_test/01: RuntimeError # Issue 12478
+
+[ $compiler == dart2dart && $runtime != none && $builder_tag != new_backend ]
+dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
 dynamic_prefix_core_test/none: Fail # Issue 12478

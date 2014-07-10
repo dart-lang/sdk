@@ -82,6 +82,7 @@ class SendVisitor extends ResolvedVisitor {
     if (element == null) {
       collector.tryMakeMemberPlaceholder(node.selector);
     } else if (element.isErroneous) {
+      collector.makeUnresolvedPlaceholder(node);
       return;
     } else if (element.isPrefix) {
       // Node is prefix part in case of source 'lib.somesetter = 5;'

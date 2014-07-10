@@ -165,18 +165,12 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "LiteralMap (${entries.join(', ')})");
   }
 
-  visitIsCheck(ir.IsCheck node) {
+  visitTypeOperator(ir.TypeOperator node) {
     String dummy = names.name(node);
+    String operator = node.operator;
     List<String> entries = new List<String>();
     String receiver = formatReference(node.receiver);
-    printStmt(dummy, "IsCheck ($receiver ${node.type})");
-  }
-
-  visitAsCast(ir.AsCast node) {
-    String dummy = names.name(node);
-    List<String> entries = new List<String>();
-    String receiver = formatReference(node.receiver);
-    printStmt(dummy, "AsCast ($receiver ${node.type})");
+    printStmt(dummy, "TypeOperator ($operator $receiver ${node.type})");
   }
 
   visitInvokeContinuation(ir.InvokeContinuation node) {
