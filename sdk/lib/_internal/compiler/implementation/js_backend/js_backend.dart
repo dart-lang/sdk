@@ -4,7 +4,7 @@
 
 library js_backend;
 
-import 'dart:async' show EventSink, Future;
+import 'dart:async' show Future;
 import 'dart:collection' show Queue, LinkedHashMap, LinkedHashSet;
 
 import '../closure.dart';
@@ -24,8 +24,6 @@ import '../types/types.dart';
 import '../universe/universe.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
-
-import '../compilation_info.dart';
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';

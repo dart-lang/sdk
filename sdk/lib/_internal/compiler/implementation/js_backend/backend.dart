@@ -842,7 +842,6 @@ class JavaScriptBackend extends Backend {
   }
 
   onResolutionComplete() {
-    super.onResolutionComplete();
     computeMembersNeededForReflection();
     rti.computeClassesNeedingRti();
   }
@@ -944,9 +943,9 @@ class JavaScriptBackend extends Backend {
     enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
   }
 
-  void enableNoSuchMethod(context, Enqueuer world) {
+  void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
-    world.registerInvocation(context, compiler.noSuchMethodSelector);
+    world.registerInvocation(compiler.noSuchMethodSelector);
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {

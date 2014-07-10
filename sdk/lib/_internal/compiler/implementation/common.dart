@@ -27,7 +27,6 @@ export 'dart_types.dart' show
 export 'elements/elements.dart' show
     ClassElement,
     ClosureFieldElement,
-    CompilationUnitElement,
     Element,
     Elements,
     FunctionElement,

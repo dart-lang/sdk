@@ -133,13 +133,13 @@ class DartBackend extends Backend {
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
     world.registerInvocation(
-        null, new Selector.call("toString", null, 0));
+        new Selector.call("toString", null, 0));
     world.registerInvokedGetter(
-        null, new Selector.getter("hashCode", null));
+        new Selector.getter("hashCode", null));
     world.registerInvocation(
-        null, new Selector.binaryOperator("=="));
+        new Selector.binaryOperator("=="));
     world.registerInvocation(
-        null, new Selector.call("compareTo", null, 1));
+        new Selector.call("compareTo", null, 1));
   }
 
   void codegen(CodegenWorkItem work) { }

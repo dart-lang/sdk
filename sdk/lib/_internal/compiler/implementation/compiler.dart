@@ -58,8 +58,6 @@ class CodegenRegistry extends Registry {
 
   bool get isForResolution => false;
 
-  Element get currentElement => treeElements.currentElement;
-
   // TODO(johnniwinther): Remove this getter when [Registry] creates a
   // dependency node.
   Setlet<Element> get otherDependencies => treeElements.otherDependencies;
@@ -84,15 +82,15 @@ class CodegenRegistry extends Registry {
   }
 
   void registerDynamicInvocation(Selector selector) {
-    world.registerDynamicInvocation(currentElement, selector);
+    world.registerDynamicInvocation(selector);
   }
 
   void registerDynamicSetter(Selector selector) {
-    world.registerDynamicSetter(currentElement, selector);
+    world.registerDynamicSetter(selector);
   }
 
   void registerDynamicGetter(Selector selector) {
-    world.registerDynamicGetter(currentElement, selector);
+    world.registerDynamicGetter(selector);
   }
 
   void registerGetterForSuperMethod(Element element) {
@@ -131,7 +129,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerSelectorUse(Selector selector) {
-    world.registerSelectorUse(currentElement, selector);
+    world.registerSelectorUse(selector);
   }
 
   void registerFactoryWithTypeArguments() {
@@ -312,8 +310,8 @@ abstract class Backend {
    * Call this method to enable [noSuchMethod] handling in the
    * backend.
    */
-  void enableNoSuchMethod(Element context, Enqueuer enqueuer) {
-    enqueuer.registerInvocation(null, compiler.noSuchMethodSelector);
+  void enableNoSuchMethod(Enqueuer enqueuer) {
+    enqueuer.registerInvocation(compiler.noSuchMethodSelector);
   }
 
   /// Call this method to enable support for isolates.
@@ -1394,7 +1392,7 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer.codegen.registerGetOfStaticFunction(main);
     }
     if (enabledNoSuchMethod) {
-      backend.enableNoSuchMethod(null, enqueuer.codegen);
+      backend.enableNoSuchMethod(enqueuer.codegen);
     }
     if (compileAll) {
       libraryLoader.libraries.forEach((LibraryElement library) {
