@@ -2745,7 +2745,7 @@ TEST_CASE(PcDescriptors) {
 
   // Verify the PcDescriptor entries by accessing them.
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
-  PcDescriptors::Iterator iter(pc_descs);
+  PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
   const RawPcDescriptors::PcDescriptorRec& rec0 = iter.Next();
   const RawPcDescriptors::PcDescriptorRec& rec1 = iter.Next();
   const RawPcDescriptors::PcDescriptorRec& rec2 = iter.Next();

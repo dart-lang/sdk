@@ -904,14 +904,15 @@ class RawInstructions : public RawObject {
 class RawPcDescriptors : public RawObject {
  public:
   enum Kind {
-    kDeopt,            // Deoptimization continuation point.
-    kIcCall,           // IC call.
-    kOptStaticCall,    // Call directly to known target, e.g. static call.
-    kUnoptStaticCall,  // Call to a known target via a stub.
-    kClosureCall,      // Closure call.
-    kRuntimeCall,      // Runtime call.
-    kOsrEntry,         // OSR entry point in unoptimized code.
-    kOther
+    kDeopt           = 1,  // Deoptimization continuation point.
+    kIcCall          = kDeopt << 1,  // IC call.
+    kOptStaticCall   = kIcCall << 1,  // Call directly to known target.
+    kUnoptStaticCall = kOptStaticCall << 1,  // Call to a known target via stub.
+    kClosureCall     = kUnoptStaticCall << 1,  // Closure call.
+    kRuntimeCall     = kClosureCall << 1,  // Runtime call.
+    kOsrEntry        = kRuntimeCall << 1,  // OSR entry point in unopt. code.
+    kOther           = kOsrEntry << 1,
+    kAnyKind         = 0xFF
   };
 
   struct PcDescriptorRec {
@@ -919,7 +920,7 @@ class RawPcDescriptors : public RawObject {
     int32_t deopt_id;
     int32_t token_pos;  // Or deopt reason.
     int16_t try_index;  // Or deopt index.
-    int8_t kind_;
+    uint8_t kind_;
 
     Kind kind() const { return static_cast<Kind>(kind_); }
   };

@@ -3034,24 +3034,46 @@ class PcDescriptors : public Object {
 
   class Iterator : ValueObject {
    public:
-    explicit Iterator(const PcDescriptors& descriptors)
-        : descriptors_(descriptors), current_ix_(0) {}
+    Iterator(const PcDescriptors& descriptors, intptr_t kind_mask)
+        : descriptors_(descriptors), kind_mask_(kind_mask), current_ix_(0) {
+      MoveToMatching();
+    }
+
+    bool HasNext() const { return current_ix_ < descriptors_.Length(); }
+
+    const RawPcDescriptors::PcDescriptorRec& Next() {
+      ASSERT(HasNext());
+      const RawPcDescriptors::PcDescriptorRec* res =
+         descriptors_.recAt(current_ix_++);
+      MoveToMatching();
+      return *res;
+    }
+
+   private:
+    friend class PcDescriptors;
 
     // For nested iterations, starting at element after.
     explicit Iterator(const Iterator& iter)
         : ValueObject(),
           descriptors_(iter.descriptors_),
+          kind_mask_(iter.kind_mask_),
           current_ix_(iter.current_ix_) {}
 
-    bool HasNext() { return current_ix_ < descriptors_.Length(); }
-
-    const RawPcDescriptors::PcDescriptorRec& Next() {
-      ASSERT(HasNext());
-      return *descriptors_.recAt(current_ix_++);
+    // Moves to record that matches kind_mask_.
+    void MoveToMatching() {
+      while (current_ix_ < descriptors_.Length()) {
+        const RawPcDescriptors::PcDescriptorRec& rec =
+            *descriptors_.recAt(current_ix_);
+        if ((rec.kind_ & kind_mask_) != 0) {
+          return;  // Current is valid.
+        } else {
+          ++current_ix_;
+        }
+      }
     }
 
-   private:
     const PcDescriptors& descriptors_;
+    const intptr_t kind_mask_;
     intptr_t current_ix_;
   };
 

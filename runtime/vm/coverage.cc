@@ -90,41 +90,37 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   const intptr_t end_pos = function.end_token_pos();
   intptr_t last_line = -1;
   intptr_t last_count = 0;
-  PcDescriptors::Iterator iter(descriptors);
+  // Only IC based calls have counting.
+  PcDescriptors::Iterator iter(descriptors,
+      RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.HasNext()) {
     HANDLESCOPE(isolate);
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    RawPcDescriptors::Kind kind = rec.kind();
-    // Only IC based calls have counting.
-    if ((kind == RawPcDescriptors::kIcCall) ||
-        (kind == RawPcDescriptors::kUnoptStaticCall)) {
-      intptr_t deopt_id = rec.deopt_id;
-      const ICData* ic_data= (*ic_data_array)[deopt_id];
-      if (!ic_data->IsNull()) {
-        intptr_t token_pos = rec.token_pos;
-        // Filter out descriptors that do not map to tokens in the source code.
-        if (token_pos < begin_pos ||
-            token_pos > end_pos) {
-          continue;
-        }
-        intptr_t line = pos_to_line[token_pos];
+    intptr_t deopt_id = rec.deopt_id;
+    const ICData* ic_data = (*ic_data_array)[deopt_id];
+    if (!ic_data->IsNull()) {
+      intptr_t token_pos = rec.token_pos;
+      // Filter out descriptors that do not map to tokens in the source code.
+      if ((token_pos < begin_pos) || (token_pos > end_pos)) {
+        continue;
+      }
+      intptr_t line = pos_to_line[token_pos];
 #if defined(DEBUG)
-        const Script& script = Script::Handle(function.script());
-        intptr_t test_line = -1;
-        script.GetTokenLocation(token_pos, &test_line, NULL);
-        ASSERT(test_line == line);
+      const Script& script = Script::Handle(function.script());
+      intptr_t test_line = -1;
+      script.GetTokenLocation(token_pos, &test_line, NULL);
+      ASSERT(test_line == line);
 #endif
-        // Merge hit data where possible.
-        if (last_line == line) {
-          last_count += ic_data->AggregateCount();
-        } else {
-          if (last_line != -1) {
-            hits_arr.AddValue(last_line);
-            hits_arr.AddValue(last_count);
-          }
-          last_count = ic_data->AggregateCount();
-          last_line = line;
+      // Merge hit data where possible.
+      if (last_line == line) {
+        last_count += ic_data->AggregateCount();
+      } else {
+        if (last_line != -1) {
+          hits_arr.AddValue(last_line);
+          hits_arr.AddValue(last_count);
         }
+        last_count = ic_data->AggregateCount();
+        last_line = line;
       }
     }
   }

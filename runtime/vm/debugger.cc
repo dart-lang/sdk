@@ -359,7 +359,7 @@ intptr_t ActivationFrame::TokenPos() {
   if (token_pos_ < 0) {
     token_pos_ = Scanner::kNoSourcePos;
     GetPcDescriptors();
-    PcDescriptors::Iterator iter(pc_desc_);
+    PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
     while (iter.HasNext()) {
       const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
       if (rec.pc == pc_) {
@@ -921,17 +921,14 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 }
 
 
-static bool IsSafeDescKind(int8_t kind) {
-  return ((kind == RawPcDescriptors::kIcCall) ||
-          (kind == RawPcDescriptors::kOptStaticCall) ||
-          (kind == RawPcDescriptors::kUnoptStaticCall) ||
-          (kind == RawPcDescriptors::kClosureCall) ||
-          (kind == RawPcDescriptors::kRuntimeCall));
-}
+const uint8_t kSafepointKind =
+    RawPcDescriptors::kIcCall |  RawPcDescriptors::kOptStaticCall |
+    RawPcDescriptors::kUnoptStaticCall | RawPcDescriptors::kClosureCall |
+    RawPcDescriptors::kRuntimeCall;
 
 
-static bool IsSafePoint(const RawPcDescriptors::PcDescriptorRec& rec) {
-  return IsSafeDescKind(rec.kind()) && (rec.token_pos != Scanner::kNoSourcePos);
+static bool HasTokenPos(const RawPcDescriptors::PcDescriptorRec& rec) {
+  return rec.token_pos != Scanner::kNoSourcePos;
 }
 
 
@@ -949,7 +946,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
   ASSERT(!code.IsNull());
   ASSERT(token_pos_ > 0);
   ASSERT(pc_ != 0);
-  ASSERT(IsSafeDescKind(breakpoint_kind_));
+  ASSERT((breakpoint_kind_ & kSafepointKind) != 0);
 }
 
 
@@ -1202,10 +1199,10 @@ void Debugger::SetInternalBreakpoints(const Function& target_function) {
   DeoptimizeWorld();
   ASSERT(!target_function.HasOptimizedCode());
   PcDescriptors& desc = PcDescriptors::Handle(isolate, code.pc_descriptors());
-  PcDescriptors::Iterator iter(desc);
+  PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (IsSafePoint(rec)) {
+    if (HasTokenPos(rec)) {
       CodeBreakpoint* bpt = GetCodeBreakpoint(rec.pc);
       if (bpt != NULL) {
         // There is already a breakpoint for this address. Make sure
@@ -1253,10 +1250,10 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   bool is_closure_call = false;
   const PcDescriptors& pc_desc =
       PcDescriptors::Handle(isolate, code.pc_descriptors());
-  PcDescriptors::Iterator iter(pc_desc);
+  PcDescriptors::Iterator iter(pc_desc, RawPcDescriptors::kClosureCall);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if ((rec.pc == pc) && (rec.kind() == RawPcDescriptors::kClosureCall)) {
+    if (rec.pc == pc) {
       is_closure_call = true;
       break;
     }
@@ -1552,12 +1549,12 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   const RawPcDescriptors::PcDescriptorRec* lowest_pc_rec = NULL;
 
   const RawPcDescriptors::PcDescriptorRec* rec = NULL;
-  PcDescriptors::Iterator iter(desc);
+  PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.HasNext()) {
     rec = &iter.Next();
     intptr_t desc_token_pos = rec->token_pos;
     ASSERT(desc_token_pos >= 0);
-    if (IsSafePoint(*rec)) {
+    if (HasTokenPos(*rec)) {
       if ((desc_token_pos < requested_token_pos) ||
           (desc_token_pos > last_token_pos)) {
         // This descriptor is outside the desired token range.
@@ -1605,12 +1602,12 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   uword lowest_pc = kUwordMax;
   // Find the safe point with the lowest compiled code address
   // that maps to the token position of the source breakpoint.
-  PcDescriptors::Iterator iter(desc);
+  PcDescriptors::Iterator iter(desc, kSafepointKind);
   const RawPcDescriptors::PcDescriptorRec* lowest_rec = NULL;
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     intptr_t desc_token_pos = rec.token_pos;
-    if ((desc_token_pos == bpt->token_pos_) && IsSafePoint(rec)) {
+    if ((desc_token_pos == bpt->token_pos_) && HasTokenPos(rec)) {
       if (rec.pc < lowest_pc) {
         lowest_pc = rec.pc;
         lowest_rec = &rec;
