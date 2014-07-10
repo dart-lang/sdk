@@ -234,6 +234,8 @@ addDiagnostic(String kind, String message, int begin, int end) {
 
 Decoration getDecoration(Token token) {
   if (token is ErrorToken) {
+    // TODO(ahe): Remove side effects from this method. It only leads to
+    // confusion.
     isMalformedInput = true;
     return new DiagnosticDecoration('error', token.assertionMessage);
   }
@@ -251,6 +253,8 @@ Decoration getDecoration(Token token) {
   if (tokenInfo == 'keyword') return currentTheme.keyword;
   if (tokenInfo == 'comment') return currentTheme.singleLineComment;
   if (tokenInfo == 'malformed input') {
+    // TODO(ahe): Remove side effects from this method. It only leads to
+    // confusion.
     isMalformedInput = true;
     return new DiagnosticDecoration('error', tokenValue);
   }

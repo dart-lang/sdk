@@ -25,6 +25,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     BeginGroupToken,
     EOF_TOKEN,
     ErrorToken,
+    STRING_INTERPOLATION_IDENTIFIER_TOKEN,
+    STRING_INTERPOLATION_TOKEN,
+    STRING_TOKEN,
     StringScanner,
     Token,
     UnmatchedToken,
@@ -32,6 +35,12 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
 
 import 'package:compiler/implementation/source_file.dart' show
     StringSourceFile;
+
+import 'package:compiler/implementation/string_validator.dart' show
+    StringValidator;
+
+import 'package:compiler/implementation/tree/tree.dart' show
+    StringQuoting;
 
 import 'compilation.dart' show
     currentSource,
@@ -1135,6 +1144,14 @@ String tokenizeAndHighlight(String line,
       if (token is BeginGroupToken && token.endGroup != null) {
         follow = token.endGroup.next;
       }
+      if (token.kind == STRING_TOKEN) {
+        follow = followString(follow);
+        if (follow is UnmatchedToken) {
+          if ('${follow.begin.value}' == r'${') {
+            newState += '${extractQuote(token.value)}';
+          }
+        }
+      }
       if (follow is ErrorToken && follow.charOffset == token.charOffset) {
         if (follow is UnmatchedToken) {
           newState += '${follow.begin.value}';
@@ -1149,7 +1166,13 @@ String tokenizeAndHighlight(String line,
       continue;
     }
 
-    Decoration decoration = editor.getDecoration(tokenToDecorate);
+    Decoration decoration;
+    if (charOffset - state.length == line.length - 1 && line.endsWith('\n')) {
+      // Don't add decorations to trailing newline.
+      decoration = null;
+    } else {
+      decoration = editor.getDecoration(tokenToDecorate);
+    }
 
     if (decoration == null) continue;
 
@@ -1281,4 +1304,34 @@ void workAroundFirefoxBug() {
     print('Selection adjusted $node@$offset -> '
           '${selection.anchorNode}@${selection.anchorOffset}.');
   }
+}
+
+/// Compute the token following a string. Compare to parseSingleLiteralString
+/// in parser.dart.
+Token followString(Token token) {
+  // TODO(ahe): I should be able to get rid of this if I change the scanner to
+  // create BeginGroupToken for strings.
+  int kind = token.kind;
+  while (kind != EOF_TOKEN) {
+    if (kind == STRING_INTERPOLATION_TOKEN) {
+      // Looking at ${expression}.
+      BeginGroupToken begin = token;
+      token = begin.endGroup.next;
+    } else if (kind == STRING_INTERPOLATION_IDENTIFIER_TOKEN) {
+      // Looking at $identifier.
+      token = token.next.next;
+    } else {
+      return token;
+    }
+    kind = token.kind;
+    if (kind != STRING_TOKEN) return token;
+    token = token.next;
+    kind = token.kind;
+  }
+  return token;
+}
+
+String extractQuote(String string) {
+  StringQuoting q = StringValidator.quotingFromString(string);
+  return (q.raw ? 'r' : '') + (q.quoteChar * q.leftQuoteLength);
 }
