@@ -82,7 +82,6 @@ import 'settings.dart' as settings;
 import 'shadow_root.dart' show
     getShadowRoot,
     getText,
-    removeShadowRootPolyfill,
     setShadowRoot;
 
 import 'iframe_error_handler.dart' show
@@ -435,60 +434,70 @@ class InitialState extends InteractionState {
       if (node is Element && node.classes.contains('lineNumber')) {
         print('Single line change: ${node.outerHtml}');
 
-        removeShadowRootPolyfill(node);
-
-        String currentText = node.text;
-
-        trySelection = trySelection.copyWithRoot(node);
-        trySelection.updateText(currentText);
-
-        editor.isMalformedInput = false;
-        int offset = 0;
-        List<Node> nodes = <Node>[];
-
-        String state = '';
-        Element previousLine = node.previousElementSibling;
-        if (previousLine != null) {
-          state = previousLine.getAttribute('dart-state');
-        }
-        for (String line in splitLines(currentText)) {
-          List<Node> lineNodes = <Node>[];
-          state = tokenizeAndHighlight(
-              line, state, offset, trySelection, lineNodes);
-          offset += line.length;
-          nodes.add(makeLine(lineNodes, state));
-        }
-
-        node.parent.insertAllBefore(nodes, node);
-        node.remove();
-        if (mainEditorPane.contains(trySelection.anchorNode)) {
-          // Sometimes the anchor node is removed by the above call. This has
-          // only been observed in Firefox, and is hard to reproduce.
-          trySelection.adjust(selection);
-        }
-
-        // TODO(ahe): We know almost exactly what has changed.  It could be
-        // more efficient to only communicate what changed.
-        context.currentCompilationUnit.content = getText(mainEditorPane);
-
-        // Discard highlighting mutations.
-        observer.takeRecords();
+        updateHighlighting(node, selection, trySelection, mainEditorPane);
         return;
       }
     }
 
-    String currentText = getText(mainEditorPane);
+    updateHighlighting(mainEditorPane, selection, trySelection);
+  }
+
+  void updateHighlighting(
+      Element node,
+      Selection selection,
+      TrySelection trySelection,
+      [Element root]) {
+    String state = '';
+    String currentText = getText(node);
+    if (root != null) {
+      // Single line change.
+      trySelection = trySelection.copyWithRoot(node);
+      Element previousLine = node.previousElementSibling;
+      if (previousLine != null) {
+        state = previousLine.getAttribute('dart-state');
+      }
+
+      node.parent.insertAllBefore(
+          createHighlightedNodes(trySelection, currentText, state),
+          node);
+      node.remove();
+    } else {
+      root = node;
+      editor.seenIdentifiers = new Set<String>.from(mock.identifiers);
+
+      // Fail safe: new [nodes] are computed before clearing old nodes.
+      List<Node> nodes =
+          createHighlightedNodes(trySelection, currentText, state);
+
+      node.nodes
+          ..clear()
+          ..addAll(nodes);
+    }
+
+    if (mainEditorPane.contains(trySelection.anchorNode)) {
+      // Sometimes the anchor node is removed by the above call. This has
+      // only been observed in Firefox, and is hard to reproduce.
+      trySelection.adjust(selection);
+    }
+
+    // TODO(ahe): We know almost exactly what has changed.  It could be
+    // more efficient to only communicate what changed.
+    context.currentCompilationUnit.content = getText(root);
+
+    // Discard highlighting mutations.
+    observer.takeRecords();
+  }
+
+  List<Node> createHighlightedNodes(
+      TrySelection trySelection,
+      String currentText,
+      String state) {
     trySelection.updateText(currentText);
-
-    context.currentCompilationUnit.content = currentText;
-
-    editor.seenIdentifiers = new Set<String>.from(mock.identifiers);
 
     editor.isMalformedInput = false;
     int offset = 0;
     List<Node> nodes = <Node>[];
 
-    String state = '';
     for (String line in splitLines(currentText)) {
       List<Node> lineNodes = <Node>[];
       state =
@@ -497,13 +506,7 @@ class InitialState extends InteractionState {
       nodes.add(makeLine(lineNodes, state));
     }
 
-    mainEditorPane
-        ..nodes.clear()
-        ..nodes.addAll(nodes);
-    trySelection.adjust(selection);
-
-    // Discard highlighting mutations.
-    observer.takeRecords();
+    return nodes;
   }
 
   void onSelectionChange(Event event) {

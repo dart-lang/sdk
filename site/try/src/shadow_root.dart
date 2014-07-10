@@ -41,15 +41,6 @@ void setShadowRoot(Element node, text) {
   }
 }
 
-void removeShadowRootPolyfill(Element root) {
-  if (!ShadowRoot.supported) {
-    List<Node> polyfill = root.querySelectorAll('[try-dart-shadow-root]');
-    for (Element element in polyfill) {
-      element.remove();
-    }
-  }
-}
-
 String getText(Element node) {
   if (ShadowRoot.supported) return node.text;
   StringBuffer buffer = new StringBuffer();
