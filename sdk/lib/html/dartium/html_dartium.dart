@@ -12345,6 +12345,7 @@ class Event extends NativeFieldWrapperClass2 {
   @DomName('Event.clipboardData')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // Part of copy/paste
