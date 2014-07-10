@@ -1984,6 +1984,10 @@ class Function : public Object {
                                          const Function& parent,
                                          intptr_t token_pos);
 
+  static RawFunction* NewEvalFunction(const Class& owner,
+                                      const Script& script,
+                                      bool is_static);
+
   // Creates a new static initializer function which is invoked in the implicit
   // static getter function.
   static RawFunction* NewStaticInitializer(const Field& field);
@@ -2058,6 +2062,8 @@ class Function : public Object {
   void set_implicit_closure_function(const Function& value) const;
   RawInstance* implicit_static_closure() const;
   void set_implicit_static_closure(const Instance& closure) const;
+  RawScript* eval_script() const;
+  void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;

@@ -99,4 +99,37 @@ TEST_CASE(EvalExpression) {
   EXPECT_STREQ("Herr Nilsson 100.", val.ToCString());
 }
 
+
+TEST_CASE(EvalExpressionWithLazyCompile) {
+  Library& lib = Library::Handle(Library::CoreLibrary());
+
+  const String& expression = String::Handle(String::New(
+      "(){ return (){ return (){ return 3 + 4; }(); }(); }()"));
+  Object& val = Object::Handle();
+  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+
+  EXPECT(!val.IsNull());
+  EXPECT(!val.IsError());
+  EXPECT(val.IsInteger());
+  EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
+}
+
+
+TEST_CASE(EvalExpressionExhaustCIDs) {
+  Library& lib = Library::Handle(Library::CoreLibrary());
+
+  const String& expression = String::Handle(String::New("3 + 4"));
+  Object& val = Object::Handle();
+
+  const intptr_t classTableSize = 1 << RawObject::kClassIdTagSize;
+  for (intptr_t i = 0; i < classTableSize; i++) {
+    val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+  }
+
+  EXPECT(!val.IsNull());
+  EXPECT(!val.IsError());
+  EXPECT(val.IsInteger());
+  EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
+}
+
 }  // namespace dart

@@ -2743,51 +2743,37 @@ static RawString* BuildClosureSource(const Array& formal_params,
 }
 
 
-static RawPatchClass* MakeTempPatchClass(const Class& cls,
-                                         const String& expr,
-                                         const Array& formal_params) {
+static RawFunction* EvaluateHelper(const Class& cls,
+                                   const String& expr,
+                                   const Array& param_names,
+                                   bool is_static) {
   const String& func_src =
-      String::Handle(BuildClosureSource(formal_params, expr));
+      String::Handle(BuildClosureSource(param_names, expr));
   Script& script = Script::Handle();
   script = Script::New(Symbols::Empty(), func_src, RawScript::kSourceTag);
   // In order to tokenize the source, we need to get the key to mangle
-  // private names from the library from which the object's class
-  // originates.
+  // private names from the library from which the class originates.
   const Library& lib = Library::Handle(cls.library());
   ASSERT(!lib.IsNull());
   const String& lib_key = String::Handle(lib.private_key());
   script.Tokenize(lib_key);
 
-  const String& src_class_name = String::Handle(Symbols::New(":internal"));
-  const Class& src_class = Class::Handle(
-      Class::New(src_class_name, script, Scanner::kNoSourcePos));
-  src_class.set_is_finalized();
-  src_class.set_library(lib);
-  return PatchClass::New(cls, src_class);
+  const Function& func = Function::Handle(
+       Function::NewEvalFunction(cls, script, is_static));
+  func.set_result_type(Type::Handle(Type::DynamicType()));
+  const intptr_t num_implicit_params = is_static ? 0 : 1;
+  func.set_num_fixed_parameters(num_implicit_params + param_names.Length());
+  func.SetNumOptionalParameters(0, true);
+  func.SetIsOptimizable(false);
+  return func.raw();
 }
 
 
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
-  const PatchClass& temp_class =
-      PatchClass::Handle(MakeTempPatchClass(*this, expr, param_names));
-  const String& eval_func_name = String::Handle(Symbols::New(":eval"));
   const Function& eval_func =
-      Function::Handle(Function::New(eval_func_name,
-                                     RawFunction::kRegularFunction,
-                                     true,   // Static.
-                                     false,  // Not const.
-                                     false,  // Not abstract.
-                                     false,  // Not external.
-                                     false,  // Not native.
-                                     temp_class,
-                                     0));
-  eval_func.set_result_type(Type::Handle(Type::DynamicType()));
-  eval_func.set_num_fixed_parameters(param_names.Length());
-  eval_func.SetNumOptionalParameters(0, true);
-  eval_func.SetIsOptimizable(false);
-
+      Function::Handle(EvaluateHelper(*this, expr, param_names, true));
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(eval_func, param_values));
   return result.raw();
@@ -5073,6 +5059,22 @@ void Function::set_implicit_static_closure(const Instance& closure) const {
 }
 
 
+RawScript* Function::eval_script() const {
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  if (obj.IsScript()) {
+    return Script::Cast(obj).raw();
+  }
+  return Script::null();
+}
+
+
+void Function::set_eval_script(const Script& script) const {
+  ASSERT(token_pos() == 0);
+  ASSERT(raw_ptr()->data_ == Object::null());
+  set_data(script);
+}
+
+
 RawFunction* Function::extracted_method_closure() const {
   ASSERT(kind() == RawFunction::kMethodExtractor);
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -5149,13 +5151,15 @@ RawFunction* Function::implicit_closure_function() const {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(obj.IsNull() || obj.IsFunction());
-  return (obj.IsNull()) ? Function::null() : Function::Cast(obj).raw();
+  ASSERT(obj.IsNull() || obj.IsScript() || obj.IsFunction());
+  return (obj.IsNull() || obj.IsScript()) ? Function::null()
+                                          : Function::Cast(obj).raw();
 }
 
 
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction() && !IsSignatureFunction());
+  ASSERT(raw_ptr()->data_ == Object::null());
   set_data(value);
 }
 
@@ -6079,10 +6083,27 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     parent_owner,
                     token_pos));
   result.set_parent_function(parent);
-
   return result.raw();
 }
 
+
+RawFunction* Function::NewEvalFunction(const Class& owner,
+                                       const Script& script,
+                                       bool is_static) {
+  const Function& result = Function::Handle(
+      Function::New(String::Handle(Symbols::New(":Eval")),
+                    RawFunction::kRegularFunction,
+                    is_static,
+                    /* is_const = */ false,
+                    /* is_abstract = */ false,
+                    /* is_external = */ false,
+                    /* is_native = */ false,
+                    owner,
+                    0));
+  ASSERT(!script.IsNull());
+  result.set_eval_script(script);
+  return result.raw();
+}
 
 RawFunction* Function::ImplicitClosureFunction() const {
   // Return the existing implicit closure function if any.
@@ -6349,6 +6370,17 @@ RawClass* Function::origin() const {
 
 
 RawScript* Function::script() const {
+  if (token_pos() == 0) {
+    // Testing for position 0 is an optimization that relies on temporary
+    // eval functions having token position 0.
+    const Script& script = Script::Handle(eval_script());
+    if (!script.IsNull()) {
+      return script.raw();
+    }
+  }
+  if (IsClosureFunction()) {
+    return Function::Handle(parent_function()).script();
+  }
   const Object& obj = Object::Handle(raw_ptr()->owner_);
   if (obj.IsClass()) {
     return Class::Cast(obj).script();
@@ -9276,17 +9308,25 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  // Make a fake top-level class and evaluate the expression
+  // Take or make a fake top-level class and evaluate the expression
   // as a static function of the class.
-  Script& script = Script::Handle();
-  script = Script::New(Symbols::Empty(),
-                       Symbols::Empty(),
-                       RawScript::kSourceTag);
-  Class& temp_class =
-      Class::Handle(Class::New(Symbols::TopLevel(), script, 0));
-  temp_class.set_library(*this);
-  temp_class.set_is_finalized();
-  return temp_class.Evaluate(expr, param_names, param_values);
+  Class& top_level_class = Class::Handle();
+  Array& top_level_classes = Array::Handle(anonymous_classes());
+  if (top_level_classes.Length() > 0) {
+    top_level_class ^= top_level_classes.At(0);
+  } else {
+    // A library may have no top-level classes if it has no top-level
+    // variables or methods.
+    Script& script = Script::Handle(Script::New(Symbols::Empty(),
+                                                Symbols::Empty(),
+                                                RawScript::kSourceTag));
+    top_level_class = Class::New(Symbols::TopLevel(), script, 0);
+    top_level_class.set_is_finalized();
+    top_level_class.set_library(*this);
+    AddAnonymousClass(top_level_class);
+  }
+  ASSERT(top_level_class.is_finalized());
+  return top_level_class.Evaluate(expr, param_names, param_values);
 }
 
 
@@ -12759,24 +12799,8 @@ RawObject* Instance::Evaluate(const String& expr,
                               const Array& param_names,
                               const Array& param_values) const {
   const Class& cls = Class::Handle(clazz());
-  const PatchClass& temp_class = PatchClass::Handle(
-      MakeTempPatchClass(cls, expr, param_names));
-  const String& eval_func_name = String::Handle(Symbols::New(":eval"));
   const Function& eval_func =
-      Function::Handle(Function::New(eval_func_name,
-                                     RawFunction::kRegularFunction,
-                                     false,  // Not static.
-                                     false,  // Not const.
-                                     false,  // Not abstract.
-                                     false,  // Not external.
-                                     false,  // Not native.
-                                     temp_class,
-                                     0));
-  eval_func.set_result_type(Type::Handle(Type::DynamicType()));
-  eval_func.set_num_fixed_parameters(1 + param_values.Length());
-  eval_func.SetNumOptionalParameters(0, true);
-  eval_func.SetIsOptimizable(false);
-
+      Function::Handle(EvaluateHelper(cls, expr, param_names, false));
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
   Object& param = Object::Handle();
   args.SetAt(0, *this);

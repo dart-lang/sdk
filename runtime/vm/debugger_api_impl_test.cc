@@ -1990,6 +1990,45 @@ TEST_CASE(Debug_EvaluateExpr) {
 }
 
 
+static void EvaluateInActivationOfEvaluateHandler(Dart_IsolateId isolate_id,
+                                                  Dart_Handle exception_object,
+                                                  Dart_StackTrace trace) {
+  breakpoint_hit_counter++;
+  Dart_ActivationFrame top_frame = 0;
+  Dart_Handle result = Dart_GetActivationFrame(trace, 0, &top_frame);
+  EXPECT_VALID(result);
+
+  result = Dart_ActivationFrameEvaluate(top_frame, NewString("p.r"));
+  EXPECT_VALID(result);
+  EXPECT_EQ(5.0, ToDouble(result));
+}
+
+
+TEST_CASE(Debug_EvaluateInActivationOfEvaluate) {
+  // This library deliberately declares no top-level variables or methods. This
+  // exercises a path in eval where a library may have no top-level anonymous
+  // classes.
+  const char* kScriptChars =
+      "import 'dart:math';               \n"
+      "class Point {                     \n"
+      "  var x, y;                       \n"
+      "  Point(this.x, this.y);          \n"
+      "  get r => sqrt(x*x + y*y);       \n"
+      "}                                 \n";
+  LoadScript(kScriptChars);
+  Dart_FinalizeLoading();
+
+  Dart_SetExceptionThrownHandler(&EvaluateInActivationOfEvaluateHandler);
+  Dart_SetExceptionPauseInfo(kPauseOnAllExceptions);
+  breakpoint_hit_counter = 0;
+
+  Dart_Handle result = Dart_EvaluateExpr(script_lib, NewString(
+      "() { var p = new Point(3, 4); throw p; } ())"));
+  EXPECT(Dart_IsError(result));
+  EXPECT_EQ(1, breakpoint_hit_counter);
+}
+
+
 TEST_CASE(Debug_GetClosureInfo) {
   const char* kScriptChars =
       "void foo() { return 43; } \n"
