@@ -935,21 +935,30 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* summary = new(isolate) LocationSummary(
-      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::RequiresRegister());
-  summary->set_temp(0, Location::RequiresRegister());
-  return summary;
+  return LocationSummary::Make(isolate,
+                               kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register object = locs()->in(0).reg();
-  Register result = locs()->out(0).reg();
-  Register tmp = locs()->temp(0).reg();
-  __ LoadTaggedClassIdMayBeSmi(result, object, tmp);
+  const Register object = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  Label not_smi, done;
+
+  // We don't use Assembler::LoadTaggedClassIdMayBeSmi() here---which uses
+  // a conditional move instead, and requires an additional register---because
+  // it is slower, probably due to branch prediction usually working just fine
+  // in this case.
+  __ testl(object, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
+  __ movl(result, Immediate(Smi::RawValue(kSmiCid)));
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&not_smi);
+  __ LoadClassId(result, object);
+  __ SmiTag(result);
+  __ Bind(&done);
 }
 
 

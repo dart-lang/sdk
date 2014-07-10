@@ -348,6 +348,7 @@ class Assembler : public ValueObject {
 
   void leal(Register dst, const Address& src);
 
+  void cmovno(Register dst, Register src);
   void cmove(Register dst, Register src);
   void cmovs(Register dst, Register src);
   void cmovns(Register dst, Register src);

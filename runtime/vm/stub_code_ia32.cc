@@ -1402,12 +1402,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // EBX: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ movl(EAX, Address(EBX, target_offset));
-  __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
-  __ j(NO_OVERFLOW, &call_target_function, Assembler::kNearJump);
-  __ movl(Address(EBX, count_offset),
-          Immediate(Smi::RawValue(Smi::kMaxValue)));
 
+  // Update counter.
+  __ movl(EAX, Address(EBX, count_offset));
+  __ addl(EAX, Immediate(Smi::RawValue(1)));
+  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+  __ cmovno(EDI, EAX);
+  __ movl(Address(EBX, count_offset), EDI);
+
+  __ movl(EAX, Address(EBX, target_offset));
   __ Bind(&call_target_function);
   // EAX: Target function.
   __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));

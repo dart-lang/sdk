@@ -1540,15 +1540,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ lw(T3, Address(T0, target_offset));
+
+  // Update counter.
   __ lw(T4, Address(T0, count_offset));
-
-  __ AddImmediateDetectOverflow(T4, T4, Smi::RawValue(1), T5, T6);
-
-  __ bgez(T5, &call_target_function);  // No overflow.
-  __ delay_slot()->sw(T4, Address(T0, count_offset));
-
-  __ LoadImmediate(T1, Smi::RawValue(Smi::kMaxValue));
-  __ sw(T1, Address(T0, count_offset));
+  __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
+  __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
+  __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
+  __ movz(T4, T7, CMPRES1);
+  __ sw(T4, Address(T0, count_offset));
 
   __ Bind(&call_target_function);
   // T0 <- T3: Target function.

@@ -273,6 +273,15 @@ void Assembler::leal(Register dst, const Address& src) {
 }
 
 
+// Move if not overflow.
+void Assembler::cmovno(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0x41);
+  EmitRegisterOperand(dst, src);
+}
+
+
 void Assembler::cmove(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);

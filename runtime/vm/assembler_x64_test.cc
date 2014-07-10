@@ -2969,6 +2969,27 @@ ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
   EXPECT_EQ(0, res);
 }
 
+
+// Return 1 if overflow, 0 if no overflow.
+ASSEMBLER_TEST_GENERATE(ConditionalMovesNoOverflow, assembler) {
+  __ movq(RDX, CallingConventions::kArg1Reg);
+  __ addq(RDX, CallingConventions::kArg2Reg);
+  __ movq(RAX, Immediate(1));
+  __ movq(RCX, Immediate(0));
+  __ cmovnoq(RAX, RCX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
+  typedef int (*ConditionalMovesNoOverflowCode)(int64_t i, int64_t j);
+  int res = reinterpret_cast<ConditionalMovesNoOverflowCode>(
+      test->entry())(0x7fffffffffffffff, 2);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ConditionalMovesNoOverflowCode>(test->entry())(1, 1);
+  EXPECT_EQ(0, res);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

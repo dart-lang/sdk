@@ -454,6 +454,16 @@ void Assembler::leaq(Register dst, const Address& src) {
 }
 
 
+void Assembler::cmovnoq(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0x41);
+  EmitOperand(dst & 7, operand);
+}
+
+
 void Assembler::cmoveq(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
