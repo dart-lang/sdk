@@ -49,6 +49,8 @@ abstract class Enqueuer {
   bool hasEnqueuedReflectiveElements = false;
   bool hasEnqueuedReflectiveStaticFields = false;
 
+  CompilationInformation get compilationInfo;
+
   Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator);
 
   Queue<WorkItem> get queue;
@@ -67,13 +69,17 @@ abstract class Enqueuer {
    */
   void addToWorkList(Element element) {
     assert(invariant(element, element.isDeclaration));
-    internalAddToWorkList(element);
+    if (internalAddToWorkList(element)) {
+      compilationInfo.addsToWorkList(compiler.currentElement, element);
+    }
   }
 
   /**
    * Adds [element] to the work list if it has not already been processed.
+   *
+   * Returns [true] if the element was actually added to the queue.
    */
-  void internalAddToWorkList(Element element);
+  bool internalAddToWorkList(Element element);
 
   void registerInstantiatedType(InterfaceType type, Registry registry,
                                 {mirrorUsage: false}) {
@@ -191,6 +197,7 @@ abstract class Enqueuer {
           memberName, () => const Link<Element>());
       instanceFunctionsByName[memberName] = members.prepend(member);
       if (universe.hasInvocation(member, compiler)) {
+        compilationInfo.enqueues(getContext(), member);
         addToWorkList(member);
         return;
       }
@@ -221,6 +228,8 @@ abstract class Enqueuer {
 
   void enableNoSuchMethod(Element element) {}
   void enableIsolateSupport() {}
+
+  Element getContext() => compiler.currentElement;
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {
@@ -253,32 +262,33 @@ abstract class Enqueuer {
     });
   }
 
-  void registerNewSelector(Selector selector,
+  void registerNewSelector(Element context,
+                           Selector selector,
                            Map<String, Set<Selector>> selectorsMap) {
     String name = selector.name;
     Set<Selector> selectors =
         selectorsMap.putIfAbsent(name, () => new Setlet<Selector>());
     if (!selectors.contains(selector)) {
       selectors.add(selector);
-      handleUnseenSelector(name, selector);
+      handleUnseenSelector(context, name, selector);
     }
   }
 
-  void registerInvocation(Selector selector) {
+  void registerInvocation(Element context, Selector selector) {
     task.measure(() {
-      registerNewSelector(selector, universe.invokedNames);
+      registerNewSelector(context, selector, universe.invokedNames);
     });
   }
 
-  void registerInvokedGetter(Selector selector) {
+  void registerInvokedGetter(Element context, Selector selector) {
     task.measure(() {
-      registerNewSelector(selector, universe.invokedGetters);
+      registerNewSelector(context, selector, universe.invokedGetters);
     });
   }
 
-  void registerInvokedSetter(Selector selector) {
+  void registerInvokedSetter(Element context, Selector selector) {
     task.measure(() {
-      registerNewSelector(selector, universe.invokedSetters);
+      registerNewSelector(context, selector, universe.invokedSetters);
     });
   }
 
@@ -472,8 +482,11 @@ abstract class Enqueuer {
     processLink(instanceFunctionsByName, n, f);
   }
 
-  void handleUnseenSelector(String methodName, Selector selector) {
+  void handleUnseenSelector(Element context,
+                            String methodName,
+                            Selector selector) {
     processInstanceMembers(methodName, (Element member) {
+      compilationInfo.enqueues(context, member);
       if (selector.appliesUnnamed(member, compiler)) {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member, compiler.globalDependencies);
@@ -530,27 +543,27 @@ abstract class Enqueuer {
     universe.staticFunctionsNeedingGetter.add(element);
   }
 
-  void registerDynamicInvocation(Selector selector) {
+  void registerDynamicInvocation(Element context, Selector selector) {
     assert(selector != null);
-    registerInvocation(selector);
+    registerInvocation(context, selector);
   }
 
-  void registerSelectorUse(Selector selector) {
+  void registerSelectorUse(Element context, Selector selector) {
     if (selector.isGetter) {
-      registerInvokedGetter(selector);
+      registerInvokedGetter(context, selector);
     } else if (selector.isSetter) {
-      registerInvokedSetter(selector);
+      registerInvokedSetter(context, selector);
     } else {
-      registerInvocation(selector);
+      registerInvocation(context, selector);
     }
   }
 
-  void registerDynamicGetter(Selector selector) {
-    registerInvokedGetter(selector);
+  void registerDynamicGetter(Element context, Selector selector) {
+    registerInvokedGetter(context, selector);
   }
 
-  void registerDynamicSetter(Selector selector) {
-    registerInvokedSetter(selector);
+  void registerDynamicSetter(Element context, Selector selector) {
+    registerInvokedSetter(context, selector);
   }
 
   void registerGetterForSuperMethod(Element element) {
@@ -658,12 +671,16 @@ class ResolutionEnqueuer extends Enqueuer {
    */
   final Queue<DeferredTask> deferredTaskQueue;
 
+  CompilationInformation compilationInfo;
+
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator())
       : super('resolution enqueuer', compiler, itemCompilationContextCreator),
         resolvedElements = new Set<AstElement>(),
         queue = new Queue<ResolutionWorkItem>(),
-        deferredTaskQueue = new Queue<DeferredTask>();
+        deferredTaskQueue = new Queue<DeferredTask>() {
+    compilationInfo = new CompilationInformation(this);
+  }
 
   bool get isResolutionQueue => true;
 
@@ -699,10 +716,10 @@ class ResolutionEnqueuer extends Enqueuer {
     return includedEnclosing || compiler.backend.requiredByMirrorSystem(element);
   }
 
-  void internalAddToWorkList(Element element) {
+  bool internalAddToWorkList(Element element) {
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
-    if (hasBeenResolved(element)) return;
+    if (hasBeenResolved(element)) return false;
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
           "Resolution work list is closed. Trying to add $element.");
@@ -744,6 +761,7 @@ class ResolutionEnqueuer extends Enqueuer {
     }
 
     nativeEnqueuer.registerElement(element);
+    return true;
   }
 
   void enableIsolateSupport() {
@@ -757,7 +775,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
     Selector selector = compiler.noSuchMethodSelector;
     compiler.enabledNoSuchMethod = true;
-    compiler.backend.enableNoSuchMethod(this);
+    compiler.backend.enableNoSuchMethod(element, this);
   }
 
   /**
@@ -806,11 +824,15 @@ class CodegenEnqueuer extends Enqueuer {
 
   final Set<Element> newlyEnqueuedElements;
 
+  CompilationInformation compilationInfo;
+
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator())
       : queue = new Queue<CodegenWorkItem>(),
         newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
-        super('codegen enqueuer', compiler, itemCompilationContextCreator);
+        super('codegen enqueuer', compiler, itemCompilationContextCreator) {
+    compilationInfo = new CompilationInformation(this);
+  }
 
   bool isProcessed(Element member) =>
       member.isAbstract || generatedCode.containsKey(member);
@@ -827,19 +849,19 @@ class CodegenEnqueuer extends Enqueuer {
     return compiler.backend.isAccessibleByReflection(element);
   }
 
-  void internalAddToWorkList(Element element) {
+  bool internalAddToWorkList(Element element) {
     if (compiler.hasIncrementalSupport) {
       newlyEnqueuedElements.add(element);
     }
     // Don't generate code for foreign elements.
-    if (element.isForeign(compiler)) return;
+    if (element.isForeign(compiler)) return false;
 
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
     if (element.isField && element.isInstanceMember) {
       if (!compiler.enableTypeAssertions
           || element.enclosingElement.isClosure) {
-        return;
+        return false;
       }
     }
 
@@ -850,6 +872,7 @@ class CodegenEnqueuer extends Enqueuer {
     CodegenWorkItem workItem = new CodegenWorkItem(
         element, itemCompilationContextCreator());
     queue.add(workItem);
+    return true;
   }
 
   void _logSpecificSummary(log(message)) {
