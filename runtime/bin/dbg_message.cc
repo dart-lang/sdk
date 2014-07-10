@@ -447,6 +447,9 @@ static void FormatLocationFromTrace(dart::TextBuffer* msg,
   intptr_t trace_len = 0;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
   ASSERT_NOT_ERROR(res);
+  if (trace_len == 0) {
+    return;
+  }
   Dart_ActivationFrame frame;
   res = Dart_GetActivationFrame(trace, 0, &frame);
   ASSERT_NOT_ERROR(res);

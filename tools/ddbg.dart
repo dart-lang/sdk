@@ -23,6 +23,7 @@ class TargetScript {
   Map<int,int> tokenToLine = null;
 }
 
+const UnknownLocation = const {};
 
 class TargetIsolate {
   int id;
@@ -31,6 +32,7 @@ class TargetIsolate {
 
   TargetIsolate(this.id);
   bool get isPaused => pausedLocation != null;
+  String get pausedUrl => pausedLocation != null ? pausedLocation["url"] : null;
 
   Map<String, TargetScript> scripts = {};
 }
@@ -575,9 +577,8 @@ void processCommand(String cmdLine) {
       return;
     }
     var url, line;
-    if (args.length == 2 && currentIsolate.pausedLocation != null) {
-      url = currentIsolate.pausedLocation["url"];
-      assert(url != null);
+    if (args.length == 2 && currentIsolate.pausedUrl != null) {
+      url = currentIsolate.pausedUrl;
       line = int.parse(args[1]);
     } else {
       url = args[1];
@@ -1111,14 +1112,15 @@ Future handlePausedEvent(msg) {
   assert(isolate != null);
   assert(!isolate.isPaused);
   var location = msg["params"]["location"];;
-  assert(location != null);
   setCurrentIsolate(isolate);
-  isolate.pausedLocation = location;
+  isolate.pausedLocation = (location == null) ? UnknownLocation : location;
   if (reason == "breakpoint") {
+    assert(location != null);
     var bpId = (msg["params"]["breakpointId"]);
     var label = (bpId != null) ? "Breakpoint $bpId" : null;
     return printLocation(label, location);
   } else if (reason == "interrupted") {
+    assert(location != null);
     return printLocation("Interrupted", location);
   } else {
     assert(reason == "exception");

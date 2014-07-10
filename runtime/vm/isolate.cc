@@ -348,9 +348,7 @@ bool IsolateMessageHandler::ProcessUnhandledException(
     if ((exception == I->object_store()->out_of_memory()) ||
         (exception == I->object_store()->stack_overflow())) {
       // We didn't notify the debugger when the stack was full. Do it now.
-      // TODO(hausner): uncomment the debugger notification once debuggers
-      // can deal with exceptions thrown on an empty stack.
-      // I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
+      I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
     }
     if ((exception != I->object_store()->out_of_memory()) &&
         (exception != I->object_store()->stack_overflow())) {
