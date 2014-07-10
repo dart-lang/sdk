@@ -7862,8 +7862,6 @@ void ConstantPropagator::VisitCheckStackOverflow(
 
 void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) { }
 
-void ConstantPropagator::VisitCheckClassId(CheckClassIdInstr* instr) { }
-
 void ConstantPropagator::VisitGuardFieldClass(GuardFieldClassInstr* instr) { }
 
 void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) { }

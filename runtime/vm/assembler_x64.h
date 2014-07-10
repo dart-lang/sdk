@@ -583,8 +583,6 @@ class Assembler : public ValueObject {
   void notl(Register reg);
   void notq(Register reg);
 
-  void btq(Register base, Register offset);
-
   void enter(const Immediate& imm);
   void leave();
   void ret();

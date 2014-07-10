@@ -2950,25 +2950,6 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
-  __ movq(RAX, Immediate(4));
-  __ movq(R12, Immediate(2));
-  __ btq(RAX, R12);
-  Label ok;
-  __ j(CARRY, &ok);
-  __ int3();
-  __ Bind(&ok);
-  __ movq(RAX, Immediate(1));
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(BitTest, test) {
-  typedef int (*BitTest)();
-  EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
-}
-
-
 // Return 1 if equal, 0 if not equal.
 ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
   __ movq(RDX, CallingConventions::kArg1Reg);

@@ -3244,26 +3244,6 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ ret();
 }
 
-
-ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
-  __ movl(EAX, Immediate(4));
-  __ movl(ECX, Immediate(2));
-  __ bt(EAX, ECX);
-  Label ok;
-  __ j(CARRY, &ok);
-  __ int3();
-  __ Bind(&ok);
-  __ movl(EAX, Immediate(1));
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(BitTest, test) {
-  typedef int (*BitTest)();
-  EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
-}
-
-
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

@@ -95,19 +95,11 @@ bool Value::Equals(Value* other) const {
 }
 
 
-static int LowestFirst(const intptr_t* a, const intptr_t* b) {
-  return *a - *b;
-}
-
-
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks,
                                  intptr_t token_pos)
-    : unary_checks_(unary_checks),
-      cids_(unary_checks.NumberOfChecks()),
-      licm_hoisted_(false),
-      token_pos_(token_pos) {
+    : unary_checks_(unary_checks), licm_hoisted_(false), token_pos_(token_pos) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
@@ -118,10 +110,6 @@ CheckClassInstr::CheckClassInstr(Value* value,
   // Otherwise use CheckSmiInstr.
   ASSERT((unary_checks_.NumberOfChecks() != 1) ||
          (unary_checks_.GetReceiverClassIdAt(0) != kSmiCid));
-  for (intptr_t i = 0; i < unary_checks.NumberOfChecks(); ++i) {
-    cids_.Add(unary_checks.GetReceiverClassIdAt(i));
-  }
-  cids_.Sort(LowestFirst);
 }
 
 
@@ -161,33 +149,6 @@ bool CheckClassInstr::IsNullCheck() const {
   // Performance check: use CheckSmiInstr instead.
   ASSERT(cid != kSmiCid);
   return in_type->is_nullable() && (in_type->ToNullableCid() == cid);
-}
-
-
-bool CheckClassInstr::IsDenseSwitch() const {
-  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) return false;
-  if (cids_.length() > 2 &&
-      cids_[cids_.length() - 1] - cids_[0] < kBitsPerWord) {
-    return true;
-  }
-  return false;
-}
-
-
-intptr_t CheckClassInstr::ComputeCidMask() const {
-  ASSERT(IsDenseSwitch());
-  intptr_t mask = 0;
-  for (intptr_t i = 0; i < cids_.length(); ++i) {
-    mask |= 1 << (cids_[i] - cids_[0]);
-  }
-  return mask;
-}
-
-
-bool CheckClassInstr::IsDenseMask(intptr_t mask) {
-  // Returns true if the mask is a continuos sequence of ones in its binary
-  // representation (i.e. no holes)
-  return mask == -1 || Utils::IsPowerOfTwo(mask + 1);
 }
 
 

@@ -724,7 +724,6 @@ class EmbeddedArray<T, 0> {
   M(DoubleToFloat)                                                             \
   M(FloatToDouble)                                                             \
   M(CheckClass)                                                                \
-  M(CheckClassId)                                                              \
   M(CheckSmi)                                                                  \
   M(Constant)                                                                  \
   M(UnboxedConstant)                                                           \
@@ -1105,7 +1104,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class MathUnaryInstr;
   friend class MathMinMaxInstr;
   friend class CheckClassInstr;
-  friend class CheckClassIdInstr;
   friend class GuardFieldInstr;
   friend class CheckSmiInstr;
   friend class CheckArrayBoundInstr;
@@ -7895,17 +7893,11 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   const ICData& unary_checks() const { return unary_checks_; }
 
-  const GrowableArray<intptr_t>& cids() const { return cids_; }
-
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   bool IsNullCheck() const;
-
-  bool IsDenseSwitch() const;
-  intptr_t ComputeCidMask() const;
-  static bool IsDenseMask(intptr_t mask);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -7918,7 +7910,6 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
  private:
   const ICData& unary_checks_;
-  GrowableArray<intptr_t> cids_;  // Sorted, lowest first.
   bool licm_hoisted_;
   const intptr_t token_pos_;
 
@@ -7957,36 +7948,6 @@ class CheckSmiInstr : public TemplateInstruction<1> {
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
-};
-
-
-class CheckClassIdInstr : public TemplateInstruction<2> {
- public:
-  CheckClassIdInstr(Value* left, Value* right, intptr_t deopt_id) {
-    SetInputAt(0, left);
-    SetInputAt(1, right);
-    // Override generated deopt-id.
-    deopt_id_ = deopt_id;
-  }
-
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
-
-  DECLARE_INSTRUCTION(CheckClassId)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual bool AllowsCSE() const { return false; }
-  virtual EffectSet Effects() const { return EffectSet::None(); }
-  virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
-
-  virtual bool MayThrow() const { return false; }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CheckClassIdInstr);
 };
 
 

@@ -29,7 +29,6 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitJoinEntry(JoinEntryInstr* instr);
   virtual void VisitCheckSmi(CheckSmiInstr* instr);
   virtual void VisitCheckClass(CheckClassInstr* instr);
-  virtual void VisitCheckClassId(CheckClassIdInstr* instr);
   virtual void VisitGuardFieldClass(GuardFieldClassInstr* instr);
 
   // Current reaching type of the definition. Valid only during dominator tree

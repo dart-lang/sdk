@@ -239,7 +239,6 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0xAF: return "imul";
     case 0xA5: return "shld";
     case 0xAD: return "shrd";
-    case 0xA3: return "bt";
     case 0xAB: return "bts";
     case 0xBD: return "bsr";
     case 0xB1: return "cmpxchg";
@@ -1410,17 +1409,14 @@ int X86Decoder::InstructionDecode(uword pc) {
           }
         } else {
           data += 2;
-          if (f0byte == 0xAB ||
-              f0byte == 0xA5 ||
-              f0byte == 0xAD ||
-              f0byte == 0xA3) {
-            // shrd, shld, bts, bt
+          if (f0byte == 0xAB || f0byte == 0xA5 || f0byte == 0xAD) {
+            // shrd, shld, bts
             Print(f0mnem);
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
             Print(" ");
             data += PrintRightOperand(data);
-            if (f0byte == 0xAB || f0byte == 0xA3) {
+            if (f0byte == 0xAB) {
               Print(",");
               PrintCPURegister(regop);
             } else {
@@ -1818,7 +1814,7 @@ int X86Decoder::InstructionDecode(uword pc) {
   ASSERT(instr_len > 0);  // Ensure progress.
 
   return instr_len;
-}  // NOLINT
+}
 
 
 void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
