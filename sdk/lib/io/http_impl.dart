@@ -1280,7 +1280,9 @@ class _HttpClientConnection {
           _subscription.pause();
           // We assume the response is not here, until we have send the request.
           if (_nextResponseCompleter == null) {
-            throw new HttpException("Unexpected response.", uri: _currentUri);
+            throw new HttpException(
+                "Unexpected response (unsolicited response without request).",
+                uri: _currentUri);
           }
           _nextResponseCompleter.complete(incoming);
           _nextResponseCompleter = null;
