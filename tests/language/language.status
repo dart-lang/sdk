@@ -115,7 +115,6 @@ vm/type_vm_test: Fail # Issue 13719: Please triage this failure.
 first_class_types_literals_test: Pass, Fail # Issue 13719: Please triage this failure.
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
-deferred_constraints_type_annotation_test: Skip # Issue 19449
 issue13474_test: Pass, Fail # Issue 14651.
 typed_message_test: Crash, Fail # Issue 13921, 14400
 vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.
