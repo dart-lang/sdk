@@ -95,11 +95,19 @@ bool Value::Equals(Value* other) const {
 }
 
 
+static int LowestFirst(const intptr_t* a, const intptr_t* b) {
+  return *a - *b;
+}
+
+
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks,
                                  intptr_t token_pos)
-    : unary_checks_(unary_checks), licm_hoisted_(false), token_pos_(token_pos) {
+    : unary_checks_(unary_checks),
+      cids_(unary_checks.NumberOfChecks()),
+      licm_hoisted_(false),
+      token_pos_(token_pos) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
   ASSERT(!unary_checks_.IsNull());
@@ -110,6 +118,10 @@ CheckClassInstr::CheckClassInstr(Value* value,
   // Otherwise use CheckSmiInstr.
   ASSERT((unary_checks_.NumberOfChecks() != 1) ||
          (unary_checks_.GetReceiverClassIdAt(0) != kSmiCid));
+  for (intptr_t i = 0; i < unary_checks.NumberOfChecks(); ++i) {
+    cids_.Add(unary_checks.GetReceiverClassIdAt(i));
+  }
+  cids_.Sort(LowestFirst);
 }
 
 
@@ -140,6 +152,14 @@ EffectSet CheckClassInstr::Dependencies() const {
 }
 
 
+EffectSet CheckClassIdInstr::Dependencies() const {
+  // Externalization of strings via the API can change the class-id.
+  const bool externalizable =
+      cid_ == kOneByteStringCid || cid_ == kTwoByteStringCid;
+  return externalizable ? EffectSet::Externalization() : EffectSet::None();
+}
+
+
 bool CheckClassInstr::IsNullCheck() const {
   if (unary_checks().NumberOfChecks() != 1) {
     return false;
@@ -149,6 +169,33 @@ bool CheckClassInstr::IsNullCheck() const {
   // Performance check: use CheckSmiInstr instead.
   ASSERT(cid != kSmiCid);
   return in_type->is_nullable() && (in_type->ToNullableCid() == cid);
+}
+
+
+bool CheckClassInstr::IsDenseSwitch() const {
+  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) return false;
+  if (cids_.length() > 2 &&
+      cids_[cids_.length() - 1] - cids_[0] < kBitsPerWord) {
+    return true;
+  }
+  return false;
+}
+
+
+intptr_t CheckClassInstr::ComputeCidMask() const {
+  ASSERT(IsDenseSwitch());
+  intptr_t mask = 0;
+  for (intptr_t i = 0; i < cids_.length(); ++i) {
+    mask |= 1 << (cids_[i] - cids_[0]);
+  }
+  return mask;
+}
+
+
+bool CheckClassInstr::IsDenseMask(intptr_t mask) {
+  // Returns true if the mask is a continuos sequence of ones in its binary
+  // representation (i.e. no holes)
+  return mask == -1 || Utils::IsPowerOfTwo(mask + 1);
 }
 
 
@@ -1963,6 +2010,18 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Instruction* CheckClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (value()->BindsToConstant()) {
+    const Object& constant_value = value()->BoundConstant();
+    if (constant_value.IsSmi() &&
+        Smi::Cast(constant_value).Value() == cid_) {
+      return NULL;
+    }
+  }
+  return this;
+}
+
+
 Instruction* GuardFieldClassInstr::Canonicalize(FlowGraph* flow_graph) {
   if (field().guarded_cid() == kDynamicCid) {
     return NULL;  // Nothing to guard.
@@ -2485,8 +2544,9 @@ RangeBoundary RangeBoundary::UpperBound() const {
 RangeBoundary RangeBoundary::Add(const RangeBoundary& a,
                                  const RangeBoundary& b,
                                  const RangeBoundary& overflow) {
-  ASSERT(a.IsConstant() && b.IsConstant());
+  if (a.IsInfinity() || b.IsInfinity()) return overflow;
 
+  ASSERT(a.IsConstant() && b.IsConstant());
   if (Utils::WillAddOverflow(a.ConstantValue(), b.ConstantValue())) {
     return overflow;
   }
@@ -2500,8 +2560,8 @@ RangeBoundary RangeBoundary::Add(const RangeBoundary& a,
 RangeBoundary RangeBoundary::Sub(const RangeBoundary& a,
                                  const RangeBoundary& b,
                                  const RangeBoundary& overflow) {
+  if (a.IsInfinity() || b.IsInfinity()) return overflow;
   ASSERT(a.IsConstant() && b.IsConstant());
-
   if (Utils::WillSubOverflow(a.ConstantValue(), b.ConstantValue())) {
     return overflow;
   }

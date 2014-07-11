@@ -1804,6 +1804,14 @@ void Assembler::bsrl(Register dst, Register src) {
 }
 
 
+void Assembler::bt(Register base, Register offset) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0F);
+  EmitUint8(0xA3);
+  EmitRegisterOperand(offset, base);
+}
+
+
 void Assembler::enter(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xC8);
