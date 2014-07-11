@@ -1215,6 +1215,11 @@ class ResolverTask extends CompilerTask {
       Node node = annotation.parseNode(compiler);
       Element annotatedElement = annotation.annotatedElement;
       AnalyzableElement context = annotatedElement.analyzableElement;
+      ClassElement classElement = annotatedElement.enclosingClass;
+      if (classElement != null) {
+        // The annotation is resolved in the scope of [classElement].
+        classElement.ensureResolved(compiler);
+      }
       assert(invariant(node, context != null,
           message: "No context found for metadata annotation "
                    "on $annotatedElement."));

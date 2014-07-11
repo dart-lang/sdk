@@ -57,6 +57,8 @@ abstract class Enqueuer {
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
 
+  QueueFilter get filter => compiler.enqueuerFilter;
+
   /// Returns [:true:] if [member] has been processed by this enqueuer.
   bool isProcessed(Element member);
 
@@ -105,17 +107,7 @@ abstract class Enqueuer {
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
-    task.measure(() {
-      // Run through the classes and see if we need to compile methods.
-      for (ClassElement classElement in universe.instantiatedClasses) {
-        for (ClassElement currentClass = classElement;
-             currentClass != null;
-             currentClass = currentClass.superclass) {
-          processInstantiatedClass(currentClass);
-        }
-      }
-    });
-    return true;
+    return filter.checkNoEnqueuedInvokedInstanceMethods(this);
   }
 
   void processInstantiatedClass(ClassElement cls) {
@@ -607,11 +599,11 @@ abstract class Enqueuer {
     registerIfGeneric(element, registry);
   }
 
-  void forEach(f(WorkItem work)) {
+  void forEach(void f(WorkItem work)) {
     do {
       while (queue.isNotEmpty) {
         // TODO(johnniwinther): Find an optimal process order.
-        f(queue.removeLast());
+        filter.processWorkItem(f, queue.removeLast());
       }
       List recents = recentClasses.toList(growable: false);
       recentClasses.clear();
@@ -854,5 +846,26 @@ class CodegenEnqueuer extends Enqueuer {
 
   void _logSpecificSummary(log(message)) {
     log('Compiled ${generatedCode.length} methods.');
+  }
+}
+
+/// Parameterizes filtering of which work items are enqueued.
+class QueueFilter {
+  bool checkNoEnqueuedInvokedInstanceMethods(Enqueuer enqueuer) {
+    enqueuer.task.measure(() {
+      // Run through the classes and see if we need to compile methods.
+      for (ClassElement classElement in enqueuer.universe.instantiatedClasses) {
+        for (ClassElement currentClass = classElement;
+             currentClass != null;
+             currentClass = currentClass.superclass) {
+          enqueuer.processInstantiatedClass(currentClass);
+        }
+      }
+    });
+    return true;
+  }
+
+  void processWorkItem(void f(WorkItem work), WorkItem work) {
+    f(work);
   }
 }

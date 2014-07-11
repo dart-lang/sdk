@@ -7,11 +7,29 @@ library trydart.poi_test;
 import 'dart:io' show
     Platform;
 
+import 'dart:async' show
+    Future;
+
 import 'package:try/poi/poi.dart' as poi;
 
 import 'package:async_helper/async_helper.dart';
 
+class PoiTest {
+  final Uri script;
+  final int offset;
+
+  PoiTest(this.script, this.offset);
+
+  Future run() => poi.main(<String>[script.toFilePath(), '$offset']);
+}
+
 void main() {
-  poi.main(<String>[Platform.script.toFilePath(), '339']);
-  asyncTest(() => poi.doneFuture);
+  List tests = [
+      // The file empty_main.dart is a regression test for crash in
+      // resolveMetadataAnnotation in dart2js.
+      new PoiTest(Platform.script.resolve('empty_main.dart'), 225),
+      new PoiTest(Platform.script, 594),
+  ];
+
+  asyncTest(() => Future.forEach(tests, (PoiTest test) => test.run()));
 }

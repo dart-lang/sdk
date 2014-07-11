@@ -20,9 +20,13 @@ import 'package:compiler/implementation/source_file_provider.dart' show
 import 'package:compiler/compiler.dart' as api show
     Diagnostic;
 
-Future doneFuture;
+import 'package:compiler/implementation/dart2jslib.dart' show
+    Compiler,
+    Enqueuer,
+    QueueFilter,
+    WorkItem;
 
-void main(List<String> arguments) {
+main(List<String> arguments) {
   Uri script = Uri.base.resolve(arguments.first);
   int position = int.parse(arguments[1]);
   FormattingDiagnosticHandler handler = new FormattingDiagnosticHandler();
@@ -42,7 +46,7 @@ void main(List<String> arguments) {
       '--categories=Client,Server',
   ];
 
-  var cachedCompiler = null;
+  Compiler cachedCompiler = null;
   cachedCompiler = reuseCompiler(
       diagnosticHandler: handler,
       inputProvider: handler.provider,
@@ -52,7 +56,9 @@ void main(List<String> arguments) {
       packageRoot: packageRoot,
       packagesAreImmutable: true);
 
-  doneFuture = cachedCompiler.run(script).then((success) {
+  cachedCompiler.enqueuerFilter = new ScriptOnlyFilter(script);
+
+  return cachedCompiler.run(script).then((success) {
     if (success != true) {
       throw 'Compilation failed';
     }
@@ -60,4 +66,18 @@ void main(List<String> arguments) {
         script, position, position + 1,
         'Point of interest.', api.Diagnostic.HINT);
   });
+}
+
+class ScriptOnlyFilter implements QueueFilter {
+  final Uri script;
+
+  ScriptOnlyFilter(this.script);
+
+  bool checkNoEnqueuedInvokedInstanceMethods(Enqueuer enqueuer) => true;
+
+  void processWorkItem(void f(WorkItem work), WorkItem work) {
+    if (work.element.library.canonicalUri == script) {
+      f(work);
+    }
+  }
 }

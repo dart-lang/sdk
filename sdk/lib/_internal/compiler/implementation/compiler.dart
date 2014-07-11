@@ -827,6 +827,9 @@ abstract class Compiler implements DiagnosticListener {
   DumpInfoTask dumpInfoTask;
   String buildId;
 
+  /// A customizable filter that is applied to enqueued work items.
+  QueueFilter enqueuerFilter = new QueueFilter();
+
   static const String MAIN = 'main';
   static const String CALL_OPERATOR_NAME = 'call';
   static const String NO_SUCH_METHOD = 'noSuchMethod';
