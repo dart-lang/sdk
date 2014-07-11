@@ -10,8 +10,9 @@ import 'package:analysis_testing/mocks.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
+
+import '../abstract_single_unit.dart';
 
 
 main() {
@@ -71,78 +72,115 @@ class _ContextCodecTest {
 
 
 @ReflectiveTestCase()
-class _ElementCodecTest {
+class _ElementCodecTest extends AbstractSingleUnitTest {
   ElementCodec codec;
   AnalysisContext context = new MockAnalysisContext('context');
   StringCodec stringCodec = new StringCodec();
 
   void setUp() {
+    super.setUp();
     codec = new ElementCodec(stringCodec);
   }
 
+  void test_field() {
+    resolveTestUnit('''
+class A {
+  int field;
+}
+''');
+    FieldElement field = findElement('field', ElementKind.FIELD);
+    PropertyAccessorElement getter = field.getter;
+    PropertyAccessorElement setter = field.setter;
+    {
+      int id = codec.encode(getter);
+      expect(codec.decode(context, id), getter);
+    }
+    {
+      int id = codec.encode(setter);
+      expect(codec.decode(context, id), setter);
+    }
+    {
+      int id = codec.encode(field);
+      expect(codec.decode(context, id), field);
+    }
+  }
+
   void test_localLocalVariable() {
+    resolveTestUnit('''
+main() {
+  {
+    foo() {
+      int bar; // A
+    }
+  }
+  {
+    foo() {
+      int bar; // B
+    }
+  }
+}
+''');
     {
-      Element element = new MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(['main', 'foo@1',
-          'bar@2']);
-      when(context.getElement(location)).thenReturn(element);
-      when(element.location).thenReturn(location);
+      LocalVariableElement element = findNodeElementAtString('bar; // A', null);
       int id = codec.encode(element);
       expect(codec.decode(context, id), element);
     }
     {
-      Element element = new MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(['main', 'foo@10',
-          'bar@20']);
-      when(context.getElement(location)).thenReturn(element);
-      when(element.location).thenReturn(location);
+      LocalVariableElement element = findNodeElementAtString('bar; // B', null);
       int id = codec.encode(element);
       expect(codec.decode(context, id), element);
     }
-    // check strings, "foo" as a single string, no "foo@1" or "foo@10"
-    expect(stringCodec.nameToIndex, hasLength(3));
-    expect(stringCodec.nameToIndex, containsPair('main', 0));
-    expect(stringCodec.nameToIndex, containsPair('foo', 1));
-    expect(stringCodec.nameToIndex, containsPair('bar', 2));
+    // check strings, "foo" as a single string, no "foo@17" or "bar@35"
+    expect(stringCodec.nameToIndex, hasLength(4));
+    expect(stringCodec.nameToIndex, containsPair('f/test.dart', 0));
+    expect(stringCodec.nameToIndex, containsPair('main', 1));
+    expect(stringCodec.nameToIndex, containsPair('foo', 2));
+    expect(stringCodec.nameToIndex, containsPair('bar', 3));
   }
 
   void test_localVariable() {
+    resolveTestUnit('''
+main() {
+  {
+    int foo; // A
+  }
+  {
+    int foo; // B
+  }
+}
+''');
     {
-      Element element = new MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(['main',
-          'foo@42']);
-      when(context.getElement(location)).thenReturn(element);
-      when(element.location).thenReturn(location);
+      LocalVariableElement element = findNodeElementAtString('foo; // A', null);
       int id = codec.encode(element);
       expect(codec.decode(context, id), element);
     }
     {
-      Element element = new MockElement();
-      ElementLocation location = new ElementLocationImpl.con3(['main',
-          'foo@4200']);
-      when(context.getElement(location)).thenReturn(element);
-      when(element.location).thenReturn(location);
+      LocalVariableElement element = findNodeElementAtString('foo; // B', null);
       int id = codec.encode(element);
       expect(codec.decode(context, id), element);
     }
-    // check strings, "foo" as a single string, no "foo@42" or "foo@4200"
-    expect(stringCodec.nameToIndex, hasLength(2));
-    expect(stringCodec.nameToIndex, containsPair('main', 0));
-    expect(stringCodec.nameToIndex, containsPair('foo', 1));
+    // check strings, "foo" as a single string, no "foo@21" or "foo@47"
+    expect(stringCodec.nameToIndex, hasLength(3));
+    expect(stringCodec.nameToIndex, containsPair('f/test.dart', 0));
+    expect(stringCodec.nameToIndex, containsPair('main', 1));
+    expect(stringCodec.nameToIndex, containsPair('foo', 2));
   }
 
   void test_notLocal() {
-    Element element = new MockElement();
-    ElementLocation location = new ElementLocationImpl.con3(['foo', 'bar']);
-    when(element.location).thenReturn(location);
-    when(context.getElement(location)).thenReturn(element);
+    resolveTestUnit('''
+main() {
+  int foo;
+}
+''');
+    LocalVariableElement element = findElement('foo');
     int id = codec.encode(element);
     expect(codec.encode(element), id);
     expect(codec.decode(context, id), element);
     // check strings
-    expect(stringCodec.nameToIndex, hasLength(2));
-    expect(stringCodec.nameToIndex, containsPair('foo', 0));
-    expect(stringCodec.nameToIndex, containsPair('bar', 1));
+    expect(stringCodec.nameToIndex, hasLength(3));
+    expect(stringCodec.nameToIndex, containsPair('f/test.dart', 0));
+    expect(stringCodec.nameToIndex, containsPair('main', 1));
+    expect(stringCodec.nameToIndex, containsPair('foo', 2));
   }
 }
 

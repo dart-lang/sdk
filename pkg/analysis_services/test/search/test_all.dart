@@ -2,14 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library test.services.src.scheglov.all;
+
 import 'package:unittest/unittest.dart';
 
-import 'index/test_all.dart' as index_all;
-import 'search/test_all.dart' as search_all;
+import 'search_engine_test.dart' as search_engine_test;
 
-/// Utility for manually running all tests.
+
+/**
+ * Utility for manually running all tests.
+ */
 main() {
   groupSep = ' | ';
-  index_all.main();
-  search_all.main();
+  group('search', () {
+    search_engine_test.main();
+  });
 }

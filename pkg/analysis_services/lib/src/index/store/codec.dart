@@ -19,14 +19,14 @@ class ContextCodec {
   /**
    * A table mapping contexts to their unique indices.
    */
-  Map<AnalysisContext, int> _contextToIndex = new HashMap<AnalysisContext, int>(
-      );
+  Map<AnalysisContext, int> _contextToIndex =
+      new HashMap<AnalysisContext, int>();
 
   /**
    * A table mapping indices to the corresponding contexts.
    */
-  Map<int, AnalysisContext> _indexToContext = new HashMap<int, AnalysisContext>(
-      );
+  Map<int, AnalysisContext> _indexToContext =
+      new HashMap<int, AnalysisContext>();
 
   /**
    * The next id to assign.
@@ -92,7 +92,8 @@ class ElementCodec {
     List<int> path = _indexToPath[index];
     List<String> components = _getLocationComponents(path);
     ElementLocation location = new ElementLocationImpl.con3(components);
-    return context.getElement(location);
+    Element element = context.getElement(location);
+    return element;
   }
 
   /**

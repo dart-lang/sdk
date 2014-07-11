@@ -656,6 +656,10 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     }
     // prepare information
     Element element = node.bestElement;
+    // TODO(scheglov) fix resolver to resolve to Field, not an accessor
+    if (node.parent is Combinator && element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
     // qualified name reference
     _recordQualifiedMemberReference(node, element, nameElement, location);
     // stop if already handled
@@ -688,9 +692,11 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
         FunctionTypeAliasElement || element is LabelElement || element is
         TypeParameterElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
-    } else if (element is FieldElement) {
+    } else if (element is PropertyInducingElement) {
       location = _getLocationWithInitializerType(node, location);
-      recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+      recordRelationship(element,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          location);
     } else if (element is FieldFormalParameterElement) {
       FieldFormalParameterElement fieldParameter = element;
       FieldElement field = fieldParameter.field;
