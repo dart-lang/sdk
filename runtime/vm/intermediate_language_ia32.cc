@@ -945,17 +945,16 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  Label not_smi, done;
+  Label done;
 
   // We don't use Assembler::LoadTaggedClassIdMayBeSmi() here---which uses
   // a conditional move instead, and requires an additional register---because
   // it is slower, probably due to branch prediction usually working just fine
   // in this case.
+  ASSERT(result != object);
+  __ movl(result, Immediate(kSmiCid << 1));
   __ testl(object, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movl(result, Immediate(Smi::RawValue(kSmiCid)));
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&not_smi);
+  __ j(EQUAL, &done, Assembler::kNearJump);
   __ LoadClassId(result, object);
   __ SmiTag(result);
   __ Bind(&done);

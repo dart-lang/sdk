@@ -350,6 +350,7 @@ class Assembler : public ValueObject {
 
   void cmovno(Register dst, Register src);
   void cmove(Register dst, Register src);
+  void cmovne(Register dst, Register src);
   void cmovs(Register dst, Register src);
   void cmovns(Register dst, Register src);
 
