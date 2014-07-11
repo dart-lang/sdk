@@ -1655,10 +1655,9 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
   intptr_t deopt_id = Isolate::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
-    // Set deopt_id if we can optimistically assume that the result is Smi.
-    // Assume mixed Mint/Smi if this instruction caused deoptimization once.
-    deopt_id = ic_data.HasDeoptReasons() ?
-        Isolate::kNoDeoptId : call->deopt_id();
+    // Prevent excessive deoptimization, assume full 32 bits used, and therefore
+    // generate Mint on 32-bit architectures.
+    deopt_id = (kSmiBits < 32) ? Isolate::kNoDeoptId : call->deopt_id();
   }
 
   // Array load and return.
@@ -3567,10 +3566,9 @@ bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
   intptr_t deopt_id = Isolate::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
-    // Set deopt_id if we can optimistically assume that the result is Smi.
-    // Assume mixed Mint/Smi if this instruction caused deoptimization once.
-    deopt_id = ic_data.HasDeoptReasons() ?
-        Isolate::kNoDeoptId : call->deopt_id();
+    // Prevent excessive deoptimization, assume full 32 bits used, and therefore
+    // generate Mint on 32-bit architectures.
+    deopt_id = (kSmiBits < 32) ? Isolate::kNoDeoptId : call->deopt_id();
   }
 
   *last = new(I) LoadIndexedInstr(new(I) Value(array),
@@ -3649,10 +3647,9 @@ bool FlowGraphOptimizer::InlineByteArrayViewStore(const Function& target,
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      // We don't have ICData for the value stored, so we optimistically assume
-      // smis first. If we ever deoptimized here, we require to unbox the value
-      // before storing to handle the mint case, too.
-      if (!i_call->ic_data()->HasDeoptReasons()) {
+    // Prevent excessive deoptimization, assume full 32 bits used, and therefore
+    // generate Mint on 32-bit architectures.
+    if (kSmiBits >= 32) {
         value_check = ICData::New(flow_graph_->parsed_function().function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
