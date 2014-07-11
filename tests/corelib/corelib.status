@@ -28,7 +28,7 @@ string_from_environment3_test: Skip
 string_from_environment_default_value: Skip
 string_from_environment_test: Skip
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer]
+[ $compiler == dart2analyzer]
 bool_from_environment2_test/01: Fail # Issue 18755
 bool_from_environment2_test/02: Fail # Issue 18755
 bool_from_environment2_test/03: Fail # Issue 18755

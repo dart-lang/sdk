@@ -979,9 +979,9 @@ class Builder extends ir.Visitor<Node> {
     return new FunctionDeclaration(variable, function, visit(node.body));
   }
 
-  Statement visitAsCast(ir.AsCast node) {
+  Statement visitTypeOperator(ir.TypeOperator node) {
     Expression receiver = getVariableReference(node.receiver);
-    Expression concat = new TypeOperator(receiver, node.type, "as");
+    Expression concat = new TypeOperator(receiver, node.type, node.operator);
     return continueWithExpression(node.continuation, concat);
   }
 
@@ -1084,12 +1084,6 @@ class Builder extends ir.Visitor<Node> {
     } else {
       return new FunctionExpression(def);
     }
-  }
-
-  Expression visitIsCheck(ir.IsCheck node) {
-    return new TypeOperator(getVariableReference(node.receiver),
-                            node.type,
-                            "is");
   }
 
   Expression visitParameter(ir.Parameter node) {

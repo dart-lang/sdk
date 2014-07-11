@@ -5,9 +5,11 @@
 import 'package:unittest/unittest.dart';
 
 import 'index/test_all.dart' as index_all;
+import 'search/test_all.dart' as search_all;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
   index_all.main();
+  search_all.main();
 }

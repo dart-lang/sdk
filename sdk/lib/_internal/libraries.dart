@@ -33,7 +33,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       implementation: true,
       documented: false,
       platforms: VM_PLATFORM),
- 
+
   "_chrome": const LibraryInfo(
       "_chrome/dart2js/chrome_dart2js.dart",
       documented: false,
@@ -115,10 +115,10 @@ const Map<String, LibraryInfo> LIBRARIES = const {
   "typed_data": const LibraryInfo(
       "typed_data/typed_data.dart",
       maturity: Maturity.STABLE,
-      dart2jsPath: "typed_data/dart2js/typed_data_dart2js.dart"),
+      dart2jsPatchPath: "_internal/lib/typed_data_patch.dart"),
 
   "_native_typed_data": const LibraryInfo(
-      "typed_data/dart2js/native_typed_data_dart2js.dart",
+      "_internal/lib/native_typed_data.dart",
       category: "Internal",
       implementation: true,
       documented: false,

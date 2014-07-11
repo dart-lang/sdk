@@ -469,7 +469,12 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   # Placeholder to add experimental flag, implementation for this is
   # pending in a separate CL.
   'Element.webkitMatchesSelector': ['@Experimental()'],
-  'Event.clipboardData': _webkit_experimental_annotations,
+  'Event.clipboardData': [
+    "@SupportedBrowser(SupportedBrowser.CHROME)",
+    "@SupportedBrowser(SupportedBrowser.FIREFOX)",
+    "@SupportedBrowser(SupportedBrowser.SAFARI)",
+    "@Experimental()",
+  ],
   'FormData': _all_but_ie9_annotations,
   'HashChangeEvent': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",

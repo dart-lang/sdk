@@ -19,8 +19,8 @@ import 'package:try/src/ui.dart' show
 import 'package:try/src/user_option.dart' show
     UserOption;
 
-import '../../pkg/expect/lib/expect.dart';
-import '../../pkg/async_helper/lib/async_helper.dart';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 
 main() {
   UserOption.storage = {};

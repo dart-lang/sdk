@@ -20,6 +20,7 @@ void main() {
   group('rel=import', importTests);
   group('rel=stylesheet', stylesheetTests);
   group('script type=dart', codeExtractorTests);
+  group('url attributes', urlAttributeTests);
 }
 
 void importTests() {
@@ -739,4 +740,29 @@ void stylesheetTests() {
       'a|web/test2.css':
           'h1 { font-size: 70px; }',
     });
+}
+
+void urlAttributeTests() {
+
+  testPhases('url attributes are normalized', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="foo/test_1.html">'
+          '<link rel="import" href="foo/test_2.html">'
+          '</head></html>',
+      'a|web/foo/test_1.html':
+          '<script src="baz.jpg"></script>',
+      'a|web/foo/test_2.html':
+          '<foo-element src="baz.jpg"></foo-element>'
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<script src="foo/baz.jpg"></script>'        // normalized
+          '<foo-element src="baz.jpg"></foo-element>'  // left alone (custom)
+          '</body></html>',
+      'a|web/foo/test_1.html':
+          '<script src="baz.jpg"></script>',
+      'a|web/foo/test_2.html':
+          '<foo-element src="baz.jpg"></foo-element>',
+    }); 
 }

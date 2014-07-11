@@ -553,6 +553,27 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
   __ Bind(&donetest15);
   __ addl(ESP, Immediate(kWordSize));
 
+  Label donetest16;
+  __ movl(EDX, Immediate(0x80000000));
+  __ movl(EAX, Immediate(0));
+  __ movl(ECX, Immediate(3));
+  __ sarl(EDX, Immediate(3));
+  __ shrd(EDX, EAX, Immediate(3));
+  __ cmpl(EDX, Immediate(0x1e000000));
+  __ j(EQUAL, &donetest16);
+  __ int3();
+  __ Bind(&donetest16);
+
+  Label donetest17;
+  __ movl(EDX, Immediate(0xFF000000));
+  __ movl(EAX, Immediate(-1));
+  __ shll(EDX, Immediate(2));
+  __ shld(EDX, EAX, Immediate(2));
+  __ cmpl(EDX, Immediate(0xF0000003));
+  __ j(EQUAL, &donetest17);
+  __ int3();
+  __ Bind(&donetest17);
+
   __ movl(EAX, Immediate(0));
   __ ret();
 }
@@ -3016,6 +3037,47 @@ ASSEMBLER_TEST_RUN(ConditionalMovesSign, test) {
   EXPECT_EQ(1, res);
   res = reinterpret_cast<ConditionalMovesSignCode>(test->entry())(-12);
   EXPECT_EQ(-1, res);
+}
+
+
+// Return 1 if overflow, 0 if no overflow.
+ASSEMBLER_TEST_GENERATE(ConditionalMovesNoOverflow, assembler) {
+  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ addl(EDX, Address(ESP, 2 * kWordSize));
+  __ movl(EAX, Immediate(1));
+  __ movl(ECX, Immediate(0));
+  __ cmovno(EAX, ECX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
+  typedef int (*ConditionalMovesNoOverflowCode)(int i, int j);
+  int res = reinterpret_cast<ConditionalMovesNoOverflowCode>(
+      test->entry())(0x7fffffff, 2);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ConditionalMovesNoOverflowCode>(test->entry())(1, 1);
+  EXPECT_EQ(0, res);
+}
+
+
+// Return 1 if equal, 0 if not equal.
+ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
+  __ xorl(EAX, EAX);
+  __ movl(ECX, Immediate(1));
+  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ cmpl(EDX, Immediate(785));
+  __ cmove(EAX, ECX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
+  typedef int (*ConditionalMovesSignCode)(int i);
+  int res = reinterpret_cast<ConditionalMovesSignCode>(test->entry())(785);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ConditionalMovesSignCode>(test->entry())(-12);
+  EXPECT_EQ(0, res);
 }
 
 

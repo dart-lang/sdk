@@ -18,7 +18,7 @@ import 'package:polymer/polymer.dart';
 part 'src/app/application.dart';
 part 'src/app/chart.dart';
 part 'src/app/location_manager.dart';
-part 'src/app/pane.dart';
+part 'src/app/page.dart';
 part 'src/app/settings.dart';
 part 'src/app/target_manager.dart';
 part 'src/app/utils.dart';

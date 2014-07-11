@@ -603,6 +603,7 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, R1, rd, 0, MOVCI);
   }
 
+  // rd <- (rt == 0) ? rs : rd;
   void movz(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, MOVZ);
   }

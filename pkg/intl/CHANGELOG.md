@@ -1,3 +1,9 @@
+## 0.11.2
+
+ * Missed canonicalization of locales in one place in message library generation.
+
+ * Added a simple debug script for message_extraction_test.
+
 ## 0.11.1
 
  * Negative numbers were being parsed as positive.

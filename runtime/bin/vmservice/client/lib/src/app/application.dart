@@ -8,8 +8,8 @@ part of app;
 /// by the observatory_application custom element.
 class ObservatoryApplication extends Observable {
   static ObservatoryApplication app;
-  final _paneRegistry = new List<Pane>();
-  Pane _currentPane;
+  final _pageRegistry = new List<Page>();
+  @observable Page currentPage;
   @observable final LocationManager locationManager;
   VM _vm;
   VM get vm => _vm;
@@ -42,7 +42,7 @@ class ObservatoryApplication extends Observable {
   void _initOnce(bool chromium) {
     assert(app == null);
     app = this;
-    _registerPanes();
+    _registerPages();
     locationManager._init(this);
   }
 
@@ -91,14 +91,14 @@ class ObservatoryApplication extends Observable {
     }
   }
 
-  void _registerPanes() {
-    // Register ClassTreePane.
-    _paneRegistry.add(new ClassTreePane(this));
-    _paneRegistry.add(new VMConnectPane(this));
-    _paneRegistry.add(new ErrorViewPane(this));
-    // Note that ServiceObjectPane must be the last entry in the list as it is
+  void _registerPages() {
+    // Register ClassTreePage.
+    _pageRegistry.add(new ClassTreePage(this));
+    _pageRegistry.add(new VMConnectPage(this));
+    _pageRegistry.add(new ErrorViewPage(this));
+    // Note that ServiceObjectPage must be the last entry in the list as it is
     // the catch all.
-    _paneRegistry.add(new ServiceObjectPane(this));
+    _pageRegistry.add(new ServiceObjectPage(this));
   }
 
   void _onError(ServiceError error) {
@@ -109,7 +109,7 @@ class ObservatoryApplication extends Observable {
   void _onException(ServiceException exception) {
     lastErrorOrException = exception;
     if (exception.kind == 'NetworkException') {
-      // Got a network exception, visit the vm-connect pane.
+      // Got a network exception, visit the vm-connect page.
       locationManager.go(locationManager.makeLink('/vm-connect/'));
     } else {
       _visit('error/', null);
@@ -117,41 +117,46 @@ class ObservatoryApplication extends Observable {
   }
 
   void _visit(String url, String args) {
-    // TODO(johnmccutchan): Pass [args] to pane.
-    for (var i = 0; i < _paneRegistry.length; i++) {
-      var pane = _paneRegistry[i];
-      if (pane.canVisit(url)) {
-        _installPane(pane);
-        pane.visit(url);
+    var argsMap;
+    if (args == null) {
+      argsMap = {};
+    } else {
+      argsMap = Uri.splitQueryString(args);
+    }
+    for (var i = 0; i < _pageRegistry.length; i++) {
+      var page = _pageRegistry[i];
+      if (page.canVisit(url)) {
+        _installPage(page);
+        page.visit(url, argsMap);
         return;
       }
     }
     throw new FallThroughError();
   }
 
-  /// Set the Observatory application pane.
-  void _installPane(Pane pane) {
-    assert(pane != null);
-    if (_currentPane == pane) {
+  /// Set the Observatory application page.
+  void _installPage(Page page) {
+    assert(page != null);
+    if (currentPage == page) {
       // Already isntalled.
       return;
     }
-    if (_currentPane != null) {
-      Logger.root.info('Uninstalling pane: $_currentPane');
-      _currentPane.onUninstall();
+    if (currentPage != null) {
+      Logger.root.info('Uninstalling page: $currentPage');
+      currentPage.onUninstall();
       // Clear children.
       rootElement.children.clear();
     }
-    Logger.root.info('Installing pane: $pane');
+    Logger.root.info('Installing page: $page');
     try {
-      pane.onInstall();
+      page.onInstall();
     } catch (e) {
-      Logger.root.severe('Failed to install pane: $e');
+      Logger.root.severe('Failed to install page: $e');
     }
-    // Add new pane.
-    rootElement.children.add(pane.element);
-    // Remember pane.
-    _currentPane = pane;
+    // Add new page.
+    rootElement.children.add(page.element);
+    // Remember page.
+    currentPage = page;
   }
 
   ObservatoryApplication.devtools(this.rootElement) :

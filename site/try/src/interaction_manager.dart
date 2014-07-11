@@ -25,6 +25,9 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     BeginGroupToken,
     EOF_TOKEN,
     ErrorToken,
+    STRING_INTERPOLATION_IDENTIFIER_TOKEN,
+    STRING_INTERPOLATION_TOKEN,
+    STRING_TOKEN,
     StringScanner,
     Token,
     UnmatchedToken,
@@ -32,6 +35,12 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
 
 import 'package:compiler/implementation/source_file.dart' show
     StringSourceFile;
+
+import 'package:compiler/implementation/string_validator.dart' show
+    StringValidator;
+
+import 'package:compiler/implementation/tree/tree.dart' show
+    StringQuoting;
 
 import 'compilation.dart' show
     currentSource,
@@ -73,7 +82,6 @@ import 'settings.dart' as settings;
 import 'shadow_root.dart' show
     getShadowRoot,
     getText,
-    removeShadowRootPolyfill,
     setShadowRoot;
 
 import 'iframe_error_handler.dart' show
@@ -426,60 +434,70 @@ class InitialState extends InteractionState {
       if (node is Element && node.classes.contains('lineNumber')) {
         print('Single line change: ${node.outerHtml}');
 
-        removeShadowRootPolyfill(node);
-
-        String currentText = node.text;
-
-        trySelection = trySelection.copyWithRoot(node);
-        trySelection.updateText(currentText);
-
-        editor.isMalformedInput = false;
-        int offset = 0;
-        List<Node> nodes = <Node>[];
-
-        String state = '';
-        Element previousLine = node.previousElementSibling;
-        if (previousLine != null) {
-          state = previousLine.getAttribute('dart-state');
-        }
-        for (String line in splitLines(currentText)) {
-          List<Node> lineNodes = <Node>[];
-          state = tokenizeAndHighlight(
-              line, state, offset, trySelection, lineNodes);
-          offset += line.length;
-          nodes.add(makeLine(lineNodes, state));
-        }
-
-        node.parent.insertAllBefore(nodes, node);
-        node.remove();
-        if (mainEditorPane.contains(trySelection.anchorNode)) {
-          // Sometimes the anchor node is removed by the above call. This has
-          // only been observed in Firefox, and is hard to reproduce.
-          trySelection.adjust(selection);
-        }
-
-        // TODO(ahe): We know almost exactly what has changed.  It could be
-        // more efficient to only communicate what changed.
-        context.currentCompilationUnit.content = getText(mainEditorPane);
-
-        // Discard highlighting mutations.
-        observer.takeRecords();
+        updateHighlighting(node, selection, trySelection, mainEditorPane);
         return;
       }
     }
 
-    String currentText = getText(mainEditorPane);
+    updateHighlighting(mainEditorPane, selection, trySelection);
+  }
+
+  void updateHighlighting(
+      Element node,
+      Selection selection,
+      TrySelection trySelection,
+      [Element root]) {
+    String state = '';
+    String currentText = getText(node);
+    if (root != null) {
+      // Single line change.
+      trySelection = trySelection.copyWithRoot(node);
+      Element previousLine = node.previousElementSibling;
+      if (previousLine != null) {
+        state = previousLine.getAttribute('dart-state');
+      }
+
+      node.parent.insertAllBefore(
+          createHighlightedNodes(trySelection, currentText, state),
+          node);
+      node.remove();
+    } else {
+      root = node;
+      editor.seenIdentifiers = new Set<String>.from(mock.identifiers);
+
+      // Fail safe: new [nodes] are computed before clearing old nodes.
+      List<Node> nodes =
+          createHighlightedNodes(trySelection, currentText, state);
+
+      node.nodes
+          ..clear()
+          ..addAll(nodes);
+    }
+
+    if (mainEditorPane.contains(trySelection.anchorNode)) {
+      // Sometimes the anchor node is removed by the above call. This has
+      // only been observed in Firefox, and is hard to reproduce.
+      trySelection.adjust(selection);
+    }
+
+    // TODO(ahe): We know almost exactly what has changed.  It could be
+    // more efficient to only communicate what changed.
+    context.currentCompilationUnit.content = getText(root);
+
+    // Discard highlighting mutations.
+    observer.takeRecords();
+  }
+
+  List<Node> createHighlightedNodes(
+      TrySelection trySelection,
+      String currentText,
+      String state) {
     trySelection.updateText(currentText);
-
-    context.currentCompilationUnit.content = currentText;
-
-    editor.seenIdentifiers = new Set<String>.from(mock.identifiers);
 
     editor.isMalformedInput = false;
     int offset = 0;
     List<Node> nodes = <Node>[];
 
-    String state = '';
     for (String line in splitLines(currentText)) {
       List<Node> lineNodes = <Node>[];
       state =
@@ -488,13 +506,7 @@ class InitialState extends InteractionState {
       nodes.add(makeLine(lineNodes, state));
     }
 
-    mainEditorPane
-        ..nodes.clear()
-        ..nodes.addAll(nodes);
-    trySelection.adjust(selection);
-
-    // Discard highlighting mutations.
-    observer.takeRecords();
+    return nodes;
   }
 
   void onSelectionChange(Event event) {
@@ -1135,6 +1147,14 @@ String tokenizeAndHighlight(String line,
       if (token is BeginGroupToken && token.endGroup != null) {
         follow = token.endGroup.next;
       }
+      if (token.kind == STRING_TOKEN) {
+        follow = followString(follow);
+        if (follow is UnmatchedToken) {
+          if ('${follow.begin.value}' == r'${') {
+            newState += '${extractQuote(token.value)}';
+          }
+        }
+      }
       if (follow is ErrorToken && follow.charOffset == token.charOffset) {
         if (follow is UnmatchedToken) {
           newState += '${follow.begin.value}';
@@ -1149,7 +1169,13 @@ String tokenizeAndHighlight(String line,
       continue;
     }
 
-    Decoration decoration = editor.getDecoration(tokenToDecorate);
+    Decoration decoration;
+    if (charOffset - state.length == line.length - 1 && line.endsWith('\n')) {
+      // Don't add decorations to trailing newline.
+      decoration = null;
+    } else {
+      decoration = editor.getDecoration(tokenToDecorate);
+    }
 
     if (decoration == null) continue;
 
@@ -1281,4 +1307,34 @@ void workAroundFirefoxBug() {
     print('Selection adjusted $node@$offset -> '
           '${selection.anchorNode}@${selection.anchorOffset}.');
   }
+}
+
+/// Compute the token following a string. Compare to parseSingleLiteralString
+/// in parser.dart.
+Token followString(Token token) {
+  // TODO(ahe): I should be able to get rid of this if I change the scanner to
+  // create BeginGroupToken for strings.
+  int kind = token.kind;
+  while (kind != EOF_TOKEN) {
+    if (kind == STRING_INTERPOLATION_TOKEN) {
+      // Looking at ${expression}.
+      BeginGroupToken begin = token;
+      token = begin.endGroup.next;
+    } else if (kind == STRING_INTERPOLATION_IDENTIFIER_TOKEN) {
+      // Looking at $identifier.
+      token = token.next.next;
+    } else {
+      return token;
+    }
+    kind = token.kind;
+    if (kind != STRING_TOKEN) return token;
+    token = token.next;
+    kind = token.kind;
+  }
+  return token;
+}
+
+String extractQuote(String string) {
+  StringQuoting q = StringValidator.quotingFromString(string);
+  return (q.raw ? 'r' : '') + (q.quoteChar * q.leftQuoteLength);
 }

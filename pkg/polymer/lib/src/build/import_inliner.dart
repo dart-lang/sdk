@@ -289,13 +289,18 @@ class _UrlNormalizer extends TreeVisitor {
   _UrlNormalizer(this.transform, this.sourceId);
 
   visitElement(Element node) {
-    node.attributes.forEach((name, value) {
-      if (_urlAttributes.contains(name)) {
-        if (value != '' && !value.trim().startsWith('{{')) {
-          node.attributes[name] = _newUrl(value, node.sourceSpan);
+    // TODO(jakemac): Support custom elements that extend html elements which
+    // have url-like attributes. This probably means keeping a list of which
+    // html elements support each url-like attribute.
+    if (!isCustomTagName(node.localName)) {
+      node.attributes.forEach((name, value) {
+        if (_urlAttributes.contains(name)) {
+          if (value != '' && !value.trim().startsWith('{{')) {
+            node.attributes[name] = _newUrl(value, node.sourceSpan);
+          }
         }
-      }
-    });
+      });
+    }
     if (node.localName == 'style') {
       node.text = visitCss(node.text);
     } else if (node.localName == 'script' &&

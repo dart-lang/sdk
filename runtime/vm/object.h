@@ -1984,6 +1984,10 @@ class Function : public Object {
                                          const Function& parent,
                                          intptr_t token_pos);
 
+  static RawFunction* NewEvalFunction(const Class& owner,
+                                      const Script& script,
+                                      bool is_static);
+
   // Creates a new static initializer function which is invoked in the implicit
   // static getter function.
   static RawFunction* NewStaticInitializer(const Field& field);
@@ -2058,6 +2062,8 @@ class Function : public Object {
   void set_implicit_closure_function(const Function& value) const;
   RawInstance* implicit_static_closure() const;
   void set_implicit_static_closure(const Instance& closure) const;
+  RawScript* eval_script() const;
+  void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(intptr_t value) const;
   void set_data(const Object& value) const;
@@ -3034,24 +3040,46 @@ class PcDescriptors : public Object {
 
   class Iterator : ValueObject {
    public:
-    explicit Iterator(const PcDescriptors& descriptors)
-        : descriptors_(descriptors), current_ix_(0) {}
+    Iterator(const PcDescriptors& descriptors, intptr_t kind_mask)
+        : descriptors_(descriptors), kind_mask_(kind_mask), current_ix_(0) {
+      MoveToMatching();
+    }
+
+    bool HasNext() const { return current_ix_ < descriptors_.Length(); }
+
+    const RawPcDescriptors::PcDescriptorRec& Next() {
+      ASSERT(HasNext());
+      const RawPcDescriptors::PcDescriptorRec* res =
+         descriptors_.recAt(current_ix_++);
+      MoveToMatching();
+      return *res;
+    }
+
+   private:
+    friend class PcDescriptors;
 
     // For nested iterations, starting at element after.
     explicit Iterator(const Iterator& iter)
         : ValueObject(),
           descriptors_(iter.descriptors_),
+          kind_mask_(iter.kind_mask_),
           current_ix_(iter.current_ix_) {}
 
-    bool HasNext() { return current_ix_ < descriptors_.Length(); }
-
-    const RawPcDescriptors::PcDescriptorRec& Next() {
-      ASSERT(HasNext());
-      return *descriptors_.recAt(current_ix_++);
+    // Moves to record that matches kind_mask_.
+    void MoveToMatching() {
+      while (current_ix_ < descriptors_.Length()) {
+        const RawPcDescriptors::PcDescriptorRec& rec =
+            *descriptors_.recAt(current_ix_);
+        if ((rec.kind_ & kind_mask_) != 0) {
+          return;  // Current is valid.
+        } else {
+          ++current_ix_;
+        }
+      }
     }
 
-   private:
     const PcDescriptors& descriptors_;
+    const intptr_t kind_mask_;
     intptr_t current_ix_;
   };
 

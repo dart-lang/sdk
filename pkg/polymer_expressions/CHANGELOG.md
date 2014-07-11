@@ -3,6 +3,10 @@
 This file contains highlights of what changes on each version of the
 polymer_expressions package.
 
+#### Pub version 0.12.0-dev
+  * Updated to depend on latest template_binding and observe. Setting a value on
+    a polymer expression binding now produces a change notification.
+
 #### Pub version 0.11.0
   * Remove faulty assert that threw when an iterable field was updated.
   

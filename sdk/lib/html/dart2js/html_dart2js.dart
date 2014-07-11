@@ -11981,7 +11981,7 @@ class ErrorEvent extends Event native "ErrorEvent" {
 
 
 @DomName('Event')
-class Event extends Interceptor native "Event,InputEvent" {
+class Event extends Interceptor native "Event,InputEvent,ClipboardEvent" {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -12090,6 +12090,7 @@ class Event extends Interceptor native "Event,InputEvent" {
   @DomName('Event.clipboardData')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // Part of copy/paste

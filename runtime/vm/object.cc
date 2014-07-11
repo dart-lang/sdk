@@ -2743,51 +2743,37 @@ static RawString* BuildClosureSource(const Array& formal_params,
 }
 
 
-static RawPatchClass* MakeTempPatchClass(const Class& cls,
-                                         const String& expr,
-                                         const Array& formal_params) {
+static RawFunction* EvaluateHelper(const Class& cls,
+                                   const String& expr,
+                                   const Array& param_names,
+                                   bool is_static) {
   const String& func_src =
-      String::Handle(BuildClosureSource(formal_params, expr));
+      String::Handle(BuildClosureSource(param_names, expr));
   Script& script = Script::Handle();
   script = Script::New(Symbols::Empty(), func_src, RawScript::kSourceTag);
   // In order to tokenize the source, we need to get the key to mangle
-  // private names from the library from which the object's class
-  // originates.
+  // private names from the library from which the class originates.
   const Library& lib = Library::Handle(cls.library());
   ASSERT(!lib.IsNull());
   const String& lib_key = String::Handle(lib.private_key());
   script.Tokenize(lib_key);
 
-  const String& src_class_name = String::Handle(Symbols::New(":internal"));
-  const Class& src_class = Class::Handle(
-      Class::New(src_class_name, script, Scanner::kNoSourcePos));
-  src_class.set_is_finalized();
-  src_class.set_library(lib);
-  return PatchClass::New(cls, src_class);
+  const Function& func = Function::Handle(
+       Function::NewEvalFunction(cls, script, is_static));
+  func.set_result_type(Type::Handle(Type::DynamicType()));
+  const intptr_t num_implicit_params = is_static ? 0 : 1;
+  func.set_num_fixed_parameters(num_implicit_params + param_names.Length());
+  func.SetNumOptionalParameters(0, true);
+  func.SetIsOptimizable(false);
+  return func.raw();
 }
 
 
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
-  const PatchClass& temp_class =
-      PatchClass::Handle(MakeTempPatchClass(*this, expr, param_names));
-  const String& eval_func_name = String::Handle(Symbols::New(":eval"));
   const Function& eval_func =
-      Function::Handle(Function::New(eval_func_name,
-                                     RawFunction::kRegularFunction,
-                                     true,   // Static.
-                                     false,  // Not const.
-                                     false,  // Not abstract.
-                                     false,  // Not external.
-                                     false,  // Not native.
-                                     temp_class,
-                                     0));
-  eval_func.set_result_type(Type::Handle(Type::DynamicType()));
-  eval_func.set_num_fixed_parameters(param_names.Length());
-  eval_func.SetNumOptionalParameters(0, true);
-  eval_func.SetIsOptimizable(false);
-
+      Function::Handle(EvaluateHelper(*this, expr, param_names, true));
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(eval_func, param_values));
   return result.raw();
@@ -5073,6 +5059,22 @@ void Function::set_implicit_static_closure(const Instance& closure) const {
 }
 
 
+RawScript* Function::eval_script() const {
+  const Object& obj = Object::Handle(raw_ptr()->data_);
+  if (obj.IsScript()) {
+    return Script::Cast(obj).raw();
+  }
+  return Script::null();
+}
+
+
+void Function::set_eval_script(const Script& script) const {
+  ASSERT(token_pos() == 0);
+  ASSERT(raw_ptr()->data_ == Object::null());
+  set_data(script);
+}
+
+
 RawFunction* Function::extracted_method_closure() const {
   ASSERT(kind() == RawFunction::kMethodExtractor);
   const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -5149,13 +5151,15 @@ RawFunction* Function::implicit_closure_function() const {
     return Function::null();
   }
   const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(obj.IsNull() || obj.IsFunction());
-  return (obj.IsNull()) ? Function::null() : Function::Cast(obj).raw();
+  ASSERT(obj.IsNull() || obj.IsScript() || obj.IsFunction());
+  return (obj.IsNull() || obj.IsScript()) ? Function::null()
+                                          : Function::Cast(obj).raw();
 }
 
 
 void Function::set_implicit_closure_function(const Function& value) const {
   ASSERT(!IsClosureFunction() && !IsSignatureFunction());
+  ASSERT(raw_ptr()->data_ == Object::null());
   set_data(value);
 }
 
@@ -6079,10 +6083,27 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     parent_owner,
                     token_pos));
   result.set_parent_function(parent);
-
   return result.raw();
 }
 
+
+RawFunction* Function::NewEvalFunction(const Class& owner,
+                                       const Script& script,
+                                       bool is_static) {
+  const Function& result = Function::Handle(
+      Function::New(String::Handle(Symbols::New(":Eval")),
+                    RawFunction::kRegularFunction,
+                    is_static,
+                    /* is_const = */ false,
+                    /* is_abstract = */ false,
+                    /* is_external = */ false,
+                    /* is_native = */ false,
+                    owner,
+                    0));
+  ASSERT(!script.IsNull());
+  result.set_eval_script(script);
+  return result.raw();
+}
 
 RawFunction* Function::ImplicitClosureFunction() const {
   // Return the existing implicit closure function if any.
@@ -6349,6 +6370,17 @@ RawClass* Function::origin() const {
 
 
 RawScript* Function::script() const {
+  if (token_pos() == 0) {
+    // Testing for position 0 is an optimization that relies on temporary
+    // eval functions having token position 0.
+    const Script& script = Script::Handle(eval_script());
+    if (!script.IsNull()) {
+      return script.raw();
+    }
+  }
+  if (IsClosureFunction()) {
+    return Function::Handle(parent_function()).script();
+  }
   const Object& obj = Object::Handle(raw_ptr()->owner_);
   if (obj.IsClass()) {
     return Class::Cast(obj).script();
@@ -6663,9 +6695,9 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("user_name", pretty_name);
   if (cls.IsTopLevel()) {
     const Library& library = Library::Handle(cls.library());
-    jsobj.AddProperty("owner", library);
+    jsobj.AddProperty("owningLibrary", library);
   } else {
-    jsobj.AddProperty("owner", cls);
+    jsobj.AddProperty("owningClass", cls);
   }
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {
@@ -9276,17 +9308,25 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  // Make a fake top-level class and evaluate the expression
+  // Take or make a fake top-level class and evaluate the expression
   // as a static function of the class.
-  Script& script = Script::Handle();
-  script = Script::New(Symbols::Empty(),
-                       Symbols::Empty(),
-                       RawScript::kSourceTag);
-  Class& temp_class =
-      Class::Handle(Class::New(Symbols::TopLevel(), script, 0));
-  temp_class.set_library(*this);
-  temp_class.set_is_finalized();
-  return temp_class.Evaluate(expr, param_names, param_values);
+  Class& top_level_class = Class::Handle();
+  Array& top_level_classes = Array::Handle(anonymous_classes());
+  if (top_level_classes.Length() > 0) {
+    top_level_class ^= top_level_classes.At(0);
+  } else {
+    // A library may have no top-level classes if it has no top-level
+    // variables or methods.
+    Script& script = Script::Handle(Script::New(Symbols::Empty(),
+                                                Symbols::Empty(),
+                                                RawScript::kSourceTag));
+    top_level_class = Class::New(Symbols::TopLevel(), script, 0);
+    top_level_class.set_is_finalized();
+    top_level_class.set_library(*this);
+    AddAnonymousClass(top_level_class);
+  }
+  ASSERT(top_level_class.is_finalized());
+  return top_level_class.Evaluate(expr, param_names, param_values);
 }
 
 
@@ -10205,6 +10245,7 @@ const char* PcDescriptors::KindAsStr(RawPcDescriptors::Kind kind) {
     case RawPcDescriptors::kRuntimeCall:     return "runtime-call ";
     case RawPcDescriptors::kOsrEntry:        return "osr-entry    ";
     case RawPcDescriptors::kOther:           return "other        ";
+    case RawPcDescriptors::kAnyKind:         UNREACHABLE(); break;
   }
   UNREACHABLE();
   return "";
@@ -10233,7 +10274,7 @@ const char* PcDescriptors::ToCString() const {
       "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
-  Iterator iter(*this);
+  Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     len += OS::SNPrint(NULL, 0, kFormat, addr_width,
@@ -10247,7 +10288,7 @@ const char* PcDescriptors::ToCString() const {
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t index = 0;
-  Iterator iter2(*this);
+  Iterator iter2(*this, RawPcDescriptors::kAnyKind);
   while (iter2.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter2.Next();
     index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
@@ -10268,7 +10309,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
   // generate an ID. Currently we only print PcDescriptors inline with a Code.
   jsobj->AddProperty("id", "");
   JSONArray members(jsobj, "members");
-  Iterator iter(*this);
+  Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     JSONObject descriptor(&members);
@@ -10306,16 +10347,12 @@ void PcDescriptors::Verify(const Function& function) const {
   if (!function.IsOptimizable()) {
     return;
   }
-  Iterator iter(*this);
+  Iterator iter(*this, RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     RawPcDescriptors::Kind kind = rec.kind();
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
     intptr_t deopt_id = Isolate::kNoDeoptId;
-    if ((kind != RawPcDescriptors::kDeopt) ||
-        (kind != RawPcDescriptors::kIcCall)) {
-      continue;
-    }
 
     deopt_id = rec.deopt_id;
     if (Isolate::IsDeoptAfter(deopt_id)) {
@@ -10326,7 +10363,7 @@ void PcDescriptors::Verify(const Function& function) const {
     }
 
     Iterator nested(iter);
-    while (iter.HasNext()) {
+    while (nested.HasNext()) {
       const RawPcDescriptors::PcDescriptorRec& nested_rec = nested.Next();
       if (kind == nested_rec.kind()) {
         if (deopt_id != Isolate::kNoDeoptId) {
@@ -10340,7 +10377,7 @@ void PcDescriptors::Verify(const Function& function) const {
 
 
 uword PcDescriptors::GetPcForKind(RawPcDescriptors::Kind kind) const {
-  Iterator iter(*this);
+  Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     if (rec.kind() == kind) {
@@ -11842,7 +11879,7 @@ RawCode* Code::FindCode(uword pc, int64_t timestamp) {
 
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors);
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     if (rec.pc == pc) {
@@ -11856,10 +11893,10 @@ intptr_t Code::GetTokenIndexOfPC(uword pc) const {
 uword Code::GetPcForDeoptId(intptr_t deopt_id,
                             RawPcDescriptors::Kind kind) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors);
+  PcDescriptors::Iterator iter(descriptors, kind);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if ((rec.deopt_id == deopt_id) && (rec.kind() == kind)) {
+    if (rec.deopt_id == deopt_id) {
       uword pc = rec.pc;
       ASSERT(ContainsInstructionAt(pc));
       return pc;
@@ -11871,10 +11908,10 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id,
 
 intptr_t Code::GetDeoptIdForOsr(uword pc) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors);
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kOsrEntry);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if ((rec.pc == pc) && (rec.kind() == RawPcDescriptors::kOsrEntry)) {
+    if (rec.pc == pc) {
       return rec.deopt_id;
     }
   }
@@ -12762,24 +12799,8 @@ RawObject* Instance::Evaluate(const String& expr,
                               const Array& param_names,
                               const Array& param_values) const {
   const Class& cls = Class::Handle(clazz());
-  const PatchClass& temp_class = PatchClass::Handle(
-      MakeTempPatchClass(cls, expr, param_names));
-  const String& eval_func_name = String::Handle(Symbols::New(":eval"));
   const Function& eval_func =
-      Function::Handle(Function::New(eval_func_name,
-                                     RawFunction::kRegularFunction,
-                                     false,  // Not static.
-                                     false,  // Not const.
-                                     false,  // Not abstract.
-                                     false,  // Not external.
-                                     false,  // Not native.
-                                     temp_class,
-                                     0));
-  eval_func.set_result_type(Type::Handle(Type::DynamicType()));
-  eval_func.set_num_fixed_parameters(1 + param_values.Length());
-  eval_func.SetNumOptionalParameters(0, true);
-  eval_func.SetIsOptimizable(false);
-
+      Function::Handle(EvaluateHelper(cls, expr, param_names, false));
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
   Object& param = Object::Handle();
   args.SetAt(0, *this);
@@ -15228,8 +15249,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
   // In 32-bit mode, the result of any operation between two Smis will fit in a
   // 32-bit signed result, except the product of two Smis, which will be 64-bit.
   // In 64-bit mode, the result of any operation between two Smis will fit in a
-  // 64-bit signed result, except the product of two Smis (unless the Smis are
-  // 32-bit or less).
+  // 64-bit signed result, except the product of two Smis (see below).
   if (IsSmi() && other.IsSmi()) {
     const intptr_t left_value = Smi::Value(Smi::RawCast(raw()));
     const intptr_t right_value = Smi::Value(Smi::RawCast(other.raw()));
@@ -15244,10 +15264,12 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
           return Integer::New(static_cast<int64_t>(left_value) *
                               static_cast<int64_t>(right_value));
         } else {
-          // In 64-bit mode, the product of two 32-bit signed integers fits in a
-          // 64-bit result.
+          // In 64-bit mode, the product of two signed integers fits in a
+          // 64-bit result if the sum of the highest bits of their absolute
+          // values is smaller than 62.
           ASSERT(sizeof(intptr_t) == sizeof(int64_t));
-          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
+          if ((Utils::HighestBit(left_value) +
+               Utils::HighestBit(right_value)) < 62) {
             return Integer::New(left_value * right_value);
           }
         }
@@ -15271,42 +15293,41 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         UNIMPLEMENTED();
     }
   }
-  // In 32-bit mode, the result of any operation between two 63-bit signed
-  // integers (or 32-bit for multiplication) will fit in a 64-bit signed result.
+  // In 32-bit mode, the result of any operation (except multiplication) between
+  // two 63-bit signed integers will fit in a 64-bit signed result.
+  // For the multiplication result to fit, the sum of the highest bits of the
+  // absolute values of the operands must be smaller than 62.
   // In 64-bit mode, 63-bit signed integers are Smis, already processed above.
   if ((Smi::kBits < 32) && !IsBigint() && !other.IsBigint()) {
     const int64_t left_value = AsInt64Value();
-    if (Utils::IsInt(63, left_value)) {
-      const int64_t right_value = other.AsInt64Value();
-      if (Utils::IsInt(63, right_value)) {
-        switch (operation) {
-        case Token::kADD:
-          return Integer::New(left_value + right_value);
-        case Token::kSUB:
-          return Integer::New(left_value - right_value);
-        case Token::kMUL: {
-          if (Utils::IsInt(32, left_value) && Utils::IsInt(32, right_value)) {
-            return Integer::New(left_value * right_value);
+    const int64_t right_value = other.AsInt64Value();
+    if (operation == Token::kMUL) {
+      if ((Utils::HighestBit(left_value) +
+           Utils::HighestBit(right_value)) < 62) {
+        return Integer::New(left_value * right_value);
+      }
+      // Perform a Bigint multiplication below.
+    } else if (Utils::IsInt(63, left_value) && Utils::IsInt(63, right_value)) {
+      switch (operation) {
+      case Token::kADD:
+        return Integer::New(left_value + right_value);
+      case Token::kSUB:
+        return Integer::New(left_value - right_value);
+      case Token::kTRUNCDIV:
+        return Integer::New(left_value / right_value);
+      case Token::kMOD: {
+        const int64_t remainder = left_value % right_value;
+        if (remainder < 0) {
+          if (right_value < 0) {
+            return Integer::New(remainder - right_value);
+          } else {
+            return Integer::New(remainder + right_value);
           }
-          // Perform a Bigint multiplication below.
-          break;
         }
-        case Token::kTRUNCDIV:
-          return Integer::New(left_value / right_value);
-        case Token::kMOD: {
-          const int64_t remainder = left_value % right_value;
-          if (remainder < 0) {
-            if (right_value < 0) {
-              return Integer::New(remainder - right_value);
-            } else {
-              return Integer::New(remainder + right_value);
-            }
-          }
-          return Integer::New(remainder);
-        }
-        default:
-          UNIMPLEMENTED();
-        }
+        return Integer::New(remainder);
+      }
+      default:
+        UNIMPLEMENTED();
       }
     }
   }

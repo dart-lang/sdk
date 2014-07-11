@@ -5601,8 +5601,26 @@ class AnalysisContextImpl_CycleBuilder {
   }
 
   /**
+   * Ensure that the given library has an element model built for it. If another task needs to be
+   * executed first in order to build the element model, that task is placed in [taskData].
+   *
+   * @param library the library which needs an element model.
+   */
+  void _ensureElementModel(ResolvableLibrary library) {
+    Source librarySource = library.librarySource;
+    DartEntry libraryEntry = AnalysisContextImpl_this._getReadableDartEntry(librarySource);
+    if (libraryEntry != null && libraryEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
+      AnalysisContextImpl_this._workManager.addFirst(librarySource, SourcePriority.LIBRARY);
+      if (_taskData == null) {
+        _taskData = AnalysisContextImpl_this._createResolveDartLibraryTask(librarySource, libraryEntry);
+      }
+    }
+  }
+
+  /**
    * Ensure that all of the libraries that are exported by the given library (but are not
-   * themselves in the cycle) have element models built for them.
+   * themselves in the cycle) have element models built for them. If another task needs to be
+   * executed first in order to build the element model, that task is placed in [taskData].
    *
    * @param library the library being tested
    */
@@ -5613,17 +5631,12 @@ class AnalysisContextImpl_CycleBuilder {
       ResolvableLibrary dependency = dependencies[i];
       if (!_librariesInCycle.contains(dependency) && visitedLibraries.add(dependency.librarySource)) {
         if (dependency.libraryElement == null) {
-          Source dependencySource = dependency.librarySource;
-          AnalysisContextImpl_this._workManager.addFirst(dependencySource, SourcePriority.LIBRARY);
-          if (_taskData == null) {
-            _taskData = AnalysisContextImpl_this._createResolveDartLibraryTask(dependencySource, AnalysisContextImpl_this._getReadableDartEntry(dependencySource));
-            return;
-          }
+          _ensureElementModel(dependency);
         } else {
           _ensureExports(dependency, visitedLibraries);
-          if (_taskData != null) {
-            return;
-          }
+        }
+        if (_taskData != null) {
+          return;
         }
       }
     }
@@ -5631,11 +5644,10 @@ class AnalysisContextImpl_CycleBuilder {
 
   /**
    * Ensure that all of the libraries that are exported by the given library (but are not
-   * themselves in the cycle) have element models built for them.
+   * themselves in the cycle) have element models built for them. If another task needs to be
+   * executed first in order to build the element model, that task is placed in [taskData].
    *
    * @param library the library being tested
-   * @throws MissingDataException if there is at least one library being depended on that does not
-   *           have an element model built for it
    */
   void _ensureImports(ResolvableLibrary library) {
     List<ResolvableLibrary> dependencies = library.imports;
@@ -5643,10 +5655,8 @@ class AnalysisContextImpl_CycleBuilder {
     for (int i = 0; i < dependencyCount; i++) {
       ResolvableLibrary dependency = dependencies[i];
       if (!_librariesInCycle.contains(dependency) && dependency.libraryElement == null) {
-        Source dependencySource = dependency.librarySource;
-        AnalysisContextImpl_this._workManager.addFirst(dependencySource, SourcePriority.LIBRARY);
-        if (_taskData == null) {
-          _taskData = AnalysisContextImpl_this._createResolveDartLibraryTask(dependencySource, AnalysisContextImpl_this._getReadableDartEntry(dependencySource));
+        _ensureElementModel(dependency);
+        if (_taskData != null) {
           return;
         }
       }
@@ -6359,6 +6369,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * The default value for enabling deferred loading.
    */
   static bool DEFAULT_ENABLE_DEFERRED_LOADING = true;
+
+  /**
+   * The default value for enabling async support.
+   */
+  static bool DEFAULT_ENABLE_ASYNC = false;
 
   /**
    * A flag indicating whether analysis is to analyze Angular.

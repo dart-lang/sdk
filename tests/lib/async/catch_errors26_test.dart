@@ -14,11 +14,12 @@ main() {
   var events = [];
   StreamController controller;
   Stream stream;
-  // Test `StreamController.broadcast` streams. Note that the nested listener
-  // doesn't see the error, but the outer one does.
+  // Test `StreamController.broadcast` streams.
   catchErrors(() {
     catchErrors(() {
       controller = new StreamController.broadcast();
+
+      // Listen to the stream from the inner zone.
       controller.stream
         .map((x) {
           events.add("map $x");
@@ -27,19 +28,22 @@ main() {
         .transform(new StreamTransformer.fromHandlers(
             handleError: (e, st, sink) { sink.add("error $e"); }))
         .listen((x) { events.add("stream $x"); });
+
     }).listen((x) { events.add(x); })
       .asFuture().then((_) { Expect.fail("Unexpected callback"); });
+
+    // Listen to the stream from the outer zone.
     controller.stream.listen((x) { events.add("stream2 $x"); },
                              onError: (x) { events.add("stream2 error $x"); });
+
+    // Feed the controller.
     controller.add(1);
-    // Errors are not allowed to traverse boundaries, but in this case the
-    // first listener of the broadcast stream is in the same error-zone. So
-    // this should work.
-    controller.addError(2);
+    controller.addError("inner stream");
+    new Future.error("outer error");
     controller.close();
   }).listen((x) {
               events.add("outer: $x");
-              if (x == 2) done.complete(true);
+              if (x == "outer error") done.complete(true);
             },
             onDone: () { Expect.fail("Unexpected callback"); });
 
@@ -49,8 +53,9 @@ main() {
       Expect.listEquals(["map 1",
                           "stream 101",
                           "stream2 1",
-                          "stream2 error 2",
-                          "outer: 2",
+                          "stream error inner stream",
+                          "stream2 error inner stream",
+                          "outer: outer error",
                         ],
                         events);
       asyncEnd();

@@ -15,6 +15,8 @@ class ObservatoryElement extends PolymerElement {
   ObservatoryElement.created() : super.created();
 
   ObservatoryApplication get app => ObservatoryApplication.app;
+  Page get page => app.currentPage;
+  ObservableMap get args => page.args;
 
   @override
   void attached() {
@@ -107,6 +109,8 @@ class ObservatoryElement extends PolymerElement {
     var shortFile = file.substring(file.lastIndexOf('/') + 1);
     return "${shortFile}:${frame['line']}";
   }
+
+  int parseInt(String value) => int.parse(value);
 
   bool isNull(String type) {
     return type == 'Null';

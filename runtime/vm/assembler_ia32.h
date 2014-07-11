@@ -348,6 +348,8 @@ class Assembler : public ValueObject {
 
   void leal(Register dst, const Address& src);
 
+  void cmovno(Register dst, Register src);
+  void cmove(Register dst, Register src);
   void cmovs(Register dst, Register src);
   void cmovns(Register dst, Register src);
 
@@ -584,8 +586,10 @@ class Assembler : public ValueObject {
   void sarl(Register operand, Register shifter);
   void sarl(const Address& address, Register shifter);
   void shld(Register dst, Register src);
+  void shld(Register dst, Register src, const Immediate& imm);
   void shld(const Address& operand, Register src);
   void shrd(Register dst, Register src);
+  void shrd(Register dst, Register src, const Immediate& imm);
   void shrd(const Address& dst, Register src);
 
   void negl(Register reg);
@@ -686,7 +690,9 @@ class Assembler : public ValueObject {
 
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
 
-  void LoadTaggedClassIdMayBeSmi(Register result, Register object);
+  void LoadTaggedClassIdMayBeSmi(Register result,
+                                 Register object,
+                                 Register tmp);
 
   /*
    * Misc. functionality

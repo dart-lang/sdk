@@ -257,15 +257,13 @@ TEST_CASE(StackmapGC) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
-  PcDescriptors::Iterator iter(descriptors);
+  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (rec.kind() == RawPcDescriptors::kUnoptStaticCall) {
-      stackmap_table_builder->AddEntry(rec.pc - code.EntryPoint(),
-                                       stack_bitmap,
-                                       0);
-      ++call_count;
-    }
+    stackmap_table_builder->AddEntry(rec.pc - code.EntryPoint(),
+                                     stack_bitmap,
+                                     0);
+    ++call_count;
   }
   // We can't easily check that we put the stackmap at the correct pc, but
   // we did if there was exactly one call seen.

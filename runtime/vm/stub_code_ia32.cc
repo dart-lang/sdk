@@ -1325,7 +1325,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // arguments descriptor array and then access the receiver from the stack).
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
-  __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
+  __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
 
   // EAX: receiver's class ID (smi).
   __ movl(EDI, Address(EBX, 0));  // First class id (smi) to check.
@@ -1337,7 +1337,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       // If not the first, load the next argument's class ID.
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
       __ movl(EAX, Address(ESP, EAX, TIMES_2, - i * kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
+      __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
 
       // EAX: next argument class ID (smi).
       __ movl(EDI, Address(EBX, i * kWordSize));
@@ -1356,7 +1356,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   if (num_args > 1) {
     __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
     __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
-    __ LoadTaggedClassIdMayBeSmi(EAX, EAX);
+    __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
@@ -1402,12 +1402,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // EBX: Pointer to an IC data check group.
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
-  __ movl(EAX, Address(EBX, target_offset));
-  __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
-  __ j(NO_OVERFLOW, &call_target_function, Assembler::kNearJump);
-  __ movl(Address(EBX, count_offset),
-          Immediate(Smi::RawValue(Smi::kMaxValue)));
 
+  // Update counter.
+  __ movl(EAX, Address(EBX, count_offset));
+  __ addl(EAX, Immediate(Smi::RawValue(1)));
+  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+  __ cmovno(EDI, EAX);
+  __ movl(Address(EBX, count_offset), EDI);
+
+  __ movl(EAX, Address(EBX, target_offset));
   __ Bind(&call_target_function);
   // EAX: Target function.
   __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));

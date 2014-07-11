@@ -4,14 +4,14 @@
 
 <polymer-element name="function-ref" extends="service-ref">
   <template><link rel="stylesheet" href="css/shared.css" /><!-- These comments are here to allow newlines.
-     --><template if="{{ isDart }}"><!--
-       --><template if="{{ qualified && !hasParent && hasClass }}"><!--
-       --><class-ref ref="{{ ref['owner'] }}"></class-ref>.</template><!--
-     --><template if="{{ qualified && hasParent }}"><!--
-       --><function-ref ref="{{ ref['parent'] }}" qualified="{{ true }}">
+     --><template if="{{ ref.isDart }}"><!--
+       --><template if="{{ qualified && ref.parent == null && ref.owningClass != null }}"><!--
+       --><class-ref ref="{{ ref.owningClass] }}"></class-ref>.</template><!--
+     --><template if="{{ qualified && ref.parent != null }}"><!--
+       --><function-ref ref="{{ ref.parent }}" qualified="{{ true }}">
           </function-ref>.<!--
      --></template><a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a><!--
-  --></template><template if="{{ !isDart }}"><span> {{ name }}</span></template></template>
+  --></template><template if="{{ !ref.isDart }}"><span> {{ name }}</span></template></template>
 </polymer-element>
 
 <script type="application/dart" src="function_ref.dart"></script>

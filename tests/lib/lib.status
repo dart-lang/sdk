@@ -259,7 +259,6 @@ mirrors/immutable_collections_test: Skip # Dartium debug uses -O0, so this will 
 mirrors/mirrors_reader_test: Skip # Dartium debug uses -O0, so this will just timeout and waste bot cycles.
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
 mirrors/local_isolate_test: Skip # http://dartbug.com/12188
-mirrors/deferred*: Skip # Lazy deferred loading not yet implemented. Issue 19449. Crashes drt in checked mode.
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982

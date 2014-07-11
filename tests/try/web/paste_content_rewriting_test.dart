@@ -17,8 +17,8 @@ import 'package:try/src/ui.dart' show
 import 'package:try/src/user_option.dart' show
     UserOption;
 
-import '../../pkg/expect/lib/expect.dart';
-import '../../pkg/async_helper/lib/async_helper.dart';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 
 const Map<String, String> tests = const <String, String> {
   '<span><p>//...</p>}</span>': '//...\n}',
@@ -31,6 +31,15 @@ const Map<String, String> tests = const <String, String> {
   'r"""\n\n\'"""': 'r"""\n\n\'"""',
   '"': '<DIAGNOSTIC>"</DIAGNOSTIC>',
   '/**\n*/': '/**\n*/',
+
+  // The following case tests that single line strings can span multiple lines
+  // via ${}. The string is constructed so that it is possible to tell if the
+  // line-bases scanner (incorrectly) reverses the order of the string quotes
+  // in its state string. The example string is a complicated way of writing:
+  // '[[{{}: {}}]]'. See also
+  // tests/language/string_interpolation_newline_test.dart.
+  '"\${ [ "\${ [ \'\${ { \'\${\n{\n} }\' : {\n} } }\' ] }" ] }"':
+  '"\${ [ "\${ [ \'\${ { \'\${\n{\n} }\' : {\n} } }\' ] }" ] }"',
 };
 
 List<Node> queryDiagnosticNodes() {

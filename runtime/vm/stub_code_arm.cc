@@ -1362,11 +1362,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ LoadFromOffset(kWord, R0, R6, target_offset);
+
+  // Update counter.
   __ LoadFromOffset(kWord, R1, R6, count_offset);
   __ adds(R1, R1, Operand(Smi::RawValue(1)));
-  __ StoreToOffset(kWord, R1, R6, count_offset);
-  __ b(&call_target_function, VC);  // No overflow.
-  __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue));
+  __ LoadImmediate(R1, Smi::RawValue(Smi::kMaxValue), VS);  // Overflow.
   __ StoreToOffset(kWord, R1, R6, count_offset);
 
   __ Bind(&call_target_function);

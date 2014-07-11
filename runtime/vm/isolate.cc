@@ -345,6 +345,11 @@ bool IsolateMessageHandler::ProcessUnhandledException(
     // Invoke the isolate's uncaught exception handler, if it exists.
     const UnhandledException& error = UnhandledException::Cast(result);
     RawInstance* exception = error.exception();
+    if ((exception == I->object_store()->out_of_memory()) ||
+        (exception == I->object_store()->stack_overflow())) {
+      // We didn't notify the debugger when the stack was full. Do it now.
+      I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
+    }
     if ((exception != I->object_store()->out_of_memory()) &&
         (exception != I->object_store()->stack_overflow())) {
       if (UnhandledExceptionCallbackHandler(message, error)) {

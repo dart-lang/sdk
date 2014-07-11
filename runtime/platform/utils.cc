@@ -35,12 +35,16 @@ int Utils::CountOneBits(uint32_t x) {
 
 
 int Utils::HighestBit(int64_t v) {
-  uint64_t t = static_cast<uint64_t>((v > 0) ? v : -v);
-  int count = 0;
-  while ((t >>= 1) != 0) {
-    count++;
-  }
-  return count;
+  uint64_t x = static_cast<uint64_t>((v > 0) ? v : -v);
+  uint64_t t;
+  int r = 0;
+  if ((t = x >> 32) != 0) { x = t; r += 32; }
+  if ((t = x >> 16) != 0) { x = t; r += 16; }
+  if ((t = x >> 8) != 0) { x = t; r += 8; }
+  if ((t = x >> 4) != 0) { x = t; r += 4; }
+  if ((t = x >> 2) != 0) { x = t; r += 2; }
+  if (x > 1) r += 1;
+  return r;
 }
 
 

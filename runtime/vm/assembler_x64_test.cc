@@ -2949,6 +2949,47 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
   EXPECT_EQ(-1, res);  // Less.
 }
 
+
+// Return 1 if equal, 0 if not equal.
+ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
+  __ movq(RDX, CallingConventions::kArg1Reg);
+  __ xorq(RAX, RAX);
+  __ movq(RCX, Immediate(1));
+  __ cmpq(RDX, Immediate(785));
+  __ cmoveq(RAX, RCX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
+  typedef int (*ConditionalMovesEqualCode)(int i);
+  int res = reinterpret_cast<ConditionalMovesEqualCode>(test->entry())(785);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ConditionalMovesEqualCode>(test->entry())(-12);
+  EXPECT_EQ(0, res);
+}
+
+
+// Return 1 if overflow, 0 if no overflow.
+ASSEMBLER_TEST_GENERATE(ConditionalMovesNoOverflow, assembler) {
+  __ movq(RDX, CallingConventions::kArg1Reg);
+  __ addq(RDX, CallingConventions::kArg2Reg);
+  __ movq(RAX, Immediate(1));
+  __ movq(RCX, Immediate(0));
+  __ cmovnoq(RAX, RCX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesNoOverflow, test) {
+  typedef int (*ConditionalMovesNoOverflowCode)(int64_t i, int64_t j);
+  int res = reinterpret_cast<ConditionalMovesNoOverflowCode>(
+      test->entry())(0x7fffffffffffffff, 2);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ConditionalMovesNoOverflowCode>(test->entry())(1, 1);
+  EXPECT_EQ(0, res);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

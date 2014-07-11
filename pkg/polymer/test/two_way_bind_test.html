@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+  <head>
+    <title>two way bindings</title>
+    <script src="packages/web_components/platform.js"></script>
+    <script src="packages/web_components/dart_support.js"></script>
+    <link rel="import" href="packages/polymer/polymer.html">
+    <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
+  </head>
+
+  <body>
+    <polymer-element name="inner-element">
+      <template>
+        <h1>Hello from the child</h1>
+        <p>The number is {{number}}</p>
+        <p>The boolean is {{boolean}}</p>
+        <p>The string is {{string}}</p>
+      </template>
+    </polymer-element>
+
+    <polymer-element name="outer-element">
+      <template>
+        <h1>Hello from the custom element</h1>
+        <p>The number is {{number}}</p>
+        <p>The boolean is {{boolean}}</p>
+        <p>The string is {{string}}</p>
+        <p>
+          <inner-element id="child" number="{{number}}"
+              boolean="{{boolean}}" string="{{string}}"></inner-element>
+        </p>
+      </template>
+    </polymer-element>
+
+    <outer-element></outer-element>
+
+    <script type="application/dart" src="two_way_bind_test.dart"></script>
+  </body>
+</html>

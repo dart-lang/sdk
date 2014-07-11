@@ -846,6 +846,3 @@ void fail(String message, [innerError, StackTrace innerTrace]) {
 ///
 /// This will report the error and cause pub to exit with [exit_codes.DATA].
 void dataError(String message) => throw new DataException(message);
-
-/// Throw a [UsageException] for a usage error of a command with [message].
-void usageError(String message) => throw new UsageException(message);

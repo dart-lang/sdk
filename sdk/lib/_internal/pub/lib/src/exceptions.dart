@@ -53,23 +53,10 @@ class UsageException extends ApplicationException {
   /// The command usage information.
   String _usage;
 
-  UsageException(String message)
+  UsageException(String message, this._usage)
       : super(message);
 
-  String toString() {
-    if (_usage == null) return message;
-    return "$message\n\n$_usage";
-  }
-
-  /// Attach usage information to the exception.
-  ///
-  /// This is done after the exception is created so that code outside of the
-  /// command can still generate usage errors.
-  void bindUsage(String usage) {
-    // Only bind if not already bound.
-    if (_usage != null) return;
-    _usage = usage;
-  }
+  String toString() => "$message\n\n$_usage";
 }
 
 /// A class for errors in a command's input data.

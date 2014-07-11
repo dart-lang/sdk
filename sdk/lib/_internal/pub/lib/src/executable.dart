@@ -13,6 +13,7 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'barback/asset_environment.dart';
 import 'barback/barback_server.dart';
+import 'command.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'log.dart' as log;
@@ -28,8 +29,8 @@ import 'utils.dart';
 /// Arguments from [args] will be passed to the spawned Dart application.
 ///
 /// Returns the exit code of the spawned app.
-Future<int> runExecutable(Entrypoint entrypoint, String package,
-    String executable, Iterable<String> args) {
+Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
+    String package, String executable, Iterable<String> args) {
   // If the command has a path separator, then it's a path relative to the
   // root of the package. Otherwise, it's implicitly understood to be in
   // "bin".
@@ -37,7 +38,8 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
   var parts = p.split(executable);
   if (parts.length > 1) {
     if (package != entrypoint.root.name) {
-      usageError("Cannot run an executable in a subdirectory of a dependency.");
+      command.usageError(
+          "Cannot run an executable in a subdirectory of a dependency.");
     }
 
     rootDir = parts.first;

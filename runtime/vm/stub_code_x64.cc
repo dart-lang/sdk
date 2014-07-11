@@ -1370,10 +1370,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   const intptr_t target_offset = ICData::TargetIndexFor(num_args) * kWordSize;
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ movq(RAX, Address(R12, target_offset));
-  __ addq(Address(R12, count_offset), Immediate(Smi::RawValue(1)));
-  __ j(NO_OVERFLOW, &call_target_function, Assembler::kNearJump);
-  __ movq(Address(R12, count_offset),
-          Immediate(Smi::RawValue(Smi::kMaxValue)));
+
+  // Update counter.
+  __ movq(R8, Address(R12, count_offset));
+  __ addq(R8, Immediate(Smi::RawValue(1)));
+  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+  __ cmovnoq(R9, R8);
+  __ movq(Address(R12, count_offset), R9);
 
   __ Bind(&call_target_function);
   // RAX: Target function.
