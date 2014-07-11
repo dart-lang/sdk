@@ -2352,6 +2352,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult resolveSend(Send node) {
     Selector selector = resolveSelector(node, null);
+    if (selector != null) {
+      compiler.enqueuer.resolution.compilationInfo.registerCallSite(
+          registry.mapping, node);
+    }
+
     if (node.isSuperCall) registry.registerSuperUse(node);
 
     if (node.receiver == null) {
