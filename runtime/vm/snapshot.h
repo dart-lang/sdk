@@ -487,6 +487,59 @@ class BaseWriter {
 };
 
 
+class ForwardList {
+ public:
+  explicit ForwardList(intptr_t first_object_id)
+      : first_object_id_(first_object_id),
+        nodes_(),
+        first_unprocessed_object_id_(first_object_id) {}
+
+  class Node : public ZoneAllocated {
+   public:
+    Node(RawObject* raw, uword tags, SerializeState state)
+        : raw_(raw), tags_(tags), state_(state) {}
+    RawObject* raw() const { return raw_; }
+    uword tags() const { return tags_; }
+    bool is_serialized() const { return state_ == kIsSerialized; }
+
+   private:
+    // Private to ensure the invariant of first_unprocessed_object_id_.
+    void set_state(SerializeState value) { state_ = value; }
+
+    RawObject* raw_;
+    uword tags_;
+    SerializeState state_;
+
+    friend class ForwardList;
+    DISALLOW_COPY_AND_ASSIGN(Node);
+  };
+
+  Node* NodeForObjectId(intptr_t object_id) const {
+    return nodes_[object_id - first_object_id_];
+  }
+
+  // Returns the id for the added object.
+  intptr_t MarkAndAddObject(RawObject* raw, SerializeState state);
+
+  // Exhaustively processes all unserialized objects in this list. 'writer' may
+  // concurrently add more objects.
+  void SerializeAll(ObjectVisitor* writer);
+
+  // Restores the tags of all objects in this list.
+  void UnmarkAll() const;
+
+ private:
+  intptr_t first_object_id() const { return first_object_id_; }
+  intptr_t next_object_id() const { return nodes_.length() + first_object_id_; }
+
+  const intptr_t first_object_id_;
+  GrowableArray<Node*> nodes_;
+  intptr_t first_unprocessed_object_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(ForwardList);
+};
+
+
 class SnapshotWriter : public BaseWriter {
  protected:
   SnapshotWriter(Snapshot::Kind kind,
@@ -516,25 +569,9 @@ class SnapshotWriter : public BaseWriter {
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
  protected:
-  class ForwardObjectNode : public ZoneAllocated {
-   public:
-    ForwardObjectNode(RawObject* raw, uword tags, SerializeState state)
-        : raw_(raw), tags_(tags), state_(state) {}
-    RawObject* raw() const { return raw_; }
-    uword tags() const { return tags_; }
-    bool is_serialized() const { return state_ == kIsSerialized; }
-    void set_state(SerializeState value) { state_ = value; }
-
-   private:
-    RawObject* raw_;
-    uword tags_;
-    SerializeState state_;
-
-    DISALLOW_COPY_AND_ASSIGN(ForwardObjectNode);
-  };
-
-  intptr_t MarkObject(RawObject* raw, SerializeState state);
-  void UnmarkAll();
+  void UnmarkAll() {
+    forward_list_.UnmarkAll();
+  }
 
   bool CheckAndWritePredefinedObject(RawObject* raw);
   void HandleVMIsolateObject(RawObject* raw);
@@ -564,7 +601,7 @@ class SnapshotWriter : public BaseWriter {
   Snapshot::Kind kind_;
   ObjectStore* object_store_;  // Object store for common classes.
   ClassTable* class_table_;  // Class table for the class index to class lookup.
-  GrowableArray<ForwardObjectNode*> forward_list_;
+  ForwardList forward_list_;
   Exceptions::ExceptionType exception_type_;  // Exception type.
   const char* exception_msg_;  // Message associated with exception.
 
@@ -576,14 +613,15 @@ class SnapshotWriter : public BaseWriter {
   friend class RawJSRegExp;
   friend class RawLibrary;
   friend class RawLiteralToken;
+  friend class RawMirrorReference;
   friend class RawReceivePort;
   friend class RawScript;
   friend class RawStacktrace;
   friend class RawTokenStream;
   friend class RawTypeArguments;
-  friend class RawMirrorReference;
-  friend class SnapshotWriterVisitor;
   friend class RawUserTag;
+  friend class SnapshotWriterVisitor;
+  friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
 };
 

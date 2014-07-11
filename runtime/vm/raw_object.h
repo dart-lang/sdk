@@ -455,6 +455,7 @@ class RawObject {
   friend class FreeListElement;
   friend class GCMarker;
   friend class ExternalTypedData;
+  friend class ForwardList;
   friend class Heap;
   friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
