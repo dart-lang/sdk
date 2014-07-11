@@ -1405,23 +1405,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
 
+  Label stepping, done_stepping;
   if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
     __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
     __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-    __ BranchEqual(T0, 0, &not_stepping);
-    // Call single step callback in debugger.
-    __ EnterStubFrame();
-    __ addiu(SP, SP, Immediate(-2 * kWordSize));
-    __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
-    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ lw(RA, Address(SP, 0 * kWordSize));
-    __ lw(S5, Address(SP, 1 * kWordSize));
-    __ addiu(SP, SP, Immediate(2 * kWordSize));
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
+    __ BranchNotEqual(T0, 0, &stepping);
+    __ Bind(&done_stepping);
   }
 
   // Load argument descriptor into S4.
@@ -1556,6 +1546,21 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lw(T4, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T4);
+
+  if (FLAG_enable_debugger) {
+    // Call single step callback in debugger.
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ lw(RA, Address(SP, 0 * kWordSize));
+    __ lw(S5, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 

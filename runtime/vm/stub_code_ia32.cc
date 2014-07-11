@@ -1294,20 +1294,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+  Label stepping, done_stepping;
   if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
     __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
     __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
     __ cmpl(EAX, Immediate(0));
-    __ j(EQUAL, &not_stepping, Assembler::kNearJump);
-
-    __ EnterStubFrame();
-    __ pushl(ECX);
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ popl(ECX);
-    __ LeaveFrame();
-    __ Bind(&not_stepping);
+    __ j(NOT_EQUAL, &stepping);
+    __ Bind(&done_stepping);
   }
 
   // ECX: IC data object (preserved).
@@ -1417,6 +1411,16 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EBX);
   __ int3();
+
+  if (FLAG_enable_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ pushl(ECX);
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popl(ECX);
+    __ LeaveFrame();
+    __ jmp(&done_stepping);
+  }
 }
 
 

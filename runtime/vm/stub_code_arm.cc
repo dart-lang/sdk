@@ -1252,19 +1252,14 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+  Label stepping, done_stepping;
   if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
     __ ldr(R6, FieldAddress(CTX, Context::isolate_offset()));
     __ ldrb(R6, Address(R6, Isolate::single_step_offset()));
     __ CompareImmediate(R6, 0);
-    __ b(&not_stepping, EQ);
-    __ EnterStubFrame();
-    __ Push(R5);  // Preserve IC data.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ Pop(R5);
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
+    __ b(&stepping, NE);
+    __ Bind(&done_stepping);
   }
 
   // Load arguments descriptor into R4.
@@ -1374,6 +1369,16 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R2);
+
+  if (FLAG_enable_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ Push(R5);  // Preserve IC data.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ Pop(R5);
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
