@@ -1267,7 +1267,7 @@ class FunctionKind {
   static FunctionKind kUNKNOWN = new FunctionKind._internal('UNKNOWN');
 }
 
-class ServiceFunction extends ServiceObject {
+class ServiceFunction extends ServiceObject with Coverage {
   @observable Class owningClass;
   @observable Library owningLibrary;
   @observable bool isStatic;

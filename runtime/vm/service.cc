@@ -194,6 +194,20 @@ class ClassCoverageFilter : public CoverageFilter {
 };
 
 
+class FunctionCoverageFilter : public CoverageFilter {
+ public:
+  explicit FunctionCoverageFilter(const Function& func) : func_(func) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const String& script_url,
+                               const Class& cls,
+                               const Function& func) const {
+    return func.raw() == func_.raw();
+  }
+ private:
+  const Function& func_;
+};
+
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -1111,10 +1125,18 @@ static bool HandleClassesDispatchers(Isolate* isolate, const Class& cls,
 }
 
 
+static bool HandleClassesFunctionsCoverage(
+    Isolate* isolate, const Function& func, JSONStream* js) {
+  FunctionCoverageFilter filter(func);
+  CodeCoverage::PrintJSON(isolate, js, &filter);
+  return true;
+}
+
+
 static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
                                    JSONStream* js) {
   intptr_t id;
-  if (js->num_arguments() > 4) {
+  if (js->num_arguments() > 5) {
     PrintError(js, "Command too long");
     return true;
   }
@@ -1128,7 +1150,19 @@ static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
     PrintError(js, "Function %" Pd " not found", id);
     return true;
   }
-  func.PrintJSON(js, false);
+  if (js->num_arguments() == 4) {
+    func.PrintJSON(js, false);
+    return true;
+  } else {
+    const char* subcollection = js->GetArgument(4);
+    if (strcmp(subcollection, "coverage") == 0) {
+      return HandleClassesFunctionsCoverage(isolate, func, js);
+    } else {
+      PrintError(js, "Invalid sub collection %s", subcollection);
+      return true;
+    }
+  }
+  UNREACHABLE();
   return true;
 }
 

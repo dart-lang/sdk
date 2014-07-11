@@ -6564,6 +6564,7 @@ hr {
         <library-nav-menu library="{{ function.owningLibrary }}"></library-nav-menu>
       </template>
       <nav-menu link="{{ function.link }}" anchor="{{ function.name }}" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>

@@ -175,6 +175,10 @@ void CodeCoverage::PrintClass(const Library& lib,
         pos_to_line.Clear();
         break;
       }
+      if (!filter->ShouldOutputCoverageFor(lib, saved_url, cls, function)) {
+        i++;
+        continue;
+      }
       CompileAndAdd(function, hits_arr, pos_to_line);
       if (function.HasImplicitClosureFunction()) {
         function = function.ImplicitClosureFunction();
