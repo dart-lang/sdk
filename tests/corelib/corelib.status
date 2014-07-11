@@ -126,9 +126,6 @@ error_stack_trace1_test: Fail # Fails in minified mode, test depends on method n
 int_parse_radix_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
-symbol_test/01: Fail, OK # Test Issue 13730; It is static type warning if "const" instance creation argument type is not compatible with parameter type
-symbol_test/02: Fail # Issue 18755
-symbol_test/03: Fail # Issue 18755
 
 [ $compiler == dart2analyzer ]
 symbol_test/02: Fail

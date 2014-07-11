@@ -314,3 +314,9 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Pass, Slow
 [ $arch == simarm ]
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
 convert/utf85_test: Skip  # Pass, Slow Issue 12644.
+
+# These tests use "const Symbol('void')".
+[ $compiler == dartanalyzer ]
+mirrors/basic_types_in_dart_core_test: CompileTimeError
+mirrors/function_type_mirror_test: CompileTimeError
+mirrors/method_mirror_returntype_test: CompileTimeError

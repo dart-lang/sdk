@@ -454,3 +454,6 @@ factory1_test/none: StaticWarning # Test Issue 18726
 generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
 redirecting_factory_long_test: StaticWarning
+
+# This test uses "const Symbol('_setAt')"
+vm/reflect_core_vm_test: CompileTimeError
