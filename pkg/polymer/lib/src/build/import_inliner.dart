@@ -160,7 +160,15 @@ class _HtmlInliner extends PolymerTransformer {
   Future _inlineStylesheet(AssetId id, Element link) {
     return transform.readInputAsString(id).then((css) {
       css = new _UrlNormalizer(transform, id).visitCss(css);
-      link.replaceWith(new Element.tag('style')..text = css);
+      var styleElement = new Element.tag('style')..text = css;
+      // Copy over the extra attributes from the link tag to the style tag.
+      // This adds support for no-shim, shim-shadowdom, etc.
+      link.attributes.forEach((key, value) {
+        if (!IGNORED_LINKED_STYLE_ATTRS.contains(key)) {
+          styleElement.attributes[key] = value;
+        }
+      });
+      link.replaceWith(styleElement);
     });
   }
 
@@ -421,5 +429,10 @@ const _urlAttributes = const [
   'src',        // in audio, embed, iframe, img, input, script, source, track,
                 //    video
 ];
+
+/// When inlining <link rel="stylesheet"> tags copy over all attributes to the
+/// style tag except these ones.
+const IGNORED_LINKED_STYLE_ATTRS = 
+    const ['charset', 'href', 'href-lang', 'rel', 'rev'];
 
 _getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);

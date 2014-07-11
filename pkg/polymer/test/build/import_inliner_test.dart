@@ -740,6 +740,28 @@ void stylesheetTests() {
       'a|web/test2.css':
           'h1 { font-size: 70px; }',
     });
+  
+  testPhases('inlined tags keep original attributes', phases, {
+       'a|web/test.html':
+           '<!DOCTYPE html><html><head>'
+           '<link rel="stylesheet" href="foo.css" no-shim>'
+           '<link rel="stylesheet" href="bar.css" shim-shadow foo>'
+           '</head></html>',
+       'a|web/foo.css':
+           'h1 { font-size: 70px; }',
+       'a|web/bar.css':
+           'h2 { font-size: 35px; }',
+     }, {
+       'a|web/test.html':
+           '<!DOCTYPE html><html><head></head><body>'
+           '<style no-shim="">h1 { font-size: 70px; }</style>'
+           '<style shim-shadow="" foo="">h2 { font-size: 35px; }</style>'
+           '</body></html>',
+       'a|web/foo.css':
+           'h1 { font-size: 70px; }',
+       'a|web/bar.css':
+           'h2 { font-size: 35px; }',
+     });
 }
 
 void urlAttributeTests() {
