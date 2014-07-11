@@ -9492,6 +9492,11 @@ RawLibrary* Library::AsyncLibrary() {
 }
 
 
+RawLibrary* Library::ConvertLibrary() {
+  return Isolate::Current()->object_store()->convert_library();
+}
+
+
 RawLibrary* Library::CoreLibrary() {
   return Isolate::Current()->object_store()->core_library();
 }

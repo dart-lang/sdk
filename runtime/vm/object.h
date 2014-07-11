@@ -2767,6 +2767,7 @@ class Library : public Object {
   static void InitNativeWrappersLibrary(Isolate* isolate);
 
   static RawLibrary* AsyncLibrary();
+  static RawLibrary* ConvertLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* InternalLibrary();

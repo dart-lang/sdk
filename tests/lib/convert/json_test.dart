@@ -10,7 +10,6 @@ import "dart:convert";
 bool badFormat(e) => e is FormatException;
 
 void testJson(json, expected) {
-  var value = JSON.decode(json);
   compare(expected, actual, path) {
     if (expected is List) {
       Expect.isTrue(actual is List);
@@ -34,7 +33,16 @@ void testJson(json, expected) {
       Expect.equals(expected, actual, path);
     }
   }
-  compare(expected, value, "value");
+  for (var reviver in [null, (k, v) => v]) {
+    var value = JSON.decode(json, reviver: reviver);
+    compare(expected, value, "$value");
+    value = JSON.decode(" $json ", reviver: reviver);
+    compare(expected, value, "-$value-");
+    value = JSON.decode("[$json]", reviver: reviver);
+    compare([expected], value, "[$value]");
+    value = JSON.decode('{"x":$json}', reviver: reviver);
+    compare({"x":expected}, value, "{x:$value}");
+  }
 }
 
 String escape(String s) {
@@ -152,11 +160,23 @@ testStrings() {
   // Empty string.
   testJson(r'""', "");
   // Escape first.
-  testJson(r'"\"........"', "\"........");
-  // Escape last.
-  testJson(r'"........\""', "........\"");
-  // Escape middle.
-  testJson(r'"....\"...."', "....\"....");
+  var escapes = {
+    "f": "\f",
+    "b": "\b",
+    "n": "\n",
+    "r": "\r",
+    "t": "\t",
+    r"\": r"\",
+    '"': '"',
+    "/": "/",
+  };
+  escapes.forEach((esc, lit) {
+    testJson('"\\$esc........"', "$lit........");
+    // Escape last.
+    testJson('"........\\$esc"', "........$lit");
+    // Escape middle.
+    testJson('"....\\$esc...."', "....$lit....");
+  });
 
   // Does not accept single quotes.
   testThrows(r"''");

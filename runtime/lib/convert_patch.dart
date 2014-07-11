@@ -558,13 +558,13 @@ class _JsonParser {
       listener.handleNumber(intSign * intValue);
       return position;
     }
-    // Consider whether we can have an int/double.parse that works on part of
-    // a string, to avoid creating the substring.
-    String literal = source.substring(start, position);
     // This correctly creates -0.0 for doubles.
-    listener.handleNumber(double.parse(literal));
+    listener.handleNumber(_parseDouble(source, start, position));
     return position;
   }
+
+  static double _parseDouble(String source, int start, int end)
+      native "Double_parse";
 
   void fail(int position, [String message]) {
     if (message == null) message = "Unexpected character";
