@@ -269,7 +269,10 @@ class _JsonMap implements LinkedHashMap {
 
   Map get _upgradedMap {
     assert(_isUpgraded);
-    return _data;
+    // 'cast' the union type to LinkedHashMap.  It would be even better if we
+    // could 'cast' to the implementation type, since LinkedHashMap includes
+    // _JsonMap.
+    return JS('LinkedHashMap', '#', _data);
   }
 
   List<String> _computeKeys() {
@@ -278,7 +281,7 @@ class _JsonMap implements LinkedHashMap {
     if (keys == null) {
       keys = _data = _getPropertyNames(_original);
     }
-    return keys;
+    return JS('JSExtendableArray', '#', keys);
   }
 
   Map _upgrade() {
