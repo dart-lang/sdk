@@ -237,7 +237,9 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0xB6: return "movzx_b";
     case 0xB7: return "movzx_w";
     case 0xAF: return "imul";
+    case 0xA4:  // Fall through.
     case 0xA5: return "shld";
+    case 0xAC:  // Fall through.
     case 0xAD: return "shrd";
     case 0xAB: return "bts";
     case 0xBD: return "bsr";
@@ -1409,20 +1411,23 @@ int X86Decoder::InstructionDecode(uword pc) {
           }
         } else {
           data += 2;
-          if (f0byte == 0xAB || f0byte == 0xA5 || f0byte == 0xAD) {
+          if (f0byte == 0xAB || f0byte == 0xA4 || f0byte == 0xA5 ||
+              f0byte == 0xAC || f0byte == 0xAD) {
             // shrd, shld, bts
             Print(f0mnem);
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
             Print(" ");
             data += PrintRightOperand(data);
+            Print(",");
+            PrintCPURegister(regop);
             if (f0byte == 0xAB) {
-              Print(",");
-              PrintCPURegister(regop);
-            } else {
-              Print(",");
-              PrintCPURegister(regop);
+              // Done.
+            } else if (f0byte == 0xA5 || f0byte == 0xAD) {
               Print(",cl");
+            } else {
+              Print(", ");
+              PrintInt(*(data++));
             }
           } else if ((f0byte == 0x10) || (f0byte == 0x11) ||
                      IsTwoXmmRegInstruction(f0byte)) {

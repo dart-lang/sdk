@@ -586,8 +586,10 @@ class Assembler : public ValueObject {
   void sarl(Register operand, Register shifter);
   void sarl(const Address& address, Register shifter);
   void shld(Register dst, Register src);
+  void shld(Register dst, Register src, const Immediate& imm);
   void shld(const Address& operand, Register src);
   void shrd(Register dst, Register src);
+  void shrd(Register dst, Register src, const Immediate& imm);
   void shrd(const Address& dst, Register src);
 
   void negl(Register reg);

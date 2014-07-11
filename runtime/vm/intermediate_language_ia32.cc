@@ -5610,7 +5610,7 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (index_loc.IsConstant()) {
     Register length = length_loc.reg();
-    const Object& index = Smi::Cast(index_loc.constant());
+    const Smi& index = Smi::Cast(index_loc.constant());
     __ cmpl(length, Immediate(reinterpret_cast<int32_t>(index.raw())));
     __ j(BELOW_EQUAL, deopt);
   } else if (length_loc.IsConstant()) {
@@ -5897,7 +5897,7 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_in(1, Location::RegisterLocation(ECX));
+  summary->set_in(1, Location::FixedRegisterOrSmiConstant(right(), ECX));
   if ((op_kind() == Token::kSHL) && CanDeoptimize()) {
     summary->set_temp(0, Location::RequiresRegister());
     summary->set_temp(1, Location::RequiresRegister());
@@ -5929,82 +5929,155 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
   }
-  // Deoptimize if shift count is > 63.
-  // sarl operation masks the count to 5 bits and
-  // shrd is undefined with count > operand size (32)
-  __ SmiUntag(ECX);
-  if (has_shift_count_check()) {
-    __ cmpl(ECX, Immediate(kMintShiftCountLimit));
-    __ j(ABOVE, deopt);
-  }
-  // TODO(regis): Specialize code for constant shift amount.
-  Label large_shift, done;
-  switch (op_kind()) {
-    case Token::kSHR: {
-      __ cmpl(ECX, Immediate(31));
-      __ j(ABOVE, &large_shift);
-
-      __ shrd(left_lo, left_hi);  // Shift count in CL.
-      __ sarl(left_hi, ECX);  // Shift count in CL.
-      __ jmp(&done, Assembler::kNearJump);
-
-      __ Bind(&large_shift);
-      __ subl(ECX, Immediate(32));
-      __ movl(left_lo, left_hi);  // Shift by 32.
-      __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
-      __ sarl(left_lo, ECX);  // Shift count - 32 in CL.
-      break;
+  if (locs()->in(1).IsConstant()) {
+    // Code for a constant shift amount.
+    ASSERT(locs()->in(1).constant().IsSmi());
+    const int32_t shift =
+        reinterpret_cast<int32_t>(locs()->in(1).constant().raw()) >> 1;
+    if ((shift < 0) || (shift > kMintShiftCountLimit)) {
+      __ jmp(deopt);
+      return;
+    } else if (shift == 0) {
+      // Nothing to do for zero shift amount.
+      return;
     }
-    case Token::kSHL: {
-      if (can_overflow()) {
-        Register temp1 = locs()->temp(0).reg();
-        Register temp2 = locs()->temp(1).reg();
-        __ movl(temp1, left_hi);  // Preserve high 32 bits.
-        __ cmpl(ECX, Immediate(31));
-        __ j(ABOVE, &large_shift);
-
-        __ shld(left_hi, left_lo);  // Shift count in CL.
-        __ shll(left_lo, ECX);  // Shift count in CL.
-        // Check for overflow by shifting back the high 32 bits
-        // and comparing with the input.
-        __ movl(temp2, left_hi);
-        __ sarl(temp2, ECX);
-        __ cmpl(temp1, temp2);
-        __ j(NOT_EQUAL, deopt);
-        __ jmp(&done, Assembler::kNearJump);
-
-        __ Bind(&large_shift);
-        __ subl(ECX, Immediate(32));
-        __ movl(left_hi, left_lo);  // Shift by 32.
-        __ xorl(left_lo, left_lo);  // Zero left_lo.
-        __ shll(left_hi, ECX);  // Shift count in CL.
-        // Check for overflow by sign extending the high 32 bits
-        // and comparing with the input.
-        __ movl(temp2, left_hi);
-        __ sarl(temp2, Immediate(31));
-        __ cmpl(temp1, temp2);
-        __ j(NOT_EQUAL, deopt);
-      } else {
-        __ cmpl(ECX, Immediate(31));
-        __ j(ABOVE, &large_shift);
-
-        __ shld(left_hi, left_lo);  // Shift count in CL.
-        __ shll(left_lo, ECX);  // Shift count in CL.
-        __ jmp(&done, Assembler::kNearJump);
-
-        __ Bind(&large_shift);
-        __ subl(ECX, Immediate(32));
-        __ movl(left_hi, left_lo);  // Shift by 32.
-        __ xorl(left_lo, left_lo);  // Zero left_lo.
-        __ shll(left_hi, ECX);  // Shift count in CL.
+    switch (op_kind()) {
+      case Token::kSHR: {
+        if (shift > 31) {
+          __ movl(left_lo, left_hi);  // Shift by 32.
+          __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
+          if (shift > 32) {
+            __ sarl(left_lo, Immediate(shift - 32));
+          }
+        } else {
+          __ shrd(left_lo, left_hi, Immediate(shift));
+          __ sarl(left_hi, Immediate(shift));
+        }
+        break;
       }
-      break;
+      case Token::kSHL: {
+        if (can_overflow()) {
+          Register temp1 = locs()->temp(0).reg();
+          Register temp2 = locs()->temp(1).reg();
+          __ movl(temp1, left_hi);  // Preserve high 32 bits.
+          if (shift > 31) {
+            __ movl(left_hi, left_lo);  // Shift by 32.
+            __ xorl(left_lo, left_lo);  // Zero left_lo.
+            if (shift > 32) {
+              __ shll(left_hi, Immediate(shift - 32));
+            }
+            // Check for overflow by sign extending the high 32 bits
+            // and comparing with the input.
+            __ movl(temp2, left_hi);
+            __ sarl(temp2, Immediate(31));
+            __ cmpl(temp1, temp2);
+            __ j(NOT_EQUAL, deopt);
+          } else {
+            __ shld(left_hi, left_lo, Immediate(shift));
+            __ shll(left_lo, Immediate(shift));
+            // Check for overflow by shifting back the high 32 bits
+            // and comparing with the input.
+            __ movl(temp2, left_hi);
+            __ sarl(temp2, Immediate(shift));
+            __ cmpl(temp1, temp2);
+            __ j(NOT_EQUAL, deopt);
+          }
+        } else {
+          if (shift > 31) {
+            __ movl(left_hi, left_lo);  // Shift by 32.
+            __ xorl(left_lo, left_lo);  // Zero left_lo.
+            if (shift > 32) {
+              __ shll(left_hi, Immediate(shift - 32));
+            }
+          } else {
+            __ shld(left_hi, left_lo, Immediate(shift));
+            __ shll(left_lo, Immediate(shift));
+          }
+        }
+        break;
+      }
+      default:
+        UNREACHABLE();
+        break;
     }
-    default:
-      UNREACHABLE();
-      break;
+  } else {
+    // Code for a variable shift amount.
+    // Deoptimize if shift count is > 63.
+    // sarl operation masks the count to 5 bits and
+    // shrd is undefined with count > operand size (32)
+    __ SmiUntag(ECX);
+    if (has_shift_count_check()) {
+      __ cmpl(ECX, Immediate(kMintShiftCountLimit));
+      __ j(ABOVE, deopt);
+    }
+    Label done, large_shift;
+    switch (op_kind()) {
+      case Token::kSHR: {
+        __ cmpl(ECX, Immediate(31));
+        __ j(ABOVE, &large_shift);
+
+        __ shrd(left_lo, left_hi);  // Shift count in CL.
+        __ sarl(left_hi, ECX);  // Shift count in CL.
+        __ jmp(&done, Assembler::kNearJump);
+
+        __ Bind(&large_shift);
+        __ subl(ECX, Immediate(32));
+        __ movl(left_lo, left_hi);  // Shift by 32.
+        __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
+        __ sarl(left_lo, ECX);  // Shift count - 32 in CL.
+        break;
+      }
+      case Token::kSHL: {
+        if (can_overflow()) {
+          Register temp1 = locs()->temp(0).reg();
+          Register temp2 = locs()->temp(1).reg();
+          __ movl(temp1, left_hi);  // Preserve high 32 bits.
+          __ cmpl(ECX, Immediate(31));
+          __ j(ABOVE, &large_shift);
+
+          __ shld(left_hi, left_lo);  // Shift count in CL.
+          __ shll(left_lo, ECX);  // Shift count in CL.
+          // Check for overflow by shifting back the high 32 bits
+          // and comparing with the input.
+          __ movl(temp2, left_hi);
+          __ sarl(temp2, ECX);
+          __ cmpl(temp1, temp2);
+          __ j(NOT_EQUAL, deopt);
+          __ jmp(&done, Assembler::kNearJump);
+
+          __ Bind(&large_shift);
+          __ subl(ECX, Immediate(32));
+          __ movl(left_hi, left_lo);  // Shift by 32.
+          __ xorl(left_lo, left_lo);  // Zero left_lo.
+          __ shll(left_hi, ECX);  // Shift count in CL.
+          // Check for overflow by sign extending the high 32 bits
+          // and comparing with the input.
+          __ movl(temp2, left_hi);
+          __ sarl(temp2, Immediate(31));
+          __ cmpl(temp1, temp2);
+          __ j(NOT_EQUAL, deopt);
+        } else {
+          __ cmpl(ECX, Immediate(31));
+          __ j(ABOVE, &large_shift);
+
+          __ shld(left_hi, left_lo);  // Shift count in CL.
+          __ shll(left_lo, ECX);  // Shift count in CL.
+          __ jmp(&done, Assembler::kNearJump);
+
+          __ Bind(&large_shift);
+          __ subl(ECX, Immediate(32));
+          __ movl(left_hi, left_lo);  // Shift by 32.
+          __ xorl(left_lo, left_lo);  // Zero left_lo.
+          __ shll(left_hi, ECX);  // Shift count in CL.
+        }
+        break;
+      }
+      default:
+        UNREACHABLE();
+        break;
+    }
+    __ Bind(&done);
   }
-  __ Bind(&done);
   if (FLAG_throw_on_javascript_int_overflow) {
     EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
   }

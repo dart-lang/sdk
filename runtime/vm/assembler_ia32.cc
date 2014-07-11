@@ -1738,6 +1738,16 @@ void Assembler::shld(Register dst, Register src) {
 }
 
 
+void Assembler::shld(Register dst, Register src, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(imm.is_int8());
+  EmitUint8(0x0F);
+  EmitUint8(0xA4);
+  EmitRegisterOperand(src, dst);
+  EmitUint8(imm.value() & 0xFF);
+}
+
+
 void Assembler::shld(const Address& operand, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
@@ -1745,11 +1755,22 @@ void Assembler::shld(const Address& operand, Register src) {
   EmitOperand(src, Operand(operand));
 }
 
+
 void Assembler::shrd(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0F);
   EmitUint8(0xAD);
   EmitRegisterOperand(src, dst);
+}
+
+
+void Assembler::shrd(Register dst, Register src, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(imm.is_int8());
+  EmitUint8(0x0F);
+  EmitUint8(0xAC);
+  EmitRegisterOperand(src, dst);
+  EmitUint8(imm.value() & 0xFF);
 }
 
 
