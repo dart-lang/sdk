@@ -21,6 +21,7 @@ void main() {
   group('rel=stylesheet', stylesheetTests);
   group('script type=dart', codeExtractorTests);
   group('url attributes', urlAttributeTests);
+  group('deep entrypoints', entryPointTests);
 }
 
 void importTests() {
@@ -787,4 +788,39 @@ void urlAttributeTests() {
       'a|web/foo/test_2.html':
           '<foo-element src="baz.jpg"></foo-element>',
     }); 
+}
+
+void entryPointTests() {
+  testPhases('one level deep entry points normalize correctly', phases, {
+      'a|web/test/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="../../packages/a/foo/foo.html">'
+          '</head></html>',
+      'a|lib/foo/foo.html':
+          '<script rel="import" href="../../../packages/b/bar/bar.js">'
+          '</script>',
+      'b|lib/bar/bar.js':
+          'console.log("here");',
+    }, {
+      'a|web/test/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<script rel="import" href="../packages/b/bar/bar.js"></script>'
+          '</body></html>',
+    });
+  
+  testPhases('two level deep entry points normalize correctly', phases, {
+    'a|web/test/well/test.html':
+        '<!DOCTYPE html><html><head>'
+        '<link rel="import" href="../../../packages/a/foo/foo.html">'
+        '</head></html>',
+    'a|lib/foo/foo.html':
+        '<script rel="import" href="../../../packages/b/bar/bar.js"></script>',
+    'b|lib/bar/bar.js':
+        'console.log("here");',
+  }, {
+    'a|web/test/well/test.html':
+        '<!DOCTYPE html><html><head></head><body>'
+        '<script rel="import" href="../../packages/b/bar/bar.js"></script>'
+        '</body></html>',
+  }); 
 }

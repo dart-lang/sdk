@@ -293,8 +293,15 @@ class _UrlNormalizer extends TreeVisitor {
 
   /// Counter used to ensure that every library name we inject is unique.
   int _count = 0;
+  
+  /// Path to the top level folder relative to the transform primaryInput.
+  /// This should just be some arbitrary # of ../'s.
+  final String topLevelPath;
 
-  _UrlNormalizer(this.transform, this.sourceId);
+  _UrlNormalizer(transform, this.sourceId)
+      : transform = transform,
+        topLevelPath = 
+          '../' * (transform.primaryInput.id.path.split('/').length - 2);
 
   visitElement(Element node) {
     // TODO(jakemac): Support custom elements that extend html elements which
@@ -391,11 +398,11 @@ class _UrlNormalizer extends TreeVisitor {
     var primaryId = transform.primaryInput.id;
 
     if (id.path.startsWith('lib/')) {
-      return 'packages/${id.package}/${id.path.substring(4)}';
+      return '${topLevelPath}packages/${id.package}/${id.path.substring(4)}';
     }
 
     if (id.path.startsWith('asset/')) {
-      return 'assets/${id.package}/${id.path.substring(6)}';
+      return '${topLevelPath}assets/${id.package}/${id.path.substring(6)}';
     }
 
     if (primaryId.package != id.package) {

@@ -4,6 +4,11 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.0-dev
+ * Polymer Expressions had a breaking change so we also bumped the version on
+   this package.
+ * Fix for [17596](https://code.google.com/p/dart/issues/detail?id=17596)
+
 #### Pub version 0.11.1-dev
  * Use the latest template_binding with better NodeBind interop support (for
    two-way bindings with JS polymer elements).
