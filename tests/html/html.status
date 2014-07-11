@@ -400,9 +400,6 @@ speechrecognition_test/supported: Fail
 websql_test/supported: Fail
 
 [ $runtime == ff ]
-client_rect_test: Fail # Issue 16890
-
-[ $runtime == ff ]
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
