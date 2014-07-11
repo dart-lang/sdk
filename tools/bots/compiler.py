@@ -63,8 +63,7 @@ def GetBuildInfo(builder_name, is_buildbot):
   csp = None
   arch = None
   dart2js_full = False
-  # We default to true for running in batch mode on dart2js
-  batch = True
+  batch = False
   builder_tag = None
 
   dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
@@ -124,6 +123,8 @@ def GetBuildInfo(builder_name, is_buildbot):
       minified = True
     if dart2js_pattern.group(12) == 'x64':
       arch = 'x64'
+    if dart2js_pattern.group(14) == 'batch':
+      batch = True
     shard_index = dart2js_pattern.group(15)
     total_shards = dart2js_pattern.group(16)
   elif dartium_pattern:
