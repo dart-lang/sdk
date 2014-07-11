@@ -13,6 +13,7 @@ import 'dart:math' show Random;
 part 'iterable.dart';
 part 'list.dart';
 part 'lists.dart';
+part 'lru.dart';
 part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';
