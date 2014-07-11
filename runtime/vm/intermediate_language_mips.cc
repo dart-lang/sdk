@@ -4382,7 +4382,7 @@ void CheckSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* CheckClassIdInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
-  const intptr_t kNumInputs = 2;
+  const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
