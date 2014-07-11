@@ -1240,15 +1240,15 @@ class ValueInMapTypeInformation extends InferredTypeInformation {
 class PhiElementTypeInformation extends TypeInformation {
   final ast.Node branchNode;
   final bool isLoopPhi;
-  final Element element;
+  final Local variable;
 
-  PhiElementTypeInformation(this.branchNode, this.isLoopPhi, this.element);
+  PhiElementTypeInformation(this.branchNode, this.isLoopPhi, this.variable);
 
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
     return inferrer.types.computeTypeMask(assignments);
   }
 
-  String toString() => 'Phi $element $type';
+  String toString() => 'Phi $variable $type';
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitPhiElementTypeInformation(this);

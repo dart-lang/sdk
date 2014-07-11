@@ -317,8 +317,9 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
-  visitLocalGet(HLocalGet node) => visitFieldAccess(node);
-  visitLocalSet(HLocalSet node) => visitFieldAccess(node);
+  visitLocalAccess(HLocalAccess node) => visitInstruction(node);
+  visitLocalGet(HLocalGet node) => visitLocalAccess(node);
+  visitLocalSet(HLocalSet node) => visitLocalAccess(node);
   visitLocalValue(HLocalValue node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitNegate(HNegate node) => visitInvokeUnary(node);
@@ -757,7 +758,7 @@ class HBasicBlock extends HInstructionList {
 }
 
 abstract class HInstruction implements Spannable {
-  Element sourceElement;
+  Entity sourceElement;
   SourceFileLocation sourcePosition;
 
   final int id;
@@ -1528,9 +1529,11 @@ class HFieldGet extends HFieldAccess {
     // stored in the generated closure class, and accessed through a
     // [HFieldGet].
     JavaScriptBackend backend = compiler.backend;
-    bool interceptor =
-        backend.isInterceptorClass(sourceElement.enclosingClass);
-    return interceptor && sourceElement is ThisElement;
+    if (sourceElement is ThisLocal) {
+      ThisLocal thisLocal = sourceElement;
+      return backend.isInterceptorClass(thisLocal.enclosingClass);
+    }
+    return false;
   }
 
   bool canThrow() => receiver.canBeNull();
@@ -1622,20 +1625,29 @@ class HReadModifyWrite extends HLateInstruction {
   String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
 
-class HLocalGet extends HFieldAccess {
+abstract class HLocalAccess extends HInstruction {
+  final Local variable;
+
+  HLocalAccess(this.variable, List<HInstruction> inputs, TypeMask type)
+      : super(inputs, type);
+
+  HInstruction get receiver => inputs[0];
+}
+
+class HLocalGet extends HLocalAccess {
   // No need to use GVN for a [HLocalGet], it is just a local
   // access.
-  HLocalGet(Element element, HLocalValue local, TypeMask type)
-      : super(element, <HInstruction>[local], type);
+  HLocalGet(Local variable, HLocalValue local, TypeMask type)
+      : super(variable, <HInstruction>[local], type);
 
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
 }
 
-class HLocalSet extends HFieldAccess {
-  HLocalSet(Element element, HLocalValue local, HInstruction value)
-      : super(element, <HInstruction>[local, value],
+class HLocalSet extends HLocalAccess {
+  HLocalSet(Local variable, HLocalValue local, HInstruction value)
+      : super(variable, <HInstruction>[local, value],
               const TypeMask.nonNullEmpty());
 
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
@@ -2040,8 +2052,9 @@ class HNot extends HInstruction {
   * value from the start, whereas [HLocalValue]s need to be initialized first.
   */
 class HLocalValue extends HInstruction {
-  HLocalValue(Element element, TypeMask type) : super(<HInstruction>[], type) {
-    sourceElement = element;
+  HLocalValue(Local variable, TypeMask type)
+      : super(<HInstruction>[], type) {
+    sourceElement = variable;
   }
 
   toString() => 'local ${sourceElement.name}';
@@ -2049,21 +2062,27 @@ class HLocalValue extends HInstruction {
 }
 
 class HParameterValue extends HLocalValue {
-  HParameterValue(Element element, type) : super(element, type);
+  HParameterValue(Local variable, type) : super(variable, type);
 
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 
 class HThis extends HParameterValue {
-  HThis(Element element, TypeMask type) : super(element, type);
-  toString() => 'this';
+  HThis(ThisLocal element, TypeMask type) : super(element, type);
+
+  ThisLocal get sourceElement => super.sourceElement;
+
   accept(HVisitor visitor) => visitor.visitThis(this);
+
   bool isCodeMotionInvariant() => true;
+
   bool isInterceptor(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
     return backend.isInterceptorClass(sourceElement.enclosingClass);
   }
+
+  String toString() => 'this';
 }
 
 class HPhi extends HInstruction {
@@ -2076,16 +2095,18 @@ class HPhi extends HInstruction {
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
   // of the surrounding block, then the input must be the first in the [HPhi].
-  HPhi(Element element, List<HInstruction> inputs, TypeMask type)
+  HPhi(Local variable, List<HInstruction> inputs, TypeMask type)
       : super(inputs, type) {
-    sourceElement = element;
+    sourceElement = variable;
   }
-  HPhi.noInputs(Element element, TypeMask type)
-      : this(element, <HInstruction>[], type);
-  HPhi.singleInput(Element element, HInstruction input, TypeMask type)
-      : this(element, <HInstruction>[input], type);
-  HPhi.manyInputs(Element element, List<HInstruction> inputs, TypeMask type)
-      : this(element, inputs, type);
+  HPhi.noInputs(Local variable, TypeMask type)
+      : this(variable, <HInstruction>[], type);
+  HPhi.singleInput(Local variable, HInstruction input, TypeMask type)
+      : this(variable, <HInstruction>[input], type);
+  HPhi.manyInputs(Local variable,
+                  List<HInstruction> inputs,
+                  TypeMask type)
+      : this(variable, inputs, type);
 
   void addInput(HInstruction input) {
     assert(isInBasicBlock());

@@ -233,13 +233,13 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitLocalGet(HLocalGet node) {
-    String localName = node.element.name;
+    String localName = node.variable.name;
     return 'local get ${temporaryId(node.local)}.$localName';
   }
 
   String visitLocalSet(HLocalSet node) {
     String valueId = temporaryId(node.value);
-    String localName = node.element.name;
+    String localName = node.variable.name;
     return 'local set ${temporaryId(node.local)}.$localName to $valueId';
   }
 

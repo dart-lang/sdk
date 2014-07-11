@@ -76,7 +76,7 @@ abstract class TypeSystem<T> {
    * Returns a new type for holding the potential types of [element].
    * [inputType] is the first incoming type of the phi.
    */
-  T allocatePhi(Node node, Element element, T inputType);
+  T allocatePhi(Node node, Local variable, T inputType);
 
   /**
    * Simplies the phi representing [element] and of the type
@@ -84,12 +84,12 @@ abstract class TypeSystem<T> {
    * implementation of this method could just return that incoming
    * input type.
    */
-  T simplifyPhi(Node node, Element element, T phiType);
+  T simplifyPhi(Node node, Local variable, T phiType);
 
   /**
    * Adds [newType] as an input of [phiType].
    */
-  T addPhiInput(Element element, T phiType, T newType);
+  T addPhiInput(Local variable, T phiType, T newType);
 
   /**
    * Returns a new receiver type for this [selector] applied to
@@ -111,7 +111,7 @@ abstract class TypeSystem<T> {
  * once the control flow block has been visited.
  */
 class VariableScope<T> {
-  Map<Element, T> variables;
+  Map<Local, T> variables;
 
   /// The parent of this scope. Null for the root scope.
   final VariableScope<T> parent;
@@ -126,13 +126,13 @@ class VariableScope<T> {
   VariableScope.deepCopyOf(VariableScope<T> other)
       : variables = other.variables == null
             ? null
-            : new Map<Element, T>.from(other.variables),
+            : new Map<Local, T>.from(other.variables),
         block = other.block,
         parent = other.parent == null
             ? null
             : new VariableScope<T>.deepCopyOf(other.parent);
 
-  T operator [](Element variable) {
+  T operator [](Local variable) {
     T result;
     if (variables == null || (result = variables[variable]) == null) {
       return parent == null ? null : parent[variable];
@@ -140,41 +140,41 @@ class VariableScope<T> {
     return result;
   }
 
-  void operator []=(Element variable, T mask) {
+  void operator []=(Local variable, T mask) {
     assert(mask != null);
     if (variables == null) {
-      variables = new Map<Element, T>();
+      variables = new Map<Local, T>();
     }
     variables[variable] = mask;
   }
 
-  void forEachOwnLocal(void f(Element element, T type)) {
+  void forEachOwnLocal(void f(Local variable, T type)) {
     if (variables == null) return;
     variables.forEach(f);
   }
 
   void forEachLocalUntilNode(Node node,
-                             void f(Element element, T type),
-                             [Setlet<Element> seenLocals]) {
-    if (seenLocals == null) seenLocals = new Setlet<Element>();
+                             void f(Local variable, T type),
+                             [Setlet<Local> seenLocals]) {
+    if (seenLocals == null) seenLocals = new Setlet<Local>();
     if (variables != null) {
-      variables.forEach((element, type) {
-        if (seenLocals.contains(element)) return;
-        seenLocals.add(element);
-        f(element, type);
+      variables.forEach((variable, type) {
+        if (seenLocals.contains(variable)) return;
+        seenLocals.add(variable);
+        f(variable, type);
       });
     }
     if (block == node) return;
     if (parent != null) parent.forEachLocalUntilNode(node, f, seenLocals);
   }
 
-  void forEachLocal(void f(Element, T type)) {
+  void forEachLocal(void f(Local variable, T type)) {
     forEachLocalUntilNode(null, f);
   }
 
-  bool updates(Element element) {
+  bool updates(Local variable) {
     if (variables == null) return false;
-    return variables.containsKey(element);
+    return variables.containsKey(variable);
   }
 
   String toString() {
@@ -297,12 +297,12 @@ abstract class MinimalInferrerEngine<T> {
   /**
    * Records that the captured variable [local] is read.
    */
-  void recordCapturedLocalRead(Element local);
+  void recordCapturedLocalRead(Local local);
 
   /**
    * Records that the variable [local] is being updated.
    */
-  void recordLocalUpdate(Element local, T type);
+  void recordLocalUpdate(Local local, T type);
 }
 
 /**
@@ -313,8 +313,8 @@ class LocalsHandler<T> {
   final TypeSystem<T> types;
   final MinimalInferrerEngine<T> inferrer;
   final VariableScope<T> locals;
-  final Map<Element, Element> captured;
-  final Map<Element, Element> capturedAndBoxed;
+  final Map<Local, Element> captured;
+  final Map<Local, Element> capturedAndBoxed;
   final FieldInitializationScope<T> fieldScope;
   LocalsHandler<T> tryBlock;
   bool seenReturnOrThrow = false;
@@ -331,8 +331,8 @@ class LocalsHandler<T> {
                 Node block,
                 [this.fieldScope])
       : locals = new VariableScope<T>(block),
-        captured = new Map<Element, Element>(),
-        capturedAndBoxed = new Map<Element, Element>(),
+        captured = new Map<Local, Element>(),
+        capturedAndBoxed = new Map<Local, Element>(),
         tryBlock = null;
 
   LocalsHandler.from(LocalsHandler<T> other,
@@ -358,7 +358,7 @@ class LocalsHandler<T> {
         inferrer = other.inferrer,
         compiler = other.compiler;
 
-  T use(Element local) {
+  T use(Local local) {
     if (capturedAndBoxed.containsKey(local)) {
       return inferrer.typeOfElement(capturedAndBoxed[local]);
     } else {
@@ -404,11 +404,11 @@ class LocalsHandler<T> {
     }
   }
 
-  void setCaptured(Element local, Element field) {
+  void setCaptured(Local local, Element field) {
     captured[local] = field;
   }
 
-  void setCapturedAndBoxed(Element local, Element field) {
+  void setCapturedAndBoxed(Local local, Element field) {
     capturedAndBoxed[local] = field;
   }
 
@@ -426,7 +426,7 @@ class LocalsHandler<T> {
     if (aborts) return;
 
     void mergeOneBranch(LocalsHandler<T> other) {
-      other.locals.forEachOwnLocal((Element local, T type) {
+      other.locals.forEachOwnLocal((Local local, T type) {
         T myType = locals[local];
         if (myType == null) return; // Variable is only defined in [other].
         if (type == myType) return;
@@ -435,7 +435,7 @@ class LocalsHandler<T> {
     }
 
     void inPlaceUpdateOneBranch(LocalsHandler<T> other) {
-      other.locals.forEachOwnLocal((Element local, T type) {
+      other.locals.forEachOwnLocal((Local local, T type) {
         T myType = locals[local];
         if (myType == null) return; // Variable is only defined in [other].
         if (type == myType) return;
@@ -451,7 +451,7 @@ class LocalsHandler<T> {
     } else if (elseBranch.aborts) {
       inPlaceUpdateOneBranch(thenBranch);
     } else {
-      void mergeLocal(Element local) {
+      void mergeLocal(Local local) {
         T myType = locals[local];
         if (myType == null) return;
         T elseType = elseBranch.locals[local];
@@ -463,10 +463,10 @@ class LocalsHandler<T> {
         }
       }
 
-      thenBranch.locals.forEachOwnLocal((Element local, _) {
+      thenBranch.locals.forEachOwnLocal((Local local, _) {
         mergeLocal(local);
       });
-      elseBranch.locals.forEachOwnLocal((Element local, _) {
+      elseBranch.locals.forEachOwnLocal((Local local, _) {
         // Discard locals we already processed when iterating over
         // [thenBranch]'s locals.
         if (!thenBranch.locals.updates(local)) mergeLocal(local);
@@ -507,7 +507,7 @@ class LocalsHandler<T> {
   void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
                         {bool keepOwnLocals: true}) {
     Node level = locals.block;
-    Set<Element> seenLocals = new Setlet<Element>();
+    Set<Local> seenLocals = new Setlet<Local>();
     // If we want to keep the locals, we first merge [this] into itself to
     // create the required Phi nodes.
     if (keepOwnLocals && !seenReturnOrThrow) {
@@ -520,11 +520,11 @@ class LocalsHandler<T> {
       mergeHandler(handler, seenLocals);
     }
     // Clean up Phi nodes with single input.
-    locals.forEachLocal((Element element, T type) {
-      if (!seenLocals.contains(element)) return;
-      T newType = types.simplifyPhi(level, element, type);
+    locals.forEachLocal((Local variable, T type) {
+      if (!seenLocals.contains(variable)) return;
+      T newType = types.simplifyPhi(level, variable, type);
       if (newType != type) {
-        locals[element] = newType;
+        locals[variable] = newType;
       }
     });
     seenReturnOrThrow = allBranchesAbort &&
@@ -537,7 +537,7 @@ class LocalsHandler<T> {
    * unless the local is already present in the set [seen]. This effectively
    * overwrites the current type knowledge in this handler.
    */
-  bool mergeHandler(LocalsHandler<T> other, [Set<Element> seen]) {
+  bool mergeHandler(LocalsHandler<T> other, [Set<Local> seen]) {
     if (other.seenReturnOrThrow) return false;
     bool changed = false;
     other.locals.forEachLocalUntilNode(locals.block, (local, otherType) {
@@ -572,19 +572,19 @@ class LocalsHandler<T> {
   }
 
   void startLoop(Node loop) {
-    locals.forEachLocal((Element element, T type) {
-      T newType = types.allocatePhi(loop, element, type);
+    locals.forEachLocal((Local variable, T type) {
+      T newType = types.allocatePhi(loop, variable, type);
       if (newType != type) {
-        locals[element] = newType;
+        locals[variable] = newType;
       }
     });
   }
 
   void endLoop(Node loop) {
-    locals.forEachLocal((Element element, T type) {
-      T newType = types.simplifyPhi(loop, element, type);
+    locals.forEachLocal((Local variable, T type) {
+      T newType = types.simplifyPhi(loop, variable, type);
       if (newType != type) {
-        locals[element] = newType;
+        locals[variable] = newType;
       }
     });
   }
@@ -783,7 +783,8 @@ abstract class InferrerVisitor
     } else {
       Element element = elements[node];
       if (Elements.isLocal(element)) {
-        return locals.use(element);
+        TypedElement local = element;
+        return locals.use(local);
       }
       return null;
     }
@@ -802,10 +803,12 @@ abstract class InferrerVisitor
   }
 
   void updateIsChecks(List<Node> tests, {bool usePositive}) {
-    void narrow(Element element, DartType type, Node node) {
-      T existing = locals.use(element);
-      T newType = types.narrowType(existing, type, isNullable: false);
-      locals.update(element, newType, node);
+    void narrow(var element, DartType type, Node node) {
+      if (element is Local) {
+        T existing = locals.use(element);
+        T newType = types.narrowType(existing, type, isNullable: false);
+        locals.update(element, newType, node);
+      }
     }
 
     if (tests == null) return;

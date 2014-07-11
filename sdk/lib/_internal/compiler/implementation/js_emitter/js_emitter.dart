@@ -11,7 +11,8 @@ import '../js/js.dart' as jsAst;
 import '../closure.dart' show
     ClosureClassElement,
     ClosureClassMap,
-    ClosureFieldElement;
+    ClosureFieldElement,
+    CapturedVariable;
 
 import '../dart2jslib.dart' show
     CodeBuffer;
@@ -36,6 +37,8 @@ import '../js_backend/js_backend.dart' show
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
+
+import '../helpers/helpers.dart';
 
 import '../source_file.dart' show
     SourceFile,

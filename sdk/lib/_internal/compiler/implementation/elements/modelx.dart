@@ -1159,13 +1159,6 @@ class VariableElementX extends ElementX with AstElementMixin
     : this.variables = variables,
       super(name, kind, enclosingElement);
 
-  VariableElementX.synthetic(String name,
-                             ElementKind kind,
-                             Element enclosing)
-      : token = null,
-        variables = null,
-        super(name, kind, enclosing);
-
   // TODO(johnniwinther): Ensure that the [TreeElements] for this variable hold
   // the mappings for all its metadata.
   Link<MetadataAnnotation> get metadata => variables.metadata;

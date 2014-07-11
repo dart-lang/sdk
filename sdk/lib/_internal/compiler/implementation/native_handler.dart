@@ -1098,7 +1098,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   NativeEmitter nativeEmitter = builder.nativeEmitter;
   JavaScriptBackend backend = builder.backend;
 
-  HInstruction convertDartClosure(Element parameter, FunctionType type) {
+  HInstruction convertDartClosure(ParameterElement  parameter,
+                                  FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
     Constant arityConstant =
         builder.constantSystem.createInt(type.computeArity());

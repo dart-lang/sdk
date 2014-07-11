@@ -1018,6 +1018,11 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
+  Element _elementFromHInstruction(HInstruction instruction) {
+    return instruction.sourceElement is Element
+        ? instruction.sourceElement : null;
+  }
+
   /// Finds the approximate [Element] for [node]. [currentElement] is used as
   /// the default value.
   Element elementFromSpannable(Spannable node) {
@@ -1025,7 +1030,7 @@ abstract class Compiler implements DiagnosticListener {
     if (node is Element) {
       element = node;
     } else if (node is HInstruction) {
-      element = node.sourceElement;
+      element = _elementFromHInstruction(node);
     } else if (node is MetadataAnnotation) {
       element = node.annotatedElement;
     }
@@ -1706,7 +1711,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   SourceSpan spanFromHInstruction(HInstruction instruction) {
-    Element element = instruction.sourceElement;
+    Element element = _elementFromHInstruction(instruction);
     if (element == null) element = currentElement;
     var position = instruction.sourcePosition;
     if (position == null) return spanFromElement(element);

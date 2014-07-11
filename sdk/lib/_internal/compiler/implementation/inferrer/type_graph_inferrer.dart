@@ -379,7 +379,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   PhiElementTypeInformation allocatePhi(ast.Node node,
-                                        Element element,
+                                        Local variable,
                                         inputType) {
     // Check if [inputType] is a phi for a local updated in
     // the try/catch block [node]. If it is, no need to allocate a new
@@ -389,20 +389,20 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return inputType;
     }
     PhiElementTypeInformation result =
-        new PhiElementTypeInformation(node, true, element);
+        new PhiElementTypeInformation(node, true, variable);
     allocatedTypes.add(result);
     result.addAssignment(inputType);
     return result;
   }
 
   TypeInformation simplifyPhi(ast.Node node,
-                              Element element,
+                              Local variable,
                               PhiElementTypeInformation phiType) {
     if (phiType.assignments.length == 1) return phiType.assignments.first;
     return phiType;
   }
 
-  PhiElementTypeInformation addPhiInput(Element element,
+  PhiElementTypeInformation addPhiInput(Local variable,
                                         PhiElementTypeInformation phiType,
                                         TypeInformation newType) {
     phiType.addAssignment(newType);
@@ -1098,9 +1098,9 @@ class TypeGraphInferrerEngine
     }
   }
 
-  void recordCapturedLocalRead(Element local) {}
+  void recordCapturedLocalRead(Local local) {}
 
-  void recordLocalUpdate(Element local, TypeInformation type) {}
+  void recordLocalUpdate(Local local, TypeInformation type) {}
 }
 
 class TypeGraphInferrer implements TypesInferrer {
