@@ -1,5 +1,5 @@
 name: analysis_services
-version: 0.2.0
+version: 0.3.0
 author: Dart Team <misc@dartlang.org>
 description: A set of services on top of Analysis Engine
 homepage: http://www.dartlang.org

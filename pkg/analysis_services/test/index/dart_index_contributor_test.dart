@@ -33,7 +33,9 @@ bool _equalsLocation(Location actual, ExpectedLocation expected) {
       actual,
       expected.element,
       expected.offset,
-      expected.length);
+      expected.length,
+      expected.isQualified,
+      expected.isResolved);
 }
 
 
@@ -41,10 +43,12 @@ bool _equalsLocation(Location actual, ExpectedLocation expected) {
  * Returns `true` if the [actual] location the expected properties.
  */
 bool _equalsLocationProperties(Location actual, Element expectedElement,
-    int expectedOffset, int expectedLength) {
+    int expectedOffset, int expectedLength, bool isQualified, bool isResolved) {
   return expectedElement == actual.element &&
       expectedOffset == actual.offset &&
-      expectedLength == actual.length;
+      expectedLength == actual.length &&
+      isQualified == actual.isQualified &&
+      isResolved == actual.isResolved;
 }
 
 
@@ -63,6 +67,11 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
   IndexStore store = new MockIndexStore();
   List<RecordedRelation> recordedRelations = <RecordedRelation>[];
 
+  CompilationUnitElement importedUnit({int index: 0}) {
+    List<ImportElement> imports = testLibraryElement.imports;
+    return imports[index].importedLibrary.definingCompilationUnit;
+  }
+
   void setUp() {
     super.setUp();
     when(store.aboutToIndexDart(context, anyObject)).thenReturn(true);
@@ -77,23 +86,187 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
     });
   }
 
-  void test_FieldElement_noAssignedType_notLHS() {
+  void test_NameElement_field() {
     _indexTestUnit('''
 class A {
-  var myField;
-  main() {
-    print(myField);
+  int field;
+}
+main(A a, p) {
+  print(a.field); // r
+  print(p.field); // ur
+  {
+    var field = 42;
+    print(field); // not a member
   }
-}''');
+}
+''');
     // prepare elements
-    Element mainElement = findElement("main");
-    FieldElement fieldElement = findElement("myField");
-    PropertyAccessorElement getterElement = fieldElement.getter;
+    Element mainElement = findElement('main');
+    FieldElement fieldElement = findElement('field');
+    Element nameElement = new NameElement('field');
     // verify
     _assertRecordedRelation(
-        getterElement,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        _expectedLocation(mainElement, 'myField);'));
+        nameElement,
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(fieldElement, 'field;'));
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.IS_READ_BY,
+        _expectedLocationQ(mainElement, 'field); // r'));
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.IS_READ_BY,
+        _expectedLocationQU(mainElement, 'field); // ur'));
+    _assertNoRecordedRelation(
+        nameElement,
+        IndexConstants.IS_READ_BY,
+        _expectedLocation(mainElement, 'field); // not a member'));
+  }
+
+  void test_NameElement_method() {
+    _indexTestUnit('''
+class A {
+  method() {}
+}
+main(A a, p) {
+  a.method(); // r
+  p.method(); // ur
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    MethodElement methodElement = findElement('method');
+    Element nameElement = new NameElement('method');
+    // verify
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(methodElement, 'method() {}'));
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, 'method(); // r'));
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, 'method(); // ur'));
+  }
+
+  void test_NameElement_operator_resolved() {
+    _indexTestUnit('''
+class A {
+  operator +(o) {}
+  operator -(o) {}
+  operator ~() {}
+  operator ==(o) {}
+}
+main(A a) {
+  a + 5;
+  a += 5;
+  a == 5;
+  ++a;
+  --a;
+  ~a;
+  a++;
+  a--;
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    // binary
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '+ 5', length: 1));
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '+= 5', length: 2));
+    _assertRecordedRelation(
+        new NameElement('=='),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '== 5', length: 2));
+    // prefix
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '++a', length: 2));
+    _assertRecordedRelation(
+        new NameElement('-'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '--a', length: 2));
+    _assertRecordedRelation(
+        new NameElement('~'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '~a', length: 1));
+    // postfix
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '++;', length: 2));
+    _assertRecordedRelation(
+        new NameElement('-'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '--;', length: 2));
+  }
+
+
+  void test_NameElement_operator_unresolved() {
+    _indexTestUnit('''
+class A {
+  operator +(o) {}
+  operator -(o) {}
+  operator ~() {}
+  operator ==(o) {}
+}
+main(a) {
+  a + 5;
+  a += 5;
+  a == 5;
+  ++a;
+  --a;
+  ~a;
+  a++;
+  a--;
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    // binary
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '+ 5', length: 1));
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '+= 5', length: 2));
+    _assertRecordedRelation(
+        new NameElement('=='),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '== 5', length: 2));
+    // prefix
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '++a', length: 2));
+    _assertRecordedRelation(
+        new NameElement('-'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '--a', length: 2));
+    _assertRecordedRelation(
+        new NameElement('~'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '~a', length: 1));
+    // postfix
+    _assertRecordedRelation(
+        new NameElement('+'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '++;', length: 2));
+    _assertRecordedRelation(
+        new NameElement('-'),
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, '--;', length: 2));
   }
 
   void test_definesClass() {
@@ -102,7 +275,7 @@ class A {
     ClassElement classElement = findElement("A");
     // verify
     _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES_CLASS,
+        IndexConstants.DEFINES,
         _expectedLocation(classElement, 'A {}'));
   }
 
@@ -114,7 +287,7 @@ class MyClass = Object with Mix;''');
     Element classElement = findElement("MyClass");
     // verify
     _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES_CLASS_ALIAS,
+        IndexConstants.DEFINES,
         _expectedLocation(classElement, 'MyClass ='));
   }
 
@@ -124,9 +297,10 @@ class MyClass = Object with Mix;''');
     FunctionElement functionElement = findElement("myFunction");
     // verify
     _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES_FUNCTION,
+        IndexConstants.DEFINES,
         _expectedLocation(functionElement, 'myFunction() {}'));
   }
+
 
   void test_definesFunctionType() {
     _indexTestUnit('typedef MyFunction(int p);');
@@ -134,10 +308,9 @@ class MyClass = Object with Mix;''');
     FunctionTypeAliasElement typeAliasElement = findElement("MyFunction");
     // verify
     _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES_FUNCTION_TYPE,
+        IndexConstants.DEFINES,
         _expectedLocation(typeAliasElement, 'MyFunction(int p);'));
   }
-
 
   void test_definesVariable() {
     _indexTestUnit('var myVar = 42;');
@@ -145,7 +318,7 @@ class MyClass = Object with Mix;''');
     VariableElement varElement = findElement("myVar");
     // verify
     _assertDefinesTopLevelElement(
-        IndexConstants.DEFINES_VARIABLE,
+        IndexConstants.DEFINES,
         _expectedLocation(varElement, 'myVar = 42;'));
   }
 
@@ -180,12 +353,12 @@ class A {
     // verify
     _assertRecordedRelation(
         consA,
-        IndexConstants.IS_DEFINED_BY,
+        IndexConstants.NAME_IS_DEFINED_BY,
         _expectedLocation(classA, '() {}'));
     _assertRecordedRelation(
         consA_foo,
-        IndexConstants.IS_DEFINED_BY,
-        _expectedLocation(classA, '.foo() {}', '.foo'.length));
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(classA, '.foo() {}', length: 4));
   }
 
   void test_isDefinedBy_NameElement_method() {
@@ -199,10 +372,9 @@ class A {
     // verify
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.IS_DEFINED_BY,
+        IndexConstants.NAME_IS_DEFINED_BY,
         _expectedLocation(methodElement, 'm() {}'));
   }
-
 
   void test_isDefinedBy_NameElement_operator() {
     _indexTestUnit('''
@@ -215,9 +387,10 @@ class A {
     // verify
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.IS_DEFINED_BY,
-        _expectedLocation(methodElement, '+(o) {}', 1));
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(methodElement, '+(o) {}', length: 1));
   }
+
 
   void test_isExtendedBy_ClassDeclaration() {
     _indexTestUnit('''
@@ -245,8 +418,9 @@ class A {} // 1
     _assertRecordedRelation(
         classElementObject,
         IndexConstants.IS_EXTENDED_BY,
-        _expectedLocation(classElementA, 'A {}', 0));
+        _expectedLocation(classElementA, 'A {}', length: 0));
   }
+
 
   void test_isExtendedBy_ClassTypeAlias() {
     _indexTestUnit('''
@@ -295,13 +469,13 @@ class C = Object with A implements B; // 3
         _expectedLocation(classElementC, 'B; // 3'));
   }
 
-
-  void test_isInvokedByQualified_FieldElement() {
+  void test_isInvokedBy_FieldElement() {
     _indexTestUnit('''
 class A {
   var field;
   main() {
-    this.field();
+    this.field(); // q
+    field(); // nq
   }
 }''');
     // prepare elements
@@ -311,86 +485,38 @@ class A {
     // verify
     _assertRecordedRelation(
         getterElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, 'field();'));
-  }
-
-
-  void test_isInvokedByQualified_MethodElement() {
-    _indexTestUnit('''
-class A {
-  foo() {}
-  main() {
-    this.foo();
-  }
-}''');
-    // prepare elements
-    Element mainElement = findElement("main");
-    Element methodElement = findElement("foo");
-    // verify
-    var location = _expectedLocation(mainElement, 'foo();');
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, 'field(); // q'));
     _assertRecordedRelation(
-        methodElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        location);
-    _assertNoRecordedRelation(
-        methodElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        location);
-  }
-
-  void test_isInvokedByQualified_MethodElement_propagatedType() {
-    _indexTestUnit('''
-class A {
-  foo() {}
-}
-main() {
-  var a = new A();
-  a.foo();
-}
-''');
-    // prepare elements
-    Element mainElement = findElement("main");
-    Element methodElement = findElement("foo");
-    // verify
-    _assertRecordedRelation(
-        methodElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, 'foo();'));
-  }
-
-  void test_isInvokedByUnqualified_MethodElement() {
-    _indexTestUnit('''
-class A {
-  foo() {}
-  main() {
-    foo();
-  }
-}''');
-    // prepare elements
-    Element mainElement = findElement("main");
-    Element methodElement = findElement("foo");
-    // verify
-    _assertRecordedRelation(
-        methodElement,
-        IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        _expectedLocation(mainElement, 'foo();'));
+        getterElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocation(mainElement, 'field(); // nq'));
   }
 
   void test_isInvokedBy_FunctionElement() {
-    _indexTestUnit('''
+    addSource('/lib.dart', '''
+library lib;
 foo() {}
+''');
+    _indexTestUnit('''
+import 'lib.dart';
+import 'lib.dart' as pref;
 main() {
-  foo();
+  pref.foo(); // q
+  foo(); // nq
 }''');
     // prepare elements
     Element mainElement = findElement("main");
-    FunctionElement functionElement = findElement("foo");
+    FunctionElement functionElement = importedUnit().functions[0];
     // verify
     _assertRecordedRelation(
         functionElement,
         IndexConstants.IS_INVOKED_BY,
-        _expectedLocation(mainElement, 'foo();'));
+        _expectedLocation(mainElement, 'foo(); // q'));
+    _assertRecordedRelation(
+        functionElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocation(mainElement, 'foo(); // nq'));
   }
 
   void test_isInvokedBy_LocalVariableElement() {
@@ -409,6 +535,49 @@ main() {
         _expectedLocation(mainElement, 'v();'));
   }
 
+  void test_isInvokedBy_MethodElement() {
+    _indexTestUnit('''
+class A {
+  foo() {}
+  main() {
+    this.foo(); // q
+    foo(); // nq
+  }
+}''');
+    // prepare elements
+    Element mainElement = findElement("main");
+    Element methodElement = findElement("foo");
+    // verify
+    _assertRecordedRelation(
+        methodElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, 'foo(); // q'));
+    _assertRecordedRelation(
+        methodElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocation(mainElement, 'foo(); // nq'));
+  }
+
+  void test_isInvokedBy_MethodElement_propagatedType() {
+    _indexTestUnit('''
+class A {
+  foo() {}
+}
+main() {
+  var a = new A();
+  a.foo();
+}
+''');
+    // prepare elements
+    Element mainElement = findElement("main");
+    Element methodElement = findElement("foo");
+    // verify
+    _assertRecordedRelation(
+        methodElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, 'foo();'));
+  }
+
   void test_isInvokedBy_ParameterElement() {
     _indexTestUnit('''
 main(p()) {
@@ -422,6 +591,85 @@ main(p()) {
         element,
         IndexConstants.IS_INVOKED_BY,
         _expectedLocation(mainElement, 'p();'));
+  }
+
+  void test_isInvokedBy_operator_binary() {
+    _indexTestUnit('''
+class A {
+  operator +(other) => this;
+}
+main(A a) {
+  print(a + 1);
+  a += 2;
+  ++a;
+  a++;
+}
+''');
+    // prepare elements
+    MethodElement element = findElement('+');
+    Element mainElement = findElement('main');
+    // verify
+    _assertRecordedRelation(
+        element,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '+ 1', length: 1));
+    _assertRecordedRelation(
+        element,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '+= 2', length: 2));
+    _assertRecordedRelation(
+        element,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '++a;', length: 2));
+    _assertRecordedRelation(
+        element,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '++;', length: 2));
+  }
+
+  void test_isInvokedBy_operator_index() {
+    _indexTestUnit('''
+class A {
+  operator [](i) => null;
+  operator []=(i, v) {}
+}
+main(A a) {
+  print(a[0]);
+  a[1] = 42;
+}
+''');
+    // prepare elements
+    MethodElement readElement = findElement("[]");
+    MethodElement writeElement = findElement("[]=");
+    Element mainElement = findElement('main');
+    // verify
+    _assertRecordedRelation(
+        readElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '[0]', length: 1));
+    _assertRecordedRelation(
+        writeElement,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '[1] =', length: 1));
+  }
+
+  void test_isInvokedBy_operator_prefix() {
+    _indexTestUnit('''
+class A {
+  A operator ~() => this;
+}
+main(A a) {
+  print(~a);
+}
+''');
+    // prepare elements
+    MethodElement element = findElement("~");
+    Element mainElement = findElement('main');
+    // verify
+    _assertRecordedRelation(
+        element,
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, '~a', length: 1));
   }
 
   void test_isMixedInBy_ClassDeclaration() {
@@ -520,546 +768,6 @@ main() {
         _expectedLocation(mainElement, 'v += 1'));
   }
 
-  void test_isReferencedByQualifiedResolved_NameElement_field() {
-    _indexTestUnit('''
-class A {
-  int field;
-}
-main(A a) {
-  print(a.field);
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    Element nameElement = new NameElement('field');
-    // verify
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, 'field);'));
-  }
-
-  void test_isReferencedByQualifiedResolved_NameElement_method() {
-    _indexTestUnit('''
-class A {
-  method() {}
-}
-main(A a) {
-  a.method();
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    Element nameElement = new NameElement('method');
-    // verify
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, 'method();'));
-  }
-
-  void test_isReferencedByQualifiedResolved_NameElement_operator() {
-    _indexTestUnit('''
-class A {
-  operator +(o) {}
-  operator -(o) {}
-  operator ~() {}
-  operator ==(o) {}
-}
-main(A a) {
-  a + 5;
-  a += 5;
-  a == 5;
-  ++a;
-  --a;
-  ~a;
-  a++;
-  a--;
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    // binary
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, '+ 5', '+'.length));
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, '+= 5', '+='.length));
-    _assertRecordedRelation(
-        new NameElement('=='),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, '== 5', '=='.length));
-    // prefix
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, '++a', '++'.length));
-    _assertRecordedRelation(
-        new NameElement('-'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, '--a', '--'.length));
-    _assertRecordedRelation(
-        new NameElement('~'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, '~a', '~'.length));
-    // postfix
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, '++;', '++'.length));
-    _assertRecordedRelation(
-        new NameElement('-'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-        _expectedLocation(mainElement, '--;', '--'.length));
-  }
-
-  void test_isReferencedByQualifiedUnresolved_NameElement_field() {
-    _indexTestUnit('''
-class A {
-  int field;
-}
-main(var a) {
-  print(a.field);
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    FieldElement fieldElement = findElement('field');
-    Element nameElement = new NameElement('field');
-    // verify
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_DEFINED_BY,
-        _expectedLocation(fieldElement, 'field;'));
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, 'field);'));
-  }
-
-  void test_isReferencedByQualifiedUnresolved_NameElement_method() {
-    _indexTestUnit('''
-class A {
-  method() {}
-}
-main(var a) {
-  a.method();
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    MethodElement methodElement = findElement('method');
-    Element nameElement = new NameElement('method');
-    // verify
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_DEFINED_BY,
-        _expectedLocation(methodElement, 'method() {}'));
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, 'method();'));
-  }
-
-  void test_isReferencedByQualifiedUnresolved_NameElement_operator() {
-    _indexTestUnit('''
-class A {
-  operator +(o) {}
-  operator -(o) {}
-  operator ~() {}
-  operator ==(o) {}
-}
-main(a) {
-  a + 5;
-  a += 5;
-  a == 5;
-  ++a;
-  --a;
-  ~a;
-  a++;
-  a--;
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    // binary
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, '+ 5', '+'.length));
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, '+= 5', '+='.length));
-    _assertRecordedRelation(
-        new NameElement('=='),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, '== 5', '=='.length));
-    // prefix
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, '++a', '++'.length));
-    _assertRecordedRelation(
-        new NameElement('-'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, '--a', '--'.length));
-    _assertRecordedRelation(
-        new NameElement('~'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, '~a', '~'.length));
-    // postfix
-    _assertRecordedRelation(
-        new NameElement('+'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, '++;', '++'.length));
-    _assertRecordedRelation(
-        new NameElement('-'),
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-        _expectedLocation(mainElement, '--;', '--'.length));
-  }
-
-  void test_isReferencedByQualified_ConstructorElement() {
-    _indexTestUnit('''
-class A implements B {
-  A() {}
-  A.foo() {}
-}
-class B extends A {
-  B() : super(); // marker-1
-  B.foo() : super.foo(); // marker-2
-  factory B.bar() = A.foo; // marker-3
-}
-main() {
-  new A(); // marker-main-1
-  new A.foo(); // marker-main-2
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    var isConstructor = (node) => node is ConstructorDeclaration;
-    ConstructorElement consA = findNodeElementAtString("A()", isConstructor);
-    ConstructorElement consA_foo =
-        findNodeElementAtString("A.foo()", isConstructor);
-    ConstructorElement consB = findNodeElementAtString("B()", isConstructor);
-    ConstructorElement consB_foo =
-        findNodeElementAtString("B.foo()", isConstructor);
-    ConstructorElement consB_bar =
-        findNodeElementAtString("B.bar()", isConstructor);
-    // A()
-    _assertRecordedRelation(
-        consA,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(consB, '(); // marker-1', 0));
-    _assertRecordedRelation(
-        consA,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, '(); // marker-main-1', 0));
-    // A.foo()
-    _assertRecordedRelation(
-        consA_foo,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(consB_foo, '.foo(); // marker-2', '.foo'.length));
-    _assertRecordedRelation(
-        consA_foo,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(consB_bar, '.foo; // marker-3', '.foo'.length));
-    _assertRecordedRelation(
-        consA_foo,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, '.foo(); // marker-main-2', '.foo'.length));
-  }
-
-  void test_isReferencedByQualified_ConstructorElement_classTypeAlias() {
-    _indexTestUnit('''
-class M {}
-class A implements B {
-  A() {}
-  A.named() {}
-}
-class B = A with M;
-main() {
-  new B(); // marker-main-1
-  new B.named(); // marker-main-2
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    var isConstructor = (node) => node is ConstructorDeclaration;
-    ConstructorElement consA = findNodeElementAtString("A()", isConstructor);
-    ConstructorElement consA_named =
-        findNodeElementAtString("A.named()", isConstructor);
-    // verify
-    _assertRecordedRelation(
-        consA,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, '(); // marker-main-1', 0));
-    _assertRecordedRelation(
-        consA_named,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, '.named(); // marker-main-2', '.named'.length));
-  }
-
-  void test_isReferencedByQualified_FieldElement() {
-    _indexTestUnit('''
-class A {
-  static var field;
-}
-main() {
-  A.field = 1;
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    FieldElement fieldElement = findElement('field');
-    PropertyAccessorElement setterElement = fieldElement.setter;
-    // verify
-    _assertRecordedRelation(
-        setterElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        _expectedLocation(mainElement, 'field = 1'));
-  }
-
-  void test_isReferencedByQualified_MethodElement() {
-    _indexTestUnit('''
-class A {
-  foo() {}
-  main() {
-    print(this.foo);
-  }
-}
-''');
-    // prepare elements
-    Element fooElement = findElement('foo');
-    Element mainElement = findElement('main');
-    // verify
-    _assertRecordedRelation(
-        fooElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        _expectedLocation(mainElement, 'foo);'));
-  }
-
-  void test_isReferencedByQualified_MethodElement_operator_binary() {
-    _indexTestUnit('''
-class A {
-  operator +(other) => this;
-}
-main(A a) {
-  print(a + 1);
-  a += 2;
-  ++a;
-  a++;
-}
-''');
-    // prepare elements
-    Element element = findElement('+');
-    Element mainElement = findElement('main');
-    // verify
-    _assertRecordedRelation(
-        element,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, '+ 1', "+".length));
-    _assertRecordedRelation(
-        element,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, '+= 2', "+=".length));
-    _assertRecordedRelation(
-        element,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, '++a;', "++".length));
-    _assertRecordedRelation(
-        element,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, '++;', "++".length));
-  }
-
-  void test_isReferencedByQualified_MethodElement_operator_index() {
-    _indexTestUnit('''
-class A {
-  operator [](i) => null;
-  operator []=(i, v) {}
-}
-main(A a) {
-  print(a[0]);
-  a[1] = 42;
-}
-''');
-    // prepare elements
-    MethodElement readElement = findElement("[]");
-    MethodElement writeElement = findElement("[]=");
-    Element mainElement = findElement('main');
-    // verify
-    _assertRecordedRelation(
-        readElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, '[0]', "[".length));
-    _assertRecordedRelation(
-        writeElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, '[1] =', "[".length));
-  }
-
-  void test_isReferencedByQualified_MethodElement_operator_prefix() {
-    _indexTestUnit('''
-class A {
-  A operator ~() => this;
-}
-main(A a) {
-  print(~a);
-}
-''');
-    // prepare elements
-    MethodElement element = findElement("~");
-    Element mainElement = findElement('main');
-    // verify
-    _assertRecordedRelation(
-        element,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        _expectedLocation(mainElement, '~a', "~".length));
-  }
-
-  void test_isReferencedByQualified_PropertyAccessorElement_method_getter() {
-    _indexTestUnit('''
-class A {
-  get foo => 42;
-  main() {
-    print(this.foo);
-  }
-}
-''');
-    // prepare elements
-    PropertyAccessorElement element = findNodeElementAtString('foo =>');
-    Element mainElement = findElement('main');
-    // verify
-    _assertRecordedRelation(
-        element,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        _expectedLocation(mainElement, 'foo);'));
-    _assertNoRecordedRelation(element, IndexConstants.IS_REFERENCED_BY, null);
-  }
-
-  void test_isReferencedByQualified_PropertyAccessorElement_method_setter() {
-    _indexTestUnit('''
-class A {
-  set foo(x) {}
-  main() {
-    this.foo = 42;
-  }
-}
-''');
-    // prepare elements
-    PropertyAccessorElement element = findNodeElementAtString('foo(x)');
-    Element mainElement = findElement('main');
-    // verify
-    _assertRecordedRelation(
-        element,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        _expectedLocation(mainElement, 'foo = 42;'));
-    _assertNoRecordedRelation(element, IndexConstants.IS_REFERENCED_BY, null);
-  }
-
-  void test_isReferencedByQualified_PropertyAccessorElement_topLevelField() {
-    addSource('/lib.dart', '''
-library lib;
-var myVar;
-''');
-    _indexTestUnit('''
-import 'lib.dart' as pref;
-main() {
-  pref.myVar = 1;
-  print(pref.myVar);
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    ImportElement importElement = testLibraryElement.imports[0];
-    CompilationUnitElement impUnit =
-        importElement.importedLibrary.definingCompilationUnit;
-    TopLevelVariableElement myVar = impUnit.topLevelVariables[0];
-    PropertyAccessorElement getter = myVar.getter;
-    PropertyAccessorElement setter = myVar.setter;
-    // verify
-    _assertRecordedRelation(
-        setter,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        _expectedLocation(mainElement, 'myVar = 1'));
-    _assertRecordedRelation(
-        getter,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        _expectedLocation(mainElement, 'myVar);'));
-  }
-
-  void test_isReferencedByUnqualified_FieldElement() {
-    _indexTestUnit('''
-class A {
-  var field;
-  main() {
-    field = 5;
-    print(field);
-  }
-}''');
-    // prepare elements
-    Element mainElement = findElement("main");
-    FieldElement fieldElement = findElement("field");
-    PropertyAccessorElement getter = fieldElement.getter;
-    PropertyAccessorElement setter = fieldElement.setter;
-    // verify
-    _assertRecordedRelation(
-        setter,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        _expectedLocation(mainElement, 'field = 5'));
-    _assertRecordedRelation(
-        getter,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        _expectedLocation(mainElement, 'field);'));
-  }
-
-  void test_isReferencedByUnqualified_MethodElement() {
-    _indexTestUnit('''
-class A {
-  method() {}
-  main() {
-    print(method);
-  }
-}''');
-    // prepare elements
-    Element mainElement = findElement("main");
-    MethodElement methodElement = findElement("method");
-    // verify
-    _assertRecordedRelation(
-        methodElement,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        _expectedLocation(mainElement, 'method);'));
-    _assertNoRecordedRelation(
-        methodElement,
-        IndexConstants.IS_REFERENCED_BY,
-        null);
-  }
-
-  void test_isReferencedByUnqualified_TopLevelVariableElement() {
-    _indexTestUnit('''
-var topVariable;
-main() {
-  topVariable = 5;
-  print(topVariable);
-}''');
-    // prepare elements
-    Element mainElement = findElement("main");
-    TopLevelVariableElement variableElement = findElement("topVariable");
-    // verify
-    _assertRecordedRelation(
-        variableElement.setter,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        _expectedLocation(mainElement, 'topVariable = 5'));
-    _assertRecordedRelation(
-        variableElement.getter,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        _expectedLocation(mainElement, 'topVariable);'));
-  }
-
   void test_isReferencedBy_ClassElement() {
     _indexTestUnit('''
 class A {
@@ -1135,7 +843,88 @@ part 'my_unit.dart';
     _assertRecordedRelation(
         myUnitElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, "'my_unit.dart';", "'my_unit.dart'".length));
+        _expectedLocation(testUnitElement, "'my_unit.dart';", length: 14));
+  }
+
+  void test_isReferencedBy_ConstructorElement() {
+    _indexTestUnit('''
+class A implements B {
+  A() {}
+  A.foo() {}
+}
+class B extends A {
+  B() : super(); // marker-1
+  B.foo() : super.foo(); // marker-2
+  factory B.bar() = A.foo; // marker-3
+}
+main() {
+  new A(); // marker-main-1
+  new A.foo(); // marker-main-2
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    var isConstructor = (node) => node is ConstructorDeclaration;
+    ConstructorElement consA = findNodeElementAtString("A()", isConstructor);
+    ConstructorElement consA_foo =
+        findNodeElementAtString("A.foo()", isConstructor);
+    ConstructorElement consB = findNodeElementAtString("B()", isConstructor);
+    ConstructorElement consB_foo =
+        findNodeElementAtString("B.foo()", isConstructor);
+    ConstructorElement consB_bar =
+        findNodeElementAtString("B.bar()", isConstructor);
+    // A()
+    _assertRecordedRelation(
+        consA,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(consB, '(); // marker-1', length: 0));
+    _assertRecordedRelation(
+        consA,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, '(); // marker-main-1', length: 0));
+    // A.foo()
+    _assertRecordedRelation(
+        consA_foo,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(consB_foo, '.foo(); // marker-2', length: 4));
+    _assertRecordedRelation(
+        consA_foo,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(consB_bar, '.foo; // marker-3', length: 4));
+    _assertRecordedRelation(
+        consA_foo,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, '.foo(); // marker-main-2', length: 4));
+  }
+
+  void test_isReferencedBy_ConstructorElement_classTypeAlias() {
+    _indexTestUnit('''
+class M {}
+class A implements B {
+  A() {}
+  A.named() {}
+}
+class B = A with M;
+main() {
+  new B(); // marker-main-1
+  new B.named(); // marker-main-2
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    var isConstructor = (node) => node is ConstructorDeclaration;
+    ConstructorElement consA = findNodeElementAtString("A()", isConstructor);
+    ConstructorElement consA_named =
+        findNodeElementAtString("A.named()", isConstructor);
+    // verify
+    _assertRecordedRelation(
+        consA,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, '(); // marker-main-1', length: 0));
+    _assertRecordedRelation(
+        consA_named,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, '.named(); // marker-main-2', length: 6));
   }
 
   void test_isReferencedBy_ConstructorFieldInitializer() {
@@ -1152,8 +941,44 @@ class A {
     // verify
     _assertRecordedRelation(
         fieldElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(constructorElement, 'field = 5'));
+  }
+
+  void test_isReferencedBy_FieldElement() {
+    _indexTestUnit('''
+class A {
+  var field;
+  main() {
+    this.field = 5; // q
+    print(this.field); // q
+    field = 5; // nq
+    print(field); // nq
+  }
+}
+''');
+    // prepare elements
+    Element mainElement = findElement("main");
+    FieldElement fieldElement = findElement("field");
+    PropertyAccessorElement getter = fieldElement.getter;
+    PropertyAccessorElement setter = fieldElement.setter;
+    // verify
+    _assertRecordedRelation(
+        setter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocationQ(mainElement, 'field = 5; // q'));
+    _assertRecordedRelation(
+        getter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocationQ(mainElement, 'field); // q'));
+    _assertRecordedRelation(
+        setter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'field = 5; // nq'));
+    _assertRecordedRelation(
+        getter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'field); // nq'));
   }
 
   void test_isReferencedBy_FieldFormalParameterElement() {
@@ -1169,27 +994,8 @@ class A {
     // verify
     _assertRecordedRelation(
         fieldElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(fieldParameterElement, 'field);'));
-  }
-
-  void test_isReferencedBy_TopLevelVariableElement() {
-    addSource('/lib.dart', '''
-library lib;
-var V;
-''');
-    _indexTestUnit('''
-import 'lib.dart' show V; // imp
-''');
-    // prepare elements
-    var libElement = testLibraryElement.imports[0].importedLibrary;
-    var libUnit = libElement.definingCompilationUnit;
-    TopLevelVariableElement fieldElement = libUnit.topLevelVariables[0];
-    // verify
-    _assertRecordedRelation(
-        fieldElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        _expectedLocation(testUnitElement, 'V; // imp'));
   }
 
   void test_isReferencedBy_FunctionElement() {
@@ -1259,28 +1065,28 @@ main() {
     _assertRecordedRelation(
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'myVar = 1;', 0));
+        _expectedLocation(mainElement, 'myVar = 1;', length: 0));
     _assertRecordedRelation(
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'myFunction();', 0));
+        _expectedLocation(mainElement, 'myFunction();', length: 0));
     _assertNoRecordedRelation(
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'print(0);', 0));
+        _expectedLocation(mainElement, 'print(0);', length: 0));
     // no references from import combinators
     _assertNoRecordedRelation(
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, 'myVar, ', 0));
+        _expectedLocation(testUnitElement, 'myVar, ', length: 0));
     _assertNoRecordedRelation(
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, 'myFunction hide', 0));
+        _expectedLocation(testUnitElement, 'myFunction hide', length: 0));
     _assertNoRecordedRelation(
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, 'myToHide;', 0));
+        _expectedLocation(testUnitElement, 'myToHide;', length: 0));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix() {
@@ -1308,11 +1114,11 @@ main() {
     _assertRecordedRelation(
         importElementA,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'pref.myVar = 1;', 'pref.'.length));
+        _expectedLocation(mainElement, 'pref.myVar = 1;', length: 5));
     _assertRecordedRelation(
         importElementB,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'pref.MyClass();', 'pref.'.length));
+        _expectedLocation(mainElement, 'pref.MyClass();', length: 5));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix_combinators() {
@@ -1339,11 +1145,11 @@ main() {
     _assertRecordedRelation(
         importElementA,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'pref.A();', 'pref.'.length));
+        _expectedLocation(mainElement, 'pref.A();', length: 5));
     _assertRecordedRelation(
         importElementB,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'pref.B();', 'pref.'.length));
+        _expectedLocation(mainElement, 'pref.B();', length: 5));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix_invocation() {
@@ -1364,7 +1170,7 @@ main() {
     _assertRecordedRelation(
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'pref.myFunc();', 'pref.'.length));
+        _expectedLocation(mainElement, 'pref.myFunc();', length: 5));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix_oneCandidate() {
@@ -1386,7 +1192,7 @@ main() {
     _assertRecordedRelation(
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(mainElement, 'pref.A();', 'pref.'.length));
+        _expectedLocation(mainElement, 'pref.A();', length: 5));
   }
 
   void test_isReferencedBy_ImportElement_withPrefix_unresolvedElement() {
@@ -1453,7 +1259,7 @@ export 'lib.dart';
     _assertRecordedRelation(
         libUnitElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, "'lib.dart'", "'lib.dart'".length));
+        _expectedLocation(testUnitElement, "'lib.dart'", length: 10));
   }
 
   void test_isReferencedBy_LibraryElement_import() {
@@ -1470,7 +1276,30 @@ import 'lib.dart';
     _assertRecordedRelation(
         libUnitElement,
         IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, "'lib.dart'", "'lib.dart'".length));
+        _expectedLocation(testUnitElement, "'lib.dart'", length: 10));
+  }
+
+  void test_isReferencedBy_MethodElement() {
+    _indexTestUnit('''
+class A {
+  method() {}
+  main() {
+    print(this.method); // q
+    print(method); // nq
+  }
+}''');
+    // prepare elements
+    Element mainElement = findElement("main");
+    MethodElement methodElement = findElement("method");
+    // verify
+    _assertRecordedRelation(
+        methodElement,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocationQ(mainElement, 'method); // q'));
+    _assertRecordedRelation(
+        methodElement,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'method); // nq'));
   }
 
   void test_isReferencedBy_ParameterElement() {
@@ -1488,6 +1317,46 @@ main() {
         element,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'p: 1'));
+  }
+
+  void test_isReferencedBy_TopLevelVariableElement() {
+    addSource('/lib.dart', '''
+library lib;
+var V;
+''');
+    _indexTestUnit('''
+import 'lib.dart' show V; // imp
+import 'lib.dart' as pref;
+main() {
+  pref.V = 5; // q
+  print(pref.V); // q
+  V = 5; // nq
+  print(V); // nq
+}''');
+    // prepare elements
+    TopLevelVariableElement variable = importedUnit().topLevelVariables[0];
+    Element mainElement = findElement("main");
+    // verify
+    _assertRecordedRelation(
+        variable,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(testUnitElement, 'V; // imp'));
+    _assertRecordedRelation(
+        variable.setter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'V = 5; // q'));
+    _assertRecordedRelation(
+        variable.getter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'V); // q'));
+    _assertRecordedRelation(
+        variable.setter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'V = 5; // nq'));
+    _assertRecordedRelation(
+        variable.getter,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(mainElement, 'V); // nq'));
   }
 
   void test_isReferencedBy_TypeParameterElement() {
@@ -1625,16 +1494,16 @@ main(A a, p) {
     // verify
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_INVOKED_BY_RESOLVED,
-        _expectedLocation(mainElement, 'test(1)'));
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQ(mainElement, 'test(1)'));
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_INVOKED_BY_UNRESOLVED,
-        _expectedLocation(mainElement, 'test(2)'));
+        IndexConstants.IS_INVOKED_BY,
+        _expectedLocationQU(mainElement, 'test(2)'));
     _assertNoRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_READ_BY_UNRESOLVED,
-        _expectedLocation(mainElement, 'test(2)'));
+        IndexConstants.IS_READ_BY,
+        _expectedLocationQU(mainElement, 'test(2)'));
   }
 
   void test_nameIsReadBy() {
@@ -1652,12 +1521,12 @@ main(A a, p) {
     // verify
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_READ_BY_RESOLVED,
-        _expectedLocation(mainElement, 'test); // a'));
+        IndexConstants.IS_READ_BY,
+        _expectedLocationQ(mainElement, 'test); // a'));
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_READ_BY_UNRESOLVED,
-        _expectedLocation(mainElement, 'test); // p'));
+        IndexConstants.IS_READ_BY,
+        _expectedLocationQU(mainElement, 'test); // p'));
   }
 
   void test_nameIsReadWrittenBy() {
@@ -1675,12 +1544,12 @@ main(A a, p) {
     // verify
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_READ_WRITTEN_BY_RESOLVED,
-        _expectedLocation(mainElement, 'test += 1'));
+        IndexConstants.IS_READ_WRITTEN_BY,
+        _expectedLocationQ(mainElement, 'test += 1'));
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_READ_WRITTEN_BY_UNRESOLVED,
-        _expectedLocation(mainElement, 'test += 2'));
+        IndexConstants.IS_READ_WRITTEN_BY,
+        _expectedLocationQU(mainElement, 'test += 2'));
   }
 
   void test_nameIsWrittenBy() {
@@ -1698,12 +1567,12 @@ main(A a, p) {
     // verify
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_WRITTEN_BY_RESOLVED,
-        _expectedLocation(mainElement, 'test = 1'));
+        IndexConstants.IS_WRITTEN_BY,
+        _expectedLocationQ(mainElement, 'test = 1'));
     _assertRecordedRelation(
         nameElement,
-        IndexConstants.NAME_IS_WRITTEN_BY_UNRESOLVED,
-        _expectedLocation(mainElement, 'test = 2'));
+        IndexConstants.IS_WRITTEN_BY,
+        _expectedLocationQU(mainElement, 'test = 2'));
   }
 
   void test_nullUnit() {
@@ -1762,13 +1631,37 @@ main(A a, p) {
     return null;
   }
 
-  ExpectedLocation _expectedLocation(Element element, String search, [int length
-      = -1]) {
+  ExpectedLocation _expectedLocation(Element element, String search,
+      {int length: -1, bool isQualified: false, bool isResolved: true}) {
     int offset = findOffset(search);
     if (length == -1) {
       length = getLeadingIdentifierLength(search);
     }
-    return new ExpectedLocation(element, offset, length);
+    return new ExpectedLocation(
+        element,
+        offset,
+        length,
+        isQualified,
+        isResolved);
+  }
+
+  ExpectedLocation _expectedLocationQ(Element element, String search,
+      {int length: -1}) {
+    return _expectedLocation(
+        element,
+        search,
+        length: length,
+        isQualified: true);
+  }
+
+  ExpectedLocation _expectedLocationQU(Element element, String search,
+      {int length: -1}) {
+    return _expectedLocation(
+        element,
+        search,
+        length: length,
+        isQualified: true,
+        isResolved: false);
   }
 
   void _indexTestUnit(String code) {
@@ -1781,12 +1674,16 @@ class ExpectedLocation {
   Element element;
   int offset;
   int length;
+  bool isQualified;
+  bool isResolved;
 
-  ExpectedLocation(this.element, this.offset, this.length);
+  ExpectedLocation(this.element, this.offset, this.length, this.isQualified,
+      this.isResolved);
 
   @override
   String toString() {
-    return 'ExpectedLocation(element=$element; offset=$offset; length=$length)';
+    return 'ExpectedLocation(element=$element; offset=$offset; length=$length;'
+        ' isQualified=$isQualified isResolved=$isResolved)';
   }
 }
 
@@ -1808,6 +1705,7 @@ class RecordedRelation {
   @override
   String toString() {
     return 'RecordedRelation(element=$element; relationship=$relationship; '
-        'location=$location)';
+        'location=$location; flags=' '${location.isQualified ? "Q" : ""}'
+        '${location.isResolved ? "R" : ""})';
   }
 }

@@ -119,237 +119,99 @@ abstract class Index {
  */
 class IndexConstants {
   /**
-   * Reference to some closing tag of an XML element.
+   * Left: an Angular element.
+   *   Is referenced at.
+   * Right: location.
+   */
+  static final Relationship ANGULAR_REFERENCE =
+      Relationship.getRelationship("angular-reference");
+
+  /**
+   * Left: an Angular component.
+   *   Is closed "/>" at.
+   * Right: location.
    */
   static final Relationship ANGULAR_CLOSING_TAG_REFERENCE =
       Relationship.getRelationship("angular-closing-tag-reference");
 
   /**
-   * Reference to some [AngularElement].
+   * Left: the Universe or a Library.
+   *   Defines an Element.
+   * Right: an Element declaration.
    */
-  static final Relationship ANGULAR_REFERENCE = Relationship.getRelationship(
-      "angular-reference");
+  static final Relationship DEFINES = Relationship.getRelationship("defines");
 
   /**
-   * The relationship used to indicate that a container (the left-operand)
-   * contains the definition of a class at a specific location (the right
-   * operand).
+   * Left: class.
+   *   Is extended by.
+   * Right: other class declaration.
    */
-  static final Relationship DEFINES_CLASS = Relationship.getRelationship(
-      "defines-class");
+  static final Relationship IS_EXTENDED_BY =
+      Relationship.getRelationship("is-extended-by");
 
   /**
-   * The relationship used to indicate that a container (the left-operand)
-   * contains the definition of a class type alias at a specific location (the
-   * right operand).
+   * Left: class.
+   *   Is implemented by.
+   * Right: other class declaration.
    */
-  static final Relationship DEFINES_CLASS_ALIAS = Relationship.getRelationship(
-      "defines-class-alias");
+  static final Relationship IS_IMPLEMENTED_BY =
+      Relationship.getRelationship("is-implemented-by");
 
   /**
-   * The relationship used to indicate that a container (the left-operand)
-   * contains the definition of a function at a specific location (the right
-   * operand).
+   * Left: class.
+   *   Is mixed into.
+   * Right: other class declaration.
    */
-  static final Relationship DEFINES_FUNCTION = Relationship.getRelationship(
-      "defines-function");
+  static final Relationship IS_MIXED_IN_BY =
+      Relationship.getRelationship("is-mixed-in-by");
 
   /**
-   * The relationship used to indicate that a container (the left-operand)
-   * contains the definition of a function type at a specific location (the
-   * right operand).
+   * Left: local variable, parameter.
+   *   Is read at.
+   * Right: location.
    */
-  static final Relationship DEFINES_FUNCTION_TYPE =
-      Relationship.getRelationship("defines-function-type");
+  static final Relationship IS_READ_BY =
+      Relationship.getRelationship("is-read-by");
 
   /**
-   * The relationship used to indicate that a container (the left-operand)
-   * contains the definition of a method at a specific location (the right
-   * operand).
+   * Left: local variable, parameter.
+   *   Is both read and written at.
+   * Right: location.
    */
-  static final Relationship DEFINES_VARIABLE = Relationship.getRelationship(
-      "defines-variable");
+  static final Relationship IS_READ_WRITTEN_BY =
+      Relationship.getRelationship("is-read-written-by");
 
   /**
-   * The relationship used to indicate that a name (the left-operand) is defined
-   * at a specific location (the right operand).
+   * Left: local variable, parameter.
+   *   Is written at.
+   * Right: location.
    */
-  static final Relationship IS_DEFINED_BY = Relationship.getRelationship(
-      "is-defined-by");
+  static final Relationship IS_WRITTEN_BY =
+      Relationship.getRelationship("is-written-by");
 
   /**
-   * The relationship used to indicate that a type (the left-operand) is
-   * extended by a type at a specific location (the right operand).
+   * Left: function, method, variable, getter.
+   *   Is invoked at.
+   * Right: location.
    */
-  static final Relationship IS_EXTENDED_BY = Relationship.getRelationship(
-      "is-extended-by");
+  static final Relationship IS_INVOKED_BY =
+      Relationship.getRelationship("is-invoked-by");
 
   /**
-   * The relationship used to indicate that a type (the left-operand) is
-   * implemented by a type at a specific location (the right operand).
+   * Left: function, function type, class, field, method.
+   *   Is referenced (and not invoked, read/written) at.
+   * Right: location.
    */
-  static final Relationship IS_IMPLEMENTED_BY = Relationship.getRelationship(
-      "is-implemented-by");
+  static final Relationship IS_REFERENCED_BY =
+      Relationship.getRelationship("is-referenced-by");
 
   /**
-   * The relationship used to indicate that an element (the left-operand) is
-   * invoked at a specific location (the right operand). This is used for
-   * functions.
+   * Left: name element.
+   *   Is defined by.
+   * Right: concrete element declaration.
    */
-  static final Relationship IS_INVOKED_BY = Relationship.getRelationship(
-      "is-invoked-by");
-
-  /**
-   * The relationship used to indicate that an element (the left-operand) is
-   * invoked at a specific location (the right operand). This is used for
-   * methods.
-   */
-  static final Relationship IS_INVOKED_BY_QUALIFIED =
-      Relationship.getRelationship("is-invoked-by-qualified");
-
-  /**
-   * The relationship used to indicate that an element (the left-operand) is
-   * invoked at a specific location (the right operand). This is used for
-   * methods.
-   */
-  static final Relationship IS_INVOKED_BY_UNQUALIFIED =
-      Relationship.getRelationship("is-invoked-by-unqualified");
-
-  /**
-   * The relationship used to indicate that a type (the left-operand) is mixed
-   * into a type at a specific location (the right operand).
-   */
-  static final Relationship IS_MIXED_IN_BY = Relationship.getRelationship(
-      "is-mixed-in-by");
-
-  /**
-   * The relationship used to indicate that a parameter or variable (the
-   * left-operand) is read at a specific location (the right operand).
-   */
-  static final Relationship IS_READ_BY = Relationship.getRelationship(
-      "is-read-by");
-
-  /**
-   * The relationship used to indicate that a parameter or variable (the
-   * left-operand) is both read and modified at a specific location (the right
-   * operand).
-   */
-  static final Relationship IS_READ_WRITTEN_BY = Relationship.getRelationship(
-      "is-read-written-by");
-
-  /**
-   * The relationship used to indicate that an element (the left-operand) is
-   * referenced at a specific location (the right operand). This is used for
-   * everything except read/write operations for fields, parameters, and
-   * variables. Those use either [IS_REFERENCED_BY_QUALIFIED],
-   * [IS_REFERENCED_BY_UNQUALIFIED], [IS_READ_BY], [IS_WRITTEN_BY] or
-   * [IS_READ_WRITTEN_BY], as appropriate.
-   */
-  static final Relationship IS_REFERENCED_BY = Relationship.getRelationship(
-      "is-referenced-by");
-
-  /**
-   * The relationship used to indicate that an element (the left-operand) is
-   * referenced at a specific location (the right operand). This is used for
-   * field accessors and methods.
-   */
-  static final Relationship IS_REFERENCED_BY_QUALIFIED =
-      Relationship.getRelationship("is-referenced-by-qualified");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is referenced at a specific location (the right operand). This is used for
-   * qualified resolved references to methods and fields.
-   */
-  static final Relationship IS_REFERENCED_BY_QUALIFIED_RESOLVED =
-      Relationship.getRelationship("is-referenced-by-qualified-resolved");
-
-  /**
-   * The relationship used to indicate that an [NameElement] (the left-operand)
-   * is referenced at a specific location (the right operand). This is used for
-   * qualified unresolved references to methods and fields.
-   */
-  static final Relationship IS_REFERENCED_BY_QUALIFIED_UNRESOLVED =
-      Relationship.getRelationship("is-referenced-by-qualified-unresolved");
-
-  /**
-   * The relationship used to indicate that an element (the left-operand) is
-   * referenced at a specific location (the right operand). This is used for
-   * field accessors and methods.
-   */
-  static final Relationship IS_REFERENCED_BY_UNQUALIFIED =
-      Relationship.getRelationship("is-referenced-by-unqualified");
-
-  /**
-   * The relationship used to indicate that a parameter or variable (the
-   * left-operand) is modified (assigned to) at a specific location (the right
-   * operand).
-   */
-  static final Relationship IS_WRITTEN_BY = Relationship.getRelationship(
-      "is-written-by");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is invoked at a specific location (the right operand). This is used for
-   * resolved invocations.
-   */
-  static final Relationship NAME_IS_INVOKED_BY_RESOLVED =
-      Relationship.getRelationship("name-is-invoked-by-resolved");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is invoked at a specific location (the right operand). This is used for
-   * unresolved invocations.
-   */
-  static final Relationship NAME_IS_INVOKED_BY_UNRESOLVED =
-      Relationship.getRelationship("name-is-invoked-by-unresolved");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is read at a specific location (the right operand).
-   */
-  static final Relationship NAME_IS_READ_BY_RESOLVED =
-      Relationship.getRelationship("name-is-read-by-resolved");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is read at a specific location (the right operand).
-   */
-  static final Relationship NAME_IS_READ_BY_UNRESOLVED =
-      Relationship.getRelationship("name-is-read-by-unresolved");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is both read and written at a specific location (the right operand).
-   */
-  static final Relationship NAME_IS_READ_WRITTEN_BY_RESOLVED =
-      Relationship.getRelationship("name-is-read-written-by-resolved");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is both read and written at a specific location (the right operand).
-   */
-  static final Relationship NAME_IS_READ_WRITTEN_BY_UNRESOLVED =
-      Relationship.getRelationship("name-is-read-written-by-unresolved");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is written at a specific location (the right operand).
-   */
-  static final Relationship NAME_IS_WRITTEN_BY_RESOLVED =
-      Relationship.getRelationship("name-is-written-by-resolved");
-
-  /**
-   * The relationship used to indicate that a [NameElement] (the left-operand)
-   * is written at a specific location (the right operand).
-   */
-  static final Relationship NAME_IS_WRITTEN_BY_UNRESOLVED =
-      Relationship.getRelationship("name-is-written-by-unresolved");
-
-  /**
-   * An element used to represent the universe.
-   */
-  static final Element UNIVERSE = UniverseElement.INSTANCE;
+  static final Relationship NAME_IS_DEFINED_BY =
+      Relationship.getRelationship("name-is-defined-by");
 
   IndexConstants._();
 }
@@ -363,6 +225,9 @@ class IndexConstants {
  * within that resource.
  */
 class Location {
+  static const int _FLAG_QUALIFIED = 1 << 0;
+  static const int _FLAG_RESOLVED = 1 << 1;
+
   /**
    * An empty array of locations.
    */
@@ -384,21 +249,53 @@ class Location {
   final int length;
 
   /**
-   * Initializes a newly create location to be relative to the given element at
+   * The flags of this location.
+   */
+  int _flags;
+
+  /**
+   * Initializes a newly created location to be relative to the given element at
    * the given [offset] with the given [length].
    *
    * [element] - the [Element] containing this location.
-   * [offset] - the offset within the resource containing the [element].
+   * [offset] - the offset within the resource containing [element].
    * [length] - the length of this location
    */
-  Location(this.element, this.offset, this.length) {
+  Location(this.element, this.offset, this.length, {bool isQualified: false,
+      bool isResolved: true}) {
     if (element == null) {
       throw new ArgumentError("element location cannot be null");
     }
+    _flags = 0;
+    if (isQualified) {
+      _flags |= _FLAG_QUALIFIED;
+    }
+    if (isResolved) {
+      _flags |= _FLAG_RESOLVED;
+    }
   }
 
+  /**
+   * Returns `true` if this location is a qualified reference.
+   */
+  bool get isQualified => (_flags & _FLAG_QUALIFIED) != 0;
+
+  /**
+   * Returns `true` if this location is a resolved reference.
+   */
+  bool get isResolved => (_flags & _FLAG_RESOLVED) != 0;
+
   @override
-  String toString() => "[${offset} - ${(offset + length)}) in ${element}";
+  String toString() {
+    String flagsStr = '';
+    if (isQualified) {
+      flagsStr += ' qualified';
+    }
+    if (isResolved) {
+      flagsStr += ' resolved';
+    }
+    return '[${offset} - ${(offset + length)}) $flagsStr in ${element}';
+  }
 }
 
 
@@ -408,8 +305,10 @@ class Location {
 class LocationWithData<D> extends Location {
   final D data;
 
-  LocationWithData(Location location, this.data) : super(location.element,
-      location.offset, location.length);
+  LocationWithData(Location location, this.data) : super(
+      location.element,
+      location.offset,
+      location.length);
 }
 
 

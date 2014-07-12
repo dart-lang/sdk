@@ -83,14 +83,15 @@ class FileNodeManager implements NodeManager {
       _DataInputStream stream = new _DataInputStream(bytes);
       return _readNode(stream);
     }).catchError((e, stackTrace) {
-      _logger.logError2('Exception during reading index file ${name}',
+      _logger.logError2(
+          'Exception during reading index file ${name}',
           new CaughtException(e, stackTrace));
     });
   }
 
   @override
-  IndexNode newNode(AnalysisContext context) => new IndexNode(context,
-      elementCodec, _relationshipCodec);
+  IndexNode newNode(AnalysisContext context) =>
+      new IndexNode(context, elementCodec, _relationshipCodec);
 
   @override
   Future putNode(String name, IndexNode node) {
@@ -108,7 +109,8 @@ class FileNodeManager implements NodeManager {
       var bytes = stream.getBytes();
       return _fileManager.write(name, bytes);
     }).catchError((e, stackTrace) {
-      _logger.logError2('Exception during reading index file ${name}',
+      _logger.logError2(
+          'Exception during reading index file ${name}',
           new CaughtException(e, stackTrace));
     });
   }
@@ -137,7 +139,8 @@ class FileNodeManager implements NodeManager {
     int elementId = stream.readInt();
     int offset = stream.readInt();
     int length = stream.readInt();
-    return new LocationData.forData(elementId, offset, length);
+    int flags = stream.readInt();
+    return new LocationData.forData(elementId, offset, length, flags);
   }
 
   IndexNode _readNode(_DataInputStream stream) {
@@ -198,6 +201,7 @@ class FileNodeManager implements NodeManager {
         stream.writeInt(location.elementId);
         stream.writeInt(location.offset);
         stream.writeInt(location.length);
+        stream.writeInt(location.flags);
       }
     });
   }
@@ -254,8 +258,12 @@ class IndexNode {
    */
   List<Location> getRelationships(Element element, Relationship relationship) {
     // prepare key
-    RelationKeyData key = new RelationKeyData.forObject(_elementCodec,
-        _relationshipCodec, element, relationship);
+    RelationKeyData key =
+        new RelationKeyData.forObject(
+            _elementCodec,
+            _relationshipCodec,
+            element,
+            relationship);
     // find LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
@@ -281,8 +289,12 @@ class IndexNode {
    */
   void recordRelationship(Element element, Relationship relationship,
       Location location) {
-    RelationKeyData key = new RelationKeyData.forObject(_elementCodec,
-        _relationshipCodec, element, relationship);
+    RelationKeyData key =
+        new RelationKeyData.forObject(
+            _elementCodec,
+            _relationshipCodec,
+            element,
+            relationship);
     // prepare LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
@@ -299,16 +311,22 @@ class IndexNode {
  * A container with information about a [Location].
  */
 class LocationData {
+  static const int _FLAG_QUALIFIED = 1 << 0;
+  static const int _FLAG_RESOLVED = 1 << 1;
+
   final int elementId;
   final int offset;
   final int length;
+  final int flags;
 
-  LocationData.forData(this.elementId, this.offset, this.length);
+  LocationData.forData(this.elementId, this.offset, this.length, this.flags);
 
   LocationData.forObject(ElementCodec elementCodec, Location location)
       : elementId = elementCodec.encode(location.element),
         offset = location.offset,
-        length = location.length;
+        length = location.length,
+        flags = (location.isQualified ? _FLAG_QUALIFIED : 0) |
+          (location.isResolved ? _FLAG_RESOLVED : 0);
 
   @override
   int get hashCode {
@@ -321,8 +339,10 @@ class LocationData {
       return false;
     }
     LocationData other = obj;
-    return other.elementId == elementId && other.offset == offset &&
-        other.length == length;
+    return other.elementId == elementId &&
+        other.offset == offset &&
+        other.length == length &&
+        other.flags == flags;
   }
 
   /**
@@ -333,7 +353,14 @@ class LocationData {
     if (element == null) {
       return null;
     }
-    return new Location(element, offset, length);
+    bool isQualified = (flags & _FLAG_QUALIFIED) != 0;
+    bool isResovled = (flags & _FLAG_RESOLVED) != 0;
+    return new Location(
+        element,
+        offset,
+        length,
+        isQualified: isQualified,
+        isResolved: isResovled);
   }
 }
 
@@ -414,8 +441,8 @@ class RelationKeyData {
       return false;
     }
     RelationKeyData other = obj;
-    return other.elementId == elementId && other.relationshipId ==
-        relationshipId;
+    return other.elementId == elementId &&
+        other.relationshipId == relationshipId;
   }
 }
 
@@ -436,8 +463,8 @@ class SplitIndexStore implements IndexStore {
    * Order of keys: contextId, nodeId, Relationship.
    */
   Map<int, Map<int, Map<Relationship, List<LocationData>>>>
-      _contextNodeRelations = new HashMap<int, Map<int, Map<Relationship,
-      List<LocationData>>>>();
+      _contextNodeRelations =
+      new HashMap<int, Map<int, Map<Relationship, List<LocationData>>>>();
 
   /**
    * The mapping of library [Source] to the [Source]s of part units.
@@ -742,8 +769,8 @@ class SplitIndexStore implements IndexStore {
           List<LocationData> nodeLocations = nodeRelations[relationship];
           if (nodeLocations != null) {
             for (LocationData locationData in nodeLocations) {
-              Location location = locationData.getLocation(context,
-                  _elementCodec);
+              Location location =
+                  locationData.getLocation(context, _elementCodec);
               if (location != null) {
                 locations.add(location);
               }

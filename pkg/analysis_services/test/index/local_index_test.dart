@@ -134,8 +134,9 @@ class LocalIndexTest extends AbstractContextTest {
   }
 
   Future<List<Location>> _getDefinedFunctions() {
-    return index.getRelationships(UniverseElement.INSTANCE,
-        IndexConstants.DEFINES_FUNCTION);
+    return index.getRelationships(
+        UniverseElement.INSTANCE,
+        IndexConstants.DEFINES);
   }
 
   Source _indexLibraryUnit(String path, String content) {

@@ -29,8 +29,8 @@ class SearchEngineImpl implements SearchEngine {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
         element,
-        IndexConstants.IS_DEFINED_BY,
-        MatchKind.NAME_DECLARATION);
+        IndexConstants.NAME_IS_DEFINED_BY,
+        MatchKind.DECLARATION);
     return requestor.merge().then((matches) {
       return matches.where((match) {
         return match.element.enclosingElement is ClassElement;
@@ -42,55 +42,16 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberReferences(String name) {
     NameElement element = new NameElement(name);
     _Requestor requestor = new _Requestor(_index);
-    // rought
-//    requestor.add(
-//        element,
-//        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
-//        MatchKind.NAME_REFERENCE_RESOLVED);
-//    requestor.add(
-//        element,
-//        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
-//        MatchKind.NAME_REFERENCE_UNRESOLVED,
-//        isResolved: false);
-    // granular resolved operations
     requestor.add(
         element,
-        IndexConstants.NAME_IS_INVOKED_BY_RESOLVED,
-        MatchKind.NAME_INVOCATION_RESOLVED);
+        IndexConstants.IS_INVOKED_BY,
+        MatchKind.INVOCATION);
+    requestor.add(element, IndexConstants.IS_READ_BY, MatchKind.READ);
     requestor.add(
         element,
-        IndexConstants.NAME_IS_READ_BY_RESOLVED,
-        MatchKind.NAME_READ_RESOLVED);
-    requestor.add(
-        element,
-        IndexConstants.NAME_IS_READ_WRITTEN_BY_RESOLVED,
-        MatchKind.NAME_READ_WRITE_RESOLVED);
-    requestor.add(
-        element,
-        IndexConstants.NAME_IS_WRITTEN_BY_RESOLVED,
-        MatchKind.NAME_WRITE_RESOLVED);
-    // granular unresolved operations
-    requestor.add(
-        element,
-        IndexConstants.NAME_IS_INVOKED_BY_UNRESOLVED,
-        MatchKind.NAME_INVOCATION_UNRESOLVED,
-        isResolved: false);
-    requestor.add(
-        element,
-        IndexConstants.NAME_IS_READ_BY_UNRESOLVED,
-        MatchKind.NAME_READ_UNRESOLVED,
-        isResolved: false);
-    requestor.add(
-        element,
-        IndexConstants.NAME_IS_READ_WRITTEN_BY_UNRESOLVED,
-        MatchKind.NAME_READ_WRITE_UNRESOLVED,
-        isResolved: false);
-    requestor.add(
-        element,
-        IndexConstants.NAME_IS_WRITTEN_BY_UNRESOLVED,
-        MatchKind.NAME_WRITE_UNRESOLVED,
-        isResolved: false);
-    // done
+        IndexConstants.IS_READ_WRITTEN_BY,
+        MatchKind.READ_WRITE);
+    requestor.add(element, IndexConstants.IS_WRITTEN_BY, MatchKind.WRITE);
     return requestor.merge();
   }
 
@@ -141,18 +102,9 @@ class SearchEngineImpl implements SearchEngine {
   @override
   Future<List<SearchMatch>> searchSubtypes(ClassElement type) {
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        type,
-        IndexConstants.IS_EXTENDED_BY,
-        MatchKind.EXTENDS_REFERENCE);
-    requestor.add(
-        type,
-        IndexConstants.IS_MIXED_IN_BY,
-        MatchKind.WITH_REFERENCE);
-    requestor.add(
-        type,
-        IndexConstants.IS_IMPLEMENTED_BY,
-        MatchKind.IMPLEMENTS_REFERENCE);
+    requestor.add(type, IndexConstants.IS_EXTENDED_BY, MatchKind.REFERENCE);
+    requestor.add(type, IndexConstants.IS_MIXED_IN_BY, MatchKind.REFERENCE);
+    requestor.add(type, IndexConstants.IS_IMPLEMENTED_BY, MatchKind.REFERENCE);
     return requestor.merge();
   }
 
@@ -160,26 +112,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) {
     UniverseElement universe = UniverseElement.INSTANCE;
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        universe,
-        IndexConstants.DEFINES_CLASS,
-        MatchKind.CLASS_DECLARATION);
-    requestor.add(
-        universe,
-        IndexConstants.DEFINES_CLASS_ALIAS,
-        MatchKind.CLASS_ALIAS_DECLARATION);
-    requestor.add(
-        universe,
-        IndexConstants.DEFINES_FUNCTION_TYPE,
-        MatchKind.FUNCTION_TYPE_DECLARATION);
-    requestor.add(
-        universe,
-        IndexConstants.DEFINES_FUNCTION,
-        MatchKind.FUNCTION_DECLARATION);
-    requestor.add(
-        universe,
-        IndexConstants.DEFINES_VARIABLE,
-        MatchKind.VARIABLE_DECLARATION);
+    requestor.add(universe, IndexConstants.DEFINES, MatchKind.DECLARATION);
     RegExp regExp = new RegExp(pattern);
     return requestor.merge().then((List<SearchMatch> matches) {
       return matches.where((SearchMatch match) {
@@ -204,20 +137,15 @@ class SearchEngineImpl implements SearchEngine {
 
   Future<List<SearchMatch>> _searchReferences_Class(ClassElement clazz) {
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        clazz,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.TYPE_REFERENCE);
+    requestor.add(clazz, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     return requestor.merge();
   }
 
   Future<List<SearchMatch>>
       _searchReferences_CompilationUnit(CompilationUnitElement unit) {
+    // TODO(merge?)
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        unit,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.UNIT_REFERENCE);
+    requestor.add(unit, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     return requestor.merge();
   }
 
@@ -226,12 +154,12 @@ class SearchEngineImpl implements SearchEngine {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
         constructor,
-        IndexConstants.IS_DEFINED_BY,
-        MatchKind.CONSTRUCTOR_DECLARATION);
+        IndexConstants.NAME_IS_DEFINED_BY,
+        MatchKind.DECLARATION);
     requestor.add(
         constructor,
         IndexConstants.IS_REFERENCED_BY,
-        MatchKind.CONSTRUCTOR_REFERENCE);
+        MatchKind.REFERENCE);
     return requestor.merge();
   }
 
@@ -241,43 +169,15 @@ class SearchEngineImpl implements SearchEngine {
     PropertyAccessorElement setter = field.setter;
     _Requestor requestor = new _Requestor(_index);
     // field itself
-    requestor.add(
-        field,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.FIELD_REFERENCE);
-    requestor.add(
-        field,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        MatchKind.FIELD_REFERENCE);
+    requestor.add(field, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     // getter
     if (getter != null) {
-      requestor.add(
-          getter,
-          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-          MatchKind.FIELD_READ);
-      requestor.add(
-          getter,
-          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-          MatchKind.FIELD_READ);
-      requestor.add(
-          getter,
-          IndexConstants.IS_INVOKED_BY_QUALIFIED,
-          MatchKind.FIELD_INVOCATION);
-      requestor.add(
-          getter,
-          IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-          MatchKind.FIELD_INVOCATION);
+      requestor.add(getter, IndexConstants.IS_REFERENCED_BY, MatchKind.READ);
+      requestor.add(getter, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     }
     // setter
     if (setter != null) {
-      requestor.add(
-          setter,
-          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-          MatchKind.FIELD_WRITE);
-      requestor.add(
-          setter,
-          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-          MatchKind.FIELD_WRITE);
+      requestor.add(setter, IndexConstants.IS_REFERENCED_BY, MatchKind.WRITE);
     }
     // done
     return requestor.merge();
@@ -289,30 +189,21 @@ class SearchEngineImpl implements SearchEngine {
     requestor.add(
         function,
         IndexConstants.IS_REFERENCED_BY,
-        MatchKind.FUNCTION_REFERENCE);
-    requestor.add(
-        function,
-        IndexConstants.IS_INVOKED_BY,
-        MatchKind.FUNCTION_EXECUTION);
+        MatchKind.REFERENCE);
+    requestor.add(function, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     return requestor.merge();
   }
 
   Future<List<SearchMatch>>
       _searchReferences_FunctionTypeAlias(FunctionTypeAliasElement alias) {
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        alias,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.FUNCTION_TYPE_REFERENCE);
+    requestor.add(alias, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     return requestor.merge();
   }
 
   Future<List<SearchMatch>> _searchReferences_Import(ImportElement imp) {
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        imp,
-        IndexConstants.IS_REFERENCED_BY,
-        MatchKind.IMPORT_REFERENCE);
+    requestor.add(imp, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
     return requestor.merge();
   }
 
@@ -321,26 +212,20 @@ class SearchEngineImpl implements SearchEngine {
     requestor.add(
         library,
         IndexConstants.IS_REFERENCED_BY,
-        MatchKind.LIBRARY_REFERENCE);
+        MatchKind.REFERENCE);
     return requestor.merge();
   }
 
   Future<List<SearchMatch>>
       _searchReferences_LocalVariable(LocalVariableElement variable) {
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(variable, IndexConstants.IS_READ_BY, MatchKind.VARIABLE_READ);
+    requestor.add(variable, IndexConstants.IS_READ_BY, MatchKind.READ);
     requestor.add(
         variable,
         IndexConstants.IS_READ_WRITTEN_BY,
-        MatchKind.VARIABLE_READ_WRITE);
-    requestor.add(
-        variable,
-        IndexConstants.IS_WRITTEN_BY,
-        MatchKind.VARIABLE_WRITE);
-    requestor.add(
-        variable,
-        IndexConstants.IS_INVOKED_BY,
-        MatchKind.FUNCTION_EXECUTION);
+        MatchKind.READ_WRITE);
+    requestor.add(variable, IndexConstants.IS_WRITTEN_BY, MatchKind.WRITE);
+    requestor.add(variable, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     return requestor.merge();
   }
 
@@ -349,48 +234,28 @@ class SearchEngineImpl implements SearchEngine {
     if (method is MethodMember) {
       method = (method as MethodMember).baseElement;
     }
-    requestor.add(
-        method,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        MatchKind.METHOD_REFERENCE);
-    requestor.add(
-        method,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        MatchKind.METHOD_REFERENCE);
-    requestor.add(
-        method,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        MatchKind.METHOD_INVOCATION);
-    requestor.add(
-        method,
-        IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        MatchKind.METHOD_INVOCATION);
+    requestor.add(method, IndexConstants.IS_REFERENCED_BY, MatchKind.REFERENCE);
+    requestor.add(method, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     return requestor.merge();
   }
 
   Future<List<SearchMatch>>
       _searchReferences_Parameter(ParameterElement parameter) {
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        parameter,
-        IndexConstants.IS_READ_BY,
-        MatchKind.VARIABLE_READ);
+    requestor.add(parameter, IndexConstants.IS_READ_BY, MatchKind.READ);
     requestor.add(
         parameter,
         IndexConstants.IS_READ_WRITTEN_BY,
-        MatchKind.VARIABLE_READ_WRITE);
-    requestor.add(
-        parameter,
-        IndexConstants.IS_WRITTEN_BY,
-        MatchKind.VARIABLE_WRITE);
+        MatchKind.READ_WRITE);
+    requestor.add(parameter, IndexConstants.IS_WRITTEN_BY, MatchKind.WRITE);
     requestor.add(
         parameter,
         IndexConstants.IS_REFERENCED_BY,
-        MatchKind.NAMED_PARAMETER_REFERENCE);
+        MatchKind.REFERENCE);
     requestor.add(
         parameter,
         IndexConstants.IS_INVOKED_BY,
-        MatchKind.FUNCTION_EXECUTION);
+        MatchKind.INVOCATION);
     return requestor.merge();
   }
 
@@ -399,12 +264,8 @@ class SearchEngineImpl implements SearchEngine {
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
         accessor,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        MatchKind.PROPERTY_ACCESSOR_REFERENCE);
-    requestor.add(
-        accessor,
-        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        MatchKind.PROPERTY_ACCESSOR_REFERENCE);
+        IndexConstants.IS_REFERENCED_BY,
+        MatchKind.REFERENCE);
     return requestor.merge();
   }
 
@@ -414,7 +275,7 @@ class SearchEngineImpl implements SearchEngine {
     requestor.add(
         typeParameter,
         IndexConstants.IS_REFERENCED_BY,
-        MatchKind.TYPE_PARAMETER_REFERENCE);
+        MatchKind.REFERENCE);
     return requestor.merge();
   }
 }
@@ -426,23 +287,18 @@ class _Requestor {
 
   _Requestor(this.index);
 
-  void add(Element element2, Relationship relationship, MatchKind kind,
-      {bool isResolved: true}) {
-    Future relationsFuture = index.getRelationships(element2, relationship);
+  void add(Element element, Relationship relationship, MatchKind kind) {
+    Future relationsFuture = index.getRelationships(element, relationship);
     Future matchesFuture = relationsFuture.then((List<Location> locations) {
-      bool isQualified =
-          relationship == IndexConstants.IS_REFERENCED_BY_QUALIFIED ||
-          relationship == IndexConstants.IS_INVOKED_BY_QUALIFIED;
       List<SearchMatch> matches = <SearchMatch>[];
       for (Location location in locations) {
-        Element element = location.element;
         matches.add(
             new SearchMatch(
                 kind,
-                element,
+                location.element,
                 new SourceRange(location.offset, location.length),
-                isResolved,
-                isQualified));
+                location.isResolved,
+                location.isQualified));
       }
       return matches;
     });

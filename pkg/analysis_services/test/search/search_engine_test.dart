@@ -130,9 +130,53 @@ class B {
     ClassElement elementA = findElement('A');
     ClassElement elementB = findElement('B');
     var expected = [
-        _expectId(elementA.methods[0], MatchKind.NAME_DECLARATION, 'test() {}'),
-        _expectId(elementB.fields[0], MatchKind.NAME_DECLARATION, 'test = 42;')];
+        _expectId(elementA.methods[0], MatchKind.DECLARATION, 'test() {}'),
+        _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 42;')];
     return searchEngine.searchMemberDeclarations('test').then((matches) {
+      _assertMatches(matches, expected);
+    });
+  }
+
+  Future test_searchMemberReferences() {
+    _indexTestUnit('''
+class A {
+  var test; // A
+  mainA() {
+    test(); // a-inv-r-nq
+    test = 1; // a-write-r-nq
+    test += 2; // a-read-write-r-nq
+    print(test); // a-read-r-nq
+  }
+}
+main(A a, p) {
+  a.test(); // a-inv-r-q
+  a.test = 1; // a-write-r-q
+  a.test += 2; // a-read-write-r-q
+  print(a.test); // a-read-r-q
+  p.test(); // p-inv-ur-q
+  p.test = 1; // p-write-ur-q
+  p.test += 2; // p-read-write-ur-q
+  print(p.test); // p-read-ur-q
+}
+''');
+    ClassElement elementA = findElement('A');
+    ClassElement elementB = findElement('B');
+    Element mainA = findElement('mainA');
+    Element main = findElement('main');
+    var expected = [
+        _expectId(mainA, MatchKind.INVOCATION, 'test(); // a-inv-r-nq'),
+        _expectId(mainA, MatchKind.WRITE, 'test = 1; // a-write-r-nq'),
+        _expectId(mainA, MatchKind.READ_WRITE, 'test += 2; // a-read-write-r-nq'),
+        _expectId(mainA, MatchKind.READ, 'test); // a-read-r-nq'),
+        _expectIdQ(main, MatchKind.INVOCATION, 'test(); // a-inv-r-q'),
+        _expectIdQ(main, MatchKind.WRITE, 'test = 1; // a-write-r-q'),
+        _expectIdQ(main, MatchKind.READ_WRITE, 'test += 2; // a-read-write-r-q'),
+        _expectIdQ(main, MatchKind.READ, 'test); // a-read-r-q'),
+        _expectIdU(main, MatchKind.INVOCATION, 'test(); // p-inv-ur-q'),
+        _expectIdU(main, MatchKind.WRITE, 'test = 1; // p-write-ur-q'),
+        _expectIdU(main, MatchKind.READ_WRITE, 'test += 2; // p-read-write-ur-q'),
+        _expectIdU(main, MatchKind.READ, 'test); // p-read-ur-q'),];
+    return searchEngine.searchMemberReferences('test').then((matches) {
       _assertMatches(matches, expected);
     });
   }
@@ -175,8 +219,8 @@ main(A p) {
     Element pElement = findElement('p');
     Element vElement = findElement('v');
     var expected = [
-        _expectId(pElement, MatchKind.TYPE_REFERENCE, 'A p'),
-        _expectId(vElement, MatchKind.TYPE_REFERENCE, 'A v')];
+        _expectId(pElement, MatchKind.REFERENCE, 'A p'),
+        _expectId(vElement, MatchKind.REFERENCE, 'A v')];
     return _verifyReferences(element, expected);
   }
 
@@ -192,7 +236,7 @@ part 'my_part.dart';
     var expected = [
         _expectId(
             testUnitElement,
-            MatchKind.UNIT_REFERENCE,
+            MatchKind.REFERENCE,
             "'my_part.dart'",
             length: "'my_part.dart'".length)];
     return _verifyReferences(element, expected);
@@ -211,16 +255,8 @@ main() {
     ClassElement elementA = findElement('A');
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(
-            elementA,
-            MatchKind.CONSTRUCTOR_DECLARATION,
-            '.named() {}',
-            length: 6),
-        _expectId(
-            mainElement,
-            MatchKind.CONSTRUCTOR_REFERENCE,
-            '.named();',
-            length: 6)];
+        _expectId(elementA, MatchKind.DECLARATION, '.named() {}', length: 6),
+        _expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)];
     return _verifyReferences(element, expected);
   }
 
@@ -250,14 +286,15 @@ class A {
     Element main = findElement('main');
     Element fieldParameter = findElement('field', ElementKind.PARAMETER);
     var expected = [
-        _expectIdQ(fieldParameter, MatchKind.FIELD_REFERENCE, 'field}'),
-        _expectIdQ(main, MatchKind.FIELD_REFERENCE, 'field: 1'),
-        _expectId(main, MatchKind.FIELD_READ, 'field); // ref-nq'),
-        _expectIdQ(main, MatchKind.FIELD_READ, 'field); // ref-q'),
-        _expectId(main, MatchKind.FIELD_INVOCATION, 'field(); // inv-nq'),
-        _expectIdQ(main, MatchKind.FIELD_INVOCATION, 'field(); // inv-q'),
-        _expectId(main, MatchKind.FIELD_WRITE, 'field = 2; // ref-nq'),
-        _expectIdQ(main, MatchKind.FIELD_WRITE, 'field = 3; // ref-q')];
+        _expectId(fieldParameter, MatchKind.REFERENCE, 'field}'),
+        _expectId(main, MatchKind.REFERENCE, 'field: 1'),
+        _expectId(main, MatchKind.READ, 'field); // ref-nq'),
+        _expectIdQ(main, MatchKind.READ, 'field); // ref-q'),
+        _expectId(main, MatchKind.INVOCATION, 'field(); // inv-nq'),
+        _expectIdQ(main, MatchKind.INVOCATION, 'field(); // inv-q'),
+        _expectId(main, MatchKind.WRITE, 'field = 2; // ref-nq'),
+        _expectIdQ(main, MatchKind.WRITE, 'field = 3; // ref-q'),
+        ];
     return _verifyReferences(element, expected);
   }
 
@@ -272,8 +309,8 @@ main() {
     FunctionElement element = findElement('test');
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(mainElement, MatchKind.FUNCTION_EXECUTION, 'test();'),
-        _expectId(mainElement, MatchKind.FUNCTION_REFERENCE, 'test);')];
+        _expectId(mainElement, MatchKind.INVOCATION, 'test();'),
+        _expectId(mainElement, MatchKind.REFERENCE, 'test);')];
     return _verifyReferences(element, expected);
   }
 
@@ -289,8 +326,8 @@ main() {
     Element aElement = findElement('a');
     Element bElement = findElement('b');
     var expected = [
-        _expectId(aElement, MatchKind.FUNCTION_TYPE_REFERENCE, 'Test a;'),
-        _expectId(bElement, MatchKind.FUNCTION_TYPE_REFERENCE, 'Test b;')];
+        _expectId(aElement, MatchKind.REFERENCE, 'Test a;'),
+        _expectId(bElement, MatchKind.REFERENCE, 'Test b;')];
     return _verifyReferences(element, expected);
   }
 
@@ -303,7 +340,7 @@ main() {
 ''');
     ImportElement element = testLibraryElement.imports[0];
     Element mainElement = findElement('main');
-    var kind = MatchKind.IMPORT_REFERENCE;
+    var kind = MatchKind.REFERENCE;
     var expected = [_expectId(mainElement, kind, 'E);', length: 0)];
     return _verifyReferences(element, expected);
   }
@@ -317,7 +354,7 @@ main() {
 ''');
     ImportElement element = testLibraryElement.imports[0];
     Element mainElement = findElement('main');
-    var kind = MatchKind.IMPORT_REFERENCE;
+    var kind = MatchKind.REFERENCE;
     var expected = [
         _expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)];
     return _verifyReferences(element, expected);
@@ -342,12 +379,12 @@ part 'unitB.dart';
     var expected = [
         new ExpectedMatch(
             elementA,
-            MatchKind.LIBRARY_REFERENCE,
+            MatchKind.REFERENCE,
             codeA.indexOf('lib; // A'),
             'lib'.length),
         new ExpectedMatch(
             elementB,
-            MatchKind.LIBRARY_REFERENCE,
+            MatchKind.REFERENCE,
             codeB.indexOf('lib; // B'),
             'lib'.length),];
     return _verifyReferences(element, expected);
@@ -366,10 +403,10 @@ main() {
     LocalVariableElement element = findElement('v');
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(mainElement, MatchKind.VARIABLE_WRITE, 'v = 1;'),
-        _expectId(mainElement, MatchKind.VARIABLE_READ_WRITE, 'v += 2;'),
-        _expectId(mainElement, MatchKind.VARIABLE_READ, 'v);'),
-        _expectId(mainElement, MatchKind.FUNCTION_EXECUTION, 'v();')];
+        _expectId(mainElement, MatchKind.WRITE, 'v = 1;'),
+        _expectId(mainElement, MatchKind.READ_WRITE, 'v += 2;'),
+        _expectId(mainElement, MatchKind.READ, 'v);'),
+        _expectId(mainElement, MatchKind.INVOCATION, 'v();')];
     return _verifyReferences(element, expected);
   }
 
@@ -388,10 +425,10 @@ class A {
     MethodElement method = findElement('m');
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(mainElement, MatchKind.METHOD_INVOCATION, 'm(); // 1'),
-        _expectIdQ(mainElement, MatchKind.METHOD_INVOCATION, 'm(); // 2'),
-        _expectId(mainElement, MatchKind.METHOD_REFERENCE, 'm); // 3'),
-        _expectIdQ(mainElement, MatchKind.METHOD_REFERENCE, 'm); // 4')];
+        _expectId(mainElement, MatchKind.INVOCATION, 'm(); // 1'),
+        _expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // 2'),
+        _expectId(mainElement, MatchKind.REFERENCE, 'm); // 3'),
+        _expectIdQ(mainElement, MatchKind.REFERENCE, 'm); // 4')];
     return _verifyReferences(method, expected);
   }
 
@@ -407,7 +444,7 @@ main(A<int> a) {
     MethodMember method = findNodeElementAtString('m(); // ref');
     Element mainElement = findElement('main');
     var expected = [
-        _expectIdQ(mainElement, MatchKind.METHOD_INVOCATION, 'm(); // ref')];
+        _expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')];
     return _verifyReferences(method, expected);
   }
 
@@ -427,11 +464,11 @@ main() {
     Element fooElement = findElement('foo');
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(fooElement, MatchKind.VARIABLE_WRITE, 'p = 1;'),
-        _expectId(fooElement, MatchKind.VARIABLE_READ_WRITE, 'p += 2;'),
-        _expectId(fooElement, MatchKind.VARIABLE_READ, 'p);'),
-        _expectId(fooElement, MatchKind.FUNCTION_EXECUTION, 'p();'),
-        _expectId(mainElement, MatchKind.NAMED_PARAMETER_REFERENCE, 'p: 42')];
+        _expectId(fooElement, MatchKind.WRITE, 'p = 1;'),
+        _expectId(fooElement, MatchKind.READ_WRITE, 'p += 2;'),
+        _expectId(fooElement, MatchKind.READ, 'p);'),
+        _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
+        _expectId(mainElement, MatchKind.REFERENCE, 'p: 42')];
     return _verifyReferences(element, expected);
   }
 
@@ -448,8 +485,8 @@ class A {
     PropertyAccessorElement element = findElement('g', ElementKind.GETTER);
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(mainElement, MatchKind.PROPERTY_ACCESSOR_REFERENCE, 'g; // 1'),
-        _expectIdQ(mainElement, MatchKind.PROPERTY_ACCESSOR_REFERENCE, 'g; // 2')];
+        _expectId(mainElement, MatchKind.REFERENCE, 'g; // 1'),
+        _expectIdQ(mainElement, MatchKind.REFERENCE, 'g; // 2')];
     return _verifyReferences(element, expected);
   }
 
@@ -466,8 +503,8 @@ class A {
     PropertyAccessorElement element = findElement('s=');
     Element mainElement = findElement('main');
     var expected = [
-        _expectId(mainElement, MatchKind.PROPERTY_ACCESSOR_REFERENCE, 's = 1'),
-        _expectIdQ(mainElement, MatchKind.PROPERTY_ACCESSOR_REFERENCE, 's = 2')];
+        _expectId(mainElement, MatchKind.REFERENCE, 's = 1'),
+        _expectIdQ(mainElement, MatchKind.REFERENCE, 's = 2')];
     return _verifyReferences(element, expected);
   }
 
@@ -480,14 +517,12 @@ var V;
 import 'lib.dart' show V; // imp
 import 'lib.dart' as pref;
 main() {
-  V = 1;
-  print(V);
-  V();
-}
-mainQ() {
-  pref.V = 1; // Q
-  print(pref.V); // Q
-  pref.V(); // Q
+  pref.V = 1; // q
+  print(pref.V); // q
+  pref.V(); // q
+  V = 1; // nq
+  print(V); // nq
+  V(); // nq
 }
 ''');
     ImportElement importElement = testLibraryElement.imports[0];
@@ -495,15 +530,15 @@ mainQ() {
         importElement.importedLibrary.definingCompilationUnit;
     TopLevelVariableElement variable = impUnit.topLevelVariables[0];
     Element main = findElement('main');
-    Element mainQ = findElement('mainQ');
     var expected = [
-        _expectIdQ(testUnitElement, MatchKind.FIELD_REFERENCE, 'V; // imp'),
-        _expectId(main, MatchKind.FIELD_WRITE, 'V = 1;'),
-        _expectId(main, MatchKind.FIELD_READ, 'V);'),
-        _expectId(main, MatchKind.FIELD_INVOCATION, 'V();'),
-        _expectIdQ(mainQ, MatchKind.FIELD_WRITE, 'V = 1; // Q'),
-        _expectIdQ(mainQ, MatchKind.FIELD_READ, 'V); // Q'),
-        _expectIdQ(mainQ, MatchKind.FIELD_INVOCATION, 'V(); // Q')];
+        _expectId(testUnitElement, MatchKind.REFERENCE, 'V; // imp'),
+        _expectId(main, MatchKind.WRITE, 'V = 1; // q'),
+        _expectId(main, MatchKind.READ, 'V); // q'),
+        _expectId(main, MatchKind.INVOCATION, 'V(); // q'),
+        _expectId(main, MatchKind.WRITE, 'V = 1; // nq'),
+        _expectId(main, MatchKind.READ, 'V); // nq'),
+        _expectId(main, MatchKind.INVOCATION, 'V(); // nq'),
+        ];
     return _verifyReferences(variable, expected);
   }
 
@@ -517,8 +552,8 @@ class A<T> {
     Element aElement = findElement('a');
     Element bElement = findElement('b');
     var expected = [
-        _expectId(aElement, MatchKind.TYPE_PARAMETER_REFERENCE, 'T a'),
-        _expectId(bElement, MatchKind.TYPE_PARAMETER_REFERENCE, 'T b')];
+        _expectId(aElement, MatchKind.REFERENCE, 'T a'),
+        _expectId(bElement, MatchKind.REFERENCE, 'T b')];
     return _verifyReferences(element, expected);
   }
 
@@ -534,55 +569,10 @@ class C implements T {} // C
     ClassElement elementB = findElement('B');
     ClassElement elementC = findElement('C');
     var expected = [
-        _expectId(elementA, MatchKind.EXTENDS_REFERENCE, 'T {} // A'),
-        _expectId(elementB, MatchKind.WITH_REFERENCE, 'T; // B'),
-        _expectId(elementC, MatchKind.IMPLEMENTS_REFERENCE, 'T {} // C')];
+        _expectId(elementA, MatchKind.REFERENCE, 'T {} // A'),
+        _expectId(elementB, MatchKind.REFERENCE, 'T; // B'),
+        _expectId(elementC, MatchKind.REFERENCE, 'T {} // C')];
     return searchEngine.searchSubtypes(element).then((matches) {
-      _assertMatches(matches, expected);
-    });
-  }
-
-  Future test_searchMemberReferences() {
-    _indexTestUnit('''
-class A {
-  var test; // A
-  mainA() {
-    test(); // a-inv-r-nq
-    test = 1; // a-write-r-nq
-    test += 2; // a-read-write-r-nq
-    print(test); // a-read-r-nq
-  }
-}
-main(A a, p) {
-  a.test(); // a-inv-r-q
-  a.test = 1; // a-write-r-q
-  a.test += 2; // a-read-write-r-q
-  print(a.test); // a-read-r-q
-  p.test(); // p-inv-ur-q
-  p.test = 1; // p-write-ur-q
-  p.test += 2; // p-read-write-ur-q
-  print(p.test); // p-read-ur-q
-}
-''');
-    ClassElement elementA = findElement('A');
-    ClassElement elementB = findElement('B');
-    Element mainA = findElement('mainA');
-    Element main = findElement('main');
-    var expected = [
-        _expectId(mainA, MatchKind.NAME_INVOCATION_RESOLVED, 'test(); // a-inv-r-nq'),
-        _expectId(mainA, MatchKind.NAME_WRITE_RESOLVED, 'test = 1; // a-write-r-nq'),
-        _expectId(mainA, MatchKind.NAME_READ_WRITE_RESOLVED, 'test += 2; // a-read-write-r-nq'),
-        _expectId(mainA, MatchKind.NAME_READ_RESOLVED, 'test); // a-read-r-nq'),
-        _expectId(main, MatchKind.NAME_INVOCATION_RESOLVED, 'test(); // a-inv-r-q'),
-        _expectId(main, MatchKind.NAME_WRITE_RESOLVED, 'test = 1; // a-write-r-q'),
-        _expectId(main, MatchKind.NAME_READ_WRITE_RESOLVED, 'test += 2; // a-read-write-r-q'),
-        _expectId(main, MatchKind.NAME_READ_RESOLVED, 'test); // a-read-r-q'),
-        _expectIdU(main, MatchKind.NAME_INVOCATION_UNRESOLVED, 'test(); // p-inv-ur-q'),
-        _expectIdU(main, MatchKind.NAME_WRITE_UNRESOLVED, 'test = 1; // p-write-ur-q'),
-        _expectIdU(main, MatchKind.NAME_READ_WRITE_UNRESOLVED, 'test += 2; // p-read-write-ur-q'),
-        _expectIdU(main, MatchKind.NAME_READ_UNRESOLVED, 'test); // p-read-ur-q'),
-        ];
-    return searchEngine.searchMemberReferences('test').then((matches) {
       _assertMatches(matches, expected);
     });
   }
@@ -604,11 +594,11 @@ class NoMatchABCDE {}
     Element topE = findElement('E');
     Element topNoMatch = new MockElement('NoMatchABCDE');
     var expected = [
-        _expectId(topA, MatchKind.CLASS_DECLARATION, 'A {} // A'),
-        _expectId(topB, MatchKind.CLASS_ALIAS_DECLARATION, 'B ='),
-        _expectId(topC, MatchKind.FUNCTION_TYPE_DECLARATION, 'C()'),
-        _expectId(topD, MatchKind.FUNCTION_DECLARATION, 'D() {}'),
-        _expectId(topE, MatchKind.VARIABLE_DECLARATION, 'E = null')];
+        _expectId(topA, MatchKind.DECLARATION, 'A {} // A'),
+        _expectId(topB, MatchKind.DECLARATION, 'B ='),
+        _expectId(topC, MatchKind.DECLARATION, 'C()'),
+        _expectId(topD, MatchKind.DECLARATION, 'D() {}'),
+        _expectId(topE, MatchKind.DECLARATION, 'E = null')];
     return _verifyTopLevelDeclarations('^[A-E]\$', expected);
   }
 
@@ -632,7 +622,12 @@ class NoMatchABCDE {}
   }
 
   ExpectedMatch _expectIdU(Element element, MatchKind kind, String search) {
-    return _expectId(element, kind, search, isResolved: false);
+    return _expectId(
+        element,
+        kind,
+        search,
+        isQualified: true,
+        isResolved: false);
   }
 
   void _indexTestUnit(String code) {
