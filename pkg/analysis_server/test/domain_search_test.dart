@@ -92,30 +92,30 @@ class SearchDomainTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  Future test_findTopLevelDeclarations() {
-    // TODO(scheglov) replace this temporary Index test with an actual
-    // SearchEngine and SearchDomainHandler test.
-    addTestFile('''
-class AAA {
-  AAA() {}
-}
-''');
-    return waitForTasksFinished().then((_) {
-      return index.getRelationships(UniverseElement.INSTANCE,
-          IndexConstants.DEFINES_CLASS).then((List<Location> locations) {
-        bool hasClassFunction = false;
-        bool hasClassAAA = false;
-        for (var location in locations) {
-          if (location.element.name == 'Function') {
-            hasClassFunction = true;
-          }
-          if (location.element.name == 'AAA') {
-            hasClassAAA = true;
-          }
-        }
-        expect(hasClassFunction, isTrue, reason: locations.toString());
-        expect(hasClassAAA, isTrue, reason: locations.toString());
-      });
-    });
-  }
+//  Future test_findTopLevelDeclarations() {
+//    // TODO(scheglov) replace this temporary Index test with an actual
+//    // SearchEngine and SearchDomainHandler test.
+//    addTestFile('''
+//class AAA {
+//  AAA() {}
+//}
+//''');
+//    return waitForTasksFinished().then((_) {
+//      return index.getRelationships(UniverseElement.INSTANCE,
+//          IndexConstants.DEFINES_CLASS).then((List<Location> locations) {
+//        bool hasClassFunction = false;
+//        bool hasClassAAA = false;
+//        for (var location in locations) {
+//          if (location.element.name == 'Function') {
+//            hasClassFunction = true;
+//          }
+//          if (location.element.name == 'AAA') {
+//            hasClassAAA = true;
+//          }
+//        }
+//        expect(hasClassFunction, isTrue, reason: locations.toString());
+//        expect(hasClassAAA, isTrue, reason: locations.toString());
+//      });
+//    });
+//  }
 }
