@@ -101,14 +101,3 @@ patch class MirrorSystem {
   static _mangleName(String name, _MirrorReference lib)
       native "Mirrors_mangleName";
 }
-
-// TODO(rmacnak): Eliminate this class.
-class MirroredCompilationError {
-  final String message;
-
-  MirroredCompilationError(this.message);
-
-  String toString() {
-    return "Compile-time error during mirrored execution: <$message>";
-  }
-}
