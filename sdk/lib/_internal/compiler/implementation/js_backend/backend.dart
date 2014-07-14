@@ -2105,6 +2105,14 @@ class JavaScriptBackend extends Backend {
         ? jsAst.prettyPrint(generatedCode[element], compiler)
         : null;
   }
+
+  FunctionElement helperForBadMain() => findHelper('badMain');
+
+  FunctionElement helperForMissingMain() => findHelper('missingMain');
+
+  FunctionElement helperForMainArity() {
+    return findHelper('mainHasTooManyParameters');
+  }
 }
 
 class JavaScriptionResolutionCallbacks extends ResolutionCallbacks {

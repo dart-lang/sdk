@@ -687,6 +687,7 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   void ensureMetadataResolved(Compiler compiler) {
+    if (compiler.mainApp == null) return;
     _allDeferredImports[_fakeMainImport] = compiler.mainApp;
     var lastDeferred;
     // When detecting duplicate prefixes of deferred libraries there are 4

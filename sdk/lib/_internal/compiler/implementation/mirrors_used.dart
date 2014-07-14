@@ -101,7 +101,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
   /// Collect @MirrorsUsed annotations in all libraries.  Called by the
   /// compiler after all libraries are loaded, but before resolution.
   void analyzeUsage(LibraryElement mainApp) {
-    if (compiler.mirrorsLibrary == null) return;
+    if (mainApp == null || compiler.mirrorsLibrary == null) return;
     measure(analyzer.run);
     List<String> symbols = analyzer.mergedMirrorUsage.symbols;
     List<Element> targets = analyzer.mergedMirrorUsage.targets;

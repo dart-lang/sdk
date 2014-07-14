@@ -456,6 +456,12 @@ abstract class Backend {
 
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;
+
+  FunctionElement helperForBadMain() => null;
+
+  FunctionElement helperForMissingMain() => null;
+
+  FunctionElement helperForMainArity() => null;
 }
 
 /// Backend callbacks function specific to the resolution phase.
@@ -1284,53 +1290,75 @@ abstract class Compiler implements DiagnosticListener {
     });
   }
 
-  /// Performs the compilation when all libraries have been loaded.
-  void compileLoadedLibraries() {
-    Element main = null;
-    if (mainApp != null) {
-      main = mainApp.findExported(MAIN);
-      if (main == null) {
-        if (!analyzeOnly) {
-          // Allow analyze only of libraries with no main.
-          reportFatalError(
-              mainApp,
-              MessageKind.GENERIC,
-              {'text': "Could not find '$MAIN'."});
-        } else if (!analyzeAll) {
-          reportFatalError(mainApp, MessageKind.GENERIC,
-              {'text': "Could not find '$MAIN'. "
-                       "No source will be analyzed. "
-                       "Use '--analyze-all' to analyze all code in the "
-                       "library."});
+  void computeMain() {
+    if (mainApp == null) return;
+
+    Element main = mainApp.findExported(MAIN);
+    ErroneousElement errorElement = null;
+    if (main == null) {
+      if (analyzeOnly) {
+        if (!analyzeAll) {
+          errorElement = new ErroneousElementX(
+              MessageKind.CONSIDER_ANALYZE_ALL, {'main': MAIN}, MAIN, mainApp);
         }
       } else {
-        if (main.isErroneous && main.isSynthesized) {
-          reportFatalError(main, MessageKind.GENERIC,
-              {'text': "Cannot determine which '$MAIN' to use."});
-        } else if (!main.isFunction) {
-          reportFatalError(main, MessageKind.GENERIC,
-              {'text': "'$MAIN' is not a function."});
-        }
-        mainFunction = main;
-        FunctionSignature parameters = mainFunction.computeSignature(this);
-        if (parameters.parameterCount > 2) {
-          int index = 0;
-          parameters.forEachParameter((Element parameter) {
-            if (index++ < 2) return;
-            reportError(parameter, MessageKind.GENERIC,
-                {'text': "'$MAIN' cannot have more than two parameters."});
-          });
-        }
+        // Compilation requires a main method.
+        errorElement = new ErroneousElementX(
+            MessageKind.MISSING_MAIN, {'main': MAIN}, MAIN, mainApp);
       }
-
-      mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
-
-      // In order to see if a library is deferred, we must compute the
-      // compile-time constants that are metadata.  This means adding
-      // something to the resolution queue.  So we cannot wait with
-      // this until after the resolution queue is processed.
-      deferredLoadTask.ensureMetadataResolved(this);
+      mainFunction = backend.helperForMissingMain();
+    } else if (main.isErroneous && main.isSynthesized) {
+      if (main is ErroneousElement) {
+        errorElement = main;
+      } else {
+        internalError(main, 'Problem with $MAIN.');
+      }
+      mainFunction = backend.helperForBadMain();
+    } else if (!main.isFunction) {
+      errorElement = new ErroneousElementX(
+          MessageKind.MAIN_NOT_A_FUNCTION, {'main': MAIN}, MAIN, main);
+      mainFunction = backend.helperForBadMain();
+    } else {
+      mainFunction = main;
+      FunctionSignature parameters = mainFunction.computeSignature(this);
+      if (parameters.requiredParameterCount > 2) {
+        int index = 0;
+        parameters.orderedForEachParameter((Element parameter) {
+          if (index++ < 2) return;
+          errorElement = new ErroneousElementX(
+              MessageKind.MAIN_WITH_EXTRA_PARAMETER, {'main': MAIN}, MAIN,
+              parameter);
+          mainFunction = backend.helperForMainArity();
+          // Don't warn about main not being used:
+          enqueuer.resolution.registerStaticUse(main);
+        });
+      }
     }
+    if (mainFunction == null) {
+      if (errorElement == null && !analyzeOnly && !analyzeAll) {
+        internalError(mainApp, "Problem with '$MAIN'.");
+      } else {
+        mainFunction = errorElement;
+      }
+    }
+    if (errorElement != null && errorElement.isSynthesized) {
+      reportWarning(
+          errorElement, errorElement.messageKind,
+          errorElement.messageArguments);
+    }
+  }
+
+  /// Performs the compilation when all libraries have been loaded.
+  void compileLoadedLibraries() {
+    computeMain();
+
+    mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
+
+    // In order to see if a library is deferred, we must compute the
+    // compile-time constants that are metadata.  This means adding
+    // something to the resolution queue.  So we cannot wait with
+    // this until after the resolution queue is processed.
+    deferredLoadTask.ensureMetadataResolved(this);
 
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
@@ -1346,7 +1374,7 @@ abstract class Compiler implements DiagnosticListener {
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
     resolveLibraryMetadata();
     log('Resolving...');
-    processQueue(enqueuer.resolution, main);
+    processQueue(enqueuer.resolution, mainFunction);
     enqueuer.resolution.logSummary(log);
 
     if (compilationFailed) return;
@@ -1374,7 +1402,7 @@ abstract class Compiler implements DiagnosticListener {
       }
       return;
     }
-    assert(main != null);
+    assert(mainFunction != null);
     phase = PHASE_DONE_RESOLVING;
 
     // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
@@ -1384,13 +1412,13 @@ abstract class Compiler implements DiagnosticListener {
     // require the information computed in [world.populate].)
     backend.onResolutionComplete();
 
-    deferredLoadTask.onResolutionComplete(main);
+    deferredLoadTask.onResolutionComplete(mainFunction);
 
     log('Building IR...');
     irBuilder.buildNodes();
 
     log('Inferring types...');
-    typesTask.onResolutionComplete(main);
+    typesTask.onResolutionComplete(mainFunction);
 
     if(stopAfterTypeInference) return;
 
@@ -1399,7 +1427,7 @@ abstract class Compiler implements DiagnosticListener {
     // TODO(johnniwinther): Move these to [CodegenEnqueuer].
     if (hasIsolateSupport) {
       backend.enableIsolateSupport(enqueuer.codegen);
-      enqueuer.codegen.registerGetOfStaticFunction(main);
+      enqueuer.codegen.registerGetOfStaticFunction(mainFunction);
     }
     if (enabledNoSuchMethod) {
       backend.enableNoSuchMethod(null, enqueuer.codegen);
@@ -1409,7 +1437,7 @@ abstract class Compiler implements DiagnosticListener {
         fullyEnqueueLibrary(library, enqueuer.codegen);
       });
     }
-    processQueue(enqueuer.codegen, main);
+    processQueue(enqueuer.codegen, mainFunction);
     enqueuer.codegen.logSummary(log);
 
     if (compilationFailed) return;
@@ -1460,7 +1488,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void processQueue(Enqueuer world, Element main) {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
-    if (main != null) {
+    if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
       if (mainMethod.computeSignature(this).parameterCount != 0) {
         // TODO(ngeoffray, floitsch): we should also ensure that the
