@@ -8,7 +8,6 @@ import 'dart:async';
 
 import '../command.dart';
 import '../utils.dart';
-import '../version.dart';
 
 /// Handles the `global deactivate` pub command.
 class GlobalDeactivateCommand extends PubCommand {
@@ -31,5 +30,6 @@ class GlobalDeactivateCommand extends PubCommand {
     }
 
     globals.deactivate(commandOptions.rest.first);
+    return null;
   }
 }

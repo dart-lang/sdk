@@ -13,6 +13,7 @@ import 'package:path/path.dart' as path;
 import 'command/build.dart';
 import 'command/cache.dart';
 import 'command/deps.dart';
+import 'command/downgrade.dart';
 import 'command/get.dart';
 import 'command/global.dart';
 import 'command/help.dart';
@@ -261,6 +262,7 @@ _initCommands() {
     'build': new BuildCommand(),
     'cache': new CacheCommand(),
     'deps': new DepsCommand(),
+    'downgrade': new DowngradeCommand(),
     'global': new GlobalCommand(),
     'get': new GetCommand(),
     'help': new HelpCommand(),

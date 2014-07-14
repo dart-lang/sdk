@@ -54,6 +54,18 @@ class Version implements Comparable<Version>, VersionConstraint {
     return a.compareTo(b);
   }
 
+  /// Like [proiritize], but lower version numbers are considered greater than
+  /// higher version numbers.
+  ///
+  /// This still considers prerelease versions to be lower than non-prerelease
+  /// versions.
+  static int antiPrioritize(Version a, Version b) {
+    if (a.isPreRelease && !b.isPreRelease) return -1;
+    if (!a.isPreRelease && b.isPreRelease) return 1;
+
+    return b.compareTo(a);
+  }
+
   /// The major version number: "1" in "1.2.3".
   final int major;
 

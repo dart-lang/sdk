@@ -368,6 +368,15 @@ maxAll(Iterable iter, [int compare(element1, element2)]) {
       compare(element, max) > 0 ? element : max);
 }
 
+/// Returns the minimum value in [iter] by [compare].
+///
+/// [compare] defaults to [Comparable.compare].
+minAll(Iterable iter, [int compare(element1, element2)]) {
+  if (compare == null) compare = Comparable.compare;
+  return iter.reduce((max, element) =>
+      compare(element, max) < 0 ? element : max);
+}
+
 /// Replace each instance of [matcher] in [source] with the return value of
 /// [fn].
 String replace(String source, Pattern matcher, String fn(Match)) {

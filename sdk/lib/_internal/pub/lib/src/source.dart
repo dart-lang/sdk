@@ -27,6 +27,12 @@ abstract class Source {
   /// all sources.
   String get name;
 
+  /// Whether this source can choose between multiple versions of the same
+  /// package during version solving.
+  ///
+  /// Defaults to `false`.
+  final bool hasMultipleVersions = false;
+
   /// Whether or not this source is the default source.
   bool get isDefault => systemCache.sources.defaultSource == this;
 

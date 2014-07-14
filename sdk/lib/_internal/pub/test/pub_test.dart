@@ -28,18 +28,19 @@ final USAGE_STRING = """
     -v, --verbose         Shortcut for "--verbosity=all".
 
     Available commands:
-      build      Apply transformers to build a package.
-      cache      Work with the system cache.
-      deps       Print package dependencies.
-      get        Get the current package's dependencies.
-      global     Work with global packages.
-      help       Display help information for Pub.
-      publish    Publish the current package to pub.dartlang.org.
-      run        Run an executable from a package.
-      serve      Run a local web development server.
-      upgrade    Upgrade the current package's dependencies to latest versions.
-      uploader   Manage uploaders for a package on pub.dartlang.org.
-      version    Print pub version.
+      build       Apply transformers to build a package.
+      cache       Work with the system cache.
+      deps        Print package dependencies.
+      downgrade   Downgrade the current package's dependencies to oldest versions.
+      get         Get the current package's dependencies.
+      global      Work with global packages.
+      help        Display help information for Pub.
+      publish     Publish the current package to pub.dartlang.org.
+      run         Run an executable from a package.
+      serve       Run a local web development server.
+      upgrade     Upgrade the current package's dependencies to latest versions.
+      uploader    Manage uploaders for a package on pub.dartlang.org.
+      version     Print pub version.
 
     Run "pub help [command]" for more information about a command.
     See http://dartlang.org/tools/pub for detailed documentation.
@@ -127,18 +128,19 @@ main() {
         Could not find a command named "quylthulg".
 
         Available commands:
-          build      Apply transformers to build a package.
-          cache      Work with the system cache.
-          deps       Print package dependencies.
-          get        Get the current package's dependencies.
-          global     Work with global packages.
-          help       Display help information for Pub.
-          publish    Publish the current package to pub.dartlang.org.
-          run        Run an executable from a package.
-          serve      Run a local web development server.
-          upgrade    Upgrade the current package's dependencies to latest versions.
-          uploader   Manage uploaders for a package on pub.dartlang.org.
-          version    Print pub version.
+          build       Apply transformers to build a package.
+          cache       Work with the system cache.
+          deps        Print package dependencies.
+          downgrade   Downgrade the current package's dependencies to oldest versions.
+          get         Get the current package's dependencies.
+          global      Work with global packages.
+          help        Display help information for Pub.
+          publish     Publish the current package to pub.dartlang.org.
+          run         Run an executable from a package.
+          serve       Run a local web development server.
+          upgrade     Upgrade the current package's dependencies to latest versions.
+          uploader    Manage uploaders for a package on pub.dartlang.org.
+          version     Print pub version.
         ''',
         exitCode: exit_codes.USAGE);
   });
@@ -297,18 +299,19 @@ main() {
             Could not find a command named "quylthulg".
 
             Available commands:
-              build      Apply transformers to build a package.
-              cache      Work with the system cache.
-              deps       Print package dependencies.
-              get        Get the current package's dependencies.
-              global     Work with global packages.
-              help       Display help information for Pub.
-              publish    Publish the current package to pub.dartlang.org.
-              run        Run an executable from a package.
-              serve      Run a local web development server.
-              upgrade    Upgrade the current package's dependencies to latest versions.
-              uploader   Manage uploaders for a package on pub.dartlang.org.
-              version    Print pub version.
+              build       Apply transformers to build a package.
+              cache       Work with the system cache.
+              deps        Print package dependencies.
+              downgrade   Downgrade the current package's dependencies to oldest versions.
+              get         Get the current package's dependencies.
+              global      Work with global packages.
+              help        Display help information for Pub.
+              publish     Publish the current package to pub.dartlang.org.
+              run         Run an executable from a package.
+              serve       Run a local web development server.
+              upgrade     Upgrade the current package's dependencies to latest versions.
+              uploader    Manage uploaders for a package on pub.dartlang.org.
+              version     Print pub version.
             ''',
             exitCode: exit_codes.USAGE);
     });

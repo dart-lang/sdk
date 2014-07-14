@@ -79,6 +79,8 @@ class Entrypoint {
 
   /// Gets all dependencies of the [root] package.
   ///
+  /// Performs version resolution according to [SolveType].
+  ///
   /// [useLatest], if provided, defines a list of packages that will be
   /// unlocked and forced to their latest versions. If [upgradeAll] is
   /// true, the previous lockfile is ignored and all packages are re-resolved
@@ -86,21 +88,21 @@ class Entrypoint {
   /// previously locked packages.
   ///
   /// Shows a report of the changes made relative to the previous lockfile. If
-  /// [isUpgrade] is `true`, all transitive dependencies are shown in the
-  /// report. Otherwise, only dependencies that were changed are shown. If
+  /// this is an upgrade or downgrade, all transitive dependencies are shown in
+  /// the report. Otherwise, only dependencies that were changed are shown. If
   /// [dryRun] is `true`, no physical changes are made.
-  Future acquireDependencies({List<String> useLatest, bool isUpgrade: false,
+  Future acquireDependencies(SolveType type, {List<String> useLatest,
       bool dryRun: false}) {
     return syncFuture(() {
-      return resolveVersions(cache.sources, root, lockFile: lockFile,
-          useLatest: useLatest, upgradeAll: isUpgrade && useLatest.isEmpty);
+      return resolveVersions(type, cache.sources, root, lockFile: lockFile,
+          useLatest: useLatest);
     }).then((result) {
       if (!result.succeeded) throw result.error;
 
-      result.showReport(isUpgrade: isUpgrade);
+      result.showReport(type);
 
       if (dryRun) {
-        result.summarizeChanges(isUpgrade: isUpgrade, dryRun: dryRun);
+        result.summarizeChanges(type, dryRun: dryRun);
         return null;
       }
 
@@ -110,7 +112,7 @@ class Entrypoint {
         _saveLockFile(ids);
         _linkSelf();
         _linkSecondaryPackageDirs();
-        result.summarizeChanges(isUpgrade: isUpgrade, dryRun: dryRun);
+        result.summarizeChanges(type, dryRun: dryRun);
       });
     });
   }
@@ -211,7 +213,7 @@ class Entrypoint {
       });
     }).then((upToDate) {
       if (upToDate) return null;
-      return acquireDependencies();
+      return acquireDependencies(SolveType.GET);
     });
   }
 

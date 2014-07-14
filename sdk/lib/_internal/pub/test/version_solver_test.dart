@@ -43,6 +43,7 @@ main() {
   group('SDK constraint', sdkConstraint);
   group('pre-release', prerelease);
   group('override', override);
+  group('downgrade', downgrade);
 }
 
 void basicGraph() {
@@ -1057,25 +1058,58 @@ void override() {
   });
 }
 
+void downgrade() {
+  testResolve("downgrades a dependency to the lowest matching version", {
+    'myapp 0.0.0': {
+      'foo': '>=2.0.0 <3.0.0'
+    },
+    'foo 1.0.0': {},
+    'foo 2.0.0-dev': {},
+    'foo 2.0.0': {},
+    'foo 2.1.0': {}
+  }, lockfile: {
+    'foo': '2.1.0'
+  }, result: {
+    'myapp from root': '0.0.0',
+    'foo': '2.0.0'
+  }, downgrade: true);
+
+  testResolve('use earliest allowed prerelease if no stable versions match '
+      'while downgrading', {
+    'myapp 0.0.0': {
+      'a': '>=2.0.0-dev.1 <3.0.0'
+    },
+    'a 1.0.0': {},
+    'a 2.0.0-dev.1': {},
+    'a 2.0.0-dev.2': {},
+    'a 2.0.0-dev.3': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '2.0.0-dev.1'
+  }, downgrade: true);
+}
+
 testResolve(String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries}) {
+    int maxTries, bool downgrade: false}) {
   _testResolve(test, description, packages, lockfile: lockfile,
-      overrides: overrides, result: result, error: error, maxTries: maxTries);
+      overrides: overrides, result: result, error: error, maxTries: maxTries,
+      downgrade: downgrade);
 }
 
 solo_testResolve(String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries}) {
+    int maxTries, bool downgrade: false}) {
   log.verbosity = log.Verbosity.SOLVER;
   _testResolve(solo_test, description, packages, lockfile: lockfile,
-      overrides: overrides, result: result, error: error, maxTries: maxTries);
+      overrides: overrides, result: result, error: error, maxTries: maxTries,
+      downgrade: downgrade);
 }
 
 _testResolve(void testFn(String description, Function body),
     String description, Map packages, {
     Map lockfile, Map overrides, Map result, FailMatcherBuilder error,
-    int maxTries}) {
+    int maxTries, bool downgrade: false}) {
   if (maxTries == null) maxTries = 1;
 
   testFn(description, () {
@@ -1124,7 +1158,9 @@ _testResolve(void testFn(String description, Function body),
     }
 
     // Resolve the versions.
-    var future = resolveVersions(cache.sources, root, lockFile: realLockFile);
+    var future = resolveVersions(
+        downgrade ? SolveType.DOWNGRADE : SolveType.GET,
+        cache.sources, root, lockFile: realLockFile);
 
     var matcher;
     if (result != null) {
@@ -1327,6 +1363,7 @@ class MockSource extends CachedSource {
   final _requestedPubspecs = new Map<String, Set<Version>>();
 
   final String name;
+  final hasMultipleVersions = true;
 
   MockSource(this.name);
 

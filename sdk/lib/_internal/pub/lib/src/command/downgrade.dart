@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library pub.command.upgrade;
+library pub.command.downgrade;
 
 import 'dart:async';
 
@@ -10,18 +10,17 @@ import '../command.dart';
 import '../log.dart' as log;
 import '../solver/version_solver.dart';
 
-/// Handles the `upgrade` pub command.
-class UpgradeCommand extends PubCommand {
+/// Handles the `downgrade` pub command.
+class DowngradeCommand extends PubCommand {
   String get description =>
-      "Upgrade the current package's dependencies to latest versions.";
-  String get usage => "pub upgrade [dependencies...]";
-  String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-upgrade.html";
-  List<String> get aliases => const ["update"];
+      "Downgrade the current package's dependencies to oldest versions.\n\n"
+      "This doesn't modify the lockfile, so it can be reset with \"pub get\".";
+  String get usage => "pub downgrade [dependencies...]";
   bool get takesArguments => true;
 
   bool get isOffline => commandOptions['offline'];
 
-  UpgradeCommand() {
+  DowngradeCommand() {
     commandParser.addFlag('offline',
         help: 'Use cached packages instead of accessing the network.');
 
@@ -31,11 +30,11 @@ class UpgradeCommand extends PubCommand {
 
   Future onRun() {
     var dryRun = commandOptions['dry-run'];
-    return entrypoint.acquireDependencies(SolveType.UPGRADE,
+    return entrypoint.acquireDependencies(SolveType.DOWNGRADE,
         useLatest: commandOptions.rest, dryRun: dryRun).then((_) {
       if (isOffline) {
-        log.warning("Warning: Upgrading when offline may not update you to the "
-                    "latest versions of your dependencies.");
+        log.warning("Warning: Downgrading when offline may not update you to "
+            "the oldest versions of your dependencies.");
       }
     });
   }

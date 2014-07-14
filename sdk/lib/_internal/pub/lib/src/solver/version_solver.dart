@@ -30,14 +30,14 @@ import 'solve_report.dart';
 /// packages.
 ///
 /// If [upgradeAll] is true, the contents of [lockFile] are ignored.
-Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
-    {LockFile lockFile, List<String> useLatest, bool upgradeAll: false}) {
+Future<SolveResult> resolveVersions(SolveType type, SourceRegistry sources,
+    Package root, {LockFile lockFile, List<String> useLatest}) {
   if (lockFile == null) lockFile = new LockFile.empty();
   if (useLatest == null) useLatest = [];
 
   return log.progress('Resolving dependencies', () {
-    return new BacktrackingSolver(sources, root, lockFile, useLatest,
-        upgradeAll: upgradeAll).solve();
+    return new BacktrackingSolver(type, sources, root, lockFile, useLatest)
+        .solve();
   });
 }
 
@@ -87,21 +87,18 @@ class SolveResult {
 
   /// Displays a report of what changes were made to the lockfile.
   ///
-  /// If [isUpgrade] is true, a "pub upgrade" was run, otherwise it was another
-  /// command.
-  void showReport({bool isUpgrade: false}) {
-    new SolveReport(_sources, _root, _previousLockFile, this,
-        showAll: isUpgrade).show();
+  /// [type] is the type of version resolution that was run.
+  void showReport(SolveType type) {
+    new SolveReport(type, _sources, _root, _previousLockFile, this).show();
   }
 
   /// Displays a one-line message summarizing what changes were made (or would
   /// be made) to the lockfile.
   ///
-  /// If [isUpgrade] is true, a "pub upgrade" was run, otherwise it was another
-  /// command.
-  void summarizeChanges({bool isUpgrade: false, bool dryRun: false}) {
-    new SolveReport(_sources, _root, _previousLockFile, this,
-        showAll: isUpgrade).summarize(dryRun: dryRun);
+  /// [type] is the type of version resolution that was run.
+  void summarizeChanges(SolveType type, {bool dryRun: false}) {
+    new SolveReport(type, _sources, _root, _previousLockFile, this)
+        .summarize(dryRun: dryRun);
   }
 
   String toString() {
@@ -130,6 +127,9 @@ class PubspecCache {
   /// The already-requested cached pubspecs.
   final _pubspecs = new Map<PackageId, Pubspec>();
 
+  /// The type of version resolution that was run.
+  final SolveType _type;
+
   /// The number of times a version list was requested and it wasn't cached and
   /// had to be requested from the source.
   int _versionCacheMisses = 0;
@@ -146,7 +146,7 @@ class PubspecCache {
   /// returned.
   int _pubspecCacheHits = 0;
 
-  PubspecCache(this._sources);
+  PubspecCache(this._type, this._sources);
 
   /// Caches [pubspec] as the [Pubspec] for the package identified by [id].
   void cache(PackageId id, Pubspec pubspec) {
@@ -205,7 +205,8 @@ class PubspecCache {
     return source.getVersions(package.name, package.description)
         .then((versions) {
       // Sort by priority so we try preferred versions first.
-      versions.sort(Version.prioritize);
+      versions.sort(_type == SolveType.DOWNGRADE ? Version.antiPrioritize :
+          Version.prioritize);
 
       var ids = versions.reversed.map(
           (version) => package.atVersion(version)).toList();
@@ -284,6 +285,27 @@ class Dependency {
   Dependency(this.depender, this.dependerVersion, this.dep);
 
   String toString() => '$depender $dependerVersion -> $dep';
+}
+
+/// An enum for types of version resolution.
+class SolveType {
+  /// As few changes to the lockfile as possible to be consistent with the
+  /// pubspec.
+  static const GET = const SolveType._("get");
+
+  /// Upgrade all packages or specific packages to the highest versions
+  /// possible, regardless of the lockfile.
+  static const UPGRADE = const SolveType._("upgrade");
+
+  /// Downgrade all packages or specific packages to the lowest versions
+  /// possible, regardless of the lockfile.
+  static const DOWNGRADE = const SolveType._("downgrade");
+
+  final String _name;
+
+  const SolveType._(this._name);
+
+  String toString() => _name;
 }
 
 /// Base class for all failures that can occur while trying to resolve versions.
