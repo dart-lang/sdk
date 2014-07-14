@@ -1712,17 +1712,25 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // R1: stack_pointer.
 // R2: frame_pointer.
 // R3: error object.
-// SP: address of stacktrace object.
+// SP + 0: address of stacktrace object.
+// SP + 4: isolate
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
-  __ mov(IP, Operand(R1));  // Stack pointer.
+  __ mov(IP, Operand(R1));  // Copy Stack pointer into IP.
   __ mov(LR, Operand(R0));  // Program counter.
   __ mov(R0, Operand(R3));  // Exception object.
   __ ldr(R1, Address(SP, 0));  // StackTrace object.
+  __ ldr(R3, Address(SP, 4));  // Isolate.
   __ mov(FP, Operand(R2));  // Frame_pointer.
-  __ mov(SP, Operand(IP));  // Stack pointer.
+  __ mov(SP, Operand(IP));  // Set Stack pointer.
+  // Set the tag.
+  __ LoadImmediate(R2, VMTag::kScriptTagId);
+  __ StoreToOffset(kWord, R2, R3, Isolate::vm_tag_offset());
+  // Clear top exit frame.
+  __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, R3, Isolate::top_exit_frame_info_offset());
   __ bx(LR);  // Jump to the exception handler code.
 }
 
