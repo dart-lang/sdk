@@ -1379,7 +1379,7 @@ static Definition* CanonicalizeCommutativeArithmetic(
     intptr_t cid,
     Value* left,
     Value* right,
-    int64_t mask = static_cast<int64_t>(0xFFFFFFFFFFFFFFFF)) {
+    int64_t mask = static_cast<int64_t>(0xFFFFFFFFFFFFFFFFLL)) {
   ASSERT((cid == kSmiCid) || (cid == kDoubleCid) || (cid == kMintCid));
 
   int64_t left_value;
