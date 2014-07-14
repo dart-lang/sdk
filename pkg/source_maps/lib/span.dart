@@ -387,4 +387,7 @@ class SpanException implements Exception {
 class SpanFormatException extends SpanException implements FormatException {
   SpanFormatException(String message, Span span)
       : super(message, span);
+
+  get source => null;
+  int get position => null;
 }
