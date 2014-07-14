@@ -137,3 +137,8 @@ generic_instanceof3_test: Pass, Crash # Issue 17440.
 [ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
 stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
+
+[ $compiler == dartanalyzer ]
+main_not_a_function_test/01: Fail # http://dartbug.com/20030
+main_test/03: Fail # http://dartbug.com/20030
+no_main_test/01: Fail # http://dartbug.com/20030
