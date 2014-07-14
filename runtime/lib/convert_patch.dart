@@ -485,6 +485,7 @@ class _JsonParser {
   }
 
   int parseNumber(int char, int position) {
+    // Also called on any unexpected character.
     // Format:
     //  '-'?('0'|[1-9][0-9]*)('.'[0-9]+)?([eE][+-]?[0-9]+)?
     int start = position;
@@ -503,7 +504,12 @@ class _JsonParser {
         char = source.codeUnitAt(position);
       }
       if (char < CHAR_0 || char > CHAR_9) {
-        fail(position, "Missing expected digit");
+        if (negative) {
+          fail(position, "Missing expected digit");
+        } else {
+          // If it doesn't even start out as a numeral.
+          fail(position, "Unexpected character");
+        }
       }
       if (char == CHAR_0) {
         position++;
