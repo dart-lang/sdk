@@ -46,12 +46,22 @@ void CodeBreakpoint::PatchCode() {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
-      case RawPcDescriptors::kUnoptStaticCall:
-      case RawPcDescriptors::kRuntimeCall:
+      case RawPcDescriptors::kUnoptStaticCall: {
+        saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
+        CodePatcher::PatchStaticCallAt(
+            pc_, code, StubCode::ICCallBreakpointEntryPoint());
+        break;
+      }
       case RawPcDescriptors::kClosureCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-        CodePatcher::PatchStaticCallAt(pc_, code,
-                                       StubCode::BreakpointRuntimeEntryPoint());
+        CodePatcher::PatchStaticCallAt(
+            pc_, code, StubCode::ClosureCallBreakpointEntryPoint());
+        break;
+      }
+      case RawPcDescriptors::kRuntimeCall: {
+        saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
+        CodePatcher::PatchStaticCallAt(
+            pc_, code, StubCode::RuntimeCallBreakpointEntryPoint());
         break;
       }
       default:

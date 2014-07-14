@@ -37,7 +37,7 @@ DECLARE_FLAG(bool, enable_debugger);
 //   ESP + 4*EDX : address of first argument in argument array.
 //   ESP + 4*EDX + 4 : address of return value.
 //   ECX : address of the runtime function to call.
-//   EDX : number of arguments to the call as Smi.
+//   EDX : number of arguments to the call.
 // Must preserve callee saved registers EDI and EBX.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
@@ -46,7 +46,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
   __ EnterFrame(0);
-  __ SmiUntag(EDX);
 
   // Load current Isolate pointer from Context structure into EAX.
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
@@ -1588,10 +1587,30 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-// EDX, ECX: May contain arguments to runtime stub.
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
+// ECX: Contains an ICData.
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
-  // Save runtime args.
+  // Save IC data.
+  __ pushl(ECX);
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ pushl(raw_null);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popl(EAX);  // Address of original stub.
+  __ popl(ECX);  // Restore IC data.
+  __ LeaveFrame();
+  __ jmp(EAX);   // Jump to original stub.
+}
+
+
+// ECX: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// EDX: Contains an arguments descriptor.
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Save arguments to original stub.
   __ pushl(ECX);
   __ pushl(EDX);
   // Room for result. Debugger stub returns address of the
@@ -1601,8 +1620,22 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ pushl(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popl(EAX);  // Address of original stub.
-  __ popl(EDX);  // Restore arguments.
+  __ popl(EDX);  // Restore arguments to original stub.
   __ popl(ECX);
+  __ LeaveFrame();
+  __ jmp(EAX);   // Jump to original stub.
+}
+
+
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ pushl(raw_null);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popl(EAX);  // Address of original stub.
   __ LeaveFrame();
   __ jmp(EAX);   // Jump to original stub.
 }

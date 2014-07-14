@@ -34,7 +34,7 @@ DECLARE_FLAG(bool, enable_debugger);
 //   SP + 4*S4 - 4 : address of first argument in argument array.
 //   SP + 4*S4 : address of return value.
 //   S5 : address of the runtime function to call.
-//   S4 : number of arguments to the call as Smi.
+//   S4 : number of arguments to the call.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
@@ -49,7 +49,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ sw(RA, Address(SP, 1 * kWordSize));
   __ sw(FP, Address(SP, 0 * kWordSize));
   __ mov(FP, SP);
-  __ SmiUntag(S4);
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -1726,8 +1725,30 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  __ Comment("BreakpointRuntime stub");
+// S5: Contains an ICData.
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
+  __ Comment("ICCallBreakpoint stub");
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 0 * kWordSize));
+
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+
+  __ lw(S5, Address(SP, 1 * kWordSize));
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
+  __ jr(T0);
+}
+
+
+// S5: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// S4: Contains an arguments descriptor.
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
+  __ Comment("ClosureCallBreakpoint stub");
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S5, Address(SP, 2 * kWordSize));
@@ -1739,6 +1760,22 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 
   __ lw(S5, Address(SP, 2 * kWordSize));
   __ lw(S4, Address(SP, 1 * kWordSize));
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrame();
+  __ jr(T0);
+}
+
+
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ Comment("RuntimeCallBreakpoint stub");
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 0 * kWordSize));
+
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ LeaveStubFrame();

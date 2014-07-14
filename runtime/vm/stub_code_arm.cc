@@ -46,7 +46,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(IP, Operand(0));
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
-  __ SmiUntag(R4);
 
   // Load current Isolate pointer from Context structure into R0.
   __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
@@ -1536,13 +1535,41 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
+// R5: Contains an ICData.
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  // Preserve arguments descriptor and make room for result.
+  __ PushList((1 << R0) | (1 << R5));
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ PopList((1 << R0) | (1 << R5));
+  __ LeaveStubFrame();
+  __ bx(R0);
+}
+
+
+// R5: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// R4: Contains an arguments descriptor.
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
   // Preserve arguments descriptor and make room for result.
   __ PushList((1 << R0) | (1 << R4) | (1 << R5));
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ PopList((1 << R0) | (1 << R4) | (1 << R5));
+  __ LeaveStubFrame();
+  __ bx(R0);
+}
+
+
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  // Make room for result.
+  __ PushList((1 << R0));
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ PopList((1 << R0));
   __ LeaveStubFrame();
   __ bx(R0);
 }

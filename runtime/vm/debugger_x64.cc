@@ -55,15 +55,33 @@ void CodeBreakpoint::PatchCode() {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
-      case RawPcDescriptors::kUnoptStaticCall:
-      case RawPcDescriptors::kRuntimeCall:
+      case RawPcDescriptors::kUnoptStaticCall: {
+        int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
+        ASSERT((offset > 0) && ((offset % 8) == 7));
+        saved_value_ = static_cast<uword>(offset);
+        const uint32_t stub_offset =
+            InstructionPattern::OffsetFromPPIndex(
+                Assembler::kICCallBreakpointCPIndex);
+        CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
+        break;
+      }
       case RawPcDescriptors::kClosureCall: {
         int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
         ASSERT((offset > 0) && ((offset % 8) == 7));
         saved_value_ = static_cast<uword>(offset);
         const uint32_t stub_offset =
             InstructionPattern::OffsetFromPPIndex(
-                Assembler::kBreakpointRuntimeCPIndex);
+                Assembler::kClosureCallBreakpointCPIndex);
+        CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
+        break;
+      }
+      case RawPcDescriptors::kRuntimeCall: {
+        int32_t offset = CodePatcher::GetPoolOffsetAt(pc_);
+        ASSERT((offset > 0) && ((offset % 8) == 7));
+        saved_value_ = static_cast<uword>(offset);
+        const uint32_t stub_offset =
+            InstructionPattern::OffsetFromPPIndex(
+                Assembler::kRuntimeCallBreakpointCPIndex);
         CodePatcher::SetPoolOffsetAt(pc_, stub_offset);
         break;
       }

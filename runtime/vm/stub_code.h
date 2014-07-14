@@ -29,7 +29,9 @@ class RawCode;
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
-  V(BreakpointRuntime)                                                         \
+  V(ICCallBreakpoint)                                                          \
+  V(ClosureCallBreakpoint)                                                     \
+  V(RuntimeCallBreakpoint)                                                     \
   V(DebugStepCheck)                                                            \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \

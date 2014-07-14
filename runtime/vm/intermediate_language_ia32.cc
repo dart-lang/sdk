@@ -6826,8 +6826,6 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
   StubCode* stub_code = compiler->isolate()->stub_code();
   const ExternalLabel label(stub_code->DebugStepCheckEntryPoint());
-  __ movl(EDX, Immediate(0));
-  __ movl(ECX, Immediate(0));
   compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
 #if defined(DEBUG)
   __ movl(EDX, Immediate(kInvalidObjectPointer));

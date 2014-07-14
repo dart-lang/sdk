@@ -1253,7 +1253,6 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   __ TraceSimMsg("InstanceCall");
-  __ LoadImmediate(S4, 0);
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1348,7 +1347,6 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     UNIMPLEMENTED();
   }
   ExternalLabel target_label(label_address);
-  __ LoadImmediate(S4, 0);
   __ LoadObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1357,6 +1355,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
                    locs);
 #if defined(DEBUG)
   __ LoadImmediate(S4, kInvalidObjectPointer);
+  __ LoadImmediate(S5, kInvalidObjectPointer);
 #endif
   __ Drop(argument_count);
 }
@@ -1432,8 +1431,6 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
       __ BranchLinkPatchable(
           &stub_code->OptimizedIdenticalWithNumberCheckLabel());
     } else {
-      __ LoadImmediate(S4, 0);
-      __ LoadImmediate(S5, 0);
       __ BranchLinkPatchable(
           &stub_code->UnoptimizedIdenticalWithNumberCheckLabel());
     }

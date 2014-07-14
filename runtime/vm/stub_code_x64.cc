@@ -83,7 +83,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
-  __ SmiUntag(R10);
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ leaq(RAX, Address(RBP, R10, TIMES_8, 1 * kWordSize));  // Compute argv.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
@@ -1554,9 +1553,29 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-//  RBX, R10: May contain arguments to runtime stub.
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
+// RBX: Contains an ICData.
+// TOS(0): return address (Dart code).
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Preserve IC data.
+  __ pushq(RBX);
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  __ LoadObject(R12, Object::null_object(), PP);
+  __ pushq(R12);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popq(RAX);  // Address of original.
+  __ popq(RBX);  // Restore IC data.
+  __ LeaveStubFrame();
+  __ jmp(RAX);   // Jump to original stub.
+}
+
+
+// RBX: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// R10: Contains an arguments descriptor.
+// TOS(0): return address (Dart code).
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Preserve runtime args.
   __ pushq(RBX);
@@ -1569,6 +1588,20 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ popq(RAX);  // Address of original.
   __ popq(R10);  // Restore arguments.
   __ popq(RBX);
+  __ LeaveStubFrame();
+  __ jmp(RAX);   // Jump to original stub.
+}
+
+
+//  TOS(0): return address (Dart code).
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  __ LoadObject(R12, Object::null_object(), PP);
+  __ pushq(R12);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popq(RAX);  // Address of original.
   __ LeaveStubFrame();
   __ jmp(RAX);   // Jump to original stub.
 }

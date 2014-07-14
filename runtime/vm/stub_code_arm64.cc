@@ -45,7 +45,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ SetPrologueOffset();
   __ Comment("CallToRuntimeStub");
   __ EnterFrame(0);
-  __ SmiUntag(R4);
 
   // Load current Isolate pointer from Context structure into R0.
   __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset(), kNoPP);
@@ -1641,10 +1640,26 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
+// R5: Contains an ICData.
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ Push(R5);  // Save IC Data.
-  __ Push(R4);  // Save arg. desc.
+  __ Push(R5);
+  __ PushObject(Object::null_object(), PP);  // Space for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ Pop(R0);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ br(R0);
+}
+
+
+// R5: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// R4: Contains an arguments descriptor.
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ Push(R5);
+  __ Push(R4);
   __ PushObject(Object::null_object(), PP);  // Space for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ Pop(R0);
@@ -1654,6 +1669,15 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ br(R0);
 }
 
+
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object(), PP);  // Space for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ Pop(R0);
+  __ LeaveStubFrame();
+  __ br(R0);
+}
 
 // Called only from unoptimized code. All relevant registers have been saved.
 void StubCode::GenerateDebugStepCheckStub(

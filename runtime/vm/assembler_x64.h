@@ -789,7 +789,9 @@ class Assembler : public ValueObject {
   }
 
   // Index of constant pool entries pointing to debugger stubs.
-  static const int kBreakpointRuntimeCPIndex = 5;
+  static const int kICCallBreakpointCPIndex = 5;
+  static const int kClosureCallBreakpointCPIndex = 6;
+  static const int kRuntimeCallBreakpointCPIndex = 7;
 
   void LoadPoolPointer(Register pp);
 
