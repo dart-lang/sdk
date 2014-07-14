@@ -28,6 +28,8 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/search/search_engine.dart';
+import 'package:analyzer/src/generated/element.dart';
 
 
 /**
@@ -109,6 +111,11 @@ class AnalysisServer {
   final Index index;
 
   /**
+   * The [SearchEngine] for this server.
+   */
+  SearchEngine searchEngine;
+
+  /**
    * [ContextDirectoryManager] which handles the mapping from analysis roots
    * to context directories.
    */
@@ -183,6 +190,7 @@ class AnalysisServer {
   AnalysisServer(this.channel, ResourceProvider resourceProvider,
       PackageMapProvider packageMapProvider, this.index,
       {this.rethrowExceptions: true}) {
+    searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue(this);
     contextDirectoryManager = new AnalysisServerContextDirectoryManager(
         this, resourceProvider, packageMapProvider);
@@ -545,6 +553,50 @@ class AnalysisServer {
     }
     // if library has been already resolved, resolve unit
     return context.resolveCompilationUnit2(unitSource, librarySource);
+  }
+
+  /**
+   * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
+   *
+   * May be empty, but not `null`.
+   */
+  List<CompilationUnit> getResolvedCompilationUnits(String path) {
+    List<CompilationUnit> units = <CompilationUnit>[];
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(path);
+    if (context == null) {
+      return units;
+    }
+    // add a unit for each unit/library combination
+    Source unitSource = getSource(path);
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    for (Source librarySource in librarySources) {
+      CompilationUnit unit = context.getResolvedCompilationUnit2(unitSource, librarySource);
+      if (unit != null) {
+        units.add(unit);
+      }
+    }
+    // done
+    return units;
+  }
+
+  /**
+   * Returns [Element]s of the Dart file with the given [path], at the given
+   * offset.
+   *
+   * May be empty, but not `null`.
+   */
+  List<Element> getElementsAtOffset(String path, int offset) {
+    List<CompilationUnit> units = getResolvedCompilationUnits(path);
+    List<Element> elements = <Element>[];
+    for (CompilationUnit unit in units) {
+      AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+      Element element = ElementLocator.locateWithOffset(node, offset);
+      if (element != null) {
+        elements.add(element);
+      }
+    }
+    return elements;
   }
 
   /**

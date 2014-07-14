@@ -67,21 +67,35 @@ class Element {
     String name = element.displayName;
     String elementParameters = _getParametersString(element);
     String elementReturnType = _getReturnTypeString(element);
-    return new Element(ElementKind.valueOfEngine(element.kind), name,
-        new Location.fromElement(element), element.isPrivate, element.isDeprecated,
-        parameters: elementParameters, returnType: elementReturnType, isAbstract:
-        _isAbstract(element), isConst: _isConst(element), isFinal: _isFinal(element),
+    return new Element(
+        ElementKind.valueOfEngine(element.kind),
+        name,
+        new Location.fromElement(element),
+        element.isPrivate,
+        element.isDeprecated,
+        parameters: elementParameters,
+        returnType: elementReturnType,
+        isAbstract: _isAbstract(element),
+        isConst: _isConst(element),
+        isFinal: _isFinal(element),
         isStatic: _isStatic(element));
   }
 
   factory Element.fromJson(Map<String, Object> map) {
     ElementKind kind = ElementKind.valueOf(map[KIND]);
     int flags = map[FLAGS];
-    return new Element(kind, map[NAME], new Location.fromJson(map[LOCATION]),
-        _hasFlag(flags, FLAG_PRIVATE), _hasFlag(flags, FLAG_DEPRECATED), parameters:
-        map[PARAMETERS], returnType: map[RETURN_TYPE], isAbstract: _hasFlag(flags,
-        FLAG_ABSTRACT), isConst: _hasFlag(flags, FLAG_CONST), isFinal: _hasFlag(flags,
-        FLAG_FINAL), isStatic: _hasFlag(flags, FLAG_STATIC));
+    return new Element(
+        kind,
+        map[NAME],
+        new Location.fromJson(map[LOCATION]),
+        _hasFlag(flags, FLAG_PRIVATE),
+        _hasFlag(flags, FLAG_DEPRECATED),
+        parameters: map[PARAMETERS],
+        returnType: map[RETURN_TYPE],
+        isAbstract: _hasFlag(flags, FLAG_ABSTRACT),
+        isConst: _hasFlag(flags, FLAG_CONST),
+        isFinal: _hasFlag(flags, FLAG_FINAL),
+        isStatic: _hasFlag(flags, FLAG_STATIC));
   }
 
   int get flags {
@@ -113,6 +127,10 @@ class Element {
 
   @override
   String toString() => toJson().toString();
+
+  static Map<String, Object> asJson(Element element) {
+    return element.toJson();
+  }
 
   static String _getParametersString(engine.Element element) {
     // TODO(scheglov) expose the corresponding feature from ExecutableElement
@@ -318,12 +336,36 @@ class Location {
       startColumn = 1;
     }
     // done
-    return new Location(source.fullName, offset, length, startLine,
+    return new Location(
+        source.fullName,
+        offset,
+        length,
+        startLine,
+        startColumn);
+  }
+
+  factory Location.fromOffset(engine.Element element, int offset, int length) {
+    Source source = element.source;
+    LineInfo lineInfo = element.context.getLineInfo(source);
+    // prepare location
+    LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+    int startLine = lineLocation.lineNumber;
+    int startColumn = lineLocation.columnNumber;
+    // done
+    return new Location(
+        source.fullName,
+        offset,
+        length,
+        startLine,
         startColumn);
   }
 
   factory Location.fromJson(Map<String, Object> map) {
-    return new Location(map[FILE], map[OFFSET], map[LENGTH], map[START_LINE],
+    return new Location(
+        map[FILE],
+        map[OFFSET],
+        map[LENGTH],
+        map[START_LINE],
         map[START_COLUMN]);
   }
 

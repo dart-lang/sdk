@@ -55,7 +55,7 @@ class AbstractAnalysisTest {
   MemoryResourceProvider resourceProvider;
   MockPackageMapProvider packageMapProvider;
   AnalysisServer server;
-  AnalysisDomainHandler handler;
+  RequestHandler handler;
 
   Map<String, List<String>> analysisSubscriptions = {};
 
