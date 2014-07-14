@@ -504,7 +504,7 @@ class _JsonParser {
         char = source.codeUnitAt(position);
       }
       if (char < CHAR_0 || char > CHAR_9) {
-        if (negative) {
+        if (intSign < 0) {
           fail(position, "Missing expected digit");
         } else {
           // If it doesn't even start out as a numeral.

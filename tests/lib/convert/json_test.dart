@@ -34,14 +34,15 @@ void testJson(json, expected) {
     }
   }
   for (var reviver in [null, (k, v) => v]) {
+    var name = (reviver == null) ? "" : "reviver:";
     var value = JSON.decode(json, reviver: reviver);
-    compare(expected, value, "$value");
+    compare(expected, value, "$name$value");
     value = JSON.decode(" $json ", reviver: reviver);
-    compare(expected, value, "-$value-");
+    compare(expected, value, "$name-$value-");
     value = JSON.decode("[$json]", reviver: reviver);
-    compare([expected], value, "[$value]");
+    compare([expected], value, "$name[$value]");
     value = JSON.decode('{"x":$json}', reviver: reviver);
-    compare({"x":expected}, value, "{x:$value}");
+    compare({"x":expected}, value, "$name{x:$value}");
   }
 }
 
