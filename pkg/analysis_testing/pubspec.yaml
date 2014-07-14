@@ -6,6 +6,7 @@ homepage: http://www.dartlang.org
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  analyzer: '0.22.0-dev'
+  analyzer:
+    path: ../analyzer
   typed_mock: '>=0.0.4 <1.0.0'
   unittest: '>=0.10.0 <0.12.0'
