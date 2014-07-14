@@ -668,10 +668,6 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     }
     // prepare information
     Element element = node.bestElement;
-    // TODO(scheglov) fix resolver to resolve to Field, not an accessor
-    if (node.parent is Combinator && element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
     // stop if already handled
     if (_isAlreadyHandledName(node)) {
       return null;
