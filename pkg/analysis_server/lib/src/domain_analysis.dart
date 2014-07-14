@@ -41,11 +41,13 @@ class AnalysisDomainHandler implements RequestHandler {
     {
       Source source = server.getSource(file);
       AnalysisContext context = server.getAnalysisContext(file);
-      List<Source> librarySources = context.getLibrariesContaining(source);
-      for (Source librarySource in librarySources) {
-        CompilationUnit unit = context.resolveCompilationUnit2(source,
-            librarySource);
-        hovers.add(new DartUnitHoverComputer(unit, offset).compute());
+      if (context != null) {
+        List<Source> librarySources = context.getLibrariesContaining(source);
+        for (Source librarySource in librarySources) {
+          CompilationUnit unit = context.resolveCompilationUnit2(source,
+              librarySource);
+          hovers.add(new DartUnitHoverComputer(unit, offset).compute());
+        }
       }
     }
     // send response
