@@ -22,3 +22,6 @@ web/cursor_position_test: Fail # http://dartbug.com/19836
 poi/poi_test: SkipByDesign # Uses dart:io.
 poi/poi_find_test: SkipByDesign # Uses dart:io.
 poi/serialize_test: SkipByDesign # Uses dart:io.
+
+[ $compiler == dart2js ]
+poi/*: Skip # http://dartbug.com/20031
