@@ -246,7 +246,11 @@ String _libraryNameFor(AssetId id, int suffix) {
   var name = '${path.withoutExtension(id.path)}_'
       '${path.extension(id.path).substring(1)}';
   if (name.startsWith('lib/')) name = name.substring(4);
-  name = name.replaceAll('/', '.').replaceAll('-', '_');
+  name = name.split('/').map((part) {
+    part = part.replaceAll(INVALID_LIB_CHARS_REGEX, '_');
+    if (part.startsWith(NUM_REGEX)) part = '_${part}';
+    return part;
+  }).join(".");
   return '${id.package}.${name}_$suffix';
 }
 
@@ -293,14 +297,14 @@ class _UrlNormalizer extends TreeVisitor {
 
   /// Counter used to ensure that every library name we inject is unique.
   int _count = 0;
-  
+
   /// Path to the top level folder relative to the transform primaryInput.
   /// This should just be some arbitrary # of ../'s.
   final String topLevelPath;
 
   _UrlNormalizer(transform, this.sourceId)
       : transform = transform,
-        topLevelPath = 
+        topLevelPath =
           '../' * (transform.primaryInput.id.path.split('/').length - 2);
 
   visitElement(Element node) {
@@ -439,7 +443,11 @@ const _urlAttributes = const [
 
 /// When inlining <link rel="stylesheet"> tags copy over all attributes to the
 /// style tag except these ones.
-const IGNORED_LINKED_STYLE_ATTRS = 
+const IGNORED_LINKED_STYLE_ATTRS =
     const ['charset', 'href', 'href-lang', 'rel', 'rev'];
+
+/// Global RegExp objects for validating generated library names.
+final INVALID_LIB_CHARS_REGEX = new RegExp('[^a-z0-9_]');
+final NUM_REGEX = new RegExp('[0-9]');
 
 _getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);
