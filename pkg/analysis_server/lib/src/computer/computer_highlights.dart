@@ -4,6 +4,7 @@
 
 library computer.highlights;
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -23,10 +24,10 @@ class DartUnitHighlightsComputer {
   /**
    * Returns the computed highlight regions, not `null`.
    */
-  List<Map<String, Object>> compute() {
+  List<HighlightRegion> compute() {
     _unit.accept(new _DartUnitHighlightsComputerVisitor(this));
     _addCommentRanges();
-    return _regions.map((region) => region.toJson()).toList();
+    return _regions;
   }
 
   void _addCommentRanges() {
@@ -324,7 +325,7 @@ class DartUnitHighlightsComputer {
 }
 
 
-class HighlightRegion {
+class HighlightRegion implements HasToJson {
   final int offset;
   final int length;
   final HighlightType type;

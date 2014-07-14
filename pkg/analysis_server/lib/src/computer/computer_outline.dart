@@ -4,6 +4,7 @@
 
 library computer.outline;
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -28,7 +29,7 @@ class DartUnitOutlineComputer {
   /**
    * Returns the computed outline, not `null`.
    */
-  Map<String, Object> compute() {
+  Outline compute() {
     Outline unitOutline = _newUnitOutline();
     for (CompilationUnitMember unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
@@ -83,7 +84,7 @@ class DartUnitOutlineComputer {
         _newFunctionTypeAliasOutline(unitOutline, alias);
       }
     }
-    return unitOutline.toJson();
+    return unitOutline;
   }
 
   void _addLocalFunctionOutlines(Outline parent, FunctionBody body) {
@@ -303,7 +304,7 @@ class DartUnitOutlineComputer {
 /**
  * An element outline.
  */
-class Outline {
+class Outline implements HasToJson {
   static const List<Outline> EMPTY_ARRAY = const <Outline>[];
 
   /**

@@ -4,6 +4,7 @@
 
 library search.search_result;
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_services/search/search_engine.dart';
@@ -13,7 +14,7 @@ import 'package:analyzer/src/generated/element.dart' as engine;
 /**
  * A single result from a search request.
  */
-class SearchResult {
+class SearchResult implements HasToJson {
   /**
    * The kind of element that was found or the kind of reference that was found.
    */

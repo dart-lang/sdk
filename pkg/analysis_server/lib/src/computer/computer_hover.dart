@@ -6,6 +6,7 @@ library computer.hover;
 
 import 'dart:collection';
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -68,7 +69,7 @@ class DartUnitHoverComputer {
   /**
    * Returns the computed hover, maybe `null`.
    */
-  Map<String, Object> compute() {
+  Hover compute() {
     AstNode node = new NodeLocator.con1(_offset).searchWithin(_unit);
     if (node is Expression) {
       Hover hover = new Hover(node.offset, node.length);
@@ -102,7 +103,7 @@ class DartUnitHoverComputer {
       hover.staticType = _safeToString(node.staticType);
       hover.propagatedType = _safeToString(node.propagatedType);
       // done
-      return hover.toJson();
+      return hover;
     }
     // not an expression
     return null;
@@ -112,7 +113,7 @@ class DartUnitHoverComputer {
 }
 
 
-class Hover {
+class Hover implements HasToJson {
   final int offset;
   final int length;
   String containingLibraryName;

@@ -114,9 +114,7 @@ class SearchDomainHandler implements RequestHandler {
     Notification notification = new Notification(SEARCH_RESULTS);
     notification.setParameter(ID, searchId);
     notification.setParameter(LAST, isLast);
-    notification.setParameter(
-        RESULTS,
-        results.map(SearchResult.asJson).toList());
+    notification.setParameter(RESULTS, results);
     server.sendNotification(notification);
   }
 }

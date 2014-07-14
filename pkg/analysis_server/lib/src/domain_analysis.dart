@@ -37,7 +37,7 @@ class AnalysisDomainHandler implements RequestHandler {
     String file = request.getRequiredParameter(FILE).asString();
     int offset = request.getRequiredParameter(OFFSET).asInt();
     // prepare hovers
-    List<Map<String, Object>> hovers = <Map<String, Object>>[];
+    List<Hover> hovers = <Hover>[];
     {
       Source source = server.getSource(file);
       AnalysisContext context = server.getAnalysisContext(file);

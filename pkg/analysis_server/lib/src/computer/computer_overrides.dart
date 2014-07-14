@@ -4,6 +4,7 @@
 
 library computer.overrides;
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -24,7 +25,7 @@ class DartUnitOverridesComputer {
   /**
    * Returns the computed occurrences, not `null`.
    */
-  List<Map<String, Object>> compute() {
+  List<Override> compute() {
     for (CompilationUnitMember unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
         _currentClass = unitMember.element;
@@ -104,7 +105,7 @@ class DartUnitOverridesComputer {
 }
 
 
-class Override {
+class Override implements HasToJson {
   final int offset;
   final int length;
   final Element superclassElement;

@@ -6,6 +6,7 @@ library computer.occurrences;
 
 import 'dart:collection';
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -26,7 +27,7 @@ class DartUnitOccurrencesComputer {
   /**
    * Returns the computed occurrences, not `null`.
    */
-  List<Map<String, Object>> compute() {
+  List<Occurrences> compute() {
     _unit.accept(new _DartUnitOccurrencesComputerVisitor(this));
     List<Occurrences> occurrences = <Occurrences>[];
     _elementsOffsets.forEach((engineElement, offsets) {
@@ -34,7 +35,7 @@ class DartUnitOccurrencesComputer {
       int length = engineElement.displayName.length;
       occurrences.add(new Occurrences(serverElement, offsets, length));
     });
-    return occurrences.map((occurrences) => occurrences.toJson()).toList();
+    return occurrences;
   }
 
   void _addOccurrence(engine.Element element, int offset) {
@@ -48,7 +49,7 @@ class DartUnitOccurrencesComputer {
 }
 
 
-class Occurrences {
+class Occurrences implements HasToJson {
   final Element element;
   final List<int> offsets;
   final int length;
