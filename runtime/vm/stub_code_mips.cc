@@ -1929,7 +1929,6 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // A2: frame_pointer.
 // A3: error object.
 // SP + 4*kWordSize: address of stacktrace object.
-// SP + 5*kWordSize: address of isolate.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == V0);
@@ -1939,13 +1938,6 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   // the last of five arguments, so it is first pushed on the stack.
   __ lw(V1, Address(SP, 4 * kWordSize));  // StackTrace object.
   __ mov(FP, A2);  // Frame_pointer.
-  __ lw(A3, Address(SP, 5 * kWordSize));  // Isolate.
-  // Set tag.
-  __ LoadImmediate(A2, VMTag::kScriptTagId);
-  __ sw(A2, Address(A3, Isolate::vm_tag_offset()));
-  // Clear top exit frame.
-  __ sw(ZR, Address(A3, Isolate::top_exit_frame_info_offset()));
-
   __ jr(A0);  // Jump to the exception handler code.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.
 }

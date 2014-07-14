@@ -1819,7 +1819,6 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // R2: frame_pointer.
 // R3: error object.
 // R4: address of stacktrace object.
-// R5: isolate.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
@@ -1829,11 +1828,6 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(R0, R3);  // Exception object.
   __ mov(R1, R4);  // StackTrace object.
-  // Set the tag.
-  __ LoadImmediate(R2, VMTag::kScriptTagId, kNoPP);
-  __ StoreToOffset(R2, R5, Isolate::vm_tag_offset(), kNoPP);
-  // Clear top exit frame.
-  __ StoreToOffset(ZR, R5, Isolate::top_exit_frame_info_offset(), kNoPP);
   __ ret();  // Jump to the exception handler code.
 }
 

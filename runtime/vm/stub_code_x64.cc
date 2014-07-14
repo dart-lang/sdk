@@ -1751,7 +1751,6 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // Arg3: frame_pointer
 // Arg4: exception object
 // Arg5: stacktrace object
-// Arg6: isolate
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == RAX);
@@ -1762,23 +1761,14 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 #if defined(_WIN64)
   Register stacktrace_reg = RBX;
   __ movq(stacktrace_reg, Address(RSP, 5 * kWordSize));
-  Register isolate_reg = RDI;
-  __ movq(isolate_reg, Address(RSP, 6 * kWordSize));
 #else
   Register stacktrace_reg = CallingConventions::kArg5Reg;
-  Register isolate_reg = CallingConventions::kArg6Reg;
 #endif
 
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
   __ movq(kStackTraceObjectReg, stacktrace_reg);
   __ movq(kExceptionObjectReg, CallingConventions::kArg4Reg);
-  // Set the tag.
-  __ movq(Address(isolate_reg, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kScriptTagId));
-  // Clear top exit frame.
-  __ movq(Address(isolate_reg, Isolate::top_exit_frame_info_offset()),
-          Immediate(0));
   __ jmp(CallingConventions::kArg1Reg);  // Jump to the exception handler code.
 }
 

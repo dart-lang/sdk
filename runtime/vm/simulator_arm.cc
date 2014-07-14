@@ -3691,8 +3691,7 @@ void Simulator::Longjmp(uword pc,
                         uword sp,
                         uword fp,
                         RawObject* raw_exception,
-                        RawObject* raw_stacktrace,
-                        Isolate* isolate) {
+                        RawObject* raw_stacktrace) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
   // and try to find the setjmp associated with the simulated stack pointer.
   SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
@@ -3705,6 +3704,7 @@ void Simulator::Longjmp(uword pc,
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
   uword native_sp = buf->native_sp();
+  Isolate* isolate = Isolate::Current();
   while (isolate->top_resource() != NULL &&
          (reinterpret_cast<uword>(isolate->top_resource()) < native_sp)) {
     isolate->top_resource()->~StackResource();
@@ -3714,10 +3714,6 @@ void Simulator::Longjmp(uword pc,
   set_register(PC, static_cast<int32_t>(pc));
   set_register(SP, static_cast<int32_t>(sp));
   set_register(FP, static_cast<int32_t>(fp));
-  // Set the tag.
-  isolate->set_vm_tag(VMTag::kScriptTagId);
-  // Clear top exit frame.
-  isolate->set_top_exit_frame_info(0);
 
   ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));

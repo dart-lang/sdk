@@ -280,11 +280,12 @@ static void JumpToExceptionHandler(Isolate* isolate,
   RawObject* raw_exception = exception_object.raw();
   RawObject* raw_stacktrace = stacktrace_object.raw();
 
-  // The following operation is part of the 'epilogue' of the CallToRuntime,
-  // CallBootstrapCFunction, and CallNativeCFunction stubs. In the case of an
-  // exception, we skip the epilogues and must set the correct state here.
-  // The other operations performed as part of the 'epilogue' are handled
-  // by the simulator's Longjmp or the JumpToExceptionHandler stub.
+  // The following three operations are part of the 'epilogue' of the
+  // CallToRuntime, CallBootstrapCFunction, and CallNativeCFunction stubs.
+  // In the case of an exception, we skip the epilogues and must set the
+  // correct state here.
+  isolate->set_vm_tag(VMTag::kScriptTagId);
+  isolate->set_top_exit_frame_info(0);
   isolate->set_top_context(Context::null());
 
 #if defined(USING_SIMULATOR)
@@ -297,7 +298,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
   // object (may be raw null) in the kStackTraceObjectReg register.
 
   Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
-                                raw_exception, raw_stacktrace, isolate);
+                                raw_exception, raw_stacktrace);
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
@@ -310,8 +311,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
   // continue execution at the given pc in the given frame.
-  typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*,
-                              Isolate*);
+  typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*);
   ExcpHandler func = reinterpret_cast<ExcpHandler>(
       StubCode::JumpToExceptionHandlerEntryPoint());
 
@@ -321,7 +321,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
                                 stack_pointer - current_sp);
 
   func(program_counter, stack_pointer, frame_pointer,
-       raw_exception, raw_stacktrace, isolate);
+       raw_exception, raw_stacktrace);
 #endif
   UNREACHABLE();
 }
