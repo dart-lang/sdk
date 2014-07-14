@@ -44,6 +44,8 @@ DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DEFINE_FLAG(bool, trace_integer_ir_selection, false,
+    "Print integer IR selection optimization pass.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);
@@ -608,10 +610,12 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
     converted = new(I) UnboxIntegerInstr(use->CopyWithType(), deopt_id);
-
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
     converted = new(I) BoxIntegerInstr(use->CopyWithType());
-
+  } else if ((from == kUnboxedMint) && (to == kUnboxedUint32)) {
+    converted = new(I) UnboxedIntConverterInstr(from, to, use->CopyWithType());
+  } else if ((from == kUnboxedUint32) && (to == kUnboxedMint)) {
+    converted = new(I) UnboxedIntConverterInstr(from, to, use->CopyWithType());
   } else if (from == kUnboxedMint && to == kUnboxedDouble) {
     ASSERT(CanUnboxDouble());
     // Convert by boxing/unboxing.
@@ -4512,7 +4516,290 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 }
 
 
-// Range analysis for smi values.
+// Replaces Mint IL instructions with Uint32 IL instructions
+// when possible. Uses output of RangeAnalysis.
+class IntegerInstructionSelector : public ValueObject {
+ public:
+  explicit IntegerInstructionSelector(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        isolate_(NULL) {
+    ASSERT(flow_graph_ != NULL);
+    isolate_ = flow_graph_->isolate();
+    ASSERT(isolate_ != NULL);
+    selected_uint32_defs_ =
+        new(I) BitVector(flow_graph_->current_ssa_temp_index());
+  }
+
+  void Select();
+
+ private:
+  bool IsPotentialUint32Definition(Definition* def);
+  void FindPotentialUint32Definitions();
+  bool IsUint32NarrowingDefinition(Definition* def);
+  void FindUint32NarrowingDefinitions();
+  bool AllUsesAreUint32Narrowing(Value* list_head);
+  bool CanBecomeUint32(Definition* def);
+  void Propagate();
+  Definition* ConstructReplacementFor(Definition* def);
+  void ReplaceInstructions();
+
+  Isolate* isolate() const { return isolate_; }
+
+  GrowableArray<Definition*> potential_uint32_defs_;
+  BitVector* selected_uint32_defs_;
+
+  FlowGraph* flow_graph_;
+  Isolate* isolate_;
+};
+
+
+void IntegerInstructionSelector::Select() {
+  if (FLAG_trace_integer_ir_selection) {
+    OS::Print("---- starting integer ir selection -------\n");
+  }
+  FindPotentialUint32Definitions();
+  FindUint32NarrowingDefinitions();
+  Propagate();
+  ReplaceInstructions();
+  if (FLAG_trace_integer_ir_selection) {
+    OS::Print("---- after integer ir selection -------\n");
+    FlowGraphPrinter printer(*flow_graph_);
+    printer.PrintBlocks();
+  }
+}
+
+
+bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
+  // TODO(johnmccutchan): Consider Smi operations, to avoid unnecessary tagging
+  // & untagged of intermediate results.
+  // TODO(johnmccutchan): Consider phis.
+  return def->IsBoxInteger()   ||   // BoxMint.
+         def->IsUnboxInteger() ||   // UnboxMint.
+         def->IsBinaryMintOp() ||
+         def->IsShiftMintOp()  ||
+         def->IsUnaryMintOp();
+}
+
+
+void IntegerInstructionSelector::FindPotentialUint32Definitions() {
+  if (FLAG_trace_integer_ir_selection) {
+    OS::Print("++++ Finding potential Uint32 definitions:\n");
+  }
+
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+
+    for (ForwardInstructionIterator instr_it(block);
+         !instr_it.Done();
+         instr_it.Advance()) {
+      Instruction* current = instr_it.Current();
+      Definition* defn = current->AsDefinition();
+      if ((defn != NULL) && (defn->ssa_temp_index() != -1)) {
+        if (IsPotentialUint32Definition(defn)) {
+          if (FLAG_trace_integer_ir_selection) {
+           OS::Print("Adding %s\n", current->ToCString());
+          }
+          potential_uint32_defs_.Add(defn);
+        }
+      }
+    }
+  }
+}
+
+
+// BinaryMintOp masks and stores into unsigned typed arrays that truncate the
+// value into a Uint32 range.
+bool IntegerInstructionSelector::IsUint32NarrowingDefinition(Definition* def) {
+  if (def->IsBinaryMintOp()) {
+    BinaryMintOpInstr* op = def->AsBinaryMintOp();
+    // Must be a mask operation.
+    if (op->op_kind() != Token::kBIT_AND) {
+      return false;
+    }
+    Range* range = op->range();
+    if ((range == NULL) ||
+        !range->IsWithin(0, static_cast<int64_t>(kMaxUint32))) {
+      return false;
+    }
+    return true;
+  }
+  // TODO(johnmccutchan): Add typed array stores.
+  return false;
+}
+
+
+void IntegerInstructionSelector::FindUint32NarrowingDefinitions() {
+  ASSERT(selected_uint32_defs_ != NULL);
+  if (FLAG_trace_integer_ir_selection) {
+    OS::Print("++++ Selecting Uint32 definitions:\n");
+    OS::Print("++++ Initial set:\n");
+  }
+  for (intptr_t i = 0; i < potential_uint32_defs_.length(); i++) {
+    Definition* defn = potential_uint32_defs_[i];
+    if (IsUint32NarrowingDefinition(defn)) {
+      if (FLAG_trace_integer_ir_selection) {
+        OS::Print("Adding %s\n", defn->ToCString());
+      }
+      selected_uint32_defs_->Add(defn->ssa_temp_index());
+    }
+  }
+}
+
+
+bool IntegerInstructionSelector::AllUsesAreUint32Narrowing(Value* list_head) {
+  for (Value::Iterator it(list_head);
+       !it.Done();
+       it.Advance()) {
+    Value* use = it.Current();
+    Definition* defn = use->instruction()->AsDefinition();
+    if ((defn == NULL) ||
+        (defn->ssa_temp_index() == -1) ||
+        !selected_uint32_defs_->Contains(defn->ssa_temp_index())) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool IntegerInstructionSelector::CanBecomeUint32(Definition* def) {
+  ASSERT(IsPotentialUint32Definition(def));
+  if (def->IsBoxInteger()) {
+    // If a BoxInteger's input is a candidate, the box is a candidate.
+    BoxIntegerInstr* box = def->AsBoxInteger();
+    Definition* box_input = box->value()->definition();
+    return selected_uint32_defs_->Contains(box_input->ssa_temp_index());
+  }
+  // A right shift with an input outside of Uint32 range cannot be converted
+  // because we need the high bits.
+  if (def->IsShiftMintOp()) {
+    ShiftMintOpInstr* op = def->AsShiftMintOp();
+    if (op->op_kind() == Token::kSHR) {
+      Definition* shift_input = op->left()->definition();
+      ASSERT(shift_input != NULL);
+      Range* range = shift_input->range();
+      if ((range == NULL) ||
+          !range->IsWithin(0, static_cast<int64_t>(kMaxUint32))) {
+        return false;
+      }
+    }
+  }
+  if (!def->HasUses()) {
+    // No uses, skip.
+    return false;
+  }
+  return AllUsesAreUint32Narrowing(def->input_use_list()) &&
+         AllUsesAreUint32Narrowing(def->env_use_list());
+}
+
+
+void IntegerInstructionSelector::Propagate() {
+  ASSERT(selected_uint32_defs_ != NULL);
+  bool changed = true;
+  intptr_t iteration = 0;
+  while (changed) {
+    if (FLAG_trace_integer_ir_selection) {
+      OS::Print("+++ Iteration: %" Pd "\n", iteration++);
+    }
+    changed = false;
+    for (intptr_t i = 0; i < potential_uint32_defs_.length(); i++) {
+      Definition* defn = potential_uint32_defs_[i];
+      if (selected_uint32_defs_->Contains(defn->ssa_temp_index())) {
+        // Already marked as a candidate, skip.
+        continue;
+      }
+      if (defn->IsConstant()) {
+        // Skip constants.
+        continue;
+      }
+      if (CanBecomeUint32(defn)) {
+        if (FLAG_trace_integer_ir_selection) {
+          OS::Print("Adding %s\n", defn->ToCString());
+        }
+        // Found a new candidate.
+        selected_uint32_defs_->Add(defn->ssa_temp_index());
+        // Haven't reached fixed point yet.
+        changed = true;
+      }
+    }
+  }
+  if (FLAG_trace_integer_ir_selection) {
+    OS::Print("Reached fixed point\n");
+  }
+}
+
+
+Definition* IntegerInstructionSelector::ConstructReplacementFor(
+    Definition* def) {
+  // Should only see mint definitions.
+  ASSERT(IsPotentialUint32Definition(def));
+  // Should not see constant instructions.
+  ASSERT(!def->IsConstant());
+  if (def->IsBinaryMintOp()) {
+    BinaryMintOpInstr* op = def->AsBinaryMintOp();
+    Token::Kind op_kind = op->op_kind();
+    Value* left = op->left()->CopyWithType();
+    Value* right = op->right()->CopyWithType();
+    intptr_t deopt_id = op->DeoptimizationTarget();
+    return new(I) BinaryUint32OpInstr(op_kind, left, right, deopt_id);
+  } else if (def->IsBoxInteger()) {
+    BoxIntegerInstr* box = def->AsBoxInteger();
+    Value* value = box->value()->CopyWithType();
+    return new(I) BoxUint32Instr(value);
+  } else if (def->IsUnboxInteger()) {
+    UnboxIntegerInstr* unbox = def->AsUnboxInteger();
+    Value* value = unbox->value()->CopyWithType();
+    intptr_t deopt_id = unbox->deopt_id();
+    return new(I) UnboxUint32Instr(value, deopt_id);
+  } else if (def->IsUnaryMintOp()) {
+    UnaryMintOpInstr* op = def->AsUnaryMintOp();
+    Token::Kind op_kind = op->op_kind();
+    Value* value = op->value()->CopyWithType();
+    intptr_t deopt_id = op->DeoptimizationTarget();
+    return new(I) UnaryUint32OpInstr(op_kind, value, deopt_id);
+  } else if (def->IsShiftMintOp()) {
+    ShiftMintOpInstr* op = def->AsShiftMintOp();
+    Token::Kind op_kind = op->op_kind();
+    Value* left = op->left()->CopyWithType();
+    Value* right = op->right()->CopyWithType();
+    intptr_t deopt_id = op->DeoptimizationTarget();
+    return new(I) ShiftUint32OpInstr(op_kind, left, right, deopt_id);
+  }
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void IntegerInstructionSelector::ReplaceInstructions() {
+  if (FLAG_trace_integer_ir_selection) {
+    OS::Print("++++ Replacing instructions:\n");
+  }
+  for (intptr_t i = 0; i < potential_uint32_defs_.length(); i++) {
+    Definition* defn = potential_uint32_defs_[i];
+    if (!selected_uint32_defs_->Contains(defn->ssa_temp_index())) {
+      // Not a candidate.
+      continue;
+    }
+    Definition* replacement = ConstructReplacementFor(defn);
+    ASSERT(replacement != NULL);
+    if (FLAG_trace_integer_ir_selection) {
+      OS::Print("Replacing %s with %s\n", defn->ToCString(),
+                                          replacement->ToCString());
+    }
+    defn->ReplaceWith(replacement, NULL);
+    ASSERT(flow_graph_->VerifyUseLists());
+  }
+}
+
+void FlowGraphOptimizer::SelectIntegerInstructions() {
+  IntegerInstructionSelector iis(flow_graph_);
+  iis.Select();
+}
+
+
+// Range analysis for integer values.
 class RangeAnalysis : public ValueObject {
  public:
   explicit RangeAnalysis(FlowGraph* flow_graph)
@@ -4621,6 +4908,8 @@ void RangeAnalysis::Analyze() {
   CollectValues();
   InsertConstraints();
   InferRanges();
+  IntegerInstructionSelector iis(flow_graph_);
+  iis.Select();
   RemoveConstraints();
 }
 
@@ -8484,6 +8773,24 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
 }
 
 
+void ConstantPropagator::TruncateInteger(Definition* defn, int64_t mask) {
+  const Object& value = defn->constant_value();
+  if (IsNonConstant(value)) {
+    return;
+  }
+  ASSERT(IsConstant(value));
+  if (!value.IsInteger()) {
+    return;
+  }
+  const Integer& value_int = Integer::Cast(value);
+  int64_t truncated = value_int.AsInt64Value() & mask;
+  Instance& result = Integer::ZoneHandle(I, Integer::New(truncated));
+  result = result.CheckAndCanonicalize(NULL);
+  ASSERT(!result.IsNull());
+  SetValue(defn, result);
+}
+
+
 void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
   HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
@@ -8913,6 +9220,42 @@ void ConstantPropagator::VisitBoxInt32x4(BoxInt32x4Instr* instr) {
     // TODO(kmillikin): Handle conversion.
     SetValue(instr, non_constant_);
   }
+}
+
+
+void ConstantPropagator::VisitBoxUint32(BoxUint32Instr* instr) {
+  // TODO(kmillikin): Handle box operation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUnboxUint32(UnboxUint32Instr* instr) {
+  // TODO(kmillikin): Handle unbox operation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUnboxedIntConverter(
+    UnboxedIntConverterInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitBinaryUint32Op(BinaryUint32OpInstr* instr) {
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
+  TruncateInteger(instr, static_cast<int64_t>(0xFFFFFFFF));
+}
+
+
+void ConstantPropagator::VisitShiftUint32Op(ShiftUint32OpInstr* instr) {
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
+  TruncateInteger(instr, static_cast<int64_t>(0xFFFFFFFF));
+}
+
+
+void ConstantPropagator::VisitUnaryUint32Op(UnaryUint32OpInstr* instr) {
+  // TODO(kmillikin): Handle unary operations.
+  SetValue(instr, non_constant_);
 }
 
 

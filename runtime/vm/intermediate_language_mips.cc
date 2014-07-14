@@ -4511,6 +4511,103 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+CompileType BinaryUint32OpInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
+
+CompileType ShiftUint32OpInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
+
+CompileType UnaryUint32OpInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
+
+CompileType BoxUint32Instr::ComputeType() const {
+  return CompileType::Int();
+}
+
+
+CompileType UnboxUint32Instr::ComputeType() const {
+  return CompileType::Int();
+}
+
+
+LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
+                                                          bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxUint32Instr::MakeLocationSummary(Isolate* isolate,
+                                                       bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* BoxUint32Instr::MakeLocationSummary(Isolate* isolate,
+                                                     bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BoxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Isolate* isolate,
+                                                               bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* ThrowInstr::MakeLocationSummary(Isolate* isolate,
                                                  bool opt) const {
   return new(isolate) LocationSummary(isolate, 0, 0, LocationSummary::kCall);

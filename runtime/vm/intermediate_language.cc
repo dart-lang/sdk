@@ -384,6 +384,41 @@ UnboxedConstantInstr::UnboxedConstantInstr(const Object& value)
       FlowGraphBuilder::FindDoubleConstant(Double::Cast(value).value());
 }
 
+
+bool Value::BindsTo32BitMaskConstant() const {
+  if (!definition()->IsUnboxInteger() || !definition()->IsUnboxUint32()) {
+    return false;
+  }
+  // Two cases to consider: UnboxInteger and UnboxUint32.
+  if (definition()->IsUnboxInteger()) {
+    UnboxIntegerInstr* instr = definition()->AsUnboxInteger();
+    if (!instr->value()->BindsToConstant()) {
+      return false;
+    }
+    const Object& obj = instr->value()->BoundConstant();
+    if (!obj.IsMint()) {
+      return false;
+    }
+    Mint& mint = Mint::Handle();
+    mint ^= obj.raw();
+    return mint.value() == kMaxUint32;
+  } else if (definition()->IsUnboxUint32()) {
+    UnboxUint32Instr* instr = definition()->AsUnboxUint32();
+    if (!instr->value()->BindsToConstant()) {
+      return false;
+    }
+    const Object& obj = instr->value()->BoundConstant();
+    if (!obj.IsMint()) {
+      return false;
+    }
+    Mint& mint = Mint::Handle();
+    mint ^= obj.raw();
+    return mint.value() == kMaxUint32;
+  }
+  return false;
+}
+
+
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();
@@ -1313,7 +1348,7 @@ bool BinarySmiOpInstr::RightIsPowerOfTwoConstant() const {
 }
 
 
-static bool ToIntegerConstant(Value* value, intptr_t* result) {
+static bool ToIntegerConstant(Value* value, int64_t* result) {
   if (!value->BindsToConstant()) {
     if (value->definition()->IsUnboxDouble()) {
       return ToIntegerConstant(value->definition()->AsUnboxDouble()->value(),
@@ -1325,10 +1360,13 @@ static bool ToIntegerConstant(Value* value, intptr_t* result) {
   const Object& constant = value->BoundConstant();
   if (constant.IsDouble()) {
     const Double& double_constant = Double::Cast(constant);
-    *result = static_cast<intptr_t>(double_constant.value());
+    *result = static_cast<int64_t>(double_constant.value());
     return (static_cast<double>(*result) == double_constant.value());
   } else if (constant.IsSmi()) {
     *result = Smi::Cast(constant).Value();
+    return true;
+  } else if (constant.IsMint()) {
+    *result = Mint::Cast(constant).value();
     return true;
   }
 
@@ -1336,16 +1374,21 @@ static bool ToIntegerConstant(Value* value, intptr_t* result) {
 }
 
 
-static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
-                                                     intptr_t cid,
-                                                     Value* left,
-                                                     Value* right) {
+static Definition* CanonicalizeCommutativeArithmetic(
+    Token::Kind op,
+    intptr_t cid,
+    Value* left,
+    Value* right,
+    int64_t mask = static_cast<int64_t>(0xFFFFFFFFFFFFFFFF)) {
   ASSERT((cid == kSmiCid) || (cid == kDoubleCid) || (cid == kMintCid));
 
-  intptr_t left_value;
+  int64_t left_value;
   if (!ToIntegerConstant(left, &left_value)) {
     return NULL;
   }
+
+  // Apply truncation mask to left_value.
+  left_value &= mask;
 
   switch (op) {
     case Token::kMUL:
@@ -1377,7 +1420,7 @@ static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
       ASSERT(cid != kDoubleCid);
       if (left_value == 0) {
         return left->definition();
-      } else if (left_value == -1) {
+      } else if (left_value == mask) {
         return right->definition();
       }
       break;
@@ -1385,7 +1428,7 @@ static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
       ASSERT(cid != kDoubleCid);
       if (left_value == 0) {
         return right->definition();
-      } else if (left_value == -1) {
+      } else if (left_value == mask) {
         return left->definition();
       }
       break;
@@ -1503,6 +1546,33 @@ Definition* BinaryMintOpInstr::Canonicalize(FlowGraph* flow_graph) {
                                              kMintCid,
                                              right(),
                                              left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
+Definition* BinaryUint32OpInstr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* result = NULL;
+
+  const int64_t truncation_mask = static_cast<int64_t>(0xFFFFFFFF);
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kMintCid,
+                                             left(),
+                                             right(),
+                                             truncation_mask);
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kMintCid,
+                                             right(),
+                                             left(),
+                                             truncation_mask);
   if (result != NULL) {
     return result;
   }

@@ -1336,5 +1336,4 @@ CompileType ExtractNthOutputInstr::ComputeType() const {
   return CompileType::FromCid(definition_cid_);
 }
 
-
 }  // namespace dart

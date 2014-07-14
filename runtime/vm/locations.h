@@ -21,6 +21,7 @@ enum Representation {
   kTagged,
   kUntagged,
   kUnboxedDouble,
+  kUnboxedUint32,
   kUnboxedMint,
   kUnboxedFloat32x4,
   kUnboxedInt32x4,

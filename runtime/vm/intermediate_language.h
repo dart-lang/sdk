@@ -581,6 +581,9 @@ class Value : public ZoneAllocated {
 
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
 
+  // Returns true if this value binds to the constant: 0xFFFFFFFF.
+  bool BindsTo32BitMaskConstant() const;
+
   // Return true if the value represents a constant.
   bool BindsToConstant() const;
 
@@ -789,6 +792,12 @@ class EmbeddedArray<T, 0> {
   M(Float64x2ZeroArg)                                                          \
   M(Float64x2OneArg)                                                           \
   M(ExtractNthOutput)                                                          \
+  M(BinaryUint32Op)                                                            \
+  M(ShiftUint32Op)                                                             \
+  M(UnaryUint32Op)                                                             \
+  M(BoxUint32)                                                                 \
+  M(UnboxUint32)                                                               \
+  M(UnboxedIntConverter)                                                       \
 
 
 #define FORWARD_DECLARATION(type) class type##Instr;
@@ -1133,6 +1142,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class RelationalOpInstr;
   friend class EqualityCompareInstr;
   friend class TestCidsInstr;
+  friend class BinaryUint32OpInstr;
+  friend class UnaryUint32OpInstr;
+  friend class ShiftUint32OpInstr;
+  friend class UnboxUint32Instr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -5294,6 +5307,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
     return kUnboxedMint;
   }
 
+  intptr_t deopt_id() const { return deopt_id_; }
 
   virtual void InferRange();
 
@@ -7049,9 +7063,9 @@ class BinaryFloat64x2OpInstr : public TemplateDefinition<2> {
 class BinaryMintOpInstr : public TemplateDefinition<2> {
  public:
   BinaryMintOpInstr(Token::Kind op_kind,
-                           Value* left,
-                           Value* right,
-                           intptr_t deopt_id)
+                    Value* left,
+                    Value* right,
+                    intptr_t deopt_id)
       : op_kind_(op_kind), can_overflow_(true) {
     SetInputAt(0, left);
     SetInputAt(1, right);
@@ -8035,6 +8049,299 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
+};
+
+
+class BinaryUint32OpInstr : public TemplateDefinition<2> {
+ public:
+  BinaryUint32OpInstr(Token::Kind op_kind,
+                      Value* left,
+                      Value* right,
+                      intptr_t deopt_id)
+      : op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const {
+    return false;
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedUint32;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return kUnboxedUint32;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  DECLARE_INSTRUCTION(BinaryUint32Op)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsBinaryUint32Op());
+    return op_kind() == other->AsBinaryUint32Op()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(BinaryUint32OpInstr);
+};
+
+
+class ShiftUint32OpInstr : public TemplateDefinition<2> {
+ public:
+  ShiftUint32OpInstr(Token::Kind op_kind,
+                     Value* left,
+                     Value* right,
+                     intptr_t deopt_id)
+      : op_kind_(op_kind) {
+    ASSERT(op_kind == Token::kSHR || op_kind == Token::kSHL);
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const {
+    return true;
+  }
+
+  virtual CompileType ComputeType() const;
+
+  virtual Representation representation() const {
+    return kUnboxedUint32;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx == 0) || (idx == 1));
+    return (idx == 0) ? kUnboxedUint32 : kTagged;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(ShiftUint32Op)
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsShiftUint32Op()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(ShiftUint32OpInstr);
+};
+
+
+class UnaryUint32OpInstr : public TemplateDefinition<1> {
+ public:
+  UnaryUint32OpInstr(Token::Kind op_kind,
+                     Value* value,
+                     intptr_t deopt_id)
+      : op_kind_(op_kind) {
+    ASSERT(op_kind == Token::kBIT_NOT);
+    SetInputAt(0, value);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const {
+    return false;
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedUint32;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedUint32;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(UnaryUint32Op)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind() == other->AsUnaryUint32Op()->op_kind();
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const Token::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnaryUint32OpInstr);
+};
+
+
+class BoxUint32Instr : public TemplateDefinition<1> {
+ public:
+  explicit BoxUint32Instr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    return Isolate::kNoDeoptId;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedUint32;
+  }
+
+  DECLARE_INSTRUCTION(BoxUint32)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxUint32Instr);
+};
+
+
+class UnboxUint32Instr : public TemplateDefinition<1> {
+ public:
+  UnboxUint32Instr(Value* value, intptr_t deopt_id) {
+    SetInputAt(0, value);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kSmiCid)
+        && (value()->Type()->ToCid() != kMintCid);
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedUint32;
+  }
+
+
+  DECLARE_INSTRUCTION(UnboxUint32)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxUint32Instr);
+};
+
+
+class UnboxedIntConverterInstr : public TemplateDefinition<1> {
+ public:
+  UnboxedIntConverterInstr(Representation from,
+                           Representation to,
+                           Value* value)
+      : from_representation_(from),
+        to_representation_(to) {
+    ASSERT(from != to);
+    ASSERT((from == kUnboxedMint) || (from == kUnboxedUint32));
+    ASSERT((to == kUnboxedMint) || (to == kUnboxedUint32));
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  Representation from() const { return from_representation_; }
+  Representation to() const { return to_representation_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return to();
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return from();
+  }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const {
+    ASSERT(other->IsUnboxedIntConverter());
+    UnboxedIntConverterInstr* converter = other->AsUnboxedIntConverter();
+    return (converter->from() == from()) && (converter->to() == to());
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+  DECLARE_INSTRUCTION(UnboxedIntConverter);
+
+ private:
+  const Representation from_representation_;
+  const Representation to_representation_;
+  DISALLOW_COPY_AND_ASSIGN(UnboxedIntConverterInstr);
 };
 
 
