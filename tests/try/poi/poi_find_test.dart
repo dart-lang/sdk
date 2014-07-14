@@ -21,9 +21,16 @@ import 'package:expect/expect.dart';
 import 'package:compiler/implementation/elements/elements.dart' show
     Element;
 
+import 'package:compiler/implementation/source_file_provider.dart' show
+    FormattingDiagnosticHandler;
+
 Future testPoi() {
   Uri script = Platform.script.resolve('data/empty_main.dart');
-  return poi.runPoi(script, 225).then((Element element) {
+  FormattingDiagnosticHandler handler = new FormattingDiagnosticHandler();
+  handler.verbose = true;
+
+  Future future = poi.runPoi(script, 225, handler.provider, handler);
+  return future.then((Element element) {
     Uri foundScript = element.compilationUnit.script.resourceUri;
     Expect.stringEquals('$script', '$foundScript');
     Expect.stringEquals('main', element.name);
