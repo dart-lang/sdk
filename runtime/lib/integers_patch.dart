@@ -67,8 +67,8 @@ patch class int {
 
   static int _native_parse(String str) native "Integer_parse";
 
-  static int _throwFormatException(String source) {
-    throw new FormatException(source);
+  static int _throwFormatException(String source, int position) {
+    throw new FormatException("", source, position);
   }
 
   /* patch */ static int parse(String source,
@@ -78,7 +78,7 @@ patch class int {
       int result = _parse(source);
       if (result == null) {
         if (onError == null) {
-          throw new FormatException(source);
+          throw new FormatException("", source);
         }
         return onError(source);
       }
@@ -97,12 +97,14 @@ patch class int {
     if (radix < 2 || radix > 36) {
       throw new RangeError("Radix $radix not in range 2..36");
     }
-    if (onError == null) {
-      onError = _throwFormatException;
-    }
     // Remove leading and trailing white space.
-    source = source.trim();
-    if (source.isEmpty) return onError(source);
+    int start = source._firstNonWhitespace();
+    int i = start;
+    if (onError == null) onError = (source) {
+      throw new FormatException("Invalid radix-$radix number", source, i);
+    };
+    if (start == source.length) return onError(source);
+    int end = source._lastNonWhitespace() + 1;
 
     bool negative = false;
     int result = 0;
@@ -118,12 +120,11 @@ patch class int {
       25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, NA, NA, NA, NA, NA,  // 0x70
     ];
 
-    int i = 0;
     int code = source.codeUnitAt(i);
     if (code == 0x2d || code == 0x2b) { // Starts with a plus or minus-sign.
       negative = (code == 0x2d);
-      if (source.length == 1) return onError(source);
-      i = 1;
+      i++;
+      if (i == end) return onError(source);
       code = source.codeUnitAt(i);
     }
     do {
@@ -132,7 +133,7 @@ patch class int {
       if (digit >= radix) return onError(source);
       result = result * radix + digit;
       i++;
-      if (i == source.length) break;
+      if (i == end) break;
       code = source.codeUnitAt(i);
     } while (true);
     return negative ? -result : result;

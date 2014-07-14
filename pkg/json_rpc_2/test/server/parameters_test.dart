@@ -229,7 +229,8 @@ void main() {
     test("[].asDateTime fails for invalid date/times", () {
       expect(() => parameters['string'].asDateTime,
           throwsInvalidParams('Parameter "string" for method "foo" must be a '
-              'valid date/time, but was "zap".'));
+              'valid date/time, but was "zap".\n'
+              'Invalid date format'));
     });
 
     test("[].asUri returns URI parameters", () {
@@ -262,9 +263,7 @@ void main() {
       expect(() => parameters['invalid-uri'].asUri,
           throwsInvalidParams('Parameter "invalid-uri" for method "foo" must '
               'be a valid URI, but was "http://[::1".\n'
-              'Missing end `]` to match `[` in host at position 7.\n'
-              'http://[::1\n'
-              '       ^'));
+              'Missing end `]` to match `[` in host'));
     });
 
     group("with a nested parameter map", () {

@@ -44,13 +44,122 @@ class FormatException implements Exception {
    * A message describing the format error.
    */
   final String message;
+  /**
+   * The source that caused the error.
+   *
+   * This is usually a [String], but can be other types too. If it is a string,
+   * parts of it may be included in the [toString] message.
+   *
+   * May also be `null` if omitted.
+   */
+  final source;
+  /**
+   * The position in source where the error was detected.
+   *
+   * May be omitted. If present, [source] should also be present.
+   */
+  final int position;
 
   /**
    * Creates a new FormatException with an optional error [message].
+   *
+   * Optionally also supply the [source] that had the incorrect format, and
+   * even the [position] in the format where this was detected.
    */
-  const FormatException([this.message = ""]);
+  const FormatException([this.message = "", this.source, this.position]);
 
-  String toString() => "FormatException: $message";
+  /**
+   * Returns a description of the format exception.
+   *
+   * The description always contains the [message].
+   * If [source] was provided, the description will contain (at least a part of)
+   * the source.
+   * If [position] is also provided, the part of the source included will
+   * contain that position, and the position will be marked.
+   *
+   * If the source contains a line break before position, only the line
+   * containing position will be included, and its line number will also be
+   * part of the description. Line and character offsets are 1-based.
+   */
+  String toString() {
+    String report = "FormatException";
+    if (message != null && message.isNotEmpty) {
+      report = "$report: $message";
+    }
+    int position = this.position;
+    if (source is! String) {
+      if (position != null) {
+        report += " (at position $position)";
+      }
+      return report;
+    }
+    if (position != null && (position < 0 || position > source.length)) {
+      position = null;
+    }
+    // Source is string and position is null or valid.
+    if (position == null) {
+      String source = this.source;
+      if (source.length > 78) {
+        source = source.substring(0, 75) + "...";
+      }
+      return "$report\n$source";
+    }
+    int lineNum = 1;
+    int lineStart = 0;
+    bool lastWasCR;
+    for (int i = 0; i < position; i++) {
+      int char = source.codeUnitAt(i);
+      if (char == 0x0a) {
+        if (lineStart != i || !lastWasCR) {
+          lineNum++;
+        }
+        lineStart = i + 1;
+        lastWasCR = false;
+      } else if (char == 0x0d) {
+        lineNum++;
+        lineStart = i + 1;
+        lastWasCR = true;
+      }
+    }
+    if (lineNum > 1) {
+      report += " (at line $lineNum, character ${position - lineStart + 1})\n";
+    } else {
+      report += " (at character ${position + 1})\n";
+    }
+    int lineEnd = source.length;
+    for (int i = position; i < source.length; i++) {
+      int char = source.codeUnitAt(i);
+      if (char == 0x0a || char == 0x0d) {
+        lineEnd = i;
+        break;
+      }
+    }
+    int length = lineEnd - lineStart;
+    int start = lineStart;
+    int end = lineEnd;
+    String prefix = "";
+    String postfix = "";
+    if (length > 78) {
+      // Can't show entire line. Try to anchor at the nearest end, if
+      // one is within reach.
+      int index = position - lineStart;
+      if (index < 75) {
+        end = start + 75;
+        postfix = "...";
+      } else if (end - position < 75) {
+        start = end - 75;
+        prefix = "...";
+      } else {
+        // Neither end is near, just pick an area around the position.
+        start = position - 36;
+        end = position + 36;
+        prefix = postfix = "...";
+      }
+    }
+    String slice = source.substring(start, end);
+    int markOffset = position - start + prefix.length;
+    return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
+  }
 }
 
 class IntegerDivisionByZeroException implements Exception {

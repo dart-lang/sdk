@@ -33,8 +33,6 @@ abstract class _JsonListener {
   void beginArray() {}
   void arrayElement() {}
   void endArray() {}
-  /** Called on failure to parse [source]. */
-  void fail(String source, int position, String message) {}
 }
 
 /**
@@ -568,16 +566,7 @@ class _JsonParser {
 
   void fail(int position, [String message]) {
     if (message == null) message = "Unexpected character";
-    listener.fail(source, position, message);
-    // If the listener didn't throw, do it here.
-    String slice;
-    int sliceEnd = position + 20;
-    if (sliceEnd > source.length) {
-      slice = "'${source.substring(position)}'";
-    } else {
-      slice = "'${source.substring(position, sliceEnd)}...'";
-    }
-    throw new FormatException("Unexpected character at $position: $slice");
+    throw new FormatException(message, source, position);
   }
 }
 
