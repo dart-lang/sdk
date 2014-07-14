@@ -219,6 +219,8 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     return {
       'id': id,
       'kind': 'field',
+      'type': element.type.toString(),
+      'inferredType': inferredType.toString(),
       'name': element.name,
       'children': children,
       'size': size,
@@ -260,6 +262,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     String kind = "function";
     List<String> children = [];
     List<Map<String, dynamic>> parameters = [];
+    String inferredReturnType = null;
     String returnType = null;
     String sideEffects = null;
     String code = "";
@@ -294,6 +297,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
 
     if (emittedCode != null) {
       FunctionSignature signature = element.functionSignature;
+      returnType = signature.type.returnType.toString();
       signature.forEachParameter((parameter) {
         parameters.add({
           'name': parameter.name,
@@ -301,7 +305,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
             .getGuaranteedTypeOfElement(parameter).toString()
         });
       });
-      returnType = compiler.typesTask
+      inferredReturnType = compiler.typesTask
         .getGuaranteedReturnTypeOfElement(element).toString();
       sideEffects = compiler.world.getSideEffectsOfElement(element).toString();
       code = emittedCode.getText();
@@ -328,6 +332,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       'children': children,
       'size': size,
       'returnType': returnType,
+      'inferredReturnType': inferredReturnType,
       'parameters': parameters,
       'sideEffects': sideEffects,
       'code': code,
