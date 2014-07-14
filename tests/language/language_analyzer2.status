@@ -454,3 +454,13 @@ factory1_test/none: StaticWarning # Test Issue 18726
 generic_closure_test: StaticWarning
 local_function2_test: StaticWarning
 redirecting_factory_long_test: StaticWarning
+
+# This test uses "const Symbol('_setAt')"
+vm/reflect_core_vm_test: CompileTimeError
+
+# This test is expected to have warnings because of noSuchMethod overriding.
+regress_12561_test: StaticWarning
+
+main_not_a_function_test/01: Fail # http://dartbug.com/20030
+main_test/03: Fail # http://dartbug.com/20030
+no_main_test/01: Fail # http://dartbug.com/20030

@@ -1982,6 +1982,14 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource(";", AstFactory.emptyStatement());
   }
 
+  void test_visitEnumDeclaration_multiple() {
+    _assertSource("enum E {ONE, TWO}", AstFactory.enumDeclaration2("E", ["ONE", "TWO"]));
+  }
+
+  void test_visitEnumDeclaration_single() {
+    _assertSource("enum E {ONE}", AstFactory.enumDeclaration2("E", ["ONE"]));
+  }
+
   void test_visitExportDirective_combinator() {
     _assertSource("export 'a.dart' show A;", AstFactory.exportDirective2("a.dart", [AstFactory.showCombinator([AstFactory.identifier3("A")])]));
   }
@@ -3185,6 +3193,14 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitEmptyStatement', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitEmptyStatement);
+      });
+      _ut.test('test_visitEnumDeclaration_multiple', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitEnumDeclaration_multiple);
+      });
+      _ut.test('test_visitEnumDeclaration_single', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitEnumDeclaration_single);
       });
       _ut.test('test_visitExportDirective_combinator', () {
         final __test = new ToSourceVisitorTest();

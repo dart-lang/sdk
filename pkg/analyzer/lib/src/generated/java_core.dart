@@ -511,6 +511,7 @@ class JavaPatternMatcher {
   JavaPatternMatcher(RegExp re, String input) {
     _matches = re.allMatches(input).iterator;
   }
+  bool matches() => find();
   bool find() {
     if (!_matches.moveNext()) {
       return false;

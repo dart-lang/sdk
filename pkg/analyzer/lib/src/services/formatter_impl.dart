@@ -1848,4 +1848,14 @@ class SourceVisitor implements AstVisitor {
   }
 
   String toString() => writer.toString();
+
+  @override
+  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    // TODO: implement visitEnumConstantDeclaration
+  }
+
+  @override
+  visitEnumDeclaration(EnumDeclaration node) {
+    // TODO: implement visitEnumDeclaration
+  }
 }

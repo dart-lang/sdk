@@ -7,12 +7,15 @@
 
 library engine.testing.element_factory;
 
+import 'dart:collection';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 
 /**
  * The class `ElementFactory` defines utility methods used to create elements for testing
@@ -75,6 +78,60 @@ class ElementFactory {
   }
 
   static ConstructorElementImpl constructorElement2(ClassElement definingClass, String name, List<DartType> argumentTypes) => constructorElement(definingClass, name, false, argumentTypes);
+
+  static ClassElementImpl enumElement(TypeProvider typeProvider, String enumName, List<String> constantNames) {
+    //
+    // Build the enum.
+    //
+    ClassElementImpl enumElement = new ClassElementImpl(enumName, -1);
+    InterfaceTypeImpl enumType = new InterfaceTypeImpl.con1(enumElement);
+    enumElement.type = enumType;
+    enumElement.supertype = objectType;
+    //
+    // Populate the fields.
+    //
+    List<FieldElement> fields = new List<FieldElement>();
+    InterfaceType intType = typeProvider.intType;
+    InterfaceType stringType = typeProvider.stringType;
+    String indexFieldName = "index";
+    FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
+    indexField.final2 = true;
+    indexField.type = intType;
+    fields.add(indexField);
+    String nameFieldName = "_name";
+    FieldElementImpl nameField = new FieldElementImpl(nameFieldName, -1);
+    nameField.final2 = true;
+    nameField.type = stringType;
+    fields.add(nameField);
+    FieldElementImpl valuesField = new FieldElementImpl("values", -1);
+    valuesField.static = true;
+    valuesField.const3 = true;
+    valuesField.type = typeProvider.listType.substitute4(<DartType> [enumType]);
+    fields.add(valuesField);
+    //
+    // Build the enum constants.
+    //
+    int constantCount = constantNames.length;
+    for (int i = 0; i < constantCount; i++) {
+      String constantName = constantNames[i];
+      FieldElementImpl constantElement = new ConstFieldElementImpl.con2(constantName, -1);
+      constantElement.static = true;
+      constantElement.const3 = true;
+      constantElement.type = enumType;
+      HashMap<String, DartObjectImpl> fieldMap = new HashMap<String, DartObjectImpl>();
+      fieldMap[indexFieldName] = new DartObjectImpl(intType, new IntState(i));
+      fieldMap[nameFieldName] = new DartObjectImpl(stringType, new StringState(constantName));
+      DartObjectImpl value = new DartObjectImpl(enumType, new GenericState(fieldMap));
+      constantElement.evaluationResult = new ValidResult(value);
+      fields.add(constantElement);
+    }
+    //
+    // Finish building the enum.
+    //
+    enumElement.fields = new List.from(fields);
+    // Client code isn't allowed to invoke the constructor, so we do not model it.
+    return enumElement;
+  }
 
   static ExportElementImpl exportFor(LibraryElement exportedLibrary, List<NamespaceCombinator> combinators) {
     ExportElementImpl spec = new ExportElementImpl();
@@ -349,11 +406,7 @@ class ElementFactory {
 
   static TopLevelVariableElementImpl topLevelVariableElement(Identifier name) => new TopLevelVariableElementImpl.forNode(name);
 
-  static TopLevelVariableElementImpl topLevelVariableElement2(String name) {
-    TopLevelVariableElementImpl element = new TopLevelVariableElementImpl(name, -1);
-    element.synthetic = true;
-    return element;
-  }
+  static TopLevelVariableElementImpl topLevelVariableElement2(String name) => topLevelVariableElement3(name, false, false, null);
 
   static TopLevelVariableElementImpl topLevelVariableElement3(String name, bool isConst, bool isFinal, DartType type) {
     TopLevelVariableElementImpl variable = new TopLevelVariableElementImpl(name, -1);

@@ -28,20 +28,6 @@ string_from_environment3_test: Skip
 string_from_environment_default_value: Skip
 string_from_environment_test: Skip
 
-[ $compiler == dart2analyzer]
-bool_from_environment2_test/01: Fail # Issue 18755
-bool_from_environment2_test/02: Fail # Issue 18755
-bool_from_environment2_test/03: Fail # Issue 18755
-bool_from_environment2_test/04: Fail # Issue 18755
-int_from_environment3_test/01: Fail # Issue 18755
-int_from_environment3_test/02: Fail # Issue 18755
-int_from_environment3_test/03: Fail # Issue 18755
-int_from_environment3_test/04: Fail # Issue 18755
-string_from_environment3_test/01: Fail # Issue 18755
-string_from_environment3_test/02: Fail # Issue 18755
-string_from_environment3_test/03: Fail # Issue 18755
-string_from_environment3_test/04: Fail # Issue 18755
-
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
 compare_to2_test: Fail    # Bug 4018
@@ -128,12 +114,9 @@ list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as exp
 list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
 
 [ $compiler == dart2analyzer ]
-symbol_test/02: Fail
-symbol_test/03: Fail
 int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
-symbol_test/01: fail # test issue 13730; It is static type warning if "const" instance creation argument type is not compatible with parameter type
 
 [ $arch == simmips ]
 int_parse_radix_test: Skip # Timeout

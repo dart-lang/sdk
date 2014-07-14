@@ -317,7 +317,7 @@ convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
 convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 
 # These tests use "const Symbol('void')".
-[ $compiler == dartanalyzer ]
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 mirrors/basic_types_in_dart_core_test: CompileTimeError
 mirrors/function_type_mirror_test: CompileTimeError
 mirrors/method_mirror_returntype_test: CompileTimeError

@@ -679,6 +679,10 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parse3("parseClassMember", <Object> ["C"], "abstract set m(v);", [ParserErrorCode.ABSTRACT_CLASS_MEMBER]);
   }
 
+  void test_abstractEnum() {
+    ParserTestCase.parseCompilationUnit("abstract enum E {ONE}", [ParserErrorCode.ABSTRACT_ENUM]);
+  }
+
   void test_abstractTopLevelFunction_function() {
     ParserTestCase.parseCompilationUnit("abstract f(v) {}", [ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION]);
   }
@@ -765,6 +769,10 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_constConstructorWithBody() {
     ParserTestCase.parse3("parseClassMember", <Object> ["C"], "const C() {}", [ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY]);
+  }
+
+  void test_constEnum() {
+    ParserTestCase.parseCompilationUnit("const enum E {ONE}", [ParserErrorCode.CONST_ENUM]);
   }
 
   void test_constFactory() {
@@ -871,6 +879,10 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_duplicateLabelInSwitchStatement() {
     ParserTestCase.parse4("parseSwitchStatement", "switch (e) {l1: case 0: break; l1: case 1: break;}", [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
+  }
+
+  void test_emptyEnumBody() {
+    ParserTestCase.parse3("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
   }
 
   void test_equalityCannotBeEqualityOperand_eq_eq() {
@@ -1004,6 +1016,10 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external C.c() {}", [ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY]);
   }
 
+  void test_externalEnum() {
+    ParserTestCase.parseCompilationUnit("external enum E {ONE}", [ParserErrorCode.EXTERNAL_ENUM]);
+  }
+
   void test_externalField_const() {
     ParserTestCase.parse3("parseClassMember", <Object> ["C"], "external const A f;", [ParserErrorCode.EXTERNAL_FIELD]);
   }
@@ -1070,6 +1086,10 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_finalConstructor() {
     ParserTestCase.parse3("parseClassMember", <Object> ["C"], "final C() {}", [ParserErrorCode.FINAL_CONSTRUCTOR]);
+  }
+
+  void test_finalEnum() {
+    ParserTestCase.parseCompilationUnit("final enum E {ONE}", [ParserErrorCode.FINAL_ENUM]);
   }
 
   void test_finalMethod() {
@@ -1274,6 +1294,10 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parse3("parseFinalConstVarOrType", <Object> [false], "a;", [ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE]);
   }
 
+  void test_missingEnumBody() {
+    ParserTestCase.parse3("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E;", [ParserErrorCode.MISSING_ENUM_BODY]);
+  }
+
   void test_missingExpressionInThrow_withCascade() {
     ParserTestCase.parse4("parseThrowExpression", "throw;", [ParserErrorCode.MISSING_EXPRESSION_IN_THROW]);
   }
@@ -1326,6 +1350,10 @@ class ErrorParserTest extends ParserTestCase {
 
   void test_missingIdentifier_functionDeclaration_returnTypeWithoutName() {
     ParserTestCase.parse4("parseFunctionDeclarationStatement", "A<T> () {}", [ParserErrorCode.MISSING_IDENTIFIER]);
+  }
+
+  void test_missingIdentifier_inEnum() {
+    ParserTestCase.parse3("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E {, TWO}", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
   void test_missingIdentifier_inSymbol_afterPeriod() {
@@ -1638,6 +1666,10 @@ class ErrorParserTest extends ParserTestCase {
     ParserTestCase.parseCompilationUnit("var class C {}", [ParserErrorCode.VAR_CLASS]);
   }
 
+  void test_varEnum() {
+    ParserTestCase.parseCompilationUnit("var enum E {ONE}", [ParserErrorCode.VAR_ENUM]);
+  }
+
   void test_varReturnType() {
     ParserTestCase.parse3("parseClassMember", <Object> ["C"], "var m() {}", [ParserErrorCode.VAR_RETURN_TYPE]);
   }
@@ -1732,6 +1764,10 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_abstractClassMember_setter);
       });
+      _ut.test('test_abstractEnum', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_abstractEnum);
+      });
       _ut.test('test_abstractTopLevelFunction_function', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_abstractTopLevelFunction_function);
@@ -1815,6 +1851,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_constConstructorWithBody', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_constConstructorWithBody);
+      });
+      _ut.test('test_constEnum', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_constEnum);
       });
       _ut.test('test_constFactory', () {
         final __test = new ErrorParserTest();
@@ -1919,6 +1959,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_duplicatedModifier_var', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_duplicatedModifier_var);
+      });
+      _ut.test('test_emptyEnumBody', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_emptyEnumBody);
       });
       _ut.test('test_equalityCannotBeEqualityOperand_eq_eq', () {
         final __test = new ErrorParserTest();
@@ -2036,6 +2080,10 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_externalConstructorWithBody_named);
       });
+      _ut.test('test_externalEnum', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_externalEnum);
+      });
       _ut.test('test_externalField_const', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_externalField_const);
@@ -2103,6 +2151,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_finalConstructor', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_finalConstructor);
+      });
+      _ut.test('test_finalEnum', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_finalEnum);
       });
       _ut.test('test_finalMethod', () {
         final __test = new ErrorParserTest();
@@ -2296,6 +2348,10 @@ class ErrorParserTest extends ParserTestCase {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingConstFinalVarOrType_topLevel);
       });
+      _ut.test('test_missingEnumBody', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingEnumBody);
+      });
       _ut.test('test_missingExpressionInThrow_withCascade', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingExpressionInThrow_withCascade);
@@ -2347,6 +2403,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_missingIdentifier_functionDeclaration_returnTypeWithoutName', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_missingIdentifier_functionDeclaration_returnTypeWithoutName);
+      });
+      _ut.test('test_missingIdentifier_inEnum', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_missingIdentifier_inEnum);
       });
       _ut.test('test_missingIdentifier_inSymbol_afterPeriod', () {
         final __test = new ErrorParserTest();
@@ -2643,6 +2703,10 @@ class ErrorParserTest extends ParserTestCase {
       _ut.test('test_varClass', () {
         final __test = new ErrorParserTest();
         runJUnitTest(__test, __test.test_varClass);
+      });
+      _ut.test('test_varEnum', () {
+        final __test = new ErrorParserTest();
+        runJUnitTest(__test, __test.test_varEnum);
       });
       _ut.test('test_varReturnType', () {
         final __test = new ErrorParserTest();
@@ -3235,7 +3299,9 @@ class ParserTestCase extends EngineTestCase {
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
     Parser parser = new Parser(null, listener);
+    parser.parseAsync = true;
     parser.parseDeferredLibraries = true;
+    parser.parseEnum = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);
     JUnitTestCase.assertNotNull(unit);
     listener.assertErrorsWithCodes(errorCodes);
@@ -7080,6 +7146,36 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(statement.semicolon);
   }
 
+  void test_parseEnumDeclaration_one() {
+    EnumDeclaration declaration = ParserTestCase.parse("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E {ONE}");
+    JUnitTestCase.assertNull(declaration.documentationComment);
+    JUnitTestCase.assertNotNull(declaration.keyword);
+    JUnitTestCase.assertNotNull(declaration.leftBracket);
+    JUnitTestCase.assertNotNull(declaration.name);
+    EngineTestCase.assertSizeOfList(1, declaration.constants);
+    JUnitTestCase.assertNotNull(declaration.rightBracket);
+  }
+
+  void test_parseEnumDeclaration_trailingComma() {
+    EnumDeclaration declaration = ParserTestCase.parse("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E {ONE,}");
+    JUnitTestCase.assertNull(declaration.documentationComment);
+    JUnitTestCase.assertNotNull(declaration.keyword);
+    JUnitTestCase.assertNotNull(declaration.leftBracket);
+    JUnitTestCase.assertNotNull(declaration.name);
+    EngineTestCase.assertSizeOfList(1, declaration.constants);
+    JUnitTestCase.assertNotNull(declaration.rightBracket);
+  }
+
+  void test_parseEnumDeclaration_two() {
+    EnumDeclaration declaration = ParserTestCase.parse("parseEnumDeclaration", <Object> [emptyCommentAndMetadata()], "enum E {ONE, TWO}");
+    JUnitTestCase.assertNull(declaration.documentationComment);
+    JUnitTestCase.assertNotNull(declaration.keyword);
+    JUnitTestCase.assertNotNull(declaration.leftBracket);
+    JUnitTestCase.assertNotNull(declaration.name);
+    EngineTestCase.assertSizeOfList(2, declaration.constants);
+    JUnitTestCase.assertNotNull(declaration.rightBracket);
+  }
+
   void test_parseEqualityExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseEqualityExpression", "x == y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
@@ -10883,6 +10979,18 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseEmptyStatement', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseEmptyStatement);
+      });
+      _ut.test('test_parseEnumDeclaration_one', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseEnumDeclaration_one);
+      });
+      _ut.test('test_parseEnumDeclaration_trailingComma', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseEnumDeclaration_trailingComma);
+      });
+      _ut.test('test_parseEnumDeclaration_two', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseEnumDeclaration_two);
       });
       _ut.test('test_parseEqualityExpression_normal', () {
         final __test = new SimpleParserTest();
