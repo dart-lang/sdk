@@ -11,7 +11,7 @@ import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native_handler.dart' as native;
 import '../tree/tree.dart' as ast;
-import '../ir/ir_nodes.dart' as ir show Node;
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
@@ -360,7 +360,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
 
   void updateSelectorInTree(
       AstElement owner, Spannable node, Selector selector) {
-    if (node is ir.Node) {
+    if (node is cps_ir.Node) {
       // TODO(lry): update selector for IrInvokeDynamic.
       throw "updateSelector for IR node $node";
     }

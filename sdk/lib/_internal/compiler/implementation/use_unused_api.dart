@@ -40,9 +40,9 @@ import 'source_file_provider.dart' as source_file_provider;
 
 import 'ssa/ssa.dart' as ssa;
 
-import 'ir/ir_nodes.dart' as ir_nodes;
+import 'cps_ir/cps_ir_nodes.dart' as cps_ir_nodes;
 
-import 'ir/ir_builder.dart' as ir_builder;
+import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 
 class ElementVisitor extends elements_visitor.ElementVisitor {
   visitElement(e) {}
@@ -210,9 +210,9 @@ useElements(elements.ClassElement e, elements.Name n) {
   n.isAccessibleFrom(null);
 }
 
-useIr(ir_nodes.SExpressionStringifier stringifier,
+useIr(cps_ir_nodes.SExpressionStringifier stringifier,
       ir_builder.IrBuilderTask task) {
-  new ir_nodes.SExpressionStringifier();
+  new cps_ir_nodes.SExpressionStringifier();
   stringifier
     ..newContinuationName()
     ..newValueName()

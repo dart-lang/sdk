@@ -11,8 +11,8 @@ import '../dart2jslib.dart' as dart2js show Constant, ConstructedConstant,
 import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
-import '../helpers/helpers.dart';
 import 'const_expression.dart';
+import '../helpers/helpers.dart';
 
 abstract class Node {
   static int hashCount = 0;

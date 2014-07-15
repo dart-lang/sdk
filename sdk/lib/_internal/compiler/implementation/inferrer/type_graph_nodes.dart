@@ -239,7 +239,7 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
    * This map contains the callers of [element]. It stores all unique call sites
    * to enable counting the global number of call sites of [element].
    *
-   * A call site is either an AST [ast.Node], an [ir.Node] or in the case of
+   * A call site is either an AST [ast.Node], a [cps_ir.Node] or in the case of
    * synthesized calls, an [Element] (see uses of [synthesizeForwardingCall]
    * in [SimpleTypeInferrerVisitor]).
    */
@@ -258,7 +258,7 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
   }
 
   void addCall(Element caller, Spannable node) {
-    assert(node is ast.Node || node is ir.Node || node is Element);
+    assert(node is ast.Node || node is cps_ir.Node || node is Element);
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 

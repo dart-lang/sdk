@@ -32,7 +32,7 @@ import 'native_handler.dart' as native;
 import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
 import 'tree/tree.dart';
-import 'ir/ir_builder.dart' show IrBuilderTask;
+import 'cps_ir/cps_ir_builder.dart' show IrBuilderTask;
 import 'universe/universe.dart';
 import 'util/util.dart';
 import 'util/characters.dart' show $_;

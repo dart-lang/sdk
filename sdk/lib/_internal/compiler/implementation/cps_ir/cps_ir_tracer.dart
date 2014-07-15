@@ -6,7 +6,7 @@ library dart2js.ir_tracer;
 
 import 'dart:async' show EventSink;
 
-import 'ir_nodes.dart' as ir hide Function;
+import 'cps_ir_nodes.dart' as cps_ir hide Function;
 import '../tracer.dart';
 
 /**
@@ -14,15 +14,15 @@ import '../tracer.dart';
  */
 const bool IR_TRACE_LET_CONT = false;
 
-class IRTracer extends TracerUtil implements ir.Visitor {
+class IRTracer extends TracerUtil implements cps_ir.Visitor {
   int indent = 0;
   EventSink<String> output;
 
   IRTracer(this.output);
 
-  visit(ir.Node node) => node.accept(this);
+  visit(cps_ir.Node node) => node.accept(this);
 
-  void traceGraph(String name, ir.FunctionDefinition graph) {
+  void traceGraph(String name, cps_ir.FunctionDefinition graph) {
     tag("cfg", () {
       printProperty("name", name);
       visitFunctionDefinition(graph);
@@ -32,7 +32,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
   // Temporary field used during tree walk
   Names names;
 
-  visitFunctionDefinition(ir.FunctionDefinition f) {
+  visitFunctionDefinition(cps_ir.FunctionDefinition f) {
     names = new Names();
     BlockCollector builder = new BlockCollector(names);
     builder.visit(f);
@@ -44,9 +44,9 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     names = null;
   }
 
-  int countUses(ir.Definition definition) {
+  int countUses(cps_ir.Definition definition) {
     int count = 0;
-    ir.Reference ref = definition.firstRef;
+    cps_ir.Reference ref = definition.firstRef;
     while (ref != null) {
       ++count;
       ref = ref.nextRef;
@@ -70,7 +70,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
         });
       });
       tag("HIR", () {
-        for (ir.Parameter param in block.parameters) {
+        for (cps_ir.Parameter param in block.parameters) {
           String name = names.name(param);
           printStmt(name, "Parameter $name [useCount=${countUses(param)}]");
         }
@@ -86,13 +86,13 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     add("$bci $uses $resultVar $contents <|@\n");
   }
 
-  visitLetPrim(ir.LetPrim node) {
+  visitLetPrim(cps_ir.LetPrim node) {
     String id = names.name(node.primitive);
     printStmt(id, "LetPrim $id = ${formatPrimitive(node.primitive)}");
     visit(node.body);
   }
 
-  visitLetCont(ir.LetCont node) {
+  visitLetCont(cps_ir.LetCont node) {
     if (IR_TRACE_LET_CONT) {
       String dummy = names.name(node);
       String id = names.name(node.continuation);
@@ -101,7 +101,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     visit(node.body);
   }
 
-  visitInvokeStatic(ir.InvokeStatic node) {
+  visitInvokeStatic(cps_ir.InvokeStatic node) {
     String dummy = names.name(node);
     String callName = node.selector.name;
     String args = node.arguments.map(formatReference).join(', ');
@@ -109,7 +109,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "InvokeStatic $callName ($args) $kont");
   }
 
-  visitInvokeMethod(ir.InvokeMethod node) {
+  visitInvokeMethod(cps_ir.InvokeMethod node) {
     String dummy = names.name(node);
     String receiver = formatReference(node.receiver);
     String callName = node.selector.name;
@@ -119,7 +119,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
         "InvokeMethod $receiver $callName ($args) $kont");
   }
 
-  visitInvokeSuperMethod(ir.InvokeSuperMethod node) {
+  visitInvokeSuperMethod(cps_ir.InvokeSuperMethod node) {
     String dummy = names.name(node);
     String callName = node.selector.name;
     String args = node.arguments.map(formatReference).join(', ');
@@ -128,7 +128,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
         "InvokeSuperMethod $callName ($args) $kont");
   }
 
-  visitInvokeConstructor(ir.InvokeConstructor node) {
+  visitInvokeConstructor(cps_ir.InvokeConstructor node) {
     String dummy = names.name(node);
     String callName;
     if (node.target.name.isEmpty) {
@@ -141,20 +141,20 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "InvokeConstructor $callName ($args) $kont");
   }
 
-  visitConcatenateStrings(ir.ConcatenateStrings node) {
+  visitConcatenateStrings(cps_ir.ConcatenateStrings node) {
     String dummy = names.name(node);
     String args = node.arguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
     printStmt(dummy, "ConcatenateStrings ($args) $kont");
   }
 
-  visitLiteralList(ir.LiteralList node) {
+  visitLiteralList(cps_ir.LiteralList node) {
     String dummy = names.name(node);
     String values = node.values.map(formatReference).join(', ');
     printStmt(dummy, "LiteralList ($values)");
   }
 
-  visitLiteralMap(ir.LiteralMap node) {
+  visitLiteralMap(cps_ir.LiteralMap node) {
     String dummy = names.name(node);
     List<String> entries = new List<String>();
     for (int i = 0; i < node.values.length; ++i) {
@@ -165,7 +165,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "LiteralMap (${entries.join(', ')})");
   }
 
-  visitTypeOperator(ir.TypeOperator node) {
+  visitTypeOperator(cps_ir.TypeOperator node) {
     String dummy = names.name(node);
     String operator = node.operator;
     List<String> entries = new List<String>();
@@ -173,14 +173,14 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "TypeOperator ($operator $receiver ${node.type})");
   }
 
-  visitInvokeContinuation(ir.InvokeContinuation node) {
+  visitInvokeContinuation(cps_ir.InvokeContinuation node) {
     String dummy = names.name(node);
     String kont = formatReference(node.continuation);
     String args = node.arguments.map(formatReference).join(', ');
     printStmt(dummy, "InvokeContinuation $kont ($args)");
   }
 
-  visitBranch(ir.Branch node) {
+  visitBranch(cps_ir.Branch node) {
     String dummy = names.name(node);
     String condition = visit(node.condition);
     String trueCont = formatReference(node.trueContinuation);
@@ -188,7 +188,7 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     printStmt(dummy, "Branch $condition ($trueCont, $falseCont)");
   }
 
-  visitSetClosureVariable(ir.SetClosureVariable node) {
+  visitSetClosureVariable(cps_ir.SetClosureVariable node) {
     String dummy = names.name(node);
     String variable = node.variable.name;
     String value = formatReference(node.value);
@@ -196,63 +196,63 @@ class IRTracer extends TracerUtil implements ir.Visitor {
     visit(node.body);
   }
 
-  visitDeclareFunction(ir.DeclareFunction node) {
+  visitDeclareFunction(cps_ir.DeclareFunction node) {
     String dummy = names.name(node);
     String variable = node.variable.name;
     printStmt(dummy, 'DeclareFunction $variable');
     visit(node.body);
   }
 
-  String formatReference(ir.Reference ref) {
-    ir.Definition target = ref.definition;
-    if (target is ir.Continuation && target.body == null) {
+  String formatReference(cps_ir.Reference ref) {
+    cps_ir.Definition target = ref.definition;
+    if (target is cps_ir.Continuation && target.body == null) {
       return "return"; // Do not generate a name for the return continuation
     } else {
       return names.name(ref.definition);
     }
   }
 
-  String formatPrimitive(ir.Primitive p) => visit(p);
+  String formatPrimitive(cps_ir.Primitive p) => visit(p);
 
-  visitConstant(ir.Constant node) {
+  visitConstant(cps_ir.Constant node) {
     return "Constant ${node.value}";
   }
 
-  visitParameter(ir.Parameter node) {
+  visitParameter(cps_ir.Parameter node) {
     return "Parameter ${names.name(node)}";
   }
 
-  visitContinuation(ir.Continuation node) {
+  visitContinuation(cps_ir.Continuation node) {
     return "Continuation ${names.name(node)}";
   }
 
-  visitIsTrue(ir.IsTrue node) {
+  visitIsTrue(cps_ir.IsTrue node) {
     return "IsTrue(${names.name(node.value.definition)})";
   }
 
-  visitThis(ir.This node) {
+  visitThis(cps_ir.This node) {
     return "This";
   }
 
-  visitReifyTypeVar(ir.ReifyTypeVar node) {
+  visitReifyTypeVar(cps_ir.ReifyTypeVar node) {
     return "ReifyTypeVar ${node.typeVariable.name}";
   }
 
-  visitCreateFunction(ir.CreateFunction node) {
+  visitCreateFunction(cps_ir.CreateFunction node) {
     return "CreateFunction ${node.definition.element.name}";
   }
 
-  visitGetClosureVariable(ir.GetClosureVariable node) {
+  visitGetClosureVariable(cps_ir.GetClosureVariable node) {
     String variable = node.variable.name;
     return 'GetClosureVariable $variable';
   }
 
 
-  visitCondition(ir.Condition c) {}
-  visitExpression(ir.Expression e) {}
-  visitPrimitive(ir.Primitive p) {}
-  visitDefinition(ir.Definition d) {}
-  visitNode(ir.Node n) {}
+  visitCondition(cps_ir.Condition c) {}
+  visitExpression(cps_ir.Expression e) {}
+  visitPrimitive(cps_ir.Primitive p) {}
+  visitDefinition(cps_ir.Definition d) {}
+  visitNode(cps_ir.Node n) {}
 }
 
 /**
@@ -271,9 +271,9 @@ class Names {
   };
 
   String prefix(x) {
-    if (x is ir.Parameter) return 'r';
-    if (x is ir.Continuation || x is ir.FunctionDefinition) return 'B';
-    if (x is ir.Primitive) return 'v';
+    if (x is cps_ir.Parameter) return 'r';
+    if (x is cps_ir.Continuation || x is cps_ir.FunctionDefinition) return 'B';
+    if (x is cps_ir.Primitive) return 'v';
     return 'x';
   }
 
@@ -293,8 +293,8 @@ class Names {
  */
 class Block {
   String name;
-  final List<ir.Parameter> parameters;
-  final ir.Expression body;
+  final List<cps_ir.Parameter> parameters;
+  final cps_ir.Expression body;
   final List<Block> succ = <Block>[];
   final List<Block> pred = <Block>[];
 
@@ -306,15 +306,16 @@ class Block {
   }
 }
 
-class BlockCollector extends ir.Visitor {
+class BlockCollector extends cps_ir.Visitor {
   Block entry;
-  final Map<ir.Continuation, Block> cont2block = <ir.Continuation, Block>{};
+  final Map<cps_ir.Continuation, Block> cont2block =
+      <cps_ir.Continuation, Block>{};
   Block current_block;
 
   Names names;
   BlockCollector(this.names);
 
-  Block getBlock(ir.Continuation c) {
+  Block getBlock(cps_ir.Continuation c) {
     Block block = cont2block[c];
     if (block == null) {
       block = new Block(names.name(c), c.parameters, c.body);
@@ -323,67 +324,67 @@ class BlockCollector extends ir.Visitor {
     return block;
   }
 
-  visitFunctionDefinition(ir.FunctionDefinition f) {
+  visitFunctionDefinition(cps_ir.FunctionDefinition f) {
     entry = current_block = new Block(names.name(f), [], f.body);
     visit(f.body);
   }
 
-  visitLetPrim(ir.LetPrim exp) {
+  visitLetPrim(cps_ir.LetPrim exp) {
     visit(exp.body);
   }
 
-  visitLetCont(ir.LetCont exp) {
+  visitLetCont(cps_ir.LetCont exp) {
     visit(exp.continuation);
     visit(exp.body);
   }
 
-  void addEdgeToContinuation(ir.Reference continuation) {
-    ir.Definition target = continuation.definition;
-    if (target is ir.Continuation && target.body != null) {
+  void addEdgeToContinuation(cps_ir.Reference continuation) {
+    cps_ir.Definition target = continuation.definition;
+    if (target is cps_ir.Continuation && target.body != null) {
       current_block.addEdgeTo(getBlock(target));
     }
   }
 
-  visitInvokeStatic(ir.InvokeStatic exp) {
+  visitInvokeStatic(cps_ir.InvokeStatic exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
-  visitInvokeMethod(ir.InvokeMethod exp) {
+  visitInvokeMethod(cps_ir.InvokeMethod exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
-  visitInvokeConstructor(ir.InvokeConstructor exp) {
+  visitInvokeConstructor(cps_ir.InvokeConstructor exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
-  visitConcatenateStrings(ir.ConcatenateStrings exp) {
+  visitConcatenateStrings(cps_ir.ConcatenateStrings exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
-  visitInvokeContinuation(ir.InvokeContinuation exp) {
+  visitInvokeContinuation(cps_ir.InvokeContinuation exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
-  visitSetClosureVariable(ir.SetClosureVariable exp) {
+  visitSetClosureVariable(cps_ir.SetClosureVariable exp) {
     visit(exp.body);
   }
 
-  visitDeclareFunction(ir.DeclareFunction exp) {
+  visitDeclareFunction(cps_ir.DeclareFunction exp) {
     visit(exp.body);
   }
 
-  visitBranch(ir.Branch exp) {
-    ir.Continuation trueTarget = exp.trueContinuation.definition;
+  visitBranch(cps_ir.Branch exp) {
+    cps_ir.Continuation trueTarget = exp.trueContinuation.definition;
     if (trueTarget.body != null) {
       current_block.addEdgeTo(getBlock(trueTarget));
     }
-    ir.Continuation falseTarget = exp.falseContinuation.definition;
+    cps_ir.Continuation falseTarget = exp.falseContinuation.definition;
     if (falseTarget.body != null) {
       current_block.addEdgeTo(getBlock(falseTarget));
     }
   }
 
-  visitContinuation(ir.Continuation c) {
+  visitContinuation(cps_ir.Continuation c) {
     var old_node = current_block;
     current_block = getBlock(c);
     visit(c.body);

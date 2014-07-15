@@ -4,13 +4,19 @@
 
 library dart_tree_printer;
 
-import 'dart_printer.dart';
+import 'backend_ast_nodes.dart';
 import '../tree/tree.dart' as tree;
 import '../scanner/scannerlib.dart';
 import '../util/util.dart';
 import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart' as elements;
 import '../dart_types.dart' as types;
+
+/// Translates the backend AST to Dart frontend AST.
+tree.FunctionExpression emit(dart2js.TreeElementMapping treeElements,
+                             Node definition) {
+  return new TreePrinter(treeElements).makeExpression(definition);
+}
 
 /// If true, the unparser will insert a coment in front of every function
 /// it emits. This helps indicate which functions were translated by the new

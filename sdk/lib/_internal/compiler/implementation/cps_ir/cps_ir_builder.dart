@@ -4,7 +4,7 @@
 
 library dart2js.ir_builder;
 
-import 'ir_nodes.dart' as ir;
+import 'cps_ir_nodes.dart' as ir;
 import '../elements/elements.dart';
 import '../dart2jslib.dart';
 import '../dart_types.dart';

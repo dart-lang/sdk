@@ -2,26 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_codegen;
+library backend_ast_emitter;
 
-import 'dart_tree.dart' as tree;
-import 'dart_printer.dart';
-import 'dart_tree_printer.dart' show TreePrinter;
-import '../tree/tree.dart' as frontend;
+import 'tree_ir_nodes.dart' as tree;
+import 'backend_ast_nodes.dart';
 import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart';
 import '../dart_types.dart';
 import '../elements/modelx.dart' as modelx;
 import '../universe/universe.dart';
 import '../tree/tree.dart' as tree show Modifiers;
-import '../ir/const_expression.dart';
+import '../cps_ir/const_expression.dart';
 
-/// Translates the dart_tree IR to Dart frontend AST.
-frontend.FunctionExpression emit(FunctionElement element,
-                                 dart2js.TreeElementMapping treeElements,
-                                 tree.FunctionDefinition definition) {
-  FunctionExpression fn = new ASTEmitter().emit(definition);
-  return new TreePrinter(treeElements).makeExpression(fn);
+/// Translates the dart_tree IR to Dart backend AST.
+Expression emit(tree.FunctionDefinition definition) {
+  return new ASTEmitter().emit(definition);
 }
 
 /// Translates the dart_tree IR to Dart backend AST.

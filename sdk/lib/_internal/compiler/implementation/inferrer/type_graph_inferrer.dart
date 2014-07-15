@@ -8,7 +8,7 @@ import 'dart:collection' show Queue, IterableBase;
 import '../dart_types.dart' show DartType, InterfaceType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/tree.dart' as ast show DartString, Node;
-import '../ir/ir_nodes.dart' as ir show Node;
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../types/types.dart'
   show TypeMask, ContainerTypeMask, MapTypeMask, DictionaryTypeMask,
        ValueTypeMask, TypesInferrer;

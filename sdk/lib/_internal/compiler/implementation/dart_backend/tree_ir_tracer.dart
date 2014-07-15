@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_backend.tracer;
+library tree_ir_tracer;
 
 import 'dart:async' show EventSink;
 import '../tracer.dart';
-import 'dart_tree.dart';
+import 'tree_ir_nodes.dart';
 
 class Block {
   Label label;
