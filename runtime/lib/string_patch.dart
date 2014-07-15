@@ -133,12 +133,12 @@ class _StringBase {
     int otherLength = other.length;
     int len = (thisLength < otherLength) ? thisLength : otherLength;
     for (int i = 0; i < len; i++) {
-      int thisCodePoint = this.codeUnitAt(i);
-      int otherCodePoint = other.codeUnitAt(i);
-      if (thisCodePoint < otherCodePoint) {
+      int thisCodeUnit = this.codeUnitAt(i);
+      int otherCodeUnit = other.codeUnitAt(i);
+      if (thisCodeUnit < otherCodeUnit) {
         return -1;
       }
-      if (thisCodePoint > otherCodePoint) {
+      if (thisCodeUnit > otherCodeUnit) {
         return 1;
       }
     }
@@ -280,17 +280,17 @@ class _StringBase {
   // 3000          ; White_Space # Zs       IDEOGRAPHIC SPACE
   //
   // BOM: 0xFEFF
-  static bool _isTwoByteWhitespace(int codePoint) {
-    if (codePoint < 256) return _isOneByteWhitespace(codePoint);
-    return (codePoint == 0x1680) ||
-        (codePoint == 0x180E) ||
-        ((0x2000 <= codePoint) && (codePoint <= 0x200A)) ||
-        (codePoint == 0x2028) ||
-        (codePoint == 0x2029) ||
-        (codePoint == 0x202F) ||
-        (codePoint == 0x205F) ||
-        (codePoint == 0x3000) ||
-        (codePoint == 0xFEFF);
+  static bool _isTwoByteWhitespace(int codeUnit) {
+    if (codeUnit < 256) return _isOneByteWhitespace(codeUnit);
+    return (codeUnit == 0x1680) ||
+        (codeUnit == 0x180E) ||
+        ((0x2000 <= codeUnit) && (codeUnit <= 0x200A)) ||
+        (codeUnit == 0x2028) ||
+        (codeUnit == 0x2029) ||
+        (codeUnit == 0x202F) ||
+        (codeUnit == 0x205F) ||
+        (codeUnit == 0x3000) ||
+        (codeUnit == 0xFEFF);
   }
 
   int _firstNonWhitespace() {
@@ -643,8 +643,8 @@ class _OneByteString extends _StringBase implements String {
 
   int get hashCode native "String_getHashCode";
 
-  bool _isWhitespace(int codePoint) {
-    return _StringBase._isOneByteWhitespace(codePoint);
+  bool _isWhitespace(int codeUnit) {
+    return _StringBase._isOneByteWhitespace(codeUnit);
   }
 
   bool operator ==(Object other) {
@@ -921,8 +921,8 @@ class _TwoByteString extends _StringBase implements String {
         "_TwoByteString can only be allocated by the VM");
   }
 
-  bool _isWhitespace(int codePoint) {
-    return _StringBase._isTwoByteWhitespace(codePoint);
+  bool _isWhitespace(int codeUnit) {
+    return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
   bool operator ==(Object other) {
@@ -937,8 +937,8 @@ class _ExternalOneByteString extends _StringBase implements String {
         "_ExternalOneByteString can only be allocated by the VM");
   }
 
-  bool _isWhitespace(int codePoint) {
-    return _StringBase._isOneByteWhitespace(codePoint);
+  bool _isWhitespace(int codeUnit) {
+    return _StringBase._isOneByteWhitespace(codeUnit);
   }
 
   bool operator ==(Object other) {
@@ -955,8 +955,8 @@ class _ExternalTwoByteString extends _StringBase implements String {
         "_ExternalTwoByteString can only be allocated by the VM");
   }
 
-  bool _isWhitespace(int codePoint) {
-    return _StringBase._isTwoByteWhitespace(codePoint);
+  bool _isWhitespace(int codeUnit) {
+    return _StringBase._isTwoByteWhitespace(codeUnit);
   }
 
   bool operator ==(Object other) {

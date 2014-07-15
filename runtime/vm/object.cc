@@ -16972,7 +16972,7 @@ bool String::ParseDouble(const String& str,
   ASSERT(0 <= start);
   ASSERT(start <= end);
   ASSERT(end <= str.Length());
-  int length = end - start;
+  intptr_t length = end - start;
   NoGCScope no_gc;
   const uint8_t* startChar;
   if (str.IsOneByteString()) {
@@ -16981,8 +16981,9 @@ bool String::ParseDouble(const String& str,
     startChar = ExternalOneByteString::CharAddr(str, start);
   } else {
     uint8_t* chars = Isolate::Current()->current_zone()->Alloc<uint8_t>(length);
-    for (int i = 0; i < length; i++) {
-      int ch = str.CharAt(start + i);
+    const Scanner::CharAtFunc char_at = str.CharAtFunc();
+    for (intptr_t i = 0; i < length; i++) {
+      int32_t ch = char_at(str, start + i);
       if (ch < 128) {
         chars[i] = ch;
       } else {
