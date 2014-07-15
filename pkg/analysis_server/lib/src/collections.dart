@@ -5,6 +5,20 @@
 library collections;
 
 /**
+ * Returns the concatentation of the input iterables.
+ *
+ * The returned iterable is a lazily-evaluated view on the input iterables.
+ */
+Iterable concat(Iterable<Iterable> iterables) => iterables.expand((x) => x);
+
+
+/**
+ * Returns the concatentation of the input iterables as a [List].
+ */
+List concatToList(Iterable<Iterable> iterables) => concat(iterables).toList();
+
+
+/**
  * Instances of the class [HasToJson] implement [toJson] method that returns
  * a JSON presentation.
  */

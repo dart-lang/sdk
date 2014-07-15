@@ -6,7 +6,9 @@ library search.element_references;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/search/search_result.dart';
+import 'package:analysis_services/search/hierarchy.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -24,7 +26,7 @@ class ElementReferencesComputer {
    * Computes [SearchResult]s for [element] references.
    */
   Future<List<SearchResult>> compute(Element element, bool withPotential) {
-    var futures = <Future<List<SearchResult>>>[];
+    var futureGroup = new _ConcatFutureGroup<SearchResult>();
     // tweak element
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
@@ -32,57 +34,78 @@ class ElementReferencesComputer {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
-    // prepare Element(s) to find references to
-    List<Element> refElements = <Element>[];
-    if (element != null) {
-      // TODO(scheglov) find all hierarchy members
-//      if (element is ClassMemberElement) {
-//        refElements = HierarchyUtils.getHierarchyMembers(searchEngine, element);
-//      } else {
-//        refElements = <Element>[element];
-//      }
-      refElements = <Element>[element];
-    }
-    // process each 'refElement'
-    for (Element refElement in refElements) {
-      // add variable declaration
-      if (_isVariableLikeElement(refElement)) {
-        int nameOffset = refElement.nameOffset;
-        int nameLength = refElement.name.length;
-        SearchMatch searchMatch =
-            new SearchMatch(
-                MatchKind.DECLARATION,
-                refElement,
-                new SourceRange(nameOffset, nameLength),
-                true,
-                false);
-        SearchResult searchResult = new SearchResult.fromMatch(searchMatch);
-        futures.add(new Future.value(<SearchResult>[searchResult]));
-      }
-      // do search
-      Future<List<SearchMatch>> matchesFuture =
-          searchEngine.searchReferences(refElement);
-      Future<List<SearchResult>> resultsFuture =
-          matchesFuture.then((List<SearchMatch> matches) {
-        return matches.map(toResult).toList();
-      });
-      futures.add(resultsFuture);
-    }
-    // report potential references
+    // find element references
+    futureGroup.add(_findElementsReferences(element));
+    // add potential references
     if (withPotential) {
-      var matchesFuture = searchEngine.searchMemberReferences(element.name);
+      String name = element.displayName;
+      var matchesFuture = searchEngine.searchMemberReferences(name);
       var resultsFuture = matchesFuture.then((List<SearchMatch> matches) {
-        return matches.where(
-            (match) => !match.isResolved).map(toResult).toList();
+        return matches.where((match) => !match.isResolved).map(toResult);
       });
-      futures.add(resultsFuture);
+      futureGroup.add(resultsFuture);
     }
     // merge results
-    var futuresFuture = Future.wait(futures);
-    return futuresFuture.then((List<List<SearchResult>> lists) {
-      // TODO(scheglov) extract?
-      return lists.expand((List<SearchResult> matches) => matches).toList();
+    return futureGroup.future;
+  }
+
+  /**
+   * Returns a [Future] completing with a [List] of references to [element] or
+   * to the corresponding hierarchy [Element]s.
+   */
+  Future<List<SearchResult>> _findElementsReferences(Element element) {
+    return _getRefElements(element).then((Iterable<Element> refElements) {
+      var futureGroup = new _ConcatFutureGroup<SearchResult>();
+      for (Element refElement in refElements) {
+        // add variable declaration
+        if (_isVariableLikeElement(refElement)) {
+          SearchResult searchResult = _newDeclarationResult(refElement);
+          futureGroup.add(searchResult);
+        }
+        // do search
+        futureGroup.add(_findSingleElementReferences(refElement));
+      }
+      return futureGroup.future;
     });
+  }
+
+  /**
+   * Returns a [Future] completing with a [List] of references to [element].
+   */
+  Future<List<SearchResult>> _findSingleElementReferences(Element element) {
+    Future<List<SearchMatch>> matchesFuture =
+        searchEngine.searchReferences(element);
+    return matchesFuture.then((List<SearchMatch> matches) {
+      return matches.map(toResult).toList();
+    });
+  }
+
+  /**
+   * Returns a [Future] completing with [Element]s to search references to.
+   *
+   * If a [ClassMemberElement] is given, each corresponding [Element] in the
+   * hierarchy is returned.
+   *
+   * Otherwise, only references to [element] should be searched.
+   */
+  Future<Iterable<Element>> _getRefElements(Element element) {
+    if (element is ClassMemberElement) {
+      return getHierarchyMembers(searchEngine, element);
+    }
+    return new Future.value([element]);
+  }
+
+  SearchResult _newDeclarationResult(Element refElement) {
+    int nameOffset = refElement.nameOffset;
+    int nameLength = refElement.name.length;
+    SearchMatch searchMatch =
+        new SearchMatch(
+            MatchKind.DECLARATION,
+            refElement,
+            new SourceRange(nameOffset, nameLength),
+            true,
+            false);
+    return new SearchResult.fromMatch(searchMatch);
   }
 
   static SearchResult toResult(SearchMatch match) {
@@ -100,5 +123,29 @@ class ElementReferencesComputer {
       return !element.isSynthetic;
     }
     return false;
+  }
+}
+
+
+/**
+ * A collection of [Future]s that concats [List] results of added [Future]s into
+ * a single [List].
+ */
+class _ConcatFutureGroup<E> {
+  final List<Future<List<E>>> _futures = <Future<List<E>>>[];
+
+  Future<List<E>> get future {
+    return Future.wait(_futures).then(concatToList);
+  }
+
+  /**
+   * Adds a [Future] or an [E] value to results.
+   */
+  void add(value) {
+    if (value is Future) {
+      _futures.add(value);
+    } else {
+      _futures.add(new Future.value(<E>[value]));
+    }
   }
 }

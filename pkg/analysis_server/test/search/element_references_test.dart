@@ -55,59 +55,6 @@ class ElementReferencesTest extends AbstractAnalysisTest {
     return createLocalMemoryIndex();
   }
 
-  fail_test_hierarchyMembers_field_explicit() {
-    // TODO(scheglov) implement
-    addTestFile('''
-class A {
-  int fff; // in A
-}
-class B extends A {
-  int fff; // in B
-}
-class C extends B {
-  int fff; // in C
-}
-main(A a, B b, C c) {
-  a.fff = 10;
-  b.fff = 20;
-  c.fff = 30;
-}
-''');
-    return findElementReferences('fff; // in B', false).then((_) {
-      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in A');
-      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in B');
-      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in C');
-      assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
-      assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
-      assertHasResult(SearchResultKind.WRITE, 'fff = 30;');
-    });
-  }
-
-  fail_test_hierarchyMembers_method() {
-    // TODO(scheglov) implement
-    addTestFile('''
-class A {
-  mmm() {} // in A
-}
-class B extends A {
-  mmm() {} // in B
-}
-class C extends B {
-  mmm() {} // in C
-}
-main(A a, B b, C c) {
-  a.mmm(10);
-  b.mmm(20);
-  c.mmm(30);
-}
-''');
-    return findElementReferences('mmm() {} // in B', false).then((_) {
-      assertHasResult(SearchResultKind.INVOCATION, 'mmm(10)');
-      assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
-      assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
-    });
-  }
-
   Future findElementReferences(String search, bool includePotential) {
     int offset = findOffset(search);
     return waitForTasksFinished().then((_) {
@@ -301,6 +248,57 @@ main() {
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.INVOCATION, 'fff(1)');
       assertHasResult(SearchResultKind.REFERENCE, 'fff);');
+    });
+  }
+
+  test_hierarchy_field_explicit() {
+    addTestFile('''
+class A {
+  int fff; // in A
+}
+class B extends A {
+  int fff; // in B
+}
+class C extends B {
+  int fff; // in C
+}
+main(A a, B b, C c) {
+  a.fff = 10;
+  b.fff = 20;
+  c.fff = 30;
+}
+''');
+    return findElementReferences('fff; // in B', false).then((_) {
+      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in A');
+      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in B');
+      assertHasResult(SearchResultKind.DECLARATION, 'fff; // in C');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 10;');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 20;');
+      assertHasResult(SearchResultKind.WRITE, 'fff = 30;');
+    });
+  }
+
+  test_hierarchy_method() {
+    addTestFile('''
+class A {
+  mmm() {} // in A
+}
+class B extends A {
+  mmm() {} // in B
+}
+class C extends B {
+  mmm() {} // in C
+}
+main(A a, B b, C c) {
+  a.mmm(10);
+  b.mmm(20);
+  c.mmm(30);
+}
+''');
+    return findElementReferences('mmm() {} // in B', false).then((_) {
+      assertHasResult(SearchResultKind.INVOCATION, 'mmm(10)');
+      assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
+      assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
     });
   }
 

@@ -5,7 +5,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library services.src.search.search_engine_test;
+library test.services.src.search.search_engine;
 
 import 'dart:async';
 

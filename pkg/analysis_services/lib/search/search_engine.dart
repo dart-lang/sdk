@@ -5,7 +5,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library engine.search_engine;
+library services.search_engine;
 
 import 'dart:async';
 
@@ -14,18 +14,6 @@ import 'package:analysis_services/src/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-
-/**
- * A [Comparator] that can be used to sort the [SearchMatch]s based on the names
- * of the matched elements.
- */
-final Comparator<SearchMatch> SEARCH_MATCH_NAME_COMPARATOR =
-    (SearchMatch firstMatch, SearchMatch secondMatch) {
-  String firstName = firstMatch.element.displayName;
-  String secondName = secondMatch.element.displayName;
-  return firstName.compareTo(secondName);
-};
 
 
 /**
@@ -82,71 +70,6 @@ class MatchKind {
    * A reference to an element in which it is referenced.
    */
   static const MatchKind REFERENCE = const MatchKind('REFERENCE');
-
-//  /**
-//   * A declaration of a name.
-//   */
-//  static const MatchKind NAME_DECLARATION = const MatchKind('NAME_DECLARATION');
-//
-//  /**
-//   * A reference to a name, resolved.
-//   */
-//  static const MatchKind NAME_REFERENCE_RESOLVED =
-//      const MatchKind('NAME_REFERENCE_RESOLVED');
-//
-//  /**
-//   * An invocation of a name, resolved.
-//   */
-//  static const MatchKind NAME_INVOCATION_RESOLVED =
-//      const MatchKind('NAME_INVOCATION_RESOLVED');
-//
-//  /**
-//   * A reference to a name in which the name's value is being read.
-//   */
-//  static const MatchKind NAME_READ_RESOLVED =
-//      const MatchKind('NAME_READ_RESOLVED');
-//
-//  /**
-//   * A reference to a name in which the name's value is being read and written.
-//   */
-//  static const MatchKind NAME_READ_WRITE_RESOLVED =
-//      const MatchKind('NAME_READ_WRITE_RESOLVED');
-//
-//  /**
-//   * A reference to a name in which the name's value is being written.
-//   */
-//  static const MatchKind NAME_WRITE_RESOLVED =
-//      const MatchKind('NAME_WRITE_RESOLVED');
-//
-//  /**
-//   * An invocation of a name, unresolved.
-//   */
-//  static const MatchKind NAME_INVOCATION_UNRESOLVED =
-//      const MatchKind('NAME_INVOCATION_UNRESOLVED');
-//
-//  /**
-//   * A reference to a name in which the name's value is being read.
-//   */
-//  static const MatchKind NAME_READ_UNRESOLVED =
-//      const MatchKind('NAME_READ_UNRESOLVED');
-//
-//  /**
-//   * A reference to a name in which the name's value is being read and written.
-//   */
-//  static const MatchKind NAME_READ_WRITE_UNRESOLVED =
-//      const MatchKind('NAME_READ_WRITE_UNRESOLVED');
-//
-//  /**
-//   * A reference to a name in which the name's value is being written.
-//   */
-//  static const MatchKind NAME_WRITE_UNRESOLVED =
-//      const MatchKind('NAME_WRITE_UNRESOLVED');
-//
-//  /**
-//   * A reference to a name, unresolved.
-//   */
-//  static const MatchKind NAME_REFERENCE_UNRESOLVED =
-//      const MatchKind('NAME_REFERENCE_UNRESOLVED');
 
   final String name;
 
