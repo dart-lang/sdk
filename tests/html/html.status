@@ -405,10 +405,8 @@ dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTE
 webgl_1_test: Pass, Fail   # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Firefox does not like dataUrl videos for drawImage
 
-# FireFox Feature support statuses-
+# Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
-audiobuffersourcenode_test: Pass, Fail # Issue 14602
-audiocontext_test: Pass, Fail # Issue 14602
 css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_details: Fail

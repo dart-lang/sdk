@@ -427,6 +427,8 @@ _webgl_annotations = [
   "@Experimental()",
 ]
 
+_web_audio_annotations = _webgl_annotations
+
 _webkit_experimental_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.SAFARI)",
@@ -450,6 +452,8 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
     "@SupportedBrowser(SupportedBrowser.OPERA)",
     "@SupportedBrowser(SupportedBrowser.SAFARI)",
   ],
+  'AudioBufferSourceNode': _web_audio_annotations,
+  'AudioContext': _web_audio_annotations,
   'DOMFileSystem': _file_system_annotations,
   'DOMFileSystemSync': _file_system_annotations,
   'WebKitPoint': _webkit_experimental_annotations,
