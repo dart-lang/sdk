@@ -302,7 +302,7 @@ static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 Isolate* Service::service_isolate_ = NULL;
-Dart_LibraryTagHandler Service::default_handler_ = NULL;
+Dart_LibraryTagHandler Service::embedder_provided_handler_ = NULL;
 Dart_Port Service::port_ = ILLEGAL_PORT;
 uint32_t Service::event_mask_ = 0;
 
@@ -417,8 +417,7 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
     // Isolate is empty.
     ASSERT(library.IsNull());
     // Grab embedder tag handler.
-    default_handler_ = isolate->library_tag_handler();
-    ASSERT(default_handler_ != NULL);
+    embedder_provided_handler_ = isolate->library_tag_handler();
     // Temporarily install our own.
     isolate->set_library_tag_handler(LibraryTagHandler);
     // Get script resource.
@@ -446,8 +445,8 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
     Dart_ExitScope();
     library.SetLoaded();
     // Install embedder default library tag handler again.
-    isolate->set_library_tag_handler(default_handler_);
-    default_handler_ = NULL;
+    isolate->set_library_tag_handler(embedder_provided_handler_);
+    embedder_provided_handler_ = NULL;
     library.set_native_entry_resolver(VmServiceNativeResolver);
   }
   {
@@ -570,8 +569,11 @@ Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
   }
   if (tag == Dart_kImportTag) {
     // Embedder handles all requests for external libraries.
-    ASSERT(default_handler_ != NULL);
-    return default_handler_(tag, library, url);
+    if (embedder_provided_handler_ == NULL) {
+      return Dart_NewApiError("Unable to import module as no library tag "
+                              "handler has been provided by embedder");
+    }
+    return embedder_provided_handler_(tag, library, url);
   }
   ASSERT((tag == Dart_kSourceTag) || (tag == Dart_kCanonicalizeUrl));
   if (tag == Dart_kCanonicalizeUrl) {
