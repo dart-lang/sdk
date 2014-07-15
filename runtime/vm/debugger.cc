@@ -375,6 +375,9 @@ intptr_t ActivationFrame::TokenPos() {
 
 intptr_t ActivationFrame::TryIndex() {
   if (desc_rec_ == NULL) {
+    TokenPos();  // Side effect: compute desc_rec_ lazily.
+  }
+  if (desc_rec_ == NULL) {
     return -1;
   } else {
     return desc_rec_->try_index();
