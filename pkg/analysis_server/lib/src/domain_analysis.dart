@@ -38,17 +38,9 @@ class AnalysisDomainHandler implements RequestHandler {
     int offset = request.getRequiredParameter(OFFSET).asInt();
     // prepare hovers
     List<Hover> hovers = <Hover>[];
-    {
-      Source source = server.getSource(file);
-      AnalysisContext context = server.getAnalysisContext(file);
-      if (context != null) {
-        List<Source> librarySources = context.getLibrariesContaining(source);
-        for (Source librarySource in librarySources) {
-          CompilationUnit unit = context.resolveCompilationUnit2(source,
-              librarySource);
-          hovers.add(new DartUnitHoverComputer(unit, offset).compute());
-        }
-      }
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    for (CompilationUnit unit in units) {
+      hovers.add(new DartUnitHoverComputer(unit, offset).compute());
     }
     // send response
     Response response = new Response(request.id);
