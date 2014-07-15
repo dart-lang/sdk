@@ -965,8 +965,8 @@ class RawPcDescriptors : public RawObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
-  static const intptr_t kFullRecSize = sizeof(PcDescriptorRec);
-  static const intptr_t kCompressedRecSize = kFullRecSize - sizeof(int16_t);
+  static const intptr_t kFullRecSize;
+  static const intptr_t kCompressedRecSize;
 
   intptr_t record_size_in_bytes_;
   intptr_t length_;  // Number of descriptors.

@@ -3013,7 +3013,7 @@ class PcDescriptors : public Object {
   }
 
   static const intptr_t kMaxBytesPerElement =
-      RawPcDescriptors::kFullRecSize;
+      sizeof(RawPcDescriptors::PcDescriptorRec);
   static const intptr_t kMaxElements = kSmiMax / kMaxBytesPerElement;
 
   static intptr_t InstanceSize() {
