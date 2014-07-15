@@ -116,6 +116,7 @@ mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/int32x4_test: Fail # Safari has an optimization bug (nightlies are already fine).
 mirrors/null_test: Fail # http://dartbug.com/16831
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 
