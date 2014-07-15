@@ -1786,22 +1786,15 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // TOS + 3: frame_pointer
 // TOS + 4: exception object
 // TOS + 5: stacktrace object
-// TOS + 6: isolate
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == EAX);
   ASSERT(kStackTraceObjectReg == EDX);
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // Load target isolate.
   __ movl(kStackTraceObjectReg, Address(ESP, 5 * kWordSize));
   __ movl(kExceptionObjectReg, Address(ESP, 4 * kWordSize));
   __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
-  // Set tag.
-  __ movl(Address(EDI, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kScriptTagId));
-  // Clear top exit frame.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
   __ jmp(EBX);  // Jump to the exception handler code.
 }
 

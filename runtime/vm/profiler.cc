@@ -1890,9 +1890,8 @@ void Profiler::RecordSampleInterruptCallback(
     stackWalker.walk(isolate->heap());
   } else {
     if ((isolate->stub_code() != NULL) &&
-        (isolate->top_exit_frame_info() != 0) &&
-        (isolate->vm_tag() != VMTag::kScriptTagId)) {
-      // We have a valid exit frame info, use the Dart stack walker.
+        (isolate->top_exit_frame_info() != 0)) {
+      // Collect only Dart frames.
       ProfilerDartStackWalker stackWalker(isolate, sample);
       stackWalker.walk();
     } else {
