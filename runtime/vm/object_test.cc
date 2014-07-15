@@ -2728,7 +2728,7 @@ TEST_CASE(PcDescriptors) {
   const int kNumEntries = 6;
   // Add PcDescriptors to the code.
   PcDescriptors& descriptors = PcDescriptors::Handle();
-  descriptors ^= PcDescriptors::New(kNumEntries);
+  descriptors ^= PcDescriptors::New(kNumEntries, true);
   descriptors.AddDescriptor(0, 10, RawPcDescriptors::kOther, 1, 20, 1);
   descriptors.AddDescriptor(1, 20, RawPcDescriptors::kDeopt, 2, 30, 0);
   descriptors.AddDescriptor(2, 30, RawPcDescriptors::kOther, 3, 40, 1);
@@ -2754,22 +2754,72 @@ TEST_CASE(PcDescriptors) {
   const RawPcDescriptors::PcDescriptorRec& rec5 = iter.Next();
   ASSERT(!iter.HasNext());
 
-  EXPECT_EQ(1, rec0.try_index);
-  EXPECT_EQ(static_cast<uword>(10), rec0.pc);
-  EXPECT_EQ(1, rec0.deopt_id);
-  EXPECT_EQ(20, rec0.token_pos);
+  EXPECT_EQ(1, rec0.try_index());
+  EXPECT_EQ(static_cast<uword>(10), rec0.pc());
+  EXPECT_EQ(1, rec0.deopt_id());
+  EXPECT_EQ(20, rec0.token_pos());
 
-  EXPECT_EQ(3, rec5.try_index);
-  EXPECT_EQ(static_cast<uword>(80), rec5.pc);
-  EXPECT_EQ(150, rec5.token_pos);
+  EXPECT_EQ(3, rec5.try_index());
+  EXPECT_EQ(static_cast<uword>(80), rec5.pc());
+  EXPECT_EQ(150, rec5.token_pos());
   EXPECT_EQ(RawPcDescriptors::kOther, rec0.kind());
   EXPECT_EQ(RawPcDescriptors::kDeopt, rec1.kind());
 
-  EXPECT_EQ(30, rec1.token_pos);
-  EXPECT_EQ(40, rec2.token_pos);
-  EXPECT_EQ(40, rec3.token_pos);
-  EXPECT_EQ(80, rec4.token_pos);
+  EXPECT_EQ(30, rec1.token_pos());
+  EXPECT_EQ(40, rec2.token_pos());
+  EXPECT_EQ(40, rec3.token_pos());
+  EXPECT_EQ(80, rec4.token_pos());
 }
+
+
+TEST_CASE(PcDescriptorsCompressed) {
+  const int kNumEntries = 6;
+  // Add PcDescriptors to the code.
+  PcDescriptors& descriptors = PcDescriptors::Handle();
+  // PcDescritpors have no try-index.
+  descriptors ^= PcDescriptors::New(kNumEntries, false);
+  descriptors.AddDescriptor(0, 10, RawPcDescriptors::kOther, 1, 20, -1);
+  descriptors.AddDescriptor(1, 20, RawPcDescriptors::kDeopt, 2, 30, -1);
+  descriptors.AddDescriptor(2, 30, RawPcDescriptors::kOther, 3, 40, -1);
+  descriptors.AddDescriptor(3, 10, RawPcDescriptors::kOther, 4, 40, -1);
+  descriptors.AddDescriptor(4, 10, RawPcDescriptors::kOther, 5, 80, -1);
+  descriptors.AddDescriptor(5, 80, RawPcDescriptors::kOther, 6, 150, -1);
+
+  extern void GenerateIncrement(Assembler* assembler);
+  Assembler _assembler_;
+  GenerateIncrement(&_assembler_);
+  Code& code = Code::Handle(Code::FinalizeCode(
+      *CreateFunction("Test_Code"), &_assembler_));
+  code.set_pc_descriptors(descriptors);
+
+  // Verify the PcDescriptor entries by accessing them.
+  const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
+  PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
+  const RawPcDescriptors::PcDescriptorRec& rec0 = iter.Next();
+  const RawPcDescriptors::PcDescriptorRec& rec1 = iter.Next();
+  const RawPcDescriptors::PcDescriptorRec& rec2 = iter.Next();
+  const RawPcDescriptors::PcDescriptorRec& rec3 = iter.Next();
+  const RawPcDescriptors::PcDescriptorRec& rec4 = iter.Next();
+  const RawPcDescriptors::PcDescriptorRec& rec5 = iter.Next();
+  ASSERT(!iter.HasNext());
+
+  EXPECT_EQ(-1, rec0.try_index());
+  EXPECT_EQ(static_cast<uword>(10), rec0.pc());
+  EXPECT_EQ(1, rec0.deopt_id());
+  EXPECT_EQ(20, rec0.token_pos());
+
+  EXPECT_EQ(-1, rec5.try_index());
+  EXPECT_EQ(static_cast<uword>(80), rec5.pc());
+  EXPECT_EQ(150, rec5.token_pos());
+  EXPECT_EQ(RawPcDescriptors::kOther, rec0.kind());
+  EXPECT_EQ(RawPcDescriptors::kDeopt, rec1.kind());
+
+  EXPECT_EQ(30, rec1.token_pos());
+  EXPECT_EQ(40, rec2.token_pos());
+  EXPECT_EQ(40, rec3.token_pos());
+  EXPECT_EQ(80, rec4.token_pos());
+}
+
 
 
 static RawClass* CreateTestClass(const char* name) {

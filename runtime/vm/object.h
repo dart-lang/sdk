@@ -2999,32 +2999,35 @@ class PcDescriptors : public Object {
                      int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
     RawPcDescriptors::PcDescriptorRec* rec = recAt(index);
-    rec->pc = pc;
-    rec->kind_ = kind;
+    rec->set_pc(pc);
+    rec->set_kind(kind);
     ASSERT(Utils::IsInt(32, deopt_id));
-    rec->deopt_id = deopt_id;
+    rec->set_deopt_id(deopt_id);
     ASSERT(Utils::IsInt(32, token_pos));
-    rec->token_pos = token_pos;
+    rec->set_token_pos(token_pos,
+        RecordSizeInBytes() == RawPcDescriptors::kCompressedRecSize);
     ASSERT(Utils::IsInt(16, try_index));
-    rec->try_index = try_index;
+    rec->set_try_index(try_index);
+    ASSERT(rec->try_index() == try_index);
+    ASSERT(rec->token_pos() == token_pos);
   }
 
-  static const intptr_t kBytesPerElement =
-      sizeof(RawPcDescriptors::PcDescriptorRec);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxBytesPerElement =
+      RawPcDescriptors::kFullRecSize;
+  static const intptr_t kMaxElements = kSmiMax / kMaxBytesPerElement;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) ==
            OFFSET_OF_RETURNED_VALUE(RawPcDescriptors, data));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t len) {
+  static intptr_t InstanceSize(intptr_t len, intptr_t record_size_in_bytes) {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
-        sizeof(RawPcDescriptors) + (len * kBytesPerElement));
+        sizeof(RawPcDescriptors) + (len * record_size_in_bytes));
   }
 
-  static RawPcDescriptors* New(intptr_t num_descriptors);
+  static RawPcDescriptors* New(intptr_t num_descriptors, bool has_try_index);
 
   // Returns 0 if not found.
   uword GetPcForKind(RawPcDescriptors::Kind kind) const;
@@ -3071,7 +3074,7 @@ class PcDescriptors : public Object {
       while (current_ix_ < descriptors_.Length()) {
         const RawPcDescriptors::PcDescriptorRec& rec =
             *descriptors_.recAt(current_ix_);
-        if ((rec.kind_ & kind_mask_) != 0) {
+        if ((rec.kind() & kind_mask_) != 0) {
           return;  // Current is valid.
         } else {
           ++current_ix_;
@@ -3088,12 +3091,16 @@ class PcDescriptors : public Object {
   static const char* KindAsStr(RawPcDescriptors::Kind kind);
 
   intptr_t Length() const;
+  void SetLength(intptr_t value) const;
+
+  void SetRecordSizeInBytes(intptr_t value) const;
+  intptr_t RecordSizeInBytes() const;
 
   RawPcDescriptors::PcDescriptorRec* recAt(intptr_t ix) const {
     ASSERT(ix < Length());
-    return &raw_ptr()->data()[ix];
+    uint8_t* d = raw_ptr()->data() + (ix * RecordSizeInBytes());
+    return reinterpret_cast<RawPcDescriptors::PcDescriptorRec*>(d);
   }
-  void SetLength(intptr_t value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;

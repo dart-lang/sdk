@@ -96,10 +96,10 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   while (iter.HasNext()) {
     HANDLESCOPE(isolate);
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    intptr_t deopt_id = rec.deopt_id;
+    intptr_t deopt_id = rec.deopt_id();
     const ICData* ic_data = (*ic_data_array)[deopt_id];
     if (!ic_data->IsNull()) {
-      intptr_t token_pos = rec.token_pos;
+      intptr_t token_pos = rec.token_pos();
       // Filter out descriptors that do not map to tokens in the source code.
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         continue;

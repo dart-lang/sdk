@@ -330,6 +330,16 @@ Parser::~Parser() {
 }
 
 
+// Each try in this function gets its own try index.
+// See definition of RawPcDescriptors::PcDescriptor.
+int16_t Parser::AllocateTryIndex() {
+  if (!Utils::IsInt(16, last_used_try_index_ - 1)) {
+    ReportError("too many nested try statements");
+  }
+  return last_used_try_index_++;
+}
+
+
 void Parser::SetScript(const Script& script, intptr_t token_pos) {
   script_ = script.raw();
   tokens_iterator_.SetStream(

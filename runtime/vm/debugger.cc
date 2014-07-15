@@ -362,9 +362,9 @@ intptr_t ActivationFrame::TokenPos() {
     PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
     while (iter.HasNext()) {
       const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-      if (rec.pc == pc_) {
+      if (rec.pc() == pc_) {
         desc_rec_ = &rec;
-        token_pos_ = rec.token_pos;
+        token_pos_ = rec.token_pos();
         break;
       }
     }
@@ -377,7 +377,7 @@ intptr_t ActivationFrame::TryIndex() {
   if (desc_rec_ == NULL) {
     return -1;
   } else {
-    return desc_rec_->try_index;
+    return desc_rec_->try_index();
   }
 }
 
@@ -928,15 +928,15 @@ const uint8_t kSafepointKind =
 
 
 static bool HasTokenPos(const RawPcDescriptors::PcDescriptorRec& rec) {
-  return rec.token_pos != Scanner::kNoSourcePos;
+  return rec.token_pos() != Scanner::kNoSourcePos;
 }
 
 
 CodeBreakpoint::CodeBreakpoint(const Code& code,
                                const RawPcDescriptors::PcDescriptorRec& rec)
     : code_(code.raw()),
-      token_pos_(rec.token_pos),
-      pc_(rec.pc),
+      token_pos_(rec.token_pos()),
+      pc_(rec.pc()),
       line_number_(-1),
       is_enabled_(false),
       src_bpt_(NULL),
@@ -1203,7 +1203,7 @@ void Debugger::SetInternalBreakpoints(const Function& target_function) {
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
     if (HasTokenPos(rec)) {
-      CodeBreakpoint* bpt = GetCodeBreakpoint(rec.pc);
+      CodeBreakpoint* bpt = GetCodeBreakpoint(rec.pc());
       if (bpt != NULL) {
         // There is already a breakpoint for this address. Make sure
         // it is enabled.
@@ -1253,7 +1253,7 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
   PcDescriptors::Iterator iter(pc_desc, RawPcDescriptors::kClosureCall);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (rec.pc == pc) {
+    if (rec.pc() == pc) {
       is_closure_call = true;
       break;
     }
@@ -1552,7 +1552,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.HasNext()) {
     rec = &iter.Next();
-    intptr_t desc_token_pos = rec->token_pos;
+    intptr_t desc_token_pos = rec->token_pos();
     ASSERT(desc_token_pos >= 0);
     if (HasTokenPos(*rec)) {
       if ((desc_token_pos < requested_token_pos) ||
@@ -1566,9 +1566,9 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
         best_fit_pos = desc_token_pos;
         best_fit_rec = rec;
       }
-      if (rec->pc < lowest_pc) {
+      if (rec->pc() < lowest_pc) {
         // This descriptor so far has the lowest code address.
-        lowest_pc = rec->pc;
+        lowest_pc = rec->pc();
         lowest_pc_rec = rec;
       }
     }
@@ -1581,7 +1581,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
     best_fit_rec = lowest_pc_rec;
   }
   if (best_fit_rec != NULL) {
-    return best_fit_rec->token_pos;
+    return best_fit_rec->token_pos();
   }
   // We didn't find a safe point in the given token range. Try and find
   // a safe point in the remaining source code of the function.
@@ -1606,10 +1606,10 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   const RawPcDescriptors::PcDescriptorRec* lowest_rec = NULL;
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    intptr_t desc_token_pos = rec.token_pos;
+    intptr_t desc_token_pos = rec.token_pos();
     if ((desc_token_pos == bpt->token_pos_) && HasTokenPos(rec)) {
-      if (rec.pc < lowest_pc) {
-        lowest_pc = rec.pc;
+      if (rec.pc() < lowest_pc) {
+        lowest_pc = rec.pc();
         lowest_rec = &rec;
       }
     }
@@ -1617,7 +1617,7 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   if (lowest_rec == NULL) {
     return;
   }
-  CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_rec->pc);
+  CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_rec->pc());
   if (code_bpt == NULL) {
     // No code breakpoint for this code exists; create one.
     code_bpt = new CodeBreakpoint(code, *lowest_rec);

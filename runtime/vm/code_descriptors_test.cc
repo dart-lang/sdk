@@ -260,7 +260,7 @@ TEST_CASE(StackmapGC) {
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
   while (iter.HasNext()) {
     const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    stackmap_table_builder->AddEntry(rec.pc - code.EntryPoint(),
+    stackmap_table_builder->AddEntry(rec.pc() - code.EntryPoint(),
                                      stack_bitmap,
                                      0);
     ++call_count;

@@ -916,23 +916,61 @@ class RawPcDescriptors : public RawObject {
     kAnyKind         = 0xFF
   };
 
+  // Compressed version assumes try_index is always -1 and does not store it.
   struct PcDescriptorRec {
-    uword pc;
-    int32_t deopt_id;
-    int32_t token_pos;  // Or deopt reason.
-    int16_t try_index;  // Or deopt index.
-    uint8_t kind_;
+    uword pc() const { return pc_; }
+    void set_pc(uword value) { pc_ = value; }
 
-    Kind kind() const { return static_cast<Kind>(kind_); }
+    Kind kind() const {
+      return static_cast<Kind>(deopt_id_and_kind_ & kAnyKind);
+    }
+    void set_kind(Kind kind) {
+      deopt_id_and_kind_ = (deopt_id_and_kind_ & 0xFFFFFF00) | kind;
+    }
+
+    int16_t try_index() const { return is_compressed() ? -1 : try_index_; }
+    void set_try_index(int16_t value) {
+      if (is_compressed()) {
+        ASSERT(value == -1);
+        return;
+      }
+      try_index_ = value;
+    }
+
+    intptr_t token_pos() const { return token_pos_ >> 1; }
+    void set_token_pos(int32_t value, bool compressed) {
+      int32_t bit = compressed ? 0x1 : 0x0;
+      token_pos_ = (value << 1) | bit;
+    }
+
+    intptr_t deopt_id() const { return deopt_id_and_kind_ >> 8; }
+    void set_deopt_id(int32_t value) {
+      ASSERT(Utils::IsInt(24, value));
+      deopt_id_and_kind_ = (deopt_id_and_kind_ & 0xFF) | (value << 8);
+    }
+
+   private:
+    bool is_compressed() const {
+      return (token_pos_ & 0x1) == 1;
+    }
+
+    uword pc_;
+    int32_t deopt_id_and_kind_;  // Bits 31..8 -> deopt_id, bits 7..0 kind.
+    int32_t token_pos_;  // Bits 31..1 -> token_pos, bit 1 -> compressed flag;
+    int16_t try_index_;
   };
+
+  static const intptr_t kFullRecSize = sizeof(PcDescriptorRec);
+  static const intptr_t kCompressedRecSize = kFullRecSize - sizeof(int16_t);
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
+  intptr_t record_size_in_bytes_;
   intptr_t length_;  // Number of descriptors.
 
   // Variable length data follows here.
-  PcDescriptorRec* data() { OPEN_ARRAY_START(PcDescriptorRec, intptr_t); }
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
 };

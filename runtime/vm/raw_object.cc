@@ -137,8 +137,11 @@ intptr_t RawObject::SizeFromClass() const {
       case kPcDescriptorsCid: {
         const RawPcDescriptors* raw_descriptors =
             reinterpret_cast<const RawPcDescriptors*>(this);
-        intptr_t num_descriptors = raw_descriptors->ptr()->length_;
-        instance_size = PcDescriptors::InstanceSize(num_descriptors);
+        const intptr_t num_descriptors = raw_descriptors->ptr()->length_;
+        const intptr_t rec_size_in_bytes =
+            raw_descriptors->ptr()->record_size_in_bytes_;
+        instance_size = PcDescriptors::InstanceSize(num_descriptors,
+                                                    rec_size_in_bytes);
         break;
       }
       case kStackmapCid: {
@@ -496,7 +499,8 @@ bool RawInstructions::ContainsPC(RawObject* raw_obj, uword pc) {
 
 intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
     RawPcDescriptors* raw_obj, ObjectPointerVisitor* visitor) {
-  return PcDescriptors::InstanceSize(raw_obj->ptr()->length_);
+  return PcDescriptors::InstanceSize(raw_obj->ptr()->length_,
+                                     raw_obj->ptr()->record_size_in_bytes_);
 }
 
 
