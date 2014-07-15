@@ -345,6 +345,8 @@ class SnapshotReader : public BaseReader {
 
   void ArrayReadFrom(const Array& result, intptr_t len, intptr_t tags);
 
+  intptr_t NextAvailableObjectId() const;
+
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
   Class& cls_;  // Temporary Class handle.

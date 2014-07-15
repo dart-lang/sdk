@@ -47,6 +47,17 @@ static bool IsObjectStoreTypeId(intptr_t index) {
 }
 
 
+static bool IsSplitClassId(intptr_t class_id) {
+  // Return whether this class is serialized in two steps: first a reference,
+  // with sufficient information to allocate a correctly sized object, and then
+  // later inline with complete contents.
+  return class_id >= kNumPredefinedCids ||
+         class_id == kArrayCid ||
+         class_id == kImmutableArrayCid ||
+         RawObject::IsTypedDataViewClassId(class_id);
+}
+
+
 static intptr_t ClassIdFromObjectId(intptr_t object_id) {
   ASSERT(object_id > kClassIdsOffset);
   intptr_t class_id = (object_id - kClassIdsOffset);
@@ -221,6 +232,11 @@ RawObject* SnapshotReader::ReadObjectImpl() {
 }
 
 
+intptr_t SnapshotReader::NextAvailableObjectId() const {
+  return backward_references_.length() + kMaxPredefinedObjectIds;
+}
+
+
 RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value) {
   ASSERT((header_value <= kIntptrMax) && (header_value >= kIntptrMin));
   if (IsVMIsolateObject(header_value)) {
@@ -230,7 +246,11 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value) {
       return ReadIndexedObject(SerializedHeaderData::decode(header_value));
     }
     ASSERT(SerializedHeaderTag::decode(header_value) == kInlined);
-    return ReadInlinedObject(SerializedHeaderData::decode(header_value));
+    intptr_t object_id = SerializedHeaderData::decode(header_value);
+    if (object_id == kOmittedObjectId) {
+      object_id = NextAvailableObjectId();
+    }
+    return ReadInlinedObject(object_id);
   }
 }
 
@@ -248,6 +268,9 @@ RawObject* SnapshotReader::ReadObjectRef() {
   }
   ASSERT(SerializedHeaderTag::decode(header_value) == kInlined);
   intptr_t object_id = SerializedHeaderData::decode(header_value);
+  if (object_id == kOmittedObjectId) {
+    object_id = NextAvailableObjectId();
+  }
   ASSERT(GetBackRef(object_id) == NULL);
 
   // Read the class header information and lookup the class.
@@ -1047,12 +1070,12 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     // it so that future references to this object in the snapshot will use
     // this object id. Mark it as not having been serialized yet so that we
     // will serialize the object when we go through the forward list.
-    intptr_t object_id = forward_list_.MarkAndAddObject(raw, kIsNotSerialized);
+    forward_list_.MarkAndAddObject(raw, kIsNotSerialized);
 
     RawArray* rawarray = reinterpret_cast<RawArray*>(raw);
 
     // Write out the serialization header value for this object.
-    WriteInlinedObjectHeader(object_id);
+    WriteInlinedObjectHeader(kOmittedObjectId);
 
     // Write out the class information.
     WriteIndexedObject(kArrayCid);
@@ -1067,12 +1090,12 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     // it so that future references to this object in the snapshot will use
     // this object id. Mark it as not having been serialized yet so that we
     // will serialize the object when we go through the forward list.
-    intptr_t object_id = forward_list_.MarkAndAddObject(raw, kIsNotSerialized);
+    forward_list_.MarkAndAddObject(raw, kIsNotSerialized);
 
     RawArray* rawarray = reinterpret_cast<RawArray*>(raw);
 
     // Write out the serialization header value for this object.
-    WriteInlinedObjectHeader(object_id);
+    WriteInlinedObjectHeader(kOmittedObjectId);
 
     // Write out the class information.
     WriteIndexedObject(kImmutableArrayCid);
@@ -1090,12 +1113,12 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
   // it so that future references to this object in the snapshot will use
   // this object id. Mark it as not having been serialized yet so that we
   // will serialize the object when we go through the forward list.
-  intptr_t object_id = forward_list_.MarkAndAddObject(raw, kIsSerialized);
+  forward_list_.MarkAndAddObject(raw, kIsSerialized);
   switch (class_id) {
 #define SNAPSHOT_WRITE(clazz)                                                  \
     case clazz::kClassId: {                                                    \
       Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(raw);                \
-      raw_obj->WriteTo(this, object_id, kind_);                                \
+      raw_obj->WriteTo(this, kOmittedObjectId, kind_);                         \
       return;                                                                  \
     }                                                                          \
 
@@ -1106,7 +1129,7 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
       RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(raw);
-      raw_obj->WriteTo(this, object_id, kind_);
+      raw_obj->WriteTo(this, kOmittedObjectId, kind_);
       return;
     }
 #undef SNAPSHOT_WRITE
@@ -1116,7 +1139,7 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     CLASS_LIST_TYPED_DATA(SNAPSHOT_WRITE) {
       RawExternalTypedData* raw_obj =
         reinterpret_cast<RawExternalTypedData*>(raw);
-      raw_obj->WriteTo(this, object_id, kind_);
+      raw_obj->WriteTo(this, kOmittedObjectId, kind_);
       return;
     }
 #undef SNAPSHOT_WRITE
@@ -1317,6 +1340,10 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   tags = forward_list_.NodeForObjectId(object_id)->tags();
   RawClass* cls = class_table_->At(RawObject::ClassIdTag::decode(tags));
   intptr_t class_id = cls->ptr()->id_;
+
+  if (!IsSplitClassId(class_id)) {
+    object_id = kOmittedObjectId;
+  }
 
   if (class_id >= kNumPredefinedCids) {
     WriteInstance(object_id, raw, cls, tags);
@@ -1530,10 +1557,10 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
   // it so that future references to this object in the snapshot will use
   // this object id. Mark it as not having been serialized yet so that we
   // will serialize the object when we go through the forward list.
-  intptr_t object_id = forward_list_.MarkAndAddObject(raw, kIsNotSerialized);
+  forward_list_.MarkAndAddObject(raw, kIsNotSerialized);
 
   // Write out the serialization header value for this object.
-  WriteInlinedObjectHeader(object_id);
+  WriteInlinedObjectHeader(kOmittedObjectId);
 
   // Indicate this is an instance object.
   WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
