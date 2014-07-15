@@ -43,7 +43,7 @@
           'action_name': 'remove_html_imports',
           'inputs': [
             '../tools/remove_html_imports.py',
-            '<!@(["python", "../tools/list_files.py", "\\.dart$", "http/lib"])',
+            '<(SHARED_INTERMEDIATE_DIR)/http_files.stamp',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/remove_html_imports/http/lib/http.dart',
