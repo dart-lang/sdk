@@ -67,19 +67,6 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 }
 
 
-// --- Profiling support ---
-
-// TODO(7565): Dartium should use the new VM flag "generate_pprof_symbols" for
-// pprof profiling. Then these symbols should be removed.
-
-DART_EXPORT void Dart_InitPprofSupport() { }
-
-DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
-  *buffer = NULL;
-  *buffer_size = 0;
-}
-
-
 // --- Verification tools ---
 
 static void CompileAll(Isolate* isolate, Dart_Handle* result) {

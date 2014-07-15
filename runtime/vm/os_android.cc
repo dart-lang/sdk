@@ -35,12 +35,11 @@ DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
 DEFINE_FLAG(bool, generate_perf_events_symbols, false,
     "Generate events symbols for profiling with perf");
-DEFINE_FLAG(charp, generate_pprof_symbols, NULL,
-    "Generate events symbols for profiling with pprof");
+
 
 class PerfCodeObserver : public CodeObserver {
  public:
-  PerfCodeObserver() {
+  PerfCodeObserver() : out_file_(NULL) {
     Dart_FileOpenCallback file_open = Isolate::file_open_callback();
     if (file_open == NULL) {
       return;
@@ -55,15 +54,14 @@ class PerfCodeObserver : public CodeObserver {
 
   ~PerfCodeObserver() {
     Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-    if (file_close == NULL) {
+    if ((file_close == NULL) || (out_file_ == NULL)) {
       return;
     }
-    ASSERT(out_file_ != NULL);
     (*file_close)(out_file_);
   }
 
   virtual bool IsActive() const {
-    return FLAG_generate_perf_events_symbols;
+    return FLAG_generate_perf_events_symbols && (out_file_ != NULL);
   }
 
   virtual void Notify(const char* name,
@@ -72,13 +70,14 @@ class PerfCodeObserver : public CodeObserver {
                       uword size,
                       bool optimized) {
     Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    ASSERT(file_write != NULL);
+    if ((file_write == NULL) || (out_file_ == NULL)) {
+      return;
+    }
     const char* format = "%" Px " %" Px " %s%s\n";
     const char* marker = optimized ? "*" : "";
     intptr_t len = OS::SNPrint(NULL, 0, format, base, size, marker, name);
     char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, base, size, marker, name);
-    ASSERT(out_file_ != NULL);
     (*file_write)(buffer, len, out_file_);
   }
 
@@ -88,64 +87,6 @@ class PerfCodeObserver : public CodeObserver {
   DISALLOW_COPY_AND_ASSIGN(PerfCodeObserver);
 };
 
-class PprofCodeObserver : public CodeObserver {
- public:
-  PprofCodeObserver() {
-    pprof_symbol_generator_ = DebugInfo::NewGenerator();
-  }
-
-  ~PprofCodeObserver() {
-    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-    if (file_open == NULL) {
-      return;
-    }
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-    if (file_close == NULL) {
-      return;
-    }
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    if (file_write == NULL) {
-      return;
-    }
-    if (FLAG_generate_pprof_symbols == NULL) {
-      return;
-    }
-    const char* filename = FLAG_generate_pprof_symbols;
-    void* out_file = (*file_open)(filename, true);
-    ASSERT(out_file != NULL);
-    DebugInfo::ByteBuffer* debug_region = new DebugInfo::ByteBuffer();
-    ASSERT(debug_region != NULL);
-    pprof_symbol_generator_->WriteToMemory(debug_region);
-    int buffer_size = debug_region->size();
-    void* buffer = debug_region->data();
-    delete debug_region;
-    if (buffer_size > 0) {
-      ASSERT(buffer != NULL);
-      (*file_write)(buffer, buffer_size, out_file);
-    }
-    (*file_close)(out_file);
-    DebugInfo::UnregisterAllSections();
-  }
-
-  virtual bool IsActive() const {
-    return FLAG_generate_pprof_symbols != NULL;
-  }
-
-  virtual void Notify(const char* name,
-                      uword base,
-                      uword prologue_offset,
-                      uword size,
-                      bool optimized) {
-    ASSERT(pprof_symbol_generator_ != NULL);
-    pprof_symbol_generator_->AddCode(base, size);
-    pprof_symbol_generator_->AddCodeRegion(name, base, size);
-  }
-
- private:
-  DebugInfo* pprof_symbol_generator_;
-
-  DISALLOW_COPY_AND_ASSIGN(PprofCodeObserver);
-};
 
 class GdbCodeObserver : public CodeObserver {
  public:
@@ -449,9 +390,6 @@ void OS::RegisterCodeObservers() {
   }
   if (FLAG_generate_gdb_symbols) {
     CodeObservers::Register(new GdbCodeObserver);
-  }
-  if (FLAG_generate_pprof_symbols != NULL) {
-    CodeObservers::Register(new PprofCodeObserver);
   }
 #if defined(DART_VTUNE_SUPPORT)
   CodeObservers::Register(new VTuneCodeObserver);

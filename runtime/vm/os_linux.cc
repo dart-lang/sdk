@@ -37,105 +37,13 @@ DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
 DEFINE_FLAG(bool, generate_perf_events_symbols, false,
     "Generate events symbols for profiling with perf");
-DEFINE_FLAG(bool, ll_prof, false,
-    "Generate compiled code log file for processing with ll_prof.py.");
-DEFINE_FLAG(charp, generate_pprof_symbols, NULL,
-    "Writes pprof events symbols to the provided file");
 DEFINE_FLAG(bool, generate_perf_jitdump, false,
     "Writes jitdump data for profiling with perf annotate");
-
-class LowLevelProfileCodeObserver : public CodeObserver {
- public:
-  LowLevelProfileCodeObserver() {
-    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-    if (file_open == NULL) {
-      return;
-    }
-    const char* filename = "v8.log.ll";
-    log_file_ = (*file_open)(filename, true);
-#if defined(TARGET_ARCH_IA32)
-    const char arch[] = "ia32";
-#elif defined(TARGET_ARCH_X64)
-    const char arch[] = "x64";
-#elif defined(TARGET_ARCH_ARM)
-    const char arch[] = "arm";
-#elif defined(TARGET_ARCH_ARM64)
-    const char arch[] = "arm64";
-#elif defined(TARGET_ARCH_MIPS)
-    const char arch[] = "mips";
-#else
-#error Unknown architecture.
-#endif
-    LowLevelLogWriteBytes(arch, sizeof(arch));
-  }
-
-  ~LowLevelProfileCodeObserver() {
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-    if (file_close == NULL) {
-      return;
-    }
-    ASSERT(log_file_ != NULL);
-    (*file_close)(log_file_);
-  }
-
-  virtual bool IsActive() const {
-    return FLAG_ll_prof;
-  }
-
-  struct LowLevelCodeCreateStruct {
-    static const char kTag = 'C';
-
-    int32_t name_size;
-    uword code_address;
-    int32_t code_size;
-  };
-
-  template <typename T>
-  void LowLevelLogWriteStruct(const T& s) {
-    char tag = T::kTag;
-    LowLevelLogWriteBytes(reinterpret_cast<const char*>(&tag), sizeof(tag));
-    LowLevelLogWriteBytes(reinterpret_cast<const char*>(&s), sizeof(s));
-  }
-
-  void LowLevelLogWriteBytes(const char* bytes, int size) {
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    ASSERT(file_write != NULL);
-    (file_write)(bytes, size, log_file_);
-  }
-
-  virtual void Notify(const char* name,
-                      uword base,
-                      uword prologue_offset,
-                      uword size,
-                      bool optimized) {
-    const char* marker = optimized ? "*" : "";
-    char* name_buffer =
-        Isolate::Current()->current_zone()->PrintToString("%s%s", marker, name);
-    intptr_t len = strlen(name_buffer);
-
-    LowLevelCodeCreateStruct event;
-    event.name_size = len;
-    event.code_address = base;
-    event.code_size = size;
-
-    {
-      MutexLocker ml(CodeObservers::mutex());
-      LowLevelLogWriteStruct(event);
-      LowLevelLogWriteBytes(name_buffer, len);
-      LowLevelLogWriteBytes(reinterpret_cast<char*>(base), size);
-    }
-  }
-
- private:
-  void* log_file_;
-
-  DISALLOW_COPY_AND_ASSIGN(LowLevelProfileCodeObserver);
-};
 
 
 class PerfCodeObserver : public CodeObserver {
  public:
-  PerfCodeObserver() {
+  PerfCodeObserver() : out_file_(NULL) {
     Dart_FileOpenCallback file_open = Isolate::file_open_callback();
     if (file_open == NULL) {
       return;
@@ -151,15 +59,14 @@ class PerfCodeObserver : public CodeObserver {
 
   ~PerfCodeObserver() {
     Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-    if (file_close == NULL) {
+    if ((file_close == NULL) || (out_file_ == NULL)) {
       return;
     }
-    ASSERT(out_file_ != NULL);
     (*file_close)(out_file_);
   }
 
   virtual bool IsActive() const {
-    return FLAG_generate_perf_events_symbols;
+    return FLAG_generate_perf_events_symbols && (out_file_ != NULL);
   }
 
   virtual void Notify(const char* name,
@@ -168,13 +75,14 @@ class PerfCodeObserver : public CodeObserver {
                       uword size,
                       bool optimized) {
     Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    ASSERT(file_write != NULL);
+    if ((file_write == NULL) || (out_file_ == NULL)) {
+      return;
+    }
     const char* format = "%" Px " %" Px " %s%s\n";
     const char* marker = optimized ? "*" : "";
     intptr_t len = OS::SNPrint(NULL, 0, format, base, size, marker, name);
     char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, base, size, marker, name);
-    ASSERT(out_file_ != NULL);
     {
       MutexLocker ml(CodeObservers::mutex());
       (*file_write)(buffer, len, out_file_);
@@ -187,65 +95,6 @@ class PerfCodeObserver : public CodeObserver {
   DISALLOW_COPY_AND_ASSIGN(PerfCodeObserver);
 };
 
-class PprofCodeObserver : public CodeObserver {
- public:
-  PprofCodeObserver() {
-    pprof_symbol_generator_ = DebugInfo::NewGenerator();
-  }
-
-  ~PprofCodeObserver() {
-    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-    if (file_open == NULL) {
-      return;
-    }
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
-    if (file_close == NULL) {
-      return;
-    }
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-    if (file_write == NULL) {
-      return;
-    }
-    if (FLAG_generate_pprof_symbols == NULL) {
-      return;
-    }
-    const char* filename = FLAG_generate_pprof_symbols;
-    void* out_file = (*file_open)(filename, true);
-    ASSERT(out_file != NULL);
-    DebugInfo::ByteBuffer* debug_region = new DebugInfo::ByteBuffer();
-    ASSERT(debug_region != NULL);
-    pprof_symbol_generator_->WriteToMemory(debug_region);
-    int buffer_size = debug_region->size();
-    void* buffer = debug_region->data();
-    if (buffer_size > 0) {
-      MutexLocker ml(CodeObservers::mutex());
-      ASSERT(buffer != NULL);
-      (*file_write)(buffer, buffer_size, out_file);
-    }
-    delete debug_region;
-    (*file_close)(out_file);
-    DebugInfo::UnregisterAllSections();
-  }
-
-  virtual bool IsActive() const {
-    return FLAG_generate_pprof_symbols != NULL;
-  }
-
-  virtual void Notify(const char* name,
-                      uword base,
-                      uword prologue_offset,
-                      uword size,
-                      bool optimized) {
-    ASSERT(pprof_symbol_generator_ != NULL);
-    pprof_symbol_generator_->AddCode(base, size);
-    pprof_symbol_generator_->AddCodeRegion(name, base, size);
-  }
-
- private:
-  DebugInfo* pprof_symbol_generator_;
-
-  DISALLOW_COPY_AND_ASSIGN(PprofCodeObserver);
-};
 
 class GdbCodeObserver : public CodeObserver {
  public:
@@ -736,17 +585,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 
 
 void OS::RegisterCodeObservers() {
-  if (FLAG_ll_prof) {
-    CodeObservers::Register(new LowLevelProfileCodeObserver);
-  }
   if (FLAG_generate_perf_events_symbols) {
     CodeObservers::Register(new PerfCodeObserver);
   }
   if (FLAG_generate_gdb_symbols) {
     CodeObservers::Register(new GdbCodeObserver);
-  }
-  if (FLAG_generate_pprof_symbols != NULL) {
-    CodeObservers::Register(new PprofCodeObserver);
   }
   if (FLAG_generate_perf_jitdump) {
     CodeObservers::Register(new JitdumpCodeObserver);
