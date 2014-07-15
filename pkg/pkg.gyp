@@ -35,5 +35,54 @@
         },
       ],
     },
+    {
+      'target_name': 'pub_packages',
+      'type': 'none',
+      'actions': [
+        {
+          'action_name': 'remove_html_imports',
+          'inputs': [
+            '../tools/remove_html_imports.py',
+            '<!@(["python", "../tools/list_files.py", "\\.dart$", "http/lib"])',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/remove_html_imports/http/lib/http.dart',
+          ],
+          'action': [
+            'python', '../tools/remove_html_imports.py',
+            'http/lib',
+            '<(SHARED_INTERMEDIATE_DIR)/remove_html_imports/http/lib',
+          ],
+        },
+        {
+          'action_name': 'make_pub_packages',
+          'inputs': [
+            '../tools/make_links.py',
+            '<!@(["python", "../tools/list_pkg_directories.py", '
+                '"--exclude=http", "."])',
+            '<!@(["python", "../tools/list_pkg_directories.py", '
+                '"third_party"])',
+            '<!@(["python", "../tools/list_pkg_directories.py", '
+                '"../third_party/pkg"])',
+            '<!@(["python", "../tools/list_pkg_directories.py", '
+                '"polymer/e2e_test/"])',
+            '../sdk/lib/_internal/compiler',
+            '../sdk/lib/_internal/libraries.dart',
+            '../site/try',
+            '<(SHARED_INTERMEDIATE_DIR)/remove_html_imports/http/lib/http.dart',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/pub_packages.stamp',
+          ],
+          'action': [
+            'python', '../tools/make_links.py',
+            '--timestamp_file=<(SHARED_INTERMEDIATE_DIR)/pub_packages.stamp',
+            '<(PRODUCT_DIR)/pub_packages',
+            '<@(_inputs)',
+            '<(SHARED_INTERMEDIATE_DIR)/remove_html_imports/http/lib',
+          ],
+        },
+      ],
+    }
   ],
 }
