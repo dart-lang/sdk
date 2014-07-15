@@ -66,34 +66,21 @@ void runReflectiveTests(Type type) {
 
 _runTest(ClassMirror classMirror, Symbol symbol) {
   InstanceMirror instanceMirror = classMirror.newInstance(new Symbol(''), []);
-  bool shouldRunTearDown = true;
-  _invokeSymbolIfExists(instanceMirror, #setUp);
-  try {
-    var testReturn = instanceMirror.invoke(symbol, []).reflectee;
-    if (testReturn is Future) {
-      shouldRunTearDown = false;
-      return testReturn.whenComplete(() {
-        _invokeTearDown(instanceMirror);
-      });
-    } else {
-      return testReturn;
-    }
-  } finally {
-    if (shouldRunTearDown) {
-      _invokeTearDown(instanceMirror);
-    }
-  }
+  return _invokeSymbolIfExists(instanceMirror, #setUp).then(
+      (_) => instanceMirror.invoke(symbol, []).reflectee).whenComplete(
+      () => _invokeSymbolIfExists(instanceMirror, #tearDown));
 }
 
 
-void _invokeTearDown(InstanceMirror instanceMirror) {
-  _invokeSymbolIfExists(instanceMirror, #tearDown);
-}
-
-
-void _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
+Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
+  var invocationResult = null;
   try {
-    instanceMirror.invoke(symbol, []);
+    invocationResult = instanceMirror.invoke(symbol, []).reflectee;
   } on NoSuchMethodError catch (e) {
+  }
+  if (invocationResult is Future) {
+    return invocationResult;
+  } else {
+    return new Future.value(invocationResult);
   }
 }
