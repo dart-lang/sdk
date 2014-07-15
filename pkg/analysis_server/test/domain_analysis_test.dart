@@ -325,6 +325,19 @@ void test_setSubscriptions() {
       });
     });
   });
+
+  test('after analysis, no such file', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('int V = 42;');
+    return helper.waitForOperationsFinished().then((_) {
+      String noFile = '/no-such.file.dart';
+      helper.addAnalysisSubscriptionErrors(noFile);
+      return helper.waitForOperationsFinished().then((_) {
+        var errors = helper.getErrors(noFile);
+        expect(errors, isEmpty);
+      });
+    });
+  });
 }
 
 
@@ -482,6 +495,10 @@ class AnalysisTestHelper {
     Request request = new Request('0', ANALYSIS_SET_SUBSCRIPTIONS);
     request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
     handleSuccessfulRequest(request);
+  }
+
+  void addAnalysisSubscriptionErrors(String file) {
+    addAnalysisSubscription(AnalysisService.ERRORS, file);
   }
 
   void addAnalysisSubscriptionHighlights(String file) {

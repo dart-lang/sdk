@@ -470,12 +470,18 @@ class AnalysisServer {
       Set<String> todoFiles = oldFiles != null ? newFiles.difference(oldFiles) : newFiles;
       for (String file in todoFiles) {
         Source source = getSource(file);
+        // prepare context
         AnalysisContext context = getAnalysisContext(file);
+        if (context == null) {
+          continue;
+        }
         // errors
         if (service == AnalysisService.ERRORS) {
           LineInfo lineInfo = context.getLineInfo(source);
-          List<AnalysisError> errors = context.getErrors(source).errors;
-          sendAnalysisNotificationErrors(this, file, lineInfo, errors);
+          if (lineInfo != null) {
+            List<AnalysisError> errors = context.getErrors(source).errors;
+            sendAnalysisNotificationErrors(this, file, lineInfo, errors);
+          }
         }
         // Dart unit notifications.
         if (AnalysisEngine.isDartFileName(file)) {
