@@ -24,7 +24,7 @@ def main(argv):
   source = argv[1]
   target = argv[2]
   shutil.rmtree(target)
-  shutil.copytree(source, target)
+  shutil.copytree(source, target, ignore=ignore_patterns('.svn'))
 
   for root, subFolders, files in os.walk(target):
     for path in files:
