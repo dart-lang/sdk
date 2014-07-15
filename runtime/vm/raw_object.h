@@ -960,10 +960,7 @@ class RawPcDescriptors : public RawObject {
     int16_t try_index_;
   };
 
-  static intptr_t RecordSize(bool has_try_index) {
-    return has_try_index ? RawPcDescriptors::kFullRecSize
-                         : RawPcDescriptors::kCompressedRecSize;
-  }
+  static intptr_t RecordSize(bool has_try_index);
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);

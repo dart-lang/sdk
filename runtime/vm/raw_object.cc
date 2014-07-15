@@ -497,6 +497,12 @@ bool RawInstructions::ContainsPC(RawObject* raw_obj, uword pc) {
 }
 
 
+intptr_t RawPcDescriptors::RecordSize(bool has_try_index) {
+  return has_try_index ? RawPcDescriptors::kFullRecSize
+                       : RawPcDescriptors::kCompressedRecSize;
+}
+
+
 intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
     RawPcDescriptors* raw_obj, ObjectPointerVisitor* visitor) {
   return PcDescriptors::InstanceSize(raw_obj->ptr()->length_,
