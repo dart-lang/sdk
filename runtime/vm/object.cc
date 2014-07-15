@@ -8307,6 +8307,25 @@ const char* Script::ToCString() const {
 }
 
 
+RawLibrary* Script::FindLibrary() const {
+  Isolate* isolate = Isolate::Current();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate, isolate->object_store()->libraries());
+  Library& lib = Library::Handle();
+  Array& scripts = Array::Handle();
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    scripts = lib.LoadedScripts();
+    for (intptr_t j = 0; j < scripts.Length(); j++) {
+      if (scripts.At(j) == raw()) {
+        return lib.raw();
+      }
+    }
+  }
+  return Library::null();
+}
+
+
 // See also Dart_ScriptGetTokenInfo.
 void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -8315,13 +8334,17 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ASSERT(!name.IsNull());
   const String& encoded_url = String::Handle(String::EncodeURI(name));
   ASSERT(!encoded_url.IsNull());
-  jsobj.AddPropertyF("id", "scripts/%s", encoded_url.ToCString());
+  const Library& lib = Library::Handle(FindLibrary());
+  intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
+  jsobj.AddPropertyF("id", "libraries/%" Pd "/scripts/%s",
+      lib_index, encoded_url.ToCString());
   jsobj.AddProperty("name", name.ToCString());
   jsobj.AddProperty("user_name", name.ToCString());
   jsobj.AddProperty("kind", GetKindAsCString());
   if (ref) {
     return;
   }
+  jsobj.AddProperty("owning_library", lib);
   const String& source = String::Handle(Source());
   jsobj.AddProperty("source", source.ToCString());
 
@@ -8903,6 +8926,25 @@ RawArray* Library::LoadedScripts() const {
         continue;
       }
       AddScriptIfUnique(scripts, owner_script);
+    }
+
+    // Special case: Scripts that only contain external top-level functions are
+    // not included above, but can be referenced through a library's anonymous
+    // classes. Example: dart-core:identical.dart.
+    Array& anon_classes = Array::Handle(anonymous_classes());
+    Function& func = Function::Handle();
+    Array& functions = Array::Handle();
+    for (intptr_t i = 0; i < anon_classes.Length(); i++) {
+      cls ^= anon_classes.At(i);
+      if (cls.IsNull()) continue;
+      owner_script = cls.script();
+      AddScriptIfUnique(scripts, owner_script);
+      functions = cls.functions();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        func ^= functions.At(j);
+        owner_script = func.script();
+        AddScriptIfUnique(scripts, owner_script);
+      }
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.

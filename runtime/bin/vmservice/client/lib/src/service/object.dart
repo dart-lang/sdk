@@ -1338,6 +1338,7 @@ class Script extends ServiceObject with Coverage {
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
+  @observable Library owningLibrary;
   bool get canCache => true;
   bool get immutable => true;
 
@@ -1360,13 +1361,18 @@ class Script extends ServiceObject with Coverage {
   Map _tokenToCol = {};
 
   void _update(ObservableMap map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
     kind = map['kind'];
     _url = map['name'];
     _shortUrl = _url.substring(_url.lastIndexOf('/') + 1);
     name = _shortUrl;
     vmName = _url;
+    if (mapIsRef) {
+      return;
+    }
     _processSource(map['source']);
     _parseTokenPosTable(map['tokenPosTable']);
+    owningLibrary = map['owning_library'];
   }
 
   void _parseTokenPosTable(List<List<int>> table) {

@@ -21,7 +21,7 @@ DEFINE_FLAG(charp, coverage_dir, NULL,
 class CoverageFilterAll : public CoverageFilter {
  public:
   bool ShouldOutputCoverageFor(const Library& lib,
-                               const String& script_url,
+                               const Script& script,
                                const Class& cls,
                                const Function& func) const {
     return true;
@@ -155,7 +155,7 @@ void CodeCoverage::PrintClass(const Library& lib,
     function ^= functions.At(i);
     script = function.script();
     saved_url = script.url();
-    if (!filter->ShouldOutputCoverageFor(lib, saved_url, cls, function)) {
+    if (!filter->ShouldOutputCoverageFor(lib, script, cls, function)) {
       i++;
       continue;
     }
@@ -175,7 +175,7 @@ void CodeCoverage::PrintClass(const Library& lib,
         pos_to_line.Clear();
         break;
       }
-      if (!filter->ShouldOutputCoverageFor(lib, saved_url, cls, function)) {
+      if (!filter->ShouldOutputCoverageFor(lib, script, cls, function)) {
         i++;
         continue;
       }
@@ -200,7 +200,7 @@ void CodeCoverage::PrintClass(const Library& lib,
       function ^= closures.At(i);
       script = function.script();
       saved_url = script.url();
-      if (!filter->ShouldOutputCoverageFor(lib, saved_url, cls, function)) {
+      if (!filter->ShouldOutputCoverageFor(lib, script, cls, function)) {
         i++;
         continue;
       }

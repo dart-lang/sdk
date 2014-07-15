@@ -24,7 +24,7 @@ class FunctionCoverageFilter : public CoverageFilter {
  public:
   explicit FunctionCoverageFilter(const Function& func) : func_(func) {}
   bool ShouldOutputCoverageFor(const Library& lib,
-                               const String& script_url,
+                               const Script& script,
                                const Class& cls,
                                const Function& func) const {
     return func.raw() == func_.raw();
@@ -40,16 +40,20 @@ TEST_CASE(Coverage_Empty) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  ExecuteScript(kScript);
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
 
   JSONStream js;
   CodeCoverage::PrintJSON(isolate, &js, NULL);
 
-  EXPECT_SUBSTRING(
-      "{\"source\":\"test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+  char buf[1024];
+  OS::SNPrint(buf, sizeof(buf),
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[]}", js.ToCString());
+      "\"kind\":\"script\"},\"hits\":[]}", lib.index());
+  EXPECT_SUBSTRING(buf, js.ToCString());
 }
 
 
@@ -69,27 +73,32 @@ TEST_CASE(Coverage_MainWithClass) {
       "}\n";
 
   Isolate* isolate = Isolate::Current();
-  ExecuteScript(kScript);
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
 
   JSONStream js;
   CodeCoverage::PrintJSON(isolate, &js, NULL);
 
+  char buf[1024];
   // Coverage data is printed per class, i.e., there should be two sections
   // for test-lib in the JSON data.
 
   // Data for the actual class Foo.
-  EXPECT_SUBSTRING(
-      "{\"source\":\"test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+  OS::SNPrint(buf, sizeof(buf),
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[3,1,5,4,6,3]}", js.ToCString());
+      "\"kind\":\"script\"},\"hits\":[3,1,5,4,6,3]}", lib.index());
+  EXPECT_SUBSTRING(buf, js.ToCString());
 
   // Data for the fake class containing main().
-  EXPECT_SUBSTRING(
-      "{\"source\":\"test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+  OS::SNPrint(buf, sizeof(buf),
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[10,1,11,1]}", js.ToCString());
+      "\"kind\":\"script\"},\"hits\":[10,1,11,1]}", lib.index());
+  EXPECT_SUBSTRING(buf, js.ToCString());
 }
 
 
@@ -121,11 +130,13 @@ TEST_CASE(Coverage_FilterFunction) {
   FunctionCoverageFilter filter(func);
   CodeCoverage::PrintJSON(isolate, &js, &filter);
   // Only expect coverage data for Foo.yetAnother() on line 6.
-  EXPECT_SUBSTRING(
-      "{\"source\":\"test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+  char buf[1024];
+  OS::SNPrint(buf, sizeof(buf),
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[6,0]}", js.ToCString());
+      "\"kind\":\"script\"},\"hits\":[6,0]}", lib.index());
+  EXPECT_SUBSTRING(buf, js.ToCString());
 }
 
 }  // namespace dart

@@ -16668,7 +16668,7 @@ x=[]
 x.$builtinTypeInfo=[z]
 x=new Q.wn(null,null,x,null,null)
 x.$builtinTypeInfo=[z]
-s=new D.vx(x,P.L5(null,null,null,P.KN,P.KN),null,null,null,null,null,P.Fl(null,null),P.Fl(null,null),null,null,a,null,null,!1,null,null,null,null,null)
+s=new D.vx(x,P.L5(null,null,null,P.KN,P.KN),null,null,null,null,null,null,P.Fl(null,null),P.Fl(null,null),null,null,a,null,null,!1,null,null,null,null,null)
 break
 case"Socket":s=new D.WP(null,null,null,null,"",!1,!1,!1,!1,null,null,null,null,null,null,null,a,null,null,!1,null,null,null,null,null)
 break
@@ -17649,8 +17649,10 @@ gu9:function(){return this.x9},
 su9:function(a){this.x9=F.Wi(this,C.Ss,this.x9,a)},
 $isc2:true},
 vx:{
-"^":"vix;Gd>,d6,I0,U9,nE,Ge,wA,y6,FB,AP,fn,P3,r0,mQ,kT,bN,GR,VR,AP,fn",
+"^":"vix;Gd>,d6,I0,U9,nE,EG,Ge,wA,y6,FB,AP,fn,P3,r0,mQ,kT,bN,GR,VR,AP,fn",
 gfY:function(a){return this.I0},
+gxH:function(){return this.EG},
+sxH:function(a){this.EG=F.Wi(this,C.If,this.EG,a)},
 gUm:function(){return!0},
 gM8:function(){return!0},
 rK:function(a){var z,y
@@ -17660,6 +17662,7 @@ if(z>>>0!==z||z>=y.length)return H.e(y,z)
 return y[z]},
 q6:function(a){return this.y6.t(0,a)},
 bF:function(a,b,c){var z,y,x,w
+D.kT(b,J.aT(this.P3))
 z=J.U6(b)
 y=z.t(b,"kind")
 this.I0=F.Wi(this,C.Lc,this.I0,y)
@@ -17673,8 +17676,11 @@ this.Ge=w
 this.bN=this.ct(this,C.YS,this.bN,w)
 w=this.wA
 this.GR=this.ct(this,C.Tc,this.GR,w)
+if(c)return
 this.W8(z.t(b,"source"))
-this.PT(z.t(b,"tokenPosTable"))},
+this.PT(z.t(b,"tokenPosTable"))
+z=z.t(b,"owning_library")
+this.EG=F.Wi(this,C.If,this.EG,z)},
 PT:function(a){var z,y,x,w,v,u,t,s,r,q,p
 if(a==null)return
 z=this.y6

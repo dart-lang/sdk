@@ -2514,6 +2514,7 @@ class Script : public Object {
 
   void Tokenize(const String& private_key) const;
 
+  RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number) const;
   RawString* GetSnippet(intptr_t from_token_pos,
                         intptr_t to_token_pos) const;

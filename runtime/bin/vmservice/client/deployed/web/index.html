@@ -930,7 +930,7 @@ hr {
                        ref['closureFunc'] != null}}">
         <a on-click="{{ goto }}" href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
-          {{ ref['closureFunc']['user_name'] }}
+          {{ ref['closureFunc'].name }}
         </a>
       </template>
 
@@ -15634,6 +15634,7 @@ hr {
     <top-nav-menu></top-nav-menu>
     <isolate-nav-menu isolate="{{ script.isolate }}">
     </isolate-nav-menu>
+    <nav-menu link="{{ script.owningLibrary.link }}" anchor="{{ script.owningLibrary.name }}"></nav-menu>
     <nav-menu link="{{ script.link }}" anchor="{{ script.name }}" last="{{ true }}"></nav-menu>
     <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
     <nav-refresh callback="{{ refresh }}"></nav-refresh>

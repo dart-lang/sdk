@@ -30,7 +30,8 @@ TEST_CASE(TraceJSWarning) {
       // Skip time.
       EXPECT_SUBSTRING("\"message\":{\"type\":\"JSCompatibilityWarning\","
                        "\"script\":{\"type\":\"@Script\",\"id\":"
-                       "\"scripts\\/Plug\",\"name\":\"Plug\",\"user_name\":"
+                       "\"libraries\\/-1\\/scripts\\/Plug\","
+                       "\"name\":\"Plug\",\"user_name\":"
                        "\"Plug\",\"kind\":\"script\"},\"tokenPos\":0,"
                        "\"message\":{\"type\":\"@String\"",
                        js.ToCString());
@@ -46,7 +47,8 @@ TEST_CASE(TraceJSWarning) {
   }
   EXPECT_EQ(2, trace_buffer->Length());
   EXPECT_SUBSTRING("{\"type\":\"JSCompatibilityWarning\",\"script\":{\"type\":"
-                   "\"@Script\",\"id\":\"scripts\\/Plug\",\"name\":\"Plug\","
+                   "\"@Script\",\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
+                   "\"name\":\"Plug\","
                    "\"user_name\":\"Plug\",\"kind\":\"script\"},\"tokenPos\":0,"
                    "\"message\":{\"type\":\"@String\"",
                    trace_buffer->At(0)->message);
@@ -55,7 +57,8 @@ TEST_CASE(TraceJSWarning) {
                    trace_buffer->At(0)->message);
 
   EXPECT_SUBSTRING("{\"type\":\"JSCompatibilityWarning\",\"script\":{\"type\":"
-                   "\"@Script\",\"id\":\"scripts\\/Plug\",\"name\":\"Plug\","
+                   "\"@Script\",\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
+                   "\"name\":\"Plug\","
                    "\"user_name\":\"Plug\",\"kind\":\"script\"},\"tokenPos\":1,"
                    "\"message\":{\"type\":\"@String\"",
                    trace_buffer->At(1)->message);
