@@ -960,11 +960,16 @@ class RawPcDescriptors : public RawObject {
     int16_t try_index_;
   };
 
-  static const intptr_t kFullRecSize = sizeof(PcDescriptorRec);
-  static const intptr_t kCompressedRecSize = kFullRecSize - sizeof(int16_t);
+  static intptr_t RecordSize(bool has_try_index) {
+    return has_try_index ? RawPcDescriptors::kFullRecSize
+                         : RawPcDescriptors::kCompressedRecSize;
+  }
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
+
+  static const intptr_t kFullRecSize = sizeof(PcDescriptorRec);
+  static const intptr_t kCompressedRecSize = kFullRecSize - sizeof(int16_t);
 
   intptr_t record_size_in_bytes_;
   intptr_t length_;  // Number of descriptors.

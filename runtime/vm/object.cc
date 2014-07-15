@@ -10241,20 +10241,15 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors,
   }
   PcDescriptors& result = PcDescriptors::Handle();
   {
-    uword size = PcDescriptors::InstanceSize(num_descriptors,
-        has_try_index ? RawPcDescriptors::kFullRecSize
-                      : RawPcDescriptors::kCompressedRecSize);
+    const intptr_t rec_size =  RawPcDescriptors::RecordSize(has_try_index);
+    uword size = PcDescriptors::InstanceSize(num_descriptors, rec_size);
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(num_descriptors);
-    if (has_try_index) {
-      result.SetRecordSizeInBytes(RawPcDescriptors::kFullRecSize);
-    } else {
-      result.SetRecordSizeInBytes(RawPcDescriptors::kCompressedRecSize);
-    }
+    result.SetRecordSizeInBytes(rec_size);
   }
   return result.raw();
 }
