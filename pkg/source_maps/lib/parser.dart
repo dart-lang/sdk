@@ -136,9 +136,6 @@ class MultiSectionMapping extends Mapping {
 
 /// A map containing direct source mappings.
 class SingleMapping extends Mapping {
-  /// Url of the target file.
-  final String targetUrl;
-
   /// Source urls used in the mapping, indexed by id.
   final List<String> urls;
 
@@ -148,10 +145,13 @@ class SingleMapping extends Mapping {
   /// Entries indicating the beginning of each span.
   final List<TargetLineEntry> lines;
 
-  /// Source root appended to the start of all entries in [urls].
-  String sourceRoot = null;
+  /// Url of the target file.
+  String targetUrl;
 
-  SingleMapping._internal(this.targetUrl, this.urls, this.names, this.lines);
+  /// Source root appended to the start of all entries in [urls].
+  String sourceRoot;
+
+  SingleMapping._(this.targetUrl, this.urls, this.names, this.lines);
 
   factory SingleMapping.fromEntries(
       Iterable<builder.Entry> entries, [String fileUrl]) {
@@ -191,7 +191,7 @@ class SingleMapping extends Mapping {
             srcNameId));
       }
     }
-    return new SingleMapping._internal(
+    return new SingleMapping._(
         fileUrl, urls.keys.toList(), names.keys.toList(), lines);
   }
 
