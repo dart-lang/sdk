@@ -16,6 +16,8 @@ import 'src/vlq.dart';
 /// Parses a source map directly from a json string.
 // TODO(sigmund): evaluate whether other maps should have the json parsed, or
 // the string represenation.
+// TODO(tjblasi): Ignore the first line of [jsonMap] if the JSON safety string
+// `)]}'` begins the string representation of the map.
 Mapping parse(String jsonMap, {Map<String, Map> otherMaps}) =>
   parseJson(JSON.decode(jsonMap), otherMaps: otherMaps);
 
@@ -146,6 +148,9 @@ class SingleMapping extends Mapping {
   /// Entries indicating the beginning of each span.
   final List<TargetLineEntry> lines;
 
+  /// Source root appended to the start of all entries in [urls].
+  String sourceRoot = null;
+
   SingleMapping._internal(this.targetUrl, this.urls, this.names, this.lines);
 
   factory SingleMapping.fromEntries(
@@ -192,9 +197,9 @@ class SingleMapping extends Mapping {
 
   SingleMapping.fromJson(Map map)
       : targetUrl = map['file'],
-        // TODO(sigmund): add support for 'sourceRoot'
         urls = map['sources'],
         names = map['names'],
+        sourceRoot = map['sourceRoot'],
         lines = <TargetLineEntry>[] {
     int line = 0;
     int column = 0;
@@ -303,7 +308,7 @@ class SingleMapping extends Mapping {
 
     var result = {
       'version': 3,
-      'sourceRoot': '',
+      'sourceRoot': sourceRoot == null ? '' : sourceRoot,
       'sources': urls,
       'names' : names,
       'mappings' : buff.toString()
@@ -350,6 +355,9 @@ class SingleMapping extends Mapping {
     var entry = _findColumn(line, column, _findLine(line));
     if (entry == null || entry.sourceUrlId == null) return null;
     var url = urls[entry.sourceUrlId];
+    if (sourceRoot != null) {
+      url = '${sourceRoot}${url}';
+    }
     if (files != null && files[url] != null) {
       var file = files[url];
       var start = file.getOffset(entry.sourceLine, entry.sourceColumn);
@@ -374,6 +382,8 @@ class SingleMapping extends Mapping {
     return (new StringBuffer("$runtimeType : [")
         ..write('targetUrl: ')
         ..write(targetUrl)
+        ..write(', sourceRoot: ')
+        ..write(sourceRoot)
         ..write(', urls: ')
         ..write(urls)
         ..write(', names: ')
@@ -392,13 +402,16 @@ class SingleMapping extends Mapping {
             ..write(': ')
             ..write(line)
             ..write(':')
-            ..write(entry.column)
-            ..write('   -->   ')
-            ..write(urls[entry.sourceUrlId])
-            ..write(': ')
-            ..write(entry.sourceLine)
-            ..write(':')
-            ..write(entry.sourceColumn);
+            ..write(entry.column);
+        if (entry.sourceUrlId != null) {
+          buff..write('   -->   ')
+              ..write(sourceRoot)
+              ..write(urls[entry.sourceUrlId])
+              ..write(': ')
+              ..write(entry.sourceLine)
+              ..write(':')
+              ..write(entry.sourceColumn);
+        }
         if (entry.sourceNameId != null) {
           buff..write(' (')
               ..write(names[entry.sourceNameId])
