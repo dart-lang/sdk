@@ -82,10 +82,7 @@ testNumbers() {
       for (var fraction in fractionList) {
         for (var exp in exponentList) {
           var literal = "$sign$integer$fraction$exp";
-          var parseNumber =
-              ((fraction == "" && exp == "") ? (String x) => int.parse(x)
-                                             : (String x) => double.parse(x));
-          var expectedValue = parseNumber(literal);
+          var expectedValue = num.parse(literal);
           testJson(literal, expectedValue);
         }
       }

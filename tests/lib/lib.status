@@ -117,6 +117,7 @@ typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 mirrors/null_test: Fail # http://dartbug.com/16831
+convert/json_parse_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
