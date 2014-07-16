@@ -7,10 +7,10 @@ library computer.occurrences;
 import 'dart:collection';
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/computer/element.dart';
+import 'package:analysis_server/src/computer/element.dart' as server;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart' as engine;
+import 'package:analyzer/src/generated/element.dart';
 
 
 /**
@@ -19,8 +19,8 @@ import 'package:analyzer/src/generated/element.dart' as engine;
 class DartUnitOccurrencesComputer {
   final CompilationUnit _unit;
 
-  final Map<engine.Element, List<int>> _elementsOffsets =
-      new HashMap<engine.Element, List<int>>();
+  final Map<Element, List<int>> _elementsOffsets =
+      new HashMap<Element, List<int>>();
 
   DartUnitOccurrencesComputer(this._unit);
 
@@ -31,14 +31,15 @@ class DartUnitOccurrencesComputer {
     _unit.accept(new _DartUnitOccurrencesComputerVisitor(this));
     List<Occurrences> occurrences = <Occurrences>[];
     _elementsOffsets.forEach((engineElement, offsets) {
-      Element serverElement = new Element.fromEngine(engineElement);
-      int length = engineElement.displayName.length;
+      var serverElement = new server.Element.fromEngine(engineElement);
+      var length = engineElement.displayName.length;
       occurrences.add(new Occurrences(serverElement, offsets, length));
     });
     return occurrences;
   }
 
-  void _addOccurrence(engine.Element element, int offset) {
+  void _addOccurrence(Element element, int offset) {
+    element = _canonicalizeElement(element);
     List<int> offsets = _elementsOffsets[element];
     if (offsets == null) {
       offsets = <int>[];
@@ -46,18 +47,31 @@ class DartUnitOccurrencesComputer {
     }
     offsets.add(offset);
   }
+
+  Element _canonicalizeElement(Element element) {
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
+    if (element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
+    if (element is Member) {
+      element = (element as Member).baseElement;
+    }
+    return element;
+  }
 }
 
 
 class Occurrences implements HasToJson {
-  final Element element;
+  final server.Element element;
   final List<int> offsets;
   final int length;
 
   Occurrences(this.element, this.offsets, this.length);
 
   factory Occurrences.fromJson(Map<String, Object> map) {
-    Element element = new Element.fromJson(map[ELEMENT]);
+    server.Element element = new server.Element.fromJson(map[ELEMENT]);
     List<int> offsets = map[OFFSETS];
     int length = map[LENGTH];
     return new Occurrences(element, offsets, length);
@@ -83,7 +97,7 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    engine.Element element = node.bestElement;
+    Element element = node.bestElement;
     if (element != null) {
       computer._addOccurrence(element, node.offset);
     }
