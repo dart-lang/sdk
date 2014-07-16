@@ -324,7 +324,7 @@ xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
-audiocontext_test/functional: Fail
+audiocontext_test/functional: Pass, Fail
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 worker_test: Skip # Issue 13221
