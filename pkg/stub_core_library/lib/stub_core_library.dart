@@ -66,7 +66,7 @@ class _StubVisitor extends ToSourceVisitor {
 
   _StubVisitor._(String path, Map<String, String> importReplacements,
           PrintStringWriter writer)
-      : _root = p.url.dirname(path),
+      : _root = p.dirname(path),
         _importReplacements = importReplacements == null ? const {} :
             importReplacements,
         _writer = writer,
@@ -86,7 +86,7 @@ class _StubVisitor extends ToSourceVisitor {
 
   visitPartDirective(PartDirective node) {
     // Inline parts directly in the output file.
-    var path = p.fromUri(p.url.join(_root, node.uri.stringValue));
+    var path = p.url.join(_root, p.fromUri(node.uri.stringValue));
     parseDartFile(path).accept(new _StubVisitor._(path, const {}, _writer));
   }
 
