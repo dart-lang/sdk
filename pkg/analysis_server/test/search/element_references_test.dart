@@ -454,7 +454,7 @@ main(A a, p) {
   test_potential_field() {
     addTestFile('''
 class A {
-  test; // declaration
+  var test; // declaration
 }
 main(A a, p) {
   a.test = 1;

@@ -30,7 +30,7 @@ class ElementReferencesComputer {
     // find element references
     futureGroup.add(_findElementsReferences(element));
     // add potential references
-    if (withPotential) {
+    if (withPotential && _isMemberElement(element)) {
       String name = element.displayName;
       var matchesFuture = searchEngine.searchMemberReferences(name);
       var resultsFuture = matchesFuture.then((List<SearchMatch> matches) {
@@ -103,6 +103,10 @@ class ElementReferencesComputer {
 
   static SearchResult toResult(SearchMatch match) {
     return new SearchResult.fromMatch(match);
+  }
+
+  static bool _isMemberElement(Element element) {
+    return element.enclosingElement is ClassElement;
   }
 
   static bool _isVariableLikeElement(Element element) {
