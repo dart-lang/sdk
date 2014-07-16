@@ -226,6 +226,9 @@ def Main(argv):
            join(RESOURCE),
            ignore=ignore_patterns('.svn'))
 
+  copytree(join(SNAPSHOT, 'core_stubs'),
+           join(RESOURCE, 'dart', 'core_stubs'))
+
   # Copy in 7zip for Windows.
   if HOST_OS == 'win32':
     copytree(join(HOME, 'third_party', '7zip'),

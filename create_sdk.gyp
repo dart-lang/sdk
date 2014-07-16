@@ -11,6 +11,7 @@
         'runtime/dart-runtime.gyp:dart',
         'utils/compiler/compiler.gyp:dart2js',
         'utils/pub/pub.gyp:pub',
+        'utils/pub/pub.gyp:core_stubs',
         'utils/dartfmt/dartfmt.gyp:dartfmt',
         'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
       ],
@@ -29,6 +30,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
             '<(SHARED_INTERMEDIATE_DIR)/dartfmt.dart.snapshot',
+            '<(SHARED_INTERMEDIATE_DIR)/core_stubs/dart_io.dart',
             'tools/VERSION'
           ],
           'outputs': [
