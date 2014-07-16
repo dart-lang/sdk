@@ -75,6 +75,7 @@ dart/inline_stack_frame_test: RuntimeError
 
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
+cc/EvalExpressionExhaustCIDs: Skip # Takes almost 1 GB memory, causing crashes.  dartbug.com/20056
 
 [ $arch == mips && $mode == debug ]
 cc/JSON_JSONStream_Options: Crash # Issue 19328
