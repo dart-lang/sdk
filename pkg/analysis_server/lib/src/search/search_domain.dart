@@ -7,6 +7,7 @@ library search.domain;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computer/element.dart' as se;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -46,9 +47,19 @@ class SearchDomainHandler implements RequestHandler {
     int offset = request.getRequiredParameter(OFFSET).asInt();
     bool includePotential =
         request.getRequiredParameter(INCLUDE_POTENTIAL).asBool();
+    // prepare elements
+    List<Element> elements = server.getElementsAtOffset(file, offset);
+    elements = elements.map((Element element) {
+      if (element is FieldFormalParameterElement) {
+        return element.field;
+      }
+      if (element is PropertyAccessorElement) {
+        return element.variable;
+      }
+      return element;
+    }).toList();
     // schedule search
     String searchId = (_nextSearchId++).toString();
-    List<Element> elements = server.getElementsAtOffset(file, offset);
     elements.forEach((Element element) {
       var computer = new ElementReferencesComputer(searchEngine);
       var future = computer.compute(element, includePotential);
@@ -63,7 +74,13 @@ class SearchDomainHandler implements RequestHandler {
       });
     }
     // respond
-    return new Response(request.id)..setResult(ID, searchId);
+    Response response = new Response(request.id);
+    response.setResult(ID, searchId);
+    if (elements.isNotEmpty) {
+      var serverElement = new se.Element.fromEngine(elements[0]);
+      response.setResult(ELEMENT, serverElement);
+    }
+    return response;
   }
 
   Response findMemberDeclarations(Request request) {

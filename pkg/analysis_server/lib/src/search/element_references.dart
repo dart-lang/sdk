@@ -27,13 +27,6 @@ class ElementReferencesComputer {
    */
   Future<List<SearchResult>> compute(Element element, bool withPotential) {
     var futureGroup = new _ConcatFutureGroup<SearchResult>();
-    // tweak element
-    if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
-    }
-    if (element is PropertyAccessorElement) {
-      element = (element as PropertyAccessorElement).variable;
-    }
     // find element references
     futureGroup.add(_findElementsReferences(element));
     // add potential references

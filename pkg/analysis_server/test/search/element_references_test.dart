@@ -30,6 +30,7 @@ main() {
 @ReflectiveTestCase()
 class ElementReferencesTest extends AbstractAnalysisTest {
   String searchId;
+  Element searchElement;
   bool searchDone = false;
   List<SearchResult> results = <SearchResult>[];
   SearchResult result;
@@ -64,6 +65,7 @@ class ElementReferencesTest extends AbstractAnalysisTest {
       request.setParameter(INCLUDE_POTENTIAL, includePotential);
       Response response = handleSuccessfulRequest(request);
       searchId = response.getResult(ID);
+      searchElement = response.getResult(ELEMENT);
       results.clear();
       return _waitForSearchResults();
     });
@@ -127,6 +129,7 @@ main() {
 }
 ''');
     return findElementReferences('named(p)', false).then((_) {
+      expect(searchElement.kind, ElementKind.CONSTRUCTOR);
       assertHasResult(SearchResultKind.REFERENCE, '.named(1)', 6);
       assertHasResult(SearchResultKind.REFERENCE, '.named(2)', 6);
     });
@@ -143,6 +146,7 @@ main() {
 }
 ''');
     return findElementReferences('A(p)', false).then((_) {
+      expect(searchElement.kind, ElementKind.CONSTRUCTOR);
       assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
       assertHasResult(SearchResultKind.REFERENCE, '(2)', 0);
     });
@@ -168,6 +172,7 @@ main(A a) {
 }
 ''');
     return findElementReferences('fff; // declaration', false).then((_) {
+      expect(searchElement.kind, ElementKind.FIELD);
       expect(results, hasLength(10));
       assertHasResult(SearchResultKind.DECLARATION, 'fff; // declaration');
       assertHasResult(SearchResultKind.REFERENCE, 'fff); // in constructor');
@@ -200,6 +205,7 @@ main(A a) {
 }
 ''');
     var forGetter = findElementReferences('fff =>', false).then((_) {
+      expect(searchElement.kind, ElementKind.FIELD);
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.READ, 'fff); // in m()');
       assertHasResult(SearchResultKind.WRITE, 'fff = 1;');
@@ -228,6 +234,7 @@ class A {
 }
 ''');
     return findElementReferences('fff); // in constructor', false).then((_) {
+      expect(searchElement.kind, ElementKind.FIELD);
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.DECLARATION, 'fff; // declaration');
       assertHasResult(SearchResultKind.REFERENCE, 'fff); // in constructor');
@@ -245,6 +252,7 @@ main() {
 }
 ''');
     return findElementReferences('fff(p) {}', false).then((_) {
+      expect(searchElement.kind, ElementKind.FUNCTION);
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.INVOCATION, 'fff(1)');
       assertHasResult(SearchResultKind.REFERENCE, 'fff);');
@@ -269,6 +277,7 @@ main(A a, B b, C c) {
 }
 ''');
     return findElementReferences('fff; // in B', false).then((_) {
+      expect(searchElement.kind, ElementKind.FIELD);
       assertHasResult(SearchResultKind.DECLARATION, 'fff; // in A');
       assertHasResult(SearchResultKind.DECLARATION, 'fff; // in B');
       assertHasResult(SearchResultKind.DECLARATION, 'fff; // in C');
@@ -296,6 +305,7 @@ main(A a, B b, C c) {
 }
 ''');
     return findElementReferences('mmm() {} // in B', false).then((_) {
+      expect(searchElement.kind, ElementKind.METHOD);
       assertHasResult(SearchResultKind.INVOCATION, 'mmm(10)');
       assertHasResult(SearchResultKind.INVOCATION, 'mmm(20)');
       assertHasResult(SearchResultKind.INVOCATION, 'mmm(30)');
@@ -313,6 +323,7 @@ main() {
 }
 ''');
     return findElementReferences('vvv = 1', false).then((_) {
+      expect(searchElement.kind, ElementKind.LOCAL_VARIABLE);
       expect(results, hasLength(5));
       assertHasResult(SearchResultKind.DECLARATION, 'vvv = 1');
       assertHasResult(SearchResultKind.READ, 'vvv);');
@@ -337,6 +348,7 @@ main(A a) {
 }
 ''');
     return findElementReferences('mmm(p) {}', false).then((_) {
+      expect(searchElement.kind, ElementKind.METHOD);
       expect(results, hasLength(4));
       assertHasResult(SearchResultKind.INVOCATION, 'mmm(1);');
       assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in m()');
@@ -357,6 +369,7 @@ main() {
 }
 ''');
     return findElementReferences('mmm(p) {}', false).then((_) {
+      expect(searchElement.kind, ElementKind.METHOD);
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.INVOCATION, 'mmm(10);');
       assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
@@ -387,6 +400,7 @@ part of lib;
 fff(p) {}
 ''');
     return findElementReferences('fff(p) {}', false).then((_) {
+      expect(searchElement.kind, ElementKind.FUNCTION);
       expect(results, hasLength(2));
       findResult(
           SearchResultKind.INVOCATION,
@@ -426,6 +440,7 @@ main(ppp) {
 }
 ''');
     return findElementReferences('ppp) {', false).then((_) {
+      expect(searchElement.kind, ElementKind.PARAMETER);
       expect(results, hasLength(5));
       assertHasResult(SearchResultKind.DECLARATION, 'ppp) {');
       assertHasResult(SearchResultKind.READ, 'ppp);');
@@ -571,6 +586,7 @@ main() {
 }
 ''');
     return findElementReferences('vvv = 1', false).then((_) {
+      expect(searchElement.kind, ElementKind.TOP_LEVEL_VARIABLE);
       expect(results, hasLength(5));
       assertHasResult(SearchResultKind.DECLARATION, 'vvv = 1;');
       assertHasResult(SearchResultKind.READ, 'vvv);');
@@ -590,6 +606,7 @@ main() {
 }
 ''');
     var forGetter = findElementReferences('vvv =>', false).then((_) {
+      expect(searchElement.kind, ElementKind.TOP_LEVEL_VARIABLE);
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.READ, 'vvv);');
       assertHasResult(SearchResultKind.WRITE, 'vvv = 1;');
@@ -610,6 +627,7 @@ main() {
 }
 ''');
     return findElementReferences('int a', false).then((_) {
+      expect(searchElement.kind, ElementKind.CLASS);
       assertHasResult(SearchResultKind.REFERENCE, 'int a');
       assertHasResult(SearchResultKind.REFERENCE, 'int b');
     });
@@ -622,6 +640,7 @@ main(F f) {
 }
 ''');
     return findElementReferences('F()', false).then((_) {
+      expect(searchElement.kind, ElementKind.FUNCTION_TYPE_ALIAS);
       expect(results, hasLength(1));
       assertHasResult(SearchResultKind.REFERENCE, 'F f');
     });
@@ -635,6 +654,7 @@ class A<T> {
 }
 ''');
     return findElementReferences('T> {', false).then((_) {
+      expect(searchElement.kind, ElementKind.TYPE_PARAMETER);
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.REFERENCE, 'T f;');
       assertHasResult(SearchResultKind.REFERENCE, 'T m()');

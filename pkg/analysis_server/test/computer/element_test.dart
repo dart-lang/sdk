@@ -35,28 +35,43 @@ class ElementKindTest {
 
   void test_valueOf() {
     expect(ElementKind.valueOf(ElementKind.CLASS.name), ElementKind.CLASS);
-    expect(ElementKind.valueOf(ElementKind.CLASS_TYPE_ALIAS.name),
+    expect(
+        ElementKind.valueOf(ElementKind.CLASS_TYPE_ALIAS.name),
         ElementKind.CLASS_TYPE_ALIAS);
-    expect(ElementKind.valueOf(ElementKind.COMPILATION_UNIT.name),
+    expect(
+        ElementKind.valueOf(ElementKind.COMPILATION_UNIT.name),
         ElementKind.COMPILATION_UNIT);
-    expect(ElementKind.valueOf(ElementKind.CONSTRUCTOR.name),
+    expect(
+        ElementKind.valueOf(ElementKind.CONSTRUCTOR.name),
         ElementKind.CONSTRUCTOR);
     expect(ElementKind.valueOf(ElementKind.FIELD.name), ElementKind.FIELD);
-    expect(ElementKind.valueOf(ElementKind.FUNCTION.name),
+    expect(
+        ElementKind.valueOf(ElementKind.FUNCTION.name),
         ElementKind.FUNCTION);
-    expect(ElementKind.valueOf(ElementKind.FUNCTION_TYPE_ALIAS.name),
+    expect(
+        ElementKind.valueOf(ElementKind.FUNCTION_TYPE_ALIAS.name),
         ElementKind.FUNCTION_TYPE_ALIAS);
     expect(ElementKind.valueOf(ElementKind.GETTER.name), ElementKind.GETTER);
     expect(ElementKind.valueOf(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
-    expect(ElementKind.valueOf(ElementKind.LOCAL_VARIABLE.name),
+    expect(
+        ElementKind.valueOf(ElementKind.LOCAL_VARIABLE.name),
         ElementKind.LOCAL_VARIABLE);
     expect(ElementKind.valueOf(ElementKind.METHOD.name), ElementKind.METHOD);
+    expect(
+        ElementKind.valueOf(ElementKind.PARAMETER.name),
+        ElementKind.PARAMETER);
     expect(ElementKind.valueOf(ElementKind.SETTER.name), ElementKind.SETTER);
-    expect(ElementKind.valueOf(ElementKind.TOP_LEVEL_VARIABLE.name),
+    expect(
+        ElementKind.valueOf(ElementKind.TOP_LEVEL_VARIABLE.name),
         ElementKind.TOP_LEVEL_VARIABLE);
-    expect(ElementKind.valueOf(ElementKind.UNIT_TEST_CASE.name),
+    expect(
+        ElementKind.valueOf(ElementKind.TYPE_PARAMETER.name),
+        ElementKind.TYPE_PARAMETER);
+    expect(
+        ElementKind.valueOf(ElementKind.UNIT_TEST_CASE.name),
         ElementKind.UNIT_TEST_CASE);
-    expect(ElementKind.valueOf(ElementKind.UNIT_TEST_GROUP.name),
+    expect(
+        ElementKind.valueOf(ElementKind.UNIT_TEST_GROUP.name),
         ElementKind.UNIT_TEST_GROUP);
     expect(ElementKind.valueOf(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
     expect(() {
@@ -65,31 +80,50 @@ class ElementKindTest {
   }
 
   void test_valueOfEngine() {
-    expect(ElementKind.valueOfEngine(engine.ElementKind.CLASS),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.CLASS),
         ElementKind.CLASS);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.COMPILATION_UNIT),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.COMPILATION_UNIT),
         ElementKind.COMPILATION_UNIT);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.CONSTRUCTOR),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.CONSTRUCTOR),
         ElementKind.CONSTRUCTOR);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.FIELD),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.FIELD),
         ElementKind.FIELD);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.FUNCTION),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.FUNCTION),
         ElementKind.FUNCTION);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
         ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.GETTER),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.GETTER),
         ElementKind.GETTER);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.LIBRARY),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.LIBRARY),
         ElementKind.LIBRARY);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.LOCAL_VARIABLE),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.LOCAL_VARIABLE),
         ElementKind.LOCAL_VARIABLE);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.METHOD),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.METHOD),
         ElementKind.METHOD);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.SETTER),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.PARAMETER),
+        ElementKind.PARAMETER);
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.SETTER),
         ElementKind.SETTER);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
         ElementKind.TOP_LEVEL_VARIABLE);
-    expect(ElementKind.valueOfEngine(engine.ElementKind.ANGULAR_COMPONENT),
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.TYPE_PARAMETER),
+        ElementKind.TYPE_PARAMETER);
+    expect(
+        ElementKind.valueOfEngine(engine.ElementKind.ANGULAR_COMPONENT),
         ElementKind.UNKNOWN);
   }
 }
@@ -120,8 +154,9 @@ abstract class _MyClass {}''');
       expect(location.startLine, 2);
       expect(location.startColumn, 16);
     }
-    expect(element.flags, Element.FLAG_ABSTRACT | Element.FLAG_DEPRECATED |
-        Element.FLAG_PRIVATE);
+    expect(
+        element.flags,
+        Element.FLAG_ABSTRACT | Element.FLAG_DEPRECATED | Element.FLAG_PRIVATE);
   }
 
   void test_fromElement_CONSTRUCTOR() {
@@ -130,8 +165,8 @@ class A {
   const A.myConstructor(int a, [String b]);
 }''');
     CompilationUnit unit = resolveLibraryUnit(source);
-    engine.ConstructorElement engineElement = findElementInUnit(unit,
-        'myConstructor');
+    engine.ConstructorElement engineElement =
+        findElementInUnit(unit, 'myConstructor');
     // create notification Element
     Element element = new Element.fromEngine(engineElement);
     expect(element.kind, ElementKind.CONSTRUCTOR);
@@ -179,8 +214,8 @@ class A {
   String myGetter => 42;
 }''');
     CompilationUnit unit = resolveLibraryUnit(source);
-    engine.PropertyAccessorElement engineElement = findElementInUnit(unit,
-        'myGetter', engine.ElementKind.GETTER);
+    engine.PropertyAccessorElement engineElement =
+        findElementInUnit(unit, 'myGetter', engine.ElementKind.GETTER);
     // create notification Element
     Element element = new Element.fromEngine(engineElement);
     expect(element.kind, ElementKind.GETTER);
@@ -225,7 +260,9 @@ class A {
   }
 
   void test_fromJson() {
-    var flags = Element.FLAG_DEPRECATED | Element.FLAG_PRIVATE |
+    var flags =
+        Element.FLAG_DEPRECATED |
+        Element.FLAG_PRIVATE |
         Element.FLAG_STATIC;
     var json = {
       KIND: 'METHOD',
@@ -272,7 +309,8 @@ class A {
         START_LINE: 3,
         START_COLUMN: 4,
       },
-      FLAGS: Element.FLAG_DEPRECATED | Element.FLAG_PRIVATE |
+      FLAGS: Element.FLAG_DEPRECATED |
+          Element.FLAG_PRIVATE |
           Element.FLAG_STATIC,
       PARAMETERS: '(int a, String b)',
       RETURN_TYPE: 'List<String>'
