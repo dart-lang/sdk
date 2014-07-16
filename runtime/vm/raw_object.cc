@@ -15,7 +15,8 @@
 namespace dart {
 
 
-const intptr_t RawPcDescriptors::kFullRecSize = sizeof(PcDescriptorRec);
+const intptr_t RawPcDescriptors::kFullRecSize =
+    sizeof(RawPcDescriptors::PcDescriptorRec);
 const intptr_t RawPcDescriptors::kCompressedRecSize =
     kFullRecSize - sizeof(int16_t);
 
