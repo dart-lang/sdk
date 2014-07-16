@@ -671,7 +671,7 @@ class ResolutionEnqueuer extends Enqueuer {
         resolvedElements = new Set<AstElement>(),
         queue = new Queue<ResolutionWorkItem>(),
         deferredTaskQueue = new Queue<DeferredTask>() {
-    compilationInfo = new CompilationInformation(this);
+    compilationInfo = new CompilationInformation(this, compiler.dumpInfo);
   }
 
   bool get isResolutionQueue => true;
@@ -823,7 +823,7 @@ class CodegenEnqueuer extends Enqueuer {
       : queue = new Queue<CodegenWorkItem>(),
         newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
         super('codegen enqueuer', compiler, itemCompilationContextCreator) {
-    compilationInfo = new CompilationInformation(this);
+    compilationInfo = new CompilationInformation(this, compiler.dumpInfo);
   }
 
   bool isProcessed(Element member) =>

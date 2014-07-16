@@ -122,8 +122,8 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   // If keeping the element is in question (like if a function has a size
   // of zero), only keep it if it holds dependencies to elsewhere.
   bool shouldKeep(Element element) {
-    return compilationInfo.relations['addsToWorklist'].containsKey(element) ||
-           compilationInfo.relations['enqueues'].containsKey(element);
+    return compilationInfo.addsToWorkListMap.containsKey(element) ||
+           compilationInfo.enqueuesMap.containsKey(element);
   }
 
   Map<String, dynamic> toJson() {
@@ -397,8 +397,7 @@ class DumpInfoTask extends CompilerTask {
 
     CompilationInformation compilationInfo =
       infoCollector.compiler.enqueuer.codegen.compilationInfo;
-    var relations = compilationInfo.relations;
-    relations['addsToWorklist'].forEach((func, deps) {
+    compilationInfo.addsToWorkListMap.forEach((func, deps) {
       if (func != null) {
         var funcJson = infoCollector.process(func);
         if (funcJson != null) {
