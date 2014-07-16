@@ -62,6 +62,33 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
+  test_localVariable() {
+    addTestFile('''
+class A {
+  main() {
+    var foo = 42;
+  }
+}
+''');
+    return findMemberDeclarations('foo').then((_) {
+      expect(results, isEmpty);
+    });
+  }
+
+  test_localVariable_forIn() {
+    addTestFile('''
+class A {
+  main() {
+    for (int foo in []) {
+    }
+  }
+}
+''');
+    return findMemberDeclarations('foo').then((_) {
+      expect(results, isEmpty);
+    });
+  }
+
   test_methodField() {
     addTestFile('''
 class A {

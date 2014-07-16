@@ -152,6 +152,26 @@ main(A a, p) {
         _expectedLocationQU(mainElement, 'method(); // ur'));
   }
 
+  void test_NameElement_isDefinedBy_localVariable_inForEach() {
+    _indexTestUnit('''
+class A {
+  main() {
+    for (int test in []) {
+    }
+  }
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    LocalVariableElement testElement = findElement('test');
+    Element nameElement = new NameElement('test');
+    // verify
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(testElement, 'test in []'));
+  }
+
   void test_NameElement_operator_resolved() {
     _indexTestUnit('''
 class A {

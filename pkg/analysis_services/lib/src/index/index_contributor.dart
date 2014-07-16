@@ -532,6 +532,17 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   @override
+  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+    LocalVariableElement element = node.element;
+    enterScope(element);
+    try {
+      return super.visitDeclaredIdentifier(node);
+    } finally {
+      _exitScope();
+    }
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
     if (element != null) {
