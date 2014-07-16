@@ -14,6 +14,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analysis_server/src/search/top_level_declarations.dart';
 
 /**
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
@@ -63,7 +64,7 @@ class SearchDomainHandler implements RequestHandler {
     elements.forEach((Element element) {
       var computer = new ElementReferencesComputer(searchEngine);
       var future = computer.compute(element, includePotential);
-      return future.then((List<SearchResult> results) {
+      future.then((List<SearchResult> results) {
         bool isLast = identical(element, elements.last);
         _sendSearchNotification(searchId, isLast, results);
       });
@@ -100,11 +101,18 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   Response findTopLevelDeclarations(Request request) {
-    // pattern
-    RequestDatum patternDatum = request.getRequiredParameter(FILE);
-    String pattern = patternDatum.asString();
-    // TODO(brianwilkerson) implement
-    return null;
+    String pattern = request.getRequiredParameter(PATTERN).asString();
+    // schedule search
+    String searchId = (_nextSearchId++).toString();
+    new Future.microtask(() {
+      var computer = new TopLevelDeclarationsComputer(searchEngine);
+      var future = computer.compute(pattern);
+      future.then((List<SearchResult> results) {
+        _sendSearchNotification(searchId, true, results);
+      });
+    });
+    // respond
+    return new Response(request.id)..setResult(ID, searchId);
   }
 
   @override

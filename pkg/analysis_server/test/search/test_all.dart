@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 import 'element_references_test.dart' as element_references_test;
 import 'search_domain_test.dart' as search_domain_test;
 import 'search_result_test.dart' as search_result_test;
+import 'top_level_declarations_test.dart' as top_level_declarations;
 
 /**
  * Utility for manually running all tests.
@@ -18,5 +19,6 @@ main() {
     element_references_test.main();
     search_domain_test.main();
     search_result_test.main();
+    top_level_declarations.main();
   });
 }
