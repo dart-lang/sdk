@@ -105,6 +105,30 @@ class A {
     }
   }
 
+  void test_encodeHash_notLocal() {
+    resolveTestUnit('''
+class A {
+  void mainA() {
+    int foo; // A
+  }
+  void mainB() {
+    int foo; // B
+    int bar;
+  }
+}
+''');
+    MethodElement mainA = findElement('mainA');
+    MethodElement mainB = findElement('mainB');
+    Element fooA = mainA.localVariables[0];
+    Element fooB = mainB.localVariables[0];
+    Element bar = mainB.localVariables[1];
+    int id_fooA = codec.encodeHash(fooA);
+    int id_fooB = codec.encodeHash(fooB);
+    int id_bar = codec.encodeHash(bar);
+    expect(id_fooA == id_fooB, isTrue);
+    expect(id_fooA == id_bar, isFalse);
+  }
+
   void test_localLocalVariable() {
     resolveTestUnit('''
 main() {

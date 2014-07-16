@@ -640,8 +640,7 @@ class SplitIndexStore implements IndexStore {
       return new Future.value(locations);
     }
     // prepare node names
-    String name = _getElementName(element);
-    int nameId = _stringCodec.encode(name);
+    int nameId = _elementCodec.encodeHash(element);
     List<int> nodeNameIds = _nameToNodeNames.get(nameId);
     // prepare Future(s) for reading each IndexNode
     List<Future<List<Location>>> nodeFutures = <Future<List<Location>>>[];
@@ -798,8 +797,7 @@ class SplitIndexStore implements IndexStore {
   }
 
   void _recordNodeNameForElement(Element element) {
-    String name = _getElementName(element);
-    int nameId = _stringCodec.encode(name);
+    int nameId = _elementCodec.encodeHash(element);
     _nameToNodeNames.add(nameId, _currentNodeNameId);
   }
 

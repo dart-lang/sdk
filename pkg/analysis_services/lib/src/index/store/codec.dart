@@ -6,10 +6,10 @@ library services.src.index.store.codec;
 
 import 'dart:collection';
 
+import 'package:analysis_services/index/index.dart';
+import 'package:analysis_services/src/index/store/collection.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analysis_services/src/index/store/collection.dart';
-import 'package:analysis_services/index/index.dart';
 
 
 /**
@@ -110,6 +110,20 @@ class ElementCodec {
     return index;
   }
 
+  /**
+   * Returns an integer that corresponds to an approximated location of the given {@link Element}.
+   */
+  int encodeHash(Element element) {
+    List<int> path = _getLocationPathLimited(element);
+    int index = _pathToIndex[path];
+    if (index == null) {
+      index = _indexToPath.length;
+      _pathToIndex[path] = index;
+      _indexToPath.add(path);
+    }
+    return index;
+  }
+
   List<String> _getLocationComponents(List<int> path) {
     int length = path.length;
     List<String> components = new List<String>();
@@ -152,6 +166,21 @@ class ElementCodec {
     }
   }
 
+  /**
+   * Returns an approximation of the given {@link Element}'s location.
+   */
+  List<int> _getLocationPathLimited(Element element) {
+    List<String> components = element.location.components;
+    int length = components.length;
+    String firstComponent = components[0];
+    String lastComponent = components[length - 1];
+    firstComponent = firstComponent.substring(1);
+    lastComponent = _substringBeforeAt(lastComponent);
+    int firstId = _stringCodec.encode(firstComponent);
+    int lastId = _stringCodec.encode(lastComponent);
+    return <int>[firstId, lastId];
+  }
+
   bool _hasLocalOffset(List<String> components) {
     for (String component in components) {
       if (component.indexOf('@') != -1) {
@@ -159,6 +188,14 @@ class ElementCodec {
       }
     }
     return false;
+  }
+
+  String _substringBeforeAt(String str) {
+    int atOffset = str.indexOf('@');
+    if (atOffset != -1) {
+      str = str.substring(0, atOffset);
+    }
+    return str;
   }
 }
 
