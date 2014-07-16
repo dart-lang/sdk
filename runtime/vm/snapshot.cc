@@ -178,8 +178,6 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
 
 
 RawObject* SnapshotReader::ReadObject() {
-  const Instance& null_object = Instance::Handle();
-  *ErrorHandle() = UnhandledException::New(null_object, null_object);
   // Setup for long jump in case there is an exception while reading.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
@@ -699,6 +697,11 @@ RawLanguageError* SnapshotReader::NewLanguageError() {
 }
 
 
+RawUnhandledException* SnapshotReader::NewUnhandledException() {
+  ALLOC_NEW_OBJECT(UnhandledException, Object::unhandled_exception_class());
+}
+
+
 RawObject* SnapshotReader::NewInteger(int64_t value) {
   ASSERT((value & kSmiTagMask) == kSmiTag);
   value = value >> kSmiTagShift;
@@ -747,10 +750,9 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
     // into dart code or allocating any code.
     // We do a longjmp at this point to unwind out of the entire
     // read part and return the error object back.
-    const Instance& exception =
-        Instance::Handle(object_store()->out_of_memory());
-    ErrorHandle()->set_exception(exception);
-    Isolate::Current()->long_jump_base()->Jump(1, *ErrorHandle());
+    const UnhandledException& error = UnhandledException::Handle(
+        object_store()->preallocated_unhandled_exception());
+    Isolate::Current()->long_jump_base()->Jump(1, error);
   }
 #if defined(DEBUG)
   // Zap the uninitialized memory area.

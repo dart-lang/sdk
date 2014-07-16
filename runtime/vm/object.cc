@@ -12750,6 +12750,22 @@ RawUnhandledException* UnhandledException::New(const Instance& exception,
 }
 
 
+RawUnhandledException* UnhandledException::New(Heap::Space space) {
+  ASSERT(Object::unhandled_exception_class() != Class::null());
+  UnhandledException& result = UnhandledException::Handle();
+  {
+    RawObject* raw = Object::Allocate(UnhandledException::kClassId,
+                                      UnhandledException::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_exception(Object::null_instance());
+  result.set_stacktrace(Object::null_instance());
+  return result.raw();
+}
+
+
 void UnhandledException::set_exception(const Instance& exception) const {
   StorePointer(&raw_ptr()->exception_, exception.raw());
 }

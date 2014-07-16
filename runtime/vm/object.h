@@ -4179,11 +4179,14 @@ class UnhandledException : public Error {
   virtual const char* ToErrorCString() const;
 
  private:
+  static RawUnhandledException* New(Heap::Space space = Heap::kNew);
+
   void set_exception(const Instance& exception) const;
   void set_stacktrace(const Instance& stacktrace) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
+  friend class ObjectStore;
 };
 
 

@@ -67,6 +67,7 @@ class RawTypeRef;
 class RawTypeParameter;
 class RawTypeArguments;
 class RawTwoByteString;
+class RawUnhandledException;
 class RawUnresolvedClass;
 class String;
 class TokenStream;
@@ -248,7 +249,6 @@ class SnapshotReader : public BaseReader {
   Array* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
   ExternalTypedData* DataHandle() { return &data_; }
-  UnhandledException* ErrorHandle() { return &error_; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -299,6 +299,7 @@ class SnapshotReader : public BaseReader {
   RawFloat64x2* NewFloat64x2(double v0, double v1);
   RawApiError* NewApiError();
   RawLanguageError* NewLanguageError();
+  RawUnhandledException* NewUnhandledException();
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
 
@@ -391,6 +392,7 @@ class SnapshotReader : public BaseReader {
   friend class TypeParameter;
   friend class TypeRef;
   friend class UnresolvedClass;
+  friend class UnhandledException;
   friend class WeakProperty;
   friend class MirrorReference;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
