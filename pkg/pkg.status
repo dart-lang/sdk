@@ -130,6 +130,7 @@ analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 
 analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/analysis_notification_navigation_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/domain_analysis_test: Pass, Slow # Issue 16473, 19756
+analysis_server/test/analysis_notification_highlights_test: Pass, Slow # 16473, 19756
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 
 [ $runtime == d8 || $runtime == jsshell ]
