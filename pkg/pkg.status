@@ -220,6 +220,12 @@ analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 # Unexplained errors only occuring on Safari.
 typed_data/test/typed_buffers_test: RuntimeError
 
+[ $runtime == safari ]
+polymer/test/js_interop_test: RuntimeError # Issue 20075
+
+[ $runtime == safari || $ie ]
+polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 20075
+
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
 path/test/browser_test: Fail, OK # Uses dart:html
