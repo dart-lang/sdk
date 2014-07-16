@@ -221,7 +221,7 @@ analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 typed_data/test/typed_buffers_test: RuntimeError
 
 [ $runtime == safari ]
-polymer/test/js_interop_test: RuntimeError # Issue 20075
+polymer/test/js_interop_test: Pass, RuntimeError # Issue 20075
 
 [ $runtime == safari || $ie ]
 polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 20075
