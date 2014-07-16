@@ -83,7 +83,7 @@ class FormatException implements Exception {
    */
   String toString() {
     String report = "FormatException";
-    if (message != null && message.isNotEmpty) {
+    if (message != null && "" != message) {
       report = "$report: $message";
     }
     int position = this.position;
