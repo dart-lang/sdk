@@ -120,6 +120,9 @@ class StubCode {
 
   static bool InInvocationStubForIsolate(Isolate* isolate, uword pc);
 
+  // Check if the specified pc is in the jump to exception handler stub.
+  static bool InJumpToExceptionHandlerStub(uword pc);
+
   // Returns NULL if no stub found.
   static const char* NameOfStub(uword entry_point);
 
