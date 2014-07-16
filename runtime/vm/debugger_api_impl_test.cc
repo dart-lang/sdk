@@ -2040,7 +2040,7 @@ static void UnhandledExceptionHandler(Dart_IsolateId isolate_id,
 // caught by Dart code.
 TEST_CASE(Debug_BreakOnUnhandledException) {
   const char* kScriptChars =
-      "void main() {                   \n"
+      "main() {                        \n"
       "  try {                         \n"
       "    throw 'broccoli';           \n"
       "  } catch (e) {                 \n"
