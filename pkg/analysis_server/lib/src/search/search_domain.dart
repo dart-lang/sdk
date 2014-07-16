@@ -14,7 +14,6 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analysis_server/src/search/top_level_declarations.dart';
 
 /**
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
@@ -93,24 +92,29 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   Response findMemberReferences(Request request) {
-    // name
-    RequestDatum nameDatum = request.getRequiredParameter(FILE);
-    String name = nameDatum.asString();
-    // TODO(brianwilkerson) implement
-    return null;
+    String name = request.getRequiredParameter(NAME).asString();
+    // schedule search
+    String searchId = (_nextSearchId++).toString();
+    {
+      var matchesFuture = searchEngine.searchMemberReferences(name);
+      matchesFuture.then((List<SearchMatch> matches) {
+        _sendSearchNotification(searchId, true, matches.map(toResult));
+      });
+    }
+    // respond
+    return new Response(request.id)..setResult(ID, searchId);
   }
 
   Response findTopLevelDeclarations(Request request) {
     String pattern = request.getRequiredParameter(PATTERN).asString();
     // schedule search
     String searchId = (_nextSearchId++).toString();
-    new Future.microtask(() {
-      var computer = new TopLevelDeclarationsComputer(searchEngine);
-      var future = computer.compute(pattern);
-      future.then((List<SearchResult> results) {
-        _sendSearchNotification(searchId, true, results);
+    {
+      var matchesFuture = searchEngine.searchTopLevelDeclarations(pattern);
+      matchesFuture.then((List<SearchMatch> matches) {
+        _sendSearchNotification(searchId, true, matches.map(toResult));
       });
-    });
+    }
     // respond
     return new Response(request.id)..setResult(ID, searchId);
   }
@@ -135,11 +139,15 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   void _sendSearchNotification(String searchId, bool isLast,
-      List<SearchResult> results) {
+      Iterable<SearchResult> results) {
     Notification notification = new Notification(SEARCH_RESULTS);
     notification.setParameter(ID, searchId);
     notification.setParameter(LAST, isLast);
     notification.setParameter(RESULTS, results);
     server.sendNotification(notification);
+  }
+
+  static SearchResult toResult(SearchMatch match) {
+    return new SearchResult.fromMatch(match);
   }
 }
