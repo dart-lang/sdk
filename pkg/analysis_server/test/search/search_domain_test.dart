@@ -36,25 +36,9 @@ main() {
   });
 
   group('SearchDomainHandler', () {
-    test('findMemberDeclarations', () {
-      var request = new Request('0', SEARCH_FIND_MEMBER_DECLARATIONS);
-      request.setParameter(NAME, null);
-      var response = handler.handleRequest(request);
-      // TODO(brianwilkerson) implement
-      //expect(response, isNull);
-    });
-
     test('findMemberReferences', () {
       var request = new Request('0', SEARCH_FIND_MEMBER_REFERENCES);
       request.setParameter(NAME, null);
-      var response = handler.handleRequest(request);
-      // TODO(brianwilkerson) implement
-      //expect(response, isNull);
-    });
-
-    test('findTopLevelDeclarations', () {
-      var request = new Request('0', SEARCH_FIND_TOP_LEVEL_DECLARATIONS);
-      request.setParameter(PATTERN, null);
       var response = handler.handleRequest(request);
       // TODO(brianwilkerson) implement
       //expect(response, isNull);

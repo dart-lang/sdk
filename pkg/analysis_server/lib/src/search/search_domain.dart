@@ -8,10 +8,10 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/element.dart' as se;
-import 'package:analysis_server/src/search/element_references.dart';
-import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/search/element_references.dart';
+import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -84,11 +84,17 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   Response findMemberDeclarations(Request request) {
-    // name
-    RequestDatum nameDatum = request.getRequiredParameter(FILE);
-    String name = nameDatum.asString();
-    // TODO(brianwilkerson) implement
-    return null;
+    String name = request.getRequiredParameter(NAME).asString();
+    // schedule search
+    String searchId = (_nextSearchId++).toString();
+    {
+      var matchesFuture = searchEngine.searchMemberDeclarations(name);
+      matchesFuture.then((List<SearchMatch> matches) {
+        _sendSearchNotification(searchId, true, matches.map(toResult));
+      });
+    }
+    // respond
+    return new Response(request.id)..setResult(ID, searchId);
   }
 
   Response findMemberReferences(Request request) {
