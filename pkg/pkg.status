@@ -122,6 +122,8 @@ analysis_server/test/analysis_notification_overrides_test: Pass, Slow # Issue 19
 analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 19756
 analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 19756
 analysis_server/test/domain_search_test: Pass, Slow # Issue 19756
+analysis_server/test/search/element_reference_test: Pass, Slow # Issue 19756
+analysis_server/index/store/codec_test: Pass, Slow # Issue 19756
 
 [ $runtime == jsshell ]
 analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 16473, 19756
