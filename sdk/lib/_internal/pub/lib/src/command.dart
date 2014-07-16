@@ -109,7 +109,17 @@ abstract class PubCommand {
   ArgResults get commandOptions => _commandOptions;
   ArgResults _commandOptions;
 
-  Entrypoint entrypoint;
+  /// Gets the [Entrypoint] package for the current working directory.
+  ///
+  /// This will load the pubspec and fail with an error if the current directory
+  /// is not a package.
+  Entrypoint get entrypoint {
+    // Lazy load it.
+    if (_entrypoint == null) _entrypoint = new Entrypoint(path.current, _cache);
+    return _entrypoint;
+  }
+
+  Entrypoint _entrypoint;
 
   /// A one-line description of this command.
   String get description;
@@ -129,12 +139,6 @@ abstract class PubCommand {
 
   /// The URL for web documentation for this command.
   String get docUrl => null;
-
-  /// Whether or not this command requires [entrypoint] to be defined.
-  ///
-  /// If false, pub won't look for a pubspec and [entrypoint] will be null when
-  /// the command runs. This only needs to be set in leaf commands.
-  bool get requiresEntrypoint => true;
 
   /// Whether or not this command takes arguments in addition to options.
   ///
@@ -183,13 +187,6 @@ abstract class PubCommand {
 
     _cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
     _globals = new GlobalPackages(_cache);
-
-    if (requiresEntrypoint) {
-      // TODO(rnystrom): Will eventually need better logic to walk up
-      // subdirectories until we hit one that looks package-like. For now,
-      // just assume the cwd is it.
-      entrypoint = new Entrypoint(path.current, cache);
-    }
 
     return syncFuture(onRun);
   }

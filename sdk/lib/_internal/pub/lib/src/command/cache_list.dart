@@ -16,7 +16,6 @@ class CacheListCommand extends PubCommand {
   String get description => "List packages in the system cache.";
   String get usage => "pub cache list";
   bool get hidden => true;
-  bool get requiresEntrypoint => false;
 
   Future onRun() {
     // TODO(keertip): Add flag to list packages from non default sources.

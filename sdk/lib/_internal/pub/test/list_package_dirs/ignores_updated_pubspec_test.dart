@@ -42,7 +42,8 @@ main() {
             "myapp": canonicalize(path.join(sandboxDir, appPath, "lib"))
           },
           "input_files": [
-            canonicalize(path.join(sandboxDir, appPath, "pubspec.lock"))
+            canonicalize(path.join(sandboxDir, appPath, "pubspec.lock")),
+            canonicalize(path.join(sandboxDir, appPath, "pubspec.yaml"))
           ]
         });
   });

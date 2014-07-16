@@ -2,22 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE d.file.
 
+import 'package:path/path.dart' as path;
+
 import '../../lib/src/exit_codes.dart' as exit_codes;
+import '../../lib/src/io.dart';
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 main() {
   initConfig();
-  integration('with no lockfile, exits with error', () {
-    d.dir(appPath, [
-      d.appPubspec()
-    ]).create();
+  // This is a regression test for #20065.
+  integration("reports a missing pubspec error using JSON", () {
+    d.dir(appPath).create();
 
     schedulePub(args: ["list-package-dirs", "--format=json"],
         outputJson: {
           "error":
-            'Package "myapp" has no lockfile. Please run "pub get" first.'
+            'Could not find a file named "pubspec.yaml" in "'
+                '${canonicalize(path.join(sandboxDir, appPath))}".'
         },
-        exitCode: exit_codes.DATA);
+        exitCode: 1);
   });
 }

@@ -49,8 +49,11 @@ class ListPackageDirsCommand extends PubCommand {
     packages[entrypoint.root.name] = path.join(entrypoint.root.dir, "lib");
 
     // Include the file(s) which when modified will affect the results. For pub,
-    // that's just the lockfile.
-    output["input_files"] = [entrypoint.lockFilePath];
+    // that's just the pubspec and lockfile.
+    output["input_files"] = [
+      entrypoint.lockFilePath,
+      entrypoint.pubspecPath
+    ];
 
     return Future.wait(futures).then((_) {
       log.json.message(output);

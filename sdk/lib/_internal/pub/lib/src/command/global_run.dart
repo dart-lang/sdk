@@ -22,7 +22,6 @@ import '../utils.dart';
 
 /// Handles the `global run` pub command.
 class GlobalRunCommand extends PubCommand {
-  bool get requiresEntrypoint => false;
   bool get takesArguments => true;
   bool get allowTrailingOptions => false;
   String get description =>

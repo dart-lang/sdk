@@ -13,7 +13,6 @@ import '../utils.dart';
 class GlobalDeactivateCommand extends PubCommand {
   String get description => "Remove a previously activated package.";
   String get usage => "pub global deactivate <package>";
-  bool get requiresEntrypoint => false;
   bool get takesArguments => true;
 
   Future onRun() {

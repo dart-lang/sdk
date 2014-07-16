@@ -14,7 +14,6 @@ import '../version.dart';
 class GlobalActivateCommand extends PubCommand {
   String get description => "Make a package's executables globally available.";
   String get usage => "pub global activate <package> [version]";
-  bool get requiresEntrypoint => false;
   bool get takesArguments => true;
 
   Future onRun() {

@@ -74,6 +74,9 @@ class Entrypoint {
     return _lockFile;
   }
 
+  /// The path to the entrypoint package's pubspec.
+  String get pubspecPath => path.join(root.dir, 'pubspec.yaml');
+
   /// The path to the entrypoint package's lockfile.
   String get lockFilePath => path.join(root.dir, 'pubspec.lock');
 
