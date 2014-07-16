@@ -35,11 +35,11 @@ abstract class C extends AbstractC {
 }
 
 checkKinds(method, kinds) {
-  Expect.equals(method.isStatic, kinds[0]);
-  Expect.equals(method.isAbstract, kinds[1]);
-  Expect.equals(method.isGetter, kinds[2]);
-  Expect.equals(method.isSetter, kinds[3]);
-  Expect.equals(method.isConstructor, kinds[4]);
+  Expect.equals(kinds[0], method.isStatic, "isStatic");
+  Expect.equals(kinds[1], method.isAbstract, "isAbstract");
+  Expect.equals(kinds[2], method.isGetter, "isGetter");
+  Expect.equals(kinds[3], method.isSetter, "isSetter");
+  Expect.equals(kinds[4], method.isConstructor, "isConstructor");
 }
 
 main() {
