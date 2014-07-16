@@ -13,7 +13,7 @@ import 'integration_tests.dart';
 class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest
     {
   test_detect_simple_error() {
-    createFile('test.dart',
+    writeFile('test.dart',
         '''
 main() {
   var x // parse error: missing ';'

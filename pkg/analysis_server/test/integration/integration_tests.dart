@@ -34,11 +34,14 @@ abstract class AbstractAnalysisServerIntegrationTest {
       );
 
   /**
-   * Create a source file with the given contents.  [relativePath]
+   * Write a source file with the given contents.  [relativePath]
    * is relative to [sourceDirectory]; on Windows any forward slashes it
    * contains are converted to backslashes.
+   *
+   * If the file didn't previously exist, it is created.  If it did, it is
+   * overwritten.
    */
-  void createFile(String relativePath, String contents) {
+  void writeFile(String relativePath, String contents) {
     String absolutePath = normalizePath(relativePath);
     new Directory(dirname(absolutePath)).createSync(recursive: true);
     new File(absolutePath).writeAsStringSync(contents);
@@ -64,6 +67,15 @@ abstract class AbstractAnalysisServerIntegrationTest {
   }
 
   /**
+   * Send the server a 'server.setSubscriptions' command.
+   */
+  Future server_setSubscriptions(List<String> subscriptions) {
+    return server.send('server.setSubscriptions', {
+      'subscriptions': subscriptions
+    });
+  }
+
+  /**
    * Return a future which will complete when a 'server.status' notification is
    * received from the server with 'analyzing' set to false.
    *
@@ -76,10 +88,18 @@ abstract class AbstractAnalysisServerIntegrationTest {
     Completer completer = new Completer();
     StreamSubscription subscription;
     subscription = server.onNotification('server.status').listen((params) {
-      if (!params['analysis']['analyzing']) {
+      bool analysisComplete = false;
+      try {
+        analysisComplete = !params['analysis']['analyzing'];
+      } catch (_) {
+        // Status message was mal-formed or missing optional parameters.  That's
+        // fine, since we'll detect a mal-formed status message below.
+      }
+      if (analysisComplete) {
         completer.complete(params);
         subscription.cancel();
       }
+      expect(params, isServerStatusParams);
     });
     return completer.future;
   }
@@ -124,9 +144,12 @@ abstract class AbstractAnalysisServerIntegrationTest {
 
 const Matcher isString = const isInstanceOf<String>('String');
 
-const Matcher isInt = const isInstanceOf<int>('Int');
+const Matcher isInt = const isInstanceOf<int>('int');
 
-const Matcher isResultResponse = const MatchesJsonObject('result response', const {
+const Matcher isBool = const isInstanceOf<bool>('bool');
+
+const Matcher isResultResponse = const MatchesJsonObject('result response',
+    const {
   'id': isString
 }, optionalFields: const {
   'result': anything
@@ -136,11 +159,17 @@ const Matcher isError = const MatchesJsonObject('Error', const {
   // TODO(paulberry): once we decide what the set of permitted error codes are,
   // add validation for 'code'.
   'code': anything,
-  'message': isString,
+  'message': isString
+}, optionalFields: const {
+  // TODO(paulberry): API spec says that 'data' is required, but sometimes we
+  // don't see it (example: error "Expected parameter subscriptions to be a
+  // string list map" in response to a malformed "analysis.setSubscriptions"
+  // command).
   'data': anything
 });
 
-const Matcher isErrorResponse = const MatchesJsonObject('error response', const {
+const Matcher isErrorResponse = const MatchesJsonObject('error response', const
+    {
   'id': isString,
   'error': isError
 });
@@ -149,6 +178,16 @@ const Matcher isNotification = const MatchesJsonObject('notification', const {
   'event': isString
 }, optionalFields: const {
   'params': isMap
+});
+
+const Matcher isServerGetVersionResult = const MatchesJsonObject(
+    'server.getVersion result', const {
+  'version': isString
+});
+
+const Matcher isServerStatusParams = const MatchesJsonObject(
+    'server.status params', null, optionalFields: const {
+  'analysis': isAnalysisStatus
 });
 
 final Matcher isErrorSeverity = isIn(['INFO', 'WARNING', 'ERROR']);
@@ -173,6 +212,13 @@ final Matcher isAnalysisError = new MatchesJsonObject('AnalysisError', {
   'correction': isString,
   // TODO(paulberry): remove 'errorCode' once server stops sending it
   'errorCode': anything
+});
+
+const Matcher isAnalysisStatus = const MatchesJsonObject('AnalysisStatus', const
+    {
+  'analyzing': isBool
+}, optionalFields: const {
+  'analysisTarget': isString
 });
 
 
@@ -285,9 +331,13 @@ class MatchesJsonObject extends Matcher {
       mismatches.add((Description mismatchDescription, bool verbose) {
         mismatchDescription = mismatchDescription.add(
             'contains malformed field ').addDescriptionOf(key).add(' (should be '
-            ).addDescriptionOf(valueMatcher).add('; ');
-        mismatchDescription = valueMatcher.describeMismatch(value,
-            mismatchDescription, subState, verbose);
+            ).addDescriptionOf(valueMatcher);
+        String subDescription = valueMatcher.describeMismatch(value,
+            new StringDescription(), subState, false).toString();
+        if (subDescription.isNotEmpty) {
+          mismatchDescription = mismatchDescription.add('; ').add(subDescription
+              );
+        }
         return mismatchDescription.add(')');
       });
     }
@@ -394,7 +444,8 @@ class Server {
           }
           if (messageAsMap.containsKey('error')) {
             // TODO(paulberry): propagate the error info to the completer.
-            completer.completeError(null);
+            completer.completeError(new UnimplementedError(
+                'Server responded with an error'));
             // Check that the message is well-formed.  We do this after calling
             // completer.completeError() so that we don't stall the test in the
             // event of an error.
