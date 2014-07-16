@@ -7626,50 +7626,85 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 }
 
 
+// CompressedTokenMap maps String and LiteralToken keys to Smi values.
+// It also supports lookup by Scanner::TokenDescriptor.
+class CompressedTokenTraits {
+ public:
+  static bool IsMatch(const Scanner::TokenDescriptor& descriptor,
+                      const Object& key) {
+    if (!key.IsLiteralToken()) {
+      return false;
+    }
+    const LiteralToken& token = LiteralToken::Cast(key);
+    return (token.literal() == descriptor.literal->raw()) &&
+           (token.kind() == descriptor.kind);
+  }
+
+  // Only for non-descriptor lookup and table expansion.
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
+  }
+
+  static uword Hash(const Scanner::TokenDescriptor& descriptor) {
+    return descriptor.literal->Hash();
+  }
+
+  static uword Hash(const Object& key) {
+    if (key.IsLiteralToken()) {
+      return String::HashRawSymbol(LiteralToken::Cast(key).literal());
+    } else {
+      return String::Cast(key).Hash();
+    }
+  }
+};
+typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
+
+
 // Helper class for creation of compressed token stream data.
 class CompressedTokenStreamData : public ValueObject {
  public:
-  static const intptr_t kInitialSize = 16 * KB;
+  static const intptr_t kInitialBufferSize = 16 * KB;
   CompressedTokenStreamData() :
       buffer_(NULL),
-      stream_(&buffer_, Reallocate, kInitialSize),
-      token_objects_(GrowableObjectArray::Handle(
-          GrowableObjectArray::New(kInitialTokenCount, Heap::kOld))),
-      token_obj_(Object::Handle()),
-      literal_token_(LiteralToken::Handle()),
-      literal_str_(String::Handle()) {
-    token_objects_.Add(Object::null_string());
+      stream_(&buffer_, Reallocate, kInitialBufferSize),
+      tokens_(Array::Handle(
+          HashTables::New<CompressedTokenMap>(kInitialTableSize))) {
   }
   ~CompressedTokenStreamData() {
+    // Safe to discard the hash table now.
+    tokens_.Release();
   }
 
-  // Add an IDENT token into the stream and the token objects array.
+  // Add an IDENT token into the stream and the token hash map.
   void AddIdentToken(const String* ident) {
-    // If the IDENT token is already in the tokens object array use the
-    // same index instead of duplicating it.
-    intptr_t index = FindIdentIndex(ident);
-    if (index == -1) {
-      WriteIndex(token_objects_.Length());
-      ASSERT(ident != NULL);
-      token_objects_.Add(*ident);
+    ASSERT(ident->IsSymbol());
+    intptr_t index = tokens_.NumOccupied();
+    intptr_t entry;
+    if (!tokens_.FindKeyOrDeletedOrUnused(*ident, &entry)) {
+      tokens_.InsertKey(entry, *ident);
+      tokens_.UpdatePayload(entry, 0, Smi::Handle(Smi::New(index)));
+      HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, tokens_);
     } else {
-      WriteIndex(index);
+      index = Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0)));
     }
+    WriteIndex(index);
   }
 
-  // Add a LITERAL token into the stream and the token objects array.
-  void AddLiteralToken(Token::Kind kind, const String* literal) {
-    // If the literal token is already in the tokens object array use the
-    // same index instead of duplicating it.
-    intptr_t index = FindLiteralIndex(kind, literal);
-    if (index == -1) {
-      WriteIndex(token_objects_.Length());
-      ASSERT(literal != NULL);
-      literal_token_ = LiteralToken::New(kind, *literal);
-      token_objects_.Add(literal_token_);
+  // Add a LITERAL token into the stream and the token hash map.
+  void AddLiteralToken(const Scanner::TokenDescriptor& descriptor) {
+    ASSERT(descriptor.literal->IsSymbol());
+    intptr_t index = tokens_.NumOccupied();
+    intptr_t entry;
+    if (!tokens_.FindKeyOrDeletedOrUnused(descriptor, &entry)) {
+      LiteralToken& new_literal = LiteralToken::Handle(
+          LiteralToken::New(descriptor.kind, *descriptor.literal));
+      tokens_.InsertKey(entry, new_literal);
+      tokens_.UpdatePayload(entry, 0, Smi::Handle(Smi::New(index)));
+      HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, tokens_);
     } else {
-      WriteIndex(index);
+      index = Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0)));
     }
+    WriteIndex(index);
   }
 
   // Add a simple token into the stream.
@@ -7683,44 +7718,21 @@ class CompressedTokenStreamData : public ValueObject {
   // Return the compressed token stream length.
   intptr_t Length() const { return stream_.bytes_written(); }
 
-  // Return the token objects array.
-  const GrowableObjectArray& TokenObjects() const {
-    return token_objects_;
+  // Generate and return the token objects array.
+  RawArray* MakeTokenObjectsArray() const {
+    Array& result = Array::Handle(
+        Array::New(tokens_.NumOccupied(), Heap::kOld));
+    CompressedTokenMap::Iterator it(&tokens_);
+    Object& key = Object::Handle();
+    while (it.MoveNext()) {
+      intptr_t entry = it.Current();
+      key = tokens_.GetKey(entry);
+      result.SetAt(Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0))), key);
+    }
+    return result.raw();
   }
 
  private:
-  intptr_t FindIdentIndex(const String* ident) {
-    ASSERT(ident != NULL);
-    ASSERT(ident->IsSymbol());
-    intptr_t hash_value = ident->Hash() % kTableSize;
-    GrowableArray<intptr_t>& value = ident_table_[hash_value];
-    for (intptr_t i = 0; i < value.length(); i++) {
-      intptr_t index = value[i];
-      if (token_objects_.At(index) == ident->raw()) {
-        return index;
-      }
-    }
-    value.Add(token_objects_.Length());
-    return -1;
-  }
-
-  intptr_t FindLiteralIndex(Token::Kind kind, const String* literal) {
-    ASSERT(literal != NULL);
-    ASSERT(literal->IsSymbol());
-    intptr_t hash_value = literal->Hash() % kTableSize;
-    GrowableArray<intptr_t>& value = literal_table_[hash_value];
-    for (intptr_t i = 0; i < value.length(); i++) {
-      intptr_t index = value[i];
-      token_obj_ = token_objects_.At(index);
-      const LiteralToken& token = LiteralToken::Cast(token_obj_);
-      if ((kind == token.kind()) && (token.literal() == literal->raw())) {
-        return index;
-      }
-    }
-    value.Add(token_objects_.Length());
-    return -1;
-  }
-
   void WriteIndex(intptr_t value) {
     stream_.WriteUnsigned(value + Token::kNumTokens);
   }
@@ -7732,17 +7744,12 @@ class CompressedTokenStreamData : public ValueObject {
     return reinterpret_cast<uint8_t*>(new_ptr);
   }
 
-  static const int kInitialTokenCount = 32;
-  static const intptr_t kTableSize = 1024;
+  static const intptr_t kInitialTableSize = 32;
+  static const double kMaxLoadFactor = 0.75;
 
   uint8_t* buffer_;
   WriteStream stream_;
-  GrowableArray<intptr_t> ident_table_[kTableSize];
-  GrowableArray<intptr_t> literal_table_[kTableSize];
-  const GrowableObjectArray& token_objects_;
-  Object& token_obj_;
-  LiteralToken& literal_token_;
-  String& literal_str_;
+  CompressedTokenMap tokens_;
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
@@ -7765,7 +7772,7 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
       if (FLAG_compiler_stats) {
         CompilerStats::num_literal_tokens_total += 1;
       }
-      data.AddLiteralToken(token.kind, token.literal);
+      data.AddLiteralToken(token);
     } else {  // Keyword, pseudo keyword etc.
       ASSERT(token.kind < Token::kNumTokens);
       data.AddSimpleToken(token.kind);
@@ -7783,11 +7790,11 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   stream.AddFinalizer(data.GetStream(), DataFinalizer);
   const TokenStream& result = TokenStream::Handle(New());
   result.SetPrivateKey(private_key);
+  const Array& token_objects = Array::Handle(data.MakeTokenObjectsArray());
   {
     NoGCScope no_gc;
     result.SetStream(stream);
-    const Array& tokens = Array::Handle(Array::MakeArray(data.TokenObjects()));
-    result.SetTokenObjects(tokens);
+    result.SetTokenObjects(token_objects);
   }
   return result.raw();
 }

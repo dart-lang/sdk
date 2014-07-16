@@ -5363,6 +5363,12 @@ class String : public Instance {
   static intptr_t Hash(const uint8_t* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const int32_t* characters, intptr_t len);
+  static intptr_t HashRawSymbol(const RawString* symbol) {
+    ASSERT(symbol->IsCanonical());
+    intptr_t result = Smi::Value(symbol->ptr()->hash_);
+    ASSERT(result != 0);
+    return result;
+  }
 
   virtual RawObject* HashCode() const { return Integer::New(Hash()); }
 
