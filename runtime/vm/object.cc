@@ -7745,7 +7745,7 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   static const intptr_t kInitialTableSize = 32;
-  static const double kMaxLoadFactor = 0.75;
+  static const double kMaxLoadFactor;
 
   uint8_t* buffer_;
   WriteStream stream_;
@@ -7753,6 +7753,9 @@ class CompressedTokenStreamData : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
+
+
+const double CompressedTokenStreamData::kMaxLoadFactor = 0.75;
 
 
 RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
