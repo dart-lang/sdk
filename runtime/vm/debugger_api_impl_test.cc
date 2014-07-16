@@ -2029,6 +2029,51 @@ TEST_CASE(Debug_EvaluateInActivationOfEvaluate) {
 }
 
 
+static void UnhandledExceptionHandler(Dart_IsolateId isolate_id,
+                                      Dart_Handle exception_object,
+                                      Dart_StackTrace trace) {
+  breakpoint_hit_counter++;
+}
+
+
+// Check that the debugger is not called when an exception is
+// caught by Dart code.
+TEST_CASE(Debug_BreakOnUnhandledException) {
+  const char* kScriptChars =
+      "void main() {                   \n"
+      "  try {                         \n"
+      "    throw 'broccoli';           \n"
+      "  } catch (e) {                 \n"
+      "    return 'carrots';           \n"
+      "  }                             \n"
+      "  return 'zucchini';            \n"
+      "}                               \n";
+
+  LoadScript(kScriptChars);
+  Dart_FinalizeLoading();
+  Dart_SetExceptionThrownHandler(&UnhandledExceptionHandler);
+  breakpoint_hit_counter = 0;
+
+  // Check that the debugger is not called since the exception
+  // is handled.
+  Dart_SetExceptionPauseInfo(kPauseOnUnhandledExceptions);
+  Dart_Handle res = Invoke("main");
+  EXPECT_VALID(res);
+  EXPECT(Dart_IsString(res));
+  EXPECT_STREQ("carrots", ToCString(res));
+  EXPECT_EQ(0, breakpoint_hit_counter);
+
+  // Check that the debugger is called when "break on all
+  // exceptions" is turned on.
+  Dart_SetExceptionPauseInfo(kPauseOnAllExceptions);
+  Dart_Handle res2 = Invoke("main");
+  EXPECT_VALID(res2);
+  EXPECT(Dart_IsString(res2));
+  EXPECT_STREQ("carrots", ToCString(res2));
+  EXPECT_EQ(1, breakpoint_hit_counter);
+}
+
+
 TEST_CASE(Debug_GetClosureInfo) {
   const char* kScriptChars =
       "void foo() { return 43; } \n"
