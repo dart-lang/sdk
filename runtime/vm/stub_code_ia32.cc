@@ -1297,8 +1297,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   if (FLAG_enable_debugger) {
     // Check single stepping.
     __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-    __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-    __ cmpl(EAX, Immediate(0));
+    __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
@@ -1317,8 +1316,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
-  __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
+  __ movl(EDI, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
+  __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
 
   // EAX: receiver's class ID (smi).
   __ movl(EDI, Address(EBX, 0));  // First class id (smi) to check.
@@ -1329,8 +1328,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     if (i > 0) {
       // If not the first, load the next argument's class ID.
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-      __ movl(EAX, Address(ESP, EAX, TIMES_2, - i * kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
+      __ movl(EDI, Address(ESP, EAX, TIMES_2, - i * kWordSize));
+      __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
 
       // EAX: next argument class ID (smi).
       __ movl(EDI, Address(EBX, i * kWordSize));
@@ -1348,8 +1347,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
     __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-    __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
-    __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
+    __ movl(EDI, Address(ESP, EAX, TIMES_2, 0));
+    __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;

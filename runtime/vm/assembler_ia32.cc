@@ -1415,6 +1415,15 @@ void Assembler::cmpl(const Address& address, const Immediate& imm) {
 }
 
 
+void Assembler::cmpb(const Address& address, const Immediate& imm) {
+  ASSERT(imm.is_int8());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x80);
+  EmitOperand(7, address);
+  EmitUint8(imm.value() & 0xFF);
+}
+
+
 void Assembler::testl(Register reg1, Register reg2) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x85);
@@ -2712,27 +2721,19 @@ void Assembler::CompareClassId(Register object,
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(
-    Register result, Register object, Register tmp) {
-  ASSERT(object != tmp);
-  ASSERT(result != tmp);
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  ASSERT(result != object);
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
-
-  if (result == object) {
-    movl(tmp, object);
-  } else {
-    tmp = object;
-  }
 
   // Make a dummy "Object" whose cid is kSmiCid.
   movl(result, Immediate(reinterpret_cast<int32_t>(&kSmiCidSource) + 1));
 
   // Check if object (in tmp) is a Smi.
-  testl(tmp, Immediate(kSmiTagMask));
+  testl(object, Immediate(kSmiTagMask));
 
   // If the object is not a Smi, use the original object to load the cid.
   // Otherwise, the dummy object is used, and the result is kSmiCid.
-  cmovne(result, tmp);
+  cmovne(result, object);
   LoadClassId(result, result);
 
   // Tag the result.

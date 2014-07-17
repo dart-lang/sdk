@@ -1271,8 +1271,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   if (FLAG_enable_debugger) {
     // Check single stepping.
     __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
-    __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
-    __ cmpq(RAX, Immediate(0));
+    __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
@@ -1290,8 +1289,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
-  __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
+  __ movq(R13, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
+  __ LoadTaggedClassIdMayBeSmi(RAX, R13);
   // RAX: receiver's class ID as smi.
   __ movq(R13, Address(R12, 0));  // First class ID (Smi) to check.
   __ jmp(&test);
@@ -1301,8 +1300,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     if (i > 0) {
       // If not the first, load the next argument's class ID.
       __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-      __ movq(RAX, Address(RSP, RAX, TIMES_4, - i * kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
+      __ movq(R13, Address(RSP, RAX, TIMES_4, - i * kWordSize));
+      __ LoadTaggedClassIdMayBeSmi(RAX, R13);
       // RAX: next argument class ID (smi).
       __ movq(R13, Address(R12, i * kWordSize));
       // R13: next class ID to check (smi).
@@ -1319,8 +1318,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
     __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-    __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));
-    __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
+    __ movq(R13, Address(RSP, RAX, TIMES_4, 0));
+    __ LoadTaggedClassIdMayBeSmi(RAX, R13);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;

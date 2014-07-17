@@ -520,6 +520,7 @@ class Assembler : public ValueObject {
 
   void cmpl(const Address& address, Register reg);
   void cmpl(const Address& address, const Immediate& imm);
+  void cmpb(const Address& address, const Immediate& imm);
 
   void testl(Register reg1, Register reg2);
   void testl(Register reg, const Immediate& imm);
@@ -694,8 +695,7 @@ class Assembler : public ValueObject {
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
 
   void LoadTaggedClassIdMayBeSmi(Register result,
-                                 Register object,
-                                 Register tmp);
+                                 Register object);
 
   /*
    * Misc. functionality

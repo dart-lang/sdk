@@ -1276,8 +1276,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
   Label load_cache;
-  __ movl(EAX, Address(ESP, (argument_count - 1) * kWordSize));
-  __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EBX);
+  __ movl(EBX, Address(ESP, (argument_count - 1) * kWordSize));
+  __ LoadTaggedClassIdMayBeSmi(EAX, EBX);
 
   // EAX: class ID of the receiver (smi).
   __ Bind(&load_cache);

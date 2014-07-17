@@ -478,6 +478,8 @@ class Assembler : public ValueObject {
   void xchgl(Register dst, Register src);
   void xchgq(Register dst, Register src);
 
+  void cmpb(const Address& address, const Immediate& imm);
+
   void cmpl(Register reg, const Immediate& imm);
   void cmpl(Register reg0, Register reg1);
   void cmpl(Register reg, const Address& address);

@@ -1312,8 +1312,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
-  __ movq(RAX, Address(RSP, (argument_count - 1) * kWordSize));
-  __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
+  __ movq(RBX, Address(RSP, (argument_count - 1) * kWordSize));
+  __ LoadTaggedClassIdMayBeSmi(RAX, RBX);
 
   // RAX: class ID of the receiver (smi).
   __ LoadObject(RBX, cache, PP);

@@ -1263,8 +1263,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 
   // Load arguments descriptor into R4.
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
-  // Preserve return address, since LR is needed for subroutine call.
-  __ mov(R8, Operand(LR));
   // Loop that checks if there is an IC data match.
   Label loop, update, test, found;
   // R5: IC data object (preserved).
@@ -1300,7 +1298,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       __ b(&update, NE);  // Continue.
     } else {
       // Last check, all checks before matched.
-      __ mov(LR, Operand(R8), EQ);  // Restore return address if found.
       __ b(&found, EQ);  // Break.
     }
   }
@@ -1320,9 +1317,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ b(&loop, NE);
 
   // IC miss.
-  // Restore return address.
-  __ mov(LR, Operand(R8));
-
   // Compute address of arguments.
   // R7: argument_count - 1 (smi).
   __ add(R7, SP, Operand(R7, LSL, 1));  // R7 is Smi.

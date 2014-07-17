@@ -1095,18 +1095,13 @@ void Assembler::CompareClassId(
 
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  ASSERT(result != TMP);
-  ASSERT(object != TMP);
-
-  // Make a copy of object since result and object can be the same register.
-  mov(TMP, object);
   // Load up a null object. We only need it so we can use LoadClassId on it in
   // the case that object is a Smi..
-  LoadObject(result, Object::null_object(), PP);
+  LoadObject(TMP, Object::null_object(), PP);
   // Check if the object is a Smi.
-  tsti(TMP, kSmiTagMask);
-  // If the object *is* a Smi, load the null object into tmp. o/w leave alone.
-  csel(TMP, result, TMP, EQ);
+  tsti(object, kSmiTagMask);
+  // If the object *is* a Smi, use the null object instead. o/w leave alone.
+  csel(TMP, TMP, object, EQ);
   // Loads either the cid of the object if it isn't a Smi, or the cid of null
   // if it is a Smi, which will be ignored.
   LoadClassId(result, TMP, PP);
