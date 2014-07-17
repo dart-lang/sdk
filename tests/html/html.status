@@ -22,10 +22,10 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
 
-[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie || $runtime == chrome) ]
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie || $runtime == chrome) && $system != macos]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
 
-[ $compiler == dart2js && $runtime == chrome ]
+[ $compiler == dart2js && $runtime == chrome && $system != macos]
 custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
