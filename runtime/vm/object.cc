@@ -16993,7 +16993,7 @@ RawString* String::MakeExternal(void* array,
       tags = RawObject::SizeTag::update(used_size, tags);
       tags = RawObject::ClassIdTag::update(class_id, tags);
       raw_ptr()->tags_ = tags;
-      const String& result = String::Handle(this->raw());
+      result = this->raw();
       ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
           reinterpret_cast<const uint16_t*>(array), peer, cback);
       result.SetLength(str_length);
