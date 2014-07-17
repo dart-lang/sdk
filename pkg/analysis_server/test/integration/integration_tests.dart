@@ -209,9 +209,7 @@ final Matcher isAnalysisError = new MatchesJsonObject('AnalysisError', {
   'location': isLocation,
   'message': isString,
 }, optionalFields: {
-  'correction': isString,
-  // TODO(paulberry): remove 'errorCode' once server stops sending it
-  'errorCode': anything
+  'correction': isString
 });
 
 const Matcher isAnalysisStatus = const MatchesJsonObject('AnalysisStatus', const

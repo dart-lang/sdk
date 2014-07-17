@@ -4,7 +4,6 @@
 
 library domain.edit;
 
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -99,9 +98,15 @@ class EditDomainHandler implements RequestHandler {
   Response getFixes(Request request) {
     // errors
     RequestDatum errorsDatum = request.getRequiredParameter(ERRORS);
-    List<AnalysisError> errors = errorsDatum.asList((RequestDatum datum) {
-      return _createAnalysisError(request, datum);
-    });
+    // TODO(paulberry): the API for edit.getFixes should be changed to so that
+    // it doesn't use AnalysisError as an input type.  This is necessary
+    // because the JSON protocol for an AnalysisError doesn't contain the
+    // errorCode, so we don't have enough information to reconstitute the error
+    // object.
+    // List<AnalysisError> errors = errorsDatum.asList((RequestDatum datum) {
+    //   return _createAnalysisError(request, datum);
+    // });
+
     // TODO(brianwilkerson) implement
     return null;
   }
@@ -125,76 +130,6 @@ class EditDomainHandler implements RequestHandler {
     RequestDatum idDatum = request.getRequiredParameter(ID);
     String id = idDatum.asString();
     // TODO(brianwilkerson) implement
-    return null;
-  }
-
-  /**
-   * Convert the given data from a request into an analysis error.
-   */
-  AnalysisError _createAnalysisError(Request request, RequestDatum datum) {
-    String file = datum[FILE].asString();
-    String errorCodeName = datum[ERROR_CODE].asString();
-    int offset = datum[OFFSET].asInt();
-    int length = datum[LENGTH].asInt();
-    String message = datum[MESSAGE].asString();
-    String correction;
-    if (datum.hasKey(CORRECTION)) {
-      correction = datum[CORRECTION].asString();
-    }
-    ErrorCode errorCode = convertErrorCode(errorCodeName);
-    if (errorCode == null) {
-//      throw new RequestFailure(new Response.invalidErrorCode(request));
-    }
-    // TODO(brianwilkerson) Implement this.
-//    return new AnalysisError.con2(
-//        server.sourceFromFile(file),
-//        offset,
-//        length,
-//        errorCode,
-//        null);
-    return null;
-  }
-
-  /**
-   * Return the error code corresponding to the given [errorCodeName], or `null`
-   * if the given name is not a valid error code.
-   */
-  ErrorCode convertErrorCode(String errorCodeName) {
-    // TODO(brianwilkerson) Implement this.
-//    Enum2 errorCode = Enum2.valueOf(AngularCode.values, errorCodeName);
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(CompileTimeErrorCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(HintCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(HtmlWarningCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(ParserErrorCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(PolymerCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(PubSuggestionCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(ResolverErrorCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(ScannerErrorCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(StaticTypeErrorCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(StaticWarningErrorCode.values, errorCodeName);
-//    }
-//    if (errorCode == null) {
-//      errorCode = Enum2.valueOf(TodoCode.values, errorCodeName);
-//    }
     return null;
   }
 }

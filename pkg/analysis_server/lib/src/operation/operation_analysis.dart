@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
@@ -42,7 +41,6 @@ Map<String, Object> errorToJson(LineInfo lineInfo, AnalysisError analysisError)
   // fill JSON
   Map<String, Object> result = {
     // TODO(scheglov) add Enum.fullName ?
-    ERROR_CODE: '${errorCode.runtimeType}.${(errorCode as Enum).name}',
     SEVERITY: errorCode.errorSeverity.name,
     TYPE: errorCode.type.name,
     LOCATION: location,

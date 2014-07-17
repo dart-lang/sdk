@@ -36,17 +36,6 @@ int findIdentifierLength(String search) {
 
 
 
-AnalysisError _jsonToAnalysisError(Map<String, Object> json) {
-  return new AnalysisError(
-      json['file'],
-      json['errorCode'],
-      json['offset'],
-      json['length'],
-      json['message'],
-      json['correction']);
-}
-
-
 /**
  * An abstract base for all 'analysis' domain tests.
  */

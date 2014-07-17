@@ -27,7 +27,7 @@ AnalysisError jsonToAnalysisError(Map<String, Object> json) {
   Location location = new Location(jsonLocation[FILE], _getSafeInt(jsonLocation,
       OFFSET, -1), _getSafeInt(jsonLocation, LENGTH, -1), _getSafeInt(jsonLocation,
       START_LINE, -1), _getSafeInt(jsonLocation, START_COLUMN, -1));
-  return new AnalysisError(json[ERROR_CODE], json[SEVERITY], json[TYPE], location,
+  return new AnalysisError('unknown error code', json[SEVERITY], json[TYPE], location,
       json['message'], json['correction']);
 }
 
@@ -175,7 +175,7 @@ testNotificationErrors() {
     helper = new AnalysisTestHelper();
   });
 
-  test('ParserErrorCode', () {
+  test('ParserError', () {
     helper.createSingleFileProject('library lib');
     return helper.waitForOperationsFinished().then((_) {
       List<AnalysisError> errors = helper.getTestErrors();
@@ -184,20 +184,20 @@ testNotificationErrors() {
       expect(error.location.file, '/project/bin/test.dart');
       expect(error.location.offset, isPositive);
       expect(error.location.length, isNonNegative);
-      expect(error.errorCode, 'ParserErrorCode.EXPECTED_TOKEN');
       expect(error.severity, 'ERROR');
       expect(error.type, 'SYNTACTIC_ERROR');
       expect(error.message, isNotNull);
     });
   });
 
-  test('StaticWarningCode', () {
+  test('StaticWarning', () {
     helper.createSingleFileProject(['main() {', '  print(unknown);', '}']);
     return helper.waitForOperationsFinished().then((_) {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, hasLength(1));
       AnalysisError error = errors[0];
-      expect(error.errorCode, 'StaticWarningCode.UNDEFINED_IDENTIFIER');
+      expect(error.severity, 'WARNING');
+      expect(error.type, 'STATIC_WARNING');
     });
   });
 }
