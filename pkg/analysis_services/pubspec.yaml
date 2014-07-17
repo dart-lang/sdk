@@ -1,14 +1,12 @@
 name: analysis_services
-version: 0.3.0+1
+version: 0.4.0
 author: Dart Team <misc@dartlang.org>
 description: A set of services on top of Analysis Engine
 homepage: http://www.dartlang.org
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  analyzer:
-    path: ../analyzer
+  analyzer: '>=0.22.0-dev <0.23.0'
 dev_dependencies:
-  analysis_testing:
-    path: ../analysis_testing
+  analysis_testing: '>=0.4.0 <0.5.0'
   unittest: '>=0.10.0 <0.12.0'
