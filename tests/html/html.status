@@ -322,7 +322,6 @@ xsltprocessor_test/supported: Fail
 audiocontext_test/functional: Pass, Fail
 
 [ $runtime == safari || $runtime == safarimobilesim ]
-worker_test: Skip # Issue 13221
 worker_api_test: Skip # Issue 13221
 webgl_1_test: Pass, Fail # Issue 8219
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # Safari does not support drawImage w/ video element
