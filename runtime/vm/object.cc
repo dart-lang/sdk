@@ -9804,8 +9804,9 @@ bool LibraryPrefix::LoadLibrary() const {
     this->set_is_loaded();
     return true;
   } else if (deferred_lib.LoadNotStarted()) {
-    deferred_lib.SetLoadRequested();
     Isolate* isolate = Isolate::Current();
+    Api::Scope api_scope(isolate);
+    deferred_lib.SetLoadRequested();
     const String& lib_url = String::Handle(isolate, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
     handler(Dart_kImportTag,
