@@ -33,6 +33,11 @@ interface Document {
 };
 
 [Supplemental]
+interface FileReader {
+  [Suppressed] readonly attribute Object result;
+};
+
+[Supplemental]
 interface Node {
   [Custom] Node cloneNode([Default=Undefined] optional boolean deep);
   [Suppressed] readonly attribute Element nextElementSibling;
