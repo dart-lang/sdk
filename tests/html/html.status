@@ -22,11 +22,8 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor.
 
-[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie || $runtime == chrome) && $system != macos]
+[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
-
-[ $compiler == dart2js && $runtime == chrome && $system != macos]
-custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug && $system == macos]
 audiobuffersourcenode_test: Pass, Fail, Crash # http://crbug.com/256601
@@ -124,8 +121,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does no
 worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
 
 [$runtime == ie10 ]
-custom/entered_left_view_test: Skip # Issue 13551 - IE is timing out
-
 # IE10 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
 audiobuffersourcenode_test/supported: Fail
