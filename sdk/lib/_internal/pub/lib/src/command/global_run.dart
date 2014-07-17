@@ -32,7 +32,8 @@ class GlobalRunCommand extends PubCommand {
     var args = commandOptions.rest.skip(2);
 
     return globals.find(package).then((entrypoint) {
-      return runExecutable(this, entrypoint, package, executable, args);
+      return runExecutable(this, entrypoint, package, executable, args,
+          isGlobal: true);
     }).then(flushThenExit);
   }
 }

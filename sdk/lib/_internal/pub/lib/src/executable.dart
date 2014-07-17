@@ -29,14 +29,18 @@ import 'utils.dart';
 ///
 /// Returns the exit code of the spawned app.
 Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
-    String package, String executable, Iterable<String> args) {
+    String package, String executable, Iterable<String> args,
+    {bool isGlobal: false}) {
   // If the command has a path separator, then it's a path relative to the
   // root of the package. Otherwise, it's implicitly understood to be in
   // "bin".
   var rootDir = "bin";
   var parts = p.split(executable);
   if (parts.length > 1) {
-    if (package != entrypoint.root.name) {
+    if (isGlobal) {
+      command.usageError(
+          'Cannot run an executable in a subdirectory of a global package.');
+    } else if (package != entrypoint.root.name) {
       command.usageError(
           "Cannot run an executable in a subdirectory of a dependency.");
     }
