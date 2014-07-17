@@ -917,7 +917,11 @@ class RawPcDescriptors : public RawObject {
   };
 
   // Compressed version assumes try_index is always -1 and does not store it.
-  struct PcDescriptorRec {
+  class PcDescriptorRec {
+   public:
+    PcDescriptorRec()
+        : pc_(0), deopt_id_and_kind_(0), token_pos_(0), try_index_(0) {}
+
     uword pc() const { return pc_; }
     void set_pc(uword value) { pc_ = value; }
 
