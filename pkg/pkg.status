@@ -92,8 +92,8 @@ docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
-analysis_server/test/search/element_references_test: Slow
-analysis_services/test/index/store/codec_test: Slow
+analysis_server/test/search/element_references_test: Pass, Slow
+analysis_services/test/index/store/codec_test: Pass, Slow
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 http/test/html/client_test: Fail # Issue 19750
