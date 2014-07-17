@@ -3034,6 +3034,18 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   ASSERT(field.Offset() == TypedDataView::length_offset());
   name ^= field.name();
   ASSERT(name.Equals("length"));
+
+  // Now verify field offsets of '_ByteBuffer' class.
+  cls = class_table.At(kByteBufferCid);
+  error = cls.EnsureIsFinalized(isolate);
+  ASSERT(error.IsNull());
+  fields_array ^= cls.fields();
+  ASSERT(fields_array.Length() == ByteBuffer::NumberOfFields());
+  field ^= fields_array.At(0);
+  ASSERT(field.Offset() == ByteBuffer::data_offset());
+  name ^= field.name();
+  expected_name ^= String::New("_data");
+  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
 #endif
 }
 

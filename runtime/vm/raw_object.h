@@ -150,6 +150,8 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
+  kByteBufferCid,
+
   // The following entries do not describe a predefined class, but instead
   // are class indexes for pre-allocated instance (Null, dynamic and Void).
   kNullCid,
@@ -417,6 +419,7 @@ class RawObject {
   static bool IsExternalTypedDataClassId(intptr_t index);
   static bool IsInternalVMdefinedClassId(intptr_t index);
   static bool IsVariableSizeClassId(intptr_t index);
+  static bool IsImplicitFieldClassId(intptr_t index);
 
   static intptr_t NumberOfTypedDataClasses();
 
@@ -451,6 +454,7 @@ class RawObject {
 
   friend class Api;
   friend class Array;
+  friend class ByteBuffer;
   friend class Code;
   friend class FreeListElement;
   friend class GCMarker;
@@ -1833,7 +1837,8 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
           (index == kGrowableObjectArrayCid) ||
           IsTypedDataClassId(index) ||
           IsTypedDataViewClassId(index) ||
-          IsExternalTypedDataClassId(index));
+          IsExternalTypedDataClassId(index) ||
+          (index == kByteBufferCid));
 }
 
 
@@ -1910,7 +1915,7 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
        kExternalTypedDataInt8ArrayCid + 12) &&
       (kExternalTypedDataFloat64x2ArrayCid ==
        kExternalTypedDataInt8ArrayCid + 13) &&
-      (kNullCid == kExternalTypedDataInt8ArrayCid + 14));
+      (kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat64x2ArrayCid);
 }
@@ -1918,9 +1923,8 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
 
 inline bool RawObject::IsInternalVMdefinedClassId(intptr_t index) {
   return ((index < kNumPredefinedCids) &&
-          !RawObject::IsTypedDataViewClassId(index));
+          !RawObject::IsImplicitFieldClassId(index));
 }
-
 
 
 inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
@@ -1945,12 +1949,21 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
 }
 
 
+// This is a set of classes that are not Dart classes whose representation
+// is defined by the VM but are used in the VM code by computing the
+// implicit field offsets of the various fields in the dart object.
+inline bool RawObject::IsImplicitFieldClassId(intptr_t index) {
+  return (IsTypedDataViewClassId(index) || index == kByteBufferCid);
+}
+
+
 inline intptr_t RawObject::NumberOfTypedDataClasses() {
   // Make sure this is updated when new TypedData types are added.
   COMPILE_ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
   COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid ==
                  kTypedDataInt8ArrayViewCid + 15);
-  COMPILE_ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 14);
+  COMPILE_ASSERT(kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14);
+  COMPILE_ASSERT(kNullCid == kByteBufferCid + 1);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
 

@@ -4344,6 +4344,7 @@ class Instance : public Object {
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
+  friend class ByteBuffer;
   friend class Class;
   friend class Closure;
   friend class DeferredObject;
@@ -6716,6 +6717,28 @@ class TypedDataView : public AllStatic {
     kDataOffset = 1,
     kOffsetInBytesOffset = 2,
     kLengthOffset = 3,
+  };
+};
+
+
+class ByteBuffer : public AllStatic {
+ public:
+  static RawInstance* Data(const Instance& view_obj) {
+    ASSERT(!view_obj.IsNull());
+    return *reinterpret_cast<RawInstance**>(view_obj.raw_ptr() + kDataOffset);
+  }
+
+  static intptr_t NumberOfFields() {
+    return kDataOffset;
+  }
+
+  static intptr_t data_offset() {
+    return kWordSize * kDataOffset;
+  }
+
+ private:
+  enum {
+    kDataOffset = 1,
   };
 };
 

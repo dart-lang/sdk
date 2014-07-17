@@ -1855,6 +1855,20 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
 }
 
 
+DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
+  TRACE_API_CALL(CURRENT_FUNC);
+  intptr_t cid = Api::ClassId(handle);
+  return RawObject::IsTypedDataClassId(cid) ||
+      RawObject::IsExternalTypedDataClassId(cid);
+}
+
+
+DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle handle) {
+  TRACE_API_CALL(CURRENT_FUNC);
+  return Api::ClassId(handle) == kByteBufferCid;
+}
+
+
 // --- Instances ----
 
 DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance) {
@@ -3086,7 +3100,7 @@ static Dart_Handle NewByteData(Isolate* isolate, intptr_t length) {
   // Create the argument list.
   const Array& args = Array::Handle(isolate, Array::New(2));
   // Factories get type arguments.
-  args.SetAt(0, TypeArguments::Handle(isolate));
+  args.SetAt(0, Object::null_type_arguments());
   args.SetAt(1, Smi::Handle(isolate, Smi::New(length)));
 
   // Invoke the constructor and return the new object.
@@ -3136,7 +3150,7 @@ static Dart_Handle NewExternalByteData(
   const intptr_t num_args = 3;
   const Array& args = Array::Handle(isolate, Array::New(num_args + 1));
   // Factories get type arguments.
-  args.SetAt(0, TypeArguments::Handle(isolate));
+  args.SetAt(0, Object::null_type_arguments());
   const ExternalTypedData& array =
       Api::UnwrapExternalTypedDataHandle(isolate, ext_data);
   args.SetAt(1, array);
@@ -3276,6 +3290,57 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
 }
 
 
+static RawObject* GetByteBufferConstructor(Isolate* isolate,
+                                           const String& class_name,
+                                           const String& constructor_name,
+                                           intptr_t num_args) {
+  const Library& lib =
+      Library::Handle(isolate->object_store()->typed_data_library());
+  ASSERT(!lib.IsNull());
+  const Class& cls = Class::Handle(
+      isolate, lib.LookupClassAllowPrivate(class_name));
+  ASSERT(!cls.IsNull());
+  return ResolveConstructor(CURRENT_FUNC,
+                            cls,
+                            class_name,
+                            constructor_name,
+                            num_args);
+}
+
+
+DART_EXPORT Dart_Handle Dart_NewByteBuffer(Dart_Handle typed_data) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  intptr_t class_id = Api::ClassId(typed_data);
+  if (!RawObject::IsExternalTypedDataClassId(class_id) &&
+      !RawObject::IsTypedDataViewClassId(class_id) &&
+      !RawObject::IsTypedDataClassId(class_id)) {
+    RETURN_TYPE_ERROR(isolate, typed_data, 'TypedData');
+  }
+  Object& result = Object::Handle(isolate);
+  result = GetByteBufferConstructor(isolate,
+                                    Symbols::_ByteBuffer(),
+                                    Symbols::_ByteBufferDot_New(),
+                                    1);
+  ASSERT(!result.IsNull());
+  ASSERT(result.IsFunction());
+  const Function& factory = Function::Cast(result);
+  ASSERT(!factory.IsConstructor());
+
+  // Create the argument list.
+  const Array& args = Array::Handle(isolate, Array::New(2));
+  // Factories get type arguments.
+  args.SetAt(0, Object::null_type_arguments());
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(typed_data));
+  args.SetAt(1, obj);
+
+  // Invoke the factory constructor and return the new object.
+  result = DartEntry::InvokeFunction(factory, args);
+  ASSERT(result.IsInstance() || result.IsNull() || result.IsError());
+  return Api::NewHandle(isolate, result.raw());
+}
+
+
 DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
                                                   Dart_TypedData_Type* type,
                                                   void** data,
@@ -3353,6 +3418,19 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     END_NO_CALLBACK_SCOPE(isolate);
   }
   return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetDataFromByteBuffer(Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  intptr_t class_id = Api::ClassId(object);
+  if (class_id != kByteBufferCid) {
+    RETURN_TYPE_ERROR(isolate, object, 'ByteBuffer');
+  }
+  const Instance& instance = Api::UnwrapInstanceHandle(isolate, object);
+  ASSERT(!instance.IsNull());
+  return Api::NewHandle(isolate, ByteBuffer::Data(instance));
 }
 
 

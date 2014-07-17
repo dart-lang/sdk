@@ -54,7 +54,7 @@ static bool IsSplitClassId(intptr_t class_id) {
   return class_id >= kNumPredefinedCids ||
          class_id == kArrayCid ||
          class_id == kImmutableArrayCid ||
-         RawObject::IsTypedDataViewClassId(class_id);
+         RawObject::IsImplicitFieldClassId(class_id);
 }
 
 
@@ -67,7 +67,7 @@ static intptr_t ClassIdFromObjectId(intptr_t object_id) {
 
 static intptr_t ObjectIdFromClassId(intptr_t class_id) {
   ASSERT((class_id > kIllegalCid) && (class_id < kNumPredefinedCids));
-  ASSERT(!RawObject::IsTypedDataViewClassId(class_id));
+  ASSERT(!(RawObject::IsImplicitFieldClassId(class_id)));
   return (class_id + kClassIdsOffset);
 }
 
@@ -1107,7 +1107,7 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 
     return;
   }
-  if (RawObject::IsTypedDataViewClassId(class_id)) {
+  if (RawObject::IsImplicitFieldClassId(class_id)) {
     WriteInstanceRef(raw, cls);
     return;
   }

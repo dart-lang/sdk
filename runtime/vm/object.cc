@@ -1224,6 +1224,14 @@ RawError* Object::Init(Isolate* isolate) {
   typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);                 \
 
+  cls = Class::New<Instance>(kByteBufferCid);
+  cls.set_instance_size(0);
+  cls.set_next_field_offset(-kWordSize);
+  index = kByteBufferCid - kTypedDataInt8ArrayCid;
+  typed_data_classes.SetAt(index, cls);
+  RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
+  pending_classes.Add(cls);
+
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
   // Register Float32x4 and Int32x4 in the object store.
@@ -1447,6 +1455,8 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
+
+  cls = Class::New<Instance>(kByteBufferCid);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);

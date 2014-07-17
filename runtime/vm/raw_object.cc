@@ -244,7 +244,8 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
 #define RAW_VISITPOINTERS(clazz)                                               \
       case kTypedData##clazz##ViewCid:
       CLASS_LIST_TYPED_DATA(RAW_VISITPOINTERS)
-      case kByteDataViewCid: {
+      case kByteDataViewCid:
+      case kByteBufferCid: {
         RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
         size = RawInstance::VisitInstancePointers(raw_obj, visitor);
         break;
