@@ -373,7 +373,12 @@ void runDateTests(Function subsetFunc) {
    */
   Map<int, DateTime> generateDates(int year, int leapDay) =>
       new Iterable.generate(365 + leapDay, (n) => n + 1)
-        .map((day) => new DateTime(year, 1, day)).toList().asMap();
+        .map((day) {
+          var result = new DateTime(year, 1, day);
+          // TODO(alanknight): This is a workaround for dartbug.com/15560.
+          if (result.toUtc() == result) result = new DateTime(year, 1, day);
+          return result;
+        }).toList().asMap();
 
   void verifyOrdinals(Map dates) {
     var f = new DateFormat("D");
