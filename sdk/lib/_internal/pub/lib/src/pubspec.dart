@@ -223,7 +223,9 @@ class Pubspec {
     var pubspecPath = path.join(packageDir, 'pubspec.yaml');
     var pubspecUri = path.toUri(pubspecPath);
     if (!fileExists(pubspecPath)) {
-      fail('Could not find a file named "pubspec.yaml" in "$packageDir".');
+      throw new FileException(
+          'Could not find a file named "pubspec.yaml" in "$packageDir".',
+          pubspecPath);
     }
 
     return new Pubspec.parse(readTextFile(pubspecPath), sources,

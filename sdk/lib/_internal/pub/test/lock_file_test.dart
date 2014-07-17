@@ -110,6 +110,22 @@ packages:
         expect(lockFile.packages, isEmpty);
       });
 
+      test("throws if the top level is not a map", () {
+        expect(() {
+          new LockFile.parse('''
+not a map
+''', sources);
+        }, throwsFormatException);
+      });
+
+      test("throws if the contents of 'packages' is not a map", () {
+        expect(() {
+          new LockFile.parse('''
+packages: not a map
+''', sources);
+        }, throwsFormatException);
+      });
+
       test("throws if the version is missing", () {
         expect(() {
           new LockFile.parse('''

@@ -5,7 +5,6 @@
 library pub_uploader_test;
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
@@ -13,7 +12,6 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../lib/src/exit_codes.dart' as exit_codes;
-import '../lib/src/io.dart';
 import '../lib/src/utils.dart';
 import 'descriptor.dart' as d;
 import 'test_pub.dart';
@@ -104,7 +102,6 @@ main() {
       return new shelf.Response.ok(JSON.encode({
         'success': {'message': 'Good job!'}
       }), headers: {'content-type': 'application/json'});
-      request.response.close();
     });
 
     pub.stdout.expect('Good job!');

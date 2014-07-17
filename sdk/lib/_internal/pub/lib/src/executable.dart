@@ -12,7 +12,6 @@ import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'barback/asset_environment.dart';
-import 'barback/barback_server.dart';
 import 'command.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;

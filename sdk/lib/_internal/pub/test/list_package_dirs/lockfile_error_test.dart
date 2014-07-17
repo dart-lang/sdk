@@ -3,24 +3,26 @@
 // BSD-style license that can be found in the LICENSE d.file.
 
 import 'package:path/path.dart' as path;
+import 'package:scheduled_test/scheduled_test.dart';
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../../lib/src/io.dart';
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 main() {
   initConfig();
-  // This is a regression test for #20065.
-  integration("reports a missing pubspec error using JSON", () {
-    d.dir(appPath).create();
+  integration("reports the lockfile path when there is an error in it", () {
+    d.dir(appPath, [
+      d.appPubspec(),
+      d.file("pubspec.lock", "some bad yaml")
+    ]).create();
 
     schedulePub(args: ["list-package-dirs", "--format=json"],
         outputJson: {
-          "error":
-            'Could not find a file named "pubspec.yaml" in "'
-                '${canonicalize(path.join(sandboxDir, appPath))}".',
-          "path": canonicalize(path.join(sandboxDir, appPath, "pubspec.yaml"))
+          "error": contains('The lockfile must be a YAML mapping.'),
+          "path": canonicalize(path.join(sandboxDir, appPath, "pubspec.lock"))
         },
-        exitCode: 1);
+        exitCode: exit_codes.DATA);
   });
 }

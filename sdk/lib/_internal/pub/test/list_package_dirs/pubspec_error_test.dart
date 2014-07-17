@@ -3,24 +3,25 @@
 // BSD-style license that can be found in the LICENSE d.file.
 
 import 'package:path/path.dart' as path;
+import 'package:scheduled_test/scheduled_test.dart';
 
+import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../../lib/src/io.dart';
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 main() {
   initConfig();
-  // This is a regression test for #20065.
-  integration("reports a missing pubspec error using JSON", () {
-    d.dir(appPath).create();
+  integration("reports the pubspec path when there is an error in it", () {
+    d.dir(appPath, [
+      d.file("pubspec.yaml", "some bad yaml")
+    ]).create();
 
     schedulePub(args: ["list-package-dirs", "--format=json"],
         outputJson: {
-          "error":
-            'Could not find a file named "pubspec.yaml" in "'
-                '${canonicalize(path.join(sandboxDir, appPath))}".',
+          "error": contains('Error on line 1'),
           "path": canonicalize(path.join(sandboxDir, appPath, "pubspec.yaml"))
         },
-        exitCode: 1);
+        exitCode: exit_codes.DATA);
   });
 }
