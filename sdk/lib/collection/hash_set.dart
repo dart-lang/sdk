@@ -39,7 +39,7 @@ abstract class _HashSetBase<E> extends SetBase<E> {
  * The elements of a `HashSet` must have consistent equality
  * and hashCode implementations. This means that the equals operation
  * must define a stable equivalence relation on the elements (reflexive,
- * anti-symmetric, transitive, and consistent over time), and that the hashCode
+ * symmetric, transitive, and consistent over time), and that the hashCode
  * must consistent with equality, so that the same for objects that are
  * considered equal.
  *
