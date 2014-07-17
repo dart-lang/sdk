@@ -20,11 +20,11 @@ main() {
     ]);
 
     schedulePub(args: ["global", "activate", "foo"]);
-    schedulePub(args: ["global", "run", "foo", "example/script"],
+    schedulePub(args: ["global", "run", "foo:example/script"],
         error: """
 Cannot run an executable in a subdirectory of a global package.
 
-Usage: pub global run <package> <executable> [args...]
+Usage: pub global run <package>:<executable> [args...]
 -h, --help    Print usage information for this command.
 
 Run "pub help" to see global options.

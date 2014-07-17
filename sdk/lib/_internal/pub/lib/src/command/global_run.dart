@@ -9,6 +9,7 @@ import 'dart:async';
 import '../command.dart';
 import '../executable.dart';
 import '../io.dart';
+import '../utils.dart';
 
 /// Handles the `global run` pub command.
 class GlobalRunCommand extends PubCommand {
@@ -23,14 +24,17 @@ class GlobalRunCommand extends PubCommand {
       usageError("Must specify an executable to run.");
     }
 
-    if (!commandOptions.rest[0].contains(":")) {
-      // TODO(rnystrom): Allow "foo" as a synonym for "foo:foo"?
-      usageError("Must specify a package from which to run the executable.");
+    var package;
+    var executable = commandOptions.rest[0];
+    if (executable.contains(":")) {
+      var parts = split1(executable, ":");
+      package = parts[0];
+      executable = parts[1];
+    } else {
+      // If the package name is omitted, use the same name for both.
+      package = executable;
     }
 
-    var parts = split1(commandOptions.rest[0], ":");
-    var package = parts[0];
-    var executable = parts[1];
     var args = commandOptions.rest.skip(1).toList();
 
     return globals.find(package).then((entrypoint) {
