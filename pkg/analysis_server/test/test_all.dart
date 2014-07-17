@@ -12,6 +12,7 @@ import 'analysis_notification_outline_test.dart' as analysis_notification_outlin
 import 'analysis_notification_overrides_test.dart' as analysis_notification_overrides_test;
 import 'analysis_server_test.dart' as analysis_server_test;
 import 'channel_test.dart' as channel_test;
+import 'completion_test.dart' as completion_test;
 import 'computer/test_all.dart' as computer_test_all;
 import 'context_directory_manager_test.dart' as context_directory_manager_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
@@ -39,6 +40,7 @@ main() {
     analysis_notification_overrides_test.main();
     analysis_server_test.main();
     channel_test.main();
+    completion_test.main();
     computer_test_all.main();
     context_directory_manager_test.main();
     domain_analysis_test.main();

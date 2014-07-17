@@ -245,18 +245,22 @@ class _IsResponseSuccess extends Matcher {
   @override
   bool matches(item, Map matchState) {
     Response response = item;
-    return response.id == _id && response.error == null;
+    return response != null && response.id == _id && response.error == null;
   }
 
   @override
   Description describeMismatch(item, Description mismatchDescription,
                                Map matchState, bool verbose) {
     Response response = item;
-    var id = response.id;
-    RequestError error = response.error;
-    mismatchDescription.add('has identifier "$id"');
-    if (error != null) {
-      mismatchDescription.add(' and has error $error');
+    if (response == null) {
+      mismatchDescription.add('is null response');
+    } else {
+      var id = response.id;
+      RequestError error = response.error;
+      mismatchDescription.add('has identifier "$id"');
+      if (error != null) {
+        mismatchDescription.add(' and has error $error');
+      }
     }
     return mismatchDescription;
   }

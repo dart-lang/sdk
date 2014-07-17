@@ -4,9 +4,13 @@
 
 library domain.completion;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_server/src/collections.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -17,6 +21,16 @@ class CompletionDomainHandler implements RequestHandler {
    * The analysis server that is using this handler to process requests.
    */
   final AnalysisServer server;
+
+  /**
+   * The [SearchEngine] for this server.
+   */
+  SearchEngine searchEngine;
+
+  /**
+   * The next completion response id.
+   */
+  int _nextCompletionId = 0;
 
   /**
    * Initialize a newly created handler to handle requests for the given [server].
@@ -37,13 +51,67 @@ class CompletionDomainHandler implements RequestHandler {
   }
 
   Response getSuggestions(Request request) {
-    // file
-    RequestDatum fileDatum = request.getRequiredParameter(FILE);
-    String file = fileDatum.asString();
-    // offset
-    RequestDatum offsetDatum = request.getRequiredParameter(OFFSET);
-    int offset = offsetDatum.asInt();
-    // TODO(brianwilkerson) implement
-    return null;
+    // extract param
+    String file = request.getRequiredParameter(FILE).asString();
+    int offset = request.getRequiredParameter(OFFSET).asInt();
+    // schedule completion analysis
+    String completionId = (_nextCompletionId++).toString();
+    var computer = new TopLevelSuggestionsComputer(server.searchEngine);
+    var future = computer.compute();
+    future.then((List<CompletionSuggestion> results) {
+      _sendCompletionNotification(completionId, true, results);
+    });
+    // respond
+    return new Response(request.id)..setResult(ID, completionId);
+  }
+
+  void _sendCompletionNotification(String completionId, bool isLast,
+      Iterable<CompletionSuggestion> results) {
+    Notification notification = new Notification(COMPLETION_RESULTS);
+    notification.setParameter(ID, completionId);
+    notification.setParameter(LAST, isLast);
+    notification.setParameter(RESULTS, results);
+    server.sendNotification(notification);
+  }
+}
+
+/**
+ * A computer for `completion.getSuggestions` request results.
+ */
+class TopLevelSuggestionsComputer {
+  final SearchEngine searchEngine;
+
+  TopLevelSuggestionsComputer(this.searchEngine);
+
+  /**
+   * Computes [CompletionSuggestion]s for the specified position in the source.
+   */
+  Future<List<CompletionSuggestion>> compute() {
+    var future = searchEngine.searchTopLevelDeclarations('');
+    return future.then((List<SearchMatch> matches) {
+      return matches.map((SearchMatch match) {
+        return new CompletionSuggestion(match.element.displayName);
+      }).toList();
+    });
+  }
+}
+
+/**
+ * A single completion suggestion.
+ */
+class CompletionSuggestion implements HasToJson {
+  final String completion;
+
+  CompletionSuggestion(this.completion);
+
+  factory CompletionSuggestion.fromJson(Map<String, Object> json) {
+    return new CompletionSuggestion(json[COMPLETION]);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    return {
+      COMPLETION: completion
+    };
   }
 }

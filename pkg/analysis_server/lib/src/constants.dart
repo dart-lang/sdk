@@ -79,6 +79,7 @@ const String EDIT_SET_REFACTORING_OPTIONS = 'edit.setRefactoringOptions';
 //
 const String ADDED = 'added';
 const String CHILDREN = 'children';
+const String COMPLETION = 'completion';
 const String CONTAINING_LIBRARY_NAME = 'containingLibraryName';
 const String CONTAINING_LIBRARY_PATH = 'containingLibraryPath';
 const String CONTENT = 'content';

@@ -73,6 +73,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
     }).join('\n');
   }
 
+  @override
   void processNotification(Notification notification) {
     if (notification.event == SEARCH_RESULTS) {
       String id = notification.getParameter(ID);
