@@ -45,14 +45,16 @@ class _HtmlInliner extends PolymerTransformer {
     seen.add(docId);
 
     Document document;
-    bool changed;
+    bool changed = false;
 
     return readPrimaryAsHtml(transform).then((doc) {
       document = doc;
+      changed = new _UrlNormalizer(transform, docId).visit(document) || changed;
+      
       experimentalBootstrap = document.querySelectorAll('link').any((link) =>
           link.attributes['rel'] == 'import' &&
           link.attributes['href'] == POLYMER_EXPERIMENTAL_HTML);
-      changed = _extractScripts(document);
+      changed = _extractScripts(document) || changed;
       return _visitImports(document);
     }).then((importsFound) {
       changed = changed || importsFound;
@@ -302,10 +304,18 @@ class _UrlNormalizer extends TreeVisitor {
   /// This should just be some arbitrary # of ../'s.
   final String topLevelPath;
 
+  /// Whether or not the normalizer has changed something in the tree.
+  bool changed = false;
+
   _UrlNormalizer(transform, this.sourceId)
       : transform = transform,
         topLevelPath =
           '../' * (transform.primaryInput.id.path.split('/').length - 2);
+
+  visit(Element node) {
+    super.visit(node);
+    return changed;
+  }
 
   visitElement(Element node) {
     // TODO(jakemac): Support custom elements that extend html elements which
@@ -316,20 +326,23 @@ class _UrlNormalizer extends TreeVisitor {
         if (_urlAttributes.contains(name)) {
           if (value != '' && !value.trim().startsWith('{{')) {
             node.attributes[name] = _newUrl(value, node.sourceSpan);
+            changed = changed || value != node.attributes[name];
           }
         }
       });
     }
     if (node.localName == 'style') {
       node.text = visitCss(node.text);
+      changed = true;
     } else if (node.localName == 'script' &&
         node.attributes['type'] == TYPE_DART &&
         !node.attributes.containsKey('src')) {
       // TODO(jmesserly): we might need to visit JS too to handle ES Harmony
       // modules.
       node.text = visitInlineDart(node.text);
+      changed = true;
     }
-    super.visitElement(node);
+    return super.visitElement(node);
   }
 
   static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);

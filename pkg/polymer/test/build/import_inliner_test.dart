@@ -843,6 +843,20 @@ void entryPointTests() {
           '</body></html>',
     });
 
+  testPhases('includes in entry points normalize correctly', phases, {
+      'a|web/test/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script src="packages/a/foo/bar.js"></script>'
+          '</head></html>',
+      'a|lib/foo/bar.js':
+          'console.log("here");',
+    }, {
+      'a|web/test/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<script src="../packages/a/foo/bar.js"></script>'
+          '</body></html>',
+    });
+
   testPhases('two level deep entry points normalize correctly', phases, {
     'a|web/test/well/test.html':
         '<!DOCTYPE html><html><head>'
