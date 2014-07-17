@@ -2746,12 +2746,18 @@ TEST_CASE(PcDescriptors) {
   // Verify the PcDescriptor entries by accessing them.
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
-  const RawPcDescriptors::PcDescriptorRec& rec0 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec1 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec2 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec3 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec4 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec5 = iter.Next();
+  RawPcDescriptors::PcDescriptorRec rec0;
+  RawPcDescriptors::PcDescriptorRec rec1;
+  RawPcDescriptors::PcDescriptorRec rec2;
+  RawPcDescriptors::PcDescriptorRec rec3;
+  RawPcDescriptors::PcDescriptorRec rec4;
+  RawPcDescriptors::PcDescriptorRec rec5;
+  iter.NextRec(&rec0);
+  iter.NextRec(&rec1);
+  iter.NextRec(&rec2);
+  iter.NextRec(&rec3);
+  iter.NextRec(&rec4);
+  iter.NextRec(&rec5);
   ASSERT(!iter.HasNext());
 
   EXPECT_EQ(1, rec0.try_index());
@@ -2795,12 +2801,18 @@ TEST_CASE(PcDescriptorsCompressed) {
   // Verify the PcDescriptor entries by accessing them.
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
-  const RawPcDescriptors::PcDescriptorRec& rec0 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec1 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec2 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec3 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec4 = iter.Next();
-  const RawPcDescriptors::PcDescriptorRec& rec5 = iter.Next();
+  RawPcDescriptors::PcDescriptorRec rec0;
+  RawPcDescriptors::PcDescriptorRec rec1;
+  RawPcDescriptors::PcDescriptorRec rec2;
+  RawPcDescriptors::PcDescriptorRec rec3;
+  RawPcDescriptors::PcDescriptorRec rec4;
+  RawPcDescriptors::PcDescriptorRec rec5;
+  iter.NextRec(&rec0);
+  iter.NextRec(&rec1);
+  iter.NextRec(&rec2);
+  iter.NextRec(&rec3);
+  iter.NextRec(&rec4);
+  iter.NextRec(&rec5);
   ASSERT(!iter.HasNext());
 
   EXPECT_EQ(-1, rec0.try_index());

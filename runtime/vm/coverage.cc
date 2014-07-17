@@ -95,11 +95,11 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.HasNext()) {
     HANDLESCOPE(isolate);
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    intptr_t deopt_id = rec.deopt_id();
-    const ICData* ic_data = (*ic_data_array)[deopt_id];
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
+    const ICData* ic_data = (*ic_data_array)[rec.deopt_id()];
     if (!ic_data->IsNull()) {
-      intptr_t token_pos = rec.token_pos();
+      const intptr_t token_pos = rec.token_pos();
       // Filter out descriptors that do not map to tokens in the source code.
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         continue;

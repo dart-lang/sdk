@@ -949,6 +949,14 @@ class RawPcDescriptors : public RawObject {
       deopt_id_and_kind_ = (deopt_id_and_kind_ & 0xFF) | (value << 8);
     }
 
+    void CopyTo(PcDescriptorRec* other) const {
+      other->set_pc(pc());
+      other->set_deopt_id(deopt_id());
+      other->set_kind(kind());
+      other->set_token_pos(token_pos(), false);
+      other->set_try_index(try_index());
+    }
+
    private:
     bool is_compressed() const {
       return (token_pos_ & 0x1) == 1;

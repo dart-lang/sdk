@@ -271,7 +271,8 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
       PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
     if (rec.pc() == pc) {
       return rec.token_pos();
     } else if ((token_pos <= 0) && (rec.pc() > pc)) {

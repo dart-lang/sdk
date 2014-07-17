@@ -3042,7 +3042,8 @@ class PcDescriptors : public Object {
 
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
-
+  // Note: never return a reference to a RawPcDescriptors::PcDescriptorRec
+  // as the object can move.
   class Iterator : ValueObject {
    public:
     Iterator(const PcDescriptors& descriptors, intptr_t kind_mask)
@@ -3052,12 +3053,26 @@ class PcDescriptors : public Object {
 
     bool HasNext() const { return current_ix_ < descriptors_.Length(); }
 
-    const RawPcDescriptors::PcDescriptorRec& Next() {
+    intptr_t NextDeoptId() {
       ASSERT(HasNext());
-      const RawPcDescriptors::PcDescriptorRec* res =
-         descriptors_.recAt(current_ix_++);
+      const intptr_t res = descriptors_.recAt(current_ix_++)->deopt_id();
       MoveToMatching();
-      return *res;
+      return res;
+    }
+
+    uword NextPc() {
+      ASSERT(HasNext());
+      const uword res = descriptors_.recAt(current_ix_++)->pc();
+      MoveToMatching();
+      return res;
+    }
+
+    void NextRec(RawPcDescriptors::PcDescriptorRec* result) {
+      ASSERT(HasNext());
+      const RawPcDescriptors::PcDescriptorRec* r =
+          descriptors_.recAt(current_ix_++);
+      r->CopyTo(result);
+      MoveToMatching();
     }
 
    private:

@@ -179,8 +179,9 @@ ActivationFrame::ActivationFrame(
       ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle(code.raw())),
       function_(Function::ZoneHandle(code.function())),
+      token_pos_initialized_(false),
       token_pos_(-1),
-      desc_rec_(NULL),
+      try_index_(-1),
       line_number_(-1),
       column_number_(-1),
       context_level_(-1),
@@ -354,16 +355,18 @@ void ActivationFrame::GetPcDescriptors() {
 }
 
 
-// Compute token_pos_ and pc_desc_index_.
+// Compute token_pos_ and try_index_ and token_pos_initialized_.
 intptr_t ActivationFrame::TokenPos() {
-  if (token_pos_ < 0) {
+  if (!token_pos_initialized_) {
+    token_pos_initialized_ = true;
     token_pos_ = Scanner::kNoSourcePos;
     GetPcDescriptors();
     PcDescriptors::Iterator iter(pc_desc_, RawPcDescriptors::kAnyKind);
     while (iter.HasNext()) {
-      const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+      RawPcDescriptors::PcDescriptorRec rec;
+      iter.NextRec(&rec);
       if (rec.pc() == pc_) {
-        desc_rec_ = &rec;
+        try_index_ = rec.try_index();
         token_pos_ = rec.token_pos();
         break;
       }
@@ -374,14 +377,10 @@ intptr_t ActivationFrame::TokenPos() {
 
 
 intptr_t ActivationFrame::TryIndex() {
-  if (desc_rec_ == NULL) {
-    TokenPos();  // Side effect: compute desc_rec_ lazily.
+  if (!token_pos_initialized_) {
+    TokenPos();  // Side effect: computes token_pos_initialized_, try_index_.
   }
-  if (desc_rec_ == NULL) {
-    return -1;
-  } else {
-    return desc_rec_->try_index();
-  }
+  return try_index_;
 }
 
 
@@ -430,7 +429,9 @@ intptr_t ActivationFrame::ContextLevel() {
     // TODO(hausner): What to do if there is no descriptor entry
     // for the code position of the frame? For now say we are at context
     // level 0.
-    if (desc_rec_ == NULL) {
+    TokenPos();
+    if (token_pos_ == -1) {
+      // No PcDescriptor.
       return context_level_;
     }
     ASSERT(!pc_desc_.IsNull());
@@ -1204,7 +1205,8 @@ void Debugger::SetInternalBreakpoints(const Function& target_function) {
   PcDescriptors& desc = PcDescriptors::Handle(isolate, code.pc_descriptors());
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
     if (HasTokenPos(rec)) {
       CodeBreakpoint* bpt = GetCodeBreakpoint(rec.pc());
       if (bpt != NULL) {
@@ -1255,8 +1257,8 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
       PcDescriptors::Handle(isolate, code.pc_descriptors());
   PcDescriptors::Iterator iter(pc_desc, RawPcDescriptors::kClosureCall);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (rec.pc() == pc) {
+    const uword rec_pc = iter.NextPc();
+    if (rec_pc == pc) {
       is_closure_call = true;
       break;
     }
@@ -1547,17 +1549,15 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   intptr_t best_fit_pos = INT_MAX;
-  const RawPcDescriptors::PcDescriptorRec* best_fit_rec = NULL;
   uword lowest_pc = kUwordMax;
-  const RawPcDescriptors::PcDescriptorRec* lowest_pc_rec = NULL;
-
-  const RawPcDescriptors::PcDescriptorRec* rec = NULL;
+  intptr_t lowest_pc_token_pos = INT_MAX;
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.HasNext()) {
-    rec = &iter.Next();
-    intptr_t desc_token_pos = rec->token_pos();
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
+    intptr_t desc_token_pos = rec.token_pos();
     ASSERT(desc_token_pos >= 0);
-    if (HasTokenPos(*rec)) {
+    if (HasTokenPos(rec)) {
       if ((desc_token_pos < requested_token_pos) ||
           (desc_token_pos > last_token_pos)) {
         // This descriptor is outside the desired token range.
@@ -1567,24 +1567,23 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
         // So far, this descriptor has the lowest token position after
         // the first acceptable token position.
         best_fit_pos = desc_token_pos;
-        best_fit_rec = rec;
       }
-      if (rec->pc() < lowest_pc) {
+      if (rec.pc() < lowest_pc) {
         // This descriptor so far has the lowest code address.
-        lowest_pc = rec->pc();
-        lowest_pc_rec = rec;
+        lowest_pc = rec.pc();
+        lowest_pc_token_pos = desc_token_pos;
       }
     }
   }
-  if (lowest_pc_rec != NULL) {
+  if (lowest_pc_token_pos != INT_MAX) {
     // We found the pc descriptor that has the lowest execution address.
     // This is the first possible breakpoint after the requested token
     // position. We use this instead of the nearest PC descriptor
     // measured in token index distance.
-    best_fit_rec = lowest_pc_rec;
+    return lowest_pc_token_pos;
   }
-  if (best_fit_rec != NULL) {
-    return best_fit_rec->token_pos();
+  if (best_fit_pos != INT_MAX) {
+    return best_fit_pos;
   }
   // We didn't find a safe point in the given token range. Try and find
   // a safe point in the remaining source code of the function.
@@ -1606,24 +1605,25 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   // Find the safe point with the lowest compiled code address
   // that maps to the token position of the source breakpoint.
   PcDescriptors::Iterator iter(desc, kSafepointKind);
-  const RawPcDescriptors::PcDescriptorRec* lowest_rec = NULL;
+  RawPcDescriptors::PcDescriptorRec lowest_rec;
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
     intptr_t desc_token_pos = rec.token_pos();
     if ((desc_token_pos == bpt->token_pos_) && HasTokenPos(rec)) {
       if (rec.pc() < lowest_pc) {
         lowest_pc = rec.pc();
-        lowest_rec = &rec;
+        lowest_rec = rec;
       }
     }
   }
-  if (lowest_rec == NULL) {
+  if (lowest_pc == kUwordMax) {
     return;
   }
-  CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_rec->pc());
+  CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_rec.pc());
   if (code_bpt == NULL) {
     // No code breakpoint for this code exists; create one.
-    code_bpt = new CodeBreakpoint(code, *lowest_rec);
+    code_bpt = new CodeBreakpoint(code, lowest_rec);
     RegisterCodeBreakpoint(code_bpt);
   }
   code_bpt->set_src_bpt(bpt);
