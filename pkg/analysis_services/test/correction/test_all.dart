@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library test.services.correction;
+
 import 'package:unittest/unittest.dart';
 
-import 'correction/test_all.dart' as correction_all;
-import 'index/test_all.dart' as index_all;
-import 'search/test_all.dart' as search_all;
+import 'fix_test.dart' as fix_processor_test;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
-  correction_all.main();
-  index_all.main();
-  search_all.main();
+  group('correction', () {
+    fix_processor_test.main();
+  });
 }
