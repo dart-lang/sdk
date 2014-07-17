@@ -12,7 +12,7 @@ main() {
   integration('errors if the package is not activated', () {
     servePackages([]);
 
-    schedulePub(args: ["global", "run", "foo", "bar"],
+    schedulePub(args: ["global", "run", "foo:bar"],
         error: startsWith("No active package foo."),
         exitCode: exit_codes.DATA);
   });

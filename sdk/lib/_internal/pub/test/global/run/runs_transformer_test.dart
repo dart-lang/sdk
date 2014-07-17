@@ -39,7 +39,7 @@ main() {
         ])])
       ], pkg: ['barback']);
 
-      var pub = pubRun(global: true, args: ["foo", "script"]);
+      var pub = pubRun(global: true, args: ["foo:script"]);
 
       pub.stdout.expect("generated");
       pub.shouldExit();

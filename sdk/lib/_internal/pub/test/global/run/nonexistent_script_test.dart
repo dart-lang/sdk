@@ -14,7 +14,7 @@ main() {
 
     schedulePub(args: ["global", "activate", "foo"]);
 
-    var pub = pubRun(global: true, args: ["foo", "script"]);
+    var pub = pubRun(global: true, args: ["foo:script"]);
     pub.stderr.expect("Could not find ${p.join("bin", "script.dart")}.");
     pub.shouldExit(exit_codes.NO_INPUT);
   });

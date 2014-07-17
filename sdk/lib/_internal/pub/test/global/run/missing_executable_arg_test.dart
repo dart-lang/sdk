@@ -8,11 +8,11 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('fails if no executable was given', () {
-    schedulePub(args: ["global", "run", "pkg"],
+    schedulePub(args: ["global", "run"],
         error: """
             Must specify an executable to run.
 
-            Usage: pub global run <package> <executable> [args...]
+            Usage: pub global run <package>:<executable> [args...]
             -h, --help    Print usage information for this command.
 
             Run "pub help" to see global options.

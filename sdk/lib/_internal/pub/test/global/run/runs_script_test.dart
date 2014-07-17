@@ -18,7 +18,7 @@ main() {
 
     schedulePub(args: ["global", "activate", "foo"]);
 
-    var pub = pubRun(global: true, args: ["foo", "script"]);
+    var pub = pubRun(global: true, args: ["foo:script"]);
     pub.stdout.expect("ok");
     pub.shouldExit();
   });

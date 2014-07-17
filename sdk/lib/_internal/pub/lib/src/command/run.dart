@@ -23,7 +23,6 @@ class RunCommand extends PubCommand {
       usageError("Must specify an executable to run.");
     }
 
-    var environment;
     var package = entrypoint.root.name;
     var executable = commandOptions.rest[0];
     var args = commandOptions.rest.skip(1).toList();

@@ -16,20 +16,22 @@ class GlobalRunCommand extends PubCommand {
   bool get allowTrailingOptions => false;
   String get description =>
       "Run an executable from a globally activated package.";
-  String get usage => "pub global run <package> <executable> [args...]";
+  String get usage => "pub global run <package>:<executable> [args...]";
 
   Future onRun() {
     if (commandOptions.rest.isEmpty) {
-      usageError("Must specify a package and executable to run.");
-    }
-
-    if (commandOptions.rest.length == 1) {
       usageError("Must specify an executable to run.");
     }
 
-    var package = commandOptions.rest[0];
-    var executable = commandOptions.rest[1];
-    var args = commandOptions.rest.skip(2);
+    if (!commandOptions.rest[0].contains(":")) {
+      // TODO(rnystrom): Allow "foo" as a synonym for "foo:foo"?
+      usageError("Must specify a package from which to run the executable.");
+    }
+
+    var parts = split1(commandOptions.rest[0], ":");
+    var package = parts[0];
+    var executable = parts[1];
+    var args = commandOptions.rest.skip(1).toList();
 
     return globals.find(package).then((entrypoint) {
       return runExecutable(this, entrypoint, package, executable, args,

@@ -7,12 +7,12 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('fails if no package was given', () {
-    schedulePub(args: ["global", "run"],
+  integration('fails if no package name was given', () {
+    schedulePub(args: ["global", "run", "foo"],
         error: """
-            Must specify a package and executable to run.
+            Must specify a package from which to run the executable.
 
-            Usage: pub global run <package> <executable> [args...]
+            Usage: pub global run <package>:<executable> [args...]
             -h, --help    Print usage information for this command.
 
             Run "pub help" to see global options.
