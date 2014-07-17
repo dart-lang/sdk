@@ -97,7 +97,6 @@ static void CollectFinalizedSuperClasses(
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
 bool ClassFinalizer::ProcessPendingClasses() {
-  bool retval = true;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
@@ -137,10 +136,13 @@ bool ClassFinalizer::ProcessPendingClasses() {
     class_array = GrowableObjectArray::New();
     object_store->set_pending_classes(class_array);
     VerifyImplicitFieldOffsets();  // Verification after an error may fail.
+
+    return true;
   } else {
-    retval = false;
+    return false;
   }
-  return retval;
+  UNREACHABLE();
+  return true;
 }
 
 
