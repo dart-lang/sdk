@@ -6143,13 +6143,12 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                     Location::RequiresRegister()));
-  summary->set_in(1, Location::WritableRegister());
-  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_in(1, Location::WritableRegisterOrSmiConstant(right()));
   summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                      Location::RequiresRegister()));
   return summary;
@@ -6168,66 +6167,123 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* left_pair = locs()->in(0).AsPairLocation();
   Register left_lo = left_pair->At(0).reg();
   Register left_hi = left_pair->At(1).reg();
-  Register shift = locs()->in(1).reg();
   PairLocation* out_pair = locs()->out(0).AsPairLocation();
   Register out_lo = out_pair->At(0).reg();
   Register out_hi = out_pair->At(1).reg();
-  Register temp = locs()->temp(0).reg();
 
   Label* deopt = NULL;
   if (CanDeoptimize()) {
     deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptShiftMintOp);
   }
-  __ mov(out_lo, Operand(left_lo));
-  __ mov(out_hi, Operand(left_hi));
-
-  // Untag shift count.
-  __ SmiUntag(shift);
-
-  // Deopt if shift is larger than 63 or less than 0.
-  if (has_shift_count_check()) {
-    __ CompareImmediate(shift, kMintShiftCountLimit);
-    __ b(deopt, HI);
-  }
-
-  switch (op_kind()) {
-    case Token::kSHR: {
-      __ cmp(shift, Operand(32));
-
-      __ mov(out_lo, Operand(out_hi), HI);
-      __ Asr(out_hi, out_hi, 31, HI);
-      __ sub(shift, shift, Operand(32), HI);
-
-      __ rsb(temp, shift, Operand(32));
-      __ mov(temp, Operand(out_hi, LSL, temp));
-      __ orr(out_lo, temp, Operand(out_lo, LSR, shift));
-      __ Asr(out_hi, out_hi, shift);
-      break;
+  if (locs()->in(1).IsConstant()) {
+    // Code for a constant shift amount.
+    ASSERT(locs()->in(1).constant().IsSmi());
+    const int32_t shift =
+        reinterpret_cast<int32_t>(locs()->in(1).constant().raw()) >> 1;
+    if ((shift < 0) || (shift > kMintShiftCountLimit)) {
+      __ b(deopt);
+      return;
+    } else if (shift == 0) {
+      // Nothing to do for zero shift amount.
+      __ mov(out_lo, Operand(left_lo));
+      __ mov(out_hi, Operand(left_hi));
+      return;
     }
-    case Token::kSHL: {
-      __ rsbs(temp, shift, Operand(32));
-      __ sub(temp, shift, Operand(32), MI);
-      __ mov(out_hi, Operand(out_lo, LSL, temp), MI);
-      __ mov(out_hi, Operand(out_hi, LSL, shift), PL);
-      __ orr(out_hi, out_hi, Operand(out_lo, LSR, temp), PL);
-      __ mov(out_lo, Operand(out_lo, LSL, shift));
-
-      // Check for overflow.
-      if (can_overflow()) {
-        // Copy high word from output.
-        __ mov(temp, Operand(out_hi));
-        // Shift copy right.
-        __ Asr(temp, temp, shift);
-        // Compare with high word from input.
-        __ cmp(temp, Operand(left_hi));
-        // Overflow if they aren't equal.
-        __ b(deopt, NE);
+    switch (op_kind()) {
+      case Token::kSHR: {
+        if (shift < 32) {
+          __ Lsl(out_lo, left_hi, 32 - shift);
+          __ orr(out_lo, out_lo, Operand(left_lo, LSR, shift));
+          __ Asr(out_hi, left_hi, shift);
+        } else {
+          if (shift == 32) {
+            __ mov(out_lo, Operand(left_hi));
+          } else {
+            __ Asr(out_lo, left_hi, shift - 32);
+          }
+          __ Asr(out_hi, left_hi, 31);
+        }
+        break;
       }
-      break;
+      case Token::kSHL: {
+        if (shift < 32) {
+          __ Lsr(out_hi, left_lo, 32 - shift);
+          __ orr(out_hi, out_hi, Operand(left_hi, LSL, shift));
+          __ Lsl(out_lo, left_lo, shift);
+        } else {
+          if (shift == 32) {
+            __ mov(out_hi, Operand(left_lo));
+          } else {
+            __ Lsl(out_hi, left_lo, shift - 32);
+          }
+          __ mov(out_lo, Operand(0));
+        }
+        // Check for overflow.
+        if (can_overflow()) {
+          // Compare high word from input with shifted high word from output.
+          if (shift > 31) {
+            __ cmp(left_hi, Operand(out_hi));
+          } else {
+            __ cmp(left_hi, Operand(out_hi, ASR, shift));
+          }
+          // Overflow if they aren't equal.
+          __ b(deopt, NE);
+        }
+        break;
+      }
+      default:
+        UNREACHABLE();
     }
-    default:
-      UNREACHABLE();
-      break;
+  } else {
+    // Code for a variable shift amount.
+    Register shift = locs()->in(1).reg();
+
+    // Untag shift count.
+    __ SmiUntag(shift);
+
+    // Deopt if shift is larger than 63 or less than 0.
+    if (has_shift_count_check()) {
+      __ CompareImmediate(shift, kMintShiftCountLimit);
+      __ b(deopt, HI);
+    }
+
+    __ mov(out_lo, Operand(left_lo));
+    __ mov(out_hi, Operand(left_hi));
+
+    switch (op_kind()) {
+      case Token::kSHR: {
+        __ cmp(shift, Operand(32));
+
+        __ mov(out_lo, Operand(out_hi), HI);
+        __ Asr(out_hi, out_hi, 31, HI);
+        __ sub(shift, shift, Operand(32), HI);
+
+        __ rsb(IP, shift, Operand(32));
+        __ mov(IP, Operand(out_hi, LSL, IP));
+        __ orr(out_lo, IP, Operand(out_lo, LSR, shift));
+        __ Asr(out_hi, out_hi, shift);
+        break;
+      }
+      case Token::kSHL: {
+        __ rsbs(IP, shift, Operand(32));
+        __ sub(IP, shift, Operand(32), MI);
+        __ mov(out_hi, Operand(out_lo, LSL, IP), MI);
+        __ mov(out_hi, Operand(out_hi, LSL, shift), PL);
+        __ orr(out_hi, out_hi, Operand(out_lo, LSR, IP), PL);
+        __ mov(out_lo, Operand(out_lo, LSL, shift));
+
+        // Check for overflow.
+        if (can_overflow()) {
+          // Compare high word from input with shifted high word from output.
+          __ cmp(left_hi, Operand(out_hi, ASR, shift));
+          // Overflow if they aren't equal.
+          __ b(deopt, NE);
+        }
+        break;
+      }
+      default:
+        UNREACHABLE();
+    }
   }
 
   if (FLAG_throw_on_javascript_int_overflow) {

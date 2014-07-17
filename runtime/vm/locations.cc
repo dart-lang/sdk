@@ -84,6 +84,14 @@ Location Location::RegisterOrSmiConstant(Value* value) {
 }
 
 
+Location Location::WritableRegisterOrSmiConstant(Value* value) {
+  ConstantInstr* constant = value->definition()->AsConstant();
+  return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
+      ? Location::Constant(constant->value())
+      : Location::WritableRegister();
+}
+
+
 Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))

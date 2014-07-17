@@ -6038,7 +6038,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       default:
         UNREACHABLE();
-        break;
     }
   } else {
     // Code for a variable shift amount.
@@ -6061,10 +6060,10 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ jmp(&done, Assembler::kNearJump);
 
         __ Bind(&large_shift);
-        __ subl(ECX, Immediate(32));
+        // No need to subtract 32 from CL, only 5 bits used by sarl.
         __ movl(left_lo, left_hi);  // Shift by 32.
         __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
-        __ sarl(left_lo, ECX);  // Shift count - 32 in CL.
+        __ sarl(left_lo, ECX);  // Shift count: CL % 32.
         break;
       }
       case Token::kSHL: {
@@ -6086,10 +6085,10 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ jmp(&done, Assembler::kNearJump);
 
           __ Bind(&large_shift);
-          __ subl(ECX, Immediate(32));
+          // No need to subtract 32 from CL, only 5 bits used by shll.
           __ movl(left_hi, left_lo);  // Shift by 32.
           __ xorl(left_lo, left_lo);  // Zero left_lo.
-          __ shll(left_hi, ECX);  // Shift count in CL.
+          __ shll(left_hi, ECX);  // Shift count: CL % 32.
           // Check for overflow by sign extending the high 32 bits
           // and comparing with the input.
           __ movl(temp2, left_hi);
@@ -6105,10 +6104,10 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ jmp(&done, Assembler::kNearJump);
 
           __ Bind(&large_shift);
-          __ subl(ECX, Immediate(32));
+          // No need to subtract 32 from CL, only 5 bits used by shll.
           __ movl(left_hi, left_lo);  // Shift by 32.
           __ xorl(left_lo, left_lo);  // Zero left_lo.
-          __ shll(left_hi, ECX);  // Shift count in CL.
+          __ shll(left_hi, ECX);  // Shift count: CL % 32.
         }
         break;
       }
