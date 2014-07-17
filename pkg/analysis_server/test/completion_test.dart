@@ -25,8 +25,19 @@ main() {
 @ReflectiveTestCase()
 class CompletionTest extends AbstractAnalysisTest {
   String completionId;
+  int completionOffset;
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
+
+  String addTestFile(String content) {
+    completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    int nextOffset = content.indexOf('^', completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+    return super.addTestFile(
+        content.substring(0, completionOffset)
+        + content.substring(completionOffset + 1));
+  }
 
   void assertHasResult(String completion) {
     var cs = suggestions.firstWhere((cs) => cs.completion == completion, orElse: () {
@@ -45,12 +56,11 @@ class CompletionTest extends AbstractAnalysisTest {
     return createLocalMemoryIndex();
   }
 
-  Future getSuggestions(String pattern, int offsetFromPatternStart) {
+  Future getSuggestions() {
     return waitForTasksFinished().then((_) {
-      int offset = testCode.indexOf(pattern) + offsetFromPatternStart;
       Request request = new Request('0', COMPLETION_GET_SUGGESTIONS);
       request.setParameter(FILE, testFile);
-      request.setParameter(OFFSET, offset);
+      request.setParameter(OFFSET, completionOffset);
       Response response = handleSuccessfulRequest(request);
       completionId = response.getResult(ID);
       assertValidId(completionId);
@@ -91,9 +101,9 @@ class CompletionTest extends AbstractAnalysisTest {
   test_suggestions() {
     addTestFile('''
       import 'dart:html';
-      main() {}
+      main() {^}
     ''');
-    return getSuggestions('}', 0).then((_) {
+    return getSuggestions().then((_) {
       assertHasResult('Object');
       assertHasResult('HtmlElement');
     });
