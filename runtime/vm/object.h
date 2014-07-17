@@ -5375,7 +5375,7 @@ class String : public Instance {
 
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
-  static intptr_t Hash(const uint8_t* characters, intptr_t len);
+  static intptr_t HashLatin1(const uint8_t* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const int32_t* characters, intptr_t len);
   static intptr_t HashRawSymbol(const RawString* symbol) {
@@ -5401,8 +5401,10 @@ class String : public Instance {
   // Compares to a '\0' terminated array of UTF-8 encoded characters.
   bool Equals(const char* cstr) const;
 
-  // Compares to an array of UTF-8 encoded characters.
-  bool Equals(const uint8_t* characters, intptr_t len) const;
+  // Compares to an array of Latin-1 encoded characters.
+  bool EqualsLatin1(const uint8_t* characters, intptr_t len) const {
+    return Equals(characters, len);
+  }
 
   // Compares to an array of UTF-16 encoded characters.
   bool Equals(const uint16_t* characters, intptr_t len) const;
@@ -5568,6 +5570,12 @@ class String : public Instance {
                           double* result);
 
  protected:
+  // These two operate on an array of Latin-1 encoded characters.
+  // They are protected to avoid mistaking Latin-1 for UTF-8, but used
+  // by friendly templated code (e.g., Symbols).
+  bool Equals(const uint8_t* characters, intptr_t len) const;
+  static intptr_t Hash(const uint8_t* characters, intptr_t len);
+
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return (raw_ptr()->hash_ != NULL);

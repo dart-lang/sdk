@@ -1277,7 +1277,7 @@ TEST_CASE(StringConcat) {
     const String& onestr = String::Handle(String::FromLatin1(one, one_len));
     EXPECT(onestr.IsOneByteString());
     EXPECT_EQ(one_len, onestr.Length());
-    EXPECT(onestr.Equals(one, one_len));
+    EXPECT(onestr.EqualsLatin1(one, one_len));
 
     uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
