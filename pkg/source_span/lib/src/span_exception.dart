@@ -36,7 +36,7 @@ class SourceSpanFormatException extends SourceSpanException
     implements FormatException {
   final source;
 
-  int get position => span == null ? null : span.start.offset;
+  int get offset => span == null ? null : span.start.offset;
 
   SourceSpanFormatException(String message, SourceSpan span, [this.source])
       : super(message, span);
