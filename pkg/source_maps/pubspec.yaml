@@ -7,7 +7,7 @@ name: source_maps
 #
 # When the minor version is upgraded, you *must* update that version constraint
 # in pub to stay in sync with this.
-version: 0.9.4
+version: 0.9.3
 author: Dart Team <misc@dartlang.org>
 description: Library to programmatically manipulate source map files.
 homepage: http://www.dartlang.org
