@@ -122,7 +122,7 @@ abstract class Invoke {
  * In contrast to the CPS-based IR, the arguments can be arbitrary expressions.
  */
 class InvokeStatic extends Expression implements Invoke {
-  final Element target;
+  final Entity target;
   final List<Expression> arguments;
   final Selector selector;
 

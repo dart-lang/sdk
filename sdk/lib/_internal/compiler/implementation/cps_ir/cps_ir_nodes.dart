@@ -133,7 +133,7 @@ abstract class Invoke {
 /// Invoke a static function or static field getter/setter.
 class InvokeStatic extends Expression implements Invoke {
   /// [FunctionElement] or [FieldElement].
-  final Element target;
+  final Entity target;
 
   /**
    * The selector encodes how the function is invoked: number of positional
@@ -149,7 +149,7 @@ class InvokeStatic extends Expression implements Invoke {
                List<Definition> args)
       : continuation = new Reference(cont),
         arguments = _referenceList(args) {
-    assert(target.isErroneous || selector.name == target.name);
+    assert(target is ErroneousElement || selector.name == target.name);
   }
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
