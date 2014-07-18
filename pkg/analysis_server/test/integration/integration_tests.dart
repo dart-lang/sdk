@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/src/constants.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -60,7 +61,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
    * Send the server an 'analysis.setAnalysisRoots' command.
    */
   Future setAnalysisRoots(List<String> relativeRoots) {
-    return server.send('analysis.setAnalysisRoots', {
+    return server.send(ANALYSIS_SET_ANALYSIS_ROOTS, {
       'included': relativeRoots.map(normalizePath).toList(),
       'excluded': []
     });
@@ -70,7 +71,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
    * Send the server a 'server.setSubscriptions' command.
    */
   Future server_setSubscriptions(List<String> subscriptions) {
-    return server.send('server.setSubscriptions', {
+    return server.send(SERVER_SET_SUBSCRIPTIONS, {
       'subscriptions': subscriptions
     });
   }
@@ -87,7 +88,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
   Future get analysisFinished {
     Completer completer = new Completer();
     StreamSubscription subscription;
-    subscription = server.onNotification('server.status').listen((params) {
+    subscription = server.onNotification(SERVER_STATUS).listen((params) {
       bool analysisComplete = false;
       try {
         analysisComplete = !params['analysis']['analyzing'];
@@ -120,7 +121,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
     return Server.start().then((Server server) {
       this.server = server;
-      server.onNotification('analysis.errors').listen((params) {
+      server.onNotification(ANALYSIS_ERRORS).listen((params) {
         expect(params, isMap);
         expect(params['file'], isString);
         currentAnalysisErrors[params['file']] = params['errors'];
@@ -142,11 +143,8 @@ abstract class AbstractAnalysisServerIntegrationTest {
 // ==========================================================
 // TODO(paulberry): add more matchers.
 
-const Matcher isString = const isInstanceOf<String>('String');
-
-const Matcher isInt = const isInstanceOf<int>('int');
-
-const Matcher isBool = const isInstanceOf<bool>('bool');
+// Matchers common to all domains
+// ------------------------------
 
 const Matcher isResultResponse = const MatchesJsonObject('result response',
     const {
@@ -180,29 +178,37 @@ const Matcher isNotification = const MatchesJsonObject('notification', const {
   'params': isMap
 });
 
+// Matchers for specific responses and notifications
+// -------------------------------------------------
+
+// server.getVersion
 const Matcher isServerGetVersionResult = const MatchesJsonObject(
     'server.getVersion result', const {
   'version': isString
 });
 
+// server.status
 const Matcher isServerStatusParams = const MatchesJsonObject(
     'server.status params', null, optionalFields: const {
   'analysis': isAnalysisStatus
 });
 
-final Matcher isErrorSeverity = isIn(['INFO', 'WARNING', 'ERROR']);
-
-final Matcher isErrorType = isIn(['COMPILE_TIME_ERROR', 'HINT',
-    'STATIC_TYPE_WARNING', 'STATIC_WARNING', 'SYNTACTIC_ERROR', 'TODO']);
-
-const Matcher isLocation = const MatchesJsonObject('Location', const {
-  'file': isString,
-  'offset': isInt,
-  'length': isInt,
-  'startLine': isInt,
-  'startColumn': isInt
+// analysis.getHover
+final Matcher isAnalysisGetHoverResult = new MatchesJsonObject(
+    'analysis.getHover result', {
+  'hovers': isListOf(isHoverInformation)
 });
 
+// Matchers for data types used in responses and notifications
+// -----------------------------------------------------------
+
+const Matcher isString = const isInstanceOf<String>('String');
+
+const Matcher isInt = const isInstanceOf<int>('int');
+
+const Matcher isBool = const isInstanceOf<bool>('bool');
+
+// AnalysisError
 final Matcher isAnalysisError = new MatchesJsonObject('AnalysisError', {
   'severity': isErrorSeverity,
   'type': isErrorType,
@@ -212,11 +218,44 @@ final Matcher isAnalysisError = new MatchesJsonObject('AnalysisError', {
   'correction': isString
 });
 
+// AnalysisStatus
 const Matcher isAnalysisStatus = const MatchesJsonObject('AnalysisStatus', const
     {
   'analyzing': isBool
 }, optionalFields: const {
   'analysisTarget': isString
+});
+
+// ErrorSeverity
+final Matcher isErrorSeverity = isIn(['INFO', 'WARNING', 'ERROR']);
+
+// ErrorType
+final Matcher isErrorType = isIn(['COMPILE_TIME_ERROR', 'HINT',
+    'STATIC_TYPE_WARNING', 'STATIC_WARNING', 'SYNTACTIC_ERROR', 'TODO']);
+
+// HoverInformation
+const Matcher isHoverInformation = const MatchesJsonObject('HoverInformation',
+    const {
+  'offset': isInt,
+  'length': isInt
+}, optionalFields: const {
+  'containingLibraryPath': isString,
+  'containingLibraryName': isString,
+  'dartdoc': isString,
+  'elementDescription': isString,
+  'elementKind': isString,
+  'parameter': isString,
+  'propagatedType': isString,
+  'staticType': isString
+});
+
+// Location
+const Matcher isLocation = const MatchesJsonObject('Location', const {
+  'file': isString,
+  'offset': isInt,
+  'length': isInt,
+  'startLine': isInt,
+  'startColumn': isInt
 });
 
 
@@ -341,6 +380,52 @@ class MatchesJsonObject extends Matcher {
     }
   }
 }
+
+/**
+ * Matcher that matches a list of objects, each of which satisfies the given
+ * matcher.
+ */
+class _ListOf extends Matcher {
+  /**
+   * Matcher which every element of the list must satisfy.
+   */
+  final Matcher elementMatcher;
+
+  /**
+   * Iterable matcher which we use to test the contents of the list.
+   */
+  final Matcher iterableMatcher;
+
+  _ListOf(elementMatcher)
+      : elementMatcher = elementMatcher,
+        iterableMatcher = everyElement(elementMatcher);
+
+  @override
+  bool matches(item, Map matchState) {
+    if (item is! List) {
+      return false;
+    }
+    return iterableMatcher.matches(item, matchState);
+  }
+
+  @override
+  Description describe(Description description) => description.add('List of '
+      ).addDescriptionOf(elementMatcher);
+
+  @override
+  Description describeMismatch(item, Description mismatchDescription, Map
+      matchState, bool verbose) {
+    if (item is! List) {
+      return super.describeMismatch(item, mismatchDescription, matchState,
+          verbose);
+    } else {
+      return iterableMatcher.describeMismatch(item, mismatchDescription,
+          matchState, verbose);
+    }
+  }
+}
+
+Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
 
 /**
  * Instances of the class [Server] manage a connection to a server process, and

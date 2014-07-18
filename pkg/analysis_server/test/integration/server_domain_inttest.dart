@@ -6,6 +6,7 @@ library test.integration.server.domain;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -22,10 +23,10 @@ class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
 
   fail_test_shutdown() {
     // TODO(paulberry): fix the server so that it passes this test.
-    return server.send('server.shutdown', null).then((response) {
+    return server.send(SERVER_SHUTDOWN, null).then((response) {
       expect(response, isNull);
       return new Future.delayed(new Duration(seconds: 1)).then((_) {
-        server.send('server.getVersion', null).then((_) {
+        server.send(SERVER_GET_VERSION, null).then((_) {
           fail('Server still alive after server.shutdown');
         });
         // Give the server time to respond before terminating the test.
@@ -38,10 +39,10 @@ class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
     // TODO(paulberry): fix the server so that it passes this test.
     bool statusReceived = false;
     Completer analysisBegun = new Completer();
-    server.onNotification('server.status').listen((_) {
+    server.onNotification(SERVER_STATUS).listen((_) {
       statusReceived = true;
     });
-    server.onNotification('analysis.errors').listen((_) {
+    server.onNotification(ANALYSIS_ERRORS).listen((_) {
       if (!analysisBegun.isCompleted) {
         analysisBegun.complete();
       }
@@ -71,9 +72,19 @@ main() {
     });
   }
 
+  test_setSubscriptions_invalidService() {
+    // TODO(paulberry): verify that if an invalid service is specified, the
+    // current subscriptions are unchanged.
+    return server_setSubscriptions(['bogus']).then((_) {
+      fail('setSubscriptions should have produced an error');
+    }, onError: (error) {
+      // The expected error occurred.
+    });
+  }
+
   test_connected() {
     Completer receivedConnected = new Completer();
-    server.onNotification('server.connected').listen((params) {
+    server.onNotification(SERVER_CONNECTED).listen((params) {
       expect(receivedConnected.isCompleted, isFalse);
       receivedConnected.complete();
       expect(params, isNull);
@@ -95,7 +106,7 @@ main() {
     // analyzing=false.
     Completer analysisBegun = new Completer();
     Completer analysisFinished = new Completer();
-    server.onNotification('server.status').listen((params) {
+    server.onNotification(SERVER_STATUS).listen((params) {
       expect(params, isServerStatusParams);
       if (params['analysis'] != null) {
         if (params['analysis']['analyzing']) {
