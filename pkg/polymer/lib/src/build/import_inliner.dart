@@ -149,7 +149,7 @@ class _HtmlInliner extends PolymerTransformer {
           "Failed to inline html import: $error", asset: id,
           span: link.sourceSpan);
     }).then((doc) {
-      if (doc == null) return;
+      if (doc == null) return false;
       new _UrlNormalizer(transform, id).visit(doc);
       return _visitImports(doc).then((_) {
         // _UrlNormalizer already ensures there is a library name.
