@@ -324,7 +324,7 @@ class _UrlNormalizer extends TreeVisitor {
     if (!isCustomTagName(node.localName)) {
       node.attributes.forEach((name, value) {
         if (_urlAttributes.contains(name)) {
-          if (value != '' && !value.trim().startsWith('{{')) {
+          if (value != '' && !value.trim().startsWith(_BINDINGS)) {
             node.attributes[name] = _newUrl(value, node.sourceSpan);
             changed = changed || value != node.attributes[name];
           }
@@ -347,6 +347,7 @@ class _UrlNormalizer extends TreeVisitor {
 
   static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);
   static final _QUOTE = new RegExp('["\']', multiLine: true);
+  static final _BINDINGS = new RegExp(r'({{)|(\[\[)');
 
   /// Visit the CSS text and replace any relative URLs so we can inline it.
   // Ported from:
@@ -403,7 +404,10 @@ class _UrlNormalizer extends TreeVisitor {
   }
 
   String _newUrl(String href, Span span) {
-    var uri = Uri.parse(href);
+    // Uri.parse blows up on invalid characters (like {{). Encoding the uri
+    // allows it to be parsed, which does the correct thing in the general case.
+    // This uri not used to build the new uri, so it never needs to be decoded.
+    var uri = Uri.parse(Uri.encodeFull(href));
     if (uri.isAbsolute) return href;
     if (!uri.scheme.isEmpty) return href;
     if (!uri.host.isEmpty) return href;

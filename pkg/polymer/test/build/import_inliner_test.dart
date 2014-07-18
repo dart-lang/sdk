@@ -823,6 +823,41 @@ void urlAttributeTests() {
       'a|web/foo/test_2.html':
           '<foo-element src="baz.jpg"></foo-element>',
     });
+
+  testPhases('paths with a binding prefix are not normalized', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="foo/test.html">'
+          '</head></html>',
+      'a|web/foo/test.html':
+          '<img src="{{bar}}">'
+          '<img src="[[bar]]">',
+  }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="{{bar}}">'
+          '<img src="[[bar]]">'
+          '</body></html>',
+      'a|web/foo/test.html':
+          '<img src="{{bar}}">'
+          '<img src="[[bar]]">',
+  });
+
+  testPhases('relative paths followed by bindings are normalized', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="foo/test.html">'
+          '</head></html>',
+      'a|web/foo/test.html':
+          '<img src="baz/{{bar}}">'
+          '<img src="./{{bar}}">',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="foo/baz/{{bar}}">'
+          '<img src="foo/{{bar}}">'
+          '</body></html>',
+    });
 }
 
 void entryPointTests() {
