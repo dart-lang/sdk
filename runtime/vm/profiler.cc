@@ -34,8 +34,6 @@ DEFINE_FLAG(int, profile_period, 1000,
             "Time between profiler samples in microseconds. Minimum 50.");
 DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
-DEFINE_FLAG(bool, profile_verify_stack_walk, false,
-            "Verify instruction addresses while walking the stack.");
 DEFINE_FLAG(bool, profile_vm, false,
             "Always collect native stack traces.");
 
@@ -1663,6 +1661,29 @@ Sample* SampleBuffer::ReserveSample() {
 }
 
 
+static void SetPCMarkerIfSafe(Sample* sample) {
+  ASSERT(sample != NULL);
+
+  uword* fp = reinterpret_cast<uword*>(sample->fp());
+  uword* sp = reinterpret_cast<uword*>(sample->sp());
+
+  // If FP == SP, the pc marker hasn't been pushed.
+  if (fp > sp) {
+#if defined(TARGET_OS_WINDOWS)
+    // If the fp is at the beginning of a page, it may be unsafe to access
+    // the pc marker, because we are reading it from a different thread on
+    // Windows. The next page may be a guard page.
+    const intptr_t kPageMask = VirtualMemory::PageSize() - 1;
+    if ((sample->fp() & kPageMask) == 0) {
+      return;
+    }
+#endif
+    const uword pc_marker = *(fp + kPcMarkerSlotFromFp);
+    sample->set_pc_marker(pc_marker);
+  }
+}
+
+
 class ProfilerDartStackWalker : public ValueObject {
  public:
   ProfilerDartStackWalker(Isolate* isolate, Sample* sample)
@@ -1722,98 +1743,57 @@ class ProfilerNativeStackWalker : public ValueObject {
     ASSERT(sample_ != NULL);
   }
 
-  int walk(Heap* heap) {
-    const intptr_t kMaxStep = 0x1000;  // 4K.
-    const bool kWalkStack = true;  // Walk the stack.
-    // Always store the exclusive PC.
+  void walk(Heap* heap) {
+    const intptr_t kMaxStep = VirtualMemory::PageSize();
+
     sample_->SetAt(0, original_pc_);
-    if (!kWalkStack) {
-      // Not walking the stack, only took exclusive sample.
-      return 1;
-    }
+
     uword* pc = reinterpret_cast<uword*>(original_pc_);
     uword* fp = reinterpret_cast<uword*>(original_fp_);
     uword* previous_fp = fp;
-    if (original_sp_ > original_fp_) {
-      // Stack pointer should not be above frame pointer.
-      return 1;
-    }
-    const intptr_t gap = original_fp_ - original_sp_;
-    if (gap >= kMaxStep) {
+
+    if ((original_fp_ - original_sp_) >= kMaxStep) {
       // Gap between frame pointer and stack pointer is
       // too large.
-      return 1;
+      return;
     }
-    if (original_sp_ < lower_bound_) {
-      // The stack pointer gives us a better lower bound than
-      // the isolates stack limit.
-      lower_bound_ = original_sp_;
+
+    if (!ValidFramePointer(fp)) {
+      return;
     }
-#if defined(TARGET_OS_WINDOWS)
-    // If the original_fp_ is at the beginning of a page, it may be unsafe
-    // to access the pc marker, because we are reading it from a different
-    // thread on Windows. The next page may be a guard page.
-    const intptr_t kPageMask = kMaxStep - 1;
-    bool safe_to_read_pc_marker = (original_fp_ & kPageMask) != 0;
-#else
-    bool safe_to_read_pc_marker = true;
-#endif
-    if (safe_to_read_pc_marker && (gap > 0)) {
-      // Store the PC marker for the top frame.
-      sample_->set_pc_marker(GetCurrentFramePcMarker(fp));
-    }
-    int i = 0;
-    for (; i < FLAG_profile_depth; i++) {
-      if (FLAG_profile_verify_stack_walk) {
-        VerifyCodeAddress(heap, i, reinterpret_cast<uword>(pc));
-      }
+
+    for (int i = 0; i < FLAG_profile_depth; i++) {
       sample_->SetAt(i, reinterpret_cast<uword>(pc));
-      if (fp == NULL) {
-        return i + 1;
-      }
-      if (!ValidFramePointer(fp)) {
-        return i + 1;
-      }
+
       pc = CallerPC(fp);
       previous_fp = fp;
       fp = CallerFP(fp);
-      intptr_t step = fp - previous_fp;
+
       if (fp == NULL) {
-        return i + 1;
+        return;
       }
-      if ((step >= kMaxStep)) {
-        // Frame pointer step is too large.
-        return i + 1;
-      }
-      if ((fp <= previous_fp)) {
+
+      if (fp <= previous_fp) {
         // Frame pointer did not move to a higher address.
-        return i + 1;
+        return;
       }
+
+      if ((fp - previous_fp) >= kMaxStep) {
+        // Frame pointer step is too large.
+        return;
+      }
+
       if (!ValidFramePointer(fp)) {
-        // Frame pointer is outside of isolate stack bounds.
-        return i + 1;
+        // Frame pointer is outside of isolate stack boundary.
+        return;
       }
+
       // Move the lower bound up.
       lower_bound_ = reinterpret_cast<uword>(fp);
     }
-    return i;
   }
 
  private:
-  void VerifyCodeAddress(Heap* heap, int i, uword pc) {
-    if (heap != NULL) {
-      if (heap->Contains(pc) && !heap->CodeContains(pc)) {
-        for (int j = 0; j < i; j++) {
-          OS::Print("%d %" Px "\n", j, sample_->At(j));
-        }
-        OS::Print("%d %" Px " <--\n", i, pc);
-        OS::Print("---ASSERT-FAILED---\n");
-        OS::Print("%" Px " %" Px "\n", original_pc_, original_fp_);
-        UNREACHABLE();
-      }
-    }
-  }
-
   uword* CallerPC(uword* fp) const {
     ASSERT(fp != NULL);
     return reinterpret_cast<uword*>(*(fp + kSavedCallerPcSlotFromFp));
@@ -1824,20 +1804,13 @@ class ProfilerNativeStackWalker : public ValueObject {
     return reinterpret_cast<uword*>(*(fp + kSavedCallerFpSlotFromFp));
   }
 
-  uword GetCurrentFramePcMarker(uword* fp) const {
-    if (!ValidFramePointer(fp)) {
-      return 0;
-    }
-    return *(fp + kPcMarkerSlotFromFp);
-  }
-
   bool ValidFramePointer(uword* fp) const {
     if (fp == NULL) {
       return false;
     }
     uword cursor = reinterpret_cast<uword>(fp);
     cursor += sizeof(fp);
-    bool r = cursor >= lower_bound_ && cursor < stack_upper_;
+    bool r = (cursor >= lower_bound_) && (cursor < stack_upper_);
     return r;
   }
 
@@ -1855,46 +1828,96 @@ void Profiler::RecordSampleInterruptCallback(
     void* data) {
   Isolate* isolate = reinterpret_cast<Isolate*>(data);
   if ((isolate == NULL) || (Dart::vm_isolate() == NULL)) {
+    // No isolate.
     return;
   }
+
   ASSERT(isolate != Dart::vm_isolate());
+
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    // Profiler not initialized.
+    return;
+  }
+
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  if (sample_buffer == NULL) {
+    // Profiler not initialized.
+    return;
+  }
+
+  if ((state.sp == 0) || (state.fp == 0) || (state.pc == 0)) {
+    // None of these registers should be zero.
+    return;
+  }
+
+  if (state.sp > state.fp) {
+    // Assuming the stack grows down, we should never have a stack pointer above
+    // the frame pointer.
+    return;
+  }
+
   if (StubCode::InJumpToExceptionHandlerStub(state.pc)) {
     // The JumpToExceptionHandler stub manually adjusts the stack pointer,
     // frame pointer, and some isolate state before jumping to a catch entry.
     // It is not safe to walk the stack when executing this stub.
     return;
   }
+
+  uword stack_lower = 0;
+  uword stack_upper = 0;
+  isolate->GetStackBounds(&stack_lower, &stack_upper);
+  if ((stack_lower == 0) || (stack_upper == 0)) {
+    // Could not get stack boundary.
+    return;
+  }
+
+  if (state.sp > stack_lower) {
+    // The stack pointer gives us a tighter lower bound.
+    stack_lower = state.sp;
+  }
+
+  if (stack_lower >= stack_upper) {
+    // Stack boundary is invalid.
+    return;
+  }
+
+  if ((state.sp < stack_lower) || (state.sp >= stack_upper)) {
+    // Stack pointer is outside isolate stack boundary.
+    return;
+  }
+
+  if ((state.fp < stack_lower) || (state.fp >= stack_upper)) {
+    // Frame pointer is outside isolate stack boundary.
+    return;
+  }
+
+  // At this point we have a valid stack boundary for this isolate and
+  // know that our initial stack and frame pointers are within the boundary.
+
+  // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
   counters->Increment(isolate->vm_tag());
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
-    return;
-  }
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  if (sample_buffer == NULL) {
-    return;
-  }
+
+  // Setup sample.
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(isolate, OS::GetCurrentTimeMicros(), state.tid);
   sample->set_vm_tag(isolate->vm_tag());
   sample->set_user_tag(isolate->user_tag());
   sample->set_sp(state.sp);
   sample->set_fp(state.fp);
+  SetPCMarkerIfSafe(sample);
 
-  uword stack_lower = 0;
-  uword stack_upper = 0;
-  isolate->GetStackBounds(&stack_lower, &stack_upper);
-  if ((stack_lower == 0) || (stack_upper == 0)) {
-    stack_lower = 0;
-    stack_upper = 0;
-  }
+  // Walk the call stack.
   if (FLAG_profile_vm) {
-    // Collect native and Dart frames.
+    // Always walk the native stack collecting both native and Dart frames.
     ProfilerNativeStackWalker stackWalker(sample, stack_lower, stack_upper,
                                           state.pc, state.fp, state.sp);
     stackWalker.walk(isolate->heap());
   } else {
+    // Attempt to walk only the Dart call stack, falling back to walking
+    // the native stack.
     if ((isolate->stub_code() != NULL) &&
         (isolate->top_exit_frame_info() != 0) &&
         (isolate->vm_tag() != VMTag::kScriptTagId)) {
@@ -1902,7 +1925,6 @@ void Profiler::RecordSampleInterruptCallback(
       ProfilerDartStackWalker stackWalker(isolate, sample);
       stackWalker.walk();
     } else {
-      // Collect native and Dart frames.
       ProfilerNativeStackWalker stackWalker(sample, stack_lower, stack_upper,
                                             state.pc, state.fp, state.sp);
       stackWalker.walk(isolate->heap());
