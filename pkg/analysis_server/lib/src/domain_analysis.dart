@@ -39,7 +39,10 @@ class AnalysisDomainHandler implements RequestHandler {
     List<Hover> hovers = <Hover>[];
     List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
     for (CompilationUnit unit in units) {
-      hovers.add(new DartUnitHoverComputer(unit, offset).compute());
+      Hover hoverInformation = new DartUnitHoverComputer(unit, offset).compute();
+      if (hoverInformation != null) {
+        hovers.add(hoverInformation);
+      }
     }
     // send response
     Response response = new Response(request.id);

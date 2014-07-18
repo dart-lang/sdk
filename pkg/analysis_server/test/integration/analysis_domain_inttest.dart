@@ -136,7 +136,7 @@ main() {
     });
   }
 
-  fail_test_getHover_noInfo() {
+  test_getHover_noInfo() {
     String filename = 'test.dart';
     String pathname = normalizePath(filename);
     String text =

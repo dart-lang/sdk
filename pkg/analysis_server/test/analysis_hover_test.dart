@@ -24,26 +24,22 @@ main() {
 
 @ReflectiveTestCase()
 class AnalysisHoverTest extends AbstractAnalysisTest {
-  List<Hover> hovers;
-  Hover hover;
-
-  Future prepareHover(String search, then()) {
+  Future<Hover> prepareHover(String search) {
     int offset = findOffset(search);
-    return prepareHoverAt(offset, then);
+    return prepareHoverAt(offset);
   }
 
-  Future prepareHoverAt(int offset, then()) {
+  Future<Hover> prepareHoverAt(int offset) {
     return waitForTasksFinished().then((_) {
       Request request = new Request('0', ANALYSIS_GET_HOVER);
       request.setParameter(FILE, testFile);
       request.setParameter(OFFSET, offset);
       Response response = handleSuccessfulRequest(request);
       List<Map<String, Object>> hoverJsons = response.getResult(HOVERS);
-      hovers = hoverJsons.map((json) {
+      List<Hover> hovers = hoverJsons.map((json) {
         return new Hover.fromJson(json);
       }).toList();
-      hover = hovers.isNotEmpty ? hovers.first : null;
-      then();
+      return hovers.isNotEmpty ? hovers.first : null;
     });
   }
 
@@ -63,7 +59,7 @@ library my.library;
 main() {
 }
 ''');
-    return prepareHover('main() {', () {
+    return prepareHover('main() {').then((Hover hover) {
       expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
     });
   }
@@ -76,7 +72,7 @@ library my.library;
 main() {
 }
 ''');
-    return prepareHover('main() {', () {
+    return prepareHover('main() {').then((Hover hover) {
       expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
     });
   }
@@ -89,7 +85,7 @@ library my.library;
 List<String> fff(int a, String b) {
 }
 ''');
-    return prepareHover('fff(int a', () {
+    return prepareHover('fff(int a').then((Hover hover) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
@@ -111,7 +107,7 @@ main() {
 }
 foo(Object myParameter) {}
 ''');
-    return prepareHover('123', () {
+    return prepareHover('123').then((Hover hover) {
       // literal, no Element
       expect(hover.elementDescription, isNull);
       expect(hover.elementKind, isNull);
@@ -133,7 +129,7 @@ class A {
   }
 }
 ''');
-    return prepareHover('mmm(int a', () {
+    return prepareHover('mmm(int a').then((Hover hover) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
@@ -159,7 +155,7 @@ main(A a) {
   a.mmm(42, 'foo');
 }
 ''');
-    return prepareHover('mm(42, ', () {
+    return prepareHover('mm(42, ').then((Hover hover) {
       // range
       expect(hover.offset, findOffset('mmm(42, '));
       expect(hover.length, 'mmm'.length);
@@ -188,7 +184,7 @@ main(A a) {
   print(a.fff);
 }
 ''');
-    return prepareHover('fff);', () {
+    return prepareHover('fff);').then((Hover hover) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
@@ -209,7 +205,7 @@ main() {
   print(vvv);
 }
 ''');
-    return prepareHover('vvv);', () {
+    return prepareHover('vvv);').then((Hover hover) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
@@ -219,6 +215,18 @@ main() {
       // types
       expect(hover.staticType, 'dynamic');
       expect(hover.propagatedType, 'int');
+    });
+  }
+
+  test_noHoverInfo() {
+    addTestFile('''
+library my.library;
+main() {
+  // nothing
+}
+''');
+    return prepareHover('nothing').then((Hover hover) {
+      expect(hover, isNull);
     });
   }
 }
