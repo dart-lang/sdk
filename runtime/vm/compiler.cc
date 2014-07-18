@@ -479,6 +479,10 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         DeadCodeElimination::EliminateDeadPhis(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
+        if (optimizer.Canonicalize()) {
+          optimizer.Canonicalize();
+        }
+
         // Attempt to sink allocations of temporary non-escaping objects to
         // the deoptimization path.
         AllocationSinking* sinking = NULL;

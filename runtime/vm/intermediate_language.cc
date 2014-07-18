@@ -2281,6 +2281,11 @@ void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 // FlowGraphCompiler::SlowPathEnvironmentFor().
 void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
                                             intptr_t* cpu_reg_slots) {
+  if (registers_remapped_) {
+    return;
+  }
+  registers_remapped_ = true;
+
   for (intptr_t i = 0; i < InputCount(); i++) {
     Location loc = LocationAt(i);
     if (loc.IsRegister()) {
@@ -2305,11 +2310,10 @@ void MaterializeObjectInstr::RemapRegisters(intptr_t* fpu_reg_slots,
       }
     } else if (loc.IsPairLocation()) {
       UNREACHABLE();
-    } else if (loc.IsInvalid()) {
-      // We currently only perform one iteration of allocation
-      // sinking, so we do not expect to find materialized objects
-      // here.
-      ASSERT(!InputAt(i)->definition()->IsMaterializeObject());
+    } else if (loc.IsInvalid() &&
+               InputAt(i)->definition()->IsMaterializeObject()) {
+      InputAt(i)->definition()->AsMaterializeObject()->RemapRegisters(
+          fpu_reg_slots, cpu_reg_slots);
     }
   }
 }

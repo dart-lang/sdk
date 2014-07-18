@@ -114,48 +114,48 @@ class DeoptContext {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void DeferMaterializedObjectRef(intptr_t idx, intptr_t* slot) {
-    deferred_object_refs_ = new DeferredObjectRef(
+    deferred_slots_ = new DeferredObjectRef(
         idx,
         reinterpret_cast<RawInstance**>(slot),
-        deferred_object_refs_);
+        deferred_slots_);
   }
 
   void DeferDoubleMaterialization(double value, RawDouble** slot) {
-    deferred_boxes_ = new DeferredDouble(
+    deferred_slots_ = new DeferredDouble(
         value,
         reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
+        deferred_slots_);
   }
 
   void DeferMintMaterialization(int64_t value, RawMint** slot) {
-    deferred_boxes_ = new DeferredMint(
+    deferred_slots_ = new DeferredMint(
         value,
         reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
+        deferred_slots_);
   }
 
   void DeferFloat32x4Materialization(simd128_value_t value,
                                      RawFloat32x4** slot) {
-    deferred_boxes_ = new DeferredFloat32x4(
+    deferred_slots_ = new DeferredFloat32x4(
         value,
         reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
+        deferred_slots_);
   }
 
   void DeferFloat64x2Materialization(simd128_value_t value,
                                      RawFloat64x2** slot) {
-    deferred_boxes_ = new DeferredFloat64x2(
+    deferred_slots_ = new DeferredFloat64x2(
         value,
         reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
+        deferred_slots_);
   }
 
   void DeferInt32x4Materialization(simd128_value_t value,
                                     RawInt32x4** slot) {
-    deferred_boxes_ = new DeferredInt32x4(
+    deferred_slots_ = new DeferredInt32x4(
         value,
         reinterpret_cast<RawInstance**>(slot),
-        deferred_boxes_);
+        deferred_slots_);
   }
 
   DeferredObject* GetDeferredObject(intptr_t idx) const {
@@ -203,8 +203,7 @@ class DeoptContext {
   intptr_t caller_fp_;
   Isolate* isolate_;
 
-  DeferredSlot* deferred_boxes_;
-  DeferredSlot* deferred_object_refs_;
+  DeferredSlot* deferred_slots_;
 
   intptr_t deferred_objects_count_;
   DeferredObject** deferred_objects_;

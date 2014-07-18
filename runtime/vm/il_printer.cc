@@ -507,6 +507,10 @@ void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
   }
+
+  if (Identity().IsNotAliased()) {
+    f->Print(" <not-aliased>");
+  }
 }
 
 

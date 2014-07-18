@@ -38,8 +38,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       num_args_(0),
       deopt_reason_(ICData::kDeoptUnknown),
       isolate_(Isolate::Current()),
-      deferred_boxes_(NULL),
-      deferred_object_refs_(NULL),
+      deferred_slots_(NULL),
       deferred_objects_count_(0),
       deferred_objects_(NULL) {
   object_table_ = code.object_table();
@@ -323,18 +322,16 @@ static void FillDeferredSlots(DeoptContext* deopt_context,
 // Materializes all deferred objects.  Returns the total number of
 // artificial arguments used during deoptimization.
 intptr_t DeoptContext::MaterializeDeferredObjects() {
-  // First materialize all unboxed "primitive" values (doubles, mints, simd)
-  // then materialize objects. The order is important: objects might be
-  // referencing boxes allocated on the first step. At the same time
-  // objects can't be referencing other deferred objects because storing
-  // an object into a field is always conservatively treated as escaping by
-  // allocation sinking and load forwarding.
-  FillDeferredSlots(this, &deferred_boxes_);
-  FillDeferredSlots(this, &deferred_object_refs_);
+  // Populate slots with references to all unboxed "primitive" values (doubles,
+  // mints, simd) and deferred objects. Deferred objects are only allocated
+  // but not filled with data. This is done later because deferred objects
+  // can references each other.
+  FillDeferredSlots(this, &deferred_slots_);
 
   // Compute total number of artificial arguments used during deoptimization.
   intptr_t deopt_arg_count = 0;
   for (intptr_t i = 0; i < DeferredObjectsCount(); i++) {
+    GetDeferredObject(i)->Fill();
     deopt_arg_count += GetDeferredObject(i)->ArgumentCount();
   }
 
@@ -1633,6 +1630,14 @@ void DeoptInfoBuilder::AddMaterialization(MaterializeObjectInstr* mat) {
 
   instructions_.Add(
       new(isolate()) DeoptMaterializeObjectInstr(non_null_fields));
+
+  for (intptr_t i = 0; i < mat->InputCount(); i++) {
+    MaterializeObjectInstr* nested_mat = mat->InputAt(i)->definition()->
+        AsMaterializeObject();
+    if (nested_mat != NULL) {
+      AddMaterialization(nested_mat);
+    }
+  }
 }
 
 

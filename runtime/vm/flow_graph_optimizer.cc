@@ -5652,103 +5652,38 @@ void LICM::Optimize() {
 }
 
 
-// Alias represents a family of locations. It is used to capture aliasing
-// between stores and loads. Store can alias another load or store if and only
-// if they have the same alias.
-class Alias : public ValueObject {
- public:
-  Alias(const Alias& other) : ValueObject(), alias_(other.alias_) { }
-
-  // All indexed load/stores alias each other.
-  // TODO(vegorov): incorporate type of array into alias to disambiguate
-  // different typed data and normal arrays.
-  static Alias UnknownIndex(intptr_t id) {
-    return Alias(kUnknownIndexAlias, id);
-  }
-
-  static Alias ConstantIndex(intptr_t id) {
-    ASSERT(id != 0);
-    return Alias(kConstantIndex, id);
-  }
-
-  // Field load/stores alias each other only when they access the same field.
-  // AliasedSet assigns ids to a combination of instance and field during
-  // the optimization phase.
-  static Alias Field(intptr_t id) {
-    ASSERT(id != 0);
-    return Alias(kFieldAlias, id);
-  }
-
-  // VMField load/stores alias each other when field offset matches.
-  // TODO(vegorov) storing a context variable does not alias loading array
-  // length.
-  static Alias VMField(intptr_t id) {
-    ASSERT(id != 0);
-    return Alias(kVMFieldAlias, id);
-  }
-
-  // Current context load/stores alias each other.
-  static Alias CurrentContext() {
-    return Alias(kCurrentContextAlias, 0);
-  }
-
-  // Operation does not alias anything.
-  static Alias None() {
-    return Alias(kNoneAlias);
-  }
-
-  bool IsNone() const {
-    return alias_ == kNoneAlias;
-  }
-
-  // Convert this alias to a positive array index.
-  intptr_t ToIndex() const {
-    ASSERT(!IsNone());
-    return alias_;
-  }
-
- private:
-  enum {
-    // Number of bits required to encode Kind value.
-    // The payload occupies the rest of the bits, but leaves the MSB (sign bit)
-    // empty so that the resulting encoded value is always a positive integer.
-    kBitsForKind = 3,
-    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind - 1,
-  };
-
-  enum Kind {
-    kNoneAlias = -1,
-    kCurrentContextAlias = 0,
-    kUnknownIndexAlias = 1,
-    kFieldAlias = 2,
-    kVMFieldAlias = 3,
-    kConstantIndex = 4,
-    kNumKinds = kConstantIndex + 1
-  };
-  COMPILE_ASSERT(kNumKinds < ((1 << kBitsForKind) - 1));
-
-  explicit Alias(intptr_t alias) : alias_(alias) { }
-
-  Alias(Kind kind, uword payload)
-      : alias_(KindField::encode(kind) | PayloadField::encode(payload)) { }
-
-  uword payload() const {
-    return PayloadField::decode(alias_);
-  }
-
-  Kind kind() const {
-    return IsNone() ? kNoneAlias : KindField::decode(alias_);
-  }
-
-  typedef BitField<Kind, 0, kBitsForKind> KindField;
-  typedef BitField<uword, kBitsForKind, kBitsForPayload> PayloadField;
-
-  const intptr_t alias_;
-};
-
-
 // Place describes an abstract location (e.g. field) that IR can load
 // from or store to.
+//
+// Places are also used to describe wild-card locations also known as aliases,
+// that essentially represent sets of places that alias each other. Places A
+// and B are said to alias each other if store into A can affect load from B.
+//
+// We distinguish the following aliases:
+//
+//   - for fields
+//     - *.f, *.@offs - field inside some object;
+//     - X.f, X.@offs - field inside an allocated object X;
+//   - for indexed accesses
+//     - *[*] - non-constant index inside some object;
+//     - *[C] - constant index inside some object;
+//     - X[*] - non-constant index inside an allocated object X;
+//     - X[C] - constant index inside an allocated object X.
+//
+// Separating allocations from other objects improves precision of the
+// load forwarding pass because of the following two properties:
+//
+//   - if X can be proven to have no aliases itself (i.e. there is no other SSA
+//     variable that points to X) then no place inside X can be aliased with any
+//     wildcard dependent place (*.f, *.@offs, *[*], *[C]);
+//   - given allocations X and Y no place inside X can be aliased with any place
+//     inside Y even if any of them or both escape.
+//
+// It important to realize that single place can belong to multiple aliases.
+// For example place X.f with aliased allocation X belongs both to X.f and *.f
+// aliases. Likewise X[C] with non-aliased allocation X belongs to X[C] and X[*]
+// aliases.
+//
 class Place : public ValueObject {
  public:
   enum Kind {
@@ -5763,8 +5698,11 @@ class Place : public ValueObject {
     // being accessed and offset to the field.
     kVMField,
 
-    // Indexed location.
+    // Indexed location with a non-constant index.
     kIndexed,
+
+    // Indexed location with a constant index.
+    kConstantIndexed,
 
     // Current context.
     kContext
@@ -5837,21 +5775,19 @@ class Place : public ValueObject {
 
       case Instruction::kLoadIndexed: {
         LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
-        kind_ = kIndexed;
         representation_ = load_indexed->representation();
         instance_ = load_indexed->array()->definition()->OriginalDefinition();
-        index_ = load_indexed->index()->definition();
+        SetIndex(load_indexed->index()->definition());
         *is_load = true;
         break;
       }
 
       case Instruction::kStoreIndexed: {
         StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
-        kind_ = kIndexed;
         representation_ = store_indexed->
             RequiredInputRepresentation(StoreIndexedInstr::kValuePos);
         instance_ = store_indexed->array()->definition()->OriginalDefinition();
-        index_ = store_indexed->index()->definition();
+        SetIndex(store_indexed->index()->definition());
         *is_store = true;
         break;
       }
@@ -5876,20 +5812,75 @@ class Place : public ValueObject {
     }
   }
 
+  // Create object representing *[*] alias.
+  static Place* CreateAnyInstanceAnyIndexAlias(Isolate* isolate,
+                                               intptr_t id) {
+    return Wrap(isolate, Place(kIndexed, NULL, 0), id);
+  }
+
+  // Return least generic alias for this place. Given that aliases are
+  // essentially sets of places we define least generic alias as a smallest
+  // alias that contains this place.
+  //
+  // We obtain such alias by a simple transformation:
+  //
+  //    - for places that depend on an instance X.f, X.@offs, X[i], X[C]
+  //      we drop X if X is not an allocation because in this case X does not
+  //      posess an identity obtaining aliases *.f, *.@offs, *[i] and *[C]
+  //      respectively;
+  //    - for non-constant indexed places X[i] we drop information about the
+  //      index obtaining alias X[*].
+  //
+  Place ToAlias() const {
+    return Place(
+        kind_,
+        (DependsOnInstance() && IsAllocation(instance())) ? instance() : NULL,
+        (kind() == kIndexed) ? 0 : raw_selector_);
+  }
+
+  bool DependsOnInstance() const {
+    switch (kind()) {
+      case kField:
+      case kVMField:
+      case kIndexed:
+      case kConstantIndexed:
+        return true;
+
+      case kContext:
+      case kNone:
+        return false;
+    }
+
+    UNREACHABLE();
+    return false;
+  }
+
+  // Given instance dependent alias X.f, X.@offs, X[C], X[*] return
+  // wild-card dependent alias *.f, *.@offs, *[C] or *[*] respectively.
+  Place CopyWithoutInstance() const {
+    ASSERT(DependsOnInstance());
+    return Place(kind_, NULL, raw_selector_);
+  }
+
+  // Given alias X[C] or *[C] return X[*] and *[*] respectively.
+  Place CopyWithoutIndex() const {
+    ASSERT(kind_ == kConstantIndexed);
+    return Place(kIndexed, instance_, 0);
+  }
+
   intptr_t id() const { return id_; }
-  void set_id(intptr_t id) { id_ = id; }
 
   Kind kind() const { return kind_; }
 
   Representation representation() const { return representation_; }
 
   Definition* instance() const {
-    ASSERT((kind_ == kField) || (kind_ == kVMField) || (kind_ == kIndexed));
+    ASSERT(DependsOnInstance());
     return instance_;
   }
 
   void set_instance(Definition* def) {
-    ASSERT((kind_ == kField) || (kind_ == kVMField) || (kind_ == kIndexed));
+    ASSERT(DependsOnInstance());
     instance_ = def->OriginalDefinition();
   }
 
@@ -5908,6 +5899,20 @@ class Place : public ValueObject {
     return index_;
   }
 
+  intptr_t index_constant() const {
+    ASSERT(kind_ == kConstantIndexed);
+    return index_constant_;
+  }
+
+  static const char* DefinitionName(Definition* def) {
+    if (def == NULL) {
+      return "*";
+    } else {
+      return Isolate::Current()->current_zone()->PrintToString(
+            "v%" Pd, def->ssa_temp_index());
+    }
+  }
+
   const char* ToCString() const {
     switch (kind_) {
       case kNone:
@@ -5915,25 +5920,32 @@ class Place : public ValueObject {
 
       case kField: {
         const char* field_name = String::Handle(field().name()).ToCString();
-        if (instance() == NULL) {
-          return field_name;
+        if (field().is_static()) {
+          return Isolate::Current()->current_zone()->PrintToString(
+              "<%s>", field_name);
+        } else {
+          return Isolate::Current()->current_zone()->PrintToString(
+              "<%s.%s>", DefinitionName(instance()), field_name);
         }
-        return Isolate::Current()->current_zone()->PrintToString(
-            "<v%" Pd ".%s>", instance()->ssa_temp_index(), field_name);
       }
 
-      case kVMField: {
+      case kVMField:
         return Isolate::Current()->current_zone()->PrintToString(
-            "<v%" Pd "@%" Pd ">",
-            instance()->ssa_temp_index(), offset_in_bytes());
-      }
+            "<%s.@%" Pd ">",
+            DefinitionName(instance()),
+            offset_in_bytes());
 
-      case kIndexed: {
+      case kIndexed:
         return Isolate::Current()->current_zone()->PrintToString(
-            "<v%" Pd "[v%" Pd "]>",
-            instance()->ssa_temp_index(),
-            index()->ssa_temp_index());
-      }
+            "<%s[%s]>",
+            DefinitionName(instance()),
+            DefinitionName(index()));
+
+      case kConstantIndexed:
+        return Isolate::Current()->current_zone()->PrintToString(
+            "<%s[%" Pd "]>",
+            DefinitionName(instance()),
+            index_constant());
 
       case kContext:
         return "<context>";
@@ -5951,18 +5963,35 @@ class Place : public ValueObject {
         representation_ * 15 + FieldHashcode();
   }
 
-  bool Equals(Place* other) const {
+  bool Equals(const Place* other) const {
     return (kind_ == other->kind_) &&
         (representation_ == other->representation_) &&
         (instance_ == other->instance_) &&
         SameField(other);
   }
 
-  // Create a zone allocated copy of this place.
-  static Place* Wrap(Isolate* isolate, const Place& place);
+  // Create a zone allocated copy of this place and assign given id to it.
+  static Place* Wrap(Isolate* isolate, const Place& place, intptr_t id);
+
+  static bool IsAllocation(Definition* defn) {
+    // TODO(vegorov): add CreateContext to this list.
+    return (defn != NULL) &&
+        (defn->IsAllocateObject() ||
+         defn->IsCreateArray() ||
+         (defn->IsStaticCall() &&
+          defn->AsStaticCall()->IsRecognizedFactory()));
+  }
 
  private:
-  bool SameField(Place* other) const {
+  Place(Kind kind, Definition* instance, intptr_t selector)
+      : kind_(kind),
+        representation_(kNoRepresentation),
+        instance_(instance),
+        raw_selector_(selector),
+        id_(0) {
+  }
+
+  bool SameField(const Place* other) const {
     return (kind_ == kField) ? (field().raw() == other->field().raw())
                              : (offset_in_bytes_ == other->offset_in_bytes_);
   }
@@ -5972,6 +6001,17 @@ class Place : public ValueObject {
                              : offset_in_bytes_;
   }
 
+  void SetIndex(Definition* index) {
+    ConstantInstr* index_constant = index->AsConstant();
+    if ((index_constant != NULL) && index_constant->value().IsSmi()) {
+      kind_ = kConstantIndexed;
+      index_constant_ = Smi::Cast(index_constant->value()).Value();
+    } else {
+      kind_ = kIndexed;
+      index_ = index;
+    }
+  }
+
   Kind kind_;
   Representation representation_;
   Definition* instance_;
@@ -5979,6 +6019,7 @@ class Place : public ValueObject {
     intptr_t raw_selector_;
     const Field* field_;
     intptr_t offset_in_bytes_;
+    intptr_t index_constant_;
     Definition* index_;
   };
 
@@ -5997,8 +6038,10 @@ class ZonePlace : public ZoneAllocated {
 };
 
 
-Place* Place::Wrap(Isolate* isolate, const Place& place) {
-  return (new(isolate) ZonePlace(place))->place();
+Place* Place::Wrap(Isolate* isolate, const Place& place, intptr_t id) {
+  Place* wrapped = (new(isolate) ZonePlace(place))->place();
+  wrapped->id_ = id;
+  return wrapped;
 }
 
 
@@ -6058,141 +6101,38 @@ class AliasedSet : public ZoneAllocated {
       : isolate_(isolate),
         places_(*places),
         phi_moves_(phi_moves),
-        sets_(),
-        aliased_by_effects_(new(isolate) BitVector(places->length())),
-        max_field_id_(0),
-        field_ids_(),
-        max_index_id_(0),
-        index_ids_(),
-        max_unknown_index_id_(0),
-        unknown_index_ids_(),
-        max_vm_field_id_(0),
-        vm_field_ids_() { }
-
-  Alias ComputeAlias(Place* place) {
-    switch (place->kind()) {
-      case Place::kIndexed:
-        if (place->index()->IsConstant()) {
-          const Object& index = place->index()->AsConstant()->value();
-          if (index.IsSmi()) {
-            return Alias::ConstantIndex(
-                GetInstanceIndexId(place->instance(),
-                                   Smi::Cast(index).Value()));
-          }
-        }
-        return Alias::UnknownIndex(GetUnknownIndexId(place->instance()));
-      case Place::kField:
-        return Alias::Field(
-            GetInstanceFieldId(place->instance(), place->field()));
-      case Place::kVMField:
-        return Alias::VMField(
-            GetInstanceVMFieldId(place->instance(), place->offset_in_bytes()));
-      case Place::kContext:
-        return Alias::CurrentContext();
-      case Place::kNone:
-        UNREACHABLE();
+        aliases_(5),
+        aliases_map_(),
+        representatives_(),
+        killed_(),
+        aliased_by_effects_(new(isolate) BitVector(places->length())) {
+    InsertAlias(Place::CreateAnyInstanceAnyIndexAlias(isolate_,
+        kAnyInstanceAnyIndexAlias));
+    for (intptr_t i = 0; i < places_.length(); i++) {
+      AddRepresentative(places_[i]);
     }
-
-    UNREACHABLE();
-    return Alias::None();
+    ComputeKillSets();
   }
 
-  Alias ComputeAliasForStore(Instruction* instr) {
-    StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
-    if (store_indexed != NULL) {
-      Definition* instance = store_indexed->array()->definition();
-      if (store_indexed->index()->definition()->IsConstant()) {
-        const Object& index =
-            store_indexed->index()->definition()->AsConstant()->value();
-        if (index.IsSmi()) {
-          return Alias::ConstantIndex(
-              GetInstanceIndexId(instance, Smi::Cast(index).Value()));
-        }
-      }
-      return Alias::UnknownIndex(GetUnknownIndexId(instance));
-    }
-
-    StoreInstanceFieldInstr* store_instance_field =
-        instr->AsStoreInstanceField();
-    if (store_instance_field != NULL) {
-      Definition* instance = store_instance_field->instance()->definition();
-      if (!store_instance_field->field().IsNull()) {
-        return Alias::Field(
-            GetInstanceFieldId(instance, store_instance_field->field()));
-      }
-      return Alias::VMField(
-          GetInstanceVMFieldId(instance,
-                               store_instance_field->offset_in_bytes()));
-    }
-
-    if (instr->IsStoreContext()) {
-      return Alias::CurrentContext();
-    }
-
-    StoreStaticFieldInstr* store_static_field = instr->AsStoreStaticField();
-    if (store_static_field != NULL) {
-      return Alias::Field(GetStaticFieldId(store_static_field->field()));
-    }
-
-    return Alias::None();
+  intptr_t LookupAliasId(const Place& alias) {
+    const Place* result = aliases_map_.Lookup(&alias);
+    return (result != NULL) ? result->id() : kNoAlias;
   }
 
-  BitVector* Get(const Alias alias) {
-    const intptr_t idx = alias.ToIndex();
-    BitVector* ret = (idx < sets_.length()) ? sets_[idx] : NULL;
-    return ret;
+  bool IsStore(Instruction* instr, BitVector** killed) {
+    bool is_load = false, is_store = false;
+    Place place(instr, &is_load, &is_store);
+    if (is_store && (place.kind() != Place::kNone)) {
+      const intptr_t alias_id = LookupAliasId(place.ToAlias());
+      if (alias_id != kNoAlias) {
+        *killed = GetKilledSet(alias_id);
+      }
+    }
+    return is_store;
   }
 
-  void AddRepresentative(Place* place) {
-    if (!place->IsFinalField()) {
-      AddIdForAlias(ComputeAlias(place), place->id());
-      if (!IsIndependentFromEffects(place)) {
-        aliased_by_effects_->Add(place->id());
-      }
-    }
-  }
-
-  void EnsureAliasingForUnknownIndices() {
-    // Ids start at 1 because the hash-map uses 0 for element not found.
-    for (intptr_t unknown_index_id = 1;
-         unknown_index_id <= max_unknown_index_id_;
-         unknown_index_id++) {
-      BitVector* unknown_index = Get(Alias::UnknownIndex(unknown_index_id));
-      if (unknown_index == NULL) {
-        return;
-      }
-
-      // Constant indexes alias all non-constant indexes.
-      // Non-constant indexes alias all constant indexes.
-      // First update alias set for const-indices, then
-      // update set for all indices. Ids start at 1.
-      for (intptr_t id = 1; id <= max_index_id_; id++) {
-        BitVector* const_indexes = Get(Alias::ConstantIndex(id));
-        if (const_indexes != NULL) {
-          const_indexes->AddAll(unknown_index);
-        }
-      }
-
-      for (intptr_t id = 1; id <= max_index_id_; id++) {
-        BitVector* const_indexes = Get(Alias::ConstantIndex(id));
-        if (const_indexes != NULL) {
-          unknown_index->AddAll(const_indexes);
-        }
-      }
-    }
-  }
-
-  void AddIdForAlias(const Alias alias, intptr_t place_id) {
-    const intptr_t idx = alias.ToIndex();
-    while (sets_.length() <= idx) {
-      sets_.Add(NULL);
-    }
-
-    if (sets_[idx] == NULL) {
-      sets_[idx] = new(isolate_) BitVector(max_place_id());
-    }
-
-    sets_[idx]->Add(place_id);
+  BitVector* GetKilledSet(intptr_t alias) {
+    return (alias < killed_.length()) ? killed_[alias] : NULL;
   }
 
   intptr_t max_place_id() const { return places().length(); }
@@ -6219,158 +6159,209 @@ class AliasedSet : public ZoneAllocated {
 
   const PhiPlaceMoves* phi_moves() const { return phi_moves_; }
 
-  // Returns true if the result of an allocation instruction can be aliased by
-  // some other SSA variable and false otherwise. Currently simply checks if
-  // this value is stored in a field, escapes to another function or
-  // participates in a phi.
-  static bool CanBeAliased(Definition* alloc) {
-    ASSERT(alloc->IsAllocateObject() ||
-           alloc->IsCreateArray() ||
-           (alloc->IsStaticCall() &&
-            alloc->AsStaticCall()->IsRecognizedFactory()));
-    if (alloc->Identity() == kIdentityUnknown) {
-      bool escapes = false;
-      for (Value* use = alloc->input_use_list();
-           use != NULL;
-           use = use->next_use()) {
-        Instruction* instr = use->instruction();
-        if (instr->IsPushArgument() ||
-            (instr->IsStoreInstanceField()
-             && (use->use_index() != StoreInstanceFieldInstr::kInstancePos)) ||
-            (instr->IsStoreIndexed()
-             && (use->use_index() == StoreIndexedInstr::kValuePos)) ||
-            instr->IsStoreStaticField() ||
-            instr->IsPhi() ||
-            instr->IsAssertAssignable() ||
-            instr->IsRedefinition()) {
-          escapes = true;
-          break;
-        }
-      }
+  void RollbackAliasedIdentites() {
+    for (intptr_t i = 0; i < identity_rollback_.length(); ++i) {
+      identity_rollback_[i]->SetIdentity(AliasIdentity::Unknown());
+    }
+  }
 
-      alloc->SetIdentity(escapes ? kIdentityAliased : kIdentityNotAliased);
+  // Returns false if the result of an allocation instruction can't be aliased
+  // by another SSA variable and true otherwise.
+  bool CanBeAliased(Definition* alloc) {
+    if (!Place::IsAllocation(alloc)) {
+      return true;
     }
 
-    return alloc->Identity() != kIdentityNotAliased;
+    if (alloc->Identity().IsUnknown()) {
+      ComputeAliasing(alloc);
+    }
+
+    return !alloc->Identity().IsNotAliased();
   }
 
  private:
-  // Get id assigned to the given field. Assign a new id if the field is seen
-  // for the first time.
-  intptr_t GetFieldId(intptr_t instance_id, const Field& field) {
-    intptr_t id = field_ids_.Lookup(FieldIdPair::Key(instance_id, &field));
-    if (id == 0) {
-      id = ++max_field_id_;
-      field_ids_.Insert(FieldIdPair(FieldIdPair::Key(instance_id, &field), id));
-    }
-    return id;
-  }
-
-  intptr_t GetIndexId(intptr_t instance_id, intptr_t index) {
-    intptr_t id = index_ids_.Lookup(
-        ConstantIndexIdPair::Key(instance_id, index));
-    if (id == 0) {
-      // Zero is used to indicate element not found. The first id is one.
-      id = ++max_index_id_;
-      index_ids_.Insert(ConstantIndexIdPair(
-          ConstantIndexIdPair::Key(instance_id, index), id));
-    }
-    return id;
-  }
-
   enum {
-    kAnyInstance = -1
+    kNoAlias = 0,
+
+    // Artificial alias that is used to collect all representatives of the
+    // *[C], X[C] aliases for arbitrary C.
+    kAnyConstantIndexedAlias = 1,
+
+    // Artificial alias that is used to collect all representatives of
+    // *[C] alias for arbitrary C.
+    kUnknownInstanceConstantIndexedAlias = 2,
+
+    // Artificial alias that is used to collect all representatives of
+    // X[*] alias for all X.
+    kAnyAllocationIndexedAlias = 3,
+
+    // *[*] alias.
+    kAnyInstanceAnyIndexAlias = 4
   };
 
-  // Get or create an identifier for an instance field belonging to the
-  // given instance.
-  // The space of identifiers assigned to instance fields is split into
-  // parts based on the instance that contains the field.
-  // If compiler can prove that instance has a single SSA name in the compiled
-  // function then we use that SSA name to distinguish fields of this object
-  // from the same fields in other objects.
-  // If multiple SSA names can point to the same object then we use
-  // kAnyInstance instead of a concrete SSA name.
-  intptr_t GetInstanceFieldId(Definition* defn, const Field& field) {
-    ASSERT(field.is_static() == (defn == NULL));
+  // Compute least generic alias for the place and assign alias id to it.
+  void AddRepresentative(Place* place) {
+    if (!place->IsFinalField()) {
+      const Place* alias = CanonicalizeAlias(place->ToAlias());
+      EnsureSet(&representatives_, alias->id())->Add(place->id());
 
-    intptr_t instance_id = kAnyInstance;
+      // Update cumulative representative sets that are used during
+      // killed sets computation.
+      if (alias->kind() == Place::kConstantIndexed) {
+        if (CanBeAliased(alias->instance())) {
+          EnsureSet(&representatives_, kAnyConstantIndexedAlias)->
+              Add(place->id());
+        }
 
-    if (defn != NULL) {
-      AllocateObjectInstr* alloc = defn->AsAllocateObject();
-      if ((alloc != NULL) && !CanBeAliased(alloc)) {
-        instance_id = alloc->ssa_temp_index();
-        ASSERT(instance_id != kAnyInstance);
+        if (alias->instance() == NULL) {
+          EnsureSet(&representatives_, kUnknownInstanceConstantIndexedAlias)->
+              Add(place->id());
+        }
+      } else if ((alias->kind() == Place::kIndexed) &&
+                 CanBeAliased(place->instance())) {
+        EnsureSet(&representatives_, kAnyAllocationIndexedAlias)->
+            Add(place->id());
+      }
+
+      if (!IsIndependentFromEffects(place)) {
+        aliased_by_effects_->Add(place->id());
       }
     }
-
-    return GetFieldId(instance_id, field);
   }
 
-  intptr_t GetInstanceVMFieldId(Definition* defn, intptr_t offset) {
-    intptr_t instance_id = kAnyInstance;
-
-    ASSERT(defn != NULL);
-    if ((defn->IsAllocateObject() ||
-         defn->IsCreateArray() ||
-         (defn->IsStaticCall() &&
-          defn->AsStaticCall()->IsRecognizedFactory())) &&
-        !CanBeAliased(defn)) {
-      instance_id = defn->ssa_temp_index();
-      ASSERT(instance_id != kAnyInstance);
+  void ComputeKillSets() {
+    for (intptr_t i = 0; i < aliases_.length(); ++i) {
+      const Place* alias = aliases_[i];
+      // Add all representatives to the kill set.
+      AddAllRepresentatives(alias->id(), alias->id());
+      ComputeKillSet(alias);
     }
 
-    intptr_t id = vm_field_ids_.Lookup(VMFieldIdPair::Key(instance_id, offset));
-    if (id == 0) {
-      id = ++max_vm_field_id_;
-      vm_field_ids_.Insert(
-          VMFieldIdPair(VMFieldIdPair::Key(instance_id, offset), id));
+    if (FLAG_trace_load_optimization) {
+      OS::Print("Aliases KILL sets:\n");
+      for (intptr_t i = 0; i < aliases_.length(); ++i) {
+        const Place* alias = aliases_[i];
+        BitVector* kill = GetKilledSet(alias->id());
+
+        OS::Print("%s: ", alias->ToCString());
+        if (kill != NULL) {
+          PrintSet(kill);
+        }
+        OS::Print("\n");
+      }
     }
-    return id;
   }
 
-  intptr_t GetInstanceIndexId(Definition* defn, intptr_t index) {
-    intptr_t instance_id = kAnyInstance;
-
-    ASSERT(defn != NULL);
-    if ((defn->IsCreateArray() ||
-         (defn->IsStaticCall() &&
-          defn->AsStaticCall()->IsRecognizedFactory())) &&
-        !CanBeAliased(defn)) {
-      instance_id = defn->ssa_temp_index();
-      ASSERT(instance_id != kAnyInstance);
-    }
-
-    return GetIndexId(instance_id, index);
+  void InsertAlias(const Place* alias) {
+    aliases_map_.Insert(alias);
+    aliases_.Add(alias);
   }
 
-  intptr_t GetUnknownIndexId(Definition* defn) {
-    intptr_t instance_id = kAnyInstance;
-
-    ASSERT(defn != NULL);
-    if ((defn->IsCreateArray() ||
-         (defn->IsStaticCall() &&
-          defn->AsStaticCall()->IsRecognizedFactory())) &&
-        !CanBeAliased(defn)) {
-      instance_id = defn->ssa_temp_index();
-      ASSERT(instance_id != kAnyInstance);
+  const Place* CanonicalizeAlias(const Place& alias) {
+    const Place* canonical = aliases_map_.Lookup(&alias);
+    if (canonical == NULL) {
+      canonical = Place::Wrap(isolate_,
+                              alias,
+                              kAnyInstanceAnyIndexAlias + aliases_.length());
+      InsertAlias(canonical);
     }
-
-    intptr_t id = unknown_index_ids_.Lookup(
-        UnknownIndexIdPair::Key(instance_id));
-    if (id == 0) {
-      // Zero is used to indicate element not found. The first id is one.
-      id = ++max_unknown_index_id_;
-      unknown_index_ids_.Insert(
-          UnknownIndexIdPair(UnknownIndexIdPair::Key(instance_id), id));
-    }
-    return id;
+    return canonical;
   }
 
-  // Get or create an identifier for a static field.
-  intptr_t GetStaticFieldId(const Field& field) {
-    ASSERT(field.is_static());
-    return GetFieldId(kAnyInstance, field);
+  BitVector* GetRepresentativesSet(intptr_t alias) {
+    return (alias < representatives_.length()) ? representatives_[alias] : NULL;
+  }
+
+  BitVector* EnsureSet(GrowableArray<BitVector*>* sets,
+                       intptr_t alias) {
+    while (sets->length() <= alias) {
+      sets->Add(NULL);
+    }
+
+    BitVector* set = (*sets)[alias];
+    if (set == NULL) {
+      (*sets)[alias] = set = new(isolate_) BitVector(max_place_id());
+    }
+    return set;
+  }
+
+  void AddAllRepresentatives(const Place* to, intptr_t from) {
+    AddAllRepresentatives(to->id(), from);
+  }
+
+  void AddAllRepresentatives(intptr_t to, intptr_t from) {
+    BitVector* from_set = GetRepresentativesSet(from);
+    if (from_set != NULL) {
+      EnsureSet(&killed_, to)->AddAll(from_set);
+    }
+  }
+
+  void CrossAlias(const Place* to, const Place& from) {
+    const intptr_t from_id = LookupAliasId(from);
+    if (from_id == kNoAlias) {
+      return;
+    }
+    CrossAlias(to, from_id);
+  }
+
+  void CrossAlias(const Place* to, intptr_t from) {
+    AddAllRepresentatives(to->id(), from);
+    AddAllRepresentatives(from, to->id());
+  }
+
+  // When computing kill sets we let less generic alias insert its
+  // representatives into more generic alias'es kill set. For example
+  // when visiting alias X[*] instead of searching for all aliases X[C]
+  // and inserting their representatives into kill set for X[*] we update
+  // kill set for X[*] each time we visit new X[C] for some C.
+  // There is an exception however: if both aliases are parametric like *[C]
+  // and X[*] which cross alias when X is an aliased allocation then we use
+  // artificial aliases that contain all possible representatives for the given
+  // alias for any value of the parameter to compute resulting kill set.
+  void ComputeKillSet(const Place* alias) {
+    switch (alias->kind()) {
+      case Place::kIndexed:  // Either *[*] or X[*] alias.
+        if (alias->instance() == NULL) {
+          // *[*] aliases with X[*], X[C], *[C].
+          AddAllRepresentatives(alias, kAnyConstantIndexedAlias);
+          AddAllRepresentatives(alias, kAnyAllocationIndexedAlias);
+        } else if (CanBeAliased(alias->instance())) {
+          // X[*] aliases with X[C].
+          // If X can be aliased then X[*] also aliases with *[C], *[*].
+          CrossAlias(alias, kAnyInstanceAnyIndexAlias);
+          AddAllRepresentatives(alias, kUnknownInstanceConstantIndexedAlias);
+        }
+        break;
+
+      case Place::kConstantIndexed:  // Either X[C] or *[C] alias.
+        if (alias->instance() == NULL) {
+          // *[C] aliases with X[C], X[*], *[*].
+          AddAllRepresentatives(alias, kAnyAllocationIndexedAlias);
+          CrossAlias(alias, kAnyInstanceAnyIndexAlias);
+        } else {
+          // X[C] aliases with X[*].
+          // If X can be aliased then X[C] also aliases with *[C], *[*].
+          CrossAlias(alias, alias->CopyWithoutIndex());
+          if (CanBeAliased(alias->instance())) {
+            CrossAlias(alias, alias->CopyWithoutInstance());
+            CrossAlias(alias, kAnyInstanceAnyIndexAlias);
+          }
+        }
+        break;
+
+      case Place::kField:
+      case Place::kVMField:
+        if (CanBeAliased(alias->instance())) {
+          // X.f or X.@offs alias with *.f and *.@offs respectively.
+          CrossAlias(alias, alias->CopyWithoutInstance());
+        }
+
+      case Place::kContext:
+        return;
+
+      case Place::kNone:
+        UNREACHABLE();
+    }
   }
 
   // Returns true if the given load is unaffected by external side-effects.
@@ -6393,154 +6384,127 @@ class AliasedSet : public ZoneAllocated {
       return true;
     }
 
-    if (((place->kind() == Place::kField) ||
+    return ((place->kind() == Place::kField) ||
          (place->kind() == Place::kVMField)) &&
-        (place->instance() != NULL)) {
-      AllocateObjectInstr* alloc = place->instance()->AsAllocateObject();
-      return (alloc != NULL) && !CanBeAliased(alloc);
+        !CanBeAliased(place->instance());
+  }
+
+  // Returns true if there are direct loads from the given place.
+  bool HasLoadsFromPlace(Definition* defn, const Place* place) {
+    ASSERT((place->kind() == Place::kField) ||
+           (place->kind() == Place::kVMField));
+    ASSERT(place->instance() == defn);
+
+    for (Value* use = defn->input_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      bool is_load = false, is_store;
+      Place load_place(use->instruction(), &is_load, &is_store);
+
+      if (is_load && load_place.Equals(place)) {
+        return true;
+      }
     }
 
     return false;
   }
 
-  class FieldIdPair {
-   public:
-    struct Key {
-      Key(intptr_t instance_id, const Field* field)
-          : instance_id_(instance_id), field_(field) { }
+  // Check if any use of the definition can create an alias.
+  // Can add more objects into aliasing_worklist_.
+  bool AnyUseCreatesAlias(Definition* defn) {
+    for (Value* use = defn->input_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      Instruction* instr = use->instruction();
+      if (instr->IsPushArgument() ||
+          (instr->IsStoreIndexed()
+           && (use->use_index() == StoreIndexedInstr::kValuePos)) ||
+          instr->IsStoreStaticField() ||
+          instr->IsPhi() ||
+          instr->IsAssertAssignable() ||
+          instr->IsRedefinition()) {
+        return true;
+      } else if ((instr->IsStoreInstanceField()
+           && (use->use_index() != StoreInstanceFieldInstr::kInstancePos))) {
+        ASSERT(use->use_index() == StoreInstanceFieldInstr::kValuePos);
+        // If we store this value into an object that is not aliased itself
+        // and we never load again then the store does not create an alias.
+        StoreInstanceFieldInstr* store = instr->AsStoreInstanceField();
+        Definition* instance = store->instance()->definition();
+        if (instance->IsAllocateObject() && !instance->Identity().IsAliased()) {
+          bool is_load, is_store;
+          Place store_place(instr, &is_load, &is_store);
 
-      intptr_t instance_id_;
-      const Field* field_;
-    };
+          if (!HasLoadsFromPlace(instance, &store_place)) {
+            // No loads found that match this store. If it is yet unknown if
+            // the object is not aliased then optimistically assume this but
+            // add it to the worklist to check its uses transitively.
+            if (instance->Identity().IsUnknown()) {
+              instance->SetIdentity(AliasIdentity::NotAliased());
+              aliasing_worklist_.Add(instance);
+            }
+            continue;
+          }
+        }
 
-    typedef intptr_t Value;
-    typedef FieldIdPair Pair;
+        return true;
+      }
+    }
+    return false;
+  }
 
-    FieldIdPair(Key key, Value value) : key_(key), value_(value) { }
-
-    static Key KeyOf(Pair kv) {
-      return kv.key_;
+  // Mark any value stored into the given object as potentially aliased.
+  void MarkStoredValuesEscaping(Definition* defn) {
+    if (!defn->IsAllocateObject()) {
+      return;
     }
 
-    static Value ValueOf(Pair kv) {
-      return kv.value_;
+    // Find all stores into this object.
+    for (Value* use = defn->input_use_list();
+         use != NULL;
+         use = use->next_use()) {
+      if ((use->use_index() == StoreInstanceFieldInstr::kInstancePos) &&
+          use->instruction()->IsStoreInstanceField()) {
+        StoreInstanceFieldInstr* store =
+            use->instruction()->AsStoreInstanceField();
+        Definition* value = store->value()->definition();
+        if (value->Identity().IsNotAliased()) {
+          value->SetIdentity(AliasIdentity::Aliased());
+          identity_rollback_.Add(value);
+
+          // Add to worklist to propagate the mark transitively.
+          aliasing_worklist_.Add(value);
+        }
+      }
     }
+  }
 
-    static intptr_t Hashcode(Key key) {
-      return String::Handle(key.field_->name()).Hash();
+  // Determine if the given definition can't be aliased.
+  void ComputeAliasing(Definition* alloc) {
+    ASSERT(alloc->Identity().IsUnknown());
+    ASSERT(aliasing_worklist_.is_empty());
+
+    alloc->SetIdentity(AliasIdentity::NotAliased());
+    aliasing_worklist_.Add(alloc);
+
+    while (!aliasing_worklist_.is_empty()) {
+      Definition* defn = aliasing_worklist_.RemoveLast();
+
+      // If the definition in the worklist was optimistically marked as
+      // not-aliased check that optimistic assumption still holds: check if
+      // any of its uses can create an alias.
+      if (!defn->Identity().IsAliased() && AnyUseCreatesAlias(defn)) {
+        defn->SetIdentity(AliasIdentity::Aliased());
+        identity_rollback_.Add(defn);
+      }
+
+      // If the allocation site is marked as aliased conservatively mark
+      // any values stored into the object aliased too.
+      if (defn->Identity().IsAliased()) {
+        MarkStoredValuesEscaping(defn);
+      }
     }
-
-    static inline bool IsKeyEqual(Pair kv, Key key) {
-      return (KeyOf(kv).field_->raw() == key.field_->raw()) &&
-          (KeyOf(kv).instance_id_ == key.instance_id_);
-    }
-
-   private:
-    Key key_;
-    Value value_;
-  };
-
-  class ConstantIndexIdPair {
-   public:
-    struct Key {
-      Key(intptr_t instance_id, intptr_t index)
-          : instance_id_(instance_id), index_(index) { }
-
-      intptr_t instance_id_;
-      intptr_t index_;
-    };
-    typedef intptr_t Value;
-    typedef ConstantIndexIdPair Pair;
-
-    ConstantIndexIdPair(Key key, Value value) : key_(key), value_(value) { }
-
-    static Key KeyOf(ConstantIndexIdPair kv) {
-      return kv.key_;
-    }
-
-    static Value ValueOf(ConstantIndexIdPair kv) {
-      return kv.value_;
-    }
-
-    static intptr_t Hashcode(Key key) {
-      return (key.instance_id_ + 1) * 1024 + key.index_;
-    }
-
-    static inline bool IsKeyEqual(ConstantIndexIdPair kv, Key key) {
-      return (KeyOf(kv).index_ == key.index_)
-          && (KeyOf(kv).instance_id_ == key.instance_id_);
-    }
-
-   private:
-    Key key_;
-    Value value_;
-  };
-
-  class UnknownIndexIdPair {
-   public:
-    typedef intptr_t Key;
-    typedef intptr_t Value;
-    typedef UnknownIndexIdPair Pair;
-
-    UnknownIndexIdPair(Key key, Value value) : key_(key), value_(value) { }
-
-    static Key KeyOf(UnknownIndexIdPair kv) {
-      return kv.key_;
-    }
-
-    static Value ValueOf(UnknownIndexIdPair kv) {
-      return kv.value_;
-    }
-
-    static intptr_t Hashcode(Key key) {
-      return key + 1;
-    }
-
-    static inline bool IsKeyEqual(UnknownIndexIdPair kv, Key key) {
-      return KeyOf(kv) == key;
-    }
-
-   private:
-    Key key_;
-    Value value_;
-  };
-
-  class VMFieldIdPair {
-   public:
-    struct Key {
-      Key(intptr_t instance_id, intptr_t offset)
-          : instance_id_(instance_id), offset_(offset) { }
-
-      intptr_t instance_id_;
-      intptr_t offset_;
-    };
-
-    typedef intptr_t Value;
-    typedef VMFieldIdPair Pair;
-
-    VMFieldIdPair(Key key, Value value) : key_(key), value_(value) { }
-
-    static Key KeyOf(Pair kv) {
-      return kv.key_;
-    }
-
-    static Value ValueOf(Pair kv) {
-      return kv.value_;
-    }
-
-    static intptr_t Hashcode(Key key) {
-      return (key.instance_id_ + 1) * 1024 + key.offset_;
-    }
-
-    static inline bool IsKeyEqual(Pair kv, Key key) {
-      return (KeyOf(kv).offset_ == key.offset_) &&
-          (KeyOf(kv).instance_id_ == key.instance_id_);
-    }
-
-   private:
-    Key key_;
-    Value value_;
-  };
+  }
 
   Isolate* isolate_;
 
@@ -6548,24 +6512,33 @@ class AliasedSet : public ZoneAllocated {
 
   const PhiPlaceMoves* phi_moves_;
 
-  // Maps alias index to a set of ssa indexes corresponding to loads with the
-  // given alias.
-  GrowableArray<BitVector*> sets_;
+  // A list of all seen aliases and a map that allows looking up canonical
+  // alias object.
+  GrowableArray<const Place*> aliases_;
+  DirectChainedHashMap<PointerKeyValueTrait<const Place> > aliases_map_;
 
+  // Maps alias id to set of ids of places representing the alias.
+  // Place represents an alias if this alias is least generic alias for
+  // the place.
+  // (see ToAlias for the definition of least generic alias).
+  GrowableArray<BitVector*> representatives_;
+
+  // Maps alias id to set of ids of places aliased.
+  GrowableArray<BitVector*> killed_;
+
+  // Set of ids of places that can be affected by side-effects other than
+  // explicit stores (i.e. through calls).
   BitVector* aliased_by_effects_;
 
-  // Table mapping static field to their id used during optimization pass.
-  intptr_t max_field_id_;
-  DirectChainedHashMap<FieldIdPair> field_ids_;
+  // Worklist used during alias analysis.
+  GrowableArray<Definition*> aliasing_worklist_;
 
-  intptr_t max_index_id_;
-  DirectChainedHashMap<ConstantIndexIdPair> index_ids_;
-
-  intptr_t max_unknown_index_id_;
-  DirectChainedHashMap<UnknownIndexIdPair> unknown_index_ids_;
-
-  intptr_t max_vm_field_id_;
-  DirectChainedHashMap<VMFieldIdPair> vm_field_ids_;
+  // List of definitions that had their identity set to Aliased. At the end
+  // of load optimization their identity will be rolled back to Unknown to
+  // avoid treating them as Aliased at later stages without checking first
+  // as optimizations can potentially eliminate instructions leading to
+  // aliasing.
+  GrowableArray<Definition*> identity_rollback_;
 };
 
 
@@ -6628,8 +6601,7 @@ static PhiPlaceMoves* ComputePhiMoves(
 
         Place* result = map->Lookup(&input_place);
         if (result == NULL) {
-          input_place.set_id(places->length());
-          result = Place::Wrap(isolate, input_place);
+          result = Place::Wrap(isolate, input_place, places->length());
           map->Insert(result);
           places->Add(result);
           if (FLAG_trace_optimization) {
@@ -6683,8 +6655,7 @@ static AliasedSet* NumberPlaces(
 
       Place* result = map->Lookup(&place);
       if (result == NULL) {
-        place.set_id(places->length());
-        result = Place::Wrap(isolate, place);
+        result = Place::Wrap(isolate, place, places->length());
         map->Insert(result);
         places->Add(result);
 
@@ -6709,15 +6680,7 @@ static AliasedSet* NumberPlaces(
   PhiPlaceMoves* phi_moves = ComputePhiMoves(map, places);
 
   // Build aliasing sets mapping aliases to loads.
-  AliasedSet* aliased_set = new(isolate) AliasedSet(isolate, places, phi_moves);
-  for (intptr_t i = 0; i < places->length(); i++) {
-    Place* place = (*places)[i];
-    aliased_set->AddRepresentative(place);
-  }
-
-  aliased_set->EnsureAliasingForUnknownIndices();
-
-  return aliased_set;
+  return new(isolate) AliasedSet(isolate, places, phi_moves);
 }
 
 
@@ -6749,6 +6712,10 @@ class LoadOptimizer : public ValueObject {
       exposed_values_.Add(NULL);
       out_values_.Add(NULL);
     }
+  }
+
+  ~LoadOptimizer() {
+    aliased_set_->RollbackAliasedIdentites();
   }
 
   Isolate* isolate() const { return graph_->isolate(); }
@@ -6816,11 +6783,8 @@ class LoadOptimizer : public ValueObject {
            instr_it.Advance()) {
         Instruction* instr = instr_it.Current();
 
-        const Alias alias = aliased_set_->ComputeAliasForStore(instr);
-        if (!alias.IsNone()) {
-          // Interfering stores kill only loads from the same offset.
-          BitVector* killed = aliased_set_->Get(alias);
-
+        BitVector* killed = NULL;
+        if (aliased_set_->IsStore(instr, &killed)) {
           if (killed != NULL) {
             kill->AddAll(killed);
             // There is no need to clear out_values when clearing GEN set
@@ -6884,7 +6848,7 @@ class LoadOptimizer : public ValueObject {
         // TODO(vegorov): record null-values at least for not final fields of
         // escaping object.
         AllocateObjectInstr* alloc = instr->AsAllocateObject();
-        if ((alloc != NULL) && !AliasedSet::CanBeAliased(alloc)) {
+        if ((alloc != NULL) && !aliased_set_->CanBeAliased(alloc)) {
           for (Value* use = alloc->input_use_list();
                use != NULL;
                use = use->next_use()) {
@@ -7676,8 +7640,8 @@ class StoreOptimizer : public LivenessAnalysis {
         // Handle loads.
         Definition* defn = instr->AsDefinition();
         if ((defn != NULL) && IsLoadEliminationCandidate(defn)) {
-          const Alias alias = aliased_set_->ComputeAlias(&place);
-          live_in->AddAll(aliased_set_->Get(alias));
+          const intptr_t alias = aliased_set_->LookupAliasId(place.ToAlias());
+          live_in->AddAll(aliased_set_->GetKilledSet(alias));
           continue;
         }
       }
@@ -9868,16 +9832,63 @@ void FlowGraphOptimizer::EliminateEnvironments() {
 }
 
 
+enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
+
+// Check if the use is safe for allocation sinking. Allocation sinking
+// candidates can only be used at store instructions:
+//
+//     - any store into the allocation candidate itself is unconditionally safe
+//       as it just changes the rematerialization state of this candidate;
+//     - store into another object is only safe if another object is allocation
+//       candidate.
+//
+// We use a simple fix-point algorithm to discover the set of valid candidates
+// (see CollectCandidates method), that's why this IsSafeUse can operate in two
+// modes:
+//
+//     - optimistic, when every allocation is assumed to be an allocation
+//       sinking candidate;
+//     - strict, when only marked allocations are assumed to be allocation
+//       sinking candidates.
+//
+// Fix-point algorithm in CollectCandiates first collects a set of allocations
+// optimistically and then checks each collected candidate strictly and unmarks
+// invalid candidates transitively until only strictly valid ones remain.
+static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
+  if (use->instruction()->IsMaterializeObject()) {
+    return true;
+  }
+
+  StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
+  if (store != NULL) {
+    if (use == store->value()) {
+      Definition* instance = store->instance()->definition();
+      return instance->IsAllocateObject() &&
+          ((check_type == kOptimisticCheck) ||
+           instance->Identity().IsAllocationSinkingCandidate());
+    }
+    return true;
+  }
+
+  return false;
+}
+
+
 // Right now we are attempting to sink allocation only into
 // deoptimization exit. So candidate should only be used in StoreInstanceField
 // instructions that write into fields of the allocated object.
 // We do not support materialization of the object that has type arguments.
-static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc) {
+static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc,
+                                         SafeUseCheck check_type) {
   for (Value* use = alloc->input_use_list();
        use != NULL;
        use = use->next_use()) {
-    if (!(use->instruction()->IsStoreInstanceField() &&
-          (use->use_index() == 0))) {
+    if (!IsSafeUse(use, check_type)) {
+      if (FLAG_trace_optimization) {
+        OS::Print("use of %s at %s is unsafe for allocation sinking\n",
+                  alloc->ToCString(),
+                  use->instruction()->ToCString());
+      }
       return false;
     }
   }
@@ -9886,10 +9897,22 @@ static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc) {
 }
 
 
+// If the given use is a store into an object then return an object we are
+// storing into.
+static Definition* StoreInto(Value* use) {
+  StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
+  if (store != NULL) {
+    return store->instance()->definition();
+  }
+
+  return NULL;
+}
+
+
 // Remove the given allocation from the graph. It is not observable.
 // If deoptimization occurs the object will be materialized.
-static void EliminateAllocation(AllocateObjectInstr* alloc) {
-  ASSERT(IsAllocationSinkingCandidate(alloc));
+void AllocationSinking::EliminateAllocation(AllocateObjectInstr* alloc) {
+  ASSERT(IsAllocationSinkingCandidate(alloc, kStrictCheck));
 
   if (FLAG_trace_optimization) {
     OS::Print("removing allocation from the graph: v%" Pd "\n",
@@ -9906,7 +9929,13 @@ static void EliminateAllocation(AllocateObjectInstr* alloc) {
 
   // There should be no environment uses. The pass replaced them with
   // MaterializeObject instructions.
-  ASSERT(alloc->env_use_list() == NULL);
+#ifdef DEBUG
+  for (Value* use = alloc->env_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    ASSERT(use->instruction()->IsMaterializeObject());
+  }
+#endif
   ASSERT(alloc->input_use_list() == NULL);
   alloc->RemoveFromGraph();
   if (alloc->ArgumentCount() > 0) {
@@ -9918,30 +9947,204 @@ static void EliminateAllocation(AllocateObjectInstr* alloc) {
 }
 
 
-void AllocationSinking::Optimize() {
-  GrowableArray<AllocateObjectInstr*> candidates(5);
-
-  // Collect sinking candidates.
-  const GrowableArray<BlockEntryInstr*>& postorder = flow_graph_->postorder();
-  for (BlockIterator block_it(postorder);
+// Find allocation instructions that can be potentially eliminated and
+// rematerialized at deoptimization exits if needed. See IsSafeUse
+// for the description of algorithm used below.
+void AllocationSinking::CollectCandidates() {
+  // Optimistically collect all potential candidates.
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
-      if ((alloc != NULL) && IsAllocationSinkingCandidate(alloc)) {
-        if (FLAG_trace_optimization) {
-          OS::Print("discovered allocation sinking candidate: v%" Pd "\n",
-                    alloc->ssa_temp_index());
-        }
-
-        // All sinking candidate are known to be not aliased.
-        alloc->SetIdentity(kIdentityNotAliased);
-
-        candidates.Add(alloc);
+      if ((alloc != NULL) &&
+          IsAllocationSinkingCandidate(alloc, kOptimisticCheck)) {
+        alloc->SetIdentity(AliasIdentity::AllocationSinkingCandidate());
+        candidates_.Add(alloc);
       }
     }
   }
+
+  // Transitively unmark all candidates that are not strictly valid.
+  bool changed;
+  do {
+    changed = false;
+    for (intptr_t i = 0; i < candidates_.length(); i++) {
+      AllocateObjectInstr* alloc = candidates_[i];
+      if (alloc->Identity().IsAllocationSinkingCandidate()) {
+        if (!IsAllocationSinkingCandidate(alloc, kStrictCheck)) {
+          alloc->SetIdentity(AliasIdentity::Unknown());
+          changed = true;
+        }
+      }
+    }
+  } while (changed);
+
+  // Shrink the list of candidates removing all unmarked ones.
+  intptr_t j = 0;
+  for (intptr_t i = 0; i < candidates_.length(); i++) {
+    AllocateObjectInstr* alloc = candidates_[i];
+    if (alloc->Identity().IsAllocationSinkingCandidate()) {
+      if (FLAG_trace_optimization) {
+        OS::Print("discovered allocation sinking candidate: v%" Pd "\n",
+                  alloc->ssa_temp_index());
+      }
+
+      if (j != i) {
+        candidates_[j] = alloc;
+      }
+      j++;
+    }
+  }
+  candidates_.TruncateTo(j);
+}
+
+
+// If materialization references an allocation sinking candidate then replace
+// this reference with a materialization which should have been computed for
+// this side-exit. CollectAllExits should have collected this exit.
+void AllocationSinking::NormalizeMaterializations() {
+  for (intptr_t i = 0; i < candidates_.length(); i++) {
+    Definition* alloc = candidates_[i];
+
+    Value* next_use;
+    for (Value* use = alloc->input_use_list();
+         use != NULL;
+         use = next_use) {
+      next_use = use->next_use();
+      if (use->instruction()->IsMaterializeObject()) {
+        use->BindTo(MaterializationFor(alloc, use->instruction()));
+      }
+    }
+  }
+}
+
+
+// We transitively insert materializations at each deoptimization exit that
+// might see the given allocation (see ExitsCollector). Some of this
+// materializations are not actually used and some fail to compute because
+// they are inserted in the block that is not dominated by the allocation.
+// Remove them unused materializations from the graph.
+void AllocationSinking::RemoveUnusedMaterializations() {
+  intptr_t j = 0;
+  for (intptr_t i = 0; i < materializations_.length(); i++) {
+    MaterializeObjectInstr* mat = materializations_[i];
+    if ((mat->input_use_list() == NULL) && (mat->env_use_list() == NULL)) {
+      // Check if this materialization failed to compute and remove any
+      // unforwarded loads. There were no loads from any allocation sinking
+      // candidate in the beggining so it is safe to assume that any encountered
+      // load was inserted by CreateMaterializationAt.
+      for (intptr_t i = 0; i < mat->InputCount(); i++) {
+        LoadFieldInstr* load = mat->InputAt(i)->definition()->AsLoadField();
+        if ((load != NULL) &&
+            (load->instance()->definition() == mat->allocation())) {
+          load->ReplaceUsesWith(flow_graph_->constant_null());
+          load->RemoveFromGraph();
+        }
+      }
+      mat->RemoveFromGraph();
+    } else {
+      if (j != i) {
+        materializations_[j] = mat;
+      }
+      j++;
+    }
+  }
+  materializations_.TruncateTo(j);
+}
+
+
+// Some candidates might stop being eligible for allocation sinking after
+// the load forwarding because they flow into phis that load forwarding
+// inserts. Discover such allocations and remove them from the list
+// of allocation sinking candidates undoing all changes that we did
+// in preparation for sinking these allocations.
+void AllocationSinking::DiscoverFailedCandidates() {
+  // Transitively unmark all candidates that are not strictly valid.
+  bool changed;
+  do {
+    changed = false;
+    for (intptr_t i = 0; i < candidates_.length(); i++) {
+      AllocateObjectInstr* alloc = candidates_[i];
+      if (alloc->Identity().IsAllocationSinkingCandidate()) {
+        if (!IsAllocationSinkingCandidate(alloc, kStrictCheck)) {
+          alloc->SetIdentity(AliasIdentity::Unknown());
+          changed = true;
+        }
+      }
+    }
+  } while (changed);
+
+  // Remove all failed candidates from the candidates list.
+  intptr_t j = 0;
+  for (intptr_t i = 0; i < candidates_.length(); i++) {
+    AllocateObjectInstr* alloc = candidates_[i];
+    if (!alloc->Identity().IsAllocationSinkingCandidate()) {
+      if (FLAG_trace_optimization) {
+        OS::Print("allocation v%" Pd " can't be eliminated\n",
+                  alloc->ssa_temp_index());
+      }
+
+#ifdef DEBUG
+      for (Value* use = alloc->env_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        ASSERT(use->instruction()->IsMaterializeObject());
+      }
+#endif
+
+      // All materializations will be removed from the graph. Remove inserted
+      // loads first and detach materializations from allocation's environment
+      // use list: we will reconstruct it when we start removing
+      // materializations.
+      alloc->set_env_use_list(NULL);
+      for (Value* use = alloc->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        if (use->instruction()->IsLoadField()) {
+          LoadFieldInstr* load = use->instruction()->AsLoadField();
+          load->ReplaceUsesWith(flow_graph_->constant_null());
+          load->RemoveFromGraph();
+        } else {
+          ASSERT(use->instruction()->IsMaterializeObject() ||
+                 use->instruction()->IsPhi() ||
+                 use->instruction()->IsStoreInstanceField());
+        }
+      }
+    } else {
+      if (j != i) {
+        candidates_[j] = alloc;
+      }
+      j++;
+    }
+  }
+
+  if (j != candidates_.length()) {  // Something was removed from candidates.
+    intptr_t k = 0;
+    for (intptr_t i = 0; i < materializations_.length(); i++) {
+      MaterializeObjectInstr* mat = materializations_[i];
+      if (!mat->allocation()->Identity().IsAllocationSinkingCandidate()) {
+        // Restore environment uses of the allocation that were replaced
+        // by this materialization and drop materialization.
+        mat->ReplaceUsesWith(mat->allocation());
+        mat->RemoveFromGraph();
+      } else {
+        if (k != i) {
+          materializations_[k] = mat;
+        }
+        k++;
+      }
+    }
+    materializations_.TruncateTo(k);
+  }
+
+  candidates_.TruncateTo(j);
+}
+
+
+void AllocationSinking::Optimize() {
+  CollectCandidates();
 
   // Insert MaterializeObject instructions that will describe the state of the
   // object at all deoptimization points. Each inserted materialization looks
@@ -9950,8 +10153,8 @@ void AllocationSinking::Optimize() {
   //           ...
   //   v_N     <- LoadField(v_0, field_N)
   //   v_{N+1} <- MaterializeObject(field_1 = v_1, ..., field_N = v_{N})
-  for (intptr_t i = 0; i < candidates.length(); i++) {
-    InsertMaterializations(candidates[i]);
+  for (intptr_t i = 0; i < candidates_.length(); i++) {
+    InsertMaterializations(candidates_[i]);
   }
 
   // Run load forwarding to eliminate LoadField instructions inserted above.
@@ -9962,15 +10165,19 @@ void AllocationSinking::Optimize() {
   //      external effects from calls.
   LoadOptimizer::OptimizeGraph(flow_graph_);
 
-  if (FLAG_trace_optimization) {
-    FlowGraphPrinter::PrintGraph("Sinking", flow_graph_);
-  }
+  NormalizeMaterializations();
+
+  RemoveUnusedMaterializations();
+
+  // If any candidates are no longer eligible for allocation sinking abort
+  // the optimization for them and undo any changes we did in preparation.
+  DiscoverFailedCandidates();
 
   // At this point we have computed the state of object at each deoptimization
   // point and we can eliminate it. Loads inserted above were forwarded so there
   // are no uses of the allocation just as in the begging of the pass.
-  for (intptr_t i = 0; i < candidates.length(); i++) {
-    EliminateAllocation(candidates[i]);
+  for (intptr_t i = 0; i < candidates_.length(); i++) {
+    EliminateAllocation(candidates_[i]);
   }
 
   // Process materializations and unbox their arguments: materializations
@@ -9995,35 +10202,62 @@ void AllocationSinking::Optimize() {
 // as part of the environment not as a real instruction.
 void AllocationSinking::DetachMaterializations() {
   for (intptr_t i = 0; i < materializations_.length(); i++) {
-    ASSERT(materializations_[i]->input_use_list() == NULL);
     materializations_[i]->previous()->LinkTo(materializations_[i]->next());
   }
 }
 
 
 // Add a field/offset to the list of fields if it is not yet present there.
-static void AddSlot(ZoneGrowableArray<const Object*>* slots,
+static bool AddSlot(ZoneGrowableArray<const Object*>* slots,
                     const Object& slot) {
   for (intptr_t i = 0; i < slots->length(); i++) {
     if ((*slots)[i]->raw() == slot.raw()) {
-      return;
+      return false;
     }
   }
   slots->Add(&slot);
+  return true;
 }
 
 
-// Add given instruction to the list of the instructions if it is not yet
-// present there.
-static void AddInstruction(GrowableArray<Instruction*>* exits,
-                           Instruction* exit) {
-  ASSERT(!exit->IsGraphEntry());
-  for (intptr_t i = 0; i < exits->length(); i++) {
-    if ((*exits)[i] == exit) {
-      return;
+// Find deoptimization exit for the given materialization assuming that all
+// materializations are emitted right before the instruction which is a
+// deoptimization exit.
+static Instruction* ExitForMaterialization(MaterializeObjectInstr* mat) {
+  while (mat->next()->IsMaterializeObject()) {
+    mat = mat->next()->AsMaterializeObject();
+  }
+  return mat->next();
+}
+
+
+// Given the deoptimization exit find first materialization that was inserted
+// before it.
+static Instruction* FirstMaterializationAt(Instruction* exit) {
+  while (exit->previous()->IsMaterializeObject()) {
+    exit = exit->previous();
+  }
+  return exit;
+}
+
+
+// Given the allocation and deoptimization exit try to find MaterializeObject
+// instruction corresponding to this allocation at this exit.
+MaterializeObjectInstr* AllocationSinking::MaterializationFor(
+    Definition* alloc, Instruction* exit) {
+  if (exit->IsMaterializeObject()) {
+    exit = ExitForMaterialization(exit->AsMaterializeObject());
+  }
+
+  for (MaterializeObjectInstr* mat = exit->previous()->AsMaterializeObject();
+       mat != NULL;
+       mat = mat->previous()->AsMaterializeObject()) {
+    if (mat->allocation() == alloc) {
+      return mat;
     }
   }
-  exits->Add(exit);
+
+  return NULL;
 }
 
 
@@ -10036,6 +10270,11 @@ void AllocationSinking::CreateMaterializationAt(
     const ZoneGrowableArray<const Object*>& slots) {
   ZoneGrowableArray<Value*>* values =
       new(I) ZoneGrowableArray<Value*>(slots.length());
+
+  // All loads should be inserted before the first materialization so that
+  // IR follows the following pattern: loads, materializations, deoptimizing
+  // instruction.
+  Instruction* load_point = FirstMaterializationAt(exit);
 
   // Insert load instruction for every field.
   for (intptr_t i = 0; i < slots.length(); i++) {
@@ -10051,12 +10290,12 @@ void AllocationSinking::CreateMaterializationAt(
             AbstractType::ZoneHandle(I),
             alloc->token_pos());
     flow_graph_->InsertBefore(
-        exit, load, NULL, FlowGraph::kValue);
+        load_point, load, NULL, FlowGraph::kValue);
     values->Add(new(I) Value(load));
   }
 
   MaterializeObjectInstr* mat =
-      new(I) MaterializeObjectInstr(cls, slots, values);
+      new(I) MaterializeObjectInstr(alloc, cls, slots, values);
   flow_graph_->InsertBefore(exit, mat, NULL, FlowGraph::kValue);
 
   // Replace all mentions of this allocation with a newly inserted
@@ -10074,8 +10313,78 @@ void AllocationSinking::CreateMaterializationAt(
     }
   }
 
+  // Mark MaterializeObject as an environment use of this allocation.
+  // This will allow us to discover it when we are looking for deoptimization
+  // exits for another allocation that potentially flows into this one.
+  Value* val = new(I) Value(alloc);
+  val->set_instruction(mat);
+  alloc->AddEnvUse(val);
+
   // Record inserted materialization.
   materializations_.Add(mat);
+}
+
+
+// Add given instruction to the list of the instructions if it is not yet
+// present there.
+template<typename T>
+void AddInstruction(GrowableArray<T*>* list, T* value) {
+  ASSERT(!value->IsGraphEntry());
+  for (intptr_t i = 0; i < list->length(); i++) {
+    if ((*list)[i] == value) {
+      return;
+    }
+  }
+  list->Add(value);
+}
+
+
+// Transitively collect all deoptimization exits that might need this allocation
+// rematerialized. It is not enough to collect only environment uses of this
+// allocation because it can flow into other objects that will be
+// dematerialized and that are referenced by deopt environments that
+// don't contain this allocation explicitly.
+void AllocationSinking::ExitsCollector::Collect(Definition* alloc) {
+  for (Value* use = alloc->env_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    if (use->instruction()->IsMaterializeObject()) {
+      AddInstruction(&exits_, ExitForMaterialization(
+          use->instruction()->AsMaterializeObject()));
+    } else {
+      AddInstruction(&exits_, use->instruction());
+    }
+  }
+
+  // Check if this allocation is stored into any other allocation sinking
+  // candidate and put it on worklist so that we conservatively collect all
+  // exits for that candidate as well because they potentially might see
+  // this object.
+  for (Value* use = alloc->input_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    Definition* obj = StoreInto(use);
+    if ((obj != NULL) && (obj != alloc)) {
+      AddInstruction(&worklist_, obj);
+    }
+  }
+}
+
+
+void AllocationSinking::ExitsCollector::CollectTransitively(Definition* alloc) {
+  exits_.TruncateTo(0);
+  worklist_.TruncateTo(0);
+
+  worklist_.Add(alloc);
+
+  // Note: worklist potentially will grow while we are iterating over it.
+  // We are not removing allocations from the worklist not to waste space on
+  // the side maintaining BitVector of already processed allocations: worklist
+  // is expected to be very small thus linear search in it is just as effecient
+  // as a bitvector.
+  for (intptr_t i = 0; i < worklist_.length(); i++) {
+    Collect(worklist_[i]);
+  }
 }
 
 
@@ -10088,10 +10397,12 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
        use != NULL;
        use = use->next_use()) {
     StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
-    if (!store->field().IsNull()) {
-      AddSlot(slots, store->field());
-    } else {
-      AddSlot(slots, Smi::ZoneHandle(I, Smi::New(store->offset_in_bytes())));
+    if ((store != NULL) && (store->instance()->definition() == alloc)) {
+      if (!store->field().IsNull()) {
+        AddSlot(slots, store->field());
+      } else {
+        AddSlot(slots, Smi::ZoneHandle(I, Smi::New(store->offset_in_bytes())));
+      }
     }
   }
 
@@ -10102,16 +10413,12 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
   }
 
   // Collect all instructions that mention this object in the environment.
-  GrowableArray<Instruction*> exits(10);
-  for (Value* use = alloc->env_use_list();
-       use != NULL;
-       use = use->next_use()) {
-    AddInstruction(&exits, use->instruction());
-  }
+  exits_collector_.CollectTransitively(alloc);
 
   // Insert materializations at environment uses.
-  for (intptr_t i = 0; i < exits.length(); i++) {
-    CreateMaterializationAt(exits[i], alloc, alloc->cls(), *slots);
+  for (intptr_t i = 0; i < exits_collector_.exits().length(); i++) {
+    CreateMaterializationAt(
+        exits_collector_.exits()[i], alloc, alloc->cls(), *slots);
   }
 }
 

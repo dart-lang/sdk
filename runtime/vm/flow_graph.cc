@@ -193,7 +193,9 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
   for (intptr_t i = 0; i < instr->InputCount(); ++i) {
     Value* use = instr->InputAt(i);
     ASSERT(use->definition() != NULL);
-    ASSERT((use->definition() != instr) || use->definition()->IsPhi());
+    ASSERT((use->definition() != instr) ||
+           use->definition()->IsPhi() ||
+           use->definition()->IsMaterializeObject());
     ASSERT(use->instruction() == instr);
     ASSERT(use->use_index() == i);
     ASSERT(!FLAG_verify_compiler ||

@@ -157,6 +157,9 @@ class DeferredObject {
 
   RawInstance* object();
 
+  // Fill object with actual field values.
+  void Fill();
+
  private:
   enum {
     kClassIndex = 0,
@@ -169,10 +172,11 @@ class DeferredObject {
     kFieldEntrySize,
   };
 
-  // Materializes the object. Returns amount of values that were consumed
-  // and should be removed from the expression stack at the very end of
-  // deoptimization.
-  void Materialize();
+  // Allocate the object but keep its fields null-initialized. Actual field
+  // values will be filled later by the Fill method. This separation between
+  // allocation and filling is needed because dematerialized objects form
+  // a graph which can contain cycles.
+  void Create();
 
   RawObject* GetClass() const {
     return args_[kClassIndex];

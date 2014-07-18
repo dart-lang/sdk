@@ -1763,10 +1763,54 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
 // If the result of the allocation is not stored into any field, passed
 // as an argument or used in a phi then it can't alias with any other
 // SSA value.
-enum AliasIdentity {
-  kIdentityUnknown,
-  kIdentityAliased,
-  kIdentityNotAliased
+class AliasIdentity : public ValueObject {
+ public:
+  // It is unknown if value has aliases.
+  static AliasIdentity Unknown() { return AliasIdentity(kUnknown); }
+
+  // It is known that value can have aliases.
+  static AliasIdentity Aliased() { return AliasIdentity(kAliased); }
+
+  // It is known that value has no aliases.
+  static AliasIdentity NotAliased() { return AliasIdentity(kNotAliased); }
+
+  // It is known that value has no aliases and it was selected by
+  // allocation sinking pass as a candidate.
+  static AliasIdentity AllocationSinkingCandidate() {
+    return AliasIdentity(kAllocationSinkingCandidate);
+  }
+
+  bool IsUnknown() const { return value_ == kUnknown; }
+  bool IsAliased() const { return value_ == kAliased; }
+  bool IsNotAliased() const { return (value_ & kNotAliased) != 0; }
+  bool IsAllocationSinkingCandidate() const {
+    return value_ == kAllocationSinkingCandidate;
+  }
+
+  AliasIdentity(const AliasIdentity& other)
+      : ValueObject(), value_(other.value_) {
+  }
+
+  AliasIdentity& operator=(const AliasIdentity& other) {
+    value_ = other.value_;
+    return *this;
+  }
+
+ private:
+  explicit AliasIdentity(intptr_t value) : value_(value) { }
+
+  enum {
+    kUnknown = 0,
+    kNotAliased = 1,
+    kAliased = 2,
+    kAllocationSinkingCandidate = 3,
+  };
+
+  COMPILE_ASSERT((kUnknown & kNotAliased) == 0);
+  COMPILE_ASSERT((kAliased & kNotAliased) == 0);
+  COMPILE_ASSERT((kAllocationSinkingCandidate & kNotAliased) != 0);
+
+  intptr_t value_;
 };
 
 
@@ -1927,9 +1971,7 @@ class Definition : public Instruction {
   }
 
   virtual AliasIdentity Identity() const {
-    // Only implemented for allocation instructions.
-    UNREACHABLE();
-    return kIdentityUnknown;
+    return AliasIdentity::Unknown();
   }
 
   virtual void SetIdentity(AliasIdentity identity) {
@@ -3629,7 +3671,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
         is_native_list_factory_(false),
-        identity_(kIdentityUnknown) {
+        identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
@@ -4474,7 +4516,7 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
       : token_pos_(token_pos),
         cls_(cls),
         arguments_(arguments),
-        identity_(kIdentityUnknown),
+        identity_(AliasIdentity::Unknown()),
         closure_function_(Function::ZoneHandle()) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 1));
@@ -4523,10 +4565,17 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 // It does not produce any real code only deoptimization information.
 class MaterializeObjectInstr : public Definition {
  public:
-  MaterializeObjectInstr(const Class& cls,
+  MaterializeObjectInstr(AllocateObjectInstr* allocation,
+                         const Class& cls,
                          const ZoneGrowableArray<const Object*>& slots,
                          ZoneGrowableArray<Value*>* values)
-      : cls_(cls), slots_(slots), values_(values), locations_(NULL) {
+      : allocation_(allocation),
+        cls_(cls),
+        slots_(slots),
+        values_(values),
+        locations_(NULL),
+        visited_for_liveness_(false),
+        registers_remapped_(false) {
     ASSERT(slots_.length() == values_->length());
     for (intptr_t i = 0; i < InputCount(); i++) {
       InputAt(i)->set_instruction(this);
@@ -4534,6 +4583,7 @@ class MaterializeObjectInstr : public Definition {
     }
   }
 
+  AllocateObjectInstr* allocation() const { return allocation_; }
   const Class& cls() const { return cls_; }
   intptr_t FieldOffsetAt(intptr_t i) const {
     return slots_[i]->IsField()
@@ -4576,15 +4626,24 @@ class MaterializeObjectInstr : public Definition {
   void RemapRegisters(intptr_t* fpu_reg_slots,
                       intptr_t* cpu_reg_slots);
 
+  bool was_visited_for_liveness() const { return visited_for_liveness_; }
+  void mark_visited_for_liveness() {
+    visited_for_liveness_ = true;
+  }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*values_)[i] = value;
   }
 
+  AllocateObjectInstr* allocation_;
   const Class& cls_;
   const ZoneGrowableArray<const Object*>& slots_;
   ZoneGrowableArray<Value*>* values_;
   Location* locations_;
+
+  bool visited_for_liveness_;
+  bool registers_remapped_;
 
   DISALLOW_COPY_AND_ASSIGN(MaterializeObjectInstr);
 };
@@ -4595,7 +4654,7 @@ class CreateArrayInstr : public TemplateDefinition<2> {
   CreateArrayInstr(intptr_t token_pos,
                    Value* element_type,
                    Value* num_elements)
-      : token_pos_(token_pos), identity_(kIdentityUnknown)  {
+      : token_pos_(token_pos), identity_(AliasIdentity::Unknown())  {
     SetInputAt(kElementTypePos, element_type);
     SetInputAt(kLengthPos, num_elements);
   }
@@ -4696,8 +4755,6 @@ class LoadClassIdInstr : public TemplateDefinition<1> {
  private:
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
-
-
 
 
 class LoadFieldInstr : public TemplateDefinition<1> {
