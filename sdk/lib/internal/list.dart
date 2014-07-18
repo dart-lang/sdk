@@ -295,6 +295,8 @@ class ListMapView<E> implements Map<int, E> {
   void addAll(Map<int, E> other) {
     throw new UnsupportedError("Cannot modify an unmodifiable map");
   }
+
+  String toString() => Maps.mapToString(this);
 }
 
 class ReversedListIterable<E> extends ListIterable<E> {

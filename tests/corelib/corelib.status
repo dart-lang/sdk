@@ -34,6 +34,9 @@ compare_to2_test: Fail    # Bug 4018
 
 symbol_test/01: Fail, Pass # bug 11669
 
+iterable_return_type_test/01: RuntimeError # Issue 13646
+iterable_return_type_test/02: RuntimeError # Issue 13646
+
 [ $compiler == none && $runtime != dartium && $runtime != drt && $runtime != ContentShellOnAndroid ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
@@ -67,6 +70,8 @@ unicode_test: Fail # Issue 14694
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
 integer_to_string_test/01: RuntimeError # Issue 1533
+iterable_return_type_test/01: RuntimeError # Issue 20085
+iterable_return_type_test/02: RuntimeError # Dart2js does not support Uint64*.
 
 big_integer_vm_test: RuntimeError, OK # VM specific test.
 bit_twiddling_bigint_test: RuntimeError # Requires bigint support.

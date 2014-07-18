@@ -77,7 +77,7 @@ class _GrowableList<T> implements List<T> {
   }
 
   Iterable<T> getRange(int start, int end) {
-    return IterableMixinWorkaround.getRangeList(this, start, end);
+    return new IterableMixinWorkaround<T>().getRangeList(this, start, end);
   }
 
   void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
@@ -216,7 +216,7 @@ class _GrowableList<T> implements List<T> {
     _setData(new_data);
   }
 
-  // Collection interface.
+  // Iterable interface.
 
   bool contains(Object element) {
     return IterableMixinWorkaround.contains(this, element);
@@ -261,7 +261,7 @@ class _GrowableList<T> implements List<T> {
   }
 
   Iterable<T> where(bool f(T element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return new IterableMixinWorkaround<T>().where(this, f);
   }
 
   Iterable expand(Iterable f(T element)) {
@@ -269,19 +269,19 @@ class _GrowableList<T> implements List<T> {
   }
 
   Iterable<T> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new IterableMixinWorkaround<T>().takeList(this, n);
   }
 
   Iterable<T> takeWhile(bool test(T value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new IterableMixinWorkaround<T>().takeWhile(this, test);
   }
 
   Iterable<T> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new IterableMixinWorkaround<T>().skipList(this, n);
   }
 
   Iterable<T> skipWhile(bool test(T value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new IterableMixinWorkaround<T>().skipWhile(this, test);
   }
 
   bool every(bool f(T element)) {
@@ -318,7 +318,8 @@ class _GrowableList<T> implements List<T> {
     this.length = 0;
   }
 
-  Iterable<T> get reversed => IterableMixinWorkaround.reversedList(this);
+  Iterable<T> get reversed =>
+      new IterableMixinWorkaround<T>().reversedList(this);
 
   void sort([int compare(T a, T b)]) {
     IterableMixinWorkaround.sortList(this, compare);
@@ -343,6 +344,6 @@ class _GrowableList<T> implements List<T> {
   }
 
   Map<int, T> asMap() {
-    return IterableMixinWorkaround.asMapList(this);
+    return new IterableMixinWorkaround<T>().asMapList(this);
   }
 }

@@ -49,7 +49,6 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
  * "package:collection/wrappers.dart" instead.
  */
 abstract class ListMixin<E> implements List<E> {
-
   // Iterable interface.
   Iterator<E> get iterator => new ListIterator<E>(this);
 
