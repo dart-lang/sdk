@@ -4397,7 +4397,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
     bool result = !getter.IsNull()
                && !setter.IsNull()
                && (setter.usage_counter() > 0)
-               && (FLAG_getter_setter_ratio * setter.usage_counter() >
+               && (FLAG_getter_setter_ratio * setter.usage_counter() >=
                    getter.usage_counter());
     if (!result) {
       if (FLAG_trace_optimization) {
