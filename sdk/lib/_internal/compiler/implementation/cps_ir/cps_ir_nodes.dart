@@ -623,6 +623,13 @@ class SExpressionStringifier extends Visitor<String> {
     return '(InvokeMethod $rcv $name $args $cont)';
   }
 
+  String visitInvokeSuperMethod(InvokeSuperMethod node) {
+    String name = node.selector.name;
+    String cont = names[node.continuation.definition];
+    String args = formatArguments(node);
+    return '(InvokeSuperMethod $name $args $cont)';
+  }
+
   String visitInvokeConstructor(InvokeConstructor node) {
     String callName;
     if (node.target.name.isEmpty) {
@@ -691,6 +698,23 @@ class SExpressionStringifier extends Visitor<String> {
     String value = names[node.value.definition];
     String body = visit(node.body);
     return '(SetClosureVariable ${node.variable.name} $value $body)';
+  }
+
+  String visitTypeOperator(TypeOperator node) {
+    String receiver = names[node.receiver.definition];
+    String cont = names[node.continuation.definition];
+    return '(TypeOperator ${node.operator} $receiver ${node.type} $cont)';
+  }
+
+  String visitLiteralList(LiteralList node) {
+    String values = node.values.map((v) => names[v.definition]).join(' ');
+    return '(LiteralList ($values))';
+  }
+
+  String visitLiteralMap(LiteralMap node) {
+    String keys = node.keys.map((v) => names[v.definition]).join(' ');
+    String values = node.values.map((v) => names[v.definition]).join(' ');
+    return '(LiteralMap ($keys) ($values))';
   }
 
   String visitDeclareFunction(DeclareFunction node) {
