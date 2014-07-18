@@ -14,3 +14,4 @@ test/serve/web_socket/url_to_asset_id_test: Pass, Slow
 
 [ $runtime == vm && $system == windows ]
 test/run/app_can_read_from_stdin_test: Fail # Issue 19448
+test/list_package_dirs/lockfile_error_test: Fail # Issue 20104
