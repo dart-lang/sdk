@@ -40,6 +40,7 @@ no_such_method_mirrors_test: Pass, Slow # TODO(kasperl): Please triage.
 to_string_test: Fail # Issue 7179.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 code_motion_exception_test: Skip  # Requires unminified operator names.
+mirrors_used_warning_test/minif: Fail, OK # Tests warning that minified code will be broken.
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff || $runtime == safari || $runtime == jsshell) ]
 code_motion_exception_test: Skip  # Required V8 specific format of JavaScript errors.
