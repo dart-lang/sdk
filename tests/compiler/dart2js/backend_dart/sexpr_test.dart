@@ -8,6 +8,7 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import 'package:compiler/implementation/dart2jslib.dart';
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
+import 'package:compiler/implementation/cps_ir/cps_ir_nodes_sexpr.dart';
 import 'package:compiler/implementation/dart_backend/dart_backend.dart';
 
 const String CODE = """
