@@ -6102,18 +6102,18 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_AND: {
       __ and_(out_lo, left_lo, Operand(right_lo));
       __ and_(out_hi, left_hi, Operand(right_hi));
+      break;
     }
-    break;
     case Token::kBIT_OR: {
       __ orr(out_lo, left_lo, Operand(right_lo));
       __ orr(out_hi, left_hi, Operand(right_hi));
+      break;
     }
-    break;
     case Token::kBIT_XOR: {
      __ eor(out_lo, left_lo, Operand(right_lo));
      __ eor(out_hi, left_hi, Operand(right_hi));
+     break;
     }
-    break;
     case Token::kADD:
     case Token::kSUB: {
       if (op_kind() == Token::kADD) {
@@ -6130,9 +6130,23 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     }
+    case Token::kMUL: {
+      // The product of two signed 32-bit integers fits in a signed 64-bit
+      // result without causing overflow.
+      // We deopt on larger inputs.
+      // TODO(regis): Range analysis may eliminate the deopt check.
+      if (TargetCPUFeatures::arm_version() == ARMv7) {
+        __ cmp(left_hi, Operand(left_lo, ASR, 31));
+        __ cmp(right_hi, Operand(right_lo, ASR, 31), EQ);
+        __ b(deopt, NE);
+        __ smull(out_lo, out_hi, left_lo, right_lo);
+      } else {
+        __ b(deopt);
+      }
+      break;
+    }
     default:
       UNREACHABLE();
-    break;
   }
   if (FLAG_throw_on_javascript_int_overflow) {
     EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
@@ -6375,19 +6389,22 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kBIT_AND:
       __ and_(out, left, Operand(right));
-    break;
+      break;
     case Token::kBIT_OR:
       __ orr(out, left, Operand(right));
-    break;
+      break;
     case Token::kBIT_XOR:
       __ eor(out, left, Operand(right));
-    break;
+      break;
     case Token::kADD:
       __ add(out, left, Operand(right));
-    break;
+      break;
     case Token::kSUB:
       __ sub(out, left, Operand(right));
-    break;
+      break;
+    case Token::kMUL:
+      __ mul(out, left, right);
+      break;
     default:
       UNREACHABLE();
   }
@@ -6441,10 +6458,10 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       switch (op_kind()) {
         case Token::kSHR:
           __ Lsr(out, left, shift_value);
-        break;
+          break;
         case Token::kSHL:
           __ Lsl(out, left, shift_value);
-        break;
+          break;
         default:
           UNREACHABLE();
       }
@@ -6468,10 +6485,10 @@ void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kSHR:
       __ Lsr(out, left, temp, LS);
-    break;
+      break;
     case Token::kSHL:
       __ Lsl(out, left, temp, LS);
-    break;
+      break;
     default:
       UNREACHABLE();
   }

@@ -2020,6 +2020,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
   switch (op_kind) {
     case Token::kADD:
     case Token::kSUB:
+    case Token::kMUL:
       if (HasOnlyTwoOf(ic_data, kSmiCid)) {
         // Don't generate smi code if the IC data is marked because
         // of an overflow.
@@ -2037,24 +2038,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
       } else if (HasOnlyTwoOf(ic_data, kInt32x4Cid)) {
+        ASSERT(op_kind != Token::kMUL);  // Int32x4 doesn't have a multiply op.
         operands_type = kInt32x4Cid;
-      } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
-        operands_type = kFloat64x2Cid;
-      } else {
-        return false;
-      }
-      break;
-    case Token::kMUL:
-      if (HasOnlyTwoOf(ic_data, kSmiCid)) {
-        // Don't generate smi code if the IC data is marked because of an
-        // overflow.
-        // TODO(fschneider): Add unboxed mint multiplication.
-        if (ic_data.HasDeoptReason(ICData::kDeoptBinarySmiOp)) return false;
-        operands_type = kSmiCid;
-      } else if (ShouldSpecializeForDouble(ic_data)) {
-        operands_type = kDoubleCid;
-      } else if (HasOnlyTwoOf(ic_data, kFloat32x4Cid)) {
-        operands_type = kFloat32x4Cid;
       } else if (HasOnlyTwoOf(ic_data, kFloat64x2Cid)) {
         operands_type = kFloat64x2Cid;
       } else {

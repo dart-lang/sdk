@@ -651,7 +651,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Register cid_reg = locs()->temp(0).reg();
 
   Label* deopt = CanDeoptimize() ?
-  compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids) : NULL;
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids) : NULL;
 
   const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
   const ZoneGrowableArray<intptr_t>& data = cid_results();
@@ -5846,27 +5846,24 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Isolate* isolate,
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
-    case Token::kBIT_XOR: {
-      const intptr_t kNumTemps = 0;
-      LocationSummary* summary = new(isolate) LocationSummary(
-          isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                        Location::RequiresRegister()));
-      summary->set_in(1, Location::Pair(Location::RequiresRegister(),
-                                        Location::RequiresRegister()));
-      summary->set_out(0, Location::SameAsFirstInput());
-      return summary;
-    }
+    case Token::kBIT_XOR:
     case Token::kADD:
-    case Token::kSUB: {
-      const intptr_t kNumTemps = 0;
+    case Token::kSUB:
+    case Token::kMUL: {
+      const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
       LocationSummary* summary = new(isolate) LocationSummary(
           isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                        Location::RequiresRegister()));
+      summary->set_in(0, (op_kind() == Token::kMUL)
+          ? Location::Pair(Location::RegisterLocation(EAX),
+                           Location::RegisterLocation(EDX))
+          : Location::Pair(Location::RequiresRegister(),
+                           Location::RequiresRegister()));
       summary->set_in(1, Location::Pair(Location::RequiresRegister(),
                                         Location::RequiresRegister()));
       summary->set_out(0, Location::SameAsFirstInput());
+      if (kNumTemps > 0) {
+        summary->set_temp(0, Location::RequiresRegister());
+      }
       return summary;
     }
     default:
@@ -5920,7 +5917,28 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     }
-    default: UNREACHABLE();
+    case Token::kMUL: {
+      // The product of two signed 32-bit integers fits in a signed 64-bit
+      // result without causing overflow.
+      // We deopt on larger inputs.
+      // TODO(regis): Range analysis may eliminate the deopt check.
+      Register temp = locs()->temp(0).reg();
+      __ movl(temp, left_lo);
+      __ sarl(temp, Immediate(31));
+      __ cmpl(temp, left_hi);
+      __ j(NOT_EQUAL, deopt);
+      __ movl(temp, right_lo);
+      __ sarl(temp, Immediate(31));
+      __ cmpl(temp, right_hi);
+      __ j(NOT_EQUAL, deopt);
+      ASSERT(left_lo == EAX);
+      __ imull(right_lo);  // Result in EDX:EAX.
+      ASSERT(out_lo == EAX);
+      ASSERT(out_hi == EDX);
+      break;
+    }
+    default:
+      UNREACHABLE();
   }
   if (FLAG_throw_on_javascript_int_overflow) {
     EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
@@ -6113,7 +6131,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       default:
         UNREACHABLE();
-        break;
     }
     __ Bind(&done);
   }
@@ -6192,10 +6209,15 @@ CompileType UnboxUint32Instr::ComputeType() const {
 LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
+  if (op_kind() == Token::kMUL) {
+    summary->set_in(0, Location::RegisterLocation(EAX));
+    summary->set_temp(0, Location::RegisterLocation(EDX));
+  } else {
+    summary->set_in(0, Location::RequiresRegister());
+  }
   summary->set_in(1, Location::RequiresRegister());
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
@@ -6210,19 +6232,24 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kBIT_AND:
       __ andl(out, right);
-    break;
+      break;
     case Token::kBIT_OR:
       __ orl(out, right);
-    break;
+      break;
     case Token::kBIT_XOR:
       __ xorl(out, right);
-    break;
+      break;
     case Token::kADD:
       __ addl(out, right);
-    break;
+      break;
     case Token::kSUB:
       __ subl(out, right);
-    break;
+      break;
+    case Token::kMUL:
+      __ mull(right);  // Result in EDX:EAX.
+      ASSERT(out == EAX);
+      ASSERT(locs()->temp(0).reg() == EDX);
+      break;
     default:
       UNREACHABLE();
   }

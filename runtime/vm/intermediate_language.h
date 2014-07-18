@@ -7086,7 +7086,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
   virtual bool CanDeoptimize() const {
     return FLAG_throw_on_javascript_int_overflow
         || (can_overflow() && ((op_kind() == Token::kADD) ||
-                               (op_kind() == Token::kSUB)));
+                               (op_kind() == Token::kSUB)))
+        || (op_kind() == Token::kMUL);  // Deopt if inputs are not int32.
   }
 
   virtual Representation representation() const {
