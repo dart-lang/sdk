@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import 'mock_compiler.dart';
+import '../mock_compiler.dart';
 import 'package:compiler/compiler.dart';
 import 'package:compiler/implementation/dart2jslib.dart' as leg;
 import 'package:compiler/implementation/dart_backend/dart_backend.dart';
