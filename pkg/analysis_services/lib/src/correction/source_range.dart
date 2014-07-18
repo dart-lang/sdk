@@ -5,7 +5,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library services.correction.source_range_factory;
+library services.src.correction.source_range_factory;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -52,8 +52,9 @@ SourceRange rangeNodes(List<AstNode> nodes) {
 }
 
 SourceRange rangeStartEnd(a, b) {
-  int offset = a.offset;
-  var length = b.end - offset;
+  int offset = a is int ? a : a.offset;
+  int end = b is int ? b : b.end;
+  var length = end - offset;
   return new SourceRange(offset, length);
 }
 

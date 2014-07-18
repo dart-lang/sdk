@@ -24,17 +24,32 @@ class Change {
    */
   final List<FileEdit> edits = <FileEdit>[];
 
+  /**
+   * A list of the [LinkedPositionGroup]s in the change. 
+   */
+  final List<LinkedPositionGroup> linkedPositionGroups = <LinkedPositionGroup>[
+      ];
+
   Change(this.message);
 
   /**
-   * Adds the given [FileEdit] to the list.
+   * Adds the given [FileEdit].
    */
   void add(FileEdit edit) {
     edits.add(edit);
   }
 
+  /**
+   * Adds the given [LinkedPositionGroup].
+   */
+  void addLinkedPositionGroup(LinkedPositionGroup linkedPositionGroup) {
+    linkedPositionGroups.add(linkedPositionGroup);
+  }
+
   @override
-  String toString() => "Change(message=$message, edits=${edits.join(' ')})";
+  String toString() =>
+      'Change(message=$message, edits=${edits.join(' ')}, '
+          'linkedPositionGroups=${linkedPositionGroups.join(', ')})';
 }
 
 
@@ -71,7 +86,7 @@ class Edit {
 
   @override
   String toString() =>
-      "(offset=$offset, length=$length, replacement=:>$replacement<:)";
+      "Edit(offset=$offset, length=$length, replacement=:>$replacement<:)";
 }
 
 
@@ -100,4 +115,60 @@ class FileEdit {
 
   @override
   String toString() => "FileEdit(file=$file, edits=${edits.join(' ')})";
+}
+
+
+/**
+ * A group of linked [Position]s in multiple files that are simultaneously
+ * modified - if one gets edited, all other positions in a group are edited the
+ * same way. All linked positions in a group have the same content.
+ */
+class LinkedPositionGroup {
+  final String id;
+  final List<Position> positions = <Position>[];
+
+  LinkedPositionGroup(this.id);
+
+  void add(Position position) {
+    if (positions.isNotEmpty && position.length != positions[0].length) {
+      throw new ArgumentError(
+          'All positions should have the same length. '
+              'Was: ${positions[0].length}. New: ${position.length}');
+    }
+    positions.add(position);
+  }
+
+  @override
+  String toString() => 'LinkedPositionGroup(id=$id, positions=$positions)';
+}
+
+
+/**
+ * A position in a file.
+ */
+class Position {
+  final String file;
+  final int offset;
+  final int length;
+
+  Position(this.file, this.offset, this.length);
+
+  int get hashCode {
+    int hash = file.hashCode;
+    hash = hash * 31 + offset;
+    hash = hash * 31 + length;
+    return hash;
+  }
+
+  bool operator ==(other) {
+    if (other is Position) {
+      return other.file == file &&
+          other.offset == offset &&
+          other.length == length;
+    }
+    return false;
+  }
+
+  @override
+  String toString() => 'Position(file=$file, offset=$offset, length=$length)';
 }

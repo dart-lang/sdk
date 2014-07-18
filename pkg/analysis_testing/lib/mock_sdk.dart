@@ -33,6 +33,7 @@ class MockSdk implements DartSdk {
             num operator -(num other);
             num operator *(num other);
             num operator /(num other);
+            int toInt();
           }
           abstract class int extends num {
             int operator -();
@@ -60,6 +61,13 @@ class MockSdk implements DartSdk {
       "/lib/html/dartium/html_dartium.dart": '''
           library dart.html;
           class HtmlElement {}
+          ''',
+
+      "/lib/async/async.dart": '''
+          library dart.async;
+          class Future {
+            static Future wait(List<Future> futures) => null;
+          }
           ''',
 
       "/lib/math/math.dart": '''
@@ -114,6 +122,7 @@ class MockSdk implements DartSdk {
     const Map<String, String> uriToPath = const {
       "dart:core": "/lib/core/core.dart",
       "dart:html": "/lib/html/dartium/html_dartium.dart",
+      "dart:async": "/lib/async/async.dart",
       "dart:math": "/lib/math/math.dart"
     };
 
