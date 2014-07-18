@@ -311,12 +311,13 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       code = emittedCode.getText();
       size += code.length;
     }
-
-    for (Element closure in element.nestedClosures) {
-      Map<String, dynamic> child = this.process(closure);
-      if (child != null) {
-        children.add(child['id']);
-        size += child['size'];
+    if (element is MethodElement) {
+      for (Element closure in element.nestedClosures) {
+        Map<String, dynamic> child = this.process(closure);
+        if (child != null) {
+          children.add(child['id']);
+          size += child['size'];
+        }
       }
     }
 

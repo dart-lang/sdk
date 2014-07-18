@@ -2052,7 +2052,7 @@ class HNot extends HInstruction {
   * value from the start, whereas [HLocalValue]s need to be initialized first.
   */
 class HLocalValue extends HInstruction {
-  HLocalValue(Local variable, TypeMask type)
+  HLocalValue(Entity variable, TypeMask type)
       : super(<HInstruction>[], type) {
     sourceElement = variable;
   }
@@ -2062,7 +2062,7 @@ class HLocalValue extends HInstruction {
 }
 
 class HParameterValue extends HLocalValue {
-  HParameterValue(Local variable, type) : super(variable, type);
+  HParameterValue(Entity variable, type) : super(variable, type);
 
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);

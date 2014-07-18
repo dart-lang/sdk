@@ -10,8 +10,9 @@ part of ssa;
 /// try-catch statement.
 class SyntheticLocal extends Local {
   final String name;
+  final ExecutableElement executableContext;
 
-  SyntheticLocal(this.name);
+  SyntheticLocal(this.name, this.executableContext);
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -65,7 +66,7 @@ class SsaBuilderTask extends CompilerTask {
         }
         if (compiler.tracer.isEnabled) {
           String name;
-          if (element.isMember) {
+          if (element.isClassMember) {
             String className = element.enclosingClass.name;
             String memberName = element.name;
             name = "$className.$memberName";
@@ -110,12 +111,15 @@ class LocalsHandler {
       new Map<Local, CapturedVariable>();
   SsaBuilder builder;
   ClosureClassMap closureData;
+  Map<TypeVariableType, TypeVariableLocal> typeVariableLocals =
+      new Map<TypeVariableType, TypeVariableLocal>();
+  final ExecutableElement executableContext;
 
   /// The class that defines the current type environment or null if no type
   /// variables are in scope.
-  final ClassElement contextClass;
+  ClassElement get contextClass => executableContext.contextClass;
 
-  LocalsHandler(this.builder, this.contextClass);
+  LocalsHandler(this.builder, this.executableContext);
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
@@ -140,7 +144,7 @@ class LocalsHandler {
   LocalsHandler.from(LocalsHandler other)
       : directLocals = new Map<Local, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
-        contextClass = other.contextClass,
+        executableContext = other.executableContext,
         builder = other.builder,
         closureData = other.closureData;
 
@@ -189,7 +193,7 @@ class LocalsHandler {
     // Make sure that accesses to the boxed locals go into the box. We also
     // need to make sure that parameters are copied into the box if necessary.
     scopeData.forEachCapturedVariable(
-        (VariableElement from, BoxFieldElement to) {
+        (LocalVariableElement from, BoxFieldElement to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
       if (from.isParameter && !element.isGenerativeConstructorBody) {
@@ -214,12 +218,12 @@ class LocalsHandler {
    * of elements from the old box into the new box.
    */
   void updateCaptureBox(BoxLocal boxElement,
-                        List<VariableElement> toBeCopiedElements) {
+                        List<LocalVariableElement> toBeCopiedElements) {
     // Create a new box and copy over the values from the old box into the
     // new one.
     HInstruction oldBox = readLocal(boxElement);
     HInstruction newBox = createBox();
-    for (VariableElement boxedVariable in toBeCopiedElements) {
+    for (LocalVariableElement boxedVariable in toBeCopiedElements) {
       // [readLocal] uses the [boxElement] to find its box. By replacing it
       // behind its back we can still get to the old values.
       updateLocal(boxElement, oldBox);
@@ -303,7 +307,7 @@ class LocalsHandler {
     if (backend.isInterceptedMethod(element)) {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       String name = isInterceptorClass ? 'receiver' : '_';
-      SyntheticLocal parameter = new SyntheticLocal(name);
+      SyntheticLocal parameter = new SyntheticLocal(name, executableContext);
       HParameterValue value =
           new HParameterValue(parameter, builder.getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
@@ -314,7 +318,8 @@ class LocalsHandler {
         directLocals[closureData.thisLocal] = value;
       }
     } else if (isNativeUpgradeFactory) {
-      SyntheticLocal parameter = new SyntheticLocal('receiver');
+      SyntheticLocal parameter =
+          new SyntheticLocal('receiver', executableContext);
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
       HParameterValue value =
@@ -421,6 +426,12 @@ class LocalsHandler {
       HLocalValue localValue = new HLocalValue(local, backend.nonNullType);
       builder.graph.entry.addAtExit(localValue);
       return localValue;
+    });
+  }
+
+  Local getTypeVariableAsLocal(TypeVariableType type) {
+    return typeVariableLocals.putIfAbsent(type, () {
+      return new TypeVariableLocal(type, executableContext);
     });
   }
 
@@ -588,7 +599,7 @@ class LocalsHandler {
     otherLocals.directLocals.forEach((Local local,
                                       HInstruction instruction) {
       // We know 'this' cannot be modified.
-      if (identical(local, closureData.thisLocal)) {
+      if (local == closureData.thisLocal) {
         assert(directLocals[local] == instruction);
         joinedLocals[local] = instruction;
       } else {
@@ -978,7 +989,7 @@ class SsaBuilder extends ResolvedVisitor {
       this.work = work,
       this.rti = backend.rti,
       super(work.resolutionTree, backend.compiler) {
-    localsHandler = new LocalsHandler(this, work.element.contextClass);
+    localsHandler = new LocalsHandler(this, work.element);
     sourceElementStack.add(work.element);
   }
 
@@ -1376,8 +1387,8 @@ class SsaBuilder extends ResolvedVisitor {
   TypeMask getTypeOfThis() {
     TypeMask result = cachedTypeOfThis;
     if (result == null) {
-      ThisLocal element = localsHandler.closureData.thisLocal;
-      ClassElement cls = element.enclosingClass;
+      ThisLocal local = localsHandler.closureData.thisLocal;
+      ClassElement cls = local.enclosingClass;
       if (compiler.world.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
@@ -1510,7 +1521,7 @@ class SsaBuilder extends ResolvedVisitor {
     return bodyElement;
   }
 
-  HParameterValue addParameter(Local parameter, TypeMask type) {
+  HParameterValue addParameter(Entity parameter, TypeMask type) {
     assert(inliningStack.isEmpty);
     HParameterValue result = new HParameterValue(parameter, type);
     if (lastAddedParameter == null) {
@@ -1533,11 +1544,11 @@ class SsaBuilder extends ResolvedVisitor {
    */
   void setupStateForInlining(FunctionElement function,
                              List<HInstruction> compiledArguments) {
-    localsHandler = new LocalsHandler(this, function.contextClass);
+    localsHandler = new LocalsHandler(this, function);
     localsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             function, function.node, elements);
-    returnLocal = new SyntheticLocal("result");
+    returnLocal = new SyntheticLocal("result", function);
     localsHandler.updateLocal(returnLocal,
         graph.addConstantNull(compiler));
 
@@ -1560,7 +1571,8 @@ class SsaBuilder extends ResolvedVisitor {
         && backend.classNeedsRti(enclosing)) {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HInstruction argument = compiledArguments[argumentIndex++];
-        localsHandler.updateLocal(typeVariable.element, argument);
+        localsHandler.updateLocal(
+            localsHandler.getTypeVariableAsLocal(typeVariable), argument);
       });
     }
     assert(argumentIndex == compiledArguments.length);
@@ -1666,14 +1678,15 @@ class SsaBuilder extends ResolvedVisitor {
             variables.moveNext();
             TypeVariableType typeVariable = variables.current;
             localsHandler.updateLocal(
-                typeVariable.element,
+                localsHandler.getTypeVariableAsLocal(typeVariable),
                 analyzeTypeArgument(argument));
           });
         } else {
           // If the supertype is a raw type, we need to set to null the
           // type variables.
           for (TypeVariableType variable in typeVariables) {
-            localsHandler.updateLocal(variable.element,
+            localsHandler.updateLocal(
+                localsHandler.getTypeVariableAsLocal(variable),
                 graph.addConstantNull(compiler));
           }
         }
@@ -1699,8 +1712,8 @@ class SsaBuilder extends ResolvedVisitor {
         localsHandler.updateLocal(parameter, argument);
         // Don't forget to update the field, if the parameter is of the
         // form [:this.x:].
-        if (parameter.isFieldParameter) {
-          FieldParameterElement fieldParameterElement = parameter;
+        if (parameter.isInitializingFormal) {
+          InitializingFormalElement fieldParameterElement = parameter;
           fieldValues[fieldParameterElement.fieldElement] = argument;
         }
       });
@@ -1902,10 +1915,10 @@ class SsaBuilder extends ResolvedVisitor {
     // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.functionSignature;
     params.orderedForEachParameter((ParameterElement parameter) {
-      if (parameter.isFieldParameter) {
+      if (parameter.isInitializingFormal) {
         // If the [element] is a field-parameter then
         // initialize the field element with its value.
-        FieldParameterElement fieldParameter = parameter;
+        InitializingFormalElement fieldParameter = parameter;
         HInstruction parameterValue =
             localsHandler.readLocal(fieldParameter);
         fieldValues[fieldParameter.fieldElement] = parameterValue;
@@ -2021,7 +2034,8 @@ class SsaBuilder extends ResolvedVisitor {
 
       List<HInstruction> typeArguments = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
-        HInstruction argument = localsHandler.readLocal(typeVariable.element);
+        HInstruction argument = localsHandler.readLocal(
+            localsHandler.getTypeVariableAsLocal(typeVariable));
         if (allIndexed && !isIndexedTypeArgumentGet(argument)) {
           allIndexed = false;
         }
@@ -2076,7 +2090,8 @@ class SsaBuilder extends ResolvedVisitor {
         currentClass.typeVariables.forEach((TypeVariableType argument) {
           // TODO(johnniwinther): Substitute [argument] with
           // `localsHandler.substInContext(argument)`.
-          bodyCallInputs.add(localsHandler.readLocal(argument.element));
+          bodyCallInputs.add(localsHandler.readLocal(
+              localsHandler.getTypeVariableAsLocal(argument)));
         });
       }
 
@@ -2131,7 +2146,8 @@ class SsaBuilder extends ResolvedVisitor {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HParameterValue param = addParameter(
             typeVariable.element, backend.nonNullType);
-        localsHandler.directLocals[typeVariable.element] = param;
+        localsHandler.directLocals[
+            localsHandler.getTypeVariableAsLocal(typeVariable)] = param;
       });
     }
 
@@ -2873,7 +2889,7 @@ class SsaBuilder extends ResolvedVisitor {
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
     assert(isReachable);
     visit(node.function);
-    FunctionElement localFunction = elements[node];
+    LocalFunctionElement localFunction = elements[node];
     localsHandler.updateLocal(localFunction, pop());
   }
 
@@ -3069,7 +3085,7 @@ class SsaBuilder extends ResolvedVisitor {
                                 noSuchMethodTargetSymbolString(element, 'get'),
                                 argumentNodes: const Link<ast.Node>());
     } else {
-      TypedElement local = element;
+      LocalElement local = element;
       stack.add(localsHandler.readLocal(local));
     }
   }
@@ -3123,7 +3139,7 @@ class SsaBuilder extends ResolvedVisitor {
                                 argumentValues: arguments);
     } else {
       stack.add(value);
-      TypedElement local = element;
+      LocalElement local = element;
       // If the value does not already have a name, give it here.
       if (value.sourceElement == null) {
         value.sourceElement = local;
@@ -3378,7 +3394,7 @@ class SsaBuilder extends ResolvedVisitor {
       visit(node.selector);
       closureTarget = pop();
     } else {
-      TypedElement local = element;
+      LocalElement local = element;
       closureTarget = localsHandler.readLocal(local);
     }
     var inputs = <HInstruction>[];
@@ -3880,7 +3896,7 @@ class SsaBuilder extends ResolvedVisitor {
   // fixed.
   bool hasDirectLocal(Local local) {
     return !localsHandler.isAccessedDirectly(local) ||
-        localsHandler.directLocals[local] != null;
+            localsHandler.directLocals[local] != null;
   }
 
   /**
@@ -3897,24 +3913,25 @@ class SsaBuilder extends ResolvedVisitor {
     }
     bool isInConstructorContext = member.isConstructor ||
         member.isGenerativeConstructorBody;
+    Local typeVariableLocal = localsHandler.getTypeVariableAsLocal(type);
     if (isClosure) {
       if (member.isFactoryConstructor ||
-          (isInConstructorContext && hasDirectLocal(type.element))) {
+          (isInConstructorContext && hasDirectLocal(typeVariableLocal))) {
         // The type variable is used from a closure in a factory constructor.
         // The value of the type argument is stored as a local on the closure
         // itself.
-        return localsHandler.readLocal(type.element);
+        return localsHandler.readLocal(typeVariableLocal);
       } else if (member.isFunction ||
-          member.isGetter ||
-          member.isSetter ||
-          isInConstructorContext) {
+                 member.isGetter ||
+                 member.isSetter ||
+                 isInConstructorContext) {
         // The type variable is stored on the "enclosing object" and needs to be
         // accessed using the this-reference in the closure.
         return readTypeVariable(member.enclosingClass, type.element);
       } else {
         assert(member.isField);
         // The type variable is stored in a parameter of the method.
-        return localsHandler.readLocal(type.element);
+        return localsHandler.readLocal(typeVariableLocal);
       }
     } else if (isInConstructorContext ||
                // When [member] is a field, we can be either
@@ -3924,7 +3941,7 @@ class SsaBuilder extends ResolvedVisitor {
                // always return true when seeing one.
                (member.isField && !isBuildingFor(member))) {
       // The type variable is stored in a parameter of the method.
-      return localsHandler.readLocal(type.element);
+      return localsHandler.readLocal(typeVariableLocal);
     } else if (member.isInstanceMember) {
       // The type variable is stored on the object.
       return readTypeVariable(member.enclosingClass,
@@ -4935,7 +4952,7 @@ class SsaBuilder extends ResolvedVisitor {
       ast.Node definition = link.head;
       if (definition is ast.Identifier) {
         HInstruction initialValue = graph.addConstantNull(compiler);
-        VariableElement local = elements[definition];
+        LocalElement local = elements[definition];
         localsHandler.updateLocal(local, initialValue);
       } else {
         assert(definition is ast.SendSet);
@@ -5631,7 +5648,8 @@ class SsaBuilder extends ResolvedVisitor {
       startCatchBlock = graph.addNewBlock();
       open(startCatchBlock);
       // Note that the name of this local is irrelevant.
-      SyntheticLocal local = new SyntheticLocal('exception');
+      SyntheticLocal local =
+          new SyntheticLocal('exception', localsHandler.executableContext);
       exception = new HLocalValue(local, backend.nonNullType);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
@@ -5676,7 +5694,8 @@ class SsaBuilder extends ResolvedVisitor {
         ast.CatchBlock catchBlock = link.head;
         link = link.tail;
         if (catchBlock.exception != null) {
-          VariableElement exceptionVariable = elements[catchBlock.exception];
+          LocalVariableElement exceptionVariable =
+              elements[catchBlock.exception];
           localsHandler.updateLocal(exceptionVariable,
                                     unwrappedException);
         }
@@ -5684,7 +5703,7 @@ class SsaBuilder extends ResolvedVisitor {
         if (trace != null) {
           pushInvokeStatic(trace, backend.getTraceFromException(), [exception]);
           HInstruction traceInstruction = pop();
-          VariableElement traceVariable = elements[trace];
+          LocalVariableElement traceVariable = elements[trace];
           localsHandler.updateLocal(traceVariable, traceInstruction);
         }
         visit(catchBlock);

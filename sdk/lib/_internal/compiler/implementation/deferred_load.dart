@@ -31,7 +31,6 @@ import 'elements/elements.dart' show
     MetadataAnnotation,
     ScopeContainerElement,
     PrefixElement,
-    ClosureContainer,
     VoidElement,
     TypedefElement,
     AstElement;
@@ -281,7 +280,7 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Returns a [Link] of every [Import] that imports [element] into [library].
   Link<Import> _getImports(Element element, LibraryElement library) {
-    if (element.isMember) {
+    if (element.isClassMember) {
       element = element.enclosingClass;
     }
     if (element.isAccessor) {

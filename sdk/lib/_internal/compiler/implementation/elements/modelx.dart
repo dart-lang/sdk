@@ -75,7 +75,7 @@ abstract class ElementX extends Element {
   }
 
   bool get isClosure => false;
-  bool get isMember {
+  bool get isClassMember {
     // Check that this element is defined in the scope of a Class.
     return enclosingElement != null && enclosingElement.isClass;
   }
@@ -200,7 +200,7 @@ abstract class ElementX extends Element {
    */
   Element get enclosingMember {
     for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isMember) return e;
+      if (e.isClassMember) return e;
     }
     return null;
   }
@@ -211,7 +211,7 @@ abstract class ElementX extends Element {
     // the outermost for elements in closure classses, but some call-sites rely
     // on that behavior.
     for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isMember || e.isTopLevel) {
+      if (e.isClassMember || e.isTopLevel) {
         return e;
       }
     }
@@ -328,6 +328,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get origin => this;
   get immediateRedirectionTarget => unsupported();
   get nestedClosures => unsupported();
+  get memberContext => unsupported();
+  get executableContext => unsupported();
 
   bool get isRedirectingFactory => unsupported();
 
@@ -1142,7 +1144,7 @@ class VariableList {
   DartType computeType(Element element, Compiler compiler) => type;
 }
 
-class VariableElementX extends ElementX with AstElementMixin
+abstract class VariableElementX extends ElementX with AstElementMixin
     implements VariableElement {
   final Token token;
   final VariableList variables;
@@ -1243,7 +1245,7 @@ class VariableElementX extends ElementX with AstElementMixin
     return variables.type;
   }
 
-  bool get isInstanceMember => isMember && !isStatic;
+  bool get isInstanceMember => isClassMember && !isStatic;
 
   // Note: cachedNode.beginToken will not be correct in all
   // cases, for example, for function typed parameters.
@@ -1252,14 +1254,19 @@ class VariableElementX extends ElementX with AstElementMixin
   accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
 }
 
-class LocalVariableElementX extends VariableElementX {
+class LocalVariableElementX extends VariableElementX
+    implements LocalVariableElement {
   LocalVariableElementX(String name,
-                        Element enclosingElement,
+                        ExecutableElement enclosingElement,
                         VariableList variables,
                         Token token)
       : super(name, ElementKind.VARIABLE, enclosingElement, variables, token) {
     createDefinitions(variables.definitions);
   }
+
+  ExecutableElement get executableContext => enclosingElement;
+
+  ExecutableElement get memberContext => executableContext.memberContext;
 }
 
 class FieldElementX extends VariableElementX
@@ -1273,39 +1280,16 @@ class FieldElementX extends VariableElementX
             variables, name.token);
 
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+
+  MemberElement get memberContext => this;
 }
 
-/**
- * Parameters in constructors that directly initialize fields. For example:
- * [:A(this.field):].
- */
-class FieldParameterElementX extends ParameterElementX
-    implements FieldParameterElement {
-  VariableElement fieldElement;
-
-  FieldParameterElementX(Element enclosingElement,
-                         VariableDefinitions variables,
-                         Identifier identifier,
-                         Expression initializer,
-                         this.fieldElement)
-      : super(ElementKind.FIELD_PARAMETER, enclosingElement,
-              variables, identifier, initializer);
-
-  accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
-}
-
-/// [Element] for a formal parameter.
-///
-/// A [ParameterElementX] can be patched. A parameter of an external method is
-/// patched with the corresponding parameter of the patch method. This is done
-/// to ensure that default values on parameters are computed once (on the
-/// origin parameter) but can be found through both the origin and the patch.
-class ParameterElementX extends ElementX
-    with PatchMixin<ParameterElement>, AstElementMixin
-    implements ParameterElement {
+/// [Element] for a parameter-like element.
+class FormalElementX extends ElementX
+    with AstElementMixin
+    implements FormalElement {
   final VariableDefinitions definitions;
   final Identifier identifier;
-  final Expression initializer;
   DartType typeCache;
 
   /**
@@ -1315,11 +1299,10 @@ class ParameterElementX extends ElementX
    */
   FunctionSignature functionSignatureCache;
 
-  ParameterElementX(ElementKind elementKind,
-                    FunctionTypedElement enclosingElement,
-                    this.definitions,
-                    Identifier identifier,
-                    this.initializer)
+  FormalElementX(ElementKind elementKind,
+                 FunctionTypedElement enclosingElement,
+                 this.definitions,
+                 Identifier identifier)
       : this.identifier = identifier,
         super(identifier.source, elementKind, enclosingElement);
 
@@ -1355,11 +1338,67 @@ class ParameterElementX extends ElementX
 
   FunctionType get functionType => type;
 
-  accept(ElementVisitor visitor) => visitor.visitVariableElement(this);
+  accept(ElementVisitor visitor) => visitor.visitFormalElement(this);
 
   // A parameter is defined by the declaration element.
   AstElement get definingElement => declaration;
 }
+
+/// [Element] for a formal parameter.
+///
+/// A [ParameterElementX] can be patched. A parameter of an external method is
+/// patched with the corresponding parameter of the patch method. This is done
+/// to ensure that default values on parameters are computed once (on the
+/// origin parameter) but can be found through both the origin and the patch.
+abstract class ParameterElementX extends FormalElementX
+  with PatchMixin<ParameterElement> implements ParameterElement {
+  final Expression initializer;
+
+  ParameterElementX(ElementKind elementKind,
+                    FunctionElement functionDeclaration,
+                    VariableDefinitions definitions,
+                    Identifier identifier,
+                    this.initializer)
+      : super(elementKind, functionDeclaration, definitions, identifier);
+
+  FunctionElement get functionDeclaration => enclosingElement;
+
+  ExecutableElement get executableContext => enclosingElement;
+
+  MemberElement get memberContext => executableContext.memberContext;
+
+  accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+}
+
+class LocalParameterElementX extends ParameterElementX
+    implements LocalParameterElement {
+  LocalParameterElementX(FunctionElement functionDeclaration,
+                         VariableDefinitions definitions,
+                         Identifier identifier,
+                         Expression initializer)
+      : super(ElementKind.PARAMETER, functionDeclaration,
+              definitions, identifier, initializer);
+}
+
+/// Parameters in constructors that directly initialize fields. For example:
+/// `A(this.field)`.
+class InitializingFormalElementX extends ParameterElementX
+    implements InitializingFormalElement {
+  FieldElement fieldElement;
+
+  InitializingFormalElementX(ConstructorElement constructorDeclaration,
+                             VariableDefinitions variables,
+                             Identifier identifier,
+                             Expression initializer,
+                             this.fieldElement)
+      : super(ElementKind.INITIALIZING_FORMAL, constructorDeclaration,
+              variables, identifier, initializer);
+
+  accept(ElementVisitor visitor) => visitor.visitFieldParameterElement(this);
+
+  MemberElement get memberContext => enclosingElement;
+}
+
 
 class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
   FunctionElementX getter;
@@ -1408,7 +1447,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
   }
 
   bool get isInstanceMember {
-    return isMember && !isStatic;
+    return isClassMember && !isStatic;
   }
 
   accept(ElementVisitor visitor) => visitor.visitAbstractFieldElement(this);
@@ -1530,7 +1569,7 @@ abstract class BaseFunctionElementX
   }
 
   bool get isInstanceMember {
-    return isMember
+    return isClassMember
            && !isConstructor
            && !isStatic;
   }
@@ -1586,24 +1625,31 @@ abstract class BaseFunctionElementX
 }
 
 abstract class FunctionElementX extends BaseFunctionElementX
-    with AnalyzableElementX {
+    with AnalyzableElementX implements MemberElement {
   FunctionElementX(String name,
                    ElementKind kind,
                    Modifiers modifiers,
                    Element enclosing,
                    bool hasNoBody)
       : super(name, kind, modifiers, enclosing, hasNoBody);
+
+  MemberElement get memberContext => this;
 }
 
-class LocalFunctionElementX extends BaseFunctionElementX {
+class LocalFunctionElementX extends BaseFunctionElementX
+    implements LocalFunctionElement {
   final FunctionExpression node;
 
   LocalFunctionElementX(String name,
                         FunctionExpression this.node,
                         ElementKind kind,
                         Modifiers modifiers,
-                        Element enclosing)
+                        ExecutableElement enclosing)
       : super(name, kind, modifiers, enclosing, false);
+
+  ExecutableElement get executableContext => enclosingElement;
+
+  MemberElement get memberContext => executableContext.memberContext;
 
   bool get hasNode => true;
 
@@ -1682,7 +1728,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
     return functionSignatureCache;
   }
 
-  bool get isMember => false;
+  bool get isClassMember => false;
 
   bool isForeign(Compiler compiler) => true;
 
@@ -1707,7 +1753,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
 
 class ConstructorBodyElementX extends BaseFunctionElementX
     implements ConstructorBodyElement {
-  FunctionElement constructor;
+  ConstructorElement constructor;
 
   ConstructorBodyElementX(FunctionElement constructor)
       : this.constructor = constructor,
@@ -1736,6 +1782,8 @@ class ConstructorBodyElementX extends BaseFunctionElementX
   Element get analyzableElement => constructor.analyzableElement;
 
   accept(ElementVisitor visitor) => visitor.visitConstructorBodyElement(this);
+
+  MemberElement get memberContext => constructor;
 }
 
 /**
@@ -2517,6 +2565,9 @@ class TargetElementX extends ElementX implements TargetElement {
   String toString() => statement.toString();
 
   accept(ElementVisitor visitor) => visitor.visitTargetElement(this);
+
+  // TODO(johnniwinther): Remove this when [TargetElement] is a non-element.
+  get executableContext => enclosingElement;
 }
 
 class TypeVariableElementX extends ElementX with AstElementMixin

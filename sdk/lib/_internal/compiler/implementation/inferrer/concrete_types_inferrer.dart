@@ -1371,7 +1371,7 @@ class ConcreteTypesInferrer
   /**
    * Add [reader] to the set of [local]'s readers.
    */
-  void addCapturedLocalReader(VariableElement local, FunctionElement reader) {
+  void addCapturedLocalReader(Local local, FunctionElement reader) {
     capturedLocalsReaders.putIfAbsent(local, () => new Set<FunctionElement>())
                          .add(reader);
   }
@@ -2266,7 +2266,7 @@ class ConcreteTypesInferrer
       final result = currentWorkItem.environment.lookupType(element);
       if (result != null) return result;
     }
-    if (element.isParameter || element.isFieldParameter) {
+    if (element.isParameter || element.isInitializingFormal) {
       return inferredParameterTypes[element];
     } else if (element.isField) {
       return inferredFieldTypes[element];

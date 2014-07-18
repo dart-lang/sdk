@@ -2220,7 +2220,7 @@ abstract class PartialFunctionMixin implements FunctionElement {
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
     parseFunction(Parser p) {
-      if (isMember && modifiers.isFactory) {
+      if (isClassMember && modifiers.isFactory) {
         p.parseFactoryMethod(beginToken);
       } else {
         p.parseFunction(beginToken, getOrSet);

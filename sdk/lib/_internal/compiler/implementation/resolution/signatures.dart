@@ -7,11 +7,12 @@ part of resolution;
 /**
  * [SignatureResolver] resolves function signatures.
  */
-class SignatureResolver extends MappingVisitor<ParameterElementX> {
+class SignatureResolver extends MappingVisitor<FormalElementX> {
   final ResolverVisitor resolver;
   final FunctionTypedElement enclosingElement;
   final Scope scope;
   final MessageKind defaultValuesError;
+  final bool createRealParameters;
   Link<Element> optionalParameters = const Link<Element>();
   int optionalParameterCount = 0;
   bool isOptionalParameter = false;
@@ -21,7 +22,8 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
   SignatureResolver(Compiler compiler,
                     FunctionTypedElement enclosingElement,
                     ResolutionRegistry registry,
-                    {this.defaultValuesError})
+                    {this.defaultValuesError,
+                     this.createRealParameters})
       : this.enclosingElement = enclosingElement,
         this.scope = enclosingElement.buildScope(),
         this.resolver =
@@ -43,7 +45,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     optionalParameters = elements.toLink();
   }
 
-  ParameterElementX visitVariableDefinitions(VariableDefinitions node) {
+  FormalElementX visitVariableDefinitions(VariableDefinitions node) {
     Link<Node> definitions = node.definitions.nodes;
     if (definitions.isEmpty) {
       internalError(node, 'no parameter definition');
@@ -68,7 +70,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       internalError(node, 'function type parameters not supported');
     }
     currentDefinitions = node;
-    ParameterElementX element = definition.accept(this);
+    FormalElementX element = definition.accept(this);
     if (currentDefinitions.metadata != null) {
       element.metadata = compiler.resolver.resolveMetadata(element, node);
     }
@@ -85,7 +87,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
     }
   }
 
-  void computeParameterType(ParameterElementX element,
+  void computeParameterType(FormalElementX element,
                             [VariableElement fieldElement]) {
     void computeFunctionType(FunctionExpression functionExpression) {
       FunctionSignature functionSignature = SignatureResolver.analyze(
@@ -149,22 +151,27 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
 
   // The only valid [Send] can be in constructors and must be of the form
   // [:this.x:] (where [:x:] represents an instance field).
-  FieldParameterElementX visitSend(Send node) {
+  InitializingFormalElementX visitSend(Send node) {
     return createFieldParameter(node, null);
   }
 
-  ParameterElementX createParameter(Identifier name, Expression initializer) {
+  FormalElementX createParameter(Identifier name, Expression initializer) {
     validateName(name);
-    ParameterElementX parameter = new ParameterElementX(
-        ElementKind.PARAMETER, enclosingElement,
-        currentDefinitions, name, initializer);
+    FormalElementX parameter;
+    if (createRealParameters) {
+      parameter = new LocalParameterElementX(
+        enclosingElement, currentDefinitions, name, initializer);
+    } else {
+      parameter = new FormalElementX(
+        ElementKind.PARAMETER, enclosingElement, currentDefinitions, name);
+    }
     computeParameterType(parameter);
     return parameter;
   }
 
-  FieldParameterElementX createFieldParameter(Send node,
-                                              Expression initializer) {
-    FieldParameterElementX element;
+  InitializingFormalElementX createFieldParameter(Send node,
+                                                  Expression initializer) {
+    InitializingFormalElementX element;
     if (node.receiver.asIdentifier() == null ||
         !node.receiver.asIdentifier().isThis()) {
       error(node, MessageKind.INVALID_PARAMETER);
@@ -182,7 +189,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       } else if (!fieldElement.isInstanceMember) {
         error(node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
       }
-      element = new FieldParameterElementX(enclosingElement,
+      element = new InitializingFormalElementX(enclosingElement,
           currentDefinitions, name, initializer, fieldElement);
       computeParameterType(element, fieldElement);
     }
@@ -191,7 +198,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
 
   /// A [SendSet] node is an optional parameter with a default value.
   Element visitSendSet(SendSet node) {
-    ParameterElementX element;
+    FormalElementX element;
     if (node.receiver != null) {
       element = createFieldParameter(node, node.arguments.first);
     } else if (node.selector.asIdentifier() != null ||
@@ -239,15 +246,21 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
   /**
    * Resolves formal parameters and return type of a [FunctionExpression]
    * to a [FunctionSignature].
+   *
+   * If [createRealParameters] is `true`, the parameters will be
+   * real parameters implementing the [ParameterElement] interface. Otherwise,
+   * the parameters will only implement [FormalElement].
    */
   static FunctionSignature analyze(Compiler compiler,
                                    NodeList formalParameters,
                                    Node returnNode,
                                    FunctionTypedElement element,
                                    ResolutionRegistry registry,
-                                   {MessageKind defaultValuesError}) {
+                                   {MessageKind defaultValuesError,
+                                    bool createRealParameters: false}) {
     SignatureResolver visitor = new SignatureResolver(compiler, element,
-        registry, defaultValuesError: defaultValuesError);
+        registry, defaultValuesError: defaultValuesError,
+        createRealParameters: createRealParameters);
     Link<Element> parameters = const Link<Element>();
     int requiredParameterCount = 0;
     if (formalParameters == null) {
@@ -297,7 +310,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       }
     }
     LinkBuilder<DartType> parameterTypes = new LinkBuilder<DartType>();
-    for (ParameterElement parameter in parameters) {
+    for (FormalElement parameter in parameters) {
        parameterTypes.addLast(parameter.type);
     }
     List<DartType> optionalParameterTypes = const <DartType>[];
@@ -313,7 +326,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       LinkBuilder<String> namedParametersBuilder = new LinkBuilder<String>();
       LinkBuilder<DartType> namedParameterTypesBuilder =
           new LinkBuilder<DartType>();
-      for (ParameterElement parameter in orderedOptionalParameters) {
+      for (FormalElement parameter in orderedOptionalParameters) {
         namedParametersBuilder.addLast(parameter.name);
         namedParameterTypesBuilder.addLast(parameter.type);
       }
@@ -324,7 +337,7 @@ class SignatureResolver extends MappingVisitor<ParameterElementX> {
       // TODO(karlklose); replace when [visitor.optinalParameters] is a [List].
       LinkBuilder<DartType> optionalParameterTypesBuilder =
           new LinkBuilder<DartType>();
-      for (ParameterElement parameter in visitor.optionalParameters) {
+      for (FormalElement parameter in visitor.optionalParameters) {
         optionalParameterTypesBuilder.addLast(parameter.type);
       }
       optionalParameterTypes = optionalParameterTypesBuilder.toLink()

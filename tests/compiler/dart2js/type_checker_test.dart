@@ -2140,7 +2140,7 @@ void generateOutput(MockCompiler compiler, String text) {
 }
 
 analyzeIn(MockCompiler compiler,
-          Element element,
+          ExecutableElement element,
           String text,
           [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];

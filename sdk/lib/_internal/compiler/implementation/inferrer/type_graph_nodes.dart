@@ -251,7 +251,7 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
   factory ElementTypeInformation(Element element) {
     var assignments = null;
     if (element.enclosingElement.isInstanceMember &&
-        (element.isParameter || element.isFieldParameter)) {
+        (element.isParameter || element.isInitializingFormal)) {
       assignments = new ParameterAssignments();
     }
     return new ElementTypeInformation.internal(element, assignments);
@@ -321,7 +321,7 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
     }
     if (element.isField ||
         element.isParameter ||
-        element.isFieldParameter) {
+        element.isInitializingFormal) {
       if (!inferrer.compiler.backend.canBeUsedForGlobalOptimizations(element)) {
         // Do not infer types for fields and parameters being assigned
         // by synthesized calls.
@@ -370,7 +370,7 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
     // Parameters are being explicitly checked in the method.
-    if (element.isParameter || element.isFieldParameter) return mask;
+    if (element.isParameter || element.isInitializingFormal) return mask;
     if (!compiler.trustTypeAnnotations && !compiler.enableTypeAssertions) {
       return mask;
     }
