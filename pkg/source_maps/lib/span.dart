@@ -390,5 +390,5 @@ class SpanFormatException extends SpanException implements FormatException {
   SpanFormatException(String message, Span span, [this.source])
       : super(message, span);
 
-  int get position => span == null ? null : span.start.offset;
+  int get offset => span == null ? null : span.start.offset;
 }
