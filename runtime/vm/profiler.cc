@@ -1744,7 +1744,7 @@ class ProfilerNativeStackWalker : public ValueObject {
   }
 
   void walk(Heap* heap) {
-    const intptr_t kMaxStep = VirtualMemory::PageSize();
+    const uword kMaxStep = VirtualMemory::PageSize();
 
     sample_->SetAt(0, original_pc_);
 
