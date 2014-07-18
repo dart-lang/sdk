@@ -93,13 +93,11 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   // Only IC based calls have counting.
   PcDescriptors::Iterator iter(descriptors,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
-  while (iter.HasNext()) {
+  while (iter.MoveNext()) {
     HANDLESCOPE(isolate);
-    RawPcDescriptors::PcDescriptorRec rec;
-    iter.NextRec(&rec);
-    const ICData* ic_data = (*ic_data_array)[rec.deopt_id()];
+    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (!ic_data->IsNull()) {
-      const intptr_t token_pos = rec.token_pos();
+      const intptr_t token_pos = iter.TokenPos();
       // Filter out descriptors that do not map to tokens in the source code.
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         continue;

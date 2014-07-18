@@ -80,7 +80,9 @@ class SourceBreakpoint {
 class CodeBreakpoint {
  public:
   CodeBreakpoint(const Code& code,
-                 const RawPcDescriptors::PcDescriptorRec& rec);
+                 intptr_t token_pos,
+                 uword pc,
+                 RawPcDescriptors::Kind kind);
   ~CodeBreakpoint();
 
   RawFunction* function() const;
