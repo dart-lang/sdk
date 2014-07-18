@@ -44,60 +44,72 @@ class FormatException implements Exception {
    * A message describing the format error.
    */
   final String message;
+
   /**
-   * The source that caused the error.
+   * The actual source input that caused the error.
    *
-   * This is usually a [String], but can be other types too. If it is a string,
-   * parts of it may be included in the [toString] message.
+   * This is usually a [String], but can be other types too.
+   * If it is a string, parts of it may be included in the [toString] message.
    *
-   * May also be `null` if omitted.
+   * The source is `null` if omitted or unknown.
    */
   final source;
+
   /**
-   * The position in source where the error was detected.
+   * The offset in [source] where the error was detected.
    *
-   * May be omitted. If present, [source] should also be present.
+   * A zero-based offset into the source that marks the format error causing
+   * this exception to be created. If `source` is a string, this should be a
+   * string index in the range `0 <= offset <= source.length`.
+   *
+   * If input is a string, the [toString] method may represent this offset as
+   * a line and character position. The offset should be inside the string,
+   * or at the end of the string.
+   *
+   * May be omitted. If present, [source] should also be present if possible.
    */
-  final int position;
+  final int offset;
 
   /**
    * Creates a new FormatException with an optional error [message].
    *
-   * Optionally also supply the [source] that had the incorrect format, and
-   * even the [position] in the format where this was detected.
+   * Optionally also supply the actual [source] that had the incorrect format,
+   * and an [offset] in the format where a problem was detected.
    */
-  const FormatException([this.message = "", this.source, this.position]);
+  const FormatException([this.message = "", this.source, this.offset]);
 
   /**
    * Returns a description of the format exception.
    *
    * The description always contains the [message].
-   * If [source] was provided, the description will contain (at least a part of)
-   * the source.
-   * If [position] is also provided, the part of the source included will
-   * contain that position, and the position will be marked.
    *
-   * If the source contains a line break before position, only the line
-   * containing position will be included, and its line number will also be
-   * part of the description. Line and character offsets are 1-based.
+   * If [source] is present and is a string, the description will contain
+   * (at least a part of) the source.
+   * If [offset] is also provided, the part of the source included will
+   * contain that offset, and the offset will be marked.
+   *
+   * If the source is a string and it contains a line break before offset,
+   * only the line containing offset will be included, and its line number
+   * will also be part of the description. Line and character offsets are
+   * 1-based.
    */
   String toString() {
     String report = "FormatException";
     if (message != null && "" != message) {
       report = "$report: $message";
     }
-    int position = this.position;
+    int offset = this.offset;
     if (source is! String) {
-      if (position != null) {
-        report += " (at position $position)";
+      if (offset != null) {
+        report += " (at offset $offset)";
       }
       return report;
     }
-    if (position != null && (position < 0 || position > source.length)) {
-      position = null;
+    if (offset != null && (offset < 0 || offset > source.length)) {
+      offset = null;
     }
-    // Source is string and position is null or valid.
-    if (position == null) {
+    // Source is string and offset is null or valid.
+    if (offset == null) {
       String source = this.source;
       if (source.length > 78) {
         source = source.substring(0, 75) + "...";
@@ -107,7 +119,7 @@ class FormatException implements Exception {
     int lineNum = 1;
     int lineStart = 0;
     bool lastWasCR;
-    for (int i = 0; i < position; i++) {
+    for (int i = 0; i < offset; i++) {
       int char = source.codeUnitAt(i);
       if (char == 0x0a) {
         if (lineStart != i || !lastWasCR) {
@@ -122,12 +134,12 @@ class FormatException implements Exception {
       }
     }
     if (lineNum > 1) {
-      report += " (at line $lineNum, character ${position - lineStart + 1})\n";
+      report += " (at line $lineNum, character ${offset - lineStart + 1})\n";
     } else {
-      report += " (at character ${position + 1})\n";
+      report += " (at character ${offset + 1})\n";
     }
     int lineEnd = source.length;
-    for (int i = position; i < source.length; i++) {
+    for (int i = offset; i < source.length; i++) {
       int char = source.codeUnitAt(i);
       if (char == 0x0a || char == 0x0d) {
         lineEnd = i;
@@ -142,22 +154,22 @@ class FormatException implements Exception {
     if (length > 78) {
       // Can't show entire line. Try to anchor at the nearest end, if
       // one is within reach.
-      int index = position - lineStart;
+      int index = offset - lineStart;
       if (index < 75) {
         end = start + 75;
         postfix = "...";
-      } else if (end - position < 75) {
+      } else if (end - offset < 75) {
         start = end - 75;
         prefix = "...";
       } else {
-        // Neither end is near, just pick an area around the position.
-        start = position - 36;
-        end = position + 36;
+        // Neither end is near, just pick an area around the offset.
+        start = offset - 36;
+        end = offset + 36;
         prefix = postfix = "...";
       }
     }
     String slice = source.substring(start, end);
-    int markOffset = position - start + prefix.length;
+    int markOffset = offset - start + prefix.length;
     return "$report$prefix$slice$postfix\n${" " * markOffset}^\n";
   }
 }
