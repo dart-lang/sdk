@@ -28,11 +28,9 @@ main() {
 class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
   Outline outline;
 
-  Future prepareOutline(then()) {
+  Future prepareOutline() {
     addAnalysisSubscription(AnalysisService.OUTLINE, testFile);
-    return waitForTasksFinished().then((_) {
-      then();
-    });
+    return waitForTasksFinished();
   }
 
   void processNotification(Notification notification) {
@@ -60,7 +58,7 @@ class BBB {
 ''');
     return waitForTasksFinished().then((_) {
       expect(outline, isNull);
-      return prepareOutline(() {
+      return prepareOutline().then((_) {
         Outline unitOutline = outline;
         List<Outline> outlines = unitOutline.children;
         expect(outlines, hasLength(2));
@@ -85,7 +83,7 @@ class B {
   B(int p);
 }");
 ''');
-    return prepareOutline(() {
+    return prepareOutline().then((_) {
       Outline unitOutline = outline;
       List<Outline> topOutlines = unitOutline.children;
       expect(topOutlines, hasLength(2));
@@ -281,7 +279,7 @@ f() {
   }
 }
 ''');
-    return prepareOutline(() {
+    return prepareOutline().then((_) {
       Outline unitOutline = outline;
       List<Outline> topOutlines = unitOutline.children;
       expect(topOutlines, hasLength(2));
@@ -429,7 +427,7 @@ class A { // leftA
   int methodB() {} // endB
 }
 ''');
-    return prepareOutline(() {
+    return prepareOutline().then((_) {
       Outline unitOutline = outline;
       List<Outline> outlines = unitOutline.children[0].children;
       expect(outlines, hasLength(2));
@@ -469,7 +467,7 @@ class A { // leftA
   int fieldD; // marker2
 }
 ''');
-    return prepareOutline(() {
+    return prepareOutline().then((_) {
       Outline unitOutline = outline;
       List<Outline> outlines = unitOutline.children[0].children;
       expect(outlines, hasLength(4));
@@ -535,7 +533,7 @@ class A {
 class B {
 } // endB
 ''');
-    return prepareOutline(() {
+    return prepareOutline().then((_) {
       Outline unitOutline = outline;
       List<Outline> topOutlines = unitOutline.children;
       expect(topOutlines, hasLength(2));
@@ -573,7 +571,7 @@ class B {
 int fieldA, fieldB, fieldC; // marker
 int fieldD; // marker2
 ''');
-    return prepareOutline(() {
+    return prepareOutline().then((_) {
       Outline unitOutline = outline;
       List<Outline> outlines = unitOutline.children;
       expect(outlines, hasLength(4));
@@ -644,7 +642,7 @@ fB(int p) => null;
 String get propA => null;
 set propB(int v) {}
 ''');
-    return prepareOutline(() {
+    return prepareOutline().then((_) {
       Outline unitOutline = outline;
       List<Outline> topOutlines = unitOutline.children;
       expect(topOutlines, hasLength(9));

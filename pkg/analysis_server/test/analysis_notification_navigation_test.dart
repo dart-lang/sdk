@@ -37,15 +37,16 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
   void assertHasFileTarget(String file, int offset, int length) {
     for (Element target in testTargets) {
       Location location = target.location;
-      if (location.file == file && location.offset == offset && location.length ==
-          length) {
+      if (location.file == file &&
+          location.offset == offset &&
+          location.length == length) {
         testTarget = target;
         return;
       }
     }
     fail(
         'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
-        '${testRegion} in\n' '${regions.join('\n')}');
+            '${testRegion} in\n' '${regions.join('\n')}');
   }
 
   void assertHasOperatorRegion(String regionSearch, int regionLength,
@@ -137,11 +138,12 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
    */
   void findRegion(int offset, int length, [bool exists]) {
     for (NavigationRegion region in regions) {
-      if (region.offset == offset && (length == -1 || region.length == length))
-          {
+      if (region.offset == offset &&
+          (length == -1 || region.length == length)) {
         if (exists == false) {
-          fail('Not expected to find (offset=$offset; length=$length) in\n'
-              '${regions.join('\n')}');
+          fail(
+              'Not expected to find (offset=$offset; length=$length) in\n'
+                  '${regions.join('\n')}');
         }
         testRegion = region;
         testTargets = region.targets;
@@ -149,16 +151,15 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
       }
     }
     if (exists == true) {
-      fail('Expected to find (offset=$offset; length=$length) in\n'
-          '${regions.join('\n')}');
+      fail(
+          'Expected to find (offset=$offset; length=$length) in\n'
+              '${regions.join('\n')}');
     }
   }
 
-  Future prepareNavigation(then()) {
+  Future prepareNavigation() {
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
-    return waitForTasksFinished().then((_) {
-      then();
-    });
+    return waitForTasksFinished();
   }
 
   void processNotification(Notification notification) {
@@ -166,8 +167,8 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
         regions = <NavigationRegion>[];
-        List<Map<String, Object>> regionsJson = notification.getParameter(
-            REGIONS);
+        List<Map<String, Object>> regionsJson =
+            notification.getParameter(REGIONS);
         for (Map<String, Object> regionJson in regionsJson) {
           var regionOffset = regionJson[OFFSET];
           var regionLength = regionJson[LENGTH];
@@ -175,8 +176,8 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
           for (Map<String, Object> targetJson in regionJson[TARGETS]) {
             targets.add(new Element.fromJson(targetJson));
           }
-          var region = new NavigationRegion(regionOffset, regionLength,
-              targets);
+          var region =
+              new NavigationRegion(regionOffset, regionLength, targets);
           regions.add(region);
         }
       }
@@ -195,7 +196,7 @@ class AAA {}
 AAA aaa;
 ''');
     return waitForTasksFinished().then((_) {
-      return prepareNavigation(() {
+      return prepareNavigation().then((_) {
         assertHasRegionTarget('AAA aaa;', 'AAA {}');
       });
     });
@@ -208,7 +209,7 @@ class A {
 }
 class BBB {}
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       // has region for complete "A.named"
       assertHasRegionString('A.named');
       assertHasTarget('named(BBB');
@@ -227,7 +228,7 @@ class A {
 }
 class BBB {}
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       // has region for complete "A.named"
       assertHasRegion("A(BBB");
       assertHasTarget("A(BBB", 0);
@@ -243,7 +244,7 @@ class AAA {
   AAA(this.fff);
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionTarget('fff);', 'fff = 123');
     });
   }
@@ -256,7 +257,7 @@ main() {
   print(aaa);
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionTarget('AAA aaa', 'AAA {}');
       assertHasRegionTarget('aaa);', 'aaa = null');
       assertHasRegionTarget('main() {', 'main() {');
@@ -269,7 +270,7 @@ main() {
   print(vvv);
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertNoRegionString('vvv');
     });
   }
@@ -282,7 +283,7 @@ main() {
   new A();
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionString('new A');
       assertHasTarget('A {');
     });
@@ -297,7 +298,7 @@ main() {
   new A.named();
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionString('new A.named');
       assertHasTarget('named() {}');
     });
@@ -312,7 +313,7 @@ main() {
   new A();
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionString('new A');
       assertHasTarget("A() {}", 0);
     });
@@ -342,7 +343,7 @@ main() {
   a /= 6;
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasOperatorRegion('- 1', 1, '-(other) => null', 1);
       assertHasOperatorRegion('+ 2', 1, '+(other) => null', 1);
       assertHasOperatorRegion('-a; // unary', 1, '-() => null', 1);
@@ -373,7 +374,7 @@ main() {
   b[2] += 2;
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasOperatorRegion('] // []', 1, '[](index)', 2);
       assertHasOperatorRegion('] = 1;', 1, '[]=(index,', 3);
       assertHasOperatorRegion('] += 2;', 1, '[]=(index,', 3);
@@ -385,7 +386,7 @@ main() {
     var libCode = 'library lib; part "test.dart";';
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('part of lib;');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionString('part of lib');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
@@ -395,7 +396,7 @@ main() {
     var libCode = 'library lib;';
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('export "lib.dart";');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionString('export "lib.dart"');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
@@ -403,7 +404,7 @@ main() {
 
   test_string_export_unresolvedUri() {
     addTestFile('export "no.dart";');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertNoRegionString('export "no.dart"');
     });
   }
@@ -412,7 +413,7 @@ main() {
     var libCode = 'library lib;';
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('import "lib.dart";');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionString('import "lib.dart"');
       assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
     });
@@ -420,14 +421,14 @@ main() {
 
   test_string_import_noUri() {
     addTestFile('import ;');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertNoRegionAt('import ;');
     });
   }
 
   test_string_import_unresolvedUri() {
     addTestFile('import "no.dart";');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertNoRegionString('import "no.dart"');
     });
   }
@@ -439,7 +440,7 @@ main() {
 library lib;
 part "test_unit.dart";
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionString('part "test_unit.dart"');
       assertHasFileTarget(unitFile, 0, 0);
     });
@@ -450,7 +451,7 @@ part "test_unit.dart";
 library lib;
 part "test_unit.dart";
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertNoRegionString('part "test_unit.dart"');
     });
   }
@@ -462,7 +463,7 @@ main() {
   AAA aaa = null;
 }
 ''');
-    return prepareNavigation(() {
+    return prepareNavigation().then((_) {
       assertHasRegionTarget('AAA aaa', 'AAA {}');
       expect(testTarget.kind, ElementKind.CLASS);
       expect(testTarget.name, 'AAA');
