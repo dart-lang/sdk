@@ -59,6 +59,7 @@ import 'version_solver.dart';
 /// versions for speculative package selections. Backtracks and advances to the
 /// next potential solution in the case of a failure.
 class BacktrackingSolver {
+  final SolveType type;
   final SourceRegistry sources;
   final Package root;
 
@@ -72,9 +73,6 @@ class BacktrackingSolver {
   /// The solver will only allow the very latest version for each of these
   /// packages.
   final _forceLatest = new Set<String>();
-
-  /// If this is set, the contents of [lockFile] are ignored while solving.
-  final bool _upgradeAll;
 
   /// The set of packages whose dependecy is being overridden by the root
   /// package, keyed by the name of the package.
@@ -109,11 +107,11 @@ class BacktrackingSolver {
   int get attemptedSolutions => _attemptedSolutions;
   var _attemptedSolutions = 1;
 
-  BacktrackingSolver(SourceRegistry sources, this.root, this.lockFile,
-                     List<String> useLatest, {bool upgradeAll: false})
-      : sources = sources,
-        cache = new PubspecCache(sources),
-        _upgradeAll = upgradeAll {
+  BacktrackingSolver(SolveType type, SourceRegistry sources, this.root,
+          this.lockFile, List<String> useLatest)
+      : type = type,
+        sources = sources,
+        cache = new PubspecCache(type, sources) {
     for (var package in useLatest) {
       _forceLatest.add(package);
     }
@@ -218,9 +216,19 @@ class BacktrackingSolver {
   ///
   /// Returns `null` if it isn't in the lockfile (or has been unlocked).
   PackageId getLocked(String package) {
-    if (_upgradeAll) return null;
-    if (_forceLatest.contains(package)) return null;
+    if (type == SolveType.GET) return lockFile.packages[package];
 
+    // When downgrading, we don't want to force the latest versions of
+    // non-hosted packages, since they don't support multiple versions and thus
+    // can't be downgraded.
+    if (type == SolveType.DOWNGRADE) {
+      var locked = lockFile.packages[package];
+      if (locked != null && !sources[locked.source].hasMultipleVersions) {
+        return locked;
+      }
+    }
+
+    if (_forceLatest.isEmpty || _forceLatest.contains(package)) return null;
     return lockFile.packages[package];
   }
 

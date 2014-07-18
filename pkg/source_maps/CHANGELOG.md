@@ -1,3 +1,9 @@
+## 0.9.3
+
+* Support writing SingleMapping objects to source map version 3 format.
+* Support the `sourceRoot` field in the SingleMapping class.
+* Support updating the `targetUrl` field in the SingleMapping class.
+
 ## 0.9.2+2
 
 * Fix a bug in `FixedSpan.getLocationMessage`.

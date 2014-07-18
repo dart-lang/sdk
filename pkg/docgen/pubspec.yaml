@@ -3,7 +3,7 @@ author: Dart Team <misc@dartlang.org>
 description: A documentation generator for the Dart repository.
 homepage: https://www.dartlang.org/
 dependencies:
-  args: '>=0.9.0 <0.12.0'
+  args: '>=0.9.0 <0.13.0'
   logging: '>=0.9.0 <0.10.0'
   markdown: 0.7.0
   path: '>=0.9.0 <2.0.0'

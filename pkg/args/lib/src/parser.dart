@@ -4,7 +4,9 @@
 
 library args.src.parser;
 
-import '../args.dart';
+import 'arg_parser.dart';
+import 'arg_results.dart';
+import 'option.dart';
 
 final _SOLO_OPT = new RegExp(r'^-([a-zA-Z0-9])$');
 final _ABBR_OPT = new RegExp(r'^-([a-zA-Z0-9]+)(.*)$');
@@ -46,15 +48,6 @@ class Parser {
   ArgResults parse() {
     var commandResults = null;
 
-    // Initialize flags to their defaults.
-    grammar.options.forEach((name, option) {
-      if (option.allowMultiple) {
-        results[name] = [];
-      } else {
-        results[name] = option.defaultValue;
-      }
-    });
-
     // Parse the args.
     while (args.length > 0) {
       if (current == '--') {
@@ -89,21 +82,16 @@ class Parser {
       rest.add(args.removeAt(0));
     }
 
-    // Set unspecified multivalued arguments to their default value,
-    // if any, and invoke the callbacks.
+    // Invoke the callbacks.
     grammar.options.forEach((name, option) {
-      if (option.allowMultiple &&
-          results[name].length == 0 &&
-          option.defaultValue != null) {
-        results[name].add(option.defaultValue);
-      }
-      if (option.callback != null) option.callback(results[name]);
+      if (option.callback == null) return;
+      option.callback(option.getOrDefault(results[name]));
     });
 
     // Add in the leftover arguments we didn't parse to the innermost command.
     rest.addAll(args);
     args.clear();
-    return new ArgResults(results, commandName, commandResults, rest);
+    return newArgResults(grammar, results, commandName, commandResults, rest);
   }
 
   /// Pulls the value for [option] from the second argument in [args].
@@ -271,8 +259,9 @@ class Parser {
           '"$value" is not an allowed value for option "${option.name}".');
     }
 
-    if (option.allowMultiple) {
-      results[option.name].add(value);
+    if (option.isMultiple) {
+      var list = results.putIfAbsent(option.name, () => []);
+      list.add(value);
     } else {
       results[option.name] = value;
     }

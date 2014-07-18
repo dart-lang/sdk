@@ -8,13 +8,11 @@ import 'dart:async';
 
 import '../command.dart';
 import '../utils.dart';
-import '../version.dart';
 
 /// Handles the `global deactivate` pub command.
 class GlobalDeactivateCommand extends PubCommand {
   String get description => "Remove a previously activated package.";
   String get usage => "pub global deactivate <package>";
-  bool get requiresEntrypoint => false;
   bool get takesArguments => true;
 
   Future onRun() {
@@ -31,5 +29,6 @@ class GlobalDeactivateCommand extends PubCommand {
     }
 
     globals.deactivate(commandOptions.rest.first);
+    return null;
   }
 }

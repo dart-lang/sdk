@@ -69,6 +69,8 @@ mirrors/library_imports_hidden_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_test: RuntimeError # Issue 6490
 mirrors/library_imports_prefixed_show_hide_test: RuntimeError # Issue 6490
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
+mirrors/local_function_is_static_test: RuntimeError # Issue 6335
+mirrors/lru_test: Skip # dart2js_native/lru_test is used instead
 mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/05: MissingCompileTimeError # Issue 14548
 mirrors/metadata_allowed_values_test/10: MissingCompileTimeError # Issue 14548
@@ -115,7 +117,9 @@ mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_3_test: Fail # Safari doesn't fully implement spec for TypedArray.set
 typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for TypedArray.set
+typed_data/int32x4_test: Fail # Safari has an optimization bug (nightlies are already fine).
 mirrors/null_test: Fail # http://dartbug.com/16831
+convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
@@ -282,7 +286,7 @@ async/deferred/deferred_fail_to_load_test: Fail
 # Issue 13921: spawnFunction is not allowed on Dartium's DOM thread.
 async/deferred/deferred_in_isolate_test: Fail
 
-[ $compiler == dart2js && $runtime != d8 ]
+[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == jsshell) ]
 async/schedule_microtask_test: Fail # Issue 9002
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
@@ -314,3 +318,9 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Pass, Slow
 [ $arch == simarm ]
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
 convert/utf85_test: Skip  # Pass, Slow Issue 12644.
+
+# These tests use "const Symbol('void')".
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+mirrors/basic_types_in_dart_core_test: CompileTimeError
+mirrors/function_type_mirror_test: CompileTimeError
+mirrors/method_mirror_returntype_test: CompileTimeError

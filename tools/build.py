@@ -15,6 +15,7 @@ import time
 import utils
 
 HOST_OS = utils.GuessOS()
+HOST_ARCH = utils.GuessArchitecture()
 HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
@@ -120,27 +121,36 @@ def ProcessOptions(options, args):
   return True
 
 
-def SetTools(arch, target_os, toolchainprefix):
-  toolsOverride = None
+def GetToolchainPrefix(target_os, arch, options):
+  if options.toolchain != None:
+    return options.toolchain
 
-  # For Android, by default use the toolchain from third_party/android_tools.
-  if target_os == 'android' and toolchainprefix == None:
+  if target_os == 'android':
     android_toolchain = GetAndroidToolchainDir(HOST_OS, arch)
     if arch == 'arm':
-      toolchainprefix = os.path.join(
-          android_toolchain, 'arm-linux-androideabi')
+      return os.path.join(android_toolchain, 'arm-linux-androideabi')
     if arch == 'ia32':
-      toolchainprefix = os.path.join(
-          android_toolchain, 'i686-linux-android')
+      return os.path.join(android_toolchain, 'i686-linux-android')
+
+  # If no cross compiler is specified, only try to figure one out on Linux.
+  if not HOST_OS in ['linux']:
+    print "Unless --toolchain is used cross-building is only supported on Linux"
+    return None
 
   # For ARM Linux, by default use the Linux distribution's cross-compiler.
-  if arch == 'arm' and toolchainprefix == None:
-    # We specify the hf compiler. If this changes, we must also remove
-    # the ARM_FLOAT_ABI_HARD define in configurations_make.gypi.
-    toolchainprefix = (DEFAULT_ARM_CROSS_COMPILER_PATH +
-                       "/arm-linux-gnueabihf")
+  if arch == 'arm':
+    # To use a non-hf compiler, specify on the command line with --toolchain.
+    return (DEFAULT_ARM_CROSS_COMPILER_PATH + "/arm-linux-gnueabihf")
 
-  # TODO(zra): Find a default MIPS Linux cross-compiler?
+  # TODO(zra): Find default MIPS and ARM64 Linux cross-compilers.
+
+  return None
+
+
+def SetTools(arch, target_os, options):
+  toolsOverride = None
+
+  toolchainprefix = GetToolchainPrefix(target_os, arch, options)
 
   # Override the Android toolchain's linker to handle some complexity in the
   # linker arguments that gyp has trouble with.
@@ -357,6 +367,146 @@ def NotifyBuildDone(build_config, success, start):
     os.system(command)
 
 
+filter_xcodebuild_output = False
+def BuildOneConfig(options, target, target_os, mode, arch, override_tools=True):
+  global filter_xcodebuild_output
+  start_time = time.time()
+  os.environ['DART_BUILD_MODE'] = mode
+  build_config = utils.GetBuildConf(mode, arch, target_os)
+  if HOST_OS == 'macos':
+    filter_xcodebuild_output = True
+    project_file = 'dart.xcodeproj'
+    if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
+      project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
+    args = ['xcodebuild',
+            '-project',
+            project_file,
+            '-target',
+            target,
+            '-configuration',
+            build_config,
+            'SYMROOT=%s' % os.path.abspath('xcodebuild')
+            ]
+  elif HOST_OS == 'win32':
+    project_file = 'dart.sln'
+    if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
+      project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
+    # Select a platform suffix to pass to devenv.
+    if arch == 'ia32':
+      platform_suffix = 'Win32'
+    elif arch == 'x64':
+      platform_suffix = 'x64'
+    else:
+      print 'Unsupported arch for MSVC build: %s' % arch
+      return 1
+    config_name = '%s|%s' % (build_config, platform_suffix)
+    if target == 'all':
+      args = [options.devenv + os.sep + options.executable,
+              '/build',
+              config_name,
+              project_file
+             ]
+    else:
+      args = [options.devenv + os.sep + options.executable,
+              '/build',
+              config_name,
+              '/project',
+              target,
+              project_file
+             ]
+  else:
+    make = 'make'
+    if HOST_OS == 'freebsd':
+      make = 'gmake'
+      # work around lack of flock
+      os.environ['LINK'] = '$(CXX)'
+    args = [make,
+            '-j',
+            options.j,
+            'BUILDTYPE=' + build_config,
+            ]
+    if target_os != HOST_OS:
+      args += ['builddir_name=' + utils.GetBuildDir(HOST_OS, target_os)]
+    if options.verbose:
+      args += ['V=1']
+
+    args += [target]
+
+  toolsOverride = None
+  if override_tools:
+    toolsOverride = SetTools(arch, target_os, options)
+  if toolsOverride:
+    for k, v in toolsOverride.iteritems():
+      args.append(  k + "=" + v)
+      if options.verbose:
+        print k + " = " + v
+    if not os.path.isfile(toolsOverride['CC.target']):
+      if arch == 'arm':
+        print arm_cc_error
+      else:
+        print "Couldn't find compiler: %s" % toolsOverride['CC.target']
+      return 1
+
+
+  print ' '.join(args)
+  process = None
+  if filter_xcodebuild_output:
+    process = subprocess.Popen(args,
+                               stdin=None,
+                               bufsize=1, # Line buffered.
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT)
+    FilterEmptyXcodebuildSections(process)
+  else:
+    process = subprocess.Popen(args, stdin=None)
+  process.wait()
+  if process.returncode != 0:
+    NotifyBuildDone(build_config, success=False, start=start_time)
+    return 1
+  else:
+    NotifyBuildDone(build_config, success=True, start=start_time)
+
+  return 0
+
+
+def BuildCrossSdk(options, target_os, mode, arch):
+  # First build 'create_sdk' for the host. Do not override the host toolchain.
+  if BuildOneConfig(options, 'create_sdk', HOST_OS,
+                    mode, HOST_ARCH, False) != 0:
+    return 1
+
+  # Then, build the runtime for the target arch.
+  if BuildOneConfig(options, 'runtime', target_os, mode, arch) != 0:
+    return 1
+
+  # TODO(zra): verify that no platform specific details leak into the snapshots
+  # created for pub, dart2js, etc.
+
+  # Copy dart-sdk from the host build products dir to the target build
+  # products dir, and copy the dart binary for target to the sdk bin/ dir.
+  src = os.path.join(
+      utils.GetBuildRoot(HOST_OS, mode, HOST_ARCH, HOST_OS), 'dart-sdk')
+  dst = os.path.join(
+      utils.GetBuildRoot(HOST_OS, mode, arch, target_os), 'dart-sdk')
+  shutil.rmtree(dst, ignore_errors=True)
+  shutil.copytree(src, dst)
+
+  dart = os.path.join(
+      utils.GetBuildRoot(HOST_OS, mode, arch, target_os), 'dart')
+  bin = os.path.join(dst, 'bin')
+  shutil.copy(dart, bin)
+
+  # Strip the dart binary
+  toolchainprefix = GetToolchainPrefix(target_os, arch, options)
+  if toolchainprefix == None:
+    print "Couldn't figure out the cross-toolchain"
+    return 1
+  strip = toolchainprefix + '-strip'
+  subprocess.call([strip, os.path.join(bin, 'dart')])
+
+  return 0
+
+
 def Main():
   utils.ConfigureJava()
   # Parse the options.
@@ -374,106 +524,17 @@ def Main():
   else:
     targets = args
 
-  filter_xcodebuild_output = False
   # Build all targets for each requested configuration.
   for target in targets:
     for target_os in options.os:
       for mode in options.mode:
         for arch in options.arch:
-          start_time = time.time()
-          os.environ['DART_BUILD_MODE'] = mode
-          build_config = utils.GetBuildConf(mode, arch, target_os)
-          if HOST_OS == 'macos':
-            filter_xcodebuild_output = True
-            project_file = 'dart.xcodeproj'
-            if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
-              project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
-            args = ['xcodebuild',
-                    '-project',
-                    project_file,
-                    '-target',
-                    target,
-                    '-configuration',
-                    build_config,
-                    'SYMROOT=%s' % os.path.abspath('xcodebuild')
-                    ]
-          elif HOST_OS == 'win32':
-            project_file = 'dart.sln'
-            if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
-              project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
-            # Select a platform suffix to pass to devenv.
-            if arch == 'ia32':
-              platform_suffix = 'Win32'
-            elif arch == 'x64':
-              platform_suffix = 'x64'
-            else:
-              print 'Unsupported arch for MSVC build: %s' % arch
+          if target in ['create_sdk'] and utils.IsCrossBuild(target_os, arch):
+            if BuildCrossSdk(options, target_os, mode, arch) != 0:
               return 1
-            config_name = '%s|%s' % (build_config, platform_suffix)
-            if target == 'all':
-              args = [options.devenv + os.sep + options.executable,
-                      '/build',
-                      config_name,
-                      project_file
-                     ]
-            else:
-              args = [options.devenv + os.sep + options.executable,
-                      '/build',
-                      config_name,
-                      '/project',
-                      target,
-                      project_file
-                     ]
           else:
-            make = 'make'
-            if HOST_OS == 'freebsd':
-              make = 'gmake'
-              # work around lack of flock
-              os.environ['LINK'] = '$(CXX)'
-            args = [make,
-                    '-j',
-                    options.j,
-                    'BUILDTYPE=' + build_config,
-                    ]
-            if target_os != HOST_OS:
-              args += ['builddir_name=' + utils.GetBuildDir(HOST_OS, target_os)]
-            if options.verbose:
-              args += ['V=1']
-
-            args += [target]
-
-          toolchainprefix = options.toolchain
-          toolsOverride = SetTools(arch, target_os, toolchainprefix)
-          if toolsOverride:
-            for k, v in toolsOverride.iteritems():
-              args.append(  k + "=" + v)
-              if options.verbose:
-                print k + " = " + v
-            if not os.path.isfile(toolsOverride['CC.target']):
-              if arch == 'arm':
-                print arm_cc_error
-              else:
-                print "Couldn't find compiler: %s" % toolsOverride['CC.target']
+            if BuildOneConfig(options, target, target_os, mode, arch) != 0:
               return 1
-
-
-          print ' '.join(args)
-          process = None
-          if filter_xcodebuild_output:
-            process = subprocess.Popen(args,
-                                       stdin=None,
-                                       bufsize=1, # Line buffered.
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT)
-            FilterEmptyXcodebuildSections(process)
-          else:
-            process = subprocess.Popen(args, stdin=None)
-          process.wait()
-          if process.returncode != 0:
-            NotifyBuildDone(build_config, success=False, start=start_time)
-            return 1
-          else:
-            NotifyBuildDone(build_config, success=True, start=start_time)
 
   return 0
 

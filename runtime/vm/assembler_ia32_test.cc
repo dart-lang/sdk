@@ -179,6 +179,25 @@ ASSEMBLER_TEST_RUN(SimpleLoop, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Cmpb, assembler) {
+  Label done;
+  __ movl(EAX, Immediate(1));
+  __ pushl(Immediate(0xffffff11));
+  __ cmpb(Address(ESP, 0), Immediate(0x11));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ movl(EAX, Immediate(0));
+  __ Bind(&done);
+  __ popl(ECX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cmpb, test) {
+  typedef int (*CmpbCode)();
+  EXPECT_EQ(1, reinterpret_cast<CmpbCode>(test->entry())());
+}
+
+
 ASSEMBLER_TEST_GENERATE(Increment, assembler) {
   __ movl(EAX, Immediate(0));
   __ pushl(EAX);
@@ -3073,11 +3092,31 @@ ASSEMBLER_TEST_GENERATE(ConditionalMovesEqual, assembler) {
 
 
 ASSEMBLER_TEST_RUN(ConditionalMovesEqual, test) {
-  typedef int (*ConditionalMovesSignCode)(int i);
-  int res = reinterpret_cast<ConditionalMovesSignCode>(test->entry())(785);
+  typedef int (*ConditionalMovesEqualCode)(int i);
+  int res = reinterpret_cast<ConditionalMovesEqualCode>(test->entry())(785);
   EXPECT_EQ(1, res);
-  res = reinterpret_cast<ConditionalMovesSignCode>(test->entry())(-12);
+  res = reinterpret_cast<ConditionalMovesEqualCode>(test->entry())(-12);
   EXPECT_EQ(0, res);
+}
+
+
+// Return 1 if not equal, 0 if equal.
+ASSEMBLER_TEST_GENERATE(ConditionalMovesNotEqual, assembler) {
+  __ xorl(EAX, EAX);
+  __ movl(ECX, Immediate(1));
+  __ movl(EDX, Address(ESP, 1 * kWordSize));
+  __ cmpl(EDX, Immediate(785));
+  __ cmovne(EAX, ECX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ConditionalMovesNotEqual, test) {
+  typedef int (*ConditionalMovesNotEqualCode)(int i);
+  int res = reinterpret_cast<ConditionalMovesNotEqualCode>(test->entry())(785);
+  EXPECT_EQ(0, res);
+  res = reinterpret_cast<ConditionalMovesNotEqualCode>(test->entry())(-12);
+  EXPECT_EQ(1, res);
 }
 
 
@@ -3285,6 +3324,26 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ popl(CTX);
   __ ret();
 }
+
+
+ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
+  __ movl(EAX, Immediate(4));
+  __ movl(ECX, Immediate(2));
+  __ bt(EAX, ECX);
+  Label ok;
+  __ j(CARRY, &ok);
+  __ int3();
+  __ Bind(&ok);
+  __ movl(EAX, Immediate(1));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BitTest, test) {
+  typedef int (*BitTest)();
+  EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
+}
+
 
 }  // namespace dart
 

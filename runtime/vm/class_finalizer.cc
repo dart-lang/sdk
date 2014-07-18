@@ -97,7 +97,6 @@ static void CollectFinalizedSuperClasses(
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
 bool ClassFinalizer::ProcessPendingClasses() {
-  bool retval = true;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
@@ -137,10 +136,13 @@ bool ClassFinalizer::ProcessPendingClasses() {
     class_array = GrowableObjectArray::New();
     object_store->set_pending_classes(class_array);
     VerifyImplicitFieldOffsets();  // Verification after an error may fail.
+
+    return true;
   } else {
-    retval = false;
+    return false;
   }
-  return retval;
+  UNREACHABLE();
+  return true;
 }
 
 
@@ -3032,6 +3034,18 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   ASSERT(field.Offset() == TypedDataView::length_offset());
   name ^= field.name();
   ASSERT(name.Equals("length"));
+
+  // Now verify field offsets of '_ByteBuffer' class.
+  cls = class_table.At(kByteBufferCid);
+  error = cls.EnsureIsFinalized(isolate);
+  ASSERT(error.IsNull());
+  fields_array ^= cls.fields();
+  ASSERT(fields_array.Length() == ByteBuffer::NumberOfFields());
+  field ^= fields_array.At(0);
+  ASSERT(field.Offset() == ByteBuffer::data_offset());
+  name ^= field.name();
+  expected_name ^= String::New("_data");
+  ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));
 #endif
 }
 

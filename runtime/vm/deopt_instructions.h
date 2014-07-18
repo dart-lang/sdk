@@ -237,6 +237,8 @@ class DeoptInstr : public ZoneAllocated {
     kMintRegisterPair,
     kMintStackSlotPair,
     kMintStackSlotRegister,
+    kUint32Register,
+    kUint32StackSlot,
     kPcMarker,
     kPp,
     kCallerFp,

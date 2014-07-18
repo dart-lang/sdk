@@ -21,7 +21,7 @@ DEFINE_FLAG(charp, coverage_dir, NULL,
 class CoverageFilterAll : public CoverageFilter {
  public:
   bool ShouldOutputCoverageFor(const Library& lib,
-                               const String& script_url,
+                               const Script& script,
                                const Class& cls,
                                const Function& func) const {
     return true;
@@ -95,11 +95,11 @@ void CodeCoverage::CompileAndAdd(const Function& function,
       RawPcDescriptors::kIcCall | RawPcDescriptors::kUnoptStaticCall);
   while (iter.HasNext()) {
     HANDLESCOPE(isolate);
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    intptr_t deopt_id = rec.deopt_id;
-    const ICData* ic_data = (*ic_data_array)[deopt_id];
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
+    const ICData* ic_data = (*ic_data_array)[rec.deopt_id()];
     if (!ic_data->IsNull()) {
-      intptr_t token_pos = rec.token_pos;
+      const intptr_t token_pos = rec.token_pos();
       // Filter out descriptors that do not map to tokens in the source code.
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         continue;
@@ -155,7 +155,7 @@ void CodeCoverage::PrintClass(const Library& lib,
     function ^= functions.At(i);
     script = function.script();
     saved_url = script.url();
-    if (!filter->ShouldOutputCoverageFor(lib, saved_url, cls, function)) {
+    if (!filter->ShouldOutputCoverageFor(lib, script, cls, function)) {
       i++;
       continue;
     }
@@ -174,6 +174,10 @@ void CodeCoverage::PrintClass(const Library& lib,
       if (!url.Equals(saved_url)) {
         pos_to_line.Clear();
         break;
+      }
+      if (!filter->ShouldOutputCoverageFor(lib, script, cls, function)) {
+        i++;
+        continue;
       }
       CompileAndAdd(function, hits_arr, pos_to_line);
       if (function.HasImplicitClosureFunction()) {
@@ -196,7 +200,7 @@ void CodeCoverage::PrintClass(const Library& lib,
       function ^= closures.At(i);
       script = function.script();
       saved_url = script.url();
-      if (!filter->ShouldOutputCoverageFor(lib, saved_url, cls, function)) {
+      if (!filter->ShouldOutputCoverageFor(lib, script, cls, function)) {
         i++;
         continue;
       }

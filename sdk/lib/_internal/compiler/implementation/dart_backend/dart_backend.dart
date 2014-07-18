@@ -10,11 +10,18 @@ import '../elements/modelx.dart' show SynthesizedConstructorElementX;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';
-import '../ir/ir_nodes.dart' as ir;
-import 'dart_tree.dart' as tree;
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
+import 'tree_ir_builder.dart' as tree_builder;
+import 'tree_ir_nodes.dart' as tree_ir;
 import '../util/util.dart';
 import '../mirror_renamer/mirror_renamer.dart';
-import 'dart_codegen.dart' as dart_codegen;
+import 'logical_rewriter.dart' show LogicalRewriter;
+import 'loop_rewriter.dart' show LoopRewriter;
+import 'copy_propagator.dart' show CopyPropagator;
+import 'statement_rewriter.dart' show StatementRewriter;
+import 'backend_ast_emitter.dart' as backend_ast_emitter;
+import 'backend_ast_nodes.dart' as backend_ast;
+import 'backend_ast_to_frontend_ast.dart' as backend2frontend;
 
 import '../scanner/scannerlib.dart' show StringToken,
                                          Keyword,

@@ -132,6 +132,13 @@ bool ObjectStore::PreallocateObjects() {
     return false;
   }
   set_out_of_memory(Instance::Cast(result));
+
+  // Allocate pre-allocated unhandled exception object initialized with the
+  // pre-allocated OutOfMemoryError.
+  const UnhandledException& unhandled_exception = UnhandledException::Handle(
+      UnhandledException::New(Instance::Cast(result), Object::null_instance()));
+  set_preallocated_unhandled_exception(unhandled_exception);
+
   const Array& code_array = Array::Handle(
       isolate,
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));

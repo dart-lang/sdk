@@ -12926,6 +12926,15 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
 @DomName('FileReader')
 class FileReader extends EventTarget {
 
+  @DomName('FileReader.result')
+  @DocsEditable()
+  Object get result {
+    var res = _blink.BlinkFileReader.$result_Getter(this);
+    if (res is ByteBuffer) {
+      return new Uint8List.view(res);
+    }
+    return res;
+  }
 
   // To suppress missing implicit constructor warnings.
   factory FileReader._() { throw new UnsupportedError("Not supported"); }
@@ -13013,10 +13022,6 @@ class FileReader extends EventTarget {
   @DomName('FileReader.readyState')
   @DocsEditable()
   int get readyState => _blink.BlinkFileReader.$readyState_Getter(this);
-
-  @DomName('FileReader.result')
-  @DocsEditable()
-  Object get result => _blink.BlinkFileReader.$result_Getter(this);
 
   @DomName('FileReader.abort')
   @DocsEditable()

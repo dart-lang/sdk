@@ -235,7 +235,7 @@ class AnalysisContextImpl_AnalysisContextFactory_contextWithCore extends Analysi
   @override
   void set analysisOptions(AnalysisOptions options) {
     AnalysisOptions currentOptions = analysisOptions;
-    bool needsRecompute = currentOptions.analyzeFunctionBodies != options.analyzeFunctionBodies || currentOptions.generateSdkErrors != options.generateSdkErrors || currentOptions.enableDeferredLoading != options.enableDeferredLoading || currentOptions.dart2jsHint != options.dart2jsHint || (currentOptions.hint && !options.hint) || currentOptions.preserveComments != options.preserveComments;
+    bool needsRecompute = currentOptions.analyzeFunctionBodies != options.analyzeFunctionBodies || currentOptions.generateSdkErrors != options.generateSdkErrors || currentOptions.enableAsync != options.enableAsync || currentOptions.enableDeferredLoading != options.enableDeferredLoading || currentOptions.enableEnum != options.enableEnum || currentOptions.dart2jsHint != options.dart2jsHint || (currentOptions.hint && !options.hint) || currentOptions.preserveComments != options.preserveComments;
     if (needsRecompute) {
       JUnitTestCase.fail("Cannot set options that cause the sources to be reanalyzed in a test context");
     }
@@ -312,6 +312,17 @@ class ChangeSetTest extends EngineTestCase {
 }
 
 class CompileTimeErrorCodeTest extends ResolverTestCase {
+  void fail_accessPrivateEnumField() {
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { ONE }",
+        "String name(E e) {",
+        "  return e._name;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD]);
+    verify([source]);
+  }
+
   void fail_compileTimeConstantRaisesException() {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
@@ -330,6 +341,59 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void fail_extendsEnum() {
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A extends E {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_ENUM]);
+    verify([source]);
+  }
+
+  void fail_implementsEnum() {
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A implements E {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_ENUM]);
+    verify([source]);
+  }
+
+  void fail_instantiateEnum_const() {
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { ONE }",
+        "E e(String name) {",
+        "  const E(0, name);",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
+    verify([source]);
+  }
+
+  void fail_instantiateEnum_new() {
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { ONE }",
+        "E e(String name) {",
+        "  new E(0, name);",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
+    verify([source]);
+  }
+
+  void fail_missingEnumConstantInSwitch() {
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { ONE, TWO, THREE, FOUR }",
+        "bool odd(E e) {",
+        "  switch (e) {",
+        "    case ONE:",
+        "    case THREE: return true;",
+        "  }",
+        "  return false;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH]);
+    verify([source]);
+  }
+
   void fail_mixinDeclaresConstructor() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -338,6 +402,13 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends Object mixin A {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  void fail_mixinOfEnum() {
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A with E {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_ENUM]);
     verify([source]);
   }
 
@@ -3756,6 +3827,24 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_symbol_constructor_badArgs() {
+    Source source = addSource(EngineTestCase.createSource([
+        "var s1 = const Symbol('3');",
+        "var s2 = const Symbol(3);",
+        "var s3 = const Symbol();",
+        "var s4 = const Symbol('x', 'y');",
+        "var s5 = const Symbol('x', foo: 'x');"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+        CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
+        CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER]);
+    verify([source]);
+  }
+
   void test_typeAliasCannotReferenceItself_11987() {
     Source source = addSource(EngineTestCase.createSource([
         "typedef void F(List<G> l);",
@@ -5482,6 +5571,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_superInRedirectingConstructor_superRedirection);
       });
+      _ut.test('test_symbol_constructor_badArgs', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_symbol_constructor_badArgs);
+      });
       _ut.test('test_typeAliasCannotReferenceItself_11987', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_typeAliasCannotReferenceItself_11987);
@@ -6001,6 +6094,24 @@ class ElementResolverTest extends EngineTestCase {
     ImportDirective directive = AstFactory.importDirective3(null, prefixName, []);
     directive.element = importElement;
     _resolveNode(directive, []);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitImportDirective_withCombinators() {
+    ShowCombinator combinator = AstFactory.showCombinator2(["A", "B", "C"]);
+    ImportDirective directive = AstFactory.importDirective3(null, null, [combinator]);
+    LibraryElementImpl library = ElementFactory.library(_definingLibrary.context, "lib");
+    TopLevelVariableElementImpl varA = ElementFactory.topLevelVariableElement2("A");
+    TopLevelVariableElementImpl varB = ElementFactory.topLevelVariableElement2("B");
+    TopLevelVariableElementImpl varC = ElementFactory.topLevelVariableElement2("C");
+    CompilationUnitElementImpl unit = library.definingCompilationUnit as CompilationUnitElementImpl;
+    unit.accessors = <PropertyAccessorElement> [varA.getter, varA.setter, varB.getter, varC.setter];
+    unit.topLevelVariables = <TopLevelVariableElement> [varA, varB, varC];
+    directive.element = ElementFactory.importFor(library, null, []);
+    _resolveNode(directive, []);
+    JUnitTestCase.assertSame(varA, combinator.shownNames[0].staticElement);
+    JUnitTestCase.assertSame(varB, combinator.shownNames[1].staticElement);
+    JUnitTestCase.assertSame(varC, combinator.shownNames[2].staticElement);
     _listener.assertNoErrors();
   }
 
@@ -6550,6 +6661,10 @@ class ElementResolverTest extends EngineTestCase {
       _ut.test('test_visitImportDirective_noCombinators_prefix', () {
         final __test = new ElementResolverTest();
         runJUnitTest(__test, __test.test_visitImportDirective_noCombinators_prefix);
+      });
+      _ut.test('test_visitImportDirective_withCombinators', () {
+        final __test = new ElementResolverTest();
+        runJUnitTest(__test, __test.test_visitImportDirective_withCombinators);
       });
       _ut.test('test_visitIndexExpression_get', () {
         final __test = new ElementResolverTest();
@@ -10217,6 +10332,13 @@ class MemberMapTest extends JUnitTestCase {
 }
 
 class NonErrorResolverTest extends ResolverTestCase {
+  void fail_undefinedEnumConstant() {
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "E e() {", "  return E.ONE;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_ambiguousExport() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
@@ -20089,6 +20211,14 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.INACCESSIBLE_SETTER]);
+    verify([source]);
+  }
+
+  void fail_undefinedEnumConstant() {
+    // We need a way to set the parseEnum flag in the parser to true.
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "E e() {", "  return E.TWO;", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT]);
     verify([source]);
   }
 

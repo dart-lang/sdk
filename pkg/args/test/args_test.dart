@@ -189,6 +189,10 @@ void main() {
         var parser = new ArgParser();
         parser.addFlag('woof');
         parser.addOption('meow');
+
+        parser.addOption('missing-option');
+        parser.addFlag('missing-flag', defaultsTo: null);
+
         var args = parser.parse(['--woof', '--meow', 'kitty']);
         expect(args.options, hasLength(2));
         expect(args.options, contains('woof'));
@@ -199,22 +203,76 @@ void main() {
         var parser = new ArgParser();
         parser.addFlag('woof', defaultsTo: false);
         parser.addOption('meow', defaultsTo: 'kitty');
+
+        // Flags normally have a default value.
+        parser.addFlag('moo');
+
+        parser.addOption('missing-option');
+        parser.addFlag('missing-flag', defaultsTo: null);
+
         var args = parser.parse([]);
-        expect(args.options, hasLength(2));
+        expect(args.options, hasLength(3));
         expect(args.options, contains('woof'));
         expect(args.options, contains('meow'));
+        expect(args.options, contains('moo'));
       });
     });
 
     test('[] throws if the name is not an option', () {
-      var parser = new ArgParser();
-      var results = parser.parse([]);
+      var results = new ArgParser().parse([]);
       throwsIllegalArg(() => results['unknown']);
     });
 
     test('rest cannot be modified', () {
-      var results = new ArgResults({}, '', null, []);
+      var results = new ArgParser().parse([]);
       expect(() => results.rest.add('oops'), throwsUnsupportedError);
+    });
+
+    group('.wasParsed()', () {
+      test('throws if the name is not an option', () {
+        var results = new ArgParser().parse([]);
+        throwsIllegalArg(() => results.wasParsed('unknown'));
+      });
+
+      test('returns true for parsed options', () {
+        var parser = new ArgParser();
+        parser.addFlag('fast');
+        parser.addFlag('verbose');
+        parser.addOption('mode');
+        parser.addOption('output');
+
+        var results = parser.parse(['--fast', '--mode=debug']);
+
+        expect(results.wasParsed('fast'), isTrue);
+        expect(results.wasParsed('verbose'), isFalse);
+        expect(results.wasParsed('mode'), isTrue);
+        expect(results.wasParsed('output'), isFalse);
+      });
+    });
+  });
+
+  group('Option', () {
+    test('.getOrDefault() returns a type-specific default value', () {
+      var parser = new ArgParser();
+      parser.addFlag('flag-no', defaultsTo: null);
+      parser.addFlag('flag-def', defaultsTo: true);
+      parser.addOption('single-no');
+      parser.addOption('single-def', defaultsTo: 'def');
+      parser.addOption('multi-no', allowMultiple: true);
+      parser.addOption('multi-def', allowMultiple: true, defaultsTo: 'def');
+
+      expect(parser.options['flag-no'].getOrDefault(null), equals(null));
+      expect(parser.options['flag-no'].getOrDefault(false), equals(false));
+      expect(parser.options['flag-def'].getOrDefault(null), equals(true));
+      expect(parser.options['flag-def'].getOrDefault(false), equals(false));
+      expect(parser.options['single-no'].getOrDefault(null), equals(null));
+      expect(parser.options['single-no'].getOrDefault('v'), equals('v'));
+      expect(parser.options['single-def'].getOrDefault(null), equals('def'));
+      expect(parser.options['single-def'].getOrDefault('v'), equals('v'));
+      expect(parser.options['multi-no'].getOrDefault(null), equals([]));
+      expect(parser.options['multi-no'].getOrDefault(['v']), equals(['v']));
+      expect(parser.options['multi-def'].getOrDefault(null), equals(['def']));
+      expect(parser.options['multi-def'].getOrDefault(['v']), equals(['v']));
     });
   });
 }
@@ -232,7 +290,7 @@ const _INVALID_OPTIONS = const [
 ];
 
 const _VALID_OPTIONS = const [
- 'a' // one char
+ 'a' // One character.
  'contains-dash',
  'contains_underscore',
  'ends-with-dash-',

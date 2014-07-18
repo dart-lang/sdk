@@ -330,6 +330,16 @@ Parser::~Parser() {
 }
 
 
+// Each try in this function gets its own try index.
+// See definition of RawPcDescriptors::PcDescriptor.
+int16_t Parser::AllocateTryIndex() {
+  if (!Utils::IsInt(16, last_used_try_index_ - 1)) {
+    ReportError("too many nested try statements");
+  }
+  return last_used_try_index_++;
+}
+
+
 void Parser::SetScript(const Script& script, intptr_t token_pos) {
   script_ = script.raw();
   tokens_iterator_.SetStream(
@@ -1377,9 +1387,20 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
   const String& func_name = String::ZoneHandle(I, func.name());
   ArgumentListNode* arguments = BuildNoSuchMethodArguments(
       token_pos, func_name, *func_args, NULL, false);
-  const Function& no_such_method = Function::ZoneHandle(I,
-      Resolver::ResolveDynamicAnyArgs(Class::Handle(
-          I, func.Owner()), Symbols::NoSuchMethod()));
+  const intptr_t kNumArguments = 2;  // Receiver, InvocationMirror.
+  ArgumentsDescriptor args_desc(
+      Array::Handle(I, ArgumentsDescriptor::New(kNumArguments)));
+  Function& no_such_method = Function::ZoneHandle(I,
+      Resolver::ResolveDynamicForReceiverClass(Class::Handle(I, func.Owner()),
+                                               Symbols::NoSuchMethod(),
+                                               args_desc));
+  if (no_such_method.IsNull()) {
+    // If noSuchMethod(i) is not found, call Object:noSuchMethod.
+    no_such_method ^= Resolver::ResolveDynamicForReceiverClass(
+        Class::Handle(I, I->object_store()->object_class()),
+        Symbols::NoSuchMethod(),
+        args_desc);
+  }
   StaticCallNode* call =
       new StaticCallNode(token_pos, no_such_method, arguments);
 
@@ -3963,7 +3984,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
       // Not patching a class, but it has been found. This must be one of the
       // pre-registered classes from object.cc or a duplicate definition.
       if (!(cls.is_prefinalized() ||
-            RawObject::IsTypedDataViewClassId(cls.id()))) {
+            RawObject::IsImplicitFieldClassId(cls.id()))) {
         ReportError(classname_pos, "class '%s' is already defined",
                     class_name.ToCString());
       }

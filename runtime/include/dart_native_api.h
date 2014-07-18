@@ -136,22 +136,6 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
 
 
 /*
- * =================
- * Profiling support
- * =================
- */
-
-/* External pprof support for gathering and dumping symbolic
- * information that can be used for better profile reports for
- * dynamically generated code. */
-DART_EXPORT void Dart_InitPprofSupport();
-DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
-
-/* Support for generating symbol maps for use by the Linux perf tool. */
-DART_EXPORT void Dart_InitPerfEventsSupport(void* perf_events_file);
-
-
-/*
  * ==================
  * Verification Tools
  * ==================

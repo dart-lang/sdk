@@ -478,6 +478,8 @@ class Assembler : public ValueObject {
   void xchgl(Register dst, Register src);
   void xchgq(Register dst, Register src);
 
+  void cmpb(const Address& address, const Immediate& imm);
+
   void cmpl(Register reg, const Immediate& imm);
   void cmpl(Register reg0, Register reg1);
   void cmpl(Register reg, const Address& address);
@@ -583,6 +585,8 @@ class Assembler : public ValueObject {
   void negq(Register reg);
   void notl(Register reg);
   void notq(Register reg);
+
+  void btq(Register base, Register offset);
 
   void enter(const Immediate& imm);
   void leave();
@@ -787,7 +791,9 @@ class Assembler : public ValueObject {
   }
 
   // Index of constant pool entries pointing to debugger stubs.
-  static const int kBreakpointRuntimeCPIndex = 5;
+  static const int kICCallBreakpointCPIndex = 5;
+  static const int kClosureCallBreakpointCPIndex = 6;
+  static const int kRuntimeCallBreakpointCPIndex = 7;
 
   void LoadPoolPointer(Register pp);
 

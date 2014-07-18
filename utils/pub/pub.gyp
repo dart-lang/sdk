@@ -9,7 +9,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
-        '../../pkg/pkg.gyp:pkg_packages',
+        '../../pkg/pkg.gyp:pub_packages',
         '../../pkg/pkg_files.gyp:pkg_files_stamp',
         '../../utils/compiler/compiler.gyp:dart2js_files_stamp',
         'pub_files_stamp'
@@ -29,12 +29,40 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '--package-root=<(PRODUCT_DIR)/packages/',
+            '--package-root=<(PRODUCT_DIR)/pub_packages/',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '../../sdk/lib/_internal/pub/bin/pub.dart',
           ],
         },
       ],
+    },
+    {
+      'target_name': 'core_stubs',
+      'type': 'none',
+      'dependencies': [
+        '../../runtime/dart-runtime.gyp:dart',
+        '../../pkg/pkg.gyp:pkg_packages',
+        '../../pkg/pkg_files.gyp:pkg_files_stamp'
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_core_stubs',
+          'inputs': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '../../sdk/lib/_internal/libraries.dart',
+            '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/core_stubs/dart_io.dart',
+          ],
+          'action': [
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--package-root=<(PRODUCT_DIR)/packages/',
+            '../../pkg/stub_core_library/bin/stub_core_library.dart',
+            '<(SHARED_INTERMEDIATE_DIR)/core_stubs',
+          ],
+        }
+      ]
     },
     # Other targets depend on pub files, but have to many inputs, which causes
     # issues on some platforms.

@@ -10,7 +10,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 
@@ -37,15 +36,12 @@ class AnalysisDomainHandler implements RequestHandler {
     String file = request.getRequiredParameter(FILE).asString();
     int offset = request.getRequiredParameter(OFFSET).asInt();
     // prepare hovers
-    List<Map<String, Object>> hovers = <Map<String, Object>>[];
-    {
-      Source source = server.getSource(file);
-      AnalysisContext context = server.getAnalysisContext(file);
-      List<Source> librarySources = context.getLibrariesContaining(source);
-      for (Source librarySource in librarySources) {
-        CompilationUnit unit = context.resolveCompilationUnit2(source,
-            librarySource);
-        hovers.add(new DartUnitHoverComputer(unit, offset).compute());
+    List<Hover> hovers = <Hover>[];
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    for (CompilationUnit unit in units) {
+      Hover hoverInformation = new DartUnitHoverComputer(unit, offset).compute();
+      if (hoverInformation != null) {
+        hovers.add(hoverInformation);
       }
     }
     // send response

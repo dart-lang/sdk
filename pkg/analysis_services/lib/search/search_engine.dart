@@ -5,7 +5,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library engine.search_engine;
+library services.search_engine;
 
 import 'dart:async';
 
@@ -14,18 +14,6 @@ import 'package:analysis_services/src/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-
-/**
- * A [Comparator] that can be used to sort the [SearchMatch]s based on the names
- * of the matched elements.
- */
-final Comparator<SearchMatch> SEARCH_MATCH_NAME_COMPARATOR =
-    (SearchMatch firstMatch, SearchMatch secondMatch) {
-  String firstName = firstMatch.element.displayName;
-  String secondName = secondMatch.element.displayName;
-  return firstName.compareTo(secondName);
-};
 
 
 /**
@@ -54,239 +42,34 @@ class MatchKind {
       const MatchKind('ANGULAR_CLOSING_TAG_REFERENCE');
 
   /**
-   * A declaration of a class.
+   * A declaration of an element.
    */
-  static const MatchKind CLASS_DECLARATION =
-      const MatchKind('CLASS_DECLARATION');
+  static const MatchKind DECLARATION = const MatchKind('DECLARATION');
 
   /**
-   * A declaration of a class alias.
+   * A reference to an element in which it is being read.
    */
-  static const MatchKind CLASS_ALIAS_DECLARATION =
-      const MatchKind('CLASS_ALIAS_DECLARATION');
+  static const MatchKind READ = const MatchKind('READ');
 
   /**
-   * A declaration of a constructor.
+   * A reference to an element in which it is being both read and written.
    */
-  static const MatchKind CONSTRUCTOR_DECLARATION =
-      const MatchKind('CONSTRUCTOR_DECLARATION');
+  static const MatchKind READ_WRITE = const MatchKind('READ_WRITE');
 
   /**
-   * A reference to a constructor in which the constructor is being referenced.
+   * A reference to an element in which it is being written.
    */
-  static const MatchKind CONSTRUCTOR_REFERENCE =
-      const MatchKind('CONSTRUCTOR_REFERENCE');
+  static const MatchKind WRITE = const MatchKind('WRITE');
 
   /**
-   * A reference to a type in which the type was extended.
+   * A reference to an element in which it is being invoked.
    */
-  static const MatchKind EXTENDS_REFERENCE =
-      const MatchKind('EXTENDS_REFERENCE');
+  static const MatchKind INVOCATION = const MatchKind('INVOCATION');
 
   /**
-   * A reference to a field in which the field's value is being invoked.
+   * A reference to an element in which it is referenced.
    */
-  static const MatchKind FIELD_INVOCATION = const MatchKind('FIELD_INVOCATION');
-
-  /**
-   * A reference to a field (from field formal parameter).
-   */
-  static const MatchKind FIELD_REFERENCE = const MatchKind('FIELD_REFERENCE');
-
-  /**
-   * A reference to a field in which the field's value is being read.
-   */
-  static const MatchKind FIELD_READ = const MatchKind('FIELD_READ');
-
-  /**
-   * A reference to a field in which the field's value is being written.
-   */
-  static const MatchKind FIELD_WRITE = const MatchKind('FIELD_WRITE');
-
-  /**
-   * A declaration of a function.
-   */
-  static const MatchKind FUNCTION_DECLARATION =
-      const MatchKind('FUNCTION_DECLARATION');
-
-  /**
-   * A reference to a function in which the function is being executed.
-   */
-  static const MatchKind FUNCTION_EXECUTION =
-      const MatchKind('FUNCTION_EXECUTION');
-
-  /**
-   * A reference to a function in which the function is being referenced.
-   */
-  static const MatchKind FUNCTION_REFERENCE =
-      const MatchKind('FUNCTION_REFERENCE');
-
-  /**
-   * A declaration of a function type.
-   */
-  static const MatchKind FUNCTION_TYPE_DECLARATION =
-      const MatchKind('FUNCTION_TYPE_DECLARATION');
-
-  /**
-   * A reference to a function type.
-   */
-  static const MatchKind FUNCTION_TYPE_REFERENCE =
-      const MatchKind('FUNCTION_TYPE_REFERENCE');
-
-  /**
-   * A reference to a type in which the type was implemented.
-   */
-  static const MatchKind IMPLEMENTS_REFERENCE =
-      const MatchKind('IMPLEMENTS_REFERENCE');
-
-  /**
-   * A reference to a [ImportElement].
-   */
-  static const MatchKind IMPORT_REFERENCE = const MatchKind('IMPORT_REFERENCE');
-
-  /**
-   * A reference to a class that is implementing a specified type.
-   */
-  static const MatchKind INTERFACE_IMPLEMENTED =
-      const MatchKind('INTERFACE_IMPLEMENTED');
-
-  /**
-   * A reference to a [LibraryElement].
-   */
-  static const MatchKind LIBRARY_REFERENCE =
-      const MatchKind('LIBRARY_REFERENCE');
-
-  /**
-   * A reference to a method in which the method is being invoked.
-   */
-  static const MatchKind METHOD_INVOCATION =
-      const MatchKind('METHOD_INVOCATION');
-
-  /**
-   * A reference to a method in which the method is being referenced.
-   */
-  static const MatchKind METHOD_REFERENCE = const MatchKind('METHOD_REFERENCE');
-
-  /**
-   * A declaration of a name.
-   */
-  static const MatchKind NAME_DECLARATION = const MatchKind('NAME_DECLARATION');
-
-  /**
-   * A reference to a name, resolved.
-   */
-  static const MatchKind NAME_REFERENCE_RESOLVED =
-      const MatchKind('NAME_REFERENCE_RESOLVED');
-
-  /**
-   * An invocation of a name, resolved.
-   */
-  static const MatchKind NAME_INVOCATION_RESOLVED =
-      const MatchKind('NAME_INVOCATION_RESOLVED');
-
-  /**
-   * A reference to a name in which the name's value is being read.
-   */
-  static const MatchKind NAME_READ_RESOLVED =
-      const MatchKind('NAME_READ_RESOLVED');
-
-  /**
-   * A reference to a name in which the name's value is being read and written.
-   */
-  static const MatchKind NAME_READ_WRITE_RESOLVED =
-      const MatchKind('NAME_READ_WRITE_RESOLVED');
-
-  /**
-   * A reference to a name in which the name's value is being written.
-   */
-  static const MatchKind NAME_WRITE_RESOLVED =
-      const MatchKind('NAME_WRITE_RESOLVED');
-
-  /**
-   * An invocation of a name, unresolved.
-   */
-  static const MatchKind NAME_INVOCATION_UNRESOLVED =
-      const MatchKind('NAME_INVOCATION_UNRESOLVED');
-
-  /**
-   * A reference to a name in which the name's value is being read.
-   */
-  static const MatchKind NAME_READ_UNRESOLVED =
-      const MatchKind('NAME_READ_UNRESOLVED');
-
-  /**
-   * A reference to a name in which the name's value is being read and written.
-   */
-  static const MatchKind NAME_READ_WRITE_UNRESOLVED =
-      const MatchKind('NAME_READ_WRITE_UNRESOLVED');
-
-  /**
-   * A reference to a name in which the name's value is being written.
-   */
-  static const MatchKind NAME_WRITE_UNRESOLVED =
-      const MatchKind('NAME_WRITE_UNRESOLVED');
-
-  /**
-   * A reference to a name, unresolved.
-   */
-  static const MatchKind NAME_REFERENCE_UNRESOLVED =
-      const MatchKind('NAME_REFERENCE_UNRESOLVED');
-
-  /**
-   * A reference to a named parameter in invocation.
-   */
-  static const MatchKind NAMED_PARAMETER_REFERENCE =
-      const MatchKind('NAMED_PARAMETER_REFERENCE');
-
-  /**
-   * A reference to a property accessor.
-   */
-  static const MatchKind PROPERTY_ACCESSOR_REFERENCE =
-      const MatchKind('PROPERTY_ACCESSOR_REFERENCE');
-
-  /**
-   * A reference to a type.
-   */
-  static const MatchKind TYPE_REFERENCE = const MatchKind('TYPE_REFERENCE');
-
-  /**
-   * A reference to a type parameter.
-   */
-  static const MatchKind TYPE_PARAMETER_REFERENCE =
-      const MatchKind('TYPE_PARAMETER_REFERENCE');
-
-  /**
-   * A reference to a [CompilationUnitElement].
-   */
-  static const MatchKind UNIT_REFERENCE = const MatchKind('UNIT_REFERENCE');
-
-  /**
-   * A declaration of a variable.
-   */
-  static const MatchKind VARIABLE_DECLARATION =
-      const MatchKind('VARIABLE_DECLARATION');
-
-  /**
-   * A reference to a variable in which the variable's value is being read.
-   */
-  static const MatchKind VARIABLE_READ = const MatchKind('VARIABLE_READ');
-
-  /**
-   * A reference to a variable in which the variable's value is being both read
-   * and write.
-   */
-  static const MatchKind VARIABLE_READ_WRITE =
-      const MatchKind('VARIABLE_READ_WRITE');
-
-  /**
-   * A reference to a variable in which the variables's value is being written.
-   */
-  static const MatchKind VARIABLE_WRITE = const MatchKind('VARIABLE_WRITE');
-
-  /**
-   * A reference to a type in which the type was mixed in.
-   */
-  static const MatchKind WITH_REFERENCE = const MatchKind('WITH_REFERENCE');
+  static const MatchKind REFERENCE = const MatchKind('REFERENCE');
 
   final String name;
 

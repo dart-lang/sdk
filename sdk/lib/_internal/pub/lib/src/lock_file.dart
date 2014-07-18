@@ -4,6 +4,7 @@
 
 library pub.lock_file;
 
+import 'package:source_maps/source_maps.dart';
 import 'package:yaml/yaml.dart';
 
 import 'io.dart';
@@ -48,46 +49,56 @@ class LockFile {
     var packages = <String, PackageId>{};
 
     if (contents.trim() == '') return new LockFile.empty();
-    var parsed = loadYaml(contents);
+    var parsed = loadYamlNode(contents, sourceName: filePath);
+
+    _validate(parsed is Map, 'The lockfile must be a YAML mapping.', parsed);
 
     var packageEntries = parsed['packages'];
     if (packageEntries != null) {
+      _validate(packageEntries is Map, 'The "packages" field must be a map.',
+          parsed.nodes['packages']);
+
       packageEntries.forEach((name, spec) {
         // Parse the version.
-        if (!spec.containsKey('version')) {
-          throw new FormatException('Package $name is missing a version.');
-        }
+        _validate(spec.containsKey('version'),
+            'Package $name is missing a version.', spec);
         var version = new Version.parse(spec['version']);
 
         // Parse the source.
-        if (!spec.containsKey('source')) {
-          throw new FormatException('Package $name is missing a source.');
-        }
+        _validate(spec.containsKey('source'),
+            'Package $name is missing a source.', spec);
         var sourceName = spec['source'];
 
-        if (!spec.containsKey('description')) {
-          throw new FormatException('Package $name is missing a description.');
-        }
+        _validate(spec.containsKey('description'),
+            'Package $name is missing a description.', spec);
         var description = spec['description'];
 
         // Let the source parse the description.
         var source = sources[sourceName];
-        description = source.parseDescription(filePath, description,
-            fromLockFile: true);
+        try {
+          description = source.parseDescription(filePath, description,
+              fromLockFile: true);
+        } on FormatException catch (ex) {
+          throw new SpanFormatException(ex.message, spec.nodes['source'].span);
+        }
 
         var id = new PackageId(name, sourceName, version, description);
 
         // Validate the name.
-        if (name != id.name) {
-          throw new FormatException(
-            "Package name $name doesn't match ${id.name}.");
-        }
+        _validate(name == id.name,
+            "Package name $name doesn't match ${id.name}.", spec);
 
         packages[name] = id;
       });
     }
 
     return new LockFile._(packages);
+  }
+
+  /// If [condition] is `false` throws a format error with [message] for [node].
+  static void _validate(bool condition, String message, YamlNode node) {
+    if (condition) return;
+    throw new SpanFormatException(message, node.span);
   }
 
   /// Returns the serialized YAML text of the lock file.

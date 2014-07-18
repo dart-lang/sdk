@@ -131,6 +131,17 @@ class AstFactory {
 
   static EmptyStatement emptyStatement() => new EmptyStatement(TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
+  static EnumDeclaration enumDeclaration(SimpleIdentifier name, List<EnumConstantDeclaration> constants) => new EnumDeclaration(null, null, TokenFactory.tokenFromKeyword(Keyword.ENUM), name, TokenFactory.tokenFromType(TokenType.OPEN_CURLY_BRACKET), list(constants), TokenFactory.tokenFromType(TokenType.CLOSE_CURLY_BRACKET));
+
+  static EnumDeclaration enumDeclaration2(String name, List<String> constantNames) {
+    int count = constantNames.length;
+    List<EnumConstantDeclaration> constants = new List<EnumConstantDeclaration>(count);
+    for (int i = 0; i < count; i++) {
+      constants[i] = new EnumConstantDeclaration(null, null, identifier3(constantNames[i]));
+    }
+    return enumDeclaration(identifier3(name), constants);
+  }
+
   static ExportDirective exportDirective(List<Annotation> metadata, String uri, List<Combinator> combinators) => new ExportDirective(null, metadata, TokenFactory.tokenFromKeyword(Keyword.EXPORT), string2(uri), list(combinators), TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
   static ExportDirective exportDirective2(String uri, List<Combinator> combinators) => exportDirective(new List<Annotation>(), uri, combinators);

@@ -1015,6 +1015,63 @@ class ClassElementImplTest extends EngineTestCase {
   }
 }
 
+class CompilationUnitElementImplTest extends EngineTestCase {
+  void test_getEnum_declared() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    CompilationUnitElementImpl unit = ElementFactory.compilationUnit("/lib.dart");
+    String enumName = "E";
+    ClassElement enumElement = ElementFactory.enumElement(typeProvider, enumName, []);
+    unit.enums = <ClassElement> [enumElement];
+    JUnitTestCase.assertSame(enumElement, unit.getEnum(enumName));
+  }
+
+  void test_getEnum_undeclared() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    CompilationUnitElementImpl unit = ElementFactory.compilationUnit("/lib.dart");
+    String enumName = "E";
+    ClassElement enumElement = ElementFactory.enumElement(typeProvider, enumName, []);
+    unit.enums = <ClassElement> [enumElement];
+    JUnitTestCase.assertNull(unit.getEnum("${enumName}x"));
+  }
+
+  void test_getType_declared() {
+    CompilationUnitElementImpl unit = ElementFactory.compilationUnit("/lib.dart");
+    String className = "C";
+    ClassElement classElement = ElementFactory.classElement2(className, []);
+    unit.types = <ClassElement> [classElement];
+    JUnitTestCase.assertSame(classElement, unit.getType(className));
+  }
+
+  void test_getType_undeclared() {
+    CompilationUnitElementImpl unit = ElementFactory.compilationUnit("/lib.dart");
+    String className = "C";
+    ClassElement classElement = ElementFactory.classElement2(className, []);
+    unit.types = <ClassElement> [classElement];
+    JUnitTestCase.assertNull(unit.getType("${className}x"));
+  }
+
+  static dartSuite() {
+    _ut.group('CompilationUnitElementImplTest', () {
+      _ut.test('test_getEnum_declared', () {
+        final __test = new CompilationUnitElementImplTest();
+        runJUnitTest(__test, __test.test_getEnum_declared);
+      });
+      _ut.test('test_getEnum_undeclared', () {
+        final __test = new CompilationUnitElementImplTest();
+        runJUnitTest(__test, __test.test_getEnum_undeclared);
+      });
+      _ut.test('test_getType_declared', () {
+        final __test = new CompilationUnitElementImplTest();
+        runJUnitTest(__test, __test.test_getType_declared);
+      });
+      _ut.test('test_getType_undeclared', () {
+        final __test = new CompilationUnitElementImplTest();
+        runJUnitTest(__test, __test.test_getType_undeclared);
+      });
+    });
+  }
+}
+
 class ElementImplTest extends EngineTestCase {
   void test_equals() {
     LibraryElementImpl library = ElementFactory.library(createAnalysisContext(), "lib");
@@ -4425,6 +4482,7 @@ main() {
   TypeParameterTypeImplTest.dartSuite();
   VoidTypeImplTest.dartSuite();
   ClassElementImplTest.dartSuite();
+  CompilationUnitElementImplTest.dartSuite();
   ElementLocationImplTest.dartSuite();
   ElementImplTest.dartSuite();
   HtmlElementImplTest.dartSuite();

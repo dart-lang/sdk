@@ -26,7 +26,7 @@ class String;
 class CoverageFilter : public ValueObject {
  public:
   virtual bool ShouldOutputCoverageFor(const Library& lib,
-                                       const String& script_url,
+                                       const Script& script,
                                        const Class& cls,
                                        const Function& func) const = 0;
   virtual ~CoverageFilter() {}

@@ -103,6 +103,13 @@ bool StubCode::InInvocationStubForIsolate(Isolate* isolate, uword pc) {
 }
 
 
+bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
+  uword entry = StubCode::JumpToExceptionHandlerEntryPoint();
+  uword size = StubCode::JumpToExceptionHandlerSize();
+  return (pc >= entry) && (pc < (entry + size));
+}
+
+
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
   Isolate* isolate = Isolate::Current();
   const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));

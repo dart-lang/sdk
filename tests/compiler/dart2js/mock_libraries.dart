@@ -193,6 +193,11 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'unwrapException': 'unwrapException(e) {}',
   'voidTypeCheck': 'voidTypeCheck(value) {}',
   'wrapException': 'wrapException(x) { return x; }',
+  'badMain': 'badMain() { throw "bad main"; }',
+  'missingMain': 'missingMain() { throw "missing main"; }',
+  'mainHasTooManyParameters':
+      'mainHasTooManyParameters() '
+      '{ throw "main has too many parameters"; }',
 };
 
 const Map<String, String> DEFAULT_FOREIGN_HELPER_LIBRARY

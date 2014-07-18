@@ -60,8 +60,8 @@ class TypeTestEmitter extends CodeEmitterHelper {
       ClosureClassMap closureData =
           compiler.closureToClassMapper.closureMappingCache[node];
       if (closureData != null) {
-        Element thisElement =
-            closureData.freeVariableMapping[closureData.thisElement];
+        ClosureFieldElement thisElement =
+            closureData.getFreeVariableElement(closureData.thisLocal);
         if (thisElement != null) {
           String thisName = namer.instanceFieldPropertyName(thisElement);
           thisAccess = js('this.#', thisName);

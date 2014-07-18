@@ -242,6 +242,11 @@ def GetBuildMode(mode):
 def GetArchFamily(arch):
   return ARCH_FAMILY[arch]
 
+def IsCrossBuild(target_os, arch):
+  host_arch = ARCH_GUESS
+  return ((GetArchFamily(host_arch) != GetArchFamily(arch)) or
+          (target_os != GuessOS()))
+
 def GetBuildConf(mode, arch, conf_os=None):
   if conf_os == 'android':
     return '%s%s%s' % (GetBuildMode(mode), conf_os.title(), arch.upper())
@@ -260,7 +265,7 @@ def GetBuildDir(host_os, target_os):
 def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
   build_root = GetBuildDir(host_os, target_os)
   if mode:
-    build_root = os.path.join(build_root, GetBuildConf(mode, arch))
+    build_root = os.path.join(build_root, GetBuildConf(mode, arch, target_os))
   return build_root
 
 def GetBaseDir():

@@ -157,6 +157,7 @@
     'double_conversion.cc',
     'double_conversion.h',
     'double_internals.h',
+    'elfgen.h',
     'exceptions.cc',
     'exceptions.h',
     'exceptions_test.cc',

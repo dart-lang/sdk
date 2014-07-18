@@ -13,7 +13,7 @@ part of dart.collection;
  * The elements of a `LinkedHashSet` must have consistent [Object.operator==]
  * and [Object.hashCode] implementations. This means that the `==` operator
  * must define a stable equivalence relation on the elements (reflexive,
- * anti-symmetric, transitive, and consistent over time), and that `hashCode`
+ * symmetric, transitive, and consistent over time), and that `hashCode`
  * must be the same for objects that are considered equal by `==`.
  *
  * The set allows `null` as an element.

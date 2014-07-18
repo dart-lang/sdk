@@ -67,21 +67,35 @@ class Element {
     String name = element.displayName;
     String elementParameters = _getParametersString(element);
     String elementReturnType = _getReturnTypeString(element);
-    return new Element(ElementKind.valueOfEngine(element.kind), name,
-        new Location.fromElement(element), element.isPrivate, element.isDeprecated,
-        parameters: elementParameters, returnType: elementReturnType, isAbstract:
-        _isAbstract(element), isConst: _isConst(element), isFinal: _isFinal(element),
+    return new Element(
+        ElementKind.valueOfEngine(element.kind),
+        name,
+        new Location.fromElement(element),
+        element.isPrivate,
+        element.isDeprecated,
+        parameters: elementParameters,
+        returnType: elementReturnType,
+        isAbstract: _isAbstract(element),
+        isConst: _isConst(element),
+        isFinal: _isFinal(element),
         isStatic: _isStatic(element));
   }
 
   factory Element.fromJson(Map<String, Object> map) {
     ElementKind kind = ElementKind.valueOf(map[KIND]);
     int flags = map[FLAGS];
-    return new Element(kind, map[NAME], new Location.fromJson(map[LOCATION]),
-        _hasFlag(flags, FLAG_PRIVATE), _hasFlag(flags, FLAG_DEPRECATED), parameters:
-        map[PARAMETERS], returnType: map[RETURN_TYPE], isAbstract: _hasFlag(flags,
-        FLAG_ABSTRACT), isConst: _hasFlag(flags, FLAG_CONST), isFinal: _hasFlag(flags,
-        FLAG_FINAL), isStatic: _hasFlag(flags, FLAG_STATIC));
+    return new Element(
+        kind,
+        map[NAME],
+        new Location.fromJson(map[LOCATION]),
+        _hasFlag(flags, FLAG_PRIVATE),
+        _hasFlag(flags, FLAG_DEPRECATED),
+        parameters: map[PARAMETERS],
+        returnType: map[RETURN_TYPE],
+        isAbstract: _hasFlag(flags, FLAG_ABSTRACT),
+        isConst: _hasFlag(flags, FLAG_CONST),
+        isFinal: _hasFlag(flags, FLAG_FINAL),
+        isStatic: _hasFlag(flags, FLAG_STATIC));
   }
 
   int get flags {
@@ -113,6 +127,10 @@ class Element {
 
   @override
   String toString() => toJson().toString();
+
+  static Map<String, Object> asJson(Element element) {
+    return element.toJson();
+  }
 
   static String _getParametersString(engine.Element element) {
     // TODO(scheglov) expose the corresponding feature from ExecutableElement
@@ -213,8 +231,10 @@ class ElementKind {
   static const LIBRARY = const ElementKind('LIBRARY');
   static const LOCAL_VARIABLE = const ElementKind('LOCAL_VARIABLE');
   static const METHOD = const ElementKind('METHOD');
+  static const PARAMETER = const ElementKind('PARAMETER');
   static const SETTER = const ElementKind('SETTER');
   static const TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE');
+  static const TYPE_PARAMETER = const ElementKind('TYPE_PARAMETER');
   static const UNIT_TEST_CASE = const ElementKind('UNIT_TEST_CASE');
   static const UNIT_TEST_GROUP = const ElementKind('UNIT_TEST_GROUP');
   static const UNKNOWN = const ElementKind('UNKNOWN');
@@ -238,8 +258,10 @@ class ElementKind {
     if (LIBRARY.name == name) return LIBRARY;
     if (LOCAL_VARIABLE.name == name) return LOCAL_VARIABLE;
     if (METHOD.name == name) return METHOD;
+    if (PARAMETER.name == name) return PARAMETER;
     if (SETTER.name == name) return SETTER;
     if (TOP_LEVEL_VARIABLE.name == name) return TOP_LEVEL_VARIABLE;
+    if (TYPE_PARAMETER.name == name) return TYPE_PARAMETER;
     if (UNIT_TEST_CASE.name == name) return UNIT_TEST_CASE;
     if (UNIT_TEST_GROUP.name == name) return UNIT_TEST_GROUP;
     if (UNKNOWN.name == name) return UNKNOWN;
@@ -277,11 +299,17 @@ class ElementKind {
     if (kind == engine.ElementKind.METHOD) {
       return METHOD;
     }
+    if (kind == engine.ElementKind.PARAMETER) {
+      return PARAMETER;
+    }
     if (kind == engine.ElementKind.SETTER) {
       return SETTER;
     }
     if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
       return TOP_LEVEL_VARIABLE;
+    }
+    if (kind == engine.ElementKind.TYPE_PARAMETER) {
+      return TYPE_PARAMETER;
     }
     return UNKNOWN;
   }
@@ -318,12 +346,36 @@ class Location {
       startColumn = 1;
     }
     // done
-    return new Location(source.fullName, offset, length, startLine,
+    return new Location(
+        source.fullName,
+        offset,
+        length,
+        startLine,
+        startColumn);
+  }
+
+  factory Location.fromOffset(engine.Element element, int offset, int length) {
+    Source source = element.source;
+    LineInfo lineInfo = element.context.getLineInfo(source);
+    // prepare location
+    LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+    int startLine = lineLocation.lineNumber;
+    int startColumn = lineLocation.columnNumber;
+    // done
+    return new Location(
+        source.fullName,
+        offset,
+        length,
+        startLine,
         startColumn);
   }
 
   factory Location.fromJson(Map<String, Object> map) {
-    return new Location(map[FILE], map[OFFSET], map[LENGTH], map[START_LINE],
+    return new Location(
+        map[FILE],
+        map[OFFSET],
+        map[LENGTH],
+        map[START_LINE],
         map[START_COLUMN]);
   }
 

@@ -19,6 +19,8 @@ enum {
   kFalseValue,
   // Marker for special encoding of double objects in message snapshots.
   kDoubleObject,
+  // Object id has been optimized away; reader should use next available id.
+  kOmittedObjectId,
 
   kClassIdsOffset = kDoubleObject,
 

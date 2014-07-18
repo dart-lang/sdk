@@ -78,6 +78,7 @@ class CompilationProcess {
   bool usesDartHtml = false;
   Worker worker;
   List<String> objectUrls = <String>[];
+  String firstError;
 
   static CompilationProcess current;
 
@@ -139,7 +140,7 @@ class CompilationProcess {
   }
 
   onFail(_) {
-    interaction.onCompilationFailed();
+    interaction.onCompilationFailed(firstError);
   }
 
   onDone(_) {
@@ -197,6 +198,7 @@ self.importScripts("$url");
 
   void run(String url, IFrameElement makeIframe()) {
     void retryInIframe() {
+      interaction.aboutToRun();
       var frame = makeIframe();
       frame.style
           ..visibility = 'hidden'
@@ -206,9 +208,8 @@ self.importScripts("$url");
       errorStream(frame).listen(interaction.onIframeError);
     }
     void onError(String errorMessage) {
+      interaction.consolePrintLine(errorMessage);
       console
-          ..appendText(errorMessage)
-          ..appendText(' ')
           ..append(buildButton('Try in iframe', (_) => retryInIframe()))
           ..appendText('\n');
     }
@@ -239,6 +240,9 @@ self.importScripts("$url");
     if (kind == 'verbose info') {
       interaction.verboseCompilerMessage(message);
       return;
+    }
+    if (kind == 'error' && firstError == null) {
+      firstError = message;
     }
     String uri = diagnostic['uri'];
     if (uri != '${PRIVATE_SCHEME}:/main.dart') {

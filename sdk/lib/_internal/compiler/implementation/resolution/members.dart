@@ -485,8 +485,8 @@ class ResolverTask extends CompilerTask {
       if (element.isPatched) {
         FunctionElementX patch = element.patch;
         compiler.withCurrentElement(patch, () {
-            patch.parseNode(compiler);
-            patch.computeSignature(compiler);
+          patch.parseNode(compiler);
+          patch.computeType(compiler);
         });
         checkMatchingPatchSignatures(element, patch);
         element = patch;
@@ -1215,6 +1215,11 @@ class ResolverTask extends CompilerTask {
       Node node = annotation.parseNode(compiler);
       Element annotatedElement = annotation.annotatedElement;
       AnalyzableElement context = annotatedElement.analyzableElement;
+      ClassElement classElement = annotatedElement.enclosingClass;
+      if (classElement != null) {
+        // The annotation is resolved in the scope of [classElement].
+        classElement.ensureResolved(compiler);
+      }
       assert(invariant(node, context != null,
           message: "No context found for metadata annotation "
                    "on $annotatedElement."));
@@ -2347,6 +2352,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   ResolutionResult resolveSend(Send node) {
     Selector selector = resolveSelector(node, null);
+    if (selector != null) {
+      compiler.enqueuer.resolution.compilationInfo.registerCallSite(
+          registry.mapping, node);
+    }
+
     if (node.isSuperCall) registry.registerSuperUse(node);
 
     if (node.receiver == null) {

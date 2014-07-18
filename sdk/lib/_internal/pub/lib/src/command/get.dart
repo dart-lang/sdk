@@ -7,6 +7,7 @@ library pub.command.get;
 import 'dart:async';
 
 import '../command.dart';
+import '../solver/version_solver.dart';
 
 /// Handles the `get` pub command.
 class GetCommand extends PubCommand {
@@ -25,6 +26,7 @@ class GetCommand extends PubCommand {
   }
 
   Future onRun() {
-    return entrypoint.acquireDependencies(dryRun: commandOptions['dry-run']);
+    return entrypoint.acquireDependencies(SolveType.GET,
+        dryRun: commandOptions['dry-run']);
   }
 }

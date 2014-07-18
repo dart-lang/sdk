@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
+import 'package:analysis_server/src/collections.dart';
 
 
 Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
@@ -105,6 +106,40 @@ class NotificationTest {
       'event': 'foo'
     }));
   }
+
+  void test_setParameter_HasToJson() {
+    Notification notification = new Notification('foo');
+    notification.setParameter('my', new _MyHasToJsonObject(42));
+    expect(notification.toJson(), equals({
+      'event': 'foo',
+      'params': {
+        'my': {
+          'offset': 42
+        }
+      }
+    }));
+  }
+
+  void test_setParameter_Iterable_HasToJson() {
+    Notification notification = new Notification('foo');
+    notification.setParameter('my', [
+      new _MyHasToJsonObject(1),
+      new _MyHasToJsonObject(2),
+      new _MyHasToJsonObject(3)]);
+    expect(notification.toJson(), equals({
+      'event': 'foo',
+      'params': {
+        'my': [{'offset': 1}, {'offset': 2}, {'offset': 3}]
+      }
+    }));
+  }
+}
+
+
+class _MyHasToJsonObject implements HasToJson {
+  int offset;
+  _MyHasToJsonObject(this.offset);
+  Map<String, Object> toJson() => {'offset': offset};
 }
 
 

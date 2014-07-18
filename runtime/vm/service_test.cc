@@ -924,16 +924,28 @@ TEST_CASE(Service_Classes) {
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"fields\",\"9\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
-  // Invalid function request.
+  // Invalid function command.
   service_msg = EvalF(h_lib,
-                      "[0, port, ['classes', '%" Pd "', 'functions', '9',"
-                      "'x'], [], []]", cid);
+                      "[0, port, ['classes', '%" Pd "', 'functions', '0',"
+                      "'x', 'y'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Command too long\","
     "\"request\":"
-    "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"9\",\"x\"],"
+    "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"0\",\"x\",\"y\"],"
+    "\"option_keys\":[],\"option_values\":[]}}", cid);
+
+  // Invalid function subcommand with valid function id.
+  service_msg = EvalF(h_lib,
+                      "[0, port, ['classes', '%" Pd "', 'functions', '0',"
+                      "'x'], [], []]", cid);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(handler.msg(),
+    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Invalid sub collection x\","
+    "\"request\":"
+    "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"0\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Retained size of all instances of class B.
@@ -1288,6 +1300,9 @@ TEST_CASE(Service_Scripts) {
   Isolate* isolate = Isolate::Current();
   Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
@@ -1297,16 +1312,26 @@ TEST_CASE(Service_Scripts) {
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(h_lib, "[0, port, ['scripts', 'test-lib'], [], []]");
+  char buf[1024];
+  OS::SNPrint(buf, sizeof(buf),
+      "[0, port, ['libraries', '%" Pd "', 'scripts', 'test-lib'], [], []]",
+      lib.index());
+
+  service_msg = Eval(h_lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
-      "{\"type\":\"Script\",\"id\":\"scripts\\/test-lib\","
-       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-       "\"kind\":\"script\","
-       "\"source\":\"var port;\\n\\nmain() {\\n}\","
-       "\"tokenPosTable\":[[1,0,1,1,5,2,9],[3,5,1,6,5,7,6,8,8],[4,10,1]]}",
-      handler.msg());
+  OS::SNPrint(buf, sizeof(buf),
+      "{\"type\":\"Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"kind\":\"script\","
+      "\"owning_library\":{\"type\":\"@Library\","
+      "\"id\":\"libraries\\/%" Pd "\",\"user_name\":\"\",\"name\":\"\","
+      "\"url\":\"test-lib\"},"
+      "\"source\":\"var port;\\n\\nmain() {\\n}\","
+      "\"tokenPosTable\":[[1,0,1,1,5,2,9],[3,5,1,6,5,7,6,8,8],[4,10,1]]}",
+      lib.index(), lib.index());
+  EXPECT_STREQ(buf, handler.msg());
 }
 
 
@@ -1343,16 +1368,30 @@ TEST_CASE(Service_Coverage) {
   service_msg = Eval(h_lib, "[0, port, ['coverage'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING(
-      "{\"source\":\"test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+
+  // Look up the service id for the library containg the test-lib script.
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(isolate->object_store()->libraries());
+  intptr_t i;
+  for (i = 0; i < libs.Length(); i++) {
+    if (libs.At(i) == lib.raw()) {
+      break;
+    }
+  }
+  ASSERT(i != libs.Length());
+
+  char buf[1024];
+  OS::SNPrint(buf, sizeof(buf),
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":"
-      "[5,1,6,1]}", handler.msg());
+      "[5,1,6,1]}", i);
+  EXPECT_SUBSTRING(buf, handler.msg());
 }
 
 
-TEST_CASE(Service_ScriptsCoverage) {
+TEST_CASE(Service_LibrariesScriptsCoverage) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
       "\n"
@@ -1379,16 +1418,22 @@ TEST_CASE(Service_ScriptsCoverage) {
   EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(
-      h_lib, "[0, port, ['scripts', 'test-lib', 'coverage'], [], []]");
+  char buf[1024];
+  OS::SNPrint(buf, sizeof(buf),
+      "[0, port, ['libraries', '%" Pd  "', 'scripts', 'test-lib', 'coverage'], "
+      "[], []]",
+      lib.index());
+
+  service_msg = Eval(h_lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
+  OS::SNPrint(buf, sizeof(buf),
       "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-      "{\"source\":\"test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", handler.msg());
+      "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", lib.index());
+  EXPECT_STREQ(buf, handler.msg());
 }
 
 
@@ -1436,12 +1481,13 @@ TEST_CASE(Service_LibrariesCoverage) {
   service_msg = Eval(h_lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
+  OS::SNPrint(buf, sizeof(buf),
       "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-      "{\"source\":\"test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", handler.msg());
+      "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", lib.index());
+  EXPECT_STREQ(buf, handler.msg());
 }
 
 
@@ -1498,12 +1544,87 @@ TEST_CASE(Service_ClassesCoverage) {
   service_msg = Eval(h_lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ(
+  OS::SNPrint(buf, sizeof(buf),
       "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-      "{\"source\":\"test-lib\",\"script\":{"
-      "\"type\":\"@Script\",\"id\":\"scripts\\/test-lib\","
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[5,1,7,4,8,3]}]}", handler.msg());
+      "\"kind\":\"script\"},\"hits\":[5,1,7,4,8,3]}]}", lib.index());
+  EXPECT_STREQ(buf, handler.msg());
+}
+
+
+TEST_CASE(Service_ClassesFunctionsCoverage) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "class Foo {\n"
+      "  var x;\n"
+      "  Foo(this.x);\n"
+      "  bar() {\n"
+      "    x = x * x;\n"
+      "    x = x / 13;\n"
+      "  }\n"
+      "  badum(var a) => 4 + a;\n"
+      "}\n"
+      "main() {\n"
+      "  var foo = new Foo(7);\n"
+      "  foo.bar();\n"
+      "}";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+
+  // Look up the service id of Foo.
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(String::New("Foo"))));
+  ASSERT(!cls.IsNull());
+  ClassTable* table = isolate->class_table();
+  intptr_t i;
+  for (i = 1; i < table->NumCids(); i++) {
+    if (table->HasValidClassAt(i) && table->At(i) == cls.raw()) {
+      break;
+    }
+  }
+  ASSERT(i != table->NumCids());
+
+  // Look up the service if of the function Foo.bar.
+  const Function& func = Function::Handle(
+      cls.LookupFunction(String::Handle(String::New("bar"))));
+  ASSERT(!func.IsNull());
+  intptr_t function_id = -1;
+  function_id = cls.FindFunctionIndex(func);
+  ASSERT(function_id != -1);
+
+  char buf[1024];
+  OS::SNPrint(buf, sizeof(buf),
+              "[0, port, ['classes', '%" Pd "', 'functions',"
+              "'% " Pd "', 'coverage'], [], []]", i,  function_id);
+
+  Array& service_msg = Array::Handle();
+  service_msg = Eval(h_lib, buf);
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  OS::SNPrint(buf, sizeof(buf),
+      "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
+      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"kind\":\"script\"},\"hits\":[7,4,8,3]}]}", lib.index());
+  EXPECT_STREQ(buf, handler.msg());
 }
 
 #endif

@@ -133,13 +133,13 @@ class DartBackend extends Backend {
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
     world.registerInvocation(
-        new Selector.call("toString", null, 0));
+        null, new Selector.call("toString", null, 0));
     world.registerInvokedGetter(
-        new Selector.getter("hashCode", null));
+        null, new Selector.getter("hashCode", null));
     world.registerInvocation(
-        new Selector.binaryOperator("=="));
+        null, new Selector.binaryOperator("=="));
     world.registerInvocation(
-        new Selector.call("compareTo", null, 1));
+        null, new Selector.call("compareTo", null, 1));
   }
 
   void codegen(CodegenWorkItem work) { }
@@ -230,25 +230,27 @@ class DartBackend extends Backend {
       if (!compiler.irBuilder.hasIr(element)) {
         return new ElementAst(element);
       } else {
-        ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
-        tree.Builder builder = new tree.Builder(compiler);
-        tree.FunctionDefinition definition = builder.build(function);
+        cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
+        tree_builder.Builder builder = new tree_builder.Builder(compiler);
+        tree_ir.FunctionDefinition definition = builder.build(function);
         assert(definition != null);
         compiler.tracer.traceCompilation(element.name, null, compiler);
         compiler.tracer.traceGraph('Tree builder', definition);
         TreeElementMapping treeElements = new TreeElementMapping(element);
-        new tree.StatementRewriter().rewrite(definition);
+        new StatementRewriter().rewrite(definition);
         compiler.tracer.traceGraph('Statement rewriter', definition);
-        new tree.CopyPropagator().rewrite(definition);
+        new CopyPropagator().rewrite(definition);
         compiler.tracer.traceGraph('Copy propagation', definition);
-        new tree.LoopRewriter().rewrite(definition);
+        new LoopRewriter().rewrite(definition);
         compiler.tracer.traceGraph('Loop rewriter', definition);
-        new tree.LogicalRewriter().rewrite(definition);
+        new LogicalRewriter().rewrite(definition);
         compiler.tracer.traceGraph('Logical rewriter', definition);
-        new dart_codegen.UnshadowParameters().unshadow(definition);
+        new backend_ast_emitter.UnshadowParameters().unshadow(definition);
         compiler.tracer.traceGraph('Unshadow parameters', definition);
-        Node node = dart_codegen.emit(element, treeElements, definition);
-        return new ElementAst.internal(node, treeElements);
+        backend_ast.Node backendAst =
+            backend_ast_emitter.emit(definition);
+        Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
+        return new ElementAst.internal(frontend_ast, treeElements);
       }
     }
 

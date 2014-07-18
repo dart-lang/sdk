@@ -1858,6 +1858,12 @@ void Profiler::RecordSampleInterruptCallback(
     return;
   }
   ASSERT(isolate != Dart::vm_isolate());
+  if (StubCode::InJumpToExceptionHandlerStub(state.pc)) {
+    // The JumpToExceptionHandler stub manually adjusts the stack pointer,
+    // frame pointer, and some isolate state before jumping to a catch entry.
+    // It is not safe to walk the stack when executing this stub.
+    return;
+  }
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
   counters->Increment(isolate->vm_tag());
@@ -1890,8 +1896,9 @@ void Profiler::RecordSampleInterruptCallback(
     stackWalker.walk(isolate->heap());
   } else {
     if ((isolate->stub_code() != NULL) &&
-        (isolate->top_exit_frame_info() != 0)) {
-      // Collect only Dart frames.
+        (isolate->top_exit_frame_info() != 0) &&
+        (isolate->vm_tag() != VMTag::kScriptTagId)) {
+      // We have a valid exit frame info, use the Dart stack walker.
       ProfilerDartStackWalker stackWalker(isolate, sample);
       stackWalker.walk();
     } else {

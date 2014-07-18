@@ -16,7 +16,6 @@ import '../../lib/src/package_graph.dart';
 import '../../lib/src/source/path.dart';
 import '../../lib/src/system_cache.dart';
 import '../../lib/src/utils.dart';
-import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
 /// Expects that [computeTransformersNeededByTransformers] will return a graph

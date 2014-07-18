@@ -43,6 +43,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void InferIntRanges();
 
+  void SelectIntegerInstructions();
+
   void AnalyzeTryCatch();
 
   bool TryInlineRecognizedMethod(intptr_t receiver_cid,
@@ -355,6 +357,8 @@ class ConstantPropagator : public FlowGraphVisitor {
                       Token::Kind op_kind,
                       const Value& left,
                       const Value& right);
+
+  void TruncateInteger(Definition* instr, int64_t mask);
 
   virtual void VisitBlocks() { UNREACHABLE(); }
 

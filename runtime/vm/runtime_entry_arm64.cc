@@ -19,7 +19,7 @@ namespace dart {
 // function. Input for the stub is as follows:
 //   SP : points to the arguments and return value array.
 //   R5 : address of the runtime function to call.
-//   R4 : number of arguments to the call as Smi.
+//   R4 : number of arguments to the call.
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
@@ -56,7 +56,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
     __ LoadImmediate(R5, entry, kNoPP);
-    __ LoadImmediate(R4, Smi::RawValue(argument_count), kNoPP);
+    __ LoadImmediate(R4, argument_count, kNoPP);
     __ BranchLink(&StubCode::CallToRuntimeLabel(), PP);
   }
 }

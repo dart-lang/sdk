@@ -45,14 +45,16 @@ class _HtmlInliner extends PolymerTransformer {
     seen.add(docId);
 
     Document document;
-    bool changed;
+    bool changed = false;
 
     return readPrimaryAsHtml(transform).then((doc) {
       document = doc;
+      changed = new _UrlNormalizer(transform, docId).visit(document) || changed;
+      
       experimentalBootstrap = document.querySelectorAll('link').any((link) =>
           link.attributes['rel'] == 'import' &&
           link.attributes['href'] == POLYMER_EXPERIMENTAL_HTML);
-      changed = _extractScripts(document);
+      changed = _extractScripts(document) || changed;
       return _visitImports(document);
     }).then((importsFound) {
       changed = changed || importsFound;
@@ -160,7 +162,15 @@ class _HtmlInliner extends PolymerTransformer {
   Future _inlineStylesheet(AssetId id, Element link) {
     return transform.readInputAsString(id).then((css) {
       css = new _UrlNormalizer(transform, id).visitCss(css);
-      link.replaceWith(new Element.tag('style')..text = css);
+      var styleElement = new Element.tag('style')..text = css;
+      // Copy over the extra attributes from the link tag to the style tag.
+      // This adds support for no-shim, shim-shadowdom, etc.
+      link.attributes.forEach((key, value) {
+        if (!IGNORED_LINKED_STYLE_ATTRS.contains(key)) {
+          styleElement.attributes[key] = value;
+        }
+      });
+      link.replaceWith(styleElement);
     });
   }
 
@@ -238,7 +248,11 @@ String _libraryNameFor(AssetId id, int suffix) {
   var name = '${path.withoutExtension(id.path)}_'
       '${path.extension(id.path).substring(1)}';
   if (name.startsWith('lib/')) name = name.substring(4);
-  name = name.replaceAll('/', '.').replaceAll('-', '_');
+  name = name.split('/').map((part) {
+    part = part.replaceAll(INVALID_LIB_CHARS_REGEX, '_');
+    if (part.startsWith(NUM_REGEX)) part = '_${part}';
+    return part;
+  }).join(".");
   return '${id.package}.${name}_$suffix';
 }
 
@@ -286,7 +300,22 @@ class _UrlNormalizer extends TreeVisitor {
   /// Counter used to ensure that every library name we inject is unique.
   int _count = 0;
 
-  _UrlNormalizer(this.transform, this.sourceId);
+  /// Path to the top level folder relative to the transform primaryInput.
+  /// This should just be some arbitrary # of ../'s.
+  final String topLevelPath;
+
+  /// Whether or not the normalizer has changed something in the tree.
+  bool changed = false;
+
+  _UrlNormalizer(transform, this.sourceId)
+      : transform = transform,
+        topLevelPath =
+          '../' * (transform.primaryInput.id.path.split('/').length - 2);
+
+  visit(Node node) {
+    super.visit(node);
+    return changed;
+  }
 
   visitElement(Element node) {
     // TODO(jakemac): Support custom elements that extend html elements which
@@ -297,20 +326,23 @@ class _UrlNormalizer extends TreeVisitor {
         if (_urlAttributes.contains(name)) {
           if (value != '' && !value.trim().startsWith('{{')) {
             node.attributes[name] = _newUrl(value, node.sourceSpan);
+            changed = changed || value != node.attributes[name];
           }
         }
       });
     }
     if (node.localName == 'style') {
       node.text = visitCss(node.text);
+      changed = true;
     } else if (node.localName == 'script' &&
         node.attributes['type'] == TYPE_DART &&
         !node.attributes.containsKey('src')) {
       // TODO(jmesserly): we might need to visit JS too to handle ES Harmony
       // modules.
       node.text = visitInlineDart(node.text);
+      changed = true;
     }
-    super.visitElement(node);
+    return super.visitElement(node);
   }
 
   static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);
@@ -383,11 +415,11 @@ class _UrlNormalizer extends TreeVisitor {
     var primaryId = transform.primaryInput.id;
 
     if (id.path.startsWith('lib/')) {
-      return 'packages/${id.package}/${id.path.substring(4)}';
+      return '${topLevelPath}packages/${id.package}/${id.path.substring(4)}';
     }
 
     if (id.path.startsWith('asset/')) {
-      return 'assets/${id.package}/${id.path.substring(6)}';
+      return '${topLevelPath}assets/${id.package}/${id.path.substring(6)}';
     }
 
     if (primaryId.package != id.package) {
@@ -421,5 +453,14 @@ const _urlAttributes = const [
   'src',        // in audio, embed, iframe, img, input, script, source, track,
                 //    video
 ];
+
+/// When inlining <link rel="stylesheet"> tags copy over all attributes to the
+/// style tag except these ones.
+const IGNORED_LINKED_STYLE_ATTRS =
+    const ['charset', 'href', 'href-lang', 'rel', 'rev'];
+
+/// Global RegExp objects for validating generated library names.
+final INVALID_LIB_CHARS_REGEX = new RegExp('[^a-z0-9_]');
+final NUM_REGEX = new RegExp('[0-9]');
 
 _getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);

@@ -236,7 +236,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerDynamicInvocation(Selector selector) {
-    world.registerDynamicInvocation(selector);
+    world.registerDynamicInvocation(currentElement, selector);
   }
 
   void registerSuperNoSuchMethod() {
@@ -268,11 +268,11 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerDynamicGetter(Selector selector) {
-    world.registerDynamicGetter(selector);
+    world.registerDynamicGetter(currentElement, selector);
   }
 
   void registerDynamicSetter(Selector selector) {
-    world.registerDynamicSetter(selector);
+    world.registerDynamicSetter(currentElement, selector);
   }
 
   void registerConstSymbol(String name) {

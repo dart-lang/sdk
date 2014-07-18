@@ -32,7 +32,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
     __ movl(ECX, Immediate(GetEntryPoint()));
-    __ movl(EDX, Immediate(Smi::RawValue(argument_count)));
+    __ movl(EDX, Immediate(argument_count));
     __ call(&StubCode::CallToRuntimeLabel());
   }
 }

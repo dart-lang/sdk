@@ -7,6 +7,8 @@ library protocol;
 import 'dart:collection';
 import 'dart:convert' show JsonDecoder;
 
+import 'package:analysis_server/src/collections.dart';
+
 /**
  * An abstract enumeration.
  */
@@ -616,7 +618,7 @@ class Response {
    * Set the value of the result field with the given [name] to the given [value].
    */
   void setResult(String name, Object value) {
-    result[name] = value;
+    result[name] = _toJson(value);
   }
 
   /**
@@ -870,7 +872,7 @@ class Notification {
    * Set the value of the parameter with the given [name] to the given [value].
    */
   void setParameter(String name, Object value) {
-    params[name] = value;
+    params[name] = _toJson(value);
   }
 
   /**
@@ -916,4 +918,17 @@ class RequestFailure implements Exception {
    * Initialize a newly created exception to return the given reponse.
    */
   RequestFailure(this.response);
+}
+
+/**
+ * Returns a JSON presention of [value].
+ */
+_toJson(Object value) {
+  if (value is HasToJson) {
+    return value.toJson();
+  }
+  if (value is Iterable) {
+    return value.map((item) => _toJson(item)).toList();
+  }
+  return value;
 }

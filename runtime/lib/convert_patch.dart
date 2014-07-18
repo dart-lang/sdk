@@ -33,8 +33,6 @@ abstract class _JsonListener {
   void beginArray() {}
   void arrayElement() {}
   void endArray() {}
-  /** Called on failure to parse [source]. */
-  void fail(String source, int position, String message) {}
 }
 
 /**
@@ -487,6 +485,7 @@ class _JsonParser {
   }
 
   int parseNumber(int char, int position) {
+    // Also called on any unexpected character.
     // Format:
     //  '-'?('0'|[1-9][0-9]*)('.'[0-9]+)?([eE][+-]?[0-9]+)?
     int start = position;
@@ -505,7 +504,12 @@ class _JsonParser {
         char = source.codeUnitAt(position);
       }
       if (char < CHAR_0 || char > CHAR_9) {
-        fail(position, "Missing expected digit");
+        if (intSign < 0) {
+          fail(position, "Missing expected digit");
+        } else {
+          // If it doesn't even start out as a numeral.
+          fail(position, "Unexpected character");
+        }
       }
       if (char == CHAR_0) {
         position++;
@@ -558,26 +562,17 @@ class _JsonParser {
       listener.handleNumber(intSign * intValue);
       return position;
     }
-    // Consider whether we can have an int/double.parse that works on part of
-    // a string, to avoid creating the substring.
-    String literal = source.substring(start, position);
     // This correctly creates -0.0 for doubles.
-    listener.handleNumber(double.parse(literal));
+    listener.handleNumber(_parseDouble(source, start, position));
     return position;
   }
 
+  static double _parseDouble(String source, int start, int end)
+      native "Double_parse";
+
   void fail(int position, [String message]) {
     if (message == null) message = "Unexpected character";
-    listener.fail(source, position, message);
-    // If the listener didn't throw, do it here.
-    String slice;
-    int sliceEnd = position + 20;
-    if (sliceEnd > source.length) {
-      slice = "'${source.substring(position)}'";
-    } else {
-      slice = "'${source.substring(position, sliceEnd)}...'";
-    }
-    throw new FormatException("Unexpected character at $position: $slice");
+    throw new FormatException(message, source, position);
   }
 }
 

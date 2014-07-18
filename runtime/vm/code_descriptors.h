@@ -30,8 +30,8 @@ class DescriptorList : public ZoneAllocated {
     }
   };
 
-  explicit DescriptorList(intptr_t initial_capacity) : list_(initial_capacity) {
-  }
+  explicit DescriptorList(intptr_t initial_capacity)
+      : list_(initial_capacity), has_try_index_(false) {}
   ~DescriptorList() { }
 
   intptr_t Length() const {
@@ -54,7 +54,7 @@ class DescriptorList : public ZoneAllocated {
     return list_[index].DeoptReason();
   }
   intptr_t TryIndex(intptr_t index) const {
-    return list_[index].try_index;
+    return (has_try_index_) ? list_[index].try_index : -1;
   }
 
   void AddDescriptor(RawPcDescriptors::Kind kind,
@@ -67,6 +67,7 @@ class DescriptorList : public ZoneAllocated {
 
  private:
   GrowableArray<struct PcDesc> list_;
+  bool has_try_index_;
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
 };
 

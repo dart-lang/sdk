@@ -54,7 +54,6 @@ cc/Coverage_MainWithClass: Skip # Dart bug 16250
 cc/Service_ClassesCoverage: Skip # Dart bug 16250
 
 [ $compiler == dart2js ]
-dart/mirrored_compilation_error_test: Skip # VM-specific flag
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 dart/byte_array_optimized_test: Skip # compilers not aware of byte arrays
@@ -81,13 +80,8 @@ cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
 cc/JSON_JSONStream_Options: Crash # Issue 19328
 cc/FindCodeObject: Skip # Takes more than 8 minutes. dartbug.com/17440.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
-dart/mirrored_compilation_error_test: Skip # Can't pass needed VM flag
-
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning
-
-dart/mirrored_compilation_error_test: CompileTimeError, OK # This test intentionally includes invalid method bodies.
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 dart/byte_array_test: RuntimeError # Issue 17612

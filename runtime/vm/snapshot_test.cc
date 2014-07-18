@@ -2717,4 +2717,15 @@ UNIT_TEST_CASE(PostCObject) {
   Dart_ExitScope();
 }
 
+
+TEST_CASE(OmittedObjectEncodingLength) {
+  StackZone zone(Isolate::Current());
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator);
+  writer.WriteInlinedObjectHeader(kOmittedObjectId);
+  // For performance, we'd like single-byte headers when ids are omitted.
+  // If this starts failing, consider renumbering the snapshot ids.
+  EXPECT_EQ(1, writer.BytesWritten());
+}
+
 }  // namespace dart

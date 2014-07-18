@@ -538,6 +538,8 @@ class _ByteBuffer implements ByteBuffer {
 
   _ByteBuffer(this._data);
 
+  factory _ByteBuffer._New(data) => new _ByteBuffer(data);
+
   // Forward calls to _data.
   int get lengthInBytes => _data.lengthInBytes;
   int get hashCode => _data.hashCode;

@@ -5,18 +5,10 @@
 library pub.command.run;
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:barback/barback.dart';
-import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
-
-import '../barback/asset_environment.dart';
 import '../command.dart';
 import '../executable.dart';
-import '../exit_codes.dart' as exit_codes;
 import '../io.dart';
-import '../log.dart' as log;
 import '../utils.dart';
 
 /// Handles the `run` pub command.
@@ -31,7 +23,6 @@ class RunCommand extends PubCommand {
       usageError("Must specify an executable to run.");
     }
 
-    var environment;
     var package = entrypoint.root.name;
     var executable = commandOptions.rest[0];
     var args = commandOptions.rest.skip(1).toList();

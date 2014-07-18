@@ -18,9 +18,7 @@ import 'version_solver.dart';
 ///
 /// It's a report builder.
 class SolveReport {
-  /// Whether all dependencies should be reported, or just ones that changed.
-  final bool _showAll;
-
+  final SolveType _type;
   final SourceRegistry _sources;
   final Package _root;
   final LockFile _previousLockFile;
@@ -31,9 +29,8 @@ class SolveReport {
 
   final _output = new StringBuffer();
 
-  SolveReport(this._sources, this._root, this._previousLockFile,
-      this._result, {bool showAll: false})
-      : _showAll = showAll {
+  SolveReport(this._type, this._sources, this._root, this._previousLockFile,
+      this._result) {
     // Fill the map so we can use it later.
     for (var id in _result.packages) {
       _dependencies[id.name] = id;
@@ -80,10 +77,10 @@ class SolveReport {
       }
     } else {
       if (numChanged == 0) {
-        if (_showAll) {
-          log.message("No dependencies changed.");
-        } else {
+        if (_type == SolveType.GET) {
           log.message("Got dependencies!");
+        } else {
+          log.message("No dependencies changed.");
         }
       } else if (numChanged == 1) {
         log.message("Changed $numChanged dependency!");
@@ -137,8 +134,8 @@ class SolveReport {
   /// Reports the results of the upgrade on the package named [name].
   ///
   /// If [alwaysShow] is true, the package is reported even if it didn't change,
-  /// regardless of [_showAll]. If [highlightOverride] is true (or absent),
-  /// writes "(override)" next to overridden packages.
+  /// regardless of [_type]. If [highlightOverride] is true (or absent), writes
+  /// "(override)" next to overridden packages.
   void _reportPackage(String name,
       {bool alwaysShow: false, bool highlightOverride: true}) {
     var newId = _dependencies[name];
@@ -186,7 +183,9 @@ class SolveReport {
       icon = "  ";
     }
 
-    if (!(alwaysShow || changed || addedOrRemoved || _showAll)) return;
+    if (_type == SolveType.GET && !(alwaysShow || changed || addedOrRemoved)) {
+      return;
+    }
 
     _output.write(icon);
     _output.write(log.bold(id.name));
@@ -207,8 +206,9 @@ class SolveReport {
 
     // See if there are any newer versions of the package that we were
     // unable to upgrade to.
-    if (newId != null) {
+    if (newId != null && _type != SolveType.DOWNGRADE) {
       var versions = _result.availableVersions[newId.name];
+
       var newerStable = false;
       var newerUnstable = false;
 

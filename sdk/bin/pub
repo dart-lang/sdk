@@ -59,7 +59,7 @@ else
   # Use the Dart binary in the built SDK so pub can find the version file next
   # to it.
   DART="$BUILD_DIR/dart-sdk/bin/dart"
-  PACKAGES_DIR="$BUILD_DIR/packages/"
+  PACKAGES_DIR="$BUILD_DIR/pub_packages/"
 
   PUB="$SDK_DIR/lib/_internal/pub/bin/pub.dart"
 

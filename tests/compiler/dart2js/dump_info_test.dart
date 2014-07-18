@@ -7,6 +7,7 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'memory_compiler.dart';
 import 'package:compiler/implementation/dump_info.dart';
+import 'dart:convert';
 
 const String TEST_ONE = r"""
 library main;
@@ -44,27 +45,27 @@ main() {
 main() {
   var compiler = compilerFor({'main.dart': TEST_ONE}, options: ["--dump-info"]);
   asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
-    var visitor = compiler.dumpInfoTask.infoDumpVisitor;
-    var info = visitor.collectDumpInfo();
-    var mainlib = info.libraries[0];
-    Expect.stringEquals("main", mainlib.name);
-    List contents = mainlib.contents;
-    Expect.stringEquals("main", mainlib.name);
-    print(mainlib.contents.map((e)=> e.name));
-    var a = contents.singleWhere((e) => e.name == "a");
-    var c = contents.singleWhere((e) => e.name == "c");
-    var f = contents.singleWhere((e) => e.name == "f");
-    var main = contents.singleWhere((e) => e.name == "main");
-    Expect.stringEquals("library", mainlib.kind);
-    Expect.stringEquals("field", a.kind);
-    Expect.stringEquals("class", c.kind);
-    var constructor = c.contents.singleWhere((e) => e.name == "c");
-    Expect.stringEquals("constructor", constructor.kind);
-    var method = c.contents.singleWhere((e) => e.name == "foo");
-    Expect.stringEquals("method", method.kind);
-    var field = c.contents.singleWhere((e) => e.name == "m");
-    Expect.stringEquals("field", field.kind);
-    Expect.stringEquals("function", f.kind);
-    Expect.stringEquals("function", main.kind);
+    var dumpTask = compiler.dumpInfoTask;
+    dumpTask.collectInfo();
+    var info = dumpTask.infoCollector;
+
+    StringBuffer sb = new StringBuffer();
+    dumpTask.dumpInfoJson(sb);
+    String json = sb.toString();
+    Map<String, dynamic> map = JSON.decode(json);
+    Expect.isTrue(map.isNotEmpty);
+    Expect.isTrue(map['elements'].isNotEmpty);
+    Expect.isTrue(map['elements']['function'].isNotEmpty);
+    Expect.isTrue(map['elements']['library'].isNotEmpty);
+
+    Expect.isTrue(map['elements']['library'].values.any((lib) {
+      return lib['name'] == "main";
+    }));
+    Expect.isTrue(map['elements']['class'].values.any((clazz) {
+      return clazz['name'] == "c";
+    }));
+    Expect.isTrue(map['elements']['function'].values.any((fun) {
+      return fun['name'] == 'f';
+    }));
   }));
 }

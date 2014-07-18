@@ -18,7 +18,7 @@ part of dart.collection;
  * The keys of a `LinkedHashMap` must have consistent [Object.operator==]
  * and [Object.hashCode] implementations. This means that the `==` operator
  * must define a stable equivalence relation on the keys (reflexive,
- * anti-symmetric, transitive, and consistent over time), and that `hashCode`
+ * symmetric, transitive, and consistent over time), and that `hashCode`
  * must be the same for objects that are considered equal by `==`.
  *
  * The map allows `null` as a key.

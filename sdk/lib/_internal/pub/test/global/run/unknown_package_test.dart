@@ -5,7 +5,6 @@
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../../../lib/src/exit_codes.dart' as exit_codes;
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
@@ -13,7 +12,7 @@ main() {
   integration('errors if the package is not activated', () {
     servePackages([]);
 
-    schedulePub(args: ["global", "run", "foo", "bar"],
+    schedulePub(args: ["global", "run", "foo:bar"],
         error: startsWith("No active package foo."),
         exitCode: exit_codes.DATA);
   });

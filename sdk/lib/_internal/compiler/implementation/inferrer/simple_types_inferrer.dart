@@ -11,7 +11,7 @@ import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native_handler.dart' as native;
 import '../tree/tree.dart' as ast;
-import '../ir/ir_nodes.dart' as ir show Node;
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../util/util.dart' show Link, Spannable, Setlet;
 import '../types/types.dart'
     show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
@@ -122,15 +122,21 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return new TypedSelector(receiver, selector, compiler);
   }
 
-  TypeMask addPhiInput(Element element, TypeMask phiType, TypeMask newType) {
+  TypeMask addPhiInput(Local variable,
+                       TypeMask phiType,
+                       TypeMask newType) {
     return computeLUB(phiType, newType);
   }
 
-  TypeMask allocatePhi(ast.Node node, Element element, TypeMask inputType) {
+  TypeMask allocatePhi(ast.Node node,
+                       Local variable,
+                       TypeMask inputType) {
     return inputType;
   }
 
-  TypeMask simplifyPhi(ast.Node node, Element element, TypeMask phiType) {
+  TypeMask simplifyPhi(ast.Node node,
+                       Local variable,
+                       TypeMask phiType) {
     return phiType;
   }
 
@@ -354,7 +360,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
 
   void updateSelectorInTree(
       AstElement owner, Spannable node, Selector selector) {
-    if (node is ir.Node) {
+    if (node is cps_ir.Node) {
       // TODO(lry): update selector for IrInvokeDynamic.
       throw "updateSelector for IR node $node";
     }
@@ -584,7 +590,7 @@ class SimpleTypeInferrerVisitor<T>
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
     nestedClosureData.forEachCapturedVariable((variable, field) {
       if (!nestedClosureData.isVariableBoxed(variable)) {
-        if (variable == nestedClosureData.thisElement) {
+        if (variable == nestedClosureData.thisLocal) {
           inferrer.recordType(field, thisType);
         }
         // The type is null for type parameters.
@@ -836,7 +842,8 @@ class SimpleTypeInferrerVisitor<T>
         handleDynamicSend(node, setterSelector, receiverType,
                           new ArgumentsTypes<T>([newType], null));
       } else if (Elements.isLocal(element)) {
-        getterType = locals.use(element);
+        TypedElement local = element;
+        getterType = locals.use(local);
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
         locals.update(element, newType, node);
@@ -1072,8 +1079,9 @@ class SimpleTypeInferrerVisitor<T>
     } else if (Elements.isErroneousElement(element)) {
       return types.dynamicType;
     } else if (Elements.isLocal(element)) {
-      assert(locals.use(element) != null);
-      return locals.use(element);
+      TypedElement local = element;
+      assert(locals.use(local) != null);
+      return locals.use(local);
     } else {
       assert(element is PrefixElement);
       return null;
@@ -1193,7 +1201,7 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     List<T> unnamed = <T>[];
-    signature.forEachRequiredParameter((Element element) {
+    signature.forEachRequiredParameter((ParameterElement element) {
       assert(locals.use(element) != null);
       unnamed.add(locals.use(element));
     });
@@ -1201,11 +1209,11 @@ class SimpleTypeInferrerVisitor<T>
     Map<String, T> named;
     if (signature.optionalParametersAreNamed) {
       named = new Map<String, T>();
-      signature.forEachOptionalParameter((Element element) {
+      signature.forEachOptionalParameter((ParameterElement element) {
         named[element.name] = locals.use(element);
       });
     } else {
-      signature.forEachOptionalParameter((Element element) {
+      signature.forEachOptionalParameter((ParameterElement element) {
         unnamed.add(locals.use(element));
       });
     }

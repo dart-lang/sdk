@@ -16,10 +16,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, use_mirrored_compilation_error, false,
-    "Wrap compilation errors that occur during reflective access in a "
-    "MirroredCompilationError, rather than suspending the isolate.");
-
 static RawInstance* CreateMirror(const String& mirror_class_name,
                                  const Array& constructor_arguments) {
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
@@ -32,28 +28,6 @@ static RawInstance* CreateMirror(const String& mirror_class_name,
                                        constructor_arguments));
   ASSERT(!result.IsError());
   return Instance::Cast(result).raw();
-}
-
-
-static void ThrowMirroredCompilationError(const String& message) {
-  Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, message);
-
-  Exceptions::ThrowByType(Exceptions::kMirroredCompilationError, args);
-  UNREACHABLE();
-}
-
-
-static void ThrowInvokeError(const Error& error) {
-  if (FLAG_use_mirrored_compilation_error && error.IsLanguageError()) {
-    // A compilation error that was delayed by lazy compilation.
-    const LanguageError& compilation_error = LanguageError::Cast(error);
-    String& message = String::Handle(compilation_error.FormatMessage());
-    ThrowMirroredCompilationError(message);
-    UNREACHABLE();
-  }
-  Exceptions::PropagateError(error);
-  UNREACHABLE();
 }
 
 
@@ -102,14 +76,14 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
   const Error& error = Error::Handle(
       isolate, cls.EnsureIsFinalized(Isolate::Current()));
   if (!error.IsNull()) {
-    ThrowInvokeError(error);
+    Exceptions::PropagateError(error);
     UNREACHABLE();
   }
   if (!func.HasCode()) {
     const Error& error = Error::Handle(
         isolate, Compiler::CompileFunction(isolate, func));
     if (!error.IsNull()) {
-      ThrowInvokeError(error);
+      Exceptions::PropagateError(error);
       UNREACHABLE();
     }
   }
@@ -158,7 +132,7 @@ static RawInstance* CreateParameterMirrorList(const Function& func,
     const Object& result =
         Object::Handle(Parser::ParseFunctionParameters(func));
     if (result.IsError()) {
-      ThrowInvokeError(Error::Cast(result));
+      Exceptions::PropagateError(Error::Cast(result));
       UNREACHABLE();
     }
     param_descriptor ^= result.raw();
@@ -350,7 +324,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
 
   const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
   if (!error.IsNull()) {
-    ThrowInvokeError(error);
+    Exceptions::PropagateError(error);
     UNREACHABLE();
   }
 
@@ -434,7 +408,7 @@ static RawInstance* CreateLibraryDependencyMirror(const Instance& importer,
 
   Object& metadata = Object::Handle(ns.GetMetadata());
   if (metadata.IsError()) {
-    ThrowInvokeError(Error::Cast(metadata));
+    Exceptions::PropagateError(Error::Cast(metadata));
     UNREACHABLE();
   }
 
@@ -590,7 +564,7 @@ static RawInstance* CreateMirrorSystem() {
 
 static RawInstance* ReturnResult(const Object& result) {
   if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
+    Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
   if (result.IsInstance()) {
@@ -784,7 +758,7 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
   AbstractType& result =
       AbstractType::Handle(type.InstantiateFrom(type_args, &bound_error));
   if (!bound_error.IsNull()) {
-    ThrowInvokeError(bound_error);
+    Exceptions::PropagateError(bound_error);
     UNREACHABLE();
   }
   ASSERT(result.IsFinalized());
@@ -873,7 +847,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
 
   const Object& metadata = Object::Handle(library.GetMetadata(decl));
   if (metadata.IsError()) {
-    ThrowInvokeError(Error::Cast(metadata));
+    Exceptions::PropagateError(Error::Cast(metadata));
   }
   return metadata.raw();
 }
@@ -962,7 +936,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
   const Class& cls = Class::Handle(type.type_class());
   const Error& error = Error::Handle(cls.EnsureIsFinalized(isolate));
   if (!error.IsNull()) {
-    ThrowInvokeError(error);
+    Exceptions::PropagateError(error);
   }
 
   return cls.interfaces();
@@ -979,7 +953,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
   const Class& cls = Class::Handle(type.type_class());
   const Error& error = Error::Handle(cls.EnsureIsFinalized(isolate));
   if (!error.IsNull()) {
-    ThrowInvokeError(error);
+    Exceptions::PropagateError(error);
   }
 
   Array& interfaces = Array::Handle(cls.interfaces());
@@ -1041,7 +1015,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 2) {
 
   const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
   if (!error.IsNull()) {
-    ThrowInvokeError(error);
+    Exceptions::PropagateError(error);
   }
 
   const Array& fields = Array::Handle(klass.fields());
@@ -1088,7 +1062,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 2) {
 
   const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
   if (!error.IsNull()) {
-    ThrowInvokeError(error);
+    Exceptions::PropagateError(error);
   }
 
   const Array& functions = Array::Handle(klass.functions());
@@ -1310,7 +1284,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
       const Object& call_result =
           Object::Handle(DartEntry::InvokeClosure(args, args_descriptor));
       if (call_result.IsError()) {
-        ThrowInvokeError(Error::Cast(call_result));
+        Exceptions::PropagateError(Error::Cast(call_result));
         UNREACHABLE();
       }
       return call_result.raw();
@@ -1412,7 +1386,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
       const Object& getter_result = Object::Handle(
           DartEntry::InvokeFunction(function, Object::empty_array()));
       if (getter_result.IsError()) {
-        ThrowInvokeError(Error::Cast(getter_result));
+        Exceptions::PropagateError(Error::Cast(getter_result));
         UNREACHABLE();
       }
       // Make room for the closure (receiver) in the argument list.
@@ -1430,7 +1404,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
       const Object& call_result = Object::Handle(
           DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
       if (call_result.IsError()) {
-        ThrowInvokeError(Error::Cast(call_result));
+        Exceptions::PropagateError(Error::Cast(call_result));
         UNREACHABLE();
       }
       return call_result.raw();
@@ -1457,7 +1431,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   Object& result = Object::Handle(
       DartEntry::InvokeFunction(function, args, args_descriptor_array));
   if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
+    Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
   return result.raw();
@@ -1511,7 +1485,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
     Object& result = Object::Handle(
         DartEntry::InvokeFunction(setter, args));
     if (result.IsError()) {
-      ThrowInvokeError(Error::Cast(result));
+      Exceptions::PropagateError(Error::Cast(result));
       UNREACHABLE();
     }
     return result.raw();
@@ -1603,7 +1577,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       redirect_type ^= redirect_type.InstantiateFrom(type_arguments,
                                                      &bound_error);
       if (!bound_error.IsNull()) {
-        ThrowInvokeError(bound_error);
+        Exceptions::PropagateError(bound_error);
         UNREACHABLE();
       }
       redirect_type ^= redirect_type.Canonicalize();
@@ -1674,7 +1648,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
                                                args,
                                                args_descriptor_array));
   if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
+    Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
 
@@ -1723,7 +1697,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
       const Object& call_result = Object::Handle(
           DartEntry::InvokeClosure(call_args, call_args_descriptor_array));
       if (call_result.IsError()) {
-        ThrowInvokeError(Error::Cast(call_result));
+        Exceptions::PropagateError(Error::Cast(call_result));
         UNREACHABLE();
       }
       return call_result.raw();
@@ -1749,7 +1723,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
   const Object& result = Object::Handle(
       DartEntry::InvokeFunction(function, args, args_descriptor_array));
   if (result.IsError()) {
-    ThrowInvokeError(Error::Cast(result));
+    Exceptions::PropagateError(Error::Cast(result));
     UNREACHABLE();
   }
   return result.raw();
@@ -1806,7 +1780,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
     const Object& result = Object::Handle(
         DartEntry::InvokeFunction(setter, args));
     if (result.IsError()) {
-      ThrowInvokeError(Error::Cast(result));
+      Exceptions::PropagateError(Error::Cast(result));
       UNREACHABLE();
     }
     return result.raw();

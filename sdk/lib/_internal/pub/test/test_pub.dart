@@ -329,6 +329,8 @@ class RunCommand {
       r'Got dependencies!|Changed \d+ dependenc(y|ies)!'));
   static final upgrade = new RunCommand('upgrade', new RegExp(
       r'(No dependencies changed\.|Changed \d+ dependenc(y|ies)!)$'));
+  static final downgrade = new RunCommand('downgrade', new RegExp(
+      r'(No dependencies changed\.|Changed \d+ dependenc(y|ies)!)$'));
 
   final String name;
   final RegExp success;
@@ -385,6 +387,12 @@ void pubGet({Iterable<String> args, output, error, warning, int exitCode}) {
 
 void pubUpgrade({Iterable<String> args, output, error, warning, int exitCode}) {
   pubCommand(RunCommand.upgrade, args: args, output: output, error: error,
+      warning: warning, exitCode: exitCode);
+}
+
+void pubDowngrade({Iterable<String> args, output, error, warning,
+    int exitCode}) {
+  pubCommand(RunCommand.downgrade, args: args, output: output, error: error,
       warning: warning, exitCode: exitCode);
 }
 

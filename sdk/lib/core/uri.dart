@@ -396,34 +396,7 @@ class Uri {
 
   // Report a parse failure.
   static void _fail(String uri, int index, String message) {
-    // TODO(lrn): Consider adding this to FormatException.
-    if (index == uri.length) {
-      message += " at end of input.";
-    } else {
-      message += " at position $index.\n";
-      // Pick a slice of uri containing index and, if
-      // necessary, truncate the ends to ensure the entire
-      // slice fits on one line.
-      int min = 0;
-      int max = uri.length;
-      String pre = "";
-      String post = "";
-      if (uri.length > 78) {
-        min = index - 10;
-        if (min < 0) min = 0;
-        int max = min + 72;
-        if (max > uri.length) {
-          max = uri.length;
-          min = max - 72;
-        }
-        if (min != 0) pre = "...";
-        if (max != uri.length) post = "...";
-      }
-      // Combine message, slice and a caret pointing to the error index.
-      message = "$message$pre${uri.substring(min, max)}$post\n"
-                "${' ' * (pre.length + index - min)}^";
-    }
-    throw new FormatException(message);
+    throw new FormatException(message, uri, index);
   }
 
   /// Internal non-verifying constructor. Only call with validated arguments.
@@ -608,13 +581,15 @@ class Uri {
           if (authority.codeUnitAt(hostEnd) == _RIGHT_BRACKET) break;
         }
         if (hostEnd == authority.length) {
-          throw new FormatException("Invalid IPv6 host entry.");
+          throw new FormatException("Invalid IPv6 host entry.",
+                                    authority, hostStart);
         }
         parseIPv6Address(authority, hostStart + 1, hostEnd);
         hostEnd++;  // Skip the closing bracket.
         if (hostEnd != authority.length &&
             authority.codeUnitAt(hostEnd) != _COLON) {
-          throw new FormatException("Invalid end of authority");
+          throw new FormatException("Invalid end of authority",
+                                    authority, hostEnd);
         }
       }
       // Split host and port.
@@ -1811,16 +1786,16 @@ class Uri {
     //  - One (and only one) wildcard (`::`) may be present, representing a fill
     //    of 0's. The IPv6 `::` is thus 16 bytes of `0`.
     //  - The last two parts may be replaced by an IPv4 address.
-    void error(String msg) {
-      throw new FormatException('Illegal IPv6 address, $msg');
+    void error(String msg, [position]) {
+      throw new FormatException('Illegal IPv6 address, $msg', host, position);
     }
     int parseHex(int start, int end) {
       if (end - start > 4) {
-        error('an IPv6 part can only contain a maximum of 4 hex digits');
+        error('an IPv6 part can only contain a maximum of 4 hex digits', start);
       }
       int value = int.parse(host.substring(start, end), radix: 16);
       if (value < 0 || value > (1 << 16) - 1) {
-        error('each part must be in the range of `0x0..0xFFFF`');
+        error('each part must be in the range of `0x0..0xFFFF`', start);
       }
       return value;
     }
@@ -1835,14 +1810,14 @@ class Uri {
           // If we see a `:` in the beginning, expect wildcard.
           i++;
           if (host.codeUnitAt(i) != _COLON) {
-            error('invalid start colon.');
+            error('invalid start colon.', i);
           }
           partStart = i;
         }
         if (i == partStart) {
           // Wildcard. We only allow one.
           if (wildcardSeen) {
-            error('only one wildcard `::` is allowed');
+            error('only one wildcard `::` is allowed', i);
           }
           wildcardSeen = true;
           parts.add(-1);
@@ -1857,7 +1832,7 @@ class Uri {
     bool atEnd = (partStart == end);
     bool isLastWildcard = (parts.last == -1);
     if (atEnd && !isLastWildcard) {
-      error('expected a part after last `:`');
+      error('expected a part after last `:`', end);
     }
     if (!atEnd) {
       try {
@@ -1869,7 +1844,7 @@ class Uri {
           parts.add(last[0] << 8 | last[1]);
           parts.add(last[2] << 8 | last[3]);
         } catch (e) {
-          error('invalid end of IPv6 address.');
+          error('invalid end of IPv6 address.', partStart);
         }
       }
     }

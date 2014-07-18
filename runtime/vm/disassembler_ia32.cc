@@ -241,6 +241,7 @@ static const char* F0Mnem(uint8_t f0byte) {
     case 0xA5: return "shld";
     case 0xAC:  // Fall through.
     case 0xAD: return "shrd";
+    case 0xA3: return "bt";
     case 0xAB: return "bts";
     case 0xBD: return "bsr";
     case 0xB1: return "cmpxchg";
@@ -1412,8 +1413,8 @@ int X86Decoder::InstructionDecode(uword pc) {
         } else {
           data += 2;
           if (f0byte == 0xAB || f0byte == 0xA4 || f0byte == 0xA5 ||
-              f0byte == 0xAC || f0byte == 0xAD) {
-            // shrd, shld, bts
+              f0byte == 0xAC || f0byte == 0xAD || f0byte == 0xA3) {
+            // shrd, shld, bts, bt
             Print(f0mnem);
             int mod, regop, rm;
             GetModRm(*data, &mod, &regop, &rm);
@@ -1421,7 +1422,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             data += PrintRightOperand(data);
             Print(",");
             PrintCPURegister(regop);
-            if (f0byte == 0xAB) {
+            if (f0byte == 0xAB || f0byte == 0xA3) {
               // Done.
             } else if (f0byte == 0xA5 || f0byte == 0xAD) {
               Print(",cl");
@@ -1819,7 +1820,7 @@ int X86Decoder::InstructionDecode(uword pc) {
   ASSERT(instr_len > 0);  // Ensure progress.
 
   return instr_len;
-}
+}  // NOLINT
 
 
 void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,

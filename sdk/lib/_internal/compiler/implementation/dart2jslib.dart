@@ -32,7 +32,7 @@ import 'native_handler.dart' as native;
 import 'scanner/scannerlib.dart';
 import 'ssa/ssa.dart';
 import 'tree/tree.dart';
-import 'ir/ir_builder.dart' show IrBuilderTask;
+import 'cps_ir/cps_ir_builder.dart' show IrBuilderTask;
 import 'universe/universe.dart';
 import 'util/util.dart';
 import 'util/characters.dart' show $_;
@@ -48,6 +48,7 @@ import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'dump_info.dart';
 import 'tracer.dart' show Tracer;
 import 'cache_strategy.dart';
+import 'compilation_info.dart';
 
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
 export 'scanner/scannerlib.dart' show isUserDefinableOperator,

@@ -211,8 +211,9 @@ class ActivationFrame : public ZoneAllocated {
   Context& ctx_;
   const Code& code_;
   const Function& function_;
+  bool token_pos_initialized_;
   intptr_t token_pos_;
-  const RawPcDescriptors::PcDescriptorRec* desc_rec_;
+  intptr_t try_index_;
 
   intptr_t line_number_;
   intptr_t column_number_;

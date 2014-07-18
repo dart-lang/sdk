@@ -697,7 +697,8 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(
       ASSERT(!cls.IsNull());
       const Library& lib = Library::Handle(isolate, cls.library());
       ASSERT(!lib.IsNull());
-      const Script& script = Script::Handle(cls.script());
+      // Note func.script() is not the same as cls.script() for eval functions.
+      const Script& script = Script::Handle(func.script());
       ASSERT(!script.IsNull());
       location->script_url = Api::NewHandle(isolate, script.url());
       location->library_id = lib.index();

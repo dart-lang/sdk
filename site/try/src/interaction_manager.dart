@@ -166,7 +166,7 @@ abstract class InteractionManager {
   /// Called by [:window.onMessage.listen:].
   void onWindowMessage(MessageEvent event);
 
-  void onCompilationFailed();
+  void onCompilationFailed(String firstError);
 
   void onCompilationDone();
 
@@ -285,7 +285,9 @@ class InteractionContext extends InteractionManager {
 
   void onWindowMessage(MessageEvent event) => state.onWindowMessage(event);
 
-  void onCompilationFailed() => state.onCompilationFailed();
+  void onCompilationFailed(String firstError) {
+    return state.onCompilationFailed(firstError);
+  }
 
   void onCompilationDone() => state.onCompilationDone();
 
@@ -715,8 +717,12 @@ class InitialState extends InteractionState {
     outputDiv.appendText('$line\n');
   }
 
-  void onCompilationFailed() {
-    consolePrintLine('Compilation failed.');
+  void onCompilationFailed(String firstError) {
+    if (firstError == null) {
+      consolePrintLine('Compilation failed.');
+    } else {
+      consolePrintLine('Compilation failed: $firstError');
+    }
   }
 
   void onCompilationDone() {

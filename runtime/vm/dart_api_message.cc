@@ -380,6 +380,11 @@ Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
 }
 
 
+intptr_t ApiMessageReader::NextAvailableObjectId() const {
+  return backward_references_.length() + kMaxPredefinedObjectIds;
+}
+
+
 Dart_CObject* ApiMessageReader::ReadObjectRef() {
   int64_t value64 = Read<int64_t>();
   if ((value64 & kSmiTagMask) == 0) {
@@ -402,10 +407,14 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
 
+  intptr_t object_id = SerializedHeaderData::decode(value);
+  if (object_id == kOmittedObjectId) {
+    object_id = NextAvailableObjectId();
+  }
+
   // Reading of regular dart instances has limited support in order to
   // read typed data views.
   if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
-    intptr_t object_id = SerializedHeaderData::decode(value);
     Dart_CObject_Internal* object =
         AllocateDartCObjectInternal(Dart_CObject_Internal::kUninitialized);
     AddBackRef(object_id, object, kIsNotDeserialized);
@@ -416,7 +425,6 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     return object;
   }
   ASSERT((class_header & kSmiTagMask) != 0);
-  intptr_t object_id = SerializedHeaderData::decode(value);
   intptr_t class_id = LookupInternalClass(class_header);
   if ((class_id == kArrayCid) || (class_id == kImmutableArrayCid)) {
     ASSERT(GetBackRef(object_id) == NULL);
@@ -751,7 +759,12 @@ Dart_CObject* ApiMessageReader::ReadObjectImpl() {
     return ReadIndexedObject(SerializedHeaderData::decode(value));
   }
   ASSERT(SerializedHeaderTag::decode(value) == kInlined);
-  return ReadInlinedObject(SerializedHeaderData::decode(value));
+
+  intptr_t object_id = SerializedHeaderData::decode(value);
+  if (object_id == kOmittedObjectId) {
+    object_id = NextAvailableObjectId();
+  }
+  return ReadInlinedObject(object_id);
 }
 
 

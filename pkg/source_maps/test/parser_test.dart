@@ -100,6 +100,20 @@ main() {
     expect(entry.sourceNameId, 0);
   });
 
+  test('parse with source root', () {
+    var inputMap = new Map.from(MAP_WITH_SOURCE_LOCATION);
+    inputMap['sourceRoot'] = '/pkg/';
+    var mapping = parseJson(inputMap);
+    expect(mapping.spanFor(0, 0).sourceUrl, "/pkg/input.dart");
+
+    var newSourceRoot = '/new/';
+
+    mapping.sourceRoot = newSourceRoot;
+    inputMap["sourceRoot"] = newSourceRoot;
+
+    expect(mapping.toJson(), equals(inputMap));
+  });
+
   test('parse and re-emit', () {
     for (var expected in [
         EXPECTED_MAP,

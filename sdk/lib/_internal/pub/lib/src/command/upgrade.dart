@@ -8,6 +8,7 @@ import 'dart:async';
 
 import '../command.dart';
 import '../log.dart' as log;
+import '../solver/version_solver.dart';
 
 /// Handles the `upgrade` pub command.
 class UpgradeCommand extends PubCommand {
@@ -30,8 +31,8 @@ class UpgradeCommand extends PubCommand {
 
   Future onRun() {
     var dryRun = commandOptions['dry-run'];
-    return entrypoint.acquireDependencies(useLatest: commandOptions.rest,
-        isUpgrade: true, dryRun: dryRun).then((_) {
+    return entrypoint.acquireDependencies(SolveType.UPGRADE,
+        useLatest: commandOptions.rest, dryRun: dryRun).then((_) {
       if (isOffline) {
         log.warning("Warning: Upgrading when offline may not update you to the "
                     "latest versions of your dependencies.");

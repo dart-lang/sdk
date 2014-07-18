@@ -4,19 +4,14 @@
 
 part of ssa;
 
-/**
- * A special element for the extra parameter taken by intercepted
- * methods. We need to implement [TypedElement.type] because our
- * optimizers may look at its declared type.
- */
-class InterceptedElement extends ElementX implements TypedElement {
-  final DartType type;
-  InterceptedElement(this.type, String name, Element enclosing)
-      : super(name, ElementKind.PARAMETER, enclosing);
+/// A synthetic local variable only used with the SSA graph.
+///
+/// For instance used for holding return value of function or the exception of a
+/// try-catch statement.
+class SyntheticLocal extends Local {
+  final String name;
 
-  DartType computeType(Compiler compiler) => type;
-
-  accept(ElementVisitor visitor) => visitor.visitInterceptedElement(this);
+  SyntheticLocal(this.name);
 }
 
 class SsaBuilderTask extends CompilerTask {
@@ -94,7 +89,6 @@ class SsaBuilderTask extends CompilerTask {
   }
 }
 
-
 /**
  * Keeps track of locals (including parameters and phis) when building. The
  * 'this' reference is treated as parameter and hence handled by this class,
@@ -110,8 +104,10 @@ class LocalsHandler {
    * e.g. Element hash codes.  I'd prefer to use a SortedMap but some elements
    * don't have source locations for [Elements.compareByPosition].
    */
-  Map<Element, HInstruction> directLocals;
-  Map<Element, Element> redirectionMapping;
+  Map<Local, HInstruction> directLocals =
+      new Map<Local, HInstruction>();
+  Map<Local, CapturedVariable> redirectionMapping =
+      new Map<Local, CapturedVariable>();
   SsaBuilder builder;
   ClosureClassMap closureData;
 
@@ -119,9 +115,7 @@ class LocalsHandler {
   /// variables are in scope.
   final ClassElement contextClass;
 
-  LocalsHandler(this.builder, this.contextClass)
-      : redirectionMapping = new Map<Element, Element>(),
-        directLocals = new Map<Element, HInstruction>();
+  LocalsHandler(this.builder, this.contextClass);
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
@@ -144,7 +138,7 @@ class LocalsHandler {
    * throughout the AST visit.
    */
   LocalsHandler.from(LocalsHandler other)
-      : directLocals = new Map<Element, HInstruction>.from(other.directLocals),
+      : directLocals = new Map<Local, HInstruction>.from(other.directLocals),
         redirectionMapping = other.redirectionMapping,
         contextClass = other.contextClass,
         builder = other.builder,
@@ -154,7 +148,7 @@ class LocalsHandler {
    * Redirects accesses from element [from] to element [to]. The [to] element
    * must be a boxed variable or a variable that is stored in a closure-field.
    */
-  void redirectElement(Element from, Element to) {
+  void redirectElement(Local from, CapturedVariable to) {
     assert(redirectionMapping[from] == null);
     redirectionMapping[from] = to;
     assert(isStoredInClosureField(from) || isBoxed(from));
@@ -194,7 +188,8 @@ class LocalsHandler {
     directLocals[scopeData.boxElement] = box;
     // Make sure that accesses to the boxed locals go into the box. We also
     // need to make sure that parameters are copied into the box if necessary.
-    scopeData.capturedVariableMapping.forEach((Element from, Element to) {
+    scopeData.forEachCapturedVariable(
+        (VariableElement from, BoxFieldElement to) {
       // The [from] can only be a parameter for function-scopes and not
       // loop scopes.
       if (from.isParameter && !element.isGenerativeConstructorBody) {
@@ -218,12 +213,13 @@ class LocalsHandler {
    * Replaces the current box with a new box and copies over the given list
    * of elements from the old box into the new box.
    */
-  void updateCaptureBox(Element boxElement, List<Element> toBeCopiedElements) {
+  void updateCaptureBox(BoxLocal boxElement,
+                        List<VariableElement> toBeCopiedElements) {
     // Create a new box and copy over the values from the old box into the
     // new one.
     HInstruction oldBox = readLocal(boxElement);
     HInstruction newBox = createBox();
-    for (Element boxedVariable in toBeCopiedElements) {
+    for (VariableElement boxedVariable in toBeCopiedElements) {
       // [readLocal] uses the [boxElement] to find its box. By replacing it
       // behind its back we can still get to the old values.
       updateLocal(boxElement, oldBox);
@@ -248,12 +244,11 @@ class LocalsHandler {
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
       FunctionSignature params = functionElement.functionSignature;
-      params.orderedForEachParameter((Element parameterElement) {
+      ClosureScope scopeData = closureData.capturingScopes[node];
+      params.orderedForEachParameter((ParameterElement parameterElement) {
         if (element.isGenerativeConstructorBody) {
-          ClosureScope scopeData = closureData.capturingScopes[node];
-          if (scopeData != null
-              && scopeData.capturedVariableMapping.containsKey(
-                  parameterElement)) {
+          if (scopeData != null &&
+              scopeData.isCapturedVariable(parameterElement)) {
             // The parameter will be a field in the box passed as the
             // last parameter. So no need to have it.
             return;
@@ -272,13 +267,13 @@ class LocalsHandler {
     // If the freeVariableMapping is not empty, then this function was a
     // nested closure that captures variables. Redirect the captured
     // variables to fields in the closure.
-    closureData.freeVariableMapping.forEach((Element from, Element to) {
+    closureData.forEachFreeVariable((Local from, CapturedVariable to) {
       redirectElement(from, to);
     });
     JavaScriptBackend backend = compiler.backend;
     if (closureData.isClosure) {
       // Inside closure redirect references to itself to [:this:].
-      HThis thisInstruction = new HThis(closureData.thisElement,
+      HThis thisInstruction = new HThis(closureData.thisLocal,
                                         backend.nonNullType);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
@@ -288,10 +283,10 @@ class LocalsHandler {
       // not have any thisElement if the closure was created inside a static
       // context.
       HThis thisInstruction = new HThis(
-          closureData.thisElement, builder.getTypeOfThis());
+          closureData.thisLocal, builder.getTypeOfThis());
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
-      directLocals[closureData.thisElement] = thisInstruction;
+      directLocals[closureData.thisLocal] = thisInstruction;
     }
 
     // If this method is an intercepted method, add the extra
@@ -308,20 +303,18 @@ class LocalsHandler {
     if (backend.isInterceptedMethod(element)) {
       bool isInterceptorClass = backend.isInterceptorClass(cls.declaration);
       String name = isInterceptorClass ? 'receiver' : '_';
-      Element parameter = new InterceptedElement(
-          cls.thisType, name, element);
+      SyntheticLocal parameter = new SyntheticLocal(name);
       HParameterValue value =
           new HParameterValue(parameter, builder.getTypeOfThis());
       builder.graph.explicitReceiverParameter = value;
       builder.graph.entry.addAfter(
-          directLocals[closureData.thisElement], value);
+          directLocals[closureData.thisLocal], value);
       if (isInterceptorClass) {
         // Only use the extra parameter in intercepted classes.
-        directLocals[closureData.thisElement] = value;
+        directLocals[closureData.thisLocal] = value;
       }
     } else if (isNativeUpgradeFactory) {
-      Element parameter = new InterceptedElement(
-          cls.thisType, 'receiver', element);
+      SyntheticLocal parameter = new SyntheticLocal('receiver');
       // Unlike `this`, receiver is nullable since direct calls to generative
       // constructor call the constructor with `null`.
       HParameterValue value =
@@ -335,32 +328,28 @@ class LocalsHandler {
    * Returns true if the local can be accessed directly. Boxed variables or
    * captured variables that are stored in the closure-field return [:false:].
    */
-  bool isAccessedDirectly(Element element) {
-    assert(element != null);
-    return redirectionMapping[element] == null
-        && !closureData.usedVariablesInTry.contains(element);
+  bool isAccessedDirectly(Local local) {
+    assert(local != null);
+    return !redirectionMapping.containsKey(local)
+        && !closureData.usedVariablesInTry.contains(local);
   }
 
-  bool isStoredInClosureField(Element element) {
-    assert(element != null);
-    if (isAccessedDirectly(element)) return false;
-    Element redirectTarget = redirectionMapping[element];
+  bool isStoredInClosureField(Local local) {
+    assert(local != null);
+    if (isAccessedDirectly(local)) return false;
+    CapturedVariable redirectTarget = redirectionMapping[local];
     if (redirectTarget == null) return false;
-    if (redirectTarget.isMember) {
-      assert(redirectTarget is ClosureFieldElement);
-      return true;
-    }
-    return false;
+    return redirectTarget is ClosureFieldElement;
   }
 
-  bool isBoxed(Element element) {
-    if (isAccessedDirectly(element)) return false;
-    if (isStoredInClosureField(element)) return false;
-    return redirectionMapping[element] != null;
+  bool isBoxed(Local local) {
+    if (isAccessedDirectly(local)) return false;
+    if (isStoredInClosureField(local)) return false;
+    return redirectionMapping.containsKey(local);
   }
 
-  bool isUsedInTry(Element element) {
-    return closureData.usedVariablesInTry.contains(element);
+  bool isUsedInTry(Local local) {
+    return closureData.usedVariablesInTry.contains(local);
   }
 
   /**
@@ -368,31 +357,29 @@ class LocalsHandler {
    * boxed or stored in a closure then the method generates code to retrieve
    * the value.
    */
-  HInstruction readLocal(Element element) {
-    if (isAccessedDirectly(element)) {
-      if (directLocals[element] == null) {
-        if (element.isTypeVariable) {
+  HInstruction readLocal(Local local) {
+    if (isAccessedDirectly(local)) {
+      if (directLocals[local] == null) {
+        if (local is TypeVariableElement) {
           builder.compiler.internalError(builder.compiler.currentElement,
-              "Runtime type information not available for $element.");
+              "Runtime type information not available for $local.");
         } else {
-          builder.compiler.internalError(element,
-              "Cannot find value $element.");
+          builder.compiler.internalError(local,
+              "Cannot find value $local.");
         }
       }
-      return directLocals[element];
-    } else if (isStoredInClosureField(element)) {
-      Element redirect = redirectionMapping[element];
+      return directLocals[local];
+    } else if (isStoredInClosureField(local)) {
+      ClosureFieldElement redirect = redirectionMapping[local];
       HInstruction receiver = readLocal(closureData.closureElement);
-      TypeMask type = (element.kind == ElementKind.VARIABLE_LIST)
+      TypeMask type = local is BoxLocal
           ? builder.backend.nonNullType
           : builder.getTypeOfCapturedVariable(redirect);
-      assert(element.kind != ElementKind.VARIABLE_LIST
-             || element is BoxElement);
       HInstruction fieldGet = new HFieldGet(redirect, receiver, type);
       builder.add(fieldGet);
       return fieldGet;
-    } else if (isBoxed(element)) {
-      BoxFieldElement redirect = redirectionMapping[element];
+    } else if (isBoxed(local)) {
+      BoxFieldElement redirect = redirectionMapping[local];
       // In the function that declares the captured variable the box is
       // accessed as direct local. Inside the nested closure the box is
       // accessed through a closure-field.
@@ -404,36 +391,36 @@ class LocalsHandler {
       builder.add(lookup);
       return lookup;
     } else {
-      assert(isUsedInTry(element));
-      HLocalValue local = getLocal(element);
-      HInstruction variable = new HLocalGet(
-          element, local, builder.backend.dynamicType);
-      builder.add(variable);
-      return variable;
+      assert(isUsedInTry(local));
+      HLocalValue localValue = getLocal(local);
+      HInstruction instruction = new HLocalGet(
+          local, localValue, builder.backend.dynamicType);
+      builder.add(instruction);
+      return instruction;
     }
   }
 
   HInstruction readThis() {
-    HInstruction res = readLocal(closureData.thisElement);
+    HInstruction res = readLocal(closureData.thisLocal);
     if (res.instructionType == null) {
       res.instructionType = builder.getTypeOfThis();
     }
     return res;
   }
 
-  HLocalValue getLocal(Element element) {
+  HLocalValue getLocal(Local local) {
     // If the element is a parameter, we already have a
     // HParameterValue for it. We cannot create another one because
     // it could then have another name than the real parameter. And
     // the other one would not know it is just a copy of the real
     // parameter.
-    if (element.isParameter) return builder.parameters[element];
+    if (local is ParameterElement) return builder.parameters[local];
 
-    return builder.activationVariables.putIfAbsent(element, () {
+    return builder.activationVariables.putIfAbsent(local, () {
       JavaScriptBackend backend = builder.backend;
-      HLocalValue local = new HLocalValue(element, backend.nonNullType);
-      builder.graph.entry.addAtExit(local);
-      return local;
+      HLocalValue localValue = new HLocalValue(local, backend.nonNullType);
+      builder.graph.entry.addAtExit(localValue);
+      return localValue;
     });
   }
 
@@ -441,12 +428,12 @@ class LocalsHandler {
    * Sets the [element] to [value]. If the element is boxed or stored in a
    * closure then the method generates code to set the value.
    */
-  void updateLocal(Element element, HInstruction value) {
-    assert(!isStoredInClosureField(element));
-    if (isAccessedDirectly(element)) {
-      directLocals[element] = value;
-    } else if (isBoxed(element)) {
-      BoxFieldElement redirect = redirectionMapping[element];
+  void updateLocal(Local local, HInstruction value) {
+    assert(!isStoredInClosureField(local));
+    if (isAccessedDirectly(local)) {
+      directLocals[local] = value;
+    } else if (isBoxed(local)) {
+      BoxFieldElement redirect = redirectionMapping[local];
       // The box itself could be captured, or be local. A local variable that
       // is captured will be boxed, but the box itself will be a local.
       // Inside the closure the box is stored in a closure-field and cannot
@@ -454,9 +441,9 @@ class LocalsHandler {
       HInstruction box = readLocal(redirect.box);
       builder.add(new HFieldSet(redirect, box, value));
     } else {
-      assert(isUsedInTry(element));
-      HLocalValue local = getLocal(element);
-      builder.add(new HLocalSet(element, local, value));
+      assert(isUsedInTry(local));
+      HLocalValue localValue = getLocal(local);
+      builder.add(new HLocalSet(local, localValue, value));
     }
   }
 
@@ -524,21 +511,22 @@ class LocalsHandler {
    */
   void beginLoopHeader(HBasicBlock loopEntry) {
     // Create a copy because we modify the map while iterating over it.
-    Map<Element, HInstruction> savedDirectLocals =
-        new Map<Element, HInstruction>.from(directLocals);
+    Map<Local, HInstruction> savedDirectLocals =
+        new Map<Local, HInstruction>.from(directLocals);
 
     JavaScriptBackend backend = builder.backend;
     // Create phis for all elements in the definitions environment.
-    savedDirectLocals.forEach((Element element, HInstruction instruction) {
-      if (isAccessedDirectly(element)) {
+    savedDirectLocals.forEach((Local local,
+                               HInstruction instruction) {
+      if (isAccessedDirectly(local)) {
         // We know 'this' cannot be modified.
-        if (!identical(element, closureData.thisElement)) {
+        if (local != closureData.thisLocal) {
           HPhi phi = new HPhi.singleInput(
-              element, instruction, backend.dynamicType);
+              local, instruction, backend.dynamicType);
           loopEntry.addPhi(phi);
-          directLocals[element] = phi;
+          directLocals[local] = phi;
         } else {
-          directLocals[element] = instruction;
+          directLocals[local] = instruction;
         }
       }
     });
@@ -576,7 +564,7 @@ class LocalsHandler {
     // phis.
     if (loopEntry.predecessors.length == 1) return;
     loopEntry.forEachPhi((HPhi phi) {
-      Element element = phi.sourceElement;
+      Local element = phi.sourceElement;
       HInstruction postLoopDefinition = directLocals[element];
       phi.addInput(postLoopDefinition);
     });
@@ -594,24 +582,25 @@ class LocalsHandler {
     // block. Since variable declarations are scoped the declared
     // variable cannot be alive outside the block. Note: this is only
     // true for nodes where we do joins.
-    Map<Element, HInstruction> joinedLocals =
-        new Map<Element, HInstruction>();
+    Map<Local, HInstruction> joinedLocals =
+        new Map<Local, HInstruction>();
     JavaScriptBackend backend = builder.backend;
-    otherLocals.directLocals.forEach((element, instruction) {
+    otherLocals.directLocals.forEach((Local local,
+                                      HInstruction instruction) {
       // We know 'this' cannot be modified.
-      if (identical(element, closureData.thisElement)) {
-        assert(directLocals[element] == instruction);
-        joinedLocals[element] = instruction;
+      if (identical(local, closureData.thisLocal)) {
+        assert(directLocals[local] == instruction);
+        joinedLocals[local] = instruction;
       } else {
-        HInstruction mine = directLocals[element];
+        HInstruction mine = directLocals[local];
         if (mine == null) return;
         if (identical(instruction, mine)) {
-          joinedLocals[element] = instruction;
+          joinedLocals[local] = instruction;
         } else {
           HInstruction phi = new HPhi.manyInputs(
-              element, <HInstruction>[mine, instruction], backend.dynamicType);
+              local, <HInstruction>[mine, instruction], backend.dynamicType);
           joinBlock.addPhi(phi);
-          joinedLocals[element] = phi;
+          joinedLocals[local] = phi;
         }
       }
     });
@@ -629,14 +618,14 @@ class LocalsHandler {
                               HBasicBlock joinBlock) {
     assert(localsHandlers.length > 0);
     if (localsHandlers.length == 1) return localsHandlers[0];
-    Map<Element, HInstruction> joinedLocals =
-        new Map<Element,HInstruction>();
+    Map<Local, HInstruction> joinedLocals =
+        new Map<Local, HInstruction>();
     HInstruction thisValue = null;
     JavaScriptBackend backend = builder.backend;
-    directLocals.forEach((Element element, HInstruction instruction) {
-      if (element != closureData.thisElement) {
-        HPhi phi = new HPhi.noInputs(element, backend.dynamicType);
-        joinedLocals[element] = phi;
+    directLocals.forEach((Local local, HInstruction instruction) {
+      if (local != closureData.thisLocal) {
+        HPhi phi = new HPhi.noInputs(local, backend.dynamicType);
+        joinedLocals[local] = phi;
         joinBlock.addPhi(phi);
       } else {
         // We know that "this" never changes, if it's there.
@@ -646,8 +635,9 @@ class LocalsHandler {
       }
     });
     for (LocalsHandler handler in localsHandlers) {
-      handler.directLocals.forEach((Element element, HInstruction instruction) {
-        HPhi phi = joinedLocals[element];
+      handler.directLocals.forEach((Local local,
+                                    HInstruction instruction) {
+        HPhi phi = joinedLocals[local];
         if (phi != null) {
           phi.addInput(instruction);
         }
@@ -655,17 +645,18 @@ class LocalsHandler {
     }
     if (thisValue != null) {
       // If there was a "this" for the scope, add it to the new locals.
-      joinedLocals[closureData.thisElement] = thisValue;
+      joinedLocals[closureData.thisLocal] = thisValue;
     }
 
     // Remove locals that are not in all handlers.
-    directLocals = new Map<Element, HInstruction>();
-    joinedLocals.forEach((element, instruction) {
-      if (element != closureData.thisElement
+    directLocals = new Map<Local, HInstruction>();
+    joinedLocals.forEach((Local local,
+                          HInstruction instruction) {
+      if (local != closureData.thisLocal
           && instruction.inputs.length != localsHandlers.length) {
         joinBlock.removePhi(instruction);
       } else {
-        directLocals[element] = instruction;
+        directLocals[local] = instruction;
       }
     });
     return this;
@@ -963,7 +954,8 @@ class SsaBuilder extends ResolvedVisitor {
 
   HParameterValue lastAddedParameter;
 
-  Map<Element, HInstruction> parameters = <Element, HInstruction>{};
+  Map<ParameterElement, HInstruction> parameters =
+      <ParameterElement, HInstruction>{};
 
   Map<TargetElement, JumpHandler> jumpTargets = <TargetElement, JumpHandler>{};
 
@@ -972,7 +964,8 @@ class SsaBuilder extends ResolvedVisitor {
    * being updated in try/catch blocks, and should be
    * accessed indirectly through [HLocalGet] and [HLocalSet].
    */
-  Map<Element, HLocalValue> activationVariables = <Element, HLocalValue>{};
+  Map<Local, HLocalValue> activationVariables =
+      <Local, HLocalValue>{};
 
   // We build the Ssa graph by simulating a stack machine.
   List<HInstruction> stack = <HInstruction>[];
@@ -1355,7 +1348,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   final List<AstInliningState> inliningStack = <AstInliningState>[];
 
-  Element returnElement;
+  Local returnLocal;
   DartType returnType;
 
   bool inTryStatement = false;
@@ -1383,8 +1376,8 @@ class SsaBuilder extends ResolvedVisitor {
   TypeMask getTypeOfThis() {
     TypeMask result = cachedTypeOfThis;
     if (result == null) {
-      ThisElement element = localsHandler.closureData.thisElement;
-      ClassElement cls = element.enclosingElement.enclosingClass;
+      ThisLocal element = localsHandler.closureData.thisLocal;
+      ClassElement cls = element.enclosingClass;
       if (compiler.world.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
@@ -1517,9 +1510,9 @@ class SsaBuilder extends ResolvedVisitor {
     return bodyElement;
   }
 
-  HParameterValue addParameter(Element element, TypeMask type) {
+  HParameterValue addParameter(Local parameter, TypeMask type) {
     assert(inliningStack.isEmpty);
-    HParameterValue result = new HParameterValue(element, type);
+    HParameterValue result = new HParameterValue(parameter, type);
     if (lastAddedParameter == null) {
       graph.entry.addBefore(graph.entry.first, result);
     } else {
@@ -1536,7 +1529,7 @@ class SsaBuilder extends ResolvedVisitor {
    * When inlining a function, [:return:] statements are not emitted as
    * [HReturn] instructions. Instead, the value of a synthetic element is
    * updated in the [localsHandler]. This function creates such an element and
-   * stores it in the [returnElement] field.
+   * stores it in the [returnLocal] field.
    */
   void setupStateForInlining(FunctionElement function,
                              List<HInstruction> compiledArguments) {
@@ -1544,22 +1537,20 @@ class SsaBuilder extends ResolvedVisitor {
     localsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             function, function.node, elements);
-    // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
-    returnElement = new VariableElementX.synthetic("result",
-        ElementKind.VARIABLE, function);
-    localsHandler.updateLocal(returnElement,
+    returnLocal = new SyntheticLocal("result");
+    localsHandler.updateLocal(returnLocal,
         graph.addConstantNull(compiler));
 
     inTryStatement = false; // TODO(lry): why? Document.
 
     int argumentIndex = 0;
     if (function.isInstanceMember) {
-      localsHandler.updateLocal(localsHandler.closureData.thisElement,
+      localsHandler.updateLocal(localsHandler.closureData.thisLocal,
           compiledArguments[argumentIndex++]);
     }
 
     FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((Element parameter) {
+    signature.orderedForEachParameter((ParameterElement parameter) {
       HInstruction argument = compiledArguments[argumentIndex++];
       localsHandler.updateLocal(parameter, argument);
     });
@@ -1584,7 +1575,7 @@ class SsaBuilder extends ResolvedVisitor {
 
   void restoreState(AstInliningState state) {
     localsHandler = state.oldLocalsHandler;
-    returnElement = state.oldReturnElement;
+    returnLocal = state.oldReturnLocal;
     inTryStatement = state.inTryStatement;
     elements = state.oldElements;
     returnType = state.oldReturnType;
@@ -1673,14 +1664,15 @@ class SsaBuilder extends ResolvedVisitor {
           Iterator<DartType> variables = typeVariables.iterator;
           type.typeArguments.forEach((DartType argument) {
             variables.moveNext();
+            TypeVariableType typeVariable = variables.current;
             localsHandler.updateLocal(
-                variables.current.element,
+                typeVariable.element,
                 analyzeTypeArgument(argument));
           });
         } else {
           // If the supertype is a raw type, we need to set to null the
           // type variables.
-          for (DartType variable in typeVariables) {
+          for (TypeVariableType variable in typeVariables) {
             localsHandler.updateLocal(variable.element,
                 graph.addConstantNull(compiler));
           }
@@ -1698,7 +1690,7 @@ class SsaBuilder extends ResolvedVisitor {
 
       int index = 0;
       FunctionSignature params = callee.functionSignature;
-      params.orderedForEachParameter((Element parameter) {
+      params.orderedForEachParameter((ParameterElement parameter) {
         HInstruction argument = compiledArguments[index++];
         // Because we are inlining the initializer, we must update
         // what was given as parameter. This will be used in case
@@ -1707,7 +1699,7 @@ class SsaBuilder extends ResolvedVisitor {
         localsHandler.updateLocal(parameter, argument);
         // Don't forget to update the field, if the parameter is of the
         // form [:this.x:].
-        if (parameter.kind == ElementKind.FIELD_PARAMETER) {
+        if (parameter.isFieldParameter) {
           FieldParameterElement fieldParameterElement = parameter;
           fieldValues[fieldParameterElement.fieldElement] = argument;
         }
@@ -1746,8 +1738,8 @@ class SsaBuilder extends ResolvedVisitor {
     assert(invariant(constructor, constructor.isImplementation));
     if (constructor.isSynthesized) {
       List<HInstruction> arguments = <HInstruction>[];
-      HInstruction compileArgument(Element element) {
-        return localsHandler.readLocal(element);
+      HInstruction compileArgument(ParameterElement parameter) {
+        return localsHandler.readLocal(parameter);
       }
 
       Element target = constructor.definingConstructor.implementation;
@@ -1909,13 +1901,14 @@ class SsaBuilder extends ResolvedVisitor {
 
     // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.functionSignature;
-    params.orderedForEachParameter((Element element) {
-      if (element.kind == ElementKind.FIELD_PARAMETER) {
+    params.orderedForEachParameter((ParameterElement parameter) {
+      if (parameter.isFieldParameter) {
         // If the [element] is a field-parameter then
         // initialize the field element with its value.
-        FieldParameterElement fieldParameterElement = element;
-        HInstruction parameterValue = localsHandler.readLocal(element);
-        fieldValues[fieldParameterElement.fieldElement] = parameterValue;
+        FieldParameterElement fieldParameter = parameter;
+        HInstruction parameterValue =
+            localsHandler.readLocal(fieldParameter);
+        fieldValues[fieldParameter.fieldElement] = parameterValue;
       }
     });
 
@@ -1981,7 +1974,7 @@ class SsaBuilder extends ResolvedVisitor {
       // we can simply copy the list from this.
 
       // These locals are modified by [isIndexedTypeArgumentGet].
-      HInstruction source;  // The source of the type arguments.
+      HThis source;  // The source of the type arguments.
       bool allIndexed = true;
       int expectedIndex = 0;
       ClassElement contextClass;  // The class of `this`.
@@ -2068,7 +2061,7 @@ class SsaBuilder extends ResolvedVisitor {
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
-      functionSignature.orderedForEachParameter((parameter) {
+      functionSignature.orderedForEachParameter((ParameterElement parameter) {
         // If [parameter] is boxed, it will be a field in the box passed as the
         // last parameter. So no need to directly pass it.
         if (!localsHandler.isBoxed(parameter)) {
@@ -2080,7 +2073,7 @@ class SsaBuilder extends ResolvedVisitor {
       if (backend.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
-        currentClass.typeVariables.forEach((DartType argument) {
+        currentClass.typeVariables.forEach((TypeVariableType argument) {
           // TODO(johnniwinther): Substitute [argument] with
           // `localsHandler.substInContext(argument)`.
           bodyCallInputs.add(localsHandler.readLocal(argument.element));
@@ -2109,7 +2102,7 @@ class SsaBuilder extends ResolvedVisitor {
       closeAndGotoExit(new HReturn(newObject));
       return closeFunction();
     } else {
-      localsHandler.updateLocal(returnElement, newObject);
+      localsHandler.updateLocal(returnLocal, newObject);
       return null;
     }
   }
@@ -2150,13 +2143,12 @@ class SsaBuilder extends ResolvedVisitor {
       // because that is where the type guards will also be inserted.
       // This way we ensure that a type guard will dominate the type
       // check.
+      ClosureScope scopeData =
+          localsHandler.closureData.capturingScopes[node];
       signature.orderedForEachParameter((ParameterElement parameterElement) {
         if (element.isGenerativeConstructorBody) {
-          ClosureScope scopeData =
-              localsHandler.closureData.capturingScopes[node];
-          if (scopeData != null
-              && scopeData.capturedVariableMapping.containsKey(
-                  parameterElement)) {
+          if (scopeData != null &&
+              scopeData.isCapturedVariable(parameterElement)) {
             // The parameter will be a field in the box passed as the
             // last parameter. So no need to have it.
             return;
@@ -2851,7 +2843,7 @@ class SsaBuilder extends ResolvedVisitor {
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
     assert(nestedClosureData != null);
     assert(nestedClosureData.closureClassElement != null);
-    ClassElement closureClassElement =
+    ClosureClassElement closureClassElement =
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
     // TODO(ahe): This should be registered in codegen, not here.
@@ -2862,14 +2854,11 @@ class SsaBuilder extends ResolvedVisitor {
     registry.registerInstantiatedClass(closureClassElement);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureClassElement.forEachMember((_, Element member) {
-      // The backendMembers also contains the call method(s). We are only
-      // interested in the fields.
-      if (member.isField) {
-        Element capturedLocal = nestedClosureData.capturedFieldMapping[member];
-        assert(capturedLocal != null);
-        capturedVariables.add(localsHandler.readLocal(capturedLocal));
-      }
+    closureClassElement.closureFields.forEach((ClosureFieldElement field) {
+      Local capturedLocal =
+          nestedClosureData.getLocalVariableForClosureField(field);
+      assert(capturedLocal != null);
+      capturedVariables.add(localsHandler.readLocal(capturedLocal));
     });
 
     TypeMask type = new TypeMask.nonNullExact(compiler.functionClass);
@@ -2884,7 +2873,8 @@ class SsaBuilder extends ResolvedVisitor {
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
     assert(isReachable);
     visit(node.function);
-    localsHandler.updateLocal(elements[node], pop());
+    FunctionElement localFunction = elements[node];
+    localsHandler.updateLocal(localFunction, pop());
   }
 
   visitIdentifier(ast.Identifier node) {
@@ -3079,7 +3069,8 @@ class SsaBuilder extends ResolvedVisitor {
                                 noSuchMethodTargetSymbolString(element, 'get'),
                                 argumentNodes: const Link<ast.Node>());
     } else {
-      stack.add(localsHandler.readLocal(element));
+      TypedElement local = element;
+      stack.add(localsHandler.readLocal(local));
     }
   }
 
@@ -3132,17 +3123,18 @@ class SsaBuilder extends ResolvedVisitor {
                                 argumentValues: arguments);
     } else {
       stack.add(value);
+      TypedElement local = element;
       // If the value does not already have a name, give it here.
       if (value.sourceElement == null) {
-        value.sourceElement = element;
+        value.sourceElement = local;
       }
       HInstruction checked =
-          potentiallyCheckType(value, element.computeType(compiler));
+          potentiallyCheckType(value, local.type);
       if (!identical(checked, value)) {
         pop();
         stack.add(checked);
       }
-      localsHandler.updateLocal(element, checked);
+      localsHandler.updateLocal(local, checked);
     }
   }
 
@@ -3386,8 +3378,8 @@ class SsaBuilder extends ResolvedVisitor {
       visit(node.selector);
       closureTarget = pop();
     } else {
-      assert(Elements.isLocal(element));
-      closureTarget = localsHandler.readLocal(element);
+      TypedElement local = element;
+      closureTarget = localsHandler.readLocal(local);
     }
     var inputs = <HInstruction>[];
     inputs.add(closureTarget);
@@ -3886,9 +3878,9 @@ class SsaBuilder extends ResolvedVisitor {
   // TODO(karlklose): this is needed to avoid a bug where the resolved type is
   // not stored on a type annotation in the closure translator. Remove when
   // fixed.
-  bool hasDirectLocal(Element element) {
-    return !localsHandler.isAccessedDirectly(element) ||
-        localsHandler.directLocals[element] != null;
+  bool hasDirectLocal(Local local) {
+    return !localsHandler.isAccessedDirectly(local) ||
+        localsHandler.directLocals[local] != null;
   }
 
   /**
@@ -4882,7 +4874,7 @@ class SsaBuilder extends ResolvedVisitor {
       FunctionSignature targetSignature = targetConstructor.functionSignature;
       FunctionSignature redirectingSignature =
           redirectingConstructor.functionSignature;
-      redirectingSignature.forEachRequiredParameter((Element element) {
+      redirectingSignature.forEachRequiredParameter((ParameterElement element) {
         inputs.add(localsHandler.readLocal(element));
       });
       List<Element> targetOptionals =
@@ -4891,7 +4883,8 @@ class SsaBuilder extends ResolvedVisitor {
           redirectingSignature.orderedOptionalParameters;
       int i = 0;
       for (; i < redirectingOptionals.length; i++) {
-        inputs.add(localsHandler.readLocal(redirectingOptionals[i]));
+        ParameterElement parameter = redirectingOptionals[i];
+        inputs.add(localsHandler.readLocal(parameter));
       }
       for (; i < targetOptionals.length; i++) {
         inputs.add(handleConstantForOptionalParameter(targetOptionals[i]));
@@ -4942,7 +4935,8 @@ class SsaBuilder extends ResolvedVisitor {
       ast.Node definition = link.head;
       if (definition is ast.Identifier) {
         HInstruction initialValue = graph.addConstantNull(compiler);
-        localsHandler.updateLocal(elements[definition], initialValue);
+        VariableElement local = elements[definition];
+        localsHandler.updateLocal(local, initialValue);
       } else {
         assert(definition is ast.SendSet);
         visitSendSet(definition);
@@ -5636,11 +5630,9 @@ class SsaBuilder extends ResolvedVisitor {
       localsHandler = new LocalsHandler.from(savedLocals);
       startCatchBlock = graph.addNewBlock();
       open(startCatchBlock);
-      // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
-      // Note that the name of this element is irrelevant.
-      Element element = new VariableElementX.synthetic('exception',
-          ElementKind.PARAMETER, sourceElement);
-      exception = new HLocalValue(element, backend.nonNullType);
+      // Note that the name of this local is irrelevant.
+      SyntheticLocal local = new SyntheticLocal('exception');
+      exception = new HLocalValue(local, backend.nonNullType);
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
@@ -5684,14 +5676,16 @@ class SsaBuilder extends ResolvedVisitor {
         ast.CatchBlock catchBlock = link.head;
         link = link.tail;
         if (catchBlock.exception != null) {
-          localsHandler.updateLocal(elements[catchBlock.exception],
+          VariableElement exceptionVariable = elements[catchBlock.exception];
+          localsHandler.updateLocal(exceptionVariable,
                                     unwrappedException);
         }
         ast.Node trace = catchBlock.trace;
         if (trace != null) {
           pushInvokeStatic(trace, backend.getTraceFromException(), [exception]);
           HInstruction traceInstruction = pop();
-          localsHandler.updateLocal(elements[trace], traceInstruction);
+          VariableElement traceVariable = elements[trace];
+          localsHandler.updateLocal(traceVariable, traceInstruction);
         }
         visit(catchBlock);
       }
@@ -5812,7 +5806,7 @@ class SsaBuilder extends ResolvedVisitor {
                           ast.Node _,
                           List<HInstruction> compiledArguments) {
     AstInliningState state = new AstInliningState(
-        function, returnElement, returnType, elements, stack, localsHandler,
+        function, returnLocal, returnType, elements, stack, localsHandler,
         inTryStatement);
     inliningStack.add(state);
 
@@ -5823,7 +5817,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   void leaveInlinedMethod() {
-    HInstruction result = localsHandler.readLocal(returnElement);
+    HInstruction result = localsHandler.readLocal(returnLocal);
     AstInliningState state = inliningStack.removeLast();
     restoreState(state);
     stack.add(result);
@@ -5837,7 +5831,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (inliningStack.isEmpty) {
       closeAndGotoExit(attachPosition(new HReturn(value), node));
     } else {
-      localsHandler.updateLocal(returnElement, value);
+      localsHandler.updateLocal(returnLocal, value);
     }
   }
 }
@@ -6050,7 +6044,7 @@ abstract class InliningState {
 }
 
 class AstInliningState extends InliningState {
-  final Element oldReturnElement;
+  final Local oldReturnLocal;
   final DartType oldReturnType;
   final TreeElements oldElements;
   final List<HInstruction> oldStack;
@@ -6058,7 +6052,7 @@ class AstInliningState extends InliningState {
   final bool inTryStatement;
 
   AstInliningState(FunctionElement function,
-                   this.oldReturnElement,
+                   this.oldReturnLocal,
                    this.oldReturnType,
                    this.oldElements,
                    this.oldStack,

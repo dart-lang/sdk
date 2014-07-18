@@ -25,6 +25,7 @@ import 'cached.dart';
 /// the same API as pub.dartlang.org.
 class HostedSource extends CachedSource {
   final name = "hosted";
+  final hasMultipleVersions = true;
 
   /// Gets the default URL for the package server for hosted dependencies.
   static String get defaultUrl {

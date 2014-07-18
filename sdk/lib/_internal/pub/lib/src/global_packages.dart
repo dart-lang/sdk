@@ -5,7 +5,6 @@
 library pub.global_packages;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -78,10 +77,11 @@ class GlobalPackages {
     }).then((p) {
       package = p;
       // Resolve it and download its dependencies.
-      return resolveVersions(cache.sources, package, lockFile: lockFile);
+      return resolveVersions(SolveType.GET, cache.sources, package,
+          lockFile: lockFile);
     }).then((result) {
       if (!result.succeeded) throw result.error;
-      result.showReport();
+      result.showReport(SolveType.GET);
 
       // Make sure all of the dependencies are locally installed.
       return Future.wait(result.packages.map((id) {

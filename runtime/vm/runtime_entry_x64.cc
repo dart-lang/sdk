@@ -19,7 +19,7 @@ namespace dart {
 // function. Input for the stub is as follows:
 //   RSP : points to the arguments and return value array.
 //   RBX : address of the runtime function to call.
-//   R10 : number of arguments to the call as Smi.
+//   R10 : number of arguments to the call.
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
@@ -29,7 +29,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
     __ movq(RBX, Immediate(GetEntryPoint()));
-    __ movq(R10, Immediate(Smi::RawValue(argument_count)));
+    __ movq(R10, Immediate(argument_count));
     __ Call(&StubCode::CallToRuntimeLabel(), PP);
   }
 }

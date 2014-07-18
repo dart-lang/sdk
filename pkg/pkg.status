@@ -92,6 +92,9 @@ docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
+analysis_server/test/search/element_references_test: Pass, Slow
+analysis_services/test/index/store/codec_test: Pass, Slow
+
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 http/test/html/client_test: Fail # Issue 19750
 scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
@@ -122,12 +125,16 @@ analysis_server/test/analysis_notification_overrides_test: Pass, Slow # Issue 19
 analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 19756
 analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 19756
 analysis_server/test/domain_search_test: Pass, Slow # Issue 19756
+analysis_server/test/search/element_reference_test: Pass, Slow # Issue 19756
+analysis_server/index/store/codec_test: Pass, Slow # Issue 19756
 
 [ $runtime == jsshell ]
 analysis_server/test/analysis_notification_occurrences_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/analysis_notification_outline_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/analysis_notification_navigation_test: Pass, Slow # Issue 16473, 19756
 analysis_server/test/domain_analysis_test: Pass, Slow # Issue 16473, 19756
+analysis_server/test/analysis_notification_highlights_test: Pass, Slow # 16473, 19756
+analysis_server/test/search/top_level_declarations_test: Pass, Slow # 16473, 19756
 analyzer/test/generated/element_test: Pass, Slow # Issue 16473
 
 [ $runtime == d8 || $runtime == jsshell ]
@@ -216,6 +223,12 @@ analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 # Unexplained errors only occuring on Safari.
 typed_data/test/typed_buffers_test: RuntimeError
 
+[ $runtime == safari ]
+polymer/test/js_interop_test: Pass, RuntimeError # Issue 20075
+
+[ $runtime == safari || $ie ]
+polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 20075
+
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
 path/test/browser_test: Fail, OK # Uses dart:html
@@ -297,6 +310,7 @@ shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 shelf_web_socket/test/*: Fail, OK # Uses dart:io.
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
 smoke/test/codegen/recorder_test: Skip # Uses dart:io.
+stub_core_library/test/*: Fail, OK # Uses dart:io.
 third_party/angular_tests/browser_test/core_dom/cookies: Fail # Issue 16337
 third_party/angular_tests/vm_test: Skip # Uses dart:io
 watcher/test/*: Fail, OK # Uses dart:io.

@@ -278,6 +278,25 @@ ASSEMBLER_TEST_RUN(SimpleLoop, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Cmpb, assembler) {
+  Label done;
+  __ movq(RAX, Immediate(1));
+  __ pushq(Immediate(0xffffff11));
+  __ cmpb(Address(RSP, 0), Immediate(0x11));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ movq(RAX, Immediate(0));
+  __ Bind(&done);
+  __ popq(RCX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cmpb, test) {
+  typedef int (*CmpbCode)();
+  EXPECT_EQ(1, reinterpret_cast<CmpbCode>(test->entry())());
+}
+
+
 ASSEMBLER_TEST_GENERATE(Increment, assembler) {
   __ movq(RAX, Immediate(0));
   __ pushq(RAX);
@@ -2947,6 +2966,25 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
   EXPECT_EQ(1, res);  // Greater equal.
   res = reinterpret_cast<ConditionalMovesCompareCode>(test->entry())(2, 5);
   EXPECT_EQ(-1, res);  // Less.
+}
+
+
+ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
+  __ movq(RAX, Immediate(4));
+  __ movq(R12, Immediate(2));
+  __ btq(RAX, R12);
+  Label ok;
+  __ j(CARRY, &ok);
+  __ int3();
+  __ Bind(&ok);
+  __ movq(RAX, Immediate(1));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(BitTest, test) {
+  typedef int (*BitTest)();
+  EXPECT_EQ(1, reinterpret_cast<BitTest>(test->entry())());
 }
 
 

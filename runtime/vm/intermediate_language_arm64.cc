@@ -907,7 +907,13 @@ LocationSummary* LoadClassIdInstr::MakeLocationSummary(Isolate* isolate,
 void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register object = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();
-  __ LoadTaggedClassIdMayBeSmi(result, object);
+  static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
+
+  __ LoadImmediate(TMP, reinterpret_cast<int64_t>(&kSmiCidSource) + 1, PP);
+  __ tsti(object, kSmiTagMask);
+  __ csel(TMP, TMP, object, EQ);
+  __ LoadClassId(result, TMP, PP);
+  __ SmiTag(result);
 }
 
 
@@ -4945,12 +4951,16 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckClassInstr::MakeLocationSummary(Isolate* isolate,
                                                       bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = !IsNullCheck() ? 1 : 0;
+  const bool need_mask_temp = IsDenseSwitch() && !IsDenseMask(ComputeCidMask());
+  const intptr_t kNumTemps = !IsNullCheck() ? (need_mask_temp ? 2 : 1) : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   if (!IsNullCheck()) {
     summary->set_temp(0, Location::RequiresRegister());
+    if (need_mask_temp) {
+      summary->set_temp(1, Location::RequiresRegister());
+    }
   }
   return summary;
 }
@@ -4982,17 +4992,56 @@ void CheckClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(deopt, EQ);
   }
   __ LoadClassId(temp, value, PP);
-  const intptr_t num_checks = unary_checks().NumberOfChecks();
-  for (intptr_t i = cix; i < num_checks; i++) {
-    ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
-    __ CompareImmediate(temp, unary_checks().GetReceiverClassIdAt(i), PP);
-    if (i == (num_checks - 1)) {
-      __ b(deopt, NE);
-    } else {
-      __ b(&is_ok, EQ);
+
+  if (IsDenseSwitch()) {
+    ASSERT(cids_[0] < cids_[cids_.length() - 1]);
+    __ AddImmediate(temp, temp, -cids_[0], PP);
+    __ CompareImmediate(temp, cids_[cids_.length() - 1] - cids_[0], PP);
+    __ b(deopt, HI);
+
+    intptr_t mask = ComputeCidMask();
+    if (!IsDenseMask(mask)) {
+      // Only need mask if there are missing numbers in the range.
+      ASSERT(cids_.length() > 2);
+      Register mask_reg = locs()->temp(1).reg();
+      __ LoadImmediate(mask_reg, 1, PP);
+      __ Lsl(mask_reg, mask_reg, temp);
+      __ TestImmediate(mask_reg, mask, PP);
+      __ b(deopt, EQ);
+    }
+
+  } else {
+    const intptr_t num_checks = unary_checks().NumberOfChecks();
+    for (intptr_t i = cix; i < num_checks; i++) {
+      ASSERT(unary_checks().GetReceiverClassIdAt(i) != kSmiCid);
+      __ CompareImmediate(temp, unary_checks().GetReceiverClassIdAt(i), PP);
+      if (i == (num_checks - 1)) {
+        __ b(deopt, NE);
+      } else {
+        __ b(&is_ok, EQ);
+      }
     }
   }
   __ Bind(&is_ok);
+}
+
+
+LocationSummary* CheckClassIdInstr::MakeLocationSummary(Isolate* isolate,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void CheckClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptCheckClass);
+  __ CompareImmediate(value, Smi::RawValue(cid_), PP);
+  __ b(deopt, NE);
 }
 
 
@@ -5132,6 +5181,103 @@ LocationSummary* UnaryMintOpInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+CompileType BinaryUint32OpInstr::ComputeType() const {
+  return CompileType::FromCid(kSmiCid);
+}
+
+
+CompileType ShiftUint32OpInstr::ComputeType() const {
+  return CompileType::FromCid(kSmiCid);
+}
+
+
+CompileType UnaryUint32OpInstr::ComputeType() const {
+  return CompileType::FromCid(kSmiCid);
+}
+
+
+CompileType BoxUint32Instr::ComputeType() const {
+  return CompileType::FromCid(kSmiCid);
+}
+
+
+CompileType UnboxUint32Instr::ComputeType() const {
+  return CompileType::FromCid(kSmiCid);
+}
+
+
+LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
+                                                          bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxUint32Instr::MakeLocationSummary(Isolate* isolate,
+                                                       bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* BoxUint32Instr::MakeLocationSummary(Isolate* isolate,
+                                                     bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BoxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Isolate* isolate,
+                                                               bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -5367,8 +5513,6 @@ void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
   StubCode* stub_code = compiler->isolate()->stub_code();
   const ExternalLabel label(stub_code->DebugStepCheckEntryPoint());
-  __ LoadImmediate(R4, 0, kNoPP);
-  __ LoadImmediate(R5, 0, kNoPP);
   compiler->GenerateCall(token_pos(), &label, stub_kind_, locs());
 #if defined(DEBUG)
   __ LoadImmediate(R4, kInvalidObjectPointer, kNoPP);

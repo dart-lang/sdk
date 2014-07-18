@@ -31,6 +31,7 @@ deferred_constraints_constants_old_syntax_test/default_argument2: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
+
 [ $compiler == dart2dart]
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
 deferred_load_inval_code_test: Fail # Issue 17523
@@ -85,10 +86,7 @@ type_variable_bounds4_test/01: Fail # Issue 14006
 # problems in compile time constants.
 type_check_const_function_typedef2_test/00: Fail, OK
 
-[ $compiler == none && $runtime != none ]
-dynamic_prefix_core_test/01: RuntimeError # Issue 12478
-
-[ $compiler == dart2dart && $runtime != none && $builder_tag != new_backend ]
+[ $compiler == none ]
 dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium|| $runtime == ContentShellOnAndroid) ]
@@ -118,6 +116,12 @@ first_class_types_literals_test: Pass, Fail # Issue 13719: Please triage this fa
 issue13474_test: Pass, Fail # Issue 14651.
 typed_message_test: Crash, Fail # Issue 13921, 14400
 vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.
+main_test/01: Fail # http://dartbug.com/20028
+main_test/02: Fail # http://dartbug.com/20028
+main_test/04: Fail # http://dartbug.com/20028
+main_test/05: Fail # http://dartbug.com/20028
+main_test/21: Fail # http://dartbug.com/20028
+main_test/42: Fail # http://dartbug.com/20028
 
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122

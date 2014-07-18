@@ -34,7 +34,7 @@ DECLARE_FLAG(bool, enable_debugger);
 //   SP + 4*S4 - 4 : address of first argument in argument array.
 //   SP + 4*S4 : address of return value.
 //   S5 : address of the runtime function to call.
-//   S4 : number of arguments to the call as Smi.
+//   S4 : number of arguments to the call.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
@@ -49,7 +49,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ sw(RA, Address(SP, 1 * kWordSize));
   __ sw(FP, Address(SP, 0 * kWordSize));
   __ mov(FP, SP);
-  __ SmiUntag(S4);
 
   // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
@@ -1405,23 +1404,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
 
+  Label stepping, done_stepping;
   if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
     __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
     __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-    __ BranchEqual(T0, 0, &not_stepping);
-    // Call single step callback in debugger.
-    __ EnterStubFrame();
-    __ addiu(SP, SP, Immediate(-2 * kWordSize));
-    __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
-    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ lw(RA, Address(SP, 0 * kWordSize));
-    __ lw(S5, Address(SP, 1 * kWordSize));
-    __ addiu(SP, SP, Immediate(2 * kWordSize));
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
+    __ BranchNotEqual(T0, 0, &stepping);
+    __ Bind(&done_stepping);
   }
 
   // Load argument descriptor into S4.
@@ -1556,6 +1545,21 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ lw(T4, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T4);
+
+  if (FLAG_enable_debugger) {
+    // Call single step callback in debugger.
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ addiu(SP, SP, Immediate(-2 * kWordSize));
+    __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+    __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ lw(RA, Address(SP, 0 * kWordSize));
+    __ lw(S5, Address(SP, 1 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
@@ -1721,8 +1725,30 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
-  __ Comment("BreakpointRuntime stub");
+// S5: Contains an ICData.
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
+  __ Comment("ICCallBreakpoint stub");
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 0 * kWordSize));
+
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+
+  __ lw(S5, Address(SP, 1 * kWordSize));
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
+  __ jr(T0);
+}
+
+
+// S5: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// S4: Contains an arguments descriptor.
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
+  __ Comment("ClosureCallBreakpoint stub");
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S5, Address(SP, 2 * kWordSize));
@@ -1734,6 +1760,22 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 
   __ lw(S5, Address(SP, 2 * kWordSize));
   __ lw(S4, Address(SP, 1 * kWordSize));
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrame();
+  __ jr(T0);
+}
+
+
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ Comment("RuntimeCallBreakpoint stub");
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 0 * kWordSize));
+
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ LeaveStubFrame();
@@ -1887,6 +1929,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // A2: frame_pointer.
 // A3: error object.
 // SP + 4*kWordSize: address of stacktrace object.
+// SP + 5*kWordSize: address of isolate.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == V0);
@@ -1896,6 +1939,13 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   // the last of five arguments, so it is first pushed on the stack.
   __ lw(V1, Address(SP, 4 * kWordSize));  // StackTrace object.
   __ mov(FP, A2);  // Frame_pointer.
+  __ lw(A3, Address(SP, 5 * kWordSize));  // Isolate.
+  // Set tag.
+  __ LoadImmediate(A2, VMTag::kScriptTagId);
+  __ sw(A2, Address(A3, Isolate::vm_tag_offset()));
+  // Clear top exit frame.
+  __ sw(ZR, Address(A3, Isolate::top_exit_frame_info_offset()));
+
   __ jr(A0);  // Jump to the exception handler code.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.
 }

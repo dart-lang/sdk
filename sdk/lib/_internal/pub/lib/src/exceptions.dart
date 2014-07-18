@@ -26,6 +26,19 @@ class ApplicationException implements Exception {
   String toString() => message;
 }
 
+/// An exception class for exceptions that are intended to be seen by the user
+/// and are associated with a problem in a file at some path.
+class FileException implements ApplicationException {
+  final String message;
+
+  /// The path to the file that was missing or erroneous.
+  final String path;
+
+  FileException(this.message, this.path);
+
+  String toString() => message;
+}
+
 /// A class for exceptions that wrap other exceptions.
 class WrappedException extends ApplicationException {
   /// The underlying exception that [this] is wrapping, if any.

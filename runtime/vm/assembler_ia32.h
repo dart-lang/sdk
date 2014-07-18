@@ -350,6 +350,7 @@ class Assembler : public ValueObject {
 
   void cmovno(Register dst, Register src);
   void cmove(Register dst, Register src);
+  void cmovne(Register dst, Register src);
   void cmovs(Register dst, Register src);
   void cmovns(Register dst, Register src);
 
@@ -519,6 +520,7 @@ class Assembler : public ValueObject {
 
   void cmpl(const Address& address, Register reg);
   void cmpl(const Address& address, const Immediate& imm);
+  void cmpb(const Address& address, const Immediate& imm);
 
   void testl(Register reg1, Register reg2);
   void testl(Register reg, const Immediate& imm);
@@ -596,6 +598,8 @@ class Assembler : public ValueObject {
   void notl(Register reg);
 
   void bsrl(Register dst, Register src);
+
+  void bt(Register base, Register offset);
 
   void enter(const Immediate& imm);
   void leave();
@@ -691,8 +695,7 @@ class Assembler : public ValueObject {
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
 
   void LoadTaggedClassIdMayBeSmi(Register result,
-                                 Register object,
-                                 Register tmp);
+                                 Register object);
 
   /*
    * Misc. functionality

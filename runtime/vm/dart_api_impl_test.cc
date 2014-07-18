@@ -1429,6 +1429,9 @@ TEST_CASE(TypedDataAccess) {
   EXPECT_EQ(Dart_TypedData_kInvalid,
             Dart_GetTypeOfExternalTypedData(byte_array1));
   EXPECT(Dart_IsList(byte_array1));
+  EXPECT(!Dart_IsTypedData(Dart_True()));
+  EXPECT(Dart_IsTypedData(byte_array1));
+  EXPECT(!Dart_IsByteBuffer(byte_array1));
 
   intptr_t length = 0;
   Dart_Handle result = Dart_ListLength(byte_array1, &length);
@@ -1487,6 +1490,50 @@ TEST_CASE(TypedDataAccess) {
     EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
     EXPECT_EQ(10 - i, int64_t_value);
   }
+}
+
+
+TEST_CASE(ByteBufferAccess) {
+  EXPECT(!Dart_IsByteBuffer(Dart_True()));
+  Dart_Handle byte_array = Dart_NewTypedData(Dart_TypedData_kUint8, 10);
+  EXPECT_VALID(byte_array);
+  // Set through the List API.
+  for (intptr_t i = 0; i < 10; ++i) {
+    EXPECT_VALID(Dart_ListSetAt(byte_array, i, Dart_NewInteger(i + 1)));
+  }
+  Dart_Handle byte_buffer = Dart_NewByteBuffer(byte_array);
+  EXPECT_VALID(byte_buffer);
+  EXPECT(Dart_IsByteBuffer(byte_buffer));
+  EXPECT(!Dart_IsTypedData(byte_buffer));
+
+  Dart_Handle byte_buffer_data = Dart_GetDataFromByteBuffer(byte_buffer);
+  EXPECT_VALID(byte_buffer_data);
+  EXPECT(!Dart_IsByteBuffer(byte_buffer_data));
+  EXPECT(Dart_IsTypedData(byte_buffer_data));
+
+  intptr_t length = 0;
+  Dart_Handle result = Dart_ListLength(byte_buffer_data, &length);
+  EXPECT_VALID(result);
+  EXPECT_EQ(10, length);
+
+  for (intptr_t i = 0; i < 10; ++i) {
+    // Get through the List API.
+    Dart_Handle integer_obj = Dart_ListGetAt(byte_buffer_data, i);
+    EXPECT_VALID(integer_obj);
+    int64_t int64_t_value = -1;
+    EXPECT_VALID(Dart_IntegerToInt64(integer_obj, &int64_t_value));
+    EXPECT_EQ(i + 1, int64_t_value);
+  }
+
+  // Some negative tests.
+  result = Dart_NewByteBuffer(Dart_True());
+  EXPECT(Dart_IsError(result));
+  result = Dart_NewByteBuffer(byte_buffer);
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetDataFromByteBuffer(Dart_False());
+  EXPECT(Dart_IsError(result));
+  result = Dart_GetDataFromByteBuffer(byte_array);
+  EXPECT(Dart_IsError(result));
 }
 
 

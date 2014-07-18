@@ -5,7 +5,6 @@
 import 'package:path/path.dart' as p;
 
 import '../../../lib/src/exit_codes.dart' as exit_codes;
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
@@ -15,7 +14,7 @@ main() {
 
     schedulePub(args: ["global", "activate", "foo"]);
 
-    var pub = pubRun(global: true, args: ["foo", "script"]);
+    var pub = pubRun(global: true, args: ["foo:script"]);
     pub.stderr.expect("Could not find ${p.join("bin", "script.dart")}.");
     pub.shouldExit(exit_codes.NO_INPUT);
   });

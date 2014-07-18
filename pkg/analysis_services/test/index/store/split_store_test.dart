@@ -42,16 +42,27 @@ main() {
 }
 
 
-void _assertHasLocation(List<Location> locations, Element element, int offset,
+void _assertHasLocationQ(List<Location> locations, Element element, int offset,
     int length) {
+  _assertHasLocation(locations, element, offset, length, isQualified: true);
+}
+
+
+void _assertHasLocation(List<Location> locations, Element element, int offset,
+    int length, {bool isQualified: false,
+      bool isResolved: true}) {
   for (Location location in locations) {
-    if ((element == null || location.element == element) && location.offset ==
-        offset && location.length == length) {
+    if ((element == null || location.element == element) &&
+        location.offset == offset &&
+        location.length == length &&
+        location.isQualified == isQualified &&
+        location.isResolved == isResolved) {
       return;
     }
   }
-  fail('Expected to find Location'
-      '(element=$element, offset=$offset, length=$length)');
+  fail(
+      'Expected to find Location'
+          '(element=$element, offset=$offset, length=$length)');
 }
 
 
@@ -73,8 +84,13 @@ class _FileNodeManagerTest {
 
   void setUp() {
     relationshipCodec = new RelationshipCodec(stringCodec);
-    nodeManager = new FileNodeManager(fileManager, logger, stringCodec,
-        contextCodec, elementCodec, relationshipCodec);
+    nodeManager = new FileNodeManager(
+        fileManager,
+        logger,
+        stringCodec,
+        contextCodec,
+        elementCodec,
+        relationshipCodec);
     when(contextCodec.encode(context)).thenReturn(contextId);
     when(contextCodec.decode(contextId)).thenReturn(context);
   }
@@ -119,8 +135,8 @@ class _FileNodeManagerTest {
   test_getNode_invalidVersion() {
     String name = '42.index';
     // prepare a stream with an invalid version
-    when(fileManager.read(name)).thenReturn(new Future.value([0x01, 0x02, 0x03,
-        0x04]));
+    when(
+        fileManager.read(name)).thenReturn(new Future.value([0x01, 0x02, 0x03, 0x04]));
     // do in the Future
     return nodeManager.getNode(name).then((IndexNode node) {
       // no IndexNode
@@ -180,10 +196,11 @@ class _FileNodeManagerTest {
       int elementIdB = 1;
       int elementIdC = 2;
       int relationshipId = relationshipCodec.encode(relationship);
-      RelationKeyData key = new RelationKeyData.forData(elementIdA,
-          relationshipId);
-      List<LocationData> locations = [new LocationData.forData(elementIdB, 1,
-          10), new LocationData.forData(elementIdC, 2, 20)];
+      RelationKeyData key =
+          new RelationKeyData.forData(elementIdA, relationshipId);
+      List<LocationData> locations = [
+          new LocationData.forData(elementIdB, 1, 10, 2),
+          new LocationData.forData(elementIdC, 2, 20, 3)];
       Map<RelationKeyData, List<LocationData>> relations = {
         key: locations
       };
@@ -205,11 +222,11 @@ class _FileNodeManagerTest {
       return nodeManager.getNode(name).then((IndexNode node) {
         expect(2, node.locationCount);
         {
-          List<Location> locations = node.getRelationships(elementA,
-              relationship);
+          List<Location> locations =
+              node.getRelationships(elementA, relationship);
           expect(locations, hasLength(2));
           _assertHasLocation(locations, elementB, 1, 10);
-          _assertHasLocation(locations, elementC, 2, 20);
+          _assertHasLocationQ(locations, elementC, 2, 20);
         }
       });
     });
@@ -309,10 +326,11 @@ class _IndexNodeTest {
       int elementIdB = 1;
       int elementIdC = 2;
       int relationshipId = relationshipCodec.encode(relationship);
-      RelationKeyData key = new RelationKeyData.forData(elementIdA,
-          relationshipId);
-      List<LocationData> locations = [new LocationData.forData(elementIdB, 1,
-          10), new LocationData.forData(elementIdC, 2, 20)];
+      RelationKeyData key =
+          new RelationKeyData.forData(elementIdA, relationshipId);
+      List<LocationData> locations = [
+          new LocationData.forData(elementIdB, 1, 10, 2),
+          new LocationData.forData(elementIdC, 2, 20, 3)];
       node.relations = {
         key: locations
       };
@@ -321,7 +339,7 @@ class _IndexNodeTest {
     List<Location> locations = node.getRelationships(elementA, relationship);
     expect(locations, hasLength(2));
     _assertHasLocation(locations, elementB, 1, 10);
-    _assertHasLocation(locations, elementC, 2, 20);
+    _assertHasLocationQ(locations, elementC, 2, 20);
   }
 
   Element _mockElement() {
@@ -343,11 +361,13 @@ class _LocationDataTest {
   void test_newForData() {
     Element element = new MockElement();
     when(elementCodec.decode(context, 0)).thenReturn(element);
-    LocationData locationData = new LocationData.forData(0, 1, 2);
+    LocationData locationData = new LocationData.forData(0, 1, 2, 0);
     Location location = locationData.getLocation(context, elementCodec);
     expect(location.element, element);
     expect(location.offset, 1);
     expect(location.length, 2);
+    expect(location.isQualified, isFalse);
+    expect(location.isResolved, isFalse);
   }
 
   void test_newForObject() {
@@ -357,12 +377,12 @@ class _LocationDataTest {
     when(elementCodec.decode(context, 42)).thenReturn(element);
     // create
     Location location = new Location(element, 1, 2);
-    LocationData locationData = new LocationData.forObject(elementCodec,
-        location);
+    LocationData locationData =
+        new LocationData.forObject(elementCodec, location);
     // touch 'hashCode'
     locationData.hashCode;
     // ==
-    expect(locationData == new LocationData.forData(42, 1, 2), isTrue);
+    expect(locationData == new LocationData.forData(42, 1, 2, 2), isTrue);
     // getLocation()
     {
       Location newLocation = locationData.getLocation(context, elementCodec);
@@ -398,8 +418,9 @@ class _LocationEqualsWrapper {
   @override
   bool operator ==(Object other) {
     if (other is _LocationEqualsWrapper) {
-      return other.location.offset == location.offset && other.location.length
-          == location.length && other.location.element == location.element;
+      return other.location.offset == location.offset &&
+          other.location.length == location.length &&
+          other.location.element == location.element;
     }
     return false;
   }
@@ -448,15 +469,20 @@ class _RelationKeyDataTest {
     int relationshipId = 1;
     when(relationshipCodec.encode(relationship)).thenReturn(relationshipId);
     // create RelationKeyData
-    RelationKeyData keyData = new RelationKeyData.forObject(elementCodec,
-        relationshipCodec, element, relationship);
+    RelationKeyData keyData =
+        new RelationKeyData.forObject(
+            elementCodec,
+            relationshipCodec,
+            element,
+            relationship);
     // touch
     keyData.hashCode;
     // equals
     expect(keyData == this, isFalse);
     expect(keyData == new RelationKeyData.forData(10, 20), isFalse);
     expect(keyData == keyData, isTrue);
-    expect(keyData == new RelationKeyData.forData(elementId, relationshipId),
+    expect(
+        keyData == new RelationKeyData.forData(elementId, relationshipId),
         isTrue);
   }
 }
@@ -477,14 +503,14 @@ class _SplitIndexStoreTest {
 
   Element elementC = new MockElement('elementC');
   Element elementD = new MockElement('elementD');
-  ElementLocation elementLocationA = new ElementLocationImpl.con3(
-      ['/home/user/sourceA.dart', 'ClassA']);
-  ElementLocation elementLocationB = new ElementLocationImpl.con3(
-      ['/home/user/sourceB.dart', 'ClassB']);
-  ElementLocation elementLocationC = new ElementLocationImpl.con3(
-      ['/home/user/sourceC.dart', 'ClassC']);
-  ElementLocation elementLocationD = new ElementLocationImpl.con3(
-      ['/home/user/sourceD.dart', 'ClassD']);
+  ElementLocation elementLocationA =
+      new ElementLocationImpl.con3(['/home/user/sourceA.dart', 'ClassA']);
+  ElementLocation elementLocationB =
+      new ElementLocationImpl.con3(['/home/user/sourceB.dart', 'ClassB']);
+  ElementLocation elementLocationC =
+      new ElementLocationImpl.con3(['/home/user/sourceC.dart', 'ClassC']);
+  ElementLocation elementLocationD =
+      new ElementLocationImpl.con3(['/home/user/sourceD.dart', 'ClassD']);
   HtmlElement htmlElementA = new MockHtmlElement();
   HtmlElement htmlElementB = new MockHtmlElement();
   LibraryElement libraryElement = new MockLibraryElement();
@@ -565,14 +591,16 @@ class _SplitIndexStoreTest {
   }
 
   Future test_aboutToIndexDart_library_first() {
-    when(libraryElement.parts).thenReturn(<CompilationUnitElement>[unitElementA,
-        unitElementB]);
+    when(
+        libraryElement.parts).thenReturn(
+            <CompilationUnitElement>[unitElementA, unitElementB]);
     {
       store.aboutToIndexDart(contextA, libraryUnitElement);
       store.doneIndex();
     }
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, []);
     });
   }
@@ -591,8 +619,9 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A" and "B" locations
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
       // apply "libraryUnitElement", only with "B"
       when(libraryElement.parts).thenReturn([unitElementB]);
@@ -601,8 +630,9 @@ class _SplitIndexStoreTest {
         store.doneIndex();
       }
     }).then((_) {
-      return store.getRelationships(elementA, relationship).then(
-          (List<Location> locations) {
+      return store.getRelationships(
+          elementA,
+          relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
       });
     });
@@ -636,8 +666,9 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A" and "B" locations
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
   }
@@ -659,8 +690,9 @@ class _SplitIndexStoreTest {
   }
 
   test_getRelationships_empty() {
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       expect(locations, isEmpty);
     });
   }
@@ -718,8 +750,9 @@ class _SplitIndexStoreTest {
       store.recordRelationship(elementA, relationship, locationB);
       store.doneIndex();
     }
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
   }
@@ -729,8 +762,9 @@ class _SplitIndexStoreTest {
     store.aboutToIndexDart(contextA, unitElementA);
     store.recordRelationship(elementA, relationship, locationA);
     store.doneIndex();
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA]);
     });
   }
@@ -742,8 +776,9 @@ class _SplitIndexStoreTest {
     store.recordRelationship(elementA, relationship, locationA);
     store.recordRelationship(elementA, relationship, locationB);
     store.doneIndex();
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
   }
@@ -762,14 +797,16 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A" and "B" locations
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
       // remove "A" context
       store.removeContext(contextA);
     }).then((_) {
-      return store.getRelationships(elementA, relationship).then(
-          (List<Location> locations) {
+      return store.getRelationships(
+          elementA,
+          relationship).then((List<Location> locations) {
         assertLocations(locations, []);
       });
     });
@@ -799,14 +836,16 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A", "B" and "C" locations
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "librarySource"
       store.removeSource(contextA, librarySource);
-      return store.getRelationships(elementA, relationship).then(
-          (List<Location> locations) {
+      return store.getRelationships(
+          elementA,
+          relationship).then((List<Location> locations) {
         assertLocations(locations, []);
       });
     });
@@ -836,14 +875,16 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A", "B" and "C" locations
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "A" source
       store.removeSource(contextA, sourceA);
-      return store.getRelationships(elementA, relationship).then(
-          (List<Location> locations) {
+      return store.getRelationships(
+          elementA,
+          relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB, locationC]);
       });
     });
@@ -863,14 +904,16 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A" and "B" locations
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // remove "librarySource"
       store.removeSources(contextA, new SingleSourceContainer(librarySource));
-      return store.getRelationships(elementA, relationship).then(
-          (List<Location> locations) {
+      return store.getRelationships(
+          elementA,
+          relationship).then((List<Location> locations) {
         assertLocations(locations, []);
       });
     });
@@ -900,15 +943,17 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     // "A", "B" and "C" locations
-    return store.getRelationships(elementA, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        elementA,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "A" source
       store.removeSources(contextA, new SingleSourceContainer(sourceA));
       store.removeSource(contextA, sourceA);
-      return store.getRelationships(elementA, relationship).then(
-          (List<Location> locations) {
+      return store.getRelationships(
+          elementA,
+          relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB, locationC]);
       });
     });
@@ -921,25 +966,31 @@ class _SplitIndexStoreTest {
     Location locationB = mockLocation(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+      store.recordRelationship(
+          UniverseElement.INSTANCE,
+          relationship,
           locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextB, unitElementB);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+      store.recordRelationship(
+          UniverseElement.INSTANCE,
+          relationship,
           locationB);
       store.doneIndex();
     }
     // get relationships
-    return store.getRelationships(UniverseElement.INSTANCE, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        UniverseElement.INSTANCE,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // re-index "unitElementA"
       store.aboutToIndexDart(contextA, unitElementA);
       store.doneIndex();
-      return store.getRelationships(UniverseElement.INSTANCE,
+      return store.getRelationships(
+          UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
       });
@@ -953,23 +1004,29 @@ class _SplitIndexStoreTest {
     Location locationB = mockLocation(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+      store.recordRelationship(
+          UniverseElement.INSTANCE,
+          relationship,
           locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+      store.recordRelationship(
+          UniverseElement.INSTANCE,
+          relationship,
           locationB);
       store.doneIndex();
     }
-    return store.getRelationships(UniverseElement.INSTANCE, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        UniverseElement.INSTANCE,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // clear
       store.clear();
-      return store.getRelationships(UniverseElement.INSTANCE,
+      return store.getRelationships(
+          UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         expect(locations, isEmpty);
       });
@@ -983,23 +1040,29 @@ class _SplitIndexStoreTest {
     Location locationB = mockLocation(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+      store.recordRelationship(
+          UniverseElement.INSTANCE,
+          relationship,
           locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextB, unitElementB);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+      store.recordRelationship(
+          UniverseElement.INSTANCE,
+          relationship,
           locationB);
       store.doneIndex();
     }
-    return store.getRelationships(UniverseElement.INSTANCE, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        UniverseElement.INSTANCE,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // remove "contextA"
       store.removeContext(contextA);
-      return store.getRelationships(UniverseElement.INSTANCE,
+      return store.getRelationships(
+          UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
       });
@@ -1013,23 +1076,29 @@ class _SplitIndexStoreTest {
     Location locationB = mockLocation(elementB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+      store.recordRelationship(
+          UniverseElement.INSTANCE,
+          relationship,
           locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(UniverseElement.INSTANCE, relationship,
+      store.recordRelationship(
+          UniverseElement.INSTANCE,
+          relationship,
           locationB);
       store.doneIndex();
     }
-    return store.getRelationships(UniverseElement.INSTANCE, relationship).then(
-        (List<Location> locations) {
+    return store.getRelationships(
+        UniverseElement.INSTANCE,
+        relationship).then((List<Location> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // remove "sourceA"
       store.removeSource(contextA, sourceA);
-      return store.getRelationships(UniverseElement.INSTANCE,
+      return store.getRelationships(
+          UniverseElement.INSTANCE,
           relationship).then((List<Location> locations) {
         assertLocations(locations, [locationB]);
       });
@@ -1054,6 +1123,8 @@ class _SplitIndexStoreTest {
     when(location.element).thenReturn(element);
     when(location.offset).thenReturn(0);
     when(location.length).thenReturn(0);
+    when(location.isQualified).thenReturn(true);
+    when(location.isResolved).thenReturn(true);
     return location;
   }
 

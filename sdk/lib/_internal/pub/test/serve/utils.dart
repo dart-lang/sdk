@@ -343,7 +343,7 @@ Future _ensureWebSocket() {
 
 /// Schedules closing the web socket connection to the currently-running pub
 /// serve.
-Future closeWebSocket() {
+void closeWebSocket() {
   schedule(() {
     return _ensureWebSocket().then((_) => _webSocket.close())
         .then((_) => _webSocket = null);

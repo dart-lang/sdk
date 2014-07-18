@@ -126,7 +126,8 @@ class Simulator {
                uword sp,
                uword fp,
                RawObject* raw_exception,
-               RawObject* raw_stacktrace);
+               RawObject* raw_stacktrace,
+               Isolate* isolate);
 
  private:
   // A pc value used to signal the simulator to stop execution.  Generally

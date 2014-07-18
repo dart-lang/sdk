@@ -506,6 +506,15 @@ class _JsonLogger {
       errorJson["stackTrace"] = new Chain.forTrace(stackTrace).toString();
     }
 
+    // If the error came from a file, include the path.
+    if (error is SpanException && error.span.sourceUrl != null) {
+      errorJson["path"] = p.fromUri(error.span.sourceUrl);
+    }
+
+    if (error is FileException) {
+      errorJson["path"] = error.path;
+    }
+
     this.message(errorJson);
   }
 

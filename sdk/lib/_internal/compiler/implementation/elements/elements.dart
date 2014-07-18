@@ -129,6 +129,30 @@ class ElementKind {
   toString() => id;
 }
 
+/// Abstract interface for entities.
+///
+/// Implement this directly if the entity is not a Dart language entity.
+/// Entities defined within the Dart language should implement [Element].
+///
+/// For instance, the JavaScript backend need to create synthetic variables for
+/// calling intercepted classes and such variables do not correspond to an
+/// entity in the Dart source code nor in the terminology of the Dart language
+/// and should therefore implement [Entity] directly.
+abstract class Entity implements Spannable {
+  String get name;
+}
+
+// TODO(johnniwinther): Should [Local] have `enclosingFunction`, `isAssignable`
+// or `type`?
+/// An entity that defines a local variable (memory slot) in generated code.
+///
+/// Several [Element] can define local variable, for instance parameter, local
+/// variables and local functions and thus implement [Local]. For non-element
+/// locals, like `this` and boxes, specialized [Local] class are created.
+abstract class Local extends Entity {
+
+}
+
 /**
  * A declared element of a program.
  *
@@ -173,7 +197,7 @@ class ElementKind {
  * is best if the backends avoid setting state directly in elements.
  * It is better to keep such state in a table on the side.
  */
-abstract class Element implements Spannable {
+abstract class Element implements Entity {
   String get name;
   ElementKind get kind;
   Element get enclosingElement;
@@ -1199,6 +1223,7 @@ abstract class MixinApplicationElement extends ClassElement {
   void addConstructor(FunctionElement constructor);
 }
 
+// TODO(johnniwinther): Make this a pure [Entity].
 abstract class LabelElement extends Element {
   Label get label;
   String get labelName;
@@ -1212,7 +1237,8 @@ abstract class LabelElement extends Element {
   void setContinueTarget();
 }
 
-abstract class TargetElement extends Element {
+// TODO(johnniwinther): Make this a pure [Entity].
+abstract class TargetElement extends Element implements Local {
   Node get statement;
   int get nestingLevel;
   Link<LabelElement> get labels;
@@ -1260,7 +1286,7 @@ abstract class MetadataAnnotation implements Spannable {
 }
 
 /// An [Element] that has a type.
-abstract class TypedElement extends Element {
+abstract class TypedElement extends Element implements Local {
   DartType get type;
 }
 

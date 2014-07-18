@@ -123,6 +123,7 @@ TEST_CASE(EvalExpressionExhaustCIDs) {
 
   const intptr_t classTableSize = 1 << RawObject::kClassIdTagSize;
   for (intptr_t i = 0; i < classTableSize; i++) {
+    StackZone zone(Isolate::Current());
     val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
   }
 

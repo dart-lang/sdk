@@ -56,7 +56,6 @@ class Test_errorToJson {
   void test_noCorrection() {
     Map<String, Object> json = errorToJson(lineInfo, analysisError);
     expect(json, {
-      ERROR_CODE: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
       LOCATION: {
@@ -73,7 +72,6 @@ class Test_errorToJson {
   void test_noLineInfo() {
     Map<String, Object> json = errorToJson(null, analysisError);
     expect(json, {
-      ERROR_CODE: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
       LOCATION: {
@@ -89,7 +87,6 @@ class Test_errorToJson {
     when(analysisError.correction).thenReturn('my correction');
     Map<String, Object> json = errorToJson(lineInfo, analysisError);
     expect(json, {
-      ERROR_CODE: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
       LOCATION: {

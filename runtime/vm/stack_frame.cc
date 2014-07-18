@@ -226,11 +226,11 @@ bool StackFrame::FindExceptionHandler(Isolate* isolate,
   descriptors = code.pc_descriptors();
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if ((rec.pc == pc()) && (rec.try_index != -1)) {
-      const intptr_t try_index = rec.try_index;
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
+    if ((rec.pc() == pc()) && (rec.try_index() != -1)) {
       RawExceptionHandlers::HandlerInfo handler_info;
-      handlers.GetHandlerInfo(try_index, &handler_info);
+      handlers.GetHandlerInfo(rec.try_index(), &handler_info);
       *handler_pc = handler_info.handler_pc;
       *needs_stacktrace = handler_info.needs_stacktrace;
       *has_catch_all = handler_info.has_catch_all;
@@ -251,9 +251,10 @@ intptr_t StackFrame::GetTokenPos() const {
   ASSERT(!descriptors.IsNull());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (rec.pc == pc()) {
-      return rec.token_pos;
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
+    if (rec.pc() == pc()) {
+      return rec.token_pos();
     }
   }
   return -1;

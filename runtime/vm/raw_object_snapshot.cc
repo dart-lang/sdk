@@ -1559,15 +1559,36 @@ RawUnhandledException* UnhandledException::ReadFrom(SnapshotReader* reader,
                                                     intptr_t object_id,
                                                     intptr_t tags,
                                                     Snapshot::Kind kind) {
-  UNREACHABLE();
-  return UnhandledException::null();
+  UnhandledException& result = UnhandledException::ZoneHandle(
+      reader->isolate(), NEW_OBJECT(UnhandledException));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (result.raw()->to() - result.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(result.raw()->from() + i) = reader->ReadObjectRef();
+  }
+  return result.raw();
 }
 
 
 void RawUnhandledException::WriteTo(SnapshotWriter* writer,
                                     intptr_t object_id,
                                     Snapshot::Kind kind) {
-  UNREACHABLE();
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kUnhandledExceptionCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
 }
 
 

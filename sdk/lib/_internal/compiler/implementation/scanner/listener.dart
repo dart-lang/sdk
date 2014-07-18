@@ -2177,6 +2177,9 @@ class NodeListener extends ElementListener {
 }
 
 abstract class PartialElement implements Element {
+  Token get beginToken;
+  Token get endToken;
+
   bool hasParseError = false;
 
   bool get isErroneous => hasParseError;

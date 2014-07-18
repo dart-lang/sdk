@@ -29,7 +29,9 @@ class RawCode;
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
-  V(BreakpointRuntime)                                                         \
+  V(ICCallBreakpoint)                                                          \
+  V(ClosureCallBreakpoint)                                                     \
+  V(RuntimeCallBreakpoint)                                                     \
   V(DebugStepCheck)                                                            \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
@@ -117,6 +119,9 @@ class StubCode {
   static bool InInvocationStub(uword pc);
 
   static bool InInvocationStubForIsolate(Isolate* isolate, uword pc);
+
+  // Check if the specified pc is in the jump to exception handler stub.
+  static bool InJumpToExceptionHandlerStub(uword pc);
 
   // Returns NULL if no stub found.
   static const char* NameOfStub(uword entry_point);

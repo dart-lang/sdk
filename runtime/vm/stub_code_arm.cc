@@ -46,7 +46,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(IP, Operand(0));
   __ Push(IP);  // Push 0 for the PC marker.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
-  __ SmiUntag(R4);
 
   // Load current Isolate pointer from Context structure into R0.
   __ ldr(R0, FieldAddress(CTX, Context::isolate_offset()));
@@ -1252,25 +1251,18 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+  Label stepping, done_stepping;
   if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
     __ ldr(R6, FieldAddress(CTX, Context::isolate_offset()));
     __ ldrb(R6, Address(R6, Isolate::single_step_offset()));
     __ CompareImmediate(R6, 0);
-    __ b(&not_stepping, EQ);
-    __ EnterStubFrame();
-    __ Push(R5);  // Preserve IC data.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ Pop(R5);
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
+    __ b(&stepping, NE);
+    __ Bind(&done_stepping);
   }
 
   // Load arguments descriptor into R4.
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
-  // Preserve return address, since LR is needed for subroutine call.
-  __ mov(R8, Operand(LR));
   // Loop that checks if there is an IC data match.
   Label loop, update, test, found;
   // R5: IC data object (preserved).
@@ -1306,7 +1298,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       __ b(&update, NE);  // Continue.
     } else {
       // Last check, all checks before matched.
-      __ mov(LR, Operand(R8), EQ);  // Restore return address if found.
       __ b(&found, EQ);  // Break.
     }
   }
@@ -1326,9 +1317,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ b(&loop, NE);
 
   // IC miss.
-  // Restore return address.
-  __ mov(LR, Operand(R8));
-
   // Compute address of arguments.
   // R7: argument_count - 1 (smi).
   __ add(R7, SP, Operand(R7, LSL, 1));  // R7 is Smi.
@@ -1374,6 +1362,16 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
   __ AddImmediate(R2, Instructions::HeaderSize() - kHeapObjectTag);
   __ bx(R2);
+
+  if (FLAG_enable_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ Push(R5);  // Preserve IC data.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ Pop(R5);
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
@@ -1531,13 +1529,41 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
+// R5: Contains an ICData.
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  // Preserve arguments descriptor and make room for result.
+  __ PushList((1 << R0) | (1 << R5));
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ PopList((1 << R0) | (1 << R5));
+  __ LeaveStubFrame();
+  __ bx(R0);
+}
+
+
+// R5: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// R4: Contains an arguments descriptor.
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
   // Preserve arguments descriptor and make room for result.
   __ PushList((1 << R0) | (1 << R4) | (1 << R5));
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ PopList((1 << R0) | (1 << R4) | (1 << R5));
+  __ LeaveStubFrame();
+  __ bx(R0);
+}
+
+
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ LoadImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  // Make room for result.
+  __ PushList((1 << R0));
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ PopList((1 << R0));
   __ LeaveStubFrame();
   __ bx(R0);
 }
@@ -1680,17 +1706,25 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // R1: stack_pointer.
 // R2: frame_pointer.
 // R3: error object.
-// SP: address of stacktrace object.
+// SP + 0: address of stacktrace object.
+// SP + 4: isolate
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
-  __ mov(IP, Operand(R1));  // Stack pointer.
+  __ mov(IP, Operand(R1));  // Copy Stack pointer into IP.
   __ mov(LR, Operand(R0));  // Program counter.
   __ mov(R0, Operand(R3));  // Exception object.
   __ ldr(R1, Address(SP, 0));  // StackTrace object.
+  __ ldr(R3, Address(SP, 4));  // Isolate.
   __ mov(FP, Operand(R2));  // Frame_pointer.
-  __ mov(SP, Operand(IP));  // Stack pointer.
+  __ mov(SP, Operand(IP));  // Set Stack pointer.
+  // Set the tag.
+  __ LoadImmediate(R2, VMTag::kScriptTagId);
+  __ StoreToOffset(kWord, R2, R3, Isolate::vm_tag_offset());
+  // Clear top exit frame.
+  __ LoadImmediate(R2, 0);
+  __ StoreToOffset(kWord, R2, R3, Isolate::top_exit_frame_info_offset());
   __ bx(LR);  // Jump to the exception handler code.
 }
 

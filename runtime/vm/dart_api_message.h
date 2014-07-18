@@ -120,6 +120,8 @@ class ApiMessageReader : public BaseReader {
   // Get an object from the backward references list.
   Dart_CObject* GetBackRef(intptr_t id);
 
+  intptr_t NextAvailableObjectId() const;
+
   Dart_CObject_Internal* AsInternal(Dart_CObject* object) {
     ASSERT(object->type >= Dart_CObject_kNumberOfTypes);
     return reinterpret_cast<Dart_CObject_Internal*>(object);

@@ -1854,6 +1854,28 @@ main() {
       howToFix: DONT_KNOW_HOW_TO_FIX,
       examples: const ["main(x) {x}"]);
 
+  static const MessageKind CONSIDER_ANALYZE_ALL = const MessageKind(
+      "Could not find '#{main}'.  Nothing will be analyzed.",
+      howToFix: "Try using '--analyze-all' to analyze everything.",
+      examples: const ['']);
+
+  static const MessageKind MISSING_MAIN = const MessageKind(
+      "Could not find '#{main}'.",
+      howToFix: "Try adding a method named '#{main}' to your program."
+      /* No example, test uses '--analyze-only' which will produce the above
+       * message [CONSIDER_ANALYZE_ALL].  An example for a human operator would
+       * be an empty file. */);
+
+  static const MessageKind MAIN_NOT_A_FUNCTION = const MessageKind(
+      "'#{main}' is not a function.",
+      howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
+      examples: const ['var main;']);
+
+  static const MessageKind MAIN_WITH_EXTRA_PARAMETER = const MessageKind(
+      "'#{main}' cannot have more than two parameters.",
+      howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
+      examples: const ['main(a, b, c) {}']);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "The compiler crashed when compiling this element.");
 

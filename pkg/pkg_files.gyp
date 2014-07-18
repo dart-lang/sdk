@@ -43,6 +43,26 @@
           ],
         },
       ],
-    }
+    },
+    {
+      'target_name': 'http_files_stamp',
+      'type': 'none',
+      'actions': [
+        {
+          'action_name': 'make_http_files_stamp',
+          'inputs': [
+            '../tools/create_timestamp_file.py',
+            '<!@(["python", "../tools/list_files.py", "\\.dart$", "http/lib"])',
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/http_files.stamp',
+          ],
+          'action': [
+            'python', '../tools/create_timestamp_file.py',
+            '<@(_outputs)',
+          ],
+        },
+      ],
+    },
   ],
 }

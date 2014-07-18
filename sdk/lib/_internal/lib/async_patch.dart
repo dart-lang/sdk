@@ -8,7 +8,8 @@ import 'dart:_js_helper' show
     patch,
     Primitives,
     convertDartClosureToJS,
-    loadDeferredLibrary;
+    loadDeferredLibrary,
+    requiresPreamble;
 import 'dart:_isolate_helper' show
     IsolateNatives,
     TimerImpl,
@@ -30,11 +31,44 @@ class _AsyncRun {
       _initializeScheduleImmediate();
 
   static Function _initializeScheduleImmediate() {
+    requiresPreamble();
     if (JS('', 'self.scheduleImmediate') != null) {
       return _scheduleImmediateJsOverride;
     }
+    if (JS('', 'self.MutationObserver') != null &&
+        JS('', 'self.document') != null) {
+      // Use mutationObservers.
+      var div = JS('', 'self.document.createElement("div")');
+      var span = JS('', 'self.document.createElement("span")');
+      var storedCallback;
+
+      internalCallback(_) {
+        leaveJsAsync();
+        var f = storedCallback;
+        storedCallback = null;
+        f();
+      };
+
+      var observer = JS('', 'new self.MutationObserver(#)',
+          convertDartClosureToJS(internalCallback, 1));
+      JS('', '#.observe(#, { childList: true })',
+          observer, div);
+
+      return (void callback()) {
+        assert(storedCallback == null);
+        enterJsAsync();
+        storedCallback = callback;
+        // Because of a broken shadow-dom polyfill we have to change the
+        // children instead a cheap property.
+        // See https://github.com/Polymer/ShadowDOM/issues/468
+        JS('', '#.firstChild ? #.removeChild(#): #.appendChild(#)',
+            div, div, span, div, span);
+      };
+
+    }
     // TODO(9002): don't use the Timer to enqueue the immediate callback.
-    // Also check for other JS options like mutation observer or runImmediate.
+    // Also check for other JS options like setImmediate.
+    // TODO(20055): We should use DOM promises when available.
     return _scheduleImmediateWithTimer;
   }
 

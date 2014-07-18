@@ -37,7 +37,7 @@ DECLARE_FLAG(bool, enable_debugger);
 //   ESP + 4*EDX : address of first argument in argument array.
 //   ESP + 4*EDX + 4 : address of return value.
 //   ECX : address of the runtime function to call.
-//   EDX : number of arguments to the call as Smi.
+//   EDX : number of arguments to the call.
 // Must preserve callee saved registers EDI and EBX.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t isolate_offset = NativeArguments::isolate_offset();
@@ -46,7 +46,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
   __ EnterFrame(0);
-  __ SmiUntag(EDX);
 
   // Load current Isolate pointer from Context structure into EAX.
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
@@ -1294,20 +1293,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+  Label stepping, done_stepping;
   if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
     __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-    __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
-    __ cmpl(EAX, Immediate(0));
-    __ j(EQUAL, &not_stepping, Assembler::kNearJump);
-
-    __ EnterStubFrame();
-    __ pushl(ECX);
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ popl(ECX);
-    __ LeaveFrame();
-    __ Bind(&not_stepping);
+    __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
+    __ j(NOT_EQUAL, &stepping);
+    __ Bind(&done_stepping);
   }
 
   // ECX: IC data object (preserved).
@@ -1324,8 +1316,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-  __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
-  __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
+  __ movl(EDI, Address(ESP, EAX, TIMES_2, 0));  // EAX (argument_count) is smi.
+  __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
 
   // EAX: receiver's class ID (smi).
   __ movl(EDI, Address(EBX, 0));  // First class id (smi) to check.
@@ -1336,8 +1328,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     if (i > 0) {
       // If not the first, load the next argument's class ID.
       __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-      __ movl(EAX, Address(ESP, EAX, TIMES_2, - i * kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
+      __ movl(EDI, Address(ESP, EAX, TIMES_2, - i * kWordSize));
+      __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
 
       // EAX: next argument class ID (smi).
       __ movl(EDI, Address(EBX, i * kWordSize));
@@ -1355,8 +1347,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
     __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
-    __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));
-    __ LoadTaggedClassIdMayBeSmi(EAX, EAX, EDI);
+    __ movl(EDI, Address(ESP, EAX, TIMES_2, 0));
+    __ LoadTaggedClassIdMayBeSmi(EAX, EDI);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
@@ -1417,6 +1409,16 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EBX);
   __ int3();
+
+  if (FLAG_enable_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ pushl(ECX);
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popl(ECX);
+    __ LeaveFrame();
+    __ jmp(&done_stepping);
+  }
 }
 
 
@@ -1584,10 +1586,30 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-// EDX, ECX: May contain arguments to runtime stub.
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
+// ECX: Contains an ICData.
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
-  // Save runtime args.
+  // Save IC data.
+  __ pushl(ECX);
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ pushl(raw_null);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popl(EAX);  // Address of original stub.
+  __ popl(ECX);  // Restore IC data.
+  __ LeaveFrame();
+  __ jmp(EAX);   // Jump to original stub.
+}
+
+
+// ECX: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// EDX: Contains an arguments descriptor.
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Save arguments to original stub.
   __ pushl(ECX);
   __ pushl(EDX);
   // Room for result. Debugger stub returns address of the
@@ -1597,8 +1619,22 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ pushl(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popl(EAX);  // Address of original stub.
-  __ popl(EDX);  // Restore arguments.
+  __ popl(EDX);  // Restore arguments to original stub.
   __ popl(ECX);
+  __ LeaveFrame();
+  __ jmp(EAX);   // Jump to original stub.
+}
+
+
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ pushl(raw_null);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popl(EAX);  // Address of original stub.
   __ LeaveFrame();
   __ jmp(EAX);   // Jump to original stub.
 }
@@ -1749,15 +1785,22 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // TOS + 3: frame_pointer
 // TOS + 4: exception object
 // TOS + 5: stacktrace object
+// TOS + 6: isolate
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == EAX);
   ASSERT(kStackTraceObjectReg == EDX);
+  __ movl(EDI, Address(ESP, 6 * kWordSize));  // Load target isolate.
   __ movl(kStackTraceObjectReg, Address(ESP, 5 * kWordSize));
   __ movl(kExceptionObjectReg, Address(ESP, 4 * kWordSize));
   __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
+  // Set tag.
+  __ movl(Address(EDI, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
+  // Clear top exit frame.
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
   __ jmp(EBX);  // Jump to the exception handler code.
 }
 

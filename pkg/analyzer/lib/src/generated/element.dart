@@ -1885,6 +1885,22 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   LibraryElement get enclosingElement;
 
   /**
+   * Return the enum defined in this compilation unit that has the given name, or `null` if
+   * this compilation unit does not define an enum with the given name.
+   *
+   * @param enumName the name of the enum to be returned
+   * @return the enum with the given name that is defined in this compilation unit
+   */
+  ClassElement getEnum(String enumName);
+
+  /**
+   * Return an array containing all of the enums contained in this compilation unit.
+   *
+   * @return an array containing all of the enums contained in this compilation unit
+   */
+  List<ClassElement> get enums;
+
+  /**
    * Return an array containing all of the top-level functions contained in this compilation unit.
    *
    * @return the top-level functions contained in this compilation unit
@@ -1962,6 +1978,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements Com
    * compilation unit.
    */
   List<PropertyAccessorElement> _accessors = PropertyAccessorElementImpl.EMPTY_ARRAY;
+
+  /**
+   * An array containing all of the enums contained in this compilation unit.
+   */
+  List<ClassElement> _enums = ClassElementImpl.EMPTY_ARRAY;
 
   /**
    * An array containing all of the top-level functions contained in this compilation unit.
@@ -2050,6 +2071,19 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements Com
   LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
 
   @override
+  ClassElement getEnum(String enumName) {
+    for (ClassElement enumDeclaration in _enums) {
+      if (enumDeclaration.name == enumName) {
+        return enumDeclaration;
+      }
+    }
+    return null;
+  }
+
+  @override
+  List<ClassElement> get enums => _enums;
+
+  @override
   List<FunctionElement> get functions => _functions;
 
   @override
@@ -2113,6 +2147,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl implements Com
       (view as AngularViewElementImpl).enclosingElement = this;
     }
     this._angularViews = angularViews;
+  }
+
+  /**
+   * Set the enums contained in this compilation unit to the given enums.
+   *
+   * @param enums enums contained in this compilation unit
+   */
+  void set enums(List<ClassElement> enums) {
+    for (ClassElement enumDeclaration in enums) {
+      (enumDeclaration as ClassElementImpl).enclosingElement = this;
+    }
+    this._enums = enums;
   }
 
   /**
@@ -2226,7 +2272,16 @@ class ConstFieldElementImpl extends FieldElementImpl {
    *
    * @param name the name of this element
    */
-  ConstFieldElementImpl(Identifier name) : super.forNode(name);
+  ConstFieldElementImpl.con1(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created synthetic field element to have the given name.
+   *
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  ConstFieldElementImpl.con2(String name, int offset) : super(name, offset);
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -9038,6 +9093,16 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+
+  @override
+  ElementImpl getChild(String identifier) {
+    for (ParameterElement parameter in _parameters) {
+      if ((parameter as ParameterElementImpl).identifier == identifier) {
+        return parameter as ParameterElementImpl;
+      }
+    }
+    return null;
+  }
 
   @override
   SourceRange get defaultValueRange {

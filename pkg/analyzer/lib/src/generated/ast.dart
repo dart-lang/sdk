@@ -1079,6 +1079,12 @@ class AstCloner implements AstVisitor<AstNode> {
   EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement(node.semicolon);
 
   @override
+  AstNode visitEnumConstantDeclaration(EnumConstantDeclaration node) => new EnumConstantDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), cloneNode(node.name));
+
+  @override
+  EnumDeclaration visitEnumDeclaration(EnumDeclaration node) => new EnumDeclaration(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.name), node.leftBracket, cloneNodeList(node.constants), node.rightBracket);
+
+  @override
   ExportDirective visitExportDirective(ExportDirective node) {
     ExportDirective directive = new ExportDirective(cloneNode(node.documentationComment), cloneNodeList(node.metadata), node.keyword, cloneNode(node.uri), cloneNodeList(node.combinators), node.semicolon);
     directive.source = node.source;
@@ -1537,6 +1543,18 @@ class AstComparator implements AstVisitor<bool> {
   bool visitEmptyStatement(EmptyStatement node) {
     EmptyStatement other = this._other as EmptyStatement;
     return _isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
+  bool visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    EnumConstantDeclaration other = this._other as EnumConstantDeclaration;
+    return _isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && _isEqualNodes(node.name, other.name);
+  }
+
+  @override
+  bool visitEnumDeclaration(EnumDeclaration node) {
+    EnumDeclaration other = this._other as EnumDeclaration;
+    return _isEqualNodes(node.documentationComment, other.documentationComment) && _isEqualNodeLists(node.metadata, other.metadata) && _isEqualTokens(node.keyword, other.keyword) && _isEqualNodes(node.name, other.name) && _isEqualTokens(node.leftBracket, other.leftBracket) && _isEqualNodeLists(node.constants, other.constants) && _isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override
@@ -2369,6 +2387,10 @@ abstract class AstVisitor<R> {
   R visitEmptyFunctionBody(EmptyFunctionBody node);
 
   R visitEmptyStatement(EmptyStatement node);
+
+  R visitEnumConstantDeclaration(EnumConstantDeclaration node);
+
+  R visitEnumDeclaration(EnumDeclaration node);
 
   R visitExportDirective(ExportDirective node);
 
@@ -6132,6 +6154,143 @@ class EmptyStatement extends Statement {
 }
 
 /**
+ * Instances of the class `EnumConstantDeclaration` represent the declaration of an enum
+ * constant.
+ */
+class EnumConstantDeclaration extends Declaration {
+  /**
+   * The name of the constant.
+   */
+  SimpleIdentifier _name;
+
+  /**
+   * Initialize a newly created enum constant declaration.
+   *
+   * @param comment the documentation comment associated with this declaration
+   * @param metadata the annotations associated with this declaration
+   * @param name the name of the constant
+   */
+  EnumConstantDeclaration(Comment comment, List<Annotation> metadata, SimpleIdentifier name) : super(comment, metadata) {
+    this._name = becomeParentOf(name);
+  }
+
+  @override
+  accept(AstVisitor visitor) => visitor.visitEnumConstantDeclaration(this);
+
+  @override
+  FieldElement get element => _name == null ? null : (_name.staticElement as FieldElement);
+
+  @override
+  Token get endToken => _name.endToken;
+
+  /**
+   * Return the name of the constant.
+   *
+   * @return the name of the constant
+   */
+  SimpleIdentifier get name => _name;
+
+  /**
+   * Set the name of the constant to the given name.
+   *
+   * @param name the name of the constant
+   */
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
+  }
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
+}
+
+/**
+ * Instances of the class `EnumDeclaration` represent the declaration of an enumeration.
+ *
+ * <pre>
+ * enumType ::=
+ *     metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
+ * </pre>
+ */
+class EnumDeclaration extends CompilationUnitMember {
+  /**
+   * The 'enum' keyword.
+   */
+  Token keyword;
+
+  /**
+   * The name of the enumeration.
+   */
+  SimpleIdentifier _name;
+
+  /**
+   * The left curly bracket.
+   */
+  Token leftBracket;
+
+  /**
+   * The enumeration constants being declared.
+   */
+  NodeList<EnumConstantDeclaration> _constants;
+
+  /**
+   * The right curly bracket.
+   */
+  Token rightBracket;
+
+  /**
+   * Initialize a newly created enumeration declaration.
+   *
+   * @param comment the documentation comment associated with this member
+   * @param metadata the annotations associated with this member
+   * @param keyword the 'enum' keyword
+   * @param name the name of the enumeration
+   * @param leftBracket the left curly bracket
+   * @param constants the enumeration constants being declared
+   * @param rightBracket the right curly bracket
+   */
+  EnumDeclaration(Comment comment, List<Annotation> metadata, this.keyword, SimpleIdentifier name, this.leftBracket, List<EnumConstantDeclaration> constants, this.rightBracket) : super(comment, metadata) {
+    this._constants = new NodeList<EnumConstantDeclaration>(this);
+    this._name = becomeParentOf(name);
+    this._constants.addAll(constants);
+  }
+
+  @override
+  accept(AstVisitor visitor) => visitor.visitEnumDeclaration(this);
+
+  /**
+   * Return the enumeration constants being declared.
+   *
+   * @return the enumeration constants being declared
+   */
+  NodeList<EnumConstantDeclaration> get constants => _constants;
+
+  @override
+  ClassElement get element => _name != null ? (_name.staticElement as ClassElement) : null;
+
+  @override
+  Token get endToken => rightBracket;
+
+  /**
+   * Return the name of the enumeration.
+   *
+   * @return the name of the enumeration
+   */
+  SimpleIdentifier get name => _name;
+
+  /**
+   * set the name of the enumeration to the given identifier.
+   *
+   * @param name the name of the enumeration
+   */
+  void set name(SimpleIdentifier name) {
+    this._name = becomeParentOf(name);
+  }
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata => keyword;
+}
+
+/**
  * Ephemeral identifiers are created as needed to mimic the presence of an empty identifier.
  */
 class EphemeralIdentifier extends SimpleIdentifier {
@@ -8186,6 +8345,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
 
   @override
+  R visitEnumConstantDeclaration(EnumConstantDeclaration node) => visitDeclaration(node);
+
+  @override
+  R visitEnumDeclaration(EnumDeclaration node) => visitCompilationUnitMember(node);
+
+  @override
   R visitExportDirective(ExportDirective node) => visitNamespaceDirective(node);
 
   R visitExpression(Expression node) => visitNode(node);
@@ -9110,6 +9275,12 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
 
   @override
   EmptyStatement visitEmptyStatement(EmptyStatement node) => new EmptyStatement(_mapToken(node.semicolon));
+
+  @override
+  AstNode visitEnumConstantDeclaration(EnumConstantDeclaration node) => new EnumConstantDeclaration(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), _cloneNode(node.name));
+
+  @override
+  AstNode visitEnumDeclaration(EnumDeclaration node) => new EnumDeclaration(_cloneNode(node.documentationComment), _cloneNodeList(node.metadata), _mapToken(node.keyword), _cloneNode(node.name), _mapToken(node.leftBracket), _cloneNodeList(node.constants), _mapToken(node.rightBracket));
 
   @override
   ExportDirective visitExportDirective(ExportDirective node) {
@@ -12084,6 +12255,26 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitEmptyStatement(EmptyStatement node) => visitNode(node);
 
   @override
+  bool visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitEnumDeclaration(EnumDeclaration node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as SimpleIdentifier;
+      return true;
+    } else if (_replaceInList(node.constants)) {
+      return true;
+    }
+    return visitAnnotatedNode(node);
+  }
+
+  @override
   bool visitExportDirective(ExportDirective node) => visitNamespaceDirective(node);
 
   @override
@@ -14058,6 +14249,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitEnumDeclaration(EnumDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitExportDirective(ExportDirective node) {
     node.visitChildren(this);
     return null;
@@ -15067,6 +15270,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitEmptyStatement(EmptyStatement node) => null;
+
+  @override
+  R visitEnumConstantDeclaration(EnumConstantDeclaration node) => null;
+
+  @override
+  R visitEnumDeclaration(EnumDeclaration node) => null;
 
   @override
   R visitExportDirective(ExportDirective node) => null;
@@ -16767,6 +16976,24 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
+  Object visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    _visitNode(node.name);
+    return null;
+  }
+
+  @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    _writer.print("enum ");
+    _visitNode(node.name);
+    _writer.print(" {");
+    _visitNodeListWithSeparator(node.constants, ", ");
+    _writer.print("}");
+    return null;
+  }
+
+  @override
   Object visitExportDirective(ExportDirective node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _writer.print("export ");
@@ -18294,6 +18521,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitEmptyStatement(EmptyStatement node) => visitNode(node);
+
+  @override
+  R visitEnumConstantDeclaration(EnumConstantDeclaration node) => visitNode(node);
+
+  @override
+  R visitEnumDeclaration(EnumDeclaration node) => visitNode(node);
 
   @override
   R visitExportDirective(ExportDirective node) => visitNode(node);

@@ -155,7 +155,7 @@ class LibraryCoverageFilter : public CoverageFilter {
  public:
   explicit LibraryCoverageFilter(const Library& lib) : lib_(lib) {}
   bool ShouldOutputCoverageFor(const Library& lib,
-                               const String& script_url,
+                               const Script& script,
                                const Class& cls,
                                const Function& func) const {
     return lib.raw() == lib_.raw();
@@ -167,16 +167,16 @@ class LibraryCoverageFilter : public CoverageFilter {
 
 class ScriptCoverageFilter : public CoverageFilter {
  public:
-  explicit ScriptCoverageFilter(const String& script_url)
-      : script_url_(script_url) {}
+  explicit ScriptCoverageFilter(const Script& script)
+      : script_(script) {}
   bool ShouldOutputCoverageFor(const Library& lib,
-                               const String& script_url,
+                               const Script& script,
                                const Class& cls,
                                const Function& func) const {
-    return script_url_.Equals(script_url);
+    return script.raw() == script_.raw();
   }
  private:
-  const String& script_url_;
+  const Script& script_;
 };
 
 
@@ -184,13 +184,27 @@ class ClassCoverageFilter : public CoverageFilter {
  public:
   explicit ClassCoverageFilter(const Class& cls) : cls_(cls) {}
   bool ShouldOutputCoverageFor(const Library& lib,
-                               const String& script_url,
+                               const Script& script,
                                const Class& cls,
                                const Function& func) const {
     return cls.raw() == cls_.raw();
   }
  private:
   const Class& cls_;
+};
+
+
+class FunctionCoverageFilter : public CoverageFilter {
+ public:
+  explicit FunctionCoverageFilter(const Function& func) : func_(func) {}
+  bool ShouldOutputCoverageFor(const Library& lib,
+                               const Script& script,
+                               const Class& cls,
+                               const Function& func) const {
+    return func.raw() == func_.raw();
+  }
+ private:
+  const Function& func_;
 };
 
 
@@ -288,7 +302,7 @@ static Dart_NativeFunction VmServiceNativeResolver(Dart_Handle name,
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 Isolate* Service::service_isolate_ = NULL;
-Dart_LibraryTagHandler Service::default_handler_ = NULL;
+Dart_LibraryTagHandler Service::embedder_provided_handler_ = NULL;
 Dart_Port Service::port_ = ILLEGAL_PORT;
 uint32_t Service::event_mask_ = 0;
 
@@ -403,8 +417,7 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
     // Isolate is empty.
     ASSERT(library.IsNull());
     // Grab embedder tag handler.
-    default_handler_ = isolate->library_tag_handler();
-    ASSERT(default_handler_ != NULL);
+    embedder_provided_handler_ = isolate->library_tag_handler();
     // Temporarily install our own.
     isolate->set_library_tag_handler(LibraryTagHandler);
     // Get script resource.
@@ -432,8 +445,8 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
     Dart_ExitScope();
     library.SetLoaded();
     // Install embedder default library tag handler again.
-    isolate->set_library_tag_handler(default_handler_);
-    default_handler_ = NULL;
+    isolate->set_library_tag_handler(embedder_provided_handler_);
+    embedder_provided_handler_ = NULL;
     library.set_native_entry_resolver(VmServiceNativeResolver);
   }
   {
@@ -556,8 +569,11 @@ Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
   }
   if (tag == Dart_kImportTag) {
     // Embedder handles all requests for external libraries.
-    ASSERT(default_handler_ != NULL);
-    return default_handler_(tag, library, url);
+    if (embedder_provided_handler_ == NULL) {
+      return Dart_NewApiError("Unable to import module as no library tag "
+                              "handler has been provided by embedder");
+    }
+    return embedder_provided_handler_(tag, library, url);
   }
   ASSERT((tag == Dart_kSourceTag) || (tag == Dart_kCanonicalizeUrl));
   if (tag == Dart_kCanonicalizeUrl) {
@@ -1111,10 +1127,18 @@ static bool HandleClassesDispatchers(Isolate* isolate, const Class& cls,
 }
 
 
+static bool HandleClassesFunctionsCoverage(
+    Isolate* isolate, const Function& func, JSONStream* js) {
+  FunctionCoverageFilter filter(func);
+  CodeCoverage::PrintJSON(isolate, js, &filter);
+  return true;
+}
+
+
 static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
                                    JSONStream* js) {
   intptr_t id;
-  if (js->num_arguments() > 4) {
+  if (js->num_arguments() > 5) {
     PrintError(js, "Command too long");
     return true;
   }
@@ -1128,7 +1152,19 @@ static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
     PrintError(js, "Function %" Pd " not found", id);
     return true;
   }
-  func.PrintJSON(js, false);
+  if (js->num_arguments() == 4) {
+    func.PrintJSON(js, false);
+    return true;
+  } else {
+    const char* subcollection = js->GetArgument(4);
+    if (strcmp(subcollection, "coverage") == 0) {
+      return HandleClassesFunctionsCoverage(isolate, func, js);
+    } else {
+      PrintError(js, "Invalid sub collection %s", subcollection);
+      return true;
+    }
+  }
+  UNREACHABLE();
   return true;
 }
 
@@ -1374,6 +1410,62 @@ static bool HandleLibrariesEval(Isolate* isolate, const Library& lib,
 }
 
 
+static bool HandleLibrariesScriptsCoverage(
+    Isolate* isolate, const Script& script, JSONStream* js) {
+  ScriptCoverageFilter sf(script);
+  CodeCoverage::PrintJSON(isolate, js, &sf);
+  return true;
+}
+
+
+static bool HandleLibrariesScripts(Isolate* isolate,
+                                   const Library& lib,
+                                   JSONStream* js) {
+  if (js->num_arguments() > 5) {
+    PrintError(js, "Command too long");
+    return true;
+  } else if (js->num_arguments() < 4) {
+    PrintError(js, "Must specify collection object id: scripts/id");
+    return true;
+  }
+  const String& id = String::Handle(String::New(js->GetArgument(3)));
+  ASSERT(!id.IsNull());
+  // The id is the url of the script % encoded, decode it.
+  const String& requested_url = String::Handle(String::DecodeURI(id));
+  Script& script = Script::Handle();
+  String& script_url = String::Handle();
+  const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
+  ASSERT(!loaded_scripts.IsNull());
+  intptr_t i;
+  for (i = 0; i < loaded_scripts.Length(); i++) {
+    script ^= loaded_scripts.At(i);
+    ASSERT(!script.IsNull());
+    script_url ^= script.url();
+    if (script_url.Equals(requested_url)) {
+      break;
+    }
+  }
+  if (i == loaded_scripts.Length()) {
+    PrintError(js, "Script %s not found", requested_url.ToCString());
+    return true;
+  }
+  if (js->num_arguments() == 4) {
+    script.PrintJSON(js, false);
+    return true;
+  } else {
+    const char* subcollection = js->GetArgument(4);
+    if (strcmp(subcollection, "coverage") == 0) {
+      return HandleLibrariesScriptsCoverage(isolate, script, js);
+    } else {
+      PrintError(js, "Invalid sub collection %s", subcollection);
+      return true;
+    }
+  }
+  UNREACHABLE();
+  return true;
+}
+
+
 static bool HandleLibrariesCoverage(Isolate* isolate,
                                     const Library& lib,
                                     JSONStream* js) {
@@ -1402,6 +1494,8 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
     const char* second = js->GetArgument(2);
     if (strcmp(second, "eval") == 0) {
       return HandleLibrariesEval(isolate, lib, js);
+    } else if (strcmp(second, "scripts") == 0) {
+      return HandleLibrariesScripts(isolate, lib, js);
     } else if (strcmp(second, "coverage") == 0) {
       return HandleLibrariesCoverage(isolate, lib, js);
     } else {
@@ -1575,72 +1669,13 @@ static bool HandleScriptsEnumerate(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleScriptsFetch(
-    Isolate* isolate, const Script& script, JSONStream* js) {
-  script.PrintJSON(js, false);
-  return true;
-}
-
-
-static bool HandleScriptsCoverage(
-    Isolate* isolate, const String& script_url, JSONStream* js) {
-  ScriptCoverageFilter sf(script_url);
-  CodeCoverage::PrintJSON(isolate, js, &sf);
-  return true;
-}
-
-
 static bool HandleScripts(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     // Enumerate all scripts.
     return HandleScriptsEnumerate(isolate, js);
   }
-  // Subcommands of scripts require a valid script id.
-  const String& id = String::Handle(String::New(js->GetArgument(1)));
-  ASSERT(!id.IsNull());
-  // The id is the url of the script % encoded, decode it.
-  String& requested_url = String::Handle(String::DecodeURI(id));
-  Script& script = Script::Handle();
-  // There may exist more than one script object for a given url. Since they all
-  // have the same properties (source, tokens) we don't care which one we get.
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
-  Library& lib = Library::Handle();
-  String& script_url = String::Handle();
-  bool found = false;
-  for (intptr_t i = 0; !found && (i < libs.Length()); i++) {
-    lib ^= libs.At(i);
-    ASSERT(!lib.IsNull());
-    const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());
-    ASSERT(!loaded_scripts.IsNull());
-    for (intptr_t j = 0; !found && (j < loaded_scripts.Length()); j++) {
-      script ^= loaded_scripts.At(j);
-      ASSERT(!script.IsNull());
-      script_url ^= script.url();
-      if (script_url.Equals(requested_url)) {
-        found = true;
-      }
-    }
-  }
-  if (!found) {
-    PrintErrorWithKind(js, "NotFoundError", "Cannot find script %s",
-                       requested_url.ToCString());
-    return true;
-  }
-  if (js->num_arguments() == 2) {
-    // If no subcommand is given, just fetch the script.
-    return HandleScriptsFetch(isolate, script, js);
-  } else if (js->num_arguments() == 3) {
-    const char* arg = js->GetArgument(2);
-    if (strcmp(arg, "coverage") == 0) {
-      return HandleScriptsCoverage(isolate, requested_url, js);
-    }
-    PrintError(js, "Unrecognized subcommand '%s'", arg);
-    return true;
-  } else {
-    PrintError(js, "Command too long");
-    return true;
-  }
+  PrintError(js, "Command too long");
+  return true;
 }
 
 

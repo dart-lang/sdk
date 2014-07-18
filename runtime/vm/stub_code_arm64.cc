@@ -45,7 +45,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ SetPrologueOffset();
   __ Comment("CallToRuntimeStub");
   __ EnterFrame(0);
-  __ SmiUntag(R4);
 
   // Load current Isolate pointer from Context structure into R0.
   __ LoadFieldFromOffset(R0, CTX, Context::isolate_offset(), kNoPP);
@@ -1347,20 +1346,15 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+  Label stepping, done_stepping;
   if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
     __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
     __ LoadFromOffset(
         R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
     __ CompareRegisters(R6, ZR);
-    __ b(&not_stepping, EQ);
-    __ EnterStubFrame();
-    __ Push(R5);  // Preserve IC data.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ Pop(R5);
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
+    __ b(&stepping, NE);
+    __ Bind(&done_stepping);
   }
 
   // Load arguments descriptor into R4.
@@ -1476,6 +1470,16 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ AddImmediate(
       R2, R2, Instructions::HeaderSize() - kHeapObjectTag, kNoPP);
   __ br(R2);
+
+  if (FLAG_enable_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ Push(R5);  // Preserve IC data.
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ Pop(R5);
+    __ LeaveStubFrame();
+    __ b(&done_stepping);
+  }
 }
 
 
@@ -1636,10 +1640,26 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
+// R5: Contains an ICData.
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ Push(R5);  // Save IC Data.
-  __ Push(R4);  // Save arg. desc.
+  __ Push(R5);
+  __ PushObject(Object::null_object(), PP);  // Space for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ Pop(R0);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ br(R0);
+}
+
+
+// R5: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// R4: Contains an arguments descriptor.
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ Push(R5);
+  __ Push(R4);
   __ PushObject(Object::null_object(), PP);  // Space for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ Pop(R0);
@@ -1649,6 +1669,15 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ br(R0);
 }
 
+
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ PushObject(Object::null_object(), PP);  // Space for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ Pop(R0);
+  __ LeaveStubFrame();
+  __ br(R0);
+}
 
 // Called only from unoptimized code. All relevant registers have been saved.
 void StubCode::GenerateDebugStepCheckStub(
@@ -1790,6 +1819,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // R2: frame_pointer.
 // R3: error object.
 // R4: address of stacktrace object.
+// R5: isolate.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
@@ -1799,6 +1829,11 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(R0, R3);  // Exception object.
   __ mov(R1, R4);  // StackTrace object.
+  // Set the tag.
+  __ LoadImmediate(R2, VMTag::kScriptTagId, kNoPP);
+  __ StoreToOffset(R2, R5, Isolate::vm_tag_offset(), kNoPP);
+  // Clear top exit frame.
+  __ StoreToOffset(ZR, R5, Isolate::top_exit_frame_info_offset(), kNoPP);
   __ ret();  // Jump to the exception handler code.
 }
 

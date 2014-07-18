@@ -4,12 +4,14 @@
 
 import 'package:unittest/unittest.dart';
 
+import 'correction/test_all.dart' as correction_all;
 import 'index/test_all.dart' as index_all;
 import 'search/test_all.dart' as search_all;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
+  correction_all.main();
   index_all.main();
   search_all.main();
 }

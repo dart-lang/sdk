@@ -380,6 +380,13 @@ class ObjectStore {
     out_of_memory_ = value.raw();
   }
 
+  RawUnhandledException* preallocated_unhandled_exception() const {
+    return preallocated_unhandled_exception_;
+  }
+  void set_preallocated_unhandled_exception(const UnhandledException& value) {
+    preallocated_unhandled_exception_ = value.raw();
+  }
+
   RawStacktrace* preallocated_stack_trace() const {
     return preallocated_stack_trace_;
   }
@@ -495,6 +502,7 @@ class ObjectStore {
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;
+  RawUnhandledException* preallocated_unhandled_exception_;
   RawStacktrace* preallocated_stack_trace_;
   RawFunction* lookup_port_handler_;
   RawFunction* handle_message_function_;

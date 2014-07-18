@@ -12,7 +12,6 @@ import '../command.dart';
 class HelpCommand extends PubCommand {
   String get description => "Display help information for Pub.";
   String get usage => "pub help [command]";
-  bool get requiresEntrypoint => false;
   bool get takesArguments => true;
 
   Future onRun() {

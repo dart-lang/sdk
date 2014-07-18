@@ -1323,6 +1323,8 @@ DART_EXPORT bool Dart_IsFunction(Dart_Handle handle);
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle);
 DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle);
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
+DART_EXPORT bool Dart_IsTypedData(Dart_Handle object);
+DART_EXPORT bool Dart_IsByteBuffer(Dart_Handle object);
 
 
 /*
@@ -1920,6 +1922,16 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
                                                   intptr_t length);
 
 /**
+ * Returns a ByteBuffer object for the typed data.
+ *
+ * \param type_data The TypedData object.
+ *
+ * \return The ByteBuffer object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewByteBuffer(Dart_Handle typed_data);
+
+/**
  * Acquires access to the internal data address of a TypedData object.
  *
  * \param object The typed data object whose internal data address is to
@@ -1951,6 +1963,16 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
  *   Otherwise, returns an error handle.
  */
 DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object);
+
+/**
+ * Returns the TypedData object associated with the ByteBuffer object.
+ *
+ * \param byte_buffer The ByteBuffer object.
+ *
+ * \return The TypedData object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_GetDataFromByteBuffer(Dart_Handle byte_buffer);
 
 
 /*

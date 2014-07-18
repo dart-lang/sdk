@@ -3270,7 +3270,26 @@ If  getter lookup has also failed, then a new instance $im$  of the predefined c
 \item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$x_{n+1}: o_{n+1}, \ldots, x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
 
-Then the method \code{noSuchMethod()} is looked up in $o$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$.
+Then the method \code{noSuchMethod()} is looked up in $o$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $o$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
+\begin{itemize}
+\item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
+\item  \code{im.memberName} evaluates to \code{noSuchMethod'}.
+\item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
+\item \code{im.namedArguments} evaluates to an empty immutable map.
+\end{itemize}
+
+and the result of the latter invocation is the result of evaluating $i$.
+
+\rationale {
+It is possible to bring about such a situation by overriding \code{noSuchMethod()} with the wrong number of arguments:}
+
+\begin{code}
+\CLASS{} Perverse \{
+    noSuchMethod(x,y) =$>$ x + y;
+\}
+
+\NEW{} Perverse.unknownMethod(); 
+\end{code}
 
 \commentary{Notice that the wording carefully avoids re-evaluating the receiver $o$ and the arguments $a_i$. }
 
@@ -3367,7 +3386,16 @@ If  getter lookup has also failed, then a new instance $im$  of the predefined c
 \item \code{im.positionalArguments} evaluates to an immutable list with the same  values as  \code{[$o_1, \ldots, o_n$]}.
 \item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$x_{n+1}: o_{n+1}, \ldots, x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
-Then the method \code{noSuchMethod()} is looked up in $S$ and invoked on \THIS{} with argument $im$, and the result of this invocation is the result of evaluating $i$.
+Then the method \code{noSuchMethod()} is looked up in $S$ and invoked on \THIS{} with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
+\begin{itemize}
+\item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
+\item  \code{im.memberName} evaluates to \code{noSuchMethod}.
+\item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
+\item \code{im.namedArguments} evaluates to an empty immutable map.
+\end{itemize}
+
+and the result of this latter invocation is the result of evaluating $i$.
+
 
 It is a compile-time error if a super method invocation occurs in a top-level function or variable initializer, in an instance variable initializer or initializer list, in class \code{Object}, in a factory constructor or in a static method or variable initializer.
 
@@ -3417,7 +3445,15 @@ If the getter lookup has failed, then a new instance $im$  of the predefined cla
 \item \code{im.positionalArguments} evaluates to the value of \code{\CONST{} []}.
 \item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
-Then the method \code{noSuchMethod()} is looked up in $o$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$.
+Then the method \code{noSuchMethod()} is looked up in $o$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $o$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
+\begin{itemize}
+\item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
+\item  \code{im.memberName} evaluates to \code{noSuchMethod}.
+\item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
+\item \code{im.namedArguments} evaluates to an empty immutable map.
+\end{itemize}
+
+and the result of this latter invocation is the result of evaluating $i$.
 
 Let $T$ be the  static type of $e$. It is a static type warning if $T$ does not have a getter named $m$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. The static type of $i$ is the declared return type of $T.m$, if $T.m$ exists; otherwise the static type of $i$  is  \DYNAMIC{}. 
 
@@ -3448,9 +3484,15 @@ If the getter lookup has failed, then a new instance $im$  of the predefined cla
 \item \code{im.positionalArguments} evaluates to the value of \code{\CONST{} []}.
 \item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
-Then the method \code{noSuchMethod()} is looked up in $S$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$.
+Then the method \code{noSuchMethod()} is looked up in $S$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
+\begin{itemize}
+\item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
+\item  \code{im.memberName} evaluates to \code{noSuchMethod}.
+\item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
+\item \code{im.namedArguments} evaluates to an empty immutable map.
+\end{itemize}
 
-
+and the result of this latter invocation is the result of evaluating $i$.
 
 It is a static type warning if $S$ does not have a getter named $m$.  The static type of $i$ is the declared return type of $S.m$, if $S.m$ exists; otherwise the static type of $i$  is  \DYNAMIC{}. 
 
@@ -3534,7 +3576,16 @@ If the setter lookup has failed, then a new instance $im$  of the predefined cla
 \item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
 
-Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked  with argument $im$. The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
+Then the method \code{noSuchMethod()} is looked up in $o_1$ and invoked  with argument $im$. 
+However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $o_1$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
+\begin{itemize}
+\item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
+\item  \code{im.memberName} evaluates to \code{noSuchMethod}.
+\item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
+\item \code{im.namedArguments} evaluates to an empty immutable map.
+\end{itemize}
+
+The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
 
 Evaluation of an assignment of the form $p.v \code{=} e$, where $p$ is a deferred prefix, proceeds as follows:
 

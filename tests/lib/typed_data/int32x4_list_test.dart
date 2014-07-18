@@ -132,12 +132,64 @@ testSublist(array) {
   }
 }
 
+void testSpecialValues(array) {
+  var tests = [
+    [0x8901234567890, 0x34567890],
+    [0x89012A4567890, -1537836912],
+    [0x80000000, -2147483648],
+    [-0x80000000, -2147483648],
+    [0x7fffffff, 2147483647],
+    [-0x7fffffff, -2147483647],
+  ];
+  var int32x4;
+
+  for (var test in tests) {
+    var input = test[0];
+    var expected = test[1];
+
+    int32x4 = new Int32x4(input, 2, 3, 4);
+    array[0] = int32x4;
+    int32x4 = array[0];
+    Expect.equals(expected, int32x4.x);
+    Expect.equals(2, int32x4.y);
+    Expect.equals(3, int32x4.z);
+    Expect.equals(4, int32x4.w);
+
+    int32x4 = new Int32x4(1, input, 3, 4);
+    array[0] = int32x4;
+    int32x4 = array[0];
+    Expect.equals(1, int32x4.x);
+    Expect.equals(expected, int32x4.y);
+    Expect.equals(3, int32x4.z);
+    Expect.equals(4, int32x4.w);
+
+    int32x4 = new Int32x4(1, 2, input, 4);
+    array[0] = int32x4;
+    int32x4 = array[0];
+    Expect.equals(1, int32x4.x);
+    Expect.equals(2, int32x4.y);
+    Expect.equals(expected, int32x4.z);
+    Expect.equals(4, int32x4.w);
+
+    int32x4 = new Int32x4(1, 2, 3, input);
+    array[0] = int32x4;
+    int32x4 = array[0];
+    Expect.equals(1, int32x4.x);
+    Expect.equals(2, int32x4.y);
+    Expect.equals(3, int32x4.z);
+    Expect.equals(expected, int32x4.w);
+  }
+}
+
 main() {
   var list;
 
   list = new Int32x4List(8);
   for (int i = 0; i < 20; i++) {
     testLoadStore(list);
+  }
+  for (int i = 0; i < 20; i++) {
+    testSpecialValues(list);
   }
 
   Uint32List uint32List = new Uint32List(32);
@@ -156,6 +208,9 @@ main() {
   }
   for (int i = 0; i < 20; i++) {
     testListZero();
+  }
+  for (int i = 0; i < 20; i++) {
+    testSpecialValues(list);
   }
   testLoadStoreDeoptDriver();
 }

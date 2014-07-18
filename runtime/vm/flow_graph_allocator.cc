@@ -1150,9 +1150,20 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   // Normalize same-as-first-input output if input is specified as
   // fixed register.
   if (locs->out(0).IsUnallocated() &&
-      (locs->out(0).policy() == Location::kSameAsFirstInput) &&
-      (locs->in(0).IsMachineRegister())) {
-    locs->set_out(0, locs->in(0));
+      (locs->out(0).policy() == Location::kSameAsFirstInput)) {
+    if (locs->in(0).IsPairLocation()) {
+      // Pair input, pair output.
+      PairLocation* in_pair = locs->in(0).AsPairLocation();
+      ASSERT(in_pair->At(0).IsMachineRegister() ==
+             in_pair->At(1).IsMachineRegister());
+      if (in_pair->At(0).IsMachineRegister() &&
+          in_pair->At(1).IsMachineRegister()) {
+        locs->set_out(0, Location::Pair(in_pair->At(0), in_pair->At(1)));
+      }
+    } else if (locs->in(0).IsMachineRegister()) {
+      // Single input, single output.
+      locs->set_out(0, locs->in(0));
+    }
   }
 
   const bool output_same_as_first_input =
@@ -2752,6 +2763,9 @@ void FlowGraphAllocator::ResolveControlFlow() {
 static Representation RepresentationForRange(Representation definition_rep) {
   if (definition_rep == kUnboxedMint) {
     // kUnboxedMint is split into two ranges, each of which are kUntagged.
+    return kUntagged;
+  } else if (definition_rep == kUnboxedUint32) {
+    // kUnboxedUint32 is untagged.
     return kUntagged;
   }
   return definition_rep;

@@ -21,7 +21,7 @@ set PUB=%SDK_DIR%\lib\_internal\pub\bin\pub.dart
 set DART=%BIN_DIR%\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\pub.dart.snapshot
 set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
-set PACKAGES_DIR=%BUILD_DIR%\packages
+set PACKAGES_DIR=%BUILD_DIR%\pub_packages
 set DART_IN_BUILT_SDK=%BUILD_DIR%\dart-sdk\bin\dart
 set VM_OPTIONS=
 

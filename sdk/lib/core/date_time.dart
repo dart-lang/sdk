@@ -282,13 +282,13 @@ class DateTime implements Comparable {
       int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
           years, month, day, hour, minute, second, millisecond, isUtc);
       if (millisecondsSinceEpoch == null) {
-        throw new FormatException(formattedString);
+        throw new FormatException("Time out of range", formattedString);
       }
       if (addOneMillisecond) millisecondsSinceEpoch++;
       return new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch,
                                                      isUtc: isUtc);
     } else {
-      throw new FormatException(formattedString);
+      throw new FormatException("Invalid date format", formattedString);
     }
   }
 

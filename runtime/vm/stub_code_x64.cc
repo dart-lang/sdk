@@ -83,7 +83,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movq(Address(RSP, isolate_offset), CTX);  // Set isolate in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
-  __ SmiUntag(R10);
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ leaq(RAX, Address(RBP, R10, TIMES_8, 1 * kWordSize));  // Compute argv.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
@@ -1268,19 +1267,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   }
 #endif  // DEBUG
 
+  Label stepping, done_stepping;
   if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
     __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
-    __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
-    __ cmpq(RAX, Immediate(0));
-    __ j(EQUAL, &not_stepping, Assembler::kNearJump);
-    __ EnterStubFrame();
-    __ pushq(RBX);
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ popq(RBX);
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
+    __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
+    __ j(NOT_EQUAL, &stepping);
+    __ Bind(&done_stepping);
   }
 
   // Load arguments descriptor into R10.
@@ -1296,8 +1289,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Get the receiver's class ID (first read number of arguments from
   // arguments descriptor array and then access the receiver from the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-  __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
-  __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
+  __ movq(R13, Address(RSP, RAX, TIMES_4, 0));  // RAX (argument count) is Smi.
+  __ LoadTaggedClassIdMayBeSmi(RAX, R13);
   // RAX: receiver's class ID as smi.
   __ movq(R13, Address(R12, 0));  // First class ID (Smi) to check.
   __ jmp(&test);
@@ -1307,8 +1300,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     if (i > 0) {
       // If not the first, load the next argument's class ID.
       __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-      __ movq(RAX, Address(RSP, RAX, TIMES_4, - i * kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
+      __ movq(R13, Address(RSP, RAX, TIMES_4, - i * kWordSize));
+      __ LoadTaggedClassIdMayBeSmi(RAX, R13);
       // RAX: next argument class ID (smi).
       __ movq(R13, Address(R12, i * kWordSize));
       // R13: next class ID to check (smi).
@@ -1325,8 +1318,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Reload receiver class ID.  It has not been destroyed when num_args == 1.
   if (num_args > 1) {
     __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
-    __ movq(RAX, Address(RSP, RAX, TIMES_4, 0));
-    __ LoadTaggedClassIdMayBeSmi(RAX, RAX);
+    __ movq(R13, Address(RSP, RAX, TIMES_4, 0));
+    __ LoadTaggedClassIdMayBeSmi(RAX, R13);
   }
 
   const intptr_t entry_size = ICData::TestEntryLengthFor(num_args) * kWordSize;
@@ -1384,6 +1377,16 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);
+
+  if (FLAG_enable_debugger) {
+    __ Bind(&stepping);
+    __ EnterStubFrame();
+    __ pushq(RBX);
+    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+    __ popq(RBX);
+    __ LeaveStubFrame();
+    __ jmp(&done_stepping);
+  }
 }
 
 
@@ -1549,9 +1552,29 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
-//  RBX, R10: May contain arguments to runtime stub.
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
+// RBX: Contains an ICData.
+// TOS(0): return address (Dart code).
+void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Preserve IC data.
+  __ pushq(RBX);
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  __ LoadObject(R12, Object::null_object(), PP);
+  __ pushq(R12);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popq(RAX);  // Address of original.
+  __ popq(RBX);  // Restore IC data.
+  __ LeaveStubFrame();
+  __ jmp(RAX);   // Jump to original stub.
+}
+
+
+// RBX: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
+// stub).
+// R10: Contains an arguments descriptor.
+// TOS(0): return address (Dart code).
+void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Preserve runtime args.
   __ pushq(RBX);
@@ -1564,6 +1587,20 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ popq(RAX);  // Address of original.
   __ popq(R10);  // Restore arguments.
   __ popq(RBX);
+  __ LeaveStubFrame();
+  __ jmp(RAX);   // Jump to original stub.
+}
+
+
+//  TOS(0): return address (Dart code).
+void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  __ LoadObject(R12, Object::null_object(), PP);
+  __ pushq(R12);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
+  __ popq(RAX);  // Address of original.
   __ LeaveStubFrame();
   __ jmp(RAX);   // Jump to original stub.
 }
@@ -1713,6 +1750,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // Arg3: frame_pointer
 // Arg4: exception object
 // Arg5: stacktrace object
+// Arg6: isolate
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == RAX);
@@ -1723,14 +1761,23 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 #if defined(_WIN64)
   Register stacktrace_reg = RBX;
   __ movq(stacktrace_reg, Address(RSP, 5 * kWordSize));
+  Register isolate_reg = RDI;
+  __ movq(isolate_reg, Address(RSP, 6 * kWordSize));
 #else
   Register stacktrace_reg = CallingConventions::kArg5Reg;
+  Register isolate_reg = CallingConventions::kArg6Reg;
 #endif
 
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
   __ movq(kStackTraceObjectReg, stacktrace_reg);
   __ movq(kExceptionObjectReg, CallingConventions::kArg4Reg);
+  // Set the tag.
+  __ movq(Address(isolate_reg, Isolate::vm_tag_offset()),
+          Immediate(VMTag::kScriptTagId));
+  // Clear top exit frame.
+  __ movq(Address(isolate_reg, Isolate::top_exit_frame_info_offset()),
+          Immediate(0));
   __ jmp(CallingConventions::kArg1Reg);  // Jump to the exception handler code.
 }
 

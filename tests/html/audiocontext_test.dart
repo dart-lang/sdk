@@ -76,17 +76,20 @@ main() {
 
         oscillator.type = 'sine';
         expect(oscillator.type, equals('sine'));
-   
+
         oscillator.type = 'square';
         expect(oscillator.type, equals('square'));
-   
+
         oscillator.type = 'triangle';
         expect(oscillator.type, equals('triangle'));
 
-        expect(() => oscillator.type = 7, throws);
+        //expect(() => oscillator.type = 7, throws); Firefox does not throw, it
+        //simply ignores this value.
         expect(oscillator.type, equals('triangle'));
 
-        expect(() => oscillator.type = ['heap object not a string'], throws);
+        // Firefox does not throw when it receives invalid values; it simply
+        // ignores them.
+        //expect(() => oscillator.type = ['heap object not a string'], throws);
         expect(oscillator.type, equals('triangle'));
       }
     });

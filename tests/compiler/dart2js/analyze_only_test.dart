@@ -12,6 +12,9 @@ import "package:async_helper/async_helper.dart";
 import '../../utils/dummy_compiler_test.dart' as dummy;
 import 'package:compiler/compiler.dart';
 
+import 'package:compiler/implementation/dart2jslib.dart' show
+    MessageKind;
+
 runCompiler(String main, List<String> options,
             onValue(String code, List errors, List warnings)) {
   List errors = new List();
@@ -45,7 +48,14 @@ runCompiler(String main, List<String> options,
     onValue(code, errors, warnings);
   }, onError: (e) {
     throw 'Compilation failed: ${Error.safeToString(e)}';
-  }).then(asyncSuccess);
+  }).then(asyncSuccess).catchError((error, stack) {
+    print('\n\n-----------------------------------------------');
+    print('main source:\n$main');
+    print('options: $options\n');
+    print('threw:\n $error\n$stack');
+    print('-----------------------------------------------\n\n');
+    throw error;
+  });
 }
 
 main() {
@@ -53,10 +63,11 @@ main() {
     "",
     [],
     (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.equals(1, errors.length, 'errors=$errors');
-      Expect.equals("Could not find 'main'.", errors[0].toString());
-      Expect.isTrue(warnings.isEmpty, 'warnings=$warnings');
+      Expect.isNotNull(code);
+      Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+      Expect.equals(
+          "${MessageKind.MISSING_MAIN.message({'main': 'main'})}",
+          warnings.single);
     });
 
   runCompiler(
@@ -73,10 +84,10 @@ main() {
     ['--analyze-only'],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
-      Expect.equals(1, errors.length);
-      Expect.isTrue(
-          errors[0].toString().startsWith("Could not find 'main'."));
-      Expect.isTrue(warnings.isEmpty);
+      Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+      Expect.equals(
+          "${MessageKind.CONSIDER_ANALYZE_ALL.message({'main': 'main'})}",
+          warnings.single);
     });
 
   runCompiler(
@@ -93,10 +104,10 @@ main() {
     ['--analyze-only'],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
-      Expect.equals(1, errors.length);
-      Expect.isTrue(
-          errors[0].toString().startsWith("Could not find 'main'."));
-      Expect.isTrue(warnings.isEmpty);
+      Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+      Expect.equals(
+          "${MessageKind.CONSIDER_ANALYZE_ALL.message({'main': 'main'})}",
+          warnings.single);
     });
 
   runCompiler(

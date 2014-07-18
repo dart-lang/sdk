@@ -234,6 +234,8 @@ class ObjectPointerVisitor;
   V(ByteDataDot_view, "ByteData._view")                                        \
   V(ByteDataDotview, "ByteData.view")                                          \
   V(_ByteDataView, "_ByteDataView")                                            \
+  V(_ByteBuffer, "_ByteBuffer")                                                \
+  V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
@@ -256,7 +258,6 @@ class ObjectPointerVisitor;
   V(IsolateUnhandledException, "_IsolateUnhandledException")                   \
   V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
   V(JavascriptCompatibilityError, "_JavascriptCompatibilityError")             \
-  V(MirroredCompilationError, "MirroredCompilationError")                      \
   V(_setupFullStackTrace, "_setupFullStackTrace")                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \

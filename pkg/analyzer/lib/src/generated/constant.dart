@@ -292,6 +292,32 @@ class ConstantValueComputer {
   static String _DEFAULT_VALUE_PARAM = "defaultValue";
 
   /**
+   * Source of RegExp matching declarable operator names. From sdk/lib/internal/symbol.dart.
+   */
+  static String _OPERATOR_RE = "(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)";
+
+  /**
+   * Source of RegExp matching any public identifier. From sdk/lib/internal/symbol.dart.
+   */
+  static String _PUBLIC_IDENTIFIER_RE = "(?!${ConstantValueComputer._RESERVED_WORD_RE}\\b(?!\\\$))[a-zA-Z\$][\\w\$]*";
+
+  /**
+   * Source of RegExp matching Dart reserved words. From sdk/lib/internal/symbol.dart.
+   */
+  static String _RESERVED_WORD_RE = "(?:assert|break|c(?:a(?:se|tch)|lass|on(?:st|tinue))|d(?:efault|o)|e(?:lse|num|xtends)|f(?:alse|inal(?:ly)?|or)|i[fns]|n(?:ew|ull)|ret(?:hrow|urn)|s(?:uper|witch)|t(?:h(?:is|row)|r(?:ue|y))|v(?:ar|oid)|w(?:hile|ith))";
+
+  /**
+   * RegExp that validates a non-empty non-private symbol. From sdk/lib/internal/symbol.dart.
+   */
+  static RegExp _PUBLIC_SYMBOL_PATTERN = new RegExp("^(?:${ConstantValueComputer._OPERATOR_RE}\$|${_PUBLIC_IDENTIFIER_RE}(?:=?\$|[.](?!\$)))+?\$");
+
+  /**
+   * Determine whether the given string is a valid name for a public symbol (i.e. whether it is
+   * allowed for a call to the Symbol constructor).
+   */
+  static bool isValidPublicSymbol(String name) => name.isEmpty || new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
+
+  /**
    * The type provider used to access the known types.
    */
   TypeProvider typeProvider;
@@ -492,6 +518,28 @@ class ConstantValueComputer {
   }
 
   /**
+   * Check that the arguments to a call to Symbol() are correct.
+   *
+   * @param arguments the AST nodes of the arguments.
+   * @param argumentValues the values of the unnamed arguments.
+   * @param namedArgumentValues the values of the named arguments.
+   * @return true if the arguments are correct, false if there is an error.
+   */
+  bool _checkSymbolArguments(NodeList<Expression> arguments, List<DartObjectImpl> argumentValues, HashMap<String, DartObjectImpl> namedArgumentValues) {
+    if (arguments.length != 1) {
+      return false;
+    }
+    if (arguments[0] is NamedExpression) {
+      return false;
+    }
+    if (!identical(argumentValues[0].type, typeProvider.stringType)) {
+      return false;
+    }
+    String name = argumentValues[0].stringValue;
+    return isValidPublicSymbol(name);
+  }
+
+  /**
    * Compute a value for the given constant.
    *
    * @param constNode the constant for which a value is to be computed
@@ -602,10 +650,11 @@ class ConstantValueComputer {
           return _computeValueFromEnvironment(valueFromEnvironment, new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE), namedArgumentValues);
         }
       } else if (constructor.name == "" && identical(definingClass, typeProvider.symbolType) && argumentCount == 1) {
-        String argumentValue = argumentValues[0].stringValue;
-        if (argumentValue != null) {
-          return constantVisitor._valid(definingClass, new SymbolState(argumentValue));
+        if (!_checkSymbolArguments(arguments, argumentValues, namedArgumentValues)) {
+          return new ErrorResult.con1(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
         }
+        String argumentValue = argumentValues[0].stringValue;
+        return constantVisitor._valid(definingClass, new SymbolState(argumentValue));
       }
       // Either it's an external const factory constructor that we can't emulate, or an error
       // occurred (a cycle, or a const constructor trying to delegate to a non-const constructor).

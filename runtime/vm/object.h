@@ -2514,6 +2514,7 @@ class Script : public Object {
 
   void Tokenize(const String& private_key) const;
 
+  RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number) const;
   RawString* GetSnippet(intptr_t from_token_pos,
                         intptr_t to_token_pos) const;
@@ -2767,6 +2768,7 @@ class Library : public Object {
   static void InitNativeWrappersLibrary(Isolate* isolate);
 
   static RawLibrary* AsyncLibrary();
+  static RawLibrary* ConvertLibrary();
   static RawLibrary* CoreLibrary();
   static RawLibrary* CollectionLibrary();
   static RawLibrary* InternalLibrary();
@@ -2998,32 +3000,35 @@ class PcDescriptors : public Object {
                      int64_t token_pos,  // Or deopt reason.
                      intptr_t try_index) const {  // Or deopt index.
     RawPcDescriptors::PcDescriptorRec* rec = recAt(index);
-    rec->pc = pc;
-    rec->kind_ = kind;
+    rec->set_pc(pc);
+    rec->set_kind(kind);
     ASSERT(Utils::IsInt(32, deopt_id));
-    rec->deopt_id = deopt_id;
+    rec->set_deopt_id(deopt_id);
     ASSERT(Utils::IsInt(32, token_pos));
-    rec->token_pos = token_pos;
+    rec->set_token_pos(token_pos,
+        RecordSizeInBytes() == RawPcDescriptors::kCompressedRecSize);
     ASSERT(Utils::IsInt(16, try_index));
-    rec->try_index = try_index;
+    rec->set_try_index(try_index);
+    ASSERT(rec->try_index() == try_index);
+    ASSERT(rec->token_pos() == token_pos);
   }
 
-  static const intptr_t kBytesPerElement =
+  static const intptr_t kMaxBytesPerElement =
       sizeof(RawPcDescriptors::PcDescriptorRec);
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxElements = kSmiMax / kMaxBytesPerElement;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) ==
            OFFSET_OF_RETURNED_VALUE(RawPcDescriptors, data));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t len) {
+  static intptr_t InstanceSize(intptr_t len, intptr_t record_size_in_bytes) {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
-        sizeof(RawPcDescriptors) + (len * kBytesPerElement));
+        sizeof(RawPcDescriptors) + (len * record_size_in_bytes));
   }
 
-  static RawPcDescriptors* New(intptr_t num_descriptors);
+  static RawPcDescriptors* New(intptr_t num_descriptors, bool has_try_index);
 
   // Returns 0 if not found.
   uword GetPcForKind(RawPcDescriptors::Kind kind) const;
@@ -3037,7 +3042,8 @@ class PcDescriptors : public Object {
 
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
-
+  // Note: never return a reference to a RawPcDescriptors::PcDescriptorRec
+  // as the object can move.
   class Iterator : ValueObject {
    public:
     Iterator(const PcDescriptors& descriptors, intptr_t kind_mask)
@@ -3047,12 +3053,26 @@ class PcDescriptors : public Object {
 
     bool HasNext() const { return current_ix_ < descriptors_.Length(); }
 
-    const RawPcDescriptors::PcDescriptorRec& Next() {
+    intptr_t NextDeoptId() {
       ASSERT(HasNext());
-      const RawPcDescriptors::PcDescriptorRec* res =
-         descriptors_.recAt(current_ix_++);
+      const intptr_t res = descriptors_.recAt(current_ix_++)->deopt_id();
       MoveToMatching();
-      return *res;
+      return res;
+    }
+
+    uword NextPc() {
+      ASSERT(HasNext());
+      const uword res = descriptors_.recAt(current_ix_++)->pc();
+      MoveToMatching();
+      return res;
+    }
+
+    void NextRec(RawPcDescriptors::PcDescriptorRec* result) {
+      ASSERT(HasNext());
+      const RawPcDescriptors::PcDescriptorRec* r =
+          descriptors_.recAt(current_ix_++);
+      r->CopyTo(result);
+      MoveToMatching();
     }
 
    private:
@@ -3070,7 +3090,7 @@ class PcDescriptors : public Object {
       while (current_ix_ < descriptors_.Length()) {
         const RawPcDescriptors::PcDescriptorRec& rec =
             *descriptors_.recAt(current_ix_);
-        if ((rec.kind_ & kind_mask_) != 0) {
+        if ((rec.kind() & kind_mask_) != 0) {
           return;  // Current is valid.
         } else {
           ++current_ix_;
@@ -3087,12 +3107,16 @@ class PcDescriptors : public Object {
   static const char* KindAsStr(RawPcDescriptors::Kind kind);
 
   intptr_t Length() const;
+  void SetLength(intptr_t value) const;
+
+  void SetRecordSizeInBytes(intptr_t value) const;
+  intptr_t RecordSizeInBytes() const;
 
   RawPcDescriptors::PcDescriptorRec* recAt(intptr_t ix) const {
     ASSERT(ix < Length());
-    return &raw_ptr()->data()[ix];
+    uint8_t* d = raw_ptr()->data() + (ix * RecordSizeInBytes());
+    return reinterpret_cast<RawPcDescriptors::PcDescriptorRec*>(d);
   }
-  void SetLength(intptr_t value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
   friend class Class;
@@ -4170,11 +4194,14 @@ class UnhandledException : public Error {
   virtual const char* ToErrorCString() const;
 
  private:
+  static RawUnhandledException* New(Heap::Space space = Heap::kNew);
+
   void set_exception(const Instance& exception) const;
   void set_stacktrace(const Instance& stacktrace) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UnhandledException, Error);
   friend class Class;
+  friend class ObjectStore;
 };
 
 
@@ -4317,6 +4344,7 @@ class Instance : public Object {
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
+  friend class ByteBuffer;
   friend class Class;
   friend class Closure;
   friend class DeferredObject;
@@ -5348,9 +5376,15 @@ class String : public Instance {
 
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
-  static intptr_t Hash(const uint8_t* characters, intptr_t len);
+  static intptr_t HashLatin1(const uint8_t* characters, intptr_t len);
   static intptr_t Hash(const uint16_t* characters, intptr_t len);
   static intptr_t Hash(const int32_t* characters, intptr_t len);
+  static intptr_t HashRawSymbol(const RawString* symbol) {
+    ASSERT(symbol->IsCanonical());
+    intptr_t result = Smi::Value(symbol->ptr()->hash_);
+    ASSERT(result != 0);
+    return result;
+  }
 
   virtual RawObject* HashCode() const { return Integer::New(Hash()); }
 
@@ -5368,8 +5402,10 @@ class String : public Instance {
   // Compares to a '\0' terminated array of UTF-8 encoded characters.
   bool Equals(const char* cstr) const;
 
-  // Compares to an array of UTF-8 encoded characters.
-  bool Equals(const uint8_t* characters, intptr_t len) const;
+  // Compares to an array of Latin-1 encoded characters.
+  bool EqualsLatin1(const uint8_t* characters, intptr_t len) const {
+    return Equals(characters, len);
+  }
 
   // Compares to an array of UTF-16 encoded characters.
   bool Equals(const uint16_t* characters, intptr_t len) const;
@@ -5535,6 +5571,12 @@ class String : public Instance {
                           double* result);
 
  protected:
+  // These two operate on an array of Latin-1 encoded characters.
+  // They are protected to avoid mistaking Latin-1 for UTF-8, but used
+  // by friendly templated code (e.g., Symbols).
+  bool Equals(const uint8_t* characters, intptr_t len) const;
+  static intptr_t Hash(const uint8_t* characters, intptr_t len);
+
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return (raw_ptr()->hash_ != NULL);
@@ -6675,6 +6717,28 @@ class TypedDataView : public AllStatic {
     kDataOffset = 1,
     kOffsetInBytesOffset = 2,
     kLengthOffset = 3,
+  };
+};
+
+
+class ByteBuffer : public AllStatic {
+ public:
+  static RawInstance* Data(const Instance& view_obj) {
+    ASSERT(!view_obj.IsNull());
+    return *reinterpret_cast<RawInstance**>(view_obj.raw_ptr() + kDataOffset);
+  }
+
+  static intptr_t NumberOfFields() {
+    return kDataOffset;
+  }
+
+  static intptr_t data_offset() {
+    return kWordSize * kDataOffset;
+  }
+
+ private:
+  enum {
+    kDataOffset = 1,
   };
 };
 

@@ -17,6 +17,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
   String testCode;
+  String testFile = '/test.dart';
   Source testSource;
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
@@ -82,7 +83,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   void resolveTestUnit(String code) {
     testCode = code;
-    testSource = addSource('/test.dart', code);
+    testSource = addSource(testFile, code);
     testUnit = resolveLibraryUnit(testSource);
     if (verifyNoTestUnitErrors) {
       assertNoErrorsInSource(testSource);

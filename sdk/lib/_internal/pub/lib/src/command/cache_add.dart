@@ -18,7 +18,6 @@ class CacheAddCommand extends PubCommand {
   String get usage =>
       "pub cache add <package> [--version <constraint>] [--all]";
   String get docUrl => "http://dartlang.org/tools/pub/cmd/pub-cache.html";
-  bool get requiresEntrypoint => false;
   bool get takesArguments => true;
 
   CacheAddCommand() {

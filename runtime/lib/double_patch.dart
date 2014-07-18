@@ -24,7 +24,7 @@ patch class double {
                                   [double onError(String str)]) {
     var result = _parse(str);
     if (result == null) {
-      if (onError == null) throw new FormatException(str);
+      if (onError == null) throw new FormatException("Invalid double", str);
       return onError(str);
     }
     return result;

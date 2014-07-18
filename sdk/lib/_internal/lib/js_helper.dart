@@ -3330,3 +3330,23 @@ Future<Null> _loadHunk(String hunkName, String uri) {
     return completer.future;
   });
 }
+
+class MainError extends Error implements NoSuchMethodError {
+  final String _message;
+
+  MainError(this._message);
+
+  String toString() => 'NoSuchMethodError: $_message';
+}
+
+void missingMain() {
+  throw new MainError("No top-level function named 'main'.");
+}
+
+void badMain() {
+  throw new MainError("'main' is not a function.");
+}
+
+void mainHasTooManyParameters() {
+  throw new MainError("'main' expects too many parameters.");
+}

@@ -18,13 +18,17 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
   data.SetTokenPos(token_index);
   data.try_index = try_index;
   list_.Add(data);
+  if (try_index >= 0) {
+    has_try_index_ = true;
+  }
 }
 
 
 RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
   intptr_t num_descriptors = Length();
   const PcDescriptors& descriptors =
-      PcDescriptors::Handle(PcDescriptors::New(num_descriptors));
+      PcDescriptors::Handle(PcDescriptors::New(num_descriptors,
+                                               has_try_index_));
   for (intptr_t i = 0; i < num_descriptors; i++) {
     descriptors.AddDescriptor(i,
                               (entry_point + PcOffset(i)),

@@ -1780,7 +1780,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   void set analysisOptions(AnalysisOptions options) {
-    bool needsRecompute = this._options.analyzeAngular != options.analyzeAngular || this._options.analyzeFunctionBodies != options.analyzeFunctionBodies || this._options.generateSdkErrors != options.generateSdkErrors || this._options.enableDeferredLoading != options.enableDeferredLoading || this._options.dart2jsHint != options.dart2jsHint || (this._options.hint && !options.hint) || this._options.preserveComments != options.preserveComments;
+    bool needsRecompute = this._options.analyzeAngular != options.analyzeAngular || this._options.analyzeFunctionBodies != options.analyzeFunctionBodies || this._options.generateSdkErrors != options.generateSdkErrors || this._options.enableAsync != options.enableAsync || this._options.enableDeferredLoading != options.enableDeferredLoading || this._options.enableEnum != options.enableEnum || this._options.dart2jsHint != options.dart2jsHint || (this._options.hint && !options.hint) || this._options.preserveComments != options.preserveComments;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
       this._options.cacheSize = cacheSize;
@@ -1801,7 +1801,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.analyzeAngular = options.analyzeAngular;
     this._options.analyzeFunctionBodies = options.analyzeFunctionBodies;
     this._options.generateSdkErrors = options.generateSdkErrors;
+    this._options.enableAsync = options.enableAsync;
     this._options.enableDeferredLoading = options.enableDeferredLoading;
+    this._options.enableEnum = options.enableEnum;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
@@ -6318,11 +6320,25 @@ abstract class AnalysisOptions {
   bool get dart2jsHint;
 
   /**
-   * Return `true` if analysis is to include the new "deferred loading" support.
+   * Return `true` if analysis is to include the new async support.
    *
-   * @return `true` if analysis is to include the new "deferred loading" support
+   * @return `true` if analysis is to include the new async support
+   */
+  bool get enableAsync;
+
+  /**
+   * Return `true` if analysis is to include the new deferred loading support.
+   *
+   * @return `true` if analysis is to include the new deferred loading support
    */
   bool get enableDeferredLoading;
+
+  /**
+   * Return `true` if analysis is to include the new enum support.
+   *
+   * @return `true` if analysis is to include the new enum support
+   */
+  bool get enableEnum;
 
   /**
    * Return `true` if errors, warnings and hints should be generated for sources in the SDK.
@@ -6366,14 +6382,19 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static int DEFAULT_CACHE_SIZE = 64;
 
   /**
+   * The default value for enabling async support.
+   */
+  static bool DEFAULT_ENABLE_ASYNC = false;
+
+  /**
    * The default value for enabling deferred loading.
    */
   static bool DEFAULT_ENABLE_DEFERRED_LOADING = true;
 
   /**
-   * The default value for enabling async support.
+   * The default value for enabling enum support.
    */
-  static bool DEFAULT_ENABLE_ASYNC = false;
+  static bool DEFAULT_ENABLE_ENUM = false;
 
   /**
    * A flag indicating whether analysis is to analyze Angular.
@@ -6401,9 +6422,19 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool dart2jsHint = true;
 
   /**
+   * A flag indicating whether analysis is to enable async support.
+   */
+  bool enableAsync = DEFAULT_ENABLE_ASYNC;
+
+  /**
    * A flag indicating whether analysis is to enable deferred loading.
    */
   bool enableDeferredLoading = DEFAULT_ENABLE_DEFERRED_LOADING;
+
+  /**
+   * A flag indicating whether analysis is to enable enum support.
+   */
+  bool enableEnum = DEFAULT_ENABLE_ENUM;
 
   /**
    * A flag indicating whether errors, warnings and hints should be generated for sources in the
@@ -6444,7 +6475,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzePolymer = options.analyzePolymer;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableAsync = options.enableAsync;
     enableDeferredLoading = options.enableDeferredLoading;
+    enableEnum = options.enableEnum;
     _generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
     incremental = options.incremental;
@@ -13114,7 +13147,9 @@ class ParseDartTask extends AnalysisTask {
       Parser parser = new Parser(source, errorListener);
       AnalysisOptions options = context.analysisOptions;
       parser.parseFunctionBodies = options.analyzeFunctionBodies;
+      parser.parseAsync = options.enableAsync;
       parser.parseDeferredLibraries = options.enableDeferredLoading;
+      parser.parseEnum = options.enableEnum;
       _unit = parser.parseCompilationUnit(_tokenStream);
       _unit.lineInfo = lineInfo;
       AnalysisContext analysisContext = context;

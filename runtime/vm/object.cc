@@ -660,9 +660,11 @@ void Object::InitOnce() {
 
   // Allocate and initialize the empty_descriptors instance.
   {
-    uword address = heap->Allocate(PcDescriptors::InstanceSize(0), Heap::kOld);
+    uword address = heap->Allocate(
+        PcDescriptors::InstanceSize(0, RawPcDescriptors::kCompressedRecSize),
+        Heap::kOld);
     InitializeObject(address, kPcDescriptorsCid,
-                     PcDescriptors::InstanceSize(0));
+        PcDescriptors::InstanceSize(0, RawPcDescriptors::kCompressedRecSize));
     PcDescriptors::initializeHandle(
         empty_descriptors_,
         reinterpret_cast<RawPcDescriptors*>(address + kHeapObjectTag));
@@ -1222,6 +1224,14 @@ RawError* Object::Init(Isolate* isolate) {
   typed_data_classes.SetAt(index, cls);                                        \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);                 \
 
+  cls = Class::New<Instance>(kByteBufferCid);
+  cls.set_instance_size(0);
+  cls.set_next_field_offset(-kWordSize);
+  index = kByteBufferCid - kTypedDataInt8ArrayCid;
+  typed_data_classes.SetAt(index, cls);
+  RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
+  pending_classes.Add(cls);
+
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
   // Register Float32x4 and Int32x4 in the object store.
@@ -1445,6 +1455,8 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
+
+  cls = Class::New<Instance>(kByteBufferCid);
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
@@ -7624,50 +7636,85 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 }
 
 
+// CompressedTokenMap maps String and LiteralToken keys to Smi values.
+// It also supports lookup by Scanner::TokenDescriptor.
+class CompressedTokenTraits {
+ public:
+  static bool IsMatch(const Scanner::TokenDescriptor& descriptor,
+                      const Object& key) {
+    if (!key.IsLiteralToken()) {
+      return false;
+    }
+    const LiteralToken& token = LiteralToken::Cast(key);
+    return (token.literal() == descriptor.literal->raw()) &&
+           (token.kind() == descriptor.kind);
+  }
+
+  // Only for non-descriptor lookup and table expansion.
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.raw() == b.raw();
+  }
+
+  static uword Hash(const Scanner::TokenDescriptor& descriptor) {
+    return descriptor.literal->Hash();
+  }
+
+  static uword Hash(const Object& key) {
+    if (key.IsLiteralToken()) {
+      return String::HashRawSymbol(LiteralToken::Cast(key).literal());
+    } else {
+      return String::Cast(key).Hash();
+    }
+  }
+};
+typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
+
+
 // Helper class for creation of compressed token stream data.
 class CompressedTokenStreamData : public ValueObject {
  public:
-  static const intptr_t kInitialSize = 16 * KB;
+  static const intptr_t kInitialBufferSize = 16 * KB;
   CompressedTokenStreamData() :
       buffer_(NULL),
-      stream_(&buffer_, Reallocate, kInitialSize),
-      token_objects_(GrowableObjectArray::Handle(
-          GrowableObjectArray::New(kInitialTokenCount, Heap::kOld))),
-      token_obj_(Object::Handle()),
-      literal_token_(LiteralToken::Handle()),
-      literal_str_(String::Handle()) {
-    token_objects_.Add(Object::null_string());
+      stream_(&buffer_, Reallocate, kInitialBufferSize),
+      tokens_(Array::Handle(
+          HashTables::New<CompressedTokenMap>(kInitialTableSize))) {
   }
   ~CompressedTokenStreamData() {
+    // Safe to discard the hash table now.
+    tokens_.Release();
   }
 
-  // Add an IDENT token into the stream and the token objects array.
+  // Add an IDENT token into the stream and the token hash map.
   void AddIdentToken(const String* ident) {
-    // If the IDENT token is already in the tokens object array use the
-    // same index instead of duplicating it.
-    intptr_t index = FindIdentIndex(ident);
-    if (index == -1) {
-      WriteIndex(token_objects_.Length());
-      ASSERT(ident != NULL);
-      token_objects_.Add(*ident);
+    ASSERT(ident->IsSymbol());
+    intptr_t index = tokens_.NumOccupied();
+    intptr_t entry;
+    if (!tokens_.FindKeyOrDeletedOrUnused(*ident, &entry)) {
+      tokens_.InsertKey(entry, *ident);
+      tokens_.UpdatePayload(entry, 0, Smi::Handle(Smi::New(index)));
+      HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, tokens_);
     } else {
-      WriteIndex(index);
+      index = Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0)));
     }
+    WriteIndex(index);
   }
 
-  // Add a LITERAL token into the stream and the token objects array.
-  void AddLiteralToken(Token::Kind kind, const String* literal) {
-    // If the literal token is already in the tokens object array use the
-    // same index instead of duplicating it.
-    intptr_t index = FindLiteralIndex(kind, literal);
-    if (index == -1) {
-      WriteIndex(token_objects_.Length());
-      ASSERT(literal != NULL);
-      literal_token_ = LiteralToken::New(kind, *literal);
-      token_objects_.Add(literal_token_);
+  // Add a LITERAL token into the stream and the token hash map.
+  void AddLiteralToken(const Scanner::TokenDescriptor& descriptor) {
+    ASSERT(descriptor.literal->IsSymbol());
+    intptr_t index = tokens_.NumOccupied();
+    intptr_t entry;
+    if (!tokens_.FindKeyOrDeletedOrUnused(descriptor, &entry)) {
+      LiteralToken& new_literal = LiteralToken::Handle(
+          LiteralToken::New(descriptor.kind, *descriptor.literal));
+      tokens_.InsertKey(entry, new_literal);
+      tokens_.UpdatePayload(entry, 0, Smi::Handle(Smi::New(index)));
+      HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, tokens_);
     } else {
-      WriteIndex(index);
+      index = Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0)));
     }
+    WriteIndex(index);
   }
 
   // Add a simple token into the stream.
@@ -7681,44 +7728,21 @@ class CompressedTokenStreamData : public ValueObject {
   // Return the compressed token stream length.
   intptr_t Length() const { return stream_.bytes_written(); }
 
-  // Return the token objects array.
-  const GrowableObjectArray& TokenObjects() const {
-    return token_objects_;
+  // Generate and return the token objects array.
+  RawArray* MakeTokenObjectsArray() const {
+    Array& result = Array::Handle(
+        Array::New(tokens_.NumOccupied(), Heap::kOld));
+    CompressedTokenMap::Iterator it(&tokens_);
+    Object& key = Object::Handle();
+    while (it.MoveNext()) {
+      intptr_t entry = it.Current();
+      key = tokens_.GetKey(entry);
+      result.SetAt(Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0))), key);
+    }
+    return result.raw();
   }
 
  private:
-  intptr_t FindIdentIndex(const String* ident) {
-    ASSERT(ident != NULL);
-    ASSERT(ident->IsSymbol());
-    intptr_t hash_value = ident->Hash() % kTableSize;
-    GrowableArray<intptr_t>& value = ident_table_[hash_value];
-    for (intptr_t i = 0; i < value.length(); i++) {
-      intptr_t index = value[i];
-      if (token_objects_.At(index) == ident->raw()) {
-        return index;
-      }
-    }
-    value.Add(token_objects_.Length());
-    return -1;
-  }
-
-  intptr_t FindLiteralIndex(Token::Kind kind, const String* literal) {
-    ASSERT(literal != NULL);
-    ASSERT(literal->IsSymbol());
-    intptr_t hash_value = literal->Hash() % kTableSize;
-    GrowableArray<intptr_t>& value = literal_table_[hash_value];
-    for (intptr_t i = 0; i < value.length(); i++) {
-      intptr_t index = value[i];
-      token_obj_ = token_objects_.At(index);
-      const LiteralToken& token = LiteralToken::Cast(token_obj_);
-      if ((kind == token.kind()) && (token.literal() == literal->raw())) {
-        return index;
-      }
-    }
-    value.Add(token_objects_.Length());
-    return -1;
-  }
-
   void WriteIndex(intptr_t value) {
     stream_.WriteUnsigned(value + Token::kNumTokens);
   }
@@ -7730,20 +7754,18 @@ class CompressedTokenStreamData : public ValueObject {
     return reinterpret_cast<uint8_t*>(new_ptr);
   }
 
-  static const int kInitialTokenCount = 32;
-  static const intptr_t kTableSize = 1024;
+  static const intptr_t kInitialTableSize = 32;
+  static const double kMaxLoadFactor;
 
   uint8_t* buffer_;
   WriteStream stream_;
-  GrowableArray<intptr_t> ident_table_[kTableSize];
-  GrowableArray<intptr_t> literal_table_[kTableSize];
-  const GrowableObjectArray& token_objects_;
-  Object& token_obj_;
-  LiteralToken& literal_token_;
-  String& literal_str_;
+  CompressedTokenMap tokens_;
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
+
+
+const double CompressedTokenStreamData::kMaxLoadFactor = 0.75;
 
 
 RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
@@ -7763,7 +7785,7 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
       if (FLAG_compiler_stats) {
         CompilerStats::num_literal_tokens_total += 1;
       }
-      data.AddLiteralToken(token.kind, token.literal);
+      data.AddLiteralToken(token);
     } else {  // Keyword, pseudo keyword etc.
       ASSERT(token.kind < Token::kNumTokens);
       data.AddSimpleToken(token.kind);
@@ -7781,11 +7803,11 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
   stream.AddFinalizer(data.GetStream(), DataFinalizer);
   const TokenStream& result = TokenStream::Handle(New());
   result.SetPrivateKey(private_key);
+  const Array& token_objects = Array::Handle(data.MakeTokenObjectsArray());
   {
     NoGCScope no_gc;
     result.SetStream(stream);
-    const Array& tokens = Array::Handle(Array::MakeArray(data.TokenObjects()));
-    result.SetTokenObjects(tokens);
+    result.SetTokenObjects(token_objects);
   }
   return result.raw();
 }
@@ -8305,6 +8327,25 @@ const char* Script::ToCString() const {
 }
 
 
+RawLibrary* Script::FindLibrary() const {
+  Isolate* isolate = Isolate::Current();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate, isolate->object_store()->libraries());
+  Library& lib = Library::Handle();
+  Array& scripts = Array::Handle();
+  for (intptr_t i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    scripts = lib.LoadedScripts();
+    for (intptr_t j = 0; j < scripts.Length(); j++) {
+      if (scripts.At(j) == raw()) {
+        return lib.raw();
+      }
+    }
+  }
+  return Library::null();
+}
+
+
 // See also Dart_ScriptGetTokenInfo.
 void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
@@ -8313,13 +8354,17 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ASSERT(!name.IsNull());
   const String& encoded_url = String::Handle(String::EncodeURI(name));
   ASSERT(!encoded_url.IsNull());
-  jsobj.AddPropertyF("id", "scripts/%s", encoded_url.ToCString());
+  const Library& lib = Library::Handle(FindLibrary());
+  intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
+  jsobj.AddPropertyF("id", "libraries/%" Pd "/scripts/%s",
+      lib_index, encoded_url.ToCString());
   jsobj.AddProperty("name", name.ToCString());
   jsobj.AddProperty("user_name", name.ToCString());
   jsobj.AddProperty("kind", GetKindAsCString());
   if (ref) {
     return;
   }
+  jsobj.AddProperty("owning_library", lib);
   const String& source = String::Handle(Source());
   jsobj.AddProperty("source", source.ToCString());
 
@@ -8901,6 +8946,25 @@ RawArray* Library::LoadedScripts() const {
         continue;
       }
       AddScriptIfUnique(scripts, owner_script);
+    }
+
+    // Special case: Scripts that only contain external top-level functions are
+    // not included above, but can be referenced through a library's anonymous
+    // classes. Example: dart-core:identical.dart.
+    Array& anon_classes = Array::Handle(anonymous_classes());
+    Function& func = Function::Handle();
+    Array& functions = Array::Handle();
+    for (intptr_t i = 0; i < anon_classes.Length(); i++) {
+      cls ^= anon_classes.At(i);
+      if (cls.IsNull()) continue;
+      owner_script = cls.script();
+      AddScriptIfUnique(scripts, owner_script);
+      functions = cls.functions();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        func ^= functions.At(j);
+        owner_script = func.script();
+        AddScriptIfUnique(scripts, owner_script);
+      }
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.
@@ -9492,6 +9556,11 @@ RawLibrary* Library::AsyncLibrary() {
 }
 
 
+RawLibrary* Library::ConvertLibrary() {
+  return Isolate::Current()->object_store()->convert_library();
+}
+
+
 RawLibrary* Library::CoreLibrary() {
   return Isolate::Current()->object_store()->core_library();
 }
@@ -9745,8 +9814,9 @@ bool LibraryPrefix::LoadLibrary() const {
     this->set_is_loaded();
     return true;
   } else if (deferred_lib.LoadNotStarted()) {
-    deferred_lib.SetLoadRequested();
     Isolate* isolate = Isolate::Current();
+    Api::Scope api_scope(isolate);
+    deferred_lib.SetLoadRequested();
     const String& lib_url = String::Handle(isolate, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
     handler(Dart_kImportTag,
@@ -10214,7 +10284,18 @@ void PcDescriptors::SetLength(intptr_t value) const {
 }
 
 
-RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
+intptr_t PcDescriptors::RecordSizeInBytes() const {
+  return raw_ptr()->record_size_in_bytes_;
+}
+
+
+void PcDescriptors::SetRecordSizeInBytes(intptr_t value) const {
+  raw_ptr()->record_size_in_bytes_ = value;
+}
+
+
+RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors,
+                                     bool has_try_index) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
   if (num_descriptors < 0 || num_descriptors > kMaxElements) {
     // This should be caught before we reach here.
@@ -10223,13 +10304,15 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
   }
   PcDescriptors& result = PcDescriptors::Handle();
   {
-    uword size = PcDescriptors::InstanceSize(num_descriptors);
+    const intptr_t rec_size =  RawPcDescriptors::RecordSize(has_try_index);
+    uword size = PcDescriptors::InstanceSize(num_descriptors, rec_size);
     RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(num_descriptors);
+    result.SetRecordSizeInBytes(rec_size);
   }
   return result.raw();
 }
@@ -10276,13 +10359,14 @@ const char* PcDescriptors::ToCString() const {
   intptr_t len = 1;  // Trailing '\0'.
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
     len += OS::SNPrint(NULL, 0, kFormat, addr_width,
-                       rec.pc,
+                       rec.pc(),
                        KindAsStr(rec.kind()),
-                       rec.deopt_id,
-                       rec.token_pos,
-                       rec.try_index);
+                       rec.deopt_id(),
+                       rec.token_pos(),
+                       rec.try_index());
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
@@ -10290,13 +10374,14 @@ const char* PcDescriptors::ToCString() const {
   intptr_t index = 0;
   Iterator iter2(*this, RawPcDescriptors::kAnyKind);
   while (iter2.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter2.Next();
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter2.NextRec(&rec);
     index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
-                         rec.pc,
+                         rec.pc(),
                          KindAsStr(rec.kind()),
-                         rec.deopt_id,
-                         rec.token_pos,
-                         rec.try_index);
+                         rec.deopt_id(),
+                         rec.token_pos(),
+                         rec.try_index());
   }
   return buffer;
 }
@@ -10311,13 +10396,14 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj) const {
   JSONArray members(jsobj, "members");
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
     JSONObject descriptor(&members);
-    descriptor.AddPropertyF("pc", "%" Px "", rec.pc);
+    descriptor.AddPropertyF("pc", "%" Px "", rec.pc());
     descriptor.AddProperty("kind", KindAsStr(rec.kind()));
-    descriptor.AddProperty("deoptId",  static_cast<intptr_t>(rec.deopt_id));
-    descriptor.AddProperty("tokenPos",  static_cast<intptr_t>(rec.token_pos));
-    descriptor.AddProperty("tryIndex",  static_cast<intptr_t>(rec.try_index));
+    descriptor.AddProperty("deoptId",  static_cast<intptr_t>(rec.deopt_id()));
+    descriptor.AddProperty("tokenPos",  static_cast<intptr_t>(rec.token_pos()));
+    descriptor.AddProperty("tryIndex",  static_cast<intptr_t>(rec.try_index()));
   }
 }
 
@@ -10349,13 +10435,11 @@ void PcDescriptors::Verify(const Function& function) const {
   }
   Iterator iter(*this, RawPcDescriptors::kDeopt | RawPcDescriptors::kIcCall);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    RawPcDescriptors::Kind kind = rec.kind();
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
     // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
-    intptr_t deopt_id = Isolate::kNoDeoptId;
 
-    deopt_id = rec.deopt_id;
-    if (Isolate::IsDeoptAfter(deopt_id)) {
+    if (Isolate::IsDeoptAfter(rec.deopt_id())) {
       // TODO(vegorov): some instructions contain multiple calls and have
       // multiple "after" targets recorded. Right now it is benign but might
       // lead to issues in the future. Fix that and enable verification.
@@ -10364,11 +10448,10 @@ void PcDescriptors::Verify(const Function& function) const {
 
     Iterator nested(iter);
     while (nested.HasNext()) {
-      const RawPcDescriptors::PcDescriptorRec& nested_rec = nested.Next();
-      if (kind == nested_rec.kind()) {
-        if (deopt_id != Isolate::kNoDeoptId) {
-          ASSERT(nested_rec.deopt_id != deopt_id);
-        }
+      RawPcDescriptors::PcDescriptorRec nested_rec;
+      nested.NextRec(&nested_rec);
+      if (rec.kind() == nested_rec.kind()) {
+        ASSERT(nested_rec.deopt_id() != rec.deopt_id());
       }
     }
   }
@@ -10377,12 +10460,9 @@ void PcDescriptors::Verify(const Function& function) const {
 
 
 uword PcDescriptors::GetPcForKind(RawPcDescriptors::Kind kind) const {
-  Iterator iter(*this, RawPcDescriptors::kAnyKind);
-  while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (rec.kind() == kind) {
-      return rec.pc;
-    }
+  Iterator iter(*this, kind);
+  if (iter.HasNext()) {
+    return iter.NextPc();
   }
   return 0;
 }
@@ -11881,9 +11961,10 @@ intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (rec.pc == pc) {
-      return rec.token_pos;
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
+    if (rec.pc() == pc) {
+      return rec.token_pos();
     }
   }
   return -1;
@@ -11895,9 +11976,10 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id,
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, kind);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (rec.deopt_id == deopt_id) {
-      uword pc = rec.pc;
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
+    if (rec.deopt_id() == deopt_id) {
+      uword pc = rec.pc();
       ASSERT(ContainsInstructionAt(pc));
       return pc;
     }
@@ -11910,9 +11992,10 @@ intptr_t Code::GetDeoptIdForOsr(uword pc) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kOsrEntry);
   while (iter.HasNext()) {
-    const RawPcDescriptors::PcDescriptorRec& rec = iter.Next();
-    if (rec.pc == pc) {
-      return rec.deopt_id;
+    RawPcDescriptors::PcDescriptorRec rec;
+    iter.NextRec(&rec);
+    if (rec.pc() == pc) {
+      return rec.deopt_id();
     }
   }
   return Isolate::kNoDeoptId;
@@ -12684,6 +12767,22 @@ RawUnhandledException* UnhandledException::New(const Instance& exception,
   }
   result.set_exception(exception);
   result.set_stacktrace(stacktrace);
+  return result.raw();
+}
+
+
+RawUnhandledException* UnhandledException::New(Heap::Space space) {
+  ASSERT(Object::unhandled_exception_class() != Class::null());
+  UnhandledException& result = UnhandledException::Handle();
+  {
+    RawObject* raw = Object::Allocate(UnhandledException::kClassId,
+                                      UnhandledException::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  result.set_exception(Object::null_instance());
+  result.set_stacktrace(Object::null_instance());
   return result.raw();
 }
 
@@ -16967,7 +17066,7 @@ bool String::ParseDouble(const String& str,
   ASSERT(0 <= start);
   ASSERT(start <= end);
   ASSERT(end <= str.Length());
-  int length = end - start;
+  intptr_t length = end - start;
   NoGCScope no_gc;
   const uint8_t* startChar;
   if (str.IsOneByteString()) {
@@ -16976,8 +17075,9 @@ bool String::ParseDouble(const String& str,
     startChar = ExternalOneByteString::CharAddr(str, start);
   } else {
     uint8_t* chars = Isolate::Current()->current_zone()->Alloc<uint8_t>(length);
-    for (int i = 0; i < length; i++) {
-      int ch = str.CharAt(start + i);
+    const Scanner::CharAtFunc char_at = str.CharAtFunc();
+    for (intptr_t i = 0; i < length; i++) {
+      int32_t ch = char_at(str, start + i);
       if (ch < 128) {
         chars[i] = ch;
       } else {

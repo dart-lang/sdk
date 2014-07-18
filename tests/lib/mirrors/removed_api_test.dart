@@ -33,5 +33,5 @@ main() {
   expectThrowsNSM(() => MirroredError);
   expectThrowsNSM(() => MirrorException);
   expectThrowsNSM(() => MirroredUncaughtExceptionError);
-  // Don't ask about MirroredCompilationError.
+  expectThrowsNSM(() => MirroredCompilationError);
 }

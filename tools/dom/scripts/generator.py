@@ -113,6 +113,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
 
     'ClientRect': 'ClientRect,DOMRect',
+    'ClientRectList': 'ClientRectList,DOMRectList',
 
     'CSSStyleDeclaration':
         #                    IE                   Firefox

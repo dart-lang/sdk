@@ -150,6 +150,8 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
 
+  kByteBufferCid,
+
   // The following entries do not describe a predefined class, but instead
   // are class indexes for pre-allocated instance (Null, dynamic and Void).
   kNullCid,
@@ -417,6 +419,7 @@ class RawObject {
   static bool IsExternalTypedDataClassId(intptr_t index);
   static bool IsInternalVMdefinedClassId(intptr_t index);
   static bool IsVariableSizeClassId(intptr_t index);
+  static bool IsImplicitFieldClassId(intptr_t index);
 
   static intptr_t NumberOfTypedDataClasses();
 
@@ -451,10 +454,12 @@ class RawObject {
 
   friend class Api;
   friend class Array;
+  friend class ByteBuffer;
   friend class Code;
   friend class FreeListElement;
   friend class GCMarker;
   friend class ExternalTypedData;
+  friend class ForwardList;
   friend class Heap;
   friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
@@ -915,23 +920,75 @@ class RawPcDescriptors : public RawObject {
     kAnyKind         = 0xFF
   };
 
-  struct PcDescriptorRec {
-    uword pc;
-    int32_t deopt_id;
-    int32_t token_pos;  // Or deopt reason.
-    int16_t try_index;  // Or deopt index.
-    uint8_t kind_;
+  // Compressed version assumes try_index is always -1 and does not store it.
+  class PcDescriptorRec {
+   public:
+    PcDescriptorRec()
+        : pc_(0), deopt_id_and_kind_(0), token_pos_(0), try_index_(0) {}
 
-    Kind kind() const { return static_cast<Kind>(kind_); }
+    uword pc() const { return pc_; }
+    void set_pc(uword value) { pc_ = value; }
+
+    Kind kind() const {
+      return static_cast<Kind>(deopt_id_and_kind_ & kAnyKind);
+    }
+    void set_kind(Kind kind) {
+      deopt_id_and_kind_ = (deopt_id_and_kind_ & 0xFFFFFF00) | kind;
+    }
+
+    int16_t try_index() const { return is_compressed() ? -1 : try_index_; }
+    void set_try_index(int16_t value) {
+      if (is_compressed()) {
+        ASSERT(value == -1);
+        return;
+      }
+      try_index_ = value;
+    }
+
+    intptr_t token_pos() const { return token_pos_ >> 1; }
+    void set_token_pos(int32_t value, bool compressed) {
+      int32_t bit = compressed ? 0x1 : 0x0;
+      token_pos_ = (value << 1) | bit;
+    }
+
+    intptr_t deopt_id() const { return deopt_id_and_kind_ >> 8; }
+    void set_deopt_id(int32_t value) {
+      ASSERT(Utils::IsInt(24, value));
+      deopt_id_and_kind_ = (deopt_id_and_kind_ & 0xFF) | (value << 8);
+    }
+
+    void CopyTo(PcDescriptorRec* other) const {
+      other->set_pc(pc());
+      other->set_deopt_id(deopt_id());
+      other->set_kind(kind());
+      other->set_token_pos(token_pos(), false);
+      other->set_try_index(try_index());
+    }
+
+   private:
+    bool is_compressed() const {
+      return (token_pos_ & 0x1) == 1;
+    }
+
+    uword pc_;
+    int32_t deopt_id_and_kind_;  // Bits 31..8 -> deopt_id, bits 7..0 kind.
+    int32_t token_pos_;  // Bits 31..1 -> token_pos, bit 1 -> compressed flag;
+    int16_t try_index_;
   };
+
+  static intptr_t RecordSize(bool has_try_index);
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors);
 
+  static const intptr_t kFullRecSize;
+  static const intptr_t kCompressedRecSize;
+
+  intptr_t record_size_in_bytes_;
   intptr_t length_;  // Number of descriptors.
 
   // Variable length data follows here.
-  PcDescriptorRec* data() { OPEN_ARRAY_START(PcDescriptorRec, intptr_t); }
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
 
   friend class Object;
 };
@@ -1780,7 +1837,8 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
           (index == kGrowableObjectArrayCid) ||
           IsTypedDataClassId(index) ||
           IsTypedDataViewClassId(index) ||
-          IsExternalTypedDataClassId(index));
+          IsExternalTypedDataClassId(index) ||
+          (index == kByteBufferCid));
 }
 
 
@@ -1857,7 +1915,7 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
        kExternalTypedDataInt8ArrayCid + 12) &&
       (kExternalTypedDataFloat64x2ArrayCid ==
        kExternalTypedDataInt8ArrayCid + 13) &&
-      (kNullCid == kExternalTypedDataInt8ArrayCid + 14));
+      (kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14));
   return (index >= kExternalTypedDataInt8ArrayCid &&
           index <= kExternalTypedDataFloat64x2ArrayCid);
 }
@@ -1865,9 +1923,8 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
 
 inline bool RawObject::IsInternalVMdefinedClassId(intptr_t index) {
   return ((index < kNumPredefinedCids) &&
-          !RawObject::IsTypedDataViewClassId(index));
+          !RawObject::IsImplicitFieldClassId(index));
 }
-
 
 
 inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
@@ -1892,12 +1949,21 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
 }
 
 
+// This is a set of classes that are not Dart classes whose representation
+// is defined by the VM but are used in the VM code by computing the
+// implicit field offsets of the various fields in the dart object.
+inline bool RawObject::IsImplicitFieldClassId(intptr_t index) {
+  return (IsTypedDataViewClassId(index) || index == kByteBufferCid);
+}
+
+
 inline intptr_t RawObject::NumberOfTypedDataClasses() {
   // Make sure this is updated when new TypedData types are added.
   COMPILE_ASSERT(kTypedDataInt8ArrayViewCid == kTypedDataInt8ArrayCid + 14);
   COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid ==
                  kTypedDataInt8ArrayViewCid + 15);
-  COMPILE_ASSERT(kNullCid == kExternalTypedDataInt8ArrayCid + 14);
+  COMPILE_ASSERT(kByteBufferCid == kExternalTypedDataInt8ArrayCid + 14);
+  COMPILE_ASSERT(kNullCid == kByteBufferCid + 1);
   return (kNullCid - kTypedDataInt8ArrayCid);
 }
 

@@ -66,8 +66,9 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
       for (int occurrenceOffset in occurrences.offsets) {
         if (occurrenceOffset == offset) {
           if (exists == false) {
-            fail('Not expected to find (offset=$offset; length=$length) in\n'
-                '${occurrencesList.join('\n')}');
+            fail(
+                'Not expected to find (offset=$offset; length=$length) in\n'
+                    '${occurrencesList.join('\n')}');
           }
           testOccurences = occurrences;
           return;
@@ -75,8 +76,9 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
       }
     }
     if (exists == true) {
-      fail('Expected to find (offset=$offset; length=$length) in\n'
-          '${occurrencesList.join('\n')}');
+      fail(
+          'Expected to find (offset=$offset; length=$length) in\n'
+              '${occurrencesList.join('\n')}');
     }
   }
 
@@ -92,8 +94,8 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
         occurrencesList = <Occurrences>[];
-        List<Map<String, Object>> jsonList = notification.getParameter(
-            OCCURRENCES);
+        List<Map<String, Object>> jsonList =
+            notification.getParameter(OCCURRENCES);
         for (Map<String, Object> json in jsonList) {
           occurrencesList.add(new Occurrences.fromJson(json));
         }
@@ -145,6 +147,26 @@ int VVV = 4;
     });
   }
 
+  test_field() {
+    addTestFile('''
+class A {
+  int fff;
+  A(this.fff); // constructor
+  main() {
+    fff = 42;
+    print(fff); // print
+  }
+}
+''');
+    return prepareOccurrences(() {
+      assertHasRegion('fff;');
+      expect(testOccurences.element.kind, ElementKind.FIELD);
+      assertHasOffset('fff); // constructor');
+      assertHasOffset('fff = 42;');
+      assertHasOffset('fff); // print');
+    });
+  }
+
   test_localVariable() {
     addTestFile('''
 main() {
@@ -160,6 +182,62 @@ main() {
       assertHasOffset('vvv = 42');
       assertHasOffset('vvv += 5');
       assertHasOffset('vvv);');
+    });
+  }
+
+  test_memberField() {
+    addTestFile('''
+class A<T> {
+  T fff;
+}
+main() {
+  var a = new A<int>();
+  var b = new A<String>();
+  a.fff = 1;
+  b.fff = 2;
+}
+''');
+    return prepareOccurrences(() {
+      assertHasRegion('fff;');
+      expect(testOccurences.element.kind, ElementKind.FIELD);
+      assertHasOffset('fff = 1;');
+      assertHasOffset('fff = 2;');
+    });
+  }
+
+  test_memberMethod() {
+    addTestFile('''
+class A<T> {
+  T mmm() {}
+}
+main() {
+  var a = new A<int>();
+  var b = new A<String>();
+  a.mmm(); // a
+  b.mmm(); // b
+}
+''');
+    return prepareOccurrences(() {
+      assertHasRegion('mmm() {}');
+      expect(testOccurences.element.kind, ElementKind.METHOD);
+      assertHasOffset('mmm(); // a');
+      assertHasOffset('mmm(); // b');
+    });
+  }
+
+  test_topLevelVariable() {
+    addTestFile('''
+var VVV = 1;
+main() {
+  VVV = 2;
+  print(VVV);
+}
+''');
+    return prepareOccurrences(() {
+      assertHasRegion('VVV = 1;');
+      expect(testOccurences.element.kind, ElementKind.TOP_LEVEL_VARIABLE);
+      assertHasOffset('VVV = 2;');
+      assertHasOffset('VVV);');
     });
   }
 }

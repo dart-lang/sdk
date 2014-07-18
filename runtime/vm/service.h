@@ -77,7 +77,7 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* root_service_handler_head_;
 
   static Isolate* service_isolate_;
-  static Dart_LibraryTagHandler default_handler_;
+  static Dart_LibraryTagHandler embedder_provided_handler_;
   static Dart_Port port_;
   static uint32_t event_mask_;
 };

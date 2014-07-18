@@ -115,8 +115,10 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 
 
 @DomName('AudioBufferSourceNode')
-// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBufferSourceNode-section
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
 @Experimental()
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBufferSourceNode-section
 class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNode" {
 
   // TODO(efortuna): Remove these methods when Chrome stable also uses start
@@ -223,8 +225,10 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
 
 
 @DomName('AudioContext')
-// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.FIREFOX)
 @Experimental()
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section
 class AudioContext extends EventTarget native "AudioContext,webkitAudioContext" {
   // To suppress missing implicit constructor warnings.
   factory AudioContext._() { throw new UnsupportedError("Not supported"); }
