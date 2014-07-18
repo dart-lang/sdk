@@ -1752,7 +1752,8 @@ class ProfilerNativeStackWalker : public ValueObject {
     uword* fp = reinterpret_cast<uword*>(original_fp_);
     uword* previous_fp = fp;
 
-    if ((original_fp_ - original_sp_) >= kMaxStep) {
+    uword gap = original_fp_ - original_sp_;
+    if (gap >= kMaxStep) {
       // Gap between frame pointer and stack pointer is
       // too large.
       return;
@@ -1778,7 +1779,8 @@ class ProfilerNativeStackWalker : public ValueObject {
         return;
       }
 
-      if ((fp - previous_fp) >= kMaxStep) {
+      gap = fp - previous_fp;
+      if (gap >= kMaxStep) {
         // Frame pointer step is too large.
         return;
       }
