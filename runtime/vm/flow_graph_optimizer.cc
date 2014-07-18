@@ -6116,7 +6116,7 @@ class AliasedSet : public ZoneAllocated {
 
   intptr_t LookupAliasId(const Place& alias) {
     const Place* result = aliases_map_.Lookup(&alias);
-    return (result != NULL) ? result->id() : kNoAlias;
+    return (result != NULL) ? result->id() : static_cast<intptr_t>(kNoAlias);
   }
 
   bool IsStore(Instruction* instr, BitVector** killed) {
