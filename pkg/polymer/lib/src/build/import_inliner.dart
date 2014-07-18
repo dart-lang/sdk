@@ -144,7 +144,12 @@ class _HtmlInliner extends PolymerTransformer {
   /// Loads an asset identified by [id], visits its imports and collects its
   /// html imports. Then inlines it into the main document.
   Future _inlineImport(AssetId id, Element link) {
-    return readAsHtml(id, transform).then((doc) {
+    return readAsHtml(id, transform).catchError((error) {
+      transform.logger.error(
+          "Failed to inline html import: $error", asset: id,
+          span: link.sourceSpan);
+    }).then((doc) {
+      if (doc == null) return;
       new _UrlNormalizer(transform, id).visit(doc);
       return _visitImports(doc).then((_) {
         // _UrlNormalizer already ensures there is a library name.
@@ -160,7 +165,15 @@ class _HtmlInliner extends PolymerTransformer {
   }
 
   Future _inlineStylesheet(AssetId id, Element link) {
-    return transform.readInputAsString(id).then((css) {
+    return transform.readInputAsString(id).catchError((error) {
+      // TODO(jakemac): Move this warning to the linter once we can make it run
+      // always (see http://dartbug.com/17199). Then hide this error and replace
+      // with a comment pointing to the linter error (so we don't double warn).
+      transform.logger.warning(
+          "Failed to inline stylesheet: $error", asset: id,
+          span: link.sourceSpan);
+    }).then((css) {
+      if (css == null) return;
       css = new _UrlNormalizer(transform, id).visitCss(css);
       var styleElement = new Element.tag('style')..text = css;
       // Copy over the extra attributes from the link tag to the style tag.

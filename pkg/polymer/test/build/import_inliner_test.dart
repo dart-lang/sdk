@@ -612,6 +612,31 @@ void importTests() {
           '</head><body>'
           '<polymer-element>3</polymer-element></body></html>',
     });
+
+  testPhases("missing styles don't throw errors and are not inlined", phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="stylesheet" href="foo.css">'
+          '</head></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<link rel="stylesheet" href="foo.css">'
+          '</body></html>',
+    }, [
+      'warning: Failed to inline stylesheet: '
+          'Could not find asset a|web/foo.css. (web/test.html 0 27)',
+    ]);
+
+  testPhases("missing html imports throw errors", phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="foo.html">'
+          '</head></html>',
+    }, {}, [
+      'error: Failed to inline html import: '
+          'Could not find asset a|web/foo.html. (web/test.html 0 27)',
+    ]);
 }
 
 void stylesheetTests() {
