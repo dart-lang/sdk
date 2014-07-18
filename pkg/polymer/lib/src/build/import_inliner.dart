@@ -312,7 +312,7 @@ class _UrlNormalizer extends TreeVisitor {
         topLevelPath =
           '../' * (transform.primaryInput.id.path.split('/').length - 2);
 
-  visit(Element node) {
+  visit(Node node) {
     super.visit(node);
     return changed;
   }
