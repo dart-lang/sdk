@@ -1,6 +1,6 @@
 name: stub_core_library
 description: A repo-internal package for creating core library stubs.
 dependencies:
-  args: ">=0.11.0 <0.12.0"
+  args: ">=0.11.0 <0.13.0"
   analyzer: ">=0.22.0-dev <0.23.0"
   path: ">=1.1.0 <2.0.0"
