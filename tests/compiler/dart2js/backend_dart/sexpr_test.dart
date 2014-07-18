@@ -113,12 +113,11 @@ Future<String> testStringifier(String code, List<String> expectedTokens) {
   return compile(code)
       .then((List<FunctionDefinition> functions) {
         final stringifier = new SExpressionStringifier();
-        List<String> sexprs = functions.map((f) {
+        return functions.map((f) {
           String sexpr = stringifier.visitFunctionDefinition(f);
           Expect.isNotNull(sexpr, "S-expression generation failed");
           return sexpr;
-        });
-        return sexprs.join("\n");
+        }).join("\n");
       })
       .then((String sexpr) {
         Expect.isFalse(sexpr.replaceAll("Constant null", "").contains("null"),
