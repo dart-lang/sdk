@@ -41,7 +41,7 @@ from time import strptime
 ########################################################################
 
 BRANCH_CURRENT="dart/1985"
-BRANCH_NEXT="dart/1985"
+BRANCH_NEXT="dart/dartium"
 BRANCH_MULTIVM="dart/multivm"
 
 TARGETS = {
