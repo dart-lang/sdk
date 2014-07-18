@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:mirrors" show reflect;
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 class GetName {
@@ -11,11 +12,13 @@ class GetName {
 
 String getName(im) => reflect(new GetName()).delegate(im);
 
-class A native "A" {
+@Native("A")
+class A {
   bar() => 42;
 }
 
-class B native "B" {
+@Native("B")
+class B {
   foo() => 42;
 }
 

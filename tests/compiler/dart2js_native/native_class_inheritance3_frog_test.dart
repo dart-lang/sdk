@@ -2,27 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test to see if resolving a hidden native class's method to noSuchMethod
 // interferes with subsequent resolving of the method.  This might happen if the
 // noSuchMethod is cached on Object.prototype.
 
-class A1 native "A1" {
+@Native("A1")
+class A1 {
 }
 
-class B1 extends A1 native "B1" {
+@Native("B1")
+class B1 extends A1 {
 }
 
 makeA1() native;
 makeB1() native;
 
 
-class A2 native "A2" {
+@Native("A2")
+class A2 {
   foo([a=99]) native;
 }
 
-class B2 extends A2 native "B2" {
+@Native("B2")
+class B2 extends A2 {
 }
 
 makeA2() native;

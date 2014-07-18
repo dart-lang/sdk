@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test to see if novel HTML tags are interpreted as HTMLElement.
 
-class Element native "HTMLElement" {
+@Native("HTMLElement")
+class Element {
   String dartMethod(int x) => 'dartMethod(${nativeMethod(x+1)})';
   String nativeMethod(int x) native;
 }

@@ -5,9 +5,11 @@
 // Properties on hidden native classes.
 
 import "package:expect/expect.dart";
+import "dart:_js_helper";
 import 'dart:_foreign_helper' show JS;
 
-class A native "A" {
+@Native("A")
+class A {
 
   // Setters and getters should be similar to these methods:
   int getX() => JS('int', '#._x', this);

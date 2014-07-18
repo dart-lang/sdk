@@ -4,16 +4,18 @@
 
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
     findInterceptorForType, findConstructorForNativeSubclassType;
 
 // Test for super access from classes that extend native classes.
 
-class N1 native "N1" {
+@Native("N1")
+class N1 {
 }
 
-class N2 extends N1 native "N2" {
+@Native("N2")
+class N2 extends N1 {
   N2.init();
   String text;
   foo() native;

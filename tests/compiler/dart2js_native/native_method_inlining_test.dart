@@ -6,11 +6,12 @@
 // number of arguments in the call site AND the call site is inlined.
 
 import "package:expect/expect.dart";
-import 'dart:_js_helper' show NoInline;
+import 'dart:_js_helper' show Native, NoInline;
 
 typedef int Int2Int(int x);
 
-class A native "A" {
+@Native("A")
+class A {
   int foo([x, y, z]) native;
 
   // Calls can be inlined provided they don't pass an argument.

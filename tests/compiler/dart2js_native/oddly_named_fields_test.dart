@@ -61,7 +61,8 @@ import 'dart:_js_helper';
 // See section 11.2 "Left-Hand-Side Expressions" which states that a
 // "MemberExpression" includes: "MemberExpression . IdentifierName".
 
-class NativeClassWithOddNames native "NativeClassWithOddNames" {
+@Native("NativeClassWithOddNames")
+class NativeClassWithOddNames {
   @JSName('break') bool breakValue;
   @JSName('case') bool caseValue;
   @JSName('catch') bool catchValue;

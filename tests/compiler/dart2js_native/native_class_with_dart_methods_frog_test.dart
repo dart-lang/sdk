@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Additional Dart code may be 'placed on' hidden native classes.
 
-class A native "A" {
+@Native("A")
+class A {
 
   var _field;
 

@@ -6,9 +6,11 @@
 // This regression test verifies that compiler accounts for hidden constructor
 // when analysing field values.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
-class Node native "Node" {
+@Native("Node")
+class Node {
 
   final Node parentNode;
 

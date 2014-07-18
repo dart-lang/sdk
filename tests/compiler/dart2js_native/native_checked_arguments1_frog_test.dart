@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test that type checks occur on native methods.
 
-class A native "A" {
+@Native("A")
+class A {
   int foo(int x) native;
   int cmp(A other) native;
 }
 
-class B native "B" {
+@Native("B")
+class B {
   String foo(String x) native;
   int cmp(B other) native;
 }

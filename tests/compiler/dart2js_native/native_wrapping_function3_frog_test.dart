@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "dart:_js_helper";
 
 typedef void Callback0();
 typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);
 
-class A native "A" {
+@Native("A")
+class A {
   foo1(Callback1 closure, [arg1 = 0]) native;
   foo2(Callback2 closure, [arg1 = 0, arg2 = 1]) native;
 }

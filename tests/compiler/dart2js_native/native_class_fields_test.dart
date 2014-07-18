@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Verify that native fields on classes are not renamed by the minifier.
-class A native "A" {
+@Native("A")
+class A {
   int myLongPropertyName;
   int getValue;
 
@@ -21,7 +23,7 @@ function getter() {
 function setter(x) {
   this.getValue += 10;
 }
-  
+
 function A(){
   var a = Object.create(
       { constructor: { name: 'A'}},

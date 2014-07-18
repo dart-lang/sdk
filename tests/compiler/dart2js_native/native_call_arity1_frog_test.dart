@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test that native methods with unnamed* optional arguments are called with the
@@ -12,11 +13,13 @@ import "package:expect/expect.dart";
 // * Optional positional arguments are passed in the correct position, so
 // require preceding arguments to be passed.
 
-class A native "A" {
+@Native("A")
+class A {
   int foo(int x) native;
 }
 
-class B native "B" {
+@Native("B")
+class B {
   int foo([x, y, z]) native;
 }
 

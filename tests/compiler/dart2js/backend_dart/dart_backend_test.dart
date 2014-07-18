@@ -6,50 +6,12 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import '../mock_compiler.dart';
+import '../mock_libraries.dart';
 import 'package:compiler/compiler.dart';
 import 'package:compiler/implementation/dart2jslib.dart' as leg;
 import 'package:compiler/implementation/dart_backend/dart_backend.dart';
 import 'package:compiler/implementation/elements/elements.dart';
 import 'package:compiler/implementation/tree/tree.dart';
-
-const coreLib = r'''
-library corelib;
-class Object {
-  Object();
-}
-class bool {}
-class num {}
-class int extends num {}
-class double extends num {}
-abstract class String {}
-class Function {}
-class List<T> {}
-class Map<K,V> {}
-class BoundClosure {}
-class Closure {}
-class Dynamic_ {}
-class Null {}
-class TypeError {}
-class Type {}
-class StackTrace {}
-class LinkedHashMap {
-  factory LinkedHashMap._empty() => null;
-  factory LinkedHashMap._literal(elements) => null;
-}
-class Math {
-  static double parseDouble(String s) => 1.0;
-}
-print(x) {}
-identical(a, b) => true;
-const proxy = 0;
-''';
-
-const corePatch = r'''
-import 'dart:_js_helper';
-import 'dart:_interceptors';
-import 'dart:_isolate_helper';
-import 'dart:_foreign_helper';
-''';
 
 const ioLib = r'''
 library io;
@@ -67,24 +29,6 @@ abstract class Window {
 }
 abstract class Navigator {
   String get userAgent;
-}
-''';
-
-const helperLib = r'''
-library js_helper;
-class JSInvocationMirror {}
-assertHelper(a) {}
-class Closure {}
-class BoundClosure {}
-const patch = 0;
-''';
-
-const foreignLib = r'''
-var JS;
-''';
-
-const isolateHelperLib = r'''
-class _WorkerStub {
 }
 ''';
 
@@ -116,20 +60,22 @@ testDart2DartWithLibrary(
       return new Future.value(srcLibrary);
     }
     if (uri.path.endsWith('/core.dart')) {
-      return new Future.value(coreLib);
+      return new Future.value(buildLibrarySource(DEFAULT_CORE_LIBRARY));
     } else if (uri.path.endsWith('/core_patch.dart')) {
-      return new Future.value(corePatch);
+      return new Future.value(DEFAULT_PATCH_CORE_SOURCE);
     } else if (uri.path.endsWith('/io.dart')) {
       return new Future.value(ioLib);
     } else if (uri.path.endsWith('/js_helper.dart')) {
-      return new Future.value(helperLib);
+      return new Future.value(buildLibrarySource(DEFAULT_JS_HELPER_LIBRARY));
     } else if (uri.path.endsWith('/html_dart2js.dart')) {
       // TODO(smok): The file should change to html_dartium at some point.
       return new Future.value(htmlLib);
     } else if (uri.path.endsWith('/foreign_helper.dart')) {
-      return new Future.value(foreignLib);
+      return new Future.value(
+          buildLibrarySource(DEFAULT_FOREIGN_HELPER_LIBRARY));
     } else if (uri.path.endsWith('/isolate_helper.dart')) {
-      return new Future.value(isolateHelperLib);
+      return new Future.value(
+          buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
     }
     return new Future.value('');
   }
@@ -590,7 +536,7 @@ class B<T extends Object> extends A<T> {}
 testStaticInvocation() {
   testDart2Dart('''
 main() {
-  var x = Math.parseDouble("1");
+  var x = double.parseDouble("1");
 }
 ''');
 }

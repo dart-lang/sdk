@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test that hidden native exception classes can be marked as existing.
@@ -17,14 +18,16 @@ import "package:expect/expect.dart";
 
 
 // The exception type.
-class E native "E" {
+@Native("E")
+class E {
   E._used() native;  // Bogus native constructor, called only from fake body.
 
   final int code;
 }
 
 // Type with exception-throwing methods.
-class A native "A" {
+@Native("A")
+class A {
   op(int x) native {
     // Fake body calls constructor to mark the exception class (E) as used.
     throw new E._used();

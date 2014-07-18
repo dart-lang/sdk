@@ -152,6 +152,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'listTypeCast': 'listTypeCast(value) {}',
   'listTypeCheck': 'listTypeCheck(value) {}',
   'makeLiteralMap': 'makeLiteralMap(List keyValuePairs) {}',
+  'Native': 'class Native {}',
   'NoInline': 'class NoInline {}',
   'NoSideEffects': 'class NoSideEffects {}',
   'NoThrows': 'class NoThrows {}',
@@ -287,14 +288,14 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
         operator |(other) => 42;
         operator &(other) => 42;
         operator ^(other) => 42;
-    
+
         operator >(other) => true;
         operator >=(other) => true;
         operator <(other) => true;
         operator <=(other) => true;
         operator ==(other) => true;
         get hashCode => throw "JSNumber.hashCode not implemented.";
-    
+
         // We force side effects on _tdivFast to mimic the shortcomings of
         // the effect analysis: because the `_tdivFast` implementation of
         // the core library has calls that may not already be analyzed,
@@ -305,7 +306,7 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
         _shrBothPositive(other) => 42;
         _shrReceiverPositive(other) => 42;
         _shrOtherPositive(other) => 42;
-    
+
         abs() => (this is JSInt) ? 42 : 42.2;
         remainder(other) => (this is JSInt) ? 42 : 42.2;
         truncate() => 42;

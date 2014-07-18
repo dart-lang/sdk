@@ -4,14 +4,15 @@
 
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
     findInterceptorForType, findConstructorForNativeSubclassType;
 
 // Test for fields with same name as native fields.  We expect N.foo to have the
 // property name 'foo' and A.foo and B.foo to have non-conflicting names.
 
-class N native "N" {
+@Native("N")
+class N {
   var foo;
   N.init();
 }

@@ -391,6 +391,13 @@ abstract class Backend {
         return compiler.patchParser.patchLibrary(loader, patchUri, library);
       }
     }
+    if (library.canUseNative) {
+      library.forEachLocalMember((Element element) {
+        if (element.isClass) {
+          checkNativeAnnotation(compiler, element);
+        }
+      });
+    }
     return new Future.value();
   }
 
@@ -729,6 +736,9 @@ abstract class Compiler implements DiagnosticListener {
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   /// The constant for the [patch] variable defined in dart:_js_helper.
   Constant patchConstant;
+
+  // TODO(johnniwinther): Move this to the JavaScriptBackend.
+  ClassElement nativeAnnotationClass;
 
   // Initialized after symbolClass has been resolved.
   FunctionElement symbolConstructor;
@@ -1126,6 +1136,8 @@ abstract class Compiler implements DiagnosticListener {
       deferredLibraryClass = findRequiredElement(library, 'DeferredLibrary');
     } else if (uri == DART_NATIVE_TYPED_DATA) {
       typedDataClass = findRequiredElement(library, 'NativeTypedData');
+    } else if (uri == js_backend.JavaScriptBackend.DART_JS_HELPER) {
+      nativeAnnotationClass = findRequiredElement(library, 'Native');
     }
     return backend.onLibraryScanned(library, loader);
   }

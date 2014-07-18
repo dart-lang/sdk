@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Native class with named constructors and static methods.
 
 
 
-class A native "A" {
+@Native("A")
+class A {
 
   factory A(int len) => _construct(len);
 

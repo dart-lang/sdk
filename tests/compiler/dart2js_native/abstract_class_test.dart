@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Native classes can have subclasses that are not declared to the program.  The
 // subclasses are indistinguishable from the base class.  This means that
 // abstract native classes can appear to have instances.
 
-abstract class A native "A" {
+@Native("A")
+abstract class A {
 }
 
-abstract class B native "B" {
+@Native("B")
+abstract class B {
   foo() native;
 }
 

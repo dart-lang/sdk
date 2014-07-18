@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test that we put native names and not Dart names into the dynamic
 // dispatch table.
 
-class A native "NativeA" {
+@Native("NativeA")
+class A {
   foo() native;
 }
 
-class B extends A native "NativeB" {
+@Native("NativeB")
+class B extends A {
 }
 
 A makeA() native { return new A(); }
@@ -22,7 +25,7 @@ function inherits(child, parent) {
   if (child.prototype.__proto__) {
     child.prototype.__proto__ = parent.prototype;
   } else {
-    function tmp() {}; 
+    function tmp() {};
     tmp.prototype = parent.prototype;
     child.prototype = new tmp();
     child.prototype.constructor = child;
@@ -44,10 +47,10 @@ main() {
   var a = makeA();
   Expect.equals(42, a.foo());
   A aa = a;
-  Expect.equals(42, aa.foo());  
+  Expect.equals(42, aa.foo());
 
   var b = makeB();
   Expect.equals(42, b.foo());
   B bb = b;
-  Expect.equals(42, bb.foo());  
+  Expect.equals(42, bb.foo());
 }

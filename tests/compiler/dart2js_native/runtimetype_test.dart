@@ -3,15 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "dart:_js_helper";
 import 'dart:_foreign_helper' show JS;
 
 // Test to see runtimeType works on native classes and does not use the native
 // constructor name.
 
-class A native "TAGX" {
+@Native("TAGX")
+class A {
 }
 
-class B extends A native "TAGY" {
+@Native("TAGY")
+class B extends A {
 }
 
 makeA() native;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test calling convention of property extraction closures.
@@ -11,11 +12,13 @@ class AA {
   foo(a, [b = 'A']) => 'AA.foo($a, $b)';   // foo has interceptor convention.
 }
 
-class BB native "BB" {
+@Native("BB")
+class BB {
   foo(a, [b = 'B']) native;
 }
 
-class CC extends BB native "CC" {
+@Native("CC")
+class CC extends BB {
   foo(a, [b = 'C']) native;
 
   get superfoo => super.foo;

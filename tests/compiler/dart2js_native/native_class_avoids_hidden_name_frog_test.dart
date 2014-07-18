@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test that hidden native class names are not used by generated code.
 
-class AA native "BB" {
+@Native("BB")
+class AA {
   get name => 'AA';
   static AA create() => makeA();
 }
 
-class BB native "CC" {
+@Native("CC")
+class BB {
   get name => 'BB';
   static BB create() => makeB();
 }

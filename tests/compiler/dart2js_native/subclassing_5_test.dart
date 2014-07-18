@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show Interceptor, findInterceptorForType;
 
 // Test type checks.
@@ -14,7 +14,8 @@ class M implements I {
   miz() => 'M';
 }
 
-class N native "N" {}
+@Native("N")
+class N {}
 
 class A extends N {}
 

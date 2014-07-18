@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Verify that we can have fields with names that start with g and s even
@@ -12,7 +13,8 @@ import "package:expect/expect.dart";
 // names for clashes because it's hard - subclasses can force superclasses
 // to rename getters, and that can force unrelated classes to change their
 // getters too if they have a property that has the same name.
-class A native "A" {
+@Native("A")
+class A {
   int bar;
   int g;
   int s;

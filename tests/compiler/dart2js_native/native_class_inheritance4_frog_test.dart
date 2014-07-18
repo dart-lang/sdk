@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Additional Dart code may be 'placed on' hidden native classes.  With
 // inheritance, the superclass method must not be reached by a call on the
 // subclass.
 
-class A native "A" {
+@Native("A")
+class A {
   var _field;
 
   int get X => _field;
@@ -17,7 +19,8 @@ class A native "A" {
   int method(int z) => _field + z;
 }
 
-class B extends A native "B" {
+@Native("B")
+class B extends A {
   var _field2;
 
   int get X => _field2;

@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test for values of some basic types.
 
 
-class A native "A" {
+@Native("A")
+class A {
   returnNull() native;
   returnUndefined() native;
   returnEmptyString() native;

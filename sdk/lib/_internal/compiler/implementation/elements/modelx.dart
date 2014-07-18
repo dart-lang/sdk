@@ -2269,7 +2269,10 @@ abstract class BaseClassElementX extends ElementX
   }
 
   bool get isNative => nativeTagInfo != null;
+
   void setNative(String name) {
+    assert(invariant(this, nativeTagInfo == null,
+        message: "Native tag info set twice on $this."));
     nativeTagInfo = name;
   }
 

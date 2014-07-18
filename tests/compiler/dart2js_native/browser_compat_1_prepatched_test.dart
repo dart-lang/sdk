@@ -2,19 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 //import 'dart:_foreign_helper' show JS;
 //import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
 
 // Test for dartNativeDispatchHooksTransformer, getTag hook.
 
-class T1A native "T1A" {
+@Native("T1A")
+class T1A {
 }
 
-class T1B native "T1B" {
+@Native("T1B")
+class T1B {
 }
 
-class T1C native "T1C" {
+@Native("T1C")
+class T1C {
 }
 
 makeT1A() native;

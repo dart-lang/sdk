@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // This is a similar test to NativeCallArity1FrogTest, but makes sure
 // that subclasses also get the right number of arguments.
 
-class A native "A" {
+@Native("A")
+class A {
   int foo([x, y]) native;
 }
 
-class B extends A native "B" {
+@Native("B")
+class B extends A {
   int foo([x, y]) native;
 }
 

@@ -2,25 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test for dartNativeDispatchHooksTransformer
 //  - uncached, instance, leaf and interior caching modes.
 //  - composition of getTag.
 
-class T1A native "T1A" {
+@Native("T1A")
+class T1A {
   foo() native;
 }
 
-class T1B native "T1B" {
+@Native("T1B")
+class T1B {
   foo() native;
 }
 
-class T1C native "T1C" {
+@Native("T1C")
+class T1C {
   foo() native;
 }
 
-class T1D native "T1D" {
+@Native("T1D")
+class T1D {
   foo() native;
 }
 

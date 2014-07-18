@@ -918,7 +918,7 @@ class ElementListener extends Listener {
     int id = idGenerator();
     PartialClassElement element = new PartialClassElement(
         name.source, beginToken, endToken, compilationUnitElement, id);
-    element.nativeTagInfo = nativeTagInfo;
+    element.setNative(nativeTagInfo);
     pushElement(element);
     rejectBuiltInIdentifier(name);
   }

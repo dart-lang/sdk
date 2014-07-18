@@ -8,8 +8,10 @@
 library native_exception2_test;
 
 import 'native_exception_test.dart' as other;
+import 'dart:_js_helper';
 
-class NativeClass native "NativeClass" {
+@Native("NativeClass")
+class NativeClass {
 }
 
 makeNativeClass() native;

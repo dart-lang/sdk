@@ -4,13 +4,14 @@
 
 // Test that exception unwrapping handle cases like ({foo:null}).foo().
 
-import 'dart:_js_helper';
+import "dart:_js_helper";
 
 import "package:expect/expect.dart";
 
 typedef void MyFunctionType();
 
-class A native "A" {
+@Native("A")
+class A {
   setClosure(MyFunctionType f) native;
   check(MyFunctionType f) native;
   invoke() native;
