@@ -2732,7 +2732,7 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
       ((limit > 0) && (Utils::IsInt(limit, value)))) {
     // Result stays in 64 bit range.
     int64_t result = value << shift_count;
-    return Smi::IsValid(result) ? RangeBoundary(result) : overflow;
+    return RangeBoundary(result);
   }
 
   return overflow;

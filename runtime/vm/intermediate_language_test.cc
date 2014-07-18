@@ -62,7 +62,7 @@ TEST_CASE(RangeTests) {
   EXPECT(!range_x->IsWithin(-15, 99));
   EXPECT(!range_x->IsWithin(-14, 100));
 
-#define TEST_RANGE_OP(Op, l_min, l_max, r_min, r_max, result_min, result_max)  \
+#define TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max, Clamp, res_min, res_max)\
   {                                                                            \
     RangeBoundary min, max;                                                    \
     Range* left_range = new Range(                                             \
@@ -72,11 +72,23 @@ TEST_CASE(RangeTests) {
       RangeBoundary::FromConstant(r_min),                                      \
       RangeBoundary::FromConstant(r_max));                                     \
     Op(left_range, shift_range, &min, &max);                                   \
-    EXPECT(min.Equals(result_min));                                            \
-    if (!min.Equals(result_min)) OS::Print("%s\n", min.ToCString());           \
-    EXPECT(max.Equals(result_max));                                            \
-    if (!max.Equals(result_max)) OS::Print("%s\n", max.ToCString());           \
+    min = Clamp(min);                                                          \
+    max = Clamp(max);                                                          \
+    EXPECT(min.Equals(res_min));                                               \
+    if (!min.Equals(res_min)) OS::Print("%s\n", min.ToCString());              \
+    EXPECT(max.Equals(res_max));                                               \
+    if (!max.Equals(res_max)) OS::Print("%s\n", max.ToCString());              \
   }
+
+#define NO_CLAMP(b) (b)
+#define TEST_RANGE_OP(Op, l_min, l_max, r_min, r_max, result_min, result_max)  \
+  TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max,                               \
+                 NO_CLAMP, result_min, result_max)
+
+#define CLAMP_TO_SMI(b) (b.Clamp(RangeBoundary::kRangeBoundarySmi))
+#define TEST_RANGE_OP_SMI(Op, l_min, l_max, r_min, r_max, res_min, res_max)    \
+  TEST_RANGE_OP_(Op, l_min, l_max, r_min, r_max,                               \
+                 CLAMP_TO_SMI, res_min, res_max)
 
   TEST_RANGE_OP(Range::Shl, -15, 100, 0, 2,
                 RangeBoundary(-60), RangeBoundary(400));
@@ -90,22 +102,22 @@ TEST_CASE(RangeTests) {
                 RangeBoundary::NegativeInfinity(),
                 RangeBoundary::PositiveInfinity());
   TEST_RANGE_OP(Range::Shl, -1, 1, 63, 63,
-                RangeBoundary::NegativeInfinity(),
+                RangeBoundary(kMinInt64),
                 RangeBoundary::PositiveInfinity());
   if (kBitsPerWord == 64) {
-    TEST_RANGE_OP(Range::Shl, -1, 1, 62, 62,
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62,
                   RangeBoundary(kSmiMin),
-                  RangeBoundary::PositiveInfinity());
-    TEST_RANGE_OP(Range::Shl, -1, 1, 30, 30,
+                  RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30,
                   RangeBoundary(-1 << 30),
                   RangeBoundary(1 << 30));
   } else {
-    TEST_RANGE_OP(Range::Shl, -1, 1, 30, 30,
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 30, 30,
                   RangeBoundary(kSmiMin),
-                  RangeBoundary::PositiveInfinity());
-    TEST_RANGE_OP(Range::Shl, -1, 1, 62, 62,
-                  RangeBoundary::NegativeInfinity(),
-                  RangeBoundary::PositiveInfinity());
+                  RangeBoundary(kSmiMax));
+    TEST_RANGE_OP_SMI(Range::Shl, -1, 1, 62, 62,
+                  RangeBoundary(kSmiMin),
+                  RangeBoundary(kSmiMax));
   }
   TEST_RANGE_OP(Range::Shl, 0, 100, 0, 64,
                 RangeBoundary(0), RangeBoundary::PositiveInfinity());
