@@ -9,6 +9,9 @@ import 'dart:io';
 import 'package:analysis_server/http_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/stdio_server.dart';
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 
@@ -39,15 +42,20 @@ class Driver {
    */
   static const String LOG_FILE_OPTION = "log";
 
-  SocketServer socketServer = new SocketServer();
+  /**
+   * The path to the SDK.
+   * TODO(paulberry): get rid of this once the 'analysis.updateSdks' request is
+   * operational.
+   */
+  static const String SDK_OPTION = 'sdk';
+
+  SocketServer socketServer;
 
   HttpAnalysisServer httpServer;
 
   StdioAnalysisServer stdioServer;
 
   Driver() {
-    httpServer = new HttpAnalysisServer(socketServer);
-    stdioServer = new StdioAnalysisServer(socketServer);
   }
 
   /**
@@ -62,6 +70,8 @@ class Driver {
         "[port] the port on which the server will listen");
     parser.addOption(LOG_FILE_OPTION, help:
         "[path] file to log debugging messages to");
+    parser.addOption(SDK_OPTION, help:
+        "[path] path to the sdk");
 
     ArgResults results = parser.parse(args);
     if (results[HELP_OPTION]) {
@@ -95,6 +105,18 @@ class Driver {
         return;
       }
     }
+    DartSdk defaultSdk;
+    if (results[SDK_OPTION] != null) {
+      defaultSdk = new DirectoryBasedDartSdk(new JavaFile(results[SDK_OPTION]));
+    } else {
+      // No path to the SDK provided; use DirectoryBasedDartSdk.defaultSdk,
+      // which will make a guess.
+      defaultSdk = DirectoryBasedDartSdk.defaultSdk;
+    }
+
+    socketServer = new SocketServer(defaultSdk);
+    httpServer = new HttpAnalysisServer(socketServer);
+    stdioServer = new StdioAnalysisServer(socketServer);
 
     if (serve_http) {
       httpServer.serveHttp(port);

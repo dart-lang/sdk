@@ -24,19 +24,12 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-
-/**
- * An instance of [DirectoryBasedDartSdk] that is shared between
- * [AnalysisServer] instances to improve performance.
- */
-final DirectoryBasedDartSdk SHARED_SDK = DirectoryBasedDartSdk.defaultSdk;
 
 class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   final AnalysisServer analysisServer;
@@ -143,7 +136,7 @@ class AnalysisServer {
   /**
    * The current default [DartSdk].
    */
-  DartSdk defaultSdk = SHARED_SDK;
+  final DartSdk defaultSdk;
 
   /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
@@ -188,7 +181,7 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, ResourceProvider resourceProvider,
-      PackageMapProvider packageMapProvider, this.index,
+      PackageMapProvider packageMapProvider, this.index, this.defaultSdk,
       {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue(this);

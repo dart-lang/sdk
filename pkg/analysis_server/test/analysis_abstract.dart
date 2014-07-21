@@ -228,8 +228,8 @@ class AbstractAnalysisTest {
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = new AnalysisServer(
-        serverChannel, resourceProvider, packageMapProvider, index);
-    server.defaultSdk = new MockSdk();
+        serverChannel, resourceProvider, packageMapProvider, index,
+        new MockSdk());
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream = serverChannel.notificationController.stream;

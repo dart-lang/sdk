@@ -10,6 +10,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -110,7 +111,7 @@ class AnalysisServerTestHelper {
   AnalysisServerTestHelper({bool rethrowExceptions: true}) {
     channel = new MockServerChannel();
     server = new AnalysisServer(channel, PhysicalResourceProvider.INSTANCE,
-        new MockPackageMapProvider(), null,
+        new MockPackageMapProvider(), null, new MockSdk(),
         rethrowExceptions: rethrowExceptions);
   }
 }

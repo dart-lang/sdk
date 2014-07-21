@@ -11,6 +11,7 @@ import 'mocks.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
@@ -24,7 +25,7 @@ main() {
 
 class SocketServerTest {
   static Future createAnalysisServer_successful() {
-    SocketServer server = new SocketServer();
+    SocketServer server = new SocketServer(DirectoryBasedDartSdk.defaultSdk);
     MockServerChannel channel = new MockServerChannel();
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
@@ -40,7 +41,7 @@ class SocketServerTest {
   }
 
   static void createAnalysisServer_alreadyStarted() {
-    SocketServer server = new SocketServer();
+    SocketServer server = new SocketServer(DirectoryBasedDartSdk.defaultSdk);
     MockServerChannel channel1 = new MockServerChannel();
     MockServerChannel channel2 = new MockServerChannel();
     server.createAnalysisServer(channel1);

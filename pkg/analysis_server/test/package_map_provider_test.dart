@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
@@ -23,7 +24,7 @@ main() {
 
       setUp(() {
         resourceProvider = new MemoryResourceProvider();
-        packageMapProvider = new PubPackageMapProvider(resourceProvider);
+        packageMapProvider = new PubPackageMapProvider(resourceProvider, DirectoryBasedDartSdk.defaultSdk);
         projectFolder = resourceProvider.newFolder(projectPath);
       });
 

@@ -31,8 +31,8 @@ main() {
         serverChannel,
         resourceProvider,
         new MockPackageMapProvider(),
-        null);
-    server.defaultSdk = new MockSdk();
+        null,
+        new MockSdk());
     handler = new SearchDomainHandler(server);
   });
 

@@ -10,6 +10,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
+import 'package:analysis_testing/mock_sdk.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -22,7 +23,8 @@ main() {
     var serverChannel = new MockServerChannel();
     var resourceProvider = PhysicalResourceProvider.INSTANCE;
     server = new AnalysisServer(
-        serverChannel, resourceProvider, new MockPackageMapProvider(), null);
+        serverChannel, resourceProvider, new MockPackageMapProvider(), null,
+        new MockSdk());
     handler = new ServerDomainHandler(server);
   });
 
