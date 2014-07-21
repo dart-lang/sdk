@@ -34,7 +34,7 @@ class ClassEmitter extends CodeEmitterHelper {
       task.needsMixinSupport = true;
     }
 
-    ClassBuilder builder = new ClassBuilder(namer);
+    ClassBuilder builder = new ClassBuilder(classElement, namer);
     emitClassConstructor(classElement, builder, onlyForRti: onlyForRti);
     emitFields(classElement, builder, superName, onlyForRti: onlyForRti);
     emitClassGettersSetters(classElement, builder, onlyForRti: onlyForRti);
@@ -325,9 +325,15 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     List<jsAst.Property> statics = new List<jsAst.Property>();
-    ClassBuilder staticsBuilder = new ClassBuilder(namer);
+    ClassBuilder staticsBuilder = new ClassBuilder(classElement, namer);
     if (emitFields(classElement, staticsBuilder, null, emitStatics: true)) {
-      statics.add(staticsBuilder.toObjectInitializer().properties.single);
+      jsAst.ObjectInitializer initializer =
+        staticsBuilder.toObjectInitializer();
+      compiler.dumpInfoTask.registerElementAst(classElement,
+        initializer);
+      jsAst.Node property = initializer.properties.single;
+      compiler.dumpInfoTask.registerElementAst(classElement, property);
+      statics.add(property);
     }
 
     Map<OutputUnit, ClassBuilder> classPropertyLists =
@@ -346,7 +352,9 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
-    enclosingBuilder.addProperty(className, classBuilder.toObjectInitializer());
+    jsAst.ObjectInitializer propertyValue = classBuilder.toObjectInitializer();
+    compiler.dumpInfoTask.registerElementAst(classBuilder.element, propertyValue);
+    enclosingBuilder.addProperty(className, propertyValue);
 
     String reflectionName = task.getReflectionName(classElement, className);
     if (reflectionName != null) {

@@ -12,6 +12,8 @@ import '../util/util.dart';
 // CodeBuffer).
 import '../dart2jslib.dart' as leg;
 
+import '../dump_info.dart';
+
 part 'nodes.dart';
 part 'builder.dart';
 part 'printer.dart';
