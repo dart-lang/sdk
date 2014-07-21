@@ -287,10 +287,10 @@ class NativeEmitter {
     if (compiler.hasIncrementalSupport) {
       builder = cachedBuilders[classElement];
       if (builder != null) return builder;
-      builder = new ClassBuilder(classElement, backend.namer);
+      builder = new ClassBuilder(backend.namer);
       cachedBuilders[classElement] = builder;
     } else {
-      builder = new ClassBuilder(classElement, backend.namer);
+      builder = new ClassBuilder(backend.namer);
     }
 
     // TODO(sra): Issue #13731- this is commented out as part of custom element

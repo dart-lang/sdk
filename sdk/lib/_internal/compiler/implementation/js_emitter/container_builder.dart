@@ -305,9 +305,7 @@ class ContainerBuilder extends CodeEmitterHelper {
             'function(#) { return #.#(#); }',
             [ parameters, buildGetter(), closureCallName, arguments]);
 
-        compiler.dumpInfoTask.registerElementAst(member, function);
         addProperty(invocationName, function);
-
       }
     }
   }
@@ -388,13 +386,11 @@ class ContainerBuilder extends CodeEmitterHelper {
         canTearOff || canBeReflected || canBeApplied;
     if (!needStructuredInfo) {
       builder.addProperty(name, code);
-      compiler.dumpInfoTask.registerElementAst(member, code);
       if (needsStubs) {
         addParameterStubs(
             member,
             (Selector selector, jsAst.Fun function) {
               builder.addProperty(namer.invocationName(selector), function);
-              compiler.dumpInfoTask.registerElementAst(member, function);
             });
       }
       return;
@@ -543,10 +539,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(member.name));
     }
-    jsAst.ArrayInitializer arrayInit =
-      new jsAst.ArrayInitializer.from(expressions);
-    builder.addProperty(name, arrayInit);
-    compiler.dumpInfoTask.registerElementAst(member, arrayInit);
+    builder.addProperty(name, new jsAst.ArrayInitializer.from(expressions));
   }
 
   void addMemberField(VariableElement member, ClassBuilder builder) {
