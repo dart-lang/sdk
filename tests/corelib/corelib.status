@@ -34,9 +34,6 @@ compare_to2_test: Fail    # Bug 4018
 
 symbol_test/01: Fail, Pass # bug 11669
 
-iterable_return_type_test/01: RuntimeError # Issue 13646
-iterable_return_type_test/02: RuntimeError # Issue 13646
-
 [ $compiler == none && $runtime != dartium && $runtime != drt && $runtime != ContentShellOnAndroid ]
 symbol_test/02: MissingCompileTimeError # bug 11669
 symbol_test/03: MissingCompileTimeError # bug 11669
@@ -45,6 +42,9 @@ symbol_test/03: MissingCompileTimeError # bug 11669
 symbol_test/none: Fail # bug 11669
 symbol_operator_test/03: Fail # bug 11669
 string_case_test/01: Fail # Bug 18061
+
+iterable_return_type_test/01: RuntimeError # Issue 13646
+iterable_return_type_test/02: RuntimeError # Issue 13646
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
