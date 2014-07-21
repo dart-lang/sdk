@@ -423,18 +423,20 @@ void generateLibrary(dart2js_mirrors.Dart2JsLibraryMirror library) {
 /// from a snapshot and using --parse-sdk or --include-sdk, then use this
 /// hard-coded version. This should be updated to be consistent with the text
 /// in docgen/doc/sdk-introduction.md
+// TODO(alanknight): It would be better if we could resolve the references to
+// dart:core etc. at load-time in the viewer. dartbug.com/20112
 const _DEFAULT_SDK_INTRODUCTION =
     """
 Welcome to the Dart API reference documentation,
 covering the official Dart API libraries.
 Some of the most fundamental Dart libraries include:
 
-* [dart:core](#dart:core):
+* [dart:core](./dart:core):
   Core functionality such as strings, numbers, collections, errors,
   dates, and URIs.
-* [dart:html](#dart:html):
+* [dart:html](./dart:html):
   DOM manipulation for web apps.
-* [dart:io](#dart:io):
+* [dart:io](./dart:io):
   I/O for command-line apps.
 
 Except for dart:core, you must import a library before you can use it.
