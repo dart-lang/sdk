@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/completion/completion_suggestion.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/index/index.dart' show Index;
 import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_testing/reflective_tests.dart';
@@ -39,11 +41,19 @@ class CompletionTest extends AbstractAnalysisTest {
         + content.substring(completionOffset + 1));
   }
 
-  void assertHasResult(String completion) {
+  void assertHasResult(CompletionSuggestionKind kind,
+      CompletionRelevance relevance, String completion,
+      bool isDeprecated, bool isPotential) {
     var cs = suggestions.firstWhere((cs) => cs.completion == completion, orElse: () {
       var completions = suggestions.map((s) => s.completion).toList();
       fail('expected "$completion" but found\n $completions');
     });
+    expect(cs.kind, equals(kind));
+    expect(cs.relevance, equals(relevance));
+    expect(cs.selectionOffset, equals(completion.length));
+    expect(cs.selectionLength, equals(0));
+    expect(cs.isDeprecated, equals(isDeprecated));
+    expect(cs.isPotential, equals(isPotential));
   }
 
   void assertValidId(String id) {
@@ -104,8 +114,10 @@ class CompletionTest extends AbstractAnalysisTest {
       main() {^}
     ''');
     return getSuggestions().then((_) {
-      assertHasResult('Object');
-      assertHasResult('HtmlElement');
+      assertHasResult(CompletionSuggestionKind.CLASS,
+          CompletionRelevance.DEFAULT, 'Object', false, false);
+      assertHasResult(CompletionSuggestionKind.CLASS,
+          CompletionRelevance.DEFAULT, 'HtmlElement', false, false);
     });
   }
 }

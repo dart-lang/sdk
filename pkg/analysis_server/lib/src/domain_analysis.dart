@@ -7,11 +7,12 @@ library domain.analysis;
 import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analysis_server/src/computer/computer_hover.dart';
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]

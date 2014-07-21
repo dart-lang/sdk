@@ -16,15 +16,3 @@ Iterable concat(Iterable<Iterable> iterables) => iterables.expand((x) => x);
  * Returns the concatentation of the input iterables as a [List].
  */
 List concatToList(Iterable<Iterable> iterables) => concat(iterables).toList();
-
-
-/**
- * Instances of the class [HasToJson] implement [toJson] method that returns
- * a JSON presentation.
- */
-abstract class HasToJson {
-  /**
-   * Returns a JSON presentation of the object.
-   */
-  Map<String, Object> toJson();
-}

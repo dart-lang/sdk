@@ -9,8 +9,10 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/completion/completion_suggestion.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/search/search_engine.dart';
-import 'package:analysis_server/src/collections.dart';
+import 'package:analyzer/src/generated/element.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -90,28 +92,18 @@ class TopLevelSuggestionsComputer {
     var future = searchEngine.searchTopLevelDeclarations('');
     return future.then((List<SearchMatch> matches) {
       return matches.map((SearchMatch match) {
-        return new CompletionSuggestion(match.element.displayName);
+        Element element = match.element;
+        String completion = element.displayName;
+        return new CompletionSuggestion(
+            CompletionSuggestionKind.fromElementKind(element.kind),
+            CompletionRelevance.DEFAULT,
+            completion,
+            completion.length,
+            0,
+            element.isDeprecated,
+            false // isPotential
+            );
       }).toList();
     });
-  }
-}
-
-/**
- * A single completion suggestion.
- */
-class CompletionSuggestion implements HasToJson {
-  final String completion;
-
-  CompletionSuggestion(this.completion);
-
-  factory CompletionSuggestion.fromJson(Map<String, Object> json) {
-    return new CompletionSuggestion(json[COMPLETION]);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    return {
-      COMPLETION: completion
-    };
   }
 }

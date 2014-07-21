@@ -23,6 +23,8 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'stubs.dart';
 import 'util.dart';
 
+import '../../completion/completion_suggestion.dart';
+
 class AstNodeClassifier_CompletionEngine_typeOf extends CompletionEngine_AstNodeClassifier {
   final CompletionEngine CompletionEngine_this;
 
@@ -159,7 +161,7 @@ class CompletionEngine {
     VariableDeclarationList varList = varDecl.parent as VariableDeclarationList;
     TypeName type = varList.type;
     if (identifier.length > 0) {
-      _pName3(identifier.name, ProposalKind.VARIABLE);
+      _pName3(identifier.name, CompletionSuggestionKind.VARIABLE);
     }
     if (type == null) {
       if (varList.keyword == null) {
@@ -189,7 +191,7 @@ class CompletionEngine {
     ClassDeclaration classDecl = fieldName.getAncestor((node) => node is ClassDeclaration);
     ClassElement classElement = classDecl.element;
     for (FieldElement field in classElement.fields) {
-      _pName3(field.displayName, ProposalKind.FIELD);
+      _pName3(field.displayName, CompletionSuggestionKind.FIELD);
     }
   }
 
@@ -269,7 +271,7 @@ class CompletionEngine {
         continue;
       }
       // OK, add proposal
-      CompletionProposal prop = _createProposal4(ProposalKind.NAMED_ARGUMENT);
+      CompletionProposal prop = _createProposal4(CompletionSuggestionKind.NAMED_ARGUMENT);
       prop.setCompletion(parameterName);
       prop.setParameterName(parameterName);
       prop.setParameterType(parameterElement.type.displayName);
@@ -319,7 +321,7 @@ class CompletionEngine {
       ParameterElement parameter = parameters[argIndex];
       if (parameter.parameterKind != ParameterKind.NAMED) {
         String parameterName = parameter.displayName;
-        CompletionProposal prop = _createProposal4(ProposalKind.OPTIONAL_ARGUMENT);
+        CompletionProposal prop = _createProposal4(CompletionSuggestionKind.OPTIONAL_ARGUMENT);
         prop.setCompletion(parameterName);
         prop.setParameterName(parameterName);
         prop.setParameterType(parameter.type.displayName);
@@ -587,7 +589,7 @@ class CompletionEngine {
       if (_filterDisallows2(uri)) {
         continue;
       }
-      CompletionProposal prop = _createProposal4(ProposalKind.IMPORT);
+      CompletionProposal prop = _createProposal4(CompletionSuggestionKind.IMPORT);
       prop.setCompletion(uri);
       // put "lib" before "lib/src"
       if (!uri.contains("/src/")) {
@@ -668,7 +670,7 @@ class CompletionEngine {
         continue;
       }
       // add with "dart:" prefix
-      _pName3("dart:${name}", ProposalKind.IMPORT);
+      _pName3("dart:${name}", CompletionSuggestionKind.IMPORT);
     }
   }
 
@@ -770,7 +772,7 @@ class CompletionEngine {
   }
 
   CompletionProposal _createProposal3(Element element, String completion) {
-    ProposalKind kind = _proposalKindOf(element);
+    CompletionSuggestionKind kind = _proposalKindOf(element);
     CompletionProposal prop = _createProposal4(kind);
     prop.setElement(element);
     prop.setCompletion(completion);
@@ -784,7 +786,7 @@ class CompletionEngine {
     return prop;
   }
 
-  CompletionProposal _createProposal4(ProposalKind kind) => _factory.createCompletionProposal(kind, _completionTokenOffset());
+  CompletionProposal _createProposal4(CompletionSuggestionKind kind) => _factory.createCompletionProposal(kind, _completionTokenOffset());
 
   List<LibraryElement> _currentLibraryList() {
     Set<LibraryElement> libraries = new Set<LibraryElement>();
@@ -1007,7 +1009,7 @@ class CompletionEngine {
       return;
     }
     // fill arguments proposal
-    CompletionProposal prop = _createProposal4(ProposalKind.ARGUMENT_LIST);
+    CompletionProposal prop = _createProposal4(CompletionSuggestionKind.ARGUMENT_LIST);
     prop.setElement(proposal.element);
     prop.setCompletion(proposal.completion).setReturnType(proposal.returnType);
     prop.setParameterNames(parameterNames);
@@ -1019,7 +1021,7 @@ class CompletionEngine {
   }
 
   void _pDynamic() {
-    _pWord(_C_DYNAMIC, ProposalKind.VARIABLE);
+    _pWord(_C_DYNAMIC, CompletionSuggestionKind.VARIABLE);
   }
 
   void _pExecutable(Element element, FunctionType functionType, SimpleIdentifier identifier, bool isPotentialMatch) {
@@ -1039,7 +1041,7 @@ class CompletionEngine {
       DartType parameterType = _state._targetParameter.type;
       if (parameterType is FunctionType) {
         if (functionType.isAssignableTo(parameterType)) {
-          _pName2(name, element, CompletionProposal.RELEVANCE_HIGH, ProposalKind.METHOD_NAME);
+          _pName2(name, element, CompletionProposal.RELEVANCE_HIGH, CompletionSuggestionKind.METHOD_NAME);
         }
       }
     }
@@ -1052,7 +1054,7 @@ class CompletionEngine {
     prop.setCompletion(name).setReturnType(functionType.returnType.displayName);
     // If there is already argument list, then update only method name.
     if (identifier.parent is MethodInvocation && (identifier.parent as MethodInvocation).argumentList != null) {
-      prop.setKind(ProposalKind.METHOD_NAME);
+      prop.setKind(CompletionSuggestionKind.METHOD_NAME);
     }
     Element container = element.enclosingElement;
     if (container != null) {
@@ -1086,7 +1088,7 @@ class CompletionEngine {
   }
 
   void _pFalse() {
-    _pWord(_C_FALSE, ProposalKind.VARIABLE);
+    _pWord(_C_FALSE, CompletionSuggestionKind.VARIABLE);
   }
 
   void _pField(FieldElement element, SimpleIdentifier identifier, ClassElement classElement) {
@@ -1114,7 +1116,7 @@ class CompletionEngine {
     if (_context.selectionOffset == node.keyword.end) {
       newUri = " ${newUri}";
     }
-    _pName3(newUri, ProposalKind.IMPORT);
+    _pName3(newUri, CompletionSuggestionKind.IMPORT);
   }
 
   void _pKeyword(Token keyword) {
@@ -1122,7 +1124,7 @@ class CompletionEngine {
     // This isn't as useful as it might seem. It only works in the case that completion
     // is requested on an existing recognizable keyword.
     // TODO: Add keyword proposal kind
-    CompletionProposal prop = _createProposal4(ProposalKind.LIBRARY_PREFIX);
+    CompletionProposal prop = _createProposal4(CompletionSuggestionKind.LIBRARY_PREFIX);
     prop.setCompletion(keyword.lexeme);
     _requestor.accept(prop);
   }
@@ -1134,7 +1136,7 @@ class CompletionEngine {
     }
   }
 
-  void _pName2(String name, Element element, int relevance, ProposalKind kind) {
+  void _pName2(String name, Element element, int relevance, CompletionSuggestionKind kind) {
     if (_filterDisallows2(name)) {
       return;
     }
@@ -1145,7 +1147,7 @@ class CompletionEngine {
     _requestor.accept(prop);
   }
 
-  void _pName3(String name, ProposalKind kind) {
+  void _pName3(String name, CompletionSuggestionKind kind) {
     if (_filterDisallows2(name)) {
       return;
     }
@@ -1175,47 +1177,47 @@ class CompletionEngine {
   }
 
   void _pNull() {
-    _pWord(_C_NULL, ProposalKind.VARIABLE);
+    _pWord(_C_NULL, CompletionSuggestionKind.VARIABLE);
   }
 
   void _pParamName(String name) {
     if (_filterDisallows2(name)) {
       return;
     }
-    CompletionProposal prop = _createProposal4(ProposalKind.PARAMETER);
+    CompletionProposal prop = _createProposal4(CompletionSuggestionKind.PARAMETER);
     prop.setCompletion(name);
     _requestor.accept(prop);
   }
 
-  ProposalKind _proposalKindOf(Element element) {
-    ProposalKind kind;
+  CompletionSuggestionKind _proposalKindOf(Element element) {
+    CompletionSuggestionKind kind;
     while (true) {
       if (element.kind == ElementKind.CONSTRUCTOR) {
-        kind = ProposalKind.CONSTRUCTOR;
+        kind = CompletionSuggestionKind.CONSTRUCTOR;
       } else if (element.kind == ElementKind.FUNCTION) {
-        kind = ProposalKind.FUNCTION;
+        kind = CompletionSuggestionKind.FUNCTION;
       } else if (element.kind == ElementKind.METHOD) {
-        kind = ProposalKind.METHOD;
+        kind = CompletionSuggestionKind.METHOD;
       } else if (element.kind == ElementKind.GETTER) {
-        kind = ProposalKind.GETTER;
+        kind = CompletionSuggestionKind.GETTER;
       } else if (element.kind == ElementKind.SETTER) {
-        kind = ProposalKind.SETTER;
+        kind = CompletionSuggestionKind.SETTER;
       } else if (element.kind == ElementKind.CLASS) {
-        kind = ProposalKind.CLASS;
+        kind = CompletionSuggestionKind.CLASS;
       } else if (element.kind == ElementKind.FIELD) {
-        kind = ProposalKind.FIELD;
+        kind = CompletionSuggestionKind.FIELD;
       } else if (element.kind == ElementKind.IMPORT) {
-        kind = ProposalKind.IMPORT;
+        kind = CompletionSuggestionKind.IMPORT;
       } else if (element.kind == ElementKind.PARAMETER) {
-        kind = ProposalKind.PARAMETER;
+        kind = CompletionSuggestionKind.PARAMETER;
       } else if (element.kind == ElementKind.PREFIX) {
-        kind = ProposalKind.LIBRARY_PREFIX;
+        kind = CompletionSuggestionKind.LIBRARY_PREFIX;
       } else if (element.kind == ElementKind.FUNCTION_TYPE_ALIAS) {
-        kind = ProposalKind.CLASS_ALIAS;
+        kind = CompletionSuggestionKind.CLASS_ALIAS;
       } else if (element.kind == ElementKind.TYPE_PARAMETER) {
-        kind = ProposalKind.TYPE_PARAMETER;
+        kind = CompletionSuggestionKind.TYPE_PARAMETER;
       } else if (element.kind == ElementKind.LOCAL_VARIABLE || element.kind == ElementKind.TOP_LEVEL_VARIABLE) {
-        kind = ProposalKind.VARIABLE;
+        kind = CompletionSuggestionKind.VARIABLE;
       } else {
         throw new IllegalArgumentException();
       }
@@ -1241,8 +1243,8 @@ class CompletionEngine {
       // propose each Element
       for (Element element in nameCollector.uniqueElements) {
         CompletionProposal proposal = _createProposal(element);
-        if (proposal.kind == ProposalKind.FUNCTION) {
-          proposal.setKind(ProposalKind.METHOD_NAME);
+        if (proposal.kind == CompletionSuggestionKind.FUNCTION) {
+          proposal.setKind(CompletionSuggestionKind.METHOD_NAME);
         }
         _requestor.accept(proposal);
       }
@@ -1277,18 +1279,18 @@ class CompletionEngine {
   }
 
   void _pTrue() {
-    _pWord(_C_TRUE, ProposalKind.VARIABLE);
+    _pWord(_C_TRUE, CompletionSuggestionKind.VARIABLE);
   }
 
   void _pVar() {
-    _pWord(_C_VAR, ProposalKind.VARIABLE);
+    _pWord(_C_VAR, CompletionSuggestionKind.VARIABLE);
   }
 
   void _pVoid() {
-    _pWord(_C_VOID, ProposalKind.VARIABLE);
+    _pWord(_C_VOID, CompletionSuggestionKind.VARIABLE);
   }
 
-  void _pWord(String word, ProposalKind kind) {
+  void _pWord(String word, CompletionSuggestionKind kind) {
     if (_filterDisallows2(word)) {
       return;
     }
@@ -1473,7 +1475,7 @@ class CompletionEngine_CommentReferenceCompleter extends CompletionEngine_AstNod
       if (proposal != null) {
         // we don't want to add arguments, just names
         if (element is MethodElement || element is FunctionElement) {
-          proposal.setKind(ProposalKind.METHOD_NAME);
+          proposal.setKind(CompletionSuggestionKind.METHOD_NAME);
         }
         // elevate priority for local elements
         if (_enclosingElements.contains(element.enclosingElement)) {
@@ -1590,7 +1592,7 @@ class CompletionEngine_IdentifierCompleter extends CompletionEngine_AstNodeClass
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     if (identical(node.returnType, _completionNode)) {
       CompletionEngine_this._filter = CompletionEngine_this._createFilter(_completionNode);
-      CompletionEngine_this._pName3(_completionNode.name, ProposalKind.CONSTRUCTOR);
+      CompletionEngine_this._pName3(_completionNode.name, CompletionSuggestionKind.CONSTRUCTOR);
     }
     return null;
   }
@@ -2849,7 +2851,7 @@ class CompletionFactory {
   /**
    * Create a completion proposal of the given kind.
    */
-  CompletionProposal createCompletionProposal(ProposalKind kind, int insertionPoint) {
+  CompletionProposal createCompletionProposal(CompletionSuggestionKind kind, int insertionPoint) {
     CompletionProposalImpl prop = new CompletionProposalImpl();
     prop.setKind(kind);
     prop.setLocation(insertionPoint);
@@ -2877,7 +2879,7 @@ abstract class CompletionProposal {
 
   Element get element;
 
-  ProposalKind get kind;
+  CompletionSuggestionKind get kind;
 
   int get location;
 
@@ -2917,7 +2919,7 @@ abstract class CompletionProposal {
 
   CompletionProposal setElement(Element element);
 
-  CompletionProposal setKind(ProposalKind x);
+  CompletionProposal setKind(CompletionSuggestionKind x);
 
   CompletionProposal setLocation(int x);
 
@@ -2959,7 +2961,7 @@ class CompletionProposalImpl implements CompletionProposal {
 
   String _parameterType;
 
-  ProposalKind _kind = ProposalKind.NONE;
+  CompletionSuggestionKind _kind = null;
 
   int _location = 0;
 
@@ -2994,7 +2996,7 @@ class CompletionProposalImpl implements CompletionProposal {
   Element get element => _element;
 
   @override
-  ProposalKind get kind => _kind;
+  CompletionSuggestionKind get kind => _kind;
 
   @override
   int get location => _location;
@@ -3072,7 +3074,7 @@ class CompletionProposalImpl implements CompletionProposal {
   }
 
   @override
-  CompletionProposal setKind(ProposalKind x) {
+  CompletionProposal setKind(CompletionSuggestionKind x) {
     _kind = x;
     return this;
   }
@@ -3665,73 +3667,6 @@ class ProposalCollector implements CompletionRequestor {
   }
 
   List<CompletionProposal> get proposals => _proposals;
-}
-
-/**
- * The various kinds of completion proposals. Each specifies the kind of completion to be created,
- * corresponding to different syntactical elements.
- */
-class ProposalKind extends Enum<ProposalKind> {
-  static const ProposalKind NONE = const ProposalKind('NONE', 0);
-
-  static const ProposalKind CLASS = const ProposalKind('CLASS', 1);
-
-  static const ProposalKind CLASS_ALIAS = const ProposalKind('CLASS_ALIAS', 2);
-
-  static const ProposalKind CONSTRUCTOR = const ProposalKind('CONSTRUCTOR', 3);
-
-  static const ProposalKind FIELD = const ProposalKind('FIELD', 4);
-
-  static const ProposalKind FUNCTION = const ProposalKind('FUNCTION', 5);
-
-  static const ProposalKind FUNCTION_ALIAS = const ProposalKind('FUNCTION_ALIAS', 6);
-
-  static const ProposalKind GETTER = const ProposalKind('GETTER', 7);
-
-  static const ProposalKind IMPORT = const ProposalKind('IMPORT', 8);
-
-  static const ProposalKind LIBRARY_PREFIX = const ProposalKind('LIBRARY_PREFIX', 9);
-
-  static const ProposalKind METHOD = const ProposalKind('METHOD', 10);
-
-  static const ProposalKind METHOD_NAME = const ProposalKind('METHOD_NAME', 11);
-
-  static const ProposalKind PARAMETER = const ProposalKind('PARAMETER', 12);
-
-  static const ProposalKind SETTER = const ProposalKind('SETTER', 13);
-
-  static const ProposalKind VARIABLE = const ProposalKind('VARIABLE', 14);
-
-  static const ProposalKind TYPE_PARAMETER = const ProposalKind('TYPE_PARAMETER', 15);
-
-  static const ProposalKind ARGUMENT_LIST = const ProposalKind('ARGUMENT_LIST', 16);
-
-  static const ProposalKind OPTIONAL_ARGUMENT = const ProposalKind('OPTIONAL_ARGUMENT', 17);
-
-  static const ProposalKind NAMED_ARGUMENT = const ProposalKind('NAMED_ARGUMENT', 18);
-
-  static const List<ProposalKind> values = const [
-      NONE,
-      CLASS,
-      CLASS_ALIAS,
-      CONSTRUCTOR,
-      FIELD,
-      FUNCTION,
-      FUNCTION_ALIAS,
-      GETTER,
-      IMPORT,
-      LIBRARY_PREFIX,
-      METHOD,
-      METHOD_NAME,
-      PARAMETER,
-      SETTER,
-      VARIABLE,
-      TYPE_PARAMETER,
-      ARGUMENT_LIST,
-      OPTIONAL_ARGUMENT,
-      NAMED_ARGUMENT];
-
-  const ProposalKind(String name, int ordinal) : super(name, ordinal);
 }
 
 class SearchFilter_CompletionEngine_allSubtypes implements SearchFilter {

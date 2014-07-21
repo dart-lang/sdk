@@ -7,6 +7,7 @@ library domain.edit;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/constants.dart';
 
 /**
  * Instances of the class [EditDomainHandler] implement a [RequestHandler]

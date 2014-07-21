@@ -7,7 +7,7 @@ library protocol;
 import 'dart:collection';
 import 'dart:convert' show JsonDecoder;
 
-import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_services/json.dart';
 
 /**
  * An abstract enumeration.

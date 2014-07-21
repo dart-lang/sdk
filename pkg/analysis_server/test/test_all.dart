@@ -16,7 +16,6 @@ import 'completion_test.dart' as completion_test;
 import 'computer/test_all.dart' as computer_test_all;
 import 'context_directory_manager_test.dart' as context_directory_manager_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
-import 'domain_completion_test.dart' as domain_completion_test;
 import 'domain_edit_test.dart' as domain_edit_test;
 import 'domain_server_test.dart' as domain_server_test;
 import 'operation/test_all.dart' as operation_test_all;
@@ -44,7 +43,6 @@ main() {
     computer_test_all.main();
     context_directory_manager_test.main();
     domain_analysis_test.main();
-    domain_completion_test.main();
     domain_edit_test.main();
     domain_server_test.main();
     operation_test_all.main();
