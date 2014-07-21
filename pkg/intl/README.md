@@ -45,10 +45,7 @@ All the different types of locale data require an async initialization step
 to make
 sure the data is available. This reduces the size of the application by only
 loading the
-data that is actually required. However, deferred loading does not yet work for
-multiple
-libraries, so currently all the code will be included anyay, increasing the code
-size in the short term.
+data that is actually required.
 
 Each different area of internationalization (messages, dates, numbers) requires
 a separate initialization process. That way, if the application only needs to
@@ -153,36 +150,33 @@ and genders can be nested.
           examples: {{'userGender': 'male', 'userName': 'Fred'},
               {'userGender': 'female', 'userName' : 'Alice'}});
 
+It's recommended to use complete sentences in the sub-messages to keep
+the structure as simple as possible for the translators.
+
 ## Extracting And Using Translated Messages
 
 When your program contains messages that need translation, these must
 be extracted from the program source, sent to human translators, and the
-results need to be incorporated. This is still work in progress, and
-the extraction is done to a custom JSON format that is not supported
-by translation tools. We intend to support one or more actual
-translation file formats.
+results need to be incorporated. 
 
-To extract messages, run the `pkg/intl/test/extract_to_json.dart` program.
+To extract messages, run the `extract_to_arb.dart` program.
 
-      dart extract_to_json.dart --output-dir=target/directory
+      pub run intl:extract_to_arb --output-dir=target/directory
           my_program.dart more_of_my_program.dart
 
-This will produce a file `intl_messages.json` with the messages from
-all of these programs. This is in a simple JSON format with a map from
-message names to message strings.
+This will produce a file `intl_messages.arb` with the messages from
+all of these programs. an [ARB]
+(https://code.google.com/p/arb/wiki/ApplicationResourceBundleSpecification)
+format file which can be used for input to translation tools like
+[Google Translator Toolkit](https://translate.google.com/toolkit/) 
+The resulting translations can be used to generate a set of libraries
+using the `generate_from_arb.dart` program.
 
-The reverse step expects to receive a series of files, one per
-locale. These consist of a map with the entry for "_locale" indicating
-the locale, and with the function name mapped to the translated
-string. However, plurals and genders are currently represented in an
-opaque form, by serializing the internal objects that represent
-them. You can see the generation of this code in the
-`make_hardcoded_translation.dart` test file.
+This expects to receive a series of files, one per
+locale. 
 
-If you manage to create such a set of input files, then you can run
-
-      dart generate_from_json.dart --generated_file_prefix=<prefix> 
-          <my dart files> <translated json files>
+      pub run intl:generate_from_arb --generated_file_prefix=<prefix> 
+          <my_dart_files> <translated_ARB_files>
 
 This will generate Dart libraries, one per locale, which contain the
 translated versions. Your Dart libraries can import the primary file,
@@ -291,16 +285,16 @@ detected from the text.
         new BidiFormatter.RTL().wrapWithUnicode('xyz');
         new BidiFormatter.RTL().wrapWithSpan('xyz');
 
-[intl_lib]: https://api.dartlang.org/docs/channels/stable/latest/intl.html
-[Intl]: https://api.dartlang.org/docs/channels/stable/latest/intl/Intl.html
-[DateFormat]: https://api.dartlang.org/docs/channels/stable/latest/intl/DateFormat.html
-[NumberFormat]: https://api.dartlang.org/docs/channels/stable/latest/intl/NumberFormat.html
-[withLocale]: https://api.dartlang.org/docs/channels/stable/latest/intl/Intl.html#withLocale
-[defaultLocale]: https://api.dartlang.org/docs/channels/stable/latest/intl/Intl.html#defaultLocale
-[Intl.message]: https://api.dartlang.org/docs/channels/stable/latest/intl/Intl.html#message
-[Intl.plural]: https://api.dartlang.org/docs/channels/stable/latest/intl/Intl.html#plural
-[Intl.gender]: https://api.dartlang.org/docs/channels/stable/latest/intl/Intl.html#gender
-[DateTime]: https://api.dartlang.org/docs/channels/stable/latest/dart_core/DateTime.html
-[BidiFormatter]: https://api.dartlang.org/docs/channels/stable/latest/intl/BidiFormatter.html
-[BidiFormatter.RTL]: https://api.dartlang.org/docs/channels/stable/latest/intl/BidiFormatter.html#RTL
-[BidiFormatter.LTR]: https://api.dartlang.org/docs/channels/stable/latest/intl/BidiFormatter.html#LTR
+[intl_lib]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl
+[Intl]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl
+[DateFormat]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.DateFormat
+[NumberFormat]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.NumberFormat
+[withLocale]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.Intl#id_withLocale
+[defaultLocale]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.Intl#id_defaultLocale
+[Intl.message]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.Intl#id_message
+[Intl.plural]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.Intl#id_plural
+[Intl.gender]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.Intl#id_gender
+[DateTime]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.DateTime
+[BidiFormatter]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.BidiFormatter
+[BidiFormatter.RTL]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.BidiFormatter#id_BidiFormatter-RTL
+[BidiFormatter.LTR]: https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/intl/intl.BidiFormatter#id_BidiFormatter-LTR
