@@ -6511,15 +6511,18 @@ void Function::SaveICDataMap(
       count++;
     }
   }
-
-  const Array& a = Array::Handle(Array::New(count, Heap::kOld));
-  count = 0;
-  for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
-    if (deopt_id_to_ic_data[i] != NULL) {
-      a.SetAt(count++, *deopt_id_to_ic_data[i]);
+  if (count == 0) {
+    set_ic_data_array(Object::empty_array());
+  } else {
+    const Array& a = Array::Handle(Array::New(count, Heap::kOld));
+    count = 0;
+    for (intptr_t i = 0; i < deopt_id_to_ic_data.length(); i++) {
+      if (deopt_id_to_ic_data[i] != NULL) {
+        a.SetAt(count++, *deopt_id_to_ic_data[i]);
+      }
     }
+    set_ic_data_array(a);
   }
-  set_ic_data_array(a);
 }
 
 
@@ -10699,7 +10702,8 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
     result ^= raw;
     result.raw_ptr()->length_ = num_variables;
   }
-  const Array& names = Array::Handle(Array::New(num_variables, Heap::kOld));
+  const Array& names = (num_variables == 0) ? Object::empty_array() :
+      Array::Handle(Array::New(num_variables, Heap::kOld));
   result.raw_ptr()->names_ = names.raw();
   return result.raw();
 }
@@ -10800,7 +10804,9 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
     result ^= raw;
     result.raw_ptr()->length_ = num_handlers;
   }
-  const Array& handled_types_data = Array::Handle(Array::New(num_handlers));
+  const Array& handled_types_data = (num_handlers == 0) ?
+      Object::empty_array() :
+      Array::Handle(Array::New(num_handlers));
   result.set_handled_types_data(handled_types_data);
   return result.raw();
 }
