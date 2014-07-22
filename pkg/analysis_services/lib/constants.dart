@@ -21,6 +21,7 @@ const String ELEMENT = 'element';
 const String ELEMENT_DESCRIPTION = 'elementDescription';
 const String ELEMENT_KIND = 'elementKind';
 const String EXCLUDED = 'excluded';
+const String ERROR = 'error';
 const String ERRORS = 'errors';
 const String FILE = 'file';
 const String FILES = 'files';

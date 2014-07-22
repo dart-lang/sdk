@@ -2,12 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library domain.edit;
+library edit.domain;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
+import 'package:analysis_services/correction/fix.dart';
+import 'package:analysis_services/search/search_engine.dart';
+import 'package:analyzer/src/generated/error.dart' as engine;
+import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analysis_server/src/computer/error.dart';
+import 'package:analysis_server/src/edit/fix.dart';
+
 
 /**
  * Instances of the class [EditDomainHandler] implement a [RequestHandler]
@@ -20,33 +28,15 @@ class EditDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
+   * The [SearchEngine] for this server.
+   */
+  SearchEngine searchEngine;
+
+  /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  EditDomainHandler(this.server);
-
-  @override
-  Response handleRequest(Request request) {
-    try {
-      String requestName = request.method;
-      if (requestName == EDIT_APPLY_REFACTORING) {
-        return applyRefactoring(request);
-      } else if (requestName == EDIT_CREATE_REFACTORING) {
-        return createRefactoring(request);
-      } else if (requestName == EDIT_DELETE_REFACTORING) {
-        return deleteRefactoring(request);
-      } else if (requestName == EDIT_GET_ASSISTS) {
-        return getAssists(request);
-      } else if (requestName == EDIT_GET_FIXES) {
-        return getFixes(request);
-      } else if (requestName == EDIT_GET_REFACTORINGS) {
-        return getRefactorings(request);
-      } else if (requestName == EDIT_SET_REFACTORING_OPTIONS) {
-        return setRefactoringOptions(request);
-      }
-    } on RequestFailure catch (exception) {
-      return exception.response;
-    }
-    return null;
+  EditDomainHandler(this.server) {
+    searchEngine = server.searchEngine;
   }
 
   Response applyRefactoring(Request request) {
@@ -97,19 +87,29 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response getFixes(Request request) {
-    // errors
-    RequestDatum errorsDatum = request.getRequiredParameter(ERRORS);
-    // TODO(paulberry): the API for edit.getFixes should be changed to so that
-    // it doesn't use AnalysisError as an input type.  This is necessary
-    // because the JSON protocol for an AnalysisError doesn't contain the
-    // errorCode, so we don't have enough information to reconstitute the error
-    // object.
-    // List<AnalysisError> errors = errorsDatum.asList((RequestDatum datum) {
-    //   return _createAnalysisError(request, datum);
-    // });
-
-    // TODO(brianwilkerson) implement
-    return null;
+    String file = request.getRequiredParameter(FILE).asString();
+    int offset = request.getRequiredParameter(OFFSET).asInt();
+    List<ErrorFixes> errorFixesList = <ErrorFixes>[];
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    for (CompilationUnit unit in units) {
+      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
+      if (errorInfo != null) {
+        for (engine.AnalysisError error in errorInfo.errors) {
+          List<Fix> fixes = computeFixes(searchEngine, file, unit, error);
+          if (fixes.isNotEmpty) {
+            AnalysisError serverError =
+                new AnalysisError.fromEngine(errorInfo.lineInfo, error);
+            ErrorFixes errorFixes = new ErrorFixes(serverError);
+            errorFixesList.add(errorFixes);
+            fixes.forEach((fix) {
+              return errorFixes.addFix(fix);
+            });
+          }
+        }
+      }
+    }
+    // respond
+    return new Response(request.id)..setResult(FIXES, errorFixesList);
   }
 
   Response getRefactorings(Request request) {
@@ -123,6 +123,31 @@ class EditDomainHandler implements RequestHandler {
     RequestDatum lengthDatum = request.getRequiredParameter(LENGTH);
     int length = lengthDatum.asInt();
     // TODO(brianwilkerson) implement
+    return null;
+  }
+
+  @override
+  Response handleRequest(Request request) {
+    try {
+      String requestName = request.method;
+      if (requestName == EDIT_APPLY_REFACTORING) {
+        return applyRefactoring(request);
+      } else if (requestName == EDIT_CREATE_REFACTORING) {
+        return createRefactoring(request);
+      } else if (requestName == EDIT_DELETE_REFACTORING) {
+        return deleteRefactoring(request);
+      } else if (requestName == EDIT_GET_ASSISTS) {
+        return getAssists(request);
+      } else if (requestName == EDIT_GET_FIXES) {
+        return getFixes(request);
+      } else if (requestName == EDIT_GET_REFACTORINGS) {
+        return getRefactorings(request);
+      } else if (requestName == EDIT_SET_REFACTORING_OPTIONS) {
+        return setRefactoringOptions(request);
+      }
+    } on RequestFailure catch (exception) {
+      return exception.response;
+    }
     return null;
   }
 

@@ -8,12 +8,11 @@
 library test.services.correction.name_suggestion;
 
 import 'package:analysis_services/src/correction/name_suggestion.dart';
+import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart' hide isEmpty;
-
-import '../index/abstract_single_unit.dart';
 
 
 main() {

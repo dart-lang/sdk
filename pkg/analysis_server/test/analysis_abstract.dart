@@ -261,21 +261,3 @@ class AbstractAnalysisTest {
     return code as String;
   }
 }
-
-
-class AnalysisError {
-  final String file;
-  final String errorCode;
-  final int offset;
-  final int length;
-  final String message;
-  final String correction;
-  AnalysisError(this.file, this.errorCode, this.offset, this.length,
-      this.message, this.correction);
-
-  @override
-  String toString() {
-    return 'NotificationError(file=$file; errorCode=$errorCode; '
-        'offset=$offset; length=$length; message=$message)';
-  }
-}

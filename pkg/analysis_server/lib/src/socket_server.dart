@@ -10,7 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/domain_edit.dart';
+import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/package_map_provider.dart';

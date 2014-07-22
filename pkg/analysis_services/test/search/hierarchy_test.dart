@@ -13,11 +13,10 @@ import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_services/search/hierarchy.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
+import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart';
-
-import '../index/abstract_single_unit.dart';
 
 
 main() {

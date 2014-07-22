@@ -7,14 +7,13 @@ library test.services.src.index.dart_index_contributor;
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/index_store.dart';
 import 'package:analysis_services/src/index/index_contributor.dart';
+import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
-
-import 'abstract_single_unit.dart';
 
 
 main() {
@@ -123,6 +122,26 @@ main(A a, p) {
         _expectedLocation(mainElement, 'field); // not a member'));
   }
 
+  void test_NameElement_isDefinedBy_localVariable_inForEach() {
+    _indexTestUnit('''
+class A {
+  main() {
+    for (int test in []) {
+    }
+  }
+}
+''');
+    // prepare elements
+    Element mainElement = findElement('main');
+    LocalVariableElement testElement = findElement('test');
+    Element nameElement = new NameElement('test');
+    // verify
+    _assertRecordedRelation(
+        nameElement,
+        IndexConstants.NAME_IS_DEFINED_BY,
+        _expectedLocation(testElement, 'test in []'));
+  }
+
   void test_NameElement_method() {
     _indexTestUnit('''
 class A {
@@ -150,26 +169,6 @@ main(A a, p) {
         nameElement,
         IndexConstants.IS_INVOKED_BY,
         _expectedLocationQU(mainElement, 'method(); // ur'));
-  }
-
-  void test_NameElement_isDefinedBy_localVariable_inForEach() {
-    _indexTestUnit('''
-class A {
-  main() {
-    for (int test in []) {
-    }
-  }
-}
-''');
-    // prepare elements
-    Element mainElement = findElement('main');
-    LocalVariableElement testElement = findElement('test');
-    Element nameElement = new NameElement('test');
-    // verify
-    _assertRecordedRelation(
-        nameElement,
-        IndexConstants.NAME_IS_DEFINED_BY,
-        _expectedLocation(testElement, 'test in []'));
   }
 
   void test_NameElement_operator_resolved() {

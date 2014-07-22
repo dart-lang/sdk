@@ -8,6 +8,7 @@
 library test.services.correction.source_range;
 
 import 'package:analysis_services/src/correction/source_range.dart';
+import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -15,8 +16,6 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart' hide isEmpty;
-
-import '../index/abstract_single_unit.dart';
 
 
 main() {
@@ -72,6 +71,18 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     expect(rangeNodes([mainName, mainBody]), new SourceRange(1, 9));
   }
 
+  void test_rangeNodes_empty() {
+    resolveTestUnit('main() {}');
+    FunctionDeclaration mainFunction = testUnit.declarations[0];
+    SimpleIdentifier mainName = mainFunction.name;
+    FunctionBody mainBody = mainFunction.functionExpression.body;
+    expect(rangeNodes([]), new SourceRange(0, 0));
+  }
+
+  void test_rangeStartEnd_intInt() {
+    expect(rangeStartEnd(10, 25), new SourceRange(10, 15));
+  }
+
   void test_rangeStartEnd_nodeNode() {
     resolveTestUnit(' main() {}');
     FunctionDeclaration mainFunction = testUnit.declarations[0];
@@ -80,16 +91,19 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     expect(rangeStartEnd(mainName, mainBody), new SourceRange(1, 9));
   }
 
-  void test_rangeStartEnd_intInt() {
-    expect(rangeStartEnd(10, 25), new SourceRange(10, 15));
+  void test_rangeStartLength_int() {
+    expect(rangeStartLength(5, 10), new SourceRange(5, 10));
   }
 
-  void test_rangeNodes_empty() {
-    resolveTestUnit('main() {}');
+  void test_rangeStartLength_node() {
+    resolveTestUnit(' main() {}');
     FunctionDeclaration mainFunction = testUnit.declarations[0];
     SimpleIdentifier mainName = mainFunction.name;
-    FunctionBody mainBody = mainFunction.functionExpression.body;
-    expect(rangeNodes([]), new SourceRange(0, 0));
+    expect(rangeStartLength(mainName, 10), new SourceRange(1, 10));
+  }
+
+  void test_rangeStartStart_intInt() {
+    expect(rangeStartStart(10, 25), new SourceRange(10, 15));
   }
 
   void test_rangeStartStart_nodeNode() {
@@ -100,25 +114,10 @@ class SourceRangesTest extends AbstractSingleUnitTest {
     expect(rangeStartStart(mainName, mainBody), new SourceRange(0, 7));
   }
 
-  void test_rangeStartStart_intInt() {
-    expect(rangeStartStart(10, 25), new SourceRange(10, 15));
-  }
-
-  void test_rangeStartLength_node() {
-    resolveTestUnit(' main() {}');
-    FunctionDeclaration mainFunction = testUnit.declarations[0];
-    SimpleIdentifier mainName = mainFunction.name;
-    expect(rangeStartLength(mainName, 10), new SourceRange(1, 10));
-  }
-
   void test_rangeToken() {
     resolveTestUnit(' main() {}');
     FunctionDeclaration mainFunction = testUnit.declarations[0];
     SimpleIdentifier mainName = mainFunction.name;
     expect(rangeToken(mainName.beginToken), new SourceRange(1, 4));
-  }
-
-  void test_rangeStartLength_int() {
-    expect(rangeStartLength(5, 10), new SourceRange(5, 10));
   }
 }

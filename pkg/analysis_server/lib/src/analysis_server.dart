@@ -555,6 +555,24 @@ class AnalysisServer {
   }
 
   /**
+   * Returns all the [AnalysisErrorInfo] for [file].
+   * It does not wait for all errors to be computed, and returns just the
+   * current state.
+   *
+   * May return `null`.
+   */
+  AnalysisErrorInfo getErrors(String file) {
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(file);
+    if (context == null) {
+      return null;
+    }
+    // get errors for the file
+    Source source = getSource(file);
+    return context.getErrors(source);
+  }
+
+  /**
    * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
    *
    * May be empty, but not `null`.
