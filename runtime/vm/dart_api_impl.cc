@@ -371,7 +371,7 @@ const Instance& Api::UnwrapInstanceHandle(
 }
 
 
-Dart_Handle Api::CheckIsolateState(Isolate* isolate) {
+Dart_Handle Api::CheckAndFinalizePendingClasses(Isolate* isolate) {
   if (!isolate->AllowClassFinalization()) {
     // Class finalization is blocked for the isolate. Do nothing.
     return Api::Success();
@@ -1400,7 +1400,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   if (size == NULL) {
     RETURN_NULL_ERROR(size);
   }
-  Dart_Handle state = Api::CheckIsolateState(isolate);
+  // Finalize all classes if needed.
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(isolate);
   if (::Dart_IsError(state)) {
     return state;
   }
@@ -1424,7 +1425,8 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   if (size == NULL) {
     RETURN_NULL_ERROR(size);
   }
-  Dart_Handle state = Api::CheckIsolateState(isolate);
+  // Finalize all classes if needed.
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(isolate);
   if (::Dart_IsError(state)) {
     return state;
   }
@@ -1715,6 +1717,11 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     *value = false;
     RETURN_TYPE_ERROR(isolate, type, Type);
   }
+  if (!type_obj.IsFinalized()) {
+    return Api::NewError(
+        "%s expects argument 'type' to be a fully resolved type.",
+        CURRENT_FUNC);
+  }
   if (object == Api::Null()) {
     *value = false;
     return Api::Success();
@@ -1723,12 +1730,6 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
   if (instance.IsNull()) {
     *value = false;
     RETURN_TYPE_ERROR(isolate, object, Instance);
-  }
-  // Finalize all classes.
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    *value = false;
-    return state;
   }
   CHECK_CALLBACK_STATE(isolate);
   Error& malformed_type_error = Error::Handle(isolate);
@@ -3506,6 +3507,11 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   }
   Type& type_obj = Type::Handle();
   type_obj ^= unchecked_type.raw();
+  if (!type_obj.IsFinalized()) {
+    return Api::NewError(
+        "%s expects argument 'type' to be a fully resolved type.",
+        CURRENT_FUNC);
+  }
   Class& cls = Class::Handle(isolate, type_obj.type_class());
   TypeArguments& type_arguments =
       TypeArguments::Handle(isolate, type_obj.arguments());
@@ -3521,10 +3527,6 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     dot_name = String::Concat(Symbols::Dot(), String::Cast(result));
   } else {
     RETURN_TYPE_ERROR(isolate, constructor_name, String);
-  }
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
   }
 
   // Resolve the constructor.
@@ -3753,9 +3755,8 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
     RETURN_TYPE_ERROR(isolate, object, Instance);
   }
 
-  // Since we have allocated an object it would mean that all classes
-  // are finalized and hence it is not necessary to call
-  // Api::CheckIsolateState.
+  // Since we have allocated an object it would mean that the type
+  // is finalized.
   // TODO(asiva): How do we ensure that a constructor is not called more than
   // once for the same object.
 
@@ -3841,10 +3842,10 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   Dart_Handle result;
   Array& args = Array::Handle(isolate);
   if (obj.IsType()) {
-    // Finalize all classes.
-    Dart_Handle state = Api::CheckIsolateState(isolate);
-    if (::Dart_IsError(state)) {
-      return state;
+    if (!Type::Cast(obj).IsFinalized()) {
+      return Api::NewError(
+          "%s expects argument 'target' to be a fully resolved type.",
+          CURRENT_FUNC);
     }
 
     const Class& cls = Class::Handle(isolate, Type::Cast(obj).type_class());
@@ -3869,9 +3870,9 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     }
     return result;
   } else if (obj.IsNull() || obj.IsInstance()) {
-    // Since we have allocated an object it would mean that all classes
-    // are finalized and hence it is not necessary to call
-    // Api::CheckIsolateState.
+    // Since we have allocated an object it would mean that the type of the
+    // receiver is already resolved and finalized, hence it is not necessary
+    // to check here.
     Instance& instance = Instance::Handle(isolate);
     instance ^= obj.raw();
     ArgumentsDescriptor args_desc(
@@ -3910,10 +3911,11 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     // Check whether class finalization is needed.
     const Library& lib = Library::Cast(obj);
 
-    // Finalize all classes if needed.
-    Dart_Handle state = Api::CheckIsolateState(isolate);
-    if (::Dart_IsError(state)) {
-      return state;
+    // Check that the library is loaded.
+    if (!lib.Loaded()) {
+      return Api::NewError(
+          "%s expects library argument 'target' to be loaded.",
+          CURRENT_FUNC);
     }
 
     const Function& function =
@@ -3994,12 +3996,6 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     RETURN_TYPE_ERROR(isolate, name, String);
   }
 
-  // Finalize all classes.
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
-  }
-
   Field& field = Field::Handle(isolate);
   Function& getter = Function::Handle(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(container));
@@ -4007,6 +4003,11 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     return Api::NewError("%s expects argument 'container' to be non-null.",
                          CURRENT_FUNC);
   } else if (obj.IsType()) {
+    if (!Type::Cast(obj).IsFinalized()) {
+      return Api::NewError(
+          "%s expects argument 'container' to be a fully resolved type.",
+          CURRENT_FUNC);
+    }
     // To access a static field we may need to use the Field or the
     // getter Function.
     Class& cls = Class::Handle(isolate, Type::Cast(obj).type_class());
@@ -4065,6 +4066,12 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     // getter Function.  The getter function may either be in the
     // library or in the field's owner class, depending.
     const Library& lib = Library::Cast(obj);
+    // Check that the library is loaded.
+    if (!lib.Loaded()) {
+      return Api::NewError(
+          "%s expects library argument 'container' to be loaded.",
+          CURRENT_FUNC);
+    }
     field = lib.LookupFieldAllowPrivate(field_name);
     if (field.IsNull()) {
       // No field found and no ambiguity error.  Check for a getter in the lib.
@@ -4120,11 +4127,6 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
   Instance& value_instance = Instance::Handle(isolate);
   value_instance ^= value_obj.raw();
 
-  // Finalize all classes.
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
-  }
   Field& field = Field::Handle(isolate);
   Function& setter = Function::Handle(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(container));
@@ -4132,6 +4134,12 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     return Api::NewError("%s expects argument 'container' to be non-null.",
                          CURRENT_FUNC);
   } else if (obj.IsType()) {
+    if (!Type::Cast(obj).IsFinalized()) {
+      return Api::NewError(
+          "%s expects argument 'container' to be a fully resolved type.",
+          CURRENT_FUNC);
+    }
+
     // To access a static field we may need to use the Field or the
     // setter Function.
     Class& cls = Class::Handle(isolate, Type::Cast(obj).type_class());
@@ -4210,6 +4218,12 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     // setter Function.  The setter function may either be in the
     // library or in the field's owner class, depending.
     const Library& lib = Library::Cast(obj);
+    // Check that the library is loaded.
+    if (!lib.Loaded()) {
+      return Api::NewError(
+          "%s expects library argument 'container' to be loaded.",
+          CURRENT_FUNC);
+    }
     field = lib.LookupFieldAllowPrivate(field_name);
     if (field.IsNull()) {
       const String& setter_name =
@@ -4920,14 +4934,14 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   if (lib.IsNull()) {
     RETURN_TYPE_ERROR(isolate, library, Library);
   }
+  if (!lib.Loaded()) {
+    return Api::NewError(
+        "%s expects library argument 'library' to be loaded.",
+        CURRENT_FUNC);
+  }
   const String& name_str = Api::UnwrapStringHandle(isolate, class_name);
   if (name_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, class_name, String);
-  }
-  // Ensure all classes are finalized.
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
   }
   const Class& cls =
       Class::Handle(isolate, lib.LookupClassAllowPrivate(name_str));
@@ -5055,7 +5069,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   // If this is the dart:_builtin library, register it with the VM.
   if (url_str.Equals("dart:_builtin")) {
     isolate->object_store()->set_builtin_library(library);
-    Dart_Handle state = Api::CheckIsolateState(isolate);
+    Dart_Handle state = Api::CheckAndFinalizePendingClasses(isolate);
     if (::Dart_IsError(state)) {
       return state;
     }
@@ -5181,7 +5195,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   // invoing of _completeDeferredLoads) into Isolate::DoneLoading().
 
   // Finalize all classes if needed.
-  Dart_Handle state = Api::CheckIsolateState(isolate);
+  Dart_Handle state = Api::CheckAndFinalizePendingClasses(isolate);
   if (::Dart_IsError(state)) {
     return state;
   }

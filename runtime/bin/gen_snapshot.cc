@@ -468,6 +468,14 @@ static void SetupForGenericSnapshotCreation() {
 
   Dart_Handle library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
   VerifyLoaded(library);
+  Dart_Handle result = Dart_FinalizeLoading(false);
+  if (Dart_IsError(result)) {
+    const char* err_msg = Dart_GetError(library);
+    Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(255);
+  }
 }
 
 

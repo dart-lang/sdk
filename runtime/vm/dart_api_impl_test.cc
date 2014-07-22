@@ -3875,6 +3875,8 @@ TEST_CASE(FieldAccess) {
   EXPECT_VALID(imported_lib);
   Dart_Handle result = Dart_LibraryImportLibrary(lib, imported_lib, prefix);
   EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
   result = Dart_Invoke(imported_lib, NewString("test2"), 0, NULL);
   EXPECT_VALID(result);
 
@@ -4091,14 +4093,17 @@ TEST_CASE(InjectNativeFields1) {
   const int kNumNativeFields = 4;
 
   // Create a test library.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
-                                             native_field_lookup);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL,
+                                             USER_TEST_URI, false);
 
   // Create a native wrapper class with native fields.
   result = Dart_CreateNativeWrapperClass(
       lib,
       NewString("NativeFieldsWrapper"),
       kNumNativeFields);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   // Load up a test script in the test library.
 
@@ -4138,7 +4143,8 @@ TEST_CASE(InjectNativeFields2) {
       "}\n";
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
-  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL,
+                                             USER_TEST_URI, false);
 
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -4437,13 +4443,17 @@ TEST_CASE(NativeFieldAccess) {
 
   // Create a test library.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars,
-                                             native_field_lookup);
+                                             native_field_lookup,
+                                             USER_TEST_URI,
+                                             false);
 
   // Create a native wrapper class with native fields.
   Dart_Handle result = Dart_CreateNativeWrapperClass(
       lib,
       NewString("NativeFieldsWrapper"),
       kNumNativeFields);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
   // Load up a test script in it.
@@ -5229,6 +5239,8 @@ TEST_CASE(Invoke_CrossLibrary) {
   // Import lib2 from lib1
   Dart_Handle result = Dart_LibraryImportLibrary(lib1, lib2, Dart_Null());
   EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   // We can invoke both private and non-private local functions.
   EXPECT_VALID(Dart_Invoke(lib1, NewString("local"), 0, NULL));
@@ -5772,6 +5784,7 @@ TEST_CASE(LoadScript) {
   // Load a script successfully.
   result = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(result);
+  Dart_FinalizeLoading(false);
 
   result = Dart_Invoke(result, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
@@ -6039,6 +6052,8 @@ TEST_CASE(LibraryGetClassNames) {
   Dart_Handle source = NewString(kLibraryChars);
   Dart_Handle lib = Dart_LoadLibrary(url, source);
   EXPECT_VALID(lib);
+  Dart_Handle result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   Dart_Handle list = Dart_LibraryGetClassNames(lib);
   EXPECT_VALID(list);
@@ -6090,6 +6105,8 @@ TEST_CASE(GetFunctionNames) {
   Dart_Handle source = NewString(kLibraryChars);
   Dart_Handle lib = Dart_LoadLibrary(url, source);
   EXPECT_VALID(lib);
+  Dart_Handle result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   Dart_Handle list = Dart_GetFunctionNames(lib);
   EXPECT_VALID(list);
@@ -6204,6 +6221,8 @@ TEST_CASE(ImportLibraryWithPrefix) {
 
   Dart_Handle prefix = NewString("foo");
   Dart_Handle result = Dart_LibraryImportLibrary(lib2, lib1, prefix);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
   // Lib1 is imported under a library prefix and therefore 'foo' should
@@ -6387,12 +6406,14 @@ TEST_CASE(LoadSource_LateLoad) {
   Dart_Handle lib = Dart_LoadLibrary(url, source);
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
+  Dart_Handle result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   // Call a dynamic function on OldClass.
   Dart_Handle type = Dart_GetType(lib, NewString("OldClass"), 0, NULL);
   EXPECT_VALID(type);
   Dart_Handle recv = Dart_New(type, Dart_Null(), 0, NULL);
-  Dart_Handle result = Dart_Invoke(recv, NewString("foo"), 0, NULL);
+  result = Dart_Invoke(recv, NewString("foo"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsString(result));
   const char* result_cstr = "";
@@ -6403,6 +6424,8 @@ TEST_CASE(LoadSource_LateLoad) {
   url = NewString("source_url");
   source = NewString(kSourceChars);
   EXPECT_VALID(Dart_LoadSource(lib, url, source));
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   // Call a dynamic function on NewClass in the updated library.
   type = Dart_GetType(lib, NewString("NewClass"), 0, NULL);
@@ -6443,6 +6466,8 @@ TEST_CASE(LoadPatch) {
   source = NewString(kPatchChars);
 
   result = Dart_LibraryLoadPatch(lib, url, source);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
@@ -6591,6 +6616,8 @@ TEST_CASE(ParsePatchLibrary) {
   source = NewString(kScriptChars);
   Dart_Handle test_script = Dart_LoadScript(script_url, source, 0, 0);
   EXPECT_VALID(test_script);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   // Make sure that we can compile all of the patched code.
   result = Dart_CompileAll();
@@ -6693,6 +6720,8 @@ TEST_CASE(SetNativeResolver) {
   EXPECT_VALID(result);
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
   EXPECT(Dart_IsLibrary(lib));
   Dart_Handle type = Dart_GetType(lib, NewString("Test"), 0, NULL);
   EXPECT_VALID(type);
@@ -6785,6 +6814,8 @@ TEST_CASE(ImportLibrary2) {
   source = NewString(kLibrary2Chars);
   Dart_LoadLibrary(url, source);
 
+  Dart_FinalizeLoading(false);
+
   result = Dart_Invoke(result, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 }
@@ -6821,6 +6852,8 @@ TEST_CASE(ImportLibrary3) {
   url = NewString("library1_dart");
   source = NewString(kLibrary1Chars);
   Dart_LoadLibrary(url, source);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   result = Dart_Invoke(result, NewString("main"), 0, NULL);
   EXPECT(Dart_IsError(result));
@@ -6858,6 +6891,7 @@ TEST_CASE(ImportLibrary4) {
   url = NewString("library1_dart");
   source = NewString(kLibrary1Chars);
   Dart_LoadLibrary(url, source);
+  Dart_FinalizeLoading(false);
 
   result = Dart_Invoke(result, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
@@ -6888,6 +6922,7 @@ TEST_CASE(ImportLibrary5) {
   url = NewString("lib.dart");
   source = NewString(kLibraryChars);
   Dart_LoadLibrary(url, source);
+  Dart_FinalizeLoading(false);
 
   result = Dart_Invoke(result, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
@@ -7027,6 +7062,8 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
   EXPECT_VALID(result);
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   EXPECT_VALID(lib);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
   Dart_ExitScope();
   Dart_ExitIsolate();
   bool retval = Dart_IsolateMakeRunnable(isolate);
@@ -7168,6 +7205,8 @@ void BusyLoop_start(uword unused) {
     EXPECT_VALID(result);
     lib = Dart_LoadScript(url, source, 0, 0);
     EXPECT_VALID(lib);
+    result = Dart_FinalizeLoading(false);
+    EXPECT_VALID(result);
     result =
         Dart_SetNativeResolver(lib, &IsolateInterruptTestNativeLookup, NULL);
     DART_CHECK_VALID(result);
@@ -7353,6 +7392,8 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
     EXPECT_VALID(result);
     Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
     EXPECT_VALID(lib);
+    result = Dart_FinalizeLoading(false);
+    EXPECT_VALID(result);
     result = Dart_Invoke(lib, NewString("main"), 0, NULL);
     EXPECT_VALID(result);
     Dart_ExitScope();
@@ -7533,6 +7574,8 @@ TEST_CASE(NativeFunctionClosure) {
   EXPECT(Dart_IsLibrary(lib));
   result = Dart_SetNativeResolver(lib, &MyNativeClosureResolver, NULL);
   EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
@@ -7679,6 +7722,8 @@ TEST_CASE(NativeStaticFunctionClosure) {
   EXPECT_VALID(lib);
   EXPECT(Dart_IsLibrary(lib));
   result = Dart_SetNativeResolver(lib, &MyStaticNativeClosureResolver, NULL);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
@@ -8356,6 +8401,8 @@ TEST_CASE(LazyLoadDeoptimizes) {
   Dart_Handle source = NewString(kLoadSecond);
   Dart_Handle url = NewString(TestCase::url());
   Dart_LoadSource(TestCase::lib(), url, source);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
 
   dart_args[0] = Dart_NewInteger(1);
   result = Dart_Invoke(lib1, NewString("start"), 1, dart_args);

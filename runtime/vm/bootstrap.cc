@@ -7,6 +7,7 @@
 #include "include/dart_api.h"
 
 #include "vm/bootstrap_natives.h"
+#include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
 #include "vm/object.h"
@@ -311,6 +312,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
   }
   if (error.IsNull()) {
     SetupNativeResolver();
+    ClassFinalizer::ProcessPendingClasses();
   }
 
   // Restore the library tag handler for the isolate.

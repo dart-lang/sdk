@@ -442,8 +442,10 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
     const Error& error = Error::Handle(isolate,
                                        Compiler::Compile(library, script));
     ASSERT(error.IsNull());
+    Dart_Handle result = Dart_FinalizeLoading(false);
+    ASSERT(!Dart_IsError(result));
     Dart_ExitScope();
-    library.SetLoaded();
+
     // Install embedder default library tag handler again.
     isolate->set_library_tag_handler(embedder_provided_handler_);
     embedder_provided_handler_ = NULL;

@@ -142,9 +142,10 @@ class Api : AllStatic {
   static const Instance& UnwrapInstanceHandle(
       const ReusableObjectHandleScope& reused, Dart_Handle object);
 
-  // Returns an Error handle if isolate is in an inconsistent state.
+  // Returns an Error handle if isolate is in an inconsistent state
+  // or there was an error while finalizing classes.
   // Returns a Success handle when no error condition exists.
-  static Dart_Handle CheckIsolateState(Isolate *isolate);
+  static Dart_Handle CheckAndFinalizePendingClasses(Isolate *isolate);
 
   // Casts the internal Isolate* type to the external Dart_Isolate type.
   static Dart_Isolate CastIsolate(Isolate* isolate);

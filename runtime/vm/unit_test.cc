@@ -112,16 +112,20 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 
 Dart_Handle TestCase::LoadTestScript(const char* script,
                                      Dart_NativeEntryResolver resolver,
-                                     const char* lib_url) {
+                                     const char* lib_url,
+                                     bool finalize_classes) {
   Dart_Handle url = NewString(lib_url);
   Dart_Handle source = NewString(script);
   Dart_Handle result = Dart_SetLibraryTagHandler(LibraryTagHandler);
-  EXPECT_VALID(result);
   EXPECT_VALID(result);
   Dart_Handle lib = Dart_LoadScript(url, source, 0, 0);
   DART_CHECK_VALID(lib);
   result = Dart_SetNativeResolver(lib, resolver, NULL);
   DART_CHECK_VALID(result);
+  if (finalize_classes) {
+    result = Dart_FinalizeLoading(false);
+    DART_CHECK_VALID(result);
+  }
   return lib;
 }
 

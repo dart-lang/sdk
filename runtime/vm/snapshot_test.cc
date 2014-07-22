@@ -1039,7 +1039,7 @@ UNIT_TEST_CASE(FullSnapshot) {
 
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckIsolateState(isolate));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(isolate));
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
@@ -1093,7 +1093,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckIsolateState(isolate));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(isolate));
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
@@ -1214,7 +1214,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(),
                                            import_lib,
                                            Dart_Null()));
-    EXPECT_VALID(Api::CheckIsolateState(Isolate::Current()));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Isolate::Current()));
 
     // Get list of library URLs loaded and save the count.
     Dart_Handle libs = Dart_GetLibraryIds();
@@ -1384,7 +1384,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
     EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(),
                                            import_lib,
                                            Dart_Null()));
-    EXPECT_VALID(Api::CheckIsolateState(Isolate::Current()));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Isolate::Current()));
 
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);

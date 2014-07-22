@@ -115,6 +115,8 @@ bool VmService::_Start(const char *server_ip, intptr_t server_port) {
   // Expect a library.
   ASSERT(library != Dart_Null());
   SHUTDOWN_ON_ERROR(library);
+  result = Dart_FinalizeLoading(false);
+  ASSERT(!Dart_IsError(result));
   Dart_ExitScope();
   Dart_ExitIsolate();
   bool retval = Dart_IsolateMakeRunnable(isolate);
