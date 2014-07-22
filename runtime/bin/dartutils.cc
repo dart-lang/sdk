@@ -744,7 +744,7 @@ void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
 // Callback function that gets called from dartutils when there are
 // no more outstanding load requests.
 void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
-  Dart_Handle res = Dart_FinalizeLoading();
+  Dart_Handle res = Dart_FinalizeLoading(true);
   if (Dart_IsError(res)) {
     Dart_PropagateError(res);
   }

@@ -5170,7 +5170,7 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
 
 // Finalizes classes and invokes Dart core library function that completes
 // futures of loadLibrary calls (deferred library loading).
-DART_EXPORT Dart_Handle Dart_FinalizeLoading() {
+DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
@@ -5186,19 +5186,21 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading() {
     return state;
   }
 
-  const Library& corelib = Library::Handle(isolate, Library::CoreLibrary());
-  const String& function_name =
-      String::Handle(isolate, String::New("_completeDeferredLoads"));
-  const Function& function =
-      Function::Handle(isolate,
-                       corelib.LookupFunctionAllowPrivate(function_name));
-  ASSERT(!function.IsNull());
-  const Array& args = Array::empty_array();
+  if (complete_futures) {
+    const Library& corelib = Library::Handle(isolate, Library::CoreLibrary());
+    const String& function_name =
+        String::Handle(isolate, String::New("_completeDeferredLoads"));
+    const Function& function =
+        Function::Handle(isolate,
+                         corelib.LookupFunctionAllowPrivate(function_name));
+    ASSERT(!function.IsNull());
+    const Array& args = Array::empty_array();
 
-  const Object& res =
-      Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
-  if (res.IsError() || res.IsUnhandledException()) {
-    return Api::NewHandle(isolate, res.raw());
+    const Object& res =
+        Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
+    if (res.IsError() || res.IsUnhandledException()) {
+      return Api::NewHandle(isolate, res.raw());
+    }
   }
   return Api::Success();
 }

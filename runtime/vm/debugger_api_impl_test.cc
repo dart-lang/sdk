@@ -2016,7 +2016,7 @@ TEST_CASE(Debug_EvaluateInActivationOfEvaluate) {
       "  get r => sqrt(x*x + y*y);       \n"
       "}                                 \n";
   LoadScript(kScriptChars);
-  Dart_FinalizeLoading();
+  Dart_FinalizeLoading(false);
 
   Dart_SetExceptionThrownHandler(&EvaluateInActivationOfEvaluateHandler);
   Dart_SetExceptionPauseInfo(kPauseOnAllExceptions);
@@ -2050,7 +2050,7 @@ TEST_CASE(Debug_BreakOnUnhandledException) {
       "}                               \n";
 
   LoadScript(kScriptChars);
-  Dart_FinalizeLoading();
+  Dart_FinalizeLoading(false);
   Dart_SetExceptionThrownHandler(&UnhandledExceptionHandler);
   breakpoint_hit_counter = 0;
 
