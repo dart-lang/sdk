@@ -1,6 +1,3 @@
-Serialization
-=============
-
 A general-purpose serialization facility for Dart Objects.
 
 This provides the ability to save and restore objects to pluggable
@@ -13,8 +10,3 @@ receiving side, and other issues. It is not as much intended for
 APIs using JSON to pass acyclic structures without class information,
 and is fairly heavweight and expensive for doing that compared to simpler
 approaches.
- 
-For more detailed descriptions and examples of use, see the comment on
-the [serialization][serialization] library.
-
-[serialization]: https://api.dartlang.org/docs/channels/stable/latest/serialization.html
