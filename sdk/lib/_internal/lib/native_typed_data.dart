@@ -12,13 +12,14 @@ import 'dart:collection';
 import 'dart:_internal';
 import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
-    show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
+show Creates, JavaScriptIndexingBehavior, JSName, Native, Null, Returns;
 import 'dart:_foreign_helper' show JS;
 import 'dart:math' as Math;
 
 import 'dart:typed_data';
 
-class NativeByteBuffer implements ByteBuffer native "ArrayBuffer" {
+@Native("ArrayBuffer")
+class NativeByteBuffer implements ByteBuffer {
   @JSName('byteLength')
   final int lengthInBytes;
 
@@ -406,7 +407,8 @@ class NativeFloat64x2List
   }
 }
 
-class NativeTypedData implements TypedData native "ArrayBufferView" {
+@Native("ArrayBufferView")
+class NativeTypedData implements TypedData {
   /**
    * Returns the byte buffer associated with this object.
    */
@@ -499,8 +501,8 @@ List _ensureNativeList(List list) {
 }
 
 
-class NativeByteData extends NativeTypedData implements ByteData
-    native "DataView" {
+@Native("DataView")
+class NativeByteData extends NativeTypedData implements ByteData {
   /**
    * Creates a [ByteData] of the specified length (in elements), all of
    * whose elements are initially zero.
@@ -914,10 +916,10 @@ abstract class NativeTypedArrayOfInt
 }
 
 
+@Native("Float32Array")
 class NativeFloat32List
     extends NativeTypedArrayOfDouble
-    implements Float32List
-    native "Float32Array" {
+    implements Float32List {
 
   factory NativeFloat32List(int length) => _create1(_checkLength(length));
 
@@ -951,10 +953,10 @@ class NativeFloat32List
 }
 
 
+@Native("Float64Array")
 class NativeFloat64List
     extends NativeTypedArrayOfDouble
-    implements Float64List
-    native "Float64Array" {
+    implements Float64List {
 
   factory NativeFloat64List(int length) => _create1(_checkLength(length));
 
@@ -988,10 +990,10 @@ class NativeFloat64List
 }
 
 
+@Native("Int16Array")
 class NativeInt16List
     extends NativeTypedArrayOfInt
-    implements Int16List
-    native "Int16Array" {
+    implements Int16List {
 
   factory NativeInt16List(int length) => _create1(_checkLength(length));
 
@@ -1030,10 +1032,8 @@ class NativeInt16List
 }
 
 
-class NativeInt32List
-    extends NativeTypedArrayOfInt
-    implements Int32List
-    native "Int32Array" {
+@Native("Int32Array")
+class NativeInt32List extends NativeTypedArrayOfInt implements Int32List {
 
   factory NativeInt32List(int length) => _create1(_checkLength(length));
 
@@ -1072,10 +1072,8 @@ class NativeInt32List
 }
 
 
-class NativeInt8List
-    extends NativeTypedArrayOfInt
-    implements Int8List
-    native "Int8Array" {
+@Native("Int8Array")
+class NativeInt8List extends NativeTypedArrayOfInt implements Int8List {
 
   factory NativeInt8List(int length) => _create1(_checkLength(length));
 
@@ -1114,10 +1112,8 @@ class NativeInt8List
 }
 
 
-class NativeUint16List
-    extends NativeTypedArrayOfInt
-    implements Uint16List
-    native "Uint16Array" {
+@Native("Uint16Array")
+class NativeUint16List extends NativeTypedArrayOfInt implements Uint16List {
 
   factory NativeUint16List(int length) => _create1(_checkLength(length));
 
@@ -1156,10 +1152,8 @@ class NativeUint16List
 }
 
 
-class NativeUint32List
-    extends NativeTypedArrayOfInt
-    implements Uint32List
-    native "Uint32Array" {
+@Native("Uint32Array")
+class NativeUint32List extends NativeTypedArrayOfInt implements Uint32List {
 
   factory NativeUint32List(int length) => _create1(_checkLength(length));
 
@@ -1198,10 +1192,10 @@ class NativeUint32List
 }
 
 
+@Native("Uint8ClampedArray,CanvasPixelArray")
 class NativeUint8ClampedList
     extends NativeTypedArrayOfInt
-    implements Uint8ClampedList
-    native "Uint8ClampedArray,CanvasPixelArray" {
+    implements Uint8ClampedList {
 
   factory NativeUint8ClampedList(int length) => _create1(_checkLength(length));
 
@@ -1244,14 +1238,12 @@ class NativeUint8ClampedList
 }
 
 
-class NativeUint8List
-    extends NativeTypedArrayOfInt
-    implements Uint8List
-    // On some browsers Uint8ClampedArray is a subtype of Uint8Array.  Marking
-    // Uint8List as !nonleaf ensures that the native dispatch correctly handles
-    // the potential for Uint8ClampedArray to 'accidentally' pick up the
-    // dispatch record for Uint8List.
-    native "Uint8Array,!nonleaf" {
+// On some browsers Uint8ClampedArray is a subtype of Uint8Array.  Marking
+// Uint8List as !nonleaf ensures that the native dispatch correctly handles
+// the potential for Uint8ClampedArray to 'accidentally' pick up the
+// dispatch record for Uint8List.
+@Native("Uint8Array,!nonleaf")
+class NativeUint8List extends NativeTypedArrayOfInt implements Uint8List {
 
   factory NativeUint8List(int length) => _create1(_checkLength(length));
 
