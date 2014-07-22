@@ -484,6 +484,76 @@ void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+
+  __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
+
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through.
+  __ delay_slot()->lw(T1, Address(SP, + 1 * kWordSize));  // Array.
+
+  // Range check.
+  __ lw(T2, FieldAddress(T1, TypedData::length_offset()));
+  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
+
+  Address element_address =
+      __ ElementAddressForRegIndex(true,  // Load.
+                                   false,  // Not external.
+                                   kTypedDataFloat64ArrayCid,  // Cid.
+                                   8,  // Index scale.
+                                   T1,  // Array.
+                                   T0);  // Index.
+
+  __ LoadDFromOffset(D0, element_address.base(), element_address.offset());
+
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 V0,  // Result register.
+                 T1);
+  __ StoreDToOffset(D0, V0, Double::value_offset() - kHeapObjectTag);
+  __ Ret();
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+
+  __ lw(T0, Address(SP, + 1 * kWordSize));  // Index.
+
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not an smi, fall through.
+  __ delay_slot()->lw(T1, Address(SP, + 2 * kWordSize));  // Array.
+
+  // Range check.
+  __ lw(T2, FieldAddress(T1, TypedData::length_offset()));
+  __ BranchUnsignedGreaterEqual(T0, T2, &fall_through);
+
+  __ lw(T2, Address(SP, + 0 * kWordSize));  // Value.
+  __ andi(CMPRES1, T2, Immediate(kSmiTagMask));
+  __ beq(CMPRES1, ZR, &fall_through);  // Value is a Smi. Fall through.
+
+  __ LoadClassId(T3, T2);
+  __ BranchNotEqual(T3, kDoubleCid, &fall_through);  // Not a Double.
+
+  __ LoadDFromOffset(D0, T2, Double::value_offset() - kHeapObjectTag);
+
+  Address element_address =
+      __ ElementAddressForRegIndex(false,  // Store.
+                                   false,  // Not external.
+                                   kTypedDataFloat64ArrayCid,  // Cid.
+                                   8,  // Index scale.
+                                   T1,  // Array.
+                                   T0);  // Index.
+  __ StoreDToOffset(D0, element_address.base(), element_address.offset());
+  __ Ret();
+  __ Bind(&fall_through);
+}
+
+
 static int GetScaleFactor(intptr_t size) {
   switch (size) {
     case 1: return 0;

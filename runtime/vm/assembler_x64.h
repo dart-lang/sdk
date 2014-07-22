@@ -884,6 +884,17 @@ class Assembler : public ValueObject {
 
   static const char* FpuRegisterName(FpuRegister reg);
 
+  static Address ElementAddressForIntIndex(bool is_external,
+                                           intptr_t cid,
+                                           intptr_t index_scale,
+                                           Register array,
+                                           intptr_t index);
+  static Address ElementAddressForRegIndex(bool is_external,
+                                           intptr_t cid,
+                                           intptr_t index_scale,
+                                           Register array,
+                                           Register index);
+
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
   static bool IsSafe(const Object& object) { return true; }

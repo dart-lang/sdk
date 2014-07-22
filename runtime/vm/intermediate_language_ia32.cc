@@ -1077,66 +1077,17 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
-static Address ElementAddressForIntIndex(bool is_external,
-                                         intptr_t cid,
-                                         intptr_t index_scale,
-                                         Register array,
-                                         intptr_t index) {
-  if (is_external) {
-    return Address(array, index * index_scale);
-  } else {
-    const int64_t disp = static_cast<int64_t>(index) * index_scale +
-        Instance::DataOffsetFor(cid);
-    ASSERT(Utils::IsInt(32, disp));
-    return FieldAddress(array, static_cast<int32_t>(disp));
-  }
-}
-
-
-static ScaleFactor ToScaleFactor(intptr_t index_scale) {
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
-  // index scale factor > 1. E.g., for Uint8Array and OneByteString the index is
-  // expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale) {
-    case 1: return TIMES_1;
-    case 2: return TIMES_1;
-    case 4: return TIMES_2;
-    case 8: return TIMES_4;
-    case 16: return TIMES_8;
-    default:
-      UNREACHABLE();
-      return TIMES_1;
-  }
-}
-
-
-static Address ElementAddressForRegIndex(bool is_external,
-                                         intptr_t cid,
-                                         intptr_t index_scale,
-                                         Register array,
-                                         Register index) {
-  if (is_external) {
-    return Address(array, index, ToScaleFactor(index_scale), 0);
-  } else {
-    return FieldAddress(array,
-                        index,
-                        ToScaleFactor(index_scale),
-                        Instance::DataOffsetFor(cid));
-  }
-}
-
-
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = index.IsRegister()
-      ? ElementAddressForRegIndex(IsExternal(), class_id(), index_scale(),
-                                  array, index.reg())
-      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value());
+      ? Assembler::ElementAddressForRegIndex(
+            IsExternal(), class_id(), index_scale(), array, index.reg())
+      : Assembler::ElementAddressForIntIndex(
+            IsExternal(), class_id(), index_scale(),
+            array, Smi::Cast(index.constant()).Value());
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
@@ -1358,10 +1309,11 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   Address element_address = index.IsRegister()
-      ? ElementAddressForRegIndex(IsExternal(), class_id(), index_scale(),
-                                  array, index.reg())
-      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value());
+      ? Assembler::ElementAddressForRegIndex(
+            IsExternal(), class_id(), index_scale(), array, index.reg())
+      : Assembler::ElementAddressForIntIndex(
+            IsExternal(), class_id(), index_scale(),
+            array, Smi::Cast(index.constant()).Value());
 
   if ((index_scale() == 1) && index.IsRegister()) {
     __ SmiUntag(index.reg());

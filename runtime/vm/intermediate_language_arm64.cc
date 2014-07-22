@@ -1027,60 +1027,18 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
-static Address ElementAddressForIntIndex(bool is_external,
-                                         intptr_t cid,
-                                         intptr_t index_scale,
-                                         Register array,
-                                         intptr_t index) {
-  const int64_t offset = index * index_scale +
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  ASSERT(Utils::IsInt(32, offset));
-  const OperandSize size = Address::OperandSizeFor(cid);
-  ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
-  return Address(array, static_cast<int32_t>(offset), Address::Offset, size);
-}
-
-
-static Address ElementAddressForRegIndex(Assembler* assembler,
-                                         bool is_load,
-                                         bool is_external,
-                                         intptr_t cid,
-                                         intptr_t index_scale,
-                                         Register array,
-                                         Register index) {
-  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
-  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
-  const int32_t offset =
-      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
-  ASSERT(array != TMP);
-  ASSERT(index != TMP);
-  const Register base = is_load ? TMP : index;
-  if ((offset == 0) && (shift == 0)) {
-    return Address(array, index, UXTX, Address::Unscaled);
-  } else if (shift < 0) {
-    ASSERT(shift == -1);
-    assembler->add(base, array, Operand(index, ASR, 1));
-  } else {
-    assembler->add(base, array, Operand(index, LSL, shift));
-  }
-  const OperandSize size = Address::OperandSizeFor(cid);
-  ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
-  return Address(base, offset, Address::Offset, size);
-}
-
-
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = index.IsRegister()
-      ? ElementAddressForRegIndex(compiler->assembler(),
-                                  true,  // Load.
-                                  IsExternal(), class_id(), index_scale(),
-                                  array, index.reg())
-      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value());
+      ? __ ElementAddressForRegIndex(true,  // Load.
+                                     IsExternal(), class_id(), index_scale(),
+                                     array, index.reg())
+      : __ ElementAddressForIntIndex(
+            IsExternal(), class_id(), index_scale(),
+            array, Smi::Cast(index.constant()).Value());
   // Warning: element_address may use register TMP as base.
 
   if ((representation() == kUnboxedDouble)    ||
@@ -1237,12 +1195,12 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   Address element_address = index.IsRegister()
-      ? ElementAddressForRegIndex(compiler->assembler(),
-                                  false,  // Store.
-                                  IsExternal(), class_id(), index_scale(),
-                                  array, index.reg())
-      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value());
+      ? __ ElementAddressForRegIndex(false,  // Store.
+                                     IsExternal(), class_id(), index_scale(),
+                                     array, index.reg())
+      : __ ElementAddressForIntIndex(
+            IsExternal(), class_id(), index_scale(),
+            array, Smi::Cast(index.constant()).Value());
 
   switch (class_id()) {
     case kArrayCid:

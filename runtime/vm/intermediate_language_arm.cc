@@ -1140,19 +1140,6 @@ Representation LoadIndexedInstr::representation() const {
 }
 
 
-static bool CanHoldImmediateOffset(bool is_load, intptr_t cid, int64_t offset) {
-  int32_t offset_mask = 0;
-  if (is_load) {
-    return Address::CanHoldLoadOffset(Address::OperandSizeFor(cid),
-                                      offset,
-                                      &offset_mask);
-  } else {
-    return Address::CanHoldStoreOffset(Address::OperandSizeFor(cid),
-                                       offset,
-                                       &offset_mask);
-  }
-}
-
 static bool CanBeImmediateIndex(Value* value,
                                 intptr_t cid,
                                 bool is_external,
@@ -1177,12 +1164,12 @@ static bool CanBeImmediateIndex(Value* value,
   if (!Utils::IsAbsoluteUint(12, offset)) {
     return false;
   }
-  if (CanHoldImmediateOffset(is_load, cid, offset)) {
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
     *needs_base = false;
     return true;
   }
 
-  if (CanHoldImmediateOffset(is_load, cid, offset - base_offset)) {
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset - base_offset)) {
     *needs_base = true;
     return true;
   }
@@ -1230,91 +1217,20 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
-static Address ElementAddressForIntIndex(Assembler* assembler,
-                                         bool is_load,
-                                         bool is_external,
-                                         intptr_t cid,
-                                         intptr_t index_scale,
-                                         Register array,
-                                         intptr_t index,
-                                         Register temp) {
-  const int64_t offset_base =
-      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
-  const int64_t offset = offset_base +
-      static_cast<int64_t>(index) * index_scale;
-  ASSERT(Utils::IsInt(32, offset));
-
-  if (CanHoldImmediateOffset(is_load, cid, offset)) {
-    return Address(array, static_cast<int32_t>(offset));
-  } else {
-    ASSERT(CanHoldImmediateOffset(is_load, cid, offset - offset_base));
-    assembler->AddImmediate(
-        temp, array, static_cast<int32_t>(offset_base));
-    return Address(temp, static_cast<int32_t>(offset - offset_base));
-  }
-}
-
-
-static Address ElementAddressForRegIndex(Assembler* assembler,
-                                         bool is_load,
-                                         bool is_external,
-                                         intptr_t cid,
-                                         intptr_t index_scale,
-                                         Register array,
-                                         Register index) {
-  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
-  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
-  int32_t offset =
-      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
-  const OperandSize size = Address::OperandSizeFor(cid);
-  ASSERT(array != IP);
-  ASSERT(index != IP);
-  const Register base = is_load ? IP : index;
-  if ((offset != 0) ||
-      (size == kSWord) || (size == kDWord) || (size == kRegList)) {
-    if (shift < 0) {
-      ASSERT(shift == -1);
-      assembler->add(base, array, Operand(index, ASR, 1));
-    } else {
-      assembler->add(base, array, Operand(index, LSL, shift));
-    }
-  } else {
-    if (shift < 0) {
-      ASSERT(shift == -1);
-      return Address(array, index, ASR, 1);
-    } else {
-      return Address(array, index, LSL, shift);
-    }
-  }
-  int32_t offset_mask = 0;
-  if ((is_load && !Address::CanHoldLoadOffset(size,
-                                              offset,
-                                              &offset_mask)) ||
-      (!is_load && !Address::CanHoldStoreOffset(size,
-                                                offset,
-                                                &offset_mask))) {
-    assembler->AddImmediate(base, offset & ~offset_mask);
-    offset = offset & offset_mask;
-  }
-  return Address(base, offset);
-}
-
-
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = index.IsRegister()
-      ? ElementAddressForRegIndex(compiler->assembler(),
-                                  true,  // Load.
-                                  IsExternal(), class_id(), index_scale(),
-                                  array, index.reg())
-      : ElementAddressForIntIndex(compiler->assembler(),
-                                  true,  // Load.
-                                  IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value(),
-                                  IP);  // Temp register.
+      ? __ ElementAddressForRegIndex(true,  // Load.
+                                     IsExternal(), class_id(), index_scale(),
+                                     array,
+                                     index.reg())
+      : __ ElementAddressForIntIndex(true,  // Load.
+                                     IsExternal(), class_id(), index_scale(),
+                                     array, Smi::Cast(index.constant()).Value(),
+                                     IP);  // Temp register.
   // Warning: element_address may use register IP as base.
 
   if ((representation() == kUnboxedDouble)    ||
@@ -1542,15 +1458,14 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (locs()->temp_count() > 0) ? locs()->temp(0).reg() : kNoRegister;
 
   Address element_address = index.IsRegister()
-      ? ElementAddressForRegIndex(compiler->assembler(),
-                                  false,  // Store.
-                                  IsExternal(), class_id(), index_scale(),
-                                  array, index.reg())
-      : ElementAddressForIntIndex(compiler->assembler(),
-                                  false,  // Store.
-                                  IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value(),
-                                  temp);
+      ? __ ElementAddressForRegIndex(false,  // Store.
+                                     IsExternal(), class_id(), index_scale(),
+                                     array,
+                                     index.reg())
+      : __ ElementAddressForIntIndex(false,  // Store.
+                                     IsExternal(), class_id(), index_scale(),
+                                     array, Smi::Cast(index.constant()).Value(),
+                                     temp);
 
   switch (class_id()) {
     case kArrayCid:

@@ -133,6 +133,8 @@ namespace dart {
   V(_Float64x2Array, ., TypedData_Float64x2Array_factory, 611308575)           \
   V(_Uint8Array, [], Uint8Array_getIndexed, 16125140)                          \
   V(_ExternalUint8Array, [], ExternalUint8Array_getIndexed, 1678777951)        \
+  V(_Float64Array, [], Float64Array_getIndexed, 1779054297)                    \
+  V(_Float64Array, []=, Float64Array_setIndexed, 243929230)                    \
 
 
 #define PROFILER_LIB_INTRINSIC_LIST(V)                                         \

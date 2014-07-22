@@ -1219,6 +1219,18 @@ class Assembler : public ValueObject {
                    Register instance_reg,
                    Register pp);
 
+  Address ElementAddressForIntIndex(bool is_external,
+                                    intptr_t cid,
+                                    intptr_t index_scale,
+                                    Register array,
+                                    intptr_t index) const;
+  Address ElementAddressForRegIndex(bool is_load,
+                                    bool is_external,
+                                    intptr_t cid,
+                                    intptr_t index_scale,
+                                    Register array,
+                                    Register index);
+
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
 
