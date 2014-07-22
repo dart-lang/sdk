@@ -1684,21 +1684,16 @@ static void SetPCMarkerIfSafe(Sample* sample) {
 }
 
 
-class ProfilerDartStackWalker : public ValueObject {
+// Given an exit frame, walk the Dart stack.
+class ProfilerDartExitStackWalker : public ValueObject {
  public:
-  ProfilerDartStackWalker(Isolate* isolate, Sample* sample)
+  ProfilerDartExitStackWalker(Isolate* isolate, Sample* sample)
       : sample_(sample),
         frame_iterator_(isolate) {
     ASSERT(sample_ != NULL);
   }
 
-  ProfilerDartStackWalker(Isolate* isolate, Sample* sample, uword fp)
-      : sample_(sample),
-        frame_iterator_(fp, isolate) {
-    ASSERT(sample_ != NULL);
-  }
-
-  int walk() {
+  void walk() {
     intptr_t frame_index = 0;
     StackFrame* frame = frame_iterator_.NextFrame();
     while (frame != NULL) {
@@ -1709,7 +1704,6 @@ class ProfilerDartStackWalker : public ValueObject {
       }
       frame = frame_iterator_.NextFrame();
     }
-    return frame_index;
   }
 
  private:
@@ -1718,13 +1712,148 @@ class ProfilerDartStackWalker : public ValueObject {
 };
 
 
-// Notes on stack frame walking:
-//
-// The sampling profiler will collect up to Sample::kNumStackFrames stack frames
-// The stack frame walking code uses the frame pointer to traverse the stack.
+// Executing Dart code, walk the stack.
+class ProfilerDartStackWalker : public ValueObject {
+ public:
+  ProfilerDartStackWalker(Isolate* isolate,
+                          Sample* sample,
+                          uword stack_lower,
+                          uword stack_upper,
+                          uword pc,
+                          uword fp,
+                          uword sp)
+      : isolate_(isolate),
+        sample_(sample),
+        stack_upper_(stack_upper),
+        stack_lower_(stack_lower) {
+    ASSERT(sample_ != NULL);
+    pc_ = reinterpret_cast<uword*>(pc);
+    fp_ = reinterpret_cast<uword*>(fp);
+    sp_ = reinterpret_cast<uword*>(sp);
+  }
+
+  void walk() {
+    if (!ValidFramePointer()) {
+      sample_->set_ignore_sample(true);
+      return;
+    }
+    ASSERT(ValidFramePointer());
+    uword return_pc = InitialReturnAddress();
+    if (StubCode::InInvocationStubForIsolate(isolate_, return_pc)) {
+      // Edge case- we have called out from the Invocation Stub but have not
+      // created the stack frame of the callee. Attempt to locate the exit
+      // frame before walking the stack.
+      if (!NextExit() || !ValidFramePointer()) {
+        // Nothing to sample.
+        sample_->set_ignore_sample(true);
+        return;
+      }
+    }
+    for (int i = 0; i < FLAG_profile_depth; i++) {
+      sample_->SetAt(i, reinterpret_cast<uword>(pc_));
+      if (!Next()) {
+        return;
+      }
+    }
+  }
+
+ private:
+  bool Next() {
+    if (!ValidFramePointer()) {
+      return false;
+    }
+    if (StubCode::InInvocationStubForIsolate(isolate_,
+                                             reinterpret_cast<uword>(pc_))) {
+      // In invocation stub.
+      return NextExit();
+    }
+    // In regular Dart frame.
+    uword* new_pc = CallerPC();
+    // Check if we've moved into the invocation stub.
+    if (StubCode::InInvocationStubForIsolate(isolate_,
+                                             reinterpret_cast<uword>(new_pc))) {
+      // New PC is inside invocation stub, skip.
+      return NextExit();
+    }
+    uword* new_fp = CallerFP();
+    if (new_fp <= fp_) {
+      // FP didn't move to a higher address.
+      return false;
+    }
+    // Success, update fp and pc.
+    fp_ = new_fp;
+    pc_ = new_pc;
+    return true;
+  }
+
+  bool NextExit() {
+    if (!ValidFramePointer()) {
+      return false;
+    }
+    uword* new_fp = ExitLink();
+    if (new_fp == NULL) {
+      // No exit link.
+      return false;
+    }
+    if (new_fp <= fp_) {
+      // FP didn't move to a higher address.
+      return false;
+    }
+    if (!ValidFramePointer(new_fp)) {
+      return false;
+    }
+    // Success, update fp and pc.
+    fp_ = new_fp;
+    pc_ = CallerPC();
+    return true;
+  }
+
+  uword InitialReturnAddress() const {
+    ASSERT(sp_ != NULL);
+    return *(sp_);
+  }
+
+  uword* CallerPC() const {
+    ASSERT(fp_ != NULL);
+    return reinterpret_cast<uword*>(*(fp_ + kSavedCallerPcSlotFromFp));
+  }
+
+  uword* CallerFP() const {
+    ASSERT(fp_ != NULL);
+    return reinterpret_cast<uword*>(*(fp_ + kSavedCallerFpSlotFromFp));
+  }
+
+  uword* ExitLink() const {
+    ASSERT(fp_ != NULL);
+    return reinterpret_cast<uword*>(*(fp_ + kExitLinkSlotFromEntryFp));
+  }
+
+  bool ValidFramePointer() const {
+    return ValidFramePointer(fp_);
+  }
+
+  bool ValidFramePointer(uword* fp) const {
+    if (fp == NULL) {
+      return false;
+    }
+    uword cursor = reinterpret_cast<uword>(fp);
+    cursor += sizeof(fp);
+    return (cursor >= stack_lower_) && (cursor < stack_upper_);
+  }
+
+  uword* pc_;
+  uword* fp_;
+  uword* sp_;
+  Isolate* isolate_;
+  Sample* sample_;
+  const uword stack_upper_;
+  uword stack_lower_;
+};
+
+
 // If the VM is compiled without frame pointers (which is the default on
 // recent GCC versions with optimizing enabled) the stack walking code may
-// fail (sometimes leading to a crash).
+// fail.
 //
 class ProfilerNativeStackWalker : public ValueObject {
  public:
@@ -1743,7 +1872,7 @@ class ProfilerNativeStackWalker : public ValueObject {
     ASSERT(sample_ != NULL);
   }
 
-  void walk(Heap* heap) {
+  void walk() {
     const uword kMaxStep = VirtualMemory::PageSize();
 
     sample_->SetAt(0, original_pc_);
@@ -1914,9 +2043,13 @@ void Profiler::RecordSampleInterruptCallback(
   // Walk the call stack.
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
-    ProfilerNativeStackWalker stackWalker(sample, stack_lower, stack_upper,
-                                          state.pc, state.fp, state.sp);
-    stackWalker.walk(isolate->heap());
+    ProfilerNativeStackWalker stackWalker(sample,
+                                          stack_lower,
+                                          stack_upper,
+                                          state.pc,
+                                          state.fp,
+                                          state.sp);
+    stackWalker.walk();
   } else {
     // Attempt to walk only the Dart call stack, falling back to walking
     // the native stack.
@@ -1924,12 +2057,29 @@ void Profiler::RecordSampleInterruptCallback(
         (isolate->top_exit_frame_info() != 0) &&
         (isolate->vm_tag() != VMTag::kScriptTagId)) {
       // We have a valid exit frame info, use the Dart stack walker.
-      ProfilerDartStackWalker stackWalker(isolate, sample);
+      ProfilerDartExitStackWalker stackWalker(isolate, sample);
+      stackWalker.walk();
+    } else if ((isolate->stub_code() != NULL) &&
+               (isolate->top_exit_frame_info() == 0) &&
+               (isolate->vm_tag() == VMTag::kScriptTagId)) {
+      // We are executing Dart code. We have frame pointers.
+      ProfilerDartStackWalker stackWalker(isolate,
+                                          sample,
+                                          stack_lower,
+                                          stack_upper,
+                                          state.pc,
+                                          state.fp,
+                                          state.sp);
       stackWalker.walk();
     } else {
-      ProfilerNativeStackWalker stackWalker(sample, stack_lower, stack_upper,
-                                            state.pc, state.fp, state.sp);
-      stackWalker.walk(isolate->heap());
+      // Fall back to an extremely conservative stack walker.
+      ProfilerNativeStackWalker stackWalker(sample,
+                                            stack_lower,
+                                            stack_upper,
+                                            state.pc,
+                                            state.fp,
+                                            state.sp);
+      stackWalker.walk();
     }
   }
 }

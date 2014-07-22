@@ -233,6 +233,14 @@ class Sample {
     state_ = LeafFrameIsDart::update(leaf_frame_is_dart, state_);
   }
 
+  bool ignore_sample() const {
+    return IgnoreBit::decode(state_);
+  }
+
+  void set_ignore_sample(bool ignore_sample) {
+    state_ = IgnoreBit::update(ignore_sample, state_);
+  }
+
   static void InitOnce();
 
   static intptr_t instance_size() {
@@ -247,9 +255,11 @@ class Sample {
   enum StateBits {
     kProcessedBit = 0,
     kLeafFrameIsDartBit = 1,
+    kIgnoreBit = 2,
   };
   class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
   class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
+  class IgnoreBit : public BitField<bool, kIgnoreBit, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;
