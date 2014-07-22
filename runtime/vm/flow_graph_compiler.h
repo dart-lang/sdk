@@ -165,6 +165,16 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
   // Implementation is in architecture specific file.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix);
 
+  const char* Name() const {
+    const char* kFormat = "Deopt stub for id %d, reason: %s";
+    const intptr_t len = OS::SNPrint(NULL, 0, kFormat,
+        deopt_id(), DeoptReasonToCString(reason())) + 1;
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, kFormat,
+        deopt_id(), DeoptReasonToCString(reason()));
+    return chars;
+  }
+
  private:
   Label entry_label_;
 
