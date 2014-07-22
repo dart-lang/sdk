@@ -4,6 +4,7 @@
 
 library pub.lock_file;
 
+import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart';
 import 'package:yaml/yaml.dart';
 
@@ -49,7 +50,8 @@ class LockFile {
     var packages = <String, PackageId>{};
 
     if (contents.trim() == '') return new LockFile.empty();
-    var parsed = loadYamlNode(contents, sourceName: filePath);
+    var parsed = loadYamlNode(contents,
+        sourceName: p.toUri(filePath).toString());
 
     _validate(parsed is Map, 'The lockfile must be a YAML mapping.', parsed);
 
