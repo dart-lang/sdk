@@ -14,3 +14,17 @@ abstract class HasToJson {
    */
   Map<String, Object> toJson();
 }
+
+
+/**
+ * Returns a JSON presention of [value].
+ */
+objectToJson(Object value) {
+  if (value is HasToJson) {
+    return value.toJson();
+  }
+  if (value is Iterable) {
+    return value.map((item) => objectToJson(item)).toList();
+  }
+  return value;
+}

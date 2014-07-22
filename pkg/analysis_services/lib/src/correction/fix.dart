@@ -1527,7 +1527,7 @@ class FixProcessor {
    * Adds a new [Edit] to [edits].
    */
   void _addReplaceEdit(SourceRange range, String text) {
-    Edit edit = new Edit.range(range, text);
+    Edit edit = new Edit(range.offset, range.length, text);
     edits.add(edit);
   }
 

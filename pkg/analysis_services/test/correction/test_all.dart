@@ -6,12 +6,14 @@ library test.services.correction;
 
 import 'package:unittest/unittest.dart';
 
-import 'fix_test.dart' as fix_processor_test;
+import 'change_test.dart' as change_test;
+import 'fix_test.dart' as fix_test;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
   group('correction', () {
-    fix_processor_test.main();
+    change_test.main();
+    fix_test.main();
   });
 }
