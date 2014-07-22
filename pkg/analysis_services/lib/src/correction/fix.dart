@@ -1695,7 +1695,7 @@ class FixProcessor {
   static List<String> _getArgumentNameSuggestions(Set<String> excluded,
       DartType type, Expression expression, int index) {
     List<String> suggestions =
-        getVariableNameSuggestions2(type, expression, excluded);
+        getVariableNameSuggestionsForExpression(type, expression, excluded);
     if (suggestions.length != 0) {
       return suggestions;
     }

@@ -15,12 +15,20 @@ String capitalize(String str) {
   return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
 
+bool isDigit(int c) {
+  return c >= 0x30 && c <= 0x39;
+}
+
 bool isEmpty(String str) {
   return str == null || str.isEmpty;
 }
 
 bool isLetter(int c) {
   return (c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A);
+}
+
+bool isLowerCase(int c) {
+  return c >= 0x61 && c <= 0x7A;
 }
 
 bool isSpace(int c) => c == 0x20 || c == 0x09;
@@ -31,17 +39,6 @@ bool isUpperCase(int c) {
 
 bool isWhitespace(int c) {
   return isSpace(c) || c == 0x0D || c == 0x0A;
-}
-
-String join(Iterable iter, [String separator = ' ', int start = 0, int end =
-    -1]) {
-  if (start != 0) {
-    iter = iter.skip(start);
-  }
-  if (end != -1) {
-    iter = iter.take(end - start);
-  }
-  return iter.join(separator);
 }
 
 String remove(String str, String remove) {
@@ -67,12 +64,4 @@ String repeat(String s, int n) {
     sb.write(s);
   }
   return sb.toString();
-}
-
-List<String> split(String s, [String pattern = '']) {
-  return s.split(pattern);
-}
-
-List<String> splitByWholeSeparatorPreserveAllTokens(String s, String pattern) {
-  return s.split(pattern);
 }

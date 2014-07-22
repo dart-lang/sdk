@@ -24,10 +24,6 @@ SourceRange rangeEndEnd(a, b) {
   return new SourceRange(offset, length);
 }
 
-SourceRange rangeEndLength(a, int length) {
-  return new SourceRange(a.nameOffset, length);
-}
-
 SourceRange rangeEndStart(a, b) {
   int offset = a.end;
   var length = b.offset - offset;
@@ -59,16 +55,16 @@ SourceRange rangeStartEnd(a, b) {
 }
 
 SourceRange rangeStartLength(a, int length) {
-  int offset = a.offset;
+  int offset = a is int ? a : a.offset;
   return new SourceRange(offset, length);
 }
 
 SourceRange rangeStartStart(a, b) {
-  int offset = a.offset;
-  var length = b.offset - offset;
+  int offset = a is int ? a : a.offset;
+  var length = (b is int ? b : b.offset) - offset;
   return new SourceRange(offset, length);
 }
 
-SourceRange rangeToken(Token node) {
-  return new SourceRange(node.offset, node.length);
+SourceRange rangeToken(Token token) {
+  return new SourceRange(token.offset, token.length);
 }

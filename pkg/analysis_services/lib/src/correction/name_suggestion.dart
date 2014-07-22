@@ -15,11 +15,50 @@ import 'package:analyzer/src/generated/element.dart';
 List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
 /**
- * Returns possible names for a [String] variable with [text] value.
+ * Returns a list of words for the given camel case string.
  *
- * TODO(scheglov) rename
+ * 'getCamelWords' => ['get', 'Camel', 'Words']
+ * 'getHTMLText' => ['get', 'HTML', 'Text']
  */
-List<String> getVariableNameSuggestions(String text, Set<String> excluded) {
+List<String> getCamelWords(String str) {
+  if (str == null || str.isEmpty) {
+    return <String>[];
+  }
+  List<String> parts = <String>[];
+  bool wasLowerCase = false;
+  bool wasUpperCase = false;
+  int wordStart = 0;
+  for (int i = 0; i < str.length; i++) {
+    int c = str.codeUnitAt(i);
+    var newLowerCase = isLowerCase(c);
+    var newUpperCase = isUpperCase(c);
+    // myWord
+    // | ^
+    if (wasLowerCase && newUpperCase) {
+      parts.add(str.substring(wordStart, i));
+      wordStart = i;
+    }
+    // myHTMLText
+    //   |   ^
+    if (wasUpperCase &&
+        newUpperCase &&
+        i + 1 < str.length &&
+        isLowerCase(str.codeUnitAt(i + 1))) {
+      parts.add(str.substring(wordStart, i));
+      wordStart = i;
+    }
+    wasLowerCase = newLowerCase;
+    wasUpperCase = newUpperCase;
+  }
+  parts.add(str.substring(wordStart));
+  return parts;
+}
+
+/**
+ * Returns possible names for a [String] variable with [text] value.
+ */
+List<String> getVariableNameSuggestionsForText(String text,
+    Set<String> excluded) {
   // filter out everything except of letters and white spaces
   {
     StringBuffer sb = new StringBuffer();
@@ -46,16 +85,15 @@ List<String> getVariableNameSuggestions(String text, Set<String> excluded) {
   }
   // split camel-case into separate suggested names
   Set<String> res = new Set();
-  _addAll(excluded, res, _getVariableNameSuggestions(text));
+  _addAll(excluded, res, _getCamelWordCombinations(text));
   return new List.from(res);
 }
 
 /**
- * Returns possible names for a variable with given expected type and expression.
- *
- * TODO(scheglov) rename
+ * Returns possible names for a variable with the given expected type and
+ * expression assigned.
  */
-List<String> getVariableNameSuggestions2(DartType expectedType,
+List<String> getVariableNameSuggestionsForExpression(DartType expectedType,
     Expression assignedExpression, Set<String> excluded) {
   Set<String> res = new Set();
   // use expression
@@ -63,12 +101,12 @@ List<String> getVariableNameSuggestions2(DartType expectedType,
     String nameFromExpression = _getBaseNameFromExpression(assignedExpression);
     if (nameFromExpression != null) {
       nameFromExpression = removeStart(nameFromExpression, '_');
-      _addAll(excluded, res, _getVariableNameSuggestions(nameFromExpression));
+      _addAll(excluded, res, _getCamelWordCombinations(nameFromExpression));
     }
     String nameFromParent =
         _getBaseNameFromLocationInParent(assignedExpression);
     if (nameFromParent != null) {
-      _addAll(excluded, res, _getVariableNameSuggestions(nameFromParent));
+      _addAll(excluded, res, _getCamelWordCombinations(nameFromParent));
     }
   }
   // use type
@@ -81,7 +119,7 @@ List<String> getVariableNameSuggestions2(DartType expectedType,
     } else if ('String' == typeName) {
       _addSingleCharacterName(excluded, res, 0x73);
     } else {
-      _addAll(excluded, res, _getVariableNameSuggestions(typeName));
+      _addAll(excluded, res, _getCamelWordCombinations(typeName));
     }
     res.remove(typeName);
   }
@@ -181,6 +219,7 @@ String _getBaseNameFromExpression(Expression expression) {
   return name;
 }
 
+
 String _getBaseNameFromLocationInParent(Expression expression) {
   // value in named expression
   if (expression.parent is NamedExpression) {
@@ -204,12 +243,11 @@ String _getBaseNameFromLocationInParent(Expression expression) {
 }
 
 /**
- * REturns all variants of names by removing leading words one by one.
+ * Returns all variants of names by removing leading words one by one.
  */
-List<String> _getVariableNameSuggestions(String name) {
+List<String> _getCamelWordCombinations(String name) {
   List<String> result = [];
-  List<String> parts =
-      name.split('(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])');
+  List<String> parts = getCamelWords(name);
   for (int i = 0; i < parts.length; i++) {
     var s1 = parts[i].toLowerCase();
     var s2 = parts.skip(i + 1).join();
