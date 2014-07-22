@@ -147,6 +147,7 @@ class PerformAnalysisOperation extends ServerOperation {
     AnalysisResult result = context.performAnalysisTask();
     List<ChangeNotice> notices = result.changeNotices;
     if (notices == null) {
+      server.sendContextAnalysisDoneNotifications(context);
       return;
     }
     // process results

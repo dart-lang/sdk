@@ -462,6 +462,12 @@ class RequestDatum {
  */
 class Response {
   /**
+   * The [Response] instance that is returned when a real [Response] cannot
+   * be provided at the moment.
+   */
+  static final Response DELAYED_RESPONSE = new Response('DELAYED_RESPONSE');
+
+  /**
    * The name of the JSON attribute containing the id of the request for which
    * this is a response.
    */

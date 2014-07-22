@@ -9,10 +9,12 @@ import 'dart:collection';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
@@ -30,9 +32,30 @@ class AnalysisDomainHandler implements RequestHandler {
   AnalysisDomainHandler(this.server);
 
   /**
+   * Implement the `analysis.getErrors` request.
+   */
+  Response getErrors(Request request) {
+    String file = request.getRequiredParameter(FILE).asString();
+    server.onFileAnalysisComplete(file).then((_) {
+      Response response = new Response(request.id);
+      AnalysisErrorInfo errorInfo = server.getErrors(file);
+      if (errorInfo == null) {
+        response.setResult(ERRORS, []);
+      } else {
+        response.setResult(ERRORS, errorInfo.errors.map((AnalysisError error) {
+          return errorToJson(errorInfo.lineInfo, error);
+        }).toList());
+      }
+      server.sendResponse(response);
+    });
+    // delay response
+    return Response.DELAYED_RESPONSE;
+  }
+
+  /**
    * Implement the `analysis.getHover` request.
    */
-  Response getAnalysisHover(Request request) {
+  Response getHover(Request request) {
     // prepare parameters
     String file = request.getRequiredParameter(FILE).asString();
     int offset = request.getRequiredParameter(OFFSET).asInt();
@@ -40,7 +63,8 @@ class AnalysisDomainHandler implements RequestHandler {
     List<Hover> hovers = <Hover>[];
     List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
     for (CompilationUnit unit in units) {
-      Hover hoverInformation = new DartUnitHoverComputer(unit, offset).compute();
+      Hover hoverInformation =
+          new DartUnitHoverComputer(unit, offset).compute();
       if (hoverInformation != null) {
         hovers.add(hoverInformation);
       }
@@ -55,8 +79,10 @@ class AnalysisDomainHandler implements RequestHandler {
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == ANALYSIS_GET_HOVER) {
-        return getAnalysisHover(request);
+      if (requestName == ANALYSIS_GET_ERRORS) {
+        return getErrors(request);
+      } else if (requestName == ANALYSIS_GET_HOVER) {
+        return getHover(request);
       } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {
         return setAnalysisRoots(request);
       } else if (requestName == ANALYSIS_SET_PRIORITY_FILES) {
@@ -113,11 +139,11 @@ class AnalysisDomainHandler implements RequestHandler {
       Map<String, List<String>> subStringMap = subDatum.asStringListMap();
       subMap = new HashMap<AnalysisService, Set<String>>();
       subStringMap.forEach((String serviceName, List<String> paths) {
-        AnalysisService service = Enum2.valueOf(AnalysisService.VALUES,
-            serviceName);
+        AnalysisService service =
+            Enum2.valueOf(AnalysisService.VALUES, serviceName);
         if (service == null) {
-          throw new RequestFailure(new Response.unknownAnalysisService(request,
-              serviceName));
+          throw new RequestFailure(
+              new Response.unknownAnalysisService(request, serviceName));
         }
         subMap[service] = new HashSet.from(paths);
       });
@@ -134,7 +160,8 @@ class AnalysisDomainHandler implements RequestHandler {
     RequestDatum filesDatum = request.getRequiredParameter(FILES);
     filesDatum.forEachMap((file, changeDatum) {
       var change = new ContentChange();
-      change.content = changeDatum[CONTENT].isNull ? null :
+      change.content = changeDatum[CONTENT].isNull ?
+          null :
           changeDatum[CONTENT].asString();
       if (changeDatum.hasKey(OFFSET)) {
         change.offset = changeDatum[OFFSET].asInt();
@@ -193,8 +220,8 @@ class AnalysisDomainHandler implements RequestHandler {
           options.hint = optionValue;
         });
       } else {
-        throw new RequestFailure(new Response.unknownOptionName(request,
-            optionName));
+        throw new RequestFailure(
+            new Response.unknownOptionName(request, optionName));
       }
     });
     server.updateOptions(updaters);

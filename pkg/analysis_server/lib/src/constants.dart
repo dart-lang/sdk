@@ -21,6 +21,7 @@ const String SERVER_STATUS = 'server.status';
 //
 // Analysis methods
 //
+const String ANALYSIS_GET_ERRORS = 'analysis.getErrors';
 const String ANALYSIS_GET_HOVER = 'analysis.getHover';
 const String ANALYSIS_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
 const String ANALYSIS_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';
