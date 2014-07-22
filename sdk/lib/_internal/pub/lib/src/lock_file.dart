@@ -45,13 +45,18 @@ class LockFile {
   }
 
   /// Parses the lockfile whose text is [contents].
+  ///
+  /// [filePath] is the system-native path to the lockfile on disc. It may be
+  /// `null`.
   static LockFile _parse(String filePath, String contents,
       SourceRegistry sources) {
     var packages = <String, PackageId>{};
 
     if (contents.trim() == '') return new LockFile.empty();
-    var parsed = loadYamlNode(contents,
-        sourceName: p.toUri(filePath).toString());
+
+    var sourceName;
+    if (filePath != null) sourceName = p.toUri(filePath).toString();
+    var parsed = loadYamlNode(contents, sourceName: sourceName);
 
     _validate(parsed is Map, 'The lockfile must be a YAML mapping.', parsed);
 
