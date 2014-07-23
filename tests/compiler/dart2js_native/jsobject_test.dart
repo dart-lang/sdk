@@ -16,7 +16,8 @@ import 'dart:_interceptors' show
 // export the interface [JSObject] to user level code, this test makes sure we
 // can distinguish plain JavaScript objects from ones with a complex prototype.
 
-class Q native 'QQ' {}
+@Native('QQ')
+class Q {}
 
 makeA() native;
 makeB() native;
