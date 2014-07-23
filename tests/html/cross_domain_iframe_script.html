@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+  	<meta charset="utf-8">
+    <title>cross_domain_iframe_script</title>
+  </head>
+
+  <body>
+    <script type="application/javascript">
+    window.parent.postMessage('foobar', '*');
+    </script>
+  </body>
+</html>
