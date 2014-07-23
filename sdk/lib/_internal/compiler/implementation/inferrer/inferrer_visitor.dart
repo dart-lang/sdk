@@ -599,10 +599,10 @@ abstract class InferrerVisitor
   final AstElement analyzedElement;
   final TypeSystem<T> types;
   final E inferrer;
-  final Map<TargetElement, List<LocalsHandler<T>>> breaksFor =
-      new Map<TargetElement, List<LocalsHandler<T>>>();
-  final Map<TargetElement, List<LocalsHandler>> continuesFor =
-      new Map<TargetElement, List<LocalsHandler<T>>>();
+  final Map<JumpTarget, List<LocalsHandler<T>>> breaksFor =
+      new Map<JumpTarget, List<LocalsHandler<T>>>();
+  final Map<JumpTarget, List<LocalsHandler>> continuesFor =
+      new Map<JumpTarget, List<LocalsHandler<T>>>();
   LocalsHandler<T> locals;
   final List<T> cascadeReceiverStack = new List<T>();
 
@@ -985,25 +985,25 @@ abstract class InferrerVisitor
     return null;
   }
 
-  void setupBreaksAndContinues(TargetElement element) {
+  void setupBreaksAndContinues(JumpTarget element) {
     if (element == null) return;
     if (element.isContinueTarget) continuesFor[element] = <LocalsHandler>[];
     if (element.isBreakTarget) breaksFor[element] = <LocalsHandler>[];
   }
 
-  void clearBreaksAndContinues(TargetElement element) {
+  void clearBreaksAndContinues(JumpTarget element) {
     continuesFor.remove(element);
     breaksFor.remove(element);
   }
 
-  List<LocalsHandler<T>> getBreaks(TargetElement element) {
+  List<LocalsHandler<T>> getBreaks(JumpTarget element) {
     List<LocalsHandler<T>> list = <LocalsHandler<T>>[locals];
     if (element == null) return list;
     if (!element.isBreakTarget) return list;
     return list..addAll(breaksFor[element]);
   }
 
-  List<LocalsHandler<T>> getLoopBackEdges(TargetElement element) {
+  List<LocalsHandler<T>> getLoopBackEdges(JumpTarget element) {
     List<LocalsHandler<T>> list = <LocalsHandler<T>>[locals];
     if (element == null) return list;
     if (!element.isContinueTarget) return list;
@@ -1013,7 +1013,7 @@ abstract class InferrerVisitor
   T handleLoop(Node node, void logic()) {
     loopLevel++;
     bool changed = false;
-    TargetElement target = elements[node];
+    JumpTarget target = elements.getTargetDefinition(node);
     LocalsHandler<T> saved = locals;
     saved.startLoop(node);
     do {
@@ -1128,7 +1128,7 @@ abstract class InferrerVisitor
       // Loops and switches handle their own labels.
       visit(body);
     } else {
-      TargetElement targetElement = elements[body];
+      JumpTarget targetElement = elements.getTargetDefinition(body);
       setupBreaksAndContinues(targetElement);
       visit(body);
       locals.mergeAfterBreaks(getBreaks(targetElement));
@@ -1138,7 +1138,7 @@ abstract class InferrerVisitor
   }
 
   T visitBreakStatement(BreakStatement node) {
-    TargetElement target = elements[node];
+    JumpTarget target = elements.getTargetOf(node);
     locals.seenBreakOrContinue = true;
     // Do a deep-copy of the locals, because the code following the
     // break will change them.
@@ -1147,7 +1147,7 @@ abstract class InferrerVisitor
   }
 
   T visitContinueStatement(ContinueStatement node) {
-    TargetElement target = elements[node];
+    JumpTarget target = elements.getTargetOf(node);
     locals.seenBreakOrContinue = true;
     // Do a deep-copy of the locals, because the code following the
     // continue will change them.
@@ -1162,13 +1162,14 @@ abstract class InferrerVisitor
   T visitSwitchStatement(SwitchStatement node) {
     visit(node.parenthesizedExpression);
 
-    setupBreaksAndContinues(elements[node]);
+    setupBreaksAndContinues(elements.getTargetDefinition(node));
     if (Elements.switchStatementHasContinue(node, elements)) {
-      void forEachLabeledCase(void action(TargetElement target)) {
+      void forEachLabeledCase(void action(JumpTarget target)) {
         for (SwitchCase switchCase in node.cases) {
           for (Node labelOrCase in switchCase.labelsAndCases) {
             if (labelOrCase.asLabel() == null) continue;
-            LabelElement labelElement = elements[labelOrCase];
+            LabelDefinition labelElement =
+                elements.getLabelDefinition(labelOrCase);
             if (labelElement != null) {
               action(labelElement.target);
             }
@@ -1176,7 +1177,7 @@ abstract class InferrerVisitor
         }
       }
 
-      forEachLabeledCase((TargetElement target) {
+      forEachLabeledCase((JumpTarget target) {
         setupBreaksAndContinues(target);
       });
 
@@ -1197,7 +1198,7 @@ abstract class InferrerVisitor
       } while (changed);
       locals.endLoop(node);
 
-      forEachLabeledCase((TargetElement target) {
+      forEachLabeledCase((JumpTarget target) {
         clearBreaksAndContinues(target);
       });
     } else {
@@ -1216,7 +1217,7 @@ abstract class InferrerVisitor
       saved.mergeAfterBreaks(localsToMerge, keepOwnLocals: !hasDefaultCase);
       locals = saved;
     }
-    clearBreaksAndContinues(elements[node]);
+    clearBreaksAndContinues(elements.getTargetDefinition(node));
     return null;
   }
 

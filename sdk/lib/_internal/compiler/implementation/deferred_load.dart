@@ -333,7 +333,6 @@ class DeferredLoadTask extends CompilerTask {
       for (Element dependency in treeElements.allElements) {
         if (Elements.isLocal(dependency) && !dependency.isFunction) continue;
         if (dependency.isErroneous) continue;
-        if (dependency.isStatement) continue;
         if (dependency.isTypeVariable) continue;
 
         elements.add(dependency);

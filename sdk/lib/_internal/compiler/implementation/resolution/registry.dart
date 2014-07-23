@@ -42,12 +42,6 @@ class ResolutionRegistry extends Registry {
     mapping[node] = element;
   }
 
-  /// Unregister the element declared by [node].
-  // TODO(johnniwinther): Try to remove this.
-  void undefineElement(Node node) {
-    mapping.remove(node);
-  }
-
   /// Returns the [Element] defined by [node].
   Element getDefinition(Node node) {
     return mapping[node];
@@ -110,52 +104,45 @@ class ResolutionRegistry extends Registry {
   //////////////////////////////////////////////////////////////////////////////
 
   /// Register [node] to be the declaration of [label].
-  void defineLabel(Label node, LabelElement label) {
-    defineElement(node, label);
+  void defineLabel(Label node, LabelDefinition label) {
+    mapping.defineLabel(node, label);
   }
 
   /// Undefine the label of [node].
   /// This is used to cleanup and detect unused labels.
   void undefineLabel(Label node) {
-    undefineElement(node);
+    mapping.undefineLabel(node);
   }
 
   /// Register the target of [node] as reference to [label].
-  void useLabel(GotoStatement node, LabelElement label) {
-    mapping[node.target] = label;
+  void useLabel(GotoStatement node, LabelDefinition label) {
+    mapping.registerTargetLabel(node, label);
   }
 
   /// Register [node] to be the declaration of [target].
-  void defineTarget(Node node, TargetElement target) {
+  void defineTarget(Node node, JumpTarget target) {
     assert(invariant(node, node is Statement || node is SwitchCase,
         message: "Only statements and switch cases can define targets."));
-    defineElement(node, target);
+    mapping.defineTarget(node, target);
   }
 
-  /// Returns the [TargetElement] defined by [node].
-  TargetElement getTargetDefinition(Node node) {
+  /// Returns the [JumpTarget] defined by [node].
+  JumpTarget getTargetDefinition(Node node) {
     assert(invariant(node, node is Statement || node is SwitchCase,
         message: "Only statements and switch cases can define targets."));
-    return getDefinition(node);
+    return mapping.getTargetDefinition(node);
   }
 
   /// Undefine the target of [node]. This is used to cleanup unused targets.
   void undefineTarget(Node node) {
     assert(invariant(node, node is Statement || node is SwitchCase,
         message: "Only statements and switch cases can define targets."));
-    undefineElement(node);
+    mapping.undefineTarget(node);
   }
 
   /// Register the target of [node] to be [target].
-  void registerTargetOf(GotoStatement node, TargetElement target) {
-    mapping[node] = target;
-  }
-
-  /// Returns the target of [node].
-  // TODO(johnniwinther): Change [Node] to [GotoStatement] when we store
-  // target def and use in separate locations.
-  TargetElement getTargetOf(Node node) {
-    return mapping[node];
+  void registerTargetOf(GotoStatement node, JumpTarget target) {
+    mapping.registerTargetOf(node, target);
   }
 
   //////////////////////////////////////////////////////////////////////////////

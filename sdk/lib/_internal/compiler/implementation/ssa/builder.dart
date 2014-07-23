@@ -686,19 +686,19 @@ class JumpHandlerEntry {
 
 
 abstract class JumpHandler {
-  factory JumpHandler(SsaBuilder builder, TargetElement target) {
+  factory JumpHandler(SsaBuilder builder, JumpTarget target) {
     return new TargetJumpHandler(builder, target);
   }
-  void generateBreak([LabelElement label]);
-  void generateContinue([LabelElement label]);
+  void generateBreak([LabelDefinition label]);
+  void generateContinue([LabelDefinition label]);
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
   void forEachContinue(void action(HContinue instruction,
                                    LocalsHandler locals));
   bool hasAnyContinue();
   bool hasAnyBreak();
   void close();
-  final TargetElement target;
-  List<LabelElement> labels();
+  final JumpTarget target;
+  List<LabelDefinition> labels();
 }
 
 // Insert break handler used to avoid null checks when a target isn't
@@ -709,12 +709,12 @@ class NullJumpHandler implements JumpHandler {
 
   NullJumpHandler(this.compiler);
 
-  void generateBreak([LabelElement label]) {
+  void generateBreak([LabelDefinition label]) {
     compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateBreak should not be called.');
   }
 
-  void generateContinue([LabelElement label]) {
+  void generateContinue([LabelDefinition label]) {
     compiler.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateContinue should not be called.');
   }
@@ -725,8 +725,8 @@ class NullJumpHandler implements JumpHandler {
   bool hasAnyContinue() => false;
   bool hasAnyBreak() => false;
 
-  List<LabelElement> labels() => const <LabelElement>[];
-  TargetElement get target => null;
+  List<LabelDefinition> labels() => const <LabelDefinition>[];
+  JumpTarget get target => null;
 }
 
 // Records breaks until a target block is available.
@@ -735,7 +735,7 @@ class NullJumpHandler implements JumpHandler {
 // Continues in switches is currently not handled.
 class TargetJumpHandler implements JumpHandler {
   final SsaBuilder builder;
-  final TargetElement target;
+  final JumpTarget target;
   final List<JumpHandlerEntry> jumps;
 
   TargetJumpHandler(SsaBuilder builder, this.target)
@@ -745,7 +745,7 @@ class TargetJumpHandler implements JumpHandler {
     builder.jumpTargets[target] = this;
   }
 
-  void generateBreak([LabelElement label]) {
+  void generateBreak([LabelDefinition label]) {
     HInstruction breakInstruction;
     if (label == null) {
       breakInstruction = new HBreak(target);
@@ -757,7 +757,7 @@ class TargetJumpHandler implements JumpHandler {
     jumps.add(new JumpHandlerEntry(breakInstruction, locals));
   }
 
-  void generateContinue([LabelElement label]) {
+  void generateContinue([LabelDefinition label]) {
     HInstruction continueInstruction;
     if (label == null) {
       continueInstruction = new HContinue(target);
@@ -803,13 +803,13 @@ class TargetJumpHandler implements JumpHandler {
     builder.jumpTargets.remove(target);
   }
 
-  List<LabelElement> labels() {
-    List<LabelElement> result = null;
-    for (LabelElement element in target.labels) {
-      if (result == null) result = <LabelElement>[];
+  List<LabelDefinition> labels() {
+    List<LabelDefinition> result = null;
+    for (LabelDefinition element in target.labels) {
+      if (result == null) result = <LabelDefinition>[];
       result.add(element);
     }
-    return (result == null) ? const <LabelElement>[] : result;
+    return (result == null) ? const <LabelDefinition>[] : result;
   }
 }
 
@@ -818,10 +818,10 @@ class TargetJumpHandler implements JumpHandler {
 class SwitchCaseJumpHandler extends TargetJumpHandler {
   /// Map from switch case targets to indices used to encode the flow of the
   /// switch case loop.
-  final Map<TargetElement, int> targetIndexMap = new Map<TargetElement, int>();
+  final Map<JumpTarget, int> targetIndexMap = new Map<JumpTarget, int>();
 
   SwitchCaseJumpHandler(SsaBuilder builder,
-                        TargetElement target,
+                        JumpTarget target,
                         ast.SwitchStatement node)
       : super(builder, target) {
     // The switch case indices must match those computed in
@@ -833,9 +833,10 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
       for (ast.Node labelOrCase in switchCase.labelsAndCases) {
         ast.Node label = labelOrCase.asLabel();
         if (label != null) {
-          LabelElement labelElement = builder.elements[label];
+          LabelDefinition labelElement =
+              builder.elements.getLabelDefinition(label);
           if (labelElement != null && labelElement.isContinueTarget) {
-            TargetElement continueTarget = labelElement.target;
+            JumpTarget continueTarget = labelElement.target;
             targetIndexMap[continueTarget] = switchIndex;
             assert(builder.jumpTargets[continueTarget] == null);
             builder.jumpTargets[continueTarget] = this;
@@ -846,7 +847,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
     }
   }
 
-  void generateBreak([LabelElement label]) {
+  void generateBreak([LabelDefinition label]) {
     if (label == null) {
       // Creates a special break instruction for the synthetic loop generated
       // for a switch statement with continue statements. See
@@ -862,11 +863,11 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
     }
   }
 
-  bool isContinueToSwitchCase(LabelElement label) {
+  bool isContinueToSwitchCase(LabelDefinition label) {
     return label != null && targetIndexMap.containsKey(label.target);
   }
 
-  void generateContinue([LabelElement label]) {
+  void generateContinue([LabelDefinition label]) {
     if (isContinueToSwitchCase(label)) {
       // Creates the special instructions 'label = i; continue l;' used in
       // switch statements with continue statements. See
@@ -890,7 +891,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 
   void close() {
     // The mapping from TargetElement to JumpHandler is no longer needed.
-    for (TargetElement target in targetIndexMap.keys) {
+    for (JumpTarget target in targetIndexMap.keys) {
       builder.jumpTargets.remove(target);
     }
     super.close();
@@ -968,7 +969,7 @@ class SsaBuilder extends ResolvedVisitor {
   Map<ParameterElement, HInstruction> parameters =
       <ParameterElement, HInstruction>{};
 
-  Map<TargetElement, JumpHandler> jumpTargets = <TargetElement, JumpHandler>{};
+  Map<JumpTarget, JumpHandler> jumpTargets = <JumpTarget, JumpHandler>{};
 
   /**
    * Variables stored in the current activation. These variables are
@@ -2557,8 +2558,8 @@ class SsaBuilder extends ResolvedVisitor {
           continueHandlers[0].mergeMultiple(continueHandlers, updateBlock);
 
       HLabeledBlockInformation labelInfo;
-      List<LabelElement> labels = jumpHandler.labels();
-      TargetElement target = elements[loop];
+      List<LabelDefinition> labels = jumpHandler.labels();
+      JumpTarget target = elements.getTargetDefinition(loop);
       if (!labels.isEmpty) {
         beginBodyBlock.setBlockFlow(
             new HLabeledBlockInformation(
@@ -2648,13 +2649,13 @@ class SsaBuilder extends ResolvedVisitor {
       // If the body has any break, attach a synthesized label to the
       // if block.
       if (jumpHandler.hasAnyBreak()) {
-        TargetElement target = elements[loop];
-        LabelElement label = target.addLabel(null, 'loop');
+        JumpTarget target = elements.getTargetDefinition(loop);
+        LabelDefinition label = target.addLabel(null, 'loop');
         label.setBreakTarget();
         SubGraph labelGraph = new SubGraph(conditionBlock, current);
         HLabeledBlockInformation labelInfo = new HLabeledBlockInformation(
                 new HSubGraphBlockInformation(labelGraph),
-                <LabelElement>[label]);
+                <LabelDefinition>[label]);
 
         conditionBlock.setBlockFlow(labelInfo, current);
 
@@ -2724,7 +2725,7 @@ class SsaBuilder extends ResolvedVisitor {
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
     HBasicBlock bodyEntryBlock = current;
-    TargetElement target = elements[node];
+    JumpTarget target = elements.getTargetDefinition(node);
     bool hasContinues = target != null && target.isContinueTarget;
     if (hasContinues) {
       // Add extra block to hang labels on.
@@ -2771,7 +2772,7 @@ class SsaBuilder extends ResolvedVisitor {
         localsHandler =
             savedLocals.mergeMultiple(continueHandlers, conditionBlock);
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        List<LabelElement> labels = jumpHandler.labels();
+        List<LabelDefinition> labels = jumpHandler.labels();
         HSubGraphBlockInformation bodyInfo =
             new HSubGraphBlockInformation(bodyGraph);
         HLabeledBlockInformation info;
@@ -2837,11 +2838,11 @@ class SsaBuilder extends ResolvedVisitor {
         // Since the body of the loop has a break, we attach a synthesized label
         // to the body.
         SubGraph bodyGraph = new SubGraph(bodyEntryBlock, bodyExitBlock);
-        TargetElement target = elements[node];
-        LabelElement label = target.addLabel(null, 'loop');
+        JumpTarget target = elements.getTargetDefinition(node);
+        LabelDefinition label = target.addLabel(null, 'loop');
         label.setBreakTarget();
         HLabeledBlockInformation info = new HLabeledBlockInformation(
-            new HSubGraphBlockInformation(bodyGraph), <LabelElement>[label]);
+            new HSubGraphBlockInformation(bodyGraph), <LabelDefinition>[label]);
         loopEntryBlock.setBlockFlow(info, current);
         jumpHandler.forEachBreak((HBreak breakInstruction, _) {
           HBasicBlock block = breakInstruction.block;
@@ -5030,28 +5031,28 @@ class SsaBuilder extends ResolvedVisitor {
   visitBreakStatement(ast.BreakStatement node) {
     assert(!isAborted());
     handleInTryStatement();
-    TargetElement target = elements[node];
+    JumpTarget target = elements.getTargetOf(node);
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
     if (node.target == null) {
       handler.generateBreak();
     } else {
-      LabelElement label = elements[node.target];
+      LabelDefinition label = elements.getTargetLabel(node);
       handler.generateBreak(label);
     }
   }
 
   visitContinueStatement(ast.ContinueStatement node) {
     handleInTryStatement();
-    TargetElement target = elements[node];
+    JumpTarget target = elements.getTargetOf(node);
     assert(target != null);
     JumpHandler handler = jumpTargets[target];
     assert(handler != null);
     if (node.target == null) {
       handler.generateContinue();
     } else {
-      LabelElement label = elements[node.target];
+      LabelDefinition label = elements.getTargetLabel(node);
       assert(label != null);
       handler.generateContinue(label);
     }
@@ -5067,7 +5068,7 @@ class SsaBuilder extends ResolvedVisitor {
    * continue statements from simple switch statements.
    */
   JumpHandler createJumpHandler(ast.Statement node, {bool isLoopJump}) {
-    TargetElement element = elements[node];
+    JumpTarget element = elements.getTargetDefinition(node);
     if (element == null || !identical(element.statement, node)) {
       // No breaks or continues to this node.
       return new NullJumpHandler(compiler);
@@ -5144,7 +5145,7 @@ class SsaBuilder extends ResolvedVisitor {
       visit(body);
       return;
     }
-    TargetElement targetElement = elements[body];
+    JumpTarget targetElement = elements.getTargetDefinition(body);
     LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
     assert(targetElement.isBreakTarget);
     JumpHandler handler = new JumpHandler(this, targetElement);
@@ -5275,7 +5276,7 @@ class SsaBuilder extends ResolvedVisitor {
       for (ast.Node labelOrCase in switchCase.labelsAndCases) {
         ast.Node label = labelOrCase.asLabel();
         if (label != null) {
-          LabelElement labelElement = elements[label];
+          LabelDefinition labelElement = elements.getLabelDefinition(label);
           if (labelElement != null && labelElement.isContinueTarget) {
             hasContinue = true;
           }
@@ -5368,7 +5369,7 @@ class SsaBuilder extends ResolvedVisitor {
     //     }
     //   }
 
-    TargetElement switchTarget = elements[node];
+    JumpTarget switchTarget = elements.getTargetDefinition(node);
     HInstruction initialValue = graph.addConstantNull(compiler);
     localsHandler.updateLocal(switchTarget, initialValue);
 

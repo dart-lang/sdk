@@ -112,11 +112,6 @@ class ElementKind {
   static const ElementKind TYPEDEF =
       const ElementKind('typedef', ElementCategory.ALIAS);
 
-  static const ElementKind STATEMENT =
-      const ElementKind('statement', ElementCategory.NONE);
-  static const ElementKind LABEL =
-      const ElementKind('label', ElementCategory.NONE);
-
   static const ElementKind AMBIGUOUS =
       const ElementKind('ambiguous', ElementCategory.NONE);
   static const ElementKind WARN_ON_USE =
@@ -282,8 +277,6 @@ abstract class Element implements Entity {
   /// `true` if this element is an initializing formal of constructor, that
   /// is a formal of the form `this.foo`.
   bool get isInitializingFormal => kind == ElementKind.INITIALIZING_FORMAL;
-
-  bool get isStatement;
 
   /// `true` if this element represents a resolution error.
   bool get isErroneous => kind == ElementKind.ERROR;
@@ -756,7 +749,7 @@ class Elements {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         Node label = labelOrCase.asLabel();
         if (label != null) {
-          LabelElement labelElement = elements[label];
+          LabelDefinition labelElement = elements.getLabelDefinition(label);
           if (labelElement != null && labelElement.isContinueTarget) {
             return true;
           }
@@ -768,7 +761,7 @@ class Elements {
 
   static bool isUnusedLabel(LabeledStatement node, TreeElements elements) {
     Node body = node.statement;
-    TargetElement element = elements[body];
+    JumpTarget element = elements.getTargetDefinition(body);
     // Labeled statements with no element on the body have no breaks.
     // A different target statement only happens if the body is itself
     // a break or continue for a different target. In that case, this
@@ -1360,11 +1353,11 @@ abstract class MixinApplicationElement extends ClassElement {
   void addConstructor(FunctionElement constructor);
 }
 
-// TODO(johnniwinther): Make this a pure [Entity].
-abstract class LabelElement extends Element {
+/// The label entity defined by a labeled statement.
+abstract class LabelDefinition extends Entity {
   Label get label;
   String get labelName;
-  TargetElement get target;
+  JumpTarget get target;
 
   bool get isTarget;
   bool get isBreakTarget;
@@ -1374,11 +1367,12 @@ abstract class LabelElement extends Element {
   void setContinueTarget();
 }
 
-// TODO(johnniwinther): Make this a pure [Entity].
-abstract class TargetElement extends Element implements Local {
+/// A jump target is the reference point of a statement or switch-case,
+/// either by label or as the default target of a break or continue.
+abstract class JumpTarget extends Local {
   Node get statement;
   int get nestingLevel;
-  Link<LabelElement> get labels;
+  Link<LabelDefinition> get labels;
 
   bool get isTarget;
   bool get isBreakTarget;
@@ -1389,7 +1383,7 @@ abstract class TargetElement extends Element implements Local {
   void set isBreakTarget(bool value);
   void set isContinueTarget(bool value);
 
-  LabelElement addLabel(Label label, String labelName);
+  LabelDefinition addLabel(Label label, String labelName);
 }
 
 /// The [Element] for a type variable declaration on a generic class or typedef.

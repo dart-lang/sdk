@@ -61,6 +61,18 @@ abstract class TreeElements {
 
   /// Returns a list of nodes that access [element] within a closure in [node].
   List<Node> getAccessesByClosureIn(Node node, VariableElement element);
+
+  /// Returns the jump target defined by [node].
+  JumpTarget getTargetDefinition(Node node);
+
+  /// Returns the jump target of the [node].
+  JumpTarget getTargetOf(GotoStatement node);
+
+  /// Returns the label defined by [node].
+  LabelDefinition getLabelDefinition(Label node);
+
+  /// Returns the label that [node] targets.
+  LabelDefinition getTargetLabel(GotoStatement node);
 }
 
 class TreeElementMapping implements TreeElements {
@@ -80,6 +92,18 @@ class TreeElementMapping implements TreeElements {
       new Map<Node, Map<VariableElement, List<Node>>>();
   final Setlet<Element> elements = new Setlet<Element>();
   final Setlet<Send> asserts = new Setlet<Send>();
+
+  /// Map from nodes to the targets they define.
+  Map<Node, JumpTarget> definedTargets;
+
+  /// Map from goto statements to their targets.
+  Map<GotoStatement, JumpTarget> usedTargets;
+
+  /// Map from labels to their label definition.
+  Map<Label, LabelDefinition> definedLabels;
+
+  /// Map from labeled goto statements to the labels they target.
+  Map<GotoStatement, LabelDefinition> targetLabels;
 
   final int hashCode = ++hashCodeCounter;
   static int hashCodeCounter = 0;
@@ -113,10 +137,6 @@ class TreeElementMapping implements TreeElements {
   }
 
   operator [](Node node) => getTreeElement(node);
-
-  void remove(Node node) {
-    setTreeElement(node, null);
-  }
 
   void setType(Node node, DartType type) {
     types[node] = type;
@@ -263,6 +283,74 @@ class TreeElementMapping implements TreeElements {
 
   bool isAssert(Send node) {
     return asserts.contains(node);
+  }
+
+  void defineTarget(Node node, JumpTarget target) {
+    if (definedTargets == null) {
+      // TODO(johnniwinther): Use [Maplet] when available.
+      definedTargets = <Node, JumpTarget>{};
+    }
+    definedTargets[node] = target;
+  }
+
+  void undefineTarget(Node node) {
+    if (definedTargets != null) {
+      definedTargets.remove(node);
+      if (definedTargets.isEmpty) {
+        definedTargets = null;
+      }
+    }
+  }
+
+  JumpTarget getTargetDefinition(Node node) {
+    return definedTargets != null ? definedTargets[node] : null;
+  }
+
+  void registerTargetOf(GotoStatement node, JumpTarget target) {
+    if (usedTargets == null) {
+      // TODO(johnniwinther): Use [Maplet] when available.
+      usedTargets = <GotoStatement, JumpTarget>{};
+    }
+    usedTargets[node] = target;
+  }
+
+  JumpTarget getTargetOf(GotoStatement node) {
+    return usedTargets != null ? usedTargets[node] : null;
+  }
+
+  void defineLabel(Label label, LabelDefinition target) {
+    if (definedLabels == null) {
+      // TODO(johnniwinther): Use [Maplet] when available.
+      definedLabels = <Label, LabelDefinition>{};
+    }
+    definedLabels[label] = target;
+  }
+
+  void undefineLabel(Label label) {
+    if (definedLabels != null) {
+      definedLabels.remove(label);
+      if (definedLabels.isEmpty) {
+        definedLabels = null;
+      }
+    }
+  }
+
+  LabelDefinition getLabelDefinition(Label label) {
+    return definedLabels != null ? definedLabels[label] : null;
+  }
+
+  void registerTargetLabel(GotoStatement node, LabelDefinition label) {
+    assert(node.target != null);
+    if (targetLabels == null) {
+      // TODO(johnniwinther): Use [Maplet] when available.
+      targetLabels = <GotoStatement, LabelDefinition>{};
+    }
+    targetLabels[node] = label;
+  }
+
+  LabelDefinition getTargetLabel(GotoStatement node) {
+    assert(node.target != null);
+    return targetLabels != null ? targetLabels[node] : null;
   }
 }
 
@@ -1565,15 +1653,15 @@ class CommonResolverVisitor<R> extends Visitor<R> {
 
 abstract class LabelScope {
   LabelScope get outer;
-  LabelElement lookup(String label);
+  LabelDefinition lookup(String label);
 }
 
 class LabeledStatementLabelScope implements LabelScope {
   final LabelScope outer;
-  final Map<String, LabelElement> labels;
+  final Map<String, LabelDefinition> labels;
   LabeledStatementLabelScope(this.outer, this.labels);
-  LabelElement lookup(String labelName) {
-    LabelElement label = labels[labelName];
+  LabelDefinition lookup(String labelName) {
+    LabelDefinition label = labels[labelName];
     if (label != null) return label;
     return outer.lookup(labelName);
   }
@@ -1581,12 +1669,12 @@ class LabeledStatementLabelScope implements LabelScope {
 
 class SwitchLabelScope implements LabelScope {
   final LabelScope outer;
-  final Map<String, LabelElement> caseLabels;
+  final Map<String, LabelDefinition> caseLabels;
 
   SwitchLabelScope(this.outer, this.caseLabels);
 
-  LabelElement lookup(String labelName) {
-    LabelElement result = caseLabels[labelName];
+  LabelDefinition lookup(String labelName) {
+    LabelDefinition result = caseLabels[labelName];
     if (result != null) return result;
     return outer.lookup(labelName);
   }
@@ -1594,7 +1682,7 @@ class SwitchLabelScope implements LabelScope {
 
 class EmptyLabelScope implements LabelScope {
   const EmptyLabelScope();
-  LabelElement lookup(String label) => null;
+  LabelDefinition lookup(String label) => null;
   LabelScope get outer {
     throw 'internal error: empty label scope has no outer';
   }
@@ -1602,28 +1690,28 @@ class EmptyLabelScope implements LabelScope {
 
 class StatementScope {
   LabelScope labels;
-  Link<TargetElement> breakTargetStack;
-  Link<TargetElement> continueTargetStack;
+  Link<JumpTarget> breakTargetStack;
+  Link<JumpTarget> continueTargetStack;
   // Used to provide different numbers to statements if one is inside the other.
   // Can be used to make otherwise duplicate labels unique.
   int nestingLevel = 0;
 
   StatementScope()
       : labels = const EmptyLabelScope(),
-        breakTargetStack = const Link<TargetElement>(),
-        continueTargetStack = const Link<TargetElement>();
+        breakTargetStack = const Link<JumpTarget>(),
+        continueTargetStack = const Link<JumpTarget>();
 
-  LabelElement lookupLabel(String label) {
+  LabelDefinition lookupLabel(String label) {
     return labels.lookup(label);
   }
 
-  TargetElement currentBreakTarget() =>
+  JumpTarget currentBreakTarget() =>
     breakTargetStack.isEmpty ? null : breakTargetStack.head;
 
-  TargetElement currentContinueTarget() =>
+  JumpTarget currentContinueTarget() =>
     continueTargetStack.isEmpty ? null : continueTargetStack.head;
 
-  void enterLabelScope(Map<String, LabelElement> elements) {
+  void enterLabelScope(Map<String, LabelDefinition> elements) {
     labels = new LabeledStatementLabelScope(labels, elements);
     nestingLevel++;
   }
@@ -1633,7 +1721,7 @@ class StatementScope {
     labels = labels.outer;
   }
 
-  void enterLoop(TargetElement element) {
+  void enterLoop(JumpTarget element) {
     breakTargetStack = breakTargetStack.prepend(element);
     continueTargetStack = continueTargetStack.prepend(element);
     nestingLevel++;
@@ -1645,8 +1733,8 @@ class StatementScope {
     continueTargetStack = continueTargetStack.tail;
   }
 
-  void enterSwitch(TargetElement breakElement,
-                   Map<String, LabelElement> continueElements) {
+  void enterSwitch(JumpTarget breakElement,
+                   Map<String, LabelDefinition> continueElements) {
     breakTargetStack = breakTargetStack.prepend(breakElement);
     labels = new SwitchLabelScope(labels, continueElements);
     nestingLevel++;
@@ -2069,10 +2157,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   // Create, or reuse an already created, target element for a statement.
-  TargetElement getOrDefineTarget(Node statement) {
-    TargetElement element = registry.getTargetDefinition(statement);
+  JumpTarget getOrDefineTarget(Node statement) {
+    JumpTarget element = registry.getTargetDefinition(statement);
     if (element == null) {
-      element = new TargetElementX(statement,
+      element = new JumpTargetX(statement,
                                    statementScope.nestingLevel,
                                    enclosingElement);
       registry.defineTarget(statement, element);
@@ -2267,7 +2355,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
    * before visiting the body of the loop
    */
   visitLoopBodyIn(Loop loop, Node body, Scope bodyScope) {
-    TargetElement element = getOrDefineTarget(loop);
+    JumpTarget element = getOrDefineTarget(loop);
     statementScope.enterLoop(element);
     visitIn(body, bodyScope);
     statementScope.exitLoop();
@@ -3295,7 +3383,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitBreakStatement(BreakStatement node) {
-    TargetElement target;
+    JumpTarget target;
     if (node.target == null) {
       target = statementScope.currentBreakTarget();
       if (target == null) {
@@ -3305,7 +3393,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       target.isBreakTarget = true;
     } else {
       String labelName = node.target.source;
-      LabelElement label = statementScope.lookupLabel(labelName);
+      LabelDefinition label = statementScope.lookupLabel(labelName);
       if (label == null) {
         error(node.target, MessageKind.UNBOUND_LABEL, {'labelName': labelName});
         return;
@@ -3318,16 +3406,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       label.setBreakTarget();
       registry.useLabel(node, label);
     }
-    if (registry.getTargetDefinition(node) != null) {
-      // This is need for code like `L: break L;` where the definition and
-      // target are the same node.
-      registry.undefineTarget(node);
-    }
     registry.registerTargetOf(node, target);
   }
 
   visitContinueStatement(ContinueStatement node) {
-    TargetElement target;
+    JumpTarget target;
     if (node.target == null) {
       target = statementScope.currentContinueTarget();
       if (target == null) {
@@ -3337,7 +3420,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       target.isContinueTarget = true;
     } else {
       String labelName = node.target.source;
-      LabelElement label = statementScope.lookupLabel(labelName);
+      LabelDefinition label = statementScope.lookupLabel(labelName);
       if (label == null) {
         error(node.target, MessageKind.UNBOUND_LABEL, {'labelName': labelName});
         return;
@@ -3427,18 +3510,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   visitLabeledStatement(LabeledStatement node) {
     Statement body = node.statement;
-    TargetElement targetElement = getOrDefineTarget(body);
-    Map<String, LabelElement> labelElements = <String, LabelElement>{};
+    JumpTarget targetElement = getOrDefineTarget(body);
+    Map<String, LabelDefinition> labelElements = <String, LabelDefinition>{};
     for (Label label in node.labels) {
       String labelName = label.labelName;
       if (labelElements.containsKey(labelName)) continue;
-      LabelElement element = targetElement.addLabel(label, labelName);
+      LabelDefinition element = targetElement.addLabel(label, labelName);
       labelElements[labelName] = element;
     }
     statementScope.enterLabelScope(labelElements);
     visit(node.statement);
     statementScope.exitLabelScope();
-    labelElements.forEach((String labelName, LabelElement element) {
+    labelElements.forEach((String labelName, LabelDefinition element) {
       if (element.isTarget) {
         registry.defineLabel(element.label, element);
       } else {
@@ -3446,10 +3529,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                 {'labelName': labelName});
       }
     });
-    if (!targetElement.isTarget &&
-        registry.getTargetOf(body) == targetElement) {
-      // If the body is itself a break or continue for another target, it
-      // might have updated its mapping to the target it actually does target.
+    if (!targetElement.isTarget) {
       registry.undefineTarget(body);
     }
   }
@@ -3533,8 +3613,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   void checkCaseExpressions(SwitchStatement node) {
-    TargetElement breakElement = getOrDefineTarget(node);
-    Map<String, LabelElement> continueLabels = <String, LabelElement>{};
+    JumpTarget breakElement = getOrDefineTarget(node);
+    Map<String, LabelDefinition> continueLabels = <String, LabelDefinition>{};
 
     Link<Node> cases = node.cases.nodes;
     SwitchCase switchCase = cases.head;
@@ -3602,8 +3682,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   visitSwitchStatement(SwitchStatement node) {
     node.expression.accept(this);
 
-    TargetElement breakElement = getOrDefineTarget(node);
-    Map<String, LabelElement> continueLabels = <String, LabelElement>{};
+    JumpTarget breakElement = getOrDefineTarget(node);
+    Map<String, LabelDefinition> continueLabels = <String, LabelDefinition>{};
     Link<Node> cases = node.cases.nodes;
     while (!cases.isEmpty) {
       SwitchCase switchCase = cases.head;
@@ -3616,7 +3696,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         Label label = labelOrCase;
         String labelName = label.labelName;
 
-        LabelElement existingElement = continueLabels[labelName];
+        LabelDefinition existingElement = continueLabels[labelName];
         if (existingElement != null) {
           // It's an error if the same label occurs twice in the same switch.
           compiler.reportError(
@@ -3638,8 +3718,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           }
         }
 
-        TargetElement targetElement = getOrDefineTarget(switchCase);
-        LabelElement labelElement = targetElement.addLabel(label, labelName);
+        JumpTarget targetElement = getOrDefineTarget(switchCase);
+        LabelDefinition labelElement = targetElement.addLabel(label, labelName);
         registry.defineLabel(label, labelElement);
         continueLabels[labelName] = labelElement;
       }
@@ -3659,9 +3739,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     statementScope.exitSwitch();
 
     // Clean-up unused labels.
-    continueLabels.forEach((String key, LabelElement label) {
+    continueLabels.forEach((String key, LabelDefinition label) {
       if (!label.isContinueTarget) {
-        TargetElement targetElement = label.target;
+        JumpTarget targetElement = label.target;
         SwitchCase switchCase = targetElement.statement;
         registry.undefineTarget(switchCase);
         registry.undefineLabel(label.label);

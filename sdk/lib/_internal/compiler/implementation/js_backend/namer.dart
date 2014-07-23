@@ -331,21 +331,21 @@ class Namer implements ClosureNamer {
     return longName;
   }
 
-  String breakLabelName(LabelElement label) {
+  String breakLabelName(LabelDefinition label) {
     return '\$${label.labelName}\$${label.target.nestingLevel}';
   }
 
-  String implicitBreakLabelName(TargetElement target) {
+  String implicitBreakLabelName(JumpTarget target) {
     return '\$${target.nestingLevel}';
   }
 
   // We sometimes handle continue targets differently from break targets,
   // so we have special continue-only labels.
-  String continueLabelName(LabelElement label) {
+  String continueLabelName(LabelDefinition label) {
     return 'c\$${label.labelName}\$${label.target.nestingLevel}';
   }
 
-  String implicitContinueLabelName(TargetElement target) {
+  String implicitContinueLabelName(JumpTarget target) {
     return 'c\$${target.nestingLevel}';
   }
 

@@ -87,7 +87,6 @@ abstract class ElementX extends Element {
   bool get isFinal => modifiers.isFinal;
   bool get isStatic => modifiers.isStatic;
   bool get isOperator => Elements.isOperatorName(name);
-  bool get isStatement => identical(kind, ElementKind.STATEMENT);
   bool get impliesType => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
 
   bool get isPatched => false;
@@ -2446,75 +2445,59 @@ class MixinApplicationElementX extends BaseClassElementX
   accept(ElementVisitor visitor) => visitor.visitMixinApplicationElement(this);
 }
 
-class LabelElementX extends ElementX implements LabelElement {
-
-  // We store the original label here so it can be returned by [parseNode].
+class LabelDefinitionX implements LabelDefinition {
   final Label label;
   final String labelName;
-  final TargetElement target;
+  final JumpTarget target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
-  LabelElementX(Label label, String labelName, this.target,
-                Element enclosingElement)
+
+  LabelDefinitionX(Label label, String labelName, this.target)
       : this.label = label,
-        this.labelName = labelName,
-        // In case of a synthetic label, just use [labelName] for
-        // identifying the element.
-        super(label == null
-                  ? labelName
-                  : label.identifier.source,
-              ElementKind.LABEL,
-              enclosingElement);
+        this.labelName = labelName;
+
+  // In case of a synthetic label, just use [labelName] for identifying the
+  // label.
+  String get name => label == null ? labelName : label.identifier.source;
 
   void setBreakTarget() {
     isBreakTarget = true;
     target.isBreakTarget = true;
   }
+
   void setContinueTarget() {
     isContinueTarget = true;
     target.isContinueTarget = true;
   }
 
   bool get isTarget => isBreakTarget || isContinueTarget;
-  Node parseNode(DiagnosticListener l) => label;
 
-  Token get position => label.getBeginToken();
-  String toString() => "${labelName}:";
-
-  accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
+  String toString() => 'Label:${name}';
 }
 
-// Represents a reference to a statement or switch-case, either by label or the
-// default target of a break or continue.
-class TargetElementX extends ElementX implements TargetElement {
+class JumpTargetX implements JumpTarget {
+  final ExecutableElement executableContext;
   final Node statement;
   final int nestingLevel;
-  Link<LabelElement> labels = const Link<LabelElement>();
+  Link<LabelDefinition> labels = const Link<LabelDefinition>();
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
-  TargetElementX(this.statement, this.nestingLevel, Element enclosingElement)
-      : super("target", ElementKind.STATEMENT, enclosingElement);
+  JumpTargetX(this.statement, this.nestingLevel, this.executableContext);
+
+  String get name => "target";
+
   bool get isTarget => isBreakTarget || isContinueTarget;
 
-  LabelElement addLabel(Label label, String labelName) {
-    LabelElement result = new LabelElementX(label, labelName, this,
-                                            enclosingElement);
+  LabelDefinition addLabel(Label label, String labelName) {
+    LabelDefinition result = new LabelDefinitionX(label, labelName, this);
     labels = labels.prepend(result);
     return result;
   }
 
-  Node parseNode(DiagnosticListener l) => statement;
-
   bool get isSwitch => statement is SwitchStatement;
 
-  Token get position => statement.getBeginToken();
-  String toString() => statement.toString();
-
-  accept(ElementVisitor visitor) => visitor.visitTargetElement(this);
-
-  // TODO(johnniwinther): Remove this when [TargetElement] is a non-element.
-  get executableContext => enclosingElement;
+  String toString() => 'Target:$statement';
 }
 
 class TypeVariableElementX extends ElementX with AstElementMixin

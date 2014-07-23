@@ -84,7 +84,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
   }
 }
 
-typedef void ElementAction(Element element);
+typedef void EntityAction(Entity element);
 
 class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /**
@@ -114,8 +114,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
-  final Map<Element, ElementAction> breakAction;
-  final Map<Element, ElementAction> continueAction;
+  final Map<Entity, EntityAction> breakAction;
+  final Map<Entity, EntityAction> continueAction;
   final List<js.Parameter> parameters;
 
   js.Block currentContainer;
@@ -163,8 +163,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       oldContainerStack = <js.Block>[],
       generateAtUseSite = new Set<HInstruction>(),
       controlFlowOperators = new Set<HInstruction>(),
-      breakAction = new Map<Element, ElementAction>(),
-      continueAction = new Map<Element, ElementAction>();
+      breakAction = new Map<Entity, EntityAction>(),
+      continueAction = new Map<Entity, EntityAction>();
 
   Compiler get compiler => backend.compiler;
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
@@ -609,21 +609,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
-  void continueAsBreak(LabelElement target) {
+  void continueAsBreak(LabelDefinition target) {
     pushStatement(new js.Break(backend.namer.continueLabelName(target)));
   }
 
-  void implicitContinueAsBreak(TargetElement target) {
+  void implicitContinueAsBreak(JumpTarget target) {
     pushStatement(new js.Break(
         backend.namer.implicitContinueLabelName(target)));
   }
 
-  void implicitBreakWithLabel(TargetElement target) {
+  void implicitBreakWithLabel(JumpTarget target) {
     pushStatement(new js.Break(backend.namer.implicitBreakLabelName(target)));
   }
 
-  js.Statement wrapIntoLabels(js.Statement result, List<LabelElement> labels) {
-    for (LabelElement label in labels) {
+  js.Statement wrapIntoLabels(js.Statement result, List<LabelDefinition> labels) {
+    for (LabelDefinition label in labels) {
       if (label.isTarget) {
         String breakLabelString = backend.namer.breakLabelName(label);
         result = new js.LabeledStatement(breakLabelString, result);
@@ -969,7 +969,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitLabeledBlockInfo(HLabeledBlockInformation labeledBlockInfo) {
-    Link<Element> continueOverrides = const Link<Element>();
+    Link<Entity> continueOverrides = const Link<Entity>();
 
     js.Block oldContainer = currentContainer;
     js.Block body = new js.Block.empty();
@@ -982,7 +982,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // continues of the loop can be written as breaks of the body
     // block.
     if (labeledBlockInfo.isContinue) {
-      for (LabelElement label in labeledBlockInfo.labels) {
+      for (LabelDefinition label in labeledBlockInfo.labels) {
         if (label.isContinueTarget) {
           String labelName = backend.namer.continueLabelName(label);
           result = new js.LabeledStatement(labelName, result);
@@ -993,20 +993,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // For handling unlabeled continues from the body of a loop.
       // TODO(lrn): Consider recording whether the target is in fact
       // a target of an unlabeled continue, and not generate this if it isn't.
-      TargetElement target = labeledBlockInfo.target;
+      JumpTarget target = labeledBlockInfo.target;
       String labelName = backend.namer.implicitContinueLabelName(target);
       result = new js.LabeledStatement(labelName, result);
       continueAction[target] = implicitContinueAsBreak;
       continueOverrides = continueOverrides.prepend(target);
     } else {
-      for (LabelElement label in labeledBlockInfo.labels) {
+      for (LabelDefinition label in labeledBlockInfo.labels) {
         if (label.isBreakTarget) {
           String labelName = backend.namer.breakLabelName(label);
           result = new js.LabeledStatement(labelName, result);
         }
       }
     }
-    TargetElement target = labeledBlockInfo.target;
+    JumpTarget target = labeledBlockInfo.target;
     if (target.isSwitch) {
       // This is an extra block around a switch that is generated
       // as a nested if/else chain. We add an extra break target
@@ -1036,13 +1036,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // Wraps a loop body in a block to make continues have a target to break
   // to (if necessary).
   void wrapLoopBodyForContinue(HLoopBlockInformation info) {
-    TargetElement target = info.target;
+    JumpTarget target = info.target;
     if (target != null && target.isContinueTarget) {
       js.Block oldContainer = currentContainer;
       js.Block body = new js.Block.empty();
       currentContainer = body;
       js.Statement result = body;
-      for (LabelElement label in info.labels) {
+      for (LabelDefinition label in info.labels) {
         if (label.isContinueTarget) {
           String labelName = backend.namer.continueLabelName(label);
           result = new js.LabeledStatement(labelName, result);
@@ -1054,7 +1054,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       continueAction[info.target] = implicitContinueAsBreak;
       visitBodyIgnoreLabels(info);
       continueAction.remove(info.target);
-      for (LabelElement label in info.labels) {
+      for (LabelDefinition label in info.labels) {
         if (label.isContinueTarget) {
           continueAction.remove(label);
         }
@@ -1355,26 +1355,26 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   /**
-   * Checks if [map] contains an [ElementAction] for [element], and
+   * Checks if [map] contains an [EntityAction] for [entity], and
    * if so calls that action and returns true.
    * Otherwise returns false.
    */
-  bool tryCallAction(Map<Element, ElementAction> map, Element element) {
-    ElementAction action = map[element];
+  bool tryCallAction(Map<Entity, EntityAction> map, Entity entity) {
+    EntityAction action = map[entity];
     if (action == null) return false;
-    action(element);
+    action(entity);
     return true;
   }
 
   visitBreak(HBreak node) {
     assert(node.block.successors.length == 1);
     if (node.label != null) {
-      LabelElement label = node.label;
+      LabelDefinition label = node.label;
       if (!tryCallAction(breakAction, label)) {
         pushStatement(new js.Break(backend.namer.breakLabelName(label)), node);
       }
     } else {
-      TargetElement target = node.target;
+      JumpTarget target = node.target;
       if (!tryCallAction(breakAction, target)) {
         if (node.breakSwitchContinueLoop) {
           pushStatement(new js.Break(
@@ -1389,14 +1389,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitContinue(HContinue node) {
     assert(node.block.successors.length == 1);
     if (node.label != null) {
-      LabelElement label = node.label;
+      LabelDefinition label = node.label;
       if (!tryCallAction(continueAction, label)) {
         // TODO(floitsch): should this really be the breakLabelName?
         pushStatement(new js.Continue(backend.namer.breakLabelName(label)),
                       node);
       }
     } else {
-      TargetElement target = node.target;
+      JumpTarget target = node.target;
       if (!tryCallAction(continueAction, target)) {
         if (target.statement is ast.SwitchStatement) {
           pushStatement(new js.Continue(
