@@ -1,17 +1,14 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library barback.pool;
+library pool;
 
 import 'dart:async';
 import 'dart:collection';
 
 import 'package:stack_trace/stack_trace.dart';
 
-import 'utils.dart';
-
-// TODO(nweiz): put this somewhere that it can be shared between packages.
 /// Manages an abstract pool of resources with a limit on how many may be in use
 /// at once.
 ///
@@ -76,7 +73,7 @@ class Pool {
   /// The return value of [callback] is piped to the returned Future.
   Future withResource(callback()) {
     return request().then((resource) =>
-        syncFuture(callback).whenComplete(resource.release));
+        Chain.track(new Future.sync(callback)).whenComplete(resource.release));
   }
 
   /// If there are any pending requests, this will fire the oldest one.
@@ -139,3 +136,4 @@ class PoolResource {
     _pool._onResourceReleased();
   }
 }
+

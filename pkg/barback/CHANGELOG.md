@@ -1,3 +1,7 @@
+## 0.14.1+3
+
+* Add a dependency on the `pool` package.
+
 ## 0.14.1+2
 
 * Automatically log how long it takes long-running transforms to run.

@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:pool/pool.dart';
 import 'package:http/http.dart' show ByteStream;
 import 'package:http_multi_server/http_multi_server.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -18,7 +19,6 @@ import 'package:stack_trace/stack_trace.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'error_group.dart';
 import 'log.dart' as log;
-import 'pool.dart';
 import 'sdk.dart' as sdk;
 import 'utils.dart';
 

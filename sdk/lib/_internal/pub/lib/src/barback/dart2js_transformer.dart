@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:analyzer/analyzer.dart';
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
+import 'package:pool/pool.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../../../../compiler/compiler.dart' as compiler;
@@ -18,7 +19,6 @@ import '../../../../compiler/implementation/dart2js.dart'
 import '../../../../compiler/implementation/source_file.dart';
 import '../barback.dart';
 import '../dart.dart' as dart;
-import '../pool.dart';
 import '../utils.dart';
 import 'asset_environment.dart';
 

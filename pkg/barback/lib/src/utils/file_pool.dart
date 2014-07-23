@@ -8,10 +8,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:pool/pool.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import '../utils.dart';
-import 'pool.dart';
 
 /// Manages a pool of files that are opened for reading to cope with maximum
 /// file descriptor limits.
