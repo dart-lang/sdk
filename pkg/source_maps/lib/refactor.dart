@@ -10,6 +10,7 @@ library source_maps.refactor;
 
 import 'span.dart';
 import 'printer.dart';
+import 'src/span_wrapper.dart';
 
 /// Editable text transaction.
 ///
@@ -20,7 +21,13 @@ class TextEditTransaction {
   final String original;
   final _edits = <_TextEdit>[];
 
-  TextEditTransaction(this.original, this.file);
+  /// Creates a new transaction.
+  ///
+  /// [file] can be either a `source_map` [SourceFile] or a `source_span`
+  /// `SourceFile`. Using a `source_map` [SourceFile] is deprecated and will be
+  /// unsupported in version 0.10.0.
+  TextEditTransaction(this.original, file)
+      : file = SourceFileWrapper.wrap(file);
 
   bool get hasEdits => _edits.length > 0;
 

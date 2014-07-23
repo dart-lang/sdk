@@ -11,6 +11,7 @@ import 'dart:convert';
 
 import 'parser.dart';
 import 'span.dart';
+import 'src/span_wrapper.dart';
 
 /// Builds a source map given a set of mappings.
 class SourceMapBuilder {
@@ -18,8 +19,10 @@ class SourceMapBuilder {
   final List<Entry> _entries = <Entry>[];
 
   /// Adds an entry mapping the [targetOffset] to [source].
-  void addFromOffset(Location source,
-      SourceFile targetFile, int targetOffset, String identifier) {
+  ///
+  /// [source] can be either a [Location] or a [SourceLocation]. Using a
+  /// [Location] is deprecated and will be unsupported in version 0.10.0.
+  void addFromOffset(source, targetFile, int targetOffset, String identifier) {
     if (targetFile == null) {
       throw new ArgumentError('targetFile cannot be null');
     }
@@ -28,12 +31,27 @@ class SourceMapBuilder {
   }
 
   /// Adds an entry mapping [target] to [source].
-  void addSpan(Span source, Span target) {
-    var name = source.isIdentifier ? source.text : null;
+  ///
+  /// [source] and [target] can be either a [Span] or a [SourceSpan]. Using a
+  /// [Span] is deprecated and will be unsupported in version 0.10.0.
+  ///
+  /// If [isIdentifier] is true, this entry is considered to represent an
+  /// identifier whose value will be stored in the source map.
+  void addSpan(source, target, {bool isIdentifier}) {
+    source = SpanWrapper.wrap(source);
+    target = SpanWrapper.wrap(target);
+    if (isIdentifier == null) isIdentifier = source.isIdentifier;
+
+    var name = isIdentifier ? source.text : null;
     _entries.add(new Entry(source.start, target.start, name));
   }
 
-  void addLocation(Location source, Location target, String identifier) {
+  /// Adds an entry mapping [target] to [source].
+  ///
+  /// [source] and [target] can be either a [Location] or a [SourceLocation].
+  /// Using a [Location] is deprecated and will be unsupported in version
+  /// 0.10.0.
+  void addLocation(source, target, String identifier) {
     _entries.add(new Entry(source, target, identifier));
   }
 
@@ -57,7 +75,14 @@ class Entry implements Comparable {
   /// An identifier name, when this location is the start of an identifier.
   final String identifierName;
 
-  Entry(this.source, this.target, this.identifierName);
+  /// Creates a new [Entry] mapping [target] to [source].
+  ///
+  /// [source] and [target] can be either a [Location] or a [SourceLocation].
+  /// Using a [Location] is deprecated and will be unsupported in version
+  /// 0.10.0.
+  Entry(source, target, this.identifierName)
+      : source = LocationWrapper.wrap(source),
+        target = LocationWrapper.wrap(target);
 
   /// Implements [Comparable] to ensure that entries are ordered by their
   /// location in the target file. We sort primarily by the target offset

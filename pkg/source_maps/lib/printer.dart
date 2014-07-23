@@ -5,8 +5,11 @@
 /// Contains a code printer that generates code by recording the source maps.
 library source_maps.printer;
 
+import 'package:source_span/source_span.dart' as source_span;
+
 import 'builder.dart';
 import 'span.dart';
+import 'src/span_wrapper.dart';
 
 const int _LF = 10;
 const int _CR = 13;
@@ -75,9 +78,10 @@ class Printer {
   void mark(mark) {
     var loc;
     var identifier = null;
-    if (mark is Location) {
-      loc = mark;
-    } else if (mark is Span) {
+    if (mark is Location || mark is source_span.SourceLocation) {
+      loc = LocationWrapper.wrap(mark);
+    } else if (mark is Span || mark is source_span.SourceSpan) {
+      mark = SpanWrapper.wrap(mark);
       loc = mark.start;
       if (mark.isIdentifier) identifier = mark.text;
     }
@@ -124,15 +128,19 @@ class NestedPrinter implements NestedItem {
   /// location of [object] in the original input. Only one, [location] or
   /// [span], should be provided at a time.
   ///
+  /// [location] can be either a [Location] or a [SourceLocation]. [span] can be
+  /// either a [Span] or a [SourceSpan]. Using a [Location] or a [Span] is
+  /// deprecated and will be unsupported in version 0.10.0.
+  ///
   /// Indicate [isOriginal] when [object] is copied directly from the user code.
   /// Setting [isOriginal] will make this printer propagate source map locations
   /// on every line-break.
-  void add(object, {Location location, Span span, bool isOriginal: false}) {
+  void add(object, {location, span, bool isOriginal: false}) {
     if (object is! String || location != null || span != null || isOriginal) {
       _flush();
       assert(location == null || span == null);
-      if (location != null) _items.add(location);
-      if (span != null) _items.add(span);
+      if (location != null) _items.add(LocationWrapper.wrap(location));
+      if (span != null) _items.add(SpanWrapper.wrap(span));
       if (isOriginal) _items.add(_ORIGINAL);
     }
 
@@ -156,12 +164,16 @@ class NestedPrinter implements NestedItem {
   /// The [location] and [span] parameters indicate the corresponding source map
   /// location of [object] in the original input. Only one, [location] or
   /// [span], should be provided at a time.
-  void addLine(String line, {Location location, Span span}) {
+  ///
+  /// [location] can be either a [Location] or a [SourceLocation]. [span] can be
+  /// either a [Span] or a [SourceSpan]. Using a [Location] or a [Span] is
+  /// deprecated and will be unsupported in version 0.10.0.
+  void addLine(String line, {location, span}) {
     if (location != null || span != null) {
       _flush();
       assert(location == null || span == null);
-      if (location != null) _items.add(location);
-      if (span != null) _items.add(span);
+      if (location != null) _items.add(LocationWrapper.wrap(location));
+      if (span != null) _items.add(SpanWrapper.wrap(span));
     }
     if (line == null) return;
     if (line != '') {
