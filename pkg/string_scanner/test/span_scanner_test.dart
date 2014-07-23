@@ -10,7 +10,7 @@ import 'package:unittest/unittest.dart';
 void main() {
   var scanner;
   setUp(() {
-    scanner = new SpanScanner('foo\nbar\nbaz', 'source');
+    scanner = new SpanScanner('foo\nbar\nbaz', sourceUrl: 'source');
   });
 
   test("tracks the span for the last match", () {
@@ -21,12 +21,12 @@ void main() {
     expect(span.start.offset, equals(2));
     expect(span.start.line, equals(0));
     expect(span.start.column, equals(2));
-    expect(span.start.sourceUrl, equals('source'));
+    expect(span.start.sourceUrl, equals(Uri.parse('source')));
 
     expect(span.end.offset, equals(6));
     expect(span.end.line, equals(1));
     expect(span.end.column, equals(2));
-    expect(span.start.sourceUrl, equals('source'));
+    expect(span.start.sourceUrl, equals(Uri.parse('source')));
 
     expect(span.text, equals('o\nba'));
   });
@@ -48,12 +48,12 @@ void main() {
     expect(span.start.offset, equals(6));
     expect(span.start.line, equals(1));
     expect(span.start.column, equals(2));
-    expect(span.start.sourceUrl, equals('source'));
+    expect(span.start.sourceUrl, equals(Uri.parse('source')));
 
     expect(span.end.offset, equals(6));
     expect(span.end.line, equals(1));
     expect(span.end.column, equals(2));
-    expect(span.start.sourceUrl, equals('source'));
+    expect(span.start.sourceUrl, equals(Uri.parse('source')));
 
     expect(span.text, equals(''));
   });

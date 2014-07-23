@@ -7,7 +7,7 @@ library yaml.yaml_node_wrapper;
 import 'dart:collection';
 
 import 'package:collection/collection.dart' as pkg_collection;
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 
 import 'null_span.dart';
 import 'yaml_node.dart';
@@ -18,7 +18,7 @@ class YamlMapWrapper extends MapBase
     implements YamlMap {
   final Map _dartMap;
 
-  final Span span;
+  final SourceSpan span;
 
   final Map<dynamic, YamlNode> nodes;
 
@@ -26,10 +26,10 @@ class YamlMapWrapper extends MapBase
 
   Iterable get keys => _dartMap.keys;
 
-  YamlMapWrapper(Map dartMap, String sourceName)
-      : this._(dartMap, new NullSpan(sourceName));
+  YamlMapWrapper(Map dartMap, sourceUrl)
+      : this._(dartMap, new NullSpan(sourceUrl));
 
-  YamlMapWrapper._(Map dartMap, Span span)
+  YamlMapWrapper._(Map dartMap, SourceSpan span)
       : _dartMap = dartMap,
         span = span,
         nodes = new _YamlMapNodes(dartMap, span);
@@ -53,7 +53,7 @@ class _YamlMapNodes extends MapBase<dynamic, YamlNode>
     with pkg_collection.UnmodifiableMapMixin<dynamic, YamlNode> {
   final Map _dartMap;
 
-  final Span _span;
+  final SourceSpan _span;
 
   Iterable get keys =>
       _dartMap.keys.map((key) => new YamlScalar.internal(key, _span));
@@ -78,7 +78,7 @@ class _YamlMapNodes extends MapBase<dynamic, YamlNode>
 class YamlListWrapper extends ListBase implements YamlList {
   final List _dartList;
 
-  final Span span;
+  final SourceSpan span;
 
   final List<YamlNode> nodes;
 
@@ -90,10 +90,10 @@ class YamlListWrapper extends ListBase implements YamlList {
     throw new UnsupportedError("Cannot modify an unmodifiable List.");
   }
 
-  YamlListWrapper(List dartList, String sourceName)
-      : this._(dartList, new NullSpan(sourceName));
+  YamlListWrapper(List dartList, sourceUrl)
+      : this._(dartList, new NullSpan(sourceUrl));
 
-  YamlListWrapper._(List dartList, Span span)
+  YamlListWrapper._(List dartList, SourceSpan span)
       : _dartList = dartList,
         span = span,
         nodes = new _YamlListNodes(dartList, span);
@@ -121,7 +121,7 @@ class YamlListWrapper extends ListBase implements YamlList {
 class _YamlListNodes extends ListBase<YamlNode> {
   final List _dartList;
 
-  final Span _span;
+  final SourceSpan _span;
 
   int get length => _dartList.length;
 
@@ -143,7 +143,7 @@ class _YamlListNodes extends ListBase<YamlNode> {
       other is _YamlListNodes && other._dartList == _dartList;
 }
 
-YamlNode _nodeForValue(value, Span span) {
+YamlNode _nodeForValue(value, SourceSpan span) {
   if (value is Map) return new YamlMapWrapper._(value, span);
   if (value is List) return new YamlListWrapper._(value, span);
   return new YamlScalar.internal(value, span);

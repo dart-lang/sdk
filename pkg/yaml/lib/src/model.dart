@@ -7,7 +7,7 @@
 /// representation graph.
 library yaml.model;
 
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 
 import 'equality.dart';
 import 'parser.dart';
@@ -83,7 +83,7 @@ abstract class Node {
   String anchor;
 
   /// The source span for this node.
-  Span span;
+  SourceSpan span;
 
   Node(this.tag, this.span, [this.anchor]);
 
@@ -102,7 +102,7 @@ class SequenceNode extends Node {
   /// The nodes in the sequence.
   List<Node> content;
 
-  SequenceNode(String tagName, this.content, Span span)
+  SequenceNode(String tagName, this.content, SourceSpan span)
     : super(new Tag.sequence(tagName), span);
 
   /// Two sequences are equal if their tags and contents are equal.
@@ -125,7 +125,7 @@ class SequenceNode extends Node {
 
 /// An alias node is a reference to an anchor.
 class AliasNode extends Node {
-  AliasNode(String anchor, Span span)
+  AliasNode(String anchor, SourceSpan span)
       : super(new Tag.scalar(Tag.yaml("str")), span, anchor);
 
   visit(Visitor v) => v.visitAlias(this);
@@ -145,7 +145,7 @@ class ScalarNode extends Node {
   /// be specified for a newly-parsed scalar that hasn't yet been composed.
   /// Value should be specified for a composed scalar, although `null` is a
   /// valid value.
-  ScalarNode(String tagName, Span span, {String content, this.value})
+  ScalarNode(String tagName, SourceSpan span, {String content, this.value})
    : _content = content,
      super(new Tag.scalar(tagName), span);
 
@@ -231,7 +231,7 @@ class MappingNode extends Node {
   /// The node map.
   Map<Node, Node> content;
 
-  MappingNode(String tagName, this.content, Span span)
+  MappingNode(String tagName, this.content, SourceSpan span)
     : super(new Tag.mapping(tagName), span);
 
   /// Two mappings are equal if their tags and contents are equal.

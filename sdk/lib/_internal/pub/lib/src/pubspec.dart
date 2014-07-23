@@ -5,7 +5,7 @@
 library pub.pubspec;
 
 import 'package:path/path.dart' as path;
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 import 'barback/transformer_config.dart';
@@ -38,8 +38,7 @@ class Pubspec {
   ///
   /// This can be null if the pubspec was created in-memory or if its location
   /// is unknown.
-  Uri get _location => fields.span.sourceUrl == null ? null :
-      Uri.parse(fields.span.sourceUrl);
+  Uri get _location => fields.span.sourceUrl;
 
   /// All pubspec fields.
   ///
@@ -257,8 +256,8 @@ class Pubspec {
   /// [location] is the location from which this pubspec was loaded.
   Pubspec.fromMap(Map fields, this._sources, {String expectedName,
       Uri location})
-      : fields = fields is YamlMap ? fields : new YamlMap.wrap(fields,
-          sourceName: location == null ? null : location.toString()) {
+      : fields = fields is YamlMap ? fields :
+            new YamlMap.wrap(fields, sourceUrl: location) {
     // If [expectedName] is passed, ensure that the actual 'name' field exists
     // and matches the expectation.
     if (expectedName == null) return;
@@ -276,7 +275,7 @@ class Pubspec {
       {String expectedName, Uri location}) {
     if (contents.trim() == '') return new Pubspec.empty();
 
-    var pubspecNode = loadYamlNode(contents, sourceName: location.toString());
+    var pubspecNode = loadYamlNode(contents, sourceUrl: location);
     if (pubspecNode is YamlScalar && pubspecNode.value == null) {
       pubspecNode = new YamlMap();
     } else if (pubspecNode is! YamlMap) {
@@ -431,7 +430,7 @@ class Pubspec {
   /// [description] should be a noun phrase that describes whatever's being
   /// parsed or processed by [fn]. [span] should be the location of whatever's
   /// being processed within the pubspec.
-  _wrapFormatException(String description, Span span, fn()) {
+  _wrapFormatException(String description, SourceSpan span, fn()) {
     try {
       return fn();
     } on FormatException catch (e) {
@@ -442,13 +441,13 @@ class Pubspec {
   _wrapSpanFormatException(String description, fn()) {
     try {
       return fn();
-    } on SpanFormatException catch (e) {
+    } on SourceSpanFormatException catch (e) {
       _error('Invalid $description: ${e.message}', e.span);
     }
   }
 
   /// Throws a [PubspecException] with the given message.
-  void _error(String message, Span span) {
+  void _error(String message, SourceSpan span) {
     var name;
     try {
       name = this.name;
@@ -475,9 +474,9 @@ class PubspecEnvironment {
 /// An exception thrown when parsing a pubspec.
 ///
 /// These exceptions are often thrown lazily while accessing pubspec properties.
-class PubspecException extends SpanFormatException
+class PubspecException extends SourceSpanFormatException
     implements ApplicationException {
-  PubspecException(String message, Span span)
+  PubspecException(String message, SourceSpan span)
       : super(message, span);
 }
 

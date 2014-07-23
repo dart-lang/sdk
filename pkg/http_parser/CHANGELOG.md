@@ -1,3 +1,7 @@
+## 0.0.2+4
+
+* Widen the `string_scanner` version constraint.
+
 ## 0.0.2+3
 
 * Fix a library name conflict.

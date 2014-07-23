@@ -4,11 +4,11 @@
 
 library yaml.exception;
 
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 
 /// An error thrown by the YAML processor.
-class YamlException extends SpanFormatException {
-  YamlException(String message, Span span)
+class YamlException extends SourceSpanFormatException {
+  YamlException(String message, SourceSpan span)
       : super(message, span);
 }
 
