@@ -494,13 +494,29 @@ class Server {
    * with "--debug", allowing a debugger to be attached.
    */
   static Future<Server> start({bool debugServer: false}) {
+    // TODO(paulberry): move the logic for finding the script, the dart
+    // executable, and the package root into a shell script.
     String dartBinary = Platform.executable;
-    String serverPath = normalize(join(dirname(Platform.script.path), '..',
+    String scriptDir = dirname(Platform.script.path);
+    String serverPath = normalize(join(scriptDir, '..',
         '..', 'bin', 'server.dart'));
+    String repoPath = normalize(join(scriptDir, '..', '..', '..', '..'));
+    String buildDirName;
+    if (Platform.isWindows) {
+      buildDirName = 'build';
+    } else if (Platform.isMacOS){
+      buildDirName = 'xcodebuild';
+    } else {
+      buildDirName = 'out';
+    }
+    String dartConfiguration = 'ReleaseIA32'; // TODO(paulberry): this is a guess
+    String buildPath = join(repoPath, buildDirName, dartConfiguration);
+    String packageRoot = join(buildPath, 'packages');
     List<String> arguments = [];
     if (debugServer) {
       arguments.add('--debug');
     }
+    arguments.add('--package-root=$packageRoot');
     arguments.add(serverPath);
     return Process.start(dartBinary, arguments).then((Process process) {
       Server server = new Server._(process);
