@@ -146,11 +146,12 @@ abstract class AbstractAnalysisServerIntegrationTest {
 // Matchers common to all domains
 // ------------------------------
 
-const Matcher isResultResponse = const MatchesJsonObject('result response',
+const Matcher isResponse = const MatchesJsonObject('response',
     const {
   'id': isString
 }, optionalFields: const {
-  'result': anything
+  'result': anything,
+  'error': isError
 });
 
 const Matcher isError = const MatchesJsonObject('Error', const {
@@ -164,12 +165,6 @@ const Matcher isError = const MatchesJsonObject('Error', const {
   // string list map" in response to a malformed "analysis.setSubscriptions"
   // command).
   'data': anything
-});
-
-const Matcher isErrorResponse = const MatchesJsonObject('error response', const
-    {
-  'id': isString,
-  'error': isError
 });
 
 const Matcher isNotification = const MatchesJsonObject('notification', const {
@@ -529,17 +524,13 @@ class Server {
             // TODO(paulberry): propagate the error info to the completer.
             completer.completeError(new UnimplementedError(
                 'Server responded with an error'));
-            // Check that the message is well-formed.  We do this after calling
-            // completer.completeError() so that we don't stall the test in the
-            // event of an error.
-            expect(message, isErrorResponse);
           } else {
             completer.complete(messageAsMap['result']);
-            // Check that the message is well-formed.  We do this after calling
-            // completer.complete() so that we don't stall the test in the
-            // event of an error.
-            expect(message, isResultResponse);
           }
+          // Check that the message is well-formed.  We do this after calling
+          // completer.complete() or completer.completeError() so that we don't
+          // stall the test in the event of an error.
+          expect(message, isResponse);
         } else {
           // Message is a notification.  It should have an event and possibly
           // params.
