@@ -544,6 +544,9 @@ The scope of a library function is the scope of the enclosing library. The scope
 
 It is a compile-time error to preface a function declaration with the built-in identifier \STATIC{}.
 
+When we say that a function $f_1$ {\em forwards} to another function $f_2$, we mean that  invoking $f_1$ causes $f_2$ to  be executed with the same arguments and/or receiver as $f_1$, and returns the result of executing $f_2$ to the caller of $f_1$, unless $f_2$ throws an exception, in which case $f_1$ throws the same exception. Furthermore, we only use the term for synthetic functions introduced by the specification.
+
+
 \subsection{Formal Parameters}
 \label{formalParameters}
 
@@ -888,7 +891,7 @@ Getters are functions (\ref{functions})  that are used to retrieve the values of
 
 If no return type is specified, the return type of the getter is  \DYNAMIC{}.
 
-A getter definition that is prefixed with the \STATIC{} modifier defines a static getter. Otherwise, it defines an instance getter. The name of the getter is given by the identifier in the definition.
+A getter definition that is prefixed with the \STATIC{} modifier defines a static getter. Otherwise, it defines an instance getter. The name of the getter is given by the identifier in the definition. The effect of a static getter declaration in class $C$ is to add an instance getter with the same name and signature to the \code{Type} object for class $C$ that forwards (\ref{functionDeclarations})  to the static getter.
 
 %It is a compile-time error if a getter`s formal parameter list is not empty.
 
@@ -921,7 +924,7 @@ Setters are functions (\ref{functions}) that are used to set the values of objec
 
 If no return type is specified, the return type of the setter is  \DYNAMIC{}.
 
-A setter definition that is prefixed with the \STATIC{} modifier defines a static setter. Otherwise, it defines an instance setter. The name of a setter is  obtained by appending the  string `='  to the identifier given in its signature.
+A setter definition that is prefixed with the \STATIC{} modifier defines a static setter. Otherwise, it defines an instance setter. The name of a setter is  obtained by appending the  string `='  to the identifier given in its signature. The effect of a static setter declaration in class $C$ is to add an instance setter with the same name and signature to the \code{Type} object for class $C$ that forwards (\ref{functionDeclarations})  to the static setter.
 
 \commentary{Hence, a setter name can never conflict with, override or be overridden by a getter or method.}
 
@@ -1419,6 +1422,8 @@ When invoked from a constant object expression, a constant constructor must thro
 \label{staticMethods}
 
 {\em Static methods} are functions, other than getters or setters, whose declarations are immediately contained within a class declaration and that are declared \STATIC{}. The static methods of a class $C$ are those static methods declared by $C$.
+
+The effect of a static method declaration in class $C$ is to add an instance method with the same name and signature to the \code{Type} object for class $C$ that forwards (\ref{functionDeclarations})  to the static method.
 
 \rationale{
 Inheritance of static methods has little utility in Dart. Static methods cannot be overridden. Any required static function can be obtained from its declaring library, and there is no need to bring it into scope via inheritance. Experience shows that developers are confused by the idea of inherited methods that are not instance methods.
@@ -2068,7 +2073,7 @@ An {\em expression} is a fragment of Dart code that can be evaluated at run time
 An expression $e$ may always be enclosed in parentheses, but this never has any semantic effect on $e$.
 
 \commentary{
-Sadly, it may have an effect on the surrounding expression. Given a class $C$ with static method $m => 42$, $C.m()$ returns 42, but $(C).m()$ produces a \code{NoSuchMethodError}.  This anomaly can be corrected by ensuring that every instance of \code{Type} has instance members corresponding to its static members. This issue may be addressed in future versions of Dart .
+Sadly, it may have an effect on the surrounding expression. Given a class $C$ with static method $m => 42$, $C.m()$ returns 42, but $(C).m()$ produces a \code{NoSuchMethodError}.  This anomaly can be corrected by removing the restrictions on calling the members of instances of \code{Type}. This issue may be addressed in future versions of Dart.
 }
 
  \subsubsection{Object Identity}
@@ -2122,9 +2127,9 @@ A constant expression is one of the following:
 \item A qualified reference to a static constant variable (\ref{variables}) that is not qualified by a deferred prefix. 
 \commentary {For example, If class C declares a constant static variable v, C.v is a constant. The same is true if C is accessed via a prefix p; p.C.v is a constant  unless p is a deferred prefix.
 }
-\item An identifier expression that denotes a constant variable. %CHANGE in googledoc
-\item A simple or qualified identifier denoting a class or a type alias. 
-\commentary {For example, if C is a class or typedef C is a constant, and if C is imported with a prefix p,  p.C is a constant.
+\item An identifier expression that denotes a constant variable. 
+\item A qualified reference to a static constant variable (\ref{variables}) that is not qualified by a deferred prefix. 
+\commentary {For example, If class C declares a constant static variable v, C.v is a constant. The same is true if C is accessed via a prefix p; p.C.v is a constant  unless p is a deferred prefix.
 }
 \item A constant constructor invocation (\ref{const}) that is not qualified by a deferred prefix.  
 \item A constant list literal (\ref{lists}).
@@ -2989,100 +2994,14 @@ An isolate's memory is finite, as is the space available to its thread's call st
 As discussed in section \ref{errorsAndWarnings}, the handling of a suspended isolate is the responsibility of the embedder.
 }
 
-\subsection{ Property Extraction}
-\label{propertyExtraction}
 
-{\em Property extraction} allows for a member of an object to be concisely extracted from the object.
-If $e$ is an expression that evaluates to an object $o$, and if $m$ is the name of a concrete method member of $e$, then $e.m$ is defined to be equivalent to:
-
-\begin{itemize}
-
-\item  
-\begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
-  \RETURN{} $ u.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
-\} 
-\end{dartCode}
-
-if $m$ has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\item 
-\begin{dartCode}
-$(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
-  \RETURN{} $u.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
-\}
-\end{dartCode}
-
-if $m$ has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\end{itemize}
-
-where $u$ is a fresh final variable bound to $o$, except that:
-\begin{enumerate}
-\item  iff  \code{identical($o_1, o_2$)}  then \cd{$o_1.m$ == $o_2.m$}.
-\item The static type of the property extraction is the static type of function $T.m$, where $T$ is the static type of $e$, if $T.m$ is defined. Otherwise the static type of $e.m$ is \DYNAMIC{}.
-\end{enumerate}
-
-\commentary{
-There is no guarantee that \cd{identical($o_1.m, o_2.m$)}. Dart implementations are not required to canonicalize these or any other closures.
-}
-% local functions that have a closure extracted are always different
-
-\rationale{
-The special treatment of equality in this case facilitates the use of extracted property functions in APIs where callbacks such as event listeners must often be registered and later unregistered. A common example is the DOM API in web browsers.
-}
-
-Otherwise
-%, if $m$ is the name of a getter (\ref{getters}) member of $e$ (declared implicitly or explicitly) then 
-$e.m$ is treated as a getter invocation (\ref{getterInvocation})).
-
-
-\commentary{Observations:
-\begin{enumerate}
-\item One cannot extract a getter or a setter.
-\item One can tell whether one implemented a property via a method or via field/getter, which means that one has to plan ahead as to what construct to use, and that choice is reflected in the interface of the class.
-\end{enumerate}
-} 
-
-Let $S$ be the superclass of the immediately enclosing class. If $m$ is the name of a concrete method member of $S$, then the expression  $\SUPER{}.m$ is defined to be equivalent to:
-
-\begin{itemize}
- %\item $(r_1, \ldots, r_n)\{\RETURN{}$ $o.m(r_1, \ldots, r_n);\}$ if $m$ has only required parameters $r_1, \ldots r_n$.
-%\item $(r_1, \ldots, r_n, rest)\{return$  $o.m(r_1, \ldots, r_n, rest);\}$ if $m$ has required parameters $r_1, \ldots r_n$, and a rest parameter $rest$.
-%\item
-\item  
-\begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$\{
-   \RETURN{} \SUPER{}$.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k)$;
-\}
-\end{dartCode}
-
-if $m$ has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\item 
-\begin{dartCode}
-$(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
-   \RETURN{} \SUPER{}$.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
-\} 
-\end{dartCode}
-
-if $m$ has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\end{itemize}
-
-Except that:
-\begin{enumerate}
-\item  iff  \code{identical($o_1, o_2$)}  then \cd{$o_1.m$ == $o_2.m$}.
-\item 
-The static type of the property extraction is the static type of the method $S.m$,  if $S.m$ is defined. Otherwise the static type of $\SUPER{}.m$ is \DYNAMIC{}.
-\end{enumerate}
-
-Otherwise
-%, if $m$ is the name of a getter (\ref{getters}) member of $S$ (declared implicitly or explicitly) then 
-$\SUPER{}.m$ is treated as a getter invocation (\ref{getterInvocation})).
 
 \subsection{ Function Invocation}
 \label{functionInvocation}
  
-Function invocation occurs in the following cases: when a function expression  (\ref{functionExpressions}) is invoked (\ref{functionExpressionInvocation}), when a method (\ref{methodInvocation}), getter (\ref{getterInvocation}) or setter (\ref{assignment}) is invoked or when a constructor is invoked (either via instance creation (\ref{instanceCreation}), constructor redirection (\ref{redirectingConstructors}) or super initialization). The various kinds of function invocation differ as to how the function to be invoked, $f$,  is determined, as well as whether \THIS{} is bound. Once $f$ has been determined, the formal parameters of $f$ are bound to corresponding actual arguments. The body of $f$ is then executed with the aforementioned bindings. Execution of the body terminates when the first of the following occurs:
+Function invocation occurs in the following cases: when a function expression  (\ref{functionExpressions}) is invoked (\ref{functionExpressionInvocation}), when a method (\ref{methodInvocation}), getter (\ref{topLevelGetterInvocation}, \ref{propertyExtraction}) or setter (\ref{assignment}) is invoked or when a constructor is invoked (either via instance creation (\ref{instanceCreation}), constructor redirection (\ref{redirectingConstructors}) or super initialization). The various kinds of function invocation differ as to how the function to be invoked, $f$,  is determined, as well as whether \THIS{} is bound. Once $f$ has been determined, the formal parameters of $f$ are bound to corresponding actual arguments. The body of $f$ is then executed with the aforementioned bindings. Execution of the body terminates when the first of the following occurs:
 \begin{itemize}
-\item An uncaught exception is thrown. 
+\item An exception is thrown and not caught within the current function activation. 
 \item A return statement (\ref{return}) immediately nested in the body of $f$ is executed.
 \item The last statement of the body completes execution.
 \end{itemize}
@@ -3156,15 +3075,7 @@ An unqualified function invocation $i$ has the form
 
 $id(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k})$, 
 
-where $id$ is an identifier or an identifier qualified with a library prefix. 
-
-If $id$ is qualified with a deferred prefix $p$ and $p$ has not been successfully loaded, then:
-\begin{itemize}
-\item
-If the invocation has the form $p$\code{.loadLibrary()} then an attempt to load the library represented by the prefix $p$ is initiated as discussed in section \ref{imports}. 
-\item
- Otherwise, a \code{NoSuchMethodError} is thrown.
- \end{itemize}
+where $id$ is an identifier. 
 
 If there exists a lexically visible declaration named $id$, let $f_{id}$ be the innermost such declaration. Then:
 \begin{itemize}
@@ -3218,6 +3129,45 @@ the static type of $i$ is the declared return type of  $F$.
 %\item Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \to \bot$.
 %\end{itemize}
 
+\subsection{Lookup}
+
+\subsubsection{Method Lookup}
+\label{methodLookup}
+
+The result of a lookup of a method $m$ in object $o$ with respect to library $L$ is the result of  a lookup of method $m$ in class $C$ with respect to library $L$, where $C$ is the class of $o$.
+
+The result of  a lookup of method $m$ in class $C$ with respect to library $L$ is:
+If $C$ declares a concrete instance method named $m$ that is accessible to $L$,  then that method is the result of the lookup. Otherwise, if $C$ has a superclass $S$, then the result of the lookup is the result of looking up $m$  in $S$ with respect to $L$. Otherwise, we say that the method lookup has failed.
+
+\rationale {
+The motivation for skipping abstract members during lookup is largely to allow smoother mixin composition. 
+}
+
+
+\subsubsection{ Getter and Setter Lookup}
+\label{getterAndSetterLookup}
+
+The result of a lookup of a getter (respectively setter) $m$ in object $o$  with respect  to  library $L$ is the result of looking up getter (respectively setter) $m$ in class $C$ with respect to $L$, where $C$ is the class of $o$.
+
+The result of a lookup of a getter (respectively setter) $m$ in class $C$  with respect to library $L$ is:
+If $C$ declares a concrete instance getter (respectively setter) named $m$  that is accessible to $L$,  then that getter (respectively setter) is the result of the lookup. Otherwise, if $C$ has a superclass $S$, then the result of the lookup is the result of looking up getter (respectively setter) $m$ in $S$ with respect to $L$. Otherwise, we say that the lookup has failed.
+
+\rationale {
+The motivation for skipping abstract members during lookup is largely to allow smoother mixin composition. 
+}
+
+
+\subsection{Top level Getter Invocation}
+\label{topLevelGetterInvocation}
+
+Evaluation of a top-level getter invocation $i$ of the form $m$, where $m$ is an identifier, proceeds as follows:
+
+The getter function $m$ is invoked. The value of $i$ is the result returned by the call to the getter function.
+\commentary{
+Note that the invocation is always defined. Per the rules for identifier references, an identifier will not be treated as a top-level getter invocation unless the getter $i$ is defined. 
+}
+
+The static type of $i$ is the declared return type of $m$.
 
 \subsection{ Method Invocation}
 \label{methodInvocation}
@@ -3229,17 +3179,7 @@ Method invocation can take several forms as specified below.
 
 An ordinary method invocation $i$ has the form 
 
-$o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ where $o$ is not the name of a class or a library prefix.
-
-Method invocation involves method lookup, defined next.
-The result of a lookup of a method $m$ in object $o$ with respect to library $L$ is the result of  a lookup of method $m$ in class $C$ with respect to library $L$, where $C$ is the class of $o$.
-
-The result of  a lookup of method $m$ in class $C$ with respect to library $L$ is:
-If $C$ declares a concrete instance method named $m$ that is accessible to $L$,  then that method is the result of the lookup. Otherwise, if $C$ has a superclass $S$, then the result of the lookup is the result of looking up $m$  in $S$ with respect to $L$. Otherwise, we say that the method lookup has failed.
-
-\rationale {
-The motivation for skipping abstract members during lookup is largely to allow smoother mixin composition. 
-}
+$o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
 Evaluation of an ordinary method invocation $i$ of the form 
 
@@ -3247,7 +3187,7 @@ $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$
 
 proceeds as follows:
 
-First, the expression $o$ is evaluated to a value $v_o$. Next, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated yielding actual argument objects $o_1, \ldots , o_{n+k}$. Let $f$ be the result of looking up method $m$  in $v_o$ with respect to the current library $L$. 
+First, the expression $o$ is evaluated to a value $v_o$. Next, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated yielding actual argument objects $o_1, \ldots , o_{n+k}$. Let $f$ be the result of looking up (\ref{methodLookup}) method $m$  in $v_o$ with respect to the current library $L$. 
 
 Let $p_1 \ldots p_h$ be the required parameters of $f$,  let $p_1 \ldots p_m$ be the positional parameters of $f$ and let $p_{h+1}, \ldots, p_{h+l}$ be the optional parameters declared by $f$.
 
@@ -3255,11 +3195,13 @@ Let $p_1 \ldots p_h$ be the required parameters of $f$,  let $p_1 \ldots p_m$ be
 We have an argument list consisting of $n$ positional arguments and $k$ named arguments. We have a function with $h$ required parameters and $l$ optional parameters. The number of positional arguments must be at least as large as the number of required parameters, and no larger than the number of positional parameters. All named arguments must have a corresponding named parameter. 
 }
 
-If  $n < h$, or $n > m$, the method lookup has failed. Furthermore, each $x_i, n+1 \le i \le n+k$,  must have a corresponding named parameter in the set $\{p_{m+1}, \ldots, p_{h+l}\}$ or the method lookup also fails.  Otherwise method lookup has succeeded.
+If  $n < h$, or $n > m$, the method lookup has failed. Furthermore, each $x_i, n+1 \le i \le n+k$,  must have a corresponding named parameter in the set $\{p_{m+1}, \ldots, p_{h+l}\}$ or the method lookup also fails.  If $v_o$ is an instance of \code{Type} but $o$ is not a constant type literal, then if $m$ is a method that forwards (\ref{functionDeclarations}) to a static method, method lookup fails. Otherwise method lookup has succeeded.
 
 If the method lookup succeeded, the body of $f$ is executed with respect to the bindings that resulted from the evaluation of the argument list, and with \THIS{} bound to $v_o$. The value of $i$ is the value returned after $f$ is executed.
 
-If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $v_o$ with respect to $L$. If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $o.m$. Then the value of $i$ is the result of invoking 
+If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $v_o$ with respect to $L$. 
+f $v_o$ is an instance of \code{Type} but $o$ is not a constant type literal, then if $g$ is a getter that forwards to a static getter, getter lookup fails.
+If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $o.m$. Then the value of $i$ is the result of invoking 
 the static method \code{Function.apply()} with arguments $v.g, [o_1, \ldots , o_n], \{x_{n+1}: o_{n+1}, \ldots , x_{n+k}: o_{n+k}\}$.
 
 If  getter lookup has also failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
@@ -3270,12 +3212,12 @@ If  getter lookup has also failed, then a new instance $im$  of the predefined c
 \item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$x_{n+1}: o_{n+1}, \ldots, x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
 
-Then the method \code{noSuchMethod()} is looked up in $o$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $o$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
+Then the method \code{noSuchMethod()} is looked up in $v_o$ and invoked with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $v_o$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
 \begin{itemize}
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to \code{noSuchMethod'}.
 \item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im.namedArguments} evaluates to an empty immutable map.
+\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
 
 and the result of the latter invocation is the result of evaluating $i$.
@@ -3293,13 +3235,16 @@ It is possible to bring about such a situation by overriding \code{noSuchMethod(
 
 \commentary{Notice that the wording carefully avoids re-evaluating the receiver $o$ and the arguments $a_i$. }
 
-Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not have an accessible  (\ref{privacy}) instance member named $m$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.   If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
-% The following is not needed because it is specified in 'Binding Actuals to Formals" Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \to \bot$.
+Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not have an accessible  (\ref{privacy}) instance member named $m$ unless  either:
+\begin{itemize}
+\item
+$T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
+\item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$.
+\end{itemize}
 
+If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.  
 
-
-%\subsubsection{This Invocation}
-% Maybe this has no significance the way the language is set up?
+It is a compile-time error to invoke any of the methods of class \cd{Object} on a prefix object (\ref{imports}) or on a constant type literal that is  immediately followed by the token `.'.
 
 
 \subsubsection{Cascaded Invocations}
@@ -3319,46 +3264,6 @@ where $e$ is an expression and {\em suffix} is a sequence of operator, method, g
 \end{grammar}
 
 A cascaded method invocation expression of the form {\em e..suffix} is equivalent to the expression \code{(t)\{t.{\em suffix}; \RETURN{} t;\}($e$)}.
-
-\subsubsection{Static Invocation}
-\label{staticInvocation}
-
-A static method invocation $i$ has the form 
-
-$C.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ 
-
-where $C$ denotes a class in the current scope.
-
-It is a static warning if $C$ does not declare a static method or getter $m$.
-
-\rationale{
-Note that the absence of $C.m$ is statically detectable. Nevertheless, we choose not to define this situation as an error.  The goal is to allow coding to proceed in the order that suits the developer rather than eagerly insisting on consistency. The warnings are given statically at compile-time to help developers catch errors. However, developers need not correct these problems immediately in order to make progress.
-}
-
-\commentary{
-Note the requirement that $C$ {\em declare} the method. This means that static methods declared in superclasses of $C$ cannot be invoked via $C$.
-}
-
-
-Evaluation of $i$ proceeds as follows:
-
-If $C$ is a deferred type  (\ref{staticTypes}) with prefix $p$, and $p$ has not been successfully loaded, or
-if $C$ does not declare a static method or getter $m$ then the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated, after which a \code{NoSuchMethodError} is thrown. 
-
-Otherwise, evaluation proceeds as follows:
-\begin{itemize}
-\item
-If the member $m$ declared by $C$ is a getter, then $i$ is equivalent to the expression $(C.m)(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. 
-\item Otherwise, let $f$ be the the method $m$ declared in class $C$. Next, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated.
-The body of $f$ is then executed with respect to the bindings that resulted from the evaluation of the argument list. The value of $i$ is the value returned after the body of $f$ is executed.
-\end{itemize}
-
-It is a static type warning if the type $F$ of $C.m$ may not be assigned to a function type.  If $F$ is not a function type, or if $C.m$ does not exist, the static type of $i$ is \DYNAMIC{}. Otherwise 
-the static type of $i$ is the declared return type of  $F$.  
-% The following is not needed because it is specified in 'Binding Actuals to Formals"Let $T_i$ be the static type of $a_i, i \in 1 .. n+k$. It is a static warning if $F$ is not a supertype of  $(T_1, \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \to \bot$.
-
- 
-
 
 \subsubsection{Super Invocation}
 \label{superInvocation}
@@ -3391,7 +3296,7 @@ Then the method \code{noSuchMethod()} is looked up in $S$ and invoked on \THIS{}
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to \code{noSuchMethod}.
 \item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im.namedArguments} evaluates to an empty immutable map.
+\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
 
 and the result of this latter invocation is the result of evaluating $i$.
@@ -3416,27 +3321,22 @@ Messages are the sole means of communication among isolates. Messages are sent b
 }
 
 
-\subsection{ Getter and Setter Lookup}
-\label{getterAndSetterLookup}
 
-The result of a lookup of a getter (respectively setter) $m$ in object $o$  with respect  to  library $L$ is the result of looking up getter (respectively setter) $m$ in class $C$ with respect to $L$, where $C$ is the class of $o$.
+\subsection{ Property Extraction}
+\label{propertyExtraction}
 
-The result of a lookup of a getter (respectively setter) $m$ in class $C$  with respect to library $L$ is:
-If $C$ declares a concrete instance getter (respectively setter) named $m$  that is accessible to $L$,  then that getter (respectively setter) is the result of the lookup. Otherwise, if $C$ has a superclass $S$, then the result of the lookup is the result of looking up getter (respectively setter) $m$ in $S$ with respect to $L$. Otherwise, we say that the lookup has failed.
+{\em Property extraction} allows for a member of an object to be concisely extracted from the object.
+A property extraction can be either:
+\begin{enumerate}
+\item A {\em closurization} (\ref{closurization}) which allows a method to be treated as if it were a getter for a function valued object. Or
+\item A {\em getter invocation} which returns the result of invoking of a getter method.
+\end{enumerate}
 
-\rationale {
-The motivation for skipping abstract members during lookup is largely to allow smoother mixin composition. 
-}
+Evaluation of a property extraction $i$ of the form $e.m$ proceeds as follows:
 
-\subsection{ Getter Invocation}
-\label{getterInvocation}
+First, the expression $e$ is evaluated to an object $o$. Let $f$ be the result of looking up (\ref{methodLookup}) method  (\ref{instanceMethods}) $m$ in $o$ with respect to the current library $L$.  If $o$ is an instance of \code{Type} but $e$ is not a constant type literal, then if $m$ is a method that forwards (\ref{functionDeclarations}) to a static method,  method lookup fails. If method lookup succeeds and $f$ is a concrete method then $i$ evaluates to the closurization of $o.m$.  
 
-A getter invocation provides access to the value of a property.
-
-Evaluation of a getter invocation $i$ of the form $e.m$ proceeds as follows:
-
-First, the expression $e$ is evaluated to an object $o$. Then, the getter function (\ref{getters}) $m$ is looked up (\ref{getterAndSetterLookup}) in $o$  with respect to  the current library, and its body is executed with \THIS{} bound to $o$.  The value of the getter invocation expression is the result returned by the call to the getter function. 
-
+Otherwise, $i$ is a getter invocation, and the getter function (\ref{getters}) $m$ is looked up (\ref{getterAndSetterLookup}) in $o$  with respect to $L$. If $o$ is an instance of \code{Type} but $e$ is not a constant type literal, then if $m$ is a getter that forwards  to a static getter,  getter lookup fails. Otherwise, the body of $m$ is executed with \THIS{} bound to $o$.  The value of $i$ is the result returned by the call to the getter function. 
 
 If the getter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
 \begin{itemize}
@@ -3450,32 +3350,38 @@ Then the method \code{noSuchMethod()} is looked up in $o$ and invoked  with argu
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to \code{noSuchMethod}.
 \item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im.namedArguments} evaluates to an empty immutable map.
+\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
 
 and the result of this latter invocation is the result of evaluating $i$.
 
-Let $T$ be the  static type of $e$. It is a static type warning if $T$ does not have a getter named $m$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. The static type of $i$ is the declared return type of $T.m$, if $T.m$ exists; otherwise the static type of $i$  is  \DYNAMIC{}. 
+It is a compile-time error if $m$ is a member of class \cd{Object} and $e$ is either a prefix object (\ref{imports}) or a constant type literal.
 
-Evaluation of a getter invocation $i$ of the form $C.m$ proceeds as follows:
-
-If  there is no class $C$ in the enclosing lexical scope of $i$, or if  $C$ does not declare, implicitly or explicitly, a getter named $m$, then a \code{NoSuchMethodError} is thrown. 
-Otherwise, the getter function $C.m$ is invoked. The value of $i$ is the result returned by the call to the getter function. 
-
-It is a static warning  if there is no class $C$ in the enclosing lexical scope of $i$, or if  $C$ does not declare, implicitly or explicitly, a getter named $m$. The static type of $i$ is the declared return type of $C.m$ if it exists or \DYNAMIC{} otherwise. 
-
-Evaluation of a top-level getter invocation $i$ of the form $m$, where $m$ is an identifier, proceeds as follows:
-
-The getter function $m$ is invoked. The value of $i$ is the result returned by the call to the getter function.
-\commentary{
-Note that the invocation is always defined. Per the rules for identifier references, an identifier will not be treated as a top-level getter invocation unless the getter $i$ is defined. 
+\commentary {
+This precludes \code{int.toString} but not \code{(int).toString} because in the latter case, $e$ is a parenthesized expression.
 }
 
-The static type of $i$ is the declared return type of $m$.
+Let $T$ be the  static type of $e$. It is a static type warning if $T$ does not have a method or getter named $m$ unless either:
+\begin{itemize}
+\item
+$T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
+\item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static method or getter named $m$.
+\end{itemize}
 
-Evaluation of super getter invocation $i$ of the form $\SUPER{}.m$ proceeds as follows:
+If $i$ is a getter invocation, the static type of $i$ is:
+\begin{itemize}
+\item The declared return type of $T.m$, if $T.m$ exists.
+\item The declared return type of $m$, if  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static method or getter named $m$.
+\item  The type \DYNAMIC{} otherwise.  
+\end{itemize}
 
-Let $S$ be the superclass of the immediately enclosing class. The getter function (\ref{getters}) $m$ is looked up (\ref{getterAndSetterLookup}) in $S$  with respect to  the current library, and its body is executed with \THIS{} bound to the current value of  \THIS{}.  The value of the getter invocation expression is the result returned by the call to the getter function. 
+If $i$ is a closurization, its static type is as described in section \ref{closurization}.
+
+Evaluation of a property extraction $i$ of the form $\SUPER.m$ proceeds as follows:
+
+ Let $S$ be the superclass of the immediately enclosing class. Let $f$ be the result of looking up method $m$ in $S$ with respect to the current library $L$.  If $f$ is a concrete method then $i$ evaluates to the closurization of $\SUPER.m$ with respect to superclass $S$(\ref{closurization}).  
+ 
+ Otherwise, $i$ is a getter invocation and the getter function $m$ is looked up in $S$  with respect to $L$, and its body is executed with \THIS{} bound to the current value of  \THIS{}.  The value of $i$ is the result returned by the call to the getter function. 
 
 If the getter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
 \begin{itemize}
@@ -3489,22 +3395,96 @@ Then the method \code{noSuchMethod()} is looked up in $S$ and invoked  with argu
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to \code{noSuchMethod}.
 \item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im.namedArguments} evaluates to an empty immutable map.
+\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
 
 and the result of this latter invocation is the result of evaluating $i$.
 
-It is a static type warning if $S$ does not have a getter named $m$.  The static type of $i$ is the declared return type of $S.m$, if $S.m$ exists; otherwise the static type of $i$  is  \DYNAMIC{}. 
-
-Evaluation of a getter invocation of the form $p.C.v$, where $p$ is a deferred prefix, proceeds as follows:
-
-If $p$ has been successfully loaded, the assignment is evaluated exactly like the invocation $K.v$, where $K$ denotes the top level member $C$ of the library represented by $p$. Otherwise a \code{NoSuchMethodError} is thrown.
+It is a static type warning if $S$ does not have a method or getter named $m$.  If $i$ is a getter invocation, the static type of $i$ is the declared return type of $S.m$, if $S.m$ exists and  \DYNAMIC{} otherwise. If $i$ is a closurization, its static type is as described in section \ref{closurization}.
 
 
-Evaluation of a top-level getter invocation $i$ of the form $p.m$, where $p$ is a deferred prefix and  $m$ is an identifier, proceeds as follows:
+\subsubsection{Closurization}
+\label{closurization}
 
-If $p$ has been successfully loaded, the invocation is evaluated exactly like the invocation $w$, where $w$ denotes the top level member named $m$ of the library represented by $p$. Otherwise a \code{NoSuchMethodError} is thrown.
+The {\em closurization of $o.m$} is defined to be equivalent to:
+
+\begin{itemize}
+
+\item  
+\begin{dartCode}
+$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+  \RETURN{} $ u.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
+\} 
+\end{dartCode}
+
+if $m$ has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\item 
+\begin{dartCode}
+$(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
+  \RETURN{} $u.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
+\}
+\end{dartCode}
+
+if $m$ has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\end{itemize}
+
+where $u$ is a fresh final variable bound to $o$, except that:
+\begin{enumerate}
+\item  Iff  \code{identical($o_1, o_2$)}  then \cd{$o_1.m$ == $o_2.m$}.
+\item The static type of the property extraction is the static type of function $T.m$, where $T$ is the static type of $e$, if $T.m$ is defined. Otherwise the static type of $e.m$ is \DYNAMIC{}.
+\end{enumerate}
+
+\commentary{
+There is no guarantee that \cd{identical($o_1.m, o_2.m$)}. Dart implementations are not required to canonicalize these or any other closures.
+}
+% local functions that have a closure extracted are always different
+
+\rationale{
+The special treatment of equality in this case facilitates the use of extracted property functions in APIs where callbacks such as event listeners must often be registered and later unregistered. A common example is the DOM API in web browsers.
+}
+
+
+
+
+\commentary{Observations:
+\begin{enumerate}
+\item One cannot closurize a getter or a setter.
+\item One can tell whether one implemented a property via a method or via field/getter, which means that one has to plan ahead as to what construct to use, and that choice is reflected in the interface of the class.
+\end{enumerate}
+} 
+
+
  
+The closurization of $\SUPER{}.m$ with respect to superclass $S$ is defined to be equivalent to:
+
+\begin{itemize}
+ %\item $(r_1, \ldots, r_n)\{\RETURN{}$ $o.m(r_1, \ldots, r_n);\}$ if $m$ has only required parameters $r_1, \ldots r_n$.
+%\item $(r_1, \ldots, r_n, rest)\{return$  $o.m(r_1, \ldots, r_n, rest);\}$ if $m$ has required parameters $r_1, \ldots r_n$, and a rest parameter $rest$.
+%\item
+\item  
+\begin{dartCode}
+$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$\{
+   \RETURN{} \SUPER{}$.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k)$;
+\}
+\end{dartCode}
+
+if $m$ has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\item 
+\begin{dartCode}
+$(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
+   \RETURN{} \SUPER{}$.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
+\} 
+\end{dartCode}
+
+if $m$ has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
+\end{itemize}
+
+Except that:
+\begin{enumerate}
+\item  iff  \code{identical($o_1, o_2$)}  then \cd{$o_1.m$ == $o_2.m$}.
+\item 
+The static type of the property extraction is the static type of the method $S.m$,  if $S.m$ is defined. Otherwise the static type of $\SUPER{}.m$ is \DYNAMIC{}.
+\end{enumerate}
 
 
 \subsection{ Assignment}
@@ -3546,27 +3526,9 @@ In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interf
 
 It is a static type warning if the static type of $e$ may not be assigned to the static type of $v$. The static type of the expression $v$ \code{=} $e$ is the static type of $e$.
 
-Evaluation of an assignment of the form $C.v$ \code{=} $e$ proceeds as follows:
-
-If $C$ does not denote a class available in the current scope, the assignment is treated as an assignment  $e_1.v= e$, where $e_1$ is the expression $C$. Otherwise, 
-the expression $e$ is evaluated to an object $o$.  
-If 
-%there is no class $C$ in the enclosing lexical scope of the assignment, or if 
-$C$ does not declare, implicitly or explicitly, a setter $v=$, then a \code{NoSuchMethodError} is thrown. Otherwise, the setter $C.v=$ is invoked with its formal parameter bound to $o$. The value of the assignment expression is $o$. 
-
-It is a static warning if 
-% there is no class $C$ in the enclosing lexical scope of the assignment, or if 
-$C$ does not declare, implicitly or explicitly, a setter $v=$.
-
-%\commentary{As of this writing, implementations treat the above situation as a compile-time error.}
-
-In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interface of the class of $o$ is not a subtype of the declared static type of $C.v$.
-
-It is a static type warning if the static type of $e$ may not be assigned to the static type of $C.v$.  The static type of the expression $C.v$ \code{=} $e$ is the static type of $e$.
-
 Evaluation of an assignment of the form $e_1.v$ \code{=} $e_2$ proceeds as follows:
 
-The expression $e_1$ is evaluated to an object $o_1$. Then, the expression $e_2$  is evaluated to an object $o_2$. Then, the setter $v=$ is looked up (\ref{getterAndSetterLookup}) in $o_1$ with respect to the current library, and its body is executed with its formal parameter bound to $o_2$ and \THIS{} bound to $o_1$. 
+The expression $e_1$ is evaluated to an object $o_1$. Then, the expression $e_2$  is evaluated to an object $o_2$. Then, the setter $v=$ is looked up (\ref{getterAndSetterLookup}) in $o_1$ with respect to the current library.  If $o_1$ is an instance of \code{Type} but $e_1$ is not a constant type literal, then if $v=$ is a setter that forwards (\ref{functionDeclarations}) to a static setter, setter lookup fails. Otherwise, the body  of $v=$ is executed with its formal parameter bound to $o_2$ and \THIS{} bound to $o_1$. 
 
 If the setter lookup has failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
 \begin{itemize}
@@ -3582,22 +3544,22 @@ However, if the implementation found cannot be invoked with a single positional 
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to \code{noSuchMethod}.
 \item \code{im.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-\item \code{im.namedArguments} evaluates to an empty immutable map.
+\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
 \end{itemize}
 
 The value of the assignment expression is $o_2$ irrespective of whether setter lookup has failed or succeeded.
 
-Evaluation of an assignment of the form $p.v \code{=} e$, where $p$ is a deferred prefix, proceeds as follows:
-
-If $p$ has been successfully loaded, the assignment is evaluated exactly like the assignment $w \code{=} e$, where $w$ denotes the top level member named $v$ of the library represented by $p$. Otherwise, $e$ is evaluated and then a \code{NoSuchMethodError} is thrown.
-
-Evaluation of an assignment of the form $p.C.v \code{=} e$, where $p$ is a deferred prefix, proceeds as follows:
-
-If $p$ has been successfully loaded, the assignment is evaluated exactly like the assignment $K.v = e$, where $K$ denotes the top level member $C$ of the library represented by $p$. Otherwise $e$ is evaluated and then a \code{NoSuchMethodError} is thrown.
-
 In checked mode, it is a dynamic type error if $o_2$ is not \NULL{} and the interface of the class of $o_2$ is not a subtype of the actual type of $e_1.v$.
 
-Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not have an accessible instance setter named $v=$ unless $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. It is a static type warning if the static type of $e_2$ may not be assigned to $T$.   The static type of the expression $e_1v$ \code{=} $e_2$ is the static type of $e_2$.
+Let $T$ be the static type of $e_1$. It is a static type warning if $T$ does not have an accessible instance setter named $v=$ unless either:
+\begin{itemize}
+\item $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}. Or
+\item $T$ is \code{Type}, $e_1$ is a constant type literal and the class corresponding to $e_1$ has a static setter named $v=$. 
+\end{itemize}
+
+
+
+It is a static type warning if the static type of $e_2$ may not be assigned to $T$.   The static type of the expression $e_1v$ \code{=} $e_2$ is the static type of $e_2$.
 
 Evaluation of an assignment of the form $e_1[e_2]$ \code{=} $e_3$ is equivalent to the evaluation of the expression \code{(a, i, e)\{a.[]=(i, e); \RETURN{} e; \} ($e_1, e_2, e_3$)}.  The static type of the expression $e_1[e_2]$ \code{=} $e_3$ is the static type of $e_3$.
 
@@ -3605,13 +3567,15 @@ Evaluation of an assignment of the form $e_1[e_2]$ \code{=} $e_3$ is equivalent 
 
 It is as static warning if an assignment of the form $v = e$ occurs inside a top level or static function (be it function, method, getter, or setter) or variable initializer and there is neither a local variable declaration with name $v$  nor setter declaration with name $v=$ in the lexical scope enclosing the assignment.
 
+It is a compile-time error to invoke any of the setters of class \cd{Object} on a prefix object (\ref{imports}) or on a constant type literal that is  immediately followed by the token `.'.
+
 
 
 \subsubsection{Compound Assignment}
 \label{compoundAssignment}
 
 A compound assignment of the form $v$ $op\code{=} e$ is equivalent to $v \code{=} v$ $op$ $e$. A compound assignment of the form $C.v$ $op \code{=} e$ is equivalent to $C.v \code{=} C.v$ $op$ $e$. A compound assignment of the form $e_1.v$ $op = e_2$ is equivalent to \code{((x) $=>$ x.v = x.v $op$ $e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. A compound assignment of the form  $e_1[e_2]$ $op\code{=} e_3$ is equivalent to 
-\code{((a, i) $=>$ a[i] = a[i] $op$ $e_3$)($e_1, e_2$)} where $a$ and $i$ are a variables that are not used in $e_3$. A compound assignment of the form $p.v$ $op\code{=} e$, where $p$ is a deferred prefix,  is equivalent to $p.v \code{=} p.v$ $op$ $e$. A compound assignment of the form $p.C.v$ $op\code{=} e$, where $p$ is a deferred prefix,  is equivalent to $p.C.v \code{=} p.C.v$ $op$ $e$.
+\code{((a, i) $=>$ a[i] = a[i] $op$ $e_3$)($e_1, e_2$)} where $a$ and $i$ are a variables that are not used in $e_3$. 
 
 
 \begin{grammar}
@@ -4020,11 +3984,11 @@ An assignable expression of the form $id$ is evaluated as an identifier expressi
 
 %An assignable expression of the form $e.id(a_1, \ldots, a_n)$ is evaluated as a method invocation (\ref{methodInvocation}).
 
-An assignable expression of the form $e.id$ is evaluated as a getter invocation  (\ref{getterInvocation}).
+An assignable expression of the form $e.id$ is evaluated as a property extraction  (\ref{propertyExtraction}).
 
 An assignable expression of the form \code{$e_1$[$e_2$]} is evaluated as a method invocation of the operator method \code{[]} on $e_1$ with argument $e_2$.
 
-An assignable expression of the form \code{\SUPER{}.id}  is evaluated as a getter invocation.
+An assignable expression of the form \code{\SUPER{}.id}  is evaluated as a property extraction.
 
 An assignable expression of the form \code{\SUPER{}[$e_2$]} is equivalent to the method invocation  \code{\SUPER{}.[]($e_2$)}.
 
@@ -4102,7 +4066,8 @@ Let $d$ be the innermost declaration in the enclosing lexical scope whose name i
 %If no such member exists, let $d$ be the declaration of the static member name $id$ declared in a superclass of the current class, if it exists.
 
 \begin{itemize}
-\item If $d$ is a class or type alias $T$, the value of $e$ is an instance of class \code{Type} reifying $T$.
+\item if $d$ is a prefix $p$, a compile-time error occurs unless the token immediately following $d$ is \code{'.'}.
+\item If $d$ is a class or type alias $T$, the value of $e$ is an instance of  class \code{Type} (or a subclass thereof) reifying $T$.
 \item If $d$ is a type parameter $T$, then the value of $e$ is the value of the actual type argument corresponding to $T$ that was  passed to the generative constructor that created the current binding of \THIS{}. If, however, $e$ occurs inside a static member, a compile-time error occurs.
 
 %\commentary{ We are assured that \THIS{} is well defined, because if we were in a static member the reference to $T$ is a compile-time error (\ref{generics}.)}
@@ -4116,8 +4081,8 @@ Let $d$ be the innermost declaration in the enclosing lexical scope whose name i
 \item If $d$ is a local variable or formal parameter then $e$ evaluates to the current binding of $id$. 
 %\item If $d$ is a library variable, local variable, or formal parameter, then $e$ evaluates to the current binding of $id$. \commentary{This case also applies if d is a library or local function declaration, as these are equivalent to function-valued variable declarations.}
 \item If $d$ is a static method, top-level function or local function then $e$ evaluates to the function defined by $d$.
-\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then $e$ is equivalent to the getter invocation (\ref{getterInvocation}) $C.id$. 
-\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then $e$ is equivalent to the getter invocation $id$. 
+\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, then $e$ is equivalent to the property extraction (\ref{propertyExtraction}) $C.id$. 
+\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, then $e$ is equivalent to the top level getter invocation (\ref{topLevelGetterInvocation}) $id$. 
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $e$ causes a \code{NoSuchMethod} to be thrown.
 \item Otherwise, $e$ is equivalent to the property extraction (\ref{propertyExtraction}) \THIS{}.$id$.
 % This implies that referring to an undefined static getter by simple name is an error, whereas doing so by qualified name is only a warning. Same with assignments.  Revise?
@@ -4129,8 +4094,8 @@ The static type of $e$ is determined as follows:
 \item If $d$ is a class, type alias or type parameter the static type of $e$ is \code{Type}.
 \item If $d$ is a local variable or formal parameter the static type of $e$ is the type of the variable $id$, unless $id$ is known to have some type $T$, in which case the static type of $e$ is $T$, provided that $T$ is more specific than any other type $S$ such that $v$ is known to have type $S$. 
 \item If $d$ is a static method, top-level function or local function the static type of $e$ is the function type defined by $d$.
-\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, the static type of $e$ is the static type of the getter invocation (\ref{getterInvocation}) $C.id$.
-\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, the static type of $e$  is the static type of the getter invocation $id$. 
+\item If $d$ is the declaration of a static variable, static getter or static setter declared in class $C$, the static type of $e$ is the static type of the getter invocation (\ref{propertyExtraction}) $C.id$.
+\item If $d$ is the declaration of a library variable, top-level getter or top-level setter, the static type of $e$  is the static type of the top level getter invocation $id$. 
 \item Otherwise, if $e$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, the static type of $e$ is \DYNAMIC{}.
 \item Otherwise, the static type of $e$ is the type of the property extraction (\ref{propertyExtraction}) \THIS{}.$id$.
 \end{itemize}
@@ -5129,17 +5094,18 @@ An import directive $I$ may optionally include a namespace combinator clauses us
 
 Let $I$ be an import directive that refers to a URI via the string $s_1$. Evaluation of $I$  proceeds as follows:
 
-If $I$ is a deferred import, no evaluation takes place. Instead, the following names are added to the scope of $L$:
-\begin{itemize}
-\item
-The name of the prefix, $p$ denoting a deferred prefix declaration.
-\item
-The name \code{$p$.loadLibrary}, denoting a top level function with no arguments, whose semantics are described below.
-\end{itemize}
- 
-A deferred prefix $p$ may be loaded explicitly via the function call \code{$p$.loadLibrary}, which returns a future $f$. The effect of the call is to cause an immediate import $IÕ$ to be executed at some future time, where $IÕ$ is is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $IÕ$ executes without error, $f$ completes successfully. If $IÕ$ executes without error, we say that the call to \code{$p$.loadLibrary} has succeeded, otherwise we say the call has failed.
+If $I$ is a deferred import, no evaluation takes place. Instead, an mapping the name of the prefix, $p$ to a {\em deferred prefix object} is added to the scope of $L$.
+The deferred prefix object has the following methods:
 
-After a call succeeds, the names $p$ and \code{$p$.loadLibrary} remain in the top-level scope of $L$, and so it is possible to call \code{loadLibrary} again. If a call fails, nothing happens, and one again has the option to call \code{loadLibrary} again. Whether a repeated call to \code{loadLibrary} succeeds will vary as described below.
+\begin{itemize}
+\item \code{loadLibrary}. This method returns a future $f$. When called, the method causes an immediate import $IÕ$ to be executed at some future time, where $IÕ$ is is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $IÕ$ executes without error, $f$ completes successfully. If $IÕ$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
+\item  For every top level function $f$ named $id$ in $L$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a runtime error.
+\item For every top level getter $g$ named $id$ in $L$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a runtime error.
+\item For every top level setter $s$ named $id$ in $L$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a runtime error.
+\item For every type $T$ named $id$ in $L$, a corresponding getter named $id$ with return type \code{Type}.  Calling the method results in a runtime error.
+\end{itemize}
+
+After a call succeeds, the name $p$ is mapped to a non-deferred prefix object as described below. In addition, the prefix object also supports the \code{loadLibrary} method, and so it is possible to call \code{loadLibrary} again. If a call fails, nothing happens, and one again has the option to call \code{loadLibrary} again. Whether a repeated call to \code{loadLibrary} succeeds will vary as described below.
 
 The effect of a repeated call to \code{$p$.loadLibrary} is as follows:
 \begin{itemize}
@@ -5191,7 +5157,16 @@ then let $NS_i = \HIDE{}([id_1, \ldots, id_k], NS_{i-1}$)
 where $hide(l, n)$ takes a list of identfiers $l$ and a namespace $n$, and produces a namespace that is identical to $n$ except that for each name $k$ in $l$, $k$ and $k=$ are undefined. 
 \end{itemize}
  
-Next, if $I$ includes a prefix clause of the form \AS{} $p$, let $NS =  prefix(p, NS_n)$ where $prefix(id, n)$, takes an identifier $id$ and produces a namespace that has, for each entry mapping key $k$ to declaration $d$ in $n$,  an entry mapping $id.k$ to $d$. Otherwise, let $NS = NS_n$.
+Next, if $I$ includes a prefix clause of the form \AS{} $p$, let $NS =  NS_n \cup \{p: prefixObject(NS_n)\}$ where $prefixObject(NS_n)$ is a {\em prefix object} for the namespace $NS_n$, which is an object that has the following members:
+
+\begin{itemize}
+\item  For every top level function $f$ named $id$ in $NS_n$, a corresponding method with the same name and signature as $f$ that forwards  (\ref{functionDeclarations}) to $f$.
+\item For every top level getter  with the same name and signature as $g$ named $id$ in $NS_n$, a corresponding getter  that forwards to $g$.
+\item For every top level setter $s$  with the same name and signature as named $id$ in $NS_n$, a corresponding setter  that forwards to  $s$.
+\item For every type $T$ named $id$ in $NS_n$, a corresponding getter named $id$ with return type \code{Type}, that, when invoked, returns the type object for $T$.
+\end{itemize}
+
+Otherwise, let $NS = NS_n$.
 It is a compile-time error if the current library declares a top-level member named $p$.
 
 % This is problematic, because it implies that p.T would be available even in a scope that declared p. We really need to think of p as a single object with properties p.T etc., except it isn't really that
