@@ -1042,8 +1042,10 @@ class CodeRegionTableBuilder : public SampleVisitor {
     CreateTag(sample->vm_tag());
     // Make sure user tag is created.
     CreateUserTag(sample->user_tag());
-    // Exclusive tick for bottom frame.
-    Tick(sample->At(0), true, timestamp);
+    // Exclusive tick for bottom frame if we aren't sampled from an exit frame.
+    if (!sample->exit_frame_sample()) {
+      Tick(sample->At(0), true, timestamp);
+    }
     // Inclusive tick for all frames.
     for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
       if (sample->At(i) == 0) {
@@ -1691,6 +1693,8 @@ class ProfilerDartExitStackWalker : public ValueObject {
       : sample_(sample),
         frame_iterator_(isolate) {
     ASSERT(sample_ != NULL);
+    // Mark that this sample was collected from an exit frame.
+    sample_->set_exit_frame_sample(true);
   }
 
   void walk() {
@@ -2055,13 +2059,13 @@ void Profiler::RecordSampleInterruptCallback(
     // the native stack.
     if ((isolate->stub_code() != NULL) &&
         (isolate->top_exit_frame_info() != 0) &&
-        (isolate->vm_tag() != VMTag::kScriptTagId)) {
+        (isolate->vm_tag() != VMTag::kDartTagId)) {
       // We have a valid exit frame info, use the Dart stack walker.
       ProfilerDartExitStackWalker stackWalker(isolate, sample);
       stackWalker.walk();
     } else if ((isolate->stub_code() != NULL) &&
                (isolate->top_exit_frame_info() == 0) &&
-               (isolate->vm_tag() == VMTag::kScriptTagId)) {
+               (isolate->vm_tag() == VMTag::kDartTagId)) {
       // We are executing Dart code. We have frame pointers.
       ProfilerDartStackWalker stackWalker(isolate,
                                           sample,

@@ -62,7 +62,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(RAX, Immediate(VMTag::kScriptTagId));
+    __ movq(RAX, Immediate(VMTag::kDartTagId));
     __ cmpq(RAX, Address(CTX, Isolate::vm_tag_offset()));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -96,7 +96,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(CTX, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kScriptTagId));
+          Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -174,7 +174,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(R8, Immediate(VMTag::kScriptTagId));
+    __ movq(R8, Immediate(VMTag::kDartTagId));
     __ cmpq(R8, Address(CTX, Isolate::vm_tag_offset()));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -208,7 +208,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(CTX, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kScriptTagId));
+          Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -263,7 +263,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ movq(R8, Immediate(VMTag::kScriptTagId));
+    __ movq(R8, Immediate(VMTag::kDartTagId));
     __ cmpq(R8, Address(CTX, Isolate::vm_tag_offset()));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -295,7 +295,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(CTX, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kScriptTagId));
+          Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(CTX, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -750,7 +750,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Mark that the isolate is executing Dart code.
   __ movq(Address(kIsolateReg, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kScriptTagId));
+          Immediate(VMTag::kDartTagId));
 
   // Save the top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
@@ -1774,7 +1774,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ movq(kExceptionObjectReg, CallingConventions::kArg4Reg);
   // Set the tag.
   __ movq(Address(isolate_reg, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kScriptTagId));
+          Immediate(VMTag::kDartTagId));
   // Clear top exit frame.
   __ movq(Address(isolate_reg, Isolate::top_exit_frame_info_offset()),
           Immediate(0));

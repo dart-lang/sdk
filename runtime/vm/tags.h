@@ -20,7 +20,7 @@ class RuntimeEntry;
   V(CompileUnoptimized)                                                        \
   V(CompileTopLevel)                                                           \
   V(CompileScanner)                                                            \
-  V(Script)                                                                    \
+  V(Dart)                                                                      \
   V(GCNewSpace)                                                                \
   V(GCOldSpace)                                                                \
   V(Runtime)                                                                   \
