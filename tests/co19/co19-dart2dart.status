@@ -7,6 +7,9 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # issue 19953
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # issue 19953
 LibTest/core/List/List_class_A01_t02: Crash # issue 19953
 
+[ $compiler == dart2dart && $builder_tag != new_backend ]
+Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r667: Please triage this failure
+
 [ $compiler == dart2dart ]
 Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
@@ -25,8 +28,6 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: CompileTimeError # dart issue 17523
-
-Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r667: Please triage this failure
 
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 
