@@ -5,12 +5,10 @@
 library services.correction.fix;
 
 import 'package:analysis_services/correction/change.dart';
-import 'package:analysis_services/correction/source_range_factory.dart' as rf;
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/correction/fix.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -20,7 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
  */
 List<Fix> computeFixes(SearchEngine searchEngine, String file,
     CompilationUnit unit, AnalysisError error) {
-  var processor = new _FixProcessor(searchEngine, file, unit, error);
+  var processor = new FixProcessor(searchEngine, file, unit, error);
   return processor.compute();
 }
 
@@ -46,145 +44,84 @@ class Fix {
  */
 class FixKind {
   static const ADD_PACKAGE_DEPENDENCY =
-      const FixKind(
-          'QF_ADD_PACKAGE_DEPENDENCY',
-          50,
-          "Add dependency on package '%s'");
+      const FixKind('ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '%s'");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION =
       const FixKind(
-          'QF_ADD_SUPER_CONSTRUCTOR_INVOCATION',
+          'ADD_SUPER_CONSTRUCTOR_INVOCATION',
           50,
           "Add super constructor %s invocation");
-  static const CHANGE_TO = const FixKind('QF_CHANGE_TO', 51, "Change to '%s'");
+  static const CHANGE_TO = const FixKind('CHANGE_TO', 51, "Change to '%s'");
   static const CHANGE_TO_STATIC_ACCESS =
       const FixKind(
-          'QF_CHANGE_TO_STATIC_ACCESS',
+          'CHANGE_TO_STATIC_ACCESS',
           50,
           "Change access to static using '%s'");
   static const CREATE_CLASS =
-      const FixKind('QF_CREATE_CLASS', 50, "Create class '%s'");
+      const FixKind('CREATE_CLASS', 50, "Create class '%s'");
   static const CREATE_CONSTRUCTOR =
-      const FixKind('QF_CREATE_CONSTRUCTOR', 50, "Create constructor '%s'");
+      const FixKind('CREATE_CONSTRUCTOR', 50, "Create constructor '%s'");
   static const CREATE_CONSTRUCTOR_SUPER =
-      const FixKind(
-          'QF_CREATE_CONSTRUCTOR_SUPER',
-          50,
-          "Create constructor to call %s");
+      const FixKind('CREATE_CONSTRUCTOR_SUPER', 50, "Create constructor to call %s");
   static const CREATE_FUNCTION =
-      const FixKind('QF_CREATE_FUNCTION', 49, "Create function '%s'");
+      const FixKind('CREATE_FUNCTION', 49, "Create function '%s'");
   static const CREATE_METHOD =
-      const FixKind('QF_CREATE_METHOD', 50, "Create method '%s'");
+      const FixKind('CREATE_METHOD', 50, "Create method '%s'");
   static const CREATE_MISSING_OVERRIDES =
-      const FixKind(
-          'QF_CREATE_MISSING_OVERRIDES',
-          50,
-          "Create %d missing override(s)");
+      const FixKind('CREATE_MISSING_OVERRIDES', 50, "Create %d missing override(s)");
   static const CREATE_NO_SUCH_METHOD =
-      const FixKind('QF_CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
+      const FixKind('CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
   static const CREATE_PART =
-      const FixKind('QF_CREATE_PART', 50, "Create part '%s'");
+      const FixKind('CREATE_PART', 50, "Create part '%s'");
   static const IMPORT_LIBRARY_PREFIX =
       const FixKind(
-          'QF_IMPORT_LIBRARY_PREFIX',
+          'IMPORT_LIBRARY_PREFIX',
           51,
           "Use imported library '%s' with prefix '%s'");
   static const IMPORT_LIBRARY_PROJECT =
-      const FixKind('QF_IMPORT_LIBRARY_PROJECT', 51, "Import library '%s'");
+      const FixKind('IMPORT_LIBRARY_PROJECT', 51, "Import library '%s'");
   static const IMPORT_LIBRARY_SDK =
-      const FixKind('QF_IMPORT_LIBRARY_SDK', 51, "Import library '%s'");
+      const FixKind('IMPORT_LIBRARY_SDK', 51, "Import library '%s'");
   static const IMPORT_LIBRARY_SHOW =
-      const FixKind('QF_IMPORT_LIBRARY_SHOW', 51, "Update library '%s' import");
+      const FixKind('IMPORT_LIBRARY_SHOW', 51, "Update library '%s' import");
   static const INSERT_SEMICOLON =
-      const FixKind('QF_INSERT_SEMICOLON', 50, "Insert ';'");
+      const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const MAKE_CLASS_ABSTRACT =
-      const FixKind('QF_MAKE_CLASS_ABSTRACT', 50, "Make class '%s' abstract");
+      const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '%s' abstract");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION =
       const FixKind(
-          'QF_REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
+          'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
           50,
           "Remove parameters in getter declaration");
   static const REMOVE_PARENTHESIS_IN_GETTER_INVOCATION =
       const FixKind(
-          'QF_REMOVE_PARENTHESIS_IN_GETTER_INVOCATION',
+          'REMOVE_PARENTHESIS_IN_GETTER_INVOCATION',
           50,
           "Remove parentheses in getter invocation");
   static const REMOVE_UNNECASSARY_CAST =
-      const FixKind('QF_REMOVE_UNNECASSARY_CAST', 50, "Remove unnecessary cast");
+      const FixKind('REMOVE_UNNECASSARY_CAST', 50, "Remove unnecessary cast");
   static const REMOVE_UNUSED_IMPORT =
-      const FixKind('QF_REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
+      const FixKind('REMOVE_UNUSED_IMPORT', 50, "Remove unused import");
   static const REPLACE_BOOLEAN_WITH_BOOL =
-      const FixKind(
-          'QF_REPLACE_BOOLEAN_WITH_BOOL',
-          50,
-          "Replace 'boolean' with 'bool'");
-  static const USE_CONST =
-      const FixKind('QF_USE_CONST', 50, "Change to constant");
+      const FixKind('REPLACE_BOOLEAN_WITH_BOOL', 50, "Replace 'boolean' with 'bool'");
+  static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION =
       const FixKind(
-          'QF_USE_EFFECTIVE_INTEGER_DIVISION',
+          'USE_EFFECTIVE_INTEGER_DIVISION',
           50,
           "Use effective integer division ~/");
   static const USE_EQ_EQ_NULL =
-      const FixKind('QF_USE_EQ_EQ_NULL', 50, "Use == null instead of 'is Null'");
+      const FixKind('USE_EQ_EQ_NULL', 50, "Use == null instead of 'is Null'");
   static const USE_NOT_EQ_NULL =
-      const FixKind('QF_USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'");
+      const FixKind('USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'");
 
   final name;
   final int relevance;
   final String message;
 
   const FixKind(this.name, this.relevance, this.message);
-}
 
-
-/**
- * The computer for Dart fixes.
- */
-class _FixProcessor {
-  final SearchEngine searchEngine;
-  final String file;
-  final CompilationUnit unit;
-  final AnalysisError error;
-
-  final List<Fix> fixes = <Fix>[];
-  final List<Edit> edits = <Edit>[];
-
-
-  _FixProcessor(this.searchEngine, this.file, this.unit, this.error);
-
-  List<Fix> compute() {
-    ErrorCode errorCode = error.errorCode;
-    if (errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN) {
-      _addFix_boolInsteadOfBoolean();
-    }
-    return fixes;
-  }
-
-  void _addFix(FixKind kind, List args) {
-    FileEdit fileEdit = new FileEdit(file);
-    edits.forEach((edit) => fileEdit.add(edit));
-    // prepare Change
-    String message = JavaString.format(kind.message, args);
-    Change change = new Change(message);
-    change.add(fileEdit);
-    // add Fix
-    var fix = new Fix(kind, change);
-    fixes.add(fix);
-  }
-
-  void _addFix_boolInsteadOfBoolean() {
-    SourceRange range = rf.rangeError(error);
-    _addReplaceEdit(range, "bool");
-    _addFix(FixKind.REPLACE_BOOLEAN_WITH_BOOL, []);
-  }
-
-  /**
-   * Adds a new [Edit] to [edits].
-   */
-  void _addReplaceEdit(SourceRange range, String text) {
-    Edit edit = new Edit.range(range, text);
-    edits.add(edit);
-  }
+  @override
+  String toString() => name;
 }
 
 

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -40,8 +41,9 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
         return;
       }
     }
-    fail('Expect to find an overridden interface elements at $offset in '
-        '${override.interfaceElements.join('\n')}');
+    fail(
+        'Expect to find an overridden interface elements at $offset in '
+            '${override.interfaceElements.join('\n')}');
   }
 
   /**
@@ -94,24 +96,24 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     for (Override override in overridesList) {
       if (override.offset == offset && override.length == length) {
         if (exists == false) {
-          fail('Not expected to find (offset=$offset; length=$length) in\n'
-              '${overridesList.join('\n')}');
+          fail(
+              'Not expected to find (offset=$offset; length=$length) in\n'
+                  '${overridesList.join('\n')}');
         }
         this.override = override;
         return;
       }
     }
     if (exists == true) {
-      fail('Expected to find (offset=$offset; length=$length) in\n'
-          '${overridesList.join('\n')}');
+      fail(
+          'Expected to find (offset=$offset; length=$length) in\n'
+              '${overridesList.join('\n')}');
     }
   }
 
-  Future prepareOverrides(then()) {
+  Future prepareOverrides() {
     addAnalysisSubscription(AnalysisService.OVERRIDES, testFile);
-    return waitForTasksFinished().then((_) {
-      then();
-    });
+    return waitForTasksFinished();
   }
 
   void processNotification(Notification notification) {
@@ -119,8 +121,8 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
         overridesList = <Override>[];
-        List<Map<String, Object>> jsonList = notification.getParameter(
-            OVERRIDES);
+        List<Map<String, Object>> jsonList =
+            notification.getParameter(OVERRIDES);
         for (Map<String, Object> json in jsonList) {
           overridesList.add(new Override.fromJson(json));
         }
@@ -143,7 +145,7 @@ class B implements A {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return prepareOverrides(() {
+      return prepareOverrides().then((_) {
         assertHasOverride('m() {} // in B');
         assertNoSuperElement();
         assertHasInterfaceElement('m() {} // in A');
@@ -163,7 +165,7 @@ class A implements IA, IB {
   m() {} // in A
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in A');
       assertNoSuperElement();
       assertHasInterfaceElement('m() {} // in IA');
@@ -180,7 +182,7 @@ class B implements A {
   m() {} // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in B');
       assertNoSuperElement();
       assertHasInterfaceElement('m() {} // in A');
@@ -198,7 +200,7 @@ class C implements B {
   m() {} // in C
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in C');
       assertNoSuperElement();
       assertHasInterfaceElement('m() {} // in A');
@@ -214,7 +216,7 @@ class B extends A {
   int fff; // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('fff; // in B');
       assertHasSuperElement('fff; // in A');
       assertNoInterfaceElements();
@@ -230,7 +232,7 @@ class B extends A {
   get fff => 0; // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('fff => 0; // in B');
       assertHasSuperElement('fff; // in A');
       assertNoInterfaceElements();
@@ -246,7 +248,7 @@ class B extends A {
   fff() {} // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('fff() {} // in B');
       assertHasSuperElement('fff; // in A');
       assertNoInterfaceElements();
@@ -262,7 +264,7 @@ class B extends A {
   set fff(x) {} // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('fff(x) {} // in B');
       assertHasSuperElement('fff; // in A');
       assertNoInterfaceElements();
@@ -279,7 +281,7 @@ class B extends A {
   int fff; // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('fff; // in B');
       assertHasSuperElement('fff => 0; // in A');
       assertNoInterfaceElements();
@@ -295,7 +297,7 @@ class B extends A {
   get fff => 0; // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('fff => 0; // in B');
       assertHasSuperElement('fff => 0; // in A');
       assertNoInterfaceElements();
@@ -311,7 +313,7 @@ class B extends A {
   m() {} // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in B');
       assertHasSuperElement('m() {} // in A');
       assertNoInterfaceElements();
@@ -329,7 +331,7 @@ class C extends B {
   m() {} // in C
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in C');
       assertHasSuperElement('m() {} // in A');
       assertNoInterfaceElements();
@@ -345,7 +347,7 @@ class B extends A {
   set fff(x) {} // in B
 }
 ''');
-    return prepareOverrides(() {
+    return prepareOverrides().then((_) {
       assertHasOverride('fff(x) {} // in B');
       assertHasSuperElement('fff(x) {} // in A');
       assertNoInterfaceElements();

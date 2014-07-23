@@ -134,8 +134,8 @@ def GetToolchainPrefix(target_os, arch, options):
 
   # If no cross compiler is specified, only try to figure one out on Linux.
   if not HOST_OS in ['linux']:
-    print "Unless --toolchain is used cross-building is only supported on Linux"
-    return None
+    raise Exception('Unless --toolchain is used cross-building is only '
+                    'supported on Linux.')
 
   # For ARM Linux, by default use the Linux distribution's cross-compiler.
   if arch == 'arm':
@@ -368,7 +368,7 @@ def NotifyBuildDone(build_config, success, start):
 
 
 filter_xcodebuild_output = False
-def BuildOneConfig(options, target, target_os, mode, arch, override_tools=True):
+def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
   global filter_xcodebuild_output
   start_time = time.time()
   os.environ['DART_BUILD_MODE'] = mode
@@ -476,7 +476,7 @@ def BuildCrossSdk(options, target_os, mode, arch):
     return 1
 
   # Then, build the runtime for the target arch.
-  if BuildOneConfig(options, 'runtime', target_os, mode, arch) != 0:
+  if BuildOneConfig(options, 'runtime', target_os, mode, arch, True) != 0:
     return 1
 
   # TODO(zra): verify that no platform specific details leak into the snapshots
@@ -529,11 +529,12 @@ def Main():
     for target_os in options.os:
       for mode in options.mode:
         for arch in options.arch:
-          if target in ['create_sdk'] and utils.IsCrossBuild(target_os, arch):
+          cross_build = utils.IsCrossBuild(target_os, arch)
+          if target in ['create_sdk'] and cross_build:
             if BuildCrossSdk(options, target_os, mode, arch) != 0:
               return 1
           else:
-            if BuildOneConfig(options, target, target_os, mode, arch) != 0:
+            if BuildOneConfig(options, target, target_os, mode, arch, cross_build) != 0:
               return 1
 
   return 0

@@ -40,7 +40,7 @@ import 'source_file_provider.dart' as source_file_provider;
 
 import 'ssa/ssa.dart' as ssa;
 
-import 'cps_ir/cps_ir_nodes.dart' as cps_ir_nodes;
+import 'cps_ir/cps_ir_nodes_sexpr.dart' as cps_ir_nodes_sexpr;
 
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 
@@ -210,9 +210,9 @@ useElements(elements.ClassElement e, elements.Name n) {
   n.isAccessibleFrom(null);
 }
 
-useIr(cps_ir_nodes.SExpressionStringifier stringifier,
+useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
       ir_builder.IrBuilderTask task) {
-  new cps_ir_nodes.SExpressionStringifier();
+  new cps_ir_nodes_sexpr.SExpressionStringifier();
   stringifier
     ..newContinuationName()
     ..newValueName()

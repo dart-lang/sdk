@@ -7,10 +7,11 @@ library test.domain.analysis;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/computer/element.dart';
+import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -20,16 +21,6 @@ import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
 import 'mocks.dart';
-
-
-AnalysisError jsonToAnalysisError(Map<String, Object> json) {
-  Map<String, Object> jsonLocation = json[LOCATION];
-  Location location = new Location(jsonLocation[FILE], _getSafeInt(jsonLocation,
-      OFFSET, -1), _getSafeInt(jsonLocation, LENGTH, -1), _getSafeInt(jsonLocation,
-      START_LINE, -1), _getSafeInt(jsonLocation, START_COLUMN, -1));
-  return new AnalysisError('unknown error code', json[SEVERITY], json[TYPE], location,
-      json['message'], json['correction']);
-}
 
 
 main() {
@@ -46,8 +37,7 @@ main() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null);
-    server.defaultSdk = new MockSdk();
+        new MockPackageMapProvider(), null, new MockSdk());
     handler = new AnalysisDomainHandler(server);
   });
 
@@ -358,7 +348,7 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
     if (notification.event == ANALYSIS_ERRORS) {
       String file = notification.getParameter(FILE);
       List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-      filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
+      filesErrors[file] = errorMaps.map(AnalysisError.fromJson).toList();
     }
   }
 
@@ -420,23 +410,6 @@ main(A a) {
   }
 }
 
-class AnalysisError {
-  final String errorCode;
-  final String severity;
-  final String type;
-  final Location location;
-  final String message;
-  final String correction;
-  AnalysisError(this.errorCode, this.severity, this.type, this.location,
-      this.message, this.correction);
-
-  @override
-  String toString() {
-    return 'AnalysisError(location=$location message=$message); '
-        'errorCode=$errorCode; severity=$separator type=$type';
-  }
-}
-
 
 /**
  * A helper to test 'analysis.*' requests.
@@ -460,8 +433,7 @@ class AnalysisTestHelper {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null);
-    server.defaultSdk = new MockSdk();
+        new MockPackageMapProvider(), null, new MockSdk());
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream =
@@ -470,7 +442,7 @@ class AnalysisTestHelper {
       if (notification.event == ANALYSIS_ERRORS) {
         String file = notification.getParameter(FILE);
         List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-        filesErrors[file] = errorMaps.map(jsonToAnalysisError).toList();
+        filesErrors[file] = errorMaps.map(AnalysisError.fromJson).toList();
       }
       if (notification.event == ANALYSIS_HIGHLIGHTS) {
         String file = notification.getParameter(FILE);

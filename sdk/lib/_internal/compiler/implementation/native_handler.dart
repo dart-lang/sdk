@@ -786,6 +786,110 @@ class NativeBehavior {
 
   static NativeBehavior NONE = new NativeBehavior();
 
+  /// Processes the type specification string of a call to JS and stores the
+  /// result in the [typesReturned] and [typesInstantiated].
+  ///
+  /// Two forms of the string is supported:
+  /// 1) A single type string of the form 'void', '', 'var' or 'T1|...|Tn'
+  ///    which defines the types returned and for the later form also created by
+  ///    the call to JS.
+  /// 2) A sequence of the form '<tag>:<type-string>;' where <tag> is either
+  ///    'returns' or 'creates' and where <type-string> is a type string like in
+  ///    1). The type string marked by 'returns' defines the types returned and
+  ///    'creates' defines the types created by the call to JS. Each tag kind
+  ///    can only occur once in the sequence.
+  ///
+  /// [specString] is the specification string, [resolveType] resolves named
+  /// types into type values, [typesReturned] and [typesInstantiated] collects
+  /// the types defined by the specification string, and [objectType] and
+  /// [nullType] define the types for `Object` and `Null`, respectively. The
+  /// latter is used for the type strings of the form '' and 'var'.
+  // TODO(johnniwinther): Use ';' as a separator instead of a terminator.
+  static void processSpecString(
+      DiagnosticListener listener,
+      Spannable spannable,
+      String specString,
+      {dynamic resolveType(String typeString),
+       List typesReturned, List typesInstantiated,
+       objectType, nullType}) {
+
+    /// Resolve a type string of one of the three forms:
+    /// *  'void' - in which case [onVoid] is called,
+    /// *  '' or 'var' - in which case [onVar] is called,
+    /// *  'T1|...|Tn' - in which case [onType] is called for each Ti.
+    void resolveTypesString(String typesString,
+                            {onVoid(), onVar(), onType(type)}) {
+      // Various things that are not in fact types.
+      if (typesString == 'void') {
+        if (onVoid != null) {
+          onVoid();
+        }
+        return;
+      }
+      if (typesString == '' || typesString == 'var') {
+        if (onVar != null) {
+          onVar();
+        }
+        return;
+      }
+      for (final typeString in typesString.split('|')) {
+        onType(resolveType(typeString));
+      }
+    }
+
+    if (specString.contains(':')) {
+      /// Find and remove a substring of the form 'tag:<type-string>;' from
+      /// [specString].
+      String getTypesString(String tag) {
+        String marker = '$tag:';
+        int startPos = specString.indexOf(marker);
+        if (startPos == -1) return null;
+        int endPos = specString.indexOf(';', startPos);
+        if (endPos == -1) return null;
+        String typeString =
+            specString.substring(startPos + marker.length, endPos);
+        specString = '${specString.substring(0, startPos)}'
+                     '${specString.substring(endPos + 1)}'.trim();
+        return typeString;
+      }
+
+      String returns = getTypesString('returns');
+      if (returns != null) {
+        resolveTypesString(returns, onVar: () {
+          typesReturned.add(objectType);
+          typesReturned.add(nullType);
+        }, onType: (type) {
+          typesReturned.add(type);
+        });
+      }
+
+      String creates = getTypesString('creates');
+      if (creates != null) {
+        resolveTypesString(creates, onVoid: () {
+          listener.internalError(spannable,
+              "Invalid type string 'creates:$creates'");
+        }, onVar: () {
+          listener.internalError(spannable,
+              "Invalid type string 'creates:$creates'");
+        }, onType: (type) {
+          typesInstantiated.add(type);
+        });
+      }
+
+      if (!specString.isEmpty) {
+        listener.internalError(spannable, "Invalid JS type string.");
+      }
+    } else {
+      resolveTypesString(specString, onVar: () {
+        typesReturned.add(objectType);
+        typesReturned.add(nullType);
+      }, onType: (type) {
+        typesInstantiated.add(type);
+        typesReturned.add(type);
+      });
+    }
+  }
+
   static NativeBehavior ofJsCall(Send jsCall, Compiler compiler, resolver) {
     // The first argument of a JS-call is a string encoding various attributes
     // of the code.
@@ -810,25 +914,29 @@ class NativeBehavior {
       compiler.internalError(argNodes.head, "Unexpected JS first argument.");
     }
 
-    var behavior = new NativeBehavior();
-    behavior.codeTemplate = js.js.parseForeignJS(code.dartString.slowToString());
-    new SideEffectsVisitor(behavior.sideEffects).visit(behavior.codeTemplate.ast);
+    NativeBehavior behavior = new NativeBehavior();
+    behavior.codeTemplate =
+        js.js.parseForeignJS(code.dartString.slowToString());
+    new SideEffectsVisitor(behavior.sideEffects)
+        .visit(behavior.codeTemplate.ast);
 
     String specString = specLiteral.dartString.slowToString();
-    // Various things that are not in fact types.
-    if (specString == 'void') return behavior;
-    if (specString == '' || specString == 'var') {
-      behavior.typesReturned.add(compiler.objectClass.computeType(compiler));
-      behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
-      return behavior;
-    }
-    for (final typeString in specString.split('|')) {
-      var type = _parseType(typeString, compiler,
+
+    resolveType(String typeString) {
+      return _parseType(
+          typeString,
+          compiler,
           (name) => resolver.resolveTypeFromString(specLiteral, name),
           jsCall);
-      behavior.typesInstantiated.add(type);
-      behavior.typesReturned.add(type);
     }
+
+    processSpecString(compiler, jsCall,
+                      specString,
+                      resolveType: resolveType,
+                      typesReturned: behavior.typesReturned,
+                      typesInstantiated: behavior.typesInstantiated,
+                      objectType: compiler.objectClass.computeType(compiler),
+                      nullType: compiler.nullClass.computeType(compiler));
 
     return behavior;
   }

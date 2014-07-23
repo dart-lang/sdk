@@ -8,7 +8,7 @@
  * and utilities for working with Bidirectional text.
  *
  * This is part of the [intl package]
- * (http://pub.dartlang.org/packages/intl).
+ * (https://pub.dartlang.org/packages/intl).
  *
  * For things that require locale or other data, there are multiple different
  * ways of making that data available, which may require importing different
@@ -43,13 +43,7 @@ part 'number_format.dart';
  * and used to create a date format via `anIntl.date()`. Static methods
  * on this class are also used in message formatting.
  *
- * Message example:
- *     '''I see ${Intl.plural(num_people,
- *               {'0': 'no one at all',
- *                '1': 'one other person',
- *                'other': '$num_people other people'})} in $place.''''
- *
- * Usage examples:
+ * Examples:
  *      today(date) => Intl.message(
  *          "Today's date is $date",
  *          name: 'today',
@@ -58,18 +52,22 @@ part 'number_format.dart';
  *          examples: {'date' : 'June 8, 2012'});
  *      print(today(new DateTime.now().toString());
  *
- *      msg(num_people, place) => Intl.message(
- *           '''I see ${Intl.plural(num_people,
- *             {'0': 'no one at all',
- *              '1': 'one other person',
- *              'other': '$num_people other people'})} in $place.''',
+ *      howManyPeople(numberOfPeople, place) => Intl.plural(
+ *            zero: 'I see no one at all',
+ *            one: 'I see one other person',
+ *            other: 'I see $numberOfPeople other people')} in $place.''',
  *          name: 'msg',
- *          args: [num_people, place],
- *          desc: 'Description of how many people are seen as program start.',
- *          examples: {'num_people': 3, 'place': 'London'});
+ *          args: [numberOfPeople, place],
+ *          desc: 'Description of how many people are seen in a place.',
+ *          examples: {'numberOfPeople': 3, 'place': 'London'});
  *
- * Calling `msg(2, 'Athens');` would
+ * Calling `howManyPeople(2, 'Athens');` would
  * produce "I see 2 other people in Athens." as output in the default locale.
+ * If run in a different locale it would produce appropriately translated
+ * output.
+ * 
+ * For more detailed information on messages and localizing them see
+ * the main [package documentation](https://pub.dartlang.org/packages/intl)
  *
  * You can set the default locale.
  *       Intl.defaultLocale = "pt_BR";
@@ -148,8 +146,10 @@ class Intl {
    * be a valid const literal map. Similarly, the [desc] argument must
    * be a single, simple string. These two arguments will not be used at runtime
    * but will be extracted from
-   * the source code and used as additional data for translators.
-   *
+   * the source code and used as additional data for translators. For more
+   * information see the "Messages" section of the main [package documentation]
+   * (https://pub.dartlang.org/packages/intl).
+   * 
    * The [name] and [args] arguments are required, and are used at runtime
    * to look up the localized version and pass the appropriate arguments to it.
    * We may in the future modify the code during compilation to make manually

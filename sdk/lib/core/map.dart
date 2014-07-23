@@ -6,9 +6,10 @@ part of dart.core;
 
 /**
  * An collection of key-value pairs, from which you retrieve a value
- * by using its associated key.
+ * using its associated key.
  *
- * Each key can occur at most once in a map.
+ * There is a finite number of keys in the map,
+ * and each key has exactly one value associated with it.
  *
  * Maps, and their keys and values, can be iterated.
  * The order of iteration is defined by the individual type of map.
@@ -119,20 +120,30 @@ abstract class Map<K, V> {
       = LinkedHashMap<K, V>.fromIterables;
 
   /**
-   * Returns true if this map contains the given value.
+   * Returns true if this map contains the given [value].
+   *
+   * Returns true if any of the values in the map are equal to `value`
+   * according to the `==` operator.
    */
   bool containsValue(Object value);
 
   /**
-   * Returns true if this map contains the given key.
+   * Returns true if this map contains the given [key].
+   *
+   * Returns true if any of the keys in the map ar equal to `key`
+   * according to the equality used by the map.
    */
   bool containsKey(Object key);
 
   /**
-   * Returns the value for the given [key] or null if [key] is not
-   * in the map. Because null values are supported, one should either
-   * use [containsKey] to distinguish between an absent key and a null
-   * value, or use the [putIfAbsent] method.
+   * Returns the value for the given [key] or null if [key] is not in the map.
+   *
+   * Some maps allows keys to have `null` as a value,
+   * For those maps, a lookup using this operator does cannot be used to
+   * distinguish between a key not being in the map, and the key having a null
+   * value.
+   * Methods like [containsKey] or [putIfAbsent] can be use if the distinction
+   * is important.
    */
   V operator [](Object key);
 
@@ -145,9 +156,11 @@ abstract class Map<K, V> {
   void operator []=(K key, V value);
 
   /**
-   * If [key] is not associated to a value, calls [ifAbsent] and
-   * updates the map by mapping [key] to the value returned by
-   * [ifAbsent]. Returns the value in the map.
+   * Look up the value of [key], or add a new value if it isn't there.
+   *
+   * Returns the value associated to [key], if there is one.
+   * Otherwise calls [ifAbsent] to get a new value, associates [key] to
+   * that value, and then returns the new value.
    *
    *     Map<String, int> scores = {'Bob': 36};
    *     for (var key in ['Bob', 'Rohan', 'Sophena']) {
@@ -157,7 +170,7 @@ abstract class Map<K, V> {
    *     scores['Rohan'];    //  5
    *     scores['Sophena'];  //  7
    *
-   * The code that [ifAbsent] executes must not add or remove keys.
+   * Calling [ifAbsent] must not add or remove keys from the map.
    */
   V putIfAbsent(K key, V ifAbsent());
 
@@ -173,10 +186,13 @@ abstract class Map<K, V> {
   void addAll(Map<K, V> other);
 
   /**
-   * Removes the association for the given [key]. Returns the value for
-   * [key] in the map or null if [key] is not in the map. Note that values
-   * can be null and a returned null value does not always imply that the
-   * key is absent.
+   * Removes [key] and its associated value, if present, from the map.
+   *
+   * Returns the value associated with `key` before it was removed.
+   * Returns `null` if `key` was not in the map.
+   *
+   * Note that values can be `null` and a returned `null` value doesn't
+   * always mean that the key was absent.
    */
   V remove(Object key);
 
@@ -188,9 +204,9 @@ abstract class Map<K, V> {
   void clear();
 
   /**
-   * Applies [f] to each {key, value} pair of the map.
+   * Applies [f] to each key-value pair of the map.
    *
-   * Adding or removing keys from the map during iteration is not allowed.
+   * Calling `f` must not add or remove keys from the map.
    */
   void forEach(void f(K key, V value));
 
@@ -213,7 +229,8 @@ abstract class Map<K, V> {
    * provided matching pairs of keys and values.
    *
    * The returned iterable has an efficient `length` method based on the
-   * [length] of the map.
+   * [length] of the map. Its [Iterable.contains] method is based on
+   * `==` comparison.
    */
   Iterable<V> get values;
 

@@ -627,7 +627,7 @@ class Namer implements ClosureNamer {
       String className = element.enclosingClass.name;
       name = '${className}_${Elements.reconstructConstructorName(element)}';
     } else if (Elements.isStaticOrTopLevel(element)) {
-      if (element.isMember) {
+      if (element.isClassMember) {
         ClassElement enclosingClass = element.enclosingClass;
         name = "${enclosingClass.name}_"
                "${element.name}";

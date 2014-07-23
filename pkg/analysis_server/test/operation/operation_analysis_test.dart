@@ -4,8 +4,8 @@
 
 library test.operation.analysis;
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/mocks.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/error.dart';

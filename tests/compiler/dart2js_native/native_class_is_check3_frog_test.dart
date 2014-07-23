@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test for correct simple is-checks on hidden native classes.
@@ -16,13 +17,15 @@ abstract class I extends J {
 
 // Native implementation.
 
-class A implements I native "A" {
+@Native("A")
+class A implements I {
   // The native class accepts only other native instances.
   A read() native;
   write(A x) native;
 }
 
-class B extends A native "B" {
+@Native("B")
+class B extends A {
 }
 
 makeA() native;

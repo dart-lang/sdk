@@ -8,9 +8,9 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io' as io;
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:path/path.dart';
 
 /**
@@ -68,14 +68,19 @@ class PubPackageMapProvider implements PackageMapProvider {
    */
   final ResourceProvider resourceProvider;
 
-  PubPackageMapProvider(this.resourceProvider);
+  /**
+   * Sdk that we use to find the pub executable.
+   */
+  final DirectoryBasedDartSdk sdk;
+
+  PubPackageMapProvider(this.resourceProvider, this.sdk);
 
   @override
   PackageMapInfo computePackageMap(Folder folder) {
     // TODO(paulberry) make this asynchronous so that we can (a) do other
     // analysis while it's in progress, and (b) time out if it takes too long
     // to respond.
-    String executable = SHARED_SDK.pubExecutable.getAbsolutePath();
+    String executable = sdk.pubExecutable.getAbsolutePath();
     io.ProcessResult result;
     try {
       result = io.Process.runSync(

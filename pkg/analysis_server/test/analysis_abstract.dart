@@ -10,6 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -227,8 +228,8 @@ class AbstractAnalysisTest {
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = new AnalysisServer(
-        serverChannel, resourceProvider, packageMapProvider, index);
-    server.defaultSdk = new MockSdk();
+        serverChannel, resourceProvider, packageMapProvider, index,
+        new MockSdk());
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream = serverChannel.notificationController.stream;
@@ -258,23 +259,5 @@ class AbstractAnalysisTest {
       code = code.join('\n');
     }
     return code as String;
-  }
-}
-
-
-class AnalysisError {
-  final String file;
-  final String errorCode;
-  final int offset;
-  final int length;
-  final String message;
-  final String correction;
-  AnalysisError(this.file, this.errorCode, this.offset, this.length,
-      this.message, this.correction);
-
-  @override
-  String toString() {
-    return 'NotificationError(file=$file; errorCode=$errorCode; '
-        'offset=$offset; length=$length; message=$message)';
   }
 }

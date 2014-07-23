@@ -1,3 +1,7 @@
+## 0.9.4
+
+* Update `SpanFormatException` with `source` and `offset`.
+
 ## 0.9.3
 
 * Support writing SingleMapping objects to source map version 3 format.

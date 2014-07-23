@@ -250,6 +250,9 @@ class Address : public ValueObject {
   static bool CanHoldStoreOffset(OperandSize size,
                                  int32_t offset,
                                  int32_t* offset_mask);
+  static bool CanHoldImmediateOffset(bool is_load,
+                                     intptr_t cid,
+                                     int64_t offset);
 
  private:
   uint32_t encoding() const { return encoding_; }
@@ -780,6 +783,21 @@ class Assembler : public ValueObject {
                                      Register size_reg,
                                      Register temp_reg,
                                      Heap::Space space = Heap::kNew);
+
+  Address ElementAddressForIntIndex(bool is_load,
+                                    bool is_external,
+                                    intptr_t cid,
+                                    intptr_t index_scale,
+                                    Register array,
+                                    intptr_t index,
+                                    Register temp);
+
+  Address ElementAddressForRegIndex(bool is_load,
+                                    bool is_external,
+                                    intptr_t cid,
+                                    intptr_t index_scale,
+                                    Register array,
+                                    Register index);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

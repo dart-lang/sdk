@@ -481,6 +481,73 @@ void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Array.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, TypedData::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  Address element_address =
+      Assembler::ElementAddressForRegIndex(false,  // Not external
+                                           kTypedDataFloat64ArrayCid,  // Cid.
+                                           8,  // Index scale.
+                                           EAX,  // Array.
+                                           EBX);  // Index.
+
+  __ movsd(XMM0, element_address);
+
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 EAX,  // Result register.
+                 EBX);
+  __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EBX, Address(ESP, + 2 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 3 * kWordSize));  // Array.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, TypedData::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ movl(ECX, Address(ESP, + 1 * kWordSize));  // Value.
+  __ testl(ECX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through, Assembler::kNearJump);  // Value is Smi.
+  __ LoadClassId(EDI, ECX);
+
+  __ cmpl(EDI, Immediate(kDoubleCid));
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);  // Not a Double.
+
+  __ movsd(XMM0, FieldAddress(ECX, Double::value_offset()));
+
+  Address element_address =
+      Assembler::ElementAddressForRegIndex(false,  // Not external
+                                           kTypedDataFloat64ArrayCid,  // Cid.
+                                           8,  // Index scale.
+                                           EAX,  // Array.
+                                           EBX);  // Index.
+
+  __ movsd(element_address, XMM0);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
 static ScaleFactor GetScaleFactor(intptr_t size) {
   switch (size) {
     case 1: return TIMES_1;

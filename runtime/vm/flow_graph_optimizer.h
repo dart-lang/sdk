@@ -429,13 +429,54 @@ class AllocationSinking : public ZoneAllocated {
  public:
   explicit AllocationSinking(FlowGraph* flow_graph)
       : flow_graph_(flow_graph),
+        candidates_(5),
         materializations_(5) { }
+
+  const GrowableArray<AllocateObjectInstr*>& candidates() const {
+    return candidates_;
+  }
+
+  // Find the materialization insterted for the given allocation
+  // at the given exit.
+  MaterializeObjectInstr* MaterializationFor(Definition* alloc,
+                                             Instruction* exit);
 
   void Optimize();
 
   void DetachMaterializations();
 
  private:
+  // Helper class to collect deoptimization exits that might need to
+  // rematerialize an object: that is either instructions that reference
+  // this object explicitly in their deoptimization environment or
+  // reference some other allocation sinking candidate that points to
+  // this object.
+  class ExitsCollector : public ValueObject {
+   public:
+    ExitsCollector() : exits_(10), worklist_(3) { }
+
+    const GrowableArray<Instruction*>& exits() const { return exits_; }
+
+    void CollectTransitively(Definition* alloc);
+
+   private:
+    // Collect immediate uses of this object in the environments.
+    // If this object is stored into other allocation sinking candidates
+    // put them onto worklist so that CollectTransitively will process them.
+    void Collect(Definition* alloc);
+
+    GrowableArray<Instruction*> exits_;
+    GrowableArray<Definition*> worklist_;
+  };
+
+  void CollectCandidates();
+
+  void NormalizeMaterializations();
+
+  void RemoveUnusedMaterializations();
+
+  void DiscoverFailedCandidates();
+
   void InsertMaterializations(AllocateObjectInstr* alloc);
 
   void CreateMaterializationAt(
@@ -444,11 +485,16 @@ class AllocationSinking : public ZoneAllocated {
       const Class& cls,
       const ZoneGrowableArray<const Object*>& fields);
 
+  void EliminateAllocation(AllocateObjectInstr* alloc);
+
   Isolate* isolate() const { return flow_graph_->isolate(); }
 
   FlowGraph* flow_graph_;
 
+  GrowableArray<AllocateObjectInstr*> candidates_;
   GrowableArray<MaterializeObjectInstr*> materializations_;
+
+  ExitsCollector exits_collector_;
 };
 
 

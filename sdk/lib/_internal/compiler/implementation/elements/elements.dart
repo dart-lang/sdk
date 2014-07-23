@@ -81,8 +81,8 @@ class ElementKind {
       const ElementKind('parameter', ElementCategory.VARIABLE);
   // Parameters in constructors that directly initialize fields. For example:
   // [:A(this.field):].
-  static const ElementKind FIELD_PARAMETER =
-      const ElementKind('field_parameter', ElementCategory.VARIABLE);
+  static const ElementKind INITIALIZING_FORMAL =
+      const ElementKind('initializing_formal', ElementCategory.VARIABLE);
   static const ElementKind FUNCTION =
       const ElementKind('function', ElementCategory.FUNCTION);
   static const ElementKind CLASS =
@@ -91,8 +91,6 @@ class ElementKind {
       const ElementKind('generative_constructor', ElementCategory.FACTORY);
   static const ElementKind FIELD =
       const ElementKind('field', ElementCategory.VARIABLE);
-  static const ElementKind VARIABLE_LIST =
-      const ElementKind('variable_list', ElementCategory.NONE);
   static const ElementKind FIELD_LIST =
       const ElementKind('field_list', ElementCategory.NONE);
   static const ElementKind GENERATIVE_CONSTRUCTOR_BODY =
@@ -140,17 +138,6 @@ class ElementKind {
 /// and should therefore implement [Entity] directly.
 abstract class Entity implements Spannable {
   String get name;
-}
-
-// TODO(johnniwinther): Should [Local] have `enclosingFunction`, `isAssignable`
-// or `type`?
-/// An entity that defines a local variable (memory slot) in generated code.
-///
-/// Several [Element] can define local variable, for instance parameter, local
-/// variables and local functions and thus implement [Local]. For non-element
-/// locals, like `this` and boxes, specialized [Local] class are created.
-abstract class Local extends Entity {
-
 }
 
 /**
@@ -289,12 +276,12 @@ abstract class Element implements Entity {
   /// parameter.
   ///
   /// This property is `false` if this element is an initializing formal.
-  /// See [isFieldParameter].
+  /// See [isInitializingFormal].
   bool get isParameter => kind == ElementKind.PARAMETER;
 
   /// `true` if this element is an initializing formal of constructor, that
   /// is a formal of the form `this.foo`.
-  bool get isFieldParameter => kind == ElementKind.FIELD_PARAMETER;
+  bool get isInitializingFormal => kind == ElementKind.INITIALIZING_FORMAL;
 
   bool get isStatement;
 
@@ -303,7 +290,13 @@ abstract class Element implements Entity {
   bool get isWarnOnUse;
 
   bool get isClosure;
-  bool get isMember;
+
+  /// `true` if the element is a (static or instance) member of a class.
+  /// Members are constructors, methods and fields.
+  bool get isClassMember;
+
+  /// `true` if the element is a nonstatic member of a class.
+  /// Instance members are methods and fields but not constructors.
   bool get isInstanceMember;
 
   /// Returns true if this [Element] is a top level element.
@@ -773,6 +766,7 @@ class Elements {
   }
 }
 
+/// An element representing an erroneous resolution.
 abstract class ErroneousElement extends Element implements ConstructorElement {
   MessageKind get messageKind;
   Map get messageArguments;
@@ -790,6 +784,7 @@ abstract class WarnOnUseElement extends Element {
   Element unwrap(DiagnosticListener listener, Spannable usageSpannable);
 }
 
+/// An element representing the ambiguous resolution of a name.
 abstract class AmbiguousElement extends Element {
   MessageKind get messageKind;
   Map get messageArguments;
@@ -803,10 +798,6 @@ abstract class ScopeContainerElement implements Element {
   Element localLookup(String elementName);
 
   void forEachLocalMember(f(Element element));
-}
-
-abstract class ClosureContainer implements Element {
-  List<FunctionElement> get nestedClosures;
 }
 
 abstract class CompilationUnitElement extends Element {
@@ -896,6 +887,7 @@ abstract class LibraryElement extends Element
   int compareTo(LibraryElement other);
 }
 
+/// The implicit scope defined by a import declaration with a prefix clause.
 abstract class PrefixElement extends Element {
   void addImport(Element element, Import import, DiagnosticListener listener);
   Element lookupLocalMember(String memberName);
@@ -905,25 +897,104 @@ abstract class PrefixElement extends Element {
   Import get deferredImport;
 }
 
+/// A type alias definition.
 abstract class TypedefElement extends Element
     implements AstElement, TypeDeclarationElement, FunctionTypedElement {
+
+  /// The type defined by this typedef with the type variables as its type
+  /// arguments.
+  ///
+  /// For instance `F<T>` for `typedef void F<T>(T t)`.
   TypedefType get thisType;
+
+  /// The type defined by this typedef with `dynamic` as its type arguments.
+  ///
+  /// For instance `F<dynamic>` for `typedef void F<T>(T t)`.
   TypedefType get rawType;
+
+  /// The type, function type if well-defined, for which this typedef is an
+  /// alias.
+  ///
+  /// For instance `(int)->void` for `typedef void F(int)`.
   DartType get alias;
 
   void checkCyclicReference(Compiler compiler);
 }
 
-abstract class VariableElement extends Element
+/// An executable element is an element that can hold code.
+///
+/// These elements variables (fields, parameters and locals), which can hold
+/// code in their initializer, and functions (including methods and
+/// constructors), which can hold code in their body.
+abstract class ExecutableElement extends Element
     implements TypedElement, AstElement {
+  /// The outermost member that contains this element.
+  ///
+  /// For top level, static or instance members, the member context is the
+  /// element itself. For parameters, local variables and nested closures, the
+  /// member context is the top level, static or instance member in which it is
+  /// defined.
+  MemberElement get memberContext;
+}
+
+/// A top-level or static field or method, or a constructor.
+///
+/// A [MemberElement] is the outermost executable element for any executable
+/// context.
+abstract class MemberElement extends Element implements ExecutableElement {
+  /// The local functions defined within this member.
+  List<FunctionElement> get nestedClosures;
+}
+
+/// A function, variable or parameter defined in an executable context.
+abstract class LocalElement extends Element implements TypedElement, Local {
+}
+
+/// A top level, static or instance field, a formal parameter or local variable.
+abstract class VariableElement extends ExecutableElement {
   Expression get initializer;
 }
 
-abstract class FieldElement extends VariableElement
-    implements ClosureContainer {}
+/// An entity that defines a local entity (memory slot) in generated code.
+///
+/// Parameters, local variables and local functions (can) define local entity
+/// and thus implement [Local] through [LocalElement]. For
+/// non-element locals, like `this` and boxes, specialized [Local] class are
+/// created.
+///
+/// Type variables can introduce locals in factories and constructors
+/// but since one type variable can introduce different locals in different
+/// factories and constructors it is not itself a [Local] but instead
+/// a non-element [Local] is created through a specialized class.
+// TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
+abstract class Local extends Entity {
+  /// The context in which this local is defined.
+  ExecutableElement get executableContext;
+}
 
-abstract class ParameterElement extends VariableElement
-    implements FunctionTypedElement {
+/// A variable or parameter that is local to an executable context.
+///
+/// The executable context is the [ExecutableElement] in which this variable
+/// is defined.
+abstract class LocalVariableElement extends VariableElement
+    implements LocalElement {
+}
+
+/// A top-level, static or instance field.
+abstract class FieldElement extends VariableElement implements MemberElement {
+}
+
+/// A parameter-like element of a function signature.
+///
+/// If the function signature comes from a typedef or an inline function-typed
+/// parameter (e.g. the parameter 'f' in `method(void f())`), then its
+/// parameters are not real parameters in that they can take no argument and
+/// hold no value. Such parameter-like elements are modeled by [FormalElement].
+///
+/// If the function signature comes from a function or constructor, its
+/// parameters are real parameters and are modeled by [ParameterElement].
+abstract class FormalElement extends Element
+    implements FunctionTypedElement, TypedElement, AstElement {
   /// Use [functionDeclaration] instead.
   @deprecated
   get enclosingElement;
@@ -935,8 +1006,32 @@ abstract class ParameterElement extends VariableElement
   VariableDefinitions get node;
 }
 
-abstract class FieldParameterElement extends ParameterElement {
-  VariableElement get fieldElement;
+/// A formal parameter of a function or constructor.
+///
+/// Normal parameter that introduce a local variable are modeled by
+/// [LocalParameterElement] whereas initializing formals, that is parameter of
+/// the form `this.x`, are modeled by [InitializingFormalParameter].
+abstract class ParameterElement extends Element
+    implements VariableElement, FormalElement, LocalElement {
+  /// The function on which this parameter is declared.
+  FunctionElement get functionDeclaration;
+}
+
+/// A formal parameter on a function or constructor that introduces a local
+/// variable in the scope of the function or constructor.
+abstract class LocalParameterElement extends ParameterElement
+    implements LocalVariableElement {
+}
+
+/// A formal parameter in a constructor that directly initializes a field.
+///
+/// For example: `A(this.field)`.
+abstract class InitializingFormalElement extends ParameterElement {
+  /// The field initialized by this initializing formal.
+  FieldElement get fieldElement;
+
+  /// The function on which this parameter is declared.
+  ConstructorElement get functionDeclaration;
 }
 
 /**
@@ -953,31 +1048,33 @@ abstract class AbstractFieldElement extends Element {
 
 abstract class FunctionSignature {
   FunctionType get type;
-  Link<Element> get requiredParameters;
-  Link<Element> get optionalParameters;
+  Link<FormalElement> get requiredParameters;
+  Link<FormalElement> get optionalParameters;
 
   int get requiredParameterCount;
   int get optionalParameterCount;
   bool get optionalParametersAreNamed;
-  Element get firstOptionalParameter;
+  FormalElement get firstOptionalParameter;
 
   int get parameterCount;
-  List<Element> get orderedOptionalParameters;
+  List<FormalElement> get orderedOptionalParameters;
 
-  void forEachParameter(void function(Element parameter));
-  void forEachRequiredParameter(void function(Element parameter));
-  void forEachOptionalParameter(void function(Element parameter));
+  void forEachParameter(void function(FormalElement parameter));
+  void forEachRequiredParameter(void function(FormalElement parameter));
+  void forEachOptionalParameter(void function(FormalElement parameter));
 
-  void orderedForEachParameter(void function(Element parameter));
+  void orderedForEachParameter(void function(FormalElement parameter));
 
   bool isCompatibleWith(FunctionSignature constructorSignature);
 }
 
+/// A top level, static or instance method, constructor, local function, or
+/// closure (anonymous local function).
 abstract class FunctionElement extends Element
     implements AstElement,
                TypedElement,
                FunctionTypedElement,
-               ClosureContainer {
+               ExecutableElement {
   FunctionExpression get node;
 
   FunctionElement get patch;
@@ -995,7 +1092,19 @@ abstract class FunctionElement extends Element
   @deprecated FunctionSignature computeSignature(Compiler compiler);
 }
 
-abstract class ConstructorElement extends FunctionElement {
+/// A top level, static or instance function.
+abstract class MethodElement extends FunctionElement
+    implements MemberElement {
+}
+
+/// A local function or closure (anonymous local function).
+abstract class LocalFunctionElement extends FunctionElement
+    implements LocalElement {
+}
+
+/// A constructor.
+abstract class ConstructorElement extends FunctionElement
+    implements MemberElement {
   /// The effective target of this constructor, that is the non-redirecting
   /// constructor that is called on invocation of this constructor.
   ///
@@ -1049,14 +1158,14 @@ abstract class ConstructorElement extends FunctionElement {
   get enclosingElement;
 }
 
+/// JavaScript backend specific element for the body of constructor.
+// TODO(johnniwinther): Remove this class for the element model.
 abstract class ConstructorBodyElement extends FunctionElement {
   FunctionElement get constructor;
 }
 
-/**
- * [TypeDeclarationElement] defines the common interface for class/interface
- * declarations and typedefs.
- */
+/// [TypeDeclarationElement] defines the common interface for class/interface
+/// declarations and typedefs.
 abstract class TypeDeclarationElement extends Element implements AstElement {
   /**
    * The `this type` for this type declaration.
@@ -1286,7 +1395,7 @@ abstract class MetadataAnnotation implements Spannable {
 }
 
 /// An [Element] that has a type.
-abstract class TypedElement extends Element implements Local {
+abstract class TypedElement extends Element {
   DartType get type;
 }
 

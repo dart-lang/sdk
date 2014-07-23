@@ -816,9 +816,9 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       Node node = parameter.node;
       potentiallyCheckType(node, parameter, argument);
       definitions[parameter] = argument;
-      if (parameter.kind == ElementKind.FIELD_PARAMETER) {
-        FieldParameterElement fieldParameterElement = parameter;
-        updateFieldValue(node, fieldParameterElement.fieldElement, argument);
+      if (parameter.isInitializingFormal) {
+        InitializingFormalElement initializingFormal = parameter;
+        updateFieldValue(node, initializingFormal.fieldElement, argument);
       }
     });
   }

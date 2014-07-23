@@ -10,12 +10,13 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/domain_edit.dart';
+import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:path/path.dart' as pathos;
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_file_index.dart';
@@ -53,6 +54,10 @@ class SocketServer {
    */
   AnalysisServer analysisServer;
 
+  final DirectoryBasedDartSdk defaultSdk;
+
+  SocketServer(this.defaultSdk);
+
   /**
    * Create an analysis server which will communicate with the client using the
    * given serverChannel.
@@ -70,8 +75,9 @@ class SocketServer {
     analysisServer = new AnalysisServer(
         serverChannel,
         resourceProvider,
-        new PubPackageMapProvider(resourceProvider),
+        new PubPackageMapProvider(resourceProvider, defaultSdk),
         _createIndex(),
+        defaultSdk,
         rethrowExceptions: false);
     _initializeHandlers(analysisServer);
   }

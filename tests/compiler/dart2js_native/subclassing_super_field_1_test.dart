@@ -4,13 +4,14 @@
 
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
     findInterceptorForType, findConstructorForNativeSubclassType;
 
 // Test for shadowed fields in classes that extend native classes.
 
-class N native "N" {
+@Native("N")
+class N {
   N.init();
 }
 

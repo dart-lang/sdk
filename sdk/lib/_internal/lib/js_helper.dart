@@ -159,6 +159,11 @@ class JSInvocationMirror implements Invocation {
     String unmangledName = mangledNames[name];
     if (unmangledName != null) {
       name = unmangledName.split(':')[0];
+    } else {
+      if (mangledNames[_internalName] == null) {
+        print("Warning: '$name' is used reflectively but not in MirrorsUsed. "
+              "This will break minified code.");
+      }
     }
     _memberName = new _symbol_dev.Symbol.unvalidated(name);
     return _memberName;

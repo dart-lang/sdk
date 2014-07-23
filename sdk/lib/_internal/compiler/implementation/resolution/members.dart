@@ -1183,7 +1183,8 @@ class ResolverTask extends CompilerTask {
       return measure(() => SignatureResolver.analyze(
           compiler, node.parameters, node.returnType, element,
           new ResolutionRegistry(compiler, element),
-          defaultValuesError: defaultValuesError));
+          defaultValuesError: defaultValuesError,
+          createRealParameters: true));
     });
   }
 
@@ -1293,13 +1294,13 @@ class InitializerResolver {
         MessageKind.ALREADY_INITIALIZED, {'fieldName': field.name});
   }
 
-  void checkForDuplicateInitializers(VariableElementX field, Node init) {
+  void checkForDuplicateInitializers(FieldElementX field, Node init) {
     // [field] can be null if it could not be resolved.
     if (field == null) return;
     String name = field.name;
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
-    } else if (field.modifiers.isFinal) {
+    } else if (field.isFinal) {
       field.parseNode(visitor.compiler);
       Expression initializer = field.initializer;
       if (initializer != null) {
@@ -1463,9 +1464,9 @@ class InitializerResolver {
     // that we can ensure that fields are initialized only once.
     FunctionSignature functionParameters = constructor.functionSignature;
     functionParameters.forEachParameter((ParameterElement element) {
-      if (identical(element.kind, ElementKind.FIELD_PARAMETER)) {
-        FieldParameterElement fieldParameter = element;
-        checkForDuplicateInitializers(fieldParameter.fieldElement,
+      if (element.isInitializingFormal) {
+        InitializingFormalElement initializingFormal = element;
+        checkForDuplicateInitializers(initializingFormal.fieldElement,
                                       element.initializer);
       }
     });
@@ -1508,7 +1509,7 @@ class InitializerResolver {
           Compiler compiler = visitor.compiler;
           FunctionSignature signature = constructor.functionSignature;
           signature.forEachParameter((ParameterElement parameter) {
-            if (parameter.isFieldParameter) {
+            if (parameter.isInitializingFormal) {
               Node node = parameter.node;
               error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
             }
@@ -2032,7 +2033,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // fields.
       inInstanceContext = (element.isInstanceMember && !element.isField)
           || element.isGenerativeConstructor,
-      this.currentClass = element.isMember ? element.enclosingClass
+      this.currentClass = element.isClassMember ? element.enclosingClass
                                              : null,
       this.statementScope = new StatementScope(),
       scope = useEnclosingScope
@@ -2222,7 +2223,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Node parameterNode = variableDefinitions.definitions.nodes.head;
       // Field parameters (this.x) are not visible inside the constructor. The
       // fields they reference are visible, but must be resolved independently.
-      if (element.kind == ElementKind.FIELD_PARAMETER) {
+      if (element.isInitializingFormal) {
         registry.useElement(parameterNode, element);
       } else {
         defineElement(parameterNode, element);
@@ -2323,7 +2324,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         enclosingElement);
     function.functionSignatureCache =
         SignatureResolver.analyze(compiler, node.parameters, node.returnType,
-            function, registry);
+            function, registry, createRealParameters: true);
     Scope oldScope = scope; // The scope is modified by [setupFunction].
     setupFunction(node, function);
     defineElement(node, function, doAddToScope: node.name != null);
@@ -3854,7 +3855,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     element.functionSignature = signature;
 
     scope = new MethodScope(scope, element);
-    signature.forEachParameter((ParameterElement element) {
+    signature.forEachParameter((FormalElement element) {
       defineElement(element.node, element);
     });
 

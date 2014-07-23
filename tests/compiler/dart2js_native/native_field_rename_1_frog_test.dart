@@ -7,9 +7,10 @@
 // for the field must be based on the field's name, not the field's jsname.
 
 import "package:expect/expect.dart";
-import 'dart:_js_helper' show JSName;
+import 'dart:_js_helper' show Native, JSName;
 
-class A native "A" {
+@Native("A")
+class A {
   int key;                    //  jsname is 'key'
   int getKey() => key;
 }
@@ -20,7 +21,8 @@ class B {
   int getKey() => key;
 }
 
-class X native "X" {
+@Native("X")
+class X {
   @JSName('key')
   int native_key_method() native;
   // This should cause B.key to be renamed, but not A.key.

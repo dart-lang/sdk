@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show
     findInterceptorForType, findConstructorForNativeSubclassType;
 
@@ -15,7 +15,8 @@ var trace = [];
 
 var log;
 
-class A native "A" {
+@Native("A")
+class A {
   final a1 = log(101);  // Only initialized IF named constructor called.
   final a2;             // Initialized by native constructor.
   final a3;             // Initialized only by A.two.

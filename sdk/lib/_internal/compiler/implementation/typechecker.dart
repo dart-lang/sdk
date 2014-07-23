@@ -589,8 +589,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       returnType = const VoidType();
 
       element.functionSignature.forEachParameter((ParameterElement parameter) {
-        if (parameter.isFieldParameter) {
-          FieldParameterElement fieldParameter = parameter;
+        if (parameter.isInitializingFormal) {
+          InitializingFormalElement fieldParameter = parameter;
           checkAssignable(parameter, parameter.type,
               fieldParameter.fieldElement.computeType(compiler));
         }
@@ -995,7 +995,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         return new TypeLiteralAccess(elements.getTypeLiteralType(node));
       }
       return createResolvedAccess(node, name, element);
-    } else if (element.isMember) {
+    } else if (element.isClassMember) {
       // foo() where foo is a member.
       return lookupMember(node, thisType, name, memberKind, null,
           lookupClassMember: element.isStatic);

@@ -491,8 +491,9 @@ class BackDoor {
 
   static ResolvedNode defaultValueSyntaxOf(Dart2JsParameterMirror parameter) {
     if (!parameter.hasDefaultValue) return null;
-    var node = parameter._element.initializer;
-    var treeElements = parameter._element.treeElements;
+    ParameterElement parameterElement = parameter._element;
+    var node = parameterElement.initializer;
+    var treeElements = parameterElement.treeElements;
     return new ResolvedNode(node, treeElements, parameter.mirrorSystem);
   }
 }

@@ -230,11 +230,11 @@ class PatchElementListener extends ElementListener implements Listener {
   }
 }
 
-void patchElement(leg.DiagnosticListener listener,
+void patchElement(leg.Compiler compiler,
                   Element origin,
                   Element patch) {
   if (origin == null) {
-    listener.reportError(
+    compiler.reportError(
         patch, leg.MessageKind.PATCH_NON_EXISTING, {'name': patch.name});
     return;
   }
@@ -243,47 +243,167 @@ void patchElement(leg.DiagnosticListener listener,
         origin.isFunction ||
         origin.isAbstractField)) {
     // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
-    listener.reportError(origin, leg.MessageKind.PATCH_NONPATCHABLE);
+    compiler.reportError(origin, leg.MessageKind.PATCH_NONPATCHABLE);
     return;
   }
   if (patch.isClass) {
-    tryPatchClass(listener, origin, patch);
+    tryPatchClass(compiler, origin, patch);
   } else if (patch.isGetter) {
-    tryPatchGetter(listener, origin, patch);
+    tryPatchGetter(compiler, origin, patch);
   } else if (patch.isSetter) {
-    tryPatchSetter(listener, origin, patch);
+    tryPatchSetter(compiler, origin, patch);
   } else if (patch.isConstructor) {
-    tryPatchConstructor(listener, origin, patch);
+    tryPatchConstructor(compiler, origin, patch);
   } else if(patch.isFunction) {
-    tryPatchFunction(listener, origin, patch);
+    tryPatchFunction(compiler, origin, patch);
   } else {
     // TODO(ahe): Remove this error when the parser rejects all bad modifiers.
-    listener.reportError(patch, leg.MessageKind.PATCH_NONPATCHABLE);
+    compiler.reportError(patch, leg.MessageKind.PATCH_NONPATCHABLE);
   }
 }
 
-void tryPatchClass(leg.DiagnosticListener listener,
-                    Element origin,
-                    ClassElement patch) {
+void tryPatchClass(leg.Compiler compiler,
+                   Element origin,
+                   ClassElement patch) {
   if (!origin.isClass) {
-    listener.reportError(
+    compiler.reportError(
         origin, leg.MessageKind.PATCH_NON_CLASS, {'className': patch.name});
-    listener.reportInfo(
+    compiler.reportInfo(
         patch, leg.MessageKind.PATCH_POINT_TO_CLASS, {'className': patch.name});
     return;
   }
-  patchClass(listener, origin, patch);
+  patchClass(compiler, origin, patch);
 }
 
-void patchClass(leg.DiagnosticListener listener,
+void patchClass(leg.Compiler compiler,
                 ClassElementX origin,
                 ClassElementX patch) {
   if (origin.isPatched) {
-    listener.internalError(origin,
+    compiler.internalError(origin,
         "Patching the same class more than once.");
   }
   origin.applyPatch(patch);
+  checkNativeAnnotation(compiler, patch);
 }
+
+/// Check whether [cls] has a `@Native(...)` annotation, and if so, set its
+/// native name from the annotation.
+checkNativeAnnotation(leg.Compiler compiler, ClassElement cls) {
+  EagerAnnotationHandler.checkAnnotation(compiler, cls,
+      const NativeAnnotationHandler());
+}
+
+/// Abstract interface for pre-resolution detection of metadata.
+///
+/// The detection is handled in two steps:
+/// - match the annotation syntactically and assume that the annotation is valid
+///   if it looks correct,
+/// - setup a deferred action to check that the annotation has a valid constant
+///   value and report an internal error if not.
+abstract class EagerAnnotationHandler {
+  /// Checks that [annotation] looks like a matching annotation and optionally
+  /// applies actions on [element]. Returns `true` if the annotation matched.
+  bool apply(leg.Compiler compiler,
+             Element element,
+             MetadataAnnotation annotation);
+
+  /// Checks that the annotation value is valid.
+  void validate(leg.Compiler compiler,
+                Element element,
+                MetadataAnnotation annotation,
+                leg.Constant constant);
+
+
+  /// Checks [element] for metadata matching the [handler]. Return `true` if
+  /// matching metadata was found.
+  static bool checkAnnotation(leg.Compiler compiler,
+                              Element element,
+                              EagerAnnotationHandler handler) {
+    for (Link<MetadataAnnotation> link = element.metadata;
+         !link.isEmpty;
+         link = link.tail) {
+      MetadataAnnotation annotation = link.head;
+      if (handler.apply(compiler, element, annotation)) {
+        // TODO(johnniwinther): Perform this check in
+        // [Compiler.onLibrariesLoaded].
+        compiler.enqueuer.resolution.addDeferredAction(element, () {
+          annotation.ensureResolved(compiler);
+          handler.validate(compiler, element, annotation, annotation.value);
+        });
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+/// Annotation handler for pre-resolution detection of `@Native(...)`
+/// annotations.
+class NativeAnnotationHandler implements EagerAnnotationHandler {
+  const NativeAnnotationHandler();
+
+  String getNativeAnnotation(MetadataAnnotation annotation) {
+    if (annotation.beginToken != null &&
+        annotation.beginToken.next.value == 'Native') {
+      // Skipping '@', 'Native', and '('.
+      Token argument = annotation.beginToken.next.next.next;
+      if (argument is StringToken) {
+        return argument.value;
+      }
+    }
+    return null;
+  }
+
+  bool apply(leg.Compiler compiler,
+             Element element,
+             MetadataAnnotation annotation) {
+    if (element.isClass) {
+      String native = getNativeAnnotation(annotation);
+      if (native != null) {
+        ClassElementX declaration = element.declaration;
+        declaration.setNative(native);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void validate(leg.Compiler compiler,
+                Element element,
+                MetadataAnnotation annotation,
+                leg.Constant constant) {
+    if (constant.computeType(compiler).element !=
+            compiler.nativeAnnotationClass) {
+      compiler.internalError(annotation, 'Invalid @Native(...) annotation.');
+    }
+  }
+}
+
+/// Annotation handler for pre-resolution detection of `@patch` annotations.
+class PatchAnnotationHandler implements EagerAnnotationHandler {
+  const PatchAnnotationHandler();
+
+  bool isPatchAnnotation(MetadataAnnotation annotation) {
+    return annotation.beginToken != null &&
+           annotation.beginToken.next.value == 'patch';
+  }
+
+  bool apply(leg.Compiler compiler,
+             Element element,
+             MetadataAnnotation annotation) {
+    return isPatchAnnotation(annotation);
+  }
+
+  void validate(leg.Compiler compiler,
+                Element element,
+                MetadataAnnotation annotation,
+                leg.Constant constant) {
+    if (constant != compiler.patchConstant) {
+      compiler.internalError(annotation, 'Invalid patch annotation.');
+    }
+  }
+}
+
 
 void tryPatchGetter(leg.DiagnosticListener listener,
                     Element origin,
@@ -381,24 +501,6 @@ void patchFunction(leg.DiagnosticListener listener,
 
 // TODO(johnniwinther): Add unittest when patch is (real) metadata.
 bool isPatchElement(leg.Compiler compiler, Element element) {
-  // TODO(lrn): More checks needed if we introduce metadata for real.
-  // In that case, it must have the identifier "native" as metadata.
-  for (Link<MetadataAnnotation> link = element.metadata;
-       !link.isEmpty;
-       link = link.tail) {
-    MetadataAnnotation annotation = link.head;
-    if (annotation.beginToken != null &&
-        annotation.beginToken.next.value == 'patch') {
-      // TODO(johnniwinther): Perform this check in
-      // [Compiler.onLibrariesLoaded].
-      compiler.enqueuer.resolution.addDeferredAction(element, () {
-        annotation.ensureResolved(compiler);
-        if (annotation.value != compiler.patchConstant) {
-          compiler.internalError(annotation, 'Invalid patch annotation.');
-        }
-      });
-      return true;
-    }
-  }
-  return false;
+  return EagerAnnotationHandler.checkAnnotation(compiler, element,
+      const PatchAnnotationHandler());
 }

@@ -5,7 +5,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library services.correction.source_range_factory;
+library services.src.correction.source_range_factory;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -22,10 +22,6 @@ SourceRange rangeEndEnd(a, b) {
   int offset = a.end;
   var length = b.end - offset;
   return new SourceRange(offset, length);
-}
-
-SourceRange rangeEndLength(a, int length) {
-  return new SourceRange(a.nameOffset, length);
 }
 
 SourceRange rangeEndStart(a, b) {
@@ -52,22 +48,23 @@ SourceRange rangeNodes(List<AstNode> nodes) {
 }
 
 SourceRange rangeStartEnd(a, b) {
-  int offset = a.offset;
-  var length = b.end - offset;
+  int offset = a is int ? a : a.offset;
+  int end = b is int ? b : b.end;
+  var length = end - offset;
   return new SourceRange(offset, length);
 }
 
 SourceRange rangeStartLength(a, int length) {
-  int offset = a.offset;
+  int offset = a is int ? a : a.offset;
   return new SourceRange(offset, length);
 }
 
 SourceRange rangeStartStart(a, b) {
-  int offset = a.offset;
-  var length = b.offset - offset;
+  int offset = a is int ? a : a.offset;
+  var length = (b is int ? b : b.offset) - offset;
   return new SourceRange(offset, length);
 }
 
-SourceRange rangeToken(Token node) {
-  return new SourceRange(node.offset, node.length);
+SourceRange rangeToken(Token token) {
+  return new SourceRange(token.offset, token.length);
 }

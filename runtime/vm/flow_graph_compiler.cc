@@ -731,23 +731,28 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   DeoptInfoBuilder builder(isolate(), incoming_arg_count);
 
-  const Array& array =
-      Array::Handle(Array::New(DeoptTable::SizeFor(deopt_infos_.length()),
-                               Heap::kOld));
-  Smi& offset = Smi::Handle();
-  DeoptInfo& info = DeoptInfo::Handle();
-  Smi& reason = Smi::Handle();
-  for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
-    offset = Smi::New(deopt_infos_[i]->pc_offset());
-    info = deopt_infos_[i]->CreateDeoptInfo(this, &builder, array);
-    reason = Smi::New(deopt_infos_[i]->reason());
-    DeoptTable::SetEntry(array, i, offset, info, reason);
+  intptr_t deopt_info_table_size = DeoptTable::SizeFor(deopt_infos_.length());
+  if (deopt_info_table_size == 0) {
+    code.set_deopt_info_array(Object::empty_array());
+    code.set_object_table(Object::empty_array());
+  } else {
+    const Array& array =
+        Array::Handle(Array::New(deopt_info_table_size, Heap::kOld));
+    Smi& offset = Smi::Handle();
+    DeoptInfo& info = DeoptInfo::Handle();
+    Smi& reason = Smi::Handle();
+    for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
+      offset = Smi::New(deopt_infos_[i]->pc_offset());
+      info = deopt_infos_[i]->CreateDeoptInfo(this, &builder, array);
+      reason = Smi::New(deopt_infos_[i]->reason());
+      DeoptTable::SetEntry(array, i, offset, info, reason);
+    }
+    code.set_deopt_info_array(array);
+    const Array& object_array =
+        Array::Handle(Array::MakeArray(builder.object_table()));
+    ASSERT(code.object_table() == Array::null());
+    code.set_object_table(object_array);
   }
-  code.set_deopt_info_array(array);
-  const Array& object_array =
-      Array::Handle(Array::MakeArray(builder.object_table()));
-  ASSERT(code.object_table() == Array::null());
-  code.set_object_table(object_array);
 }
 
 

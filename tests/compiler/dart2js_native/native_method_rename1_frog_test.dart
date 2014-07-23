@@ -5,9 +5,10 @@
 // Test the feature where the native string declares the native method's name.
 
 import "package:expect/expect.dart";
-import 'dart:_js_helper' show JSName;
+import 'dart:_js_helper' show Native, JSName;
 
-class A native "A" {
+@Native("A")
+class A {
   @JSName('fooA')
   int foo() native;
 

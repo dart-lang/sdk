@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show findInterceptorForType;
 
 // Test calling convention of methods introduced on subclasses of native
@@ -11,7 +11,8 @@ import 'dart:_interceptors' show findInterceptorForType;
 
 doFoo(r, x) => '$x,${r.oof()}';
 
-class A native "A" {
+@Native("A")
+class A {
   foo(x) => (doFoo)(this, x);
 }
 

@@ -1222,6 +1222,18 @@ class Assembler : public ValueObject {
   // up on entry (it is the frame of the unoptimized code).
   void EnterOsrFrame(intptr_t extra_size);
 
+  Address ElementAddressForIntIndex(bool is_external,
+                                    intptr_t cid,
+                                    intptr_t index_scale,
+                                    Register array,
+                                    intptr_t index) const;
+  Address ElementAddressForRegIndex(bool is_load,
+                                    bool is_external,
+                                    intptr_t cid,
+                                    intptr_t index_scale,
+                                    Register array,
+                                    Register index);
+
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.
   static bool IsSafe(const Object& object) { return true; }

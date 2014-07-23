@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 abstract class Window {
@@ -10,7 +11,8 @@ abstract class Window {
 
 // Defining this global object makes Frog eager on optimizing
 // call sites where the receiver is typed 'Window'.
-class _DOMWindowJs implements Window native "@*DOMWindow" {
+@Native("@*DOMWindow")
+class _DOMWindowJs implements Window {
   final int document;
 }
 

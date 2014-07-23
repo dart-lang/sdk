@@ -392,7 +392,7 @@ abstract class InferrerEngine<T, V extends TypeSystem>
 
   bool isNativeElement(Element element) {
     if (element.isNative) return true;
-    return element.isMember
+    return element.isClassMember
         && element.enclosingClass.isNative
         && element.isField;
   }
@@ -491,20 +491,21 @@ class SimpleTypeInferrerVisitor<T>
 
     if (analyzedElement.isGenerativeConstructor) {
       isThisExposed = false;
-      signature.forEachParameter((element) {
+      signature.forEachParameter((ParameterElement element) {
         T parameterType = inferrer.typeOfElement(element);
-        if (element.kind == ElementKind.FIELD_PARAMETER) {
-          if (element.fieldElement.modifiers.isFinal) {
+        if (element.isInitializingFormal) {
+          InitializingFormalElement initializingFormal = element;
+          if (initializingFormal.fieldElement.isFinal) {
             inferrer.recordTypeOfFinalField(
                 node,
                 analyzedElement,
-                element.fieldElement,
+                initializingFormal.fieldElement,
                 parameterType);
           } else {
-            locals.updateField(element.fieldElement, parameterType);
+            locals.updateField(initializingFormal.fieldElement, parameterType);
             inferrer.recordTypeOfNonFinalField(
-                element.parseNode(compiler),
-                element.fieldElement,
+                initializingFormal.node,
+                initializingFormal.fieldElement,
                 parameterType);
           }
         }
@@ -538,8 +539,8 @@ class SimpleTypeInferrerVisitor<T>
       if (!isConstructorRedirect) {
         // Iterate over all instance fields, and give a null type to
         // fields that we haven't initialized for sure.
-        cls.forEachInstanceField((_, field) {
-          if (field.modifiers.isFinal) return;
+        cls.forEachInstanceField((_, FieldElement field) {
+          if (field.isFinal) return;
           T type = locals.fieldScope.readField(field);
           if (type == null && field.initializer == null) {
             inferrer.recordTypeOfNonFinalField(node, field, types.nullType);
@@ -842,7 +843,7 @@ class SimpleTypeInferrerVisitor<T>
         handleDynamicSend(node, setterSelector, receiverType,
                           new ArgumentsTypes<T>([newType], null));
       } else if (Elements.isLocal(element)) {
-        TypedElement local = element;
+        LocalElement local = element;
         getterType = locals.use(local);
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
@@ -1079,7 +1080,7 @@ class SimpleTypeInferrerVisitor<T>
     } else if (Elements.isErroneousElement(element)) {
       return types.dynamicType;
     } else if (Elements.isLocal(element)) {
-      TypedElement local = element;
+      LocalElement local = element;
       assert(locals.use(local) != null);
       return locals.use(local);
     } else {

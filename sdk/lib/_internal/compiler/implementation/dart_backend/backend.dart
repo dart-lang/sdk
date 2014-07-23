@@ -205,7 +205,7 @@ class DartBackend extends Backend {
       Link<Element> optionalParameters =
           element.functionSignature.optionalParameters;
       for (final optional in optionalParameters) {
-        if (optional.kind != ElementKind.FIELD_PARAMETER) continue;
+        if (!optional.isInitializingFormal) continue;
         fixedMemberNames.add(optional.name);
       }
     }
@@ -303,7 +303,7 @@ class DartBackend extends Backend {
       }
       ElementAst elementAst = parse(element);
 
-      if (element.isMember) {
+      if (element.isClassMember) {
         ClassElement enclosingClass = element.enclosingClass;
         assert(enclosingClass.isClass);
         assert(enclosingClass.isTopLevel);

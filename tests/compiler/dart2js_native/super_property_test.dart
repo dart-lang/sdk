@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Tests super setter where the HInvokeSuper is using interceptor aka
 // explicit-receiver calling convention.
 
-class A native "A" {
+@Native("A")
+class A {
   var foo;
   get_foo() => foo;
   set bar(value) => foo = value;
 }
 
-class B extends A native "B" {
+@Native("B")
+class B extends A {
   set foo(value) {
     super.foo = value;
   }

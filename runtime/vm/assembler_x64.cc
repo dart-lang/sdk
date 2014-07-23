@@ -3411,6 +3411,56 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
 }
 
 
+Address Assembler::ElementAddressForIntIndex(bool is_external,
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             intptr_t index) {
+  if (is_external) {
+    return Address(array, index * index_scale);
+  } else {
+    const int64_t disp = static_cast<int64_t>(index) * index_scale +
+        Instance::DataOffsetFor(cid);
+    ASSERT(Utils::IsInt(32, disp));
+    return FieldAddress(array, static_cast<int32_t>(disp));
+  }
+}
+
+
+static ScaleFactor ToScaleFactor(intptr_t index_scale) {
+  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
+  // index scale factor > 1. E.g., for Uint8Array and OneByteString the index is
+  // expected to be untagged before accessing.
+  ASSERT(kSmiTagShift == 1);
+  switch (index_scale) {
+    case 1: return TIMES_1;
+    case 2: return TIMES_1;
+    case 4: return TIMES_2;
+    case 8: return TIMES_4;
+    case 16: return TIMES_8;
+    default:
+      UNREACHABLE();
+      return TIMES_1;
+  }
+}
+
+
+Address Assembler::ElementAddressForRegIndex(bool is_external,
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             Register index) {
+  if (is_external) {
+    return Address(array, index, ToScaleFactor(index_scale), 0);
+  } else {
+    return FieldAddress(array,
+                        index,
+                        ToScaleFactor(index_scale),
+                        Instance::DataOffsetFor(cid));
+  }
+}
+
+
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
   "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
   "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"

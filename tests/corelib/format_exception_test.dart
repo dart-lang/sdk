@@ -5,10 +5,10 @@
 library format_exception_test;
 import "package:expect/expect.dart";
 
-test(exn, message, source, position, toString) {
+test(exn, message, source, offset, toString) {
   Expect.equals(message, exn.message);
   Expect.equals(source, exn.source);
-  Expect.equals(position, exn.position);
+  Expect.equals(offset, exn.offset);
   Expect.equals(toString, exn.toString());
 }
 
@@ -39,7 +39,7 @@ main() {
 
   var o = new Object();
   e = new FormatException("message", o, 10);
-  test(e, "message", o, 10, "FormatException: message (at position 10)");
+  test(e, "message", o, 10, "FormatException: message (at offset 10)");
 
   e = new FormatException("message", "source", 3);
   test(e, "message", "source", 3,

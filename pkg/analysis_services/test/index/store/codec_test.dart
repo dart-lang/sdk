@@ -6,13 +6,12 @@ library test.services.src.index.store.codec;
 
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/src/index/store/codec.dart';
+import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/mocks.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:unittest/unittest.dart';
-
-import '../abstract_single_unit.dart';
 
 
 main() {
@@ -82,29 +81,6 @@ class _ElementCodecTest extends AbstractSingleUnitTest {
     codec = new ElementCodec(stringCodec);
   }
 
-  void test_field() {
-    resolveTestUnit('''
-class A {
-  int field;
-}
-''');
-    FieldElement field = findElement('field', ElementKind.FIELD);
-    PropertyAccessorElement getter = field.getter;
-    PropertyAccessorElement setter = field.setter;
-    {
-      int id = codec.encode(getter);
-      expect(codec.decode(context, id), getter);
-    }
-    {
-      int id = codec.encode(setter);
-      expect(codec.decode(context, id), setter);
-    }
-    {
-      int id = codec.encode(field);
-      expect(codec.decode(context, id), field);
-    }
-  }
-
   void test_encodeHash_notLocal() {
     resolveTestUnit('''
 class A {
@@ -127,6 +103,29 @@ class A {
     int id_bar = codec.encodeHash(bar);
     expect(id_fooA == id_fooB, isTrue);
     expect(id_fooA == id_bar, isFalse);
+  }
+
+  void test_field() {
+    resolveTestUnit('''
+class A {
+  int field;
+}
+''');
+    FieldElement field = findElement('field', ElementKind.FIELD);
+    PropertyAccessorElement getter = field.getter;
+    PropertyAccessorElement setter = field.setter;
+    {
+      int id = codec.encode(getter);
+      expect(codec.decode(context, id), getter);
+    }
+    {
+      int id = codec.encode(setter);
+      expect(codec.decode(context, id), setter);
+    }
+    {
+      int id = codec.encode(field);
+      expect(codec.decode(context, id), field);
+    }
   }
 
   void test_localLocalVariable() {

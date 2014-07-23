@@ -4,9 +4,9 @@
 
 library computer.outline;
 
-import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/computer/element.dart';
-import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_services/constants.dart';
+import 'package:analysis_services/json.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart';

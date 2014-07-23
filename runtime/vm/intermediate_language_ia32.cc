@@ -651,7 +651,7 @@ Condition TestCidsInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
   Register cid_reg = locs()->temp(0).reg();
 
   Label* deopt = CanDeoptimize() ?
-  compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids) : NULL;
+      compiler->AddDeoptStub(deopt_id(), ICData::kDeoptTestCids) : NULL;
 
   const intptr_t true_result = (kind() == Token::kIS) ? 1 : 0;
   const ZoneGrowableArray<intptr_t>& data = cid_results();
@@ -1077,66 +1077,17 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
-static Address ElementAddressForIntIndex(bool is_external,
-                                         intptr_t cid,
-                                         intptr_t index_scale,
-                                         Register array,
-                                         intptr_t index) {
-  if (is_external) {
-    return Address(array, index * index_scale);
-  } else {
-    const int64_t disp = static_cast<int64_t>(index) * index_scale +
-        Instance::DataOffsetFor(cid);
-    ASSERT(Utils::IsInt(32, disp));
-    return FieldAddress(array, static_cast<int32_t>(disp));
-  }
-}
-
-
-static ScaleFactor ToScaleFactor(intptr_t index_scale) {
-  // Note that index is expected smi-tagged, (i.e, times 2) for all arrays with
-  // index scale factor > 1. E.g., for Uint8Array and OneByteString the index is
-  // expected to be untagged before accessing.
-  ASSERT(kSmiTagShift == 1);
-  switch (index_scale) {
-    case 1: return TIMES_1;
-    case 2: return TIMES_1;
-    case 4: return TIMES_2;
-    case 8: return TIMES_4;
-    case 16: return TIMES_8;
-    default:
-      UNREACHABLE();
-      return TIMES_1;
-  }
-}
-
-
-static Address ElementAddressForRegIndex(bool is_external,
-                                         intptr_t cid,
-                                         intptr_t index_scale,
-                                         Register array,
-                                         Register index) {
-  if (is_external) {
-    return Address(array, index, ToScaleFactor(index_scale), 0);
-  } else {
-    return FieldAddress(array,
-                        index,
-                        ToScaleFactor(index_scale),
-                        Instance::DataOffsetFor(cid));
-  }
-}
-
-
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
 
   Address element_address = index.IsRegister()
-      ? ElementAddressForRegIndex(IsExternal(), class_id(), index_scale(),
-                                  array, index.reg())
-      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value());
+      ? Assembler::ElementAddressForRegIndex(
+            IsExternal(), class_id(), index_scale(), array, index.reg())
+      : Assembler::ElementAddressForIntIndex(
+            IsExternal(), class_id(), index_scale(),
+            array, Smi::Cast(index.constant()).Value());
 
   if ((representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
@@ -1358,10 +1309,11 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
 
   Address element_address = index.IsRegister()
-      ? ElementAddressForRegIndex(IsExternal(), class_id(), index_scale(),
-                                  array, index.reg())
-      : ElementAddressForIntIndex(IsExternal(), class_id(), index_scale(),
-                                  array, Smi::Cast(index.constant()).Value());
+      ? Assembler::ElementAddressForRegIndex(
+            IsExternal(), class_id(), index_scale(), array, index.reg())
+      : Assembler::ElementAddressForIntIndex(
+            IsExternal(), class_id(), index_scale(),
+            array, Smi::Cast(index.constant()).Value());
 
   if ((index_scale() == 1) && index.IsRegister()) {
     __ SmiUntag(index.reg());
@@ -5846,27 +5798,24 @@ LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Isolate* isolate,
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
-    case Token::kBIT_XOR: {
-      const intptr_t kNumTemps = 0;
-      LocationSummary* summary = new(isolate) LocationSummary(
-          isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                        Location::RequiresRegister()));
-      summary->set_in(1, Location::Pair(Location::RequiresRegister(),
-                                        Location::RequiresRegister()));
-      summary->set_out(0, Location::SameAsFirstInput());
-      return summary;
-    }
+    case Token::kBIT_XOR:
     case Token::kADD:
-    case Token::kSUB: {
-      const intptr_t kNumTemps = 0;
+    case Token::kSUB:
+    case Token::kMUL: {
+      const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
       LocationSummary* summary = new(isolate) LocationSummary(
           isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-      summary->set_in(0, Location::Pair(Location::RequiresRegister(),
-                                        Location::RequiresRegister()));
+      summary->set_in(0, (op_kind() == Token::kMUL)
+          ? Location::Pair(Location::RegisterLocation(EAX),
+                           Location::RegisterLocation(EDX))
+          : Location::Pair(Location::RequiresRegister(),
+                           Location::RequiresRegister()));
       summary->set_in(1, Location::Pair(Location::RequiresRegister(),
                                         Location::RequiresRegister()));
       summary->set_out(0, Location::SameAsFirstInput());
+      if (kNumTemps > 0) {
+        summary->set_temp(0, Location::RequiresRegister());
+      }
       return summary;
     }
     default:
@@ -5920,7 +5869,28 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       break;
     }
-    default: UNREACHABLE();
+    case Token::kMUL: {
+      // The product of two signed 32-bit integers fits in a signed 64-bit
+      // result without causing overflow.
+      // We deopt on larger inputs.
+      // TODO(regis): Range analysis may eliminate the deopt check.
+      Register temp = locs()->temp(0).reg();
+      __ movl(temp, left_lo);
+      __ sarl(temp, Immediate(31));
+      __ cmpl(temp, left_hi);
+      __ j(NOT_EQUAL, deopt);
+      __ movl(temp, right_lo);
+      __ sarl(temp, Immediate(31));
+      __ cmpl(temp, right_hi);
+      __ j(NOT_EQUAL, deopt);
+      ASSERT(left_lo == EAX);
+      __ imull(right_lo);  // Result in EDX:EAX.
+      ASSERT(out_lo == EAX);
+      ASSERT(out_hi == EDX);
+      break;
+    }
+    default:
+      UNREACHABLE();
   }
   if (FLAG_throw_on_javascript_int_overflow) {
     EmitJavascriptIntOverflowCheck(compiler, deopt, left_lo, left_hi);
@@ -6113,7 +6083,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       }
       default:
         UNREACHABLE();
-        break;
     }
     __ Bind(&done);
   }
@@ -6192,10 +6161,15 @@ CompileType UnboxUint32Instr::ComputeType() const {
 LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
                                                           bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = (op_kind() == Token::kMUL) ? 1 : 0;
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
+  if (op_kind() == Token::kMUL) {
+    summary->set_in(0, Location::RegisterLocation(EAX));
+    summary->set_temp(0, Location::RegisterLocation(EDX));
+  } else {
+    summary->set_in(0, Location::RequiresRegister());
+  }
   summary->set_in(1, Location::RequiresRegister());
   summary->set_out(0, Location::SameAsFirstInput());
   return summary;
@@ -6210,19 +6184,24 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (op_kind()) {
     case Token::kBIT_AND:
       __ andl(out, right);
-    break;
+      break;
     case Token::kBIT_OR:
       __ orl(out, right);
-    break;
+      break;
     case Token::kBIT_XOR:
       __ xorl(out, right);
-    break;
+      break;
     case Token::kADD:
       __ addl(out, right);
-    break;
+      break;
     case Token::kSUB:
       __ subl(out, right);
-    break;
+      break;
+    case Token::kMUL:
+      __ mull(right);  // Result in EDX:EAX.
+      ASSERT(out == EAX);
+      ASSERT(locs()->temp(0).reg() == EDX);
+      break;
     default:
       UNREACHABLE();
   }

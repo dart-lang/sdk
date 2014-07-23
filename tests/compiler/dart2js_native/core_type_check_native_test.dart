@@ -2,20 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 var inscrutable = (int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
-class A native "A" {
+@Native("A")
+class A {
 }
 
-class B implements Comparable native "B" {
+@Native("B")
+class B implements Comparable {
 }
 
-class C implements Pattern native "C" {
+@Native("C")
+class C implements Pattern {
 }
 
-class D implements Pattern, Comparable native "D" {
+@Native("D")
+class D implements Pattern, Comparable {
 }
 
 makeA() native;

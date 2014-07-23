@@ -12,6 +12,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/search_result.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 

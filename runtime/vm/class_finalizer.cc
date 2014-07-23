@@ -1458,8 +1458,14 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     name.ToCString(),
                     super_class_name.ToCString());
       }
-      // The function may be a still unresolved redirecting factory. Do not yet
-      // try to resolve it in order to avoid cycles in class finalization.
+      if (function.IsRedirectingFactory()) {
+        // The function may be a still unresolved redirecting factory. Do not
+        // yet try to resolve it in order to avoid cycles in class finalization.
+        // However, the redirection type should be finalized.
+        Type& type = Type::Handle(function.RedirectionType());
+        type ^= FinalizeType(cls, type, kCanonicalize);
+        function.SetRedirectionType(type);
+      }
     } else if (function.IsGetterFunction() ||
                function.IsImplicitGetterFunction()) {
       super_class = FindSuperOwnerOfFunction(cls, name);

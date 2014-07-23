@@ -163,6 +163,111 @@ testVMField() {
   Expect.equals(84, test_vm_field());
 }
 
+class CompoundA {
+  var b;
+  CompoundA(this.b);
+}
+
+class CompoundB {
+  var c;
+  CompoundB(this.c);
+}
+
+class CompoundC {
+  var d;
+  var root;
+  CompoundC(this.d);
+}
+
+class NoopSink {
+  const NoopSink();
+  call(val) { }
+}
+
+testCompound1() {
+  f(d, [sink = const NoopSink()]) {
+    var c = new CompoundC(d);
+    var a = new CompoundA(new CompoundB(c));
+    sink(a);
+    return c.d;
+  }
+
+  Expect.equals(0.1, f(0.1));
+  for (var i = 0; i < 100; i++) f(0.1);
+  Expect.equals(0.1, f(0.1));
+  Expect.equals(0.1, f(0.1, (val) {
+    Expect.isTrue(val is CompoundA);
+    Expect.isTrue(val.b is CompoundB);
+    Expect.isTrue(val.b.c is CompoundC);
+    Expect.isNull(val.b.c.root);
+    Expect.equals(0.1, val.b.c.d);
+  }));
+}
+
+
+testCompound2() {
+  f(d, [sink = const NoopSink()]) {
+    var c = new CompoundC(d);
+    var a = new CompoundA(new CompoundB(c));
+    c.root = a;
+    sink(a);
+    return c.d;
+  }
+
+  Expect.equals(0.1, f(0.1));
+  for (var i = 0; i < 100; i++) f(0.1);
+  Expect.equals(0.1, f(0.1));
+  Expect.equals(0.1, f(0.1, (val) {
+    Expect.isTrue(val is CompoundA);
+    Expect.isTrue(val.b is CompoundB);
+    Expect.isTrue(val.b.c is CompoundC);
+    Expect.equals(val, val.b.c.root);
+    Expect.equals(0.1, val.b.c.d);
+  }));
+}
+
+
+testCompound3() {
+  f(d, [sink = const NoopSink()]) {
+    var c = new CompoundC(d);
+    c.root = c;
+    sink(c);
+    return c.d;
+  }
+
+  Expect.equals(0.1, f(0.1));
+  for (var i = 0; i < 100; i++) f(0.1);
+  Expect.equals(0.1, f(0.1));
+  Expect.equals(0.1, f(0.1, (val) {
+    Expect.isTrue(val is CompoundC);
+    Expect.equals(val, val.root);
+    Expect.equals(0.1, val.d);
+  }));
+}
+
+
+testCompound4() {
+  f(d, [sink = const NoopSink()]) {
+    var c = new CompoundC(d);
+    c.root = c;
+    for (var i = 0; i < 10; i++) {
+      c.d += 1.0;
+    }
+    sink(c);
+    return c.d - 1.0 * 10;
+  }
+
+  Expect.equals(1.0, f(1.0));
+  for (var i = 0; i < 100; i++) f(1.0);
+  Expect.equals(1.0, f(1.0));
+  Expect.equals(1.0, f(1.0, (val) {
+    Expect.isTrue(val is CompoundC);
+    Expect.equals(val, val.root);
+    Expect.equals(11.0, val.d);
+  }));
+}
+
+
 main() {
   var c = new C(new Point(0.1, 0.2));
 
@@ -220,4 +325,8 @@ main() {
 
   testFinalField();
   testVMField();
+  testCompound1();
+  testCompound2();
+  testCompound3();
+  testCompound4();
 }

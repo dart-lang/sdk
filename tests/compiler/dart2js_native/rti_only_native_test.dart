@@ -7,7 +7,10 @@
 // See my explanation in https://codereview.chromium.org/14018036/.
 //   -- ahe
 
-class A native "A" {
+import "dart:_js_helper";
+
+@Native("A")
+class A {
   // Just making sure the field name is unique.
   var rti_only_native_test_field;
 }

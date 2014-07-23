@@ -147,7 +147,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   Iterable<E> where(bool f(E element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return new IterableMixinWorkaround<E>().where(this, f);
   }
 
   Iterable expand(Iterable f(E element)) {
@@ -181,19 +181,19 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   Iterable<E> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new IterableMixinWorkaround<E>().takeList(this, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new IterableMixinWorkaround<E>().takeWhile(this, test);
   }
 
   Iterable<E> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new IterableMixinWorkaround<E>().skipList(this, n);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new IterableMixinWorkaround<E>().skipWhile(this, test);
   }
 
   E reduce(E combine(E value, E element)) {
@@ -241,7 +241,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
 
   Iterable<E> getRange(int start, int end) {
-    return IterableMixinWorkaround.getRangeList(this, start, end);
+    return new IterableMixinWorkaround<E>().getRangeList(this, start, end);
   }
 
   E get first {
@@ -296,7 +296,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   bool every(bool f(E element)) => IterableMixinWorkaround.every(this, f);
 
-  Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
+  Iterable<E> get reversed =>
+      new IterableMixinWorkaround<E>().reversedList(this);
 
   void sort([int compare(E a, E b)]) {
     checkMutable('sort');
@@ -365,7 +366,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   Map<int, E> asMap() {
-    return IterableMixinWorkaround.asMapList(this);
+    return new IterableMixinWorkaround<E>().asMapList(this);
   }
 }
 

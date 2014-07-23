@@ -1095,6 +1095,47 @@ int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
 }
 
 
+Address Assembler::ElementAddressForIntIndex(bool is_external,
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             intptr_t index) const {
+  const int64_t offset = index * index_scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  ASSERT(Utils::IsInt(32, offset));
+  ASSERT(Address::CanHoldOffset(offset));
+  return Address(array, static_cast<int32_t>(offset));
+}
+
+
+Address Assembler::ElementAddressForRegIndex(bool is_load,
+                                             bool is_external,
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  const int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  ASSERT(array != TMP);
+  ASSERT(index != TMP);
+  const Register base = is_load ? TMP : index;
+  if (shift < 0) {
+    ASSERT(shift == -1);
+    sra(TMP, index, 1);
+    addu(base, array, TMP);
+  } else if (shift == 0) {
+    addu(base, array, index);
+  } else {
+    sll(TMP, index, shift);
+    addu(base, array, TMP);
+  }
+  ASSERT(Address::CanHoldOffset(offset));
+  return Address(base, offset);
+}
+
+
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
   "zr", "tmp", "v0", "v1", "a0", "a1", "a2", "a3",
   "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7",

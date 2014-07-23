@@ -8,12 +8,14 @@
 // This could be done by renaming the Dart constructor or by being able to check
 // that objects are Dart classes.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 class A {
 }
 
-class Z native "A" {
+@Native("A")
+class Z {
   foo() => 100;
 }
 

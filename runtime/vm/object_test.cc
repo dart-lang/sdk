@@ -2746,35 +2746,36 @@ TEST_CASE(PcDescriptors) {
   // Verify the PcDescriptor entries by accessing them.
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
-  RawPcDescriptors::PcDescriptorRec rec0;
-  RawPcDescriptors::PcDescriptorRec rec1;
-  RawPcDescriptors::PcDescriptorRec rec2;
-  RawPcDescriptors::PcDescriptorRec rec3;
-  RawPcDescriptors::PcDescriptorRec rec4;
-  RawPcDescriptors::PcDescriptorRec rec5;
-  iter.NextRec(&rec0);
-  iter.NextRec(&rec1);
-  iter.NextRec(&rec2);
-  iter.NextRec(&rec3);
-  iter.NextRec(&rec4);
-  iter.NextRec(&rec5);
-  ASSERT(!iter.HasNext());
 
-  EXPECT_EQ(1, rec0.try_index());
-  EXPECT_EQ(static_cast<uword>(10), rec0.pc());
-  EXPECT_EQ(1, rec0.deopt_id());
-  EXPECT_EQ(20, rec0.token_pos());
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(20, iter.TokenPos());
+  EXPECT_EQ(1, iter.TryIndex());
+  EXPECT_EQ(static_cast<uword>(10), iter.Pc());
+  EXPECT_EQ(1, iter.DeoptId());
+  EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
 
-  EXPECT_EQ(3, rec5.try_index());
-  EXPECT_EQ(static_cast<uword>(80), rec5.pc());
-  EXPECT_EQ(150, rec5.token_pos());
-  EXPECT_EQ(RawPcDescriptors::kOther, rec0.kind());
-  EXPECT_EQ(RawPcDescriptors::kDeopt, rec1.kind());
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(30, iter.TokenPos());
+  EXPECT_EQ(RawPcDescriptors::kDeopt, iter.Kind());
 
-  EXPECT_EQ(30, rec1.token_pos());
-  EXPECT_EQ(40, rec2.token_pos());
-  EXPECT_EQ(40, rec3.token_pos());
-  EXPECT_EQ(80, rec4.token_pos());
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(40, iter.TokenPos());
+
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(40, iter.TokenPos());
+
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(80, iter.TokenPos());
+
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(150, iter.TokenPos());
+
+  EXPECT_EQ(3, iter.TryIndex());
+  EXPECT_EQ(static_cast<uword>(80), iter.Pc());
+  EXPECT_EQ(150, iter.TokenPos());
+  EXPECT_EQ(RawPcDescriptors::kOther, iter.Kind());
+
+  EXPECT_EQ(false, iter.MoveNext());
 }
 
 
@@ -2801,35 +2802,24 @@ TEST_CASE(PcDescriptorsCompressed) {
   // Verify the PcDescriptor entries by accessing them.
   const PcDescriptors& pc_descs = PcDescriptors::Handle(code.pc_descriptors());
   PcDescriptors::Iterator iter(pc_descs, RawPcDescriptors::kAnyKind);
-  RawPcDescriptors::PcDescriptorRec rec0;
-  RawPcDescriptors::PcDescriptorRec rec1;
-  RawPcDescriptors::PcDescriptorRec rec2;
-  RawPcDescriptors::PcDescriptorRec rec3;
-  RawPcDescriptors::PcDescriptorRec rec4;
-  RawPcDescriptors::PcDescriptorRec rec5;
-  iter.NextRec(&rec0);
-  iter.NextRec(&rec1);
-  iter.NextRec(&rec2);
-  iter.NextRec(&rec3);
-  iter.NextRec(&rec4);
-  iter.NextRec(&rec5);
-  ASSERT(!iter.HasNext());
 
-  EXPECT_EQ(-1, rec0.try_index());
-  EXPECT_EQ(static_cast<uword>(10), rec0.pc());
-  EXPECT_EQ(1, rec0.deopt_id());
-  EXPECT_EQ(20, rec0.token_pos());
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(static_cast<uword>(10), iter.Pc());
+  EXPECT_EQ(-1, iter.TryIndex());
+  EXPECT_EQ(1, iter.DeoptId());
+  EXPECT_EQ(20, iter.TokenPos());
 
-  EXPECT_EQ(-1, rec5.try_index());
-  EXPECT_EQ(static_cast<uword>(80), rec5.pc());
-  EXPECT_EQ(150, rec5.token_pos());
-  EXPECT_EQ(RawPcDescriptors::kOther, rec0.kind());
-  EXPECT_EQ(RawPcDescriptors::kDeopt, rec1.kind());
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(true, iter.MoveNext());
+  EXPECT_EQ(true, iter.MoveNext());
 
-  EXPECT_EQ(30, rec1.token_pos());
-  EXPECT_EQ(40, rec2.token_pos());
-  EXPECT_EQ(40, rec3.token_pos());
-  EXPECT_EQ(80, rec4.token_pos());
+  EXPECT_EQ(-1, iter.TryIndex());
+  EXPECT_EQ(static_cast<uword>(80), iter.Pc());
+  EXPECT_EQ(150, iter.TokenPos());
+
+  EXPECT_EQ(false, iter.MoveNext());
 }
 
 

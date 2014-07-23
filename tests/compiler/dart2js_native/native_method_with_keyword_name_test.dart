@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Make sure we can have a native with a name that is a JavaScript keyword.
 
-class A native "A" {
+@Native("A")
+class A {
   int delete() native;
 }
 
@@ -26,5 +28,5 @@ main() {
   var a = makeA();
   Expect.equals(87, a.delete());
   A aa = a;
-  Expect.equals(87, aa.delete());  
+  Expect.equals(87, aa.delete());
 }

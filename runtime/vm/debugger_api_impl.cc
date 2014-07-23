@@ -314,11 +314,6 @@ DART_EXPORT Dart_Handle Dart_GetFunctionOrigin(Dart_Handle function_in) {
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(Function, function, function_in);
 
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
-  }
-
   const Class& cls = Class::Handle(function.origin());
   if (!cls.IsTopLevel()) {
     return Dart_NewInteger(cls.id());
@@ -342,11 +337,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
-
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
-  }
 
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
@@ -400,9 +390,11 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
 
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
+  // Ensure that the library is loaded.
+  if (!library.Loaded()) {
+    return Api::NewError(
+        "%s expects library argument 'library_in' to be loaded.",
+        CURRENT_FUNC);
   }
 
   // Resolve the breakpoint target function.
@@ -438,9 +430,11 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
 
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
+  // Ensure that the library is loaded.
+  if (!library.Loaded()) {
+    return Api::NewError(
+        "%s expects library argument 'library_in' to be loaded.",
+        CURRENT_FUNC);
   }
 
   // Resolve the breakpoint target function.

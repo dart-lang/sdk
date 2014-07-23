@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test that native classes can use ordinary Dart classes as mixins.
 
-class A native "A" {
+@Native("A")
+class A {
   foo() => "A-foo";
   baz() => "A-baz";
 }
 
-class B extends A with M native "B" {
+@Native("B")
+class B extends A with M {
   bar() => baz();
 }
 

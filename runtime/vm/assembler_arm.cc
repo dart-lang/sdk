@@ -2183,6 +2183,17 @@ bool Address::CanHoldStoreOffset(OperandSize size,
 }
 
 
+bool Address::CanHoldImmediateOffset(
+    bool is_load, intptr_t cid, int64_t offset) {
+  int32_t offset_mask = 0;
+  if (is_load) {
+    return CanHoldLoadOffset(OperandSizeFor(cid), offset, &offset_mask);
+  } else {
+    return CanHoldStoreOffset(OperandSizeFor(cid), offset, &offset_mask);
+  }
+}
+
+
 void Assembler::Push(Register rd, Condition cond) {
   str(rd, Address(SP, -kWordSize, Address::PreIndex), cond);
 }
@@ -3221,6 +3232,73 @@ int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
   // independently.
   object_pool_.Add(smi, Heap::kOld);
   return object_pool_.Length() - 1;
+}
+
+
+Address Assembler::ElementAddressForIntIndex(bool is_load,
+                                             bool is_external,
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             intptr_t index,
+                                             Register temp) {
+  const int64_t offset_base =
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  const int64_t offset = offset_base +
+      static_cast<int64_t>(index) * index_scale;
+  ASSERT(Utils::IsInt(32, offset));
+
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
+    return Address(array, static_cast<int32_t>(offset));
+  } else {
+    ASSERT(Address::CanHoldImmediateOffset(is_load, cid, offset - offset_base));
+    AddImmediate(temp, array, static_cast<int32_t>(offset_base));
+    return Address(temp, static_cast<int32_t>(offset - offset_base));
+  }
+}
+
+
+Address Assembler::ElementAddressForRegIndex(bool is_load,
+                                             bool is_external,
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  const OperandSize size = Address::OperandSizeFor(cid);
+  ASSERT(array != IP);
+  ASSERT(index != IP);
+  const Register base = is_load ? IP : index;
+  if ((offset != 0) ||
+      (size == kSWord) || (size == kDWord) || (size == kRegList)) {
+    if (shift < 0) {
+      ASSERT(shift == -1);
+      add(base, array, Operand(index, ASR, 1));
+    } else {
+      add(base, array, Operand(index, LSL, shift));
+    }
+  } else {
+    if (shift < 0) {
+      ASSERT(shift == -1);
+      return Address(array, index, ASR, 1);
+    } else {
+      return Address(array, index, LSL, shift);
+    }
+  }
+  int32_t offset_mask = 0;
+  if ((is_load && !Address::CanHoldLoadOffset(size,
+                                              offset,
+                                              &offset_mask)) ||
+      (!is_load && !Address::CanHoldStoreOffset(size,
+                                                offset,
+                                                &offset_mask))) {
+    AddImmediate(base, offset & ~offset_mask);
+    offset = offset & offset_mask;
+  }
+  return Address(base, offset);
 }
 
 

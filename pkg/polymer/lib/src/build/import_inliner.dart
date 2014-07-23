@@ -144,7 +144,12 @@ class _HtmlInliner extends PolymerTransformer {
   /// Loads an asset identified by [id], visits its imports and collects its
   /// html imports. Then inlines it into the main document.
   Future _inlineImport(AssetId id, Element link) {
-    return readAsHtml(id, transform).then((doc) {
+    return readAsHtml(id, transform).catchError((error) {
+      transform.logger.error(
+          "Failed to inline html import: $error", asset: id,
+          span: link.sourceSpan);
+    }).then((doc) {
+      if (doc == null) return false;
       new _UrlNormalizer(transform, id).visit(doc);
       return _visitImports(doc).then((_) {
         // _UrlNormalizer already ensures there is a library name.
@@ -160,7 +165,15 @@ class _HtmlInliner extends PolymerTransformer {
   }
 
   Future _inlineStylesheet(AssetId id, Element link) {
-    return transform.readInputAsString(id).then((css) {
+    return transform.readInputAsString(id).catchError((error) {
+      // TODO(jakemac): Move this warning to the linter once we can make it run
+      // always (see http://dartbug.com/17199). Then hide this error and replace
+      // with a comment pointing to the linter error (so we don't double warn).
+      transform.logger.warning(
+          "Failed to inline stylesheet: $error", asset: id,
+          span: link.sourceSpan);
+    }).then((css) {
+      if (css == null) return;
       css = new _UrlNormalizer(transform, id).visitCss(css);
       var styleElement = new Element.tag('style')..text = css;
       // Copy over the extra attributes from the link tag to the style tag.
@@ -324,7 +337,7 @@ class _UrlNormalizer extends TreeVisitor {
     if (!isCustomTagName(node.localName)) {
       node.attributes.forEach((name, value) {
         if (_urlAttributes.contains(name)) {
-          if (value != '' && !value.trim().startsWith('{{')) {
+          if (value != '' && !value.trim().startsWith(_BINDINGS)) {
             node.attributes[name] = _newUrl(value, node.sourceSpan);
             changed = changed || value != node.attributes[name];
           }
@@ -347,6 +360,7 @@ class _UrlNormalizer extends TreeVisitor {
 
   static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);
   static final _QUOTE = new RegExp('["\']', multiLine: true);
+  static final _BINDINGS = new RegExp(r'({{)|(\[\[)');
 
   /// Visit the CSS text and replace any relative URLs so we can inline it.
   // Ported from:
@@ -403,7 +417,10 @@ class _UrlNormalizer extends TreeVisitor {
   }
 
   String _newUrl(String href, Span span) {
-    var uri = Uri.parse(href);
+    // Uri.parse blows up on invalid characters (like {{). Encoding the uri
+    // allows it to be parsed, which does the correct thing in the general case.
+    // This uri not used to build the new uri, so it never needs to be decoded.
+    var uri = Uri.parse(Uri.encodeFull(href));
     if (uri.isAbsolute) return href;
     if (!uri.scheme.isEmpty) return href;
     if (!uri.host.isEmpty) return href;

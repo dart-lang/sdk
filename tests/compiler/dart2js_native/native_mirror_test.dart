@@ -10,9 +10,11 @@
 // convention for others, making this fail.
 
 import "package:expect/expect.dart";
+import "dart:_js_helper";
 import "dart:mirrors";
 
-class A native "A" {
+@Native("A")
+class A {
   final foo;
 }
 

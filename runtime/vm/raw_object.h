@@ -921,11 +921,7 @@ class RawPcDescriptors : public RawObject {
   };
 
   // Compressed version assumes try_index is always -1 and does not store it.
-  class PcDescriptorRec {
-   public:
-    PcDescriptorRec()
-        : pc_(0), deopt_id_and_kind_(0), token_pos_(0), try_index_(0) {}
-
+  struct PcDescriptorRec {
     uword pc() const { return pc_; }
     void set_pc(uword value) { pc_ = value; }
 
@@ -955,14 +951,6 @@ class RawPcDescriptors : public RawObject {
     void set_deopt_id(int32_t value) {
       ASSERT(Utils::IsInt(24, value));
       deopt_id_and_kind_ = (deopt_id_and_kind_ & 0xFF) | (value << 8);
-    }
-
-    void CopyTo(PcDescriptorRec* other) const {
-      other->set_pc(pc());
-      other->set_deopt_id(deopt_id());
-      other->set_kind(kind());
-      other->set_token_pos(token_pos(), false);
-      other->set_try_index(try_index());
     }
 
    private:

@@ -697,6 +697,18 @@ class Assembler : public ValueObject {
   void LoadTaggedClassIdMayBeSmi(Register result,
                                  Register object);
 
+  static Address ElementAddressForIntIndex(bool is_external,
+                                           intptr_t cid,
+                                           intptr_t index_scale,
+                                           Register array,
+                                           intptr_t index);
+
+  static Address ElementAddressForRegIndex(bool is_external,
+                                           intptr_t cid,
+                                           intptr_t index_scale,
+                                           Register array,
+                                           Register index);
+
   /*
    * Misc. functionality
    */

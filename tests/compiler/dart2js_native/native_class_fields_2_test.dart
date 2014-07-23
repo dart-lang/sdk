@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Verify that methods are not renamed to clash with native field names
 // that are known from the DOM (like x, y, z).
-class A native "A" {
+@Native("A")
+class A {
   int x;
   int y;
   int z;

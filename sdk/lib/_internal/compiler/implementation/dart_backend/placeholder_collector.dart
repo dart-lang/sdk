@@ -210,7 +210,7 @@ class PlaceholderCollector extends Visitor {
       // just to escape conflicts and that should be enough as we shouldn't
       // be able to resolve private identifiers for other libraries.
       makeElementPlaceholder(node.name, element);
-    } else if (element.isMember) {
+    } else if (element.isClassMember) {
       if (node.name is Identifier) {
         tryMakeMemberPlaceholder(node.name);
       } else {
@@ -407,7 +407,7 @@ class PlaceholderCollector extends Visitor {
         Identifier name = named.name;
         String nameAsString = name.source;
         for (final parameter in optionalParameters) {
-          if (identical(parameter.kind, ElementKind.FIELD_PARAMETER)) {
+          if (parameter.isInitializingFormal) {
             if (parameter.name == nameAsString) {
               tryMakeMemberPlaceholder(name);
               break;
@@ -501,14 +501,14 @@ class PlaceholderCollector extends Visitor {
         // May get FunctionExpression here in definition.selector
         // in case of A(int this.f());
         if (send.selector is Identifier) {
-          if (identical(definitionElement.kind, ElementKind.FIELD_PARAMETER)) {
+          if (definitionElement.isInitializingFormal) {
             tryMakeMemberPlaceholder(send.selector);
           } else {
             tryMakeLocalPlaceholder(definitionElement, send.selector);
           }
         } else {
           assert(send.selector is FunctionExpression);
-          if (identical(definitionElement.kind, ElementKind.FIELD_PARAMETER)) {
+          if (definitionElement.isInitializingFormal) {
             tryMakeMemberPlaceholder(
                 send.selector.asFunctionExpression().name);
           }

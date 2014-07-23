@@ -2670,15 +2670,19 @@ DART_EXPORT Dart_Handle Dart_LibraryLoadPatch(Dart_Handle library,
 
 
 /**
- * Indicates that all outstanding load requests have been satisfied,
- * finalizing classes and completing deferred library futures.
+ * Indicates that all outstanding load requests have been satisfied.
+ * This finalizes all the new classes loaded and optionally completes
+ * deferred library futures.
  *
  * Requires there to be a current isolate.
  *
- * \return Success if all deferred library futures are completed.
- *   Otherwise, returns an error.
+ * \param complete_futures Specify true if all deferred library
+ *  futures should be completed, false otherwise.
+ *
+ * \return Success if all classes have been finalized and deferred library
+ *   futures are completed. Otherwise, returns an error.
  */
-DART_EXPORT Dart_Handle Dart_FinalizeLoading();
+DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures);
 
 
 /*

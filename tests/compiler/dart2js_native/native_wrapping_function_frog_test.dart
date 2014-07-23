@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 typedef void Callback0();
 typedef void Callback1(arg1);
 typedef void Callback2(arg1, arg2);
 
-class A native "A" {
+@Native("A")
+class A {
   foo0(Callback0 closure) native;
   foo1(Callback1 closure, arg1) native;
   foo2(Callback2 closure, arg1, arg2) native;

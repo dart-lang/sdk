@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:mirrors';
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
-class B native "B" {
+@Native("B")
+class B {
   // Having this field in a native class will generate accessors with
   // the interceptor calling convention.
   var f;

@@ -4,6 +4,7 @@
 
 import 'package:unittest/unittest.dart';
 
+import 'analysis/test_all.dart' as analysis_all;
 import 'analysis_hover_test.dart' as analysis_hover_test;
 import 'analysis_notification_highlights_test.dart' as analysis_notification_highlights_test;
 import 'analysis_notification_navigation_test.dart' as analysis_notification_navigation_test;
@@ -16,9 +17,8 @@ import 'completion_test.dart' as completion_test;
 import 'computer/test_all.dart' as computer_test_all;
 import 'context_directory_manager_test.dart' as context_directory_manager_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
-import 'domain_completion_test.dart' as domain_completion_test;
-import 'domain_edit_test.dart' as domain_edit_test;
 import 'domain_server_test.dart' as domain_server_test;
+import 'edit/test_all.dart' as edit_all;
 import 'operation/test_all.dart' as operation_test_all;
 import 'package_map_provider_test.dart' as package_map_provider_test;
 import 'package_uri_resolver_test.dart' as package_uri_resolver_test;
@@ -32,6 +32,7 @@ import 'socket_server_test.dart' as socket_server_test;
 main() {
   groupSep = ' | ';
   group('analysis_server', () {
+    analysis_all.main();
     analysis_hover_test.main();
     analysis_notification_highlights_test.main();
     analysis_notification_navigation_test.main();
@@ -44,9 +45,8 @@ main() {
     computer_test_all.main();
     context_directory_manager_test.main();
     domain_analysis_test.main();
-    domain_completion_test.main();
-    domain_edit_test.main();
     domain_server_test.main();
+    edit_all.main();
     operation_test_all.main();
     package_map_provider_test.main();
     package_uri_resolver_test.main();

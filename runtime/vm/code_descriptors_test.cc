@@ -258,9 +258,8 @@ TEST_CASE(StackmapGC) {
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kUnoptStaticCall);
-  while (iter.HasNext()) {
-    const uword pc = iter.NextPc();
-    stackmap_table_builder->AddEntry(pc - code.EntryPoint(),
+  while (iter.MoveNext()) {
+    stackmap_table_builder->AddEntry(iter.Pc() - code.EntryPoint(),
                                      stack_bitmap,
                                      0);
     ++call_count;

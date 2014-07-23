@@ -83,7 +83,7 @@ static void CompileAll(Isolate* isolate, Dart_Handle* result) {
 DART_EXPORT Dart_Handle Dart_CompileAll() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Dart_Handle result = Api::CheckIsolateState(isolate);
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(isolate);
   if (::Dart_IsError(result)) {
     return result;
   }

@@ -670,7 +670,7 @@ class TypedSelector extends Selector {
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
     // [TypedSelector] are only used after resolution.
-    if (!element.isMember) return false;
+    if (!element.isClassMember) return false;
 
     // A closure can be called through any typed selector:
     // class A {

@@ -7,9 +7,9 @@ library test.protocol;
 import 'dart:convert';
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/json.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analysis_server/src/collections.dart';
 
 
 Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());

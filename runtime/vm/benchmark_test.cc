@@ -153,11 +153,15 @@ BENCHMARK(UseDartApi) {
 
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars,
-      reinterpret_cast<Dart_NativeEntryResolver>(bm_uda_lookup));
+      reinterpret_cast<Dart_NativeEntryResolver>(bm_uda_lookup),
+      USER_TEST_URI,
+      false);
 
   // Create a native wrapper class with native fields.
   Dart_Handle result = Dart_CreateNativeWrapperClass(
       lib, NewString("NativeFieldsWrapper"), 1);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
   EXPECT_VALID(result);
 
   Dart_Handle args[1];
@@ -411,7 +415,7 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
-  Api::CheckIsolateState(Isolate::Current());
+  Api::CheckAndFinalizePendingClasses(Isolate::Current());
 
   // Write snapshot with object content.
   FullSnapshotWriter writer(&buffer, &malloc_allocator);
@@ -442,7 +446,7 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
-  Api::CheckIsolateState(Isolate::Current());
+  Api::CheckAndFinalizePendingClasses(Isolate::Current());
 
   // Write snapshot with object content.
   FullSnapshotWriter writer(&buffer, &malloc_allocator);
@@ -478,7 +482,7 @@ BENCHMARK(EnterExitIsolate) {
       "\n";
   const intptr_t kLoopCount = 1000000;
   TestCase::LoadTestScript(kScriptChars, NULL);
-  Api::CheckIsolateState(Isolate::Current());
+  Api::CheckAndFinalizePendingClasses(Isolate::Current());
   Dart_Isolate isolate = Dart_CurrentIsolate();
   Timer timer(true, "Enter and Exit isolate");
   timer.Start();

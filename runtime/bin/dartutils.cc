@@ -744,7 +744,7 @@ void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
 // Callback function that gets called from dartutils when there are
 // no more outstanding load requests.
 void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
-  Dart_Handle res = Dart_FinalizeLoading();
+  Dart_Handle res = Dart_FinalizeLoading(true);
   if (Dart_IsError(res)) {
     Dart_PropagateError(res);
   }
@@ -799,6 +799,12 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   Dart_Handle async_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(async_lib);
   Dart_Handle io_lib = Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+
+  // We need to ensure that all the scripts loaded so far are finalized
+  // as we are about to invoke some Dart code below to setup closures.
+  result = Dart_FinalizeLoading(false);
+  DART_CHECK_VALID(result);
+
   Dart_Handle timer_closure =
       Dart_Invoke(io_lib, NewString("_getTimerFactoryClosure"), 0, NULL);
   Dart_Handle args[1];

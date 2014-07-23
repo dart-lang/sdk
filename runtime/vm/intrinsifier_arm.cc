@@ -475,6 +475,76 @@ void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ ldr(R0, Address(SP, + 0 * kWordSize));  // Index.
+  __ ldr(R1, Address(SP, + 1 * kWordSize));  // Array.
+  __ tst(R0, Operand(kSmiTagMask));
+  __ b(&fall_through, NE);  // Index is not a smi, fall through.
+
+  // Range check.
+  __ ldr(R6, FieldAddress(R1, TypedData::length_offset()));
+  __ cmp(R0, Operand(R6));
+  __ b(&fall_through, CS);
+
+
+  Address element_address =
+      __ ElementAddressForRegIndex(true,  // Load.
+                                   false,  // Not external.
+                                   kTypedDataFloat64ArrayCid,  // Cid.
+                                   8,  // Index scale.
+                                   R1,  // Array.
+                                   R0);  // Index.
+
+  __ vldrd(D0, element_address);
+
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 R0,  // Result register.
+                 R1);
+  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+  __ Ret();
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ ldr(R0, Address(SP, + 1 * kWordSize));  // Index.
+  __ ldr(R1, Address(SP, + 2 * kWordSize));  // Array.
+  __ tst(R0, Operand(kSmiTagMask));
+  __ b(&fall_through, NE);  // Index is not a smi, fall through.
+
+  // Range check.
+  __ ldr(R6, FieldAddress(R1, TypedData::length_offset()));
+  __ cmp(R0, Operand(R6));
+  __ b(&fall_through, CS);
+
+  __ ldr(R2, Address(SP, + 0 * kWordSize));  // Value.
+  __ tst(R2, Operand(kSmiTagMask));
+  __ b(&fall_through, EQ);  // Value is Smi, fall through.
+
+  __ LoadClassId(R3, R2);
+  __ CompareImmediate(R3, kDoubleCid);
+  __ b(&fall_through, NE);  // Not a Double, fall through.
+
+  __ LoadDFromOffset(D0, R2, Double::value_offset() - kHeapObjectTag);
+
+  Address element_address =
+      __ ElementAddressForRegIndex(false,  // Store.
+                                   false,  // Not external.
+                                   kTypedDataFloat64ArrayCid,  // Cid.
+                                   8,  // Index scale.
+                                   R1,  // Array.
+                                   R0);  // Index.
+  __ vstrd(D0, element_address);
+  __ Ret();
+  __ Bind(&fall_through);
+}
+
+
 static int GetScaleFactor(intptr_t size) {
   switch (size) {
     case 1: return 0;

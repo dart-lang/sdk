@@ -468,6 +468,14 @@ static void SetupForGenericSnapshotCreation() {
 
   Dart_Handle library = LoadGenericSnapshotCreationScript(Builtin::kIOLibrary);
   VerifyLoaded(library);
+  Dart_Handle result = Dart_FinalizeLoading(false);
+  if (Dart_IsError(result)) {
+    const char* err_msg = Dart_GetError(library);
+    Log::PrintErr("Errors encountered while loading: %s\n", err_msg);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+    exit(255);
+  }
 }
 
 
@@ -532,6 +540,10 @@ int main(int argc, char** argv) {
         Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     CHECK_RESULT(builtin_lib);
 
+    // Ensure that we mark all libraries as loaded.
+    result = Dart_FinalizeLoading(false);
+    CHECK_RESULT(result);
+
     // Prepare for script loading by setting up the 'print' and 'timer'
     // closures and setting up 'package root' for URI resolution.
     result = DartUtils::PrepareForScriptLoading(package_root, builtin_lib);
@@ -556,6 +568,9 @@ int main(int argc, char** argv) {
     // Load the specified script.
     library = LoadSnapshotCreationScript(app_script_name);
     VerifyLoaded(library);
+    // Ensure that we mark all libraries as loaded.
+    result = Dart_FinalizeLoading(false);
+    CHECK_RESULT(result);
     CreateAndWriteSnapshot();
 
     Dart_EnterIsolate(UriResolverIsolateScope::isolate);

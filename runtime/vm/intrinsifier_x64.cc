@@ -436,6 +436,73 @@ void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, TypedData::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  Address element_address =
+      Assembler::ElementAddressForRegIndex(false,  // Not external.
+                                           kTypedDataFloat64ArrayCid,
+                                           8,  // Index scale.
+                                           RAX,  // Array.
+                                           RCX);  // Index.
+
+  __ movsd(XMM0, element_address);
+
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  __ TryAllocate(double_class,
+                 &fall_through,
+                 Assembler::kNearJump,
+                 RAX,  // Result register.
+                 kNoRegister);
+  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, TypedData::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value
+  __ testq(RDX, Immediate(kSmiTagMask));
+  __ j(ZERO, &fall_through, Assembler::kNearJump);  // Value is Smi.
+
+  __ LoadClassId(RDI, RDX);
+  __ cmpq(RDI, Immediate(kTypedDataFloat64ArrayCid));
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ movsd(XMM0, FieldAddress(RDX, Double::value_offset()));
+
+  Address element_address =
+      Assembler::ElementAddressForRegIndex(false,  // Not external.
+                                           kTypedDataFloat64ArrayCid,
+                                           8,  // Index scale.
+                                           RAX,  // Array.
+                                           RCX);  // Index.
+
+  __ movsd(element_address, XMM0);
+  __ ret();
+  __ Bind(&fall_through);
+}
+
+
 static ScaleFactor GetScaleFactor(intptr_t size) {
   switch (size) {
     case 1: return TIMES_1;

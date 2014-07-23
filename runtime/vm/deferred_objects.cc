@@ -97,13 +97,17 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
 
 RawInstance* DeferredObject::object() {
   if (object_ == NULL) {
-    Materialize();
+    Create();
   }
   return object_->raw();
 }
 
 
-void DeferredObject::Materialize() {
+void DeferredObject::Create() {
+  if (object_ != NULL) {
+    return;
+  }
+
   Class& cls = Class::Handle();
   cls ^= GetClass();
 
@@ -114,7 +118,17 @@ void DeferredObject::Materialize() {
                  field_count_);
   }
 
-  const Instance& obj = Instance::ZoneHandle(Instance::New(cls));
+  object_ = &Instance::ZoneHandle(Instance::New(cls));
+}
+
+
+void DeferredObject::Fill() {
+  Create();  // Ensure instance is created.
+
+  Class& cls = Class::Handle();
+  cls ^= GetClass();
+
+  const Instance& obj = *object_;
 
   Smi& offset = Smi::Handle();
   Field& field = Field::Handle();
@@ -143,8 +157,6 @@ void DeferredObject::Materialize() {
       }
     }
   }
-
-  object_ = &obj;
 }
 
 }  // namespace dart

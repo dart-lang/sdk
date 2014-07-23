@@ -284,9 +284,9 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
 
     // Synthesize an element for the variable
     if (variable.element == null || name != variable.element.name) {
-      variable.element = new modelx.VariableElementX(
+      // TODO(johnniwinther): Replace by synthetic [Entity].
+      variable.element = new modelx.LocalVariableElementX(
           name,
-          ElementKind.VARIABLE,
           functionElement,
           variableList,
           null);

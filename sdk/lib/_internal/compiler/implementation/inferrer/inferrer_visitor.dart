@@ -369,7 +369,7 @@ class LocalsHandler<T> {
     }
   }
 
-  void update(TypedElement local, T type, Node node) {
+  void update(LocalElement local, T type, Node node) {
     assert(type != null);
     if (compiler.trustTypeAnnotations || compiler.enableTypeAssertions) {
       type = types.narrowType(type, local.type);
@@ -783,7 +783,7 @@ abstract class InferrerVisitor
     } else {
       Element element = elements[node];
       if (Elements.isLocal(element)) {
-        TypedElement local = element;
+        LocalElement local = element;
         return locals.use(local);
       }
       return null;
@@ -803,8 +803,8 @@ abstract class InferrerVisitor
   }
 
   void updateIsChecks(List<Node> tests, {bool usePositive}) {
-    void narrow(var element, DartType type, Node node) {
-      if (element is Local) {
+    void narrow(Element element, DartType type, Node node) {
+      if (element is LocalElement) {
         T existing = locals.use(element);
         T newType = types.narrowType(existing, type, isNullable: false);
         locals.update(element, newType, node);

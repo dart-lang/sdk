@@ -1413,6 +1413,47 @@ void Assembler::TryAllocate(const Class& cls,
   }
 }
 
+
+Address Assembler::ElementAddressForIntIndex(bool is_external,
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             intptr_t index) const {
+  const int64_t offset = index * index_scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  ASSERT(Utils::IsInt(32, offset));
+  const OperandSize size = Address::OperandSizeFor(cid);
+  ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
+  return Address(array, static_cast<int32_t>(offset), Address::Offset, size);
+}
+
+
+Address Assembler::ElementAddressForRegIndex(bool is_load,
+                                             bool is_external,
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  const int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  ASSERT(array != TMP);
+  ASSERT(index != TMP);
+  const Register base = is_load ? TMP : index;
+  if ((offset == 0) && (shift == 0)) {
+    return Address(array, index, UXTX, Address::Unscaled);
+  } else if (shift < 0) {
+    ASSERT(shift == -1);
+    add(base, array, Operand(index, ASR, 1));
+  } else {
+    add(base, array, Operand(index, LSL, shift));
+  }
+  const OperandSize size = Address::OperandSizeFor(cid);
+  ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
+  return Address(base, offset, Address::Offset, size);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM64

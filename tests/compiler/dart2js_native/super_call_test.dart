@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test to see if resolving a hidden native class's method interferes with
@@ -9,21 +10,25 @@ import "package:expect/expect.dart";
 // superclass caches the method in the prototype, so shadowing the dispatcher
 // stored on Object.prototype.
 
-class A native "A" {
+@Native("A")
+class A {
   foo() => 'A.foo ${bar()}';
   bar() => 'A.bar';
 }
 
-class B extends A native "B" {
+@Native("B")
+class B extends A {
   bar() => 'B.bar';
 }
 
-class C extends B native "C" {
+@Native("C")
+class C extends B {
   foo() => 'C.foo; super.foo = ${super.foo()}';
   bar() => 'C.bar';
 }
 
-class D extends C native "D" {
+@Native("D")
+class D extends C {
   bar() => 'D.bar';
 }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 // Test to see if resolving a hidden native class's method interferes with
@@ -10,11 +11,13 @@ import "package:expect/expect.dart";
 // stored on Object.prototype.
 
 // Version 1: It might be possible to call foo directly.
-class A1 native "A1" {
+@Native("A1")
+class A1 {
   foo() native;
 }
 
-class B1 extends A1 native "B1" {
+@Native("B1")
+class B1 extends A1 {
   foo() native;
 }
 
@@ -23,11 +26,13 @@ makeB1() native;
 
 
 // Version 2: foo needs some kind of trampoline.
-class A2 native "A2" {
+@Native("A2")
+class A2 {
   foo([a=99]) native;
 }
 
-class B2 extends A2 native "B2" {
+@Native("B2")
+class B2 extends A2 {
   foo([z=1000]) native;
 }
 

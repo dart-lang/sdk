@@ -3047,59 +3047,66 @@ class PcDescriptors : public Object {
   class Iterator : ValueObject {
    public:
     Iterator(const PcDescriptors& descriptors, intptr_t kind_mask)
-        : descriptors_(descriptors), kind_mask_(kind_mask), current_ix_(0) {
+        : descriptors_(descriptors),
+          kind_mask_(kind_mask),
+          next_ix_(0),
+          current_ix_(-1) {
       MoveToMatching();
     }
 
-    bool HasNext() const { return current_ix_ < descriptors_.Length(); }
-
-    intptr_t NextDeoptId() {
-      ASSERT(HasNext());
-      const intptr_t res = descriptors_.recAt(current_ix_++)->deopt_id();
-      MoveToMatching();
-      return res;
+    bool MoveNext() {
+      if (HasNext()) {
+        current_ix_ = next_ix_++;
+        MoveToMatching();
+        return true;
+      } else {
+        return false;
+      }
     }
 
-    uword NextPc() {
-      ASSERT(HasNext());
-      const uword res = descriptors_.recAt(current_ix_++)->pc();
-      MoveToMatching();
-      return res;
+    uword Pc() const { return descriptors_.recAt(current_ix_)->pc(); }
+    intptr_t DeoptId() const {
+      return descriptors_.recAt(current_ix_)->deopt_id();
     }
-
-    void NextRec(RawPcDescriptors::PcDescriptorRec* result) {
-      ASSERT(HasNext());
-      const RawPcDescriptors::PcDescriptorRec* r =
-          descriptors_.recAt(current_ix_++);
-      r->CopyTo(result);
-      MoveToMatching();
+    intptr_t TokenPos() const {
+      return descriptors_.recAt(current_ix_)->token_pos();
+    }
+    intptr_t TryIndex() const {
+      return descriptors_.recAt(current_ix_)->try_index();
+    }
+    RawPcDescriptors::Kind Kind() const {
+      return descriptors_.recAt(current_ix_)->kind();
     }
 
    private:
     friend class PcDescriptors;
+
+    bool HasNext() const { return next_ix_ < descriptors_.Length(); }
 
     // For nested iterations, starting at element after.
     explicit Iterator(const Iterator& iter)
         : ValueObject(),
           descriptors_(iter.descriptors_),
           kind_mask_(iter.kind_mask_),
+          next_ix_(iter.next_ix_),
           current_ix_(iter.current_ix_) {}
 
     // Moves to record that matches kind_mask_.
     void MoveToMatching() {
-      while (current_ix_ < descriptors_.Length()) {
+      while (next_ix_ < descriptors_.Length()) {
         const RawPcDescriptors::PcDescriptorRec& rec =
-            *descriptors_.recAt(current_ix_);
+            *descriptors_.recAt(next_ix_);
         if ((rec.kind() & kind_mask_) != 0) {
           return;  // Current is valid.
         } else {
-          ++current_ix_;
+          ++next_ix_;
         }
       }
     }
 
     const PcDescriptors& descriptors_;
     const intptr_t kind_mask_;
+    intptr_t next_ix_;
     intptr_t current_ix_;
   };
 
@@ -3113,7 +3120,7 @@ class PcDescriptors : public Object {
   intptr_t RecordSizeInBytes() const;
 
   RawPcDescriptors::PcDescriptorRec* recAt(intptr_t ix) const {
-    ASSERT(ix < Length());
+    ASSERT((0 <= ix) && (ix < Length()));
     uint8_t* d = raw_ptr()->data() + (ix * RecordSizeInBytes());
     return reinterpret_cast<RawPcDescriptors::PcDescriptorRec*>(d);
   }

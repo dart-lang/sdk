@@ -11,6 +11,7 @@ import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -82,11 +83,9 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
     }
   }
 
-  Future prepareOccurrences(then()) {
+  Future prepareOccurrences() {
     addAnalysisSubscription(AnalysisService.OCCURRENCES, testFile);
-    return waitForTasksFinished().then((_) {
-      then();
-    });
+    return waitForTasksFinished();
   }
 
   void processNotification(Notification notification) {
@@ -117,7 +116,7 @@ main() {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return prepareOccurrences(() {
+      return prepareOccurrences().then((_) {
         assertHasRegion('vvv =');
         expect(testOccurences.element.kind, ElementKind.LOCAL_VARIABLE);
         expect(testOccurences.element.name, 'vvv');
@@ -136,7 +135,7 @@ main() {
 }
 int VVV = 4;
 ''');
-    return prepareOccurrences(() {
+    return prepareOccurrences().then((_) {
       assertHasRegion('int a');
       expect(testOccurences.element.kind, ElementKind.CLASS);
       expect(testOccurences.element.name, 'int');
@@ -158,7 +157,7 @@ class A {
   }
 }
 ''');
-    return prepareOccurrences(() {
+    return prepareOccurrences().then((_) {
       assertHasRegion('fff;');
       expect(testOccurences.element.kind, ElementKind.FIELD);
       assertHasOffset('fff); // constructor');
@@ -175,7 +174,7 @@ main() {
   print(vvv);
 }
 ''');
-    return prepareOccurrences(() {
+    return prepareOccurrences().then((_) {
       assertHasRegion('vvv =');
       expect(testOccurences.element.kind, ElementKind.LOCAL_VARIABLE);
       expect(testOccurences.element.name, 'vvv');
@@ -197,7 +196,7 @@ main() {
   b.fff = 2;
 }
 ''');
-    return prepareOccurrences(() {
+    return prepareOccurrences().then((_) {
       assertHasRegion('fff;');
       expect(testOccurences.element.kind, ElementKind.FIELD);
       assertHasOffset('fff = 1;');
@@ -217,7 +216,7 @@ main() {
   b.mmm(); // b
 }
 ''');
-    return prepareOccurrences(() {
+    return prepareOccurrences().then((_) {
       assertHasRegion('mmm() {}');
       expect(testOccurences.element.kind, ElementKind.METHOD);
       assertHasOffset('mmm(); // a');
@@ -233,7 +232,7 @@ main() {
   print(VVV);
 }
 ''');
-    return prepareOccurrences(() {
+    return prepareOccurrences().then((_) {
       assertHasRegion('VVV = 1;');
       expect(testOccurences.element.kind, ElementKind.TOP_LEVEL_VARIABLE);
       assertHasOffset('VVV = 2;');

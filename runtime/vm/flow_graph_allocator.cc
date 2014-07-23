@@ -122,6 +122,27 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
 }
 
 
+static void DeepLiveness(MaterializeObjectInstr* mat, BitVector* live_in) {
+  if (mat->was_visited_for_liveness()) {
+    return;
+  }
+  mat->mark_visited_for_liveness();
+
+  for (intptr_t i = 0; i < mat->InputCount(); i++) {
+    if (!mat->InputAt(i)->BindsToConstant()) {
+      Definition* defn = mat->InputAt(i)->definition();
+      MaterializeObjectInstr* inner_mat = defn->AsMaterializeObject();
+      if (inner_mat != NULL) {
+        DeepLiveness(inner_mat, live_in);
+      } else {
+        intptr_t idx = defn->ssa_temp_index();
+        live_in->Add(idx);
+      }
+    }
+  }
+}
+
+
 void SSALivenessAnalysis::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
@@ -173,12 +194,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
           if (defn->IsMaterializeObject()) {
             // MaterializeObject instruction is not in the graph.
             // Treat its inputs as part of the environment.
-            for (intptr_t i = 0; i < defn->InputCount(); i++) {
-              if (!defn->InputAt(i)->BindsToConstant()) {
-                intptr_t idx = defn->InputAt(i)->definition()->ssa_temp_index();
-                live_in->Add(idx);
-              }
-            }
+            DeepLiveness(defn->AsMaterializeObject(), live_in);
           } else if (!defn->IsPushArgument() && !defn->IsConstant()) {
             live_in->Add(defn->ssa_temp_index());
             if (defn->HasPairRepresentation()) {
@@ -889,6 +905,7 @@ void FlowGraphAllocator::ProcessMaterializationUses(
   // Initialize location for every input of the MaterializeObject instruction.
   Location* locations =
       Isolate::Current()->current_zone()->Alloc<Location>(mat->InputCount());
+  mat->set_locations(locations);
 
   for (intptr_t i = 0; i < mat->InputCount(); ++i) {
     Definition* def = mat->InputAt(i)->definition();
@@ -915,6 +932,10 @@ void FlowGraphAllocator::ProcessMaterializationUses(
         range->AddUseInterval(block_start_pos, use_pos);
         range->AddUse(use_pos, location_pair->SlotAt(1));
       }
+    } else if (def->IsMaterializeObject()) {
+      locations[i] = Location::NoLocation();
+      ProcessMaterializationUses(
+          block, block_start_pos, use_pos, def->AsMaterializeObject());
     } else {
       locations[i] = Location::Any();
       LiveRange* range = GetLiveRange(def->ssa_temp_index());
@@ -922,8 +943,6 @@ void FlowGraphAllocator::ProcessMaterializationUses(
       range->AddUse(use_pos, &locations[i]);
     }
   }
-
-  mat->set_locations(locations);
 }
 
 

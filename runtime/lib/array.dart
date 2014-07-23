@@ -53,7 +53,7 @@ class _List<E> implements List<E> {
   }
 
   Iterable<E> getRange(int start, [int end]) {
-    return IterableMixinWorkaround.getRangeList(this, start, end);
+    return new IterableMixinWorkaround<E>().getRangeList(this, start, end);
   }
 
   // List interface.
@@ -136,7 +136,7 @@ class _List<E> implements List<E> {
   }
 
   Iterable<E> where(bool f(E element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return new IterableMixinWorkaround<E>().where(this, f);
   }
 
   Iterable expand(Iterable f(E element)) {
@@ -144,19 +144,19 @@ class _List<E> implements List<E> {
   }
 
   Iterable<E> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new IterableMixinWorkaround<E>().takeList(this, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new IterableMixinWorkaround<E>().takeWhile(this, test);
   }
 
   Iterable<E> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new IterableMixinWorkaround<E>().skipList(this, n);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new IterableMixinWorkaround<E>().skipWhile(this, test);
   }
 
   bool every(bool f(E element)) {
@@ -189,7 +189,8 @@ class _List<E> implements List<E> {
 
   bool get isNotEmpty => !isEmpty;
 
-  Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
+  Iterable<E> get reversed =>
+      new IterableMixinWorkaround<E>().reversedList(this);
 
   void sort([int compare(E a, E b)]) {
     IterableMixinWorkaround.sortList(this, compare);
@@ -257,7 +258,7 @@ class _List<E> implements List<E> {
   }
 
   Map<int, E> asMap() {
-    return IterableMixinWorkaround.asMapList(this);
+    return new IterableMixinWorkaround<E>().asMapList(this);
   }
 }
 
@@ -347,7 +348,7 @@ class _ImmutableList<E> implements List<E> {
   }
 
   Iterable<E> getRange(int start, int end) {
-    return IterableMixinWorkaround.getRangeList(this, start, end);
+    return new IterableMixinWorkaround<E>().getRangeList(this, start, end);
   }
 
   // Collection interface.
@@ -377,7 +378,7 @@ class _ImmutableList<E> implements List<E> {
   }
 
   Iterable<E> where(bool f(E element)) {
-    return IterableMixinWorkaround.where(this, f);
+    return new IterableMixinWorkaround<E>().where(this, f);
   }
 
   Iterable expand(Iterable f(E element)) {
@@ -385,19 +386,19 @@ class _ImmutableList<E> implements List<E> {
   }
 
   Iterable<E> take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new IterableMixinWorkaround<E>().takeList(this, n);
   }
 
   Iterable<E> takeWhile(bool test(E value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new IterableMixinWorkaround<E>().takeWhile(this, test);
   }
 
   Iterable<E> skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new IterableMixinWorkaround<E>().skipList(this, n);
   }
 
   Iterable<E> skipWhile(bool test(E value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new IterableMixinWorkaround<E>().skipWhile(this, test);
   }
 
   bool every(bool f(E element)) {
@@ -430,7 +431,8 @@ class _ImmutableList<E> implements List<E> {
 
   bool get isNotEmpty => !isEmpty;
 
-  Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
+  Iterable<E> get reversed =>
+      new IterableMixinWorkaround<E>().reversedList(this);
 
   void sort([int compare(E a, E b)]) {
     throw UnmodifiableListError.change();
@@ -502,7 +504,7 @@ class _ImmutableList<E> implements List<E> {
   }
 
   Map<int, E> asMap() {
-    return IterableMixinWorkaround.asMapList(this);
+    return new IterableMixinWorkaround<E>().asMapList(this);
   }
 }
 

@@ -241,7 +241,7 @@ patch class ByteData {
 
 // Based class for _TypedList that provides common methods for implementing
 // the collection and list interfaces.
-
+// TODO(13647): Make this extends ListBase<T>
 abstract class _TypedListBase {
 
   // Method(s) implementing the Collection interface.
@@ -252,10 +252,6 @@ abstract class _TypedListBase {
     for (var i = 0; i < len; i++) {
       f(this[i]);
     }
-  }
-
-  Iterable map(f(element)) {
-    return IterableMixinWorkaround.mapList(this, f);
   }
 
   String join([String separator = ""]) {
@@ -271,29 +267,47 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
-  Iterable where(bool f(element)) {
-    return IterableMixinWorkaround.where(this, f);
+  Iterable map(f(element)) {
+    return IterableMixinWorkaround.mapList(this, f);
   }
 
   Iterable expand(Iterable f(element)) {
     return IterableMixinWorkaround.expand(this, f);
   }
 
+  // The following methods need to know the element type (int or double).
+  Iterable where(bool f(element)) {
+    return new IterableMixinWorkaround().where(this, f);
+  }
+
   Iterable take(int n) {
-    return IterableMixinWorkaround.takeList(this, n);
+    return new IterableMixinWorkaround().takeList(this, n);
   }
 
   Iterable takeWhile(bool test(element)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
+    return new IterableMixinWorkaround().takeWhile(this, test);
   }
 
   Iterable skip(int n) {
-    return IterableMixinWorkaround.skipList(this, n);
+    return new IterableMixinWorkaround().skipList(this, n);
   }
 
   Iterable skipWhile(bool test(element)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
+    return new IterableMixinWorkaround().skipWhile(this, test);
   }
+
+  Iterable<dynamic> get reversed {
+    return new IterableMixinWorkaround().reversedList(this);
+  }
+
+  Map<int, dynamic> asMap() {
+    return new IterableMixinWorkaround().asMapList(this);
+  }
+
+  Iterable getRange(int start, [int end]) {
+    return new IterableMixinWorkaround().getRangeList(this, start, end);
+  }
+  // End of methods returning incorrectly parameterized types.
 
   bool every(bool f(element)) {
     return IterableMixinWorkaround.every(this, f);
@@ -313,10 +327,6 @@ abstract class _TypedListBase {
 
   dynamic singleWhere(bool test(element)) {
     return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Iterable<dynamic> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
   }
 
   dynamic elementAt(int index) {
@@ -436,10 +446,6 @@ abstract class _TypedListBase {
     return new Set.from(this);
   }
 
-  Map<int, dynamic> asMap() {
-    return IterableMixinWorkaround.asMapList(this);
-  }
-
   List sublist(int start, [int end]) {
     if (end == null) end = this.length;
     int length = end - start;
@@ -447,10 +453,6 @@ abstract class _TypedListBase {
     List result = _createList(length);
     result.setRange(0, length, this, start);
     return result;
-  }
-
-  Iterable getRange(int start, [int end]) {
-    return IterableMixinWorkaround.getRangeList(this, start, end);
   }
 
   void setRange(int start, int end, Iterable from, [int skipCount = 0]) {

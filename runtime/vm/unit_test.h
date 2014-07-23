@@ -245,7 +245,8 @@ class TestCase : TestCaseBase {
 
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
-                                    const char* lib_uri = USER_TEST_URI);
+                                    const char* lib_uri = USER_TEST_URI,
+                                    bool finalize = true);
 
   static Dart_Handle LoadCoreTestScript(const char* script,
                                         Dart_NativeEntryResolver resolver);

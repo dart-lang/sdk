@@ -24,19 +24,12 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
-
-/**
- * An instance of [DirectoryBasedDartSdk] that is shared between
- * [AnalysisServer] instances to improve performance.
- */
-final DirectoryBasedDartSdk SHARED_SDK = DirectoryBasedDartSdk.defaultSdk;
 
 class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   final AnalysisServer analysisServer;
@@ -143,7 +136,7 @@ class AnalysisServer {
   /**
    * The current default [DartSdk].
    */
-  DartSdk defaultSdk = SHARED_SDK;
+  final DartSdk defaultSdk;
 
   /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
@@ -173,6 +166,13 @@ class AnalysisServer {
       new HashMap<AnalysisService, Set<String>>();
 
   /**
+   * A table mapping [AnalysisContext]s to the completers that should be
+   * completed when analysis of this context is finished.
+   */
+  Map<AnalysisContext, Completer> contextAnalysisDoneCompleters =
+      new HashMap<AnalysisContext, Completer>();
+
+  /**
    * True if any exceptions thrown by analysis should be propagated up the call
    * stack.
    */
@@ -188,7 +188,7 @@ class AnalysisServer {
    * running a full analysis server.
    */
   AnalysisServer(this.channel, ResourceProvider resourceProvider,
-      PackageMapProvider packageMapProvider, this.index,
+      PackageMapProvider packageMapProvider, this.index, this.defaultSdk,
       {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue(this);
@@ -224,6 +224,13 @@ class AnalysisServer {
    */
   void sendNotification(Notification notification) {
     channel.sendNotification(notification);
+  }
+
+  /**
+   * Send the given [response] to the client.
+   */
+  void sendResponse(Response response) {
+    channel.sendResponse(response);
   }
 
   /**
@@ -334,6 +341,9 @@ class AnalysisServer {
     for (int i = 0; i < count; i++) {
       try {
         Response response = handlers[i].handleRequest(request);
+        if (response == Response.DELAYED_RESPONSE) {
+          return;
+        }
         if (response != null) {
           channel.sendResponse(response);
           return;
@@ -562,6 +572,24 @@ class AnalysisServer {
   }
 
   /**
+   * Returns all the [AnalysisErrorInfo] for [file].
+   * It does not wait for all errors to be computed, and returns just the
+   * current state.
+   *
+   * May return `null`.
+   */
+  AnalysisErrorInfo getErrors(String file) {
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(file);
+    if (context == null) {
+      return null;
+    }
+    // get errors for the file
+    Source source = getSource(file);
+    return context.getErrors(source);
+  }
+
+  /**
    * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
    *
    * May be empty, but not `null`.
@@ -603,6 +631,51 @@ class AnalysisServer {
       }
     }
     return elements;
+  }
+
+  /**
+   * Returns a [Future] completing when [file] has been completely analyzed, in
+   * particular, all its errors have been computed.
+   *
+   * TODO(scheglov) this method should be improved.
+   *
+   * 1. The analysis context should be told to analyze this particular file ASAP.
+   *
+   * 2. We should complete the future as soon as the file is analyzed (not wait
+   *    until the context is completely finished)
+   *
+   * 3. Since contexts can be created and deleted asynchronously as a result of
+   *    changes to the filesystem, there's a danger that the future might never
+   *    get completed. We should add a mechanism to make sure that we return an
+   *    error for any getErrors request that is unsatisfiable due to its context
+   *    being deleted.
+   */
+  Future onFileAnalysisComplete(String file) {
+    // prepare AnalysisContext
+    AnalysisContext context = getAnalysisContext(file);
+    if (context == null) {
+      return new Future.value();
+    }
+    // schedule context analysis
+    schedulePerformAnalysisOperation(context);
+    // associate with the context completer
+    Completer completer = contextAnalysisDoneCompleters[context];
+    if (completer == null) {
+      completer = new Completer();
+      contextAnalysisDoneCompleters[context] = completer;
+    }
+    return completer.future;
+  }
+
+  /**
+   * This method is called when analysis of the given [AnalysisContext] is
+   * done.
+   */
+  void sendContextAnalysisDoneNotifications(AnalysisContext context) {
+    Completer completer = contextAnalysisDoneCompleters[context];
+    if (completer != null) {
+      completer.complete();
+    }
   }
 
   /**

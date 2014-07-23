@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 makeA() native;
@@ -15,7 +16,8 @@ makeA = function() { return new A; }
 """;
 
 
-class A native "A" {
+@Native("A")
+class A {
   var _foo;
 
   get foo => _foo;

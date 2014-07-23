@@ -7,7 +7,7 @@ library protocol;
 import 'dart:collection';
 import 'dart:convert' show JsonDecoder;
 
-import 'package:analysis_server/src/collections.dart';
+import 'package:analysis_services/json.dart';
 
 /**
  * An abstract enumeration.
@@ -461,6 +461,12 @@ class RequestDatum {
  * Instances of the class [Response] represent a response to a request.
  */
 class Response {
+  /**
+   * The [Response] instance that is returned when a real [Response] cannot
+   * be provided at the moment.
+   */
+  static final Response DELAYED_RESPONSE = new Response('DELAYED_RESPONSE');
+
   /**
    * The name of the JSON attribute containing the id of the request for which
    * this is a response.

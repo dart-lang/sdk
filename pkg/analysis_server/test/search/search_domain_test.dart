@@ -8,6 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:unittest/unittest.dart';
@@ -30,8 +31,8 @@ main() {
         serverChannel,
         resourceProvider,
         new MockPackageMapProvider(),
-        null);
-    server.defaultSdk = new MockSdk();
+        null,
+        new MockSdk());
     handler = new SearchDomainHandler(server);
   });
 

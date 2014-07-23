@@ -7,6 +7,7 @@ library test.computer.all;
 import 'package:unittest/unittest.dart';
 
 import 'element_test.dart' as element_test;
+import 'error_test.dart' as error_test;
 
 
 /**
@@ -14,7 +15,8 @@ import 'element_test.dart' as element_test;
  */
 main() {
   groupSep = ' | ';
-  group('index', () {
+  group('computer', () {
     element_test.main();
+    error_test.main();
   });
 }

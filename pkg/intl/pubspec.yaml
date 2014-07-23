@@ -5,7 +5,6 @@ description: Contains code to deal with internationalized/localized messages, da
 homepage: http://www.dartlang.org
 environment:
   sdk: '>=1.4.0 <2.0.0'
-documentation: http://api.dartlang.org/docs/pkg/intl
 dependencies:
   analyzer: '>=0.13.2 <0.16.0'
   path: '>=0.9.0 <2.0.0'
