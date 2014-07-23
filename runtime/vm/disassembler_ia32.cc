@@ -786,7 +786,7 @@ int X86Decoder::JumpConditional(uint8_t* data, const char* comment) {
 int X86Decoder::JumpConditionalShort(uint8_t* data, const char* comment) {
   uint8_t cond = *data & 0x0F;
   uint8_t b = *(data+1);
-  word dest = reinterpret_cast<uword>(data) + static_cast<int8_t>(b) + 2;
+  uword dest = reinterpret_cast<uword>(data) + static_cast<int8_t>(b) + 2;
   const char* mnem = jump_conditional_mnem[cond];
   Print(mnem);
   Print(" ");

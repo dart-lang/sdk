@@ -141,7 +141,7 @@ class Snapshot {
 
   // Getters.
   const uint8_t* content() const { return content_; }
-  int64_t length() const { return length_; }
+  intptr_t length() const { return static_cast<intptr_t>(length_); }
   Kind kind() const { return static_cast<Kind>(kind_); }
 
   bool IsMessageSnapshot() const { return kind_ == kMessage; }

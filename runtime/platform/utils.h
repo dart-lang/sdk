@@ -87,7 +87,7 @@ class Utils {
   static uint32_t StringHash(const char* data, int length);
 
   // Computes a hash value for the given word.
-  static uint32_t WordHash(word key);
+  static uint32_t WordHash(intptr_t key);
 
   // Check whether an N-bit two's-complement representation can hold value.
   template<typename T>

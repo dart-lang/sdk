@@ -2750,7 +2750,7 @@ class RangeBoundary : public ValueObject {
                            const RangeBoundary& overflow);
 
   static RangeBoundary Shr(const RangeBoundary& value_boundary,
-                           intptr_t shift_count) {
+                           int64_t shift_count) {
     ASSERT(value_boundary.IsConstant());
     ASSERT(shift_count >= 0);
     int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());

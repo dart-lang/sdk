@@ -15213,8 +15213,8 @@ RawInteger* Integer::NewCanonical(const String& str) {
     ASSERT(!BigintOperations::FitsIntoInt64(big));
     return big.raw();
   }
-  if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
-    return Smi::New(value);
+  if (Smi::IsValid(value)) {
+    return Smi::New(static_cast<intptr_t>(value));
   }
   return Mint::NewCanonical(value);
 }
@@ -15228,16 +15228,17 @@ static bool IsJavascriptInt(int64_t value) {
 
 
 RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
-  const bool is_smi = (value <= Smi::kMaxValue) && (value >= Smi::kMinValue);
+  const bool is_smi = Smi::IsValid(value);
   if (!silent &&
       FLAG_throw_on_javascript_int_overflow &&
       !IsJavascriptInt(value)) {
-    const Integer& i = is_smi ? Integer::Handle(Smi::New(value))
-                              : Integer::Handle(Mint::New(value));
+    const Integer& i = is_smi ?
+        Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
+        Integer::Handle(Mint::New(value));
     ThrowJavascriptIntegerOverflow(i);
   }
   if (is_smi) {
-    return Smi::New(value);
+    return Smi::New(static_cast<intptr_t>(value));
   }
   return Mint::New(value, space);
 }
@@ -15314,7 +15315,7 @@ RawInteger* Integer::AsValidInteger() const {
     Mint& mint = Mint::Handle();
     mint ^= raw();
     if (Smi::IsValid(mint.value())) {
-      return Smi::New(mint.value());
+      return Smi::New(static_cast<intptr_t>(mint.value()));
     } else {
       return raw();
     }

@@ -232,9 +232,14 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
+    if (snapshot == NULL) {
+      const String& message = String::Handle(
+          String::New("Invalid snapshot."));
+      return ApiError::New(message);
+    }
     ASSERT(snapshot->kind() == Snapshot::kFull);
     if (FLAG_trace_isolates) {
-      OS::Print("Size of isolate snapshot = %" Pd64 "\n", snapshot->length());
+      OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }
     SnapshotReader reader(snapshot->content(), snapshot->length(),
                           Snapshot::kFull, isolate);

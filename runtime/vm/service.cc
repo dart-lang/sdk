@@ -368,7 +368,7 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
       return;
     }
     // Setup arguments for call.
-    intptr_t port_id = isolate->main_port();
+    Dart_Port port_id = isolate->main_port();
     const Integer& port_int = Integer::Handle(Integer::New(port_id));
     ASSERT(!port_int.IsNull());
     const SendPort& send_port = SendPort::Handle(SendPort::New(port_id));

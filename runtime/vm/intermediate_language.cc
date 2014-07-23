@@ -2729,11 +2729,11 @@ RangeBoundary RangeBoundary::Shl(const RangeBoundary& value_boundary,
   ASSERT(value_boundary.IsConstant());
   ASSERT(shift_count >= 0);
   int64_t limit = 64 - shift_count;
-  int64_t value = static_cast<int64_t>(value_boundary.ConstantValue());
+  int64_t value = value_boundary.ConstantValue();
 
   if ((value == 0) ||
       (shift_count == 0) ||
-      ((limit > 0) && (Utils::IsInt(limit, value)))) {
+      ((limit > 0) && Utils::IsInt(static_cast<int>(limit), value))) {
     // Result stays in 64 bit range.
     int64_t result = value << shift_count;
     return RangeBoundary(result);
@@ -3696,10 +3696,10 @@ bool Range::Mul(const Range* left_range,
     // Product of left and right max values stays in 64 bit range.
     const int64_t mul_max = left_max * right_max;
     if (Smi::IsValid(mul_max) && Smi::IsValid(-mul_max)) {
-      const intptr_t r_min =
+      const int64_t r_min =
           OnlyPositiveOrZero(*left_range, *right_range) ? 0 : -mul_max;
       *result_min = RangeBoundary::FromConstant(r_min);
-      const intptr_t r_max =
+      const int64_t r_max =
           OnlyNegativeOrZero(*left_range, *right_range) ? 0 : mul_max;
       *result_max = RangeBoundary::FromConstant(r_max);
       return true;

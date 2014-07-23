@@ -99,29 +99,16 @@ void OS::AlignedFree(void* ptr) {
 }
 
 
-word OS::ActivationFrameAlignment() {
+intptr_t OS::ActivationFrameAlignment() {
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
   // Function Call Guide".
   return 16;
 }
 
 
-word OS::PreferredCodeAlignment() {
+intptr_t OS::PreferredCodeAlignment() {
   ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
   return 32;
-}
-
-
-uword OS::GetStackSizeLimit() {
-  struct rlimit stack_limit;
-  int retval = getrlimit(RLIMIT_STACK, &stack_limit);
-  ASSERT(retval == 0);
-  if (stack_limit.rlim_cur > INT_MAX) {
-    retval = INT_MAX;
-  } else {
-    retval = stack_limit.rlim_cur;
-  }
-  return retval;
 }
 
 
@@ -145,10 +132,14 @@ void OS::SleepMicros(int64_t micros) {
   struct timespec req;  // requested.
   struct timespec rem;  // remainder.
   int64_t seconds = micros / kMicrosecondsPerSecond;
+  if (seconds > kMaxInt32) {
+    // Avoid truncation of overly large sleep values.
+    seconds = kMaxInt32;
+  }
   micros = micros - seconds * kMicrosecondsPerSecond;
   int64_t nanos = micros * kNanosecondsPerMicrosecond;
-  req.tv_sec = seconds;
-  req.tv_nsec = nanos;
+  req.tv_sec = static_cast<int32_t>(seconds);
+  req.tv_nsec = static_cast<long>(nanos);  // NOLINT (long used in timespec).
   while (true) {
     int r = nanosleep(&req, &rem);
     if (r == 0) {

@@ -5,7 +5,6 @@
 #ifndef VM_OBJECT_H_
 #define VM_OBJECT_H_
 
-#include <limits>
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/utils.h"
@@ -3003,9 +3002,9 @@ class PcDescriptors : public Object {
     rec->set_pc(pc);
     rec->set_kind(kind);
     ASSERT(Utils::IsInt(32, deopt_id));
-    rec->set_deopt_id(deopt_id);
+    rec->set_deopt_id(static_cast<int32_t>(deopt_id));
     ASSERT(Utils::IsInt(32, token_pos));
-    rec->set_token_pos(token_pos,
+    rec->set_token_pos(static_cast<int32_t>(token_pos),
         RecordSizeInBytes() == RawPcDescriptors::kCompressedRecSize);
     ASSERT(Utils::IsInt(16, try_index));
     rec->set_try_index(try_index);
@@ -5078,7 +5077,7 @@ class Smi : public Integer {
   static intptr_t InstanceSize() { return 0; }
 
   static RawSmi* New(intptr_t value) {
-    word raw_smi = (value << kSmiTagShift) | kSmiTag;
+    intptr_t raw_smi = (value << kSmiTagShift) | kSmiTag;
     ASSERT(ValueFromRaw(raw_smi) == value);
     return reinterpret_cast<RawSmi*>(raw_smi);
   }
@@ -5093,18 +5092,8 @@ class Smi : public Integer {
     return reinterpret_cast<intptr_t>(New(value));
   }
 
-  template <typename T>
-  static bool IsValid(T value) {
-    COMPILE_ASSERT(sizeof(kMinValue) == sizeof(kMaxValue));
-    COMPILE_ASSERT(std::numeric_limits<T>::is_integer);
-    if (sizeof(value) < sizeof(kMinValue)) {
-      return true;
-    }
-
-    T min_value = std::numeric_limits<T>::is_signed
-        ? static_cast<T>(kMinValue) : 0;
-    return (value >= min_value)
-        && (value <= static_cast<T>(kMaxValue));
+  static bool IsValid(int64_t value) {
+    return (value >= kMinValue) && (value <= kMaxValue);
   }
 
   RawInteger* ShiftOp(Token::Kind kind,

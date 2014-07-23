@@ -173,22 +173,22 @@ class ScopeStopwatch : public ValueObject {
     start_ = FLAG_trace_profiled_isolates ? OS::GetCurrentTimeMillis() : 0;
   }
 
-  intptr_t GetElapsed() const {
-    intptr_t end = OS::GetCurrentTimeMillis();
+  int64_t GetElapsed() const {
+    int64_t end = OS::GetCurrentTimeMillis();
     ASSERT(end >= start_);
     return end - start_;
   }
 
   ~ScopeStopwatch() {
     if (FLAG_trace_profiled_isolates) {
-      intptr_t elapsed = GetElapsed();
-      OS::Print("%s took %" Pd " millis.\n", name_, elapsed);
+      int64_t elapsed = GetElapsed();
+      OS::Print("%s took %" Pd64 " millis.\n", name_, elapsed);
     }
   }
 
  private:
   const char* name_;
-  intptr_t start_;
+  int64_t start_;
 };
 
 

@@ -51,7 +51,6 @@ UNIT_TEST_CASE(OsFuncs) {
   EXPECT(Utils::IsPowerOfTwo(OS::PreferredCodeAlignment()));
   int procs = OS::NumberOfAvailableProcessors();
   EXPECT_LE(1, procs);
-  EXPECT_LT(0U, OS::GetStackSizeLimit());
 }
 
 

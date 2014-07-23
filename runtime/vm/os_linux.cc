@@ -424,7 +424,7 @@ void OS::AlignedFree(void* ptr) {
 
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_linux.cc
-word OS::ActivationFrameAlignment() {
+intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) ||                                               \
     defined(TARGET_ARCH_X64) ||                                                \
     defined(TARGET_ARCH_ARM64)
@@ -434,7 +434,7 @@ word OS::ActivationFrameAlignment() {
 #else
 #error Unsupported architecture.
 #endif
-  word alignment = kMinimumAlignment;
+  intptr_t alignment = kMinimumAlignment;
   // TODO(5411554): Allow overriding default stack alignment for
   // testing purposes.
   // Flags::DebugIsInt("stackalign", &alignment);
@@ -444,7 +444,7 @@ word OS::ActivationFrameAlignment() {
 }
 
 
-word OS::PreferredCodeAlignment() {
+intptr_t OS::PreferredCodeAlignment() {
 #if defined(TARGET_ARCH_IA32) ||                                               \
     defined(TARGET_ARCH_X64) ||                                                \
     defined(TARGET_ARCH_ARM64)
@@ -454,7 +454,7 @@ word OS::PreferredCodeAlignment() {
 #else
 #error Unsupported architecture.
 #endif
-  word alignment = kMinimumAlignment;
+  intptr_t alignment = kMinimumAlignment;
   // TODO(5411554): Allow overriding default code alignment for
   // testing purposes.
   // Flags::DebugIsInt("codealign", &alignment);
@@ -462,19 +462,6 @@ word OS::PreferredCodeAlignment() {
   ASSERT(alignment >= kMinimumAlignment);
   ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
   return alignment;
-}
-
-
-uword OS::GetStackSizeLimit() {
-  struct rlimit stack_limit;
-  int retval = getrlimit(RLIMIT_STACK, &stack_limit);
-  ASSERT(retval == 0);
-  if (stack_limit.rlim_cur > INT_MAX) {
-    retval = INT_MAX;
-  } else {
-    retval = stack_limit.rlim_cur;
-  }
-  return retval;
 }
 
 

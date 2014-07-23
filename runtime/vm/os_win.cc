@@ -137,7 +137,7 @@ void OS::AlignedFree(void* ptr) {
 }
 
 
-word OS::ActivationFrameAlignment() {
+intptr_t OS::ActivationFrameAlignment() {
 #ifdef _WIN64
   // Windows 64-bit ABI requires the stack to be 16-byte aligned.
   return 16;
@@ -148,17 +148,9 @@ word OS::ActivationFrameAlignment() {
 }
 
 
-word OS::PreferredCodeAlignment() {
+intptr_t OS::PreferredCodeAlignment() {
   ASSERT(32 <= OS::kMaxPreferredCodeAlignment);
   return 32;
-}
-
-
-uword OS::GetStackSizeLimit() {
-  // TODO(ager): Can you programatically determine the actual stack
-  // size limit on Windows? The 2MB limit is set at link time. Maybe
-  // that value should be propagated here?
-  return 2 * MB;
 }
 
 

@@ -4743,7 +4743,7 @@ DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   ASSERT(arguments->isolate() == Isolate::Current());
   if (Smi::IsValid(retval)) {
-    Api::SetSmiReturnValue(arguments, retval);
+    Api::SetSmiReturnValue(arguments, static_cast<intptr_t>(retval));
   } else {
     // Slow path for Mints and Bigints.
     ASSERT_CALLBACK_STATE(arguments->isolate());
@@ -4862,7 +4862,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                          " snapshot.", CURRENT_FUNC);
   }
   if (snapshot->length() != buffer_len) {
-    return Api::NewError("%s: 'buffer_len' of %" Pd " is not equal to %" Pd64
+    return Api::NewError("%s: 'buffer_len' of %" Pd " is not equal to %" Pd
                          " which is the expected length in the snapshot.",
                          CURRENT_FUNC, buffer_len, snapshot->length());
   }

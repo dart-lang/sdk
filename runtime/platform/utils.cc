@@ -92,7 +92,7 @@ uint32_t Utils::StringHash(const char* data, int length) {
 }
 
 
-uint32_t Utils::WordHash(word key) {
+uint32_t Utils::WordHash(intptr_t key) {
   // TODO(iposva): Need to check hash spreading.
   // This example is from http://www.concentric.net/~Ttwang/tech/inthash.htm
   uword a = static_cast<uword>(key);
