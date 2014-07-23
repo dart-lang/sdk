@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
     HiddenInputElement,
     SearchInputElement,
     TextInputElement,
@@ -25,7 +25,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
     SubmitButtonInputElement,
     ImageButtonInputElement,
     ResetButtonInputElement,
-    ButtonInputElement {
+    ButtonInputElement
+    $NATIVESPEC {
 
   factory InputElement({String type}) {
     var e = document.createElement("input");
@@ -595,3 +596,4 @@ abstract class ResetButtonInputElement implements InputElementBase {
 abstract class ButtonInputElement implements InputElementBase {
   factory ButtonInputElement() => new InputElement(type: 'button');
 }
+

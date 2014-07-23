@@ -679,7 +679,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def NativeSpec(self):
     native_spec = MakeNativeSpec(self._interface.javascript_binding_name)
-    return '@Native("%s")\n' % native_spec
+    return ' native "%s"' % native_spec
 
   def ImplementationTemplate(self):
     template_file = ('impl_%s.darttemplate' %

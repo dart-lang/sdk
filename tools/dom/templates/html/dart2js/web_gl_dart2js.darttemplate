@@ -13,7 +13,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_native_typed_data';
 import 'dart:typed_data';
-import 'dart:_js_helper' show Creates, JSName, Native, Null, Returns, convertDartClosureToJS;
+import 'dart:_js_helper' show Creates, JSName, Null, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 

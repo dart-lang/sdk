@@ -1277,6 +1277,7 @@ class Blob extends NativeFieldWrapperClass2 {
   Blob slice([int start, int end, String contentType]) => _blink.BlinkBlob.$slice(this, start, end, contentType);
 
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2518,6 +2519,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @deprecated
   double get backingStorePixelRatio => 1.0;
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -7445,6 +7447,7 @@ class DirectoryEntry extends Entry {
   }
 
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -7535,7 +7538,7 @@ class DivElement extends HtmlElement {
  * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
  */
 @DomName('Document')
-class Document extends Node
+class Document extends Node 
 {
 
   // To suppress missing implicit constructor warnings.
@@ -13796,6 +13799,8 @@ class Geolocation extends NativeFieldWrapperClass2 {
   int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Object options]) => _blink.BlinkGeolocation.$watchPosition_Callback(this, successCallback, errorCallback, options);
 }
 
+
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16554,7 +16559,8 @@ class InputElement extends HtmlElement implements
     SubmitButtonInputElement,
     ImageButtonInputElement,
     ResetButtonInputElement,
-    ButtonInputElement {
+    ButtonInputElement
+     {
 
   factory InputElement({String type}) {
     var e = document.createElement("input");
@@ -17539,6 +17545,7 @@ abstract class ResetButtonInputElement implements InputElementBase {
 abstract class ButtonInputElement implements InputElementBase {
   factory ButtonInputElement() => new InputElement(type: 'button');
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26006,7 +26013,7 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
 @DomName('Storage')
 @Unstable()
 class Storage extends NativeFieldWrapperClass2
-    implements Map<String, String> {
+    implements Map<String, String>  {
 
   void addAll(Map<String, String> other) {
     other.forEach((k, v) { this[k] = v; });
@@ -32296,6 +32303,9 @@ abstract class _MutationEvent extends Event {
   factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
 
 }
+
+
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

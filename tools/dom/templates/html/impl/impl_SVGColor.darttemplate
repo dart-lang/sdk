@@ -7,6 +7,6 @@ part of $LIBRARYNAME;
 // Hack because the baseclass is private in dart:html, and we want to omit this
 // type entirely but can't.
 @DocsEditable()
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$IMPLEMENTS {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$IMPLEMENTS$NATIVESPEC {
   _SVGColor.internal();
 }

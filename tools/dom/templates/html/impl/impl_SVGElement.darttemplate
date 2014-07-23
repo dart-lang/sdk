@@ -30,7 +30,7 @@ class _AttributeClassSet extends CssClassSetImpl {
   }
 }
 
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory $CLASSNAME.tag(String tag) =>

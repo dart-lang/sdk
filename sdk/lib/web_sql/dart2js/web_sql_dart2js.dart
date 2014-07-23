@@ -15,7 +15,7 @@ import 'dart:collection';
 import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName, Native;
+import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -81,8 +81,7 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental() // deprecated
-@Native("Database")
-class SqlDatabase extends Interceptor {
+class SqlDatabase extends Interceptor native "Database" {
   // To suppress missing implicit constructor warnings.
   factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
@@ -126,8 +125,7 @@ class SqlDatabase extends Interceptor {
 @DomName('SQLError')
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental() // deprecated
-@Native("SQLError")
-class SqlError extends Interceptor {
+class SqlError extends Interceptor native "SQLError" {
   // To suppress missing implicit constructor warnings.
   factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
@@ -180,8 +178,7 @@ class SqlError extends Interceptor {
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental() // deprecated
-@Native("SQLResultSet")
-class SqlResultSet extends Interceptor {
+class SqlResultSet extends Interceptor native "SQLResultSet" {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
@@ -206,8 +203,7 @@ class SqlResultSet extends Interceptor {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-@Native("SQLResultSetRowList")
-class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
+class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> native "SQLResultSetRowList" {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
@@ -283,8 +279,7 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
-@Native("SQLTransaction")
-class SqlTransaction extends Interceptor {
+class SqlTransaction extends Interceptor native "SQLTransaction" {
   // To suppress missing implicit constructor warnings.
   factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
@@ -304,8 +299,7 @@ class SqlTransaction extends Interceptor {
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
 @Experimental() // deprecated
-@Native("SQLTransactionSync")
-abstract class _SQLTransactionSync extends Interceptor {
+abstract class _SQLTransactionSync extends Interceptor native "SQLTransactionSync" {
   // To suppress missing implicit constructor warnings.
   factory _SQLTransactionSync._() { throw new UnsupportedError("Not supported"); }
 }

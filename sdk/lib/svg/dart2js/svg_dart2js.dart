@@ -13,7 +13,7 @@ import 'dart:collection';
 import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show Creates, Returns, JSName, Native;
+import 'dart:_js_helper' show Creates, Returns, JSName;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -44,8 +44,7 @@ class _SvgElementFactoryProvider {
 @DocsEditable()
 @DomName('SVGAElement')
 @Unstable()
-@Native("SVGAElement")
-class AElement extends GraphicsElement implements UriReference {
+class AElement extends GraphicsElement implements UriReference native "SVGAElement" {
   // To suppress missing implicit constructor warnings.
   factory AElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -80,8 +79,7 @@ class AElement extends GraphicsElement implements UriReference {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGAltGlyphElement")
-class AltGlyphElement extends TextPositioningElement implements UriReference {
+class AltGlyphElement extends TextPositioningElement implements UriReference native "SVGAltGlyphElement" {
   // To suppress missing implicit constructor warnings.
   factory AltGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -120,8 +118,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 @DocsEditable()
 @DomName('SVGAngle')
 @Unstable()
-@Native("SVGAngle")
-class Angle extends Interceptor {
+class Angle extends Interceptor native "SVGAngle" {
   // To suppress missing implicit constructor warnings.
   factory Angle._() { throw new UnsupportedError("Not supported"); }
 
@@ -180,8 +177,7 @@ class Angle extends Interceptor {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGAnimateElement")
-class AnimateElement extends AnimationElement {
+class AnimateElement extends AnimationElement native "SVGAnimateElement" {
   // To suppress missing implicit constructor warnings.
   factory AnimateElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -209,8 +205,7 @@ class AnimateElement extends AnimationElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGAnimateMotionElement")
-class AnimateMotionElement extends AnimationElement {
+class AnimateMotionElement extends AnimationElement native "SVGAnimateMotionElement" {
   // To suppress missing implicit constructor warnings.
   factory AnimateMotionElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -238,8 +233,7 @@ class AnimateMotionElement extends AnimationElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGAnimateTransformElement")
-class AnimateTransformElement extends AnimationElement {
+class AnimateTransformElement extends AnimationElement native "SVGAnimateTransformElement" {
   // To suppress missing implicit constructor warnings.
   factory AnimateTransformElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -264,8 +258,7 @@ class AnimateTransformElement extends AnimationElement {
 @DocsEditable()
 @DomName('SVGAnimatedAngle')
 @Unstable()
-@Native("SVGAnimatedAngle")
-class AnimatedAngle extends Interceptor {
+class AnimatedAngle extends Interceptor native "SVGAnimatedAngle" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedAngle._() { throw new UnsupportedError("Not supported"); }
 
@@ -285,8 +278,7 @@ class AnimatedAngle extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedBoolean')
 @Unstable()
-@Native("SVGAnimatedBoolean")
-class AnimatedBoolean extends Interceptor {
+class AnimatedBoolean extends Interceptor native "SVGAnimatedBoolean" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedBoolean._() { throw new UnsupportedError("Not supported"); }
 
@@ -306,8 +298,7 @@ class AnimatedBoolean extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedEnumeration')
 @Unstable()
-@Native("SVGAnimatedEnumeration")
-class AnimatedEnumeration extends Interceptor {
+class AnimatedEnumeration extends Interceptor native "SVGAnimatedEnumeration" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedEnumeration._() { throw new UnsupportedError("Not supported"); }
 
@@ -327,8 +318,7 @@ class AnimatedEnumeration extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedInteger')
 @Unstable()
-@Native("SVGAnimatedInteger")
-class AnimatedInteger extends Interceptor {
+class AnimatedInteger extends Interceptor native "SVGAnimatedInteger" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedInteger._() { throw new UnsupportedError("Not supported"); }
 
@@ -348,8 +338,7 @@ class AnimatedInteger extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedLength')
 @Unstable()
-@Native("SVGAnimatedLength")
-class AnimatedLength extends Interceptor {
+class AnimatedLength extends Interceptor native "SVGAnimatedLength" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLength._() { throw new UnsupportedError("Not supported"); }
 
@@ -369,8 +358,7 @@ class AnimatedLength extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedLengthList')
 @Unstable()
-@Native("SVGAnimatedLengthList")
-class AnimatedLengthList extends Interceptor {
+class AnimatedLengthList extends Interceptor native "SVGAnimatedLengthList" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLengthList._() { throw new UnsupportedError("Not supported"); }
 
@@ -390,8 +378,7 @@ class AnimatedLengthList extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedNumber')
 @Unstable()
-@Native("SVGAnimatedNumber")
-class AnimatedNumber extends Interceptor {
+class AnimatedNumber extends Interceptor native "SVGAnimatedNumber" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumber._() { throw new UnsupportedError("Not supported"); }
 
@@ -411,8 +398,7 @@ class AnimatedNumber extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedNumberList')
 @Unstable()
-@Native("SVGAnimatedNumberList")
-class AnimatedNumberList extends Interceptor {
+class AnimatedNumberList extends Interceptor native "SVGAnimatedNumberList" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumberList._() { throw new UnsupportedError("Not supported"); }
 
@@ -432,8 +418,7 @@ class AnimatedNumberList extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedPreserveAspectRatio')
 @Unstable()
-@Native("SVGAnimatedPreserveAspectRatio")
-class AnimatedPreserveAspectRatio extends Interceptor {
+class AnimatedPreserveAspectRatio extends Interceptor native "SVGAnimatedPreserveAspectRatio" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedPreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
@@ -453,8 +438,7 @@ class AnimatedPreserveAspectRatio extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedRect')
 @Unstable()
-@Native("SVGAnimatedRect")
-class AnimatedRect extends Interceptor {
+class AnimatedRect extends Interceptor native "SVGAnimatedRect" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedRect._() { throw new UnsupportedError("Not supported"); }
 
@@ -474,8 +458,7 @@ class AnimatedRect extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedString')
 @Unstable()
-@Native("SVGAnimatedString")
-class AnimatedString extends Interceptor {
+class AnimatedString extends Interceptor native "SVGAnimatedString" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedString._() { throw new UnsupportedError("Not supported"); }
 
@@ -495,8 +478,7 @@ class AnimatedString extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimatedTransformList')
 @Unstable()
-@Native("SVGAnimatedTransformList")
-class AnimatedTransformList extends Interceptor {
+class AnimatedTransformList extends Interceptor native "SVGAnimatedTransformList" {
   // To suppress missing implicit constructor warnings.
   factory AnimatedTransformList._() { throw new UnsupportedError("Not supported"); }
 
@@ -516,8 +498,7 @@ class AnimatedTransformList extends Interceptor {
 @DocsEditable()
 @DomName('SVGAnimationElement')
 @Unstable()
-@Native("SVGAnimationElement")
-class AnimationElement extends SvgElement implements Tests {
+class AnimationElement extends SvgElement implements Tests native "SVGAnimationElement" {
   // To suppress missing implicit constructor warnings.
   factory AnimationElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -589,8 +570,7 @@ class AnimationElement extends SvgElement implements Tests {
 @DocsEditable()
 @DomName('SVGCircleElement')
 @Unstable()
-@Native("SVGCircleElement")
-class CircleElement extends GeometryElement {
+class CircleElement extends GeometryElement native "SVGCircleElement" {
   // To suppress missing implicit constructor warnings.
   factory CircleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -624,8 +604,7 @@ class CircleElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGClipPathElement')
 @Unstable()
-@Native("SVGClipPathElement")
-class ClipPathElement extends GraphicsElement {
+class ClipPathElement extends GraphicsElement native "SVGClipPathElement" {
   // To suppress missing implicit constructor warnings.
   factory ClipPathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -651,8 +630,7 @@ class ClipPathElement extends GraphicsElement {
 @DocsEditable()
 @DomName('SVGDefsElement')
 @Unstable()
-@Native("SVGDefsElement")
-class DefsElement extends GraphicsElement {
+class DefsElement extends GraphicsElement native "SVGDefsElement" {
   // To suppress missing implicit constructor warnings.
   factory DefsElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -674,8 +652,7 @@ class DefsElement extends GraphicsElement {
 @DocsEditable()
 @DomName('SVGDescElement')
 @Unstable()
-@Native("SVGDescElement")
-class DescElement extends SvgElement {
+class DescElement extends SvgElement native "SVGDescElement" {
   // To suppress missing implicit constructor warnings.
   factory DescElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -697,8 +674,7 @@ class DescElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGDiscardElement')
 @Experimental() // untriaged
-@Native("SVGDiscardElement")
-class DiscardElement extends SvgElement {
+class DiscardElement extends SvgElement native "SVGDiscardElement" {
   // To suppress missing implicit constructor warnings.
   factory DiscardElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -716,8 +692,7 @@ class DiscardElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGElementInstance')
 @Unstable()
-@Native("SVGElementInstance")
-class ElementInstance extends EventTarget {
+class ElementInstance extends EventTarget native "SVGElementInstance" {
   // To suppress missing implicit constructor warnings.
   factory ElementInstance._() { throw new UnsupportedError("Not supported"); }
 
@@ -1395,8 +1370,7 @@ class ElementInstance extends EventTarget {
 @DocsEditable()
 @DomName('SVGEllipseElement')
 @Unstable()
-@Native("SVGEllipseElement")
-class EllipseElement extends GeometryElement {
+class EllipseElement extends GeometryElement native "SVGEllipseElement" {
   // To suppress missing implicit constructor warnings.
   factory EllipseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1438,8 +1412,7 @@ class EllipseElement extends GeometryElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEBlendElement")
-class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEBlendElement" {
   // To suppress missing implicit constructor warnings.
   factory FEBlendElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1526,8 +1499,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEColorMatrixElement")
-class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEColorMatrixElement" {
   // To suppress missing implicit constructor warnings.
   factory FEColorMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1610,8 +1582,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEComponentTransferElement")
-class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEComponentTransferElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEComponentTransferElement" {
   // To suppress missing implicit constructor warnings.
   factory FEComponentTransferElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1662,8 +1633,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 @DocsEditable()
 @DomName('SVGFECompositeElement')
 @Unstable()
-@Native("SVGFECompositeElement")
-class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFECompositeElement" {
   // To suppress missing implicit constructor warnings.
   factory FECompositeElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -1763,8 +1733,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEConvolveMatrixElement")
-class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEConvolveMatrixElement" {
   // To suppress missing implicit constructor warnings.
   factory FEConvolveMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1879,8 +1848,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEDiffuseLightingElement")
-class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEDiffuseLightingElement" {
   // To suppress missing implicit constructor warnings.
   factory FEDiffuseLightingElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1951,8 +1919,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEDisplacementMapElement")
-class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEDisplacementMapElement" {
   // To suppress missing implicit constructor warnings.
   factory FEDisplacementMapElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2043,8 +2010,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEDistantLightElement")
-class FEDistantLightElement extends SvgElement {
+class FEDistantLightElement extends SvgElement native "SVGFEDistantLightElement" {
   // To suppress missing implicit constructor warnings.
   factory FEDistantLightElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2081,8 +2047,7 @@ class FEDistantLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEFloodElement")
-class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEFloodElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFloodElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2133,8 +2098,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEFuncAElement")
-class FEFuncAElement extends _SVGComponentTransferFunctionElement {
+class FEFuncAElement extends _SVGComponentTransferFunctionElement native "SVGFEFuncAElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFuncAElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2163,8 +2127,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEFuncBElement")
-class FEFuncBElement extends _SVGComponentTransferFunctionElement {
+class FEFuncBElement extends _SVGComponentTransferFunctionElement native "SVGFEFuncBElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFuncBElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2193,8 +2156,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEFuncGElement")
-class FEFuncGElement extends _SVGComponentTransferFunctionElement {
+class FEFuncGElement extends _SVGComponentTransferFunctionElement native "SVGFEFuncGElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFuncGElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2223,8 +2185,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEFuncRElement")
-class FEFuncRElement extends _SVGComponentTransferFunctionElement {
+class FEFuncRElement extends _SVGComponentTransferFunctionElement native "SVGFEFuncRElement" {
   // To suppress missing implicit constructor warnings.
   factory FEFuncRElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2253,8 +2214,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEGaussianBlurElement")
-class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEGaussianBlurElement" {
   // To suppress missing implicit constructor warnings.
   factory FEGaussianBlurElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2321,8 +2281,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEImageElement")
-class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference {
+class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttributes, UriReference native "SVGFEImageElement" {
   // To suppress missing implicit constructor warnings.
   factory FEImageElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2383,8 +2342,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEMergeElement")
-class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEMergeElement" {
   // To suppress missing implicit constructor warnings.
   factory FEMergeElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2435,8 +2393,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEMergeNodeElement")
-class FEMergeNodeElement extends SvgElement {
+class FEMergeNodeElement extends SvgElement native "SVGFEMergeNodeElement" {
   // To suppress missing implicit constructor warnings.
   factory FEMergeNodeElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2469,8 +2426,7 @@ class FEMergeNodeElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEMorphologyElement")
-class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEMorphologyElement" {
   // To suppress missing implicit constructor warnings.
   factory FEMorphologyElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -2546,8 +2502,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEOffsetElement")
-class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEOffsetElement" {
   // To suppress missing implicit constructor warnings.
   factory FEOffsetElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2610,8 +2565,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFEPointLightElement")
-class FEPointLightElement extends SvgElement {
+class FEPointLightElement extends SvgElement native "SVGFEPointLightElement" {
   // To suppress missing implicit constructor warnings.
   factory FEPointLightElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2652,8 +2606,7 @@ class FEPointLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFESpecularLightingElement")
-class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FESpecularLightingElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFESpecularLightingElement" {
   // To suppress missing implicit constructor warnings.
   factory FESpecularLightingElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2720,8 +2673,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFESpotLightElement")
-class FESpotLightElement extends SvgElement {
+class FESpotLightElement extends SvgElement native "SVGFESpotLightElement" {
   // To suppress missing implicit constructor warnings.
   factory FESpotLightElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2782,8 +2734,7 @@ class FESpotLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFETileElement")
-class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FETileElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFETileElement" {
   // To suppress missing implicit constructor warnings.
   factory FETileElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2838,8 +2789,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFETurbulenceElement")
-class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFETurbulenceElement" {
   // To suppress missing implicit constructor warnings.
   factory FETurbulenceElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2938,8 +2888,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGFilterElement")
-class FilterElement extends SvgElement implements UriReference {
+class FilterElement extends SvgElement implements UriReference native "SVGFilterElement" {
   // To suppress missing implicit constructor warnings.
   factory FilterElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3047,8 +2996,7 @@ abstract class FitToViewBox extends Interceptor {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGForeignObjectElement")
-class ForeignObjectElement extends GraphicsElement {
+class ForeignObjectElement extends GraphicsElement native "SVGForeignObjectElement" {
   // To suppress missing implicit constructor warnings.
   factory ForeignObjectElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3089,8 +3037,7 @@ class ForeignObjectElement extends GraphicsElement {
 @DocsEditable()
 @DomName('SVGGElement')
 @Unstable()
-@Native("SVGGElement")
-class GElement extends GraphicsElement {
+class GElement extends GraphicsElement native "SVGGElement" {
   // To suppress missing implicit constructor warnings.
   factory GElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3112,8 +3059,7 @@ class GElement extends GraphicsElement {
 @DocsEditable()
 @DomName('SVGGeometryElement')
 @Experimental() // untriaged
-@Native("SVGGeometryElement")
-class GeometryElement extends GraphicsElement {
+class GeometryElement extends GraphicsElement native "SVGGeometryElement" {
   // To suppress missing implicit constructor warnings.
   factory GeometryElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -3141,8 +3087,7 @@ class GeometryElement extends GraphicsElement {
 @DocsEditable()
 @DomName('SVGGraphicsElement')
 @Experimental() // untriaged
-@Native("SVGGraphicsElement")
-class GraphicsElement extends SvgElement implements Tests {
+class GraphicsElement extends SvgElement implements Tests native "SVGGraphicsElement" {
   // To suppress missing implicit constructor warnings.
   factory GraphicsElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -3219,8 +3164,7 @@ class GraphicsElement extends SvgElement implements Tests {
 @DocsEditable()
 @DomName('SVGImageElement')
 @Unstable()
-@Native("SVGImageElement")
-class ImageElement extends GraphicsElement implements UriReference {
+class ImageElement extends GraphicsElement implements UriReference native "SVGImageElement" {
   // To suppress missing implicit constructor warnings.
   factory ImageElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3268,8 +3212,7 @@ class ImageElement extends GraphicsElement implements UriReference {
 @DocsEditable()
 @DomName('SVGLength')
 @Unstable()
-@Native("SVGLength")
-class Length extends Interceptor {
+class Length extends Interceptor native "SVGLength" {
   // To suppress missing implicit constructor warnings.
   factory Length._() { throw new UnsupportedError("Not supported"); }
 
@@ -3349,8 +3292,7 @@ class Length extends Interceptor {
 @DocsEditable()
 @DomName('SVGLengthList')
 @Unstable()
-@Native("SVGLengthList")
-class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
+class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> native "SVGLengthList" {
   // To suppress missing implicit constructor warnings.
   factory LengthList._() { throw new UnsupportedError("Not supported"); }
 
@@ -3440,8 +3382,7 @@ class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<
 @DocsEditable()
 @DomName('SVGLineElement')
 @Unstable()
-@Native("SVGLineElement")
-class LineElement extends GeometryElement {
+class LineElement extends GeometryElement native "SVGLineElement" {
   // To suppress missing implicit constructor warnings.
   factory LineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3479,8 +3420,7 @@ class LineElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGLinearGradientElement')
 @Unstable()
-@Native("SVGLinearGradientElement")
-class LinearGradientElement extends _GradientElement {
+class LinearGradientElement extends _GradientElement native "SVGLinearGradientElement" {
   // To suppress missing implicit constructor warnings.
   factory LinearGradientElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3518,8 +3458,7 @@ class LinearGradientElement extends _GradientElement {
 @DocsEditable()
 @DomName('SVGMarkerElement')
 @Unstable()
-@Native("SVGMarkerElement")
-class MarkerElement extends SvgElement implements FitToViewBox {
+class MarkerElement extends SvgElement implements FitToViewBox native "SVGMarkerElement" {
   // To suppress missing implicit constructor warnings.
   factory MarkerElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3611,8 +3550,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 @DocsEditable()
 @DomName('SVGMaskElement')
 @Unstable()
-@Native("SVGMaskElement")
-class MaskElement extends SvgElement implements Tests {
+class MaskElement extends SvgElement implements Tests native "SVGMaskElement" {
   // To suppress missing implicit constructor warnings.
   factory MaskElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -3676,8 +3614,7 @@ class MaskElement extends SvgElement implements Tests {
 @DocsEditable()
 @DomName('SVGMatrix')
 @Unstable()
-@Native("SVGMatrix")
-class Matrix extends Interceptor {
+class Matrix extends Interceptor native "SVGMatrix" {
   // To suppress missing implicit constructor warnings.
   factory Matrix._() { throw new UnsupportedError("Not supported"); }
 
@@ -3757,8 +3694,7 @@ class Matrix extends Interceptor {
 @DocsEditable()
 @DomName('SVGMetadataElement')
 @Unstable()
-@Native("SVGMetadataElement")
-class MetadataElement extends SvgElement {
+class MetadataElement extends SvgElement native "SVGMetadataElement" {
   // To suppress missing implicit constructor warnings.
   factory MetadataElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -3776,8 +3712,7 @@ class MetadataElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGNumber')
 @Unstable()
-@Native("SVGNumber")
-class Number extends Interceptor {
+class Number extends Interceptor native "SVGNumber" {
   // To suppress missing implicit constructor warnings.
   factory Number._() { throw new UnsupportedError("Not supported"); }
 
@@ -3793,8 +3728,7 @@ class Number extends Interceptor {
 @DocsEditable()
 @DomName('SVGNumberList')
 @Unstable()
-@Native("SVGNumberList")
-class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
+class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> native "SVGNumberList" {
   // To suppress missing implicit constructor warnings.
   factory NumberList._() { throw new UnsupportedError("Not supported"); }
 
@@ -3884,8 +3818,7 @@ class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<
 @DocsEditable()
 @DomName('SVGPathElement')
 @Unstable()
-@Native("SVGPathElement")
-class PathElement extends GeometryElement {
+class PathElement extends GeometryElement native "SVGPathElement" {
   // To suppress missing implicit constructor warnings.
   factory PathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4034,8 +3967,7 @@ class PathElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGPathSeg')
 @Unstable()
-@Native("SVGPathSeg")
-class PathSeg extends Interceptor {
+class PathSeg extends Interceptor native "SVGPathSeg" {
   // To suppress missing implicit constructor warnings.
   factory PathSeg._() { throw new UnsupportedError("Not supported"); }
 
@@ -4135,8 +4067,7 @@ class PathSeg extends Interceptor {
 @DocsEditable()
 @DomName('SVGPathSegArcAbs')
 @Unstable()
-@Native("SVGPathSegArcAbs")
-class PathSegArcAbs extends PathSeg {
+class PathSegArcAbs extends PathSeg native "SVGPathSegArcAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegArcAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4176,8 +4107,7 @@ class PathSegArcAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegArcRel')
 @Unstable()
-@Native("SVGPathSegArcRel")
-class PathSegArcRel extends PathSeg {
+class PathSegArcRel extends PathSeg native "SVGPathSegArcRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegArcRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4217,8 +4147,7 @@ class PathSegArcRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegClosePath')
 @Unstable()
-@Native("SVGPathSegClosePath")
-class PathSegClosePath extends PathSeg {
+class PathSegClosePath extends PathSeg native "SVGPathSegClosePath" {
   // To suppress missing implicit constructor warnings.
   factory PathSegClosePath._() { throw new UnsupportedError("Not supported"); }
 }
@@ -4230,8 +4159,7 @@ class PathSegClosePath extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegCurvetoCubicAbs')
 @Unstable()
-@Native("SVGPathSegCurvetoCubicAbs")
-class PathSegCurvetoCubicAbs extends PathSeg {
+class PathSegCurvetoCubicAbs extends PathSeg native "SVGPathSegCurvetoCubicAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4267,8 +4195,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegCurvetoCubicRel')
 @Unstable()
-@Native("SVGPathSegCurvetoCubicRel")
-class PathSegCurvetoCubicRel extends PathSeg {
+class PathSegCurvetoCubicRel extends PathSeg native "SVGPathSegCurvetoCubicRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4304,8 +4231,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegCurvetoCubicSmoothAbs')
 @Unstable()
-@Native("SVGPathSegCurvetoCubicSmoothAbs")
-class PathSegCurvetoCubicSmoothAbs extends PathSeg {
+class PathSegCurvetoCubicSmoothAbs extends PathSeg native "SVGPathSegCurvetoCubicSmoothAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4333,8 +4259,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegCurvetoCubicSmoothRel')
 @Unstable()
-@Native("SVGPathSegCurvetoCubicSmoothRel")
-class PathSegCurvetoCubicSmoothRel extends PathSeg {
+class PathSegCurvetoCubicSmoothRel extends PathSeg native "SVGPathSegCurvetoCubicSmoothRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoCubicSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4362,8 +4287,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticAbs')
 @Unstable()
-@Native("SVGPathSegCurvetoQuadraticAbs")
-class PathSegCurvetoQuadraticAbs extends PathSeg {
+class PathSegCurvetoQuadraticAbs extends PathSeg native "SVGPathSegCurvetoQuadraticAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4391,8 +4315,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticRel')
 @Unstable()
-@Native("SVGPathSegCurvetoQuadraticRel")
-class PathSegCurvetoQuadraticRel extends PathSeg {
+class PathSegCurvetoQuadraticRel extends PathSeg native "SVGPathSegCurvetoQuadraticRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4420,8 +4343,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticSmoothAbs')
 @Unstable()
-@Native("SVGPathSegCurvetoQuadraticSmoothAbs")
-class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
+class PathSegCurvetoQuadraticSmoothAbs extends PathSeg native "SVGPathSegCurvetoQuadraticSmoothAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4441,8 +4363,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegCurvetoQuadraticSmoothRel')
 @Unstable()
-@Native("SVGPathSegCurvetoQuadraticSmoothRel")
-class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
+class PathSegCurvetoQuadraticSmoothRel extends PathSeg native "SVGPathSegCurvetoQuadraticSmoothRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegCurvetoQuadraticSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4462,8 +4383,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegLinetoAbs')
 @Unstable()
-@Native("SVGPathSegLinetoAbs")
-class PathSegLinetoAbs extends PathSeg {
+class PathSegLinetoAbs extends PathSeg native "SVGPathSegLinetoAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4483,8 +4403,7 @@ class PathSegLinetoAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegLinetoHorizontalAbs')
 @Unstable()
-@Native("SVGPathSegLinetoHorizontalAbs")
-class PathSegLinetoHorizontalAbs extends PathSeg {
+class PathSegLinetoHorizontalAbs extends PathSeg native "SVGPathSegLinetoHorizontalAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoHorizontalAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4500,8 +4419,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegLinetoHorizontalRel')
 @Unstable()
-@Native("SVGPathSegLinetoHorizontalRel")
-class PathSegLinetoHorizontalRel extends PathSeg {
+class PathSegLinetoHorizontalRel extends PathSeg native "SVGPathSegLinetoHorizontalRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoHorizontalRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4517,8 +4435,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegLinetoRel')
 @Unstable()
-@Native("SVGPathSegLinetoRel")
-class PathSegLinetoRel extends PathSeg {
+class PathSegLinetoRel extends PathSeg native "SVGPathSegLinetoRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4538,8 +4455,7 @@ class PathSegLinetoRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegLinetoVerticalAbs')
 @Unstable()
-@Native("SVGPathSegLinetoVerticalAbs")
-class PathSegLinetoVerticalAbs extends PathSeg {
+class PathSegLinetoVerticalAbs extends PathSeg native "SVGPathSegLinetoVerticalAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoVerticalAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4555,8 +4471,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegLinetoVerticalRel')
 @Unstable()
-@Native("SVGPathSegLinetoVerticalRel")
-class PathSegLinetoVerticalRel extends PathSeg {
+class PathSegLinetoVerticalRel extends PathSeg native "SVGPathSegLinetoVerticalRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegLinetoVerticalRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4572,8 +4487,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegList')
 @Unstable()
-@Native("SVGPathSegList")
-class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
+class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> native "SVGPathSegList" {
   // To suppress missing implicit constructor warnings.
   factory PathSegList._() { throw new UnsupportedError("Not supported"); }
 
@@ -4663,8 +4577,7 @@ class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixi
 @DocsEditable()
 @DomName('SVGPathSegMovetoAbs')
 @Unstable()
-@Native("SVGPathSegMovetoAbs")
-class PathSegMovetoAbs extends PathSeg {
+class PathSegMovetoAbs extends PathSeg native "SVGPathSegMovetoAbs" {
   // To suppress missing implicit constructor warnings.
   factory PathSegMovetoAbs._() { throw new UnsupportedError("Not supported"); }
 
@@ -4684,8 +4597,7 @@ class PathSegMovetoAbs extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegMovetoRel')
 @Unstable()
-@Native("SVGPathSegMovetoRel")
-class PathSegMovetoRel extends PathSeg {
+class PathSegMovetoRel extends PathSeg native "SVGPathSegMovetoRel" {
   // To suppress missing implicit constructor warnings.
   factory PathSegMovetoRel._() { throw new UnsupportedError("Not supported"); }
 
@@ -4705,8 +4617,7 @@ class PathSegMovetoRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPatternElement')
 @Unstable()
-@Native("SVGPatternElement")
-class PatternElement extends SvgElement implements FitToViewBox, UriReference, Tests {
+class PatternElement extends SvgElement implements FitToViewBox, UriReference, Tests native "SVGPatternElement" {
   // To suppress missing implicit constructor warnings.
   factory PatternElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4790,8 +4701,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
 @DocsEditable()
 @DomName('SVGPoint')
 @Unstable()
-@Native("SVGPoint")
-class Point extends Interceptor {
+class Point extends Interceptor native "SVGPoint" {
   // To suppress missing implicit constructor warnings.
   factory Point._() { throw new UnsupportedError("Not supported"); }
 
@@ -4815,8 +4725,7 @@ class Point extends Interceptor {
 @DocsEditable()
 @DomName('SVGPointList')
 @Unstable()
-@Native("SVGPointList")
-class PointList extends Interceptor {
+class PointList extends Interceptor native "SVGPointList" {
   // To suppress missing implicit constructor warnings.
   factory PointList._() { throw new UnsupportedError("Not supported"); }
 
@@ -4860,8 +4769,7 @@ class PointList extends Interceptor {
 @DocsEditable()
 @DomName('SVGPolygonElement')
 @Unstable()
-@Native("SVGPolygonElement")
-class PolygonElement extends GeometryElement {
+class PolygonElement extends GeometryElement native "SVGPolygonElement" {
   // To suppress missing implicit constructor warnings.
   factory PolygonElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4891,8 +4799,7 @@ class PolygonElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGPolylineElement')
 @Unstable()
-@Native("SVGPolylineElement")
-class PolylineElement extends GeometryElement {
+class PolylineElement extends GeometryElement native "SVGPolylineElement" {
   // To suppress missing implicit constructor warnings.
   factory PolylineElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -4922,8 +4829,7 @@ class PolylineElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGPreserveAspectRatio')
 @Unstable()
-@Native("SVGPreserveAspectRatio")
-class PreserveAspectRatio extends Interceptor {
+class PreserveAspectRatio extends Interceptor native "SVGPreserveAspectRatio" {
   // To suppress missing implicit constructor warnings.
   factory PreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
@@ -4999,8 +4905,7 @@ class PreserveAspectRatio extends Interceptor {
 @DocsEditable()
 @DomName('SVGRadialGradientElement')
 @Unstable()
-@Native("SVGRadialGradientElement")
-class RadialGradientElement extends _GradientElement {
+class RadialGradientElement extends _GradientElement native "SVGRadialGradientElement" {
   // To suppress missing implicit constructor warnings.
   factory RadialGradientElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5046,8 +4951,7 @@ class RadialGradientElement extends _GradientElement {
 @DocsEditable()
 @DomName('SVGRect')
 @Unstable()
-@Native("SVGRect")
-class Rect extends Interceptor {
+class Rect extends Interceptor native "SVGRect" {
   // To suppress missing implicit constructor warnings.
   factory Rect._() { throw new UnsupportedError("Not supported"); }
 
@@ -5075,8 +4979,7 @@ class Rect extends Interceptor {
 @DocsEditable()
 @DomName('SVGRectElement')
 @Unstable()
-@Native("SVGRectElement")
-class RectElement extends GeometryElement {
+class RectElement extends GeometryElement native "SVGRectElement" {
   // To suppress missing implicit constructor warnings.
   factory RectElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5122,8 +5025,7 @@ class RectElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGRenderingIntent')
 @Unstable()
-@Native("SVGRenderingIntent")
-class RenderingIntent extends Interceptor {
+class RenderingIntent extends Interceptor native "SVGRenderingIntent" {
   // To suppress missing implicit constructor warnings.
   factory RenderingIntent._() { throw new UnsupportedError("Not supported"); }
 
@@ -5159,8 +5061,7 @@ class RenderingIntent extends Interceptor {
 @DocsEditable()
 @DomName('SVGScriptElement')
 @Unstable()
-@Native("SVGScriptElement")
-class ScriptElement extends SvgElement implements UriReference {
+class ScriptElement extends SvgElement implements UriReference native "SVGScriptElement" {
   // To suppress missing implicit constructor warnings.
   factory ScriptElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5195,8 +5096,7 @@ class ScriptElement extends SvgElement implements UriReference {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-@Native("SVGSetElement")
-class SetElement extends AnimationElement {
+class SetElement extends AnimationElement native "SVGSetElement" {
   // To suppress missing implicit constructor warnings.
   factory SetElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5221,8 +5121,7 @@ class SetElement extends AnimationElement {
 @DocsEditable()
 @DomName('SVGStopElement')
 @Unstable()
-@Native("SVGStopElement")
-class StopElement extends SvgElement {
+class StopElement extends SvgElement native "SVGStopElement" {
   // To suppress missing implicit constructor warnings.
   factory StopElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5249,8 +5148,7 @@ class StopElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGStringList')
 @Unstable()
-@Native("SVGStringList")
-class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements List<String> native "SVGStringList" {
   // To suppress missing implicit constructor warnings.
   factory StringList._() { throw new UnsupportedError("Not supported"); }
 
@@ -5341,8 +5239,7 @@ class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<
 @DomName('SVGStyleElement')
 // http://www.w3.org/TR/SVG/types.html#InterfaceSVGStylable
 @Experimental() // nonstandard
-@Native("SVGStyleElement")
-class StyleElement extends SvgElement {
+class StyleElement extends SvgElement native "SVGStyleElement" {
   // To suppress missing implicit constructor warnings.
   factory StyleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -5408,8 +5305,7 @@ class _AttributeClassSet extends CssClassSetImpl {
 
 @DomName('SVGElement')
 @Unstable()
-@Native("SVGElement")
-class SvgElement extends Element implements GlobalEventHandlers {
+class SvgElement extends Element implements GlobalEventHandlers native "SVGElement" {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory SvgElement.tag(String tag) =>
@@ -6093,8 +5989,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
 
 @DomName('SVGSVGElement')
 @Unstable()
-@Native("SVGSVGElement")
-class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan {
+class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan native "SVGSVGElement" {
   factory SvgSvgElement() {
     final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
@@ -6292,8 +6187,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 @DocsEditable()
 @DomName('SVGSwitchElement')
 @Unstable()
-@Native("SVGSwitchElement")
-class SwitchElement extends GraphicsElement {
+class SwitchElement extends GraphicsElement native "SVGSwitchElement" {
   // To suppress missing implicit constructor warnings.
   factory SwitchElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6315,8 +6209,7 @@ class SwitchElement extends GraphicsElement {
 @DocsEditable()
 @DomName('SVGSymbolElement')
 @Unstable()
-@Native("SVGSymbolElement")
-class SymbolElement extends SvgElement implements FitToViewBox {
+class SymbolElement extends SvgElement implements FitToViewBox native "SVGSymbolElement" {
   // To suppress missing implicit constructor warnings.
   factory SymbolElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6348,8 +6241,7 @@ class SymbolElement extends SvgElement implements FitToViewBox {
 @DocsEditable()
 @DomName('SVGTSpanElement')
 @Unstable()
-@Native("SVGTSpanElement")
-class TSpanElement extends TextPositioningElement {
+class TSpanElement extends TextPositioningElement native "SVGTSpanElement" {
   // To suppress missing implicit constructor warnings.
   factory TSpanElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6391,8 +6283,7 @@ abstract class Tests extends Interceptor {
 @DocsEditable()
 @DomName('SVGTextContentElement')
 @Unstable()
-@Native("SVGTextContentElement")
-class TextContentElement extends GraphicsElement {
+class TextContentElement extends GraphicsElement native "SVGTextContentElement" {
   // To suppress missing implicit constructor warnings.
   factory TextContentElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -6466,8 +6357,7 @@ class TextContentElement extends GraphicsElement {
 @DocsEditable()
 @DomName('SVGTextElement')
 @Unstable()
-@Native("SVGTextElement")
-class TextElement extends TextPositioningElement {
+class TextElement extends TextPositioningElement native "SVGTextElement" {
   // To suppress missing implicit constructor warnings.
   factory TextElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6489,8 +6379,7 @@ class TextElement extends TextPositioningElement {
 @DocsEditable()
 @DomName('SVGTextPathElement')
 @Unstable()
-@Native("SVGTextPathElement")
-class TextPathElement extends TextContentElement implements UriReference {
+class TextPathElement extends TextContentElement implements UriReference native "SVGTextPathElement" {
   // To suppress missing implicit constructor warnings.
   factory TextPathElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -6550,8 +6439,7 @@ class TextPathElement extends TextContentElement implements UriReference {
 @DocsEditable()
 @DomName('SVGTextPositioningElement')
 @Unstable()
-@Native("SVGTextPositioningElement")
-class TextPositioningElement extends TextContentElement {
+class TextPositioningElement extends TextContentElement native "SVGTextPositioningElement" {
   // To suppress missing implicit constructor warnings.
   factory TextPositioningElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -6589,8 +6477,7 @@ class TextPositioningElement extends TextContentElement {
 @DocsEditable()
 @DomName('SVGTitleElement')
 @Unstable()
-@Native("SVGTitleElement")
-class TitleElement extends SvgElement {
+class TitleElement extends SvgElement native "SVGTitleElement" {
   // To suppress missing implicit constructor warnings.
   factory TitleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6612,8 +6499,7 @@ class TitleElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGTransform')
 @Unstable()
-@Native("SVGTransform")
-class Transform extends Interceptor {
+class Transform extends Interceptor native "SVGTransform" {
   // To suppress missing implicit constructor warnings.
   factory Transform._() { throw new UnsupportedError("Not supported"); }
 
@@ -6689,8 +6575,7 @@ class Transform extends Interceptor {
 @DocsEditable()
 @DomName('SVGTransformList')
 @Unstable()
-@Native("SVGTransformList")
-class TransformList extends Interceptor with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
+class TransformList extends Interceptor with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> native "SVGTransformList" {
   // To suppress missing implicit constructor warnings.
   factory TransformList._() { throw new UnsupportedError("Not supported"); }
 
@@ -6789,8 +6674,7 @@ class TransformList extends Interceptor with ListMixin<Transform>, ImmutableList
 @DocsEditable()
 @DomName('SVGUnitTypes')
 @Unstable()
-@Native("SVGUnitTypes")
-class UnitTypes extends Interceptor {
+class UnitTypes extends Interceptor native "SVGUnitTypes" {
   // To suppress missing implicit constructor warnings.
   factory UnitTypes._() { throw new UnsupportedError("Not supported"); }
 
@@ -6828,8 +6712,7 @@ abstract class UriReference extends Interceptor {
 @DocsEditable()
 @DomName('SVGUseElement')
 @Unstable()
-@Native("SVGUseElement")
-class UseElement extends GraphicsElement implements UriReference, Tests {
+class UseElement extends GraphicsElement implements UriReference, Tests native "SVGUseElement" {
   // To suppress missing implicit constructor warnings.
   factory UseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6899,8 +6782,7 @@ class UseElement extends GraphicsElement implements UriReference, Tests {
 @DocsEditable()
 @DomName('SVGViewElement')
 @Unstable()
-@Native("SVGViewElement")
-class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
+class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan native "SVGViewElement" {
   // To suppress missing implicit constructor warnings.
   factory ViewElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6942,8 +6824,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 @DocsEditable()
 @DomName('SVGViewSpec')
 @Unstable()
-@Native("SVGViewSpec")
-class ViewSpec extends Interceptor implements FitToViewBox, ZoomAndPan {
+class ViewSpec extends Interceptor implements FitToViewBox, ZoomAndPan native "SVGViewSpec" {
   // To suppress missing implicit constructor warnings.
   factory ViewSpec._() { throw new UnsupportedError("Not supported"); }
 
@@ -7024,8 +6905,7 @@ abstract class ZoomAndPan extends Interceptor {
 @DocsEditable()
 @DomName('SVGZoomEvent')
 @Unstable()
-@Native("SVGZoomEvent")
-class ZoomEvent extends UIEvent {
+class ZoomEvent extends UIEvent native "SVGZoomEvent" {
   // To suppress missing implicit constructor warnings.
   factory ZoomEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -7057,8 +6937,7 @@ class ZoomEvent extends UIEvent {
 @DocsEditable()
 @DomName('SVGElementInstanceList')
 @Unstable()
-@Native("SVGElementInstanceList")
-class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> {
+class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> native "SVGElementInstanceList" {
   // To suppress missing implicit constructor warnings.
   factory _ElementInstanceList._() { throw new UnsupportedError("Not supported"); }
 
@@ -7122,8 +7001,7 @@ class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, 
 @DocsEditable()
 @DomName('SVGGradientElement')
 @Unstable()
-@Native("SVGGradientElement")
-class _GradientElement extends SvgElement implements UriReference {
+class _GradientElement extends SvgElement implements UriReference native "SVGGradientElement" {
   // To suppress missing implicit constructor warnings.
   factory _GradientElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7175,8 +7053,7 @@ class _GradientElement extends SvgElement implements UriReference {
 @DocsEditable()
 @DomName('SVGAltGlyphDefElement')
 @Unstable()
-@Native("SVGAltGlyphDefElement")
-abstract class _SVGAltGlyphDefElement extends SvgElement {
+abstract class _SVGAltGlyphDefElement extends SvgElement native "SVGAltGlyphDefElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGAltGlyphDefElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7194,8 +7071,7 @@ abstract class _SVGAltGlyphDefElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGAltGlyphItemElement')
 @Unstable()
-@Native("SVGAltGlyphItemElement")
-abstract class _SVGAltGlyphItemElement extends SvgElement {
+abstract class _SVGAltGlyphItemElement extends SvgElement native "SVGAltGlyphItemElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGAltGlyphItemElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7213,8 +7089,7 @@ abstract class _SVGAltGlyphItemElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGComponentTransferFunctionElement')
 @Unstable()
-@Native("SVGComponentTransferFunctionElement")
-abstract class _SVGComponentTransferFunctionElement extends SvgElement {
+abstract class _SVGComponentTransferFunctionElement extends SvgElement native "SVGComponentTransferFunctionElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGComponentTransferFunctionElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7232,8 +7107,7 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGCursorElement')
 @Unstable()
-@Native("SVGCursorElement")
-abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests {
+abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests native "SVGCursorElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGCursorElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7262,8 +7136,7 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
 @DocsEditable()
 @DomName('SVGFEDropShadowElement')
 @Experimental() // nonstandard
-@Native("SVGFEDropShadowElement")
-abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes native "SVGFEDropShadowElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFEDropShadowElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7283,8 +7156,7 @@ abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimi
 @DocsEditable()
 @DomName('SVGFontElement')
 @Unstable()
-@Native("SVGFontElement")
-abstract class _SVGFontElement extends SvgElement {
+abstract class _SVGFontElement extends SvgElement native "SVGFontElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7302,8 +7174,7 @@ abstract class _SVGFontElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceElement')
 @Unstable()
-@Native("SVGFontFaceElement")
-abstract class _SVGFontFaceElement extends SvgElement {
+abstract class _SVGFontFaceElement extends SvgElement native "SVGFontFaceElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7321,8 +7192,7 @@ abstract class _SVGFontFaceElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceFormatElement')
 @Unstable()
-@Native("SVGFontFaceFormatElement")
-abstract class _SVGFontFaceFormatElement extends SvgElement {
+abstract class _SVGFontFaceFormatElement extends SvgElement native "SVGFontFaceFormatElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceFormatElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7340,8 +7210,7 @@ abstract class _SVGFontFaceFormatElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceNameElement')
 @Unstable()
-@Native("SVGFontFaceNameElement")
-abstract class _SVGFontFaceNameElement extends SvgElement {
+abstract class _SVGFontFaceNameElement extends SvgElement native "SVGFontFaceNameElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceNameElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7359,8 +7228,7 @@ abstract class _SVGFontFaceNameElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceSrcElement')
 @Unstable()
-@Native("SVGFontFaceSrcElement")
-abstract class _SVGFontFaceSrcElement extends SvgElement {
+abstract class _SVGFontFaceSrcElement extends SvgElement native "SVGFontFaceSrcElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceSrcElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7378,8 +7246,7 @@ abstract class _SVGFontFaceSrcElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceUriElement')
 @Unstable()
-@Native("SVGFontFaceUriElement")
-abstract class _SVGFontFaceUriElement extends SvgElement {
+abstract class _SVGFontFaceUriElement extends SvgElement native "SVGFontFaceUriElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceUriElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7397,8 +7264,7 @@ abstract class _SVGFontFaceUriElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGGlyphElement')
 @Unstable()
-@Native("SVGGlyphElement")
-abstract class _SVGGlyphElement extends SvgElement {
+abstract class _SVGGlyphElement extends SvgElement native "SVGGlyphElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7420,8 +7286,7 @@ abstract class _SVGGlyphElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGGlyphRefElement')
 @Unstable()
-@Native("SVGGlyphRefElement")
-abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
+abstract class _SVGGlyphRefElement extends SvgElement implements UriReference native "SVGGlyphRefElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7441,8 +7306,7 @@ abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
 @DocsEditable()
 @DomName('SVGHKernElement')
 @Unstable()
-@Native("SVGHKernElement")
-abstract class _SVGHKernElement extends SvgElement {
+abstract class _SVGHKernElement extends SvgElement native "SVGHKernElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGHKernElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7463,8 +7327,7 @@ abstract class _SVGHKernElement extends SvgElement {
 
 @DocsEditable()
 @DomName('SVGMPathElement')
-@Native("SVGMPathElement")
-abstract class _SVGMPathElement extends SvgElement implements UriReference {
+abstract class _SVGMPathElement extends SvgElement implements UriReference native "SVGMPathElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGMPathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7488,8 +7351,7 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
 @DocsEditable()
 @DomName('SVGMissingGlyphElement')
 @Unstable()
-@Native("SVGMissingGlyphElement")
-abstract class _SVGMissingGlyphElement extends SvgElement {
+abstract class _SVGMissingGlyphElement extends SvgElement native "SVGMissingGlyphElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -7507,8 +7369,7 @@ abstract class _SVGMissingGlyphElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGVKernElement')
 @Unstable()
-@Native("SVGVKernElement")
-abstract class _SVGVKernElement extends SvgElement {
+abstract class _SVGVKernElement extends SvgElement native "SVGVKernElement" {
   // To suppress missing implicit constructor warnings.
   factory _SVGVKernElement._() { throw new UnsupportedError("Not supported"); }
 

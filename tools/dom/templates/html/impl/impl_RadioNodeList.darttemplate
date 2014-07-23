@@ -10,7 +10,7 @@ $if DART2JS
 // RadioNodeList is to get the selected value and it will be cleaner to
 // introduce a different API for that purpose.
 $else
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
 }
 $endif

@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasImageSource$IMPLEMENTS {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasImageSource$IMPLEMENTS$NATIVESPEC {
 $!MEMBERS
   /** An API for drawing on this canvas. */
 $if DART2JS

@@ -5,7 +5,7 @@
 part of $LIBRARYNAME;
 
 @DocsEditable()
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IMPLEMENTS {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rectangle$IMPLEMENTS$NATIVESPEC {
 
   // NOTE! All code below should be common with RectangleBase.
    String toString() {

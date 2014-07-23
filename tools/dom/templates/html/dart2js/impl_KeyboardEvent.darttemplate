@@ -12,7 +12,7 @@
  *
  * * [KeyboardEvent](https://developer.mozilla.org/en/DOM/KeyboardEvent) at MDN.
  */
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /** 
    * Programmatically create a KeyboardEvent. 

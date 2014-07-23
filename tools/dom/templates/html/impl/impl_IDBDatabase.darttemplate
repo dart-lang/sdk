@@ -5,7 +5,7 @@
 part of $LIBRARYNAME;
 
 @DocsEditable()
-$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
   ObjectStore createObjectStore(String name,
