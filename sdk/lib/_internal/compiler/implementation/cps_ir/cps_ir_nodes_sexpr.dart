@@ -20,6 +20,7 @@ class SExpressionStringifier extends Visitor<String> {
   String newContinuationName() => 'k${_continuationCounter++}';
 
   String visitFunctionDefinition(FunctionDefinition node) {
+    String name = node.element.name;
     names[node.returnContinuation] = 'return';
     String parameters = node.parameters
         .map((Parameter p) {
@@ -28,7 +29,8 @@ class SExpressionStringifier extends Visitor<String> {
           return name;
         })
         .join(' ');
-    return '(FunctionDefinition ($parameters return) ${visit(node.body)})';
+    String body = visit(node.body);
+    return '(FunctionDefinition $name ($parameters return) $body)';
   }
 
   String visitLetPrim(LetPrim node) {
@@ -137,7 +139,7 @@ class SExpressionStringifier extends Visitor<String> {
 
   String visitCreateFunction(CreateFunction node) {
     String function = visit(node.definition);
-    return '(CreateFunction ${node.definition.element} $function)';
+    return '(CreateFunction $function)';
   }
 
   String visitParameter(Parameter node) {
@@ -180,7 +182,7 @@ class SExpressionStringifier extends Visitor<String> {
   String visitDeclareFunction(DeclareFunction node) {
     String function = visit(node.definition);
     String body = visit(node.body);
-    return '(DeclareFunction ${node.variable} = $function in $body)';
+    return '(DeclareFunction ${node.variable.name} = $function in $body)';
   }
 
   String visitIsTrue(IsTrue node) {
