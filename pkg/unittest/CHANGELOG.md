@@ -1,3 +1,7 @@
+##0.11.0+3
+
+* Updated maximum `matcher` version.
+
 ##0.11.0+2
 
 *  Removed unused files from tests and standardized remaining test file names.
