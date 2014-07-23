@@ -19,7 +19,8 @@ import '../dart2jslib.dart' show
 
 import '../elements/elements.dart' show
     TypeVariableElement,
-    ConstructorBodyElement;
+    ConstructorBodyElement,
+    ParameterElement;
 
 import '../js/js.dart' show
     js, templateManager;

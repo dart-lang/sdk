@@ -56,7 +56,7 @@ class SsaBuilderTask extends CompilerTask {
         if (!identical(kind, ElementKind.FIELD)) {
           FunctionElement function = element;
           FunctionSignature signature = function.functionSignature;
-          signature.forEachOptionalParameter((Element parameter) {
+          signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
             Constant constant =
                 backend.constants.getConstantForVariable(parameter);

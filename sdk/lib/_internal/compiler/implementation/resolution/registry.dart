@@ -227,7 +227,7 @@ class ResolutionRegistry extends Registry {
     backend.resolutionCallbacks.onAsCheck(type, this);
   }
 
-  void registerClosure(Element element) {
+  void registerClosure(LocalFunctionElement element) {
     world.registerClosure(element, this);
   }
 

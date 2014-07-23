@@ -80,7 +80,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
     int parameterIndex = 0;
-    parameters.orderedForEachParameter((Element element) {
+    parameters.orderedForEachParameter((ParameterElement element) {
       String jsName = backend.namer.safeName(element.name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {

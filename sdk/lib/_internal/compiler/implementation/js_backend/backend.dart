@@ -1835,9 +1835,9 @@ class JavaScriptBackend extends Backend {
     }
     // Compute a mapping from class to the closures it contains, so we
     // can include the correct ones when including the class.
-    Map<ClassElement, List<Element>> closureMap =
-        new Map<ClassElement, List<Element>>();
-    for (FunctionElement closure in compiler.resolverWorld.allClosures) {
+    Map<ClassElement, List<LocalFunctionElement>> closureMap =
+        new Map<ClassElement, List<LocalFunctionElement>>();
+    for (LocalFunctionElement closure in compiler.resolverWorld.allClosures) {
       closureMap.putIfAbsent(closure.enclosingClass, () => []).add(closure);
     }
     bool foundClosure = false;
@@ -1877,7 +1877,7 @@ class JavaScriptBackend extends Backend {
           }
         }
         // 5) all its closures
-        List<Element> closures = closureMap[cls];
+        List<LocalFunctionElement> closures = closureMap[cls];
         if (closures != null) {
           reflectableMembers.addAll(closures);
           foundClosure = true;
@@ -1898,10 +1898,10 @@ class JavaScriptBackend extends Backend {
         });
         // Also add in closures. Those might be reflectable is their enclosing
         // member is.
-        List<Element> closures = closureMap[cls];
+        List<LocalFunctionElement> closures = closureMap[cls];
         if (closures != null) {
-          for (Element closure in closures) {
-            if (referencedFromMirrorSystem(closure.enclosingMember, false)) {
+          for (LocalFunctionElement closure in closures) {
+            if (referencedFromMirrorSystem(closure.memberContext, false)) {
               reflectableMembers.add(closure);
               foundClosure = true;
             }

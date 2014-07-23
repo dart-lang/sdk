@@ -90,15 +90,6 @@ abstract class ElementX extends Element {
   bool get isStatement => identical(kind, ElementKind.STATEMENT);
   bool get impliesType => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
 
-  /** See [ErroneousElement] for documentation. */
-  bool get isErroneous => false;
-
-  /** See [AmbiguousElement] for documentation. */
-  bool get isAmbiguous => false;
-
-  /** See [WarnOnUseElement] for documentation. */
-  bool get isWarnOnUse => false;
-
   bool get isPatched => false;
 
   bool get isPatch => false;
@@ -194,17 +185,6 @@ abstract class ElementX extends Element {
     return null;
   }
 
-  /**
-   * Returns the member enclosing this element or the element itself if it is a
-   * member. If no enclosing element is found, [:null:] is returned.
-   */
-  Element get enclosingMember {
-    for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClassMember) return e;
-    }
-    return null;
-  }
-
   Element get outermostEnclosingMemberOrTopLevel {
     // TODO(lrn): Why is this called "Outermost"?
     // TODO(johnniwinther): Clean up this method: This method does not return
@@ -281,23 +261,6 @@ abstract class ElementX extends Element {
   }
 }
 
-/**
- * Represents an unresolvable or duplicated element.
- *
- * An [ErroneousElement] is used instead of [:null:] to provide additional
- * information about the error that caused the element to be unresolvable
- * or otherwise invalid.
- *
- * Accessing any field or calling any method defined on [ErroneousElement]
- * except [isErroneous] will currently throw an exception. (This might
- * change when we actually want more information on the erroneous element,
- * e.g., the name of the element we were trying to resolve.)
- *
- * Code that cannot not handle an [ErroneousElement] should use
- *   [: Element.isInvalid(element) :]
- * to check for unresolvable elements instead of
- *   [: element == null :].
- */
 class ErroneousElementX extends ElementX implements ErroneousElement {
   final MessageKind messageKind;
   final Map messageArguments;
@@ -305,8 +268,6 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   ErroneousElementX(this.messageKind, this.messageArguments,
                     String name, Element enclosing)
       : super(name, ElementKind.ERROR, enclosing);
-
-  bool get isErroneous => true;
 
   bool get isSynthesized => true;
 
@@ -369,9 +330,6 @@ class WrappedMessage {
   WrappedMessage(this.spannable, this.messageKind, this.messageArguments);
 }
 
-/**
- * An [Element] whose reference should cause one or more warnings.
- */
 class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
   /// Warning to report on resolving this element.
   final WrappedMessage warning;
@@ -386,8 +344,6 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
                     Element enclosingElement, Element wrappedElement)
       : this.wrappedElement = wrappedElement,
         super(wrappedElement.name, ElementKind.WARN_ON_USE, enclosingElement);
-
-  bool get isWarnOnUse => true;
 
   Element unwrap(DiagnosticListener listener, Spannable usageSpannable) {
     var unwrapped = wrappedElement;
@@ -412,13 +368,6 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
   accept(ElementVisitor visitor) => visitor.visitWarnOnUseElement(this);
 }
 
-/**
- * An ambiguous element represents multiple elements accessible by the same name.
- *
- * Ambiguous elements are created during handling of import/export scopes. If an
- * ambiguous element is encountered during resolution a warning/error should be
- * reported.
- */
 class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message to report on resolving this element.
@@ -445,8 +394,6 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
       : this.existingElement = existingElement,
         this.newElement = newElement,
         super(existingElement.name, ElementKind.AMBIGUOUS, enclosingElement);
-
-  bool get isAmbiguous => true;
 
   Setlet flatten() {
     Element element = this;
