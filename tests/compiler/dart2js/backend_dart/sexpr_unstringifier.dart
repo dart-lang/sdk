@@ -13,8 +13,8 @@ import 'package:compiler/implementation/dart2jslib.dart' as dart2js
 import 'package:compiler/implementation/dart_types.dart' as dart_types
   show DartType;
 import 'package:compiler/implementation/elements/elements.dart'
-  show Entity, Element, Elements, TypeVariableElement, ErroneousElement,
-       TypeDeclarationElement;
+  show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
+       TypeDeclarationElement, ExecutableElement;
 import 'package:compiler/implementation/elements/modelx.dart'
   show ErroneousElementX, TypeVariableElementX;
 import 'package:compiler/implementation/tree/tree.dart'show LiteralDartString;
@@ -27,6 +27,14 @@ import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
 class DummyEntity extends Entity {
   final String name;
   DummyEntity(this.name);
+}
+
+/// Used whenever a node constructed by [SExpressionUnstringifier] needs a
+/// local.
+class DummyLocal extends DummyEntity implements Local {
+  DummyLocal(String name) : super(name);
+
+  ExecutableElement get executableContext => null;
 }
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] requires
@@ -299,7 +307,7 @@ class SExpressionUnstringifier {
     tokens.consumeStart(DECLARE_FUNCTION);
 
     // name =
-    Element element = new DummyElement(tokens.read());
+    Local local = new DummyLocal(tokens.read());
     tokens.read("=");
 
     // function in
@@ -310,7 +318,7 @@ class SExpressionUnstringifier {
     Expression body = parseExpression();
 
     tokens.consumeEnd();
-    return new DeclareFunction(element, def)..plug(body);
+    return new DeclareFunction(local, def)..plug(body);
   }
 
   /// (InvokeConstructor name args cont)
@@ -440,14 +448,14 @@ class SExpressionUnstringifier {
   SetClosureVariable parseSetClosureVariable() {
     tokens.consumeStart(SET_CLOSURE_VARIABLE);
 
-    Element element = new DummyElement(tokens.read());
+    Local local = new DummyLocal(tokens.read());
     Primitive value = name2variable[tokens.read()];
     assert(value != null);
 
     Expression body = parseExpression();
 
     tokens.consumeEnd();
-    return new SetClosureVariable(element, value)
+    return new SetClosureVariable(local, value)
                   ..plug(body);
   }
 
@@ -570,10 +578,10 @@ class SExpressionUnstringifier {
   GetClosureVariable parseGetClosureVariable() {
     tokens.consumeStart(GET_CLOSURE_VARIABLE);
 
-    Element element = new DummyElement(tokens.read());
+    Local local = new DummyLocal(tokens.read());
     tokens.consumeEnd();
 
-    return new GetClosureVariable(element);
+    return new GetClosureVariable(local);
   }
 
   /// (LiteralList values)

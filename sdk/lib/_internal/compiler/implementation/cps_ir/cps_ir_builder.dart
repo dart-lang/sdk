@@ -775,8 +775,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
           add(new ir.LetPrim(initialValue));
         }
         if (isClosureVariable(element)) {
-          add(new ir.SetClosureVariable(element, initialValue,
-                                          isDeclaration: true));
+          LocalElement local = element;
+          add(new ir.SetClosureVariable(local, initialValue,
+                                        isDeclaration: true));
         } else {
           // In case a primitive was introduced for the initializer expression,
           // use this variable element to help derive a good name for it.
@@ -1018,7 +1019,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     if (element == null) {
       closureTarget = visit(node.selector);
     } else if (isClosureVariable(element)) {
-      closureTarget = new ir.GetClosureVariable(element);
+      LocalElement local = element;
+      closureTarget = new ir.GetClosureVariable(local);
       add(new ir.LetPrim(closureTarget));
     } else {
       assert(Elements.isLocal(element));
@@ -1072,7 +1074,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       // Reference to constant local, top-level or static field
       result = translateConstant(node);
     } else if (isClosureVariable(element)) {
-      result = new ir.GetClosureVariable(element);
+      LocalElement local = element;
+      result = new ir.GetClosureVariable(local);
       add(new ir.LetPrim(result));
     } else if (Elements.isLocal(element)) {
       // Reference to local variable
@@ -1324,6 +1327,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   /// True if [element] is a local variable, local function, or parameter that
   /// is accessed from an inner function. Recursive self-references in a local
   /// function count as closure accesses.
+  ///
+  /// If `true`, [element] is a [LocalElement].
   bool isClosureVariable(Element element) {
     return closureLocals.isClosureVariable(element);
   }
@@ -1390,7 +1395,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
     // Set the value
     if (isClosureVariable(element)) {
-      add(new ir.SetClosureVariable(element, valueToStore));
+      LocalElement local = element;
+      add(new ir.SetClosureVariable(local, valueToStore));
     } else if (Elements.isLocal(element)) {
       valueToStore.useElementAsHint(element);
       assignedVars[variableIndex[element]] = valueToStore;
@@ -1481,7 +1487,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
   }
 
   ir.Primitive visitFunctionDeclaration(ast.FunctionDeclaration node) {
-    FunctionElement element = elements[node.function];
+    LocalFunctionElement element = elements[node.function];
     ir.FunctionDefinition inner = makeSubFunction(node.function);
     if (isClosureVariable(element)) {
       add(new ir.DeclareFunction(element, inner));
@@ -1683,13 +1689,13 @@ class DetectClosureVariables extends ast.Visitor {
   DetectClosureVariables(this.elements);
 
   FunctionElement currentFunction;
-  Set<Element> usedFromClosure = new Set<Element>();
+  Set<Local> usedFromClosure = new Set<Local>();
   Set<FunctionElement> recursiveFunctions = new Set<FunctionElement>();
 
-  bool isClosureVariable(Element element) => usedFromClosure.contains(element);
+  bool isClosureVariable(Entity entity) => usedFromClosure.contains(entity);
 
-  void markAsClosureVariable(Element element) {
-    usedFromClosure.add(element);
+  void markAsClosureVariable(Local local) {
+    usedFromClosure.add(local);
   }
 
   visit(ast.Node node) => node.accept(this);
@@ -1703,7 +1709,8 @@ class DetectClosureVariables extends ast.Visitor {
     if (Elements.isLocal(element) &&
         !element.isConst &&
         element.enclosingElement != currentFunction) {
-      markAsClosureVariable(element);
+      LocalElement local = element;
+      markAsClosureVariable(local);
     }
     node.visitChildren(this);
   }

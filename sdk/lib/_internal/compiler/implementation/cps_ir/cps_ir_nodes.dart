@@ -272,7 +272,7 @@ class ConcatenateStrings extends Expression {
 }
 
 /// Gets the value from a closure variable. The identity of the variable is
-/// determined by an [Element].
+/// determined by a [Local].
 ///
 /// Closure variables can be seen as ref cells that are not first-class values.
 /// A [LetPrim] with a [GetClosureVariable] can then be seen as:
@@ -280,7 +280,7 @@ class ConcatenateStrings extends Expression {
 ///   let prim p = ![variable] in [body]
 ///
 class GetClosureVariable extends Primitive {
-  final Element variable;
+  final Local variable;
 
   GetClosureVariable(this.variable) {
     assert(variable != null);
@@ -290,7 +290,7 @@ class GetClosureVariable extends Primitive {
 }
 
 /// Assign or declare a closure variable. The identity of the variable is
-/// determined by an [Element].
+/// determined by a [Local].
 ///
 /// Closure variables can be seen as ref cells that are not first-class values.
 /// If [isDeclaration], this can seen as a let binding:
@@ -304,7 +304,7 @@ class GetClosureVariable extends Primitive {
 /// Closure variables without a declaring [SetClosureVariable] are implicitly
 /// declared at the entry to the [variable]'s enclosing function.
 class SetClosureVariable extends Expression {
-  final Element variable;
+  final Local variable;
   final Reference value;
   Expression body;
 
@@ -317,7 +317,7 @@ class SetClosureVariable extends Expression {
   final bool isDeclaration;
 
   SetClosureVariable(this.variable, Primitive value,
-                      {this.isDeclaration : false })
+                     {this.isDeclaration : false })
       : this.value = new Reference(value) {
     assert(variable != null);
   }
@@ -339,7 +339,7 @@ class SetClosureVariable extends Expression {
 ///   let rec [variable] = [definition] in [body]
 ///
 class DeclareFunction extends Expression {
-  final Element variable;
+  final Local variable;
   final FunctionDefinition definition;
   Expression body;
 
