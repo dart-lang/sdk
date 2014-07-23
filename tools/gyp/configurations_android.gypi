@@ -68,7 +68,9 @@
         'cflags': [
           '-fdata-sections',
           '-ffunction-sections',
-          '-fno-omit-frame-pointer',
+          # Uncomment the following line and pass --profile-vm to enable
+          # profiling of C++ code within Observatory.
+          # '-fno-omit-frame-pointer',
           '-O3',
         ],
       },

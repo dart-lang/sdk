@@ -137,8 +137,9 @@
         'abstract': 1,
         'cflags': [
           '-O<(dart_debug_optimization_level)',
-          # The sampling profiler uses the frame pointer to walk the stack.
-          '-fno-omit-frame-pointer',
+          # Uncomment the following line and pass --profile-vm to enable
+          # profiling of C++ code within Observatory.
+          # '-fno-omit-frame-pointer',
           # Clang on Linux will still omit frame pointers from leaf functions
           # unless told otherwise:
           # '-mno-omit-leaf-frame-pointer',
@@ -149,8 +150,9 @@
         'abstract': 1,
         'cflags': [
           '-O3',
-          # The sampling profiler uses the frame pointer to walk the stack.
-          '-fno-omit-frame-pointer',
+          # Uncomment the following line and pass --profile-vm to enable
+          # profiling of C++ code within Observatory.
+          # '-fno-omit-frame-pointer',
           # Clang on Linux will still omit frame pointers from leaf functions
           # unless told otherwise:
           # '-mno-omit-leaf-frame-pointer',
