@@ -5,7 +5,7 @@
 // WARNING: Do not edit - generated code.
 
 part of $LIBRARYNAME;
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
       {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
       num gamma: 0, bool absolute: false}) {

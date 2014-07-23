@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   factory $CLASSNAME(String title, {String titleDir: null, String body: null,
       String bodyDir: null, String tag: null, String iconUrl: null}) {

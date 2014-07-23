@@ -6,7 +6,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   $if DART2JS
     @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   $endif

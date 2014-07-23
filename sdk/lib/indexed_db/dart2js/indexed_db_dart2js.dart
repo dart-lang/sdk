@@ -77,7 +77,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_native_typed_data';
 import 'dart:typed_data';
-import 'dart:_js_helper' show Creates, Returns, JSName, Null;
+import 'dart:_js_helper' show Creates, Returns, JSName, Native, Null;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -213,7 +213,8 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 
 @DomName('IDBCursor')
 @Unstable()
-class Cursor extends Interceptor native "IDBCursor" {
+@Native("IDBCursor")
+class Cursor extends Interceptor {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
@@ -300,7 +301,8 @@ class Cursor extends Interceptor native "IDBCursor" {
 @DocsEditable()
 @DomName('IDBCursorWithValue')
 @Unstable()
-class CursorWithValue extends Cursor native "IDBCursorWithValue" {
+@Native("IDBCursorWithValue")
+class CursorWithValue extends Cursor {
   // To suppress missing implicit constructor warnings.
   factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
 
@@ -330,7 +332,8 @@ class CursorWithValue extends Cursor native "IDBCursorWithValue" {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental()
 @Unstable()
-class Database extends EventTarget native "IDBDatabase" {
+@Native("IDBDatabase")
+class Database extends EventTarget {
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable()
   ObjectStore createObjectStore(String name,
@@ -508,7 +511,8 @@ class Database extends EventTarget native "IDBDatabase" {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental()
 @Unstable()
-class IdbFactory extends Interceptor native "IDBFactory" {
+@Native("IDBFactory")
+class IdbFactory extends Interceptor {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
    */
@@ -643,7 +647,8 @@ Future _completeRequest(Request request) {
 
 @DomName('IDBIndex')
 @Unstable()
-class Index extends Interceptor native "IDBIndex" {
+@Native("IDBIndex")
+class Index extends Interceptor {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
@@ -800,7 +805,8 @@ class Index extends Interceptor native "IDBIndex" {
 
 @DomName('IDBKeyRange')
 @Unstable()
-class KeyRange extends Interceptor native "IDBKeyRange" {
+@Native("IDBKeyRange")
+class KeyRange extends Interceptor {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.createKeyRange_only(value);
@@ -868,7 +874,8 @@ class KeyRange extends Interceptor native "IDBKeyRange" {
 
 @DomName('IDBObjectStore')
 @Unstable()
-class ObjectStore extends Interceptor native "IDBObjectStore" {
+@Native("IDBObjectStore")
+class ObjectStore extends Interceptor {
 
   @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
@@ -1198,7 +1205,8 @@ class ObjectStore extends Interceptor native "IDBObjectStore" {
 @DocsEditable()
 @DomName('IDBOpenDBRequest')
 @Unstable()
-class OpenDBRequest extends Request native "IDBOpenDBRequest,IDBVersionChangeRequest" {
+@Native("IDBOpenDBRequest,IDBVersionChangeRequest")
+class OpenDBRequest extends Request {
   // To suppress missing implicit constructor warnings.
   factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
 
@@ -1240,7 +1248,8 @@ class OpenDBRequest extends Request native "IDBOpenDBRequest,IDBVersionChangeReq
 @DocsEditable()
 @DomName('IDBRequest')
 @Unstable()
-class Request extends EventTarget native "IDBRequest" {
+@Native("IDBRequest")
+class Request extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Request._() { throw new UnsupportedError("Not supported"); }
 
@@ -1307,7 +1316,8 @@ class Request extends EventTarget native "IDBRequest" {
 
 @DomName('IDBTransaction')
 @Unstable()
-class Transaction extends EventTarget native "IDBTransaction" {
+@Native("IDBTransaction")
+class Transaction extends EventTarget {
 
   /**
    * Provides a Future which will be completed once the transaction has
@@ -1414,7 +1424,8 @@ class Transaction extends EventTarget native "IDBTransaction" {
 @DocsEditable()
 @DomName('IDBVersionChangeEvent')
 @Unstable()
-class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
+@Native("IDBVersionChangeEvent")
+class VersionChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
 

@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   // TODO(efortuna): Remove these methods when Chrome stable also uses start
   // instead of noteOn.
