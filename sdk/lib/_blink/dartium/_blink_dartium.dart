@@ -2169,8 +2169,6 @@ class BlinkFileReader {
 
   static $readyState_Getter(mthis) native "FileReader_readyState_Getter";
 
-  static $result_Getter(mthis) native "FileReader_result_Getter";
-
   static $abort_Callback(mthis) native "FileReader_abort_Callback_RESOLVER_STRING_0_";
 
   static $readAsArrayBuffer_Callback(mthis, blob) native "FileReader_readAsArrayBuffer_Callback_RESOLVER_STRING_1_Blob";

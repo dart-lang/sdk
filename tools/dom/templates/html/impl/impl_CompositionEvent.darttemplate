@@ -6,7 +6,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
       {bool canBubble: false, bool cancelable: false, Window view,
       String data}) {

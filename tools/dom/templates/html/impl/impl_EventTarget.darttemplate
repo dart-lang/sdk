@@ -90,7 +90,7 @@ class ElementEvents extends Events {
  * Use the [on] property to add, and remove events
  * for compile-time type checks and a more concise API.
  */
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   // Custom element created callback.
   EventTarget._created();

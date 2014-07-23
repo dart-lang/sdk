@@ -5,5 +5,5 @@
 part of $LIBRARYNAME;
 
 @DocsEditable()
-$(ANNOTATIONS)$(CLASS_MODIFIERS)abstract class $CLASSNAME$EXTENDS$MIXINS implements EventTarget$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)abstract class $CLASSNAME$EXTENDS$MIXINS implements EventTarget {
 $!MEMBERS}
