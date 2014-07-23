@@ -278,7 +278,7 @@ class Parameter extends Node {
   /// Parameters to function parameter. Null for non-function parameters.
   final Parameters parameters;
 
-  elements.ParameterElement element;
+  elements.FormalElement element;
 
   Parameter(this.name, {this.type, this.defaultValue})
       : parameters = null;

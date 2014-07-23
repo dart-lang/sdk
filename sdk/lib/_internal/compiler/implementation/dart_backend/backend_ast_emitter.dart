@@ -146,7 +146,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     }
   }
 
-  Parameter emitParameterFromElement(ParameterElement element, [String name]) {
+  Parameter emitParameterFromElement(FormalElement element, [String name]) {
     if (name == null) {
       name = element.name;
     }
@@ -285,11 +285,10 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     // Synthesize an element for the variable
     if (variable.element == null || name != variable.element.name) {
       // TODO(johnniwinther): Replace by synthetic [Entity].
-      variable.element = new modelx.LocalVariableElementX(
+      variable.element = new modelx.LocalVariableElementX.synthetic(
           name,
           functionElement,
-          variableList,
-          null);
+          variableList);
     }
     return name;
   }

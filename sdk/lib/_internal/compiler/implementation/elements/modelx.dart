@@ -1210,6 +1210,13 @@ class LocalVariableElementX extends VariableElementX
     createDefinitions(variables.definitions);
   }
 
+  // TODO(johnniwinther): Remove this when the dart `backend_ast` does not need
+  // [Element] for entities.
+  LocalVariableElementX.synthetic(String name,
+                                  ExecutableElement enclosingElement,
+                                  VariableList variables)
+      : super(name, ElementKind.VARIABLE, enclosingElement, variables, null);
+
   ExecutableElement get executableContext => enclosingElement;
 
   ExecutableElement get memberContext => executableContext.memberContext;
