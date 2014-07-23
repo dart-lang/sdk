@@ -90,7 +90,8 @@ HtmlDocument get document => JS('HtmlDocument', 'document');
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
-class HtmlElement extends Element native "HTMLElement" {
+@Native("HTMLElement")
+class HtmlElement extends Element {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
 
   /**
@@ -104,7 +105,8 @@ class HtmlElement extends Element native "HTMLElement" {
 // EntryArray type was removed, so explicitly adding it to allow support for
 // older Chrome versions.
 // Issue #12573.
-abstract class _EntryArray implements List<Entry> native "EntryArray" {}
+@Native("EntryArray")
+abstract class _EntryArray implements List<Entry> {}
 
 /**
  * Spawn a DOM isolate using the given URI in the same window.
