@@ -781,20 +781,8 @@ Dart_Handle DartUtils::LoadSource(Dart_Handle library,
 
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                Dart_Handle builtin_lib) {
-  // Setup the internal library's 'internalPrint' function.
-  Dart_Handle print = Dart_Invoke(
-      builtin_lib, NewString("_getPrintClosure"), 0, NULL);
-  Dart_Handle url = NewString(kInternalLibURL);
-  DART_CHECK_VALID(url);
-  Dart_Handle internal_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(internal_lib);
-  Dart_Handle result = Dart_SetField(internal_lib,
-                                     NewString("_printClosure"),
-                                     print);
-  DART_CHECK_VALID(result);
-
-  // Setup the 'timer' factory.
-  url = NewString(kAsyncLibURL);
+  // First ensure all required libraries are available.
+  Dart_Handle url = NewString(kAsyncLibURL);
   DART_CHECK_VALID(url);
   Dart_Handle async_lib = Dart_LookupLibrary(url);
   DART_CHECK_VALID(async_lib);
@@ -802,9 +790,22 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
 
   // We need to ensure that all the scripts loaded so far are finalized
   // as we are about to invoke some Dart code below to setup closures.
-  result = Dart_FinalizeLoading(false);
+  Dart_Handle result = Dart_FinalizeLoading(false);
   DART_CHECK_VALID(result);
 
+  // Setup the internal library's 'internalPrint' function.
+  Dart_Handle print = Dart_Invoke(
+      builtin_lib, NewString("_getPrintClosure"), 0, NULL);
+  url = NewString(kInternalLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle internal_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(internal_lib);
+  result = Dart_SetField(internal_lib,
+                         NewString("_printClosure"),
+                         print);
+  DART_CHECK_VALID(result);
+
+  // Setup the 'timer' factory.
   Dart_Handle timer_closure =
       Dart_Invoke(io_lib, NewString("_getTimerFactoryClosure"), 0, NULL);
   Dart_Handle args[1];
