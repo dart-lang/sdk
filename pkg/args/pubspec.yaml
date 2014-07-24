@@ -1,8 +1,7 @@
 name: args
-version: 0.12.0
+version: 0.12.0+1
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
-documentation: http://api.dartlang.org/docs/pkg/args
 description: >
  Library for defining parsers for parsing raw command-line arguments into
  a set of options and values using GNU and POSIX style options.

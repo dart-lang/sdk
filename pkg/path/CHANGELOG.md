@@ -1,3 +1,8 @@
+## 1.2.2
+
+* Remove the documentation link from the pubspec so this is linked to
+  pub.dartlang.org by default.
+
 # 1.2.1
 
 * Many members on `Style` that provided access to patterns and functions used
