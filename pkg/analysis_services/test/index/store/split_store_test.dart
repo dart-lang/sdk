@@ -24,21 +24,11 @@ import 'single_source_container.dart';
 
 main() {
   groupSep = ' | ';
-  group('FileNodeManager', () {
-    runReflectiveTests(_FileNodeManagerTest);
-  });
-  group('IndexNode', () {
-    runReflectiveTests(_IndexNodeTest);
-  });
-  group('LocationData', () {
-    runReflectiveTests(_LocationDataTest);
-  });
-  group('RelationKeyData', () {
-    runReflectiveTests(_RelationKeyDataTest);
-  });
-  group('SplitIndexStore', () {
-    runReflectiveTests(_SplitIndexStoreTest);
-  });
+  runReflectiveTests(_FileNodeManagerTest);
+  runReflectiveTests(_IndexNodeTest);
+  runReflectiveTests(_LocationDataTest);
+  runReflectiveTests(_RelationKeyDataTest);
+  runReflectiveTests(_SplitIndexStoreTest);
 }
 
 

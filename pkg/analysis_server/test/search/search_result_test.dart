@@ -14,12 +14,8 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('SearchResult', () {
-    runReflectiveTests(SearchResultTest);
-  });
-  group('SearchResultKind', () {
-    runReflectiveTests(SearchResultKindTest);
-  });
+  runReflectiveTests(SearchResultTest);
+  runReflectiveTests(SearchResultKindTest);
 }
 
 

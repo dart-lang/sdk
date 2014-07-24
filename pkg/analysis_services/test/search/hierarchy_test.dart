@@ -21,9 +21,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('HierarchyTest', () {
-    runReflectiveTests(HierarchyTest);
-  });
+  runReflectiveTests(HierarchyTest);
 }
 
 

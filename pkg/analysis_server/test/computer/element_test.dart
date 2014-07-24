@@ -18,12 +18,8 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('Element', () {
-    runReflectiveTests(ElementTest);
-  });
-  group('ElementKind', () {
-    runReflectiveTests(ElementKindTest);
-  });
+  runReflectiveTests(ElementTest);
+  runReflectiveTests(ElementKindTest);
 }
 
 

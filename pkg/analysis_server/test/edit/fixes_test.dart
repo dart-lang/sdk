@@ -22,9 +22,7 @@ import '../analysis_abstract.dart';
 
 main() {
   groupSep = ' | ';
-  group('getFixes', () {
-    runReflectiveTests(FixesTest);
-  });
+  runReflectiveTests(FixesTest);
 }
 
 

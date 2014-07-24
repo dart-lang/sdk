@@ -17,9 +17,7 @@ import 'package:unittest/unittest.dart' hide isEmpty;
 
 main() {
   groupSep = ' | ';
-  group('source_range', () {
-    runReflectiveTests(VariableNameSuggestionTest);
-  });
+  runReflectiveTests(VariableNameSuggestionTest);
 }
 
 

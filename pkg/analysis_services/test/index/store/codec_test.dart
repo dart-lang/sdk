@@ -16,18 +16,10 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('ContextCodec', () {
-    runReflectiveTests(_ContextCodecTest);
-  });
-  group('ElementCodec', () {
-    runReflectiveTests(_ElementCodecTest);
-  });
-  group('RelationshipCodec', () {
-    runReflectiveTests(_RelationshipCodecTest);
-  });
-  group('StringCodec', () {
-    runReflectiveTests(_StringCodecTest);
-  });
+  runReflectiveTests(_ContextCodecTest);
+  runReflectiveTests(_ElementCodecTest);
+  runReflectiveTests(_RelationshipCodecTest);
+  runReflectiveTests(_StringCodecTest);
 }
 
 

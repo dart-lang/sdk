@@ -20,9 +20,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('FixProcessorTest', () {
-    runReflectiveTests(FixProcessorTest);
-  });
+  runReflectiveTests(FixProcessorTest);
 }
 
 

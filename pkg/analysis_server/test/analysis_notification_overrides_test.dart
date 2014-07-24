@@ -19,9 +19,8 @@ import 'analysis_abstract.dart';
 
 
 main() {
-  group('notification.overrides', () {
-    runReflectiveTests(AnalysisNotificationOverridesTest);
-  });
+  groupSep = ' | ';
+  runReflectiveTests(AnalysisNotificationOverridesTest);
 }
 
 

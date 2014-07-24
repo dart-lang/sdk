@@ -18,9 +18,7 @@ import 'package:analysis_server/src/computer/element.dart';
 
 main() {
   groupSep = ' | ';
-  group('findTopLevelDeclarations', () {
-    runReflectiveTests(TopLevelDeclarationsTest);
-  });
+  runReflectiveTests(TopLevelDeclarationsTest);
 }
 
 

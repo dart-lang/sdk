@@ -25,9 +25,7 @@ import 'package:unittest/unittest.dart' hide ERROR;
 
 main() {
   groupSep = ' | ';
-  group('ErrorFixes', () {
-    runReflectiveTests(ErrorFixesTest);
-  });
+  runReflectiveTests(ErrorFixesTest);
 }
 
 

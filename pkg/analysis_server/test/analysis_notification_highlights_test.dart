@@ -18,12 +18,8 @@ import 'analysis_abstract.dart';
 
 
 main() {
-  group('notification.highlights', () {
-    runReflectiveTests(AnalysisNotificationHighlightsTest);
-  });
-  group('HighlightType', () {
-    runReflectiveTests(HighlightTypeTest);
-  });
+  runReflectiveTests(AnalysisNotificationHighlightsTest);
+  runReflectiveTests(HighlightTypeTest);
 }
 
 

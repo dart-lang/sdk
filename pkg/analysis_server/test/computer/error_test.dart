@@ -19,9 +19,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('AnalysisError', () {
-    runReflectiveTests(AnalysisErrorTest);
-  });
+  runReflectiveTests(AnalysisErrorTest);
 }
 
 

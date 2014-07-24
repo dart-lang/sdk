@@ -19,9 +19,8 @@ import '../analysis_abstract.dart';
 
 
 main() {
-  group('getErrors', () {
-    runReflectiveTests(GetErrorsTest);
-  });
+  groupSep = ' | ';
+  runReflectiveTests(GetErrorsTest);
 }
 
 

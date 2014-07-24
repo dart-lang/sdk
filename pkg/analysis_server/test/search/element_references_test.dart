@@ -19,9 +19,7 @@ import 'abstract_search_domain.dart';
 
 main() {
   groupSep = ' | ';
-  group('findElementReferences', () {
-    runReflectiveTests(ElementReferencesTest);
-  });
+  runReflectiveTests(ElementReferencesTest);
 }
 
 

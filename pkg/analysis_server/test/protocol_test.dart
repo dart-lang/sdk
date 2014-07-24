@@ -17,21 +17,11 @@ Matcher _throwsRequestFailure = throwsA(new isInstanceOf<RequestFailure>());
 
 main() {
   groupSep = ' | ';
-  group('Notification', () {
-    runReflectiveTests(NotificationTest);
-  });
-  group('Request', () {
-    runReflectiveTests(RequestTest);
-  });
-  group('RequestError', () {
-    runReflectiveTests(RequestErrorTest);
-  });
-  group('RequestDatum', () {
-    runReflectiveTests(RequestDatumTest);
-  });
-  group('Response', () {
-    runReflectiveTests(ResponseTest);
-  });
+  runReflectiveTests(NotificationTest);
+  runReflectiveTests(RequestTest);
+  runReflectiveTests(RequestErrorTest);
+  runReflectiveTests(RequestDatumTest);
+  runReflectiveTests(ResponseTest);
 }
 
 

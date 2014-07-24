@@ -15,38 +15,16 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('ChangeTest', () {
-    runReflectiveTests(ChangeTest);
-  });
-  group('EditTest', () {
-    runReflectiveTests(EditTest);
-  });
-  group('FileEditTest', () {
-    runReflectiveTests(FileEditTest);
-  });
-  group('LinkedPositionGroupTest', () {
-    runReflectiveTests(LinkedPositionGroupTest);
-  });
-  group('PositionTest', () {
-    runReflectiveTests(PositionTest);
-  });
+  runReflectiveTests(ChangeTest);
+  runReflectiveTests(EditTest);
+  runReflectiveTests(FileEditTest);
+  runReflectiveTests(LinkedPositionGroupTest);
+  runReflectiveTests(PositionTest);
 }
 
 
 @ReflectiveTestCase()
 class ChangeTest {
-//  void test_fromJson() {
-//    var json = {
-//      OFFSET: 1,
-//      LENGTH: 2,
-//      REPLACEMENT: 'foo'
-//    };
-//    Edit edit = Edit.fromJson(json);
-//    expect(edit.offset, 1);
-//    expect(edit.length, 2);
-//    expect(edit.replacement, 'foo');
-//  }
-
   void test_fromJson() {
     var json = {
       MESSAGE: 'msg',

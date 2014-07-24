@@ -14,9 +14,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('SeparateFileManager', () {
-    runReflectiveTests(_SeparateFileManagerTest);
-  });
+  runReflectiveTests(_SeparateFileManagerTest);
 }
 
 

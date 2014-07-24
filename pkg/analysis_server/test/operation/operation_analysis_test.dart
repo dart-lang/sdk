@@ -16,10 +16,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-
-  group('errorToJson', () {
-    runReflectiveTests(Test_errorToJson);
-  });
+  runReflectiveTests(Test_errorToJson);
 }
 
 

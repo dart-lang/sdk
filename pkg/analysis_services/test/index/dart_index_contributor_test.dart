@@ -18,9 +18,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('DartUnitContributor', () {
-    runReflectiveTests(DartUnitContributorTest);
-  });
+  runReflectiveTests(DartUnitContributorTest);
 }
 
 

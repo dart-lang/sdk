@@ -18,9 +18,7 @@ import 'abstract_search_domain.dart';
 
 main() {
   groupSep = ' | ';
-  group('MemberReferencesTest', () {
-    runReflectiveTests(MemberReferencesTest);
-  });
+  runReflectiveTests(MemberReferencesTest);
 }
 
 
