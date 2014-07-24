@@ -3,55 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Support for logging.
- *
- * For information on installing and importing this library, see the
- * [logging package on pub.dartlang.org]
- * (http://pub.dartlang.org/packages/logging).
- *
- * ## Initializing
- *
- * By default, the logging package does not do anything useful with the
- * log messages. You must configure the logging level and add a handler
- * for the log messages.
- *
- * Here is a simple logging configuration that logs all messages
- * via `print`.
- *
- *     Logger.root.level = Level.ALL;
- *     Logger.root.onRecord.listen((LogRecord rec) {
- *       print('${rec.level.name}: ${rec.time}: ${rec.message}');
- *     });
- *
- * First, set the root [Level]. All messages at or above the level are
- * sent to the [onRecord] stream.
- *
- * Then, listen on the [onRecord] stream for [LogRecord] events. The
- * [LogRecord] class has various properties for the message, error,
- * logger name, and more.
- *
- * ## Logging messages
- *
- * Create a [Logger] with a unique name to easily identify the source
- * of the log messages.
- *
- *     final Logger log = new Logger('MyClassName');
- *
- * Here is an example of logging a debug message and an error:
- *
- *     Future future = doSomethingAsync();
- *     future.then((result) {
- *       log.fine('Got the result: $result');
- *       processResult(result);
- *     })
- *     .catchError((e, stackTrace) => log.severe('Oh noes!', e, stackTrace));
- *
- * See the [Logger] class for the different logging methods.
  */
 library logging;
 
 import 'dart:async';
-import 'package:collection/wrappers.dart';
+import 'dart:collection';
 
 /**
  * Whether to allow fine-grain logging and configuration of loggers in a
