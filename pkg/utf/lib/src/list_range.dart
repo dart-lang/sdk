@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of utf;
+library utf.list_range;
+
+import 'dart:collection';
 
 /**
  * _ListRange in an internal type used to create a lightweight Interable on a
@@ -11,12 +13,12 @@ part of utf;
  */
 // TODO(floitsch): Consider removing the extend and switch to implements since
 // that's cheaper to allocate.
-class _ListRange extends IterableBase {
+class ListRange extends IterableBase {
   final List _source;
   final int _offset;
   final int _length;
 
-  _ListRange(source, [offset = 0, length]) :
+  ListRange(source, [offset = 0, length]) :
       this._source = source,
       this._offset = offset,
       this._length = (length == null ? source.length - offset : length) {
@@ -31,18 +33,18 @@ class _ListRange extends IterableBase {
     }
   }
 
-  _ListRangeIterator get iterator =>
+  ListRangeIterator get iterator =>
       new _ListRangeIteratorImpl(_source, _offset, _offset + _length);
 
   int get length => _length;
 }
 
 /**
- * The _ListRangeIterator provides more capabilities than a standard iterator,
+ * The ListRangeIterator provides more capabilities than a standard iterator,
  * including the ability to get the current position, count remaining items,
  * and move forward/backward within the iterator.
  */
-abstract class _ListRangeIterator implements Iterator<int> {
+abstract class ListRangeIterator implements Iterator<int> {
   bool moveNext();
   int get current;
   int get position;
@@ -51,7 +53,7 @@ abstract class _ListRangeIterator implements Iterator<int> {
   void skip([count]);
 }
 
-class _ListRangeIteratorImpl implements _ListRangeIterator {
+class _ListRangeIteratorImpl implements ListRangeIterator {
   final List<int> _source;
   int _offset;
   final int _end;
@@ -75,4 +77,3 @@ class _ListRangeIteratorImpl implements _ListRangeIterator {
     _offset += count;
   }
 }
-

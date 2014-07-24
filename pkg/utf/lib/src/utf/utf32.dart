@@ -195,8 +195,9 @@ class IterableUtf32Decoder extends IterableBase<int> {
 /**
  * Abstrace parent class converts encoded bytes to codepoints.
  */
-abstract class Utf32BytesDecoder implements _ListRangeIterator {
-  final _ListRangeIterator utf32EncodedBytesIterator;
+abstract class Utf32BytesDecoder implements ListRangeIterator {
+  // TODO(kevmoo): should this field be private?
+  final ListRangeIterator utf32EncodedBytesIterator;
   final int replacementCodepoint;
   int _current = null;
 
@@ -286,7 +287,7 @@ class Utf32beBytesDecoder extends Utf32BytesDecoder {
       int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       super._fromListRangeIterator(
-          (new _ListRange(utf32EncodedBytes, offset, length)).iterator,
+          (new ListRange(utf32EncodedBytes, offset, length)).iterator,
           replacementCodepoint) {
     if (stripBom && hasUtf32beBom(utf32EncodedBytes, offset, length)) {
       skip();
@@ -315,7 +316,7 @@ class Utf32leBytesDecoder extends Utf32BytesDecoder {
       int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       super._fromListRangeIterator(
-          (new _ListRange(utf32EncodedBytes, offset, length)).iterator,
+          (new ListRange(utf32EncodedBytes, offset, length)).iterator,
           replacementCodepoint) {
     if (stripBom && hasUtf32leBom(utf32EncodedBytes, offset, length)) {
       skip();

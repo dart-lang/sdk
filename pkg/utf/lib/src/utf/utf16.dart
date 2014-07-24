@@ -11,7 +11,7 @@ part of utf;
 List<int> stringToCodepoints(String str) {
   // Note: str.codeUnits gives us 16-bit code units on all Dart implementations.
   // So we need to convert.
-  return _utf16CodeUnitsToCodepoints(str.codeUnits);
+  return utf16CodeUnitsToCodepoints(str.codeUnits);
 }
 
 /**
@@ -19,152 +19,10 @@ List<int> stringToCodepoints(String str) {
  *
  * *Deprecated* Use [String.fromCharCodes] instead.
  */
+@deprecated
 String codepointsToString(List<int> codepoints) {
   return new String.fromCharCodes(codepoints);
 }
-
-/**
- * An Iterator<int> of codepoints built on an Iterator of UTF-16 code units.
- * The parameters can override the default Unicode replacement character. Set
- * the replacementCharacter to null to throw an ArgumentError
- * rather than replace the bad value.
- */
-class Utf16CodeUnitDecoder implements Iterator<int> {
-  final _ListRangeIterator utf16CodeUnitIterator;
-  final int replacementCodepoint;
-  int _current = null;
-
-  Utf16CodeUnitDecoder(List<int> utf16CodeUnits, [int offset = 0, int length,
-      int this.replacementCodepoint =
-      UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
-      utf16CodeUnitIterator =
-          (new _ListRange(utf16CodeUnits, offset, length)).iterator;
-
-  Utf16CodeUnitDecoder.fromListRangeIterator(
-      _ListRangeIterator this.utf16CodeUnitIterator,
-      int this.replacementCodepoint);
-
-  Iterator<int> get iterator => this;
-
-  int get current => _current;
-
-  bool moveNext() {
-    _current = null;
-    if (!utf16CodeUnitIterator.moveNext()) return false;
-
-    int value = utf16CodeUnitIterator.current;
-    if (value < 0) {
-      if (replacementCodepoint != null) {
-        _current = replacementCodepoint;
-      } else {
-        throw new ArgumentError(
-            "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
-      }
-    } else if (value < UNICODE_UTF16_RESERVED_LO ||
-        (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
-      // transfer directly
-      _current = value;
-    } else if (value < UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
-        utf16CodeUnitIterator.moveNext()) {
-      // merge surrogate pair
-      int nextValue = utf16CodeUnitIterator.current;
-      if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_1_BASE &&
-          nextValue <= UNICODE_UTF16_RESERVED_HI) {
-        value = (value - UNICODE_UTF16_SURROGATE_UNIT_0_BASE) << 10;
-        value += UNICODE_UTF16_OFFSET +
-            (nextValue - UNICODE_UTF16_SURROGATE_UNIT_1_BASE);
-        _current = value;
-      } else {
-        if (nextValue >= UNICODE_UTF16_SURROGATE_UNIT_0_BASE &&
-           nextValue < UNICODE_UTF16_SURROGATE_UNIT_1_BASE) {
-          utf16CodeUnitIterator.backup();
-        }
-        if (replacementCodepoint != null) {
-          _current = replacementCodepoint;
-        } else {
-          throw new ArgumentError(
-              "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
-        }
-      }
-    } else if (replacementCodepoint != null) {
-      _current = replacementCodepoint;
-    } else {
-      throw new ArgumentError(
-          "Invalid UTF16 at ${utf16CodeUnitIterator.position}");
-    }
-    return true;
-  }
-}
-
-/**
- * Encode code points as UTF16 code units.
- */
-List<int> _codepointsToUtf16CodeUnits(
-    List<int> codepoints,
-    [int offset = 0,
-     int length,
-     int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-
-  _ListRange listRange = new _ListRange(codepoints, offset, length);
-  int encodedLength = 0;
-  for (int value in listRange) {
-    if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
-        (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
-      encodedLength++;
-    } else if (value > UNICODE_PLANE_ONE_MAX &&
-        value <= UNICODE_VALID_RANGE_MAX) {
-      encodedLength += 2;
-    } else {
-      encodedLength++;
-    }
-  }
-
-  List<int> codeUnitsBuffer = new List<int>(encodedLength);
-  int j = 0;
-  for (int value in listRange) {
-    if ((value >= 0 && value < UNICODE_UTF16_RESERVED_LO) ||
-        (value > UNICODE_UTF16_RESERVED_HI && value <= UNICODE_PLANE_ONE_MAX)) {
-      codeUnitsBuffer[j++] = value;
-    } else if (value > UNICODE_PLANE_ONE_MAX &&
-        value <= UNICODE_VALID_RANGE_MAX) {
-      int base = value - UNICODE_UTF16_OFFSET;
-      codeUnitsBuffer[j++] = UNICODE_UTF16_SURROGATE_UNIT_0_BASE +
-          ((base & UNICODE_UTF16_HI_MASK) >> 10);
-      codeUnitsBuffer[j++] = UNICODE_UTF16_SURROGATE_UNIT_1_BASE +
-          (base & UNICODE_UTF16_LO_MASK);
-    } else if (replacementCodepoint != null) {
-      codeUnitsBuffer[j++] = replacementCodepoint;
-    } else {
-      throw new ArgumentError("Invalid encoding");
-    }
-  }
-  return codeUnitsBuffer;
-}
-
-/**
- * Decodes the utf16 codeunits to codepoints.
- */
-List<int> _utf16CodeUnitsToCodepoints(
-    List<int> utf16CodeUnits, [int offset = 0, int length,
-    int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
-  _ListRangeIterator source =
-      (new _ListRange(utf16CodeUnits, offset, length)).iterator;
-  Utf16CodeUnitDecoder decoder = new Utf16CodeUnitDecoder
-      .fromListRangeIterator(source, replacementCodepoint);
-  List<int> codepoints = new List<int>(source.remaining);
-  int i = 0;
-  while (decoder.moveNext()) {
-    codepoints[i++] = decoder.current;
-  }
-  if (i == codepoints.length) {
-    return codepoints;
-  } else {
-    List<int> codepointTrunc = new List<int>(i);
-    codepointTrunc.setRange(0, i, codepoints);
-    return codepointTrunc;
-  }
-}
-
 /**
  * Decodes the UTF-16 bytes as an iterable. Thus, the consumer can only convert
  * as much of the input as needed. Determines the byte order from the BOM,
@@ -225,7 +83,7 @@ String decodeUtf16(List<int> bytes, [int offset = 0, int length,
       offset, length, replacementCodepoint);
   List<int> codeunits = decoder.decodeRest();
   return new String.fromCharCodes(
-      _utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
 }
 
 /**
@@ -241,7 +99,7 @@ String decodeUtf16be(List<int> bytes, [int offset = 0, int length,
   List<int> codeunits = (new Utf16beBytesToCodeUnitsDecoder(bytes, offset,
       length, stripBom, replacementCodepoint)).decodeRest();
   return new String.fromCharCodes(
-      _utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
 }
 
 /**
@@ -257,7 +115,7 @@ String decodeUtf16le(List<int> bytes, [int offset = 0, int length,
   List<int> codeunits = (new Utf16leBytesToCodeUnitsDecoder(bytes, offset,
       length, stripBom, replacementCodepoint)).decodeRest();
   return new String.fromCharCodes(
-      _utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
+      utf16CodeUnitsToCodepoints(codeunits, 0, null, replacementCodepoint));
 }
 
 /**
@@ -339,10 +197,10 @@ bool hasUtf16leBom(List<int> utf16EncodedBytes, [int offset = 0, int length]) {
 }
 
 List<int> _stringToUtf16CodeUnits(String str) {
-  return _codepointsToUtf16CodeUnits(str.codeUnits);
+  return codepointsToUtf16CodeUnits(str.codeUnits);
 }
 
-typedef _ListRangeIterator _CodeUnitsProvider();
+typedef ListRangeIterator _CodeUnitsProvider();
 
 /**
  * Return type of [decodeUtf16AsIterable] and variants. The Iterable type
@@ -367,8 +225,9 @@ class IterableUtf16Decoder extends IterableBase<int> {
  * to produce the code unit (0-(2^16)-1). Relies on BOM to determine
  * endian-ness, and defaults to BE.
  */
-abstract class Utf16BytesToCodeUnitsDecoder implements _ListRangeIterator {
-  final _ListRangeIterator utf16EncodedBytesIterator;
+abstract class Utf16BytesToCodeUnitsDecoder implements ListRangeIterator {
+  // TODO(kevmoo): should this field be private?
+  final ListRangeIterator utf16EncodedBytesIterator;
   final int replacementCodepoint;
   int _current = null;
 
@@ -460,7 +319,7 @@ class Utf16beBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
       int offset = 0, int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       super._fromListRangeIterator(
-          (new _ListRange(utf16EncodedBytes, offset, length)).iterator,
+          (new ListRange(utf16EncodedBytes, offset, length)).iterator,
           replacementCodepoint) {
     if (stripBom && hasUtf16beBom(utf16EncodedBytes, offset, length)) {
       skip();
@@ -485,7 +344,7 @@ class Utf16leBytesToCodeUnitsDecoder extends Utf16BytesToCodeUnitsDecoder {
       int offset = 0, int length, bool stripBom = true,
       int replacementCodepoint = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       super._fromListRangeIterator(
-          (new _ListRange(utf16EncodedBytes, offset, length)).iterator,
+          (new ListRange(utf16EncodedBytes, offset, length)).iterator,
           replacementCodepoint) {
     if (stripBom && hasUtf16leBom(utf16EncodedBytes, offset, length)) {
       skip();
