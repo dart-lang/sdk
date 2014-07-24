@@ -471,6 +471,12 @@ class Server {
    */
   bool _debuggingStdio = false;
 
+  /**
+   * True if we've received bad data from the server, and we are aborting the
+   * test.
+   */
+  bool _receivedBadDataFromServer = false;
+
   Server._(this._process);
 
   /**
@@ -524,7 +530,13 @@ class Server {
           new LineSplitter()).listen((String line) {
         String trimmedLine = line.trim();
         server._recordStdio('RECV: $trimmedLine');
-        var message = JSON.decoder.convert(trimmedLine);
+        var message;
+        try {
+          message = JSON.decoder.convert(trimmedLine);
+        } catch (exception) {
+          server._badDataFromServer();
+          return;
+        }
         expect(message, isMap);
         Map messageAsMap = message;
         if (messageAsMap.containsKey('id')) {
@@ -564,8 +576,11 @@ class Server {
           expect(message, isNotification);
         }
       });
-      process.stderr.listen((List<int> data) {
-        fail('Unexpected output from stderr');
+      process.stderr.transform((new Utf8Codec()).decoder).transform(
+          new LineSplitter()).listen((String line) {
+        String trimmedLine = line.trim();
+        server._recordStdio('ERR:  $trimmedLine');
+        server._badDataFromServer();
       });
       return server;
     });
@@ -616,6 +631,26 @@ class Server {
     for (String line in _recordedStdio) {
       print(line);
     }
+  }
+
+  /**
+   * Deal with bad data received from the server.
+   */
+  void _badDataFromServer() {
+    if (_receivedBadDataFromServer) {
+      // We're already dealing with it.
+      return;
+    }
+    _receivedBadDataFromServer = true;
+    debugStdio();
+    // Give the server 1 second to continue outputting bad data before we kill
+    // the test.  This is helpful if the server has had an unhandled exception
+    // and is outputting a stacktrace, because it ensures that we see the
+    // entire stacktrace.  Use expectAsync() to prevent the test from
+    // ending during this 1 second.
+    new Future.delayed(new Duration(seconds: 1), expectAsync(() {
+      fail('Bad data received from server');
+    }));
   }
 
   /**
