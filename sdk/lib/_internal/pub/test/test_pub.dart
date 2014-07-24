@@ -835,10 +835,10 @@ Iterable<String> pkg, Map<String, String> hosted}) {
 /// Note that this will only affect HTTP requests made via http.dart in the
 /// parent process.
 void useMockClient(MockClient client) {
-  var oldInnerClient = httpClient.inner;
-  httpClient.inner = client;
+  var oldInnerClient = innerHttpClient;
+  innerHttpClient = client;
   currentSchedule.onComplete.schedule(() {
-    httpClient.inner = oldInnerClient;
+    innerHttpClient = oldInnerClient;
   }, 'de-activating the mock client');
 }
 
