@@ -40,11 +40,14 @@ main(List<String> args) {
       callback: (x) => targetDir = x);
   parser.addOption("generated-file-prefix", defaultsTo: '',
       callback: (x) => generatedFilePrefix = x);
+  parser.addFlag("use-deferred-loading", defaultsTo: true,
+      callback: (x) => useDeferredLoading = x);
   parser.parse(args);
   var dartFiles = args.where((x) => x.endsWith("dart")).toList();
   var jsonFiles = args.where((x) => x.endsWith(".arb")).toList();
   if (dartFiles.length == 0 || jsonFiles.length == 0) {
     print('Usage: generate_from_arb [--output-dir=<dir>]'
+        ' [--[no-]use-deferred-loading]'
         ' [--generated-file-prefix=<prefix>] file1.dart file2.dart ...'
         ' translation1_<languageTag>.arb translation2.arb ...');
     exit(0);
