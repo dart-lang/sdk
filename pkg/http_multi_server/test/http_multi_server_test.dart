@@ -108,12 +108,32 @@ void main() {
       expect(http.read("http://127.0.0.1:${server.port}/"),
           completion(equals("got request")));
 
-      return supportsIpV6.then((supportsIpV6) {
+      return _supportsIpV6.then((supportsIpV6) {
         if (!supportsIpV6) return;
         expect(http.read("http://[::1]:${server.port}/"),
             completion(equals("got request")));
       });
     });
+  });
+}
+
+/// A cache for [supportsIpV6].
+bool _supportsIpV6Cache;
+
+// TODO(nweiz): This is known to be inaccurate on Windows machines with IPv6
+// disabled (issue 19815). Tests will fail on such machines.
+/// Returns whether this computer supports binding to IPv6 addresses.
+Future<bool> get _supportsIpV6 {
+  if (_supportsIpV6Cache != null) return new Future.value(_supportsIpV6Cache);
+
+  return ServerSocket.bind(InternetAddress.LOOPBACK_IP_V6, 0).then((socket) {
+    _supportsIpV6Cache = true;
+    socket.close();
+    return true;
+  }).catchError((error) {
+    if (error is! SocketException) throw error;
+    _supportsIpV6Cache = false;
+    return false;
   });
 }
 
