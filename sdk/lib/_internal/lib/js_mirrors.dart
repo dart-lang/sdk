@@ -2168,6 +2168,7 @@ function(reflectee) {
     if (callName == null) {
       throw new RuntimeError('Cannot find callName on "$reflectee"');
     }
+    // TODO(floitsch): What about optional parameters?
     int parameterCount = int.parse(callName.split(r'$')[1]);
     if (reflectee is BoundClosure) {
       var target = BoundClosure.targetOf(reflectee);
@@ -2181,8 +2182,9 @@ function(reflectee) {
     } else {
       bool isStatic = true; // TODO(ahe): Compute isStatic correctly.
       var jsFunction = JS('', '#[#]', reflectee, callName);
+      var dummyOptionalParameterCount = 0;
       cachedFunction = new JsMethodMirror(
-          s(callName), jsFunction, parameterCount,
+          s(callName), jsFunction, parameterCount, dummyOptionalParameterCount,
           false, false, isStatic, false, false);
     }
     JS('void', r'#.constructor[#] = #', reflectee, cacheName, cachedFunction);
@@ -2203,7 +2205,8 @@ function(reflectee) {
 
 class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   final _jsFunction;
-  final int _parameterCount;
+  final int _requiredParameterCount;
+  final int _optionalParameterCount;
   final bool isGetter;
   final bool isSetter;
   final bool isStatic;
@@ -2216,7 +2219,8 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
 
   JsMethodMirror(Symbol simpleName,
                  this._jsFunction,
-                 this._parameterCount,
+                 this._requiredParameterCount,
+                 this._optionalParameterCount,
                  this.isGetter,
                  this.isSetter,
                  this.isStatic,
@@ -2247,11 +2251,13 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
       optionalParameterCount = int.parse(info[2]);
     }
     return new JsMethodMirror(
-        s(name), jsFunction, requiredParameterCount + optionalParameterCount,
+        s(name), jsFunction, requiredParameterCount, optionalParameterCount,
         isGetter, isSetter, isStatic, isConstructor, isOperator);
   }
 
   String get _prettyName => 'MethodMirror';
+
+  int get _parameterCount => _requiredParameterCount + _optionalParameterCount;
 
   List<ParameterMirror> get parameters {
     if (_parameters != null) return _parameters;
@@ -2339,10 +2345,22 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     if (!isStatic && !isConstructor) {
       throw new RuntimeError('Cannot invoke instance method without receiver.');
     }
-    if (_parameterCount != positionalArguments.length || _jsFunction == null) {
+    int positionalLength = positionalArguments.length;
+    if (positionalLength < _requiredParameterCount ||
+        positionalLength >  _parameterCount ||
+        _jsFunction == null) {
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
           owner, simpleName, positionalArguments, namedArguments);
+    }
+    if (positionalLength < _parameterCount) {
+      // Fill up with default values.
+      // Make a copy so we don't modify the input.
+      positionalArguments = positionalArguments.toList();
+      for (int i = positionalLength; i < parameters.length; i++) {
+        JsParameterMirror parameter = parameters[i];
+        positionalArguments.add(parameter.defaultValue.reflectee);
+      }
     }
     // Using JS_CURRENT_ISOLATE() ('$') here is actually correct, although
     // _jsFunction may not be a property of '$', most static functions do not
