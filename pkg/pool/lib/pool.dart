@@ -40,14 +40,14 @@ class Pool {
   Timer _timer;
 
   /// The amount of time to wait before timing out the pending resources.
-  Duration _timeout;
+  final Duration _timeout;
 
   /// Creates a new pool with the given limit on how many resources may be
   /// allocated at once.
   ///
   /// If [timeout] is passed, then if that much time passes without any activity
-  /// all pending [request] futures will throw an exception. This is indented
-  /// to avoid deadlocks.
+  /// all pending [request] futures will throw a [TimeoutException]. This is
+  /// intended to avoid deadlocks.
   Pool(this._maxAllocatedResources, {Duration timeout})
       : _timeout = timeout;
 
@@ -106,8 +106,11 @@ class Pool {
   /// emit exceptions.
   void _onTimeout() {
     for (var completer in _requestedResources) {
-      completer.completeError("Pool deadlock: all resources have been "
-          "allocated for too long.", new Chain.current());
+      completer.completeError(
+          new TimeoutException("Pool deadlock: all resources have been "
+              "allocated for too long.",
+              _timeout),
+          new Chain.current());
     }
     _requestedResources.clear();
     _timer = null;
