@@ -49,7 +49,6 @@ mirrors/initializing_formals_test/01: RuntimeError # Issue 6490
 mirrors/initializing_formals_test/03: CompileTimeError # Issue 12164
 mirrors/instance_members_test: RuntimeError # Issue 14633
 mirrors/instantiate_abstract_class_test: RuntimeError # Issue 6490
-mirrors/invoke_test: RuntimeError # Issue 11954
 mirrors/invoke_call_on_closure_test: RuntimeError # 6490
 mirrors/invoke_call_through_getter_test/named: RuntimeError # Issue 12863. When updating the status, remove the "///" in the test.
 mirrors/invoke_call_through_getter_previously_accessed_test/named: RuntimeError # Issue 12863. When updating the status, remove the "///" in the test.
@@ -58,7 +57,6 @@ mirrors/invoke_call_through_implicit_getter_test: RuntimeError # Issue 17638
 mirrors/invoke_named_test/none: RuntimeError # Issue 12863
 mirrors/invoke_private_test: CompileTimeError # Issue 12164
 mirrors/invoke_private_wrong_library_test: CompileTimeError # Issue 12164
-mirrors/invoke_throws_test: RuntimeError # Issue 11954
 mirrors/library_declarations_test/none: RuntimeError # Issue 13439, Issue 13733
 mirrors/library_exports_shown_test: RuntimeError # Issue 6490
 mirrors/library_exports_hidden_test: RuntimeError # Issue 6490

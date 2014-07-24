@@ -1798,8 +1798,15 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
       JS('void', '#[#] = #', JS_CURRENT_ISOLATE(), jsName, arg);
       return reflect(arg);
     }
-    throw new NoSuchStaticMethodError.method(
-        null, setterSymbol(fieldName), [arg], null);
+    Symbol setterName = setterSymbol(fieldName);
+    if (mirror == null) {
+      JsMethodMirror setter = __setters[setterName];
+      if (setter != null) {
+        setter._invoke([arg], const {});
+        return reflect(arg);
+      }
+    }
+    throw new NoSuchStaticMethodError.method(null, setterName, [arg], null);
   }
 
   bool _staticFieldExists(Symbol fieldName) {
