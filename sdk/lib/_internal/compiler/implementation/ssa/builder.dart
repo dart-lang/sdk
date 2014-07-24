@@ -996,6 +996,11 @@ class SsaBuilder extends ResolvedVisitor {
 
   CodegenRegistry get registry => work.registry;
 
+  /// Returns the current source element.
+  ///
+  /// The returned element is a declaration element.
+  // TODO(johnniwinther): Check that all usages of sourceElement agree on
+  // implementation/declaration distinction.
   Element get sourceElement => sourceElementStack.last;
 
   HBasicBlock addNewBlock() {
@@ -4887,7 +4892,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (node.isRedirectingFactoryBody) {
       FunctionElement targetConstructor =
           elements[node.expression].implementation;
-      ConstructorElement redirectingConstructor = sourceElement;
+      ConstructorElement redirectingConstructor = sourceElement.implementation;
       List<HInstruction> inputs = <HInstruction>[];
       FunctionSignature targetSignature = targetConstructor.functionSignature;
       FunctionSignature redirectingSignature =
