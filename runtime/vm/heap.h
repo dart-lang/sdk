@@ -164,6 +164,7 @@ class Heap {
   uword TopAddress();
   uword EndAddress();
   static intptr_t new_space_offset() { return OFFSET_OF(Heap, new_space_); }
+  uword NewSpaceAddress() const { return reinterpret_cast<uword>(new_space_); }
 
   // Initialize the heap and register it with the isolate.
   static void Init(Isolate* isolate,

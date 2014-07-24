@@ -770,6 +770,8 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  static bool EmittingComments();
+
   const Code::Comments& GetCodeComments() const;
 
   intptr_t CodeSize() const { return buffer_.Size(); }

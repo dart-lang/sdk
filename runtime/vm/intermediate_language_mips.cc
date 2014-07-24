@@ -1674,39 +1674,65 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-class StoreInstanceFieldSlowPath : public SlowPathCode {
+class BoxAllocationSlowPath : public SlowPathCode {
  public:
-  StoreInstanceFieldSlowPath(StoreInstanceFieldInstr* instruction,
-                             const Class& cls)
-      : instruction_(instruction), cls_(cls) { }
+  BoxAllocationSlowPath(Instruction* instruction,
+                        const Class& cls,
+                        Register result)
+      : instruction_(instruction),
+        cls_(cls),
+        result_(result) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     Isolate* isolate = compiler->isolate();
     StubCode* stub_code = isolate->stub_code();
 
-    __ Comment("StoreInstanceFieldSlowPath");
+    if (Assembler::EmittingComments()) {
+      __ Comment("%s slow path allocation of %s",
+                 instruction_->DebugName(),
+                 String::Handle(cls_.PrettyName()).ToCString());
+    }
     __ Bind(entry_label());
     const Code& stub =
         Code::Handle(isolate, stub_code->GetAllocationStubForClass(cls_));
     const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->temp(0));
+    locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            RawPcDescriptors::kOther,
                            locs);
-    __ mov(locs->temp(0).reg(), V0);
+    if (result_ != V0) {
+      __ mov(result_, V0);
+    }
     compiler->RestoreLiveRegisters(locs);
 
     __ b(exit_label());
   }
 
+  static void Allocate(FlowGraphCompiler* compiler,
+                       Instruction* instruction,
+                       const Class& cls,
+                       Register result,
+                       Register temp) {
+    BoxAllocationSlowPath* slow_path =
+        new BoxAllocationSlowPath(instruction, cls, result);
+    compiler->AddSlowPathCode(slow_path);
+
+    __ TryAllocate(cls,
+                   slow_path->entry_label(),
+                   result,
+                   temp);
+    __ Bind(slow_path->exit_label());
+  }
+
  private:
-  StoreInstanceFieldInstr* instruction_;
+  Instruction* instruction_;
   const Class& cls_;
+  Register result_;
 };
 
 
@@ -1745,6 +1771,24 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+static void EnsureMutableBox(FlowGraphCompiler* compiler,
+                             StoreInstanceFieldInstr* instruction,
+                             Register box_reg,
+                             const Class& cls,
+                             Register instance_reg,
+                             intptr_t offset,
+                             Register temp) {
+  Label done;
+  __ lw(box_reg, FieldAddress(instance_reg, offset));
+  __ BranchNotEqual(box_reg, reinterpret_cast<int32_t>(Object::null()),
+                    &done);
+  BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
+  __ mov(temp, box_reg);
+  __ StoreIntoObjectOffset(instance_reg, offset, temp);
+  __ Bind(&done);
+}
+
+
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label skip_store;
 
@@ -1766,15 +1810,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           UNREACHABLE();
       }
 
-      StoreInstanceFieldSlowPath* slow_path =
-          new StoreInstanceFieldSlowPath(this, *cls);
-      compiler->AddSlowPathCode(slow_path);
-
-      __ TryAllocate(*cls,
-                     slow_path->entry_label(),
-                     temp,
-                     temp2);
-      __ Bind(slow_path->exit_label());
+      BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ mov(temp2, temp);
       __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
     } else {
@@ -1821,25 +1857,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     {
       __ Bind(&store_double);
-      Label copy_double;
-
-      __ lw(temp, FieldAddress(instance_reg, offset_in_bytes_));
-      __ BranchNotEqual(temp, reinterpret_cast<int32_t>(Object::null()),
-                        &copy_double);
-
-      StoreInstanceFieldSlowPath* slow_path =
-          new StoreInstanceFieldSlowPath(this, compiler->double_class());
-      compiler->AddSlowPathCode(slow_path);
-
-      __ TryAllocate(compiler->double_class(),
-                     slow_path->entry_label(),
-                     temp,
-                     temp2);
-      __ Bind(slow_path->exit_label());
-      __ mov(temp2, temp);
-      __ StoreIntoObjectOffset(instance_reg, offset_in_bytes_, temp2);
-
-      __ Bind(&copy_double);
+      EnsureMutableBox(compiler,
+                       this,
+                       temp,
+                       compiler->double_class(),
+                       instance_reg,
+                       offset_in_bytes_,
+                       temp2);
       __ LoadDFromOffset(fpu_temp,
                          value_reg,
                          Double::value_offset() - kHeapObjectTag);
@@ -2083,43 +2107,6 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-class BoxDoubleSlowPath : public SlowPathCode {
- public:
-  explicit BoxDoubleSlowPath(Instruction* instruction)
-      : instruction_(instruction) { }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("BoxDoubleSlowPath");
-    __ Bind(entry_label());
-    Isolate* isolate = compiler->isolate();
-    StubCode* stub_code = isolate->stub_code();
-    const Class& double_class = compiler->double_class();
-    const Code& stub =
-        Code::Handle(isolate,
-                     stub_code->GetAllocationStubForClass(double_class));
-    const ExternalLabel label(stub.EntryPoint());
-
-    LocationSummary* locs = instruction_->locs();
-    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
-
-    compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
-                           &label,
-                           RawPcDescriptors::kOther,
-                           locs);
-    if (locs->out(0).reg() != V0) {
-      __ mov(locs->out(0).reg(), V0);
-    }
-    compiler->RestoreLiveRegisters(locs);
-
-    __ b(exit_label());
-  }
-
- private:
-  Instruction* instruction_;
-};
-
-
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -2194,14 +2181,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     {
       __ Bind(&load_double);
-      BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
-      compiler->AddSlowPathCode(slow_path);
-
-      __ TryAllocate(compiler->double_class(),
-                     slow_path->entry_label(),
-                     result_reg,
-                     temp);
-      __ Bind(slow_path->exit_label());
+      BoxAllocationSlowPath::Allocate(
+          compiler, this, compiler->double_class(), result_reg, temp);
       __ lw(temp, FieldAddress(instance_reg, offset_in_bytes()));
       __ LoadDFromOffset(value, temp, Double::value_offset() - kHeapObjectTag);
       __ StoreDToOffset(value,
@@ -3046,17 +3027,11 @@ LocationSummary* BoxDoubleInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
-  compiler->AddSlowPathCode(slow_path);
-
   Register out_reg = locs()->out(0).reg();
   DRegister value = locs()->in(0).fpu_reg();
 
-  __ TryAllocate(compiler->double_class(),
-                 slow_path->entry_label(),
-                 out_reg,
-                 locs()->temp(0).reg());
-  __ Bind(slow_path->exit_label());
+  BoxAllocationSlowPath::Allocate(
+      compiler, this, compiler->double_class(), out_reg, locs()->temp(0).reg());
   __ StoreDToOffset(value, out_reg, Double::value_offset() - kHeapObjectTag);
 }
 

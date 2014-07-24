@@ -445,6 +445,7 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeStaticCallTargetsTable(const Code& code);
 
   const Class& double_class() const { return double_class_; }
+  const Class& mint_class() const { return mint_class_; }
   const Class& float32x4_class() const { return float32x4_class_; }
   const Class& float64x2_class() const { return float64x2_class_; }
   const Class& int32x4_class() const { return int32x4_class_; }
@@ -611,6 +612,7 @@ class FlowGraphCompiler : public ValueObject {
   bool may_reoptimize_;
 
   const Class& double_class_;
+  const Class& mint_class_;
   const Class& float32x4_class_;
   const Class& float64x2_class_;
   const Class& int32x4_class_;

@@ -858,20 +858,19 @@ void Assembler::TryAllocate(const Class& cls,
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
-    LoadImmediate(instance_reg, heap->TopAddress());
-    lw(instance_reg, Address(instance_reg, 0));
+
+    LoadImmediate(temp_reg, heap->NewSpaceAddress());
+    lw(instance_reg, Address(temp_reg, Scavenger::top_offset()));
     AddImmediate(instance_reg, instance_size);
 
     // instance_reg: potential next object start.
-    LoadImmediate(TMP, heap->EndAddress());
-    lw(TMP, Address(TMP, 0));
+    lw(TMP, Address(temp_reg, Scavenger::end_offset()));
     // Fail if heap end unsigned less than or equal to instance_reg.
     BranchUnsignedLessEqual(TMP, instance_reg, failure);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    LoadImmediate(TMP, heap->TopAddress());
-    sw(instance_reg, Address(TMP, 0));
+    sw(instance_reg, Address(temp_reg, Scavenger::top_offset()));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
