@@ -8,13 +8,13 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
+import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
+
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
@@ -42,9 +42,7 @@ class AnalysisDomainHandler implements RequestHandler {
       if (errorInfo == null) {
         response.setResult(ERRORS, []);
       } else {
-        response.setResult(ERRORS, errorInfo.errors.map((AnalysisError error) {
-          return errorToJson(errorInfo.lineInfo, error);
-        }).toList());
+        response.setResult(ERRORS, engineErrorInfoToJson(errorInfo));
       }
       server.sendResponse(response);
     }).catchError((message) {
