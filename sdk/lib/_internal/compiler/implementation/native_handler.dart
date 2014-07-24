@@ -1125,33 +1125,6 @@ Token handleNativeBlockToSkip(Listener listener, Token token) {
   return token;
 }
 
-Token handleNativeClassBodyToSkip(Listener listener, Token token) {
-  checkAllowedLibrary(listener, token);
-  listener.handleIdentifier(token);
-  token = token.next;
-  if (!identical(token.kind, STRING_TOKEN)) {
-    return listener.unexpected(token);
-  }
-  token = token.next;
-  if (!identical(token.stringValue, '{')) {
-    return listener.unexpected(token);
-  }
-  BeginGroupToken beginGroupToken = token;
-  token = beginGroupToken.endGroup;
-  return token;
-}
-
-Token handleNativeClassBody(Listener listener, Token token) {
-  checkAllowedLibrary(listener, token);
-  token = token.next;
-  if (!identical(token.kind, STRING_TOKEN)) {
-    listener.unexpected(token);
-  } else {
-    token = token.next;
-  }
-  return token;
-}
-
 Token handleNativeFunctionBody(ElementListener listener, Token token) {
   checkAllowedLibrary(listener, token);
   Token begin = token;
@@ -1168,18 +1141,6 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
   // TODO(ngeoffray): expect a ';'.
   // Currently there are method with both native marker and Dart body.
   return token.next;
-}
-
-String checkForNativeClass(ElementListener listener) {
-  String nativeTagInfo;
-  Node node = listener.nodes.head;
-  if (node != null
-      && node.asIdentifier() != null
-      && node.asIdentifier().source == 'native') {
-    nativeTagInfo = node.asIdentifier().token.next.value;
-    listener.popNode();
-  }
-  return nativeTagInfo;
 }
 
 // The tags string contains comma-separated 'words' which are either dispatch
