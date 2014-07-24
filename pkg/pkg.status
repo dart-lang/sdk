@@ -308,6 +308,7 @@ intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/examples_parsing_test: Fail, OK # Users dart:io
 intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
 intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
