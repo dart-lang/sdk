@@ -56,13 +56,18 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
   @override
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.applyChanges(changeSet);
-    analysisServer.schedulePerformAnalysisOperation(context);
+    if (context != null) {
+      context.applyChanges(changeSet);
+      analysisServer.schedulePerformAnalysisOperation(context);
+    }
   }
 
   @override
   void removeContext(Folder folder) {
-    analysisServer.folderMap.remove(folder);
+    AnalysisContext context = analysisServer.folderMap.remove(folder);
+    analysisServer.sendContextAnalysisCancelledNotifications(
+        context,
+        'Context was removed');
   }
 
   @override
@@ -572,11 +577,16 @@ class AnalysisServer {
   }
 
   /**
-   * Returns all the [AnalysisErrorInfo] for [file].
-   * It does not wait for all errors to be computed, and returns just the
-   * current state.
+   * Return an analysis error info containing the array of all of the errors and
+   * the line info associated with [file].
    *
-   * May return `null`.
+   * Returns `null` if [file] does not belong to any [AnalysisContext].
+   *
+   * The array of errors will be empty if [file] does not exist or if there are
+   * no errors in [file]. The errors contained in the array can be incomplete.
+   *
+   * This method does not wait for all errors to be computed, and returns just
+   * the current state.
    */
   AnalysisErrorInfo getErrors(String file) {
     // prepare AnalysisContext
@@ -643,12 +653,6 @@ class AnalysisServer {
    *
    * 2. We should complete the future as soon as the file is analyzed (not wait
    *    until the context is completely finished)
-   *
-   * 3. Since contexts can be created and deleted asynchronously as a result of
-   *    changes to the filesystem, there's a danger that the future might never
-   *    get completed. We should add a mechanism to make sure that we return an
-   *    error for any getErrors request that is unsatisfiable due to its context
-   *    being deleted.
    */
   Future onFileAnalysisComplete(String file) {
     // prepare AnalysisContext
@@ -672,9 +676,20 @@ class AnalysisServer {
    * done.
    */
   void sendContextAnalysisDoneNotifications(AnalysisContext context) {
-    Completer completer = contextAnalysisDoneCompleters[context];
+    Completer completer = contextAnalysisDoneCompleters.remove(context);
     if (completer != null) {
       completer.complete();
+    }
+  }
+
+  /**
+   * This method is called when analysis of the given [AnalysisContext] is
+   * cancelled.
+   */
+  void sendContextAnalysisCancelledNotifications(AnalysisContext context, String message) {
+    Completer completer = contextAnalysisDoneCompleters.remove(context);
+    if (completer != null) {
+      completer.completeError(message);
     }
   }
 

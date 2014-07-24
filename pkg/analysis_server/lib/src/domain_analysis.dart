@@ -47,6 +47,15 @@ class AnalysisDomainHandler implements RequestHandler {
         }).toList());
       }
       server.sendResponse(response);
+    }).catchError((message) {
+      if (message is! String) {
+        AnalysisEngine.instance.logger.logError(
+            'Illegal error message during getErrors: $message');
+        message = '';
+      }
+      Response response = new Response.getErrorsError(request, message);
+      response.setResult(ERRORS, []);
+      server.sendResponse(response);
     });
     // delay response
     return Response.DELAYED_RESPONSE;

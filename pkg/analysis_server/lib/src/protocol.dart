@@ -586,6 +586,15 @@ class Response {
     : this(request.id, new RequestError(-12, 'Unknown analysis option: "$optionName"'));
 
   /**
+   * Initialize a newly created instance to represent an error condition caused
+   * by an error during `analysis.getErrors`.
+   */
+  Response.getErrorsError(Request request, String message)
+    : this(
+        request.id,
+        new RequestError(-13, 'Error during `analysis.getErrors`: $message.'));
+
+  /**
    * Initialize a newly created instance based upon the given JSON data
    */
   factory Response.fromJson(Map<String, Object> json) {
@@ -704,6 +713,11 @@ class RequestError {
    * An error code indicating a problem using the specified Dart SDK.
    */
   static const int CODE_SDK_ERROR = -32603;
+
+  /**
+   * An error code indicating a problem during 'analysis.getErrors'.
+   */
+  static const int CODE_ANALISYS_GET_ERRORS_ERROR = -32500;
 
   /*
    * In addition, codes -32000 to -32099 indicate a server error. They are
