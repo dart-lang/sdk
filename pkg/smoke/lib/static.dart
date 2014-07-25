@@ -37,14 +37,47 @@ class StaticConfiguration {
   /// A map from symbol to strings.
   final Map<Symbol, String> names;
 
+  /// A map from strings to symbols (the reverse of [names]).
+  final Map<String, Symbol> _symbols = {};
+
+
   /// Whether to check for missing declarations, otherwise, return default
   /// values (for example a missing parent class can be treated as Object)
   final bool checkedMode;
 
   StaticConfiguration({
-      this.getters: const {}, this.setters: const {}, this.parents: const {},
-      this.declarations: const {}, this.staticMethods: const {},
-      this.names: const {}, this.checkedMode: true});
+      Map<Symbol, Getter> getters,
+      Map<Symbol, Setter> setters,
+      Map<Type, Type> parents,
+      Map<Type, Map<Symbol, Declaration>> declarations,
+      Map<Type, Map<Symbol, Function>> staticMethods,
+      Map<Symbol, String> names,
+      this.checkedMode: true})
+      : getters = getters != null ? getters : {},
+        setters = setters != null ? setters : {},
+        parents = parents != null ? parents : {},
+        declarations = declarations != null ? declarations : {},
+        staticMethods = staticMethods != null ? staticMethods : {},
+        names = names != null ? names : {} {
+    this.names.forEach((k, v) { _symbols[v] = k; });
+  }
+
+  void addAll(StaticConfiguration other) {
+    getters.addAll(other.getters);
+    setters.addAll(other.setters);
+    parents.addAll(other.parents);
+    _nestedAddAll(declarations, other.declarations);
+    _nestedAddAll(staticMethods, other.staticMethods);
+    names.addAll(other.names);
+    other.names.forEach((k, v) { _symbols[v] = k; });
+  }
+
+  static _nestedAddAll(Map a, Map b) {
+    for (var key in b.keys) {
+      a.putIfAbsent(key, () => {});
+      a[key].addAll(b[key]);
+    }
+  }
 }
 
 /// Set up the smoke package to use a static implementation based on the given
@@ -57,14 +90,13 @@ useGeneratedCode(StaticConfiguration configuration) {
 
 /// Implements [ObjectAccessorService] using a static configuration.
 class GeneratedObjectAccessorService implements ObjectAccessorService {
-  final Map<Symbol, Getter> _getters;
-  final Map<Symbol, Setter> _setters;
-  final Map<Type, Map<Symbol, Function>> _staticMethods;
+  final StaticConfiguration _configuration;
+  Map<Symbol, Getter> get _getters => _configuration.getters;
+  Map<Symbol, Setter> get _setters => _configuration.setters;
+  Map<Type, Map<Symbol, Function>> get _staticMethods =>
+      _configuration.staticMethods;
 
-  GeneratedObjectAccessorService(StaticConfiguration configuration)
-      : _getters = configuration.getters,
-        _setters = configuration.setters,
-        _staticMethods = configuration.staticMethods;
+  GeneratedObjectAccessorService(this._configuration);
 
   read(Object object, Symbol name) {
     var getter = _getters[name];
@@ -127,14 +159,15 @@ class GeneratedObjectAccessorService implements ObjectAccessorService {
 
 /// Implements [TypeInspectorService] using a static configuration.
 class GeneratedTypeInspectorService implements TypeInspectorService {
-  final Map<Type, Type> _parents;
-  final Map<Type, Map<Symbol, Declaration>> _declarations;
-  final bool _checkedMode;
+  final StaticConfiguration _configuration;
 
-  GeneratedTypeInspectorService(StaticConfiguration configuration)
-      : _parents = configuration.parents,
-        _declarations = configuration.declarations,
-        _checkedMode = configuration.checkedMode;
+  Map<Type, Type> get _parents => _configuration.parents;
+  Map<Type, Map<Symbol, Declaration>> get _declarations =>
+      _configuration.declarations;
+  bool get _checkedMode => _configuration.checkedMode;
+
+  GeneratedTypeInspectorService(this._configuration);
+
   bool isSubclassOf(Type type, Type supertype) {
     if (type == supertype || supertype == Object) return true;
     while (type != Object) {
@@ -237,16 +270,11 @@ class GeneratedTypeInspectorService implements TypeInspectorService {
 
 /// Implements [SymbolConverterService] using a static configuration.
 class GeneratedSymbolConverterService implements SymbolConverterService {
-  Map<Symbol, String> _names;
+  final StaticConfiguration _configuration;
+  Map<Symbol, String> get _names => _configuration.names;
+  Map<String, Symbol> get _symbols => _configuration._symbols;
 
-  /// A map from strings to symbols (the reverse of [names]).
-  final Map<String, Symbol> _symbols;
-
-  GeneratedSymbolConverterService(StaticConfiguration configuration)
-      : _names = configuration.names,
-        _symbols = {} {
-    _names.forEach((k, v) { _symbols[v] = k; });
-  }
+  GeneratedSymbolConverterService(this._configuration);
 
   String symbolToName(Symbol symbol) => _names[symbol];
   Symbol nameToSymbol(String name) => _symbols[name];

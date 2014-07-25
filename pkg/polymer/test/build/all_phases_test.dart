@@ -62,7 +62,7 @@ void main() {
                   smoke_0.XA: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XA: const {},
+                  smoke_0.XA: {},
                 }));
             configureForDeployment([
                 i0.m_foo,
@@ -102,7 +102,7 @@ void main() {
                   smoke_0.XB: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XB: const {},
+                  smoke_0.XB: {},
                 }));
             configureForDeployment([
                 i0.m_bar,
@@ -156,9 +156,9 @@ void main() {
                   smoke_3.XC: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XA: const {},
-                  smoke_2.XB: const {},
-                  smoke_3.XC: const {},
+                  smoke_0.XA: {},
+                  smoke_2.XB: {},
+                  smoke_3.XC: {},
                 }));
             configureForDeployment([
                 i0.m_foo,
@@ -221,8 +221,8 @@ void main() {
                   smoke_0.XA: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_2.XB: const {},
-                  smoke_0.XA: const {},
+                  smoke_2.XB: {},
+                  smoke_0.XA: {},
                 }));
             configureForDeployment([
                 i0.m_foo,
@@ -280,8 +280,8 @@ void main() {
                   smoke_2.XB: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XA: const {},
-                  smoke_2.XB: const {},
+                  smoke_0.XA: {},
+                  smoke_2.XB: {},
                 }));
             startPolymer([
                 i0.m_foo,

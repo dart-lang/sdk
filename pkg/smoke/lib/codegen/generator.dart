@@ -22,8 +22,8 @@ import 'package:smoke/src/common.dart' show compareLists, compareMaps;
 ///   * [writeImports] writes a list of imports directives,
 ///   * [writeTopLevelDeclarations] writes additional declarations used to
 ///     represent mixin classes by name in the generated code.
-///   * [writeInitCall] writes the actual code that allocates the static
-///     configuration.
+///   * [writeStaticConfiguration] writes the actual code that allocates the
+///     static configuration.
 ///
 /// You'd need to include all three in your generated code, since the
 /// initialization code refers to symbols that are only available from the
@@ -133,7 +133,8 @@ class SmokeCodeGenerator {
   }
 
   /// Writes to [buffer] a line for each import that is needed by the generated
-  /// code. The code added by [writeInitCall] depends on these imports.
+  /// code. The code added by [writeStaticConfiguration] depends on these
+  /// imports.
   void writeImports(StringBuffer buffer) {
     DEFAULT_IMPORTS.forEach((i) => buffer.writeln(i));
     _libraryPrefix.forEach((url, prefix) {
@@ -142,8 +143,9 @@ class SmokeCodeGenerator {
   }
 
   /// Writes to [buffer] top-level declarations that are used by the code
-  /// generated in [writeInitCall]. These are typically declarations of empty
-  /// classes that are then used as placeholders for mixin superclasses.
+  /// generated in [writeStaticConfiguration]. These are typically declarations
+  /// of empty classes that are then used as placeholders for mixin
+  /// superclasses.
   void writeTopLevelDeclarations(StringBuffer buffer) {
     var types = new Set()
         ..addAll(_parents.keys)
@@ -159,16 +161,19 @@ class SmokeCodeGenerator {
     }
   }
 
-  /// Appends to [buffer] code that will initialize smoke's static
-  /// configuration. For example, the code might be of the form:
+  /// Appends to [buffer] code that will create smoke's static configuration.
+  /// For example, the code might be of the form:
   ///
-  ///    useGeneratedCode(new StaticConfiguration(
+  ///    new StaticConfiguration(
   ///      getters: {
   ///         #i: (o) => o.i,
   ///         ...
   ///      names: {
   ///         #i: "i",
-  ///      }));
+  ///      })
+  ///
+  /// Callers of this code can assign this expression to a variable, and should
+  /// generate code that invokes `useGeneratedCode`.
   ///
   /// The optional [indent] argument is used for formatting purposes. All
   /// entries in each map (getters, setters, names, declarations, parents) are
@@ -177,8 +182,8 @@ class SmokeCodeGenerator {
   /// **Note**: this code assumes that imports from [writeImports] and top-level
   /// declarations from [writeTopLevelDeclarations] are included in the same
   /// library where this code will live.
-  void writeInitCall(StringBuffer buffer, [int indent = 2]) {
-    final spaces = new List.filled(indent, ' ').join('');
+  void writeStaticConfiguration(StringBuffer buffer, [int indent = 2]) {
+    final spaces = ' ' * (indent + 4);
     var args = {};
 
     if (_getters.isNotEmpty) {
@@ -206,14 +211,14 @@ class SmokeCodeGenerator {
             ..write(type.asCode(_libraryPrefix))
             ..write(': ');
         if (members.isEmpty) {
-          sb.write('const {}');
+          sb.write('{}');
         } else {
           sb.write('{\n');
           members.forEach((name, decl) {
             var decl = members[name].asCode(_libraryPrefix);
-            sb.write('$spaces        ${_symbol(name)}: $decl,\n');
+            sb.write('${spaces}    ${_symbol(name)}: $decl,\n');
           });
-          sb.write('$spaces      }');
+          sb.write('${spaces}  }');
         }
         declarations.add(sb.toString());
       });
@@ -228,13 +233,13 @@ class SmokeCodeGenerator {
             ..write(className)
             ..write(': ');
         if (members.isEmpty) {
-          sb.write('const {}');
+          sb.write('{}');
         } else {
           sb.write('{\n');
           for (var name in members) {
-            sb.write('$spaces        ${_symbol(name)}: $className.$name,\n');
+            sb.write('${spaces}    ${_symbol(name)}: $className.$name,\n');
           }
-          sb.write('$spaces      }');
+          sb.write('${spaces}  }');
         }
         methods.add(sb.toString());
       });
@@ -245,20 +250,19 @@ class SmokeCodeGenerator {
       args['names'] = _names.map((n) => "${_symbol(n)}: r'$n'");
     }
 
-    buffer..write(spaces)
-        ..writeln('useGeneratedCode(new StaticConfiguration(')
-        ..write('$spaces    checkedMode: false');
+    buffer..writeln('new StaticConfiguration(')
+        ..write('${spaces}checkedMode: false');
 
     args.forEach((name, mapContents) {
       buffer.writeln(',');
       // TODO(sigmund): use const map when Type can be keys (dartbug.com/17123)
-      buffer.writeln('$spaces    $name: {');
+      buffer.writeln('${spaces}$name: {');
       for (var entry in mapContents) {
-        buffer.writeln('$spaces      $entry,');
+        buffer.writeln('${spaces}  $entry,');
       }
-      buffer.write('$spaces    }');
+      buffer.write('${spaces}}');
     });
-    buffer.writeln('));');
+    buffer.write(')');
   }
 
   /// Adds a library that needs to be imported.

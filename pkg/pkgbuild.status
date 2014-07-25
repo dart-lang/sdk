@@ -17,6 +17,7 @@ samples/third_party/angular_todo: Fail # angular needs to be updated
 
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
+pkg/polymer: PubGetError # smoke 0.2.0 has not been published
 
 [ $use_public_packages && $builder_tag == russian ]
 samples/third_party/todomvc: Fail # Issue 18104

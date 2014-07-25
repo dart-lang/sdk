@@ -136,12 +136,12 @@ _createEntrypoint(SmokeCodeGenerator generator) {
   generator.writeImports(sb);
   sb.writeln("import 'common.dart' as common show main;\n");
   generator.writeTopLevelDeclarations(sb);
-  sb.writeln('\n_configure() {');
-  generator.writeInitCall(sb);
+  sb.write('\nfinal configuration = ');
+  generator.writeStaticConfiguration(sb, 0);
 
-  sb..writeln('}\n')
+  sb..writeln(';\n')
       ..writeln('main() {')
-      ..writeln('  setUp(_configure);')
+      ..writeln('  setUp(() => useGeneratedCode(configuration));')
       ..writeln('  common.main();')
       ..writeln('}');
   return sb.toString();

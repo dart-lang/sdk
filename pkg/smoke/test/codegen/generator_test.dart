@@ -78,14 +78,16 @@ main() {
       var generator = new SmokeCodeGenerator();
       generator.addSymbol('a.');
       var sb = new StringBuffer();
-      expect(() => generator.writeInitCall(sb), throwsA(invalidError));
+      expect(() => generator.writeStaticConfiguration(sb),
+          throwsA(invalidError));
     });
 
     test('operator in the middle', () {
       var generator = new SmokeCodeGenerator();
       generator.addSymbol('a.[].b');
       var sb = new StringBuffer();
-      expect(() => generator.writeInitCall(sb), throwsA(invalidError));
+      expect(() => generator.writeStaticConfiguration(sb),
+          throwsA(invalidError));
     });
   });
 

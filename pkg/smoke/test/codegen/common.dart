@@ -20,6 +20,8 @@ checkResults(SmokeCodeGenerator generator, {List<String> imports: const [],
 
   var indentedCode = initCall.replaceAll("\n", "\n  ").trim();
   var genInitCall = new StringBuffer();
-  generator.writeInitCall(genInitCall);
+  genInitCall.write('  useGeneratedCode(');
+  generator.writeStaticConfiguration(genInitCall);
+  genInitCall.writeln(');');
   expect(genInitCall.toString(), '  $indentedCode\n');
 }

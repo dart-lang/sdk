@@ -398,7 +398,9 @@ class _ScriptCompactor extends PolymerTransformer {
     generator.writeImports(code);
     generator.writeTopLevelDeclarations(code);
     code.writeln('\nvoid main() {');
-    generator.writeInitCall(code);
+    code.write('  useGeneratedCode(');
+    generator.writeStaticConfiguration(code);
+    code.writeln(');');
     if (experimentalBootstrap) {
       code.write('  startPolymer([');
     } else {

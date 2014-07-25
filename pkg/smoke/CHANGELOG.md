@@ -2,6 +2,12 @@
 
 This file contains highlights of what changes on each version of this package.
 
+#### Pub version 0.2.0-dev
+  * Static configuration can be modified, so code generators can split the
+    static configuration in pieces.
+  * **breaking change**: for codegen call `writeStaticConfiguration` instead of
+    `writeInitCall`.
+
 #### Pub version 0.1.0
   * Initial release: introduces the smoke API, a mirror based implementation, a
     statically configured implementation that can be declared by hand or be

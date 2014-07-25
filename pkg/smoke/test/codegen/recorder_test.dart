@@ -155,7 +155,7 @@ main() {
             'useGeneratedCode(new StaticConfiguration(\n'
             '    checkedMode: false,\n'
             '    declarations: {\n'
-            '      smoke_0.A: const {},\n'
+            '      smoke_0.A: {},\n'
             '    }));\n');
     });
 
@@ -302,7 +302,7 @@ main() {
             'useGeneratedCode(new StaticConfiguration(\n'
             '    checkedMode: false,\n'
             '    declarations: {\n'
-            '      smoke_0.D: const {},\n'
+            '      smoke_0.D: {},\n'
             '    }));\n');
     });
 
@@ -322,7 +322,7 @@ main() {
             '      _M0: smoke_0.C,\n'
             '    },\n'
             '    declarations: {\n'
-            '      smoke_0.D: const {},\n'
+            '      smoke_0.D: {},\n'
             '      _M0: {\n'
             '        #i: const Declaration(#i, int),\n'
             '      },\n'
@@ -347,8 +347,8 @@ main() {
             '      smoke_0.J1: {\n'
             '        #i: const Declaration(#i, int),\n'
             '      },\n'
-            '      smoke_0.J2: const {},\n'
-            '      smoke_0.J3: const {},\n'
+            '      smoke_0.J2: {},\n'
+            '      smoke_0.J3: {},\n'
             '    }));\n');
     });
 
@@ -367,8 +367,8 @@ main() {
             '      smoke_0.J3: smoke_0.J2,\n'
             '    },\n'
             '    declarations: {\n'
-            '      smoke_0.J2: const {},\n'
-            '      smoke_0.J3: const {},\n'
+            '      smoke_0.J2: {},\n'
+            '      smoke_0.J3: {},\n'
             '    }));\n');
     });
   });
