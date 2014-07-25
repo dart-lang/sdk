@@ -4081,7 +4081,8 @@ class SsaBuilder extends ResolvedVisitor {
     Element constructor = elements[send];
     Selector selector = elements.getSelector(send);
     ConstructorElement constructorDeclaration = constructor;
-    constructor = constructorDeclaration.effectiveTarget;
+    ConstructorElement constructorImplementation = constructor.implementation;
+    constructor = constructorImplementation.effectiveTarget;
 
     final bool isSymbolConstructor =
         constructorDeclaration == compiler.symbolConstructor;
