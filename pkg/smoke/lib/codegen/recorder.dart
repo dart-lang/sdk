@@ -69,9 +69,10 @@ class Recorder {
 
   /// Adds any declaration and superclass information that is needed to answer a
   /// query on [type] that matches [options]. Also adds symbols, getters, and
-  /// setters if [includeAccessors] is true.
+  /// setters if [includeAccessors] is true. If [results] is not null, it will
+  /// be filled up with the members that match the query.
   void runQuery(ClassElement type, QueryOptions options,
-      {bool includeAccessors: true}) {
+      {bool includeAccessors: true, List results}) {
     if (type.type.isObject) return; // We don't include Object in query results.
     var id = _typeFor(type);
     var parent = type.supertype != null ? type.supertype.element : null;
@@ -83,11 +84,12 @@ class Recorder {
       for (var m in type.mixins) {
         var mixinClass = m.element;
         var mixinId = _mixins[parentId][mixinClass];
-        _runQueryInternal(mixinClass, mixinId, options, includeAccessors);
+        _runQueryInternal(
+            mixinClass, mixinId, options, includeAccessors, results);
         parentId = mixinId;
       }
     }
-    _runQueryInternal(type, id, options, includeAccessors);
+    _runQueryInternal(type, id, options, includeAccessors, results);
   }
 
   /// Helper for [runQuery]. This runs the query only on a specific [type],
@@ -96,7 +98,7 @@ class Recorder {
   // we should consider to include the mixin declaration information directly,
   // and remove the duplication we have for mixins today.
   void _runQueryInternal(ClassElement type, TypeIdentifier id,
-      QueryOptions options, bool includeAccessors) {
+      QueryOptions options, bool includeAccessors, List results) {
 
     skipBecauseOfAnnotations(Element e) {
       if (options.withAnnotations == null) return false;
@@ -111,6 +113,7 @@ class Recorder {
         var name = f.displayName;
         if (options.matches != null && !options.matches(name)) continue;
         if (skipBecauseOfAnnotations(f)) continue;
+        if (results != null) results.add(f);
         generator.addDeclaration(id, name, _typeFor(f.type.element),
             isField: true, isFinal: f.isFinal,
             annotations: _copyAnnotations(f));
@@ -128,6 +131,7 @@ class Recorder {
         var name = v.displayName;
         if (options.matches != null && !options.matches(name)) continue;
         if (skipBecauseOfAnnotations(a)) continue;
+        if (results != null) results.add(a);
         generator.addDeclaration(id, name, _typeFor(a.type.returnType.element),
             isProperty: true, isFinal: v.isFinal,
             annotations: _copyAnnotations(a));
@@ -141,6 +145,7 @@ class Recorder {
         var name = m.displayName;
         if (options.matches != null && !options.matches(name)) continue;
         if (skipBecauseOfAnnotations(m)) continue;
+        if (results != null) results.add(m);
         generator.addDeclaration(id, name,
             new TypeIdentifier('dart:core', 'Function'), isMethod: true,
             annotations: _copyAnnotations(m));
