@@ -72,6 +72,7 @@ namespace dart {
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
+    V(LinkedHashMap)                                                         \
     V(UserTag)                                                                 \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
@@ -1498,6 +1499,7 @@ class RawArray : public RawInstance {
   friend class RawImmutableArray;
   friend class SnapshotReader;
   friend class GrowableObjectArray;
+  friend class LinkedHashMap;
   friend class Object;
   friend class ICData;  // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
@@ -1519,6 +1521,23 @@ class RawGrowableObjectArray : public RawInstance {
   }
   RawTypeArguments* type_arguments_;
   RawSmi* length_;
+  RawArray* data_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->data_);
+  }
+
+  friend class SnapshotReader;
+};
+
+
+class RawLinkedHashMap : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
+  }
+  RawTypeArguments* type_arguments_;
+  RawInstance* cme_mark_;
   RawArray* data_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);

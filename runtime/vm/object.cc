@@ -1155,6 +1155,27 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<MirrorReference>();
   RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
+  // Pre-register the collection library so we can place the vm class
+  // LinkedHashMap there rather than the core library.
+  lib = Library::LookupLibrary(Symbols::DartCollection());
+  if (lib.IsNull()) {
+    lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+    lib.SetLoadRequested();
+    lib.Register();
+    isolate->object_store()->set_bootstrap_library(ObjectStore::kCollection,
+                                                   lib);
+  }
+  ASSERT(!lib.IsNull());
+  ASSERT(lib.raw() == Library::CollectionLibrary());
+
+  cls = Class::New<LinkedHashMap>();
+  object_store->set_linked_hash_map_class(cls);
+  cls.set_type_arguments_field_offset(LinkedHashMap::type_arguments_offset());
+  cls.set_num_type_arguments(2);
+  cls.set_num_own_type_arguments(2);
+  RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
+  pending_classes.Add(cls);
+
   // Pre-register the profiler library so we can place the vm class
   // UserTag there rather than the core library.
   lib = Library::LookupLibrary(Symbols::DartProfiler());
@@ -1432,6 +1453,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<GrowableObjectArray>();
   object_store->set_growable_object_array_class(cls);
+
+  cls = Class::New<LinkedHashMap>();
+  object_store->set_linked_hash_map_class(cls);
 
   cls = Class::New<Float32x4>();
   object_store->set_float32x4_class(cls);
@@ -18096,6 +18120,170 @@ void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
       jselement.AddProperty("value", element);
     }
   }
+}
+
+
+// Equivalent to Dart's operator "==" and hashCode.
+class DefaultHashTraits {
+ public:
+  static bool IsMatch(const Object& a, const Object& b) {
+    if (a.IsNull() || b.IsNull()) {
+      return (a.IsNull() && b.IsNull());
+    } else {
+      return Instance::Cast(a).OperatorEquals(Instance::Cast(b));
+    }
+  }
+  static uword Hash(const Object& obj) {
+    if (obj.IsNull()) {
+      return 0;
+    }
+    // TODO(koda): Ensure VM classes only produce Smi hash codes, and remove
+    // non-Smi cases once Dart-side implementation is complete.
+    Isolate* isolate = Isolate::Current();
+    REUSABLE_INSTANCE_HANDLESCOPE(isolate);
+    Instance& hash_code = isolate->InstanceHandle();
+    hash_code ^= Instance::Cast(obj).HashCode();
+    if (hash_code.IsSmi()) {
+      // May waste some bits on 64-bit, to ensure consistency with non-Smi case.
+      return static_cast<uword>(Smi::Cast(hash_code).Value() & 0xFFFFFFFF);
+    } else if (hash_code.IsInteger()) {
+      return static_cast<uword>(
+          Integer::Cast(hash_code).AsTruncatedUint32Value());
+    } else {
+      return 0;
+    }
+  }
+};
+typedef EnumIndexHashMap<DefaultHashTraits> EnumIndexDefaultMap;
+
+
+intptr_t LinkedHashMap::Length() const {
+  EnumIndexDefaultMap map(Array::Handle(data()));
+  intptr_t result = map.NumOccupied();
+  {
+    RawArray* array = map.Release();
+    ASSERT(array == data());
+  }
+  return result;
+}
+
+
+void LinkedHashMap::InsertOrUpdate(const Object& key,
+                                     const Object& value) const {
+  ASSERT(!IsNull());
+  EnumIndexDefaultMap map(Array::Handle(data()));
+  if (!map.UpdateOrInsert(key, value)) {
+    SetModified();
+  }
+  StorePointer(&raw_ptr()->data_, map.Release());
+}
+
+
+RawObject* LinkedHashMap::LookUp(const Object& key) const {
+  ASSERT(!IsNull());
+  EnumIndexDefaultMap map(Array::Handle(data()));
+  const Object& result = Object::Handle(map.GetOrNull(key));
+  {
+    RawArray* array = map.Release();
+    ASSERT(array == data());
+  }
+  return result.raw();
+}
+
+
+bool LinkedHashMap::Contains(const Object& key) const {
+  ASSERT(!IsNull());
+  EnumIndexDefaultMap map(Array::Handle(data()));
+  bool result = map.ContainsKey(key);
+  {
+    RawArray* array = map.Release();
+    ASSERT(array == data());
+  }
+  return result;
+}
+
+
+RawObject* LinkedHashMap::Remove(const Object& key) const {
+  ASSERT(!IsNull());
+  EnumIndexDefaultMap map(Array::Handle(data()));
+  // TODO(koda): Make 'Remove' also return the old value.
+  const Object& result = Object::Handle(map.GetOrNull(key));
+  if (map.Remove(key)) {
+    SetModified();
+  }
+  StorePointer(&raw_ptr()->data_, map.Release());
+  return result.raw();
+}
+
+
+void LinkedHashMap::Clear() const {
+  ASSERT(!IsNull());
+  if (Length() != 0) {
+    EnumIndexDefaultMap map(Array::Handle(data()));
+    map.Initialize();
+    SetModified();
+    StorePointer(&raw_ptr()->data_, map.Release());
+  }
+}
+
+
+RawArray* LinkedHashMap::ToArray() const {
+  EnumIndexDefaultMap map(Array::Handle(data()));
+  const Array& result = Array::Handle(HashTables::ToArray(map, true));
+  RawArray* array = map.Release();
+  ASSERT(array == data());
+  return result.raw();
+}
+
+
+void LinkedHashMap::SetModified() const {
+  StorePointer(&raw_ptr()->cme_mark_, Instance::null());
+}
+
+
+RawInstance* LinkedHashMap::GetModificationMark(bool create) const {
+  if (create && raw_ptr()->cme_mark_ == Instance::null()) {
+    Isolate* isolate = Isolate::Current();
+    const Class& object_class =
+        Class::Handle(isolate, isolate->object_store()->object_class());
+    const Instance& current =
+        Instance::Handle(isolate, Instance::New(object_class));
+    StorePointer(&raw_ptr()->cme_mark_, current.raw());
+  }
+  return raw_ptr()->cme_mark_;
+}
+
+
+RawLinkedHashMap* LinkedHashMap::New(Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->linked_hash_map_class()
+         != Class::null());
+  static const intptr_t kInitialCapacity = 4;
+  const Array& data =
+      Array::Handle(HashTables::New<EnumIndexDefaultMap>(kInitialCapacity,
+                                                         space));
+  LinkedHashMap& result = LinkedHashMap::Handle();
+  {
+    RawObject* raw = Object::Allocate(LinkedHashMap::kClassId,
+                                      LinkedHashMap::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetData(data);
+    result.SetModified();
+  }
+  return result.raw();
+}
+
+
+const char* LinkedHashMap::ToCString() const {
+  // TODO(koda): Print key/value pairs.
+  return "_LinkedHashMap";
+}
+
+
+void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  // TODO(koda): Print key/value pairs.
+  Instance::PrintJSONImpl(stream, ref);
 }
 
 

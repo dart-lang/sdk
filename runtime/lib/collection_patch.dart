@@ -906,7 +906,11 @@ patch class LinkedHashMap<K, V> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          return new _LinkedHashMap<K, V>();
+          if (_useInternalCached) {
+            return new _InternalLinkedHashMap<K, V>();
+          } else {
+            return new _LinkedHashMap<K, V>();
+          }
         }
         hashCode = _defaultHashCode;
       } else {
@@ -930,6 +934,9 @@ patch class LinkedHashMap<K, V> {
   }
 
   /* patch */ factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
+
+  static final bool _useInternalCached = _useInternal;
+  static bool get _useInternal native "LinkedHashMap_useInternal";
 }
 
 // Methods that are exactly the same in all three linked hash map variants.

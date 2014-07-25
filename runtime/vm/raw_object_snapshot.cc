@@ -2163,11 +2163,11 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &array, kIsDeserialized);
   intptr_t length = reader->ReadSmiValue();
   array.SetLength(length);
-  Array& contents = Array::Handle();
+  Array& contents = Array::Handle(reader->isolate());
   contents ^= reader->ReadObjectImpl();
   array.SetData(contents);
   const TypeArguments& type_arguments =
-      TypeArguments::Handle(contents.GetTypeArguments());
+      TypeArguments::Handle(reader->isolate(), contents.GetTypeArguments());
   array.SetTypeArguments(type_arguments);
   return array.raw();
 }
@@ -2189,6 +2189,56 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(ptr()->length_);
 
   // Write out the Array object.
+  writer->WriteObjectImpl(ptr()->data_);
+}
+
+
+RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
+                                              intptr_t object_id,
+                                              intptr_t tags,
+                                              Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  LinkedHashMap& map = LinkedHashMap::ZoneHandle(
+      reader->isolate(), LinkedHashMap::null());
+  if (kind == Snapshot::kFull || kind == Snapshot::kScript) {
+    // The immutable maps that seed map literals are not yet VM-internal, so
+    // we don't reach this.
+    UNREACHABLE();
+  } else {
+    map = LinkedHashMap::New(HEAP_SPACE(kind));
+  }
+  reader->AddBackRef(object_id, &map, kIsDeserialized);
+  Array& contents = Array::Handle(reader->isolate());
+  contents ^= reader->ReadObjectImpl();
+  map.SetData(contents);
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(reader->isolate(), contents.GetTypeArguments());
+  map.SetTypeArguments(type_arguments);
+  return map.raw();
+}
+
+
+void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
+                                 intptr_t object_id,
+                                 Snapshot::Kind kind) {
+  if (kind == Snapshot::kFull || kind == Snapshot::kScript) {
+    // The immutable maps that seed map literals are not yet VM-internal, so
+    // we don't reach this.
+    UNREACHABLE();
+  }
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kLinkedHashMapCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+
+  // Write out the backing array.
+  // TODO(koda): Serialize as pairs (like ToArray) instead, to reduce space and
+  // support per-isolate salted hash codes.
   writer->WriteObjectImpl(ptr()->data_);
 }
 

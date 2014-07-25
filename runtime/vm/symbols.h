@@ -126,6 +126,7 @@ class ObjectPointerVisitor;
   V(_GrowableListFactory, "_GrowableList.")                                    \
   V(_GrowableListWithData, "_GrowableList.withData")                           \
   V(_ImmutableList, "_ImmutableList")                                          \
+  V(_LinkedHashMap, "_InternalLinkedHashMap")                                  \
   V(_String, "String")                                                         \
   V(OneByteString, "_OneByteString")                                           \
   V(TwoByteString, "_TwoByteString")                                           \

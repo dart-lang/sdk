@@ -44,6 +44,7 @@ ObjectStore::ObjectStore()
     array_type_(Type::null()),
     immutable_array_class_(Class::null()),
     growable_object_array_class_(Class::null()),
+    linked_hash_map_class_(Class::null()),
     float32x4_class_(Class::null()),
     int32x4_class_(Class::null()),
     float64x2_class_(Class::null()),

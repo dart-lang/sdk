@@ -6286,6 +6286,53 @@ class GrowableObjectArray : public Instance {
 };
 
 
+// Corresponds to
+// - "new Map()",
+// - non-const map literals, and
+// - the default constructor of LinkedHashMap in dart:collection.
+class LinkedHashMap : public Instance {
+ public:
+  intptr_t Length() const;
+  RawObject* LookUp(const Object& key) const;
+  void InsertOrUpdate(const Object& key, const Object& value) const;
+  bool Contains(const Object& key) const;
+  RawObject* Remove(const Object& key) const;
+  void Clear() const;
+  // List of key, value pairs in iteration (i.e., key insertion) order.
+  RawArray* ToArray() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawLinkedHashMap));
+  }
+
+  static RawLinkedHashMap* New(Heap::Space space = Heap::kNew);
+
+  virtual RawTypeArguments* GetTypeArguments() const {
+    return raw_ptr()->type_arguments_;
+  }
+  virtual void SetTypeArguments(const TypeArguments& value) const {
+    ASSERT(value.IsNull() || ((value.Length() >= 2) && value.IsInstantiated()));
+    StorePointer(&raw_ptr()->type_arguments_, value.raw());
+  }
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(RawLinkedHashMap, type_arguments_);
+  }
+
+  // Called whenever the set of keys changes.
+  void SetModified() const;
+  RawInstance* GetModificationMark(bool create) const;
+
+ private:
+  RawArray* data() const { return raw_ptr()->data_; }
+  void SetData(const Array& value) const {
+    StorePointer(&raw_ptr()->data_, value.raw());
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, Instance);
+  friend class Class;
+};
+
+
 class Float32x4 : public Instance {
  public:
   static RawFloat32x4* New(float value0, float value1, float value2,

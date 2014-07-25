@@ -42,6 +42,7 @@ class RawClosureData;
 class RawRedirectionData;
 class RawFunction;
 class RawGrowableObjectArray;
+class RawLinkedHashMap;
 class RawFloat32x4;
 class RawFloat64x2;
 class RawInt32x4;
@@ -376,6 +377,7 @@ class SnapshotReader : public BaseReader {
   friend class RedirectionData;
   friend class Function;
   friend class GrowableObjectArray;
+  friend class LinkedHashMap;
   friend class ImmutableArray;
   friend class JSRegExp;
   friend class LanguageError;
@@ -613,6 +615,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawClass;
   friend class RawClosureData;
   friend class RawGrowableObjectArray;
+  friend class RawLinkedHashMap;
   friend class RawImmutableArray;
   friend class RawJSRegExp;
   friend class RawLibrary;
