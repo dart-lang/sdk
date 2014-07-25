@@ -36,7 +36,7 @@ class HierarchyTest extends AbstractSingleUnitTest {
     searchEngine = new SearchEngineImpl(index);
   }
 
-  void test_getDirectMembers() {
+  void test_getClassMembers() {
     _indexTestUnit('''
 class A {
   A() {}
@@ -204,6 +204,34 @@ class E {
       expect(members, unorderedEquals([memberA, memberB, memberD]));
     });
     return Future.wait([futureA, futureB, futureD]);
+  }
+
+  void test_getMembers() {
+    _indexTestUnit('''
+class A {
+  A() {}
+  var ma1;
+  ma2() {}
+}
+class B extends A {
+  B() {}
+  B.named() {}
+  var mb1;
+  mb2() {}
+}
+''');
+    {
+      ClassElement classA = findElement('A');
+      List<Element> members = getMembers(classA);
+      expect(members.map((e) => e.name), unorderedEquals(['ma1', 'ma2']));
+    }
+    {
+      ClassElement classB = findElement('B');
+      List<Element> members = getMembers(classB);
+      expect(
+          members.map((e) => e.name),
+          unorderedEquals(['mb1', 'mb2', 'ma1', 'ma2']));
+    }
   }
 
   Future test_getSubClasses() {

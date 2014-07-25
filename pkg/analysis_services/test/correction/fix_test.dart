@@ -1020,6 +1020,34 @@ const a = const A();
 ''');
   }
 
+  void test_undefinedClass_useSimilar_fromImport() {
+    _indexTestUnit('''
+main() {
+  Stirng s = 'abc';
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+main() {
+  String s = 'abc';
+}
+''');
+  }
+
+  void test_undefinedClass_useSimilar_fromThisLibrary() {
+    _indexTestUnit('''
+class MyClass {}
+main() {
+  MyCalss v = null;
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class MyClass {}
+main() {
+  MyClass v = null;
+}
+''');
+  }
+
   void test_undefinedFunction_create_fromFunction() {
     _indexTestUnit('''
 main() {
@@ -1185,6 +1213,34 @@ main() {
 }
 
 void myUndefinedFunction() {
+}
+''');
+  }
+
+  void test_undefinedFunction_useSimilar_fromImport() {
+    _indexTestUnit('''
+main() {
+  pritn(0);
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+main() {
+  print(0);
+}
+''');
+  }
+
+  void test_undefinedFunction_useSimilar_thisLibrary() {
+    _indexTestUnit('''
+myFunction() {}
+main() {
+  myFuntcion();
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+myFunction() {}
+main() {
+  myFunction();
 }
 ''');
   }
@@ -1383,6 +1439,78 @@ class A {
 main() {
   var a = new A();
   a.myUndefinedMethod();
+}
+''');
+  }
+
+  void test_undefinedMethod_useSimilar_ignoreOperators() {
+    _indexTestUnit('''
+main(Object object) {
+  object.then();
+}
+''');
+    assertNoFix(FixKind.CHANGE_TO);
+  }
+
+  void test_undefinedMethod_useSimilar_qualified() {
+    _indexTestUnit('''
+class A {
+  myMethod() {}
+}
+main() {
+  A a = new A();
+  a.myMehtod();
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  myMethod() {}
+}
+main() {
+  A a = new A();
+  a.myMethod();
+}
+''');
+  }
+
+  void test_undefinedMethod_useSimilar_unqualified_superClass() {
+    _indexTestUnit('''
+class A {
+  myMethod() {}
+}
+class B extends A {
+  main() {
+    myMehtod();
+  }
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  myMethod() {}
+}
+class B extends A {
+  main() {
+    myMethod();
+  }
+}
+''');
+  }
+
+  void test_undefinedMethod_useSimilar_unqualified_thisClass() {
+    _indexTestUnit('''
+class A {
+  myMethod() {}
+  main() {
+    myMehtod();
+  }
+}
+''');
+    assertHasFix(FixKind.CHANGE_TO, '''
+class A {
+  myMethod() {}
+  main() {
+    myMethod();
+  }
 }
 ''');
   }

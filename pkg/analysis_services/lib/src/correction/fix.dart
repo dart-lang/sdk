@@ -9,7 +9,9 @@ library services.src.correction.fix;
 
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/fix.dart';
+import 'package:analysis_services/search/hierarchy.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/correction/levenshtein.dart';
 import 'package:analysis_services/src/correction/name_suggestion.dart';
 import 'package:analysis_services/src/correction/source_buffer.dart';
 import 'package:analysis_services/src/correction/source_range.dart' as rf;
@@ -23,6 +25,12 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+
+
+/**
+ * A predicate is a one-argument function that returns a boolean value.
+ */
+typedef bool Predicate<E>(E argument);
 
 
 /**
@@ -1018,40 +1026,34 @@ class FixProcessor {
   }
 
   void _addFix_undefinedClass_useSimilar() {
-    // TODO(scheglov) implement
-//    if (_mayBeTypeIdentifier(node)) {
-//      String name = (node as SimpleIdentifier).name;
-//      QuickFixProcessorImpl_ClosestElementFinder finder =
-//          new QuickFixProcessorImpl_ClosestElementFinder(
-//              name,
-//              new Predicate_QuickFixProcessorImpl_addFix_undefinedClass_useSimilar());
-//      // find closest element
-//      {
-//        // elements of this library
-//        _unitLibraryElement.accept(
-//            new RecursiveElementVisitor_QuickFixProcessorImpl_addFix_undefinedClass_useSimilar(
-//                finder));
-//        // elements from imports
-//        for (ImportElement importElement in _unitLibraryElement.imports) {
-//          if (importElement.prefix == null) {
-//            Map<String, Element> namespace =
-//                CorrectionUtils.getImportNamespace(importElement);
-//            finder._update2(namespace.values);
-//          }
-//        }
-//      }
-//      // if we have close enough element, suggest to use it
-//      if (finder != null && finder._distance < 5) {
-//        String closestName = finder._element.name;
-//        _addReplaceEdit(SourceRangeFactory.rangeNode(node), closestName);
-//        // add proposal
-//        if (closestName != null) {
-//          _addFix(
-//              FixKind.CHANGE_TO,
-//              [closestName]);
-//        }
-//      }
-//    }
+    if (_mayBeTypeIdentifier(node)) {
+      String name = (node as SimpleIdentifier).name;
+      _ClosestElementFinder finder =
+          new _ClosestElementFinder(name, (Element element) => element is ClassElement);
+      // find closest element
+      {
+        // elements of this library
+        for (CompilationUnitElement unit in unitLibraryElement.units) {
+          finder._updateList(unit.types);
+        }
+        // elements from imports
+        for (ImportElement importElement in unitLibraryElement.imports) {
+          if (importElement.prefix == null) {
+            Map<String, Element> namespace = getImportNamespace(importElement);
+            finder._updateList(namespace.values);
+          }
+        }
+      }
+      // if we have close enough element, suggest to use it
+      if (finder != null && finder._distance < 5) {
+        String closestName = finder._element.name;
+        _addReplaceEdit(rf.rangeNode(node), closestName);
+        // add proposal
+        if (closestName != null) {
+          _addFix(FixKind.CHANGE_TO, [closestName]);
+        }
+      }
+    }
   }
 
   void _addFix_undefinedFunction_create() {
@@ -1100,33 +1102,31 @@ class FixProcessor {
   }
 
   void _addFix_undefinedFunction_useSimilar() {
-    // TODO(scheglov) implement
-//    if (node is SimpleIdentifier) {
-//      String name = (node as SimpleIdentifier).name;
-//      QuickFixProcessorImpl_ClosestElementFinder finder =
-//          new QuickFixProcessorImpl_ClosestElementFinder(
-//              name,
-//              new Predicate_QuickFixProcessorImpl_addFix_undefinedFunction_useSimilar());
-//      // this library
-//      _unitLibraryElement.accept(
-//          new RecursiveElementVisitor_QuickFixProcessorImpl_addFix_undefinedFunction_useSimilar(
-//              finder));
-//      // imports
-//      for (ImportElement importElement in _unitLibraryElement.imports) {
-//        if (importElement.prefix == null) {
-//          Map<String, Element> namespace =
-//              CorrectionUtils.getImportNamespace(importElement);
-//          finder._update2(namespace.values);
-//        }
-//      }
-//      // if we have close enough element, suggest to use it
-//      String closestName = null;
-//      if (finder != null && finder._distance < 5) {
-//        closestName = finder._element.name;
-//        _addReplaceEdit(SourceRangeFactory.rangeNode(node), closestName);
-//        _addFix(FixKind.CHANGE_TO, [closestName]);
-//      }
-//    }
+    if (node is SimpleIdentifier) {
+      String name = (node as SimpleIdentifier).name;
+      _ClosestElementFinder finder =
+          new _ClosestElementFinder(
+              name,
+              (Element element) => element is FunctionElement);
+      // this library
+      for (CompilationUnitElement unit in unitLibraryElement.units) {
+        finder._updateList(unit.functions);
+      }
+      // imports
+      for (ImportElement importElement in unitLibraryElement.imports) {
+        if (importElement.prefix == null) {
+          Map<String, Element> namespace = getImportNamespace(importElement);
+          finder._updateList(namespace.values);
+        }
+      }
+      // if we have close enough element, suggest to use it
+      String closestName = null;
+      if (finder != null && finder._distance < 5) {
+        closestName = finder._element.name;
+        _addReplaceEdit(rf.rangeNode(node), closestName);
+        _addFix(FixKind.CHANGE_TO, [closestName]);
+      }
+    }
   }
 
   void _addFix_undefinedMethod_create() {
@@ -1243,38 +1243,37 @@ class FixProcessor {
   }
 
   void _addFix_undefinedMethod_useSimilar() {
-    // TODO(scheglov) implement
-//    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-//      MethodInvocation invocation = node.parent as MethodInvocation;
-//      String name = (node as SimpleIdentifier).name;
-//      QuickFixProcessorImpl_ClosestElementFinder finder =
-//          new QuickFixProcessorImpl_ClosestElementFinder(
-//              name,
-//              new Predicate_QuickFixProcessorImpl_addFix_undefinedMethod_useSimilar());
-//      // unqualified invocation
-//      Expression target = invocation.realTarget;
-//      if (target == null) {
-//        ClassDeclaration clazz =
-//            invocation.getAncestor((node) => node is ClassDeclaration);
-//        if (clazz != null) {
-//          ClassElement classElement = clazz.element;
-//          _updateFinderWithClassMembers(finder, classElement);
-//        }
-//      } else {
-//        DartType type = target.bestType;
-//        if (type is InterfaceType) {
-//          ClassElement classElement = type.element;
-//          _updateFinderWithClassMembers(finder, classElement);
-//        }
-//      }
-//      // if we have close enough element, suggest to use it
-//      String closestName = null;
-//      if (finder != null && finder._distance < 5) {
-//        closestName = finder._element.name;
-//        _addReplaceEdit(SourceRangeFactory.rangeNode(node), closestName);
-//        _addFix(FixKind.CHANGE_TO, [closestName]);
-//      }
-//    }
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+      MethodInvocation invocation = node.parent as MethodInvocation;
+      String name = (node as SimpleIdentifier).name;
+      _ClosestElementFinder finder =
+          new _ClosestElementFinder(name, (Element element) {
+        return element is MethodElement && !element.isOperator;
+      });
+      // unqualified invocation
+      Expression target = invocation.realTarget;
+      if (target == null) {
+        ClassDeclaration clazz =
+            invocation.getAncestor((node) => node is ClassDeclaration);
+        if (clazz != null) {
+          ClassElement classElement = clazz.element;
+          _updateFinderWithClassMembers(finder, classElement);
+        }
+      } else {
+        DartType type = target.bestType;
+        if (type is InterfaceType) {
+          ClassElement classElement = type.element;
+          _updateFinderWithClassMembers(finder, classElement);
+        }
+      }
+      // if we have close enough element, suggest to use it
+      String closestName = null;
+      if (finder != null && finder._distance < 5) {
+        closestName = finder._element.name;
+        _addReplaceEdit(rf.rangeNode(node), closestName);
+        _addFix(FixKind.CHANGE_TO, [closestName]);
+      }
+    }
   }
 
   void _addFix_useEffectiveIntegerDivision() {
@@ -1860,6 +1859,14 @@ class FixProcessor {
     }
   }
 
+  void _updateFinderWithClassMembers(_ClosestElementFinder finder,
+      ClassElement clazz) {
+    if (clazz != null) {
+      List<Element> members = getMembers(clazz);
+      finder._updateList(members);
+    }
+  }
+
   static void _addSuperTypeProposals(SourceBuilder sb,
       Set<DartType> alreadyAdded, DartType type) {
     if (type != null &&
@@ -1908,6 +1915,34 @@ class FixProcessor {
   }
 }
 
+/**
+ * Helper for finding [Element] with name closest to the given.
+ */
+class _ClosestElementFinder {
+  final String _targetName;
+  final Predicate<Element> _predicate;
+
+  Element _element = null;
+  int _distance = 1 << 10;
+
+  _ClosestElementFinder(this._targetName, this._predicate);
+
+  void _update(Element element) {
+    if (_predicate(element)) {
+      int memberDistance = getLevenshteinDistance(element.name, _targetName);
+      if (memberDistance < _distance) {
+        _element = element;
+        _distance = memberDistance;
+      }
+    }
+  }
+
+  void _updateList(Iterable<Element> elements) {
+    for (Element element in elements) {
+      _update(element);
+    }
+  }
+}
 
 /**
  * Describes the location for a newly created [ConstructorDeclaration].
