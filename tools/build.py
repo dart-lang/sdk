@@ -424,7 +424,7 @@ def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
             'BUILDTYPE=' + build_config,
             ]
     if target_os != HOST_OS:
-      args += ['builddir_name=' + utils.GetBuildDir(HOST_OS, target_os)]
+      args += ['builddir_name=' + utils.GetBuildDir(HOST_OS)]
     if options.verbose:
       args += ['V=1']
 

@@ -200,7 +200,7 @@ def main():
   systems = options.systems.split(',')
 
   output_dir = options.output_dir or os.path.join(
-      current_dir, '..', '..', utils.GetBuildDir(utils.GuessOS(), None),
+      current_dir, '..', '..', utils.GetBuildDir(utils.GuessOS()),
       'generated')
 
   dart2js_output_dir = None
