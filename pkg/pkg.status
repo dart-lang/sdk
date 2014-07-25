@@ -416,7 +416,6 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-matcher/test/deprecated_matchers_test: StaticWarning # testing error creating abstract class
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && ($system == windows || $system == macos) ]
