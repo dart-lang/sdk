@@ -11,8 +11,8 @@ import platform
 import re
 import shutil
 import subprocess
-import sys
 import tempfile
+import sys
 
 class Version(object):
   def __init__(self, channel, major, minor, patch, prerelease,
@@ -26,20 +26,20 @@ class Version(object):
 
 # Try to guess the host operating system.
 def GuessOS():
-  id = platform.system()
-  if id == "Linux":
+  os_id = platform.system()
+  if os_id == "Linux":
     return "linux"
-  elif id == "Darwin":
+  elif os_id == "Darwin":
     return "macos"
-  elif id == "Windows" or id == "Microsoft":
+  elif os_id == "Windows" or os_id == "Microsoft":
     # On Windows Vista platform.system() can return "Microsoft" with some
     # versions of Python, see http://bugs.python.org/issue1082 for details.
     return "win32"
-  elif id == 'FreeBSD':
+  elif os_id == 'FreeBSD':
     return 'freebsd'
-  elif id == 'OpenBSD':
+  elif os_id == 'OpenBSD':
     return 'openbsd'
-  elif id == 'SunOS':
+  elif os_id == 'SunOS':
     return 'solaris'
   else:
     return None
@@ -47,22 +47,23 @@ def GuessOS():
 
 # Try to guess the host architecture.
 def GuessArchitecture():
-  id = platform.machine()
-  if id.startswith('arm'):
+  os_id = platform.machine()
+  if os_id.startswith('arm'):
     return 'arm'
-  elif id.startswith('aarch64'):
+  elif os_id.startswith('aarch64'):
     return 'arm64'
-  elif id.startswith('mips'):
+  elif os_id.startswith('mips'):
     return 'mips'
-  elif (not id) or (not re.match('(x|i[3-6])86', id) is None):
+  elif (not os_id) or (not re.match('(x|i[3-6])86', os_id) is None):
     return 'ia32'
-  elif id == 'i86pc':
+  elif os_id == 'i86pc':
     return 'ia32'
-  elif '64' in id:
+  elif '64' in os_id:
     return 'x64'
   else:
     guess_os = GuessOS()
-    print "Warning: Guessing architecture %s based on os %s\n" % (id, guess_os)
+    print "Warning: Guessing architecture %s based on os %s\n"\
+          % (os_id, guess_os)
     if guess_os == 'win32':
       return 'ia32'
     return None
@@ -97,7 +98,7 @@ def GuessVisualStudioPath():
   defaultExecutable = "devenv.com"
 
   if not IsWindows():
-    return (defaultPath, defaultExecutable)
+    return defaultPath, defaultExecutable
 
   keyNamesAndExecutables = [
     # Pair for non-Express editions.
@@ -122,7 +123,7 @@ def GuessVisualStudioPath():
       while True:
         try:
           subkeyName = _winreg.EnumKey(key, subkeyCounter)
-          subkeyCounter = subkeyCounter + 1
+          subkeyCounter += 1
         except WindowsError:
           # Reached end of enumeration. Moving on the next key.
           break
@@ -140,7 +141,7 @@ def GuessVisualStudioPath():
             if not isExpress and subkeyName == '10.0':
               # Stop search since if we found non-Express VS2010 version
               # installed, which is preferred version.
-              return (installDir, executable)
+              return installDir, executable
             else:
               version = float(subkeyName)
               # We prefer higher version of Visual Studio and given equal
@@ -172,7 +173,7 @@ def ReadLinesFrom(name):
 
 # Filters out all arguments until the next '--' argument
 # occurs.
-def ListArgCallback(option, opt_str, value, parser):
+def ListArgCallback(option, value, parser):
    if value is None:
      value = []
 
@@ -187,7 +188,7 @@ def ListArgCallback(option, opt_str, value, parser):
 
 # Filters out all argument until the first non '-' or the
 # '--' argument occurs.
-def ListDartArgCallback(option, opt_str, value, parser):
+def ListDartArgCallback(option, value, parser):
    if value is None:
      value = []
 
@@ -259,11 +260,11 @@ def GetBuildConf(mode, arch, conf_os=None):
       cross_build = 'X'
     return '%s%s%s' % (GetBuildMode(mode), cross_build, arch.upper())
 
-def GetBuildDir(host_os, target_os):
+def GetBuildDir(host_os):
   return BUILD_ROOT[host_os]
 
-def GetBuildRoot(host_os, mode=None, arch=None, target_os=None):
-  build_root = GetBuildDir(host_os, target_os)
+def GetBuildRoot(host_os, mode=None, arch=None):
+  build_root = GetBuildDir(host_os)
   if mode:
     build_root = os.path.join(build_root, GetBuildConf(mode, arch, target_os))
   return build_root
@@ -320,8 +321,8 @@ def GetUserName():
   return os.environ.get(key, '')
 
 def ReadVersionFile():
-  def match_against(pattern, content):
-    match = re.search(pattern, content, flags=re.MULTILINE)
+  def match_against(pattern, file_content):
+    match = re.search(pattern, file_content, flags=re.MULTILINE)
     if match:
       return match.group(1)
     return None
@@ -415,7 +416,7 @@ def RewritePathSeparator(path, workspace):
   # Paths in test files are always specified using '/'
   # as the path separator. Replace with the actual
   # path separator before use.
-  if ('/' in path):
+  if '/' in path:
     split_path = path.split('/')
     path = os.sep.join(split_path)
     path = os.path.join(workspace, path)
@@ -439,7 +440,7 @@ def ParseTestOptionsMultiple(pattern, source, workspace):
     for match in matches:
       if len(match) > 0:
         result.append(
-            [RewritePathSeparator(o, workspace) for o in match.split(' ')]);
+            [RewritePathSeparator(o, workspace) for o in match.split(' ')])
       else:
         result.append([])
     return result
@@ -457,7 +458,7 @@ def ConfigureJava():
     if proc.wait() != 0:
       return None
     new = stdout.strip()
-    current = os.getenv('JAVA_HOME', default=new)
+    current = os.getenv('JAVA_HOME', new)
     if current != new:
       sys.stderr.write('Please set JAVA_HOME to %s\n' % new)
       os.putenv('JAVA_HOME', new)
@@ -474,14 +475,14 @@ def Daemonize():
     return False
   os.setsid()
   if os.fork() > 0:
-    os._exit(0)
+    exit(0)
     raise
   return True
 
 
-def PrintError(str):
+def PrintError(string):
   """Writes and flushes a string to stderr."""
-  sys.stderr.write(str)
+  sys.stderr.write(string)
   sys.stderr.write('\n')
 
 
@@ -493,7 +494,7 @@ def CheckedUnlink(name):
     PrintError("os.unlink() " + str(e))
 
 
-def Main(argv):
+def Main():
   print "GuessOS() -> ", GuessOS()
   print "GuessArchitecture() -> ", GuessArchitecture()
   print "GuessCpus() -> ", GuessCpus()
@@ -541,7 +542,7 @@ def ExecuteCommand(cmd):
   output = pipe.communicate()
   if pipe.returncode != 0:
     raise Exception('Execution failed: ' + str(output))
-  return (pipe.returncode, output)
+  return pipe.returncode, output
 
 
 def DartBinary():
@@ -595,4 +596,4 @@ class ChangedWorkingDirectory(object):
 
 if __name__ == "__main__":
   import sys
-  Main(sys.argv)
+  Main()

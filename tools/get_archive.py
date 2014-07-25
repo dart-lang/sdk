@@ -96,7 +96,7 @@ def HasBotoConfig():
 
 
 def InRunhooks():
-  '''True if this script was called by "gclient runhooks" or "gclient sync"'''
+  """True if this script was called by "gclient runhooks" or "gclient sync\""""
   return 'runhooks' in sys.argv
 
 
@@ -132,22 +132,21 @@ def GetDartiumRevision(name, bot, directory, version_file, latest_pattern,
   """
   osdict = {'Darwin':'mac', 'Linux':'lucid64', 'Windows':'win'}
 
-  def FindPermanentUrl(out, osname, revision_num):
+  def FindPermanentUrl(out, osname, the_revision_num):
     output_lines = out.split()
     latest = output_lines[-1]
-    if not revision_num:
-      revision_num = latest[latest.rindex('-') + 1 : latest.index('.')]
+    if not the_revision_num:
       latest = (permanent_prefix[:permanent_prefix.rindex('/')] % { 'osname' :
           osname, 'bot' : bot } + latest[latest.rindex('/'):])
     else:
-      latest = (permanent_prefix % { 'osname' : osname, 'num1' : revision_num,
-          'num2' : revision_num, 'bot' : bot })
+      latest = (permanent_prefix % { 'osname' : osname, 'num1' : the_revision_num,
+          'num2' : the_revision_num, 'bot' : bot })
       foundURL = False
       while not foundURL:
         # Test to ensure this URL exists because the dartium-archive builds can
         # have unusual numbering (a range of CL numbers) sometimes.
         result, out = Gsutil('ls', permanent_prefix % {'osname' : osname,
-            'num1': revision_num, 'num2': '*', 'bot': bot })
+            'num1': the_revision_num, 'num2': '*', 'bot': bot })
         if result == 0:
           # First try to find one with the the second number the same as the
           # requested number.
@@ -163,12 +162,12 @@ def GetDartiumRevision(name, bot, directory, version_file, latest_pattern,
             # Unable to download this item (most likely because something went
             # wrong on the upload and the permissions are bad). Keep looking for
             # a different URL.
-            revision_num = int(revision_num) - 1
+            the_revision_num = int(the_revision_num) - 1
           shutil.rmtree(temp_dir)
         else:
           # Now try to find one with a nearby CL num.
-          revision_num = int(revision_num) - 1
-          if revision_num <= 0:
+          the_revision_num = int(the_revision_num) - 1
+          if the_revision_num <= 0:
             TooEarlyError()
     return latest
 

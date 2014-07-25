@@ -22,7 +22,7 @@ def parse_args():
                     '8..10, or 8:10).')
   args, _ = parser.parse_args()
   revision_range = args.rev_range
-  if revision_range == None:
+  if revision_range is None:
     maybe_fail('You must specify at least one revision number to revert.')
   if revision_range.find('-') > -1 or revision_range.find(':') > -1 or \
       revision_range.find('..') > -1:
@@ -82,7 +82,7 @@ def has_new_code(is_git):
     p = subprocess.Popen(['git', 'log', '-1'], stdout=subprocess.PIPE,
                          shell=(platform.system()=='Windows'))
     output, _ = p.communicate()
-    if find_git_info(output) == None:
+    if find_git_info(output) is None:
       return True
   return False
 
@@ -97,7 +97,7 @@ def run_cmd(cmd_list, suppress_output=False, std_in=''):
     print output
   if stderr and not suppress_output:
     print stderr
-  return (output, stderr)
+  return output, stderr
 
 def runs_git():
   """Returns True if we're standing in an svn-git repository."""
@@ -105,7 +105,7 @@ def runs_git():
                        stderr=subprocess.PIPE,
                        shell=(platform.system()=='Windows'))
   output, err = p.communicate()
-  if err != None and 'is not a working copy' in err:
+  if err is not None and 'is not a working copy' in err:
     p = subprocess.Popen(['git', 'status'], stdout=subprocess.PIPE,
                          shell=(platform.system()=='Windows'))
     output, _ = p.communicate()
@@ -127,7 +127,7 @@ def find_git_info(git_log, rev_num=None):
       revision_number = int(tokens[1].split('@')[1])
       if revision_number == rev_num:
         return current_commit_id
-      if rev_num == None:
+      if rev_num is None:
         return revision_number
 
 def revert(start, end, is_git):
@@ -157,16 +157,16 @@ def revert(start, end, is_git):
       reverts = range(start, end + 1)
       reverts.reverse()
       commit_msg = '%s-%d"' % (commit_msg[:-1], end)
-    for revert in reverts:
-      git_commit_id = find_git_info(output, revert)
-      if git_commit_id == None:
+    for the_revert in reverts:
+      git_commit_id = find_git_info(output, the_revert)
+      if git_commit_id is None:
         maybe_fail('Error: Revision number not found. Is this earlier than your'
                    ' git checkout history?')
       _, err = run_cmd(['git', 'revert', '-n', git_commit_id])
       if 'error: could not revert' in err or 'unmerged' in err:
         command_sequence = ''
-        for revert in reverts:
-          git_commit_id = find_git_info(output, revert)
+        for a_revert in reverts:
+          git_commit_id = find_git_info(output, a_revert)
           command_sequence += 'git revert -n %s\n' % git_commit_id
         maybe_fail('There are conflicts while reverting. Please resolve these '
                    'after manually running:\n' + command_sequence + 'and then '

@@ -4,7 +4,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 import os
-import platform
 import string
 import subprocess
 import sys
@@ -15,8 +14,6 @@ import utils
 def Main():
   args = sys.argv[1:]
   tools_dir = os.path.dirname(os.path.realpath(__file__))
-  current_directory = os.path.abspath('');
-  client = os.path.abspath(os.path.join(tools_dir, '..'));
   dart_script_name = 'test.dart'
   dart_test_script = string.join([tools_dir, dart_script_name], os.sep)
   command = [utils.DartBinary(), '--checked', dart_test_script] + args

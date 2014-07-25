@@ -11,7 +11,6 @@ Usage:
                [linker args]
 """
 
-import optparse
 import os
 import subprocess
 import sys
@@ -69,7 +68,7 @@ def main():
     sys.exit(0)
 
   # Set up path to the Android NDK.
-  CheckDirExists(THIRD_PARTY_ROOT, 'third party tools');
+  CheckDirExists(THIRD_PARTY_ROOT, 'third party tools')
   android_tools = os.path.join(THIRD_PARTY_ROOT, 'android_tools')
   CheckDirExists(android_tools, 'Android tools')
   android_ndk_root = os.path.join(android_tools, 'ndk')

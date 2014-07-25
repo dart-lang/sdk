@@ -6,10 +6,9 @@
 
 import fileinput
 import sys
-import shutil
 import os
 import re
-from os.path import abspath, basename, dirname, exists, isabs, join
+from os.path import basename, dirname, exists, isabs, join
 from glob import glob
 
 re_directive = re.compile(
@@ -76,7 +75,7 @@ def mergefiles(srcs, dstfile):
 
 def main(outdir = None, *inputs):
   if not outdir or not inputs:
-    print "Usage: %s OUTDIR INPUTS" % args[0]
+    print "Usage: %s OUTDIR INPUTS" % sys.argv[0]
     print "  OUTDIR is the war directory to copy to"
     print "  INPUTS is a list of files or patterns used to specify the input"
     print "   .dart files"
@@ -124,7 +123,7 @@ def main(outdir = None, *inputs):
         else:
           f.write("library %s;\n\n" % basename(lib))
         for importfile in library.imports:
-          f.write("import %s;\n" % (importfile))
+          f.write("import %s;\n" % importfile)
         f.write('%s' % (''.join(library.code)))
         mergefiles([normjoin(dirname(lib), s) for s in library.sources], f)
 
@@ -132,7 +131,7 @@ def main(outdir = None, *inputs):
         m = re.match(r'[\'"]([^\'"]+)[\'"](\s+as\s+\w+)?.*$', suffix)
         uri = m.group(1)
         if not uri.startswith('dart:'):
-          worklist.append(normjoin(dirname(lib), uri));
+          worklist.append(normjoin(dirname(lib), uri))
 
   return 0
 

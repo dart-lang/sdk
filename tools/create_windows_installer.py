@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
@@ -18,7 +18,6 @@
 
 import optparse
 import os
-import shutil
 import subprocess
 import sys
 import utils
@@ -380,7 +379,7 @@ def Main(argv):
               RemoveFolder('RemoveShortcuts')
               RegistryEntry('DartEditor')
       with Feature():
-        # We have only one feature and that consist of all the
+        # We have only one feature, and it consists of all the
         # files=components we have listed above"
         ComponentRefs()
     xml = GetContent()

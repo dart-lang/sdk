@@ -12,11 +12,11 @@
 import optparse
 import os
 import signal
-import shutil
-import string
 import subprocess
 import sys
+
 import utils
+
 
 os_name = utils.GuessOS()
 
@@ -118,13 +118,13 @@ def GetPidsWindows(process_name):
   return results
 
 def GetPids(process_name):
-  if (os_name == "win32"):
+  if os_name == "win32":
     return GetPidsWindows(process_name)
   else:
     return GetPidsPosix(process_name)
 
 def PrintPidInfo(pid):
-  # We asume that the list command will return lines in the format:
+  # We assume that the list command will return lines in the format:
   # EXECUTABLE_PATH ARGS
   # There may be blank strings in the output
   p = subprocess.Popen(INFO_COMMAND[os_name] % pid,
@@ -146,7 +146,7 @@ def PrintPidInfo(pid):
 
 def KillPosix(pid):
   try:
-    os.kill(int(pid), signal.SIGKILL);
+    os.kill(int(pid), signal.SIGKILL)
   except:
     # Ignore this, the process is already dead from killing another process.
     pass
@@ -161,19 +161,19 @@ def KillWindows(pid):
   p.communicate()
 
 def Kill(name):
-  if (name not in EXECUTABLE_NAMES[os_name]):
+  if name not in EXECUTABLE_NAMES[os_name]:
     return 0
   print("***************** Killing %s *****************" % name)
   platform_name = EXECUTABLE_NAMES[os_name][name]
   pids = GetPids(platform_name)
   for pid in pids:
-    PrintPidInfo(pid);
-    if (os_name == "win32"):
+    PrintPidInfo(pid)
+    if os_name == "win32":
       KillWindows(pid)
     else:
       KillPosix(pid)
     print("Killed pid: %s" % pid)
-  if (len(pids) == 0):
+  if len(pids) == 0:
     print("  No %s processes found." % name)
   return len(pids)
 
@@ -205,13 +205,13 @@ def KillEditor():
 def Main():
   options = GetOptions()
   status = 0
-  if (options.kill_dart):
-    status += KillDart();
-  if (options.kill_vc):
-    status += KillVCSystems();
-  if (options.kill_browsers):
+  if options.kill_dart:
+    status += KillDart()
+  if options.kill_vc:
+    status += KillVCSystems()
+  if options.kill_browsers:
     status += KillBrowsers()
-  if (options.kill_editor):
+  if options.kill_editor:
     status += KillEditor()
   return status
 

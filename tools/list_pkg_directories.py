@@ -3,13 +3,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-'''Tool for listing the directories under pkg, with their lib directories.
+"""Tool for listing the directories under pkg, with their lib directories.
 Used in pkg.gyp. Lists all of the directories in the directory passed in as an
 argument to this script which have a lib subdirectory.
 
 Usage:
   python tools/list_pkg_directories.py OPTIONS DIRECTORY
-'''
+"""
 
 import optparse
 import os

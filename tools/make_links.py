@@ -4,7 +4,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-'''Tool for creating symlinks from SOURCES to TARGET.
+"""Tool for creating symlinks from SOURCES to TARGET.
 
 For each SOURCE in SOURCES create a link from SOURCE to TARGET.  If a
 SOURCE ends with .../lib, the lib suffix is ignored when determining
@@ -15,7 +15,7 @@ removed.
 
 Usage:
   python tools/make_links.py OPTIONS TARGET SOURCES...
-'''
+"""
 
 import optparse
 import os

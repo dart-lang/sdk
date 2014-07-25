@@ -13,7 +13,6 @@
 
 import os
 import os.path
-import re
 import shutil
 import sys
 import subprocess
@@ -33,13 +32,13 @@ def Main(argv):
     lines = pubspecFile.readlines()
 
   version = None
-  foundSdkContraint = False
+  foundSdkConstraint = False
   inDependencies = False
   for line in lines:
     if line.startswith('dependencies:'):
       inDependencies = True
     elif line.startswith('environment:'):
-      foundSdkContraint = True
+      foundSdkConstraint = True
     elif line[0].isalpha():
       inDependencies = False
     if line.startswith('version:'):
@@ -54,7 +53,7 @@ def Main(argv):
     print 'Error in %s: did not find package version.' % pubspec
     return -1
 
-  if not foundSdkContraint:
+  if not foundSdkConstraint:
     print 'Error in %s: did not find SDK version constraint.' % pubspec
     return -1
 
@@ -69,7 +68,7 @@ def Main(argv):
   if not os.path.exists(os.path.join(tmpDir, pkgName, 'LICENSE')):
     with open(os.path.join(tmpDir, pkgName, 'LICENSE'), 'w') as licenseFile:
       licenseFile.write(
-'''Copyright 2013, the Dart project authors. All rights reserved.
+'''Copyright 2014, the Dart project authors. All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
 met:
@@ -95,7 +94,7 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-''');
+''')
 
   print 'publishing version ' + version + ' of ' + argv[1] + ' to pub.\n'
 

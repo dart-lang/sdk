@@ -8,7 +8,6 @@
 import optparse
 import os
 import re
-import shutil
 import subprocess
 import sys
 import time
@@ -70,10 +69,10 @@ def BuildOptions():
   return result
 
 
-def ProcessOsOption(os):
-  if os == 'host':
+def ProcessOsOption(os_name):
+  if os_name == 'host':
     return HOST_OS
-  return os
+  return os_name
 
 
 def ProcessOptions(options, args):
@@ -96,26 +95,26 @@ def ProcessOptions(options, args):
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False
-  options.os = [ProcessOsOption(os) for os in options.os]
-  for os in options.os:
-    if not os in ['android', 'freebsd', 'linux', 'macos', 'win32']:
-      print "Unknown os %s" % os
+  options.os = [ProcessOsOption(os_name) for os_name in options.os]
+  for os_name in options.os:
+    if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+      print "Unknown os %s" % os_name
       return False
-    if os != HOST_OS:
-      if os != 'android':
-        print "Unsupported target os %s" % os
+    if os_name != HOST_OS:
+      if os_name != 'android':
+        print "Unsupported target os %s" % os_name
         return False
       if not HOST_OS in ['linux']:
         print ("Cross-compilation to %s is not supported on host os %s."
-               % (os, HOST_OS))
+               % (os_name, HOST_OS))
         return False
       if not arch in ['ia32', 'arm', 'mips']:
         print ("Cross-compilation to %s is not supported for architecture %s."
-               % (os, arch))
+               % (os_name, arch))
         return False
       # We have not yet tweaked the v8 dart build to work with the Android
       # NDK/SDK, so don't try to build it.
-      if args == []:
+      if not args:
         print "For android builds you must specify a target, such as 'runtime'."
         return False
   return True
@@ -145,7 +144,6 @@ def GetToolchainPrefix(target_os, arch, options):
   # TODO(zra): Find default MIPS and ARM64 Linux cross-compilers.
 
   return None
-
 
 def SetTools(arch, target_os, options):
   toolsOverride = None
@@ -185,7 +183,7 @@ def GetAndroidToolchainDir(host_os, target_arch):
     raise Exception('Unsupported target architecture %s' % target_arch)
 
   # Set up path to the Android NDK.
-  CheckDirExists(THIRD_PARTY_ROOT, 'third party tools');
+  CheckDirExists(THIRD_PARTY_ROOT, 'third party tools')
   android_tools = os.path.join(THIRD_PARTY_ROOT, 'android_tools')
   CheckDirExists(android_tools, 'Android tools')
   android_ndk_root = os.path.join(android_tools, 'ndk')
@@ -242,9 +240,9 @@ PhaseScriptExecution "Action \"upload_sdk_py\"" xcodebuild/dart.build/...
 
   """
 
-  def is_empty_chunk(chunk):
+  def is_empty_chunk(input):
     empty_chunk = ['', 'Check dependencies', '']
-    return not chunk or (len(chunk) == 4 and chunk[1:] == empty_chunk)
+    return not input or (len(input) == 4 and input[1:] == empty_chunk)
 
   def unbuffered(callable):
     # Use iter to disable buffering in for-in.
@@ -322,7 +320,7 @@ def NotifyBuildDone(build_config, success, start):
 
   # Display a notification if build time exceeded DART_BUILD_NOTIFICATION_DELAY.
   notification_delay = float(
-    os.getenv('DART_BUILD_NOTIFICATION_DELAY', default=sys.float_info.max))
+    os.getenv('DART_BUILD_NOTIFICATION_DELAY', sys.float_info.max))
   if (time.time() - start) < notification_delay:
     return
 
@@ -534,7 +532,8 @@ def Main():
             if BuildCrossSdk(options, target_os, mode, arch) != 0:
               return 1
           else:
-            if BuildOneConfig(options, target, target_os, mode, arch, cross_build) != 0:
+            if BuildOneConfig(options, target, target_os,
+                              mode, arch, cross_build) != 0:
               return 1
 
   return 0

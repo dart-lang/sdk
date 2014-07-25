@@ -25,10 +25,11 @@ import datetime
 import optparse
 import sys
 import tarfile
+from os import listdir
+from os.path import join, split, abspath
+
 import utils
 
-from os import listdir, makedirs
-from os.path import join, exists, split, dirname, abspath
 
 HOST_OS = utils.GuessOS()
 DART_DIR = abspath(join(__file__, '..', '..'))
@@ -115,7 +116,7 @@ def CreateTarball(tarfilename):
   debian_dir = 'tools/linux_dist_support/debian'
   # Don't include the build directory in the tarball (ignored paths
   # are relative to DART_DIR).
-  builddir = utils.GetBuildDir(HOST_OS, HOST_OS)
+  builddir = utils.GetBuildDir(HOST_OS)
   ignoredPaths.append(builddir)
 
   print 'Creating tarball: %s' % tarfilename
@@ -128,9 +129,9 @@ def CreateTarball(tarfilename):
 
     with utils.TempDir() as temp_dir:
       # Generate and add debian/copyright
-      copyright = join(temp_dir, 'copyright')
-      GenerateCopyright(copyright)
-      tar.add(copyright, arcname='%s/debian/copyright' % versiondir)
+      copyright_file = join(temp_dir, 'copyright')
+      GenerateCopyright(copyright_file)
+      tar.add(copyright_file, arcname='%s/debian/copyright' % versiondir)
 
       # Generate and add debian/changelog
       change_log = join(temp_dir, 'changelog')
@@ -158,7 +159,7 @@ def Main():
   tar_filename = options.tar_filename
   if not tar_filename:
     tar_filename = join(DART_DIR,
-                        utils.GetBuildDir(HOST_OS, HOST_OS),
+                        utils.GetBuildDir(HOST_OS),
                         'dart-%s.tar.gz' % utils.GetVersion())
 
   CreateTarball(tar_filename)
