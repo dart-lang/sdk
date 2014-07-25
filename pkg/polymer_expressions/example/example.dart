@@ -7,9 +7,19 @@ import 'dart:html';
 import 'package:polymer_expressions/polymer_expressions.dart';
 import 'package:template_binding/template_binding.dart' show templateBind;
 
+// We use mirrors for illustration purposes, but ideally we would generate a
+// static configuration with smoke/static.dart.
+import 'package:smoke/mirrors.dart';
+
+// Since we use smoke/mirrors, we need to preserve symbols used in the template.
+// This includes String.startsWith, List.take, and Person.
+@MirrorsUsed(targets: const [String, List, Person])
+import 'dart:mirrors';
+
 import 'person.dart';
 
 main() {
+  useMirrors();
   var john = new Person('John', 'Messerly', ['A', 'B', 'C']);
   var justin = new Person('Justin', 'Fagnani', ['D', 'E', 'F']);
   var globals = {
