@@ -4053,7 +4053,7 @@ An {\em identifier expression} consists of a single identifier; it provides acce
       . 
 \end{grammar}
 
-A built-in identifier is one of the identifiers produced by the production {\em BUILT\_IN\_IDENTIFIER}. It is a compile-time error if a built-in identifier is used as the declared name of a class, type parameter or type alias. It is a compile-time error to use a built-in identifier other than \DYNAMIC{} as a type annotation.
+A built-in identifier is one of the identifiers produced by the production {\em BUILT\_IN\_IDENTIFIER}. It is a compile-time error if a built-in identifier is used as the declared name of a prefix, class, type parameter or type alias. It is a compile-time error to use a built-in identifier other than \DYNAMIC{} as a type annotation.
 
 \rationale{
 Built-in identifiers are identifiers that are used as keywords in Dart, but are not reserved words in Javascript. To minimize incompatibilities when porting Javascript code to Dart, we do not make these into reserved words. A built-in identifier may not be used to name a class or type. In other words, they are treated as reserved words when used as types.  This eliminates many confusing situations without causing compatibility problems. After all, a Javascript program has no type declarations or annotations so no clash can occur.  Furthermore, types should begin with an uppercase letter (see the appendix) and so no clash should occur in any Dart user program anyway.
