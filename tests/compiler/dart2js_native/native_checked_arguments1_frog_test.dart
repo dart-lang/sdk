@@ -19,8 +19,8 @@ class B {
   int cmp(B other) native;
 }
 
-A makeA() native { return new A(); }
-B makeB() native { return new B(); }
+A makeA() native;
+B makeB() native;
 
 void setup() native """
 function A() {}

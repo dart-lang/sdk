@@ -12,7 +12,7 @@ class A {
   int delete() native;
 }
 
-A makeA() native { return new A(); }
+A makeA() native;
 
 void setup() native """
 function A() {}

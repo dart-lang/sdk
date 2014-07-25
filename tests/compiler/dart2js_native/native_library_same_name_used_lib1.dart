@@ -7,10 +7,11 @@
 library native_library_same_name_used_lib1;
 
 import 'native_library_same_name_used_lib2.dart';
+import 'dart:_foreign_helper' show JS;
 
 abstract class I {
   I read();
   write(I x);
 }
 
-makeI() native { new Impl(); }  // Hint Impl is created by makeI.
+makeI() => JS('creates:Impl; returns:I;', 'makeI()');

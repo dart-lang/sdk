@@ -25,7 +25,7 @@ class A {
   set Z(int value) { JS('void', '#._z = #', this, value); }
 }
 
-A makeA() native { return new A(); }
+A makeA() native;
 
 void setup() native """
 function A() {}
