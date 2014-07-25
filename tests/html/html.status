@@ -391,6 +391,9 @@ performance_api_test/supported: Fail
 speechrecognition_test/supported: Fail
 websql_test/supported: Fail
 
+[ $runtime == ff && $system != windows ]
+element_types_test/supported_track: Fail # Fails on FF 29, passes on FF 31
+
 [ $runtime == ff ]
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
@@ -405,7 +408,6 @@ element_types_test/supported_details: Fail
 element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_object: Fail
-element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail

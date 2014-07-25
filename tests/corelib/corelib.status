@@ -42,6 +42,9 @@ symbol_reserved_word_test/01: CompileTimeError
 [ $compiler == none || $compiler == dart2js || $compiler == dart2dart || $compiler == dartanalyzer || $compiler == dart2analyzer ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
+
 # new Symbol('void') should be allowed.
 [ $compiler == dart2js ]
 symbol_reserved_word_test/03: RuntimeError # bug 19972
@@ -52,6 +55,11 @@ symbol_reserved_word_test/03: RuntimeError # bug 19972
 symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+symbol_reserved_word_test/04: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
+symbol_reserved_word_test/07: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
+symbol_reserved_word_test/10: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
 
 # With the exception of 'void', new Symbol() should not accept reserved words.
 [ $compiler == none || $compiler == dart2dart ]
