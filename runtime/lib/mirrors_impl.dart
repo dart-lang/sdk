@@ -299,10 +299,10 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     return identityHashCode(_reflectee) ^ 0x36363636;
   }
 
-  static var _getFieldClosures = new LRUMap.withShift(7);
-  static var _setFieldClosures = new LRUMap.withShift(7);
-  static var _getFieldCallCounts = new LRUMap.withShift(8);
-  static var _setFieldCallCounts = new LRUMap.withShift(8);
+  static var _getFieldClosures = new LRUMap.withShift(9);
+  static var _setFieldClosures = new LRUMap.withShift(9);
+  static var _getFieldCallCounts = new LRUMap.withShift(10);
+  static var _setFieldCallCounts = new LRUMap.withShift(10);
   static const _closureThreshold = 20;
 
   _getFieldSlow(unwrapped) {
