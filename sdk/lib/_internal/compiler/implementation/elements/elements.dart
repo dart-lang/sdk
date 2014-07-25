@@ -733,7 +733,7 @@ class Elements {
                                                 Compiler compiler) {
     if (compiler.typedDataLibrary == null) return false;
     if (!element.isConstructor) return false;
-    ConstructorElement constructor = element;
+    ConstructorElement constructor = element.implementation;
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == compiler.typedDataLibrary
