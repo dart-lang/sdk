@@ -31,8 +31,7 @@ class SourceBuilder {
   int get length => _buffer.length;
 
   void addProposal(String proposal) {
-    // TODO(scheglov) implement
-//    _currentPositionGroup.addProposal();
+    _currentLinkedPositionGroup.addProposal(proposal);
   }
 
   void addProposals(List<String> proposals) {
@@ -84,6 +83,6 @@ class SourceBuilder {
     int start = offset + _currentPositionStart;
     int end = offset + _buffer.length;
     Position position = new Position(file, start, end - start);
-    _currentLinkedPositionGroup.add(position);
+    _currentLinkedPositionGroup.addPosition(position);
   }
 }

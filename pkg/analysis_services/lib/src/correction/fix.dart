@@ -167,11 +167,11 @@ class FixProcessor {
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       _addFix_removeParentheses_inGetterInvocation();
     }
-//    if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
-//      _addFix_importLibrary_withFunction();
-//      _addFix_undefinedFunction_useSimilar();
-//      _addFix_undefinedFunction_create();
-//    }
+    if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
+      _addFix_importLibrary_withFunction();
+      _addFix_undefinedFunction_useSimilar();
+      _addFix_undefinedFunction_create();
+    }
     if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
       _addFix_createFunction_forFunctionType();
     }
@@ -591,7 +591,6 @@ class FixProcessor {
           firstElement.displayName,
           secondElement.displayName);
     });
-    // TODO
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
     int insertOffset = targetClass.end - 1;
     SourceBuilder sb = new SourceBuilder(file, insertOffset);
@@ -1056,60 +1055,48 @@ class FixProcessor {
   }
 
   void _addFix_undefinedFunction_create() {
-    // TODO(scheglov) implement
-//    // should be the name of the invocation
-//    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-//    } else {
-//      return;
-//    }
-//    String name = (node as SimpleIdentifier).name;
-//    MethodInvocation invocation = node.parent as MethodInvocation;
-//    // function invocation has no target
-//    Expression target = invocation.realTarget;
-//    if (target != null) {
-//      return;
-//    }
-//    // prepare environment
-//    int insertOffset;
-//    String sourcePrefix;
-//    AstNode enclosingMember =
-//        node.getAncestor((node) => node is CompilationUnitMember);
-//    insertOffset = enclosingMember.end;
-//    sourcePrefix = "${eol}${eol}";
-//    // build method source
-//    SourceBuilder sb = new SourceBuilder.con1(insertOffset);
-//    {
-//      sb.append(sourcePrefix);
-//      // may be return type
-//      {
-//        DartType type =
-//            _addFix_undefinedMethod_create_getReturnType(invocation);
-//        if (type != null) {
-//          String typeSource = utils.getTypeSource2(type);
-//          if (typeSource != "dynamic") {
-//            sb.startPosition("RETURN_TYPE");
-//            sb.append(typeSource);
-//            sb.endPosition();
-//            sb.append(" ");
-//          }
-//        }
-//      }
-//      // append name
-//      {
-//        sb.startPosition("NAME");
-//        sb.append(name);
-//        sb.endPosition();
-//      }
-//      _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
-//      sb.append(") {${eol}}");
-//    }
-//    // insert source
-//    _addInsertEdit(insertOffset, sb.toString());
-//    // add linked positions
-//    _addLinkedPosition("NAME", sb, SourceRangeFactory.rangeNode(node));
-//    _addLinkedPositions(sb);
-//    // add proposal
-//    _addFix(FixKind.CREATE_FUNCTION, [name]);
+    // should be the name of the invocation
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+    } else {
+      return;
+    }
+    String name = (node as SimpleIdentifier).name;
+    MethodInvocation invocation = node.parent as MethodInvocation;
+    // function invocation has no target
+    Expression target = invocation.realTarget;
+    if (target != null) {
+      return;
+    }
+    // prepare environment
+    int insertOffset;
+    String sourcePrefix;
+    AstNode enclosingMember =
+        node.getAncestor((node) => node is CompilationUnitMember);
+    insertOffset = enclosingMember.end;
+    sourcePrefix = "${eol}${eol}";
+    // build method source
+    SourceBuilder sb = new SourceBuilder(file, insertOffset);
+    {
+      sb.append(sourcePrefix);
+      // append return type
+      {
+        DartType type = _inferReturnType(invocation);
+        _appendType(sb, type, 'RETURN_TYPE');
+      }
+      // append name
+      {
+        sb.startPosition("NAME");
+        sb.append(name);
+        sb.endPosition();
+      }
+      _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
+      sb.append(") {${eol}}");
+    }
+    // insert source
+    _insertBuilder(sb);
+    _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    // add proposal
+    _addFix(FixKind.CREATE_FUNCTION, [name]);
   }
 
   void _addFix_undefinedFunction_useSimilar() {
@@ -1161,7 +1148,7 @@ class FixProcessor {
         staticModifier = _inStaticContext();
         prefix = utils.getNodePrefix(enclosingMember);
         insertOffset = enclosingMember.end;
-        sourcePrefix = "${eol}${prefix}${eol}";
+        sourcePrefix = "${eol}${eol}";
         sourceSuffix = "";
       } else {
         // prepare target interface type
@@ -1358,21 +1345,9 @@ class FixProcessor {
    * Adds a single linked position to [groupId].
    */
   void _addLinkedPosition(String groupId, SourceRange range) {
-    _addLinkedPosition2(
-        groupId,
-        new Position(file, range.offset, range.length));
-  }
-
-  /**
-   * Adds a single linked position to [groupId].
-   */
-  void _addLinkedPosition2(String groupId, Position position) {
-    LinkedPositionGroup group = linkedPositionGroups[groupId];
-    if (group == null) {
-      group = new LinkedPositionGroup(groupId);
-      linkedPositionGroups[groupId] = group;
-    }
-    group.add(position);
+    Position position = new Position(file, range.offset, range.length);
+    LinkedPositionGroup group = _getLinkedPosition(groupId);
+    group.addPosition(position);
   }
 
   /**
@@ -1654,6 +1629,18 @@ class FixProcessor {
   }
 
   /**
+   * Returns an existing or just added [LinkedPositionGroup] with [groupId].
+   */
+  LinkedPositionGroup _getLinkedPosition(String groupId) {
+    LinkedPositionGroup group = linkedPositionGroups[groupId];
+    if (group == null) {
+      group = new LinkedPositionGroup(groupId);
+      linkedPositionGroups[groupId] = group;
+    }
+    return group;
+  }
+
+  /**
    * Returns `true` if [node] is in static context.
    */
   bool _inStaticContext() {
@@ -1818,8 +1805,12 @@ class FixProcessor {
     _addInsertEdit(builder.offset, text);
     // add linked positions
     builder.linkedPositionGroups.forEach((LinkedPositionGroup group) {
+      LinkedPositionGroup fixGroup = _getLinkedPosition(group.id);
       group.positions.forEach((Position position) {
-        _addLinkedPosition2(group.id, position);
+        fixGroup.addPosition(position);
+      });
+      group.proposals.forEach((String proposal) {
+        fixGroup.addProposal(proposal);
       });
     });
   }
@@ -1920,8 +1911,6 @@ class FixProcessor {
 
 /**
  * Describes the location for a newly created [ConstructorDeclaration].
- *
- * TODO(scheglov) rename
  */
 class _ConstructorLocation {
   final String _prefix;

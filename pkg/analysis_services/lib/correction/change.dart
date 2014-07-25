@@ -193,16 +193,21 @@ class FileEdit implements HasToJson {
 class LinkedPositionGroup implements HasToJson {
   final String id;
   final List<Position> positions = <Position>[];
+  final List<String> proposals = <String>[];
 
   LinkedPositionGroup(this.id);
 
-  void add(Position position) {
+  void addPosition(Position position) {
     if (positions.isNotEmpty && position.length != positions[0].length) {
       throw new ArgumentError(
           'All positions should have the same length. '
               'Was: ${positions[0].length}. New: ${position.length}');
     }
     positions.add(position);
+  }
+
+  void addProposal(String proposal) {
+    proposals.add(proposal);
   }
 
   @override

@@ -67,6 +67,24 @@ class FixProcessorTest extends AbstractSingleUnitTest {
     }
   }
 
+  void assert_undefinedFunction_create_returnType_bool(String lineWithTest) {
+    _indexTestUnit('''
+main() {
+  bool b = true;
+  $lineWithTest
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  bool b = true;
+  $lineWithTest
+}
+
+bool test() {
+}
+''');
+  }
+
   Position expectedPosition(String search) {
     int offset = resultCode.indexOf(search);
     int length = getLeadingIdentifierLength(search);
@@ -1002,6 +1020,175 @@ const a = const A();
 ''');
   }
 
+  void test_undefinedFunction_create_fromFunction() {
+    _indexTestUnit('''
+main() {
+  int v = myUndefinedFunction(1, 2.0, '3');
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  int v = myUndefinedFunction(1, 2.0, '3');
+}
+
+int myUndefinedFunction(int i, double d, String s) {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_fromMethod() {
+    _indexTestUnit('''
+class A {
+  main() {
+    int v = myUndefinedFunction(1, 2.0, '3');
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+class A {
+  main() {
+    int v = myUndefinedFunction(1, 2.0, '3');
+  }
+}
+
+int myUndefinedFunction(int i, double d, String s) {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_returnType_bool_expressions() {
+    assert_undefinedFunction_create_returnType_bool("!test();");
+    assert_undefinedFunction_create_returnType_bool("b && test();");
+    assert_undefinedFunction_create_returnType_bool("test() && b;");
+    assert_undefinedFunction_create_returnType_bool("b || test();");
+    assert_undefinedFunction_create_returnType_bool("test() || b;");
+  }
+
+  void test_undefinedFunction_create_returnType_bool_statements() {
+    assert_undefinedFunction_create_returnType_bool("assert ( test() );");
+    assert_undefinedFunction_create_returnType_bool("if ( test() ) {}");
+    assert_undefinedFunction_create_returnType_bool("while ( test() ) {}");
+    assert_undefinedFunction_create_returnType_bool("do {} while ( test() );");
+  }
+
+  void test_undefinedFunction_create_returnType_fromAssignment_eq() {
+    _indexTestUnit('''
+main() {
+  int v;
+  v = myUndefinedFunction();
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  int v;
+  v = myUndefinedFunction();
+}
+
+int myUndefinedFunction() {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_returnType_fromAssignment_plusEq() {
+    _indexTestUnit('''
+main() {
+  int v;
+  v += myUndefinedFunction();
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  int v;
+  v += myUndefinedFunction();
+}
+
+num myUndefinedFunction() {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_returnType_fromBinary_right() {
+    _indexTestUnit('''
+main() {
+  0 + myUndefinedFunction();
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  0 + myUndefinedFunction();
+}
+
+num myUndefinedFunction() {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_returnType_fromInitializer() {
+    _indexTestUnit('''
+main() {
+  int v = myUndefinedFunction();
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  int v = myUndefinedFunction();
+}
+
+int myUndefinedFunction() {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_returnType_fromInvocationArgument() {
+    _indexTestUnit('''
+foo(int p) {}
+main() {
+  foo( myUndefinedFunction() );
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+foo(int p) {}
+main() {
+  foo( myUndefinedFunction() );
+}
+
+int myUndefinedFunction() {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_returnType_fromReturn() {
+    _indexTestUnit('''
+int main() {
+  return myUndefinedFunction();
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+int main() {
+  return myUndefinedFunction();
+}
+
+int myUndefinedFunction() {
+}
+''');
+  }
+
+  void test_undefinedFunction_create_returnType_void() {
+    _indexTestUnit('''
+main() {
+  myUndefinedFunction();
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  myUndefinedFunction();
+}
+
+void myUndefinedFunction() {
+}
+''');
+  }
+
   void test_undefinedMethod_createQualified_fromClass() {
     _indexTestUnit('''
 class A {
@@ -1043,13 +1230,161 @@ main() {
 ''');
   }
 
-  void test_undefinedMethod_createQualified_fromClass_unresolved() {
+  void test_undefinedMethod_createQualified_fromInstance() {
+    _indexTestUnit('''
+class A {
+}
+main(A a) {
+  a.myUndefinedMethod();
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  void myUndefinedMethod() {
+  }
+}
+main(A a) {
+  a.myUndefinedMethod();
+}
+''');
+  }
+
+  void test_undefinedMethod_createQualified_targetIsFunctionType() {
+    _indexTestUnit('''
+typedef A();
+main() {
+  A.myUndefinedMethod();
+}
+''');
+    assertNoFix(FixKind.CREATE_METHOD);
+  }
+
+  void test_undefinedMethod_createQualified_targetIsUnresolved() {
     _indexTestUnit('''
 main() {
   NoSuchClass.myUndefinedMethod();
 }
 ''');
     assertNoFix(FixKind.CREATE_METHOD);
+  }
+
+  void test_undefinedMethod_createUnqualified_parameters() {
+    _indexTestUnit('''
+class A {
+  main() {
+    myUndefinedMethod(0, 1.0, '3');
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  main() {
+    myUndefinedMethod(0, 1.0, '3');
+  }
+
+  void myUndefinedMethod(int i, double d, String s) {
+  }
+}
+''');
+    // linked positions
+    _assertHasLinkedPositions(
+        'NAME',
+        ['myUndefinedMethod(0', 'myUndefinedMethod(int']);
+    _assertHasLinkedPositions('RETURN_TYPE', ['void myUndefinedMethod(']);
+    _assertHasLinkedPositions('TYPE0', ['int i']);
+    _assertHasLinkedPositions('TYPE1', ['double d']);
+    _assertHasLinkedPositions('TYPE2', ['String s']);
+    _assertHasLinkedPositions('ARG0', ['i,']);
+    _assertHasLinkedPositions('ARG1', ['d,']);
+    _assertHasLinkedPositions('ARG2', ['s)']);
+    // linked proposals
+    _assertHasLinkedProposals('TYPE0', ['int', 'num', 'Object', 'Comparable']);
+    _assertHasLinkedProposals(
+        'TYPE1',
+        ['double', 'num', 'Object', 'Comparable']);
+    _assertHasLinkedProposals('TYPE2', ['String', 'Object', 'Comparable']);
+  }
+
+  void test_undefinedMethod_createUnqualified_returnType() {
+    _indexTestUnit('''
+class A {
+  main() {
+    int v = myUndefinedMethod();
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  main() {
+    int v = myUndefinedMethod();
+  }
+
+  int myUndefinedMethod() {
+  }
+}
+''');
+    // linked positions
+    _assertHasLinkedPositions(
+        'NAME',
+        ['myUndefinedMethod();', 'myUndefinedMethod() {']);
+    _assertHasLinkedPositions('RETURN_TYPE', ['int myUndefinedMethod(']);
+  }
+
+  void test_undefinedMethod_createUnqualified_staticFromField() {
+    _indexTestUnit('''
+class A {
+  static var f = myUndefinedMethod();
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  static var f = myUndefinedMethod();
+
+  static myUndefinedMethod() {
+  }
+}
+''');
+  }
+
+  void test_undefinedMethod_createUnqualified_staticFromMethod() {
+    _indexTestUnit('''
+class A {
+  static main() {
+    myUndefinedMethod();
+  }
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  static main() {
+    myUndefinedMethod();
+  }
+
+  static void myUndefinedMethod() {
+  }
+}
+''');
+  }
+
+  void test_undefinedMethod_hint_createQualified_fromInstance() {
+    _indexTestUnit('''
+class A {
+}
+main() {
+  var a = new A();
+  a.myUndefinedMethod();
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  void myUndefinedMethod() {
+  }
+}
+main() {
+  var a = new A();
+  a.myUndefinedMethod();
+}
+''');
   }
 
   void test_useEffectiveIntegerDivision() {
@@ -1092,6 +1427,30 @@ main() {
     throw fail('Expected to find fix $kind in\n${fixes.join('\n')}');
   }
 
+  void _assertHasLinkedPositions(String groupId, List<String> expectedStrings) {
+    List<Position> expectedPositions = _findResultPositions(expectedStrings);
+    List<LinkedPositionGroup> groups = change.linkedPositionGroups;
+    for (LinkedPositionGroup group in groups) {
+      if (group.id == groupId) {
+        List<Position> actualPositions = group.positions;
+        expect(actualPositions, unorderedEquals(expectedPositions));
+        return;
+      }
+    }
+    fail('No group with ID=$groupId foind in\n${groups.join('\n')}');
+  }
+
+  void _assertHasLinkedProposals(String groupId, List<String> expected) {
+    List<LinkedPositionGroup> groups = change.linkedPositionGroups;
+    for (LinkedPositionGroup group in groups) {
+      if (group.id == groupId) {
+        expect(group.proposals, expected);
+        return;
+      }
+    }
+    fail('No group with ID=$groupId foind in\n${groups.join('\n')}');
+  }
+
   AnalysisError _findErrorToFix() {
     List<AnalysisError> errors = context.computeErrors(testSource);
     expect(
@@ -1100,6 +1459,16 @@ main() {
         reason: 'Exactly 1 error expected, but ${errors.length} found:\n' +
             errors.join('\n'));
     return errors[0];
+  }
+
+  List<Position> _findResultPositions(List<String> searchStrings) {
+    List<Position> positions = <Position>[];
+    for (String search in searchStrings) {
+      int offset = resultCode.indexOf(search);
+      int length = getLeadingIdentifierLength(search);
+      positions.add(new Position(testFile, offset, length));
+    }
+    return positions;
   }
 
   void _indexTestUnit(String code) {
