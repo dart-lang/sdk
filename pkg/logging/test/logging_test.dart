@@ -418,5 +418,43 @@ main() {
             'WARNING: 9',
             'SHOUT: 10']));
     });
+
+    test('message logging - lazy functions', () {
+      root.level = Level.INFO;
+      var messages = [];
+      root.onRecord.listen((record) {
+        messages.add('${record.level}: ${record.message}');
+      });
+
+      var callCount = 0;
+      var myClosure = () => "${++callCount}";
+
+      root.info(myClosure);
+      root.finer(myClosure);  // Should not get evaluated.
+      root.warning(myClosure);
+
+      expect(messages, equals([
+          'INFO: 1',
+          'WARNING: 2',]));
+    });
+
+    test('message logging - calls toString', () {
+      root.level = Level.INFO;
+      var messages = [];
+      root.onRecord.listen((record) {
+        messages.add('${record.level}: ${record.message}');
+      });
+
+      root.info(5);
+      root.info(false);
+      root.info([1, 2, 3]);
+      root.info(() => 10);
+
+      expect(messages, equals([
+          'INFO: 5',
+          'INFO: false',
+          'INFO: [1, 2, 3]',
+          'INFO: 10',]));
+    });
   });
 }

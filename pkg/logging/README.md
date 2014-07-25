@@ -39,4 +39,11 @@ var future = doSomethingAsync().then((result) {
 }).catchError((e, stackTrace) => log.severe('Oh noes!', e, stackTrace));
 ```
 
+When logging more complex messages, you can pass a closure instead
+that will be evaluated only if the message is actually logged:
+
+```dart
+  log.fine(() => [1, 2, 3, 4, 5].map((e) => e * 4).join("-"));
+```
+
 See the [Logger] class for the different logging methods.

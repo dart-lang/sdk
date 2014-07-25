@@ -134,10 +134,18 @@ class Logger {
    * Use this method to create log entries for user-defined levels. To record a
    * message at a predefined level (e.g. [Level.INFO], [Level.WARNING], etc) you
    * can use their specialized methods instead (e.g. [info], [warning], etc).
+   *
+   * If [message] is a [Function], it will be lazy evaluated. Additionally, if
+   * [message] or its evaluated value is not a [String], then 'toString()' will
+   * be called on it and the result will be logged.
    */
-  void log(Level logLevel, String message, [Object error,
-                                            StackTrace stackTrace]) {
+  void log(Level logLevel, message, [Object error, StackTrace stackTrace]) {
     if (isLoggable(logLevel)) {
+      // If message is a Function, evaluate it.
+      if (message is Function) message = message();
+      // If message is still not a String, call toString().
+      if (message is! String) message = message.toString();
+
       var record = new LogRecord(logLevel, message, fullName, error,
           stackTrace);
 
@@ -154,35 +162,35 @@ class Logger {
   }
 
   /** Log message at level [Level.FINEST]. */
-  void finest(String message, [Object error, StackTrace stackTrace]) =>
+  void finest(message, [Object error, StackTrace stackTrace]) =>
       log(Level.FINEST, message, error, stackTrace);
 
   /** Log message at level [Level.FINER]. */
-  void finer(String message, [Object error, StackTrace stackTrace]) =>
+  void finer(message, [Object error, StackTrace stackTrace]) =>
       log(Level.FINER, message, error, stackTrace);
 
   /** Log message at level [Level.FINE]. */
-  void fine(String message, [Object error, StackTrace stackTrace]) =>
+  void fine(message, [Object error, StackTrace stackTrace]) =>
       log(Level.FINE, message, error, stackTrace);
 
   /** Log message at level [Level.CONFIG]. */
-  void config(String message, [Object error, StackTrace stackTrace]) =>
+  void config(message, [Object error, StackTrace stackTrace]) =>
       log(Level.CONFIG, message, error, stackTrace);
 
   /** Log message at level [Level.INFO]. */
-  void info(String message, [Object error, StackTrace stackTrace]) =>
+  void info(message, [Object error, StackTrace stackTrace]) =>
       log(Level.INFO, message, error, stackTrace);
 
   /** Log message at level [Level.WARNING]. */
-  void warning(String message, [Object error, StackTrace stackTrace]) =>
+  void warning(message, [Object error, StackTrace stackTrace]) =>
       log(Level.WARNING, message, error, stackTrace);
 
   /** Log message at level [Level.SEVERE]. */
-  void severe(String message, [Object error, StackTrace stackTrace]) =>
+  void severe(message, [Object error, StackTrace stackTrace]) =>
       log(Level.SEVERE, message, error, stackTrace);
 
   /** Log message at level [Level.SHOUT]. */
-  void shout(String message, [Object error, StackTrace stackTrace]) =>
+  void shout(message, [Object error, StackTrace stackTrace]) =>
       log(Level.SHOUT, message, error, stackTrace);
 
   Stream<LogRecord> _getStream() {
