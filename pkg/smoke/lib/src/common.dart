@@ -84,10 +84,22 @@ bool compareLists(List a, List b, {bool unordered: false}) {
   if (a != null && b == null) return false;
   if (a.length != b.length) return false;
   if (unordered) {
-    var bSet = new Set()..addAll(b);
-    for (int i = 0; i < a.length; i++) {
-      if (!bSet.contains(a[i])) return false;
+    var countMap = {};
+    for (var x in b) {
+      var count = countMap[x];
+      if (count == null) count = 0;
+      countMap[x] = count + 1;
     }
+    for (var x in a) {
+      var count = countMap[x];
+      if (count == null) return false;
+      if (count == 1) {
+        countMap.remove(x);
+      } else {
+        countMap[x] = count - 1;
+      }
+    }
+    return countMap.isEmpty;
   } else {
     for (int i = 0; i < a.length; i++) {
       if (a[i] != b[i]) return false;
