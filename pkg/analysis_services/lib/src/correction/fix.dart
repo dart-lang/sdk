@@ -37,6 +37,8 @@ typedef bool Predicate<E>(E argument);
  * The computer for Dart fixes.
  */
 class FixProcessor {
+  static const int MAX_LEVENSHTEIN_DISTANCE = 3;
+
   final SearchEngine searchEngine;
   final Source source;
   final String file;
@@ -1029,7 +1031,10 @@ class FixProcessor {
     if (_mayBeTypeIdentifier(node)) {
       String name = (node as SimpleIdentifier).name;
       _ClosestElementFinder finder =
-          new _ClosestElementFinder(name, (Element element) => element is ClassElement);
+          new _ClosestElementFinder(
+              name,
+              (Element element) => element is ClassElement,
+              MAX_LEVENSHTEIN_DISTANCE);
       // find closest element
       {
         // elements of this library
@@ -1045,7 +1050,7 @@ class FixProcessor {
         }
       }
       // if we have close enough element, suggest to use it
-      if (finder != null && finder._distance < 5) {
+      if (finder._element != null) {
         String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);
         // add proposal
@@ -1107,7 +1112,8 @@ class FixProcessor {
       _ClosestElementFinder finder =
           new _ClosestElementFinder(
               name,
-              (Element element) => element is FunctionElement);
+              (Element element) => element is FunctionElement,
+              MAX_LEVENSHTEIN_DISTANCE);
       // this library
       for (CompilationUnitElement unit in unitLibraryElement.units) {
         finder._updateList(unit.functions);
@@ -1120,9 +1126,8 @@ class FixProcessor {
         }
       }
       // if we have close enough element, suggest to use it
-      String closestName = null;
-      if (finder != null && finder._distance < 5) {
-        closestName = finder._element.name;
+      if (finder._element != null) {
+        String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);
         _addFix(FixKind.CHANGE_TO, [closestName]);
       }
@@ -1247,9 +1252,10 @@ class FixProcessor {
       MethodInvocation invocation = node.parent as MethodInvocation;
       String name = (node as SimpleIdentifier).name;
       _ClosestElementFinder finder =
-          new _ClosestElementFinder(name, (Element element) {
-        return element is MethodElement && !element.isOperator;
-      });
+          new _ClosestElementFinder(
+              name,
+              (Element element) => element is MethodElement && !element.isOperator,
+              MAX_LEVENSHTEIN_DISTANCE);
       // unqualified invocation
       Expression target = invocation.realTarget;
       if (target == null) {
@@ -1267,9 +1273,8 @@ class FixProcessor {
         }
       }
       // if we have close enough element, suggest to use it
-      String closestName = null;
-      if (finder != null && finder._distance < 5) {
-        closestName = finder._element.name;
+      if (finder._element != null) {
+        String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);
         _addFix(FixKind.CHANGE_TO, [closestName]);
       }
@@ -1923,13 +1928,13 @@ class _ClosestElementFinder {
   final Predicate<Element> _predicate;
 
   Element _element = null;
-  int _distance = 1 << 10;
+  int _distance;
 
-  _ClosestElementFinder(this._targetName, this._predicate);
+  _ClosestElementFinder(this._targetName, this._predicate, this._distance);
 
   void _update(Element element) {
     if (_predicate(element)) {
-      int memberDistance = getLevenshteinDistance(element.name, _targetName);
+      int memberDistance = levenshtein(element.name, _targetName, _distance);
       if (memberDistance < _distance) {
         _element = element;
         _distance = memberDistance;

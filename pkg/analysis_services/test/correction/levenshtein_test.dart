@@ -8,24 +8,64 @@
 library test.services.correction.levenshtein;
 
 import 'package:analysis_services/src/correction/levenshtein.dart';
+import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 
 main() {
   groupSep = ' | ';
-  test('getLevenshteinDistance', () {
-    expect(getLevenshteinDistance('test', 'test'), equals(0));
-    expect(getLevenshteinDistance('String', 'Stirng'), equals(2));
-    expect(getLevenshteinDistance('', ''), equals(0));
-    expect(getLevenshteinDistance('kitten', 'sitting'), equals(3));
-    expect(getLevenshteinDistance('Saturday', 'Sunday'), equals(3));
-    expect(
-        getLevenshteinDistance('Saturday', 'sunday', caseSensitive: false),
-        equals(3));
-    expect(
-        getLevenshteinDistance('SaturDay', 'sunday', caseSensitive: false),
-        equals(3));
-    expect(getLevenshteinDistance('', 'fewfe'), equals(5));
-    expect(getLevenshteinDistance('fewfe', ''), equals(5));
-  });
+  runReflectiveTests(LevenshteinTest);
+}
+
+@ReflectiveTestCase()
+class LevenshteinTest {
+  void test_different_caseInsensitive() {
+    expect(levenshtein('Saturday', 'sunday', 5, caseSensitive: false), 3);
+    expect(levenshtein('SaturDay', 'sunday', 5, caseSensitive: false), 3);
+  }
+
+  void test_different_onThreshold() {
+    expect(levenshtein('', 'abcde', 5), 5);
+    expect(levenshtein('abcde', '', 5), 5);
+  }
+
+  void test_different_overThreshold() {
+    expect(levenshtein('', 'abcde', 2), LEVENSHTEIN_MAX);
+    expect(levenshtein('abcde', '', 2), LEVENSHTEIN_MAX);
+  }
+
+  void test_different_overThreshold_length() {
+    expect(levenshtein('a', 'abcdefgh', 5), LEVENSHTEIN_MAX);
+    expect(levenshtein('abcdefgh', 'a', 5), LEVENSHTEIN_MAX);
+  }
+
+  void test_different_underThreshold() {
+    expect(levenshtein('String', 'Stirng', 5), 2);
+    expect(levenshtein('kitten', 'sitting', 5), 3);
+    expect(levenshtein('Saturday', 'Sunday', 5), 3);
+  }
+
+  void test_negativeThreshold() {
+    expect(() {
+      levenshtein('', '', -5);
+    }, throws);
+  }
+
+  void test_null() {
+    expect(() {
+      levenshtein('', null, 5);
+    }, throws);
+    expect(() {
+      levenshtein(null, '', 5);
+    }, throws);
+  }
+
+  void test_same() {
+    expect(levenshtein('', '', 5), 0);
+    expect(levenshtein('test', 'test', 5), 0);
+  }
+
+  void test_same_caseInsensitive() {
+    expect(levenshtein('test', 'Test', 5, caseSensitive: false), 0);
+  }
 }
