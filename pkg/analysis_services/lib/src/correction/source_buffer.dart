@@ -26,6 +26,10 @@ class SourceBuilder {
 
   SourceBuilder(this.file, this.offset);
 
+  SourceBuilder.buffer() : file = null, offset = 0;
+
+  int get length => _buffer.length;
+
   void addProposal(String proposal) {
     // TODO(scheglov) implement
 //    _currentPositionGroup.addProposal();

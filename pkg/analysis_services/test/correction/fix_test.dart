@@ -59,7 +59,7 @@ class FixProcessorTest extends AbstractSingleUnitTest {
 
   void assertNoFix(FixKind kind) {
     AnalysisError error = _findErrorToFix();
-    List<Fix> fixes = computeFixes(searchEngine, testFile, testUnit, error);
+    List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
     for (Fix fix in fixes) {
       if (fix.kind == kind) {
         throw fail('Unexpected fix $kind in\n${fixes.join('\n')}');
@@ -242,6 +242,94 @@ class B extends A {
     assertNoFix(FixKind.ADD_SUPER_CONSTRUCTOR_INVOCATION);
   }
 
+  void test_createConstructorSuperImplicit() {
+    _indexTestUnit('''
+class A {
+  A(p1, int p2, List<String> p3, [int p4]);
+}
+class B extends A {
+  int existingField;
+
+  void existingMethod() {}
+}
+''');
+    assertHasFix(FixKind.CREATE_CONSTRUCTOR_SUPER, '''
+class A {
+  A(p1, int p2, List<String> p3, [int p4]);
+}
+class B extends A {
+  int existingField;
+
+  B(p1, int p2, List<String> p3) : super(p1, p2, p3);
+
+  void existingMethod() {}
+}
+''');
+  }
+
+  void test_createConstructorSuperImplicit_fieldInitializer() {
+    _indexTestUnit('''
+class A {
+  int _field;
+  A(this._field);
+}
+class B extends A {
+  int existingField;
+
+  void existingMethod() {}
+}
+''');
+    assertHasFix(FixKind.CREATE_CONSTRUCTOR_SUPER, '''
+class A {
+  int _field;
+  A(this._field);
+}
+class B extends A {
+  int existingField;
+
+  B(int field) : super(field);
+
+  void existingMethod() {}
+}
+''');
+  }
+
+  void test_createConstructorSuperImplicit_named() {
+    _indexTestUnit('''
+class A {
+  A.named(p1, int p2);
+}
+class B extends A {
+  int existingField;
+
+  void existingMethod() {}
+}
+''');
+    assertHasFix(FixKind.CREATE_CONSTRUCTOR_SUPER, '''
+class A {
+  A.named(p1, int p2);
+}
+class B extends A {
+  int existingField;
+
+  B.named(p1, int p2) : super.named(p1, p2);
+
+  void existingMethod() {}
+}
+''');
+  }
+
+  void test_createConstructorSuperImplicit_private() {
+    _indexTestUnit('''
+class A {
+  A._named(p);
+}
+class B extends A {
+}
+''');
+    assertNoFix(FixKind.CREATE_CONSTRUCTOR_SUPER);
+  }
+
   void test_createConstructor_insteadOfSyntheticDefault() {
     _indexTestUnit('''
 class A {
@@ -288,6 +376,455 @@ main() {
   new A.named(1, 2.0);
 }
 ''');
+  }
+
+  void test_createMissingOverrides_functionType() {
+    _indexTestUnit('''
+abstract class A {
+  forEach(int f(double p1, String p2));
+}
+
+class B extends A {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A {
+  forEach(int f(double p1, String p2));
+}
+
+class B extends A {
+  @override
+  forEach(int f(double p1, String p2)) {
+    // TODO: implement forEach
+  }
+}
+''');
+  }
+
+  void test_createMissingOverrides_generics() {
+    _indexTestUnit('''
+class Iterator<T> {
+}
+
+abstract class IterableMixin<T> {
+  Iterator<T> get iterator;
+}
+
+class Test extends IterableMixin<int> {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+class Iterator<T> {
+}
+
+abstract class IterableMixin<T> {
+  Iterator<T> get iterator;
+}
+
+class Test extends IterableMixin<int> {
+  // TODO: implement iterator
+  @override
+  Iterator<int> get iterator => null;
+}
+''');
+  }
+
+  void test_createMissingOverrides_getter() {
+    _indexTestUnit('''
+abstract class A {
+  get g1;
+  int get g2;
+}
+
+class B extends A {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A {
+  get g1;
+  int get g2;
+}
+
+class B extends A {
+  // TODO: implement g1
+  @override
+  get g1 => null;
+
+  // TODO: implement g2
+  @override
+  int get g2 => null;
+}
+''');
+  }
+
+  void test_createMissingOverrides_importPrefix() {
+    _indexTestUnit('''
+import 'dart:async' as aaa;
+abstract class A {
+  Map<aaa.Future, List<aaa.Future>> g(aaa.Future p);
+}
+
+class B extends A {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+import 'dart:async' as aaa;
+abstract class A {
+  Map<aaa.Future, List<aaa.Future>> g(aaa.Future p);
+}
+
+class B extends A {
+  @override
+  Map<aaa.Future, List<aaa.Future>> g(aaa.Future p) {
+    // TODO: implement g
+  }
+}
+''');
+  }
+
+  void test_createMissingOverrides_method() {
+    _indexTestUnit('''
+abstract class A {
+  m1();
+  int m2();
+  String m3(int p1, double p2, Map<int, List<String>> p3);
+  String m4(p1, p2);
+  String m5(p1, [int p2 = 2, int p3, p4 = 4]);
+  String m6(p1, {int p2: 2, int p3, p4: 4});
+}
+
+class B extends A {
+}
+''');
+    String expectedCode = '''
+abstract class A {
+  m1();
+  int m2();
+  String m3(int p1, double p2, Map<int, List<String>> p3);
+  String m4(p1, p2);
+  String m5(p1, [int p2 = 2, int p3, p4 = 4]);
+  String m6(p1, {int p2: 2, int p3, p4: 4});
+}
+
+class B extends A {
+  @override
+  m1() {
+    // TODO: implement m1
+  }
+
+  @override
+  int m2() {
+    // TODO: implement m2
+  }
+
+  @override
+  String m3(int p1, double p2, Map<int, List<String>> p3) {
+    // TODO: implement m3
+  }
+
+  @override
+  String m4(p1, p2) {
+    // TODO: implement m4
+  }
+
+  @override
+  String m5(p1, [int p2 = 2, int p3, p4 = 4]) {
+    // TODO: implement m5
+  }
+
+  @override
+  String m6(p1, {int p2: 2, int p3, p4: 4}) {
+    // TODO: implement m6
+  }
+}
+''';
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, expectedCode);
+    // end position should be on "m1", not on "m2", "m3", etc
+    {
+      Position endPosition = change.endPosition;
+      expect(endPosition, isNotNull);
+      expect(endPosition.file, testFile);
+      int endOffset = endPosition.offset;
+      String endString = expectedCode.substring(endOffset, endOffset + 25);
+      expect(endString, contains('m1'));
+      expect(endString, isNot(contains('m2')));
+      expect(endString, isNot(contains('m3')));
+      expect(endString, isNot(contains('m4')));
+      expect(endString, isNot(contains('m5')));
+      expect(endString, isNot(contains('m6')));
+    }
+  }
+
+  void test_createMissingOverrides_operator() {
+    _indexTestUnit('''
+abstract class A {
+  int operator [](int index);
+  void operator []=(int index, String value);
+}
+
+class B extends A {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A {
+  int operator [](int index);
+  void operator []=(int index, String value);
+}
+
+class B extends A {
+  @override
+  int operator [](int index) {
+    // TODO: implement []
+  }
+
+  @override
+  void operator []=(int index, String value) {
+    // TODO: implement []=
+  }
+}
+''');
+  }
+
+  void test_createMissingOverrides_setter() {
+    _indexTestUnit('''
+abstract class A {
+  set s1(x);
+  set s2(int x);
+  void set s3(String x);
+}
+
+class B extends A {
+}
+''');
+    assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class A {
+  set s1(x);
+  set s2(int x);
+  void set s3(String x);
+}
+
+class B extends A {
+  @override
+  set s1(x) {
+    // TODO: implement s1
+  }
+
+  @override
+  set s2(int x) {
+    // TODO: implement s2
+  }
+
+  @override
+  void set s3(String x) {
+    // TODO: implement s3
+  }
+}
+''');
+  }
+
+  void test_createNoSuchMethod() {
+    _indexTestUnit('''
+abstract class A {
+  m1();
+  int m2();
+}
+
+class B extends A {
+  existing() {}
+}
+''');
+    assertHasFix(FixKind.CREATE_NO_SUCH_METHOD, '''
+abstract class A {
+  m1();
+  int m2();
+}
+
+class B extends A {
+  existing() {}
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_cascadeSecond() {
+    _indexTestUnit('''
+class A {
+  B ma() => null;
+}
+class B {
+  useFunction(int g(double a, String b)) {}
+}
+
+main() {
+  A a = new A();
+  a..ma().useFunction(test);
+}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+class A {
+  B ma() => null;
+}
+class B {
+  useFunction(int g(double a, String b)) {}
+}
+
+main() {
+  A a = new A();
+  a..ma().useFunction(test);
+}
+
+int test(double a, String b) {
+}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_dynamicArgument() {
+    _indexTestUnit('''
+main() {
+  useFunction(test);
+}
+useFunction(int g(a, b)) {}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  useFunction(test);
+}
+useFunction(int g(a, b)) {}
+
+int test(a, b) {
+}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_function() {
+    _indexTestUnit('''
+main() {
+  useFunction(test);
+}
+useFunction(int g(double a, String b)) {}
+''');
+    assertHasFix(FixKind.CREATE_FUNCTION, '''
+main() {
+  useFunction(test);
+}
+useFunction(int g(double a, String b)) {}
+
+int test(double a, String b) {
+}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_method_enclosingClass_static() {
+    _indexTestUnit('''
+class A {
+  static foo() {
+    useFunction(test);
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  static foo() {
+    useFunction(test);
+  }
+
+  static int test(double a, String b) {
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_method_enclosingClass_static2() {
+    _indexTestUnit('''
+class A {
+  var f;
+  A() : f = useFunction(test);
+}
+useFunction(int g(double a, String b)) {}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  var f;
+  A() : f = useFunction(test);
+
+  static int test(double a, String b) {
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_method_targetClass() {
+    _indexTestUnit('''
+main(A a) {
+  useFunction(a.test);
+}
+class A {
+}
+useFunction(int g(double a, String b)) {}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+main(A a) {
+  useFunction(a.test);
+}
+class A {
+  int test(double a, String b) {
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  void
+      test_creationFunction_forFunctionType_method_targetClass_hasOtherMember() {
+    _indexTestUnit('''
+main(A a) {
+  useFunction(a.test);
+}
+class A {
+  m() {}
+}
+useFunction(int g(double a, String b)) {}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+main(A a) {
+  useFunction(a.test);
+}
+class A {
+  m() {}
+
+  int test(double a, String b) {
+  }
+}
+useFunction(int g(double a, String b)) {}
+''');
+  }
+
+  void test_creationFunction_forFunctionType_notFunctionType() {
+    _indexTestUnit('''
+main(A a) {
+  useFunction(a.test);
+}
+typedef A();
+useFunction(g) {}
+''');
+    assertNoFix(FixKind.CREATE_METHOD);
+    assertNoFix(FixKind.CREATE_FUNCTION);
+  }
+
+  void test_creationFunction_forFunctionType_unknownTarget() {
+    _indexTestUnit('''
+main(A a) {
+  useFunction(a.test);
+}
+class A {
+}
+useFunction(g) {}
+''');
+    assertNoFix(FixKind.CREATE_METHOD);
   }
 
   void test_expectedToken_semicolon() {
@@ -465,6 +1002,56 @@ const a = const A();
 ''');
   }
 
+  void test_undefinedMethod_createQualified_fromClass() {
+    _indexTestUnit('''
+class A {
+}
+main() {
+  A.myUndefinedMethod();
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  static void myUndefinedMethod() {
+  }
+}
+main() {
+  A.myUndefinedMethod();
+}
+''');
+  }
+
+  void test_undefinedMethod_createQualified_fromClass_hasOtherMember() {
+    _indexTestUnit('''
+class A {
+  foo() {}
+}
+main() {
+  A.myUndefinedMethod();
+}
+''');
+    assertHasFix(FixKind.CREATE_METHOD, '''
+class A {
+  foo() {}
+
+  static void myUndefinedMethod() {
+  }
+}
+main() {
+  A.myUndefinedMethod();
+}
+''');
+  }
+
+  void test_undefinedMethod_createQualified_fromClass_unresolved() {
+    _indexTestUnit('''
+main() {
+  NoSuchClass.myUndefinedMethod();
+}
+''');
+    assertNoFix(FixKind.CREATE_METHOD);
+  }
+
   void test_useEffectiveIntegerDivision() {
     _indexTestUnit('''
 main() {
@@ -496,7 +1083,7 @@ main() {
    * Computes fixes and verifies that there is a fix of the given kind.
    */
   Fix _assertHasFix(FixKind kind, AnalysisError error) {
-    List<Fix> fixes = computeFixes(searchEngine, testFile, testUnit, error);
+    List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
     for (Fix fix in fixes) {
       if (fix.kind == kind) {
         return fix;

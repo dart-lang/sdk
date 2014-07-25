@@ -117,7 +117,7 @@ main() {
     engine.AnalysisErrorInfo errors = context.getErrors(testSource);
     engine.AnalysisError engineError = errors.errors[0];
     List<services.Fix> servicesFixes =
-        services.computeFixes(searchEngine, testFile, testUnit, engineError);
+        services.computeFixes(searchEngine, testUnit, engineError);
     AnalysisError error =
         new AnalysisError.fromEngine(errors.lineInfo, engineError);
     ErrorFixes fixes = new ErrorFixes(error);

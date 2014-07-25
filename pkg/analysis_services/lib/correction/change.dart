@@ -37,6 +37,11 @@ class Change implements HasToJson {
   final List<LinkedPositionGroup> linkedPositionGroups = <LinkedPositionGroup>[
       ];
 
+  /**
+   * An optional position to move selection to after applying this change.
+   */
+  Position endPosition;
+
   Change(this.message);
 
   /**
