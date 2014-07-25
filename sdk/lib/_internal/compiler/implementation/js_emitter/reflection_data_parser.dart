@@ -27,7 +27,6 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
   String reflectionInfoField = r'$reflectionInfo';
   String reflectionNameField = r'$reflectionName';
   String metadataIndexField = r'$metadataIndex';
-  String redirectionTargetNameIndex = r'$redirectionTargetIndex';
 
   String defaultValuesField = namer.defaultValuesField;
   String methodsWithOptionalArgumentsField =
@@ -182,14 +181,6 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
       }
       var mangledNames = isStatic ? init.mangledGlobalNames : init.mangledNames;
       var unmangledName = ${readString("array", "unmangledNameIndex")};
-      var metadataIndex = unmangledNameIndex + 1;
-
-      if (unmangledName.substring(0, 6) == "new-> ") {
-        // Redirecting constructor.
-        funcs[0].$redirectionTargetNameIndex = metadataIndex;
-        metadataIndex++;
-        unmangledName = "new " + unmangledName.substring(6);
-      }
       // The function is either a getter, a setter, or a method.
       // If it is a method, it might also have a tear-off closure.
       // The unmangledName is the same as the getter-name.
@@ -203,7 +194,7 @@ jsAst.Expression getReflectionDataParser(String classesCollector,
       }
       mangledNames[name] = reflectionName;
       funcs[0].$reflectionNameField = reflectionName;
-      funcs[0].$metadataIndexField = metadataIndex;
+      funcs[0].$metadataIndexField = unmangledNameIndex + 1;
       if (optionalParameterCount) descriptor[unmangledName + "*"] = funcs[0];
     }
   }

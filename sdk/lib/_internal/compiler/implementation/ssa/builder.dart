@@ -2176,25 +2176,9 @@ class SsaBuilder extends ResolvedVisitor {
             return;
           }
         }
-        HInstruction newParameter =
-            localsHandler.directLocals[parameterElement];
-        if (!element.isConstructor ||
-            !(element as ConstructorElement).isRedirectingFactory) {
-          // Redirection factories must not check their argument types.
-          // Example:
-          //
-          //     class A {
-          //       A(String foo) = A.b;
-          //       A(int foo) { print(foo); }
-          //     }
-          //     main() {
-          //       new A(499);    // valid even in checked mode.
-          //       new A("foo");  // invalid in checked mode.
-          //
-          // Only the final target is allowed to check for the argument types.
-          newParameter =
-              potentiallyCheckType(newParameter, parameterElement.type);
-        }
+        HInstruction newParameter = potentiallyCheckType(
+            localsHandler.directLocals[parameterElement],
+            parameterElement.type);
         localsHandler.directLocals[parameterElement] = newParameter;
       });
 

@@ -4,10 +4,6 @@
 
 part of _interceptors;
 
-class ListConstructorSentinel {
-  const ListConstructorSentinel();
-}
-
 /**
  * The interceptor class for [List]. The compiler recognizes this
  * class as an interceptor, and changes references to [:this:] to

@@ -529,33 +529,17 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
     if (canBeReflected) {
       jsAst.LiteralString reflectionName;
-      jsAst.LiteralString redirectionTarget = null;
       if (member.isConstructor) {
-        ConstructorElement constructor = member;
-        // TODO(floitsch): is the call to getReflectionName necessary for its
-        // side effect? The variable `reflectionNameString` itself is unused.
         String reflectionNameString = task.getReflectionName(member, name);
-        if (constructor.isRedirectingFactory) {
-          reflectionName =
-              new jsAst.LiteralString(
-                  '"new-> ${Elements.reconstructConstructorName(member)}"');
-          ConstructorElement effectiveTarget = constructor.effectiveTarget;
-          Element targetClass = effectiveTarget.enclosingClass;
-          String constructorName = effectiveTarget.name;
-          redirectionTarget = js.string("${namer.getNameOfClass(targetClass)}\$"
-                                        "$constructorName");
-        } else {
-          reflectionName =
-              new jsAst.LiteralString(
-                  '"new ${Elements.reconstructConstructorName(member)}"');
-        }
+        reflectionName =
+            new jsAst.LiteralString(
+                '"new ${Elements.reconstructConstructorName(member)}"');
       } else {
         reflectionName = js.string(member.name);
       }
-      expressions.add(reflectionName);
-      if (redirectionTarget != null) expressions.add(redirectionTarget);
-      expressions.addAll(
-          task.metadataEmitter.computeMetadata(member).map(js.number));
+      expressions
+          ..add(reflectionName)
+          ..addAll(task.metadataEmitter.computeMetadata(member).map(js.number));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(member.name));
     }
