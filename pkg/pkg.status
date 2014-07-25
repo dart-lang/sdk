@@ -49,7 +49,6 @@ polymer/test/register_test: Pass, RuntimeError # Issue 18931
 polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
 polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
 polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 18931
-pool/*: Skip # Issue 20192
 web_components/test/interop_test: Pass, RuntimeError # Issue 18931
 
 [ $compiler == none && ($runtime == dartium) && $mode == debug ]
