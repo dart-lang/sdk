@@ -455,10 +455,7 @@ class ResolverTask extends CompilerTask {
             originParameter.parseNode(compiler).toString();
         String patchParameterText =
             patchParameter.parseNode(compiler).toString();
-        if (originParameterText != patchParameterText
-            // We special case the list constructor because of the
-            // optional parameter.
-            && origin != compiler.unnamedListConstructor) {
+        if (originParameterText != patchParameterText) {
           compiler.reportError(
               originParameter.parseNode(compiler),
               MessageKind.PATCH_PARAMETER_MISMATCH,

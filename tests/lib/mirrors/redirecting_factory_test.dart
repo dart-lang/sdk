@@ -84,13 +84,13 @@ main() {
   Expect.isTrue(instanceMirror.reflectee is Class<String, String>);
   Expect.isTrue(instanceMirror.reflectee is Class<int, String>);
 
-  bool isDart2js = false;
-  isDart2js = true; /// 01: ok
-  if (isDart2js) return;
-
   instanceMirror = classMirror.newInstance(
       #redirectingFactoryUnnamedOptional, [43]);
   Expect.equals(1, instanceMirror.reflectee.field);
+
+  bool isDart2js = false;
+  isDart2js = true; /// 01: ok
+  if (isDart2js) return;
 
   instanceMirror = classMirror.newInstance(
       #redirectingFactoryNamedOptional, [43]);

@@ -46,7 +46,8 @@ import 'dart:_interceptors' show
     Interceptor,
     JSArray,
     JSExtendableArray,
-    getInterceptor;
+    getInterceptor,
+    ListConstructorSentinel;
 
 import 'dart:_js_names';
 
@@ -426,12 +427,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
         // TODO(floitsch): Remove the getterStub hack.
         continue;
       }
-      bool isConstructor = unmangledName.startsWith('new ');
-      bool isStatic = !isConstructor; // Top-level functions are static, but
-                                      // constructors are not.
-      if (isConstructor) {
-        unmangledName = unmangledName.substring(4).replaceAll(r'$', '.');
-      }
+      bool isStatic = true;
+      bool isConstructor = false;
       JsMethodMirror mirror =
           new JsMethodMirror.fromUnmangledName(
               unmangledName, jsFunction, isStatic, isConstructor);
@@ -1422,6 +1419,9 @@ class JsTypeBoundClassMirror extends JsDeclarationMirror
     var instance = _class._getInvokedInstance(constructorName,
                                               positionalArguments,
                                               namedArguments);
+    // TODO(floitsch): setting the runtime information after having created
+    // a new instance is too late. The constructor might need the information,
+    // and redirecting constructors could also use it.
     return reflect(setRuntimeTypeInfo(
         instance, typeArguments.map((t) => t._asRuntimeType()).toList()));
   }
@@ -2360,13 +2360,49 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
       throw new NoSuchMethodError(
           owner, simpleName, positionalArguments, namedArguments);
     }
+
     if (positionalLength < _parameterCount) {
-      // Fill up with default values.
-      // Make a copy so we don't modify the input.
-      positionalArguments = positionalArguments.toList();
-      for (int i = positionalLength; i < parameters.length; i++) {
-        JsParameterMirror parameter = parameters[i];
-        positionalArguments.add(parameter.defaultValue.reflectee);
+      // We special case the List constructor here. We never include
+      // reflection information of our internal libraries, but in this case
+      // we would need it, to get the correct behavior for `new List()` and
+      // `new List(x)`;
+      if (positionalLength == 0 &&
+          isConstructor && this.constructorName == const Symbol('') &&
+          (this.owner as JsClassMirror)._jsConstructor ==
+          (reflectClass(List) as JsClassMirror)._jsConstructor) {
+        positionalArguments = [const ListConstructorSentinel()];
+      } else {
+        // Fill up with default values.
+        // Make a copy so we don't modify the input.
+        positionalArguments = positionalArguments.toList();
+
+        JsMethodMirror targetMethod = this;
+        // In case of a redirection target we must use the default values
+        // from the final target.
+        String redirectionTarget =
+            isConstructor ? extractRedirectionTarget(_jsFunction) : null;
+        if (redirectionTarget != null) {
+          int dollarIndex = redirectionTarget.indexOf("\$");
+          if (dollarIndex == -1) {
+            throw new RuntimeError('Could not extract redirection target');
+          }
+          String mangledClassName = redirectionTarget.substring(0, dollarIndex);
+          String constructorName = redirectionTarget.substring(dollarIndex + 1);
+          ClassMirror classMirror = reflectClassByMangledName(mangledClassName);
+          Symbol constructorSymbol;
+          if (constructorName == "") {
+            constructorSymbol = classMirror.simpleName;
+          } else {
+            constructorSymbol =
+                s('${n(classMirror.simpleName)}.$constructorName');
+          }
+          targetMethod = classMirror.declarations[constructorSymbol];
+        }
+        List targetParameters = targetMethod.parameters;
+        for (int i = positionalLength; i < targetParameters.length; i++) {
+          JsParameterMirror parameter = targetParameters[i];
+          positionalArguments.add(parameter.defaultValue.reflectee);
+        }
       }
     }
     // Using JS_CURRENT_ISOLATE() ('$') here is actually correct, although
@@ -2410,7 +2446,9 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   bool get isGenerativeConstructor => throw new UnimplementedError();
 
   // TODO(ahe): Implement this method.
-  bool get isRedirectingConstructor => throw new UnimplementedError();
+  bool get isRedirectingConstructor {
+    return extractRedirectionTarget(_jsFunction) != null;
+  }
 
   // TODO(ahe): Implement this method.
   bool get isFactoryConstructor => throw new UnimplementedError();
@@ -2761,19 +2799,23 @@ List extractMetadata(victim) {
   var metadataFunction = JS('', '#["@"]', victim);
   if (metadataFunction != null) return JS('', '#()', metadataFunction);
   if (JS('bool', 'typeof # != "function"', victim)) return const [];
-  if (JS('bool', '# in #', r'$metadataIndex', victim)) {
-    return JSArray.markFixedList(
-        JS('JSExtendableArray',
-           r'#.$reflectionInfo.splice(#.$metadataIndex)', victim, victim))
-        .map((int i) => getMetadata(i)).toList();
+  if (!JS('bool', '# in #', r'$metadataIndex', victim)) {
+    throw "Metadata not found";
   }
-  String source = JS('String', 'Function.prototype.toString.call(#)', victim);
-  int index = source.lastIndexOf(new RegExp('"[0-9,]*";?[ \n\r]*}'));
-  if (index == -1) return const [];
-  index++;
-  int endQuote = source.indexOf('"', index);
-  return source.substring(index, endQuote).split(',').map(int.parse).map(
-      (int i) => getMetadata(i)).toList();
+  return JSArray.markFixedList(
+      JS('JSExtendableArray',
+         r'#.$reflectionInfo.splice(#.$metadataIndex)', victim, victim))
+      .map((int i) => getMetadata(i)).toList();
+}
+
+String extractRedirectionTarget(victim) {
+  preserveMetadata();
+  if (JS('bool', 'typeof # != "function"', victim) ||
+      !JS('bool', '# in #', r'$redirectionTargetIndex', victim)) {
+    return null;
+  }
+  return JS("String", r"#.$reflectionInfo[#.$redirectionTargetIndex]",
+            victim, victim);
 }
 
 void parseCompactFieldSpecification(

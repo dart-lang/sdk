@@ -20,6 +20,7 @@ import '../dart2jslib.dart' show
 import '../elements/elements.dart' show
     TypeVariableElement,
     ConstructorBodyElement,
+    ConstructorElement,
     ParameterElement;
 
 import '../js/js.dart' show
