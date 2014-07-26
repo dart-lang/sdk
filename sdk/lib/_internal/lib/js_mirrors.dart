@@ -426,8 +426,12 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
         // TODO(floitsch): Remove the getterStub hack.
         continue;
       }
-      bool isStatic = true;
-      bool isConstructor = false;
+      bool isConstructor = unmangledName.startsWith('new ');
+      bool isStatic = !isConstructor; // Top-level functions are static, but
+                                      // constructors are not.
+      if (isConstructor) {
+        unmangledName = unmangledName.substring(4).replaceAll(r'$', '.');
+      }
       JsMethodMirror mirror =
           new JsMethodMirror.fromUnmangledName(
               unmangledName, jsFunction, isStatic, isConstructor);
