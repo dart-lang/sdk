@@ -99,7 +99,13 @@ analysis_services/test/index/store/codec_test: Pass, Slow
 http/test/html/client_test: Fail # Issue 19750
 scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
 json_rpc_2/test/server/server_test: Fail # Issue 19750
+shelf/test/log_middleware_test: Fail # Issue 19750
+
+[ $runtime == ff ]
 stack_trace/test/trace_test: Fail # Issue 19750
+http/test/html/client_test: Fail # Issue 19750
+scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
+json_rpc_2/test/server/server_test: Fail # Issue 19750
 shelf/test/log_middleware_test: Fail # Issue 19750
 
 [ $compiler == dart2js && $runtime == drt ]
