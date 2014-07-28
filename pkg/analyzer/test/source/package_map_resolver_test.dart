@@ -2,34 +2,63 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.resolver.package;
+library test.source.package_map_resolver;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/package_uri_resolver.dart';
-import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(_PackageMapUriResolverTest);
+  group('PackageMapUriResolverTest', () {
+    test('fromEncoding_nonPackage', () {
+      new _PackageMapUriResolverTest().test_fromEncoding_nonPackage();
+    });
+    test('fromEncoding_package', () {
+      new _PackageMapUriResolverTest().test_fromEncoding_package();
+    });
+    test('isPackageUri', () {
+      new _PackageMapUriResolverTest().test_isPackageUri();
+    });
+    test('isPackageUri_null_scheme', () {
+      new _PackageMapUriResolverTest().test_isPackageUri_null_scheme();
+    });
+    test('isPackageUri_other_scheme', () {
+      new _PackageMapUriResolverTest().test_isPackageUri_other_scheme();
+    });
+    test('resolve_multiple_folders', () {
+      new _PackageMapUriResolverTest().test_resolve_multiple_folders();
+    });
+    test('resolve_nonPackage', () {
+      new _PackageMapUriResolverTest().test_resolve_nonPackage();
+    });
+    test('resolve_OK', () {
+      new _PackageMapUriResolverTest().test_resolve_OK();
+    });
+    test('resolve_package_invalid_leadingSlash', () {
+      new _PackageMapUriResolverTest().test_resolve_package_invalid_leadingSlash();
+    });
+    test('resolve_package_invalid_noSlash', () {
+      new _PackageMapUriResolverTest().test_resolve_package_invalid_noSlash();
+    });
+    test('resolve_package_invalid_onlySlash', () {
+      new _PackageMapUriResolverTest().test_resolve_package_invalid_onlySlash();
+    });
+    test('resolve_package_notInMap', () {
+      new _PackageMapUriResolverTest().test_resolve_package_notInMap();
+    });
+  });
 }
 
 
-@ReflectiveTestCase()
 class _PackageMapUriResolverTest {
   static HashMap EMPTY_MAP = new HashMap<String, List<Folder>>();
   MemoryResourceProvider provider = new MemoryResourceProvider();
-
-  setUp() {
-  }
-
-  tearDown() {
-  }
 
   void test_fromEncoding_nonPackage() {
     UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);

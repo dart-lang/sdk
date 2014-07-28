@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library resolver.package;
+library source.package_map_resolver;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -81,7 +81,6 @@ class PackageMapUriResolver extends UriResolver {
     // Return a NonExistingSource instance.
     // This helps provide more meaningful error messages to users
     // (a missing file error, as opposed to an invalid URI error).
-    // TODO(scheglov) move NonExistingSource to "source.dart"
     return new NonExistingSource(uri.toString(), UriKind.PACKAGE_URI);
   }
 
