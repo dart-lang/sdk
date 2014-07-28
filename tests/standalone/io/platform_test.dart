@@ -30,7 +30,7 @@ test() {
   Directory.current = Directory.current.parent;
   Expect.isTrue(Platform.script.path.
                 endsWith('tests/standalone/io/platform_test.dart'));
-  Expect.isTrue(Platform.script.path.startsWith(oldDir.path));
+  Expect.isTrue(Platform.script.toFilePath().startsWith(oldDir.path));
   // Restore dir.
   Directory.current = oldDir;
   Directory packageRoot = new Directory(Platform.packageRoot);
