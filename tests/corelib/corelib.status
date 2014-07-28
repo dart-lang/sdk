@@ -42,7 +42,7 @@ symbol_reserved_word_test/01: CompileTimeError
 [ $compiler == none || $compiler == dart2js || $compiler == dart2dart || $compiler == dartanalyzer || $compiler == dart2analyzer ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 
 # new Symbol('void') should be allowed.
@@ -56,7 +56,7 @@ symbol_reserved_word_test/04: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/07: MissingCompileTimeError # bug 11669, 19972
 symbol_reserved_word_test/10: MissingCompileTimeError # bug 11669, 19972
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 symbol_reserved_word_test/04: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/07: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
 symbol_reserved_word_test/10: Fail # bug 11669, 19972 / dartium/drt cannot detect CompileTimeErrors
