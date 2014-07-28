@@ -4,8 +4,6 @@
 
 library socket.server;
 
-import 'dart:io' as io;
-
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -17,7 +15,6 @@ import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
-import 'package:path/path.dart' as pathos;
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_file_index.dart';
 
@@ -26,16 +23,7 @@ import 'package:analysis_services/index/local_file_index.dart';
  * Creates and runs an [Index].
  */
 Index _createIndex() {
-  String tempPath = io.Directory.systemTemp.path;
-  String indexPath = pathos.join(tempPath, 'AnalysisServer_index');
-  io.Directory indexDirectory = new io.Directory(indexPath);
-  if (indexDirectory.existsSync()) {
-    indexDirectory.deleteSync(recursive: true);
-  }
-  if (!indexDirectory.existsSync()) {
-    indexDirectory.createSync();
-  }
-  Index index = createLocalFileIndex(indexDirectory);
+  Index index = createLocalFileIndex();
   index.run();
   return index;
 }

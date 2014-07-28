@@ -118,7 +118,7 @@ class ServerDomainHandler implements RequestHandler {
    * Cleanly shutdown the analysis server.
    */
   Response shutdown(Request request) {
-    server.running = false;
+    server.shutdown();
     Response response = new Response(request.id);
     return response;
   }

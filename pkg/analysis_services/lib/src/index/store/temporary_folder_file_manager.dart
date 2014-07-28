@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.src.index.store.separate_file_mananer;
+library services.src.index.store.temporary_folder_file_mananer;
 
 import 'dart:async';
 import 'dart:io';
@@ -13,25 +13,26 @@ import 'package:path/path.dart' as pathos;
 
 /**
  * An implementation of [FileManager] that keeps each file in a separate file
- * system file.
+ * in a temporary folder.
  */
-class SeparateFileManager implements FileManager {
-  final Directory _directory;
+class TemporaryFolderFileManager implements FileManager {
+  Directory _directory;
 
-  SeparateFileManager(this._directory) {
-    clear();
-  }
+  Directory get test_directory => _directory;
 
   @override
   void clear() {
-    List<FileSystemEntity> entries = _directory.listSync();
-    for (FileSystemEntity entry in entries) {
-      entry.deleteSync(recursive: true);
+    if (_directory != null) {
+      _directory.deleteSync(recursive: true);
+      _directory = null;
     }
   }
 
   @override
   void delete(String name) {
+    if (_directory == null) {
+      return;
+    }
     File file = _getFile(name);
     try {
       file.deleteSync();
@@ -41,6 +42,9 @@ class SeparateFileManager implements FileManager {
 
   @override
   Future<List<int>> read(String name) {
+    if (_directory == null) {
+      return new Future.value(null);
+    }
     File file = _getFile(name);
     return file.readAsBytes().catchError((e) {
       return null;
@@ -49,7 +53,15 @@ class SeparateFileManager implements FileManager {
 
   @override
   Future write(String name, List<int> bytes) {
+    _ensureDirectory();
     return _getFile(name).writeAsBytes(bytes);
+  }
+
+  void _ensureDirectory() {
+    if (_directory == null) {
+      Directory temp = Directory.systemTemp;
+      _directory = temp.createTempSync('AnalysisServices_Index');
+    }
   }
 
   File _getFile(String name) {

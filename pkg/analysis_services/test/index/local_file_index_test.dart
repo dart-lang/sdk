@@ -4,8 +4,6 @@
 
 library test.services.src.index.local_file_index;
 
-import 'dart:io';
-
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_file_index.dart';
 import 'package:unittest/unittest.dart';
@@ -14,13 +12,8 @@ import 'package:unittest/unittest.dart';
 main() {
   groupSep = ' | ';
   test('createLocalFileIndex', () {
-    Directory indexDirectory = Directory.systemTemp.createTempSync(
-        'AnalysisServer_index');
-    try {
-    Index index = createLocalFileIndex(indexDirectory);
+    Index index = createLocalFileIndex();
     expect(index, isNotNull);
-    } finally {
-      indexDirectory.delete(recursive: true);
-    }
+    index.clear();
   });
 }

@@ -693,6 +693,14 @@ class AnalysisServer {
     }
   }
 
+  void shutdown() {
+    running = false;
+    if (index != null) {
+      index.clear();
+      index.stop();
+    }
+  }
+
   /**
    * Return the [CompilationUnit] of the Dart file with the given [path].
    * Return `null` if the file is not a part of any context.
