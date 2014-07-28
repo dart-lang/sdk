@@ -535,7 +535,7 @@ class TimeoutException implements Exception {
  * when you're converting a callback-based API into a Future-based
  * one — you can use a Completer as follows:
  *
- *     Class AsyncOperation {
+ *     class AsyncOperation {
  *       Completer _completer = new Completer();
  *
  *       Future<T> doOperation() {
