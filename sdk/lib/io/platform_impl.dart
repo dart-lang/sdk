@@ -28,7 +28,7 @@ class _Platform {
   static Uri script;
 
   // This script singleton is written to by the embedder if applicable.
-  static String set _nativeScript(String path) {
+  static void set _nativeScript(String path) {
     if (path.startsWith('http:') ||
         path.startsWith('https:') ||
         path.startsWith('file:')) {
