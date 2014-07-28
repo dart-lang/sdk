@@ -1008,6 +1008,9 @@ void main(int argc, char** argv) {
     exit(kErrorExitCode);
   }
 
+  // Start event handler.
+  EventHandler::Start();
+
   // Start the debugger wire protocol handler if necessary.
   if (start_debugger) {
     ASSERT(debug_port >= 0);
@@ -1017,9 +1020,6 @@ void main(int argc, char** argv) {
       Log::Print("Debugger listening on port %d\n", debug_port);
     }
   }
-
-  // Start event handler.
-  EventHandler::Start();
 
   ASSERT(Dart_CurrentIsolate() == NULL);
   // Start the VM service isolate, if necessary.

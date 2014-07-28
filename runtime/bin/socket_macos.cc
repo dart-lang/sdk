@@ -413,6 +413,12 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
 }
 
 
+bool ServerSocket::StartAccept(intptr_t fd) {
+  USE(fd);
+  return true;
+}
+
+
 intptr_t ServerSocket::Accept(intptr_t fd) {
   intptr_t socket;
   struct sockaddr clientaddr;

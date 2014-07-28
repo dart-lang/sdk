@@ -303,6 +303,10 @@ class ServerSocket {
                                    intptr_t backlog,
                                    bool v6_only = false);
 
+  // Start accepting on a newly created listening socket. If it was unable to
+  // start accepting incoming sockets, the fd is invalidated.
+  static bool StartAccept(intptr_t fd);
+
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);

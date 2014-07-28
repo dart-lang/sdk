@@ -378,7 +378,7 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   intptr_t socket = ServerSocket::CreateBindListen(
       addr, port, backlog, v6_only);
   OSError error;
-  if (socket >= 0) {
+  if (socket >= 0 && ServerSocket::StartAccept(socket)) {
     Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
     Dart_SetReturnValue(args, Dart_True());
   } else {
