@@ -900,8 +900,9 @@ class FixProcessor {
           }
         }
         // relative URI
-        String relateFile = relative(libraryFile, from: unitLibraryFolder);
-        _addFix_importLibrary(FixKind.IMPORT_LIBRARY_PROJECT, relateFile);
+        String relativeFile = relative(libraryFile, from: unitLibraryFolder);
+        relativeFile = split(relativeFile).join('/');
+        _addFix_importLibrary(FixKind.IMPORT_LIBRARY_PROJECT, relativeFile);
       }
     }
   }
