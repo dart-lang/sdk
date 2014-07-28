@@ -58,6 +58,36 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
 
 
 /**
+ * Returns a namespace of the given [ExportElement].
+ */
+Map<String, Element> getExportNamespaceForDirective(ExportElement exp) {
+  Namespace namespace =
+      new NamespaceBuilder().createExportNamespaceForDirective(exp);
+  return namespace.definedNames;
+}
+
+
+/**
+ * Returns a export namespace of the given [LibraryElement].
+ */
+Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
+  Namespace namespace =
+      new NamespaceBuilder().createExportNamespaceForLibrary(library);
+  return namespace.definedNames;
+}
+
+
+/**
+ * Returns an [Element] exported from the given [LibraryElement].
+ */
+Element getExportedElement(LibraryElement library, String name) {
+  if (library == null) {
+    return null;
+  }
+  return getExportNamespaceForLibrary(library)[name];
+}
+
+/**
  * Returns [getExpressionPrecedence] for the parent of [node],
  * or `0` if the parent node is [ParenthesizedExpression].
  *
@@ -81,7 +111,6 @@ int getExpressionPrecedence(AstNode node) {
   }
   return -1000;
 }
-
 
 /**
  * Returns the namespace of the given [ImportElement].
@@ -112,7 +141,6 @@ Expression getQualifiedPropertyTarget(AstNode node) {
   }
   return null;
 }
-
 
 /**
  * Returns the [String] content of the given [Source].
@@ -169,6 +197,122 @@ class CorrectionUtils {
   String getIndent(int level) => repeat('  ', level);
 
   /**
+   * Returns a [InsertDesc] describing where to insert a new library-related
+   * directive.
+   */
+  CorrectionUtils_InsertDesc getInsertDescImport() {
+    // analyze directives
+    Directive prevDirective = null;
+    for (Directive directive in unit.directives) {
+      if (directive is LibraryDirective ||
+          directive is ImportDirective ||
+          directive is ExportDirective) {
+        prevDirective = directive;
+      }
+    }
+    // insert after last library-related directive
+    if (prevDirective != null) {
+      CorrectionUtils_InsertDesc result = new CorrectionUtils_InsertDesc();
+      result.offset = prevDirective.end;
+      String eol = endOfLine;
+      if (prevDirective is LibraryDirective) {
+        result.prefix = "${eol}${eol}";
+      } else {
+        result.prefix = eol;
+      }
+      return result;
+    }
+    // no directives, use "top" location
+    return getInsertDescTop();
+  }
+
+  /**
+   * Returns a [InsertDesc] describing where to insert a new 'part' directive.
+   */
+  CorrectionUtils_InsertDesc getInsertDescPart() {
+    // analyze directives
+    Directive prevDirective = null;
+    for (Directive directive in unit.directives) {
+      prevDirective = directive;
+    }
+    // insert after last directive
+    if (prevDirective != null) {
+      CorrectionUtils_InsertDesc result = new CorrectionUtils_InsertDesc();
+      result.offset = prevDirective.end;
+      String eol = endOfLine;
+      if (prevDirective is PartDirective) {
+        result.prefix = eol;
+      } else {
+        result.prefix = "${eol}${eol}";
+      }
+      return result;
+    }
+    // no directives, use "top" location
+    return getInsertDescTop();
+  }
+
+  /**
+   * Returns a [InsertDesc] describing where to insert a new directive or a
+   * top-level declaration at the top of the file.
+   */
+  CorrectionUtils_InsertDesc getInsertDescTop() {
+    // skip leading line comments
+    int offset = 0;
+    bool insertEmptyLineBefore = false;
+    bool insertEmptyLineAfter = false;
+    String source = _buffer;
+    // skip hash-bang
+    if (offset < source.length - 2) {
+      String linePrefix = getText2(offset, 2);
+      if (linePrefix == "#!") {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+        // skip empty lines to first line comment
+        int emptyOffset = offset;
+        while (emptyOffset < source.length - 2) {
+          int nextLineOffset = getLineNext(emptyOffset);
+          String line = source.substring(emptyOffset, nextLineOffset);
+          if (line.trim().isEmpty) {
+            emptyOffset = nextLineOffset;
+            continue;
+          } else if (line.startsWith("//")) {
+            offset = emptyOffset;
+            break;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    // skip line comments
+    while (offset < source.length - 2) {
+      String linePrefix = getText2(offset, 2);
+      if (linePrefix == "//") {
+        insertEmptyLineBefore = true;
+        offset = getLineNext(offset);
+      } else {
+        break;
+      }
+    }
+    // determine if empty line is required after
+    int nextLineOffset = getLineNext(offset);
+    String insertLine = source.substring(offset, nextLineOffset);
+    if (!insertLine.trim().isEmpty) {
+      insertEmptyLineAfter = true;
+    }
+    // fill InsertDesc
+    CorrectionUtils_InsertDesc desc = new CorrectionUtils_InsertDesc();
+    desc.offset = offset;
+    if (insertEmptyLineBefore) {
+      desc.prefix = endOfLine;
+    }
+    if (insertEmptyLineAfter) {
+      desc.suffix = endOfLine;
+    }
+    return desc;
+  }
+
+  /**
    * Skips whitespace characters and single EOL on the right from [index].
    *
    * If [index] the end of a statement or method, then in the most cases it is
@@ -210,6 +354,32 @@ class CorrectionUtils {
       }
       index--;
     }
+    return index;
+  }
+
+  /**
+   * Returns a start index of the next line after the line which contains the
+   * given index.
+   */
+  int getLineNext(int index) {
+    int length = _buffer.length;
+    // skip to the end of the line
+    while (index < length) {
+      int c = _buffer.codeUnitAt(index);
+      if (c == 0xD || c == 0xA) {
+        break;
+      }
+      index++;
+    }
+    // skip single \r
+    if (index < length && _buffer.codeUnitAt(index) == 0xD) {
+      index++;
+    }
+    // skip single \n
+    if (index < length && _buffer.codeUnitAt(index) == 0xA) {
+      index++;
+    }
+    // done
     return index;
   }
 
@@ -400,4 +570,14 @@ class CorrectionUtils {
     }
     return null;
   }
+}
+
+
+/**
+ * Describes where to insert new directive or top-level declaration.
+ */
+class CorrectionUtils_InsertDesc {
+  int offset = 0;
+  String prefix = "";
+  String suffix = "";
 }

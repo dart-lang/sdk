@@ -54,6 +54,23 @@ class AbstractContextTest {
     return source;
   }
 
+  void addUriResolvers(List<UriResolver> resolvers) {
+    resolvers.add(new DartUriResolver(SDK));
+    resolvers.add(new ResourceUriResolver(provider));
+  }
+
+  /**
+   * Performs all analysis tasks in [context].
+   */
+  void performAllAnalysisTasks() {
+    while (true) {
+      AnalysisResult result = context.performAnalysisTask();
+      if (!result.hasMoreWork) {
+        break;
+      }
+    }
+  }
+
   CompilationUnit resolveDartUnit(Source unitSource, Source librarySource) {
     return context.resolveCompilationUnit2(unitSource, librarySource);
   }
@@ -64,8 +81,9 @@ class AbstractContextTest {
 
   void setUp() {
     context = AnalysisEngine.instance.createAnalysisContext();
-    context.sourceFactory = new SourceFactory(<UriResolver>[new DartUriResolver(
-        SDK), new ResourceUriResolver(provider)]);
+    List<UriResolver> resolvers = <UriResolver>[];
+    addUriResolvers(resolvers);
+    context.sourceFactory = new SourceFactory(resolvers);
   }
 
   void tearDown() {

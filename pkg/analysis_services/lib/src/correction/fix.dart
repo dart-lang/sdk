@@ -7,6 +7,8 @@
 
 library services.src.correction.fix;
 
+import 'dart:collection';
+
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/fix.dart';
 import 'package:analysis_services/search/hierarchy.dart';
@@ -19,12 +21,15 @@ import 'package:analysis_services/src/correction/strings.dart';
 import 'package:analysis_services/src/correction/util.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:path/path.dart';
 
 
 /**
@@ -46,6 +51,8 @@ class FixProcessor {
   final AnalysisError error;
   CompilationUnitElement unitElement;
   LibraryElement unitLibraryElement;
+  String unitLibraryFile;
+  String unitLibraryFolder;
 
   final List<Edit> edits = <Edit>[];
   final Map<String, LinkedPositionGroup> linkedPositionGroups = <String,
@@ -65,6 +72,8 @@ class FixProcessor {
       {
     unitElement = unit.element;
     unitLibraryElement = unitElement.library;
+    unitLibraryFile = unitLibraryElement.source.fullName;
+    unitLibraryFolder = dirname(unitLibraryFile);
   }
 
   DartType get coreTypeBool => _getCoreType("bool");
@@ -731,208 +740,194 @@ class FixProcessor {
   }
 
   void _addFix_importLibrary(FixKind kind, String importPath) {
-    // TODO(scheglov) implement
-//    CompilationUnitElement libraryUnitElement =
-//        _unitLibraryElement.definingCompilationUnit;
-//    CompilationUnit libraryUnit = libraryUnitElement.node;
-//    // prepare new import location
-//    int offset = 0;
-//    String prefix;
-//    String suffix;
-//    {
-//      // if no directives
-//      prefix = "";
-//      suffix = eol;
-//      CorrectionUtils libraryUtils = new CorrectionUtils(libraryUnit);
-//      // after last directive in library
-//      for (Directive directive in libraryUnit.directives) {
-//        if (directive is LibraryDirective || directive is ImportDirective) {
-//          offset = directive.end;
-//          prefix = eol;
-//          suffix = "";
-//        }
-//      }
-//      // if still beginning of file, skip shebang and line comments
-//      if (offset == 0) {
-//        CorrectionUtils_InsertDesc desc = libraryUtils.insertDescTop;
-//        offset = desc.offset;
-//        prefix = desc.prefix;
-//        suffix = "${desc.suffix}${eol}";
-//      }
-//    }
-//    // insert new import
-//    String importSource = "${prefix}import '${importPath}';${suffix}";
-//    _addInsertEdit(offset, importSource);
-//    // add proposal
-//    _addUnitCorrectionProposal2(libraryUnitElement.source, kind, [importPath]);
+    CompilationUnitElement libraryUnitElement =
+        unitLibraryElement.definingCompilationUnit;
+    CompilationUnit libraryUnit = libraryUnitElement.node;
+    // prepare new import location
+    int offset = 0;
+    String prefix;
+    String suffix;
+    {
+      // if no directives
+      prefix = "";
+      suffix = eol;
+      CorrectionUtils libraryUtils = new CorrectionUtils(libraryUnit);
+      // after last directive in library
+      for (Directive directive in libraryUnit.directives) {
+        if (directive is LibraryDirective || directive is ImportDirective) {
+          offset = directive.end;
+          prefix = eol;
+          suffix = "";
+        }
+      }
+      // if still beginning of file, skip shebang and line comments
+      if (offset == 0) {
+        CorrectionUtils_InsertDesc desc = libraryUtils.getInsertDescTop();
+        offset = desc.offset;
+        prefix = desc.prefix;
+        suffix = "${desc.suffix}${eol}";
+      }
+    }
+    // insert new import
+    String importSource = "${prefix}import '${importPath}';${suffix}";
+    _addInsertEdit(offset, importSource);
+    // add proposal
+    _addFix(kind, [importPath], fixFile: libraryUnitElement.source.fullName);
   }
 
   void _addFix_importLibrary_withElement(String name, ElementKind kind) {
-    // TODO(scheglov) implement
-//    // ignore if private
-//    if (name.startsWith("_")) {
-//      return;
-//    }
-//    // may be there is an existing import, but it is with prefix and we don't use this prefix
-//    for (ImportElement imp in _unitLibraryElement.imports) {
-//      // prepare element
-//      LibraryElement libraryElement = imp.importedLibrary;
-//      Element element =
-//          CorrectionUtils.getExportedElement(libraryElement, name);
-//      if (element == null) {
-//        continue;
-//      }
-//      if (element is PropertyAccessorElement) {
-//        element = (element as PropertyAccessorElement).variable;
-//      }
-//      if (element.kind != kind) {
-//        continue;
-//      }
-//      // may be apply prefix
-//      PrefixElement prefix = imp.prefix;
-//      if (prefix != null) {
-//        SourceRange range = SourceRangeFactory.rangeStartLength(node, 0);
-//        _addReplaceEdit(range, "${prefix.displayName}.");
-//        _addFix(
-//            FixKind.IMPORT_LIBRARY_PREFIX,
-//            [libraryElement.displayName, prefix.displayName]);
-//        continue;
-//      }
-//      // may be update "show" directive
-//      List<NamespaceCombinator> combinators = imp.combinators;
-//      if (combinators.length == 1 && combinators[0] is ShowElementCombinator) {
-//        ShowElementCombinator showCombinator =
-//            combinators[0] as ShowElementCombinator;
-//        // prepare new set of names to show
-//        Set<String> showNames = new Set<String>();
-//        showNames.addAll(showCombinator.shownNames);
-//        showNames.add(name);
-//        // prepare library name - unit name or 'dart:name' for SDK library
-//        String libraryName = libraryElement.definingCompilationUnit.displayName;
-//        if (libraryElement.isInSdk) {
-//          libraryName = imp.uri;
-//        }
-//        // update library
-//        String newShowCode = "show ${StringUtils.join(showNames, ", ")}";
-//        // TODO(scheglov)
-//        _addReplaceEdit(
-//            SourceRangeFactory.rangeShowCombinator(showCombinator),
-//            newShowCode);
-//        _addUnitCorrectionProposal2(
-//            _unitLibraryElement.source,
-//            FixKind.IMPORT_LIBRARY_SHOW,
-//            [libraryName]);
-//        // we support only one import without prefix
-//        return;
-//      }
-//    }
-//    // check SDK libraries
-//    AnalysisContext context = _unitLibraryElement.context;
-//    {
-//      DartSdk sdk = context.sourceFactory.dartSdk;
-//      List<SdkLibrary> sdkLibraries = sdk.sdkLibraries;
-//      for (SdkLibrary sdkLibrary in sdkLibraries) {
-//        SourceFactory sdkSourceFactory = context.sourceFactory;
-//        String libraryUri = sdkLibrary.shortName;
-//        Source librarySource = sdkSourceFactory.resolveUri(null, libraryUri);
-//        // prepare LibraryElement
-//        LibraryElement libraryElement =
-//            context.getLibraryElement(librarySource);
-//        if (libraryElement == null) {
-//          continue;
-//        }
-//        // prepare exported Element
-//        Element element =
-//            CorrectionUtils.getExportedElement(libraryElement, name);
-//        if (element == null) {
-//          continue;
-//        }
-//        if (element is PropertyAccessorElement) {
-//          element = (element as PropertyAccessorElement).variable;
-//        }
-//        if (element.kind != kind) {
-//          continue;
-//        }
-//        // add import
-//        _addFix_importLibrary(FixKind.IMPORT_LIBRARY_SDK, libraryUri);
-//      }
-//    }
-//    // check project libraries
-//    {
-//      List<Source> librarySources = context.librarySources;
-//      for (Source librarySource in librarySources) {
-//        // we don't need SDK libraries here
-//        if (librarySource.isInSystemLibrary) {
-//          continue;
-//        }
-//        // prepare LibraryElement
-//        LibraryElement libraryElement =
-//            context.getLibraryElement(librarySource);
-//        if (libraryElement == null) {
-//          continue;
-//        }
-//        // prepare exported Element
-//        Element element =
-//            CorrectionUtils.getExportedElement(libraryElement, name);
-//        if (element == null) {
-//          continue;
-//        }
-//        if (element.kind != kind) {
-//          continue;
-//        }
-//        // prepare "library" file
-//        JavaFile libraryFile = getSourceFile(librarySource);
-//        if (libraryFile == null) {
-//          continue;
-//        }
-//        // may be "package:" URI
-//        {
-//          Uri libraryPackageUri = _findPackageUri(context, libraryFile);
-//          if (libraryPackageUri != null) {
-//            _addFix_importLibrary(
-//                FixKind.IMPORT_LIBRARY_PROJECT,
-//                libraryPackageUri.toString());
-//            continue;
-//          }
-//        }
-//        // relative URI
-//        String relative =
-//            URIUtils.computeRelativePath(
-//                _unitLibraryFolder.getAbsolutePath(),
-//                libraryFile.getAbsolutePath());
-//        _addFix_importLibrary(
-//            FixKind.IMPORT_LIBRARY_PROJECT,
-//            relative);
-//      }
-//    }
+    // ignore if private
+    if (name.startsWith("_")) {
+      return;
+    }
+
+    // may be there is an existing import,
+    // but it is with prefix and we don't use this prefix
+    for (ImportElement imp in unitLibraryElement.imports) {
+      // prepare element
+      LibraryElement libraryElement = imp.importedLibrary;
+      Element element = getExportedElement(libraryElement, name);
+      if (element == null) {
+        continue;
+      }
+      if (element is PropertyAccessorElement) {
+        element = (element as PropertyAccessorElement).variable;
+      }
+      if (element.kind != kind) {
+        continue;
+      }
+      // may be apply prefix
+      PrefixElement prefix = imp.prefix;
+      if (prefix != null) {
+        SourceRange range = rf.rangeStartLength(node, 0);
+        _addReplaceEdit(range, "${prefix.displayName}.");
+        _addFix(
+            FixKind.IMPORT_LIBRARY_PREFIX,
+            [libraryElement.displayName, prefix.displayName]);
+        continue;
+      }
+      // may be update "show" directive
+      List<NamespaceCombinator> combinators = imp.combinators;
+      if (combinators.length == 1 && combinators[0] is ShowElementCombinator) {
+        ShowElementCombinator showCombinator =
+            combinators[0] as ShowElementCombinator;
+        // prepare new set of names to show
+        Set<String> showNames = new SplayTreeSet<String>();
+        showNames.addAll(showCombinator.shownNames);
+        showNames.add(name);
+        // prepare library name - unit name or 'dart:name' for SDK library
+        String libraryName = libraryElement.definingCompilationUnit.displayName;
+        if (libraryElement.isInSdk) {
+          libraryName = imp.uri;
+        }
+        // update library
+        String newShowCode = "show ${StringUtils.join(showNames, ", ")}";
+        _addReplaceEdit(rf.rangeOffsetEnd(showCombinator), newShowCode);
+        _addFix(
+            FixKind.IMPORT_LIBRARY_SHOW,
+            [libraryName],
+            fixFile: unitLibraryFile);
+        // we support only one import without prefix
+        return;
+      }
+    }
+    // check SDK libraries
+    AnalysisContext context = unitLibraryElement.context;
+    {
+      DartSdk sdk = context.sourceFactory.dartSdk;
+      List<SdkLibrary> sdkLibraries = sdk.sdkLibraries;
+      for (SdkLibrary sdkLibrary in sdkLibraries) {
+        SourceFactory sdkSourceFactory = context.sourceFactory;
+        String libraryUri = sdkLibrary.shortName;
+        Source librarySource = sdkSourceFactory.resolveUri(null, libraryUri);
+        // prepare LibraryElement
+        LibraryElement libraryElement =
+            context.getLibraryElement(librarySource);
+        if (libraryElement == null) {
+          continue;
+        }
+        // prepare exported Element
+        Element element = getExportedElement(libraryElement, name);
+        if (element == null) {
+          continue;
+        }
+        if (element is PropertyAccessorElement) {
+          element = (element as PropertyAccessorElement).variable;
+        }
+        if (element.kind != kind) {
+          continue;
+        }
+        // add import
+        _addFix_importLibrary(FixKind.IMPORT_LIBRARY_SDK, libraryUri);
+      }
+    }
+    // check project libraries
+    {
+      List<Source> librarySources = context.librarySources;
+      for (Source librarySource in librarySources) {
+        // we don't need SDK libraries here
+        if (librarySource.isInSystemLibrary) {
+          continue;
+        }
+        // prepare LibraryElement
+        LibraryElement libraryElement =
+            context.getLibraryElement(librarySource);
+        if (libraryElement == null) {
+          continue;
+        }
+        // prepare exported Element
+        Element element = getExportedElement(libraryElement, name);
+        if (element == null) {
+          continue;
+        }
+        if (element is PropertyAccessorElement) {
+          element = (element as PropertyAccessorElement).variable;
+        }
+        if (element.kind != kind) {
+          continue;
+        }
+        // prepare "library" file
+        String libraryFile = librarySource.fullName;
+        // may be "package:" URI
+        // TODO(scheglov) this code does not have a test
+        {
+          String libraryPackageUri = _findPackageUri(context, libraryFile);
+          if (libraryPackageUri != null) {
+            _addFix_importLibrary(
+                FixKind.IMPORT_LIBRARY_PROJECT,
+                libraryPackageUri);
+            continue;
+          }
+        }
+        // relative URI
+        String relateFile = relative(libraryFile, from: unitLibraryFolder);
+        _addFix_importLibrary(FixKind.IMPORT_LIBRARY_PROJECT, relateFile);
+      }
+    }
   }
 
   void _addFix_importLibrary_withFunction() {
-    // TODO(scheglov) implement
-//    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-//      MethodInvocation invocation = node.parent as MethodInvocation;
-//      if (invocation.realTarget == null &&
-//          identical(invocation.methodName, node)) {
-//        String name = (node as SimpleIdentifier).name;
-//        _addFix_importLibrary_withElement(name, ElementKind.FUNCTION);
-//      }
-//    }
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+      MethodInvocation invocation = node.parent as MethodInvocation;
+      if (invocation.realTarget == null && invocation.methodName == node) {
+        String name = (node as SimpleIdentifier).name;
+        _addFix_importLibrary_withElement(name, ElementKind.FUNCTION);
+      }
+    }
   }
 
   void _addFix_importLibrary_withTopLevelVariable() {
-    // TODO(scheglov) implement
-//    if (node is SimpleIdentifier) {
-//      String name = (node as SimpleIdentifier).name;
-//      _addFix_importLibrary_withElement(name, ElementKind.TOP_LEVEL_VARIABLE);
-//    }
+    if (node is SimpleIdentifier) {
+      String name = (node as SimpleIdentifier).name;
+      _addFix_importLibrary_withElement(name, ElementKind.TOP_LEVEL_VARIABLE);
+    }
   }
 
   void _addFix_importLibrary_withType() {
-    // TODO(scheglov) implement
-//    if (_mayBeTypeIdentifier(node)) {
-//      String typeName = (node as SimpleIdentifier).name;
-//      _addFix_importLibrary_withElement(typeName, ElementKind.CLASS);
-//    }
+    if (_mayBeTypeIdentifier(node)) {
+      String typeName = (node as SimpleIdentifier).name;
+      _addFix_importLibrary_withElement(typeName, ElementKind.CLASS);
+    }
   }
 
   void _addFix_insertSemicolon() {
@@ -1776,6 +1771,24 @@ class FixProcessor {
     return null;
   }
 
+  /**
+   * Inserts the given [SourceBuilder] at its offset.
+   */
+  void _insertBuilder(SourceBuilder builder) {
+    String text = builder.toString();
+    _addInsertEdit(builder.offset, text);
+    // add linked positions
+    builder.linkedPositionGroups.forEach((LinkedPositionGroup group) {
+      LinkedPositionGroup fixGroup = _getLinkedPosition(group.id);
+      group.positions.forEach((Position position) {
+        fixGroup.addPosition(position);
+      });
+      group.proposals.forEach((String proposal) {
+        fixGroup.addProposal(proposal);
+      });
+    });
+  }
+
 //  void _addLinkedPositionProposal(String group,
 //      LinkedPositionProposal proposal) {
 //    List<LinkedPositionProposal> nodeProposals = linkedPositionProposals[group];
@@ -1800,24 +1813,6 @@ class FixProcessor {
 //    }
 //    return false;
 //  }
-
-  /**
-   * Inserts the given [SourceBuilder] at its offset.
-   */
-  void _insertBuilder(SourceBuilder builder) {
-    String text = builder.toString();
-    _addInsertEdit(builder.offset, text);
-    // add linked positions
-    builder.linkedPositionGroups.forEach((LinkedPositionGroup group) {
-      LinkedPositionGroup fixGroup = _getLinkedPosition(group.id);
-      group.positions.forEach((Position position) {
-        fixGroup.addPosition(position);
-      });
-      group.proposals.forEach((String proposal) {
-        fixGroup.addProposal(proposal);
-      });
-    });
-  }
 
   _ConstructorLocation
       _prepareNewConstructorLocation(ClassDeclaration classDeclaration) {
@@ -1885,6 +1880,24 @@ class FixProcessor {
         _addSuperTypeProposals(sb, alreadyAdded, interfaceType);
       }
     }
+  }
+
+  /**
+   * Attempts to convert the given absolute path into a "package" URI.
+   *
+   * [context] - the [AnalysisContext] to work in.
+   * [path] - the absolute path, not `null`.
+   *
+   * Returns the "package" URI, may be `null`.
+   */
+  static String _findPackageUri(AnalysisContext context, String path) {
+//    Source fileSource = new FileBasedSource.con1(path);
+    Source fileSource = new NonExistingSource(path, UriKind.FILE_URI);
+    Uri uri = context.sourceFactory.restoreUri(fileSource);
+    if (uri == null) {
+      return null;
+    }
+    return uri.toString();
   }
 
   /**

@@ -858,6 +858,248 @@ main() {
 ''');
   }
 
+  void test_importLibraryPrefix_withType() {
+    _indexTestUnit('''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  Future f = null;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_PREFIX, '''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  pref.Future f = null;
+}
+''');
+  }
+
+  void test_importLibraryPrefix_withTopLevelVariable() {
+    _indexTestUnit('''
+import 'dart:math' as pref;
+main() {
+  print(pref.E);
+  print(PI);
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_PREFIX, '''
+import 'dart:math' as pref;
+main() {
+  print(pref.E);
+  print(pref.PI);
+}
+''');
+  }
+
+  void test_importLibraryProject_withFunction() {
+    addSource('/lib.dart', '''
+library lib;
+myFunction() {}
+''');
+    _indexTestUnit('''
+main() {
+  myFunction();
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+main() {
+  myFunction();
+}
+''');
+  }
+
+  void test_importLibraryPackage_withType() {
+    // TODO(scheglov) move PackageMapUriResolver into analyzer and implement
+    provider.newFile('/packages/my_pkg/lib/my_lib.dart', '''
+//library my_lib;
+//class Test {}
+//''');
+//    testFile = '/project/test.dart';
+//    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
+//    _indexTestUnit('''
+//main() {
+//  Test test = null;
+//}
+//''');
+//    performAllAnalysisTasks();
+//    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+//import 'package:my_pkg/my_lib.dart';
+//
+//main() {
+//  Test test = null;
+//}
+//''');
+  }
+
+  void test_importLibraryProject_withTopLevelVariable() {
+    addSource('/lib.dart', '''
+library lib;
+int MY_VAR = 42;
+''');
+    _indexTestUnit('''
+main() {
+  print(MY_VAR);
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+main() {
+  print(MY_VAR);
+}
+''');
+  }
+
+  void test_importLibraryProject_withType_inParentFolder() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/lib.dart', '''
+library lib;
+class Test {}
+''');
+    _indexTestUnit('''
+main() {
+  Test t = null;
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import '../lib.dart';
+
+main() {
+  Test t = null;
+}
+''');
+  }
+
+  void test_importLibraryProject_withType_inRelativeFolder() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/lib/sub/folder/lib.dart', '''
+library lib;
+class Test {}
+''');
+    _indexTestUnit('''
+main() {
+  Test t = null;
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import '../lib/sub/folder/lib.dart';
+
+main() {
+  Test t = null;
+}
+''');
+  }
+
+  void test_importLibraryProject_withType_inSameFolder() {
+    testFile = '/project/bin/test.dart';
+    addSource('/project/bin/lib.dart', '''
+library lib;
+class Test {}
+''');
+    _indexTestUnit('''
+main() {
+  Test t = null;
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'lib.dart';
+
+main() {
+  Test t = null;
+}
+''');
+  }
+
+  void test_importLibrarySdk_withTopLevelVariable() {
+    _ensureSdkMathLibraryResolved();
+    _indexTestUnit('''
+main() {
+  print(PI);
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:math';
+
+main() {
+  print(PI);
+}
+''');
+  }
+
+  void test_importLibrarySdk_withType_invocationTarget() {
+    _ensureSdkAsyncLibraryResolved();
+    _indexTestUnit('''
+main() {
+  Future.wait(null);
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main() {
+  Future.wait(null);
+}
+''');
+  }
+
+  void test_importLibrarySdk_withType_typeAnnotation() {
+    _ensureSdkAsyncLibraryResolved();
+    _indexTestUnit('''
+main() {
+  Future f = null;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main() {
+  Future f = null;
+}
+''');
+  }
+
+  void test_importLibrarySdk_withType_typeAnnotation_PrefixedIdentifier() {
+    _ensureSdkAsyncLibraryResolved();
+    _indexTestUnit('''
+main() {
+  Future.wait;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SDK, '''
+import 'dart:async';
+
+main() {
+  Future.wait;
+}
+''');
+  }
+
+  void test_importLibraryShow() {
+    _indexTestUnit('''
+import 'dart:async' show Stream;
+main() {
+  Stream s = null;
+  Future f = null;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_SHOW, '''
+import 'dart:async' show Future, Stream;
+main() {
+  Stream s = null;
+  Future f = null;
+}
+''');
+  }
+
   void test_isNotNull() {
     _indexTestUnit('''
 main(p) {
@@ -1577,6 +1819,22 @@ main() {
       }
     }
     fail('No group with ID=$groupId foind in\n${groups.join('\n')}');
+  }
+
+  /**
+   * We search for elements only already resolved lbiraries, and we use
+   * `dart:async` elements in tests.
+   */
+  void _ensureSdkAsyncLibraryResolved() {
+    resolveLibraryUnit(addSource('/other.dart', 'import "dart:async";'));
+  }
+
+  /**
+   * We search for elements only already resolved lbiraries, and we use
+   * `dart:async` elements in tests.
+   */
+  void _ensureSdkMathLibraryResolved() {
+    resolveLibraryUnit(addSource('/other.dart', 'import "dart:math";'));
   }
 
   AnalysisError _findErrorToFix() {
