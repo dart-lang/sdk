@@ -305,9 +305,8 @@ class ContainerBuilder extends CodeEmitterHelper {
             'function(#) { return #.#(#); }',
             [ parameters, buildGetter(), closureCallName, arguments]);
 
-        compiler.dumpInfoTask.registerElementAst(member, function);
-        addProperty(invocationName, function);
-
+        compiler.dumpInfoTask.registerElementAst(member,
+            addProperty(invocationName, function));
       }
     }
   }
@@ -387,14 +386,14 @@ class ContainerBuilder extends CodeEmitterHelper {
     final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied;
     if (!needStructuredInfo) {
-      builder.addProperty(name, code);
-      compiler.dumpInfoTask.registerElementAst(member, code);
+      compiler.dumpInfoTask.registerElementAst(member,
+          builder.addProperty(name, code));
       if (needsStubs) {
         addParameterStubs(
             member,
             (Selector selector, jsAst.Fun function) {
-              builder.addProperty(namer.invocationName(selector), function);
-              compiler.dumpInfoTask.registerElementAst(member, function);
+              compiler.dumpInfoTask.registerElementAst(member,
+                  builder.addProperty(namer.invocationName(selector), function));
             });
       }
       return;
@@ -545,8 +544,8 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
     jsAst.ArrayInitializer arrayInit =
       new jsAst.ArrayInitializer.from(expressions);
-    builder.addProperty(name, arrayInit);
-    compiler.dumpInfoTask.registerElementAst(member, arrayInit);
+    compiler.dumpInfoTask.registerElementAst(member,
+        builder.addProperty(name, arrayInit));
   }
 
   void addMemberField(VariableElement member, ClassBuilder builder) {

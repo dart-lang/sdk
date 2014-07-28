@@ -444,8 +444,10 @@ class NativeEmitter {
   void assembleCode(CodeBuffer targetBuffer) {
     List<jsAst.Property> objectProperties = <jsAst.Property>[];
 
-    void addProperty(String name, jsAst.Expression value) {
-      objectProperties.add(new jsAst.Property(js.string(name), value));
+    jsAst.Property addProperty(String name, jsAst.Expression value) {
+      jsAst.Property prop = new jsAst.Property(js.string(name), value);
+      objectProperties.add(prop);
+      return prop;
     }
 
     if (!nativeClasses.isEmpty) {
