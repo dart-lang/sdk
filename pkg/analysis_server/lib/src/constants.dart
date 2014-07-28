@@ -58,6 +58,7 @@ const String SEARCH_FIND_MEMBER_DECLARATIONS = 'search.findMemberDeclarations';
 const String SEARCH_FIND_MEMBER_REFERENCES = 'search.findMemberReferences';
 const String SEARCH_FIND_TOP_LEVEL_DECLARATIONS =
     'search.findTopLevelDeclarations';
+    const String SEARCH_GET_TYPE_HIERARCHY = 'search.getTypeHierarchy';
 
 //
 // Search notifications
