@@ -497,7 +497,8 @@ class DumpInfoTask extends CompilerTask {
       'compilationMoment': infoCollector.compilationMoment.toString(),
       'compilationDuration': infoCollector.compilationDuration.toString(),
       'toJsonDuration': toJsonDuration.toString(),
-      'dumpInfoDuration': infoCollector.dumpInfoDuration.toString()
+      'dumpInfoDuration': infoCollector.dumpInfoDuration.toString(),
+      'noSuchMethodEnabled': compiler.enabledNoSuchMethod
     };
 
     outJson['program'] = generalProgramInfo;
