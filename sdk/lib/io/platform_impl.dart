@@ -25,16 +25,16 @@ class _Platform {
   static int get numberOfProcessors => _numberOfProcessors();
   static String get pathSeparator => _pathSeparator();
   static String get operatingSystem => _operatingSystem();
-  static Uri script = _script();
-  static Uri _script() {
-    // The embedder (Dart executable) creates the Platform._nativeScript field.
-    var s = Platform._nativeScript;
-    if (s.startsWith('http:') ||
-        s.startsWith('https:') ||
-        s.startsWith('file:')) {
-      return Uri.parse(s);
+  static Uri script;
+
+  // This script singleton is written to by the embedder if applicable.
+  static String set _nativeScript(String path) {
+    if (path.startsWith('http:') ||
+        path.startsWith('https:') ||
+        path.startsWith('file:')) {
+      script = Uri.parse(path);
     } else {
-      return Uri.base.resolveUri(new Uri.file(s));
+      script = Uri.base.resolveUri(new Uri.file(path));
     }
   }
 

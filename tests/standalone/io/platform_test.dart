@@ -25,8 +25,14 @@ test() {
   var environment = Platform.environment;
   Expect.isTrue(environment is Map<String, String>);
   Expect.isTrue(Platform.executable.contains('dart'));
+  // Move directory to be sure script is correct.
+  var oldDir = Directory.current;
+  Directory.current = Directory.current.parent;
   Expect.isTrue(Platform.script.path.
                 endsWith('tests/standalone/io/platform_test.dart'));
+  Expect.isTrue(Platform.script.path.startsWith(oldDir.path));
+  // Restore dir.
+  Directory.current = oldDir;
   Directory packageRoot = new Directory(Platform.packageRoot);
   Expect.isTrue(packageRoot.existsSync());
   Expect.isTrue(new Directory("${packageRoot.path}/expect").existsSync());

@@ -608,7 +608,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   Dart_Handle io_lib = Dart_LookupLibrary(io_lib_url);
   CHECK_RESULT(io_lib);
   Dart_Handle platform_type = DartUtils::GetDartType(DartUtils::kIOLibURL,
-                                                     "Platform");
+                                                     "_Platform");
   CHECK_RESULT(platform_type);
   Dart_Handle script_name = DartUtils::NewString("_nativeScript");
   CHECK_RESULT(script_name);
