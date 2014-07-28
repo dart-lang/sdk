@@ -66,8 +66,8 @@ ExpressionObserver observe(Expression expr, Scope scope) {
 /**
  * Causes [expr] to be reevaluated a returns it's value.
  */
-Object update(ExpressionObserver expr, Scope scope) {
-  new Updater(scope).visit(expr);
+Object update(ExpressionObserver expr, Scope scope, {skipChanges: false}) {
+  new Updater(scope, skipChanges).visit(expr);
   return expr.currentValue;
 }
 
@@ -293,7 +293,7 @@ abstract class ExpressionObserver<E extends Expression> implements Expression {
   _updateSelf(Scope scope) {}
 
   _invalidate(Scope scope) {
-    _observe(scope);
+    _observe(scope, false);
     if (_parent != null) {
       _parent._invalidate(scope);
     }
@@ -306,7 +306,7 @@ abstract class ExpressionObserver<E extends Expression> implements Expression {
     }
   }
 
-  _observe(Scope scope) {
+  _observe(Scope scope, skipChanges) {
     _unobserve();
 
     var _oldValue = _value;
@@ -314,7 +314,7 @@ abstract class ExpressionObserver<E extends Expression> implements Expression {
     // evaluate
     _updateSelf(scope);
 
-    if (!identical(_value, _oldValue)) {
+    if (!skipChanges && !identical(_value, _oldValue)) {
       _controller.add(_value);
     }
   }
@@ -324,11 +324,12 @@ abstract class ExpressionObserver<E extends Expression> implements Expression {
 
 class Updater extends RecursiveVisitor {
   final Scope scope;
+  final bool skipChanges;
 
-  Updater(this.scope);
+  Updater(this.scope, [this.skipChanges = false]);
 
   visitExpression(ExpressionObserver e) {
-    e._observe(scope);
+    e._observe(scope, skipChanges);
   }
 }
 

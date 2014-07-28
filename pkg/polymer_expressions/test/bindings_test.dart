@@ -49,11 +49,8 @@ main() => dirtyCheckZone().run(() {
     // regression test for issue 19296
     test('should not throw when data changes', () {
       var model = new NotifyModel();
-      var tag = new Element.html('<template>'
-          '<template repeat="{{ i in x }}">{{ i }}</template></template>');
-      TemplateBindExtension.bootstrap(tag);
-      var template = templateBind(tag);
-      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+      testDiv.append(_createTemplateInstance(
+          '<template repeat="{{ i in x }}">{{ i }}</template>', model));
 
       return new Future(() {
         model.x = [1, 2, 3];
@@ -65,11 +62,7 @@ main() => dirtyCheckZone().run(() {
 
     test('should update text content when data changes', () {
       var model = new NotifyModel('abcde');
-      var tag = new Element.html(
-      '<template><span>{{x}}</span></template>');
-      TemplateBindExtension.bootstrap(tag);
-      var template = templateBind(tag);
-      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+      testDiv.append(_createTemplateInstance('<span>{{x}}</span>', model));
 
       var el;
       return new Future(() {
@@ -87,13 +80,7 @@ main() => dirtyCheckZone().run(() {
       var model = new NotifyModel('abcde');
       var completer = new Completer();
       runZoned(() {
-        var tag = new Element.html(
-        '<template><span>{{foo}}</span></template>');
-        TemplateBindExtension.bootstrap(tag);
-        var template = templateBind(tag);
-        testDiv.append(template.createInstance(model,
-            new PolymerExpressions()));
-
+        testDiv.append(_createTemplateInstance('<span>{{foo}}</span>', model));
         return _nextMicrotask(null);
       }, onError: (e) {
         expect('$e', startsWith("Error evaluating expression 'foo':"));
@@ -104,13 +91,8 @@ main() => dirtyCheckZone().run(() {
 
     test('detects changes to ObservableList', () {
       var list = new ObservableList.from([1, 2, 3]);
-
-      var tag = new Element.html('<template>{{x[1]}}</template>');
-      TemplateBindExtension.bootstrap(tag);
-      var template = templateBind(tag);
-
       var model = new NotifyModel(list);
-      testDiv.append(template.createInstance(model, new PolymerExpressions()));
+      testDiv.append(_createTemplateInstance('{{x[1]}}', model));
 
       return new Future(() {
         expect(testDiv.text, '2');
@@ -133,44 +115,19 @@ main() => dirtyCheckZone().run(() {
       });
     });
 
-    test('detects changes to ObservableMap keys/values', () {
-      var map = new ObservableMap.from({'a': 1, 'b': 2});
-
-      var tag = new Element.html('<template>'
-          '<template repeat="{{k in x.keys}}">{{k}}:{{x[k]}},</template>'
-          '</template>');
-      TemplateBindExtension.bootstrap(tag);
-      var template = templateBind(tag);
-
-      var model = new NotifyModel(map);
-      testDiv.append(template.createInstance(model, new PolymerExpressions()));
-
-      return new Future(() {
-        expect(testDiv.text, 'a:1,b:2,');
-        map.remove('b');
-        map['c'] = 3;
-      }).then(_nextMicrotask).then((_) {
-        expect(testDiv.text, 'a:1,c:3,');
-        map['a'] = 4;
-      }).then(_nextMicrotask).then((_) {
-        expect(testDiv.text, 'a:4,c:3,');
-      });
-    });
-
     // Regression tests for issue 18792.
     for (var usePolymer in [true, false]) {
       // We run these tests both with PolymerExpressions and with the default
-      // delegate to ensure the results are consistent. The expressions on these
-      // tests use syntax common to both delegates.
+      // delegate to ensure the results are consistent. When possible, the
+      // expressions on these tests use syntax common to both delegates.
       var name = usePolymer ? 'polymer-expressions' : 'default';
       group('$name delegate', () {
         // Use <option template repeat="{{y}}" value="{{}}">item {{}}
         _initialSelectTest('{{y}}', '{{}}', usePolymer);
         _updateSelectTest('{{y}}', '{{}}', usePolymer);
-
-        // TODO(jmesserly): this is broken with polymer-expressions, see
-        // http://dartbug.com/19105
-        if (!usePolymer) _cursorPositionTest(usePolymer);
+        _detectKeyValueChanges(usePolymer);
+        if (usePolymer) _detectKeyValueChangesPolymerSyntax();
+        _cursorPositionTest(usePolymer);
       });
     }
 
@@ -186,15 +143,8 @@ main() => dirtyCheckZone().run(() {
 _cursorPositionTest(bool usePolymer) {
   test('should preserve the cursor position', () {
     var model = new NotifyModel('abcde');
-
-    var tag = new Element.html(
-        '<template><input id="i1" value={{x}}></template>');
-    TemplateBindExtension.bootstrap(tag);
-    var template = templateBind(tag);
-
-    var delegate = usePolymer ? new PolymerExpressions() : null;
-    testDiv.append(template.createInstance(model, delegate));
-
+    testDiv.append(_createTemplateInstance(
+        '<input id="i1" value={{x}}>', model, usePolymer: usePolymer));
     var el;
     return new Future(() {
       el = testDiv.query("#i1");
@@ -247,18 +197,11 @@ _cursorPositionTest(bool usePolymer) {
 _initialSelectTest(String repeatExp, String valueExp, bool usePolymer) {
   test('initial select value is set correctly', () {
     var list = const ['a', 'b'];
-
-    var tag = new Element.html('<template>'
-        '<select value="{{x}}">'
-        '<option template repeat="$repeatExp" value="$valueExp">item $valueExp'
-        '</option></select></template>',
-        treeSanitizer: _nullTreeSanitizer);
-    TemplateBindExtension.bootstrap(tag);
-    var template = templateBind(tag);
-
     var model = new NotifyModel('b', list);
-    var delegate = usePolymer ? new PolymerExpressions() : null;
-    testDiv.append(template.createInstance(model, delegate));
+    testDiv.append(_createTemplateInstance('<select value="{{x}}">'
+        '<option template repeat="$repeatExp" value="$valueExp">item $valueExp'
+        '</option></select>',
+        model, usePolymer: usePolymer));
 
     expect(testDiv.querySelector('select').value, 'b');
     return new Future(() {
@@ -271,18 +214,11 @@ _initialSelectTest(String repeatExp, String valueExp, bool usePolymer) {
 _updateSelectTest(String repeatExp, String valueExp, bool usePolymer) {
   test('updates to select value propagate correctly', () {
     var list = const ['a', 'b'];
-
-    var tag = new Element.html('<template>'
-        '<select value="{{x}}">'
-        '<option template repeat="$repeatExp" value="$valueExp">item $valueExp'
-        '</option></select></template>',
-        treeSanitizer: _nullTreeSanitizer);
-    TemplateBindExtension.bootstrap(tag);
-    var template = templateBind(tag);
-
     var model = new NotifyModel('a', list);
-    var delegate = usePolymer ? new PolymerExpressions() : null;
-    testDiv.append(template.createInstance(model, delegate));
+
+    testDiv.append(_createTemplateInstance('<select value="{{x}}">'
+        '<option template repeat="$repeatExp" value="$valueExp">item $valueExp'
+        '</option></select></template>', model, usePolymer: usePolymer));
 
     expect(testDiv.querySelector('select').value, 'a');
     return new Future(() {
@@ -292,6 +228,57 @@ _updateSelectTest(String repeatExp, String valueExp, bool usePolymer) {
       expect(testDiv.querySelector('select').value, 'b');
     });
   });
+}
+
+_detectKeyValueChanges(bool usePolymer) {
+  test('detects changes to ObservableMap keys', () {
+    var map = new ObservableMap.from({'a': 1, 'b': 2});
+    var model = new NotifyModel(map);
+    testDiv.append(_createTemplateInstance(
+        '<template repeat="{{x.keys}}">{{}},</template>',
+        model, usePolymer: usePolymer));
+
+    return new Future(() {
+      expect(testDiv.text, 'a,b,');
+      map.remove('b');
+      map['c'] = 3;
+    }).then(_nextMicrotask).then((_) {
+      expect(testDiv.text, 'a,c,');
+      map['a'] = 4;
+    }).then(_nextMicrotask).then((_) {
+      expect(testDiv.text, 'a,c,');
+    });
+  });
+}
+
+// This test uses 'in', which is a polymer_expressions only feature.
+_detectKeyValueChangesPolymerSyntax() {
+  test('detects changes to ObservableMap values', () {
+    var map = new ObservableMap.from({'a': 1, 'b': 2});
+    var model = new NotifyModel(map);
+    testDiv.append(_createTemplateInstance(
+        '<template repeat="{{k in  x.keys}}">{{x[k]}},</template>', model));
+
+    return new Future(() {
+      expect(testDiv.text, '1,2,');
+      map.remove('b');
+      map['c'] = 3;
+    }).then(_nextMicrotask).then((_) {
+      expect(testDiv.text, '1,3,');
+      map['a'] = 4;
+    }).then(_nextMicrotask).then((_) {
+      expect(testDiv.text, '4,3,');
+    });
+  });
+}
+
+_createTemplateInstance(String templateBody, model, {bool usePolymer: true}) {
+  var tag = new Element.html('<template>$templateBody</template>',
+        treeSanitizer: _nullTreeSanitizer);
+  TemplateBindExtension.bootstrap(tag);
+  var template = templateBind(tag);
+  var delegate = usePolymer ? new PolymerExpressions() : null;
+  return template.createInstance(model, delegate);
 }
 
 _nextMicrotask(_) => new Future(() {});

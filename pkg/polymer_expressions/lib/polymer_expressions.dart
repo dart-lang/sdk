@@ -289,20 +289,19 @@ class _Binding extends Bindable {
     return false;
   }
 
-  // TODO(jmesserly): this should discard changes, but it caused
-  // a strange infinite loop in one of the bindings_tests.
-  // For now skipping the test. See http://dartbug.com/19105.
   get value {
     // if there's a callback, then _value has been set, if not we need to
     // force an evaluation
-    if (_callback != null) return _value;
+    if (_callback != null) {
+      _check(skipChanges: true);
+      return _value;
+    }
     return _oneTime(_expr, _scope, _converter);
   }
 
   set value(v) {
     try {
-      var newValue = assign(_expr, v, _scope, checkAssignability: false);
-      _convertAndCheck(newValue);
+      assign(_expr, v, _scope, checkAssignability: false);
     } catch (e, s) {
       new Completer().completeError(
           "Error evaluating expression '$_expr': $e", s);
@@ -325,8 +324,7 @@ class _Binding extends Bindable {
 
   bool _check({bool skipChanges: false}) {
     try {
-      // this causes a call to _updateValue with the new value
-      update(_observer, _scope);
+      update(_observer, _scope, skipChanges: skipChanges);
       return _convertAndCheck(_observer.currentValue, skipChanges: skipChanges);
     } catch (e, s) {
       new Completer().completeError(
