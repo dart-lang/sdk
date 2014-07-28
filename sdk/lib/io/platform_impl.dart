@@ -31,6 +31,8 @@ class _Platform {
   static void set _nativeScript(String path) {
     if (path.startsWith('http:') ||
         path.startsWith('https:') ||
+        path.startsWith('package:') ||
+        path.startsWith('dart:') ||
         path.startsWith('file:')) {
       script = Uri.parse(path);
     } else {
