@@ -44,6 +44,12 @@ main() {
       });
     });
   }
+
+  test_placeholder() {
+    // The unit test framework freaks out if there are no tests, so this is a
+    // placeholder until we have a passing test.
+    // TODO(paulberry): remove this.
+  }
 }
 
 main() {
