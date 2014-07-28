@@ -5,7 +5,7 @@
 library pub.barback.transformer_config;
 
 import 'package:path/path.dart' as p;
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 import 'transformer_id.dart';
@@ -27,7 +27,7 @@ class TransformerConfig {
   final Map configuration;
 
   /// The source span from which this configuration was parsed.
-  final Span span;
+  final SourceSpan span;
 
   /// The primary input inclusions.
   ///
@@ -65,7 +65,7 @@ class TransformerConfig {
   /// Parses [identifier] as a [TransformerId] with [configuration].
   ///
   /// [identifierSpan] is the source span for [identifier].
-  factory TransformerConfig.parse(String identifier, Span identifierSpan,
+  factory TransformerConfig.parse(String identifier, SourceSpan identifierSpan,
         YamlMap configuration) =>
       new TransformerConfig(new TransformerId.parse(identifier, identifierSpan),
           configuration);
@@ -81,13 +81,13 @@ class TransformerConfig {
       if (field is List) {
         for (var node in field.nodes) {
           if (node.value is String) continue;
-          throw new SpanFormatException(
+          throw new SourceSpanFormatException(
               '"$key" field may contain only strings.', node.span);
         }
 
         return new Set.from(field);
       } else {
-        throw new SpanFormatException(
+        throw new SourceSpanFormatException(
             '"$key" field must be a string or list.', fieldNode.span);
       }
     }
@@ -114,7 +114,7 @@ class TransformerConfig {
       // All other keys starting with "$" are unexpected.
       for (var key in configuration.keys) {
         if (key is! String || !key.startsWith(r'$')) continue;
-        throw new SpanFormatException(
+        throw new SourceSpanFormatException(
             'Unknown reserved field.', configurationNode.nodes[key].span);
       }
     }

@@ -19,9 +19,8 @@ import 'package:unittest/unittest.dart';
 import 'analysis_abstract.dart';
 
 main() {
-  group('completion', () {
-    runReflectiveTests(CompletionTest);
-  });
+  groupSep = ' | ';
+  runReflectiveTests(CompletionTest);
 }
 
 @ReflectiveTestCase()

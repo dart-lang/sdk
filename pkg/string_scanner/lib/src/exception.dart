@@ -4,18 +4,17 @@
 
 library string_scanner.exception;
 
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 
 /// An exception thrown by a [StringScanner] that failed to parse a string.
-class StringScannerException extends SpanFormatException {
-  /// The source string being parsed.
-  final String string;
+class StringScannerException extends SourceSpanFormatException {
+  String get source => super.source;
 
   /// The URL of the source file being parsed.
   ///
   /// This may be `null`, indicating that the source URL is unknown.
-  final Uri sourceUrl;
+  Uri get sourceUrl => span.sourceUrl;
 
-  StringScannerException(String message, this.string, this.sourceUrl, Span span)
-      : super(message, span);
+  StringScannerException(String message, SourceSpan span, String source)
+      : super(message, span, source);
 }

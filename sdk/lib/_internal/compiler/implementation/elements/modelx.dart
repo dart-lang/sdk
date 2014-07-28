@@ -87,17 +87,7 @@ abstract class ElementX extends Element {
   bool get isFinal => modifiers.isFinal;
   bool get isStatic => modifiers.isStatic;
   bool get isOperator => Elements.isOperatorName(name);
-  bool get isStatement => identical(kind, ElementKind.STATEMENT);
   bool get impliesType => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
-
-  /** See [ErroneousElement] for documentation. */
-  bool get isErroneous => false;
-
-  /** See [AmbiguousElement] for documentation. */
-  bool get isAmbiguous => false;
-
-  /** See [WarnOnUseElement] for documentation. */
-  bool get isWarnOnUse => false;
 
   bool get isPatched => false;
 
@@ -194,17 +184,6 @@ abstract class ElementX extends Element {
     return null;
   }
 
-  /**
-   * Returns the member enclosing this element or the element itself if it is a
-   * member. If no enclosing element is found, [:null:] is returned.
-   */
-  Element get enclosingMember {
-    for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClassMember) return e;
-    }
-    return null;
-  }
-
   Element get outermostEnclosingMemberOrTopLevel {
     // TODO(lrn): Why is this called "Outermost"?
     // TODO(johnniwinther): Clean up this method: This method does not return
@@ -281,23 +260,6 @@ abstract class ElementX extends Element {
   }
 }
 
-/**
- * Represents an unresolvable or duplicated element.
- *
- * An [ErroneousElement] is used instead of [:null:] to provide additional
- * information about the error that caused the element to be unresolvable
- * or otherwise invalid.
- *
- * Accessing any field or calling any method defined on [ErroneousElement]
- * except [isErroneous] will currently throw an exception. (This might
- * change when we actually want more information on the erroneous element,
- * e.g., the name of the element we were trying to resolve.)
- *
- * Code that cannot not handle an [ErroneousElement] should use
- *   [: Element.isInvalid(element) :]
- * to check for unresolvable elements instead of
- *   [: element == null :].
- */
 class ErroneousElementX extends ElementX implements ErroneousElement {
   final MessageKind messageKind;
   final Map messageArguments;
@@ -305,8 +267,6 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   ErroneousElementX(this.messageKind, this.messageArguments,
                     String name, Element enclosing)
       : super(name, ElementKind.ERROR, enclosing);
-
-  bool get isErroneous => true;
 
   bool get isSynthesized => true;
 
@@ -369,9 +329,6 @@ class WrappedMessage {
   WrappedMessage(this.spannable, this.messageKind, this.messageArguments);
 }
 
-/**
- * An [Element] whose reference should cause one or more warnings.
- */
 class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
   /// Warning to report on resolving this element.
   final WrappedMessage warning;
@@ -386,8 +343,6 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
                     Element enclosingElement, Element wrappedElement)
       : this.wrappedElement = wrappedElement,
         super(wrappedElement.name, ElementKind.WARN_ON_USE, enclosingElement);
-
-  bool get isWarnOnUse => true;
 
   Element unwrap(DiagnosticListener listener, Spannable usageSpannable) {
     var unwrapped = wrappedElement;
@@ -412,13 +367,6 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
   accept(ElementVisitor visitor) => visitor.visitWarnOnUseElement(this);
 }
 
-/**
- * An ambiguous element represents multiple elements accessible by the same name.
- *
- * Ambiguous elements are created during handling of import/export scopes. If an
- * ambiguous element is encountered during resolution a warning/error should be
- * reported.
- */
 class AmbiguousElementX extends ElementX implements AmbiguousElement {
   /**
    * The message to report on resolving this element.
@@ -445,8 +393,6 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
       : this.existingElement = existingElement,
         this.newElement = newElement,
         super(existingElement.name, ElementKind.AMBIGUOUS, enclosingElement);
-
-  bool get isAmbiguous => true;
 
   Setlet flatten() {
     Element element = this;
@@ -1263,6 +1209,13 @@ class LocalVariableElementX extends VariableElementX
       : super(name, ElementKind.VARIABLE, enclosingElement, variables, token) {
     createDefinitions(variables.definitions);
   }
+
+  // TODO(johnniwinther): Remove this when the dart `backend_ast` does not need
+  // [Element] for entities.
+  LocalVariableElementX.synthetic(String name,
+                                  ExecutableElement enclosingElement,
+                                  VariableList variables)
+      : super(name, ElementKind.VARIABLE, enclosingElement, variables, null);
 
   ExecutableElement get executableContext => enclosingElement;
 
@@ -2499,75 +2452,59 @@ class MixinApplicationElementX extends BaseClassElementX
   accept(ElementVisitor visitor) => visitor.visitMixinApplicationElement(this);
 }
 
-class LabelElementX extends ElementX implements LabelElement {
-
-  // We store the original label here so it can be returned by [parseNode].
+class LabelDefinitionX implements LabelDefinition {
   final Label label;
   final String labelName;
-  final TargetElement target;
+  final JumpTarget target;
   bool isBreakTarget = false;
   bool isContinueTarget = false;
-  LabelElementX(Label label, String labelName, this.target,
-                Element enclosingElement)
+
+  LabelDefinitionX(Label label, String labelName, this.target)
       : this.label = label,
-        this.labelName = labelName,
-        // In case of a synthetic label, just use [labelName] for
-        // identifying the element.
-        super(label == null
-                  ? labelName
-                  : label.identifier.source,
-              ElementKind.LABEL,
-              enclosingElement);
+        this.labelName = labelName;
+
+  // In case of a synthetic label, just use [labelName] for identifying the
+  // label.
+  String get name => label == null ? labelName : label.identifier.source;
 
   void setBreakTarget() {
     isBreakTarget = true;
     target.isBreakTarget = true;
   }
+
   void setContinueTarget() {
     isContinueTarget = true;
     target.isContinueTarget = true;
   }
 
   bool get isTarget => isBreakTarget || isContinueTarget;
-  Node parseNode(DiagnosticListener l) => label;
 
-  Token get position => label.getBeginToken();
-  String toString() => "${labelName}:";
-
-  accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
+  String toString() => 'Label:${name}';
 }
 
-// Represents a reference to a statement or switch-case, either by label or the
-// default target of a break or continue.
-class TargetElementX extends ElementX implements TargetElement {
+class JumpTargetX implements JumpTarget {
+  final ExecutableElement executableContext;
   final Node statement;
   final int nestingLevel;
-  Link<LabelElement> labels = const Link<LabelElement>();
+  Link<LabelDefinition> labels = const Link<LabelDefinition>();
   bool isBreakTarget = false;
   bool isContinueTarget = false;
 
-  TargetElementX(this.statement, this.nestingLevel, Element enclosingElement)
-      : super("target", ElementKind.STATEMENT, enclosingElement);
+  JumpTargetX(this.statement, this.nestingLevel, this.executableContext);
+
+  String get name => "target";
+
   bool get isTarget => isBreakTarget || isContinueTarget;
 
-  LabelElement addLabel(Label label, String labelName) {
-    LabelElement result = new LabelElementX(label, labelName, this,
-                                            enclosingElement);
+  LabelDefinition addLabel(Label label, String labelName) {
+    LabelDefinition result = new LabelDefinitionX(label, labelName, this);
     labels = labels.prepend(result);
     return result;
   }
 
-  Node parseNode(DiagnosticListener l) => statement;
-
   bool get isSwitch => statement is SwitchStatement;
 
-  Token get position => statement.getBeginToken();
-  String toString() => statement.toString();
-
-  accept(ElementVisitor visitor) => visitor.visitTargetElement(this);
-
-  // TODO(johnniwinther): Remove this when [TargetElement] is a non-element.
-  get executableContext => enclosingElement;
+  String toString() => 'Target:$statement';
 }
 
 class TypeVariableElementX extends ElementX with AstElementMixin

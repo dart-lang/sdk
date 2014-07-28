@@ -29,8 +29,8 @@ part of $LIBRARYNAME;
  * [Maps](http://www.dartlang.org/docs/library-tour/#maps-aka-dictionaries-or-hashes)
  * section of the library tour.
  */
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
-    implements Map<String, String> $NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
+    implements Map<String, String> {
 
   void addAll(Map<String, String> other) {
     other.forEach((k, v) { this[k] = v; });

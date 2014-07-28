@@ -607,7 +607,7 @@ abstract class Enqueuer {
     }
   }
 
-  void registerClosure(FunctionElement element, Registry registry) {
+  void registerClosure(LocalFunctionElement element, Registry registry) {
     universe.allClosures.add(element);
     registerIfGeneric(element, registry);
   }

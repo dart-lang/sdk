@@ -42,6 +42,7 @@ class RawClosureData;
 class RawRedirectionData;
 class RawFunction;
 class RawGrowableObjectArray;
+class RawLinkedHashMap;
 class RawFloat32x4;
 class RawFloat64x2;
 class RawInt32x4;
@@ -141,7 +142,7 @@ class Snapshot {
 
   // Getters.
   const uint8_t* content() const { return content_; }
-  int64_t length() const { return length_; }
+  intptr_t length() const { return static_cast<intptr_t>(length_); }
   Kind kind() const { return static_cast<Kind>(kind_); }
 
   bool IsMessageSnapshot() const { return kind_ == kMessage; }
@@ -376,6 +377,7 @@ class SnapshotReader : public BaseReader {
   friend class RedirectionData;
   friend class Function;
   friend class GrowableObjectArray;
+  friend class LinkedHashMap;
   friend class ImmutableArray;
   friend class JSRegExp;
   friend class LanguageError;
@@ -613,6 +615,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawClass;
   friend class RawClosureData;
   friend class RawGrowableObjectArray;
+  friend class RawLinkedHashMap;
   friend class RawImmutableArray;
   friend class RawJSRegExp;
   friend class RawLibrary;

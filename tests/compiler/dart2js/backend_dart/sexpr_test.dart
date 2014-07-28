@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../compiler_helper.dart';
+import 'sexpr_unstringifier.dart';
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import 'package:compiler/implementation/dart2jslib.dart';
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes.dart';
 import 'package:compiler/implementation/cps_ir/cps_ir_nodes_sexpr.dart';
-import 'package:compiler/implementation/dart_backend/dart_backend.dart';
 
 const String CODE = """
 class Foo {
@@ -65,6 +65,7 @@ main() {
                , 3: "three"
                };
     var double = 3.14;
+    list.forEach((i) => print(i.toString()));
     print("\$list \$map \$double");
   }
 
@@ -109,27 +110,37 @@ Future<List<FunctionDefinition>> compile(String code) {
   });
 }
 
-Future<String> testStringifier(String code, List<String> expectedTokens) {
+/// Returns an S-expression string for each compiled function.
+List<String> stringifyAll(Iterable<FunctionDefinition> functions) {
+  final stringifier = new SExpressionStringifier();
+  return functions.map((f) => stringifier.visitFunctionDefinition(f)).toList();
+}
+
+Future<List<String>> testStringifier(String code,
+                                     Iterable<String> expectedTokens) {
   return compile(code)
       .then((List<FunctionDefinition> functions) {
-        final stringifier = new SExpressionStringifier();
-        return functions.map((f) {
-          String sexpr = stringifier.visitFunctionDefinition(f);
-          Expect.isNotNull(sexpr, "S-expression generation failed");
-          return sexpr;
-        }).join("\n");
-      })
-      .then((String sexpr) {
-        Expect.isFalse(sexpr.replaceAll("Constant null", "").contains("null"),
-                       "Output contains 'null':\n\n$sexpr");
+        List<String> sexprs = stringifyAll(functions);
+        String combined = sexprs.join();
+        String withoutNullConstants = combined.replaceAll("Constant null", "");
 
-        expectedTokens.forEach((String token) {
-          Expect.isTrue(sexpr.contains(token),
-                        "Expected token '$token' not present:\n\n$sexpr");
-        });
+        Expect.isFalse(withoutNullConstants.contains("null"));
+        for (String token in expectedTokens) {
+          Expect.isTrue(combined.contains(token));
+        }
 
-        return sexpr;
+        return sexprs;
       });
+}
+
+/// Checks if the generated S-expressions can be processed by the unstringifier,
+/// returns the resulting definitions.
+List<FunctionDefinition> testUnstringifier(List<String> sexprs) {
+  return sexprs.map((String sexpr) {
+    final function = new SExpressionUnstringifier().unstringify(sexpr);
+    Expect.isNotNull(function, "Unstringification failed:\n\n$sexpr");
+    return function;
+  }).toList();
 }
 
 void main() {
@@ -162,5 +173,11 @@ void main() {
           , "This"
           ];
 
-  asyncTest(() => testStringifier(CODE, tokens));
+  asyncTest(() => testStringifier(CODE, tokens).then((List<String> sexprs) {
+    final functions = testUnstringifier(sexprs);
+
+    // Ensure that
+    // stringified(CODE) == stringified(unstringified(stringified(CODE)))
+    Expect.listEquals(sexprs, stringifyAll(functions));
+  }));
 }

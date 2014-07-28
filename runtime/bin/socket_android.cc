@@ -380,6 +380,12 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
 }
 
 
+bool ServerSocket::StartAccept(intptr_t fd) {
+  USE(fd);
+  return true;
+}
+
+
 static bool IsTemporaryAcceptError(int error) {
   // On Android a number of protocol errors should be treated as EAGAIN.
   // These are the ones for TCP/IP.

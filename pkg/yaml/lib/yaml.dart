@@ -29,18 +29,18 @@ export 'src/yaml_node.dart';
 /// In future versions, maps will instead be [HashMap]s with a custom equality
 /// operation.
 ///
-/// If [sourceName] is passed, it's used as the name of the file or URL from
-/// which the YAML originated for error reporting.
-loadYaml(String yaml, {String sourceName}) =>
-    loadYamlNode(yaml, sourceName: sourceName).value;
+/// If [sourceUrl] is passed, it's used as the URL from which the YAML
+/// originated for error reporting. It can be a [String], a [Uri], or `null`.
+loadYaml(String yaml, {sourceUrl}) =>
+    loadYamlNode(yaml, sourceUrl: sourceUrl).value;
 
 /// Loads a single document from a YAML string as a [YamlNode].
 ///
 /// This is just like [loadYaml], except that where [loadYaml] would return a
 /// normal Dart value this returns a [YamlNode] instead. This allows the caller
 /// to be confident that the return value will always be a [YamlNode].
-YamlNode loadYamlNode(String yaml, {String sourceName}) {
-  var stream = loadYamlStream(yaml, sourceName: sourceName);
+YamlNode loadYamlNode(String yaml, {sourceUrl}) {
+  var stream = loadYamlStream(yaml, sourceUrl: sourceUrl);
   if (stream.length != 1) {
     throw new YamlException("Expected 1 document, were ${stream.length}.",
         stream.span);
@@ -59,12 +59,12 @@ YamlNode loadYamlNode(String yaml, {String sourceName}) {
 /// In future versions, maps will instead be [HashMap]s with a custom equality
 /// operation.
 ///
-/// If [sourceName] is passed, it's used as the name of the file or URL from
-/// which the YAML originated for error reporting.
-YamlList loadYamlStream(String yaml, {String sourceName}) {
+/// If [sourceUrl] is passed, it's used as the URL from which the YAML
+/// originated for error reporting. It can be a [String], a [Uri], or `null`.
+YamlList loadYamlStream(String yaml, {sourceUrl}) {
   var pair;
   try {
-    pair = new Parser(yaml, sourceName).l_yamlStream();
+    pair = new Parser(yaml, sourceUrl).l_yamlStream();
   } on StringScannerException catch (error) {
     throw new YamlException(error.message, error.span);
   }

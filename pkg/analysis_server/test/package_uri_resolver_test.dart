@@ -16,10 +16,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-
-  group('PackageMapUriResolver', () {
-    runReflectiveTests(_PackageMapUriResolverTest);
-  });
+  runReflectiveTests(_PackageMapUriResolverTest);
 }
 
 

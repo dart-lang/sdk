@@ -95,7 +95,7 @@ class EditDomainHandler implements RequestHandler {
       engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
       if (errorInfo != null) {
         for (engine.AnalysisError error in errorInfo.errors) {
-          List<Fix> fixes = computeFixes(searchEngine, file, unit, error);
+          List<Fix> fixes = computeFixes(searchEngine, unit, error);
           if (fixes.isNotEmpty) {
             AnalysisError serverError =
                 new AnalysisError.fromEngine(errorInfo.lineInfo, error);

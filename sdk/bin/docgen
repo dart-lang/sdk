@@ -24,9 +24,9 @@ unset SNAPSHOT
 
 SNAPSHOT="$BIN_DIR/snapshots/utils_wrapper.dart.snapshot"
 
-if test -f $SNAPSHOT; then
+if test -f "$SNAPSHOT"; then
   exec "$BIN_DIR"/dart \
-      "--package-root=$BIN_DIR/../packages/" $SNAPSHOT \
+      "--package-root=$BIN_DIR/../packages/" "$SNAPSHOT" \
       docgen "--sdk=$SDK_DIR" "$@"
 else
   exec "$BIN_DIR"/dart \

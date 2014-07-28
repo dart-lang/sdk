@@ -53,6 +53,11 @@ List<String> allLocales = [];
 String generatedFilePrefix = '';
 
 /**
+ * Should we use deferred loading for the generated libraries.
+ */
+bool useDeferredLoading = true;
+
+/**
  * This represents a message and its translation. We assume that the translation
  * has some identifier that allows us to figure out the original message it
  * corresponds to, and that it may want to transform the translated text in
@@ -179,13 +184,18 @@ String generateMainImportFile() {
   for (var locale in allLocales) {
     var baseFile = '${generatedFilePrefix}messages_$locale.dart';
     var file = importForGeneratedFile(baseFile);
-    output.write("import '$file' deferred as ${_libraryName(locale)};\n");
+    output.write("import '$file' ");
+    if (useDeferredLoading) output.write("deferred ");
+    output.write("as ${_libraryName(locale)};\n");
   }
   output.write("\n");
   output.write("\nMap<String, Function> _deferredLibraries = {\n");
   for (var rawLocale in allLocales) {
     var locale = Intl.canonicalizedLocale(rawLocale);
-    output.write("  '$locale' : () => ${_libraryName(locale)}.loadLibrary(),\n");
+    var loadOperation = (useDeferredLoading) 
+        ? "  '$locale' : () => ${_libraryName(locale)}.loadLibrary(),\n"
+        : "  '$locale' : () => new Future.value(null),\n";
+    output.write(loadOperation);
   }
   output.write("};\n");
   output.write(

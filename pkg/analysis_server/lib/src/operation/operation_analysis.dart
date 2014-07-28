@@ -20,47 +20,16 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-
-Map<String, Object> errorToJson(LineInfo lineInfo, AnalysisError analysisError)
-    {
-  ErrorCode errorCode = analysisError.errorCode;
-  // prepare location
-  int offset = analysisError.offset;
-  Map<String, Object> location = {
-    FILE: analysisError.source.fullName,
-    OFFSET: offset,
-    LENGTH: analysisError.length
-  };
-  if (lineInfo != null) {
-    LineInfo_Location lineLocation = lineInfo.getLocation(offset);
-    if (lineLocation != null) {
-      location[START_LINE] = lineLocation.lineNumber;
-      location[START_COLUMN] = lineLocation.columnNumber;
-    }
-  }
-  // fill JSON
-  Map<String, Object> result = {
-    // TODO(scheglov) add Enum.fullName ?
-    SEVERITY: errorCode.errorSeverity.name,
-    TYPE: errorCode.type.name,
-    LOCATION: location,
-    MESSAGE: analysisError.message
-  };
-  if (analysisError.correction != null) {
-    result[CORRECTION] = analysisError.correction;
-  }
-  return result;
-}
+import 'package:analysis_server/src/computer/error.dart' as server_prefix;
 
 
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
     LineInfo lineInfo, List<AnalysisError> errors) {
   Notification notification = new Notification(ANALYSIS_ERRORS);
   notification.setParameter(FILE, file);
-  notification.setParameter(ERRORS, errors.map((error) {
-    return errorToJson(lineInfo, error);
-  }).toList());
+  notification.setParameter(
+      ERRORS,
+      server_prefix.engineErrorsToJson(lineInfo, errors));
   server.sendNotification(notification);
 }
 
@@ -69,8 +38,9 @@ void sendAnalysisNotificationHighlights(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
   Notification notification = new Notification(ANALYSIS_HIGHLIGHTS);
   notification.setParameter(FILE, file);
-  notification.setParameter(REGIONS, new DartUnitHighlightsComputer(
-      dartUnit).compute());
+  notification.setParameter(
+      REGIONS,
+      new DartUnitHighlightsComputer(dartUnit).compute());
   server.sendNotification(notification);
 }
 
@@ -79,8 +49,9 @@ void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
   Notification notification = new Notification(ANALYSIS_NAVIGATION);
   notification.setParameter(FILE, file);
-  notification.setParameter(REGIONS, new DartUnitNavigationComputer(
-      dartUnit).compute());
+  notification.setParameter(
+      REGIONS,
+      new DartUnitNavigationComputer(dartUnit).compute());
   server.sendNotification(notification);
 }
 
@@ -89,8 +60,9 @@ void sendAnalysisNotificationOccurrences(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
   Notification notification = new Notification(ANALYSIS_OCCURRENCES);
   notification.setParameter(FILE, file);
-  notification.setParameter(OCCURRENCES, new DartUnitOccurrencesComputer(
-      dartUnit).compute());
+  notification.setParameter(
+      OCCURRENCES,
+      new DartUnitOccurrencesComputer(dartUnit).compute());
   server.sendNotification(notification);
 }
 
@@ -99,18 +71,20 @@ void sendAnalysisNotificationOutline(AnalysisServer server,
     AnalysisContext context, Source source, CompilationUnit dartUnit) {
   Notification notification = new Notification(ANALYSIS_OUTLINE);
   notification.setParameter(FILE, source.fullName);
-  notification.setParameter(OUTLINE, new DartUnitOutlineComputer(context,
-      source, dartUnit).compute());
+  notification.setParameter(
+      OUTLINE,
+      new DartUnitOutlineComputer(context, source, dartUnit).compute());
   server.sendNotification(notification);
 }
 
 
-void sendAnalysisNotificationOverrides(AnalysisServer server,
-    String file, CompilationUnit dartUnit) {
+void sendAnalysisNotificationOverrides(AnalysisServer server, String file,
+    CompilationUnit dartUnit) {
   Notification notification = new Notification(ANALYSIS_OVERRIDES);
   notification.setParameter(FILE, file);
-  notification.setParameter(OVERRIDES, new DartUnitOverridesComputer(
-      dartUnit).compute());
+  notification.setParameter(
+      OVERRIDES,
+      new DartUnitOverridesComputer(dartUnit).compute());
   server.sendNotification(notification);
 }
 
@@ -186,7 +160,10 @@ class PerformAnalysisOperation extends ServerOperation {
       }
       // TODO(scheglov) use default subscriptions
       if (!source.isInSystemLibrary) {
-        sendAnalysisNotificationErrors(server, file, notice.lineInfo,
+        sendAnalysisNotificationErrors(
+            server,
+            file,
+            notice.lineInfo,
             notice.errors);
       }
     }

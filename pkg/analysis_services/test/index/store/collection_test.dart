@@ -11,12 +11,8 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('IntArrayToIntMap', () {
-    runReflectiveTests(_IntArrayToIntMapTest);
-  });
-  group('IntToIntSetMap', () {
-    runReflectiveTests(_IntToIntSetMapTest);
-  });
+  runReflectiveTests(_IntArrayToIntMapTest);
+  runReflectiveTests(_IntToIntSetMapTest);
 }
 
 

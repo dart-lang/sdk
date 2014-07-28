@@ -4,7 +4,7 @@
 
 library string_scanner.span_scanner;
 
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 
 import 'exception.dart';
 import 'line_scanner.dart';
@@ -20,7 +20,7 @@ class SpanScanner extends StringScanner implements LineScanner {
   final SourceFile _sourceFile;
 
   int get line => _sourceFile.getLine(position);
-  int get column => _sourceFile.getColumn(line, position);
+  int get column => _sourceFile.getColumn(position);
 
   LineScannerState get state => new _SpanScannerState(this, position);
 
@@ -34,28 +34,28 @@ class SpanScanner extends StringScanner implements LineScanner {
     this.position = state.position;
   }
 
-  /// The [Span] for [lastMatch].
+  /// The [SourceSpan] for [lastMatch].
   ///
   /// This is the span for the entire match. There's no way to get spans for
   /// subgroups since [Match] exposes no information about their positions.
-  Span get lastSpan => _lastSpan;
-  Span _lastSpan;
+  SourceSpan get lastSpan => _lastSpan;
+  SourceSpan _lastSpan;
 
   /// Returns an empty span at the current location.
-  Span get emptySpan => _sourceFile.span(position);
+  SourceSpan get emptySpan => _sourceFile.location(position).pointSpan();
 
   /// Creates a new [SpanScanner] that starts scanning from [position].
   ///
-  /// [sourceUrl] is used as [Location.sourceUrl] for the returned [Span]s as
-  /// well as for error reporting.
-  SpanScanner(String string, sourceUrl, {int position})
-      : _sourceFile = new SourceFile.text(
-            sourceUrl is Uri ? sourceUrl.toString() : sourceUrl, string),
+  /// [sourceUrl] is used as [SourceLocation.sourceUrl] for the returned
+  /// [SourceSpan]s as well as for error reporting. It can be a [String], a
+  /// [Uri], or `null`.
+  SpanScanner(String string, {sourceUrl, int position})
+      : _sourceFile = new SourceFile(string, url: sourceUrl),
         super(string, sourceUrl: sourceUrl, position: position);
 
-  /// Creates a [Span] representing the source range between [startState] and
-  /// the current position.
-  Span spanFrom(LineScannerState startState) =>
+  /// Creates a [SourceSpan] representing the source range between [startState]
+  /// and the current position.
+  SourceSpan spanFrom(LineScannerState startState) =>
       _sourceFile.span(startState.position, position);
 
   bool matches(Pattern pattern) {
@@ -78,7 +78,7 @@ class SpanScanner extends StringScanner implements LineScanner {
     if (length == null) length = match == null ? 1 : match.end - match.start;
 
     var span = _sourceFile.span(position, position + length);
-    throw new StringScannerException(message, string, sourceUrl, span);
+    throw new StringScannerException(message, span, string);
   }
 }
 
@@ -89,7 +89,7 @@ class _SpanScannerState implements LineScannerState {
 
   final int position;
   int get line => _scanner._sourceFile.getLine(position);
-  int get column => _scanner._sourceFile.getColumn(line, position);
+  int get column => _scanner._sourceFile.getColumn(position);
 
   _SpanScannerState(this._scanner, this.position);
 }

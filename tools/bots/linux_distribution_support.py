@@ -99,7 +99,7 @@ def SrcSteps(build_info):
 
   version = utils.GetVersion()
   builddir = os.path.join(bot_utils.DART_DIR,
-                          utils.GetBuildDir(HOST_OS, HOST_OS),
+                          utils.GetBuildDir(HOST_OS),
                           'src_and_installation')
 
   if not os.path.exists(builddir):

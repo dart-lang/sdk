@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 $if DART2JS
   factory Blob(List blobParts, [String type, String endings]) {
@@ -27,4 +27,3 @@ $if DART2JS
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
 $endif
 }
-

@@ -45,7 +45,7 @@ class PortTestMessageHandler : public MessageHandler {
 
 TEST_CASE(PortMap_CreateAndCloseOnePort) {
   PortTestMessageHandler handler;
-  intptr_t port = PortMap::CreatePort(&handler);
+  Dart_Port port = PortMap::CreatePort(&handler);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
 
@@ -101,7 +101,7 @@ TEST_CASE(PortMap_CreateManyPorts) {
 
 TEST_CASE(PortMap_SetLive) {
   PortTestMessageHandler handler;
-  intptr_t port = PortMap::CreatePort(&handler);
+  Dart_Port port = PortMap::CreatePort(&handler);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
   EXPECT(!PortMapTestPeer::IsLivePort(port));

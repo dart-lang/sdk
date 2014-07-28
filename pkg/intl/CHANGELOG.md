@@ -1,3 +1,8 @@
+## 0.11.3
+
+ * Add a --[no]-use-deferred-loading flag to generate_from_arb.dart and 
+   generally make the deferred loading of message libraries optional.
+
 ## 0.11.2
 
  * Missed canonicalization of locales in one place in message library generation.

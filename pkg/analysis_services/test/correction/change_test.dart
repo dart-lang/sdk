@@ -15,38 +15,16 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('ChangeTest', () {
-    runReflectiveTests(ChangeTest);
-  });
-  group('EditTest', () {
-    runReflectiveTests(EditTest);
-  });
-  group('FileEditTest', () {
-    runReflectiveTests(FileEditTest);
-  });
-  group('LinkedPositionGroupTest', () {
-    runReflectiveTests(LinkedPositionGroupTest);
-  });
-  group('PositionTest', () {
-    runReflectiveTests(PositionTest);
-  });
+  runReflectiveTests(ChangeTest);
+  runReflectiveTests(EditTest);
+  runReflectiveTests(FileEditTest);
+  runReflectiveTests(LinkedPositionGroupTest);
+  runReflectiveTests(PositionTest);
 }
 
 
 @ReflectiveTestCase()
 class ChangeTest {
-//  void test_fromJson() {
-//    var json = {
-//      OFFSET: 1,
-//      LENGTH: 2,
-//      REPLACEMENT: 'foo'
-//    };
-//    Edit edit = Edit.fromJson(json);
-//    expect(edit.offset, 1);
-//    expect(edit.length, 2);
-//    expect(edit.replacement, 'foo');
-//  }
-
   void test_fromJson() {
     var json = {
       MESSAGE: 'msg',
@@ -142,11 +120,11 @@ class ChangeTest {
         ..add(new Edit(21, 22, 'xxx'))
         ..add(new Edit(210, 220, 'yyy')));
     change.addLinkedPositionGroup(new LinkedPositionGroup('id-a')
-        ..add(new Position('/ga.dart', 1, 2))
-        ..add(new Position('/ga.dart', 10, 2)));
+        ..addPosition(new Position('/ga.dart', 1, 2))
+        ..addPosition(new Position('/ga.dart', 10, 2)));
     change.addLinkedPositionGroup(new LinkedPositionGroup('id-b')
-        ..add(new Position('/gb.dart', 10, 5))
-        ..add(new Position('/gb.dart', 100, 5)));
+        ..addPosition(new Position('/gb.dart', 10, 5))
+        ..addPosition(new Position('/gb.dart', 100, 5)));
     expect(
         change.toString(),
         'Change(message=msg, edits=[FileEdit(file=/a.dart, edits=['
@@ -172,11 +150,11 @@ class ChangeTest {
         ..add(new Edit(21, 22, 'xxx'))
         ..add(new Edit(210, 220, 'yyy')));
     change.addLinkedPositionGroup(new LinkedPositionGroup('id-a')
-        ..add(new Position('/ga.dart', 1, 2))
-        ..add(new Position('/ga.dart', 10, 2)));
+        ..addPosition(new Position('/ga.dart', 1, 2))
+        ..addPosition(new Position('/ga.dart', 10, 2)));
     change.addLinkedPositionGroup(new LinkedPositionGroup('id-b')
-        ..add(new Position('/gb.dart', 10, 5))
-        ..add(new Position('/gb.dart', 100, 5)));
+        ..addPosition(new Position('/gb.dart', 10, 5))
+        ..addPosition(new Position('/gb.dart', 100, 5)));
     var expectedJson = {
       MESSAGE: 'msg',
       EDITS: [{
@@ -338,9 +316,9 @@ class FileEditTest {
 class LinkedPositionGroupTest {
   void test_addWrongLength() {
     LinkedPositionGroup group = new LinkedPositionGroup('my-id');
-    group.add(new Position('/a.dart', 1, 2));
+    group.addPosition(new Position('/a.dart', 1, 2));
     expect(() {
-      group.add(new Position('/b.dart', 10, 20));
+      group.addPosition(new Position('/b.dart', 10, 20));
     }, throws);
   }
 
@@ -366,8 +344,8 @@ class LinkedPositionGroupTest {
 
   void test_new() {
     LinkedPositionGroup group = new LinkedPositionGroup('my-id');
-    group.add(new Position('/a.dart', 1, 2));
-    group.add(new Position('/b.dart', 10, 2));
+    group.addPosition(new Position('/a.dart', 1, 2));
+    group.addPosition(new Position('/b.dart', 10, 2));
     expect(
         group.toString(),
         'LinkedPositionGroup(id=my-id, positions=['
@@ -377,8 +355,8 @@ class LinkedPositionGroupTest {
 
   void test_toJson() {
     LinkedPositionGroup group = new LinkedPositionGroup('my-id');
-    group.add(new Position('/a.dart', 1, 2));
-    group.add(new Position('/b.dart', 10, 2));
+    group.addPosition(new Position('/a.dart', 1, 2));
+    group.addPosition(new Position('/b.dart', 10, 2));
     var expectedJson = {
       ID: 'my-id',
       POSITIONS: [{

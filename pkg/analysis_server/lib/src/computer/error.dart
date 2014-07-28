@@ -7,8 +7,28 @@ library computer.error;
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/json.dart';
+import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
+
+
+/**
+ * Returns a JSON correponding to the given list of Engine errors.
+ */
+List<Map<String, Object>> engineErrorInfoToJson(engine.AnalysisErrorInfo info) {
+  return engineErrorsToJson(info.lineInfo, info.errors);
+}
+
+
+/**
+ * Returns a JSON correponding to the given list of Engine errors.
+ */
+List<Map<String, Object>> engineErrorsToJson(engine.LineInfo lineInfo,
+    List<engine.AnalysisError> errors) {
+  return errors.map((engine.AnalysisError error) {
+    return new AnalysisError.fromEngine(lineInfo, error).toJson();
+  }).toList();
+}
 
 
 /**
@@ -49,7 +69,7 @@ class AnalysisError implements HasToJson {
     String severity = errorCode.errorSeverity.toString();
     String type = errorCode.type.toString();
     String message = error.message;
-    String correction = errorCode.correction;
+    String correction = error.correction;
     return new AnalysisError(severity, type, location, message, correction);
   }
 

@@ -120,6 +120,24 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(SearchEngine searchEngine,
 
 
 /**
+ * Returns non-synthetic members of the given [ClassElement] and its super
+ * classes.
+ *
+ * Includes: fields, accessors and methods.
+ * Excludes: constructors and synthetic elements.
+ */
+List<Element> getMembers(ClassElement clazz) {
+  List<Element> members = <Element>[];
+  members.addAll(getClassMembers(clazz));
+  Set<ClassElement> superClasses = getSuperClasses(clazz);
+  for (ClassElement superClass in superClasses) {
+    members.addAll(getClassMembers(superClass));
+  }
+  return members;
+}
+
+
+/**
  * Returns a [Set] with all direct and indirect subclasses of [seed].
  */
 Future<Set<ClassElement>> getSubClasses(SearchEngine searchEngine,
@@ -181,13 +199,13 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
 }
 
 
-typedef void ElementProcessor(Element element);
+typedef void _ElementProcessor(Element element);
 
 /**
- * A [GeneralizingElementVisitor] adapter for [ElementProcessor].
+ * A [GeneralizingElementVisitor] adapter for [_ElementProcessor].
  */
 class _ElementVisitorAdapter extends GeneralizingElementVisitor {
-  final ElementProcessor processor;
+  final _ElementProcessor processor;
 
   _ElementVisitorAdapter(this.processor);
 

@@ -1665,37 +1665,65 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-class StoreInstanceFieldSlowPath : public SlowPathCode {
+class BoxAllocationSlowPath : public SlowPathCode {
  public:
-  StoreInstanceFieldSlowPath(StoreInstanceFieldInstr* instruction,
-                             const Class& cls)
-      : instruction_(instruction), cls_(cls) { }
+  BoxAllocationSlowPath(Instruction* instruction,
+                        const Class& cls,
+                        Register result)
+      : instruction_(instruction),
+        cls_(cls),
+        result_(result) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("StoreInstanceFieldSlowPath");
-    __ Bind(entry_label());
     Isolate* isolate = compiler->isolate();
+    StubCode* stub_code = isolate->stub_code();
+
+    if (Assembler::EmittingComments()) {
+      __ Comment("%s slow path allocation of %s",
+                 instruction_->DebugName(),
+                 String::Handle(cls_.PrettyName()).ToCString());
+    }
+    __ Bind(entry_label());
+
     const Code& stub =
-        Code::Handle(isolate,
-                     isolate->stub_code()->GetAllocationStubForClass(cls_));
+        Code::Handle(isolate, stub_code->GetAllocationStubForClass(cls_));
     const ExternalLabel label(stub.EntryPoint());
 
     LocationSummary* locs = instruction_->locs();
-    locs->live_registers()->Remove(locs->temp(0));
+
+    locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
     compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
                            &label,
                            RawPcDescriptors::kOther,
                            locs);
-    __ MoveRegister(locs->temp(0).reg(), EAX);
+    __ MoveRegister(result_, EAX);
     compiler->RestoreLiveRegisters(locs);
     __ jmp(exit_label());
   }
 
+  static void Allocate(FlowGraphCompiler* compiler,
+                       Instruction* instruction,
+                       const Class& cls,
+                       Register result,
+                       Register temp) {
+    BoxAllocationSlowPath* slow_path =
+        new BoxAllocationSlowPath(instruction, cls, result);
+    compiler->AddSlowPathCode(slow_path);
+
+    __ TryAllocate(cls,
+                   slow_path->entry_label(),
+                   Assembler::kFarJump,
+                   result,
+                   temp);
+    __ Bind(slow_path->exit_label());
+  }
+
  private:
-  StoreInstanceFieldInstr* instruction_;
+  Instruction* instruction_;
   const Class& cls_;
+  Register result_;
 };
 
 
@@ -1734,6 +1762,29 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+static void EnsureMutableBox(FlowGraphCompiler* compiler,
+                             StoreInstanceFieldInstr* instruction,
+                             Register box_reg,
+                             const Class& cls,
+                             Register instance_reg,
+                             intptr_t offset,
+                             Register temp) {
+  Label done;
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ movl(box_reg, FieldAddress(instance_reg, offset));
+  __ cmpl(box_reg, raw_null);
+  __ j(NOT_EQUAL, &done);
+  BoxAllocationSlowPath::Allocate(compiler, instruction, cls, box_reg, temp);
+  __ movl(temp, box_reg);
+  __ StoreIntoObject(instance_reg,
+                     FieldAddress(instance_reg, offset),
+                     temp);
+
+  __ Bind(&done);
+}
+
+
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label skip_store;
 
@@ -1761,16 +1812,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           UNREACHABLE();
       }
 
-      StoreInstanceFieldSlowPath* slow_path =
-          new StoreInstanceFieldSlowPath(this, *cls);
-      compiler->AddSlowPathCode(slow_path);
-
-      __ TryAllocate(*cls,
-                     slow_path->entry_label(),
-                     Assembler::kFarJump,
-                     temp,
-                     temp2);
-      __ Bind(slow_path->exit_label());
+      BoxAllocationSlowPath::Allocate(compiler, this, *cls, temp, temp2);
       __ movl(temp2, temp);
       __ StoreIntoObject(instance_reg,
                          FieldAddress(instance_reg, offset_in_bytes_),
@@ -1842,30 +1884,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     {
       __ Bind(&store_double);
-      Label copy_double;
-
-      StoreInstanceFieldSlowPath* slow_path =
-          new StoreInstanceFieldSlowPath(this, compiler->double_class());
-      compiler->AddSlowPathCode(slow_path);
-
-      const Immediate& raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ movl(temp, FieldAddress(instance_reg, offset_in_bytes_));
-      __ cmpl(temp, raw_null);
-      __ j(NOT_EQUAL, &copy_double);
-
-      __ TryAllocate(compiler->double_class(),
-                     slow_path->entry_label(),
-                     Assembler::kFarJump,
-                     temp,
-                     temp2);
-      __ Bind(slow_path->exit_label());
-      __ movl(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
-
-      __ Bind(&copy_double);
+      EnsureMutableBox(compiler,
+                       this,
+                       temp,
+                       compiler->double_class(),
+                       instance_reg,
+                       offset_in_bytes_,
+                       temp2);
       __ movsd(fpu_temp, FieldAddress(value_reg, Double::value_offset()));
       __ movsd(FieldAddress(temp, Double::value_offset()), fpu_temp);
       __ jmp(&skip_store);
@@ -1873,30 +1898,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     {
       __ Bind(&store_float32x4);
-      Label copy_float32x4;
-
-      StoreInstanceFieldSlowPath* slow_path =
-          new StoreInstanceFieldSlowPath(this, compiler->float32x4_class());
-      compiler->AddSlowPathCode(slow_path);
-
-      const Immediate& raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ movl(temp, FieldAddress(instance_reg, offset_in_bytes_));
-      __ cmpl(temp, raw_null);
-      __ j(NOT_EQUAL, &copy_float32x4);
-
-      __ TryAllocate(compiler->float32x4_class(),
-                     slow_path->entry_label(),
-                     Assembler::kFarJump,
-                     temp,
-                     temp2);
-      __ Bind(slow_path->exit_label());
-      __ movl(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
-
-      __ Bind(&copy_float32x4);
+      EnsureMutableBox(compiler,
+                       this,
+                       temp,
+                       compiler->float32x4_class(),
+                       instance_reg,
+                       offset_in_bytes_,
+                       temp2);
       __ movups(fpu_temp, FieldAddress(value_reg, Float32x4::value_offset()));
       __ movups(FieldAddress(temp, Float32x4::value_offset()), fpu_temp);
       __ jmp(&skip_store);
@@ -1904,30 +1912,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     {
       __ Bind(&store_float64x2);
-      Label copy_float64x2;
-
-      StoreInstanceFieldSlowPath* slow_path =
-          new StoreInstanceFieldSlowPath(this, compiler->float64x2_class());
-      compiler->AddSlowPathCode(slow_path);
-
-      const Immediate& raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ movl(temp, FieldAddress(instance_reg, offset_in_bytes_));
-      __ cmpl(temp, raw_null);
-      __ j(NOT_EQUAL, &copy_float64x2);
-
-      __ TryAllocate(compiler->float64x2_class(),
-                     slow_path->entry_label(),
-                     Assembler::kFarJump,
-                     temp,
-                     temp2);
-      __ Bind(slow_path->exit_label());
-      __ movl(temp2, temp);
-      __ StoreIntoObject(instance_reg,
-                         FieldAddress(instance_reg, offset_in_bytes_),
-                         temp2);
-
-      __ Bind(&copy_float64x2);
+      EnsureMutableBox(compiler,
+                       this,
+                       temp,
+                       compiler->float64x2_class(),
+                       instance_reg,
+                       offset_in_bytes_,
+                       temp2);
       __ movups(fpu_temp, FieldAddress(value_reg, Float64x2::value_offset()));
       __ movups(FieldAddress(temp, Float64x2::value_offset()), fpu_temp);
       __ jmp(&skip_store);
@@ -2161,110 +2152,6 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-class BoxDoubleSlowPath : public SlowPathCode {
- public:
-  explicit BoxDoubleSlowPath(Instruction* instruction)
-      : instruction_(instruction) { }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("BoxDoubleSlowPath");
-    __ Bind(entry_label());
-    Isolate* isolate = compiler->isolate();
-    StubCode* stub_code = isolate->stub_code();
-    const Class& double_class = compiler->double_class();
-    const Code& stub =
-        Code::Handle(isolate,
-                     stub_code->GetAllocationStubForClass(double_class));
-    const ExternalLabel label(stub.EntryPoint());
-
-    LocationSummary* locs = instruction_->locs();
-    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
-    compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
-                           &label,
-                           RawPcDescriptors::kOther,
-                           locs);
-    __ MoveRegister(locs->out(0).reg(), EAX);
-    compiler->RestoreLiveRegisters(locs);
-
-    __ jmp(exit_label());
-  }
-
- private:
-  Instruction* instruction_;
-};
-
-
-class BoxFloat32x4SlowPath : public SlowPathCode {
- public:
-  explicit BoxFloat32x4SlowPath(Instruction* instruction)
-      : instruction_(instruction) { }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("BoxFloat32x4SlowPath");
-    __ Bind(entry_label());
-    Isolate* isolate = compiler->isolate();
-    StubCode* stub_code = isolate->stub_code();
-    const Class& float32x4_class = compiler->float32x4_class();
-    const Code& stub =
-        Code::Handle(isolate,
-                     stub_code->GetAllocationStubForClass(float32x4_class));
-    const ExternalLabel label(stub.EntryPoint());
-
-    LocationSummary* locs = instruction_->locs();
-    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
-
-    compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
-                           &label,
-                           RawPcDescriptors::kOther,
-                           locs);
-    __ MoveRegister(locs->out(0).reg(), EAX);
-    compiler->RestoreLiveRegisters(locs);
-
-    __ jmp(exit_label());
-  }
-
- private:
-  Instruction* instruction_;
-};
-
-
-class BoxFloat64x2SlowPath : public SlowPathCode {
- public:
-  explicit BoxFloat64x2SlowPath(Instruction* instruction)
-      : instruction_(instruction) { }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("BoxFloat64x2SlowPath");
-    __ Bind(entry_label());
-    Isolate* isolate = compiler->isolate();
-    StubCode* stub_code = isolate->stub_code();
-    const Class& float64x2_class = compiler->float64x2_class();
-    const Code& stub =
-        Code::Handle(isolate,
-                     stub_code->GetAllocationStubForClass(float64x2_class));
-    const ExternalLabel label(stub.EntryPoint());
-
-    LocationSummary* locs = instruction_->locs();
-    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
-
-    compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
-                           &label,
-                           RawPcDescriptors::kOther,
-                           locs);
-    __ MoveRegister(locs->out(0).reg(), EAX);
-    compiler->RestoreLiveRegisters(locs);
-
-    __ jmp(exit_label());
-  }
-
- private:
-  Instruction* instruction_;
-};
-
-
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Isolate* isolate,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -2356,15 +2243,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     {
       __ Bind(&load_double);
-      BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
-      compiler->AddSlowPathCode(slow_path);
-
-      __ TryAllocate(compiler->double_class(),
-                     slow_path->entry_label(),
-                     Assembler::kFarJump,
-                     result,
-                     temp);
-      __ Bind(slow_path->exit_label());
+      BoxAllocationSlowPath::Allocate(
+          compiler, this, compiler->double_class(), result, temp);
       __ movl(temp, FieldAddress(instance_reg, offset_in_bytes()));
       __ movsd(value, FieldAddress(temp, Double::value_offset()));
       __ movsd(FieldAddress(result, Double::value_offset()), value);
@@ -2373,16 +2253,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     {
       __ Bind(&load_float32x4);
-
-      BoxFloat32x4SlowPath* slow_path = new BoxFloat32x4SlowPath(this);
-      compiler->AddSlowPathCode(slow_path);
-
-      __ TryAllocate(compiler->float32x4_class(),
-                     slow_path->entry_label(),
-                     Assembler::kFarJump,
-                     result,
-                     temp);
-      __ Bind(slow_path->exit_label());
+      BoxAllocationSlowPath::Allocate(
+          compiler, this, compiler->float32x4_class(), result, temp);
       __ movl(temp, FieldAddress(instance_reg, offset_in_bytes()));
       __ movups(value, FieldAddress(temp, Float32x4::value_offset()));
       __ movups(FieldAddress(result, Float32x4::value_offset()), value);
@@ -2391,16 +2263,8 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     {
       __ Bind(&load_float64x2);
-
-      BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
-      compiler->AddSlowPathCode(slow_path);
-
-      __ TryAllocate(compiler->float64x2_class(),
-                     slow_path->entry_label(),
-                     Assembler::kFarJump,
-                     result,
-                     temp);
-      __ Bind(slow_path->exit_label());
+      BoxAllocationSlowPath::Allocate(
+          compiler, this, compiler->float64x2_class(), result, temp);
       __ movl(temp, FieldAddress(instance_reg, offset_in_bytes()));
       __ movups(value, FieldAddress(temp, Float64x2::value_offset()));
       __ movups(FieldAddress(result, Float64x2::value_offset()), value);
@@ -3359,18 +3223,10 @@ LocationSummary* BoxDoubleInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void BoxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  BoxDoubleSlowPath* slow_path = new BoxDoubleSlowPath(this);
-  compiler->AddSlowPathCode(slow_path);
-
   Register out_reg = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
-
-  __ TryAllocate(compiler->double_class(),
-                 slow_path->entry_label(),
-                 Assembler::kFarJump,
-                 out_reg,
-                 kNoRegister);
-  __ Bind(slow_path->exit_label());
+  BoxAllocationSlowPath::Allocate(
+      compiler, this, compiler->double_class(), out_reg, kNoRegister);
   __ movsd(FieldAddress(out_reg, Double::value_offset()), value);
 }
 
@@ -3449,18 +3305,11 @@ LocationSummary* BoxFloat32x4Instr::MakeLocationSummary(Isolate* isolate,
 
 
 void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  BoxFloat32x4SlowPath* slow_path = new BoxFloat32x4SlowPath(this);
-  compiler->AddSlowPathCode(slow_path);
-
   Register out_reg = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
-  __ TryAllocate(compiler->float32x4_class(),
-                 slow_path->entry_label(),
-                 Assembler::kFarJump,
-                 out_reg,
-                 kNoRegister);
-  __ Bind(slow_path->exit_label());
+  BoxAllocationSlowPath::Allocate(
+      compiler, this, compiler->float32x4_class(), out_reg, kNoRegister);
   __ movups(FieldAddress(out_reg, Float32x4::value_offset()), value);
 }
 
@@ -3514,18 +3363,11 @@ LocationSummary* BoxFloat64x2Instr::MakeLocationSummary(Isolate* isolate,
 
 
 void BoxFloat64x2Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  BoxFloat64x2SlowPath* slow_path = new BoxFloat64x2SlowPath(this);
-  compiler->AddSlowPathCode(slow_path);
-
   Register out_reg = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
-  __ TryAllocate(compiler->float64x2_class(),
-                 slow_path->entry_label(),
-                 Assembler::kFarJump,
-                 out_reg,
-                 kNoRegister);
-  __ Bind(slow_path->exit_label());
+  BoxAllocationSlowPath::Allocate(
+      compiler, this, compiler->float64x2_class(), out_reg, kNoRegister);
   __ movups(FieldAddress(out_reg, Float64x2::value_offset()), value);
 }
 
@@ -3578,54 +3420,12 @@ LocationSummary* BoxInt32x4Instr::MakeLocationSummary(Isolate* isolate,
 }
 
 
-class BoxInt32x4SlowPath : public SlowPathCode {
- public:
-  explicit BoxInt32x4SlowPath(BoxInt32x4Instr* instruction)
-      : instruction_(instruction) { }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("BoxInt32x4SlowPath");
-    __ Bind(entry_label());
-    Isolate* isolate = compiler->isolate();
-    StubCode* stub_code = isolate->stub_code();
-    const Class& int32x4_class = compiler->int32x4_class();
-    const Code& stub =
-        Code::Handle(isolate,
-                     stub_code->GetAllocationStubForClass(int32x4_class));
-    const ExternalLabel label(stub.EntryPoint());
-
-    LocationSummary* locs = instruction_->locs();
-    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
-
-    compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
-                           &label,
-                           RawPcDescriptors::kOther,
-                           locs);
-    __ MoveRegister(locs->out(0).reg(), EAX);
-    compiler->RestoreLiveRegisters(locs);
-
-    __ jmp(exit_label());
-  }
-
- private:
-  BoxInt32x4Instr* instruction_;
-};
-
-
 void BoxInt32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  BoxInt32x4SlowPath* slow_path = new BoxInt32x4SlowPath(this);
-  compiler->AddSlowPathCode(slow_path);
-
   Register out_reg = locs()->out(0).reg();
   XmmRegister value = locs()->in(0).fpu_reg();
 
-  __ TryAllocate(compiler->int32x4_class(),
-                 slow_path->entry_label(),
-                 Assembler::kFarJump,
-                 out_reg,
-                 kNoRegister);
-  __ Bind(slow_path->exit_label());
+  BoxAllocationSlowPath::Allocate(
+      compiler, this, compiler->int32x4_class(), out_reg, kNoRegister);
   __ movups(FieldAddress(out_reg, Int32x4::value_offset()), value);
 }
 
@@ -5703,41 +5503,6 @@ LocationSummary* BoxIntegerInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
-class BoxIntegerSlowPath : public SlowPathCode {
- public:
-  explicit BoxIntegerSlowPath(Definition* instruction)
-      : instruction_(instruction) { }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    __ Comment("BoxIntegerSlowPath");
-    __ Bind(entry_label());
-    Isolate* isolate = compiler->isolate();
-    StubCode* stub_code = isolate->stub_code();
-    const Class& mint_class =
-        Class::ZoneHandle(isolate, isolate->object_store()->mint_class());
-    const Code& stub =
-        Code::Handle(isolate, stub_code->GetAllocationStubForClass(mint_class));
-    const ExternalLabel label(stub.EntryPoint());
-
-    LocationSummary* locs = instruction_->locs();
-    ASSERT(!locs->live_registers()->Contains(locs->out(0)));
-
-    compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
-                           &label,
-                           RawPcDescriptors::kOther,
-                           locs);
-    __ MoveRegister(locs->out(0).reg(), EAX);
-    compiler->RestoreLiveRegisters(locs);
-
-    __ jmp(exit_label());
-  }
-
- private:
-  Definition* instruction_;
-};
-
-
 void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (is_smi()) {
     PairLocation* value_pair = locs()->in(0).AsPairLocation();
@@ -5748,8 +5513,6 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  BoxIntegerSlowPath* slow_path = new BoxIntegerSlowPath(this);
-  compiler->AddSlowPathCode(slow_path);
   PairLocation* value_pair = locs()->in(0).AsPairLocation();
   Register value_lo = value_pair->At(0).reg();
   Register value_hi = value_pair->At(1).reg();
@@ -5777,15 +5540,11 @@ void BoxIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ SmiTag(out_reg);
   __ jmp(&done);
   __ Bind(&not_smi);
-  __ TryAllocate(
-      Class::ZoneHandle(Isolate::Current()->object_store()->mint_class()),
-      slow_path->entry_label(),
-      Assembler::kFarJump,
-      out_reg,
-      kNoRegister);
-  __ Bind(slow_path->exit_label());
   // 3. Restore lower half of input before using it.
   __ subl(value_lo, Immediate(0x40000000));
+
+  BoxAllocationSlowPath::Allocate(
+      compiler, this, compiler->mint_class(), out_reg, kNoRegister);
   __ movl(FieldAddress(out_reg, Mint::value_offset()), value_lo);
   __ movl(FieldAddress(out_reg, Mint::value_offset() + kWordSize), value_hi);
   __ Bind(&done);
@@ -6338,8 +6097,6 @@ LocationSummary* BoxUint32Instr::MakeLocationSummary(Isolate* isolate,
 
 
 void BoxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  BoxIntegerSlowPath* slow_path = new BoxIntegerSlowPath(this);
-  compiler->AddSlowPathCode(slow_path);
   Register value = locs()->in(0).reg();
   Register out = locs()->out(0).reg();
   ASSERT(value != out);
@@ -6356,13 +6113,8 @@ void BoxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ jmp(&done);
   __ Bind(&not_smi);
   // Allocate a mint.
-  __ TryAllocate(
-      Class::ZoneHandle(Isolate::Current()->object_store()->mint_class()),
-      slow_path->entry_label(),
-      Assembler::kFarJump,
-      out,
-      kNoRegister);
-  __ Bind(slow_path->exit_label());
+  BoxAllocationSlowPath::Allocate(
+      compiler, this, compiler->mint_class(), out, kNoRegister);
   // Copy low word into mint.
   __ movl(FieldAddress(out, Mint::value_offset()), value);
   // Zero high word.

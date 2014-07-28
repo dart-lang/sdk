@@ -99,7 +99,7 @@ initializerTests(phases) {
                   smoke_0.XFoo: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XFoo: const {},
+                  smoke_0.XFoo: {},
                 }));
             configureForDeployment([
                 () => Polymer.register(\'x-foo\', i0.XFoo),
@@ -143,7 +143,7 @@ initializerTests(phases) {
                   smoke_0.XFoo: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XFoo: const {},
+                  smoke_0.XFoo: {},
                 }));
             configureForDeployment([
                 () => Polymer.register(\'x-foo2\', i0.XFoo),
@@ -179,7 +179,7 @@ initializerTests(phases) {
                   smoke_0.XFoo: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XFoo: const {},
+                  smoke_0.XFoo: {},
                 }));
             configureForDeployment([]);
             i0.main();
@@ -307,12 +307,12 @@ initializerTests(phases) {
                   smoke_4.XH1: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_5.XC1: const {},
-                  smoke_5.XC2: const {},
-                  smoke_0.XE: const {},
-                  smoke_2.XF1: const {},
-                  smoke_3.XG2: const {},
-                  smoke_4.XH1: const {},
+                  smoke_5.XC1: {},
+                  smoke_5.XC2: {},
+                  smoke_0.XE: {},
+                  smoke_2.XF1: {},
+                  smoke_3.XG2: {},
+                  smoke_4.XH1: {},
                 }));
             configureForDeployment([
                 i0.mA,
@@ -412,7 +412,7 @@ initializerTestsExperimental(phases) {
                   smoke_0.XFoo: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XFoo: const {},
+                  smoke_0.XFoo: {},
                 }));
             startPolymer([
                 i0.main,
@@ -456,7 +456,7 @@ initializerTestsExperimental(phases) {
                   smoke_0.XFoo: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XFoo: const {},
+                  smoke_0.XFoo: {},
                 }));
             startPolymer([
                 () => Polymer.register(\'x-foo2\', i0.XFoo),
@@ -491,7 +491,7 @@ initializerTestsExperimental(phases) {
                   smoke_0.XFoo: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_0.XFoo: const {},
+                  smoke_0.XFoo: {},
                 }));
             startPolymer([]);
           }
@@ -620,12 +620,12 @@ initializerTestsExperimental(phases) {
                   smoke_4.XH1: smoke_1.PolymerElement,
                 },
                 declarations: {
-                  smoke_5.XC1: const {},
-                  smoke_5.XC2: const {},
-                  smoke_0.XE: const {},
-                  smoke_2.XF1: const {},
-                  smoke_3.XG2: const {},
-                  smoke_4.XH1: const {},
+                  smoke_5.XC1: {},
+                  smoke_5.XC2: {},
+                  smoke_0.XE: {},
+                  smoke_2.XF1: {},
+                  smoke_3.XG2: {},
+                  smoke_4.XH1: {},
                 }));
             startPolymer([
                 i0.mA,

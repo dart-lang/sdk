@@ -49,8 +49,8 @@ class Builder extends cps_ir.Visitor<Node> {
       <Element,List<Variable>>{};
 
   /// Like [element2variables], except for closure variables. Closure variables
-  /// are not subject to SSA, so at most one variable is used per element.
-  final Map<Element, Variable> element2closure = <Element, Variable>{};
+  /// are not subject to SSA, so at most one variable is used per local.
+  final Map<Local, Variable> local2closure = <Local, Variable>{};
 
   // Continuations with more than one use are replaced with Tree labels.  This
   // is the mapping from continuations to labels.
@@ -71,14 +71,14 @@ class Builder extends cps_ir.Visitor<Node> {
   /// variables.
   Variable phiTempVar;
 
-  Variable getClosureVariable(Element element) {
-    if (element.enclosingElement != function.element) {
-      return parent.getClosureVariable(element);
+  Variable getClosureVariable(Local local) {
+    if (local.executableContext != function.element) {
+      return parent.getClosureVariable(local);
     }
-    Variable variable = element2closure[element];
+    Variable variable = local2closure[local];
     if (variable == null) {
-      variable = new Variable(function, element);
-      element2closure[element] = variable;
+      variable = new Variable(function, local);
+      local2closure[local] = variable;
     }
     return variable;
   }

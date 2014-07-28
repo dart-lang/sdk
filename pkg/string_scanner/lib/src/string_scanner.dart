@@ -4,7 +4,7 @@
 
 library string_scanner.string_scanner;
 
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 
 import 'exception.dart';
 import 'utils.dart';
@@ -52,7 +52,7 @@ class StringScanner {
   ///
   /// [position] defaults to 0, the beginning of the string. [sourceUrl] is the
   /// URL of the source of the string being scanned, if available. It can be
-  /// either a [String] or a [Uri].
+  /// a [String], a [Uri], or `null`.
   StringScanner(this.string, {sourceUrl, int position})
       : sourceUrl = sourceUrl is String ? Uri.parse(sourceUrl) : sourceUrl {
     if (position != null) this.position = position;
@@ -153,10 +153,9 @@ class StringScanner {
     }
     if (length == null) length = match == null ? 1 : match.end - match.start;
 
-    var url = sourceUrl == null ? null : sourceUrl.toString();
-    var sourceFile = new SourceFile.text(url, string);
+    var sourceFile = new SourceFile(string, url: sourceUrl);
     var span = sourceFile.span(position, position + length);
-    throw new StringScannerException(message, string, sourceUrl, span);
+    throw new StringScannerException(message, span, string);
   }
 
   // TODO(nweiz): Make this handle long lines more gracefully.

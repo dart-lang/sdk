@@ -773,6 +773,13 @@ intptr_t RawGrowableObjectArray::VisitGrowableObjectArrayPointers(
 }
 
 
+intptr_t RawLinkedHashMap::VisitLinkedHashMapPointers(
+    RawLinkedHashMap* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return LinkedHashMap::InstanceSize();
+}
+
+
 intptr_t RawFloat32x4::VisitFloat32x4Pointers(
     RawFloat32x4* raw_obj,
     ObjectPointerVisitor* visitor) {

@@ -18,9 +18,7 @@ import 'analysis_abstract.dart';
 
 
 main() {
-  group('notification.navigation', () {
-    runReflectiveTests(AnalysisNotificationNavigationTest);
-  });
+  runReflectiveTests(AnalysisNotificationNavigationTest);
 }
 
 

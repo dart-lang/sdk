@@ -4,8 +4,8 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(CLASS_MODIFIERS) class $CLASSNAME $EXTENDS with 
-    $(CLASSNAME)Base $IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS) class $CLASSNAME $EXTENDS with 
+    $(CLASSNAME)Base $IMPLEMENTS {
   factory $CLASSNAME() => new CssStyleDeclaration.css('');
 
   factory $CLASSNAME.css(String css) {

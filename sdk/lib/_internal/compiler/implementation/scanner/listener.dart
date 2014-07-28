@@ -909,7 +909,6 @@ class ElementListener extends Listener {
   void endClassDeclaration(int interfacesCount, Token beginToken,
                            Token extendsKeyword, Token implementsKeyword,
                            Token endToken) {
-    String nativeTagInfo = native.checkForNativeClass(this);
     NodeList interfaces =
         makeNodeList(interfacesCount, implementsKeyword, null, ",");
     Node supertype = popNode();
@@ -918,7 +917,6 @@ class ElementListener extends Listener {
     int id = idGenerator();
     PartialClassElement element = new PartialClassElement(
         name.source, beginToken, endToken, compilationUnitElement, id);
-    element.setNative(nativeTagInfo);
     pushElement(element);
     rejectBuiltInIdentifier(name);
   }
@@ -1212,11 +1210,7 @@ class ElementListener extends Listener {
   }
 
   Token expectedClassBodyToSkip(Token token) {
-    if (identical(token.stringValue, 'native')) {
-      return native.handleNativeClassBodyToSkip(this, token);
-    } else {
-      return unexpected(token);
-    }
+    return unexpected(token);
   }
 
   Link<Token> expectedDeclaration(Token token) {
@@ -1608,9 +1602,7 @@ class NodeListener extends ElementListener {
   }
 
   Token expectedClassBody(Token token) {
-    if (identical(token.stringValue, 'native')) {
-      return native.handleNativeClassBody(this, token);
-    } else if (token is ErrorToken) {
+    if (token is ErrorToken) {
       reportErrorToken(token);
     } else {
       reportFatalError(token,

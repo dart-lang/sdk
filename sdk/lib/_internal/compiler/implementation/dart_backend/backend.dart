@@ -231,6 +231,8 @@ class DartBackend extends Backend {
         return new ElementAst(element);
       } else {
         cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
+        new cps_ir.RedundantPhiEliminator().rewrite(function);
+        compiler.tracer.traceGraph("Redundant phi elimination", function);
         tree_builder.Builder builder = new tree_builder.Builder(compiler);
         tree_ir.FunctionDefinition definition = builder.build(function);
         assert(definition != null);

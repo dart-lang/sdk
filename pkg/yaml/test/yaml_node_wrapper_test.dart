@@ -9,31 +9,31 @@ import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
 main() {
-  test("YamlMap() with no sourceName", () {
+  test("YamlMap() with no sourceUrl", () {
     var map = new YamlMap();
     expect(map, isEmpty);
     expect(map.nodes, isEmpty);
     expect(map.span, isNullSpan(isNull));
   });
 
-  test("YamlMap() with a sourceName", () {
-    var map = new YamlMap(sourceName: "source");
+  test("YamlMap() with a sourceUrl", () {
+    var map = new YamlMap(sourceUrl: "source");
     expect(map.span, isNullSpan("source"));
   });
 
-  test("YamlList() with no sourceName", () {
+  test("YamlList() with no sourceUrl", () {
     var list = new YamlList();
     expect(list, isEmpty);
     expect(list.nodes, isEmpty);
     expect(list.span, isNullSpan(isNull));
   });
 
-  test("YamlList() with a sourceName", () {
-    var list = new YamlList(sourceName: "source");
+  test("YamlList() with a sourceUrl", () {
+    var list = new YamlList(sourceUrl: "source");
     expect(list.span, isNullSpan("source"));
   });
 
-  test("YamlMap.wrap() with no sourceName", () {
+  test("YamlMap.wrap() with no sourceUrl", () {
     var map = new YamlMap.wrap({
       "list": [1, 2, 3],
       "map": {
@@ -69,7 +69,7 @@ main() {
     expect(map.nodes[new YamlScalar.wrap("list")], equals([1, 2, 3]));
   });
 
-  test("YamlMap.wrap() with a sourceName", () {
+  test("YamlMap.wrap() with a sourceUrl", () {
     var map = new YamlMap.wrap({
       "list": [1, 2, 3],
       "map": {
@@ -77,7 +77,7 @@ main() {
         "nested": [4, 5, 6]
       },
       "scalar": "value"
-    }, sourceName: "source");
+    }, sourceUrl: "source");
 
     expect(map.span, isNullSpan("source"));
     expect(map["list"].span, isNullSpan("source"));
@@ -85,7 +85,7 @@ main() {
     expect(map.nodes["scalar"].span, isNullSpan("source"));
   });
 
-  test("YamlList.wrap() with no sourceName", () {
+  test("YamlList.wrap() with no sourceUrl", () {
     var list = new YamlList.wrap([
       [1, 2, 3],
       {
@@ -118,7 +118,7 @@ main() {
     expect(list[2], "value");
   });
 
-  test("YamlList.wrap() with a sourceName", () {
+  test("YamlList.wrap() with a sourceUrl", () {
     var list = new YamlList.wrap([
       [1, 2, 3],
       {

@@ -644,7 +644,7 @@ class ClosureTranslator extends Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    Element member = executableContext.enclosingMember;
+    MemberElement member = executableContext.memberContext;
     DartType type = elements.getType(node);
     // TODO(karlklose,johnniwinther): if the type is null, the annotation is
     // from a parameter which has been analyzed before the method has been

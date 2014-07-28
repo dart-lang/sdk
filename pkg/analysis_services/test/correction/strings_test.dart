@@ -15,9 +15,7 @@ import 'package:unittest/unittest.dart' hide isEmpty;
 
 main() {
   groupSep = ' | ';
-  group('strings', () {
-    runReflectiveTests(StringsTest);
-  });
+  runReflectiveTests(StringsTest);
 }
 
 

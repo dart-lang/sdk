@@ -1008,7 +1008,7 @@ class SimpleTypeInferrerVisitor<T>
               elementType, length));
     } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
       int length = findLength(node);
-      ConstructorElement constructor = element;
+      ConstructorElement constructor = element.implementation;
       constructor = constructor.effectiveTarget;
       T elementType = inferrer.returnTypeOfElement(
           constructor.enclosingClass.lookupMember('[]'));
@@ -1116,6 +1116,9 @@ class SimpleTypeInferrerVisitor<T>
                      ArgumentsTypes arguments) {
     // Erroneous elements may be unresolved, for example missing getters.
     if (Elements.isUnresolved(element)) return types.dynamicType;
+    // TODO(herhut): should we follow redirecting constructors here? We would
+    // need to pay attention of the constructor is pointing to an erroneous
+    // element.
     return inferrer.registerCalledElement(
         node, selector, outermostElement, element, arguments,
         sideEffects, inLoop);

@@ -7,6 +7,8 @@ library http_multi_server.utils;
 import 'dart:async';
 import 'dart:io';
 
+// TODO(nweiz): Revert this to the version of [mergeStreams] found elsewhere in
+// the repo once issue 19815 is fixed in dart:io.
 /// Merges all streams in [streams] into a single stream that emits all of their
 /// values.
 ///
@@ -18,9 +20,17 @@ Stream mergeStreams(Iterable<Stream> streams) {
   controller = new StreamController(onListen: () {
     for (var stream in streams) {
       var subscription;
-      subscription = stream.listen(controller.add,
-          onError: controller.addError,
-          onDone: () {
+      subscription = stream.listen(controller.add, onError: (error, trace) {
+        if (subscriptions.length == 1) {
+          // If the last subscription errored, pass it on.
+          controller.addError(error, trace);
+        } else {
+          // If only one of the subscriptions has an error (usually IPv6 failing
+          // late), then just remove that subscription and ignore the error.
+          subscriptions.remove(subscription);
+          subscription.cancel();
+        }
+      }, onDone: () {
         subscriptions.remove(subscription);
         if (subscriptions.isEmpty) controller.close();
       });
@@ -41,22 +51,4 @@ Stream mergeStreams(Iterable<Stream> streams) {
   }, sync: true);
 
   return controller.stream;
-}
-
-/// A cache for [supportsIpV6].
-bool _supportsIpV6;
-
-/// Returns whether this computer supports binding to IPv6 addresses.
-Future<bool> get supportsIpV6 {
-  if (_supportsIpV6 != null) return new Future.value(_supportsIpV6);
-
-  return ServerSocket.bind(InternetAddress.LOOPBACK_IP_V6, 0).then((socket) {
-    _supportsIpV6 = true;
-    socket.close();
-    return true;
-  }).catchError((error) {
-    if (error is! SocketException) throw error;
-    _supportsIpV6 = false;
-    return false;
-  });
 }

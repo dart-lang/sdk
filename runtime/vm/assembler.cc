@@ -210,7 +210,7 @@ void Assembler::Unreachable(const char* message) {
 
 
 void Assembler::Comment(const char* format, ...) {
-  if (FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized) {
+  if (EmittingComments()) {
     char buffer[1024];
 
     va_list args;
@@ -222,6 +222,11 @@ void Assembler::Comment(const char* format, ...) {
                                   String::ZoneHandle(String::New(buffer,
                                                                  Heap::kOld))));
   }
+}
+
+
+bool Assembler::EmittingComments() {
+  return FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized;
 }
 
 

@@ -28,10 +28,10 @@ class E {
 // Type with exception-throwing methods.
 @Native("A")
 class A {
-  op(int x) native {
-    // Fake body calls constructor to mark the exception class (E) as used.
-    throw new E._used();
-  }
+  // Exception class E is created.
+  @Creates("E")
+  @Returns('int')
+  op(int x) native;
 }
 
 // This class is here just so that a dynamic context is polymorphic.

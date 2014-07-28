@@ -40,7 +40,7 @@ function A(){
 makeA = function(){return new A;};
 """;
 
-A makeA() native { return new A(); }
+A makeA() native;
 
 main() {
   setup();

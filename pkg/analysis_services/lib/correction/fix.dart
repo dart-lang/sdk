@@ -9,6 +9,7 @@ import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/correction/fix.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -16,9 +17,11 @@ import 'package:analyzer/src/generated/error.dart';
  *
  * Returns the computed [Fix]s, not `null`.
  */
-List<Fix> computeFixes(SearchEngine searchEngine, String file,
+List<Fix> computeFixes(SearchEngine searchEngine,
     CompilationUnit unit, AnalysisError error) {
-  var processor = new FixProcessor(searchEngine, file, unit, error);
+  Source source = unit.element.source;
+  String file = source.fullName;
+  var processor = new FixProcessor(searchEngine, source, file, unit, error);
   return processor.compute();
 }
 

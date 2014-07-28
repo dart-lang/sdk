@@ -1376,26 +1376,25 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
                             Register instance_reg,
+                            Register temp_reg,
                             Register pp) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
     Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
-    LoadImmediate(instance_reg, heap->TopAddress(), pp);
-    ldr(instance_reg, Address(instance_reg));
+    LoadImmediate(temp_reg, heap->NewSpaceAddress(), pp);
+    ldr(instance_reg, Address(temp_reg, Scavenger::top_offset()));
     AddImmediate(instance_reg, instance_reg, instance_size, pp);
 
     // instance_reg: potential next object start.
-    LoadImmediate(TMP, heap->EndAddress(), pp);
-    ldr(TMP, Address(TMP));
+    ldr(TMP, Address(temp_reg, Scavenger::end_offset()));
     CompareRegisters(TMP, instance_reg);
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    LoadImmediate(TMP, heap->TopAddress(), pp);
-    str(instance_reg, Address(TMP));
+    str(instance_reg, Address(temp_reg, Scavenger::top_offset()));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(

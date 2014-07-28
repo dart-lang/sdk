@@ -1,8 +1,7 @@
 name: mutation_observer
-version: 0.9.0+1
+version: 0.9.0+2
 author: "Polymer.dart Team <web-ui-dev@dartlang.org>"
 homepage: https://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/pkg/mutation_observer/
-documentation: https://api.dartlang.org/docs/releases/latest/dart_html/MutationObserver.html
 description: >
   *Deprecated* newer version is in web_components package.
 dev_dependencies:

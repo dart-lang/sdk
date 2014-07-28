@@ -11,9 +11,15 @@ library utf;
 import "dart:async";
 import "dart:collection";
 
-part "constants.dart";
-part "list_range.dart";
-part "utf_stream.dart";
-part "utf8.dart";
-part "utf16.dart";
-part "utf32.dart";
+import "src/constants.dart";
+import 'src/utf_16_code_unit_decoder.dart';
+import 'src/list_range.dart';
+import 'src/util.dart';
+
+export 'src/constants.dart';
+export 'src/utf_16_code_unit_decoder.dart';
+
+part "src/utf/utf_stream.dart";
+part "src/utf/utf8.dart";
+part "src/utf/utf16.dart";
+part "src/utf/utf32.dart";

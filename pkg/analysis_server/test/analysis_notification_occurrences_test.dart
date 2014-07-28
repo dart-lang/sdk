@@ -19,9 +19,8 @@ import 'analysis_abstract.dart';
 
 
 main() {
-  group('notification.occurrences', () {
-    runReflectiveTests(AnalysisNotificationOccurrencesTest);
-  });
+  groupSep = ' | ';
+  runReflectiveTests(AnalysisNotificationOccurrencesTest);
 }
 
 

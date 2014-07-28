@@ -431,6 +431,7 @@ class Assembler : public ValueObject {
   static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+  static bool EmittingComments();
 
   const Code::Comments& GetCodeComments() const;
 
@@ -1217,6 +1218,7 @@ class Assembler : public ValueObject {
   void TryAllocate(const Class& cls,
                    Label* failure,
                    Register instance_reg,
+                   Register temp_reg,
                    Register pp);
 
   Address ElementAddressForIntIndex(bool is_external,

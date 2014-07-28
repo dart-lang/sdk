@@ -7,7 +7,7 @@
 """
 Wrapper around a build action that should only be executed in release mode.
 
-The mode is defined via an environment varible DART_BUILD_MODE.
+The mode is defined via an environment variable DART_BUILD_MODE.
 
 The arguments to the script are:
 
@@ -29,7 +29,7 @@ def Main():
   outputs = sys.argv[1:separator_index]
   arguments = sys.argv[separator_index + 1:]
   arguments[0] = os.path.normpath(arguments[0])
-  mode = os.getenv('DART_BUILD_MODE', default='release')
+  mode = os.getenv('DART_BUILD_MODE', 'release')
   if mode != 'release':
     print >> sys.stderr, 'Not running %s in mode=%s' % (arguments, mode)
     for output in outputs:

@@ -346,6 +346,16 @@ namespace dart {
   V(GrowableList_setLength, 2)                                                 \
   V(GrowableList_setData, 2)                                                   \
   V(Internal_makeListFixedLength, 1)                                           \
+  V(LinkedHashMap_allocate, 1)                                                 \
+  V(LinkedHashMap_getLength, 1)                                                \
+  V(LinkedHashMap_insertOrUpdate, 3)                                           \
+  V(LinkedHashMap_lookUp, 2)                                                   \
+  V(LinkedHashMap_containsKey, 2)                                              \
+  V(LinkedHashMap_remove, 2)                                                   \
+  V(LinkedHashMap_clear, 1)                                                    \
+  V(LinkedHashMap_toArray, 1)                                                  \
+  V(LinkedHashMap_getModMark, 2)                                               \
+  V(LinkedHashMap_useInternal, 0)                                              \
   V(WeakProperty_new, 2)                                                       \
   V(WeakProperty_getKey, 1)                                                    \
   V(WeakProperty_getValue, 1)                                                  \

@@ -5,5 +5,7 @@
 {
   'sources': [
     'collection_patch.dart',
+    'linked_hash_map.cc',
+    'linked_hash_map.dart',
   ],
 }

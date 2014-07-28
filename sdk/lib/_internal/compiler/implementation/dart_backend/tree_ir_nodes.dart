@@ -89,9 +89,9 @@ class Variable extends Expression {
   /// Function that declares this variable.
   FunctionDefinition host;
 
-  /// Element used for synthesizing a name for the variable.
-  /// Different variables may have the same element. May be null.
-  Element element;
+  /// [Entity] used for synthesizing a name for the variable.
+  /// Different variables may have the same entity. May be null.
+  Entity element;
 
   int readCount = 0;
 

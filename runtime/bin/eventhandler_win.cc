@@ -578,10 +578,8 @@ ClientSocket* ListenSocket::Accept() {
   if (accepted_head_ == NULL) accepted_tail_ = NULL;
   result->set_next(NULL);
   if (!IsClosing()) {
-    while (pending_accept_count() < 5) {
-      if (!IssueAccept()) {
-        HandleError(this);
-      }
+    if (!IssueAccept()) {
+      HandleError(this);
     }
   }
   return result;
@@ -1039,14 +1037,6 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
           int event_mask = (1 << kInEvent);
           handle->set_mask(handle->mask() & ~event_mask);
           DartUtils::PostInt32(handle->port(), event_mask);
-        }
-        // Always keep 5 outstanding accepts going, to enhance performance.
-        while (listen_socket->pending_accept_count() < 5) {
-          bool accept_success = listen_socket->IssueAccept();
-          if (!accept_success) {
-            HandleError(listen_socket);
-            break;
-          }
         }
       }
     } else {

@@ -3758,8 +3758,7 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
                                          *method_arguments,
                                          temp,
                                          is_super_invocation);
-  const Function& no_such_method_func = Function::ZoneHandle(
-      I,
+  const Function& no_such_method_func = Function::ZoneHandle(I,
       Resolver::ResolveDynamicAnyArgs(target_class, Symbols::NoSuchMethod()));
   // We are guaranteed to find noSuchMethod of class Object.
   ASSERT(!no_such_method_func.IsNull());

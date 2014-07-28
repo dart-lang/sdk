@@ -16,6 +16,8 @@ logical_expression_test: Fail # Issue 17027
 
 gvn_dynamic_field_get_test: Fail # Issue 18519
 
+backend_dart/opt_cyclic_redundant_phi_test: Fail # Issue 20159
+
 mirrors/library_exports_hidden_test: Fail
 mirrors/library_exports_shown_test: Fail
 mirrors/library_imports_hidden_test: Fail

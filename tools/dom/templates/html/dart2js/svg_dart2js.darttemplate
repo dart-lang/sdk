@@ -17,7 +17,7 @@ import 'dart:collection';
 import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
-import 'dart:_js_helper' show Creates, Returns, JSName;
+import 'dart:_js_helper' show Creates, Returns, JSName, Native;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 

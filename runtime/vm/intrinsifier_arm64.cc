@@ -427,6 +427,7 @@ void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
   __ TryAllocate(double_class,
                  &fall_through,
                  R0,  // Result register.
+                 R1,  // Temp register.
                  kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
@@ -1074,7 +1075,7 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   }
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, kNoPP);
+  __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
   __ Bind(&fall_through);
@@ -1116,7 +1117,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ fmuld(V0, V0, V1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, kNoPP);
+  __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
   __ Bind(&fall_through);
@@ -1134,7 +1135,7 @@ void Intrinsifier::Double_fromInteger(Assembler* assembler) {
   __ scvtfd(V0, R0);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, kNoPP);
+  __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
   __ Bind(&fall_through);
@@ -1214,7 +1215,7 @@ void Intrinsifier::Math_sqrt(Assembler* assembler) {
   __ fsqrtd(V0, V1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
-  __ TryAllocate(double_class, &fall_through, R0, kNoPP);
+  __ TryAllocate(double_class, &fall_through, R0, R1, kNoPP);
   __ StoreDFieldToOffset(V0, R0, Double::value_offset(), kNoPP);
   __ ret();
   __ Bind(&is_smi);

@@ -6,7 +6,7 @@ library yaml.parser;
 
 import 'dart:collection';
 
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 import 'equality.dart';
@@ -151,8 +151,8 @@ class Parser {
   /// Whether the current string capture is being overridden.
   bool _capturingAs = false;
 
-  Parser(String yaml, String sourceName)
-      : _scanner = new SpanScanner(yaml, sourceName) {
+  Parser(String yaml, sourceUrl)
+      : _scanner = new SpanScanner(yaml, sourceUrl: sourceUrl) {
     _farthestState = _scanner.state;
   }
 
@@ -326,7 +326,7 @@ class Parser {
   }
 
   /// Creates a MappingNode from [pairs].
-  MappingNode map(List<Pair<Node, Node>> pairs, Span span) {
+  MappingNode map(List<Pair<Node, Node>> pairs, SourceSpan span) {
     var content = new Map<Node, Node>();
     pairs.forEach((pair) => content[pair.first] = pair.last);
     return new MappingNode("?", content, span);
@@ -1822,7 +1822,7 @@ class Parser {
     or([l_directiveDocument, l_explicitDocument, l_bareDocument]);
 
   // 211
-  Pair<List<Node>, Span> l_yamlStream() {
+  Pair<List<Node>, SourceSpan> l_yamlStream() {
     var start = _scanner.state;
     var docs = [];
     zeroOrMore(l_documentPrefix);

@@ -69,7 +69,7 @@ int _addToEncoding(int offset, int bytes, int value, List<int> buffer) {
  */
 List<int> codepointsToUtf8(
     List<int> codepoints, [int offset = 0, int length]) {
-  _ListRange source = new _ListRange(codepoints, offset, length);
+  ListRange source = new ListRange(codepoints, offset, length);
 
   int encodedLength = 0;
   for (int value in source) {
@@ -153,7 +153,8 @@ class IterableUtf8Decoder extends IterableBase<int> {
  * from this method can be used as an Iterable (e.g. in a for-loop).
  */
 class Utf8Decoder implements Iterator<int> {
-  final _ListRangeIterator utf8EncodedBytesIterator;
+  // TODO(kevmoo): should this field be private?
+  final ListRangeIterator utf8EncodedBytesIterator;
   final int replacementCodepoint;
   int _current = null;
 
@@ -161,10 +162,10 @@ class Utf8Decoder implements Iterator<int> {
       this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       utf8EncodedBytesIterator =
-          (new _ListRange(utf8EncodedBytes, offset, length)).iterator;
+          (new ListRange(utf8EncodedBytes, offset, length)).iterator;
 
 
-  Utf8Decoder._fromListRangeIterator(_ListRange source, [
+  Utf8Decoder._fromListRangeIterator(ListRange source, [
       this.replacementCodepoint =
       UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) :
       utf8EncodedBytesIterator = source.iterator;

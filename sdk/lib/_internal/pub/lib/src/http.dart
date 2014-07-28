@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http_throttle/http_throttle.dart';
 
 import 'io.dart';
 import 'log.dart' as log;
@@ -38,13 +39,13 @@ final PUB_API_HEADERS = const {'Accept': 'application/vnd.pub.v2+json'};
 /// This also adds a 30-second timeout to every request. This can be configured
 /// on a per-request basis by setting the 'Pub-Request-Timeout' header to the
 /// desired number of milliseconds, or to "None" to disable the timeout.
-class PubHttpClient extends http.BaseClient {
+class _PubHttpClient extends http.BaseClient {
   final _requestStopwatches = new Map<http.BaseRequest, Stopwatch>();
 
-  http.Client inner;
+  http.Client _inner;
 
-  PubHttpClient([http.Client inner])
-      : this.inner = inner == null ? new http.Client() : inner;
+  _PubHttpClient([http.Client inner])
+      : this._inner = inner == null ? new http.Client() : inner;
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
     _requestStopwatches[request] = new Stopwatch()..start();
@@ -67,7 +68,7 @@ class PubHttpClient extends http.BaseClient {
       timeoutLength = int.parse(timeoutString);
     }
 
-    var future = inner.send(request).then((streamedResponse) {
+    var future = _inner.send(request).then((streamedResponse) {
       _logResponse(streamedResponse);
 
       var status = streamedResponse.statusCode;
@@ -191,8 +192,15 @@ class PubHttpClient extends http.BaseClient {
   }
 }
 
+/// The [_PubHttpClient] wrapped by [httpClient].
+final _pubClient = new _PubHttpClient();
+
 /// The HTTP client to use for all HTTP requests.
-final httpClient = new PubHttpClient();
+final httpClient = new ThrottleClient(16, _pubClient);
+
+/// The underlying HTTP client wrapped by [httpClient].
+http.Client get innerHttpClient => _pubClient._inner;
+set innerHttpClient(http.Client client) => _pubClient._inner = client;
 
 /// Handles a successful JSON-formatted response from pub.dartlang.org.
 ///

@@ -17,7 +17,7 @@ class A {
   invoke() native;
 }
 
-makeA() native { return new A(); }
+makeA() native;
 
 void setup() native """
 function A() {}

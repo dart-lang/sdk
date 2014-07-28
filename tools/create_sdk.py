@@ -48,19 +48,19 @@
 # ......(more will come here)
 
 
-import glob
 import optparse
 import os
 import re
 import sys
 import subprocess
-import tempfile
+
 import utils
+
 
 HOST_OS = utils.GuessOS()
 
 # TODO(dgrove): Only import modules following Google style guide.
-from os.path import basename, dirname, join, realpath, exists, isdir
+from os.path import basename, dirname, join, realpath, exists
 
 # TODO(dgrove): Only import modules following Google style guide.
 from shutil import copyfile, copymode, copytree, ignore_patterns, rmtree, move
@@ -76,8 +76,8 @@ def GetOptions():
 
 
 def ReplaceInFiles(paths, subs):
-  '''Reads a series of files, applies a series of substitutions to each, and
-     saves them back out. subs should by a list of (pattern, replace) tuples.'''
+  """Reads a series of files, applies a series of substitutions to each, and
+     saves them back out. subs should by a list of (pattern, replace) tuples."""
   for path in paths:
     contents = open(path).read()
     for pattern, replace in subs:
@@ -94,8 +94,8 @@ def Copy(src, dest):
 
 
 def CopyShellScript(src_file, dest_dir):
-  '''Copies a shell/batch script to the given destination directory. Handles
-     using the appropriate platform-specific file extension.'''
+  """Copies a shell/batch script to the given destination directory. Handles
+     using the appropriate platform-specific file extension."""
   file_extension = ''
   if HOST_OS == 'win32':
     file_extension = '.bat'
@@ -119,7 +119,7 @@ def CopySnapshots(snapshots, sdk_root):
              join(sdk_root, 'bin', 'snapshots', snapshot))
 
 
-def Main(argv):
+def Main():
   # Pull in all of the gypi files which will be munged into the sdk.
   HOME = dirname(dirname(realpath(__file__)))
 
@@ -258,4 +258,4 @@ def Main(argv):
   move(SDK_tmp, SDK)
 
 if __name__ == '__main__':
-  sys.exit(Main(sys.argv))
+  sys.exit(Main())

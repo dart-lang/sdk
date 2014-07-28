@@ -9,32 +9,48 @@ library services.src.correction.fix;
 
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/fix.dart';
+import 'package:analysis_services/search/hierarchy.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/correction/levenshtein.dart';
 import 'package:analysis_services/src/correction/name_suggestion.dart';
 import 'package:analysis_services/src/correction/source_buffer.dart';
 import 'package:analysis_services/src/correction/source_range.dart' as rf;
+import 'package:analysis_services/src/correction/strings.dart';
 import 'package:analysis_services/src/correction/util.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+
+
+/**
+ * A predicate is a one-argument function that returns a boolean value.
+ */
+typedef bool Predicate<E>(E argument);
 
 
 /**
  * The computer for Dart fixes.
  */
 class FixProcessor {
+  static const int MAX_LEVENSHTEIN_DISTANCE = 3;
+
   final SearchEngine searchEngine;
+  final Source source;
   final String file;
   final CompilationUnit unit;
   final AnalysisError error;
+  CompilationUnitElement unitElement;
+  LibraryElement unitLibraryElement;
 
   final List<Edit> edits = <Edit>[];
   final Map<String, LinkedPositionGroup> linkedPositionGroups = <String,
       LinkedPositionGroup>{};
+  Position endPosition = null;
   final List<Fix> fixes = <Fix>[];
 
   CorrectionUtils utils;
@@ -45,7 +61,18 @@ class FixProcessor {
   AstNode coveredNode;
 
 
-  FixProcessor(this.searchEngine, this.file, this.unit, this.error);
+  FixProcessor(this.searchEngine, this.source, this.file, this.unit, this.error)
+      {
+    unitElement = unit.element;
+    unitLibraryElement = unitElement.library;
+  }
+
+  DartType get coreTypeBool => _getCoreType("bool");
+
+  /**
+   * Returns the EOL to use for this [CompilationUnit].
+   */
+  String get eol => utils.endOfLine;
 
   List<Fix> compute() {
     utils = new CorrectionUtils(unit);
@@ -69,11 +96,10 @@ class FixProcessor {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT) {
       _addFix_createConstructorSuperExplicit();
     }
-//    if (identical(
-//        errorCode,
-//        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT)) {
-//      _addFix_createConstructorSuperImplicit();
-//    }
+    if (errorCode ==
+        CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
+      _addFix_createConstructorSuperImplicit();
+    }
     if (errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
       _addFix_createConstructorSuperExplicit();
@@ -139,11 +165,11 @@ class FixProcessor {
       _addFix_createClass();
       _addFix_undefinedClass_useSimilar();
     }
-//    if (identical(errorCode, StaticWarningCode.UNDEFINED_IDENTIFIER)) {
-//      _addFix_createFunction_forFunctionType();
-//      _addFix_importLibrary_withType();
-//      _addFix_importLibrary_withTopLevelVariable();
-//    }
+    if (errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER) {
+      _addFix_createFunction_forFunctionType();
+      _addFix_importLibrary_withType();
+      _addFix_importLibrary_withTopLevelVariable();
+    }
     if (errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER) {
       _addFix_useStaticAccess_method();
       _addFix_useStaticAccess_property();
@@ -151,20 +177,20 @@ class FixProcessor {
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       _addFix_removeParentheses_inGetterInvocation();
     }
-//    if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
-//      _addFix_importLibrary_withFunction();
-//      _addFix_undefinedFunction_useSimilar();
-//      _addFix_undefinedFunction_create();
-//    }
-//    if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_GETTER)) {
-//      _addFix_createFunction_forFunctionType();
-//    }
-//    if (identical(errorCode, HintCode.UNDEFINED_METHOD) ||
-//        identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
-//      _addFix_undefinedMethod_useSimilar();
-//      _addFix_undefinedMethod_create();
-//      _addFix_undefinedFunction_create();
-//    }
+    if (errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION) {
+      _addFix_importLibrary_withFunction();
+      _addFix_undefinedFunction_useSimilar();
+      _addFix_undefinedFunction_create();
+    }
+    if (errorCode == StaticTypeWarningCode.UNDEFINED_GETTER) {
+      _addFix_createFunction_forFunctionType();
+    }
+    if (errorCode == HintCode.UNDEFINED_METHOD ||
+        errorCode == StaticTypeWarningCode.UNDEFINED_METHOD) {
+      _addFix_undefinedMethod_useSimilar();
+      _addFix_undefinedMethod_create();
+      _addFix_undefinedFunction_create();
+    }
     // done
     return fixes;
   }
@@ -181,10 +207,16 @@ class FixProcessor {
     change.add(fileEdit);
     linkedPositionGroups.values.forEach(
         (group) => change.addLinkedPositionGroup(group));
+    change.endPosition = endPosition;
     // add Fix
     Fix fix = new Fix(kind, change);
     fixes.add(fix);
+    // clear
+    edits.clear();
+    linkedPositionGroups.clear();
+    endPosition = null;
   }
+
 
   void _addFix_addPackageDependency() {
     // TODO(scheglov) implement
@@ -208,18 +240,17 @@ class FixProcessor {
 //    }
   }
 
+
   void _addFix_boolInsteadOfBoolean() {
     SourceRange range = rf.rangeError(error);
     _addReplaceEdit(range, "bool");
     _addFix(FixKind.REPLACE_BOOLEAN_WITH_BOOL, []);
   }
 
-
   void _addFix_createClass() {
     if (_mayBeTypeIdentifier(node)) {
       String name = (node as SimpleIdentifier).name;
       // prepare environment
-      String eol = utils.endOfLine;
       CompilationUnitMember enclosingMember =
           node.getAncestor((node) => node is CompilationUnitMember);
       int offset = enclosingMember.end;
@@ -249,7 +280,6 @@ class FixProcessor {
       _addFix(FixKind.CREATE_CLASS, [name]);
     }
   }
-
 
   void _addFix_createConstructorSuperExplicit() {
     ConstructorDeclaration targetConstructor =
@@ -319,79 +349,75 @@ class FixProcessor {
   }
 
   void _addFix_createConstructorSuperImplicit() {
-    // TODO(scheglov) implement
-//    ClassDeclaration targetClassNode = node.parent as ClassDeclaration;
-//    ClassElement targetClassElement = targetClassNode.element;
-//    ClassElement superClassElement = targetClassElement.supertype.element;
-//    String targetClassName = targetClassElement.name;
-//    // add proposals for all super constructors
-//    List<ConstructorElement> superConstructors = superClassElement.constructors;
-//    for (ConstructorElement superConstructor in superConstructors) {
-//      String constructorName = superConstructor.name;
-//      // skip private
-//      if (Identifier.isPrivateName(constructorName)) {
-//        continue;
-//      }
-//      // prepare parameters and arguments
-//      JavaStringBuilder parametersBuffer = new JavaStringBuilder();
-//      JavaStringBuilder argumentsBuffer = new JavaStringBuilder();
-//      bool firstParameter = true;
-//      for (ParameterElement parameter in superConstructor.parameters) {
-//        // skip non-required parameters
-//        if (parameter.parameterKind != ParameterKind.REQUIRED) {
-//          break;
-//        }
-//        // comma
-//        if (firstParameter) {
-//          firstParameter = false;
-//        } else {
-//          parametersBuffer.append(", ");
-//          argumentsBuffer.append(", ");
-//        }
-//        // name
-//        String parameterName = parameter.displayName;
-//        if (parameterName.length > 1 && parameterName.startsWith("_")) {
-//          parameterName = parameterName.substring(1);
-//        }
-//        // parameter & argument
-//        _appendParameterSource(parametersBuffer, parameter.type, parameterName);
-//        argumentsBuffer.append(parameterName);
-//      }
-//      // add proposal
-//      String eol = utils.endOfLine;
-//      QuickFixProcessorImpl_NewConstructorLocation targetLocation =
-//          _prepareNewConstructorLocation(targetClassNode, eol);
-//      SourceBuilder sb = new SourceBuilder.con1(targetLocation._offset);
-//      {
-//        String indent = utils.getIndent(1);
-//        sb.append(targetLocation._prefix);
-//        sb.append(indent);
-//        sb.append(targetClassName);
-//        if (!constructorName.isEmpty) {
-//          sb.startPosition("NAME");
-//          sb.append(".");
-//          sb.append(constructorName);
-//          sb.endPosition();
-//        }
-//        sb.append("(");
-//        sb.append(parametersBuffer.toString());
-//        sb.append(") : super");
-//        if (!constructorName.isEmpty) {
-//          sb.append(".");
-//          sb.append(constructorName);
-//        }
-//        sb.append("(");
-//        sb.append(argumentsBuffer.toString());
-//        sb.append(");");
-//        sb.append(targetLocation._suffix);
-//      }
-//      _addInsertEdit3(sb);
-//      // add proposal
-//      String proposalName = _getConstructorProposalName(superConstructor);
-//      _addFix(
-//          FixKind.CREATE_CONSTRUCTOR_SUPER,
-//          [proposalName]);
-//    }
+    ClassDeclaration targetClassNode = node.parent as ClassDeclaration;
+    ClassElement targetClassElement = targetClassNode.element;
+    ClassElement superClassElement = targetClassElement.supertype.element;
+    String targetClassName = targetClassElement.name;
+    // add proposals for all super constructors
+    List<ConstructorElement> superConstructors = superClassElement.constructors;
+    for (ConstructorElement superConstructor in superConstructors) {
+      String constructorName = superConstructor.name;
+      // skip private
+      if (Identifier.isPrivateName(constructorName)) {
+        continue;
+      }
+      // prepare parameters and arguments
+      SourceBuilder parametersBuffer = new SourceBuilder.buffer();
+      SourceBuilder argumentsBuffer = new SourceBuilder.buffer();
+      bool firstParameter = true;
+      for (ParameterElement parameter in superConstructor.parameters) {
+        // skip non-required parameters
+        if (parameter.parameterKind != ParameterKind.REQUIRED) {
+          break;
+        }
+        // comma
+        if (firstParameter) {
+          firstParameter = false;
+        } else {
+          parametersBuffer.append(', ');
+          argumentsBuffer.append(', ');
+        }
+        // name
+        String parameterName = parameter.displayName;
+        if (parameterName.length > 1 && parameterName.startsWith('_')) {
+          parameterName = parameterName.substring(1);
+        }
+        // parameter & argument
+        _appendParameterSource(parametersBuffer, parameter.type, parameterName);
+        argumentsBuffer.append(parameterName);
+      }
+      // add proposal
+      _ConstructorLocation targetLocation =
+          _prepareNewConstructorLocation(targetClassNode);
+      SourceBuilder sb = new SourceBuilder(file, targetLocation._offset);
+      {
+        String indent = utils.getIndent(1);
+        sb.append(targetLocation._prefix);
+        sb.append(indent);
+        sb.append(targetClassName);
+        if (!constructorName.isEmpty) {
+          sb.startPosition('NAME');
+          sb.append('.');
+          sb.append(constructorName);
+          sb.endPosition();
+        }
+        sb.append("(");
+        sb.append(parametersBuffer.toString());
+        sb.append(') : super');
+        if (!constructorName.isEmpty) {
+          sb.append('.');
+          sb.append(constructorName);
+        }
+        sb.append('(');
+        sb.append(argumentsBuffer.toString());
+        sb.append(');');
+        sb.append(targetLocation._suffix);
+      }
+      _insertBuilder(sb);
+      // add proposal
+      String proposalName = _getConstructorProposalName(superConstructor);
+      _addFix(FixKind.CREATE_CONSTRUCTOR_SUPER, [proposalName]);
+    }
   }
 
   void _addFix_createConstructor_insteadOfSyntheticDefault() {
@@ -428,8 +454,6 @@ class FixProcessor {
     if (instanceCreation == null) {
       return;
     }
-    // prepare environment
-    String eol = utils.endOfLine;
     // prepare target
     DartType targetType = typeName.type;
     if (targetType is! InterfaceType) {
@@ -438,8 +462,8 @@ class FixProcessor {
     ClassElement targetElement = targetType.element as ClassElement;
     String targetFile = targetElement.source.fullName;
     ClassDeclaration targetClass = targetElement.node;
-    QuickFixProcessorImpl_NewConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetClass, eol);
+    _ConstructorLocation targetLocation =
+        _prepareNewConstructorLocation(targetClass);
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation._offset);
     {
@@ -485,8 +509,6 @@ class FixProcessor {
     if (instanceCreation == null) {
       return;
     }
-    // prepare environment
-    String eol = utils.endOfLine;
     // prepare target interface type
     DartType targetType = constructorName.type.type;
     if (targetType is! InterfaceType) {
@@ -495,8 +517,8 @@ class FixProcessor {
     ClassElement targetElement = targetType.element as ClassElement;
     String targetFile = targetElement.source.fullName;
     ClassDeclaration targetClass = targetElement.node;
-    QuickFixProcessorImpl_NewConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetClass, eol);
+    _ConstructorLocation targetLocation =
+        _prepareNewConstructorLocation(targetClass);
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation._offset);
     {
@@ -527,172 +549,154 @@ class FixProcessor {
   }
 
   void _addFix_createFunction_forFunctionType() {
-    // TODO(scheglov) implement
-//    if (node is SimpleIdentifier) {
-//      SimpleIdentifier nameNode = node as SimpleIdentifier;
-//      // prepare argument expression (to get parameter)
-//      ClassElement targetElement;
-//      Expression argument;
-//      {
-//        Expression target = CorrectionUtils.getQualifiedPropertyTarget(node);
-//        if (target != null) {
-//          DartType targetType = target.bestType;
-//          if (targetType != null && targetType.element is ClassElement) {
-//            targetElement = targetType.element as ClassElement;
-//            argument = target.parent as Expression;
-//          } else {
-//            return;
-//          }
-//        } else {
-//          ClassDeclaration enclosingClass =
-//              node.getAncestor((node) => node is ClassDeclaration);
-//          targetElement = enclosingClass != null ?
-//              enclosingClass.element :
-//              null;
-//          argument = nameNode;
-//        }
-//      }
-//      // should be argument of some invocation
-//      ParameterElement parameterElement = argument.bestParameterElement;
-//      if (parameterElement == null) {
-//        return;
-//      }
-//      // should be parameter of function type
-//      DartType parameterType = parameterElement.type;
-//      if (parameterType is! FunctionType) {
-//        return;
-//      }
-//      FunctionType functionType = parameterType as FunctionType;
-//      // add proposal
-//      if (targetElement != null) {
-//        _addProposal_createFunction_method(targetElement, functionType);
-//      } else {
-//        _addProposal_createFunction_function(functionType);
-//      }
-//    }
+    if (node is SimpleIdentifier) {
+      SimpleIdentifier nameNode = node as SimpleIdentifier;
+      // prepare argument expression (to get parameter)
+      ClassElement targetElement;
+      Expression argument;
+      {
+        Expression target = getQualifiedPropertyTarget(node);
+        if (target != null) {
+          DartType targetType = target.bestType;
+          if (targetType != null && targetType.element is ClassElement) {
+            targetElement = targetType.element as ClassElement;
+            argument = target.parent as Expression;
+          } else {
+            return;
+          }
+        } else {
+          ClassDeclaration enclosingClass =
+              node.getAncestor((node) => node is ClassDeclaration);
+          targetElement = enclosingClass != null ?
+              enclosingClass.element :
+              null;
+          argument = nameNode;
+        }
+      }
+      // should be argument of some invocation
+      ParameterElement parameterElement = argument.bestParameterElement;
+      if (parameterElement == null) {
+        return;
+      }
+      // should be parameter of function type
+      DartType parameterType = parameterElement.type;
+      if (parameterType is! FunctionType) {
+        return;
+      }
+      FunctionType functionType = parameterType as FunctionType;
+      // add proposal
+      if (targetElement != null) {
+        _addProposal_createFunction_method(targetElement, functionType);
+      } else {
+        _addProposal_createFunction_function(functionType);
+      }
+    }
   }
 
   void
       _addFix_createMissingOverrides(List<ExecutableElement> missingOverrides) {
-    // TODO(scheglov) implement
-//    // sort by name
-//    missingOverrides.sort(
-//        (Element firstElement, Element secondElement) =>
-//            ObjectUtils.compare(firstElement.displayName, secondElement.displayName));
-//    // add elements
-//    ClassDeclaration targetClass = node.parent as ClassDeclaration;
-//    bool isFirst = true;
-//    for (ExecutableElement missingOverride in missingOverrides) {
-//      _addFix_createMissingOverrides_single(
-//          targetClass,
-//          missingOverride,
-//          isFirst);
-//      isFirst = false;
-//    }
-//    // add proposal
-//    _addFix(
-//        FixKind.CREATE_MISSING_OVERRIDES,
-//        [missingOverrides.length]);
+    // sort by name
+    missingOverrides.sort((Element firstElement, Element secondElement) {
+      return compareStrings(
+          firstElement.displayName,
+          secondElement.displayName);
+    });
+    ClassDeclaration targetClass = node.parent as ClassDeclaration;
+    int insertOffset = targetClass.end - 1;
+    SourceBuilder sb = new SourceBuilder(file, insertOffset);
+    // add elements
+    bool isFirst = true;
+    for (ExecutableElement missingOverride in missingOverrides) {
+      if (!isFirst || !targetClass.members.isEmpty) {
+        sb.append(eol);
+      }
+      _addFix_createMissingOverrides_single(sb, targetClass, missingOverride);
+      isFirst = false;
+    }
+    // add proposal
+    endPosition = new Position(file, insertOffset, 0);
+    _insertBuilder(sb);
+    _addFix(FixKind.CREATE_MISSING_OVERRIDES, [missingOverrides.length]);
   }
 
-  void _addFix_createMissingOverrides_single(ClassDeclaration targetClass,
-      ExecutableElement missingOverride, bool isFirst) {
-    // TODO(scheglov) implement
-//    // prepare environment
-//    String eol = utils.endOfLine;
-//    String prefix = utils.getIndent(1);
-//    String prefix2 = utils.getIndent(2);
-//    int insertOffset = targetClass.end - 1;
-//    // prepare source
-//    JavaStringBuilder sb = new JavaStringBuilder();
-//    // may be empty line
-//    if (!isFirst || !targetClass.members.isEmpty) {
-//      sb.append(eol);
-//    }
-//    // may be property
-//    ElementKind elementKind = missingOverride.kind;
-//    bool isGetter = elementKind == ElementKind.GETTER;
-//    bool isSetter = elementKind == ElementKind.SETTER;
-//    bool isMethod = elementKind == ElementKind.METHOD;
-//    bool isOperator = isMethod && (missingOverride as MethodElement).isOperator;
-//    sb.append(prefix);
-//    if (isGetter) {
-//      sb.append("// TODO: implement ${missingOverride.displayName}");
-//      sb.append(eol);
-//      sb.append(prefix);
-//    }
-//    // @override
-//    {
-//      sb.append("@override");
-//      sb.append(eol);
-//      sb.append(prefix);
-//    }
-//    // return type
-//    _appendType(sb, missingOverride.type.returnType);
-//    if (isGetter) {
-//      sb.append("get ");
-//    } else if (isSetter) {
-//      sb.append("set ");
-//    } else if (isOperator) {
-//      sb.append("operator ");
-//    }
-//    // name
-//    sb.append(missingOverride.displayName);
-//    // parameters + body
-//    if (isGetter) {
-//      sb.append(" => null;");
-//    } else if (isMethod || isSetter) {
-//      List<ParameterElement> parameters = missingOverride.parameters;
-//      _appendParameters(sb, parameters);
-//      sb.append(" {");
-//      // TO-DO
-//      sb.append(eol);
-//      sb.append(prefix2);
-//      if (isMethod) {
-//        sb.append("// TODO: implement ${missingOverride.displayName}");
-//      } else {
-//        sb.append("// TODO: implement ${missingOverride.displayName}");
-//      }
-//      sb.append(eol);
-//      // close method
-//      sb.append(prefix);
-//      sb.append("}");
-//    }
-//    sb.append(eol);
-//    // done
-//    _addInsertEdit(insertOffset, sb.toString());
-//    // maybe set end range
-//    if (_endRange == null) {
-//      _endRange = SourceRangeFactory.rangeStartLength(insertOffset, 0);
-//    }
+  void _addFix_createMissingOverrides_single(SourceBuilder sb,
+      ClassDeclaration targetClass, ExecutableElement missingOverride) {
+    // prepare environment
+    String prefix = utils.getIndent(1);
+    String prefix2 = utils.getIndent(2);
+    // may be property
+    ElementKind elementKind = missingOverride.kind;
+    bool isGetter = elementKind == ElementKind.GETTER;
+    bool isSetter = elementKind == ElementKind.SETTER;
+    bool isMethod = elementKind == ElementKind.METHOD;
+    bool isOperator = isMethod && (missingOverride as MethodElement).isOperator;
+    sb.append(prefix);
+    if (isGetter) {
+      sb.append('// TODO: implement ${missingOverride.displayName}');
+      sb.append(eol);
+      sb.append(prefix);
+    }
+    // @override
+    {
+      sb.append('@override');
+      sb.append(eol);
+      sb.append(prefix);
+    }
+    // return type
+    _appendType(sb, missingOverride.type.returnType);
+    if (isGetter) {
+      sb.append('get ');
+    } else if (isSetter) {
+      sb.append('set ');
+    } else if (isOperator) {
+      sb.append('operator ');
+    }
+    // name
+    sb.append(missingOverride.displayName);
+    // parameters + body
+    if (isGetter) {
+      sb.append(' => null;');
+    } else {
+      List<ParameterElement> parameters = missingOverride.parameters;
+      _appendParameters(sb, parameters, _getDefaultValueMap(parameters));
+      sb.append(' {');
+      // TO-DO
+      sb.append(eol);
+      sb.append(prefix2);
+      sb.append('// TODO: implement ${missingOverride.displayName}');
+      sb.append(eol);
+      // close method
+      sb.append(prefix);
+      sb.append('}');
+    }
+    sb.append(eol);
   }
 
   void _addFix_createNoSuchMethod() {
-    // TODO(scheglov) implement
-//    ClassDeclaration targetClass = node.parent as ClassDeclaration;
-//    // prepare environment
-//    String eol = utils.endOfLine;
-//    String prefix = utils.getIndent(1);
-//    int insertOffset = targetClass.end - 1;
-//    // prepare source
-//    SourceBuilder sb = new SourceBuilder.con1(insertOffset);
-//    {
-//      // insert empty line before existing member
-//      if (!targetClass.members.isEmpty) {
-//        sb.append(eol);
-//      }
-//      // append method
-//      sb.append(prefix);
-//      sb.append(
-//          "noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);");
-//      sb.append(eol);
-//    }
-//    // done
-//    _addInsertEdit3(sb);
-//    _endRange = SourceRangeFactory.rangeStartLength(insertOffset, 0);
-//    // add proposal
-//    _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
+    ClassDeclaration targetClass = node.parent as ClassDeclaration;
+    // prepare environment
+    String prefix = utils.getIndent(1);
+    int insertOffset = targetClass.end - 1;
+    // prepare source
+    SourceBuilder sb = new SourceBuilder(file, insertOffset);
+    {
+      // insert empty line before existing member
+      if (!targetClass.members.isEmpty) {
+        sb.append(eol);
+      }
+      // append method
+      sb.append(prefix);
+      sb.append(
+          "noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);");
+      sb.append(eol);
+    }
+    // done
+    _insertBuilder(sb);
+    endPosition = new Position(file, insertOffset, 0);
+    // add proposal
+    _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
   }
+
 
   void _addFix_createPart() {
     // TODO(scheglov) implement
@@ -712,7 +716,6 @@ class FixProcessor {
 //        // prepare new source
 //        String source;
 //        {
-//          String eol = utils.endOfLine;
 //          String libraryName = _unitLibraryElement.displayName;
 //          source = "part of ${libraryName};${eol}${eol}";
 //        }
@@ -737,7 +740,6 @@ class FixProcessor {
 //    String prefix;
 //    String suffix;
 //    {
-//      String eol = utils.endOfLine;
 //      // if no directives
 //      prefix = "";
 //      suffix = eol;
@@ -1026,338 +1028,187 @@ class FixProcessor {
   }
 
   void _addFix_undefinedClass_useSimilar() {
-    // TODO(scheglov) implement
-//    if (_mayBeTypeIdentifier(node)) {
-//      String name = (node as SimpleIdentifier).name;
-//      QuickFixProcessorImpl_ClosestElementFinder finder =
-//          new QuickFixProcessorImpl_ClosestElementFinder(
-//              name,
-//              new Predicate_QuickFixProcessorImpl_addFix_undefinedClass_useSimilar());
-//      // find closest element
-//      {
-//        // elements of this library
-//        _unitLibraryElement.accept(
-//            new RecursiveElementVisitor_QuickFixProcessorImpl_addFix_undefinedClass_useSimilar(
-//                finder));
-//        // elements from imports
-//        for (ImportElement importElement in _unitLibraryElement.imports) {
-//          if (importElement.prefix == null) {
-//            Map<String, Element> namespace =
-//                CorrectionUtils.getImportNamespace(importElement);
-//            finder._update2(namespace.values);
-//          }
-//        }
-//      }
-//      // if we have close enough element, suggest to use it
-//      if (finder != null && finder._distance < 5) {
-//        String closestName = finder._element.name;
-//        _addReplaceEdit(SourceRangeFactory.rangeNode(node), closestName);
-//        // add proposal
-//        if (closestName != null) {
-//          _addFix(
-//              FixKind.CHANGE_TO,
-//              [closestName]);
-//        }
-//      }
-//    }
+    if (_mayBeTypeIdentifier(node)) {
+      String name = (node as SimpleIdentifier).name;
+      _ClosestElementFinder finder =
+          new _ClosestElementFinder(
+              name,
+              (Element element) => element is ClassElement,
+              MAX_LEVENSHTEIN_DISTANCE);
+      // find closest element
+      {
+        // elements of this library
+        for (CompilationUnitElement unit in unitLibraryElement.units) {
+          finder._updateList(unit.types);
+        }
+        // elements from imports
+        for (ImportElement importElement in unitLibraryElement.imports) {
+          if (importElement.prefix == null) {
+            Map<String, Element> namespace = getImportNamespace(importElement);
+            finder._updateList(namespace.values);
+          }
+        }
+      }
+      // if we have close enough element, suggest to use it
+      if (finder._element != null) {
+        String closestName = finder._element.name;
+        _addReplaceEdit(rf.rangeNode(node), closestName);
+        // add proposal
+        if (closestName != null) {
+          _addFix(FixKind.CHANGE_TO, [closestName]);
+        }
+      }
+    }
   }
 
   void _addFix_undefinedFunction_create() {
-    // TODO(scheglov) implement
-//    // should be the name of the invocation
-//    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-//    } else {
-//      return;
-//    }
-//    String name = (node as SimpleIdentifier).name;
-//    MethodInvocation invocation = node.parent as MethodInvocation;
-//    // function invocation has no target
-//    Expression target = invocation.realTarget;
-//    if (target != null) {
-//      return;
-//    }
-//    // prepare environment
-//    String eol = utils.endOfLine;
-//    int insertOffset;
-//    String sourcePrefix;
-//    AstNode enclosingMember =
-//        node.getAncestor((node) => node is CompilationUnitMember);
-//    insertOffset = enclosingMember.end;
-//    sourcePrefix = "${eol}${eol}";
-//    // build method source
-//    SourceBuilder sb = new SourceBuilder.con1(insertOffset);
-//    {
-//      sb.append(sourcePrefix);
-//      // may be return type
-//      {
-//        DartType type =
-//            _addFix_undefinedMethod_create_getReturnType(invocation);
-//        if (type != null) {
-//          String typeSource = utils.getTypeSource2(type);
-//          if (typeSource != "dynamic") {
-//            sb.startPosition("RETURN_TYPE");
-//            sb.append(typeSource);
-//            sb.endPosition();
-//            sb.append(" ");
-//          }
-//        }
-//      }
-//      // append name
-//      {
-//        sb.startPosition("NAME");
-//        sb.append(name);
-//        sb.endPosition();
-//      }
-//      _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
-//      sb.append(") {${eol}}");
-//    }
-//    // insert source
-//    _addInsertEdit(insertOffset, sb.toString());
-//    // add linked positions
-//    _addLinkedPosition("NAME", sb, SourceRangeFactory.rangeNode(node));
-//    _addLinkedPositions(sb);
-//    // add proposal
-//    _addFix(FixKind.CREATE_FUNCTION, [name]);
+    // should be the name of the invocation
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+    } else {
+      return;
+    }
+    String name = (node as SimpleIdentifier).name;
+    MethodInvocation invocation = node.parent as MethodInvocation;
+    // function invocation has no target
+    Expression target = invocation.realTarget;
+    if (target != null) {
+      return;
+    }
+    // prepare environment
+    int insertOffset;
+    String sourcePrefix;
+    AstNode enclosingMember =
+        node.getAncestor((node) => node is CompilationUnitMember);
+    insertOffset = enclosingMember.end;
+    sourcePrefix = "${eol}${eol}";
+    // build method source
+    SourceBuilder sb = new SourceBuilder(file, insertOffset);
+    {
+      sb.append(sourcePrefix);
+      // append return type
+      {
+        DartType type = _inferReturnType(invocation);
+        _appendType(sb, type, 'RETURN_TYPE');
+      }
+      // append name
+      {
+        sb.startPosition("NAME");
+        sb.append(name);
+        sb.endPosition();
+      }
+      _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
+      sb.append(") {${eol}}");
+    }
+    // insert source
+    _insertBuilder(sb);
+    _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+    // add proposal
+    _addFix(FixKind.CREATE_FUNCTION, [name]);
   }
 
   void _addFix_undefinedFunction_useSimilar() {
-    // TODO(scheglov) implement
-//    if (node is SimpleIdentifier) {
-//      String name = (node as SimpleIdentifier).name;
-//      QuickFixProcessorImpl_ClosestElementFinder finder =
-//          new QuickFixProcessorImpl_ClosestElementFinder(
-//              name,
-//              new Predicate_QuickFixProcessorImpl_addFix_undefinedFunction_useSimilar());
-//      // this library
-//      _unitLibraryElement.accept(
-//          new RecursiveElementVisitor_QuickFixProcessorImpl_addFix_undefinedFunction_useSimilar(
-//              finder));
-//      // imports
-//      for (ImportElement importElement in _unitLibraryElement.imports) {
-//        if (importElement.prefix == null) {
-//          Map<String, Element> namespace =
-//              CorrectionUtils.getImportNamespace(importElement);
-//          finder._update2(namespace.values);
-//        }
-//      }
-//      // if we have close enough element, suggest to use it
-//      String closestName = null;
-//      if (finder != null && finder._distance < 5) {
-//        closestName = finder._element.name;
-//        _addReplaceEdit(SourceRangeFactory.rangeNode(node), closestName);
-//        _addFix(FixKind.CHANGE_TO, [closestName]);
-//      }
-//    }
+    if (node is SimpleIdentifier) {
+      String name = (node as SimpleIdentifier).name;
+      _ClosestElementFinder finder =
+          new _ClosestElementFinder(
+              name,
+              (Element element) => element is FunctionElement,
+              MAX_LEVENSHTEIN_DISTANCE);
+      // this library
+      for (CompilationUnitElement unit in unitLibraryElement.units) {
+        finder._updateList(unit.functions);
+      }
+      // imports
+      for (ImportElement importElement in unitLibraryElement.imports) {
+        if (importElement.prefix == null) {
+          Map<String, Element> namespace = getImportNamespace(importElement);
+          finder._updateList(namespace.values);
+        }
+      }
+      // if we have close enough element, suggest to use it
+      if (finder._element != null) {
+        String closestName = finder._element.name;
+        _addReplaceEdit(rf.rangeNode(node), closestName);
+        _addFix(FixKind.CHANGE_TO, [closestName]);
+      }
+    }
   }
 
   void _addFix_undefinedMethod_create() {
-    // TODO(scheglov) implement
-//    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-//      String name = (node as SimpleIdentifier).name;
-//      MethodInvocation invocation = node.parent as MethodInvocation;
-//      // prepare environment
-//      String eol = utils.endOfLine;
-//      Source targetSource;
-//      String prefix;
-//      int insertOffset;
-//      String sourcePrefix;
-//      String sourceSuffix;
-//      bool staticModifier = false;
-//      Expression target = invocation.realTarget;
-//      if (target == null) {
-//        targetSource = _source;
-//        ClassMember enclosingMember =
-//            node.getAncestor((node) => node is ClassMember);
-//        staticModifier = _inStaticMemberContext2(enclosingMember);
-//        prefix = utils.getNodePrefix(enclosingMember);
-//        insertOffset = enclosingMember.end;
-//        sourcePrefix = "${eol}${prefix}${eol}";
-//        sourceSuffix = "";
-//      } else {
-//        // prepare target interface type
-//        DartType targetType = target.bestType;
-//        if (targetType is! InterfaceType) {
-//          return;
-//        }
-//        ClassElement targetElement = targetType.element as ClassElement;
-//        targetSource = targetElement.source;
-//        // may be static
-//        if (target is Identifier) {
-//          staticModifier = target.bestElement.kind == ElementKind.CLASS;
-//        }
-//        // prepare insert offset
-//        ClassDeclaration targetClass = targetElement.node;
-//        prefix = "  ";
-//        insertOffset = targetClass.end - 1;
-//        if (targetClass.members.isEmpty) {
-//          sourcePrefix = "";
-//        } else {
-//          sourcePrefix = "${prefix}${eol}";
-//        }
-//        sourceSuffix = eol;
-//      }
-//      // build method source
-//      SourceBuilder sb = new SourceBuilder.con1(insertOffset);
-//      {
-//        sb.append(sourcePrefix);
-//        sb.append(prefix);
-//        // may be "static"
-//        if (staticModifier) {
-//          sb.append("static ");
-//        }
-//        // may be return type
-//        {
-//          DartType type =
-//              _addFix_undefinedMethod_create_getReturnType(invocation);
-//          if (type != null) {
-//            String typeSource = utils.getTypeSource2(type);
-//            if (typeSource != "dynamic") {
-//              sb.startPosition("RETURN_TYPE");
-//              sb.append(typeSource);
-//              sb.endPosition();
-//              sb.append(" ");
-//            }
-//          }
-//        }
-//        // append name
-//        {
-//          sb.startPosition("NAME");
-//          sb.append(name);
-//          sb.endPosition();
-//        }
-//        _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
-//        sb.append(") {${eol}${prefix}}");
-//        sb.append(sourceSuffix);
-//      }
-//      // insert source
-//      _addInsertEdit(insertOffset, sb.toString());
-//      // add linked positions
-//      if (targetSource == _source) {
-//        _addLinkedPosition("NAME", sb, SourceRangeFactory.rangeNode(node));
-//      }
-//      _addLinkedPositions(sb);
-//      // add proposal
-//      _addUnitCorrectionProposal2(
-//          targetSource,
-//          FixKind.CREATE_METHOD,
-//          [name]);
-//    }
-  }
-
-  /**
-   * @return the possible return [Type], may be <code>null</code> if can not be identified.
-   */
-  DartType
-      _addFix_undefinedMethod_create_getReturnType(MethodInvocation invocation) {
-    // TODO(scheglov) implement
-//    AstNode parent = invocation.parent;
-//    // myFunction();
-//    if (parent is ExpressionStatement) {
-//      return VoidTypeImpl.instance;
-//    }
-//    // return myFunction();
-//    if (parent is ReturnStatement) {
-//      ExecutableElement executable =
-//          CorrectionUtils.getEnclosingExecutableElement(invocation);
-//      return executable != null ? executable.returnType : null;
-//    }
-//    // int v = myFunction();
-//    if (parent is VariableDeclaration) {
-//      VariableDeclaration variableDeclaration = parent;
-//      if (identical(variableDeclaration.initializer, invocation)) {
-//        VariableElement variableElement = variableDeclaration.element;
-//        if (variableElement != null) {
-//          return variableElement.type;
-//        }
-//      }
-//    }
-//    // v = myFunction();
-//    if (parent is AssignmentExpression) {
-//      AssignmentExpression assignment = parent;
-//      if (identical(assignment.rightHandSide, invocation)) {
-//        if (assignment.operator.type == TokenType.EQ) {
-//          // v = myFunction();
-//          Expression lhs = assignment.leftHandSide;
-//          if (lhs != null) {
-//            return lhs.bestType;
-//          }
-//        } else {
-//          // v += myFunction();
-//          MethodElement method = assignment.bestElement;
-//          if (method != null) {
-//            List<ParameterElement> parameters = method.parameters;
-//            if (parameters.length == 1) {
-//              return parameters[0].type;
-//            }
-//          }
-//        }
-//      }
-//    }
-//    // v + myFunction();
-//    if (parent is BinaryExpression) {
-//      BinaryExpression binary = parent;
-//      MethodElement method = binary.bestElement;
-//      if (method != null) {
-//        if (identical(binary.rightOperand, invocation)) {
-//          List<ParameterElement> parameters = method.parameters;
-//          return parameters.length == 1 ? parameters[0].type : null;
-//        }
-//      }
-//    }
-//    // foo( myFunction() );
-//    if (parent is ArgumentList) {
-//      ParameterElement parameter = invocation.bestParameterElement;
-//      return parameter != null ? parameter.type : null;
-//    }
-//    // bool
-//    {
-//      // assert( myFunction() );
-//      if (parent is AssertStatement) {
-//        AssertStatement statement = parent;
-//        if (identical(statement.condition, invocation)) {
-//          return coreTypeBool;
-//        }
-//      }
-//      // if ( myFunction() ) {}
-//      if (parent is IfStatement) {
-//        IfStatement statement = parent;
-//        if (identical(statement.condition, invocation)) {
-//          return coreTypeBool;
-//        }
-//      }
-//      // while ( myFunction() ) {}
-//      if (parent is WhileStatement) {
-//        WhileStatement statement = parent;
-//        if (identical(statement.condition, invocation)) {
-//          return coreTypeBool;
-//        }
-//      }
-//      // do {} while ( myFunction() );
-//      if (parent is DoStatement) {
-//        DoStatement statement = parent;
-//        if (identical(statement.condition, invocation)) {
-//          return coreTypeBool;
-//        }
-//      }
-//      // !myFunction()
-//      if (parent is PrefixExpression) {
-//        PrefixExpression prefixExpression = parent;
-//        if (prefixExpression.operator.type == TokenType.BANG) {
-//          return coreTypeBool;
-//        }
-//      }
-//      // binary expression '&&' or '||'
-//      if (parent is BinaryExpression) {
-//        BinaryExpression binaryExpression = parent;
-//        TokenType operatorType = binaryExpression.operator.type;
-//        if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
-//            operatorType == TokenType.BAR_BAR) {
-//          return coreTypeBool;
-//        }
-//      }
-//    }
-    // we don't know
-    return null;
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+      String name = (node as SimpleIdentifier).name;
+      MethodInvocation invocation = node.parent as MethodInvocation;
+      // prepare environment
+      Source targetSource;
+      String prefix;
+      int insertOffset;
+      String sourcePrefix;
+      String sourceSuffix;
+      bool staticModifier = false;
+      Expression target = invocation.realTarget;
+      if (target == null) {
+        targetSource = source;
+        ClassMember enclosingMember =
+            node.getAncestor((node) => node is ClassMember);
+        staticModifier = _inStaticContext();
+        prefix = utils.getNodePrefix(enclosingMember);
+        insertOffset = enclosingMember.end;
+        sourcePrefix = "${eol}${eol}";
+        sourceSuffix = "";
+      } else {
+        // prepare target interface type
+        DartType targetType = target.bestType;
+        if (targetType is! InterfaceType) {
+          return;
+        }
+        ClassElement targetElement = targetType.element as ClassElement;
+        targetSource = targetElement.source;
+        // may be static
+        if (target is Identifier) {
+          staticModifier = target.bestElement.kind == ElementKind.CLASS;
+        }
+        // prepare insert offset
+        ClassDeclaration targetClass = targetElement.node;
+        prefix = "  ";
+        insertOffset = targetClass.end - 1;
+        if (targetClass.members.isEmpty) {
+          sourcePrefix = "";
+        } else {
+          sourcePrefix = eol;
+        }
+        sourceSuffix = eol;
+      }
+      String targetFile = targetSource.fullName;
+      // build method source
+      SourceBuilder sb = new SourceBuilder(targetFile, insertOffset);
+      {
+        sb.append(sourcePrefix);
+        sb.append(prefix);
+        // maybe "static"
+        if (staticModifier) {
+          sb.append("static ");
+        }
+        // append return type
+        _appendType(sb, _inferReturnType(invocation), 'RETURN_TYPE');
+        // append name
+        {
+          sb.startPosition("NAME");
+          sb.append(name);
+          sb.endPosition();
+        }
+        _addFix_undefinedMethod_create_parameters(sb, invocation.argumentList);
+        sb.append(") {${eol}${prefix}}");
+        sb.append(sourceSuffix);
+      }
+      // insert source
+      _insertBuilder(sb);
+      // add linked positions
+      if (targetSource == source) {
+        _addLinkedPosition3('NAME', sb, rf.rangeNode(node));
+      }
+      // add proposal
+      _addFix(FixKind.CREATE_METHOD, [name], fixFile: targetFile);
+    }
   }
 
   void _addFix_undefinedMethod_create_parameters(SourceBuilder sb,
@@ -1397,38 +1248,37 @@ class FixProcessor {
   }
 
   void _addFix_undefinedMethod_useSimilar() {
-    // TODO(scheglov) implement
-//    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
-//      MethodInvocation invocation = node.parent as MethodInvocation;
-//      String name = (node as SimpleIdentifier).name;
-//      QuickFixProcessorImpl_ClosestElementFinder finder =
-//          new QuickFixProcessorImpl_ClosestElementFinder(
-//              name,
-//              new Predicate_QuickFixProcessorImpl_addFix_undefinedMethod_useSimilar());
-//      // unqualified invocation
-//      Expression target = invocation.realTarget;
-//      if (target == null) {
-//        ClassDeclaration clazz =
-//            invocation.getAncestor((node) => node is ClassDeclaration);
-//        if (clazz != null) {
-//          ClassElement classElement = clazz.element;
-//          _updateFinderWithClassMembers(finder, classElement);
-//        }
-//      } else {
-//        DartType type = target.bestType;
-//        if (type is InterfaceType) {
-//          ClassElement classElement = type.element;
-//          _updateFinderWithClassMembers(finder, classElement);
-//        }
-//      }
-//      // if we have close enough element, suggest to use it
-//      String closestName = null;
-//      if (finder != null && finder._distance < 5) {
-//        closestName = finder._element.name;
-//        _addReplaceEdit(SourceRangeFactory.rangeNode(node), closestName);
-//        _addFix(FixKind.CHANGE_TO, [closestName]);
-//      }
-//    }
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+      MethodInvocation invocation = node.parent as MethodInvocation;
+      String name = (node as SimpleIdentifier).name;
+      _ClosestElementFinder finder =
+          new _ClosestElementFinder(
+              name,
+              (Element element) => element is MethodElement && !element.isOperator,
+              MAX_LEVENSHTEIN_DISTANCE);
+      // unqualified invocation
+      Expression target = invocation.realTarget;
+      if (target == null) {
+        ClassDeclaration clazz =
+            invocation.getAncestor((node) => node is ClassDeclaration);
+        if (clazz != null) {
+          ClassElement classElement = clazz.element;
+          _updateFinderWithClassMembers(finder, classElement);
+        }
+      } else {
+        DartType type = target.bestType;
+        if (type is InterfaceType) {
+          ClassElement classElement = type.element;
+          _updateFinderWithClassMembers(finder, classElement);
+        }
+      }
+      // if we have close enough element, suggest to use it
+      if (finder._element != null) {
+        String closestName = finder._element.name;
+        _addReplaceEdit(rf.rangeNode(node), closestName);
+        _addFix(FixKind.CHANGE_TO, [closestName]);
+      }
+    }
   }
 
   void _addFix_useEffectiveIntegerDivision() {
@@ -1499,21 +1349,146 @@ class FixProcessor {
    * Adds a single linked position to [groupId].
    */
   void _addLinkedPosition(String groupId, SourceRange range) {
-    _addLinkedPosition2(
-        groupId,
-        new Position(file, range.offset, range.length));
+    Position position = new Position(file, range.offset, range.length);
+    LinkedPositionGroup group = _getLinkedPosition(groupId);
+    group.addPosition(position);
   }
 
   /**
    * Adds a single linked position to [groupId].
    */
-  void _addLinkedPosition2(String groupId, Position position) {
-    LinkedPositionGroup group = linkedPositionGroups[groupId];
-    if (group == null) {
-      group = new LinkedPositionGroup(groupId);
-      linkedPositionGroups[groupId] = group;
+  void _addLinkedPosition3(String groupId, SourceBuilder sb,
+      SourceRange range) {
+    if (sb.offset < range.offset) {
+      int delta = sb.length;
+      range = range.getTranslated(delta);
     }
-    group.add(position);
+    _addLinkedPosition(groupId, range);
+  }
+
+  /**
+   * Prepares proposal for creating function corresponding to the given [FunctionType].
+   */
+  void _addProposal_createFunction(FunctionType functionType, String name,
+      Source targetSource, int insertOffset, bool isStatic, String prefix,
+      String sourcePrefix, String sourceSuffix) {
+    // build method source
+    String targetFile = targetSource.fullName;
+    SourceBuilder sb = new SourceBuilder(targetFile, insertOffset);
+    {
+      sb.append(sourcePrefix);
+      sb.append(prefix);
+      // may be static
+      if (isStatic) {
+        sb.append("static ");
+      }
+      // append return type
+      _appendType(sb, functionType.returnType, 'RETURN_TYPE');
+      // append name
+      {
+        sb.startPosition("NAME");
+        sb.append(name);
+        sb.endPosition();
+      }
+      // append parameters
+      sb.append("(");
+      List<ParameterElement> parameters = functionType.parameters;
+      for (int i = 0; i < parameters.length; i++) {
+        ParameterElement parameter = parameters[i];
+        // append separator
+        if (i != 0) {
+          sb.append(", ");
+        }
+        // append type name
+        DartType type = parameter.type;
+        if (!type.isDynamic) {
+          String typeSource = utils.getTypeSource(type);
+          {
+            sb.startPosition("TYPE${i}");
+            sb.append(typeSource);
+            _addSuperTypeProposals(sb, new Set(), type);
+            sb.endPosition();
+          }
+          sb.append(" ");
+        }
+        // append parameter name
+        {
+          sb.startPosition("ARG${i}");
+          sb.append(parameter.displayName);
+          sb.endPosition();
+        }
+      }
+      sb.append(")");
+      // close method
+      sb.append(" {${eol}${prefix}}");
+      sb.append(sourceSuffix);
+    }
+    // insert source
+    _insertBuilder(sb);
+    // add linked positions
+    if (targetSource == source) {
+      _addLinkedPosition3("NAME", sb, rf.rangeNode(node));
+    }
+  }
+
+  /**
+   * Adds proposal for creating method corresponding to the given [FunctionType] in the given
+   * [ClassElement].
+   */
+  void _addProposal_createFunction_function(FunctionType functionType) {
+    String name = (node as SimpleIdentifier).name;
+    // prepare environment
+    int insertOffset = unit.end;
+    // prepare prefix
+    String prefix = "";
+    String sourcePrefix = "${eol}";
+    String sourceSuffix = eol;
+    _addProposal_createFunction(
+        functionType,
+        name,
+        source,
+        insertOffset,
+        false,
+        prefix,
+        sourcePrefix,
+        sourceSuffix);
+    // add proposal
+    _addFix(FixKind.CREATE_FUNCTION, [name], fixFile: file);
+  }
+
+  /**
+   * Adds proposal for creating method corresponding to the given [FunctionType] in the given
+   * [ClassElement].
+   */
+  void _addProposal_createFunction_method(ClassElement targetClassElement,
+      FunctionType functionType) {
+    String name = (node as SimpleIdentifier).name;
+    // prepare environment
+    Source targetSource = targetClassElement.source;
+    String targetFile = targetSource.fullName;
+    // prepare insert offset
+    ClassDeclaration targetClassNode = targetClassElement.node;
+    int insertOffset = targetClassNode.end - 1;
+    // prepare prefix
+    String prefix = "  ";
+    String sourcePrefix;
+    if (targetClassNode.members.isEmpty) {
+      sourcePrefix = "";
+    } else {
+      sourcePrefix = eol;
+    }
+    String sourceSuffix = eol;
+    _addProposal_createFunction(
+        functionType,
+        name,
+        targetSource,
+        insertOffset,
+        _inStaticContext(),
+        prefix,
+        sourcePrefix,
+        sourceSuffix);
+    // add proposal
+    _addFix(FixKind.CREATE_METHOD, [name], fixFile: targetFile);
   }
 
   /**
@@ -1531,20 +1506,20 @@ class FixProcessor {
     edits.add(edit);
   }
 
-  void _appendParameterSource(StringBuffer sb, DartType type, String name) {
+  void _appendParameterSource(SourceBuilder sb, DartType type, String name) {
     String parameterSource = utils.getParameterSource(type, name);
-    sb.write(parameterSource);
+    sb.append(parameterSource);
   }
 
-  void _appendParameters(StringBuffer sb, List<ParameterElement> parameters,
+  void _appendParameters(SourceBuilder sb, List<ParameterElement> parameters,
       Map<ParameterElement, String> defaultValueMap) {
-    sb.write("(");
+    sb.append("(");
     bool firstParameter = true;
     bool sawNamed = false;
     bool sawPositional = false;
     for (ParameterElement parameter in parameters) {
       if (!firstParameter) {
-        sb.write(", ");
+        sb.append(", ");
       } else {
         firstParameter = false;
       }
@@ -1552,13 +1527,13 @@ class FixProcessor {
       ParameterKind parameterKind = parameter.parameterKind;
       if (parameterKind == ParameterKind.NAMED) {
         if (!sawNamed) {
-          sb.write("{");
+          sb.append("{");
           sawNamed = true;
         }
       }
       if (parameterKind == ParameterKind.POSITIONAL) {
         if (!sawPositional) {
-          sb.write("[");
+          sb.append("[");
           sawPositional = true;
         }
       }
@@ -1569,22 +1544,236 @@ class FixProcessor {
         String defaultSource = defaultValueMap[parameter];
         if (defaultSource != null) {
           if (sawPositional) {
-            sb.write(" = ");
+            sb.append(" = ");
           } else {
-            sb.write(": ");
+            sb.append(": ");
           }
-          sb.write(defaultSource);
+          sb.append(defaultSource);
         }
       }
     }
     // close parameters
     if (sawNamed) {
-      sb.write("}");
+      sb.append("}");
     }
     if (sawPositional) {
-      sb.write("]");
+      sb.append("]");
     }
-    sb.write(")");
+    sb.append(")");
+  }
+
+  void _appendType(SourceBuilder sb, DartType type, [String groupId]) {
+    if (type != null && !type.isDynamic) {
+      String typeSource = utils.getTypeSource(type);
+      if (groupId != null) {
+        sb.startPosition(groupId);
+        sb.append(typeSource);
+        sb.endPosition();
+      } else {
+        sb.append(typeSource);
+      }
+      sb.append(' ');
+    }
+  }
+
+  /**
+   * @return the string to display as the name of the given constructor in a proposal name.
+   */
+  String _getConstructorProposalName(ConstructorElement constructor) {
+    SourceBuilder proposalNameBuffer = new SourceBuilder.buffer();
+    proposalNameBuffer.append("super");
+    // may be named
+    String constructorName = constructor.displayName;
+    if (!constructorName.isEmpty) {
+      proposalNameBuffer.append(".");
+      proposalNameBuffer.append(constructorName);
+    }
+    // parameters
+    _appendParameters(proposalNameBuffer, constructor.parameters, null);
+    // done
+    return proposalNameBuffer.toString();
+  }
+
+  /**
+   * Returns the [Type] with given name from the `dart:core` library.
+   */
+  DartType _getCoreType(String name) {
+    List<LibraryElement> libraries = unitLibraryElement.importedLibraries;
+    for (LibraryElement library in libraries) {
+      if (library.isDartCore) {
+        ClassElement classElement = library.getType(name);
+        if (classElement != null) {
+          return classElement.type;
+        }
+        return null;
+      }
+    }
+    return null;
+  }
+
+  Map<ParameterElement, String>
+      _getDefaultValueMap(List<ParameterElement> parameters) {
+    Map<ParameterElement, String> defaultSourceMap = {};
+    Map<Source, String> sourceContentMap = {};
+    for (ParameterElement parameter in parameters) {
+      SourceRange valueRange = parameter.defaultValueRange;
+      if (valueRange != null) {
+        Source source = parameter.source;
+        String sourceContent = sourceContentMap[source];
+        if (sourceContent == null) {
+          sourceContent = getSourceContent(parameter.context, source);
+          sourceContentMap[source] = sourceContent;
+        }
+        String valueSource =
+            sourceContent.substring(valueRange.offset, valueRange.end);
+        defaultSourceMap[parameter] = valueSource;
+      }
+    }
+    return defaultSourceMap;
+  }
+
+  /**
+   * Returns an existing or just added [LinkedPositionGroup] with [groupId].
+   */
+  LinkedPositionGroup _getLinkedPosition(String groupId) {
+    LinkedPositionGroup group = linkedPositionGroups[groupId];
+    if (group == null) {
+      group = new LinkedPositionGroup(groupId);
+      linkedPositionGroups[groupId] = group;
+    }
+    return group;
+  }
+
+  /**
+   * Returns `true` if [node] is in static context.
+   */
+  bool _inStaticContext() {
+    // constructor initializer cannot reference "this"
+    if (node.getAncestor((node) => node is ConstructorInitializer) != null) {
+      return true;
+    }
+    // field initializer cannot reference "this"
+    if (node.getAncestor((node) => node is FieldDeclaration) != null) {
+      return true;
+    }
+    // static method
+    MethodDeclaration method = node.getAncestor((node) {
+      return node is MethodDeclaration;
+    });
+    return method != null && method.isStatic;
+  }
+
+  /**
+   * Returns a possible return [Type], may be `null` if cannot be inferred.
+   */
+  DartType _inferReturnType(MethodInvocation invocation) {
+    AstNode parent = invocation.parent;
+    // myFunction();
+    if (parent is ExpressionStatement) {
+      return VoidTypeImpl.instance;
+    }
+    // return myFunction();
+    if (parent is ReturnStatement) {
+      ExecutableElement executable = getEnclosingExecutableElement(invocation);
+      return executable != null ? executable.returnType : null;
+    }
+    // int v = myFunction();
+    if (parent is VariableDeclaration) {
+      VariableDeclaration variableDeclaration = parent;
+      if (identical(variableDeclaration.initializer, invocation)) {
+        VariableElement variableElement = variableDeclaration.element;
+        if (variableElement != null) {
+          return variableElement.type;
+        }
+      }
+    }
+    // v = myFunction();
+    if (parent is AssignmentExpression) {
+      AssignmentExpression assignment = parent;
+      if (identical(assignment.rightHandSide, invocation)) {
+        if (assignment.operator.type == TokenType.EQ) {
+          // v = myFunction();
+          Expression lhs = assignment.leftHandSide;
+          if (lhs != null) {
+            return lhs.bestType;
+          }
+        } else {
+          // v += myFunction();
+          MethodElement method = assignment.bestElement;
+          if (method != null) {
+            List<ParameterElement> parameters = method.parameters;
+            if (parameters.length == 1) {
+              return parameters[0].type;
+            }
+          }
+        }
+      }
+    }
+    // v + myFunction();
+    if (parent is BinaryExpression) {
+      BinaryExpression binary = parent;
+      MethodElement method = binary.bestElement;
+      if (method != null) {
+        if (identical(binary.rightOperand, invocation)) {
+          List<ParameterElement> parameters = method.parameters;
+          return parameters.length == 1 ? parameters[0].type : null;
+        }
+      }
+    }
+    // foo( myFunction() );
+    if (parent is ArgumentList) {
+      ParameterElement parameter = invocation.bestParameterElement;
+      return parameter != null ? parameter.type : null;
+    }
+    // bool
+    {
+      // assert( myFunction() );
+      if (parent is AssertStatement) {
+        AssertStatement statement = parent;
+        if (identical(statement.condition, invocation)) {
+          return coreTypeBool;
+        }
+      }
+      // if ( myFunction() ) {}
+      if (parent is IfStatement) {
+        IfStatement statement = parent;
+        if (identical(statement.condition, invocation)) {
+          return coreTypeBool;
+        }
+      }
+      // while ( myFunction() ) {}
+      if (parent is WhileStatement) {
+        WhileStatement statement = parent;
+        if (identical(statement.condition, invocation)) {
+          return coreTypeBool;
+        }
+      }
+      // do {} while ( myFunction() );
+      if (parent is DoStatement) {
+        DoStatement statement = parent;
+        if (identical(statement.condition, invocation)) {
+          return coreTypeBool;
+        }
+      }
+      // !myFunction()
+      if (parent is PrefixExpression) {
+        PrefixExpression prefixExpression = parent;
+        if (prefixExpression.operator.type == TokenType.BANG) {
+          return coreTypeBool;
+        }
+      }
+      // binary expression '&&' or '||'
+      if (parent is BinaryExpression) {
+        BinaryExpression binaryExpression = parent;
+        TokenType operatorType = binaryExpression.operator.type;
+        if (operatorType == TokenType.AMPERSAND_AMPERSAND ||
+            operatorType == TokenType.BAR_BAR) {
+          return coreTypeBool;
+        }
+      }
+    }
+    // we don't know
+    return null;
   }
 
 //  void _addLinkedPositionProposal(String group,
@@ -1597,23 +1786,20 @@ class FixProcessor {
 //    nodeProposals.add(proposal);
 //  }
 
-  /**
-   * @return the string to display as the name of the given constructor in a proposal name.
-   */
-  String _getConstructorProposalName(ConstructorElement constructor) {
-    StringBuffer proposalNameBuffer = new StringBuffer();
-    proposalNameBuffer.write("super");
-    // may be named
-    String constructorName = constructor.displayName;
-    if (!constructorName.isEmpty) {
-      proposalNameBuffer.write(".");
-      proposalNameBuffer.write(constructorName);
-    }
-    // parameters
-    _appendParameters(proposalNameBuffer, constructor.parameters, null);
-    // done
-    return proposalNameBuffer.toString();
-  }
+//  /**
+//   * Returns `true` if the given [ClassMember] is a part of a static method or
+//   * a field initializer.
+//   */
+//  bool _inStaticMemberContext2(ClassMember member) {
+//    if (member is MethodDeclaration) {
+//      return member.isStatic;
+//    }
+//    // field initializer cannot reference "this"
+//    if (member is FieldDeclaration) {
+//      return true;
+//    }
+//    return false;
+//  }
 
   /**
    * Inserts the given [SourceBuilder] at its offset.
@@ -1623,14 +1809,18 @@ class FixProcessor {
     _addInsertEdit(builder.offset, text);
     // add linked positions
     builder.linkedPositionGroups.forEach((LinkedPositionGroup group) {
+      LinkedPositionGroup fixGroup = _getLinkedPosition(group.id);
       group.positions.forEach((Position position) {
-        _addLinkedPosition2(group.id, position);
+        fixGroup.addPosition(position);
+      });
+      group.proposals.forEach((String proposal) {
+        fixGroup.addProposal(proposal);
       });
     });
   }
 
-  QuickFixProcessorImpl_NewConstructorLocation
-      _prepareNewConstructorLocation(ClassDeclaration classDeclaration, String eol) {
+  _ConstructorLocation
+      _prepareNewConstructorLocation(ClassDeclaration classDeclaration) {
     List<ClassMember> members = classDeclaration.members;
     // find the last field/constructor
     ClassMember lastFieldOrConstructor = null;
@@ -1643,14 +1833,14 @@ class FixProcessor {
     }
     // after the field/constructor
     if (lastFieldOrConstructor != null) {
-      return new QuickFixProcessorImpl_NewConstructorLocation(
+      return new _ConstructorLocation(
           "${eol}${eol}",
           lastFieldOrConstructor.end,
           "");
     }
     // at the beginning of the class
     String suffix = members.isEmpty ? "" : eol;
-    return new QuickFixProcessorImpl_NewConstructorLocation(
+    return new _ConstructorLocation(
         eol,
         classDeclaration.leftBracket.end,
         suffix);
@@ -1671,6 +1861,14 @@ class FixProcessor {
       _addRemoveEdit(rf.rangeToken(parenthesized.leftParenthesis));
       _addRemoveEdit(rf.rangeToken(parenthesized.rightParenthesis));
       expr = parenthesized;
+    }
+  }
+
+  void _updateFinderWithClassMembers(_ClosestElementFinder finder,
+      ClassElement clazz) {
+    if (clazz != null) {
+      List<Element> members = getMembers(clazz);
+      finder._updateList(members);
     }
   }
 
@@ -1722,17 +1920,42 @@ class FixProcessor {
   }
 }
 
+/**
+ * Helper for finding [Element] with name closest to the given.
+ */
+class _ClosestElementFinder {
+  final String _targetName;
+  final Predicate<Element> _predicate;
+
+  Element _element = null;
+  int _distance;
+
+  _ClosestElementFinder(this._targetName, this._predicate, this._distance);
+
+  void _update(Element element) {
+    if (_predicate(element)) {
+      int memberDistance = levenshtein(element.name, _targetName, _distance);
+      if (memberDistance < _distance) {
+        _element = element;
+        _distance = memberDistance;
+      }
+    }
+  }
+
+  void _updateList(Iterable<Element> elements) {
+    for (Element element in elements) {
+      _update(element);
+    }
+  }
+}
 
 /**
  * Describes the location for a newly created [ConstructorDeclaration].
- *
- * TODO(scheglov) rename
  */
-class QuickFixProcessorImpl_NewConstructorLocation {
+class _ConstructorLocation {
   final String _prefix;
   final int _offset;
   final String _suffix;
 
-  QuickFixProcessorImpl_NewConstructorLocation(this._prefix, this._offset,
-      this._suffix);
+  _ConstructorLocation(this._prefix, this._offset, this._suffix);
 }

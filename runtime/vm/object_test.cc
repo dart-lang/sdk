@@ -319,7 +319,6 @@ TEST_CASE(Smi) {
   EXPECT(!Smi::IsValid(kMaxInt64));
   EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
   EXPECT(Smi::IsValid(-1));
-  EXPECT(!Smi::IsValid(0xFFFFFFFFFFFFFFFFu));
 #else
   EXPECT(!Smi::IsValid(kMaxInt32));
   EXPECT(Smi::IsValid(0x3FFFFFFF));

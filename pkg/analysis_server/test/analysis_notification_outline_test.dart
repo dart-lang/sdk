@@ -19,9 +19,7 @@ import 'analysis_abstract.dart';
 
 
 main() {
-  group('notification.outline', () {
-    runReflectiveTests(_AnalysisNotificationOutlineTest);
-  });
+  runReflectiveTests(_AnalysisNotificationOutlineTest);
 }
 
 

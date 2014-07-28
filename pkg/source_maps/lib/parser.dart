@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'builder.dart' as builder;
 import 'span.dart';
+import 'src/span_wrapper.dart';
 import 'src/utils.dart';
 import 'src/vlq.dart';
 
@@ -47,10 +48,21 @@ Mapping parseJson(Map map, {Map<String, Map> otherMaps}) {
 
 /// A mapping parsed out of a source map.
 abstract class Mapping {
-  Span spanFor(int line, int column, {Map<String, SourceFile> files});
+  /// Returns the span associated with [line] and [column].
+  ///
+  /// The values of [files] can be either `source_map` [SourceFile]s or
+  /// `source_span` `SourceFile`s. Using `source_map` [SourceFile]s is
+  /// deprecated and will be unsupported in version 0.10.0.
+  Span spanFor(int line, int column, {Map<String, dynamic> files});
 
-  Span spanForLocation(Location loc, {Map<String, SourceFile> files}) {
-    return spanFor(loc.line, loc.column, files: files);
+  /// Returns the span associated with [location].
+  ///
+  /// The values of [files] may be either `source_map` [SourceFile]s or
+  /// `source_span` `SourceFile`s. Using `source_map` [SourceFile]s is
+  /// deprecated and will be unsupported in version 0.10.0.
+  Span spanForLocation(location, {Map<String, dynamic> files}) {
+    location = LocationWrapper.wrap(location);
+    return spanFor(location.line, location.column, files: files);
   }
 }
 
@@ -112,7 +124,7 @@ class MultiSectionMapping extends Mapping {
     return _lineStart.length - 1;
   }
 
-  Span spanFor(int line, int column, {Map<String, SourceFile> files}) {
+  Span spanFor(int line, int column, {Map<String, dynamic> files}) {
     int index = _indexFor(line, column);
     return _maps[index].spanFor(
         line - _lineStart[index], column - _columnStart[index], files: files);
@@ -351,7 +363,7 @@ class SingleMapping extends Mapping {
     return (index <= 0) ? null : entries[index - 1];
   }
 
-  Span spanFor(int line, int column, {Map<String, SourceFile> files}) {
+  Span spanFor(int line, int column, {Map<String, dynamic> files}) {
     var entry = _findColumn(line, column, _findLine(line));
     if (entry == null || entry.sourceUrlId == null) return null;
     var url = urls[entry.sourceUrlId];
@@ -359,7 +371,7 @@ class SingleMapping extends Mapping {
       url = '${sourceRoot}${url}';
     }
     if (files != null && files[url] != null) {
-      var file = files[url];
+      var file = SourceFileWrapper.wrap(files[url]);
       var start = file.getOffset(entry.sourceLine, entry.sourceColumn);
       if (entry.sourceNameId != null) {
         var text = names[entry.sourceNameId];

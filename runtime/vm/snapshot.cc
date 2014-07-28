@@ -226,7 +226,8 @@ RawObject* SnapshotReader::ReadObjectImpl() {
   if ((value & kSmiTagMask) == kSmiTag) {
     return NewInteger(value);
   }
-  return ReadObjectImpl(value);
+  ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
+  return ReadObjectImpl(static_cast<intptr_t>(value));
 }
 
 
@@ -236,7 +237,6 @@ intptr_t SnapshotReader::NextAvailableObjectId() const {
 
 
 RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value) {
-  ASSERT((header_value <= kIntptrMax) && (header_value >= kIntptrMin));
   if (IsVMIsolateObject(header_value)) {
     return ReadVMIsolateObject(header_value);
   } else {
@@ -259,13 +259,14 @@ RawObject* SnapshotReader::ReadObjectRef() {
     return NewInteger(header_value);
   }
   ASSERT((header_value <= kIntptrMax) && (header_value >= kIntptrMin));
-  if (IsVMIsolateObject(header_value)) {
-    return ReadVMIsolateObject(header_value);
-  } else if (SerializedHeaderTag::decode(header_value) == kObjectId) {
-    return ReadIndexedObject(SerializedHeaderData::decode(header_value));
+  intptr_t value = static_cast<intptr_t>(header_value);
+  if (IsVMIsolateObject(value)) {
+    return ReadVMIsolateObject(value);
+  } else if (SerializedHeaderTag::decode(value) == kObjectId) {
+    return ReadIndexedObject(SerializedHeaderData::decode(value));
   }
-  ASSERT(SerializedHeaderTag::decode(header_value) == kInlined);
-  intptr_t object_id = SerializedHeaderData::decode(header_value);
+  ASSERT(SerializedHeaderTag::decode(value) == kInlined);
+  intptr_t object_id = SerializedHeaderData::decode(value);
   if (object_id == kOmittedObjectId) {
     object_id = NextAvailableObjectId();
   }
@@ -705,8 +706,8 @@ RawUnhandledException* SnapshotReader::NewUnhandledException() {
 RawObject* SnapshotReader::NewInteger(int64_t value) {
   ASSERT((value & kSmiTagMask) == kSmiTag);
   value = value >> kSmiTagShift;
-  if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
-    return Smi::New(value);
+  if (Smi::IsValid(value)) {
+    return Smi::New(static_cast<intptr_t>(value));
   }
   if (kind_ == Snapshot::kFull) {
     return NewMint(value);

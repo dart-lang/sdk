@@ -58,6 +58,19 @@ String removeStart(String str, String remove) {
   return str;
 }
 
+int compareStrings(String a, String b) {
+  if (a == b) {
+    return 0;
+  }
+  if (a == null) {
+    return 1;
+  }
+  if (b == null) {
+    return -1;
+  }
+  return a.compareTo(b);
+}
+
 String repeat(String s, int n) {
   StringBuffer sb = new StringBuffer();
   for (int i = 0; i < n; i++) {

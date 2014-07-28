@@ -99,7 +99,13 @@ analysis_services/test/index/store/codec_test: Pass, Slow
 http/test/html/client_test: Fail # Issue 19750
 scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
 json_rpc_2/test/server/server_test: Fail # Issue 19750
+shelf/test/log_middleware_test: Fail # Issue 19750
+
+[ $runtime == ff ]
 stack_trace/test/trace_test: Fail # Issue 19750
+http/test/html/client_test: Fail # Issue 19750
+scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
+json_rpc_2/test/server/server_test: Fail # Issue 19750
 shelf/test/log_middleware_test: Fail # Issue 19750
 
 [ $compiler == dart2js && $runtime == drt ]
@@ -307,6 +313,7 @@ intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/examples_parsing_test: Fail, OK # Users dart:io
 intl/test/message_extraction/failed_extraction_test: Fail, OK # Users dart:io
 intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
@@ -415,7 +422,6 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-matcher/test/deprecated_matchers_test: StaticWarning # testing error creating abstract class
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && ($system == windows || $system == macos) ]

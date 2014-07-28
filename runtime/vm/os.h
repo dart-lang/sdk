@@ -65,7 +65,7 @@ class OS {
 
   // Returns the activation frame alignment constraint or one if
   // the platform doesn't care. Guaranteed to be a power of two.
-  static word ActivationFrameAlignment();
+  static intptr_t ActivationFrameAlignment();
 
   // This constant is guaranteed to be greater or equal to the
   // preferred code alignment on all platforms.
@@ -73,10 +73,7 @@ class OS {
 
   // Returns the preferred code alignment or zero if
   // the platform doesn't care. Guaranteed to be a power of two.
-  static word PreferredCodeAlignment();
-
-  // Returns the stack size limit.
-  static uword GetStackSizeLimit();
+  static intptr_t PreferredCodeAlignment();
 
   // Returns true if StackFrameIterator can be used from an isolate that isn't
   // the calling thread's current isolate.

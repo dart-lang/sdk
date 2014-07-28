@@ -9,7 +9,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_native_typed_data';
 import 'dart:typed_data';
-import 'dart:_js_helper' show Creates, JSName, Null, Returns, convertDartClosureToJS;
+import 'dart:_js_helper' show Creates, JSName, Native, Null, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -329,7 +329,8 @@ const int ZERO = RenderingContext.ZERO;
 @DocsEditable()
 @DomName('WebGLActiveInfo')
 @Unstable()
-class ActiveInfo extends Interceptor native "WebGLActiveInfo" {
+@Native("WebGLActiveInfo")
+class ActiveInfo extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ActiveInfo._() { throw new UnsupportedError("Not supported"); }
 
@@ -353,7 +354,8 @@ class ActiveInfo extends Interceptor native "WebGLActiveInfo" {
 @DocsEditable()
 @DomName('ANGLEInstancedArrays')
 @Experimental() // untriaged
-class AngleInstancedArrays extends Interceptor native "ANGLEInstancedArrays" {
+@Native("ANGLEInstancedArrays")
+class AngleInstancedArrays extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory AngleInstancedArrays._() { throw new UnsupportedError("Not supported"); }
 
@@ -388,7 +390,8 @@ class AngleInstancedArrays extends Interceptor native "ANGLEInstancedArrays" {
 @DocsEditable()
 @DomName('WebGLBuffer')
 @Unstable()
-class Buffer extends Interceptor native "WebGLBuffer" {
+@Native("WebGLBuffer")
+class Buffer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Buffer._() { throw new UnsupportedError("Not supported"); }
 }
@@ -401,7 +404,8 @@ class Buffer extends Interceptor native "WebGLBuffer" {
 @DomName('WebGLCompressedTextureATC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
 @Experimental()
-class CompressedTextureAtc extends Interceptor native "WebGLCompressedTextureATC" {
+@Native("WebGLCompressedTextureATC")
+class CompressedTextureAtc extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureAtc._() { throw new UnsupportedError("Not supported"); }
 
@@ -426,7 +430,8 @@ class CompressedTextureAtc extends Interceptor native "WebGLCompressedTextureATC
 @DomName('WebGLCompressedTexturePVRTC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/
 @Experimental() // experimental
-class CompressedTexturePvrtc extends Interceptor native "WebGLCompressedTexturePVRTC" {
+@Native("WebGLCompressedTexturePVRTC")
+class CompressedTexturePvrtc extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTexturePvrtc._() { throw new UnsupportedError("Not supported"); }
 
@@ -455,7 +460,8 @@ class CompressedTexturePvrtc extends Interceptor native "WebGLCompressedTextureP
 @DomName('WebGLCompressedTextureS3TC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc/
 @Experimental() // experimental
-class CompressedTextureS3TC extends Interceptor native "WebGLCompressedTextureS3TC" {
+@Native("WebGLCompressedTextureS3TC")
+class CompressedTextureS3TC extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CompressedTextureS3TC._() { throw new UnsupportedError("Not supported"); }
 
@@ -505,7 +511,8 @@ class CompressedTextureS3TC extends Interceptor native "WebGLCompressedTextureS3
  */
 @DomName('WebGLContextAttributes')
 @Unstable()
-class ContextAttributes extends Interceptor native "WebGLContextAttributes" {
+@Native("WebGLContextAttributes")
+class ContextAttributes extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
@@ -546,7 +553,8 @@ class ContextAttributes extends Interceptor native "WebGLContextAttributes" {
 @DocsEditable()
 @DomName('WebGLContextEvent')
 @Unstable()
-class ContextEvent extends Event native "WebGLContextEvent" {
+@Native("WebGLContextEvent")
+class ContextEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ContextEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -563,7 +571,8 @@ class ContextEvent extends Event native "WebGLContextEvent" {
 @DomName('WebGLDebugRendererInfo')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_renderer_info/
 @Experimental() // experimental
-class DebugRendererInfo extends Interceptor native "WebGLDebugRendererInfo" {
+@Native("WebGLDebugRendererInfo")
+class DebugRendererInfo extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DebugRendererInfo._() { throw new UnsupportedError("Not supported"); }
 
@@ -584,7 +593,8 @@ class DebugRendererInfo extends Interceptor native "WebGLDebugRendererInfo" {
 @DomName('WebGLDebugShaders')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_shaders/
 @Experimental() // experimental
-class DebugShaders extends Interceptor native "WebGLDebugShaders" {
+@Native("WebGLDebugShaders")
+class DebugShaders extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DebugShaders._() { throw new UnsupportedError("Not supported"); }
 
@@ -601,7 +611,8 @@ class DebugShaders extends Interceptor native "WebGLDebugShaders" {
 @DomName('WebGLDepthTexture')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/
 @Experimental() // experimental
-class DepthTexture extends Interceptor native "WebGLDepthTexture" {
+@Native("WebGLDepthTexture")
+class DepthTexture extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DepthTexture._() { throw new UnsupportedError("Not supported"); }
 
@@ -618,7 +629,8 @@ class DepthTexture extends Interceptor native "WebGLDepthTexture" {
 @DomName('WebGLDrawBuffers')
 // http://www.khronos.org/registry/webgl/specs/latest/
 @Experimental() // stable
-class DrawBuffers extends Interceptor native "WebGLDrawBuffers" {
+@Native("WebGLDrawBuffers")
+class DrawBuffers extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DrawBuffers._() { throw new UnsupportedError("Not supported"); }
 
@@ -772,7 +784,8 @@ class DrawBuffers extends Interceptor native "WebGLDrawBuffers" {
 @DomName('EXTFragDepth')
 // http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
 @Experimental()
-class ExtFragDepth extends Interceptor native "EXTFragDepth" {
+@Native("EXTFragDepth")
+class ExtFragDepth extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtFragDepth._() { throw new UnsupportedError("Not supported"); }
 }
@@ -785,7 +798,8 @@ class ExtFragDepth extends Interceptor native "EXTFragDepth" {
 @DomName('EXTTextureFilterAnisotropic')
 // http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
 @Experimental()
-class ExtTextureFilterAnisotropic extends Interceptor native "EXTTextureFilterAnisotropic" {
+@Native("EXTTextureFilterAnisotropic")
+class ExtTextureFilterAnisotropic extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ExtTextureFilterAnisotropic._() { throw new UnsupportedError("Not supported"); }
 
@@ -805,7 +819,8 @@ class ExtTextureFilterAnisotropic extends Interceptor native "EXTTextureFilterAn
 @DocsEditable()
 @DomName('WebGLFramebuffer')
 @Unstable()
-class Framebuffer extends Interceptor native "WebGLFramebuffer" {
+@Native("WebGLFramebuffer")
+class Framebuffer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Framebuffer._() { throw new UnsupportedError("Not supported"); }
 }
@@ -818,7 +833,8 @@ class Framebuffer extends Interceptor native "WebGLFramebuffer" {
 @DomName('WebGLLoseContext')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
 @Experimental()
-class LoseContext extends Interceptor native "WebGLLoseContext,WebGLExtensionLoseContext" {
+@Native("WebGLLoseContext,WebGLExtensionLoseContext")
+class LoseContext extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory LoseContext._() { throw new UnsupportedError("Not supported"); }
 
@@ -839,7 +855,8 @@ class LoseContext extends Interceptor native "WebGLLoseContext,WebGLExtensionLos
 @DomName('OESElementIndexUint')
 // http://www.khronos.org/registry/webgl/extensions/OES_element_index_uint/
 @Experimental() // experimental
-class OesElementIndexUint extends Interceptor native "OESElementIndexUint" {
+@Native("OESElementIndexUint")
+class OesElementIndexUint extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesElementIndexUint._() { throw new UnsupportedError("Not supported"); }
 }
@@ -852,7 +869,8 @@ class OesElementIndexUint extends Interceptor native "OESElementIndexUint" {
 @DomName('OESStandardDerivatives')
 // http://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/
 @Experimental() // experimental
-class OesStandardDerivatives extends Interceptor native "OESStandardDerivatives" {
+@Native("OESStandardDerivatives")
+class OesStandardDerivatives extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesStandardDerivatives._() { throw new UnsupportedError("Not supported"); }
 
@@ -869,7 +887,8 @@ class OesStandardDerivatives extends Interceptor native "OESStandardDerivatives"
 @DomName('OESTextureFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float/
 @Experimental() // experimental
-class OesTextureFloat extends Interceptor native "OESTextureFloat" {
+@Native("OESTextureFloat")
+class OesTextureFloat extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloat._() { throw new UnsupportedError("Not supported"); }
 }
@@ -882,7 +901,8 @@ class OesTextureFloat extends Interceptor native "OESTextureFloat" {
 @DomName('OESTextureFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
 @Experimental()
-class OesTextureFloatLinear extends Interceptor native "OESTextureFloatLinear" {
+@Native("OESTextureFloatLinear")
+class OesTextureFloatLinear extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureFloatLinear._() { throw new UnsupportedError("Not supported"); }
 }
@@ -895,7 +915,8 @@ class OesTextureFloatLinear extends Interceptor native "OESTextureFloatLinear" {
 @DomName('OESTextureHalfFloat')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/
 @Experimental() // experimental
-class OesTextureHalfFloat extends Interceptor native "OESTextureHalfFloat" {
+@Native("OESTextureHalfFloat")
+class OesTextureHalfFloat extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloat._() { throw new UnsupportedError("Not supported"); }
 
@@ -912,7 +933,8 @@ class OesTextureHalfFloat extends Interceptor native "OESTextureHalfFloat" {
 @DomName('OESTextureHalfFloatLinear')
 // http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
 @Experimental()
-class OesTextureHalfFloatLinear extends Interceptor native "OESTextureHalfFloatLinear" {
+@Native("OESTextureHalfFloatLinear")
+class OesTextureHalfFloatLinear extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesTextureHalfFloatLinear._() { throw new UnsupportedError("Not supported"); }
 }
@@ -925,7 +947,8 @@ class OesTextureHalfFloatLinear extends Interceptor native "OESTextureHalfFloatL
 @DomName('OESVertexArrayObject')
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental() // experimental
-class OesVertexArrayObject extends Interceptor native "OESVertexArrayObject" {
+@Native("OESVertexArrayObject")
+class OesVertexArrayObject extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory OesVertexArrayObject._() { throw new UnsupportedError("Not supported"); }
 
@@ -961,7 +984,8 @@ class OesVertexArrayObject extends Interceptor native "OESVertexArrayObject" {
 @DocsEditable()
 @DomName('WebGLProgram')
 @Unstable()
-class Program extends Interceptor native "WebGLProgram" {
+@Native("WebGLProgram")
+class Program extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Program._() { throw new UnsupportedError("Not supported"); }
 }
@@ -973,7 +997,8 @@ class Program extends Interceptor native "WebGLProgram" {
 @DocsEditable()
 @DomName('WebGLRenderbuffer')
 @Unstable()
-class Renderbuffer extends Interceptor native "WebGLRenderbuffer" {
+@Native("WebGLRenderbuffer")
+class Renderbuffer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Renderbuffer._() { throw new UnsupportedError("Not supported"); }
 }
@@ -987,7 +1012,8 @@ class Renderbuffer extends Interceptor native "WebGLRenderbuffer" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @Experimental()
 @Unstable()
-class RenderingContext extends CanvasRenderingContext native "WebGLRenderingContext" {
+@Native("WebGLRenderingContext")
+class RenderingContext extends CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory RenderingContext._() { throw new UnsupportedError("Not supported"); }
 
@@ -3180,7 +3206,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
 @DocsEditable()
 @DomName('WebGLShader')
-class Shader extends Interceptor native "WebGLShader" {
+@Native("WebGLShader")
+class Shader extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Shader._() { throw new UnsupportedError("Not supported"); }
 }
@@ -3191,7 +3218,8 @@ class Shader extends Interceptor native "WebGLShader" {
 
 @DocsEditable()
 @DomName('WebGLShaderPrecisionFormat')
-class ShaderPrecisionFormat extends Interceptor native "WebGLShaderPrecisionFormat" {
+@Native("WebGLShaderPrecisionFormat")
+class ShaderPrecisionFormat extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ShaderPrecisionFormat._() { throw new UnsupportedError("Not supported"); }
 
@@ -3214,7 +3242,8 @@ class ShaderPrecisionFormat extends Interceptor native "WebGLShaderPrecisionForm
 
 @DocsEditable()
 @DomName('WebGLTexture')
-class Texture extends Interceptor native "WebGLTexture" {
+@Native("WebGLTexture")
+class Texture extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Texture._() { throw new UnsupportedError("Not supported"); }
 }
@@ -3225,7 +3254,8 @@ class Texture extends Interceptor native "WebGLTexture" {
 
 @DocsEditable()
 @DomName('WebGLUniformLocation')
-class UniformLocation extends Interceptor native "WebGLUniformLocation" {
+@Native("WebGLUniformLocation")
+class UniformLocation extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory UniformLocation._() { throw new UnsupportedError("Not supported"); }
 }
@@ -3238,7 +3268,8 @@ class UniformLocation extends Interceptor native "WebGLUniformLocation" {
 @DomName('WebGLVertexArrayObjectOES')
 // http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
 @Experimental() // experimental
-class VertexArrayObject extends Interceptor native "WebGLVertexArrayObjectOES" {
+@Native("WebGLVertexArrayObjectOES")
+class VertexArrayObject extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory VertexArrayObject._() { throw new UnsupportedError("Not supported"); }
 }

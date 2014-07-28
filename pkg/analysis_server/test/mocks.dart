@@ -155,13 +155,9 @@ class MockServerChannel implements ServerCommunicationChannel {
    * Simulate request/response pair.
    */
   Future<Response> sendRequest(Request request) {
-    var id = request.id;
     // Wrap send request in future to simulate websocket
     new Future(() => requestController.add(request));
-    pumpEventQueue().then((_) => responseController.addError(
-        new NoResponseException(request)));
-    return responseController.stream.firstWhere((response) => response.id == id
-        );
+    return waitForResponse(request);
   }
 
   @override
@@ -174,6 +170,16 @@ class MockServerChannel implements ServerCommunicationChannel {
   void expectMsgCount({responseCount: 0, notificationCount: 0}) {
     expect(responsesReceived, hasLength(responseCount));
     expect(notificationsReceived, hasLength(notificationCount));
+  }
+
+  Future<Response> waitForResponse(Request request) {
+    String id = request.id;
+    pumpEventQueue().then((_) {
+      responseController.addError(new NoResponseException(request));
+    });
+    return responseController.stream.firstWhere((response) {
+      return response.id == id;
+    });
   }
 }
 

@@ -22,8 +22,8 @@ class B {
 // TODO(sra): Add a case where the parameters have default values.  Wait until
 // dart:html need non-null default values.
 
-A makeA() native { return new A(); }
-B makeB() native { return new B(); }
+A makeA() native;
+B makeB() native;
 
 void setup() native """
 function A() {}

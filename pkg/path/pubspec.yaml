@@ -1,12 +1,11 @@
 name: path
-version: 1.2.1
+version: 1.2.2
 author: Dart Team <misc@dartlang.org>
 description: >
  A string-based path manipulation library. All of the path operations you know
  and love, with solid support on both Windows and POSIX (Linux and Mac OS X)
  machines.
 homepage: http://www.dartlang.org
-documentation: http://api.dartlang.org/docs/pkg/path
 dev_dependencies:
   unittest: ">=0.9.0 <0.12.0"
 environment:

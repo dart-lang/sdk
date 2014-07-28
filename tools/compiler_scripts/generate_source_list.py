@@ -94,7 +94,7 @@ class Generator:
   def generate(self):
     self._list_files()
 
-    file_name = self.output + '.gypi';
+    file_name = self.output + '.gypi'
     gypi = self._make_output(file_name)
     gypi.write("{\n  'variables': {\n")
     self._print_gypi_files(gypi, self.name + '_sources', self.sources)
@@ -110,7 +110,7 @@ class Generator:
     ant.write("</project>\n")
     self._close(file_name, ant)
 
-    file_name = self.output + '.txt';
+    file_name = self.output + '.txt'
     txt = self._make_output(file_name)
     self._print_txt_files(txt, self.sources)
     self._close(file_name, txt)

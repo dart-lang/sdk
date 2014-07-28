@@ -36,8 +36,6 @@ abstract class ElementVisitor<R> {
   R visitMixinApplicationElement(MixinApplicationElement e) {
     return visitClassElement(e);
   }
-  R visitLabelElement(LabelElement e) => visitElement(e);
-  R visitTargetElement(TargetElement e) => visitElement(e);
   R visitTypeVariableElement(TypeVariableElement e) => visitElement(e);
   R visitBoxFieldElement(BoxFieldElement e) => visitElement(e);
   R visitClosureClassElement(ClosureClassElement e) => visitClassElement(e);

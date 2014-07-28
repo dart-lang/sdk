@@ -7,12 +7,13 @@ name: source_maps
 #
 # When the minor version is upgraded, you *must* update that version constraint
 # in pub to stay in sync with this.
-version: 0.9.4
+version: 0.9.4-dev
 author: Dart Team <misc@dartlang.org>
 description: Library to programmatically manipulate source map files.
 homepage: http://www.dartlang.org
 dependencies:
   path: '>=1.2.0 <2.0.0'
+  source_span: '>=1.0.0 <2.0.0'
 environment:
   sdk: '>=0.8.10+6 <2.0.0'
 dev_dependencies:

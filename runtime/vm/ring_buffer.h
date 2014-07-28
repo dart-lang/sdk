@@ -27,7 +27,9 @@ class RingBuffer {
   }
 
   // Returns the number of elements currently stored in this buffer (at most N).
-  int Size() const { return Utils::Minimum(count_, static_cast<int64_t>(N)); }
+  int64_t Size() const {
+    return Utils::Minimum(count_, static_cast<int64_t>(N));
+  }
 
  private:
   static const int kMask = N - 1;

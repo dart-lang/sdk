@@ -1,3 +1,16 @@
+## 0.1.0
+
+* Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan` class.
+
+* `new StringScanner()`'s `sourceUrl` parameter is now named to make it clear
+  that it can be safely `null`.
+
+* `new StringScannerException()` takes different arguments in a different order
+  to match `SpanFormatException`.
+
+* `StringScannerException.string` has been renamed to
+  `StringScannerException.source` to match the `FormatException` interface.
+
 ## 0.0.3
 
 * Make `StringScannerException` inherit from source_map's

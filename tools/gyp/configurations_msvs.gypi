@@ -39,7 +39,9 @@
             'DebugInformationFormat': '3',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
-            'OmitFramePointers': 'false',
+            # Uncomment the following line and pass --profile-vm to enable
+            # profiling of C++ code within Observatory.
+            # 'OmitFramePointers': 'false',
             'RuntimeLibrary': '1',  # /MTd - Multi-threaded, static (debug)
           },
           'VCLinkerTool': {
@@ -69,7 +71,9 @@
             'FavorSizeOrSpeed': '0',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
-            'OmitFramePointers': 'false',
+            # Uncomment the following line and pass --profile-vm to enable
+            # profiling of C++ code within Observatory.
+            # 'OmitFramePointers': 'false',
             'StringPooling': 'true',
             'RuntimeLibrary': '0',  # /MT - Multi-threaded, static
           },

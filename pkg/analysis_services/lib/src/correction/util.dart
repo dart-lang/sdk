@@ -11,6 +11,7 @@ import 'package:analysis_services/src/correction/source_range.dart';
 import 'package:analysis_services/src/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -33,6 +34,26 @@ String getDefaultValueCode(DartType type) {
   }
   // no better guess
   return "null";
+}
+
+
+/**
+ * @return the [ExecutableElement] of the enclosing executable [AstNode].
+ */
+ExecutableElement getEnclosingExecutableElement(AstNode node) {
+  while (node != null) {
+    if (node is FunctionDeclaration) {
+      return node.element;
+    }
+    if (node is ConstructorDeclaration) {
+      return node.element;
+    }
+    if (node is MethodDeclaration) {
+      return node.element;
+    }
+    node = node.parent;
+  }
+  return null;
 }
 
 
@@ -71,6 +92,34 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
   return namespace.definedNames;
 }
 
+/**
+ * If given [AstNode] is name of qualified property extraction, returns target from which
+ * this property is extracted. Otherwise `null`.
+ */
+Expression getQualifiedPropertyTarget(AstNode node) {
+  AstNode parent = node.parent;
+  if (parent is PrefixedIdentifier) {
+    PrefixedIdentifier prefixed = parent;
+    if (identical(prefixed.identifier, node)) {
+      return parent.prefix;
+    }
+  }
+  if (parent is PropertyAccess) {
+    PropertyAccess access = parent;
+    if (identical(access.propertyName, node)) {
+      return access.realTarget;
+    }
+  }
+  return null;
+}
+
+
+/**
+ * Returns the [String] content of the given [Source].
+ */
+String getSourceContent(AnalysisContext context, Source source) {
+  return context.getContents(source).data;
+}
 
 class CorrectionUtils {
   final CompilationUnit unit;
@@ -98,6 +147,26 @@ class CorrectionUtils {
     }
     return _endOfLine;
   }
+
+  /**
+   * Returns the actual type source of the given [Expression], may be `null`
+   * if can not be resolved, should be treated as the `dynamic` type.
+   */
+  String getExpressionTypeSource(Expression expression) {
+    if (expression == null) {
+      return null;
+    }
+    DartType type = expression.bestType;
+    if (type.isDynamic) {
+      return null;
+    }
+    return getTypeSource(type);
+  }
+
+  /**
+   * Returns the indentation with the given level.
+   */
+  String getIndent(int level) => repeat('  ', level);
 
   /**
    * Skips whitespace characters and single EOL on the right from [index].
@@ -145,6 +214,40 @@ class CorrectionUtils {
   }
 
   /**
+   * Returns the whitespace prefix of the line which contains given offset.
+   */
+  String getLinePrefix(int index) {
+    int lineStart = getLineThis(index);
+    int length = _buffer.length;
+    int lineNonWhitespace = lineStart;
+    while (lineNonWhitespace < length) {
+      int c = _buffer.codeUnitAt(lineNonWhitespace);
+      if (c == 0xD || c == 0xA) {
+        break;
+      }
+      if (!isWhitespace(c)) {
+        break;
+      }
+      lineNonWhitespace++;
+    }
+    return getText2(lineStart, lineNonWhitespace - lineStart);
+  }
+
+  /**
+   * Returns the start index of the line which contains given index.
+   */
+  int getLineThis(int index) {
+    while (index > 0) {
+      int c = _buffer.codeUnitAt(index - 1);
+      if (c == 0xD || c == 0xA) {
+        break;
+      }
+      index--;
+    }
+    return index;
+  }
+
+  /**
    * Returns a [SourceRange] that covers [range] and extends (if possible) to
    * cover whole lines.
    */
@@ -157,6 +260,20 @@ class CorrectionUtils {
     int afterEndLineOffset = getLineContentEnd(endOffset);
     // range
     return rangeStartEnd(startLineOffset, afterEndLineOffset);
+  }
+
+  /**
+   * Returns the line prefix consisting of spaces and tabs on the left from the given
+   *         [AstNode].
+   */
+  String getNodePrefix(AstNode node) {
+    int offset = node.offset;
+    // function literal is special, it uses offset of enclosing line
+    if (node is FunctionExpression) {
+      return getLinePrefix(offset);
+    }
+    // use just prefix directly before node
+    return getPrefix(offset);
   }
 
   /**
@@ -198,20 +315,24 @@ class CorrectionUtils {
   }
 
   /**
-   * Returns the actual type source of the given [Expression], may be `null`
-   * if can not be resolved, should be treated as the `dynamic` type.
+   * Returns the line prefix consisting of spaces and tabs on the left from the
+   * given offset.
    */
-  String getExpressionTypeSource(Expression expression) {
-    if (expression == null) {
-      return null;
-    }
-    DartType type = expression.bestType;
-    String typeSource = getTypeSource(type);
-    if ("dynamic" == typeSource) {
-      return null;
-    }
-    return typeSource;
+  String getPrefix(int endIndex) {
+    int startIndex = getLineContentStart(endIndex);
+    return _buffer.substring(startIndex, endIndex);
   }
+
+  /**
+   * Returns the text of the given [AstNode] in the unit.
+   */
+  String getText(AstNode node) => getText2(node.offset, node.length);
+
+  /**
+   * Returns the text of the given range in the unit.
+   */
+  String getText2(int offset, int length) =>
+      _buffer.substring(offset, offset + length);
 
   /**
    * Returns the source to reference [type] in this [CompilationUnit].

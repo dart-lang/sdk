@@ -13,6 +13,13 @@ import '../data_directory.dart';
 
 final dart = Platform.executable;
 
+/** Should we use deferred loading. */
+bool useDeferredLoading = true;
+
+String get _deferredLoadPrefix => useDeferredLoading ? '' : 'no-';
+
+String get deferredLoadArg => '--${_deferredLoadPrefix}use-deferred-loading';
+
 /** The VM arguments we were given, most important package-root. */
 final vmArgs = Platform.executableArguments;
 
@@ -145,9 +152,9 @@ Future<ProcessResult> generateTranslationFiles(ProcessResult previousResult) =>
 
 Future<ProcessResult> generateCodeFromTranslation(ProcessResult previousResult)
     => run(previousResult, [asTestDirPath('../../bin/generate_from_arb.dart'),
-    '--generated-file-prefix=foo_', 'sample_with_messages.dart',
-    'part_of_sample_with_messages.dart', 'translation_fr.arb',
-    'translation_de_DE.arb']);
+    deferredLoadArg, '--generated-file-prefix=foo_', 
+    'sample_with_messages.dart', 'part_of_sample_with_messages.dart',
+    'translation_fr.arb', 'translation_de_DE.arb']);
 
 Future<ProcessResult> runAndVerify(ProcessResult previousResult) => run(
     previousResult, [asTempDirPath('run_and_verify.dart')]);

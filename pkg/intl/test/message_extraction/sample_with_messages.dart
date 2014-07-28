@@ -227,8 +227,7 @@ main() {
 
   // Verify that a translated message isn't initially present.
   var messageInGerman = Intl.withLocale('de_DE', message1);
-  test("Locales don't work before they're initialized", ()
-      => expect(messageInGerman, "This is a message"));
+  expect(messageInGerman, "This is a message");
 
   var f1 = initializeMessages(fr.locale)
       // Since English has the one message which is always translated, we

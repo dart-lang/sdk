@@ -24,9 +24,7 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  group('SearchEngineImplTest', () {
-    runReflectiveTests(SearchEngineImplTest);
-  });
+  runReflectiveTests(SearchEngineImplTest);
 }
 
 class ExpectedMatch {

@@ -3,11 +3,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-'''Tool for listing files whose name match a pattern.
+"""Tool for listing files whose name match a pattern.
 
 Usage:
   python tools/list_files.py PATTERN DIRECTORY...
-'''
+"""
 
 import os
 import re

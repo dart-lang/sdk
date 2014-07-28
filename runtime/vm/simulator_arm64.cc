@@ -3049,7 +3049,7 @@ void Simulator::Longjmp(uword pc,
   set_register(NULL, SP, static_cast<int64_t>(sp));
   set_register(NULL, FP, static_cast<int64_t>(fp));
   // Set the tag.
-  isolate->set_vm_tag(VMTag::kScriptTagId);
+  isolate->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
   isolate->set_top_exit_frame_info(0);
 

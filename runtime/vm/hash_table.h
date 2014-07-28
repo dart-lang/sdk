@@ -383,9 +383,10 @@ class HashTables : public AllStatic {
  public:
   // Allocates and initializes a table.
   template<typename Table>
-  static RawArray* New(intptr_t initial_capacity) {
+  static RawArray* New(intptr_t initial_capacity,
+                       Heap::Space space = Heap::kNew) {
     Table table(Array::Handle(Array::New(
-        Table::ArrayLengthForNumOccupied(initial_capacity))));
+        Table::ArrayLengthForNumOccupied(initial_capacity), space)));
     table.Initialize();
     return table.Release();
   }

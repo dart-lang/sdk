@@ -50,7 +50,7 @@ def main(args):
       sys.stderr.write('--input not specified\n')
       return -1
 
-    files = [ ]
+    files = []
     for arg in args:
       files.append(arg)
 

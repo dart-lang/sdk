@@ -241,6 +241,14 @@ class Sample {
     state_ = IgnoreBit::update(ignore_sample, state_);
   }
 
+  bool exit_frame_sample() const {
+    return ExitFrameBit::decode(state_);
+  }
+
+  void set_exit_frame_sample(bool exit_frame_sample) {
+    state_ = ExitFrameBit::update(exit_frame_sample, state_);
+  }
+
   static void InitOnce();
 
   static intptr_t instance_size() {
@@ -256,10 +264,12 @@ class Sample {
     kProcessedBit = 0,
     kLeafFrameIsDartBit = 1,
     kIgnoreBit = 2,
+    kExitFrameBit = 3,
   };
   class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
   class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
   class IgnoreBit : public BitField<bool, kIgnoreBit, 1> {};
+  class ExitFrameBit : public BitField<bool, kExitFrameBit, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -304,6 +314,10 @@ class SampleBuffer {
     const intptr_t length = capacity();
     for (intptr_t i = 0; i < length; i++) {
       Sample* sample = At(i);
+      if (sample->ignore_sample()) {
+        // Bad sample.
+        continue;
+      }
       if (sample->isolate() != visitor->isolate()) {
         // Another isolate.
         continue;

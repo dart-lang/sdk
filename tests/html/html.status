@@ -405,7 +405,6 @@ element_types_test/supported_details: Fail
 element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_object: Fail
-element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
 input_element_test/supported_date: Fail

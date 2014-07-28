@@ -525,6 +525,27 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
 }
 
 
+bool ServerSocket::StartAccept(intptr_t fd) {
+  ListenSocket* listen_socket = reinterpret_cast<ListenSocket*>(fd);
+  listen_socket->EnsureInitialized(EventHandler::delegate());
+  // Always keep 5 outstanding accepts going, to enhance performance.
+  for (int i = 0; i < 5; i++) {
+    if (!listen_socket->IssueAccept()) {
+      DWORD rc = WSAGetLastError();
+      listen_socket->Close();
+      if (!listen_socket->HasPendingAccept()) {
+        // Delete socket now, if there are no pending accepts. Otherwise,
+        // the event-handler will take care of deleting it.
+        delete listen_socket;
+      }
+      SetLastError(rc);
+      return false;
+    }
+  }
+  return true;
+}
+
+
 void Socket::Close(intptr_t fd) {
   ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
   client_socket->Close();

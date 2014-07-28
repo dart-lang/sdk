@@ -10,12 +10,10 @@
 # binary packages.
 
 import optparse
-import platform
 import sys
 import tarfile
 import subprocess
 import utils
-import os
 from os.path import join, exists, abspath
 from shutil import copyfile
 
@@ -67,17 +65,17 @@ def BuildDebianPackage(tarball, out_dir, arch):
 
     # Build source package.
     print "Building source package"
-    RunBuildPackage(['-S', '-us', '-uc'], join(temp_dir, tarroot));
+    RunBuildPackage(['-S', '-us', '-uc'], join(temp_dir, tarroot))
 
     # Build 32-bit binary package.
-    if ('ia32' in arch):
+    if 'ia32' in arch:
       print "Building i386 package"
-      RunBuildPackage(['-B', '-ai386', '-us', '-uc'], join(temp_dir, tarroot));
+      RunBuildPackage(['-B', '-ai386', '-us', '-uc'], join(temp_dir, tarroot))
 
     # Build 64-bit binary package.
-    if ('x64' in arch):
+    if 'x64' in arch:
       print "Building amd64 package"
-      RunBuildPackage(['-B', '-aamd64', '-us', '-uc'], join(temp_dir, tarroot));
+      RunBuildPackage(['-B', '-aamd64', '-us', '-uc'], join(temp_dir, tarroot))
 
     # Copy the Debian package files to the build directory.
     debbase = 'dart_%s' % version
@@ -95,10 +93,10 @@ def BuildDebianPackage(tarball, out_dir, arch):
 
     for name in source_package:
       copyfile(join(temp_dir, name), join(out_dir, name))
-    if ('ia32' in arch):
+    if 'ia32' in arch:
       for name in i386_package:
         copyfile(join(temp_dir, name), join(out_dir, name))
-    if ('x64' in arch):
+    if 'x64' in arch:
       for name in amd64_package:
         copyfile(join(temp_dir, name), join(out_dir, name))
 
@@ -115,11 +113,11 @@ def Main():
   arch = options.arch.split(',')
 
   if not options.out_dir:
-    out_dir = join(DART_DIR, utils.GetBuildDir(HOST_OS, HOST_OS))
+    out_dir = join(DART_DIR, utils.GetBuildDir(HOST_OS))
 
   if not tar_filename:
     tar_filename = join(DART_DIR,
-                        utils.GetBuildDir(HOST_OS, HOST_OS),
+                        utils.GetBuildDir(HOST_OS),
                         'dart-%s.tar.gz' % utils.GetVersion())
 
   BuildDebianPackage(tar_filename, out_dir, arch)

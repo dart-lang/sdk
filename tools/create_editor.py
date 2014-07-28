@@ -84,7 +84,7 @@ def Modify64BitDartEditorIni(iniFilePath):
   # Add -d64 to give better error messages to user in 64 bit mode.
   lines[lines.index('-vmargs\n')] = '-vmargs\n-d64\n'
   f = open(iniFilePath, 'w')
-  f.writelines(lines);
+  f.writelines(lines)
   f.close()
 
 

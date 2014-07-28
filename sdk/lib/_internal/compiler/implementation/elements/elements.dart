@@ -112,11 +112,6 @@ class ElementKind {
   static const ElementKind TYPEDEF =
       const ElementKind('typedef', ElementCategory.ALIAS);
 
-  static const ElementKind STATEMENT =
-      const ElementKind('statement', ElementCategory.NONE);
-  static const ElementKind LABEL =
-      const ElementKind('label', ElementCategory.NONE);
-
   static const ElementKind AMBIGUOUS =
       const ElementKind('ambiguous', ElementCategory.NONE);
   static const ElementKind WARN_ON_USE =
@@ -283,19 +278,29 @@ abstract class Element implements Entity {
   /// is a formal of the form `this.foo`.
   bool get isInitializingFormal => kind == ElementKind.INITIALIZING_FORMAL;
 
-  bool get isStatement;
+  /// `true` if this element represents a resolution error.
+  bool get isErroneous => kind == ElementKind.ERROR;
 
-  bool get isErroneous;
-  bool get isAmbiguous;
-  bool get isWarnOnUse;
+  /// `true` if this element represents an ambiguous name.
+  ///
+  /// Ambiguous names occur when two imports/exports contain different entities
+  /// by the same name. If an ambiguous name is resolved an warning or error
+  /// is produced.
+  bool get isAmbiguous => kind == ElementKind.AMBIGUOUS;
+
+  /// `true` if this element represents an entity whose access causes one or
+  /// more warnings.
+  bool get isWarnOnUse => kind == ElementKind.WARN_ON_USE;
 
   bool get isClosure;
 
   /// `true` if the element is a (static or instance) member of a class.
+  ///
   /// Members are constructors, methods and fields.
   bool get isClassMember;
 
   /// `true` if the element is a nonstatic member of a class.
+  ///
   /// Instance members are methods and fields but not constructors.
   bool get isInstanceMember;
 
@@ -335,7 +340,6 @@ abstract class Element implements Entity {
   LibraryElement get implementationLibrary;
   ClassElement get enclosingClass;
   Element get enclosingClassOrCompilationUnit;
-  Element get enclosingMember;
   Element get outermostEnclosingMemberOrTopLevel;
 
   /// The enclosing class that defines the type environment for this element.
@@ -729,7 +733,7 @@ class Elements {
                                                 Compiler compiler) {
     if (compiler.typedDataLibrary == null) return false;
     if (!element.isConstructor) return false;
-    ConstructorElement constructor = element;
+    ConstructorElement constructor = element.implementation;
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == compiler.typedDataLibrary
@@ -745,7 +749,7 @@ class Elements {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         Node label = labelOrCase.asLabel();
         if (label != null) {
-          LabelElement labelElement = elements[label];
+          LabelDefinition labelElement = elements.getLabelDefinition(label);
           if (labelElement != null && labelElement.isContinueTarget) {
             return true;
           }
@@ -757,7 +761,7 @@ class Elements {
 
   static bool isUnusedLabel(LabeledStatement node, TreeElements elements) {
     Node body = node.statement;
-    TargetElement element = elements[body];
+    JumpTarget element = elements.getTargetDefinition(body);
     // Labeled statements with no element on the body have no breaks.
     // A different target statement only happens if the body is itself
     // a break or continue for a different target. In that case, this
@@ -767,13 +771,26 @@ class Elements {
 }
 
 /// An element representing an erroneous resolution.
+///
+/// An [ErroneousElement] is used instead of `null` to provide additional
+/// information about the error that caused the element to be unresolvable
+/// or otherwise invalid.
+///
+/// Accessing any field or calling any method defined on [ErroneousElement]
+/// except [isErroneous] will currently throw an exception. (This might
+/// change when we actually want more information on the erroneous element,
+/// e.g., the name of the element we were trying to resolve.)
+///
+/// Code that cannot not handle an [ErroneousElement] should use
+/// `Element.isUnresolved(element)` to check for unresolvable elements instead
+/// of `element == null`.
 abstract class ErroneousElement extends Element implements ConstructorElement {
   MessageKind get messageKind;
   Map get messageArguments;
   String get message;
 }
 
-/// An [Element] whose usage should cause a warning.
+/// An [Element] whose usage should cause one or more warnings.
 abstract class WarnOnUseElement extends Element {
   /// The element whose usage cause a warning.
   Element get wrappedElement;
@@ -784,7 +801,12 @@ abstract class WarnOnUseElement extends Element {
   Element unwrap(DiagnosticListener listener, Spannable usageSpannable);
 }
 
-/// An element representing the ambiguous resolution of a name.
+/// An ambiguous element represents multiple elements accessible by the same
+/// name.
+///
+/// Ambiguous elements are created during handling of import/export scopes. If
+/// an ambiguous element is encountered during resolution a warning/error is
+/// reported.
 abstract class AmbiguousElement extends Element {
   MessageKind get messageKind;
   Map get messageArguments;
@@ -958,9 +980,8 @@ abstract class VariableElement extends ExecutableElement {
 /// An entity that defines a local entity (memory slot) in generated code.
 ///
 /// Parameters, local variables and local functions (can) define local entity
-/// and thus implement [Local] through [LocalElement]. For
-/// non-element locals, like `this` and boxes, specialized [Local] class are
-/// created.
+/// and thus implement [Local] through [LocalElement]. For non-element locals,
+/// like `this` and boxes, specialized [Local] classes are created.
 ///
 /// Type variables can introduce locals in factories and constructors
 /// but since one type variable can introduce different locals in different
@@ -1332,11 +1353,11 @@ abstract class MixinApplicationElement extends ClassElement {
   void addConstructor(FunctionElement constructor);
 }
 
-// TODO(johnniwinther): Make this a pure [Entity].
-abstract class LabelElement extends Element {
+/// The label entity defined by a labeled statement.
+abstract class LabelDefinition extends Entity {
   Label get label;
   String get labelName;
-  TargetElement get target;
+  JumpTarget get target;
 
   bool get isTarget;
   bool get isBreakTarget;
@@ -1346,11 +1367,12 @@ abstract class LabelElement extends Element {
   void setContinueTarget();
 }
 
-// TODO(johnniwinther): Make this a pure [Entity].
-abstract class TargetElement extends Element implements Local {
+/// A jump target is the reference point of a statement or switch-case,
+/// either by label or as the default target of a break or continue.
+abstract class JumpTarget extends Local {
   Node get statement;
   int get nestingLevel;
-  Link<LabelElement> get labels;
+  Link<LabelDefinition> get labels;
 
   bool get isTarget;
   bool get isBreakTarget;
@@ -1361,7 +1383,7 @@ abstract class TargetElement extends Element implements Local {
   void set isBreakTarget(bool value);
   void set isContinueTarget(bool value);
 
-  LabelElement addLabel(Label label, String labelName);
+  LabelDefinition addLabel(Label label, String labelName);
 }
 
 /// The [Element] for a type variable declaration on a generic class or typedef.

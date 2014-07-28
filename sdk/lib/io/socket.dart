@@ -537,7 +537,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
  */
 abstract class Socket implements Stream<List<int>>, IOSink {
   /**
-   * Creats a new socket connection to the host and port and returns a [Future]
+   * Creates a new socket connection to the host and port and returns a [Future]
    * that will complete with either a [Socket] once connected or an error
    * if the host-lookup or connection failed.
    *

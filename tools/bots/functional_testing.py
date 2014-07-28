@@ -78,7 +78,7 @@ def FTMaster(config):
       return
     else:
       builddir = os.path.join(bot_utils.DART_DIR,
-                              utils.GetBuildDir(HOST_OS, HOST_OS),
+                              utils.GetBuildDir(HOST_OS),
                               'functional_testing')
       shutil.rmtree(builddir, ignore_errors=True)
       os.makedirs(builddir)
@@ -90,6 +90,6 @@ def FTSteps(config):
     FTMaster(config)
   else:
     FTSlave(config)
-  
+
 if __name__ == '__main__':
   bot.RunBot(SrcConfig, FTSteps, build_step=None)

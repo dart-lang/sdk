@@ -5,7 +5,7 @@
 library pub.lock_file;
 
 import 'package:path/path.dart' as p;
-import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
 import 'io.dart';
@@ -54,9 +54,9 @@ class LockFile {
 
     if (contents.trim() == '') return new LockFile.empty();
 
-    var sourceName;
-    if (filePath != null) sourceName = p.toUri(filePath).toString();
-    var parsed = loadYamlNode(contents, sourceName: sourceName);
+    var sourceUrl;
+    if (filePath != null) sourceUrl = p.toUri(filePath);
+    var parsed = loadYamlNode(contents, sourceUrl: sourceUrl);
 
     _validate(parsed is Map, 'The lockfile must be a YAML mapping.', parsed);
 
@@ -86,7 +86,8 @@ class LockFile {
           description = source.parseDescription(filePath, description,
               fromLockFile: true);
         } on FormatException catch (ex) {
-          throw new SpanFormatException(ex.message, spec.nodes['source'].span);
+          throw new SourceSpanFormatException(ex.message,
+              spec.nodes['source'].span);
         }
 
         var id = new PackageId(name, sourceName, version, description);
@@ -105,7 +106,7 @@ class LockFile {
   /// If [condition] is `false` throws a format error with [message] for [node].
   static void _validate(bool condition, String message, YamlNode node) {
     if (condition) return;
-    throw new SpanFormatException(message, node.span);
+    throw new SourceSpanFormatException(message, node.span);
   }
 
   /// Returns the serialized YAML text of the lock file.

@@ -21,9 +21,7 @@ import 'store/single_source_container.dart';
 
 main() {
   groupSep = ' | ';
-  group('LocalIndex', () {
-    runReflectiveTests(LocalIndexTest);
-  });
+  runReflectiveTests(LocalIndexTest);
 }
 
 

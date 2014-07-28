@@ -1,3 +1,11 @@
+## 2.0.0
+
+* Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan` class.
+
+* For consistency with `source_span` and `string_scanner`, all `sourceName`
+  parameters have been renamed to `sourceUrl`. They now accept Urls as well as
+  Strings.
+
 ## 1.1.1
 
 * Fix broken type arguments that caused breakage on dart2js.

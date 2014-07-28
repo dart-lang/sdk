@@ -3146,23 +3146,24 @@ void Assembler::TryAllocate(const Class& cls,
                             Register temp_reg) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
-    Heap* heap = Isolate::Current()->heap();
+    ASSERT(instance_reg != temp_reg);
+    ASSERT(temp_reg != IP);
     const intptr_t instance_size = cls.instance_size();
-    LoadImmediate(instance_reg, heap->TopAddress());
-    ldr(instance_reg, Address(instance_reg, 0));
+
+    LoadImmediate(temp_reg, Isolate::Current()->heap()->NewSpaceAddress());
+
+    ldr(instance_reg, Address(temp_reg, Scavenger::top_offset()));
     AddImmediate(instance_reg, instance_size);
 
     // instance_reg: potential next object start.
-    LoadImmediate(IP, heap->EndAddress());
-    ldr(IP, Address(IP, 0));
+    ldr(IP, Address(temp_reg, Scavenger::end_offset()));
     cmp(IP, Operand(instance_reg));
     // fail if heap end unsigned less than or equal to instance_reg.
     b(failure, LS);
 
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
-    LoadImmediate(IP, heap->TopAddress());
-    str(instance_reg, Address(IP, 0));
+    str(instance_reg, Address(temp_reg, Scavenger::top_offset()));
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);

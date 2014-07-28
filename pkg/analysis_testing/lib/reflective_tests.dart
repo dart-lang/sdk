@@ -39,27 +39,30 @@ class ReflectiveTestCase {
  */
 void runReflectiveTests(Type type) {
   ClassMirror classMirror = reflectClass(type);
-  classMirror.instanceMembers.forEach((symbol, memberMirror) {
-    // we need only methods
-    if (memberMirror is! MethodMirror || !memberMirror.isRegularMethod) {
-      return;
-    }
-    String memberName = MirrorSystem.getName(symbol);
-    // test_
-    if (memberName.startsWith('test_')) {
-      String testName = memberName.substring('test_'.length);
-      test(testName, () {
-        return _runTest(classMirror, symbol);
-      });
-      return;
-    }
-    // solo_test_
-    if (memberName.startsWith('solo_test_')) {
-      String testName = memberName.substring('solo_test_'.length);
-      solo_test(testName, () {
-        return _runTest(classMirror, symbol);
-      });
-    }
+  String className = MirrorSystem.getName(classMirror.simpleName);
+  group(className, () {
+    classMirror.instanceMembers.forEach((symbol, memberMirror) {
+      // we need only methods
+      if (memberMirror is! MethodMirror || !memberMirror.isRegularMethod) {
+        return;
+      }
+      String memberName = MirrorSystem.getName(symbol);
+      // test_
+      if (memberName.startsWith('test_')) {
+        String testName = memberName.substring('test_'.length);
+        test(testName, () {
+          return _runTest(classMirror, symbol);
+        });
+        return;
+      }
+      // solo_test_
+      if (memberName.startsWith('solo_test_')) {
+        String testName = memberName.substring('solo_test_'.length);
+        solo_test(testName, () {
+          return _runTest(classMirror, symbol);
+        });
+      }
+    });
   });
 }
 

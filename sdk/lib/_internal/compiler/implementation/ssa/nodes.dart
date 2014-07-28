@@ -162,8 +162,8 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock(TargetElement target,
-                                    List<LabelElement> labels) {
+  HBasicBlock addNewLoopHeaderBlock(JumpTarget target,
+                                    List<LabelDefinition> labels) {
     HBasicBlock result = addNewBlock();
     result.loopInformation =
         new HLoopInformation(result, target, labels);
@@ -1921,10 +1921,10 @@ class HGoto extends HControlFlow {
 }
 
 abstract class HJump extends HControlFlow {
-  final TargetElement target;
-  final LabelElement label;
+  final JumpTarget target;
+  final LabelDefinition label;
   HJump(this.target) : label = null, super(const <HInstruction>[]);
-  HJump.toLabel(LabelElement label)
+  HJump.toLabel(LabelDefinition label)
       : label = label, target = label.target, super(const <HInstruction>[]);
 }
 
@@ -1935,17 +1935,17 @@ class HBreak extends HJump {
    * [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
    */
   final bool breakSwitchContinueLoop;
-  HBreak(TargetElement target, {bool this.breakSwitchContinueLoop: false})
+  HBreak(JumpTarget target, {bool this.breakSwitchContinueLoop: false})
       : super(target);
-  HBreak.toLabel(LabelElement label)
+  HBreak.toLabel(LabelDefinition label)
       : breakSwitchContinueLoop = false, super.toLabel(label);
   toString() => (label != null) ? 'break ${label.labelName}' : 'break';
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
 class HContinue extends HJump {
-  HContinue(TargetElement target) : super(target);
-  HContinue.toLabel(LabelElement label) : super.toLabel(label);
+  HContinue(JumpTarget target) : super(target);
+  HContinue.toLabel(LabelDefinition label) : super.toLabel(label);
   toString() => (label != null) ? 'continue ${label.labelName}' : 'continue';
   accept(HVisitor visitor) => visitor.visitContinue(this);
 }
@@ -2642,8 +2642,8 @@ class HLoopInformation {
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
   final List<HBasicBlock> backEdges;
-  final List<LabelElement> labels;
-  final TargetElement target;
+  final List<LabelDefinition> labels;
+  final JumpTarget target;
 
   /** Corresponding block information for the loop. */
   HLoopBlockInformation loopBlockInformation;
@@ -2789,19 +2789,19 @@ class HStatementSequenceInformation implements HStatementInformation {
 
 class HLabeledBlockInformation implements HStatementInformation {
   final HStatementInformation body;
-  final List<LabelElement> labels;
-  final TargetElement target;
+  final List<LabelDefinition> labels;
+  final JumpTarget target;
   final bool isContinue;
 
   HLabeledBlockInformation(this.body,
-                           List<LabelElement> labels,
+                           List<LabelDefinition> labels,
                            {this.isContinue: false}) :
       this.labels = labels, this.target = labels[0].target;
 
   HLabeledBlockInformation.implicit(this.body,
                                     this.target,
                                     {this.isContinue: false})
-      : this.labels = const<LabelElement>[];
+      : this.labels = const<LabelDefinition>[];
 
   HBasicBlock get start => body.start;
   HBasicBlock get end => body.end;
@@ -2834,8 +2834,8 @@ class HLoopBlockInformation implements HStatementInformation {
   final HExpressionInformation condition;
   final HStatementInformation body;
   final HExpressionInformation updates;
-  final TargetElement target;
-  final List<LabelElement> labels;
+  final JumpTarget target;
+  final List<LabelDefinition> labels;
   final SourceFileLocation sourcePosition;
   final SourceFileLocation endSourcePosition;
 
@@ -2935,8 +2935,8 @@ class HTryBlockInformation implements HStatementInformation {
 class HSwitchBlockInformation implements HStatementInformation {
   final HExpressionInformation expression;
   final List<HStatementInformation> statements;
-  final TargetElement target;
-  final List<LabelElement> labels;
+  final JumpTarget target;
+  final List<LabelDefinition> labels;
 
   HSwitchBlockInformation(this.expression,
                           this.statements,

@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# This python script compiles a set of java files and puts them all into a 
+# This python script compiles a set of java files and puts them all into a
 # single .jar file.
 
 import os
@@ -13,7 +13,7 @@ from optparse import OptionParser
 
 # Filters out all arguments until the next '--' argument
 # occurs.
-def ListArgCallback(option, opt_str, value, parser):
+def ListArgCallback(option, value, parser):
    if value is None:
      value = []
 
@@ -45,7 +45,7 @@ def javaCompile(javac, srcDirectories, srcList, classpath,
   javaFilesTempFile = os.fdopen(tempFileDescriptor, "w")
   try:
     if srcDirectories:
-      def findJavaFiles(arg, dirName, names):
+      def findJavaFiles(dirName, names):
         for fileName in names:
           (base, ext) = os.path.splitext(fileName)
           if ext == '.java':
@@ -63,11 +63,9 @@ def javaCompile(javac, srcDirectories, srcList, classpath,
     javaFilesTempFile.close()
 
     # Prepare javac command.
-    command = [javac]
-
     # Use a large enough heap to be able to compile all of the classes in one
     # big compilation step.
-    command.append('-J-Xmx256m')
+    command = [javac, '-J-Xmx256m']
 
     if buildConfig == 'Debug':
       command.append('-g')
@@ -102,16 +100,16 @@ def javaCompile(javac, srcDirectories, srcList, classpath,
     os.remove(javaFilesTempFileName)
 
 def copyProperties(propertyFiles, classOutputDir):
-  for file in propertyFiles:
-    if not os.path.isfile(file):
-      sys.stderr.write('property file not found: ' + file + '\n')
+  for property_file in propertyFiles:
+    if not os.path.isfile(property_file):
+      sys.stderr.write('property file not found: ' + property_file + '\n')
       return False
 
   if not os.path.exists(classOutputDir):
     sys.stderr.write('classes dir not found: ' + classOutputDir + '\n')
     return False
 
-  if propertyFiles == []:
+  if not propertyFiles:
     return True
 
   command = ['cp'] + propertyFiles + [classOutputDir]
@@ -136,7 +134,7 @@ def createJar(classOutputDir, jarFileName):
   return True
 
 
-def main(args):
+def main():
   try:
     # Parse input.
     parser = OptionParser()
@@ -180,7 +178,7 @@ def main(args):
       sys.stderr.write('--jarFileName not specified\n')
       return -1
     if len(options.sourceDirs) > 0 and options.sourceList:
-      sys.stderr.write("--sourceDir and --sourceList cannot be both specified");
+      sys.stderr.write("--sourceDir and --sourceList cannot be both specified")
       return -1
 
     # Compile and put into .jar file.
@@ -201,4 +199,4 @@ def main(args):
     return -1
 
 if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+  sys.exit(main())

@@ -109,7 +109,7 @@ class GoogleBasedInstaller(object):
         os_str = 'linux64'
     if self.project_name == 'chromedriver' and (
         os_str == 'mac' or os_str == 'win'):
-      os_str = os_str + '32'
+      os_str += '32'
     return os_str
 
   def run(self):

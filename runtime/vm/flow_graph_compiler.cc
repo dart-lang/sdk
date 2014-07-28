@@ -94,6 +94,8 @@ FlowGraphCompiler::FlowGraphCompiler(Assembler* assembler,
       may_reoptimize_(false),
       double_class_(Class::ZoneHandle(
           isolate_->object_store()->double_class())),
+      mint_class_(Class::ZoneHandle(
+          isolate_->object_store()->mint_class())),
       float32x4_class_(Class::ZoneHandle(
           isolate_->object_store()->float32x4_class())),
       float64x2_class_(Class::ZoneHandle(

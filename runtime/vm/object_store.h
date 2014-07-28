@@ -194,6 +194,13 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, growable_object_array_class_);
   }
 
+  RawClass* linked_hash_map_class() const {
+    return linked_hash_map_class_;
+  }
+  void set_linked_hash_map_class(const Class& value) {
+    linked_hash_map_class_ = value.raw();
+  }
+
   RawClass* float32x4_class() const {
     return float32x4_class_;
   }
@@ -471,6 +478,7 @@ class ObjectStore {
   RawType* array_type_;
   RawClass* immutable_array_class_;
   RawClass* growable_object_array_class_;
+  RawClass* linked_hash_map_class_;
   RawClass* float32x4_class_;
   RawClass* int32x4_class_;
   RawClass* float64x2_class_;

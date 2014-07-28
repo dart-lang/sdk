@@ -71,8 +71,8 @@ class Benchmark {
   // Accessors.
   const char* name() const { return name_; }
   const char* score_kind() const { return score_kind_; }
-  void set_score(intptr_t value) { score_ = value; }
-  intptr_t score() const { return score_; }
+  void set_score(int64_t value) { score_ = value; }
+  int64_t score() const { return score_; }
   Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
 
   Dart_Isolate CreateIsolate(const uint8_t* buffer) {
@@ -98,7 +98,7 @@ class Benchmark {
   RunEntry* const run_;
   const char* name_;
   const char* score_kind_;
-  intptr_t score_;
+  int64_t score_;
   Dart_Isolate isolate_;
   Benchmark* next_;
 

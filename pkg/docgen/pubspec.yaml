@@ -7,7 +7,7 @@ dependencies:
   logging: '>=0.9.0 <0.10.0'
   markdown: 0.7.0
   path: '>=0.9.0 <2.0.0'
-  yaml: '>=0.9.0 <2.0.0'
+  yaml: '>=0.9.0 <3.0.0'
 dev_dependencies:
   scheduled_test: '>=0.10.0 <0.12.0'
   unittest: '>=0.9.0 <0.11.0'

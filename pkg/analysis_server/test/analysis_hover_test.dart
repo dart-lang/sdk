@@ -17,9 +17,8 @@ import 'analysis_abstract.dart';
 
 
 main() {
-  group('notification.hover', () {
-    runReflectiveTests(AnalysisHoverTest);
-  });
+  groupSep = ' | ';
+  runReflectiveTests(AnalysisHoverTest);
 }
 
 
