@@ -37,13 +37,6 @@
 /// Tips for converting your apps from Web UI to Polymer.dart.
 library polymer;
 
-// Last ported from: Fri May 30 12:45:10 2014 -0700
-// https://github.com/Polymer/polymer-dev/tree/32cc3e470e8ed760a9e596a24fe9b3ac2a87737c
-
-// Note: we are still missing some tests for new features. Use
-// git diff 37eea00e13b9f86ab21c85a955585e8e4237e3d2 test
-// from polymer-dev to see the changes.
-
 import 'dart:async';
 import 'dart:collection';
 import 'dart:html';
@@ -90,3 +83,4 @@ part 'src/events.dart';
 part 'src/instance.dart';
 part 'src/job.dart';
 part 'src/loader.dart';
+part 'src/property_accessor.dart';

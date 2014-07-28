@@ -164,6 +164,8 @@ polymer/test/attr_deserialize_test: Skip # uses dart:html
 polymer/test/attr_mustache_test: Skip #uses dart:html
 polymer/test/bind_test: Skip # uses dart:html
 polymer/test/bind_mdv_test: Skip # uses dart:html
+polymer/test/bind_properties_test: Skip # uses dart:html
+polymer/test/computed_properties_test: Skip # uses dart:html
 polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/entered_view_test: Skip # uses dart:html
 polymer/test/event_handlers_test: Skip #uses dart:html

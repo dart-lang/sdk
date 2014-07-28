@@ -2,6 +2,9 @@
 
 This file contains highlights of what changes on each version of this package.
 
+#### Pub version 0.5.0
+  * Upgrades to platform version 0.3.4-02a0f66 (see lib/build.log for details).
+
 #### Pub version 0.4.0
   * Adds `registerDartType` and updates to platform 0.3.3-29065bc
     (re-applies the changes in 0.3.5).

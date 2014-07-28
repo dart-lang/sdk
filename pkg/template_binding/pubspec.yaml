@@ -1,5 +1,5 @@
 name: template_binding
-version: 0.12.0-dev
+version: 0.12.0-pre.1.dev
 author: Polymer.dart Team <web-ui-dev@dartlang.org>
 description: >
   Extends the capabilities of the HTML Template Element by enabling it to

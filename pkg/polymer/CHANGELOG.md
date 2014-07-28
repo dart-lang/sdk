@@ -4,6 +4,18 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.0-pre.1.dev
+ * Updated to match polymer 0.3.4 ([polymer-dev#6ad2d61][6ad2d61]), this
+   includes the following changes:
+     * added @ComputedProperty
+     * @published can now be written using the readValue/writeValue helper
+       methods to match the same timing semantics as Javscript properties.
+     * underlying packages are also updated. Noticable changes are that
+       path-observers syntax is slightly different. See the `observe` package
+       for details.
+  * Patched polymer.js to include also a cherry-pick of
+    [commit#3b690ad][3b690ad], which fixes CSP.
+
 #### Pub version 0.12.0-dev
  * Polymer Expressions had a breaking change so we also bumped the version on
    this package.
@@ -96,3 +108,6 @@ web_components, and template_binding) if they impact polymer.
 
 #### Pub version 0.9.2+2
   * fix enteredView in dart2js, by using custom_element >= 0.9.1+1
+
+[6ad2d61]:https://github.com/Polymer/polymer-dev/commit/6a3e1b0e2a0bbe546f6896b3f4f064950d7aee8f
+[3b690ad]:https://github.com/Polymer/polymer-dev/commit/3b690ad0d995a7ea339ed601075de2f84d92bafd

@@ -97,7 +97,7 @@ class PolymerExpressions extends BindingDelegate {
               ? model
               : _scopeFactory.modelScope(model: model, variables: globals);
           if (oneTime) {
-            return _Binding._oneTime(expr, scope, null);
+            return _Binding._oneTime(expr, scope);
           }
           return new _Binding(expr, scope);
         };
@@ -250,6 +250,23 @@ class PolymerExpressions extends BindingDelegate {
     }
   }
 
+  /// Parse the expression string and return an expression tree.
+  static Expression getExpression(String exprString) =>
+      new Parser(exprString).parse();
+
+  /// Determines the value of evaluating [expr] on the given [model] and returns
+  /// either its value or a binding for it. If [oneTime] is true, it direclty
+  /// returns the value. Otherwise, when [oneTime] is false, it returns a
+  /// [Bindable] that besides evaluating the expression, it will also react to
+  /// observable changes from the model and update the value accordingly.
+  static getBinding(Expression expr, model, {Map<String, Object> globals,
+      oneTime: false}) {
+    if (globals == null) globals = new Map.from(DEFAULT_GLOBALS);
+    var scope = model is Scope ? model
+        : new Scope(model: model, variables: globals);
+    return oneTime ? _Binding._oneTime(expr, scope)
+        : new _Binding(expr, scope);
+  }
 }
 
 typedef Object _Converter(Object);
@@ -264,10 +281,9 @@ class _Binding extends Bindable {
   ExpressionObserver _observer;
   var _value;
 
-  _Binding(this._expr, this._scope, [converter])
-      : _converter = converter == null ? _identity : converter;
+  _Binding(this._expr, this._scope, [this._converter]);
 
-  static Object _oneTime(Expression expr, Scope scope, _Converter converter) {
+  static Object _oneTime(Expression expr, Scope scope, [_Converter converter]) {
     try {
       var value = eval(expr, scope);
       return (converter == null) ? value : converter(value);
@@ -280,7 +296,7 @@ class _Binding extends Bindable {
 
   bool _convertAndCheck(newValue, {bool skipChanges: false}) {
     var oldValue = _value;
-    _value = _converter(newValue);
+    _value = _converter == null ? newValue : _converter(newValue);
 
     if (!skipChanges && _callback != null && oldValue != _value) {
       _callback(_value);
@@ -296,7 +312,7 @@ class _Binding extends Bindable {
       _check(skipChanges: true);
       return _value;
     }
-    return _oneTime(_expr, _scope, _converter);
+    return _Binding._oneTime(_expr, _scope, _converter);
   }
 
   set value(v) {

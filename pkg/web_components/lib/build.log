@@ -1,39 +1,45 @@
 BUILD LOG
 ---------
-Build Time: 2014-05-21T18:37:28
+Build Time: 2014-07-24T18:04:50
 
 NODEJS INFORMATION
 ==================
-nodejs: v0.10.24
-chai: 1.9.1
-grunt: 0.4.5
-grunt-audit: 0.0.3
+nodejs: v0.10.21
+chai: 1.9.0
+grunt: 0.4.2
+grunt-audit: 0.0.2
 grunt-concat-sourcemap: 0.4.1
-grunt-contrib-concat: 0.4.0
-grunt-contrib-uglify: 0.4.0
-grunt-contrib-yuidoc: 0.5.2
-grunt-karma: 0.8.3
-karma: 0.12.16
+grunt-contrib-concat: 0.3.0
+grunt-contrib-uglify: 0.3.2
+grunt-contrib-yuidoc: 0.5.1
+grunt-karma: 0.6.2
+karma: 0.10.9
+karma-chrome-launcher: 0.1.2
+karma-coffee-preprocessor: 0.1.3
 karma-crbot-reporter: 0.0.4
 karma-firefox-launcher: 0.1.3
-karma-ie-launcher: 0.1.5
-karma-mocha: 0.1.3
+karma-html2js-preprocessor: 0.1.0
+karma-ie-launcher: 0.1.1
+karma-jasmine: 0.1.5
+karma-mocha: 0.1.1
+karma-phantomjs-launcher: 0.1.2
+karma-requirejs: 0.2.1
 karma-safari-launcher: 0.1.1
 karma-script-launcher: 0.1.0
-mocha: 1.19.0
-Platform: 0.2.4
+mocha: 1.17.1
+requirejs: 2.1.11
 
 REPO REVISIONS
 ==============
-CustomElements: 9cfef1fc323a9e9d4f5ff398750a6e4908bd47e3
-HTMLImports: 1ee73575c760350b9b670b5e414468ce6b94f529
-NodeBind: c47bc1b40d1cf0123b29620820a7111471e83ff3
-ShadowDOM: 9d2bdaa70a37df25e71abed658088cb117be7473
-TemplateBinding: 5b9a3be40682e1ccd5e6c0b04fbe2c54d74b5d1e
-WeakMap: a0947a9a0f58f5733f464755c3b86de624b00a5d
-observe-js: adccb62bd0b6915179671d567b224d60b7c7ff20
-platform-dev: 15e4e51efe8c8bb78b13ec345a1f705727b71474
+CustomElements: 2df917e8b1fb1928651a71372ae901a400ddf726
+HTMLImports: d240c62fe5b784239f08f77eff40efb4aabf0105
+NodeBind: 9f0089946c312d9ac9ca45d06913fce507a8b185
+ShadowDOM: 86943c29aa8a10da214bc2f42e3067cf0f190279
+TemplateBinding: d9f4543dc06935824bfd43564c442b0897ce1c54
+WeakMap: 43ab1056a0d821af9b6028fc27ddf30db817c05a
+observe-js: e212e7473962067c099a3d1859595c2f8baa36d7
+platform-dev: 02a0f66b65c34585b4b986e6a3a73cc0d743683a
 
 BUILD HASHES
 ============
-build/platform.js: aec8ca1ee3aab5e29f6fdf2518f5abad4f45ce21
+build/platform.js: 9ca6c8137fefb7461693d8ec7bac2af8d5a4fd1a

@@ -12,6 +12,7 @@ import 'package:observe/observe.dart';
 // The main difference is we support anything on the rich Dart Iterable API.
 
 /// Observes a path starting from each item in the list.
+@deprecated
 class ListPathObserver<E, P> extends ChangeNotifier {
   final ObservableList<E> list;
   final String _itemPath;
@@ -59,7 +60,7 @@ class ListPathObserver<E, P> extends ChangeNotifier {
     if (lengthAdjust > 0) {
       for (int i = 0; i < lengthAdjust; i++) {
         int len = _observers.length;
-        var pathObs = new PathObserver(list, '$len.$_itemPath');
+        var pathObs = new PathObserver(list, '[$len].$_itemPath');
         pathObs.open(_scheduleReduce);
         _observers.add(pathObs);
       }

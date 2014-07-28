@@ -39,9 +39,22 @@ main() => initPolymer().run(() {
         expect(ce.detail, ['handled'], reason: 'element event handler fired');
       }
 
-      if (events == 2) completer.complete();
+      if (events == 3) completer.complete();
+    });
+
+    /// test dynamic creation
+    new Future(() {
+      var d = new DivElement();
+      d.setInnerHtml('<template is="auto-binding">Dynamical'
+          ' <input value="{{value}}"><div>{{value}}</div></template>',
+          treeSanitizer: new _NullSanitizer());
+      document.body.append(d);
     });
 
     return completer.future;
   });
 });
+
+class _NullSanitizer implements NodeTreeSanitizer {
+  sanitizeTree(Node node) {}
+}

@@ -3653,18 +3653,6 @@ PolymerGestures.wrap = PolymerGestures.hasSDPolyfill ? ShadowDOMPolyfill.wrapIfN
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
-Polymer = {
-  version: '0.3.3-0e73963'
-};
-
-/*
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
 
 // TODO(sorvell): this ensures Polymer is an object and not a function
 // Platform is currently defining it as a function to allow for async loading
@@ -5033,7 +5021,7 @@ if (typeof window.Polymer === 'function') {
           STYLE_CONTROLLER_SCOPE);
       Polymer.applyStyleToScope(style, scope);
       // cache that this style has been applied
-      scope._scopeStyles[this.localName + name] = true;
+      this.styleCacheForScope(scope)[this.localName + name] = true;
     },
     findStyleScope: function(node) {
       // find the shadow root that contains this element
@@ -5044,10 +5032,20 @@ if (typeof window.Polymer === 'function') {
       return n;
     },
     scopeHasNamedStyle: function(scope, name) {
-      scope._scopeStyles = scope._scopeStyles || {};
-      return scope._scopeStyles[name];
+      var cache = this.styleCacheForScope(scope);
+      return cache[name];
+    },
+    styleCacheForScope: function(scope) {
+      if (window.ShadowDOMPolyfill) {
+        var scopeName = scope.host ? scope.host.localName : scope.localName;
+        return polyfillScopeStyleCache[scopeName] || (polyfillScopeStyleCache[scopeName] = {});
+      } else {
+        return scope._scopeStyles = (scope._scopeStyles || {});
+      }
     }
   };
+
+  var polyfillScopeStyleCache = {};
   
   // NOTE: use raw prototype traversal so that we ensure correct traversal
   // on platforms where the protoype chain is simulated via __proto__ (IE10)
@@ -6171,21 +6169,26 @@ scope.api.declaration.path = path;
 
   */
   var queue = {
+
     // tell the queue to wait for an element to be ready
-    wait: function(element, check, go) {
-      var shouldAdd = (this.indexOf(element) === -1 && 
-          flushQueue.indexOf(element) === -1);
+    wait: function(element) {
+      if (!element.__queue) {
+        element.__queue = {};
+        elements.push(element);
+      }
+    },
+
+    // enqueue an element to the next spot in the queue.
+    enqueue: function(element, check, go) {
+      var shouldAdd = element.__queue && !element.__queue.check;
       if (shouldAdd) {
-        this.add(element);
-        element.__check = check;
-        element.__go = go;
+        queueForElement(element).push(element);
+        element.__queue.check = check;
+        element.__queue.go = go;
       }
       return (this.indexOf(element) !== 0);
     },
-    add: function(element) {
-      //console.log('queueing', element.name);
-      queueForElement(element).push(element);
-    },
+
     indexOf: function(element) {
       var i = queueForElement(element).indexOf(element);
       if (i >= 0 && document.contains(element)) {
@@ -6194,14 +6197,17 @@ scope.api.declaration.path = path;
       }
       return i;  
     },
+
     // tell the queue an element is ready to be registered
     go: function(element) {
       var readied = this.remove(element);
       if (readied) {
+        element.__queue.flushable = true;
         this.addToFlushQueue(readied);
         this.check();
       }
     },
+
     remove: function(element) {
       var i = this.indexOf(element);
       if (i !== 0) {
@@ -6210,37 +6216,59 @@ scope.api.declaration.path = path;
       }
       return queueForElement(element).shift();
     },
+
     check: function() {
       // next
       var element = this.nextElement();
       if (element) {
-        element.__check.call(element);
+        element.__queue.check.call(element);
       }
       if (this.canReady()) {
         this.ready();
         return true;
       }
     },
+
     nextElement: function() {
       return nextQueued();
     },
+
     canReady: function() {
       return !this.waitToReady && this.isEmpty();
     },
+
     isEmpty: function() {
-      return !importQueue.length && !mainQueue.length;
+      for (var i=0, l=elements.length, e; (i<l) && 
+          (e=elements[i]); i++) {
+        if (e.__queue && !e.__queue.flushable) {
+          return;
+        }
+      }
+      return true;
     },
+
     addToFlushQueue: function(element) {
       flushQueue.push(element);  
     },
+
     flush: function() {
+      // prevent re-entrance
+      if (this.flushing) {
+        return;
+      }
+      if (flushQueue.length) {
+        console.warn('flushing %s elements', flushQueue.length);
+      }
+      this.flushing = true;
       var element;
       while (flushQueue.length) {
         element = flushQueue.shift();
-        element.__go.call(element);
-        element.__check = element.__go = null;
+        element.__queue.go.call(element);
+        element.__queue = null;
       }
+      this.flushing = false;
     },
+
     ready: function() {
       this.flush();
       // TODO(sorvell): As an optimization, turn off CE polyfill upgrading
@@ -6256,11 +6284,13 @@ scope.api.declaration.path = path;
       Platform.flush();
       requestAnimationFrame(this.flushReadyCallbacks);
     },
+
     addReadyCallback: function(callback) {
       if (callback) {
         readyCallbacks.push(callback);
       }
     },
+
     flushReadyCallbacks: function() {
       if (readyCallbacks) {
         var fn;
@@ -6270,11 +6300,13 @@ scope.api.declaration.path = path;
         }
       }
     },
+
     waitToReady: true
+
   };
 
+  var elements = [];
   var flushQueue = [];
-
   var importQueue = [];
   var mainQueue = [];
   var readyCallbacks = [];
@@ -6304,8 +6336,9 @@ scope.api.declaration.path = path;
   }
 
   // exports
+  scope.elements = elements;
   scope.queue = queue;
-  scope.whenPolymerReady = whenPolymerReady;
+  scope.whenReady = scope.whenPolymerReady = whenPolymerReady;
 })(Polymer);
 
 /*
@@ -6385,12 +6418,17 @@ scope.api.declaration.path = path;
       // fetch declared values
       this.name = this.getAttribute('name');
       this.extends = this.getAttribute('extends');
+      queue.wait(this);
       // initiate any async resource fetches
       this.loadResources();
       // register when all constraints are met
       this.registerWhenReady();
     },
 
+    // TODO(sorvell): we currently queue in the order the prototypes are 
+    // registered, but we should queue in the order that polymer-elements
+    // are registered. We are currently blocked from doing this based on 
+    // crbug.com/395686.
     registerWhenReady: function() {
      if (this.registered
        || this.waitingForPrototype(this.name)
@@ -6398,16 +6436,11 @@ scope.api.declaration.path = path;
        || this.waitingForResources()) {
           return;
       }
-      // TODO(sorvell): ends up calling '_register' by virtue
-      // of `waitingForQueue` (see below)
       queue.go(this);
     },
 
-    // TODO(sorvell): refactor, this method is private-ish, but it's being
-    // called by the queue object.
     _register: function() {
       //console.log('registering', this.name);
-      //console.group('registering', this.name);
       // warn if extending from a custom element not registered via Polymer
       if (isCustomTag(this.extends) && !isRegistered(this.extends)) {
         console.warn('%s is attempting to extend %s, an unregistered element ' +
@@ -6416,7 +6449,6 @@ scope.api.declaration.path = path;
       }
       this.register(this.name, this.extends);
       this.registered = true;
-      //console.groupEnd();
     },
 
     waitingForPrototype: function(name) {
@@ -6434,19 +6466,8 @@ scope.api.declaration.path = path;
       // if explicitly marked as 'noscript'
       if (this.hasAttribute('noscript') && !this.noscript) {
         this.noscript = true;
-        // TODO(sorvell): CustomElements polyfill awareness:
-        // noscript elements should upgrade in logical order
-        // script injection ensures this under native custom elements;
-        // under imports + ce polyfills, scripts run before upgrades.
-        // dependencies should be ready at upgrade time so register
-        // prototype at this time.
-        if (window.CustomElements && !CustomElements.useNative) {
-          Polymer(name);
-        } else {
-          var script = document.createElement('script');
-          script.textContent = 'Polymer(\'' + name + '\');';
-          this.appendChild(script);
-        }
+        // imperative element registration
+        Polymer(name);
       }
     },
 
@@ -6458,7 +6479,7 @@ scope.api.declaration.path = path;
     // dependency resolution. Previously this was enforced for inheritance,
     // and by rule for composition. It's now entirely by rule.
     waitingForQueue: function() {
-      return queue.wait(this, this.registerWhenReady, this._register);
+      return queue.enqueue(this, this.registerWhenReady, this._register);
     },
 
     loadResources: function() {

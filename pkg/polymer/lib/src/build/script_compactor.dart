@@ -140,6 +140,8 @@ class _ScriptCompactor extends PolymerTransformer {
   /// Code generator used to create the static initialization for smoke.
   final generator = new SmokeCodeGenerator();
 
+  _SubExpressionVisitor expressionVisitor;
+
   _ScriptCompactor(Transform transform, this.options, this.resolvers)
       : transform = transform,
         logger = transform.logger,
@@ -228,7 +230,9 @@ class _ScriptCompactor extends PolymerTransformer {
   void _extractUsesOfMirrors(_) {
     // Generate getters and setters needed to evaluate polymer expressions, and
     // extract information about published attributes.
-    new _HtmlExtractor(logger, generator, publishedAttributes).visit(document);
+    expressionVisitor = new _SubExpressionVisitor(generator, logger);
+    new _HtmlExtractor(logger, generator, publishedAttributes,
+        expressionVisitor).visit(document);
 
     // Create a recorder that uses analyzer data to feed data to [generator].
     var recorder = new Recorder(generator,
@@ -308,7 +312,16 @@ class _ScriptCompactor extends PolymerTransformer {
     // *Changed and @ObserveProperty instead.
     recorder.runQuery(cls, new QueryOptions(
           includeUpTo: types.htmlElementElement,
-          withAnnotations: [types.publishedElement, types.observableElement]));
+          withAnnotations: [types.publishedElement, types.observableElement,
+          types.computedPropertyElement]));
+
+    // Include @ComputedProperty and process their expressions
+    var computed = [];
+    recorder.runQuery(cls, new QueryOptions(
+          includeUpTo: types.htmlElementElement,
+          withAnnotations: [types.computedPropertyElement]),
+          results: computed);
+    _processComputedExpressions(computed);
 
     for (var tagName in tagNames) {
       // Include an initializer that will call Polymer.register
@@ -339,20 +352,28 @@ class _ScriptCompactor extends PolymerTransformer {
   /// If [meta] is [CustomTag], extract the name associated with the tag.
   String _extractTagName(Annotation meta, ClassElement cls) {
     if (meta.element != types.customTagConstructor) return null;
+    return _extractFirstAnnotationArgument(meta, 'CustomTag', cls);
+  }
+
+  /// Extract the first argument of an annotation and validate that it's type is
+  /// String. For instance, return "bar" from `@Foo("bar")`.
+  String _extractFirstAnnotationArgument(Annotation meta, String name,
+      analyzer.Element context) {
 
     // Read argument from the AST
     var args = meta.arguments.arguments;
     if (args == null || args.length == 0) {
-      logger.warning('Missing argument in @CustomTag annotation',
-          span: _spanForNode(cls, meta));
+      logger.warning('Missing argument in @$name annotation',
+          span: _spanForNode(context, meta));
       return null;
     }
 
-    var res = resolver.evaluateConstant(
-        cls.enclosingElement.enclosingElement, args[0]);
+    var lib = context;
+    while (lib is! LibraryElement) lib = lib.enclosingElement;
+    var res = resolver.evaluateConstant(lib, args[0]);
     if (!res.isValid || res.value.type != types.stringType) {
-      logger.warning('The parameter to @CustomTag seems to be invalid.',
-          span: _spanForNode(cls, args[0]));
+      logger.warning('The parameter to @$name seems to be invalid.',
+          span: _spanForNode(context, args[0]));
       return null;
     }
     return res.value.stringValue;
@@ -378,6 +399,22 @@ class _ScriptCompactor extends PolymerTransformer {
       return;
     }
     initializers.add(new _InitMethodInitializer(id, function.displayName));
+  }
+
+  /// Process members that are annotated with `@ComputedProperty` and records
+  /// the accessors of their expressions.
+  _processComputedExpressions(List<analyzer.Element> computed) {
+    var constructor = types.computedPropertyElement.constructors.first;
+    for (var member in computed) {
+      for (var meta in member.node.metadata) {
+        if (meta.element != constructor) continue;
+        var expr = _extractFirstAnnotationArgument(
+            meta, 'ComputedProperty', member);
+        if (expr == null) continue;
+        expressionVisitor.run(pe.parse(expr), true,
+            _spanForNode(member.enclosingElement, meta.arguments.arguments[0]));
+      }
+    }
   }
 
   /// Writes the final output for the bootstrap Dart file and entrypoint HTML
@@ -488,14 +525,12 @@ const NO_INITIALIZERS_ERROR =
 class _HtmlExtractor extends TreeVisitor {
   final Map<String, List<String>> publishedAttributes;
   final SmokeCodeGenerator generator;
-  final _SubExpressionVisitor visitor;
+  final _SubExpressionVisitor expressionVisitor;
   final TransformLogger logger;
   bool _inTemplate = false;
 
-  _HtmlExtractor(TransformLogger logger, SmokeCodeGenerator generator,
-      this.publishedAttributes)
-      : logger = logger, generator = generator,
-        visitor = new _SubExpressionVisitor(generator, logger);
+  _HtmlExtractor(this.logger, this.generator, this.publishedAttributes,
+      this.expressionVisitor);
 
   void visitElement(Element node) {
     if (_inTemplate) _processNormalElement(node);
@@ -578,7 +613,7 @@ class _HtmlExtractor extends TreeVisitor {
       generator.addGetter(stringExpression);
       generator.addSymbol(stringExpression);
     }
-    visitor.run(pe.parse(stringExpression), isTwoWay, span);
+    expressionVisitor.run(pe.parse(stringExpression), isTwoWay, span);
   }
 }
 
@@ -690,6 +725,9 @@ class _ResolvedTypes {
   /// Element representing the type of `@ObserveProperty`.
   final ClassElement observePropertyElement;
 
+  /// Element representing the type of `@ComputedProperty`.
+  final ClassElement computedPropertyElement;
+
   /// Element representing the `@initMethod` annotation.
   final TopLevelVariableElement initMethodElement;
 
@@ -723,6 +761,7 @@ class _ResolvedTypes {
     var publishedElement = _lookupType(polymerLib, 'PublishedProperty');
     var observableElement = _lookupType(observeLib, 'ObservableProperty');
     var observePropertyElement = _lookupType(polymerLib, 'ObserveProperty');
+    var computedPropertyElement = _lookupType(polymerLib, 'ComputedProperty');
     var polymerClassElement = _lookupType(polymerLib, 'Polymer');
     var htmlElementElement = _lookupType(htmlLib, 'HtmlElement');
     var stringType = _lookupType(coreLib, 'String').type;
@@ -730,13 +769,15 @@ class _ResolvedTypes {
 
     return new _ResolvedTypes.internal(htmlElementElement, stringType,
       polymerClassElement, customTagConstructor, publishedElement,
-      observableElement, observePropertyElement, initMethodElement);
+      observableElement, observePropertyElement, computedPropertyElement,
+      initMethodElement);
   }
 
   _ResolvedTypes.internal(this.htmlElementElement, this.stringType,
       this.polymerClassElement, this.customTagConstructor,
       this.publishedElement, this.observableElement,
-      this.observePropertyElement, this.initMethodElement);
+      this.observePropertyElement, this.computedPropertyElement,
+      this.initMethodElement);
 
   static _lookupType(LibraryElement lib, String typeName) {
     var result = lib.getType(typeName);

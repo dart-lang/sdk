@@ -17,7 +17,9 @@ class PolymerExpressions extends BindingDelegate with PolymerEventBindings {
   /// Ideally we would inherit from it, but mixins can't be applied to a type
   /// that forwards to a superclass with a constructor that has optional or
   /// named arguments.
-  final BindingDelegate _delegate;
+  final polymer_expressions.PolymerExpressions _delegate;
+
+  Map<String, Object> get globals => _delegate.globals;
 
   PolymerExpressions({Map<String, Object> globals})
       : _delegate = new polymer_expressions.PolymerExpressions(
@@ -35,6 +37,11 @@ class PolymerExpressions extends BindingDelegate with PolymerEventBindings {
 
   prepareInstancePositionChanged(Element template) =>
       _delegate.prepareInstancePositionChanged(template);
+
+  static final getExpression =
+      polymer_expressions.PolymerExpressions.getExpression;
+  static final getBinding = polymer_expressions.PolymerExpressions.getBinding;
+
 }
 
 /// A mixin for a [BindingDelegate] to add Polymer event support.
