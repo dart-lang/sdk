@@ -8,9 +8,9 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 
 
 main() {
@@ -41,7 +41,8 @@ main() {
       new _PackageMapUriResolverTest().test_resolve_OK();
     });
     test('resolve_package_invalid_leadingSlash', () {
-      new _PackageMapUriResolverTest().test_resolve_package_invalid_leadingSlash();
+      var inst = new _PackageMapUriResolverTest();
+      inst.test_resolve_package_invalid_leadingSlash();
     });
     test('resolve_package_invalid_noSlash', () {
       new _PackageMapUriResolverTest().test_resolve_package_invalid_noSlash();
@@ -51,6 +52,9 @@ main() {
     });
     test('resolve_package_notInMap', () {
       new _PackageMapUriResolverTest().test_resolve_package_notInMap();
+    });
+    test('restoreAbsolute_OK', () {
+      new _PackageMapUriResolverTest().test_restoreAbsolute();
     });
   });
 }
@@ -98,8 +102,8 @@ class _PackageMapUriResolverTest {
     const pkgFileB = '/pkgB/lib/libB.dart';
     provider.newFile(pkgFileA, 'library lib_a;');
     provider.newFile(pkgFileB, 'library lib_b;');
-    PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
-        <String, List<Folder>>{
+    PackageMapUriResolver resolver =
+        new PackageMapUriResolver(provider, <String, List<Folder>>{
       'pkgA': [provider.getResource('/pkgA/lib/')],
       'pkgB': [provider.getResource('/pkgB/lib/')]
     });
@@ -126,10 +130,11 @@ class _PackageMapUriResolverTest {
     const pkgFileB = '/part2/lib/libB.dart';
     provider.newFile(pkgFileA, 'library lib_a');
     provider.newFile(pkgFileB, 'library lib_b');
-    PackageMapUriResolver resolver = new PackageMapUriResolver(provider,
-        <String, List<Folder>>{
-      'pkg': [provider.getResource('/part1/lib/'),
-              provider.getResource('/part2/lib/')]
+    PackageMapUriResolver resolver =
+        new PackageMapUriResolver(provider, <String, List<Folder>>{
+      'pkg': [
+          provider.getResource('/part1/lib/'),
+          provider.getResource('/part2/lib/')]
     });
     {
       Uri uri = Uri.parse('package:pkg/libA.dart');
@@ -184,5 +189,38 @@ class _PackageMapUriResolverTest {
     expect(result, isNotNull);
     expect(result.exists(), isFalse);
     expect(result.fullName, 'package:analyzer/analyzer.dart');
+  }
+
+  void test_restoreAbsolute() {
+    const pkgFileA = '/pkgA/lib/libA.dart';
+    const pkgFileB = '/pkgB/lib/src/libB.dart';
+    provider.newFile(pkgFileA, 'library lib_a;');
+    provider.newFile(pkgFileB, 'library lib_b;');
+    PackageMapUriResolver resolver =
+        new PackageMapUriResolver(provider, <String, List<Folder>>{
+      'pkgA': [provider.getResource('/pkgA/lib/')],
+      'pkgB': [provider.getResource('/pkgB/lib/')]
+    });
+    {
+      Source source = _createFileSource('/pkgA/lib/libA.dart');
+      Uri uri = resolver.restoreAbsolute(source);
+      expect(uri, isNotNull);
+      expect(uri.path, 'package:pkgA/libA.dart');
+    }
+    {
+      Source source = _createFileSource('/pkgB/lib/src/libB.dart');
+      Uri uri = resolver.restoreAbsolute(source);
+      expect(uri, isNotNull);
+      expect(uri.path, 'package:pkgB/src/libB.dart');
+    }
+    {
+      Source source = _createFileSource('/no/such/file');
+      Uri uri = resolver.restoreAbsolute(source);
+      expect(uri, isNull);
+    }
+  }
+
+  Source _createFileSource(String path) {
+    return new NonExistingSource(path, UriKind.FILE_URI);
   }
 }

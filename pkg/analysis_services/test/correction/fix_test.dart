@@ -12,9 +12,13 @@ import 'package:analysis_services/correction/fix.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
+import 'package:analysis_testing/abstract_context.dart';
 import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 
@@ -858,19 +862,33 @@ main() {
 ''');
   }
 
-  void test_importLibraryPrefix_withType() {
+  void test_importLibraryPackage_withType() {
+    provider.newFile('/packages/my_pkg/lib/my_lib.dart', '''
+library my_lib;
+class Test {}
+''');
+    {
+      Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
+      UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+        'my_pkg': [myPkgFolder]
+      });
+      context.sourceFactory = new SourceFactory(
+          [AbstractContextTest.SDK_RESOLVER, resourceResolver, pkgResolver]);
+    }
+    // force 'my_pkg' resolution
+    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
+    // try to find a fix
     _indexTestUnit('''
-import 'dart:async' as pref;
 main() {
-  pref.Stream s = null;
-  Future f = null;
+  Test test = null;
 }
 ''');
-    assertHasFix(FixKind.IMPORT_LIBRARY_PREFIX, '''
-import 'dart:async' as pref;
+    performAllAnalysisTasks();
+    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
+import 'package:my_pkg/my_lib.dart';
+
 main() {
-  pref.Stream s = null;
-  pref.Future f = null;
+  Test test = null;
 }
 ''');
   }
@@ -888,6 +906,23 @@ import 'dart:math' as pref;
 main() {
   print(pref.E);
   print(pref.PI);
+}
+''');
+  }
+
+  void test_importLibraryPrefix_withType() {
+    _indexTestUnit('''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  Future f = null;
+}
+''');
+    assertHasFix(FixKind.IMPORT_LIBRARY_PREFIX, '''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  pref.Future f = null;
 }
 ''');
   }
@@ -910,29 +945,6 @@ main() {
   myFunction();
 }
 ''');
-  }
-
-  void test_importLibraryPackage_withType() {
-    // TODO(scheglov) move PackageMapUriResolver into analyzer and implement
-    provider.newFile('/packages/my_pkg/lib/my_lib.dart', '''
-//library my_lib;
-//class Test {}
-//''');
-//    testFile = '/project/test.dart';
-//    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
-//    _indexTestUnit('''
-//main() {
-//  Test test = null;
-//}
-//''');
-//    performAllAnalysisTasks();
-//    assertHasFix(FixKind.IMPORT_LIBRARY_PROJECT, '''
-//import 'package:my_pkg/my_lib.dart';
-//
-//main() {
-//  Test test = null;
-//}
-//''');
   }
 
   void test_importLibraryProject_withTopLevelVariable() {

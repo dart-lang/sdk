@@ -889,7 +889,6 @@ class FixProcessor {
         // prepare "library" file
         String libraryFile = librarySource.fullName;
         // may be "package:" URI
-        // TODO(scheglov) this code does not have a test
         {
           String libraryPackageUri = _findPackageUri(context, libraryFile);
           if (libraryPackageUri != null) {

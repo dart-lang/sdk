@@ -84,6 +84,22 @@ class PackageMapUriResolver extends UriResolver {
     return new NonExistingSource(uri.toString(), UriKind.PACKAGE_URI);
   }
 
+  @override
+  Uri restoreAbsolute(Source source) {
+    String sourcePath = source.fullName;
+    for (String pkgName in packageMap.keys) {
+      List<Folder> pkgFolders = packageMap[pkgName];
+      for (Folder pkgFolder in pkgFolders) {
+        String pkgFolderPath = pkgFolder.path;
+        if (sourcePath.startsWith(pkgFolderPath)) {
+          String relPath = sourcePath.substring(pkgFolderPath.length);
+          return new Uri(path: '${PACKAGE_SCHEME}:$pkgName$relPath');
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Returns `true` if [uri] is a `package` URI.
    */
