@@ -39,11 +39,13 @@ symbol_test/01: Fail, Pass # bug 11669
 symbol_reserved_word_test/01: CompileTimeError
 
 # #void should be a valid symbol.
-[ $compiler == none || $compiler == dart2js || $compiler == dart2dart || $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == none || $compiler == dart2js || $compiler == dart2dart || $compiler == dart2analyzer ]
 symbol_reserved_word_test/02: CompileTimeError # bug 20191
+symbol_reserved_word_test/05: CompileTimeError # bug 20191
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 symbol_reserved_word_test/02: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
+symbol_reserved_word_test/05: RuntimeError # bug 20191 / dartium/drt cannot detect CompileTimeErrors
 
 # new Symbol('void') should be allowed.
 [ $compiler == dart2js ]
