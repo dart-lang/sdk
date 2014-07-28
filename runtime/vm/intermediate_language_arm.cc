@@ -1092,11 +1092,8 @@ CompileType LoadIndexedInstr::ComputeType() const {
 
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      // Result can be Smi or Mint when boxed.
-      // Instruction can deoptimize if we optimistically assumed that the result
-      // fits into Smi.
-      return CanDeoptimize() ? CompileType::FromCid(kSmiCid)
-                             : CompileType::Int();
+      return Typed32BitIsSmi() ? CompileType::FromCid(kSmiCid)
+                                : CompileType::FromCid(kMintCid);
 
     default:
       UNREACHABLE();
@@ -1121,9 +1118,7 @@ Representation LoadIndexedInstr::representation() const {
       return kTagged;
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid:
-      // Instruction can deoptimize if we optimistically assumed that the result
-      // fits into Smi.
-      return CanDeoptimize() ? kTagged : kUnboxedMint;
+      return Typed32BitIsSmi() ? kTagged : kUnboxedMint;
     case kTypedDataFloat32ArrayCid:
     case kTypedDataFloat64ArrayCid:
       return kUnboxedDouble;

@@ -13,9 +13,6 @@ issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue
 
 javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude or annotate with '/// none:'
 
-[ $runtime == vm && ($arch == simarm || $arch == ia32) && $mode == debug]
-int_list_test: Crash # Issue 20190
-
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 

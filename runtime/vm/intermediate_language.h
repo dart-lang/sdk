@@ -4252,6 +4252,9 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
     return deopt_id_ != Isolate::kNoDeoptId;
   }
 
+  bool Typed32BitIsSmi() const {
+    return kSmiBits >= 32;
+  }
 
   virtual Representation representation() const;
   virtual void InferRange();

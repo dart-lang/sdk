@@ -1659,9 +1659,8 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
   intptr_t deopt_id = Isolate::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
-    // Prevent excessive deoptimization, assume full 32 bits used, and therefore
-    // generate Mint on 32-bit architectures.
-    deopt_id = (kSmiBits < 32) ? Isolate::kNoDeoptId : call->deopt_id();
+    // Deoptimization may be needed if result does not always fit in a Smi.
+    deopt_id = (kSmiBits >= 32) ? Isolate::kNoDeoptId : call->deopt_id();
   }
 
   // Array load and return.
@@ -3555,9 +3554,8 @@ bool FlowGraphOptimizer::InlineByteArrayViewLoad(Instruction* call,
   intptr_t deopt_id = Isolate::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
-    // Prevent excessive deoptimization, assume full 32 bits used, and therefore
-    // generate Mint on 32-bit architectures.
-    deopt_id = (kSmiBits < 32) ? Isolate::kNoDeoptId : call->deopt_id();
+    // Deoptimization may be needed if result does not always fit in a Smi.
+    deopt_id = (kSmiBits >= 32) ? Isolate::kNoDeoptId : call->deopt_id();
   }
 
   *last = new(I) LoadIndexedInstr(new(I) Value(array),

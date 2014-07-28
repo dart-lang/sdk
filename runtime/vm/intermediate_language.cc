@@ -3120,7 +3120,7 @@ void LoadIndexedInstr::InferRange() {
                          RangeBoundary::FromConstant(65535));
       break;
     case kTypedDataInt32ArrayCid:
-      if (CanDeoptimize()) {
+      if (Typed32BitIsSmi()) {
         range_ = Range::UnknownSmi();
       } else {
         range_ = new Range(RangeBoundary::FromConstant(kMinInt32),
@@ -3128,7 +3128,7 @@ void LoadIndexedInstr::InferRange() {
       }
       break;
     case kTypedDataUint32ArrayCid:
-      if (CanDeoptimize()) {
+      if (Typed32BitIsSmi()) {
         range_ = Range::UnknownSmi();
       } else {
         range_ = new Range(RangeBoundary::FromConstant(0),
