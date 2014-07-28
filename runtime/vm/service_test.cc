@@ -125,7 +125,7 @@ static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
 }
 
 
-// Search for the formatted string in buff.
+// Search for the formatted string in buffer.
 //
 // TODO(turnidge): This function obscures the line number of failing
 // EXPECTs.  Rework this.
@@ -264,6 +264,9 @@ TEST_CASE(Service_DebugBreakpoints) {
   Isolate* isolate = Isolate::Current();
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
@@ -275,30 +278,83 @@ TEST_CASE(Service_DebugBreakpoints) {
   Array& service_msg = Array::Handle();
 
   // Add a breakpoint.
-  const String& url = String::Handle(String::New(TestCase::url()));
-  isolate->debugger()->SetBreakpointAtLine(url, 3);
+  service_msg = EvalF(lib,
+                     "[0, port, ['libraries', '%" Pd "', "
+                     "'scripts', 'test-lib', 'setBreakpoint'], "
+                      "['line'], ['3']]",
+                      vmlib.index());
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(
+      handler.msg(),
+      "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
+      "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
+      "\"location\":{\"type\":\"Location\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+      "\"name\":\"test-lib\",\"user_name\":\"test-lib\",\"kind\":\"script\"},"
+      "\"tokenPos\":5}}",
+      vmlib.index());
+
+  // Get the breakpoint list.
+  service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(
+      handler.msg(),
+      "{\"type\":\"BreakpointList\",\"id\":\"debug\\/breakpoints\","
+      "\"breakpoints\":["
+      "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
+      "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
+      "\"location\":{\"type\":\"Location\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+      "\"name\":\"test-lib\",\"user_name\":\"test-lib\",\"kind\":\"script\"},"
+      "\"tokenPos\":5}}]}",
+      vmlib.index());
+
+  // Lookup individual breakpoint.
+  service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints', '1'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(
+      handler.msg(),
+      "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
+      "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
+      "\"location\":{\"type\":\"Location\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+      "\"name\":\"test-lib\",\"user_name\":\"test-lib\",\"kind\":\"script\"},"
+      "\"tokenPos\":5}}",
+      vmlib.index());
+
+  // Unrecognized breakpoint subcommand.
+  service_msg =
+      Eval(lib, "[0, port, ['debug', 'breakpoints', '1', 'green'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
+                "\"message\":\"Unrecognized subcommand: green\","
+                "\"request\":{\"arguments\":[\"debug\",\"breakpoints\","
+                                            "\"1\",\"green\"],"
+                             "\"option_keys\":[],\"option_values\":[]}}",
+               handler.msg());
+
+  // Clear breakpoint.
+  service_msg =
+      Eval(lib, "[0, port, ['debug', 'breakpoints', '1', 'clear'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  EXPECT_STREQ("{\"type\":\"Success\",\"id\":\"\"}",
+               handler.msg());
 
   // Get the breakpoint list.
   service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
-      "{\"type\":\"BreakpointList\",\"breakpoints\":[{"
-          "\"type\":\"Breakpoint\",\"id\":1,\"enabled\":true,"
-          "\"resolved\":false,"
-          "\"location\":{\"type\":\"Location\","
-                        "\"script\":\"test-lib\",\"tokenPos\":5}}]}",
-      handler.msg());
-
-  // Individual breakpoint.
-  service_msg = Eval(lib, "[0, port, ['debug', 'breakpoints', '1'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ(
-      "{\"type\":\"Breakpoint\",\"id\":1,\"enabled\":true,"
-       "\"resolved\":false,"
-       "\"location\":{\"type\":\"Location\","
-                     "\"script\":\"test-lib\",\"tokenPos\":5}}",
+      "{\"type\":\"BreakpointList\",\"id\":\"debug\\/breakpoints\","
+      "\"breakpoints\":[]}",
       handler.msg());
 
   // Missing sub-command.
@@ -318,22 +374,10 @@ TEST_CASE(Service_DebugBreakpoints) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
-                "\"message\":\"Unrecognized breakpoint id 1111\","
+                "\"message\":\"Unrecognized breakpoint id: 1111\","
                 "\"request\":{"
                     "\"arguments\":[\"debug\",\"breakpoints\",\"1111\"],"
                     "\"option_keys\":[],\"option_values\":[]}}",
-               handler.msg());
-
-  // Command too long.
-  service_msg =
-      Eval(lib, "[0, port, ['debug', 'breakpoints', '1111', 'green'], [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
-  handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Error\",\"id\":\"\","
-                "\"message\":\"Command too long\","
-                "\"request\":{\"arguments\":[\"debug\",\"breakpoints\","
-                                            "\"1111\",\"green\"],"
-                             "\"option_keys\":[],\"option_values\":[]}}",
                handler.msg());
 
   // Unrecognized subcommand.
@@ -345,6 +389,98 @@ TEST_CASE(Service_DebugBreakpoints) {
                 "\"request\":{\"arguments\":[\"debug\",\"nosferatu\"],"
                              "\"option_keys\":[],\"option_values\":[]}}",
                handler.msg());
+}
+
+
+// Globals used to communicate with HandlerPausedEvent.
+static intptr_t pause_line_number = 0;
+static Dart_Handle saved_lib;
+static ServiceTestMessageHandler* saved_handler = NULL;
+
+static void HandlePausedEvent(Dart_IsolateId isolate_id,
+                              intptr_t bp_id,
+                              const Dart_CodeLocation& loc) {
+  Isolate* isolate = Isolate::Current();
+  Debugger* debugger = isolate->debugger();
+
+  // The debugger knows that it is paused, and why.
+  EXPECT(debugger->IsPaused());
+  const DebuggerEvent* event = debugger->PauseEvent();
+  EXPECT(event != NULL);
+  EXPECT(event->type() == DebuggerEvent::kBreakpointReached);
+
+  // Save the last line number seen by this handler.
+  pause_line_number = event->top_frame()->LineNumber();
+
+  // Single step
+  Array& service_msg = Array::Handle();
+  service_msg = Eval(saved_lib,
+                     "[0, port, ['debug', 'resume'], "
+                     "['step'], ['into']]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  saved_handler->HandleNextMessage();
+  EXPECT_STREQ("{\"type\":\"Success\",\"id\":\"\"}",
+               saved_handler->msg());
+}
+
+
+TEST_CASE(Service_Stepping) {
+  const char* kScript =
+      "var port;\n"  // Set to our mock port by C++.
+      "var value = 0;\n"
+      "\n"
+      "main() {\n"   // We set breakpoint here.
+      "  value++;\n"
+      "  value++;\n"
+      "  value++;\n"
+      "}";           // We step up to here.
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  saved_lib = lib;
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  saved_handler = &handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Array& service_msg = Array::Handle();
+
+  // Add a breakpoint.
+  service_msg = EvalF(lib,
+                      "[0, port, ['libraries', '%" Pd "', "
+                      "'scripts', 'test-lib', 'setBreakpoint'], "
+                      "['line'], ['4']]",
+                      vmlib.index());
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  ExpectSubstringF(
+      handler.msg(),
+      "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
+      "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
+      "\"location\":{\"type\":\"Location\","
+      "\"script\":{\"type\":\"@Script\","
+      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+      "\"name\":\"test-lib\",\"user_name\":\"test-lib\",\"kind\":\"script\"},"
+      "\"tokenPos\":11}}",
+      vmlib.index());
+
+  pause_line_number = -1;
+  Dart_SetPausedEventHandler(HandlePausedEvent);
+
+  // Run the program.
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // We were able to step to the last line in main.
+  EXPECT_EQ(8, pause_line_number);
 }
 
 
@@ -625,17 +761,17 @@ TEST_CASE(Service_RetainingPath) {
       "  lst = new List<String>(100);\n"
       "}\n";
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  const Class& class_foo = Class::Handle(GetClass(lib, "Foo"));
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  const Class& class_foo = Class::Handle(GetClass(vmlib, "Foo"));
   EXPECT(!class_foo.IsNull());
-  Dart_Handle foo = Dart_GetField(h_lib, NewString("foo"));
-  Dart_Handle lst = Dart_GetField(h_lib, NewString("lst"));
+  Dart_Handle foo = Dart_GetField(lib, NewString("foo"));
+  Dart_Handle lst = Dart_GetField(lib, NewString("lst"));
   const intptr_t kElemIndex = 42;
   {
     Dart_EnterScope();
@@ -646,7 +782,7 @@ TEST_CASE(Service_RetainingPath) {
       EXPECT_VALID(Dart_SetField(foo, NewString("f0"), h_foo0));
       Dart_Handle id0 = Dart_NewInteger(ring->GetIdForObject(foo0.raw()));
       EXPECT_VALID(id0);
-      EXPECT_VALID(Dart_SetField(h_lib, NewString("id0"), id0));
+      EXPECT_VALID(Dart_SetField(lib, NewString("id0"), id0));
     }
     {
       const String& foo1 = String::Handle(String::New("foo1", Heap::kOld));
@@ -654,7 +790,7 @@ TEST_CASE(Service_RetainingPath) {
       EXPECT_VALID(Dart_SetField(foo, NewString("f1"), h_foo1));
       Dart_Handle id1 = Dart_NewInteger(ring->GetIdForObject(foo1.raw()));
       EXPECT_VALID(id1);
-      EXPECT_VALID(Dart_SetField(h_lib, NewString("id1"), id1));
+      EXPECT_VALID(Dart_SetField(lib, NewString("id1"), id1));
     }
     {
       const String& elem = String::Handle(String::New("elem", Heap::kOld));
@@ -662,7 +798,7 @@ TEST_CASE(Service_RetainingPath) {
       EXPECT_VALID(Dart_ListSetAt(lst, kElemIndex, h_elem));
       Dart_Handle idElem = Dart_NewInteger(ring->GetIdForObject(elem.raw()));
       EXPECT_VALID(idElem);
-      EXPECT_VALID(Dart_SetField(h_lib, NewString("idElem"), idElem));
+      EXPECT_VALID(Dart_SetField(lib, NewString("idElem"), idElem));
     }
     Dart_ExitScope();
   }
@@ -672,12 +808,12 @@ TEST_CASE(Service_RetainingPath) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
   Array& service_msg = Array::Handle();
 
   // Retaining path to 'foo0', limit 2.
   service_msg = Eval(
-      h_lib,
+      lib,
       "[0, port, ['objects', '$id0', 'retaining_path'], ['limit'], ['2']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -692,7 +828,7 @@ TEST_CASE(Service_RetainingPath) {
 
   // Retaining path to 'foo1', limit 2.
   service_msg = Eval(
-      h_lib,
+      lib,
       "[0, port, ['objects', '$id1', 'retaining_path'], ['limit'], ['2']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -707,7 +843,7 @@ TEST_CASE(Service_RetainingPath) {
 
   // Retaining path to 'elem', limit 2.
   service_msg = Eval(
-      h_lib,
+      lib,
       "[0, port, ['objects', '$idElem', 'retaining_path'], ['limit'], ['2']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -730,44 +866,35 @@ TEST_CASE(Service_Libraries) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-
-  // Find the current library.
-  intptr_t lib_id = -1;
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  for (intptr_t i = 0; i < libs.Length(); i++) {
-    if (libs.At(i) == lib.raw()) {
-      lib_id = i;
-    }
-  }
-  ASSERT(lib_id > 0);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
 
   // Request library.
-  service_msg = EvalF(h_lib,
-                      "[0, port, ['libraries', '%" Pd "'], [], []]", lib_id);
+  service_msg = EvalF(lib,
+                      "[0, port, ['libraries', '%" Pd "'], [], []]",
+                      vmlib.index());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Library\"", handler.msg());
   EXPECT_SUBSTRING("\"url\":\"test-lib\"", handler.msg());
 
   // Evaluate an expression from a library.
-  service_msg = EvalF(h_lib,
+  service_msg = EvalF(lib,
                       "[0, port, ['libraries', '%" Pd "', 'eval'], "
-                      "['expr'], ['libVar - 1']]", lib_id);
+                      "['expr'], ['libVar - 1']]",
+                      vmlib.index());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("name");
@@ -802,14 +929,14 @@ TEST_CASE(Service_Classes) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  const Class& class_a = Class::Handle(GetClass(lib, "A"));
+  const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
   EXPECT(!class_a.IsNull());
   intptr_t cid = class_a.id();
 
@@ -818,12 +945,12 @@ TEST_CASE(Service_Classes) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
 
   // Request an invalid class id.
-  service_msg = Eval(h_lib, "[0, port, ['classes', '999999'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['classes', '999999'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -833,7 +960,7 @@ TEST_CASE(Service_Classes) {
     "\"option_keys\":[],\"option_values\":[]}}", handler.msg());
 
   // Request the class A over the service.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "'], [], []]", cid);
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
@@ -844,7 +971,7 @@ TEST_CASE(Service_Classes) {
   ExpectSubstringF(handler.msg(), "\"endTokenPos\":");
 
   // Evaluate an expression from class A.
-  service_msg = EvalF(h_lib,
+  service_msg = EvalF(lib,
                       "[0, port, ['classes', '%" Pd "', 'eval'], "
                       "['expr'], ['cobra + 100000']]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -859,7 +986,7 @@ TEST_CASE(Service_Classes) {
       handler.msg());
 
   // Request function 0 from class A.
-  service_msg = EvalF(h_lib,
+  service_msg = EvalF(lib,
                       "[0, port, ['classes', '%" Pd "', 'functions', '0'],"
                       "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -870,8 +997,8 @@ TEST_CASE(Service_Classes) {
                    "\"name\":\"get:a\",", cid);
 
   // Request field 0 from class A.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'fields', '0'],"
-                              "[], []]", cid);
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'fields', '0'],"
+                      "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Field\"", handler.msg());
@@ -880,8 +1007,8 @@ TEST_CASE(Service_Classes) {
                    "\"name\":\"a\",", cid);
 
   // Invalid sub command.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'huh', '0'],"
-                              "[], []]", cid);
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'huh', '0'],"
+                      "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
@@ -891,8 +1018,8 @@ TEST_CASE(Service_Classes) {
     "\"option_values\":[]}}", cid);
 
   // Invalid field request.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'fields', '9'],"
-                              "[], []]", cid);
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'fields', '9'],"
+                      "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
@@ -901,9 +1028,9 @@ TEST_CASE(Service_Classes) {
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function request.
-  service_msg = EvalF(h_lib,
+  service_msg = EvalF(lib,
                       "[0, port, ['classes', '%" Pd "', 'functions', '9'],"
-                    "[], []]", cid);
+                      "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
@@ -913,7 +1040,7 @@ TEST_CASE(Service_Classes) {
 
 
   // Invalid field subcommand.
-  service_msg = EvalF(h_lib,
+  service_msg = EvalF(lib,
                       "[0, port, ['classes', '%" Pd "', 'fields', '9', 'x']"
                       ",[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -925,7 +1052,7 @@ TEST_CASE(Service_Classes) {
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function command.
-  service_msg = EvalF(h_lib,
+  service_msg = EvalF(lib,
                       "[0, port, ['classes', '%" Pd "', 'functions', '0',"
                       "'x', 'y'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -937,7 +1064,7 @@ TEST_CASE(Service_Classes) {
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function subcommand with valid function id.
-  service_msg = EvalF(h_lib,
+  service_msg = EvalF(lib,
                       "[0, port, ['classes', '%" Pd "', 'functions', '0',"
                       "'x'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -949,11 +1076,11 @@ TEST_CASE(Service_Classes) {
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Retained size of all instances of class B.
-  const Class& class_b = Class::Handle(GetClass(lib, "B"));
+  const Class& class_b = Class::Handle(GetClass(vmlib, "B"));
   EXPECT(!class_b.IsNull());
   const Instance& b0 = Instance::Handle(Instance::New(class_b));
   const Instance& b1 = Instance::Handle(Instance::New(class_b));
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'retained'],"
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'retained'],"
                       "[], []]", class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -961,7 +1088,7 @@ TEST_CASE(Service_Classes) {
                    "\"id\":\"objects\\/int-%" Pd "\"",
                    b0.raw()->Size() + b1.raw()->Size());
   // ... and list the instances of class B.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'instances'],"
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'instances'],"
                       "['limit'], ['3']]", class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -979,7 +1106,7 @@ TEST_CASE(Service_Classes) {
   EXPECT((list.At(0) == b0.raw() && list.At(1) == b1.raw()) ||
          (list.At(0) == b1.raw() && list.At(1) == b0.raw()));
   // ... and if limit is 1, we one get one of them.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'instances'],"
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'instances'],"
                       "['limit'], ['1']]", class_b.id());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -999,14 +1126,14 @@ TEST_CASE(Service_Types) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  const Class& class_a = Class::Handle(GetClass(lib, "A"));
+  const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
   EXPECT(!class_a.IsNull());
   intptr_t cid = class_a.id();
 
@@ -1015,12 +1142,12 @@ TEST_CASE(Service_Types) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
 
   // Request the class A over the service.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "'], [], []]", cid);
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
@@ -1029,7 +1156,7 @@ TEST_CASE(Service_Types) {
                    "\"id\":\"classes\\/%" Pd "\"", cid);
 
   // Request canonical type 0 from class A.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'types', '0'],"
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'types', '0'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -1039,7 +1166,7 @@ TEST_CASE(Service_Types) {
                    "\"id\":\"classes\\/%" Pd "\\/types\\/0\"", cid);
 
   // Request canonical type 1 from class A.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'types', '1'],"
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'types', '1'],"
                               "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -1049,8 +1176,8 @@ TEST_CASE(Service_Types) {
                    "\"id\":\"classes\\/%" Pd "\\/types\\/1\"", cid);
 
   // Request for non-existent canonical type from class A.
-  service_msg = EvalF(h_lib, "[0, port, ['classes', '%" Pd "', 'types', '42'],"
-                              "[], []]", cid);
+  service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'types', '42'],"
+                      "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
@@ -1061,15 +1188,15 @@ TEST_CASE(Service_Types) {
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Request canonical type arguments. Expect <A<bool>> to be listed.
-  service_msg = EvalF(h_lib, "[0, port, ['typearguments'],"
-                              "[], []]");
+  service_msg = EvalF(lib, "[0, port, ['typearguments'],"
+                      "[], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"TypeArgumentsList\"", handler.msg());
   ExpectSubstringF(handler.msg(), "\"name\":\"<A<bool>>\",");
 
   // Request canonical type arguments with instantiations.
-  service_msg = EvalF(h_lib,
+  service_msg = EvalF(lib,
                       "[0, port, ['typearguments', 'withinstantiations'],"
                       "[], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -1097,14 +1224,14 @@ TEST_CASE(Service_Code) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
-  const Class& class_a = Class::Handle(GetClass(lib, "A"));
+  const Class& class_a = Class::Handle(GetClass(vmlib, "A"));
   EXPECT(!class_a.IsNull());
   const Function& function_c = Function::Handle(GetFunction(class_a, "c"));
   EXPECT(!function_c.IsNull());
@@ -1121,12 +1248,12 @@ TEST_CASE(Service_Code) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
 
   // Request an invalid code object.
-  service_msg = Eval(h_lib, "[0, port, ['code', '0'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['code', '0'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_STREQ(
@@ -1136,7 +1263,7 @@ TEST_CASE(Service_Code) {
 
   // The following test checks that a code object can be found only
   // at compile_timestamp()-code.EntryPoint().
-  service_msg = EvalF(h_lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
+  service_msg = EvalF(lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
                       compile_timestamp,
                       entry);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -1155,7 +1282,7 @@ TEST_CASE(Service_Code) {
   // Request code object at compile_timestamp-code.EntryPoint() + 16
   // Expect this to fail because the address is not the entry point.
   uintptr_t address = entry + 16;
-  service_msg = EvalF(h_lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
+  service_msg = EvalF(lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
                       compile_timestamp,
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -1174,7 +1301,7 @@ TEST_CASE(Service_Code) {
   // Request code object at (compile_timestamp - 1)-code.EntryPoint()
   // Expect this to fail because the timestamp is wrong.
   address = entry;
-  service_msg = EvalF(h_lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
+  service_msg = EvalF(lib, "[0, port, ['code', '%" Px64"-%" Px "'], [], []]",
                       compile_timestamp - 1,
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
@@ -1192,7 +1319,7 @@ TEST_CASE(Service_Code) {
 
   // Request native code at address. Expect the null code object back.
   address = last;
-  service_msg = EvalF(h_lib, "[0, port, ['code', 'native-%" Px "'], [], []]",
+  service_msg = EvalF(lib, "[0, port, ['code', 'native-%" Px "'], [], []]",
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -1201,7 +1328,7 @@ TEST_CASE(Service_Code) {
                handler.msg());
 
   // Request malformed native code.
-  service_msg = EvalF(h_lib, "[0, port, ['code', 'native%" Px "'], [], []]",
+  service_msg = EvalF(lib, "[0, port, ['code', 'native%" Px "'], [], []]",
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -1298,26 +1425,26 @@ TEST_CASE(Service_Scripts) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
       "[0, port, ['libraries', '%" Pd "', 'scripts', 'test-lib'], [], []]",
-      lib.index());
+      vmlib.index());
 
-  service_msg = Eval(h_lib, buf);
+  service_msg = Eval(lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   OS::SNPrint(buf, sizeof(buf),
@@ -1330,7 +1457,7 @@ TEST_CASE(Service_Scripts) {
       "\"url\":\"test-lib\"},"
       "\"source\":\"var port;\\n\\nmain() {\\n}\","
       "\"tokenPosTable\":[[1,0,1,1,5,2,9],[3,5,1,6,5,7,6,8,8],[4,10,1]]}",
-      lib.index(), lib.index());
+      vmlib.index(), vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
 }
 
@@ -1349,12 +1476,12 @@ TEST_CASE(Service_Coverage) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
   // Build a mock message handler and wrap it in a dart port.
@@ -1362,31 +1489,21 @@ TEST_CASE(Service_Coverage) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(h_lib, "[0, port, ['coverage'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['coverage'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
 
-  // Look up the service id for the library containg the test-lib script.
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  intptr_t i;
-  for (i = 0; i < libs.Length(); i++) {
-    if (libs.At(i) == lib.raw()) {
-      break;
-    }
-  }
-  ASSERT(i != libs.Length());
-
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
-      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":"
-      "[5,1,6,1]}", i);
+              "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+              "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+              "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+              "\"kind\":\"script\"},\"hits\":"
+              "[5,1,6,1]}",
+              vmlib.index());
   EXPECT_SUBSTRING(buf, handler.msg());
 }
 
@@ -1402,12 +1519,12 @@ TEST_CASE(Service_LibrariesScriptsCoverage) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
   // Build a mock message handler and wrap it in a dart port.
@@ -1415,16 +1532,16 @@ TEST_CASE(Service_LibrariesScriptsCoverage) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
       "[0, port, ['libraries', '%" Pd  "', 'scripts', 'test-lib', 'coverage'], "
       "[], []]",
-      lib.index());
+      vmlib.index());
 
-  service_msg = Eval(h_lib, buf);
+  service_msg = Eval(lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   OS::SNPrint(buf, sizeof(buf),
@@ -1432,7 +1549,7 @@ TEST_CASE(Service_LibrariesScriptsCoverage) {
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", lib.index());
+      "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
 }
 
@@ -1448,12 +1565,12 @@ TEST_CASE(Service_LibrariesCoverage) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
   // Build a mock message handler and wrap it in a dart port.
@@ -1461,32 +1578,24 @@ TEST_CASE(Service_LibrariesCoverage) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
-  // Look up the service id for the library containg the test-lib script.
-  const GrowableObjectArray& libs =
-      GrowableObjectArray::Handle(isolate->object_store()->libraries());
-  intptr_t i;
-  for (i = 0; i < libs.Length(); i++) {
-    if (libs.At(i) == lib.raw()) {
-      break;
-    }
-  }
-  ASSERT(i != libs.Length());
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
-              "[0, port, ['libraries', '%" Pd "', 'coverage'], [], []]", i);
+              "[0, port, ['libraries', '%" Pd "', 'coverage'], [], []]",
+              vmlib.index());
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(h_lib, buf);
+  service_msg = Eval(lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   OS::SNPrint(buf, sizeof(buf),
-      "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", lib.index());
+              "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
+              "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+              "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+              "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+              "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}",
+              vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
 }
 
@@ -1509,12 +1618,12 @@ TEST_CASE(Service_ClassesCoverage) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
   // Build a mock message handler and wrap it in a dart port.
@@ -1522,11 +1631,11 @@ TEST_CASE(Service_ClassesCoverage) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   // Look up the service id of Foo.
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::New("Foo"))));
+      vmlib.LookupClass(String::Handle(String::New("Foo"))));
   ASSERT(!cls.IsNull());
   ClassTable* table = isolate->class_table();
   intptr_t i;
@@ -1541,15 +1650,16 @@ TEST_CASE(Service_ClassesCoverage) {
               "[0, port, ['classes', '%" Pd "', 'coverage'], [], []]", i);
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(h_lib, buf);
+  service_msg = Eval(lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   OS::SNPrint(buf, sizeof(buf),
-      "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
-      "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[5,1,7,4,8,3]}]}", lib.index());
+              "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
+              "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
+              "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+              "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+              "\"kind\":\"script\"},\"hits\":[5,1,7,4,8,3]}]}",
+              vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
 }
 
@@ -1573,12 +1683,12 @@ TEST_CASE(Service_ClassesFunctionsCoverage) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
   // Build a mock message handler and wrap it in a dart port.
@@ -1586,11 +1696,11 @@ TEST_CASE(Service_ClassesFunctionsCoverage) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   // Look up the service id of Foo.
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::New("Foo"))));
+      vmlib.LookupClass(String::Handle(String::New("Foo"))));
   ASSERT(!cls.IsNull());
   ClassTable* table = isolate->class_table();
   intptr_t i;
@@ -1615,7 +1725,7 @@ TEST_CASE(Service_ClassesFunctionsCoverage) {
               "'% " Pd "', 'coverage'], [], []]", i,  function_id);
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(h_lib, buf);
+  service_msg = Eval(lib, buf);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   OS::SNPrint(buf, sizeof(buf),
@@ -1623,7 +1733,7 @@ TEST_CASE(Service_ClassesFunctionsCoverage) {
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[7,4,8,3]}]}", lib.index());
+      "\"kind\":\"script\"},\"hits\":[7,4,8,3]}]}", vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
 }
 
@@ -1641,12 +1751,9 @@ TEST_CASE(Service_AllocationProfile) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
   // Build a mock message handler and wrap it in a dart port.
@@ -1654,29 +1761,29 @@ TEST_CASE(Service_AllocationProfile) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(h_lib, "[0, port, ['allocationprofile'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['allocationprofile'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
   // Too long.
-  service_msg = Eval(h_lib, "[0, port, ['allocationprofile', 'foo'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['allocationprofile', 'foo'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   // Bad gc option.
-  service_msg = Eval(h_lib,
+  service_msg = Eval(lib,
                      "[0, port, ['allocationprofile'], ['gc'], ['cat']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
 
   // Bad reset option.
-  service_msg = Eval(h_lib,
+  service_msg = Eval(lib,
                      "[0, port, ['allocationprofile'], ['reset'], ['ff']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -1684,20 +1791,20 @@ TEST_CASE(Service_AllocationProfile) {
 
   // Good reset.
   service_msg =
-      Eval(h_lib, "[0, port, ['allocationprofile'], ['reset'], ['true']]");
+      Eval(lib, "[0, port, ['allocationprofile'], ['reset'], ['true']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
   // Good GC.
   service_msg =
-      Eval(h_lib, "[0, port, ['allocationprofile'], ['gc'], ['full']]");
+      Eval(lib, "[0, port, ['allocationprofile'], ['gc'], ['full']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"AllocationProfile\"", handler.msg());
 
   // Good GC and reset.
-  service_msg = Eval(h_lib,
+  service_msg = Eval(lib,
       "[0, port, ['allocationprofile'], ['gc', 'reset'], ['full', 'true']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -1891,12 +1998,9 @@ TEST_CASE(Service_Profile) {
       "}";
 
   Isolate* isolate = Isolate::Current();
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
-  EXPECT_VALID(h_lib);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
   // Build a mock message handler and wrap it in a dart port.
@@ -1904,22 +2008,22 @@ TEST_CASE(Service_Profile) {
   Dart_Port port_id = PortMap::CreatePort(&handler);
   Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
   EXPECT_VALID(port);
-  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(h_lib, "[0, port, ['profile'], [], []]");
+  service_msg = Eval(lib, "[0, port, ['profile'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
   EXPECT_SUBSTRING("\"type\":\"Profile\"", handler.msg());
 
-  service_msg = Eval(h_lib, "[0, port, ['profile'], ['tags'], ['hide']]");
+  service_msg = Eval(lib, "[0, port, ['profile'], ['tags'], ['hide']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
   EXPECT_SUBSTRING("\"type\":\"Profile\"", handler.msg());
 
-  service_msg = Eval(h_lib, "[0, port, ['profile'], ['tags'], ['hidden']]");
+  service_msg = Eval(lib, "[0, port, ['profile'], ['tags'], ['hidden']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error.

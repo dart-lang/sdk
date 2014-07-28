@@ -13,6 +13,7 @@ class ActionLinkElement extends PolymerElement {
   @observable bool busy = false;
   @published var callback = null;
   @published String label = 'action';
+  @published String color = null;
 
   void doAction(var a, var b, var c) {
     if (busy) {

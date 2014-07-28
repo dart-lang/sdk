@@ -46,29 +46,106 @@
       <content></content>
       <div class="sourceBox" style="height:{{height}}">
         <div class="sourceTable">
-          <template repeat="{{ line in lines }}">
-            <div class="sourceRow" id="{{ makeLineId(line.line) }}">
-              <template if="{{ line.hits == null }}">
-                <div class="hitsNone">{{ line.line }}</div>
-              </template>
-              <template if="{{ line.hits == 0 }}">
-                <div class="hitsNotExecuted">{{ line.line }}</div>
-              </template>
-              <template if="{{ line.hits > 0 }}">
-                <div class="hitsExecuted">{{ line.line }}</div>
-              </template>
-              <div class="sourceItem">&nbsp;</div>
-              <template if="{{ line.line == currentLine }}">
-                <div id="currentLine" class="sourceItemCurrent">{{line.text}}</div>
-              </template>
-              <template if="{{ line.line != currentLine }}">
-                <div class="sourceItem">{{line.text}}</div>
-              </template>
+          <template if="{{ linesReady }}">
+            <template repeat="{{ line in lines }}">
+              <div class="sourceRow" id="{{ makeLineId(line.line) }}">
+                <breakpoint-toggle line="{{ line }}"></breakpoint-toggle>
+
+                <div class="sourceItem">&nbsp;</div>
+
+                <template if="{{ line.hits == null ||
+                              line.hits < 0 }}">
+                  <div class="hitsNone">{{ line.line }}</div>
+                </template>
+                <template if="{{ line.hits == 0 }}">
+                  <div class="hitsNotExecuted">{{ line.line }}</div>
+                </template>
+                <template if="{{ line.hits > 0 }}">
+                  <div class="hitsExecuted">{{ line.line }}</div>
+                </template>
+
+                <div class="sourceItem">&nbsp;</div>
+
+                <template if="{{ line.line == currentLine }}">
+                  <div class="sourceItemCurrent">{{line.text}}</div>
+                </template>
+                <template if="{{ line.line != currentLine }}">
+                  <div class="sourceItem">{{line.text}}</div>
+                </template>
+              </div>
+            </template>
+          </template>
+
+          <template if="{{ !linesReady }}">
+            <div class="sourceRow">
+              <div class="sourceItem">loading...</div>
             </div>
           </template>
         </div>
       </div>
     </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="breakpoint-toggle" extends="observatory-element">
+  <template>
+    <style>
+      .emptyBreakpoint, .possibleBreakpoint, .busyBreakpoint, .unresolvedBreakpoint, .resolvedBreakpoint  {
+        display: table-cell;
+        vertical-align: top;
+        font: 400 14px consolas, courier, monospace;
+        min-width: 1em;
+        text-align: center;
+        cursor: pointer;
+      }
+      .possibleBreakpoint {
+        color: #e0e0e0;
+      }
+      .possibleBreakpoint:hover {
+        color: white;
+        background-color: #777;
+      }
+      .busyBreakpoint {
+        color: white;
+        background-color: black;
+        cursor: wait;
+      }
+      .unresolvedBreakpoint {
+        color: white;
+        background-color: #cac;
+      }
+      .resolvedBreakpoint {
+        color: white;
+        background-color: #e66;
+      }
+    </style>
+
+    <template if="{{ line.possibleBpt && busy}}">
+      <div class="busyBreakpoint">B</div>
+    </template>
+
+    <template if="{{ line.bpt == null && !line.possibleBpt }}">
+      <div class="emptyBreakpoint">&nbsp;</div>
+    </template>
+
+    <template if="{{ line.bpt == null && line.possibleBpt && !busy}}">
+      <div class="possibleBreakpoint">
+        <a on-click="{{ toggleBreakpoint }}">B</a>
+      </div>
+    </template>
+
+    <template if="{{ line.bpt != null && !line.bpt['resolved'] && !busy}}">
+      <div class="unresolvedBreakpoint">
+        <a on-click="{{ toggleBreakpoint }}">B</a>
+      </div>
+    </template>
+
+    <template if="{{ line.bpt != null && line.bpt['resolved'] && !busy}}">
+      <div class="resolvedBreakpoint">
+        <a on-click="{{ toggleBreakpoint }}">B</a>
+      </div>
+    </template>
+
   </template>
 </polymer-element>
 

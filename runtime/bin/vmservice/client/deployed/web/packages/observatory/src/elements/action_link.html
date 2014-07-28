@@ -7,10 +7,15 @@
       .idle {
         color: #0489c3;
         cursor: pointer;
+        text-decoration: none;
+      }
+      .idle:hover {
+        text-decoration: underline;
       }
       .busy {
         color: #aaa;
         cursor: wait;
+        text-decoration: none;
       }
     </style>
 
@@ -18,7 +23,12 @@
       <span class="busy">[{{ label }}]</span>
     </template>
     <template if="{{ !busy }}">
-      <span class="idle"><a on-click="{{ doAction }}">[{{ label }}]</a></span>
+      <template if="{{ color == null }}">
+        <span class="idle"><a on-click="{{ doAction }}">[{{ label }}]</a></span>
+      </template>
+      <template if="{{ color != null }}">
+        <span class="idle" style="color:{{ color }}"><a on-click="{{ doAction }}">[{{ label }}]</a></span>
+      </template>
     </template>
   </template>
 </polymer-element>

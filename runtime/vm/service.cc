@@ -1420,6 +1420,30 @@ static bool HandleLibrariesScriptsCoverage(
 }
 
 
+static bool HandleLibrariesScriptsSetBreakpoint(
+    Isolate* isolate, const Script& script, JSONStream* js) {
+  if (!js->HasOption("line")) {
+    PrintError(js, "Missing 'line' option");
+    return true;
+  }
+  const char* line_option = js->LookupOption("line");
+  intptr_t line = -1;
+  if (!GetIntegerId(line_option, &line)) {
+    PrintError(js, "Invalid 'line' value: %s", line_option);
+    return true;
+  }
+  const String& script_url = String::Handle(script.url());
+  SourceBreakpoint* bpt =
+      isolate->debugger()->SetBreakpointAtLine(script_url, line);
+  if (bpt == NULL) {
+    PrintError(js, "Unable to set breakpoint at line %s", line_option);
+    return true;
+  }
+  bpt->PrintJSON(js);
+  return true;
+}
+
+
 static bool HandleLibrariesScripts(Isolate* isolate,
                                    const Library& lib,
                                    JSONStream* js) {
@@ -1458,6 +1482,8 @@ static bool HandleLibrariesScripts(Isolate* isolate,
     const char* subcollection = js->GetArgument(4);
     if (strcmp(subcollection, "coverage") == 0) {
       return HandleLibrariesScriptsCoverage(isolate, script, js);
+    } else if (strcmp(subcollection, "setBreakpoint") == 0) {
+      return HandleLibrariesScriptsSetBreakpoint(isolate, script, js);
     } else {
       PrintError(js, "Invalid sub collection %s", subcollection);
       return true;
@@ -1681,7 +1707,9 @@ static bool HandleScripts(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleDebugResume(Isolate* isolate, JSONStream* js) {
+static bool HandleDebugResume(Isolate* isolate,
+                              const char* step_option,
+                              JSONStream* js) {
   if (isolate->message_handler()->paused_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
     JSONObject jsobj(js);
@@ -1697,6 +1725,18 @@ static bool HandleDebugResume(Isolate* isolate, JSONStream* js) {
     return true;
   }
   if (isolate->debugger()->PauseEvent() != NULL) {
+    if (step_option != NULL) {
+      if (strcmp(step_option, "into") == 0) {
+        isolate->debugger()->SetSingleStep();
+      } else if (strcmp(step_option, "over") == 0) {
+        isolate->debugger()->SetStepOver();
+      } else if (strcmp(step_option, "out") == 0) {
+        isolate->debugger()->SetStepOut();
+      } else {
+        PrintError(js, "Invalid 'step' option: %s", step_option);
+        return true;
+      }
+    }
     isolate->Resume();
     JSONObject jsobj(js);
     jsobj.AddProperty("type", "Success");
@@ -1720,26 +1760,42 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
       // Print breakpoint list.
       JSONObject jsobj(js);
       jsobj.AddProperty("type", "BreakpointList");
+      jsobj.AddProperty("id", "debug/breakpoints");
       JSONArray jsarr(&jsobj, "breakpoints");
       isolate->debugger()->PrintBreakpointsToJSONArray(&jsarr);
       return true;
-    } else if (js->num_arguments() == 3) {
-      // Print individual breakpoint.
+    } else {
       intptr_t id = 0;
       SourceBreakpoint* bpt = NULL;
       if (GetIntegerId(js->GetArgument(2), &id)) {
         bpt = isolate->debugger()->GetBreakpointById(id);
       }
-      if (bpt != NULL) {
-        bpt->PrintJSON(js);
-        return true;
-      } else {
-        PrintError(js, "Unrecognized breakpoint id %s", js->GetArgument(2));
+      if (bpt == NULL) {
+        PrintError(js, "Unrecognized breakpoint id: %s", js->GetArgument(2));
         return true;
       }
-    } else {
-      PrintError(js, "Command too long");
-      return true;
+      if (js->num_arguments() == 3) {
+        // Print individual breakpoint.
+        bpt->PrintJSON(js);
+        return true;
+      } else if (js->num_arguments() == 4) {
+        const char* sub_command = js->GetArgument(3);
+        if (strcmp(sub_command, "clear") == 0) {
+          // Clear this breakpoint.
+          isolate->debugger()->RemoveBreakpoint(id);
+
+          JSONObject jsobj(js);
+          jsobj.AddProperty("type", "Success");
+          jsobj.AddProperty("id", "");
+          return true;
+        } else {
+          PrintError(js, "Unrecognized subcommand: %s", sub_command);
+          return true;
+        }
+      } else {
+        PrintError(js, "Command too long");
+        return true;
+      }
     }
   } else if (strcmp(command, "pause") == 0) {
     if (js->num_arguments() == 2) {
@@ -1755,7 +1811,8 @@ static bool HandleDebug(Isolate* isolate, JSONStream* js) {
     }
   } else if (strcmp(command, "resume") == 0) {
     if (js->num_arguments() == 2) {
-      return HandleDebugResume(isolate, js);
+      const char* step_option = js->LookupOption("step");
+      return HandleDebugResume(isolate, step_option, js);
     } else {
       PrintError(js, "Command too long");
       return true;

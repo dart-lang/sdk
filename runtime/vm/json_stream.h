@@ -101,6 +101,7 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
   void PrintProperty(const char* name, const DebuggerEvent* event);
+  void PrintProperty(const char* name, SourceBreakpoint* bpt);
   void PrintProperty(const char* name, Isolate* isolate);
   void PrintPropertyName(const char* name);
   void PrintCommaIfNeeded();
@@ -163,6 +164,9 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, const DebuggerEvent* event) const {
     stream_->PrintProperty(name, event);
+  }
+  void AddProperty(const char* name, SourceBreakpoint* bpt) const {
+    stream_->PrintProperty(name, bpt);
   }
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);

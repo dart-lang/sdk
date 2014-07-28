@@ -2,10 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "vm/dart_api_impl.h"
 #include "vm/debugger.h"
 #include "vm/unit_test.h"
 
 namespace dart {
+
+// Search for the formatted string in buffer.
+//
+// TODO(turnidge): This function obscures the line number of failing
+// EXPECTs.  Rework this.
+static void ExpectSubstringF(const char* buff, const char* fmt, ...) {
+  Isolate* isolate = Isolate::Current();
+
+  va_list args;
+  va_start(args, fmt);
+  intptr_t len = OS::VSNPrint(NULL, 0, fmt, args);
+  va_end(args);
+
+  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  va_list args2;
+  va_start(args2, fmt);
+  OS::VSNPrint(buffer, (len + 1), fmt, args2);
+  va_end(args2);
+
+  EXPECT_SUBSTRING(buffer, buff);
+}
+
 
 TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
   const char* kScriptChars =
@@ -17,6 +40,9 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
 
   Isolate* isolate = Isolate::Current();
   Debugger* debugger = isolate->debugger();
@@ -41,16 +67,23 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
       JSONArray jsarr(&js);
       debugger->PrintBreakpointsToJSONArray(&jsarr);
     }
-    EXPECT_STREQ(
-       "[{\"type\":\"Breakpoint\",\"id\":2,"
-         "\"enabled\":true,\"resolved\":false,"
-         "\"location\":{\"type\":\"Location\","
-                       "\"script\":\"test-lib\",\"tokenPos\":14}},"
-        "{\"type\":\"Breakpoint\",\"id\":1,"
-         "\"enabled\":true,\"resolved\":false,"
-         "\"location\":{\"type\":\"Location\","
-                       "\"script\":\"test-lib\",\"tokenPos\":5}}]",
-       js.ToCString());
+    ExpectSubstringF(
+        js.ToCString(),
+        "[{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/2\","
+        "\"breakpointNumber\":2,\"enabled\":true,\"resolved\":false,"
+        "\"location\":{\"type\":\"Location\","
+        "\"script\":{\"type\":\"@Script\","
+        "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+        "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+        "\"kind\":\"script\"},\"tokenPos\":14}},"
+        "{\"type\":\"Breakpoint\",\"id\":\"debug\\/breakpoints\\/1\","
+        "\"breakpointNumber\":1,\"enabled\":true,\"resolved\":false,"
+        "\"location\":{\"type\":\"Location\","
+        "\"script\":{\"type\":\"@Script\","
+        "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+        "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+        "\"kind\":\"script\"},\"tokenPos\":5}}]",
+        vmlib.index(), vmlib.index());
   }
 }
 

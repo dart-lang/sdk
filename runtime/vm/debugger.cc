@@ -144,7 +144,8 @@ void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Breakpoint");
 
-  jsobj.AddProperty("id", id());
+  jsobj.AddPropertyF("id", "debug/breakpoints/%" Pd "", id());
+  jsobj.AddProperty("breakpointNumber", id());
   jsobj.AddProperty("enabled", IsEnabled());
   jsobj.AddProperty("resolved", IsResolved());
 
@@ -155,9 +156,7 @@ void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   {
     JSONObject location(&jsobj, "location");
     location.AddProperty("type", "Location");
-
-    const String& url = String::Handle(script.url());
-    location.AddProperty("script", url.ToCString());
+    location.AddProperty("script", script);
     location.AddProperty("tokenPos", token_pos);
   }
 }
@@ -529,7 +528,8 @@ void DebuggerEvent::PrintJSON(JSONStream* js) const {
   jsobj.AddProperty("id", "");
   jsobj.AddProperty("eventType", EventTypeToCString(type()));
   jsobj.AddProperty("isolate", isolate());
-  if (type() == kBreakpointResolved || type() == kBreakpointReached) {
+  if ((type() == kBreakpointResolved || type() == kBreakpointReached) &&
+      breakpoint() != NULL) {
     jsobj.AddProperty("breakpoint", breakpoint());
   }
   if (type() == kExceptionThrown) {
@@ -2205,6 +2205,9 @@ bool Debugger::IsDebuggable(const Function& func) {
   if (!IsDebuggableFunctionKind(func)) {
     return false;
   }
+  if (Service::IsRunning()) {
+    return true;
+  }
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
   return lib.IsDebuggable();
@@ -2481,10 +2484,18 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
       } else {
         prev_bpt->set_next(curr_bpt->next());
       }
+
       // Remove references from code breakpoints to this source breakpoint,
       // and disable the code breakpoints.
       UnlinkCodeBreakpoints(curr_bpt);
       delete curr_bpt;
+
+      // Remove references from the current debugger pause event.
+      if (pause_event_ != NULL &&
+          pause_event_->type() == DebuggerEvent::kBreakpointReached &&
+          pause_event_->breakpoint() == curr_bpt) {
+        pause_event_->set_breakpoint(NULL);
+      }
       return;
     }
     prev_bpt = curr_bpt;

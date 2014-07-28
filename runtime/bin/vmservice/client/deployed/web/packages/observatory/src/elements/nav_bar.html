@@ -1,4 +1,5 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="action_link.html">
 <link rel="import" href="observatory_element.html">
 
 <polymer-element name="nav-bar" extends="observatory-element">
@@ -315,27 +316,30 @@
         background: rgba(255,255,255,0.5);
       }
     </style>
-    <template if="{{ event.eventType == 'IsolateInterrupted' }}">
+    <template if="{{ event.eventType == 'IsolateInterrupted' ||
+                     event.eventType == 'BreakpointReached' ||
+                     event.eventType == 'ExceptionThrown' }}">
       <div class="item">
         Isolate
-        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
+        <a class="link" on-click="{{ goto }}"
+           href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
         is paused
-        <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
-      </div>
-    </template>
-    <template if="{{ event.eventType == 'BreakpointReached' }}">
-      <div class="item">
-        Isolate
-        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
-        is paused at breakpoint {{ event.breakpoint['id'] }}
-        <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
-      </div>
-    </template>
-    <template if="{{ event.eventType == 'ExceptionThrown' }}">
-      <div class="item">
-        Isolate
-        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
-        is paused at exception
+        <template if="{{ event.breakpoint != null }}">
+          at breakpoint
+        </template>
+        <template if="{{ event.eventType == 'ExceptionThrown' }}">
+          at exception
+        </template>
+
+        <br><br>
+        <action-link callback="{{ resume }}" label="resume" color="white">
+        </action-link>
+        <action-link callback="{{ stepInto }}" label="step" color="white">
+        </action-link>
+        <action-link callback="{{ stepOver }}" label="step&nbsp;over"
+                     color="white"></action-link>
+        <action-link callback="{{ stepOut }}" label="step&nbsp;out"
+                     color="white"></action-link>
         <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
       </div>
     </template>

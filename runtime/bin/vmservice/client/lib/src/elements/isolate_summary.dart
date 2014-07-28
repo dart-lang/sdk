@@ -24,22 +24,23 @@ class IsolateRunStateElement extends ObservatoryElement {
   @published Isolate isolate;
 
   Future pause(_) {
-    return isolate.get("debug/pause").then((result) {
-        // TODO(turnidge): Instead of asserting here, handle errors
-        // properly.
-        assert(result.serviceType == 'Success');
-        return isolate.reload();
-      });
+    return isolate.pause();
   }
-
   Future resume(_) {
-    return isolate.get("debug/resume").then((result) {
-        // TODO(turnidge): Instead of asserting here, handle errors
-        // properly.
-        assert(result.serviceType == 'Success');
-        app.removePauseEvents(isolate);
-        return isolate.reload();
-      });
+    app.removePauseEvents(isolate);
+    return isolate.resume();
+  }
+  Future stepInto(_) {
+    app.removePauseEvents(isolate);
+    return isolate.stepInto();
+  }
+  Future stepOver(_) {
+    app.removePauseEvents(isolate);
+    return isolate.stepOver();
+  }
+  Future stepOut(_) {
+    app.removePauseEvents(isolate);
+    return isolate.stepOut();
   }
 }
 

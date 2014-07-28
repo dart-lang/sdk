@@ -88,8 +88,6 @@ abstract class ServiceObject extends Observable {
       case 'Library':
         obj = new Library._empty(owner);
         break;
-      case 'Null':
-        return null;
       case 'ServiceError':
         obj = new ServiceError._empty(owner);
         break;
@@ -268,6 +266,7 @@ abstract class VM extends ServiceObjectOwner {
             "Expected 'ServiceEvent' but found '${map['type']}'");
         return;
       }
+
       // Extract the owning isolate from the event itself.
       String owningIsolateId = map['isolate']['id'];
       _getIsolate(owningIsolateId).then((owningIsolate) {
@@ -416,6 +415,7 @@ abstract class VM extends ServiceObjectOwner {
   /// will only receive a map encoding a valid ServiceObject.
   Future<ObservableMap> getAsMap(String id) {
     return getString(id).then((response) {
+        print("GOT $response");
       var map = _parseJSON(response);
       return _processMap(map);
     }).catchError((error) {
@@ -754,6 +754,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
     _loaded = true;
     loading = false;
 
+    reloadBreakpoints();
+
     // Remap DebuggerEvent to ServiceEvent so that the observatory can
     // work against 1.5 vms in the short term.
     //
@@ -889,6 +891,144 @@ class Isolate extends ServiceObjectOwner with Coverage {
       node.summedChildCount += child.count;
     }
     return node;
+  }
+
+  ServiceMap breakpoints;
+
+  void _removeBreakpoint(ServiceMap bpt) {
+    var script = bpt['location']['script'];
+    var tokenPos = bpt['location']['tokenPos'];
+    assert(tokenPos != null);
+    if (script.loaded) {
+      var line = script.tokenToLine(tokenPos);
+      assert(line != null);
+      assert(script.lines[line - 1].bpt == bpt);
+      script.lines[line - 1].bpt = null;
+    }
+  }
+
+  void _addBreakpoint(ServiceMap bpt) {
+    var script = bpt['location']['script'];
+    var tokenPos = bpt['location']['tokenPos'];
+    assert(tokenPos != null);
+    if (script.loaded) {
+      var line = script.tokenToLine(tokenPos);
+      assert(line != null);
+      assert(script.lines[line - 1].bpt == null);
+      script.lines[line - 1].bpt = bpt;
+    } else {
+      // Load the script and then plop in the breakpoint.
+      script.load().then((_) {
+          _addBreakpoint(bpt);
+      });
+    }
+  }
+
+  void _updateBreakpoints(ServiceMap newBreakpoints) {
+    // Remove all of the old breakpoints from the Script lines.
+    if (breakpoints != null) {
+      for (var bpt in breakpoints['breakpoints']) {
+        _removeBreakpoint(bpt);
+      }
+    }
+    // Add all of the new breakpoints to the Script lines.
+    for (var bpt in newBreakpoints['breakpoints']) {
+      _addBreakpoint(bpt);
+    }
+    breakpoints = newBreakpoints;
+  }
+
+  Future<ServiceObject> _inProgressReloadBpts;
+
+  Future reloadBreakpoints() {
+    // TODO(turnidge): Can reusing the Future here ever cause us to
+    // get stale breakpoints?
+    if (_inProgressReloadBpts == null) {
+      _inProgressReloadBpts =
+          get('debug/breakpoints').then((newBpts) {
+              _updateBreakpoints(newBpts);
+          }).whenComplete(() {
+              _inProgressReloadBpts = null;
+          });
+    }
+    return _inProgressReloadBpts;
+  }
+
+  Future<ServiceObject> setBreakpoint(Script script, int line) {
+    return get(script.id + "/setBreakpoint?line=${line}").then((result) {
+        if (result is DartError) {
+          // Unable to set a breakpoint at desired line.
+          script.lines[line - 1].possibleBpt = false;
+        }
+        return reloadBreakpoints();
+      });
+  }
+
+  Future clearBreakpoint(ServiceMap bpt) {
+    return get('${bpt.id}/clear').then((result) {
+        if (result is DartError) {
+          // TODO(turnidge): Handle this more gracefully.
+          Logger.root.severe(result.message);
+        }
+        if (pauseEvent != null &&
+            pauseEvent.breakpoint != null &&
+            (pauseEvent.breakpoint['id'] == bpt['id'])) {
+          return isolate.reload();
+        } else {
+          return reloadBreakpoints();
+        }
+      });
+  }
+
+  Future pause() {
+    return get("debug/pause").then((result) {
+        if (result is DartError) {
+          // TODO(turnidge): Handle this more gracefully.
+          Logger.root.severe(result.message);
+        }
+        return isolate.reload();
+      });
+  }
+
+  Future resume() {
+    return get("debug/resume").then((result) {
+        if (result is DartError) {
+          // TODO(turnidge): Handle this more gracefully.
+          Logger.root.severe(result.message);
+        }
+        return isolate.reload();
+      });
+  }
+
+  Future stepInto() {
+    print('isolate.stepInto');
+    return get("debug/resume?step=into").then((result) {
+        if (result is DartError) {
+          // TODO(turnidge): Handle this more gracefully.
+          Logger.root.severe(result.message);
+        }
+        return isolate.reload();
+      });
+  }
+
+  Future stepOver() {
+    return get("debug/resume?step=over").then((result) {
+        if (result is DartError) {
+          // TODO(turnidge): Handle this more gracefully.
+          Logger.root.severe(result.message);
+        }
+        return isolate.reload();
+      });
+  }
+
+  Future stepOut() {
+    return get("debug/resume?step=out").then((result) {
+        if (result is DartError) {
+          // TODO(turnidge): Handle this more gracefully.
+          Logger.root.severe(result.message);
+        }
+        return isolate.reload();
+      });
   }
 }
 
@@ -1307,8 +1447,8 @@ class ServiceFunction extends ServiceObject with Coverage {
     script = map['script'];
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
-    code = map['code'];
-    unoptimizedCode = map['unoptimized_code'];
+    code = _convertNull(map['code']);
+    unoptimizedCode = _convertNull(map['unoptimized_code']);
     isOptimizable = map['is_optimizable'];
     isInlinable = map['is_inlinable'];
     deoptimizations = map['deoptimizations'];
@@ -1326,10 +1466,58 @@ class ServiceFunction extends ServiceObject with Coverage {
 }
 
 class ScriptLine extends Observable {
+  final Script script;
   final int line;
   final String text;
   @observable int hits;
-  ScriptLine(this.line, this.text);
+  @observable ServiceMap bpt;
+  @observable bool possibleBpt = true;
+
+  static bool _isTrivialToken(String token) {
+    if (token == 'else') {
+      return true;
+    }
+    for (var c in token.split('')) {
+      switch (c) {
+        case '{':
+        case '}':
+        case '(':
+        case ')':
+        case ';':
+          break;
+        default:
+          return false;
+      }
+    }
+    return true;
+  }
+
+  static bool _isTrivialLine(String text) {
+    var wsTokens = text.split(new RegExp(r"(\s)+"));
+    for (var wsToken in wsTokens) {
+      var tokens = wsToken.split(new RegExp(r"(\b)"));
+      for (var token in tokens) {
+        if (!_isTrivialToken(token)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  ScriptLine(this.script, this.line, this.text) {
+    possibleBpt = !_isTrivialLine(text);
+    
+    // TODO(turnidge): This is not so efficient.  Consider improving.
+    for (var bpt in this.script.isolate.breakpoints['breakpoints']) {
+      var bptScript = bpt['location']['script'];
+      var bptTokenPos = bpt['location']['tokenPos'];
+      if (bptScript == this.script &&
+          bptScript.tokenToLine(bptTokenPos) == line) {
+        this.bpt = bpt;
+      }
+    }
+  }
 }
 
 class Script extends ServiceObject with Coverage {
@@ -1383,9 +1571,12 @@ class Script extends ServiceObject with Coverage {
     _tokenToCol.clear();
     firstTokenPos = null;
     lastTokenPos = null;
+    var lineSet = new Set();
+
     for (var line in table) {
       // Each entry begins with a line number...
       var lineNumber = line[0];
+      lineSet.add(lineNumber);
       for (var pos = 1; pos < line.length; pos += 2) {
         // ...and is followed by (token offset, col number) pairs.
         var tokenOffset = line[pos];
@@ -1403,6 +1594,13 @@ class Script extends ServiceObject with Coverage {
         }
         _tokenToLine[tokenOffset] = lineNumber;
         _tokenToCol[tokenOffset] = colNumber;
+      }
+    }
+
+    for (var line in lines) {
+      // Remove possible breakpoints on lines with no tokens.
+      if (!lineSet.contains(line.line)) {
+        line.possibleBpt = false;
       }
     }
   }
@@ -1437,15 +1635,12 @@ class Script extends ServiceObject with Coverage {
     lines.clear();
     Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
     for (var i = 0; i < sourceLines.length; i++) {
-      lines.add(new ScriptLine(i + 1, sourceLines[i]));
+      lines.add(new ScriptLine(this, i + 1, sourceLines[i]));
     }
     _applyHitsToLines();
   }
 
   void _applyHitsToLines() {
-    if (lines.length == 0) {
-      return;
-    }
     for (var line in lines) {
       var hits = _hits[line.line];
       line.hits = hits;
@@ -1988,6 +2183,15 @@ class Socket extends ServiceObject {
     fd = map['fd'];
     socketOwner = map['owner'];
   }
+}
+
+// Convert any ServiceMaps representing a null instance into an actual null.
+_convertNull(obj) {
+  if (obj is ServiceMap &&
+      obj.serviceType == 'Null') {
+    return null;
+  }
+  return obj;
 }
 
 // Returns true if [map] is a service map. i.e. it has the following keys:
