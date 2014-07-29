@@ -17,6 +17,7 @@ import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
+import 'package:analysis_server/src/domain_analysis.dart';
 
 main() {
   groupSep = ' | ';
@@ -40,9 +41,9 @@ class CompletionTest extends AbstractAnalysisTest {
         + content.substring(completionOffset + 1));
   }
 
-  void assertHasResult(CompletionSuggestionKind kind,
-      CompletionRelevance relevance, String completion,
-      bool isDeprecated, bool isPotential) {
+  void assertHasResult(CompletionSuggestionKind kind, String completion,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
+      bool isDeprecated = false, bool isPotential = false]) {
     var cs = suggestions.firstWhere((cs) => cs.completion == completion, orElse: () {
       var completions = suggestions.map((s) => s.completion).toList();
       fail('expected "$completion" but found\n $completions');
@@ -53,6 +54,12 @@ class CompletionTest extends AbstractAnalysisTest {
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
+  }
+
+  void assertNoResult(String completion) {
+    if (suggestions.any((cs) => cs.completion == completion)) {
+      fail('did not expect completion: $completion');
+    }
   }
 
   void assertValidId(String id) {
@@ -107,16 +114,28 @@ class CompletionTest extends AbstractAnalysisTest {
     return new Future.delayed(Duration.ZERO, waitForSuggestions);
   }
 
-  test_suggestions() {
+  test_suggestions_importedType() {
     addTestFile('''
       import 'dart:html';
       main() {^}
     ''');
     return getSuggestions().then((_) {
-      assertHasResult(CompletionSuggestionKind.CLASS,
-          CompletionRelevance.DEFAULT, 'Object', false, false);
-      assertHasResult(CompletionSuggestionKind.CLASS,
-          CompletionRelevance.DEFAULT, 'HtmlElement', false, false);
+      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
+      assertHasResult(CompletionSuggestionKind.CLASS, 'HtmlElement');
+      assertNoResult('test');
+    });
+  }
+
+  test_suggestions_topLevel() {
+    addTestFile('''
+      typedef foo();
+      var test^ = '';
+      main() {test.}
+    ''');
+    return getSuggestions().then((_) {
+      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
+      assertHasResult(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, 'test');
+      assertNoResult('HtmlElement');
     });
   }
 }

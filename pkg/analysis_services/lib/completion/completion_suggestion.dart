@@ -66,6 +66,8 @@ class CompletionSuggestionKind {
       const CompletionSuggestionKind('FUNCTION');
   static const CompletionSuggestionKind FUNCTION_ALIAS =
       const CompletionSuggestionKind('FUNCTION_ALIAS');
+  static const CompletionSuggestionKind FUNCTION_TYPE_ALIAS =
+      const CompletionSuggestionKind('FUNCTION_TYPE_ALIAS');
   static const CompletionSuggestionKind GETTER =
       const CompletionSuggestionKind('GETTER');
   static const CompletionSuggestionKind IMPORT =
@@ -107,6 +109,7 @@ class CompletionSuggestionKind {
     if (FIELD.name == name) return FIELD;
     if (FUNCTION.name == name) return FUNCTION;
     if (FUNCTION_ALIAS.name == name) return FUNCTION_ALIAS;
+    if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
     if (GETTER.name == name) return GETTER;
     if (IMPORT.name == name) return IMPORT;
     if (LIBRARY_PREFIX.name == name) return LIBRARY_PREFIX;
@@ -149,7 +152,6 @@ class CompletionSuggestionKind {
     //    ElementKind.LIBRARY,
     //    ElementKind.LOCAL_VARIABLE,
     if (kind == ElementKind.METHOD) return METHOD;
-    //    ElementKind.METHOD,
     //    ElementKind.NAME,
     if (kind == ElementKind.PARAMETER) return PARAMETER;
     //    ElementKind.POLYMER_ATTRIBUTE,
@@ -158,7 +160,7 @@ class CompletionSuggestionKind {
     //    ElementKind.PREFIX,
     if (kind == ElementKind.SETTER) return SETTER;
     if (kind == ElementKind.TOP_LEVEL_VARIABLE) return TOP_LEVEL_VARIABLE;
-    //    ElementKind.FUNCTION_TYPE_ALIAS,
+    if (kind == ElementKind.FUNCTION_TYPE_ALIAS) return FUNCTION_TYPE_ALIAS;
     //    ElementKind.TYPE_PARAMETER,
     //    ElementKind.UNIVERSE
     throw new ArgumentError('Unknown CompletionSuggestionKind for: $kind');
