@@ -415,7 +415,6 @@ abstract class VM extends ServiceObjectOwner {
   /// will only receive a map encoding a valid ServiceObject.
   Future<ObservableMap> getAsMap(String id) {
     return getString(id).then((response) {
-        print("GOT $response");
       var map = _parseJSON(response);
       return _processMap(map);
     }).catchError((error) {
