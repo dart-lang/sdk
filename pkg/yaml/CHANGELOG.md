@@ -1,3 +1,7 @@
+## 2.0.2
+
+* Fix an import in a test.
+
 ## 2.0.1
 
 * Fix a few lingering references to the old `Span` class in documentation and
