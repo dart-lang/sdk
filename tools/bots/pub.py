@@ -47,6 +47,8 @@ def PubSteps(build_info):
   if build_info.builder_tag:
     common_args.append('--builder-tag=%s' % build_info.builder_tag)
 
+  # There are a number of big/integration tests in pkg, run with bigger timeout
+  common_args.append('--timeout=120')
 
   opt_threshold = '--vm-options=--optimization-counter-threshold=5'
   if build_info.mode == 'release':
