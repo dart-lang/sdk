@@ -471,3 +471,6 @@ http/test/html/client_test: Skip # Issue 18566
 
 [ $system == windows ]
 analysis_server/test/integration: Skip # Issue 20252
+
+[ $mode == debug ]
+analysis_server/test/integration/analysis_domain_int_test: Slow, Pass
