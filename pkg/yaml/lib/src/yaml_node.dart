@@ -117,7 +117,7 @@ class YamlList extends YamlNode with collection.ListMixin {
   /// Any [SourceSpan]s returned by this list or its children will be dummies
   /// without useful location information. However, they will have a reasonable
   /// implementation of [SourceSpan.getLocationMessage]. If [sourceUrl] is
-  /// passed, it's used as the [Span.sourceUrl].
+  /// passed, it's used as the [SourceSpan.sourceUrl].
   ///
   /// [sourceUrl] may be either a [String], a [Uri], or `null`.
   factory YamlList.wrap(List dartList, {sourceUrl}) =>
@@ -144,7 +144,7 @@ class YamlScalar extends YamlNode {
   ///
   /// This scalar's [span] won't have useful location information. However, it
   /// will have a reasonable implementation of [SourceSpan.message]. If
-  /// [sourceUrl] is passed, it's used as the [Span.sourceUrl].
+  /// [sourceUrl] is passed, it's used as the [SourceSpan.sourceUrl].
   ///
   /// [sourceUrl] may be either a [String], a [Uri], or `null`.
   YamlScalar.wrap(this.value, {sourceUrl})

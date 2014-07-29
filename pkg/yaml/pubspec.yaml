@@ -1,5 +1,5 @@
 name: yaml
-version: 2.0.0
+version: 2.0.1
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: A parser for YAML.

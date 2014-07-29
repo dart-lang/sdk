@@ -18,7 +18,7 @@ main() {
 
   test("YamlMap() with a sourceUrl", () {
     var map = new YamlMap(sourceUrl: "source");
-    expect(map.span, isNullSpan("source"));
+    expect(map.span, isNullSpan(Uri.parse("source")));
   });
 
   test("YamlList() with no sourceUrl", () {
@@ -30,7 +30,7 @@ main() {
 
   test("YamlList() with a sourceUrl", () {
     var list = new YamlList(sourceUrl: "source");
-    expect(list.span, isNullSpan("source"));
+    expect(list.span, isNullSpan(Uri.parse("source")));
   });
 
   test("YamlMap.wrap() with no sourceUrl", () {
@@ -79,10 +79,11 @@ main() {
       "scalar": "value"
     }, sourceUrl: "source");
 
-    expect(map.span, isNullSpan("source"));
-    expect(map["list"].span, isNullSpan("source"));
-    expect(map["map"].span, isNullSpan("source"));
-    expect(map.nodes["scalar"].span, isNullSpan("source"));
+    var source = Uri.parse("source");
+    expect(map.span, isNullSpan(source));
+    expect(map["list"].span, isNullSpan(source));
+    expect(map["map"].span, isNullSpan(source));
+    expect(map.nodes["scalar"].span, isNullSpan(source));
   });
 
   test("YamlList.wrap() with no sourceUrl", () {
@@ -134,7 +135,7 @@ main() {
     expect(list.nodes[2].span, isNullSpan(isNull));
   });
 
-  solo_test("re-wrapped objects equal one another", () {
+  test("re-wrapped objects equal one another", () {
     var list = new YamlList.wrap([
       [1, 2, 3],
       {"foo": "bar"}
@@ -150,10 +151,9 @@ main() {
 }
 
 Matcher isNullSpan(sourceUrl) => predicate((span) {
-  expect(span, new isInstanceOf<Span>());
+  expect(span, new isInstanceOf<SourceSpan>());
   expect(span.length, equals(0));
   expect(span.text, isEmpty);
-  expect(span.isIdentifier, isFalse);
   expect(span.start, equals(span.end));
   expect(span.start.offset, equals(0));
   expect(span.start.line, equals(0));

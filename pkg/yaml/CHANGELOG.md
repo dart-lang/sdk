@@ -1,3 +1,8 @@
+## 2.0.1
+
+* Fix a few lingering references to the old `Span` class in documentation and
+  tests.
+
 ## 2.0.0
 
 * Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan` class.
