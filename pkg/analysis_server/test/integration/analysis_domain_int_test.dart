@@ -166,7 +166,6 @@ main() {
   }
 
   test_getErrors_after_analysis() {
-    debugStdio();
     return getErrorsTest(true);
   }
 
