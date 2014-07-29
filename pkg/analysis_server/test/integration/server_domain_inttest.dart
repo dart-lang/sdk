@@ -16,7 +16,7 @@ import 'integration_tests.dart';
 class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
     {
   test_getVersion() {
-    return server.send('server.getVersion', null).then((response) {
+    return server.send(SERVER_GET_VERSION, null).then((response) {
       expect(response, isServerGetVersionResult);
     });
   }

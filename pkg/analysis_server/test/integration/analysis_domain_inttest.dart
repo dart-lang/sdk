@@ -139,8 +139,7 @@ main() {
   test_getHover_noInfo() {
     String filename = 'test.dart';
     String pathname = normalizePath(filename);
-    String text =
-        r'''
+    String text = r'''
 main() {
   // no code
 }
@@ -153,13 +152,47 @@ main() {
     // request is made.  So wait for analysis to finish before testing anything.
     return analysisFinished.then((_) {
       return server.send(ANALYSIS_GET_HOVER, {
-              'file': pathname,
-              'offset': text.indexOf('no code')
-            }).then((result) {
-              expect(result, isAnalysisGetHoverResult);
-              expect(result['hovers'], hasLength(0));
+        'file': pathname,
+        'offset': text.indexOf('no code')
+      }).then((result) {
+        expect(result, isAnalysisGetHoverResult);
+        expect(result['hovers'], hasLength(0));
       });
     });
+  }
+
+  test_getErrors_before_analysis() {
+    return getErrorsTest(false);
+  }
+
+  test_getErrors_after_analysis() {
+    debugStdio();
+    return getErrorsTest(true);
+  }
+
+  Future getErrorsTest(bool afterAnalysis) {
+    String filename = 'test.dart';
+    String pathname = normalizePath(filename);
+    String text =
+        r'''
+    main() {
+      var x // parse error: missing ';'
+    }''';
+    writeFile(filename, text);
+    setAnalysisRoots(['']);
+    Future finishTest() {
+      return server.send(ANALYSIS_GET_ERRORS, {
+        'file': pathname
+      }).then((result) {
+        expect(result, isAnalysisGetErrorsResult);
+        expect(result['errors'], equals(currentAnalysisErrors[pathname]));
+      });
+    }
+    if (afterAnalysis) {
+      return analysisFinished.then((_) => finishTest());
+    } else {
+      return finishTest();
+    }
   }
 }
 

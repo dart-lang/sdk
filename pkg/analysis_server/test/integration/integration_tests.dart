@@ -146,8 +146,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
 // Matchers common to all domains
 // ------------------------------
 
-const Matcher isResponse = const MatchesJsonObject('response',
-    const {
+const Matcher isResponse = const MatchesJsonObject('response', const {
   'id': isString
 }, optionalFields: const {
   'result': anything,
@@ -186,6 +185,12 @@ const Matcher isServerGetVersionResult = const MatchesJsonObject(
 const Matcher isServerStatusParams = const MatchesJsonObject(
     'server.status params', null, optionalFields: const {
   'analysis': isAnalysisStatus
+});
+
+// analysis.getErrors
+final Matcher isAnalysisGetErrorsResult = new MatchesJsonObject(
+    'analysis.getErrors result', {
+  'errors': isListOf(isAnalysisError)
 });
 
 // analysis.getHover
@@ -504,18 +509,19 @@ class Server {
     // executable, and the package root into a shell script.
     String dartBinary = Platform.executable;
     String scriptDir = dirname(Platform.script.path);
-    String serverPath = normalize(join(scriptDir, '..',
-        '..', 'bin', 'server.dart'));
+    String serverPath = normalize(join(scriptDir, '..', '..', 'bin',
+        'server.dart'));
     String repoPath = normalize(join(scriptDir, '..', '..', '..', '..'));
     String buildDirName;
     if (Platform.isWindows) {
       buildDirName = 'build';
-    } else if (Platform.isMacOS){
+    } else if (Platform.isMacOS) {
       buildDirName = 'xcodebuild';
     } else {
       buildDirName = 'out';
     }
-    String dartConfiguration = 'ReleaseIA32'; // TODO(paulberry): this is a guess
+    // TODO(paulberry): this is a guess
+    String dartConfiguration = 'ReleaseIA32';
     String buildPath = join(repoPath, buildDirName, dartConfiguration);
     String packageRoot = join(buildPath, 'packages');
     List<String> arguments = [];
