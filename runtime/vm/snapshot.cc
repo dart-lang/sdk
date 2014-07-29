@@ -745,7 +745,7 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Heap* heap = isolate()->heap();
 
-  uword address = heap->TryAllocate(size, Heap::kOld);
+  uword address = heap->TryAllocate(size, Heap::kOld, PageSpace::kForceGrowth);
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.

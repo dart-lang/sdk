@@ -12133,18 +12133,6 @@ uword Code::GetLazyDeoptPc() const {
 }
 
 
-bool Code::ObjectExistsInArea(intptr_t start_offset,
-                              intptr_t end_offset) const {
-  for (intptr_t i = 0; i < this->pointer_offsets_length(); i++) {
-    const intptr_t offset = this->GetPointerOffsetAt(i);
-    if ((start_offset <= offset) && (offset < end_offset)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
 RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
   // This code is used during iterating frames during a GC and hence it
   // should not in turn start a GC.

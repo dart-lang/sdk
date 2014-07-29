@@ -3741,10 +3741,6 @@ class Code : public Object {
   uword GetPcForDeoptId(intptr_t deopt_id, RawPcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
-  // Returns true if there is an object in the code between 'start_offset'
-  // (inclusive) and 'end_offset' (exclusive).
-  bool ObjectExistsInArea(intptr_t start_offest, intptr_t end_offset) const;
-
   RawString* Name() const;
   RawString* PrettyName() const;
 
