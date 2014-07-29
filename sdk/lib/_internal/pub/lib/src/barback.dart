@@ -38,8 +38,8 @@ import 'version.dart';
 ///
 /// [compat]: https://gist.github.com/nex3/10942218
 final pubConstraints = {
-  "barback": new VersionConstraint.parse(">=0.13.0 <0.14.2"),
-  "source_maps": new VersionConstraint.parse(">=0.9.0 <0.10.0"),
+  "barback": new VersionConstraint.parse(">=0.13.0 <0.14.3"),
+  "source_span": new VersionConstraint.parse(">=1.0.0 <2.0.0"),
   "stack_trace": new VersionConstraint.parse(">=0.9.1 <2.0.0")
 };
 

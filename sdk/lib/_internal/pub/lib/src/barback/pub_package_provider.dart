@@ -13,6 +13,7 @@ import '../io.dart';
 import '../package_graph.dart';
 import '../preprocess.dart';
 import '../sdk.dart' as sdk;
+import '../utils.dart';
 
 /// An implementation of barback's [PackageProvider] interface so that barback
 /// can find assets within pub packages.
@@ -37,13 +38,14 @@ class PubPackageProvider implements PackageProvider {
       // Barback may not be in the package graph if there are no user-defined
       // transformers being used at all. The "$pub" sources are still provided,
       // but will never be loaded.
-      var barback = _graph.packages['barback'];
-      if (barback == null) {
+      if (!_graph.packages.containsKey("barback")) {
         return new Future.value(new Asset.fromPath(id, file));
       }
 
+      var versions = mapMap(_graph.packages,
+          value: (_, package) => package.version);
       var contents = readTextFile(file);
-      contents = preprocess(contents, barback.version, path.toUri(file));
+      contents = preprocess(contents, versions, path.toUri(file));
       return new Future.value(new Asset.fromString(id, contents));
     }
 

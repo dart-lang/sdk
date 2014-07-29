@@ -1,3 +1,9 @@
+## 0.14.2
+
+* All TransformLogger methods now accept SourceSpans from the source_span
+  package in addition to Spans from the source_maps package. In 0.15.0, only
+  SourceSpans will be accepted.
+
 ## 0.14.1+3
 
 * Add a dependency on the `pool` package.

@@ -5,9 +5,11 @@
 library barback.transformer.transform_logger;
 
 import 'package:source_maps/span.dart';
+import 'package:source_span/source_span.dart';
 
 import '../asset/asset_id.dart';
 import '../log.dart';
+import '../span_wrapper.dart';
 
 typedef void LogFunction(AssetId asset, LogLevel level, String message,
                          Span span);
@@ -22,10 +24,12 @@ class TransformLogger {
   /// Logs an informative message.
   ///
   /// If [asset] is provided, the log entry is associated with that asset.
-  /// Otherwise it's associated with the primary input of [transformer].
-  /// If [span] is provided, indicates the location in the input asset that
-  /// caused the message.
-  void info(String message, {AssetId asset, Span span}) {
+  /// Otherwise it's associated with the primary input of [transformer]. If
+  /// present, [span] indicates the location in the input asset that caused the
+  /// error. It may be a [SourceSpan] or a [Span], although the former is
+  /// recommended.
+  void info(String message, {AssetId asset, span}) {
+    if (span != null && span is SourceSpan) span = new SpanWrapper(span, false);
     _logFunction(asset, LogLevel.INFO, message, span);
   }
 
@@ -33,29 +37,34 @@ class TransformLogger {
   /// verbose mode.
   ///
   /// If [asset] is provided, the log entry is associated with that asset.
-  /// Otherwise it's associated with the primary input of [transformer].
-  /// If [span] is provided, indicates the location in the input asset that
-  /// caused the message.
-  void fine(String message, {AssetId asset, Span span}) {
+  /// Otherwise it's associated with the primary input of [transformer]. If
+  /// present, [span] indicates the location in the input asset that caused the
+  /// error. It may be a [SourceSpan] or a [Span], although the former is
+  /// recommended.
+  void fine(String message, {AssetId asset, span}) {
+    if (span != null && span is SourceSpan) span = new SpanWrapper(span, false);
     _logFunction(asset, LogLevel.FINE, message, span);
   }
 
   /// Logs a warning message.
   ///
   /// If [asset] is provided, the log entry is associated with that asset.
-  /// Otherwise it's associated with the primary input of [transformer].
-  /// If present, [span] indicates the location in the input asset that caused
-  /// the warning.
-  void warning(String message, {AssetId asset, Span span}) {
+  /// Otherwise it's associated with the primary input of [transformer]. If
+  /// present, [span] indicates the location in the input asset that caused the
+  /// error. It may be a [SourceSpan] or a [Span], although the former is
+  /// recommended.
+  void warning(String message, {AssetId asset, span}) {
+    if (span != null && span is SourceSpan) span = new SpanWrapper(span, false);
     _logFunction(asset, LogLevel.WARNING, message, span);
   }
 
   /// Logs an error message.
   ///
   /// If [asset] is provided, the log entry is associated with that asset.
-  /// Otherwise it's associated with the primary input of [transformer].
-  /// If present, [span] indicates the location in the input asset that caused
-  /// the error.
+  /// Otherwise it's associated with the primary input of [transformer]. If
+  /// present, [span] indicates the location in the input asset that caused the
+  /// error. It may be a [SourceSpan] or a [Span], although the former is
+  /// recommended.
   ///
   /// Logging any errors will cause Barback to consider the transformation to
   /// have failed, much like throwing an exception. This means that neither the
@@ -65,7 +74,8 @@ class TransformLogger {
   /// Unlike throwing an exception, this doesn't cause a transformer to stop
   /// running. This makes it useful in cases where a single input may have
   /// multiple errors that the user wants to know about.
-  void error(String message, {AssetId asset, Span span}) {
+  void error(String message, {AssetId asset, span}) {
+    if (span != null && span is SourceSpan) span = new SpanWrapper(span, false);
     _logFunction(asset, LogLevel.ERROR, message, span);
   }
 }

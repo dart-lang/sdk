@@ -17,7 +17,7 @@ main() {
   var nextPatch = constraint.min.nextPatch.toString();
   var max = constraint.max.toString();
 
-  var sourceMapsVersion = barback.pubConstraints["source_maps"].min.toString();
+  var sourceSpanVersion = barback.pubConstraints["source_span"].min.toString();
   var stackTraceVersion = barback.pubConstraints["stack_trace"].min.toString();
 
   forBothPubGetAndUpgrade((command) {
@@ -27,7 +27,7 @@ main() {
         packageMap("barback", current),
         packageMap("barback", nextPatch),
         packageMap("barback", max),
-        packageMap("source_maps", sourceMapsVersion),
+        packageMap("source_span", sourceSpanVersion),
         packageMap("stack_trace", stackTraceVersion)
       ]);
 
@@ -48,7 +48,7 @@ main() {
         packageMap("barback", current),
         packageMap("barback", nextPatch),
         packageMap("barback", max),
-        packageMap("source_maps", sourceMapsVersion),
+        packageMap("source_span", sourceSpanVersion),
         packageMap("stack_trace", stackTraceVersion)
       ]);
 
@@ -74,7 +74,7 @@ main() {
     integration("pub's implicit constraint uses the same source and "
         "description as a dependency override", () {
       servePackages([
-        packageMap("source_maps", sourceMapsVersion),
+        packageMap("source_span", sourceSpanVersion),
         packageMap("stack_trace", stackTraceVersion)
       ]);
 
@@ -104,7 +104,7 @@ main() {
     servePackages([
       packageMap("barback", previous),
       packageMap("barback", current),
-      packageMap("source_maps", sourceMapsVersion),
+      packageMap("source_span", sourceSpanVersion),
       packageMap("stack_trace", stackTraceVersion)
     ]);
 
@@ -127,7 +127,7 @@ main() {
       "is no version available", () {
     servePackages([
       packageMap("barback", previous),
-      packageMap("source_maps", sourceMapsVersion),
+      packageMap("source_span", sourceSpanVersion),
       packageMap("stack_trace", stackTraceVersion)
     ]);
 
@@ -144,7 +144,7 @@ Package barback 0.12.0 does not match >=$current <$max derived from:
     servePackages([
       packageMap("barback", previous),
       packageMap("barback", current),
-      packageMap("source_maps", sourceMapsVersion),
+      packageMap("source_span", sourceSpanVersion),
       packageMap("stack_trace", stackTraceVersion)
     ]);
 

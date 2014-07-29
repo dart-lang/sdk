@@ -11,7 +11,6 @@ const TRANSFORMER = """
 import 'dart:async';
 
 import 'package:barback/barback.dart';
-import 'package:source_maps/source_maps.dart';
 
 class ModeTransformer extends Transformer {
   final BarbackSettings settings;

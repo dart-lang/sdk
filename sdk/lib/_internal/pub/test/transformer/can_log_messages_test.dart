@@ -11,7 +11,7 @@ import '../../lib/src/exit_codes.dart' as exit_codes;
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
-const TRANSFORMER = """
+const SOURCE_MAPS_TRANSFORMER = """
 import 'dart:async';
 
 import 'package:barback/barback.dart';
@@ -38,52 +38,83 @@ class RewriteTransformer extends Transformer {
 }
 """;
 
+const SOURCE_SPAN_TRANSFORMER = """
+import 'dart:async';
+
+import 'package:barback/barback.dart';
+import 'package:source_span/source_span.dart';
+
+class RewriteTransformer extends Transformer {
+  RewriteTransformer.asPlugin();
+
+  String get allowedExtensions => '.txt';
+
+  Future apply(Transform transform) {
+    transform.logger.info('info!');
+    transform.logger.warning('Warning!',
+        asset: transform.primaryInput.id.changeExtension('.foo'));
+    var sourceFile = new SourceFile('not a real\\ndart file',
+        url: 'http://fake.com/not_real.dart');
+    transform.logger.error('ERROR!', span: sourceFile.span(11, 12));
+    return transform.primaryInput.readAsString().then((contents) {
+      var id = transform.primaryInput.id.changeExtension(".out");
+      transform.addOutput(new Asset.fromString(id, "\$contents.out"));
+    });
+  }
+}
+""";
+
 main() {
   initConfig();
-  withBarbackVersions("any", () {
-    integration("can log messages", () {
-      d.dir(appPath, [
-        d.pubspec({
-          "name": "myapp",
-          "transformers": ["myapp/src/transformer"]
-        }),
-        d.dir("lib", [d.dir("src", [
-          d.file("transformer.dart", TRANSFORMER)
-        ])]),
-        d.dir("web", [
-          d.file("foo.txt", "foo")
-        ])
-      ]).create();
+  // This intentionally tests barback 0.14.2 with both transformers, since it
+  // supports both types of span.
+  withBarbackVersions("<0.15.0", () => runTest(SOURCE_MAPS_TRANSFORMER));
+  withBarbackVersions(">=0.14.2", () => runTest(SOURCE_SPAN_TRANSFORMER));
+}
 
-      createLockFile('myapp', pkg: ['barback']);
+void runTest(String transformerText) {
+  integration("can log messages", () {
+    d.dir(appPath, [
+      d.pubspec({
+        "name": "myapp",
+        "transformers": ["myapp/src/transformer"]
+      }),
+      d.dir("lib", [d.dir("src", [
+        d.file("transformer.dart", transformerText)
+      ])]),
+      d.dir("web", [
+        d.file("foo.txt", "foo")
+      ])
+    ]).create();
 
-      var pub = startPub(args: ["build"]);
-      pub.stdout.expect(startsWith("Loading source assets..."));
-      pub.stdout.expect(consumeWhile(matches("Loading .* transformers...")));
-      pub.stdout.expect(startsWith("Building myapp..."));
+    createLockFile('myapp', pkg: ['barback']);
 
-      pub.stdout.expect(emitsLines("""
+    var pub = startPub(args: ["build"]);
+    pub.stdout.expect(startsWith("Loading source assets..."));
+    pub.stdout.expect(consumeWhile(matches("Loading .* transformers...")));
+    pub.stdout.expect(startsWith("Building myapp..."));
+
+    pub.stdout.expect(emitsLines("""
 [Rewrite on myapp|web/foo.txt]:
 info!"""));
 
-      pub.stderr.expect(emitsLines("""
+    pub.stderr.expect(emitsLines("""
 [Rewrite on myapp|web/foo.txt with input myapp|web/foo.foo]:
 Warning!
 [Rewrite on myapp|web/foo.txt]:"""));
 
-      // The details of the analyzer's error message change pretty frequently,
-      // so instead of validating the entire line, just look for a couple of
-      // salient bits of information.
-      pub.stderr.expect(allOf([
-        contains("2"),                              // The line number.
-        contains("1"),                              // The column number.
-        contains("http://fake.com/not_real.dart"),  // The library.
-        contains("ERROR"),                          // That it's an error.
-      ]));
+    // The details of the analyzer's error message change pretty frequently,
+    // so instead of validating the entire line, just look for a couple of
+    // salient bits of information.
+    pub.stderr.expect(allOf([
+      contains("2"),                              // The line number.
+      contains("1"),                              // The column number.
+      contains("http://fake.com/not_real.dart"),  // The library.
+      contains("ERROR"),                          // That it's an error.
+    ]));
 
-      pub.stderr.expect("Build failed.");
+    pub.stderr.expect("Build failed.");
 
-      pub.shouldExit(exit_codes.DATA);
-    });
+    pub.shouldExit(exit_codes.DATA);
   });
 }

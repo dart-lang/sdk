@@ -18,7 +18,7 @@ main() {
         packageMap("stack_trace", current("stack_trace")),
         packageMap("stack_trace", nextPatch("stack_trace")),
         packageMap("stack_trace", max("stack_trace")),
-        packageMap("source_maps", current("source_maps"))
+        packageMap("source_span", current("source_span"))
       ]);
 
       d.appDir({
@@ -35,7 +35,7 @@ main() {
       servePackages([
         packageMap("barback", current("barback")),
         packageMap("stack_trace", nextPatch("stack_trace")),
-        packageMap("source_maps", current("source_maps"))
+        packageMap("source_span", current("source_span"))
       ]);
 
       d.dir("stack_trace", [
@@ -69,7 +69,7 @@ main() {
         packageMap("stack_trace", current("stack_trace")),
         packageMap("stack_trace", nextPatch("stack_trace")),
         packageMap("stack_trace", max("stack_trace")),
-        packageMap("source_maps", current("source_maps"))
+        packageMap("source_span", current("source_span"))
       ]);
 
       d.appDir({
@@ -88,7 +88,7 @@ main() {
       packageMap("barback", current("barback")),
       packageMap("stack_trace", previous("stack_trace")),
       packageMap("stack_trace", current("stack_trace")),
-      packageMap("source_maps", current("source_maps"))
+      packageMap("source_span", current("source_span"))
     ]);
 
     d.appDir({"barback": "any"}).create();

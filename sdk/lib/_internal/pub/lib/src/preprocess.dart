@@ -11,9 +11,9 @@ import 'version.dart';
 /// Runs a simple preprocessor over [input] to remove sections that are
 /// incompatible with the available barback version.
 ///
-/// [barbackVersion] is the version of barback that's available, and [sourceUrl]
-/// is a [String] or [Uri] indicating where [input] came from. It's used for
-/// error reporting.
+/// [versions] are the available versions of each installed package, and
+/// [sourceUrl] is a [String] or [Uri] indicating where [input] came from. It's
+/// used for error reporting.
 ///
 /// For the most part, the preprocessor leaves text in the source document
 /// alone. However, it handles two types of lines specially. Lines that begin
@@ -28,10 +28,12 @@ import 'version.dart';
 ///       ...
 ///     //# end
 ///
-/// If the current barback version matches the constraint, everything within the
-/// first block is included in the output and everything within the second block
-/// is removed; otherwise, the first block is removed and the second block is
-/// included. The `else` block is optional.
+/// If can check against any package installed in the current package. It can
+/// check the version of the package, as above, or (if the version range is
+/// omitted) whether the package exists at all. If the condition is true,
+/// everything within the first block is included in the output and everything
+/// within the second block is removed; otherwise, the first block is removed
+/// and the second block is included. The `else` block is optional.
 ///
 /// It's important that the preprocessor syntax also be valid Dart code, because
 /// pub loads the source files before preprocessing and runs them against the
@@ -44,10 +46,10 @@ import 'version.dart';
 ///     //# else
 ///     //>   ClassMirror get aggregateClass => null;
 ///     //# end
-String preprocess(String input, Version barbackVersion, sourceUrl) {
+String preprocess(String input, Map<String, Version> versions, sourceUrl) {
   // Short-circuit if there are no preprocessor directives in the file.
   if (!input.contains(new RegExp(r"^//[>#]", multiLine: true))) return input;
-  return new _Preprocessor(input, barbackVersion, sourceUrl).run();
+  return new _Preprocessor(input, versions, sourceUrl).run();
 }
 
 /// The preprocessor class.
@@ -55,19 +57,18 @@ class _Preprocessor {
   /// The scanner over the input string.
   final StringScanner _scanner;
 
-  /// The version of barback to match against.
-  final Version _barbackVersion;
+  final Map<String, Version> _versions;
 
   /// The buffer to which the output is written.
   final _buffer = new StringBuffer();
 
-  _Preprocessor(String input, this._barbackVersion, sourceUrl)
+  _Preprocessor(String input, this._versions, sourceUrl)
       : _scanner = new StringScanner(input, sourceUrl: sourceUrl);
 
   /// Run the preprocessor and return the processed output.
   String run() {
     while (!_scanner.isDone) {
-      if (_scanner.scan(new RegExp(r"//#\s*"))) {
+      if (_scanner.scan(new RegExp(r"//#[ \t]*"))) {
         _if();
       } else {
         _emitText();
@@ -101,22 +102,23 @@ class _Preprocessor {
 
   /// Handle an `if` operator.
   void _if() {
-    _scanner.expect(new RegExp(r"if\s+"), name: "if statement");
+    _scanner.expect(new RegExp(r"if[ \t]+"), name: "if statement");
     _scanner.expect(new RegExp(r"[a-zA-Z0-9_]+"), name: "package name");
     var package = _scanner.lastMatch[0];
-    if (package != 'barback') _scanner.error('Unknown package "$package".');
 
-    _scanner.scan(new RegExp(r"\s*"));
-    _scanner.expect(new RegExp(r"[^\n]+"), name: "version constraint");
-    var constraint;
-    try {
-      constraint = new VersionConstraint.parse(_scanner.lastMatch[0]);
-    } on FormatException catch (error) {
-      _scanner.error("Invalid version constraint: ${error.message}");
+    _scanner.scan(new RegExp(r"[ \t]*"));
+    var constraint = VersionConstraint.any;
+    if (_scanner.scan(new RegExp(r"[^\n]+"))) {
+      try {
+        constraint = new VersionConstraint.parse(_scanner.lastMatch[0]);
+      } on FormatException catch (error) {
+        _scanner.error("Invalid version constraint: ${error.message}");
+      }
     }
     _scanner.expect("\n");
 
-    var allowed = constraint.allows(_barbackVersion);
+    var allowed = _versions.containsKey(package) &&
+        constraint.allows(_versions[package]);
     if (allowed) {
       _emitText();
     } else {
@@ -124,7 +126,7 @@ class _Preprocessor {
     }
 
     _scanner.expect("//#");
-    _scanner.scan(new RegExp(r"\s*"));
+    _scanner.scan(new RegExp(r"[ \t]*"));
     if (_scanner.scan("else")) {
       _scanner.expect("\n");
       if (allowed) {
@@ -133,7 +135,7 @@ class _Preprocessor {
         _emitText();
       }
       _scanner.expect("//#");
-      _scanner.scan(new RegExp(r"\s*"));
+      _scanner.scan(new RegExp(r"[ \t]*"));
     }
 
     _scanner.expect("end");
