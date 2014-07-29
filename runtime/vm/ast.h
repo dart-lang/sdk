@@ -165,7 +165,6 @@ class SequenceNode : public AstNode {
   void Add(AstNode* node) { nodes_.Add(node); }
   intptr_t length() const { return nodes_.length(); }
   AstNode* NodeAt(intptr_t index) const { return nodes_[index]; }
-  void ReplaceNodeAt(intptr_t index, AstNode* value) { nodes_[index] = value; }
 
   DECLARE_COMMON_NODE_FUNCTIONS(SequenceNode);
 

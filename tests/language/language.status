@@ -31,9 +31,6 @@ deferred_constraints_constants_old_syntax_test/default_argument2: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
-[ $runtime != vm ]
-# Async tests are currently only supported by the vm.
-async_test/*: Skip
 
 [ $compiler == dart2dart]
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523

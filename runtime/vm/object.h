@@ -1665,10 +1665,6 @@ class Function : public Object {
     return KindBits::decode(raw_ptr()->kind_tag_);
   }
 
-  RawFunction::AsyncModifier modifier() const {
-    return ModifierBits::decode(raw_ptr()->kind_tag_);
-  }
-
   static const char* KindToCString(RawFunction::Kind kind);
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_tag_); }
@@ -1814,11 +1810,6 @@ class Function : public Object {
   bool IsNativeAutoSetupScope() const;
   void SetIsOptimizable(bool value) const;
   void SetIsNativeAutoSetupScope(bool value) const;
-
-  bool is_async_closure() const {
-    return AsyncClosureBit::decode(raw_ptr()->kind_tag_);
-  }
-  void set_is_async_closure(bool value) const;
 
   bool is_native() const { return NativeBit::decode(raw_ptr()->kind_tag_); }
   void set_is_native(bool value) const;
@@ -1970,10 +1961,6 @@ class Function : public Object {
     return kind() == RawFunction::kSignatureFunction;
   }
 
-  bool IsAsyncFunction() const {
-    return modifier() == RawFunction::kAsync;
-  }
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
@@ -2028,8 +2015,6 @@ class Function : public Object {
   static const int kCtorPhaseBody = 1 << 1;
   static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
 
-  void set_modifier(RawFunction::AsyncModifier value) const;
-
  private:
   void set_ic_data_array(const Array& value) const;
 
@@ -2048,8 +2033,6 @@ class Function : public Object {
     kRedirectingBit = 13,
     kExternalBit = 14,
     kAllowsHoistingCheckClassBit = 15,
-    kModifierPos = 16,
-    kAsyncClosureBit = 18,
   };
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
@@ -2066,9 +2049,6 @@ class Function : public Object {
   class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
   class AllowsHoistingCheckClassBit :
       public BitField<bool, kAllowsHoistingCheckClassBit, 1> {};  // NOLINT
-  class ModifierBits :
-      public BitField<RawFunction::AsyncModifier, kModifierPos, 2> {};  // NOLINT
-  class AsyncClosureBit : public BitField<bool, kAsyncClosureBit, 1> {};
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;

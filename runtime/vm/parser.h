@@ -363,8 +363,6 @@ class Parser : public ValueObject {
   void ParseTopLevelAccessor(TopLevel* top_level, intptr_t metadata_pos);
   RawArray* EvaluateMetadata();
 
-  RawFunction::AsyncModifier ParseFunctionModifier();
-
   // Support for parsing libraries.
   RawObject* CallLibraryTagHandler(Dart_LibraryTag tag,
                                    intptr_t token_pos,
@@ -465,7 +463,6 @@ class Parser : public ValueObject {
                                  Array* default_parameter_values);
   SequenceNode* ParseFunc(const Function& func,
                           Array* default_parameter_values);
-  RawClass* GetClassForAsync(const String& class_name);
 
   void ParseNativeFunctionBlock(const ParamList* params, const Function& func);
 
@@ -486,12 +483,7 @@ class Parser : public ValueObject {
   void OpenBlock();
   void OpenLoopBlock();
   void OpenFunctionBlock(const Function& func);
-  RawFunction* OpenAsyncFunction(intptr_t formal_param_pos);
   SequenceNode* CloseBlock();
-  SequenceNode* CloseAsyncFunction(const Function& closure,
-                                   SequenceNode* closure_node);
-  void CloseAsyncClosure(SequenceNode* body);
-
 
   LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
