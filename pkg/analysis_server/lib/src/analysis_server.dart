@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -401,6 +402,7 @@ class AnalysisServer {
             'Unexpected exception during analysis',
             new CaughtException(exception, stackTrace));
       }
+      _sendServerErrorNotification(exception, stackTrace);
     } finally {
       if (!operationQueue.isEmpty) {
         _schedulePerformOperation();
@@ -733,6 +735,32 @@ class AnalysisServer {
    */
   void _schedulePerformOperation() {
     new Future(performOperation);
+  }
+
+  /**
+   * Sends a non-fatal `server.error` notification.
+   */
+  void _sendServerErrorNotification(exception, stackTrace) {
+    // prepare exception.toString()
+    String exceptionString;
+    if (exception != null) {
+      exceptionString = exception.toString();
+    } else {
+      exceptionString = 'null exception';
+    }
+    // prepare stackTrace.toString()
+    String stackTraceString;
+    if (stackTrace != null) {
+      stackTraceString = stackTrace.toString();
+    } else {
+      stackTraceString = 'null stackTrace';
+    }
+    // send the notification
+    Notification notification = new Notification(SERVER_ERROR);
+    notification.setParameter(FATAL, false);
+    notification.setParameter(MESSAGE, exceptionString);
+    notification.setParameter(STACK_TRACE, stackTraceString);
+    channel.sendNotification(notification);
   }
 }
 

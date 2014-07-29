@@ -900,7 +900,7 @@ class Notification {
    * sent to the client to represent this response.
    */
   Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new HashMap<String, Object>();
+    Map<String, Object> jsonObject = {};
     jsonObject[EVENT] = event;
     if (!params.isEmpty) {
       jsonObject[PARAMS] = params;
