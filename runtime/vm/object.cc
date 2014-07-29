@@ -5425,6 +5425,11 @@ void Function::set_kind(RawFunction::Kind value) const {
 }
 
 
+void Function::set_modifier(RawFunction::AsyncModifier value) const {
+  set_kind_tag(ModifierBits::update(value, raw_ptr()->kind_tag_));
+}
+
+
 void Function::set_is_intrinsic(bool value) const {
   set_kind_tag(IntrinsicBit::update(value, raw_ptr()->kind_tag_));
 }
@@ -5455,6 +5460,11 @@ void Function::set_is_external(bool value) const {
 }
 
 
+void Function::set_is_async_closure(bool value) const {
+  set_kind_tag(AsyncClosureBit::update(value, raw_ptr()->kind_tag_));
+}
+
+
 void Function::set_token_pos(intptr_t value) const {
   ASSERT(value >= 0);
   raw_ptr()->token_pos_ = value;
@@ -5462,7 +5472,7 @@ void Function::set_token_pos(intptr_t value) const {
 
 
 void Function::set_kind_tag(intptr_t value) const {
-  raw_ptr()->kind_tag_ = static_cast<uint16_t>(value);
+  raw_ptr()->kind_tag_ = static_cast<uint32_t>(value);
 }
 
 
@@ -6052,6 +6062,7 @@ RawFunction* Function::New(const String& name,
   result.set_parameter_names(Object::empty_array());
   result.set_name(name);
   result.set_kind(kind);
+  result.set_modifier(RawFunction::kNoModifier);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
   result.set_is_abstract(is_abstract);
@@ -6061,6 +6072,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_intrinsic(false);
   result.set_is_recognized(false);
   result.set_is_redirecting(false);
+  result.set_is_async_closure(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);

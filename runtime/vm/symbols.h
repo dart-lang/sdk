@@ -68,6 +68,15 @@ class ObjectPointerVisitor;
   V(Library, "library")                                                        \
   V(LoadLibrary, "loadLibrary")                                                \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
+  V(Async, "async")                                                            \
+  V(AsyncCompleter, ":async_completer")                                        \
+  V(AsyncOperation, ":async_op")                                               \
+  V(Future, "Future")                                                          \
+  V(FutureConstructor, "Future.")                                              \
+  V(Completer, "Completer")                                                    \
+  V(CompleterComplete, "complete")                                             \
+  V(CompleterConstructor, "Completer.")                                        \
+  V(CompleterFuture, "future")                                                 \
   V(Native, "native")                                                          \
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \
