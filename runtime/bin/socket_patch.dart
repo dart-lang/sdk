@@ -273,6 +273,10 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   static const int NORMAL_TOKEN_BATCH_SIZE = 8;
   static const int LISTENING_TOKEN_BATCH_SIZE = 2;
 
+  static const Duration _RETRY_DURATION = const Duration(milliseconds: 250);
+  static const Duration _RETRY_DURATION_LOOPBACK =
+      const Duration(milliseconds: 25);
+
   // Use default Map so we keep order.
   static Map<int, _NativeSocket> _sockets = new Map<int, _NativeSocket>();
 
@@ -381,21 +385,25 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         .then((host) {
           if (host is _InternetAddress) return [host];
           return lookup(host)
-              .then((list) {
-                if (list.length == 0) {
+              .then((addresses) {
+                if (addresses.isEmpty) {
                   throw createError(response, "Failed host lookup: '$host'");
                 }
-                return list;
+                return addresses;
               });
         })
         .then((addresses) {
           assert(addresses is List);
           var completer = new Completer();
           var it = addresses.iterator;
-          void run(error) {
+          var error = null;
+          var connecting = new HashMap();
+          void connectNext() {
             if (!it.moveNext()) {
-              assert(error != null);
-              completer.completeError(error);
+              if (connecting.isEmpty) {
+                assert(error != null);
+                completer.completeError(error);
+              }
               return;
             }
             var address = it.current;
@@ -404,27 +412,45 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             var result = socket.nativeCreateConnect(address._in_addr, port);
             if (result is OSError) {
               // Keep first error, if present.
-              run(error != null ? error :
-                  createError(result, "Connection failed", address, port));
+              if (error == null) {
+                error = createError(result, "Connection failed", address, port);
+              }
+              connectNext();
             } else {
               socket.port;  // Query the local port, for error messages.
+              // Set up timer for when we should retry the next address (if any).
+              var duration = address.isLoopback ?
+                  _RETRY_DURATION_LOOPBACK :
+                  _RETRY_DURATION;
+              var timer = new Timer(duration, connectNext);
+              connecting[socket] = timer;
               // Setup handlers for receiving the first write event which
               // indicate that the socket is fully connected.
               socket.setHandlers(
                   write: () {
+                    timer.cancel();
                     socket.setListening(read: false, write: false);
                     completer.complete(socket);
+                    connecting.remove(socket);
+                    connecting.forEach((s, t) {
+                      t.cancel();
+                      s.close();
+                      s.setHandlers();
+                      s.setListening(read: false, write: false);
+                    });
                   },
                   error: (e) {
+                    timer.cancel();
                     socket.close();
                     // Keep first error, if present.
-                    run(error != null ? error : e);
-                  }
-              );
+                    if (error == null) error = e;
+                    connecting.remove(socket);
+                    if (connecting.isEmpty) connectNext();
+                  });
               socket.setListening(read: false, write: true);
             }
           }
-          run(null);
+          connectNext();
           return completer.future;
         });
   }
