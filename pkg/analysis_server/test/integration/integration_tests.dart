@@ -511,24 +511,11 @@ class Server {
     String scriptDir = dirname(Platform.script.path);
     String serverPath = normalize(join(scriptDir, '..', '..', 'bin',
         'server.dart'));
-    String repoPath = normalize(join(scriptDir, '..', '..', '..', '..'));
-    String buildDirName;
-    if (Platform.isWindows) {
-      buildDirName = 'build';
-    } else if (Platform.isMacOS) {
-      buildDirName = 'xcodebuild';
-    } else {
-      buildDirName = 'out';
-    }
-    // TODO(paulberry): this is a guess
-    String dartConfiguration = 'ReleaseIA32';
-    String buildPath = join(repoPath, buildDirName, dartConfiguration);
-    String packageRoot = join(buildPath, 'packages');
     List<String> arguments = [];
     if (debugServer) {
       arguments.add('--debug');
     }
-    arguments.add('--package-root=$packageRoot');
+    arguments.add('--package-root=${Platform.packageRoot}');
     arguments.add(serverPath);
     return Process.start(dartBinary, arguments).then((Process process) {
       Server server = new Server._(process);
