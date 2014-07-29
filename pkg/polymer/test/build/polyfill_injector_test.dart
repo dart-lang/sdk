@@ -15,16 +15,14 @@ void main() {
   useCompactVMConfiguration();
 
   group('js', () => runTests());
-  group('csp', () => runTests(csp: true));
   group('dart', () => runTests(js: false));
 }
 
-void runTests({bool js: true, bool csp: false}) {
+void runTests({bool js: true}) {
   var phases = [[new PolyfillInjector(new TransformOptions(
-      directlyIncludeJS: js,
-      contentSecurityPolicy: csp))]];
+      directlyIncludeJS: js))]];
 
-  var ext = js ? (csp ? '.precompiled.js' : '.js') : '';
+  var ext = js ? '.js' : '';
   var type = js ? '' : 'type="application/dart" ';
   var dartJsTag = js ? '' : DART_JS_TAG;
   var async = js ? ' async=""' : '';

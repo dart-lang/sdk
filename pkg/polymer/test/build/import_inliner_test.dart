@@ -159,6 +159,47 @@ void importTests() {
       'a|web/second.js': '/*second*/'
     });
 
+  final cspPhases = [[new ImportInliner(
+      new TransformOptions(contentSecurityPolicy: true))]];
+  testPhases('extract Js scripts in CSP mode', cspPhases,
+    {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<script type="text/javascript">/*first*/</script>'
+          '<script src="second.js"></script>'
+          '<link rel="import" href="test2.html">'
+          '<script type="application/dart">/*fifth*/</script>'
+          '</head></html>',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head><script>/*third*/</script>'
+          '<script type="application/dart">/*forth*/</script>'
+          '</head><body><polymer-element>2</polymer-element></html>',
+      'a|web/second.js': '/*second*/'
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '</head><body>'
+          '<script type="text/javascript" src="test.html.0.js"></script>'
+          '<script src="second.js"></script>'
+          '<script src="test.html.2.js"></script>'
+          '<polymer-element>2</polymer-element>'
+          '</body></html>',
+      'a|web/test.html._data': expectedData([
+          'web/test.html.3.dart','web/test.html.1.dart']),
+      'a|web/test.html.3.dart': 'library a.web.test2_html_0;\n/*forth*/',
+      'a|web/test.html.1.dart': 'library a.web.test_html_0;\n/*fifth*/',
+      'a|web/test.html.0.js': '/*first*/',
+      'a|web/test.html.2.js': '/*third*/',
+      'a|web/test2.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<script src="test2.html.0.js"></script>'
+          '<polymer-element>2</polymer-element></body></html>',
+      'a|web/test2.html._data': expectedData(['web/test2.html.1.dart']),
+      'a|web/test2.html.0.js': '/*third*/',
+      'a|web/test2.html.1.dart': 'library a.web.test2_html_0;\n/*forth*/',
+      'a|web/second.js': '/*second*/'
+    });
+
   testPhases('Cleans library names generated from file paths.', phases,
       {
         'a|web/01_test.html':

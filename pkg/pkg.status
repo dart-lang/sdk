@@ -268,10 +268,6 @@ polymer/e2e_test/canonicalization: Skip
 polymer/e2e_test/experimental_boot: Skip
 
 [ $compiler == dart2js && $csp ]
-polymer/test/noscript_test: Fail # Issue 17326
-polymer/test/js_custom_event_test: Fail # Issue 17326
-polymer/test/js_interop_test: Fail # Issue 17326
-
 # This test cannot run under CSP because it is injecting a JavaScript polyfill
 mutation_observer: Skip
 

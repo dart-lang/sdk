@@ -1343,6 +1343,7 @@ class StandardTestSuite extends TestSuite {
         ..add('--test')..add(inputFile)
         ..add('--out')..add(outputDir)
         ..add('--file-filter')..add('.svn');
+    if (configuration['csp']) args.add('--csp');
 
     return CommandBuilder.instance.getProcessCommand(
         'polymer_deploy', dartVmBinaryFileName, args, environmentOverrides);

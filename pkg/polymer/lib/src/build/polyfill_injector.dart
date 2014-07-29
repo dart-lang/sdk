@@ -69,15 +69,12 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
       // fixing our tests: even if content_shell supports Dart VM, we'll still
       // test the compiled JS code.
       if (options.directlyIncludeJS) {
-        // If using CSP add the "precompiled" extension
-        final csp = options.contentSecurityPolicy ? '.precompiled' : '';
-
         // Replace all other Dart script tags with JavaScript versions.
         for (var script in dartScripts) {
           final src = script.attributes['src'];
           if (src.endsWith('.dart')) {
             script.attributes.remove('type');
-            script.attributes['src'] = '$src$csp.js';
+            script.attributes['src'] = '$src.js';
             // TODO(sigmund): we shouldn't need 'async' here. Remove this
             // workaround for dartbug.com/19653.
             script.attributes['async'] = '';

@@ -226,21 +226,27 @@ class _HtmlInliner extends PolymerTransformer {
   bool _extractScripts(Document doc, {bool injectLibraryName: true}) {
     bool changed = false;
     for (var script in doc.querySelectorAll('script')) {
-      if (script.attributes['type'] != TYPE_DART) continue;
-
       var src = script.attributes['src'];
       if (src != null) continue;
 
+      var type = script.attributes['type'];
+      var isDart = type == TYPE_DART;
+
+      var shouldExtract = isDart ||
+          (options.contentSecurityPolicy && (type == null || type == TYPE_JS));
+      if (!shouldExtract) continue;
+
+      var extension =  isDart ? 'dart' : 'js';
       final filename = path.url.basename(docId.path);
       final count = inlineScriptCounter++;
       var code = script.text;
       // TODO(sigmund): ensure this path is unique (dartbug.com/12618).
-      script.attributes['src'] = src = '$filename.$count.dart';
+      script.attributes['src'] = src = '$filename.$count.$extension';
       script.text = '';
       changed = true;
 
-      var newId = docId.addExtension('.$count.dart');
-      if (injectLibraryName && !_hasLibraryDirective(code)) {
+      var newId = docId.addExtension('.$count.$extension');
+      if (isDart && injectLibraryName && !_hasLibraryDirective(code)) {
         var libName = _libraryNameFor(docId, count);
         code = "library $libName;\n$code";
       }
