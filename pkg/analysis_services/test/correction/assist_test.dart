@@ -34,6 +34,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   Assist assist;
   Change change;
   String resultCode;
+  LinkedPositionGroup linkedPositionGroup;
 
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
@@ -65,6 +66,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     for (LinkedPositionGroup group in linkedPositionGroups) {
       if (group.id == id) {
         expect(group.positions, unorderedEquals(expectedPositions));
+        linkedPositionGroup = group;
         return;
       }
     }
@@ -286,6 +288,56 @@ var A = 1, V = '';
 var V;
 ''');
     assertNoAssistAt('var ', AssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  void test_assignToLocalVariable() {
+    _indexTestUnit('''
+main() {
+  List<int> bytes;
+  readBytes();
+}
+List<int> readBytes() => <int>[];
+''');
+    assertHasAssistAt('readBytes();', AssistKind.ASSIGN_TO_LOCAL_VARIABLE, '''
+main() {
+  List<int> bytes;
+  var readBytes = readBytes();
+}
+List<int> readBytes() => <int>[];
+''');
+    assertHasPositionGroup('NAME', expectedPositions(['readBytes = ']));
+    expect(
+        linkedPositionGroup.proposals,
+        unorderedEquals(['list', 'bytes2', 'readBytes']));
+  }
+
+  void test_assignToLocalVariable_alreadyAssignment() {
+    _indexTestUnit('''
+main() {
+  var vvv;
+  vvv = 42;
+}
+''');
+    assertNoAssistAt('vvv =', AssistKind.ASSIGN_TO_LOCAL_VARIABLE);
+  }
+
+  void test_assignToLocalVariable_throw() {
+    _indexTestUnit('''
+main() {
+  throw 42;
+}
+''');
+    assertNoAssistAt('throw ', AssistKind.ASSIGN_TO_LOCAL_VARIABLE);
+  }
+
+  void test_assignToLocalVariable_void() {
+    _indexTestUnit('''
+main() {
+  f();
+}
+void f() {}
+''');
+    assertNoAssistAt('f();', AssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
   String _applyEdits(String code, List<Edit> edits) {

@@ -10,6 +10,7 @@ library services.src.correction.assist;
 import 'package:analysis_services/correction/assist.dart';
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/correction/name_suggestion.dart';
 import 'package:analysis_services/src/correction/source_buffer.dart';
 import 'package:analysis_services/src/correction/source_range.dart';
 import 'package:analysis_services/src/correction/util.dart';
@@ -128,32 +129,34 @@ class AssistProcessor {
     VariableDeclarationList declarationList =
         node.getAncestor((node) => node is VariableDeclarationList);
     if (declarationList == null) {
+      _coverageMarker();
       return;
     }
     // may be has type annotation already
     if (declarationList.type != null) {
+      _coverageMarker();
       return;
     }
     // prepare single VariableDeclaration
     List<VariableDeclaration> variables = declarationList.variables;
     if (variables.length != 1) {
+      _coverageMarker();
       return;
     }
     VariableDeclaration variable = variables[0];
     // we need an initializer to get the type from
     Expression initializer = variable.initializer;
     if (initializer == null) {
+      _coverageMarker();
       return;
     }
     DartType type = initializer.bestType;
-    if (type == null) {
-      return;
-    }
     // prepare type source
     String typeSource;
     if (type is InterfaceType || type is FunctionType) {
       typeSource = utils.getTypeSource(type);
     } else {
+      _coverageMarker();
       return;
     }
     // add edit
@@ -169,57 +172,60 @@ class AssistProcessor {
   }
 
   void _addProposal_assignToLocalVariable() {
-    // TODO(scheglov) implement
-//    // prepare enclosing ExpressionStatement
-//    Statement statement = node.getAncestor((node) => node is Statement);
-//    if (statement is! ExpressionStatement) {
-//      return;
-//    }
-//    ExpressionStatement expressionStatement = statement as ExpressionStatement;
-//    // prepare expression
-//    Expression expression = expressionStatement.expression;
-//    int offset = expression.offset;
-//    // ignore if already assignment
-//    if (expression is AssignmentExpression) {
-//      return;
-//    }
-//    // ignore "throw"
-//    if (expression is ThrowExpression) {
-//      return;
-//    }
-//    // prepare expression type
-//    DartType type = expression.bestType;
-//    if (type.isVoid) {
-//      return;
-//    }
-//    // prepare source
-//    SourceBuilder builder = new SourceBuilder.con1(offset);
-//    builder.append("var ");
-//    // prepare excluded names
-//    Set<String> excluded = new Set<String>();
-//    {
-//      ScopedNameFinder scopedNameFinder = new ScopedNameFinder(offset);
-//      expression.accept(scopedNameFinder);
-//      excluded.addAll(scopedNameFinder.locals.keys.toSet());
-//    }
-//    // name(s)
-//    {
-//      List<String> suggestions =
-//          CorrectionUtils.getVariableNameSuggestions2(type, expression, excluded);
-//      builder.startPosition("NAME");
-//      for (int i = 0; i < suggestions.length; i++) {
-//        String name = suggestions[i];
-//        if (i == 0) {
-//          builder.append(name);
-//        }
-//        builder.addProposal(CorrectionImage.IMG_CORRECTION_CLASS, name);
-//      }
-//      builder.endPosition();
-//    }
-//    builder.append(" = ");
-//    // add proposal
-//    _insertBuilder(builder);
-//    _addAssist(AssistKind.ASSIGN_TO_LOCAL_VARIABLE, []);
+    // prepare enclosing ExpressionStatement
+    Statement statement = node.getAncestor((node) => node is Statement);
+    if (statement is! ExpressionStatement) {
+      _coverageMarker();
+      return;
+    }
+    ExpressionStatement expressionStatement = statement as ExpressionStatement;
+    // prepare expression
+    Expression expression = expressionStatement.expression;
+    int offset = expression.offset;
+    // ignore if already assignment
+    if (expression is AssignmentExpression) {
+      _coverageMarker();
+      return;
+    }
+    // ignore "throw"
+    if (expression is ThrowExpression) {
+      _coverageMarker();
+      return;
+    }
+    // prepare expression type
+    DartType type = expression.bestType;
+    if (type.isVoid) {
+      _coverageMarker();
+      return;
+    }
+    // prepare source
+    SourceBuilder builder = new SourceBuilder(file, offset);
+    builder.append("var ");
+    // prepare excluded names
+    Set<String> excluded = new Set<String>();
+    {
+      ScopedNameFinder scopedNameFinder = new ScopedNameFinder(offset);
+      expression.accept(scopedNameFinder);
+      excluded.addAll(scopedNameFinder.locals.keys.toSet());
+    }
+    // name(s)
+    {
+      List<String> suggestions =
+          getVariableNameSuggestionsForExpression(type, expression, excluded);
+      builder.startPosition("NAME");
+      for (int i = 0; i < suggestions.length; i++) {
+        String name = suggestions[i];
+        if (i == 0) {
+          builder.append(name);
+        }
+        builder.addProposal(name);
+      }
+      builder.endPosition();
+    }
+    builder.append(" = ");
+    // add proposal
+    _insertBuilder(builder);
+    _addAssist(AssistKind.ASSIGN_TO_LOCAL_VARIABLE, []);
   }
 
   void _addProposal_convertToBlockFunctionBody() {
@@ -1513,6 +1519,16 @@ class AssistProcessor {
   void _addReplaceEdit(SourceRange range, String text) {
     Edit edit = new Edit(range.offset, range.length, text);
     edits.add(edit);
+  }
+
+  /**
+   * This method does nothing, but we invoke it in places where Dart VM
+   * coverage agent fails to provide coverage information - such as almost
+   * all "return" statements.
+   *
+   * https://code.google.com/p/dart/issues/detail?id=19912
+   */
+  void _coverageMarker() {
   }
 
   /**
