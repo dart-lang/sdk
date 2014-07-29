@@ -496,19 +496,36 @@ class CorrectionUtils {
   /**
    * Returns the text of the given [AstNode] in the unit.
    */
-  String getText(AstNode node) => getText2(node.offset, node.length);
+  String getText(AstNode node) {
+    // TODO(scheglov) rename
+    return getText2(node.offset, node.length);
+  }
 
   /**
    * Returns the text of the given range in the unit.
    */
-  String getText2(int offset, int length) =>
-      _buffer.substring(offset, offset + length);
+  String getText2(int offset, int length) {
+    // TODO(scheglov) rename
+    return _buffer.substring(offset, offset + length);
+  }
+
+  /**
+   * Returns the text of the given range in the unit.
+   */
+  String getText3(SourceRange range) {
+    // TODO(scheglov) rename
+    return getText2(range.offset, range.length);
+  }
 
   /**
    * Returns the source to reference [type] in this [CompilationUnit].
    */
   String getTypeSource(DartType type) {
     StringBuffer sb = new StringBuffer();
+    // just some Function, maybe find Function Type Alias later
+    if (type is FunctionType) {
+      return "Function";
+    }
     // prepare element
     Element element = type.element;
     if (element == null) {
