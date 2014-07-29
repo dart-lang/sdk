@@ -1579,12 +1579,20 @@ void ParallelMoveResolver::EmitMove(int index) {
         __ LoadObject(destination.reg(), constant, PP);
       }
     } else if (destination.IsFpuRegister()) {
-      __ LoadObject(TMP, constant, PP);
-      __ movsd(destination.fpu_reg(),
-          FieldAddress(TMP, Double::value_offset()));
+      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
+        __ xorps(destination.fpu_reg(), destination.fpu_reg());
+      } else {
+        __ LoadObject(TMP, constant, PP);
+        __ movsd(destination.fpu_reg(),
+            FieldAddress(TMP, Double::value_offset()));
+      }
     } else if (destination.IsDoubleStackSlot()) {
-      __ LoadObject(TMP, constant, PP);
-      __ movsd(XMM0, FieldAddress(TMP, Double::value_offset()));
+      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
+        __ xorps(XMM0, XMM0);
+      } else {
+        __ LoadObject(TMP, constant, PP);
+        __ movsd(XMM0, FieldAddress(TMP, Double::value_offset()));
+      }
       __ movsd(destination.ToStackSlotAddress(), XMM0);
     } else {
       ASSERT(destination.IsStackSlot());

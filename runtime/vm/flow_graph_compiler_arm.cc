@@ -1609,14 +1609,25 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ LoadObject(destination.reg(), constant);
     } else if (destination.IsFpuRegister()) {
       const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
-      __ LoadObject(TMP, constant);
-      __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
-      __ vldrd(dst, Address(TMP, 0));
+      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0) &&
+          TargetCPUFeatures::neon_supported()) {
+        QRegister qdst = destination.fpu_reg();
+        __ veorq(qdst, qdst, qdst);
+      } else {
+        __ LoadObject(TMP, constant);
+        __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
+        __ vldrd(dst, Address(TMP, 0));
+      }
     } else if (destination.IsDoubleStackSlot()) {
+      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0) &&
+          TargetCPUFeatures::neon_supported()) {
+        __ veorq(QTMP, QTMP, QTMP);
+      } else {
+        __ LoadObject(TMP, constant);
+        __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
+        __ vldrd(DTMP, Address(TMP, 0));
+      }
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadObject(TMP, constant);
-      __ AddImmediate(TMP, TMP, Double::value_offset() - kHeapObjectTag);
-      __ vldrd(DTMP, Address(TMP, 0));
       __ StoreDToOffset(DTMP, FP, dest_offset);
     } else {
       ASSERT(destination.IsStackSlot());

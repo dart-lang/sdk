@@ -1585,12 +1585,20 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ LoadObject(destination.reg(), constant, PP);
     } else if (destination.IsFpuRegister()) {
       const VRegister dst = destination.fpu_reg();
-      __ LoadObject(TMP, constant, PP);
-      __ LoadDFieldFromOffset(dst, TMP, Double::value_offset(), PP);
+      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
+        __ veor(dst, dst, dst);
+      } else {
+        __ LoadObject(TMP, constant, PP);
+        __ LoadDFieldFromOffset(dst, TMP, Double::value_offset(), PP);
+      }
     } else if (destination.IsDoubleStackSlot()) {
+      if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0)) {
+        __ veor(VTMP, VTMP, VTMP);
+      } else {
+        __ LoadObject(TMP, constant, PP);
+        __ LoadDFieldFromOffset(VTMP, TMP, Double::value_offset(), PP);
+      }
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadObject(TMP, constant, PP);
-      __ LoadDFieldFromOffset(VTMP, TMP, Double::value_offset(), PP);
       __ StoreDToOffset(VTMP, FP, dest_offset, PP);
     } else {
       ASSERT(destination.IsStackSlot());

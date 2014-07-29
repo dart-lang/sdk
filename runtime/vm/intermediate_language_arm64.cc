@@ -296,8 +296,13 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Isolate* isolate,
 
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!locs()->out(0).IsInvalid()) {
-    const VRegister dst = locs()->out(0).fpu_reg();
-    __ LoadDImmediate(dst, Double::Cast(value()).value(), PP);
+    if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0)) {
+      const VRegister dst = locs()->out(0).fpu_reg();
+      __ veor(dst, dst, dst);
+    } else {
+      const VRegister dst = locs()->out(0).fpu_reg();
+      __ LoadDImmediate(dst, Double::Cast(value()).value(), PP);
+    }
   }
 }
 
