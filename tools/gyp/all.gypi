@@ -12,6 +12,8 @@
     'target_arch': 'ia32',
     # Flag that tells us whether to build native support for dart:io.
     'dart_io_support': 1,
+    # Flag controls whether or not frame pointers are enabled.
+    'c_frame_pointers%': 0,
   },
   'conditions': [
     [ 'OS=="linux"', {

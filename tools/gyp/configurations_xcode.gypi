@@ -29,10 +29,6 @@
           'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES', # -fvisibility-inlines-hidden
           'GCC_WARN_NON_VIRTUAL_DESTRUCTOR': 'YES', # -Wnon-virtual-dtor
           'GCC_TREAT_WARNINGS_AS_ERRORS': 'YES', # -Werror
-          'OTHER_CFLAGS': [ # Disable frame pointers by default.
-            '-fomit-frame-pointer',
-            '-momit-leaf-frame-pointer',
-          ],
           'WARNING_CFLAGS': [
             '<@(common_gcc_warning_flags)',
             '-Wtrigraphs', # Disable Xcode default.
@@ -58,6 +54,26 @@
           'GCC_ENABLE_TRIGRAPHS': 'NO',
           'COMBINE_HIDPI_IMAGES': 'YES',
         },
+        'conditions': [
+          ['c_frame_pointers==1', {
+            'xcode_settings': {
+              'OTHER_CFLAGS': [
+                '-fno-omit-frame-pointer',
+                '-mno-omit-leaf-frame-pointer',
+              ],
+            },
+            'defines': [
+              'PROFILE_NATIVE_CODE',
+            ],
+          }, {
+            'xcode_settings': {
+              'OTHER_CFLAGS': [
+                '-fomit-frame-pointer',
+                '-momit-leaf-frame-pointer',
+              ],
+            },
+          }],
+        ],
       },
       'Dart_Macos_ia32_Base': {
         'abstract': 1,
