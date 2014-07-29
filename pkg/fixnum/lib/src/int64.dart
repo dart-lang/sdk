@@ -14,6 +14,13 @@ class Int64 implements IntX {
   // integers, storing the 22 low, 22 middle, and 20 high bits of the
   // 64-bit value.  _l (low) and _m (middle) are in the range
   // [0, 2^22 - 1] and _h (high) is in the range [0, 2^20 - 1].
+  //
+  // The values being assigned to _l, _m and _h in initialization are masked to
+  // force them into the above ranges.  Sometimes we know that the value is a
+  // small non-negative integer but the dart2js compiler can't infer that, so a
+  // few of the masking operations are not needed for correctness but are
+  // helpful for dart2js code quality.
+
   final int _l, _m, _h;
 
   // Note: several functions require _BITS == 22 -- do not change this value.
@@ -141,11 +148,11 @@ class Int64 implements IntX {
     }
 
     if (negative) {
-      v0 = _MASK & ~v0;
-      v1 = _MASK & ~v1;
-      v2 = _MASK2 & ~v2;
+      v0 = ~v0;
+      v1 = ~v1;
+      v2 = ~v2;
     }
-    return new Int64._bits(v0, v1, v2);
+    return Int64._masked(v0, v1, v2);
   }
 
   factory Int64.fromBytes(List<int> bytes) {
@@ -593,12 +600,14 @@ class Int64 implements IntX {
       return Int64._masked(_l, _m, _h.toSigned(width - _BITS01));
     } else if (width > _BITS) {
       int m = _m.toSigned(width - _BITS);
-      return m.isNegative ? Int64._masked(_l, m, _MASK2) :
-          new Int64._bits(_l, m, 0);
+      return m.isNegative
+          ? Int64._masked(_l, m, _MASK2)
+          : Int64._masked(_l, m, 0);  // Masking for type inferrer.
     } else {
       int l = _l.toSigned(width);
-      return l.isNegative ? Int64._masked(l, _MASK, _MASK2) :
-          new Int64._bits(l, 0, 0);
+      return l.isNegative
+          ? Int64._masked(l, _MASK, _MASK2)
+          : Int64._masked(l, 0, 0);  // Masking for type inferrer.
     }
   }
 
@@ -1024,10 +1033,12 @@ class Int64 implements IntX {
     assert(what == _RETURN_DIV || what == _RETURN_MOD || what == _RETURN_REM);
     if (what == _RETURN_DIV) {
       if (aNeg != bNeg) return _negate(q0, q1, q2);
-      return new Int64._bits(q0, q1, q2);
+      return Int64._masked(q0, q1, q2);  // Masking for type inferrer.
     }
 
-    if (!aNeg) return new Int64._bits(r0, r1, r2);
+    if (!aNeg) {
+      return new Int64._bits(_MASK & r0, r1, r2);  // Masking for type inferrer.
+    }
 
     if (what == _RETURN_MOD) {
       if (r0 == 0 && r1 == 0 && r2 == 0) {
