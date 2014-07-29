@@ -33,6 +33,9 @@ class TestTraits {
   static uword Hash(const Object& obj) {
     return String::Cast(obj).Length();
   }
+  static RawObject* NewKey(const char* key) {
+    return String::New(key);
+  }
 };
 
 
@@ -128,6 +131,18 @@ TEST_CASE(EnumIndexHashMap) {
   EXPECT(a_value.Equals("AAA"));
   Object& null_value = Object::Handle(table.GetOrNull("0"));
   EXPECT(null_value.IsNull());
+
+  // Test on-demand allocation of a new key object using NewKey in traits.
+  String& b_value = String::Handle();
+  b_value ^=
+      table.InsertNewOrGetValue("b", String::Handle(String::New("BBB")));
+  EXPECT(b_value.Equals("BBB"));
+  {
+    // When the key is already present, there should be no allocation.
+    NoGCScope no_gc;
+    b_value ^= table.InsertNewOrGetValue("b", a_value);
+    EXPECT(b_value.Equals("BBB"));
+  }
   table.Release();
 }
 

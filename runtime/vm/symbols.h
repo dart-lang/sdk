@@ -441,9 +441,6 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
 
-  // Get number of symbols in an isolate's symbol table.
-  static intptr_t Size(Isolate* isolate);
-
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
@@ -482,39 +479,20 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 
  private:
   enum {
-    kInitialVMIsolateSymtabSize = 512,
+    kInitialVMIsolateSymtabSize = 1024,
     kInitialSymtabSize = 2048
   };
 
-  // Helper functions to create a symbol given a string or set of characters.
-  template<typename CharacterType, typename CallbackType>
-  static RawString* NewSymbol(const CharacterType* characters,
-                              intptr_t len,
-                              CallbackType new_string);
+  static void GetStats(Isolate* isolate,
+                       intptr_t* size,
+                       intptr_t* capacity);
+
+  template<typename StringType>
+  static RawString* NewSymbol(const StringType& str);
 
   // Add the string into the VM isolate symbol table.
-  static void Add(const Array& symbol_table, const String& str);
+  static void AddToVMIsolate(const String& str);
 
-  // Insert symbol into symbol table, growing it if necessary.
-  static void InsertIntoSymbolTable(const Array& symbol_table,
-                                    const String& symbol,
-                                    intptr_t index);
-
-  // Grow the symbol table.
-  static void GrowSymbolTable(const Array& symbol_table);
-
-  // Return index in symbol table if the symbol already exists or
-  // return the index into which the new symbol can be added.
-  template<typename T>
-  static intptr_t FindIndex(const Array& symbol_table,
-                            const T* characters,
-                            intptr_t len,
-                            intptr_t hash);
-  static intptr_t FindIndex(const Array& symbol_table,
-                            const String& str,
-                            intptr_t begin_index,
-                            intptr_t len,
-                            intptr_t hash);
   static intptr_t LookupVMSymbol(RawObject* obj);
   static RawObject* GetVMSymbol(intptr_t object_id);
   static bool IsVMSymbolId(intptr_t object_id) {
@@ -529,11 +507,6 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 
   // List of handles for predefined symbols.
   static String* symbol_handles_[kMaxPredefinedId];
-
-  // Statistics used to measure the efficiency of the symbol table.
-  static const intptr_t kMaxCollisionBuckets = 10;
-  static intptr_t num_of_grows_;
-  static intptr_t collision_count_[kMaxCollisionBuckets];
 
   friend class String;
   friend class SnapshotReader;

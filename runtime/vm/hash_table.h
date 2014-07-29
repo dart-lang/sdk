@@ -78,6 +78,7 @@ namespace dart {
 template<typename KeyTraits, intptr_t kPayloadSize, intptr_t kMetaDataSize>
 class HashTable : public ValueObject {
  public:
+  typedef KeyTraits Traits;
   explicit HashTable(Array& data) : data_(data) {}
 
   RawArray* Release() {
@@ -424,7 +425,9 @@ class HashTables : public AllStatic {
     }
     double target = (low + high) / 2.0;
     intptr_t new_capacity = (1 + table.NumOccupied()) / target;
-    Table new_table(Array::Handle(New<Table>(new_capacity)));
+    Table new_table(Array::Handle(New<Table>(
+        new_capacity,
+        table.data_.IsOld() ? Heap::kOld : Heap::kNew)));
     Copy(table, new_table);
     table.data_ = new_table.Release();
   }
@@ -466,7 +469,7 @@ class HashMap : public BaseIterTable {
     return (entry == -1) ? Object::null() : BaseIterTable::GetPayload(entry, 0);
   }
   bool UpdateOrInsert(const Object& key, const Object& value) const {
-    HashTables::EnsureLoadFactor(0.0, 0.75, *this);
+    EnsureCapacity();
     intptr_t entry = -1;
     bool present = BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry);
     if (!present) {
@@ -482,6 +485,36 @@ class HashMap : public BaseIterTable {
     ASSERT(entry != -1);
     BaseIterTable::UpdatePayload(entry, 0, value);
   }
+  // If 'key' is not present, maps it to 'value_if_absent'. Returns the final
+  // value in the map.
+  RawObject* InsertOrGetValue(const Object& key,
+                              const Object& value_if_absent) const {
+    EnsureCapacity();
+    intptr_t entry = -1;
+    if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
+      BaseIterTable::InsertKey(entry, key);
+      BaseIterTable::UpdatePayload(entry, 0, value_if_absent);
+      return value_if_absent.raw();
+    } else {
+      return BaseIterTable::GetPayload(entry, 0);
+    }
+  }
+  // Like InsertOrGetValue, but calls NewKey to allocate a key object if needed.
+  template<typename Key>
+  RawObject* InsertNewOrGetValue(const Key& key,
+                                 const Object& value_if_absent) const {
+    EnsureCapacity();
+    intptr_t entry = -1;
+    if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
+      Object& new_key = Object::Handle(
+          BaseIterTable::BaseTable::Traits::NewKey(key));
+      BaseIterTable::InsertKey(entry, new_key);
+      BaseIterTable::UpdatePayload(entry, 0, value_if_absent);
+      return value_if_absent.raw();
+    } else {
+      return BaseIterTable::GetPayload(entry, 0);
+    }
+  }
 
   template<typename Key>
   bool Remove(const Key& key) const {
@@ -492,6 +525,12 @@ class HashMap : public BaseIterTable {
       BaseIterTable::DeleteEntry(entry);
       return true;
     }
+  }
+
+ protected:
+  void EnsureCapacity() const {
+    static const double kMaxLoadFactor = 0.75;
+    HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, *this);
   }
 };
 
@@ -517,7 +556,7 @@ class HashSet : public BaseIterTable {
  public:
   explicit HashSet(Array& data) : BaseIterTable(data) {}
   bool Insert(const Object& key) {
-    HashTables::EnsureLoadFactor(0.0, 0.75, *this);
+    EnsureCapacity();
     intptr_t entry = -1;
     bool present = BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry);
     if (!present) {
@@ -525,6 +564,44 @@ class HashSet : public BaseIterTable {
     }
     return present;
   }
+
+  // If 'key' is not present, insert and return it. Else, return the existing
+  // key in the set (useful for canonicalization).
+  RawObject* InsertOrGet(const Object& key) const {
+    EnsureCapacity();
+    intptr_t entry = -1;
+    if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
+      BaseIterTable::InsertKey(entry, key);
+      return key.raw();
+    } else {
+      return BaseIterTable::GetPayload(entry, 0);
+    }
+  }
+
+  // Like InsertOrGet, but calls NewKey to allocate a key object if needed.
+  template<typename Key>
+  RawObject* InsertNewOrGet(const Key& key) const {
+    EnsureCapacity();
+    intptr_t entry = -1;
+    if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
+      Object& new_key = Object::Handle(
+          BaseIterTable::BaseTable::Traits::NewKey(key));
+      BaseIterTable::InsertKey(entry, new_key);
+      return new_key.raw();
+    } else {
+      return BaseIterTable::GetKey(entry);
+    }
+  }
+
+  template<typename Key>
+  RawObject* GetOrNull(const Key& key, bool* present = NULL) const {
+    intptr_t entry = BaseIterTable::FindKey(key);
+    if (present != NULL) {
+      *present = (entry != -1);
+    }
+    return (entry == -1) ? Object::null() : BaseIterTable::GetKey(entry);
+  }
+
   template<typename Key>
   bool Remove(const Key& key) const {
     intptr_t entry = BaseIterTable::FindKey(key);
@@ -534,6 +611,12 @@ class HashSet : public BaseIterTable {
       BaseIterTable::DeleteEntry(entry);
       return true;
     }
+  }
+
+ protected:
+  void EnsureCapacity() const {
+    static const double kMaxLoadFactor = 0.75;
+    HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, *this);
   }
 };
 

@@ -6845,6 +6845,8 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 RawString* Field::GetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
+  // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
+  // to Symbols.
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
@@ -6857,6 +6859,8 @@ RawString* Field::GetterSymbol(const String& field_name) {
 
 RawString* Field::SetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
+  // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
+  // to Symbols.
   return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
@@ -7693,6 +7697,10 @@ class CompressedTokenTraits {
       return String::Cast(key).Hash();
     }
   }
+
+  static RawObject* NewKey(const Scanner::TokenDescriptor& descriptor) {
+    return LiteralToken::New(descriptor.kind, *descriptor.literal);
+  }
 };
 typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
 
@@ -7715,32 +7723,20 @@ class CompressedTokenStreamData : public ValueObject {
   // Add an IDENT token into the stream and the token hash map.
   void AddIdentToken(const String* ident) {
     ASSERT(ident->IsSymbol());
-    intptr_t index = tokens_.NumOccupied();
-    intptr_t entry;
-    if (!tokens_.FindKeyOrDeletedOrUnused(*ident, &entry)) {
-      tokens_.InsertKey(entry, *ident);
-      tokens_.UpdatePayload(entry, 0, Smi::Handle(Smi::New(index)));
-      HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, tokens_);
-    } else {
-      index = Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0)));
-    }
+    const intptr_t fresh_index = tokens_.NumOccupied();
+    intptr_t index = Smi::Value(Smi::RawCast(
+        tokens_.InsertOrGetValue(*ident,
+                                 Smi::Handle(Smi::New(fresh_index)))));
     WriteIndex(index);
   }
 
   // Add a LITERAL token into the stream and the token hash map.
   void AddLiteralToken(const Scanner::TokenDescriptor& descriptor) {
     ASSERT(descriptor.literal->IsSymbol());
-    intptr_t index = tokens_.NumOccupied();
-    intptr_t entry;
-    if (!tokens_.FindKeyOrDeletedOrUnused(descriptor, &entry)) {
-      LiteralToken& new_literal = LiteralToken::Handle(
-          LiteralToken::New(descriptor.kind, *descriptor.literal));
-      tokens_.InsertKey(entry, new_literal);
-      tokens_.UpdatePayload(entry, 0, Smi::Handle(Smi::New(index)));
-      HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, tokens_);
-    } else {
-      index = Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0)));
-    }
+    const intptr_t fresh_index = tokens_.NumOccupied();
+    intptr_t index = Smi::Value(Smi::RawCast(
+        tokens_.InsertNewOrGetValue(descriptor,
+                                    Smi::Handle(Smi::New(fresh_index)))));
     WriteIndex(index);
   }
 
@@ -7782,7 +7778,6 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   static const intptr_t kInitialTableSize = 32;
-  static const double kMaxLoadFactor;
 
   uint8_t* buffer_;
   WriteStream stream_;
@@ -7790,9 +7785,6 @@ class CompressedTokenStreamData : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
-
-
-const double CompressedTokenStreamData::kMaxLoadFactor = 0.75;
 
 
 RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,

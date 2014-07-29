@@ -5601,6 +5601,8 @@ class String : public Instance {
 
   friend class Class;
   friend class Symbols;
+  friend class StringSlice;  // SetHash
+  template<typename CharType> friend class CharArray;  // SetHash
   friend class OneByteString;
   friend class TwoByteString;
   friend class ExternalOneByteString;
