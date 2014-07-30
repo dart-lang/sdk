@@ -168,15 +168,9 @@ abstract class AbstractAnalysisServerIntegrationTest {
     // doesn't exit, then forcibly terminate it.
     Completer processExited = new Completer();
     server.send(SERVER_SHUTDOWN, null);
-    server.exitCode.whenComplete(() {
-      processExited.complete();
+    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
+      return server.kill();
     });
-    new Future.delayed(SHUTDOWN_TIMEOUT).then((_) {
-      if (!processExited.isCompleted) {
-        server.kill();
-      }
-    });
-    return processExited.future;
   }
 }
 
