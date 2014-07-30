@@ -508,7 +508,8 @@ class Server {
     // TODO(paulberry): move the logic for finding the script, the dart
     // executable, and the package root into a shell script.
     String dartBinary = Platform.executable;
-    String scriptDir = dirname(Platform.script.path);
+    String scriptDir = dirname(Platform.script.toFilePath(windows:
+        Platform.isWindows));
     String serverPath = normalize(join(scriptDir, '..', '..', 'bin',
         'server.dart'));
     List<String> arguments = [];
