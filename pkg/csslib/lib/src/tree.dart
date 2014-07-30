@@ -11,7 +11,7 @@ part of csslib.visitor;
 class Identifier extends TreeNode {
   String name;
 
-  Identifier(this.name, Span span): super(span);
+  Identifier(this.name, SourceSpan span): super(span);
 
   Identifier clone() => new Identifier(name, span);
 
@@ -21,7 +21,7 @@ class Identifier extends TreeNode {
 }
 
 class Wildcard extends TreeNode {
-  Wildcard(Span span): super(span);
+  Wildcard(SourceSpan span): super(span);
   Wildcard clone() => new Wildcard(span);
   visit(VisitorBase visitor) => visitor.visitWildcard(this);
 
@@ -29,7 +29,7 @@ class Wildcard extends TreeNode {
 }
 
 class ThisOperator extends TreeNode {
-  ThisOperator(Span span): super(span);
+  ThisOperator(SourceSpan span): super(span);
   ThisOperator clone() => new ThisOperator(span);
   visit(VisitorBase visitor) => visitor.visitThisOperator(this);
 
@@ -37,7 +37,7 @@ class ThisOperator extends TreeNode {
 }
 
 class Negation extends TreeNode {
-  Negation(Span span): super(span);
+  Negation(SourceSpan span): super(span);
   Negation clone() => new Negation(span);
   visit(VisitorBase visitor) => visitor.visitNegation(this);
 
@@ -48,14 +48,14 @@ class Negation extends TreeNode {
 class CssComment extends TreeNode {
   final String comment;
 
-  CssComment(this.comment, Span span): super(span);
+  CssComment(this.comment, SourceSpan span): super(span);
   CssComment clone() => new CssComment(comment, span);
   visit(VisitorBase visitor) => visitor.visitCssComment(this);
 }
 
 // CDO/CDC (Comment Definition Open <!-- and Comment Definition Close -->).
 class CommentDefinition extends CssComment {
-  CommentDefinition(String comment, Span span): super(comment, span);
+  CommentDefinition(String comment, SourceSpan span): super(comment, span);
   CommentDefinition clone() => new CommentDefinition(comment, span);
   visit(VisitorBase visitor) => visitor.visitCommentDefinition(this);
 }
@@ -63,7 +63,7 @@ class CommentDefinition extends CssComment {
 class SelectorGroup extends TreeNode {
   final List<Selector> selectors;
 
-  SelectorGroup(this.selectors, Span span): super(span);
+  SelectorGroup(this.selectors, SourceSpan span): super(span);
 
   SelectorGroup clone() => new SelectorGroup(selectors, span);
 
@@ -73,7 +73,7 @@ class SelectorGroup extends TreeNode {
 class Selector extends TreeNode {
   final List<SimpleSelectorSequence> simpleSelectorSequences;
 
-  Selector(this.simpleSelectorSequences, Span span) : super(span);
+  Selector(this.simpleSelectorSequences, SourceSpan span) : super(span);
 
   void add(SimpleSelectorSequence seq) => simpleSelectorSequences.add(seq);
 
@@ -95,7 +95,7 @@ class SimpleSelectorSequence extends TreeNode {
   int combinator;
   final SimpleSelector simpleSelector;
 
-  SimpleSelectorSequence(this.simpleSelector, Span span,
+  SimpleSelectorSequence(this.simpleSelector, SourceSpan span,
       [int combinator = TokenKind.COMBINATOR_NONE])
       : combinator = combinator, super(span);
 
@@ -126,7 +126,7 @@ class SimpleSelectorSequence extends TreeNode {
 abstract class SimpleSelector extends TreeNode {
   final _name; // Wildcard, ThisOperator, Identifier, Negation, others?
 
-  SimpleSelector(this._name, Span span) : super(span);
+  SimpleSelector(this._name, SourceSpan span) : super(span);
 
   String get name => _name.name;
 
@@ -139,7 +139,7 @@ abstract class SimpleSelector extends TreeNode {
 
 // element name
 class ElementSelector extends SimpleSelector {
-  ElementSelector(name, Span span) : super(name, span);
+  ElementSelector(name, SourceSpan span) : super(name, span);
   visit(VisitorBase visitor) => visitor.visitElementSelector(this);
 
   ElementSelector clone() => new ElementSelector(_name, span);
@@ -151,7 +151,8 @@ class ElementSelector extends SimpleSelector {
 class NamespaceSelector extends SimpleSelector {
   final _namespace;           // null, Wildcard or Identifier
 
-  NamespaceSelector(this._namespace, var name, Span span) : super(name, span);
+  NamespaceSelector(this._namespace, var name, SourceSpan span)
+      : super(name, span);
 
   String get namespace =>
       _namespace is Wildcard ? '*' : _namespace == null ? '' : _namespace.name;
@@ -173,7 +174,7 @@ class AttributeSelector extends SimpleSelector {
   final _value;
 
   AttributeSelector(Identifier name, this._op, this._value,
-      Span span) : super(name, span);
+      SourceSpan span) : super(name, span);
 
   int get operatorKind => _op;
 
@@ -237,7 +238,7 @@ class AttributeSelector extends SimpleSelector {
 
 // #id
 class IdSelector extends SimpleSelector {
-  IdSelector(Identifier name, Span span) : super(name, span);
+  IdSelector(Identifier name, SourceSpan span) : super(name, span);
   IdSelector clone() => new IdSelector(_name, span);
   visit(VisitorBase visitor) => visitor.visitIdSelector(this);
 
@@ -246,7 +247,7 @@ class IdSelector extends SimpleSelector {
 
 // .class
 class ClassSelector extends SimpleSelector {
-  ClassSelector(Identifier name, Span span) : super(name, span);
+  ClassSelector(Identifier name, SourceSpan span) : super(name, span);
   ClassSelector clone() => new ClassSelector(_name, span);
   visit(VisitorBase visitor) => visitor.visitClassSelector(this);
 
@@ -255,7 +256,7 @@ class ClassSelector extends SimpleSelector {
 
 // :pseudoClass
 class PseudoClassSelector extends SimpleSelector {
-  PseudoClassSelector(Identifier name, Span span) : super(name, span);
+  PseudoClassSelector(Identifier name, SourceSpan span) : super(name, span);
   visit(VisitorBase visitor) => visitor.visitPseudoClassSelector(this);
 
   PseudoClassSelector clone() => new PseudoClassSelector(_name, span);
@@ -265,7 +266,7 @@ class PseudoClassSelector extends SimpleSelector {
 
 // ::pseudoElement
 class PseudoElementSelector extends SimpleSelector {
-  PseudoElementSelector(Identifier name, Span span) : super(name, span);
+  PseudoElementSelector(Identifier name, SourceSpan span) : super(name, span);
   visit(VisitorBase visitor) => visitor.visitPseudoElementSelector(this);
 
   PseudoElementSelector clone() => new PseudoElementSelector(_name, span);
@@ -277,7 +278,7 @@ class PseudoElementSelector extends SimpleSelector {
 class PseudoClassFunctionSelector extends PseudoClassSelector {
   final SelectorExpression expression;
 
-  PseudoClassFunctionSelector(Identifier name, this.expression, Span span)
+  PseudoClassFunctionSelector(Identifier name, this.expression, SourceSpan span)
       : super(name, span);
 
   PseudoClassFunctionSelector clone() =>
@@ -291,7 +292,8 @@ class PseudoClassFunctionSelector extends PseudoClassSelector {
 class PseudoElementFunctionSelector extends PseudoElementSelector {
   final SelectorExpression expression;
 
-  PseudoElementFunctionSelector(Identifier name, this.expression, Span span)
+  PseudoElementFunctionSelector(Identifier name, this.expression,
+          SourceSpan span)
       : super(name, span);
 
   PseudoElementFunctionSelector clone() =>
@@ -304,7 +306,7 @@ class PseudoElementFunctionSelector extends PseudoElementSelector {
 class SelectorExpression extends TreeNode {
   final List<Expression> expressions;
 
-  SelectorExpression(this.expressions, Span span): super(span);
+  SelectorExpression(this.expressions, SourceSpan span): super(span);
 
   SelectorExpression clone() {
     return new SelectorExpression(
@@ -318,7 +320,7 @@ class SelectorExpression extends TreeNode {
 class NegationSelector extends SimpleSelector {
   final SimpleSelector negationArg;
 
-  NegationSelector(this.negationArg, Span span)
+  NegationSelector(this.negationArg, SourceSpan span)
       : super(new Negation(span), span);
 
   NegationSelector clone() => new NegationSelector(negationArg, span);
@@ -340,14 +342,14 @@ class StyleSheet extends TreeNode {
    */
   final List<TreeNode> topLevels;
 
-  StyleSheet(this.topLevels, Span span) : super(span) {
+  StyleSheet(this.topLevels, SourceSpan span) : super(span) {
     for (final node in topLevels) {
       assert(node is TopLevelProduction || node is Directive);
     }
   }
 
   /** Selectors only in this tree. */
-  StyleSheet.selector(this.topLevels, Span span) : super(span);
+  StyleSheet.selector(this.topLevels, SourceSpan span) : super(span);
 
   StyleSheet clone() {
     var clonedTopLevels = topLevels.map((e) => e.clone()).toList();
@@ -358,7 +360,7 @@ class StyleSheet extends TreeNode {
 }
 
 class TopLevelProduction extends TreeNode {
-  TopLevelProduction(Span span) : super(span);
+  TopLevelProduction(SourceSpan span) : super(span);
   TopLevelProduction clone() => new TopLevelProduction(span);
   visit(VisitorBase visitor) => visitor.visitTopLevelProduction(this);
 }
@@ -367,7 +369,8 @@ class RuleSet extends TopLevelProduction {
   final SelectorGroup _selectorGroup;
   final DeclarationGroup _declarationGroup;
 
-  RuleSet(this._selectorGroup, this._declarationGroup, Span span) : super(span);
+  RuleSet(this._selectorGroup, this._declarationGroup, SourceSpan span)
+      : super(span);
 
   SelectorGroup get selectorGroup => _selectorGroup;
   DeclarationGroup get declarationGroup => _declarationGroup;
@@ -382,7 +385,7 @@ class RuleSet extends TopLevelProduction {
 }
 
 class Directive extends TreeNode {
-  Directive(Span span) : super(span);
+  Directive(SourceSpan span) : super(span);
 
   bool get isBuiltIn => true;       // Known CSS directive?
   bool get isExtension => false;    // SCSS extension?
@@ -398,7 +401,8 @@ class ImportDirective extends Directive {
   /** Any media queries for this import. */
   final List<MediaQuery> mediaQueries;
 
-  ImportDirective(this.import, this.mediaQueries, Span span) : super(span);
+  ImportDirective(this.import, this.mediaQueries, SourceSpan span)
+      : super(span);
 
   ImportDirective clone() {
     var cloneMediaQueries = [];
@@ -420,7 +424,8 @@ class MediaExpression extends TreeNode {
   final Identifier _mediaFeature;
   final Expressions exprs;
 
-  MediaExpression(this.andOperator, this._mediaFeature, this.exprs, Span span)
+  MediaExpression(this.andOperator, this._mediaFeature, this.exprs,
+          SourceSpan span)
       : super(span);
 
   String get mediaFeature => _mediaFeature.name;
@@ -450,7 +455,8 @@ class MediaQuery extends TreeNode {
   final Identifier _mediaType;
   final List<MediaExpression> expressions;
 
-  MediaQuery(this._mediaUnary, this._mediaType, this.expressions, Span span)
+  MediaQuery(this._mediaUnary, this._mediaType, this.expressions,
+          SourceSpan span)
       : super(span);
 
   bool get hasMediaType => _mediaType != null;
@@ -474,7 +480,8 @@ class MediaDirective extends Directive {
   final List<MediaQuery> mediaQueries;
   final List<RuleSet> rulesets;
 
-  MediaDirective(this.mediaQueries, this.rulesets, Span span) : super(span);
+  MediaDirective(this.mediaQueries, this.rulesets, SourceSpan span)
+      : super(span);
 
   MediaDirective clone() {
     var cloneQueries = [];
@@ -494,7 +501,7 @@ class MediaDirective extends Directive {
 class HostDirective extends Directive {
   final List<RuleSet> rulesets;
 
-  HostDirective(this.rulesets, Span span) : super(span);
+  HostDirective(this.rulesets, SourceSpan span) : super(span);
 
   HostDirective clone() {
     var cloneRulesets = [];
@@ -513,7 +520,7 @@ class PageDirective extends Directive {
   final List<DeclarationGroup> _declsMargin;
 
   PageDirective(this._ident, this._pseudoPage, this._declsMargin,
-      Span span) : super(span);
+      SourceSpan span) : super(span);
 
   PageDirective clone() {
     var cloneDeclsMargin = [];
@@ -532,7 +539,7 @@ class PageDirective extends Directive {
 class CharsetDirective extends Directive {
   final String charEncoding;
 
-  CharsetDirective(this.charEncoding, Span span) : super(span);
+  CharsetDirective(this.charEncoding, SourceSpan span) : super(span);
   CharsetDirective clone() => new CharsetDirective(charEncoding, span);
   visit(VisitorBase visitor) => visitor.visitCharsetDirective(this);
 }
@@ -545,7 +552,7 @@ class KeyFrameDirective extends Directive {
   final name;
   final List<KeyFrameBlock> _blocks;
 
-  KeyFrameDirective(this._keyframeName, this.name, Span span)
+  KeyFrameDirective(this._keyframeName, this.name, SourceSpan span)
       : _blocks = [], super(span);
 
   add(KeyFrameBlock block) {
@@ -577,7 +584,7 @@ class KeyFrameBlock extends Expression {
   final Expressions _blockSelectors;
   final DeclarationGroup _declarations;
 
-  KeyFrameBlock(this._blockSelectors, this._declarations, Span span)
+  KeyFrameBlock(this._blockSelectors, this._declarations, SourceSpan span)
       : super(span);
 
   KeyFrameBlock clone() =>
@@ -588,7 +595,7 @@ class KeyFrameBlock extends Expression {
 class FontFaceDirective extends Directive {
   final DeclarationGroup _declarations;
 
-  FontFaceDirective(this._declarations, Span span) : super(span);
+  FontFaceDirective(this._declarations, SourceSpan span) : super(span);
 
   FontFaceDirective clone() =>
       new FontFaceDirective(_declarations.clone(), span);
@@ -599,7 +606,8 @@ class StyletDirective extends Directive {
   final String dartClassName;
   final List<RuleSet> rulesets;
 
-  StyletDirective(this.dartClassName, this.rulesets, Span span) : super(span);
+  StyletDirective(this.dartClassName, this.rulesets, SourceSpan span)
+     : super(span);
 
   bool get isBuiltIn => false;
   bool get isExtension => true;
@@ -622,7 +630,7 @@ class NamespaceDirective extends Directive {
   /** URI associated with this namespace. */
   final String _uri;
 
-  NamespaceDirective(this._prefix, this._uri, Span span) : super(span);
+  NamespaceDirective(this._prefix, this._uri, SourceSpan span) : super(span);
 
   NamespaceDirective clone() => new NamespaceDirective(_prefix, _uri, span);
 
@@ -635,7 +643,7 @@ class NamespaceDirective extends Directive {
 class VarDefinitionDirective extends Directive {
   final VarDefinition def;
 
-  VarDefinitionDirective(this.def, Span span) : super(span);
+  VarDefinitionDirective(this.def, SourceSpan span) : super(span);
 
   VarDefinitionDirective clone() =>
       new VarDefinitionDirective(def.clone(), span);
@@ -648,7 +656,7 @@ class MixinDefinition extends Directive {
   final List definedArgs;
   final bool varArgs;
 
-  MixinDefinition(this.name, this.definedArgs, this.varArgs, Span span)
+  MixinDefinition(this.name, this.definedArgs, this.varArgs, SourceSpan span)
       : super(span);
 
   MixinDefinition clone() {
@@ -667,7 +675,7 @@ class MixinRulesetDirective extends MixinDefinition {
   final List<RuleSet> rulesets;
 
   MixinRulesetDirective(String name, List<VarDefinitionDirective> args,
-      bool varArgs, this.rulesets, Span span) :
+      bool varArgs, this.rulesets, SourceSpan span) :
       super(name, args, varArgs, span);
 
   MixinRulesetDirective clone() {
@@ -690,7 +698,7 @@ class MixinDeclarationDirective extends MixinDefinition {
   final DeclarationGroup declarations;
 
   MixinDeclarationDirective(String name, List<VarDefinitionDirective>  args,
-      bool varArgs, this.declarations, Span span) :
+      bool varArgs, this.declarations, SourceSpan span) :
       super(name, args, varArgs, span);
 
   MixinDeclarationDirective clone() {
@@ -710,7 +718,7 @@ class IncludeDirective extends Directive {
   final String name;
   final List<List<TreeNode>> args;
 
-  IncludeDirective(this.name, this.args, Span span) : super(span);
+  IncludeDirective(this.name, this.args, SourceSpan span) : super(span);
 
   IncludeDirective clone() {
     var cloneArgs = [];
@@ -727,7 +735,7 @@ class IncludeDirective extends Directive {
 
 /** To support SASS @content. */
 class ContentDirective extends Directive {
-  ContentDirective(Span span) : super(span);
+  ContentDirective(SourceSpan span) : super(span);
 
   visit(VisitorBase visitor) => visitor.visitContentDirective(this);
 }
@@ -749,7 +757,7 @@ class Declaration extends TreeNode {
    */
   final bool isIE7;
 
-  Declaration(this._property, this._expression, this.dartStyle, Span span,
+  Declaration(this._property, this._expression, this.dartStyle, SourceSpan span,
               {important: false, ie7: false})
       : this.important = important, this.isIE7 = ie7, super(span);
 
@@ -774,7 +782,7 @@ class Declaration extends TreeNode {
 class VarDefinition extends Declaration {
   bool badUsage = false;
 
-  VarDefinition(Identifier definedName, Expression expr, Span span)
+  VarDefinition(Identifier definedName, Expression expr, SourceSpan span)
       : super(definedName, expr, null, span);
 
   String get definedName => _property.name;
@@ -796,7 +804,7 @@ class VarDefinition extends Declaration {
 class IncludeMixinAtDeclaration extends Declaration {
   final IncludeDirective include;
 
-  IncludeMixinAtDeclaration(this.include, Span span)
+  IncludeMixinAtDeclaration(this.include, SourceSpan span)
       : super(null, null, null, span);
 
   IncludeMixinAtDeclaration clone() =>
@@ -809,7 +817,7 @@ class IncludeMixinAtDeclaration extends Declaration {
 class ExtendDeclaration extends Declaration {
   final List<TreeNode> selectors;
 
-  ExtendDeclaration(this.selectors, Span span) :
+  ExtendDeclaration(this.selectors, SourceSpan span) :
       super(null, null, null, span);
 
   ExtendDeclaration clone() {
@@ -824,7 +832,7 @@ class DeclarationGroup extends TreeNode {
   /** Can be either Declaration or RuleSet (if nested selector). */
   final List declarations;
 
-  DeclarationGroup(this.declarations, Span span) : super(span);
+  DeclarationGroup(this.declarations, SourceSpan span) : super(span);
 
   DeclarationGroup clone() {
     var clonedDecls = declarations.map((d) => d.clone()).toList();
@@ -837,7 +845,7 @@ class DeclarationGroup extends TreeNode {
 class MarginGroup extends DeclarationGroup {
   final int margin_sym;       // TokenType for for @margin sym.
 
-  MarginGroup(this.margin_sym, List<Declaration> decls, Span span)
+  MarginGroup(this.margin_sym, List<Declaration> decls, SourceSpan span)
       : super(decls, span);
   MarginGroup clone() =>
     new MarginGroup(margin_sym, super.clone() as dynamic, span);
@@ -848,7 +856,7 @@ class VarUsage extends Expression {
   final String name;
   final List<Expression> defaultValues;
 
-  VarUsage(this.name, this.defaultValues, Span span) : super(span);
+  VarUsage(this.name, this.defaultValues, SourceSpan span) : super(span);
 
   VarUsage clone() {
     var clonedValues = [];
@@ -862,25 +870,25 @@ class VarUsage extends Expression {
 }
 
 class OperatorSlash extends Expression {
-  OperatorSlash(Span span) : super(span);
+  OperatorSlash(SourceSpan span) : super(span);
   OperatorSlash clone() => new OperatorSlash(span);
   visit(VisitorBase visitor) => visitor.visitOperatorSlash(this);
 }
 
 class OperatorComma extends Expression {
-  OperatorComma(Span span) : super(span);
+  OperatorComma(SourceSpan span) : super(span);
   OperatorComma clone() => new OperatorComma(span);
   visit(VisitorBase visitor) => visitor.visitOperatorComma(this);
 }
 
 class OperatorPlus extends Expression {
-  OperatorPlus(Span span) : super(span);
+  OperatorPlus(SourceSpan span) : super(span);
   OperatorPlus clone() => new OperatorPlus(span);
   visit(VisitorBase visitor) => visitor.visitOperatorPlus(this);
 }
 
 class OperatorMinus extends Expression {
-  OperatorMinus(Span span) : super(span);
+  OperatorMinus(SourceSpan span) : super(span);
   OperatorMinus clone() => new OperatorMinus(span);
   visit(VisitorBase visitor) => visitor.visitOperatorMinus(this);
 }
@@ -889,7 +897,7 @@ class UnicodeRangeTerm extends Expression {
   final String first;
   final String second;
 
-  UnicodeRangeTerm(this.first, this.second, Span span) : super(span);
+  UnicodeRangeTerm(this.first, this.second, SourceSpan span) : super(span);
 
   bool get hasSecond => second != null;
 
@@ -905,7 +913,7 @@ class LiteralTerm extends Expression {
   dynamic value;
   String text;
 
-  LiteralTerm(this.value, this.text, Span span) : super(span);
+  LiteralTerm(this.value, this.text, SourceSpan span) : super(span);
 
   LiteralTerm clone() => new LiteralTerm(value, text, span);
 
@@ -913,7 +921,7 @@ class LiteralTerm extends Expression {
 }
 
 class NumberTerm extends LiteralTerm {
-  NumberTerm(value, String t, Span span) : super(value, t, span);
+  NumberTerm(value, String t, SourceSpan span) : super(value, t, span);
   NumberTerm clone() => new NumberTerm(value, text, span);
   visit(VisitorBase visitor) => visitor.visitNumberTerm(this);
 }
@@ -921,7 +929,7 @@ class NumberTerm extends LiteralTerm {
 class UnitTerm extends LiteralTerm {
   final int unit;
 
-  UnitTerm(value, String t, Span span, this.unit) : super(value, t, span);
+  UnitTerm(value, String t, SourceSpan span, this.unit) : super(value, t, span);
 
   UnitTerm clone() => new UnitTerm(value, text, span, unit);
 
@@ -933,7 +941,7 @@ class UnitTerm extends LiteralTerm {
 }
 
 class LengthTerm extends UnitTerm {
-  LengthTerm(value, String t, Span span,
+  LengthTerm(value, String t, SourceSpan span,
       [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(this.unit == TokenKind.UNIT_LENGTH_PX ||
         this.unit == TokenKind.UNIT_LENGTH_CM ||
@@ -947,25 +955,25 @@ class LengthTerm extends UnitTerm {
 }
 
 class PercentageTerm extends LiteralTerm {
-  PercentageTerm(value, String t, Span span) : super(value, t, span);
+  PercentageTerm(value, String t, SourceSpan span) : super(value, t, span);
   PercentageTerm clone() => new PercentageTerm(value, text, span);
   visit(VisitorBase visitor) => visitor.visitPercentageTerm(this);
 }
 
 class EmTerm extends LiteralTerm {
-  EmTerm(value, String t, Span span) : super(value, t, span);
+  EmTerm(value, String t, SourceSpan span) : super(value, t, span);
   EmTerm clone() => new EmTerm(value, text, span);
   visit(VisitorBase visitor) => visitor.visitEmTerm(this);
 }
 
 class ExTerm extends LiteralTerm {
-  ExTerm(value, String t, Span span) : super(value, t, span);
+  ExTerm(value, String t, SourceSpan span) : super(value, t, span);
   ExTerm clone() => new ExTerm(value, text, span);
   visit(VisitorBase visitor) => visitor.visitExTerm(this);
 }
 
 class AngleTerm extends UnitTerm {
-  AngleTerm(var value, String t, Span span,
+  AngleTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(this.unit == TokenKind.UNIT_ANGLE_DEG ||
         this.unit == TokenKind.UNIT_ANGLE_RAD ||
@@ -978,7 +986,7 @@ class AngleTerm extends UnitTerm {
 }
 
 class TimeTerm extends UnitTerm {
-  TimeTerm(var value, String t, Span span,
+  TimeTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(this.unit == TokenKind.UNIT_ANGLE_DEG ||
         this.unit == TokenKind.UNIT_TIME_MS ||
@@ -990,7 +998,7 @@ class TimeTerm extends UnitTerm {
 }
 
 class FreqTerm extends UnitTerm {
-  FreqTerm(var value, String t, Span span,
+  FreqTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(unit == TokenKind.UNIT_FREQ_HZ || unit == TokenKind.UNIT_FREQ_KHZ);
   }
@@ -1000,21 +1008,21 @@ class FreqTerm extends UnitTerm {
 }
 
 class FractionTerm extends LiteralTerm {
-  FractionTerm(var value, String t, Span span) : super(value, t, span);
+  FractionTerm(var value, String t, SourceSpan span) : super(value, t, span);
 
   FractionTerm clone() => new FractionTerm(value, text, span);
   visit(VisitorBase visitor) => visitor.visitFractionTerm(this);
 }
 
 class UriTerm extends LiteralTerm {
-  UriTerm(String value, Span span) : super(value, value, span);
+  UriTerm(String value, SourceSpan span) : super(value, value, span);
 
   UriTerm clone() => new UriTerm(value, span);
   visit(VisitorBase visitor) => visitor.visitUriTerm(this);
 }
 
 class ResolutionTerm extends UnitTerm {
-  ResolutionTerm(var value, String t, Span span,
+  ResolutionTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(unit == TokenKind.UNIT_RESOLUTION_DPI ||
         unit == TokenKind.UNIT_RESOLUTION_DPCM ||
@@ -1026,7 +1034,7 @@ class ResolutionTerm extends UnitTerm {
 }
 
 class ChTerm extends UnitTerm {
-  ChTerm(var value, String t, Span span,
+  ChTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(unit == TokenKind.UNIT_CH);
   }
@@ -1036,7 +1044,7 @@ class ChTerm extends UnitTerm {
 }
 
 class RemTerm extends UnitTerm {
-  RemTerm(var value, String t, Span span,
+  RemTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(unit == TokenKind.UNIT_REM);
   }
@@ -1046,7 +1054,7 @@ class RemTerm extends UnitTerm {
 }
 
 class ViewportTerm extends UnitTerm {
-  ViewportTerm(var value, String t, Span span,
+  ViewportTerm(var value, String t, SourceSpan span,
     [int unit = TokenKind.UNIT_LENGTH_PX]) : super(value, t, span, unit) {
     assert(unit == TokenKind.UNIT_VIEWPORT_VW ||
         unit == TokenKind.UNIT_VIEWPORT_VH ||
@@ -1062,7 +1070,7 @@ class ViewportTerm extends UnitTerm {
 class BAD_HEX_VALUE { }
 
 class HexColorTerm extends LiteralTerm {
-  HexColorTerm(var value, String t, Span span) : super(value, t, span);
+  HexColorTerm(var value, String t, SourceSpan span) : super(value, t, span);
 
   HexColorTerm clone() => new HexColorTerm(value, text, span);
   visit(VisitorBase visitor) => visitor.visitHexColorTerm(this);
@@ -1071,7 +1079,7 @@ class HexColorTerm extends LiteralTerm {
 class FunctionTerm extends LiteralTerm {
   final Expressions _params;
 
-  FunctionTerm(var value, String t, this._params, Span span)
+  FunctionTerm(var value, String t, this._params, SourceSpan span)
       : super(value, t, span);
 
   FunctionTerm clone() => new FunctionTerm(value, text, _params.clone(), span);
@@ -1084,7 +1092,7 @@ class FunctionTerm extends LiteralTerm {
  * browsers.
  */
 class IE8Term extends LiteralTerm {
-  IE8Term(Span span) : super('\\9', '\\9', span);
+  IE8Term(SourceSpan span) : super('\\9', '\\9', span);
   IE8Term clone() => new IE8Term(span);
   visit(VisitorBase visitor) => visitor.visitIE8Term(this);
 }
@@ -1092,7 +1100,7 @@ class IE8Term extends LiteralTerm {
 class GroupTerm extends Expression {
   final List<LiteralTerm> _terms;
 
-  GroupTerm(Span span) : _terms =  [], super(span);
+  GroupTerm(SourceSpan span) : _terms =  [], super(span);
 
   void add(LiteralTerm term) {
     _terms.add(term);
@@ -1103,7 +1111,7 @@ class GroupTerm extends Expression {
 }
 
 class ItemTerm extends NumberTerm {
-  ItemTerm(var value, String t, Span span) : super(value, t, span);
+  ItemTerm(var value, String t, SourceSpan span) : super(value, t, span);
 
   ItemTerm clone() => new ItemTerm(value, text, span);
   visit(VisitorBase visitor) => visitor.visitItemTerm(this);
@@ -1112,7 +1120,7 @@ class ItemTerm extends NumberTerm {
 class Expressions extends Expression {
   final List<Expression> expressions = [];
 
-  Expressions(Span span): super(span);
+  Expressions(SourceSpan span): super(span);
 
   void add(Expression expression) {
     expressions.add(expression);
@@ -1133,7 +1141,7 @@ class BinaryExpression extends Expression {
   final Expression x;
   final Expression y;
 
-  BinaryExpression(this.op, this.x, this.y, Span span): super(span);
+  BinaryExpression(this.op, this.x, this.y, SourceSpan span): super(span);
 
   BinaryExpression clone() =>
       new BinaryExpression(op, x.clone(), y.clone(), span);
@@ -1144,7 +1152,7 @@ class UnaryExpression extends Expression {
   final Token op;
   final Expression self;
 
-  UnaryExpression(this.op, this.self, Span span): super(span);
+  UnaryExpression(this.op, this.self, SourceSpan span): super(span);
 
   UnaryExpression clone() => new UnaryExpression(op, self.clone(), span);
   visit(VisitorBase visitor) => visitor.visitUnaryExpression(this);
@@ -1162,7 +1170,7 @@ abstract class DartStyleExpression extends TreeNode {
   final int _styleType;
   int priority;
 
-  DartStyleExpression(this._styleType, Span span) : super(span);
+  DartStyleExpression(this._styleType, SourceSpan span) : super(span);
 
   /*
    * Merges give 2 DartStyleExpression (or derived from DartStyleExpression,
@@ -1191,7 +1199,7 @@ class FontExpression extends DartStyleExpression {
   //   font-style font-variant font-weight font-size/line-height font-family
   // TODO(terry): Only px/pt for now need to handle all possible units to
   //              support calc expressions on units.
-  FontExpression(Span span, {dynamic size, List<String> family,
+  FontExpression(SourceSpan span, {dynamic size, List<String> family,
       int weight, String style, String variant, LineHeight lineHeight}) :
         font = new Font(size : size is LengthTerm ? size.value : size,
             family: family, weight: weight, style: style, variant: variant,
@@ -1213,7 +1221,7 @@ class FontExpression extends DartStyleExpression {
     return new FontExpression._merge(x, y, y.span);
   }
 
-  FontExpression._merge(FontExpression x, FontExpression y, Span span)
+  FontExpression._merge(FontExpression x, FontExpression y, SourceSpan span)
       : super(DartStyleExpression.fontStyle, span),
         font = new Font.merge(x.font, y.font);
 
@@ -1228,7 +1236,7 @@ class FontExpression extends DartStyleExpression {
 abstract class BoxExpression extends DartStyleExpression {
   final BoxEdge box;
 
-  BoxExpression(int styleType, Span span, this.box)
+  BoxExpression(int styleType, SourceSpan span, this.box)
       : super(styleType, span);
 
   /*
@@ -1257,11 +1265,11 @@ abstract class BoxExpression extends DartStyleExpression {
 class MarginExpression extends BoxExpression {
   // TODO(terry): Does auto for margin need to be exposed to Dart UI framework?
   /** Margin expression ripped apart. */
-  MarginExpression(Span span, {num top, num right, num bottom, num left})
+  MarginExpression(SourceSpan span, {num top, num right, num bottom, num left})
       : super(DartStyleExpression.marginStyle, span,
               new BoxEdge(left, top, right, bottom));
 
-  MarginExpression.boxEdge(Span span, BoxEdge box)
+  MarginExpression.boxEdge(SourceSpan span, BoxEdge box)
       : super(DartStyleExpression.marginStyle, span, box);
 
   merged(MarginExpression newMarginExpr) {
@@ -1279,7 +1287,8 @@ class MarginExpression extends BoxExpression {
     return new MarginExpression._merge(x, y, y.span);
   }
 
-  MarginExpression._merge(MarginExpression x, MarginExpression y, Span span)
+  MarginExpression._merge(MarginExpression x, MarginExpression y,
+          SourceSpan span)
       : super(x._styleType, span, new BoxEdge.merge(x.box, y.box));
 
   MarginExpression clone() =>
@@ -1291,11 +1300,11 @@ class MarginExpression extends BoxExpression {
 
 class BorderExpression extends BoxExpression {
   /** Border expression ripped apart. */
-  BorderExpression(Span span, {num top, num right, num bottom, num left})
+  BorderExpression(SourceSpan span, {num top, num right, num bottom, num left})
       : super(DartStyleExpression.borderStyle, span,
               new BoxEdge(left, top, right, bottom));
 
-  BorderExpression.boxEdge(Span span, BoxEdge box)
+  BorderExpression.boxEdge(SourceSpan span, BoxEdge box)
       : super(DartStyleExpression.borderStyle, span, box);
 
   merged(BorderExpression newBorderExpr) {
@@ -1314,7 +1323,7 @@ class BorderExpression extends BoxExpression {
   }
 
   BorderExpression._merge(BorderExpression x, BorderExpression y,
-      Span span)
+      SourceSpan span)
       : super(DartStyleExpression.borderStyle, span,
               new BoxEdge.merge(x.box, y.box));
 
@@ -1328,7 +1337,7 @@ class BorderExpression extends BoxExpression {
 class HeightExpression extends DartStyleExpression {
   final height;
 
-  HeightExpression(Span span, this.height)
+  HeightExpression(SourceSpan span, this.height)
       : super(DartStyleExpression.heightStyle, span);
 
   merged(HeightExpression newHeightExpr) {
@@ -1346,7 +1355,7 @@ class HeightExpression extends DartStyleExpression {
 class WidthExpression extends DartStyleExpression {
   final width;
 
-  WidthExpression(Span span, this.width)
+  WidthExpression(SourceSpan span, this.width)
       : super(DartStyleExpression.widthStyle, span);
 
   merged(WidthExpression newWidthExpr) {
@@ -1363,11 +1372,11 @@ class WidthExpression extends DartStyleExpression {
 
 class PaddingExpression extends BoxExpression {
   /** Padding expression ripped apart. */
-  PaddingExpression(Span span, {num top, num right, num bottom, num left})
+  PaddingExpression(SourceSpan span, {num top, num right, num bottom, num left})
       : super(DartStyleExpression.paddingStyle, span,
               new BoxEdge(left, top, right, bottom));
 
-  PaddingExpression.boxEdge(Span span, BoxEdge box)
+  PaddingExpression.boxEdge(SourceSpan span, BoxEdge box)
       : super(DartStyleExpression.paddingStyle, span, box);
 
   merged(PaddingExpression newPaddingExpr) {
@@ -1385,7 +1394,8 @@ class PaddingExpression extends BoxExpression {
     return new PaddingExpression._merge(x, y, y.span);
   }
 
-  PaddingExpression._merge(PaddingExpression x, PaddingExpression y, Span span)
+  PaddingExpression._merge(PaddingExpression x, PaddingExpression y,
+          SourceSpan span)
       : super(DartStyleExpression.paddingStyle, span,
             new BoxEdge.merge(x.box, y.box));
 

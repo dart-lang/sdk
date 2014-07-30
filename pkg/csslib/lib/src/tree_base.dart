@@ -9,7 +9,7 @@ part of csslib.visitor;
  */
 abstract class TreeNode {
   /** The source code this [TreeNode] represents. */
-  final Span span;
+  final SourceSpan span;
 
   TreeNode(this.span);
 
@@ -29,7 +29,7 @@ abstract class TreeNode {
 
 /** The base type for expressions. */
 abstract class Expression extends TreeNode {
-  Expression(Span span): super(span);
+  Expression(SourceSpan span): super(span);
 }
 
 /** Simple class to provide a textual dump of trees for debugging. */
@@ -53,7 +53,7 @@ class TreeOutput {
   void heading(String name, [span]) {
     write(name);
     if (span != null) {
-      buf.write('  (${span.getLocationMessage('')})');
+      buf.write('  (${span.message('')})');
     }
     buf.write('\n');
   }

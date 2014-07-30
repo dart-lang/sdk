@@ -5,19 +5,12 @@
 library csslib.src.validate;
 
 import 'package:csslib/visitor.dart';
-import 'package:source_maps/span.dart' show Span;
+import 'package:source_span/source_span.dart';
 
 /** Can be thrown on any Css runtime problem includes source location. */
-class CssSelectorException implements Exception {
-  final String _message;
-  final Span _span;
-
-  CssSelectorException(this._message, [this._span]);
-
-  String toString() {
-    var msg = _span == null ? _message : _span.getLocationMessage(_message);
-    return 'CssSelectorException: $msg';
-  }
+class CssSelectorException extends SourceSpanException {
+  CssSelectorException(String message, [SourceSpan span])
+      : super(message, span);
 }
 
 List<String> classes = [];

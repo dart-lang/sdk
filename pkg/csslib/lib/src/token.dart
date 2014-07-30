@@ -12,7 +12,7 @@ class Token {
   final int kind;
 
   /** The location where this token was parsed from. */
-  final Span span;
+  final SourceSpan span;
 
   /** The start offset of this token. */
   int get start => span.start.offset;
@@ -43,13 +43,13 @@ class Token {
 /** A token containing a parsed literal value. */
 class LiteralToken extends Token {
   var value;
-  LiteralToken(int kind, Span span, this.value) : super(kind, span);
+  LiteralToken(int kind, SourceSpan span, this.value) : super(kind, span);
 }
 
 /** A token containing error information. */
 class ErrorToken extends Token {
   String message;
-  ErrorToken(int kind, Span span, this.message) : super(kind, span);
+  ErrorToken(int kind, SourceSpan span, this.message) : super(kind, span);
 }
 
 /**
@@ -61,6 +61,6 @@ class ErrorToken extends Token {
 class IdentifierToken extends Token {
   final String text;
 
-  IdentifierToken(this.text, int kind, Span span)
+  IdentifierToken(this.text, int kind, SourceSpan span)
       : super(kind, span);
 }
