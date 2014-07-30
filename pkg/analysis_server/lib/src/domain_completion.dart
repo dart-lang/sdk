@@ -4,15 +4,13 @@
 
 library domain.completion;
 
-import 'dart:async';
-
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
+import 'package:analysis_services/completion/top_level_computer.dart';
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/search/search_engine.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -58,7 +56,7 @@ class CompletionDomainHandler implements RequestHandler {
     int offset = request.getRequiredParameter(OFFSET).asInt();
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    var computer = new TopLevelSuggestionsComputer(server.searchEngine);
+    var computer = new TopLevelComputer(server.searchEngine);
     var future = computer.compute();
     future.then((List<CompletionSuggestion> results) {
       _sendCompletionNotification(completionId, true, results);
@@ -77,33 +75,3 @@ class CompletionDomainHandler implements RequestHandler {
   }
 }
 
-/**
- * A computer for `completion.getSuggestions` request results.
- */
-class TopLevelSuggestionsComputer {
-  final SearchEngine searchEngine;
-
-  TopLevelSuggestionsComputer(this.searchEngine);
-
-  /**
-   * Computes [CompletionSuggestion]s for the specified position in the source.
-   */
-  Future<List<CompletionSuggestion>> compute() {
-    var future = searchEngine.searchTopLevelDeclarations('');
-    return future.then((List<SearchMatch> matches) {
-      return matches.map((SearchMatch match) {
-        Element element = match.element;
-        String completion = element.displayName;
-        return new CompletionSuggestion(
-            CompletionSuggestionKind.fromElementKind(element.kind),
-            CompletionRelevance.DEFAULT,
-            completion,
-            completion.length,
-            0,
-            element.isDeprecated,
-            false // isPotential
-            );
-      }).toList();
-    });
-  }
-}

@@ -17,7 +17,6 @@ import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 
 main() {
   groupSep = ' | ';

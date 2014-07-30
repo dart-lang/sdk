@@ -2,18 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library test.services.completion;
+
 import 'package:unittest/unittest.dart';
 
-import 'completion/test_all.dart' as completion_all;
-import 'correction/test_all.dart' as correction_all;
-import 'index/test_all.dart' as index_all;
-import 'search/test_all.dart' as search_all;
+import 'top_level_computer_test.dart' as toplevel_test;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
-  completion_all.main();
-  correction_all.main();
-  index_all.main();
-  search_all.main();
+  group('completion', () {
+    toplevel_test.main();
+  });
 }
