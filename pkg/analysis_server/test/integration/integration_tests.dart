@@ -516,7 +516,9 @@ class Server {
     if (debugServer) {
       arguments.add('--debug');
     }
-    arguments.add('--package-root=${Platform.packageRoot}');
+    if (Platform.packageRoot.isNotEmpty) {
+      arguments.add('--package-root=${Platform.packageRoot}');
+    }
     arguments.add(serverPath);
     return Process.start(dartBinary, arguments).then((Process process) {
       Server server = new Server._(process);
