@@ -26,8 +26,6 @@ DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 
-DECLARE_FLAG(bool, enable_debugger);
-
 // Input parameters:
 //   LR : return address.
 //   SP : address of last argument in argument array.
@@ -1347,15 +1345,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
   Label stepping, done_stepping;
-  if (FLAG_enable_debugger) {
-    // Check single stepping.
-    __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
-    __ LoadFromOffset(
-        R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
-    __ CompareRegisters(R6, ZR);
-    __ b(&stepping, NE);
-    __ Bind(&done_stepping);
-  }
+  // Check single stepping.
+  __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadFromOffset(
+      R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
+  __ CompareRegisters(R6, ZR);
+  __ b(&stepping, NE);
+  __ Bind(&done_stepping);
 
   // Load arguments descriptor into R4.
   __ LoadFieldFromOffset(R4, R5, ICData::arguments_descriptor_offset(), kNoPP);
@@ -1471,15 +1467,13 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       R2, R2, Instructions::HeaderSize() - kHeapObjectTag, kNoPP);
   __ br(R2);
 
-  if (FLAG_enable_debugger) {
-    __ Bind(&stepping);
-    __ EnterStubFrame();
-    __ Push(R5);  // Preserve IC data.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ Pop(R5);
-    __ LeaveStubFrame();
-    __ b(&done_stepping);
-  }
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve IC data.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ b(&done_stepping);
 }
 
 
@@ -1561,21 +1555,19 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   }
 #endif  // DEBUG
 
-  if (FLAG_enable_debugger) {
-    // Check single stepping.
-    Label not_stepping;
-    __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
-    __ LoadFromOffset(
-        R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
-    __ CompareImmediate(R6, 0, kNoPP);
-    __ b(&not_stepping, EQ);
-    __ EnterStubFrame();
-    __ Push(R5);  // Preserve IC data.
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ Pop(R5);
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
-  }
+  // Check single stepping.
+  Label not_stepping;
+  __ LoadFieldFromOffset(R6, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadFromOffset(
+      R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
+  __ CompareImmediate(R6, 0, kNoPP);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ Push(R5);  // Preserve IC data.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ Pop(R5);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
 
   // R5: IC data object (preserved).
   __ LoadFieldFromOffset(R6, R5, ICData::ic_data_offset(), kNoPP);
@@ -1682,19 +1674,18 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 // Called only from unoptimized code. All relevant registers have been saved.
 void StubCode::GenerateDebugStepCheckStub(
     Assembler* assembler) {
-  if (FLAG_enable_debugger) {
-    // Check single stepping.
-    Label not_stepping;
-    __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
-    __ LoadFromOffset(
-        R1, R1, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
-    __ CompareImmediate(R1, 0, kNoPP);
-    __ b(&not_stepping, EQ);
-    __ EnterStubFrame();
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
-  }
+  // Check single stepping.
+  Label not_stepping;
+  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadFromOffset(
+      R1, R1, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
+  __ CompareImmediate(R1, 0, kNoPP);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
+
   __ ret();
 }
 
@@ -1932,19 +1923,17 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 // Return Zero condition flag set if equal.
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
-  if (FLAG_enable_debugger) {
     // Check single stepping.
-    Label not_stepping;
-    __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
-    __ LoadFromOffset(
-        R1, R1, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
-    __ CompareImmediate(R1, 0, kNoPP);
-    __ b(&not_stepping, EQ);
-    __ EnterStubFrame();
-    __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-    __ LeaveStubFrame();
-    __ Bind(&not_stepping);
-  }
+  Label not_stepping;
+  __ LoadFieldFromOffset(R1, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadFromOffset(
+      R1, R1, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
+  __ CompareImmediate(R1, 0, kNoPP);
+  __ b(&not_stepping, EQ);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveStubFrame();
+  __ Bind(&not_stepping);
 
   const Register left = R1;
   const Register right = R0;

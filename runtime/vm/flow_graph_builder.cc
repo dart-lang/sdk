@@ -38,7 +38,6 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
-DECLARE_FLAG(bool, enable_debugger);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -1013,8 +1012,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   // No debugger check is done in native functions or for return
   // statements for which there is no associated source position.
   const Function& function = owner()->parsed_function()->function();
-  if ((node->token_pos() != Scanner::kNoSourcePos) &&
-      !function.is_native() && FLAG_enable_debugger) {
+  if ((node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
     AddInstruction(new(I) DebugStepCheckInstr(node->token_pos(),
                                               RawPcDescriptors::kRuntimeCall));
   }
@@ -3118,10 +3116,8 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // call.
   if (node->value()->IsLiteralNode() ||
       node->value()->IsLoadLocalNode()) {
-    if (FLAG_enable_debugger) {
-      AddInstruction(new(I) DebugStepCheckInstr(
-          node->token_pos(), RawPcDescriptors::kRuntimeCall));
-    }
+    AddInstruction(new(I) DebugStepCheckInstr(
+        node->token_pos(), RawPcDescriptors::kRuntimeCall));
   }
 
   ValueGraphVisitor for_value(owner());
