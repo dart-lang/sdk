@@ -709,8 +709,7 @@ class Server {
    * [debugStdio] has been called.
    */
   void _recordStdio(String line) {
-    double elapsedTime = _time.elapsedTicks.toDouble() /
-        _time.frequency.toDouble();
+    double elapsedTime = _time.elapsedTicks / _time.frequency;
     line = "$elapsedTime: $line";
     if (_debuggingStdio) {
       print(line);
