@@ -2049,7 +2049,7 @@ class Function : public Object {
     kExternalBit = 14,
     kAllowsHoistingCheckClassBit = 15,
     kModifierPos = 16,
-    kAsyncClosureBit = 18,
+    kAsyncClosureBit = 17,
   };
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
@@ -2067,7 +2067,7 @@ class Function : public Object {
   class AllowsHoistingCheckClassBit :
       public BitField<bool, kAllowsHoistingCheckClassBit, 1> {};  // NOLINT
   class ModifierBits :
-      public BitField<RawFunction::AsyncModifier, kModifierPos, 2> {};  // NOLINT
+      public BitField<RawFunction::AsyncModifier, kModifierPos, 1> {};  // NOLINT
   class AsyncClosureBit : public BitField<bool, kAsyncClosureBit, 1> {};
 
   void set_name(const String& value) const;
