@@ -38,7 +38,7 @@ main() {
 
   test('constructor X Y NaN', () {
     var point = new Point(double.NAN, 1000);
-    expect(point.x.isNaN, isTrue);
+    expect(point.x, isNaN);
     expect(point.y, 1000);
     expect('$point', 'Point(NaN, 1000)');
   });

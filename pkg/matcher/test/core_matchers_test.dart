@@ -33,6 +33,16 @@ void main() {
     shouldFail(null, isNotNull, "Expected: not null Actual: <null>");
   });
 
+  test('isNaN', () {
+    shouldPass(double.NAN, isNaN);
+    shouldFail(3.1, isNaN, "Expected: NaN Actual: <3.1>");
+  });
+
+  test('isNotNaN', () {
+    shouldPass(3.1, isNotNaN);
+    shouldFail(double.NAN, isNotNaN, "Expected: not NaN Actual: <NaN>");
+  });
+
   test('same', () {
     var a = new Map();
     var b = new Map();

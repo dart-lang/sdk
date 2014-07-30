@@ -1,3 +1,7 @@
+## 0.11.1
+
+* Added `isNaN` and `isNotNaN` matchers.
+
 ## 0.11.0
 
 * Removed deprecated matchers.

@@ -64,6 +64,24 @@ class _IsFalse extends Matcher {
   Description describe(Description description) => description.add('false');
 }
 
+/// A matcher that matches the numeric value NaN.
+const Matcher isNaN = const _IsNaN();
+
+/// A matcher that matches any non-NaN value.
+const Matcher isNotNaN = const _IsNotNaN();
+
+class _IsNaN extends Matcher {
+  const _IsNaN();
+  bool matches(item, Map matchState) => double.NAN.compareTo(item) == 0;
+  Description describe(Description description) => description.add('NaN');
+}
+
+class _IsNotNaN extends Matcher {
+  const _IsNotNaN();
+  bool matches(item, Map matchState) => double.NAN.compareTo(item) != 0;
+  Description describe(Description description) => description.add('not NaN');
+}
+
 /// Returns a matches that matches if the value is the same instance
 /// as [expected], using [identical].
 Matcher same(expected) => new _IsSameAs(expected);
