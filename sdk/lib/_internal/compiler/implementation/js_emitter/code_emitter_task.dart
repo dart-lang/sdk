@@ -675,13 +675,15 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   String getReflectionNameInternal(elementOrSelector, String mangledName) {
-    String name = elementOrSelector.name;
+    String name =
+        namer.privateName(elementOrSelector.library, elementOrSelector.name);
     if (elementOrSelector.isGetter) return name;
     if (elementOrSelector.isSetter) {
       if (!mangledName.startsWith(namer.setterPrefix)) return '$name=';
       String base = mangledName.substring(namer.setterPrefix.length);
       String getter = '${namer.getterPrefix}$base';
-      mangledFieldNames[getter] = name;
+      mangledFieldNames.putIfAbsent(getter, () => name);
+      assert(mangledFieldNames[getter] == name);
       recordedMangledNames.add(getter);
       // TODO(karlklose,ahe): we do not actually need to store information
       // about the name of this setter in the output, but it is needed for
