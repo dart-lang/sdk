@@ -3,6 +3,11 @@
 This file contains highlights of what changes on each version of the
 template_binding package.
 
+#### Pub version 0.12.0+2
+  * fix bug in interop layer to ensure callbacks are run in the dirty-checking
+    zone (this only affected running code directly in Dartium without running
+    pub-build or pub-serve)
+
 #### Pub version 0.12.0
   * NodeBind interop support. This allows elements such as Polymer's
     core-elements and paper-elements to work properly with Dart binding paths,

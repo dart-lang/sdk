@@ -137,7 +137,8 @@ class _JsBindable extends Bindable {
   final JsObject _js;
   _JsBindable(JsObject obj) : _js = obj;
 
-  open(callback) => _js.callMethod('open', [callback]);
+  open(callback) => _js.callMethod('open',
+      [Zone.current.bindUnaryCallback(callback)]);
 
   close() => _js.callMethod('close');
 
@@ -155,16 +156,21 @@ class _JsBindable extends Bindable {
 JsObject bindableToJsObject(Bindable bindable) {
   if (bindable is _JsBindable) return bindable._js;
 
+  var zone = Zone.current;
+  inZone(f) => zone.bindCallback(f);
+  inZoneUnary(f) => zone.bindUnaryCallback(f);
+
   return new JsObject.jsify({
-    'open': (callback) => bindable.open((x) => callback.apply([x])),
-    'close': () => bindable.close(),
-    'discardChanges': () => bindable.value,
-    'setValue': (x) => bindable.value = x,
+    'open': inZoneUnary(
+        (callback) => bindable.open((x) => callback.apply([x]))),
+    'close': inZone(() => bindable.close()),
+    'discardChanges': inZone(() => bindable.value),
+    'setValue': inZoneUnary((x) => bindable.value = x),
     // NOTE: this is not used by Node.bind, but it's used by Polymer:
     // https://github.com/Polymer/polymer-dev/blob/ba2b68fe5a5721f60b5994135f3270e63588809a/src/declaration/properties.js#L130
     // Technically this works because 'deliver' is on PathObserver and
     // CompoundObserver. But ideally Polymer-JS would not assume that.
-    'deliver': () => bindable.deliver(),
+    'deliver': inZone(() => bindable.deliver()),
     // Save this so we can return it from [jsObjectToBindable]
     '__dartBindable': bindable
   });
