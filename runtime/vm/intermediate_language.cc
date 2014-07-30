@@ -2410,7 +2410,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
                                      ArgumentCount(),
-                                     argument_names(),
                                      locs(),
                                      unary_ic_data);
     } else {
@@ -2418,7 +2417,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
                                      ArgumentCount(),
-                                     argument_names(),
                                      locs(),
                                      *call_ic_data);
     }
@@ -2431,7 +2429,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateInstanceCall(deopt_id(),
                                    token_pos(),
                                    ArgumentCount(),
-                                   argument_names(),
                                    locs(),
                                    *call_ic_data);
   }
