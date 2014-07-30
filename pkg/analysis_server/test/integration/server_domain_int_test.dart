@@ -21,8 +21,7 @@ class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
     });
   }
 
-  fail_test_shutdown() {
-    // TODO(paulberry): fix the server so that it passes this test.
+  test_shutdown() {
     return server.send(SERVER_SHUTDOWN, null).then((response) {
       expect(response, isNull);
       return new Future.delayed(new Duration(seconds: 1)).then((_) {

@@ -18,6 +18,12 @@ import 'package:unittest/unittest.dart';
  */
 abstract class AbstractAnalysisServerIntegrationTest {
   /**
+   * Amount of time to give the server to respond to a shutdown request before
+   * forcibly terminating it.
+   */
+  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+
+  /**
    * Connection to the analysis server.
    */
   Server server;
@@ -33,6 +39,12 @@ abstract class AbstractAnalysisServerIntegrationTest {
    */
   HashMap<String, dynamic> currentAnalysisErrors = new HashMap<String, dynamic>(
       );
+
+  /**
+   * True if the teardown process should skip sending a "server.shutdown"
+   * request (e.g. because the server is known to have already shutdown).
+   */
+  bool skipShutdown = false;
 
   /**
    * Write a source file with the given contents.  [relativePath]
@@ -126,16 +138,39 @@ abstract class AbstractAnalysisServerIntegrationTest {
         expect(params['file'], isString);
         currentAnalysisErrors[params['file']] = params['errors'];
       });
+      server.exitCode.then((_) { skipShutdown = true; });
     });
   }
 
   /**
-   * After every test, the server stopped and [sourceDirectory] is deleted.
+   * After every test, the server is stopped and [sourceDirectory] is deleted.
    */
   Future tearDown() {
-    return server.kill().then((_) {
+    return _shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
     });
+  }
+
+  /**
+   * If [skipShutdown] is not set, shut down the server.
+   */
+  Future _shutdownIfNeeded() {
+    if (skipShutdown) {
+      return new Future.value();
+    }
+    // Give the server a short time to comply with the shutdown request; if it
+    // doesn't exit, then forcibly terminate it.
+    Completer processExited = new Completer();
+    server.send(SERVER_SHUTDOWN, null);
+    server.exitCode.whenComplete(() {
+      processExited.complete();
+    });
+    new Future.delayed(SHUTDOWN_TIMEOUT).then((_) {
+      if (!processExited.isCompleted) {
+        server.kill();
+      }
+    });
+    return processExited.future;
   }
 }
 
@@ -578,14 +613,27 @@ class Server {
         server._recordStdio('ERR:  $trimmedLine');
         server._badDataFromServer();
       });
+      process.exitCode.then((int code) {
+        server._recordStdio('TERMINATED WITH EXIT CODE $code');
+        if (code != 0) {
+          server._badDataFromServer();
+        }
+      });
       return server;
     });
   }
 
   /**
+   * Future that completes when the server process exits.
+   */
+  Future<int> get exitCode => _process.exitCode;
+
+  /**
    * Stop the server.
    */
   Future kill() {
+    debugStdio();
+    _recordStdio('PROCESS FORCIBLY TERMINATED');
     _process.kill();
     return _process.exitCode;
   }

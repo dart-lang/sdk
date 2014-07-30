@@ -701,6 +701,8 @@ class AnalysisServer {
       index.clear();
       index.stop();
     }
+    // Defer closing the channel so that the shutdown response can be sent.
+    new Future(channel.close);
   }
 
   /**
