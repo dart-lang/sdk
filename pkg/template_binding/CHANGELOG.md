@@ -3,7 +3,7 @@
 This file contains highlights of what changes on each version of the
 template_binding package.
 
-#### Pub version 0.12.0+2
+#### Pub version 0.12.0+3
   * fix bug in interop layer to ensure callbacks are run in the dirty-checking
     zone (this only affected running code directly in Dartium without running
     pub-build or pub-serve)

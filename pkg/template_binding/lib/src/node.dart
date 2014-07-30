@@ -157,8 +157,8 @@ JsObject bindableToJsObject(Bindable bindable) {
   if (bindable is _JsBindable) return bindable._js;
 
   var zone = Zone.current;
-  inZone(f) => zone.bindCallback(f);
-  inZoneUnary(f) => zone.bindUnaryCallback(f);
+  inZone(f) => zone.bindCallback(f, runGuarded: false);
+  inZoneUnary(f) => zone.bindUnaryCallback(f, runGuarded: false);
 
   return new JsObject.jsify({
     'open': inZoneUnary(
