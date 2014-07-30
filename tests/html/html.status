@@ -82,7 +82,6 @@ speechrecognition_test/types: Fail # TODO(dart2js-team): Please triage this fail
 xhr_test/json: Fail # TODO(dart2js-team): Please triage this failure.
 
 [ $runtime == safarimobilesim ]
-canvasrenderingcontext2d_test/fillText: RuntimeError # Issue 18573
 element_offset_test/offset: RuntimeError # Issue 18573
 element_types_test/supported_meter: RuntimeError # Issue 18573
 
