@@ -2,6 +2,10 @@
 
 This file contains highlights of what changes on each version of this package.
 
+#### Pub version 0.2.0+1
+  * Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan`
+    class.
+
 #### Pub version 0.2.0
   * Static configuration can be modified, so code generators can split the
     static configuration in pieces.

@@ -8,7 +8,7 @@ library dom;
 // implement that.
 
 import 'dart:collection';
-import 'package:source_maps/span.dart' show FileSpan;
+import 'package:source_span/source_span.dart';
 
 import 'src/constants.dart';
 import 'src/css_class_set.dart';

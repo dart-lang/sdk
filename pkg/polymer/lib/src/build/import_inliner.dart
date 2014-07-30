@@ -17,7 +17,7 @@ import 'package:html5lib/dom.dart' show
     Document, DocumentFragment, Element, Node;
 import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
 import 'package:source_maps/refactor.dart' show TextEditTransaction;
-import 'package:source_maps/span.dart';
+import 'package:source_span/source_span.dart';
 
 import 'common.dart';
 
@@ -375,7 +375,7 @@ class _UrlNormalizer extends TreeVisitor {
   // Maybe it's reliable enough for finding URLs in CSS? I'm not sure.
   String visitCss(String cssText) {
     var url = spanUrlFor(sourceId, transform);
-    var src = new SourceFile.text(url, cssText);
+    var src = new SourceFile(cssText, url: url);
     return cssText.replaceAllMapped(_URL, (match) {
       // Extract the URL, without any surrounding quotes.
       var span = src.span(match.start, match.end);
@@ -387,7 +387,7 @@ class _UrlNormalizer extends TreeVisitor {
 
   String visitInlineDart(String code) {
     var unit = parseDirectives(code, suppressErrors: true);
-    var file = new SourceFile.text(spanUrlFor(sourceId, transform), code);
+    var file = new SourceFile(code, url: spanUrlFor(sourceId, transform));
     var output = new TextEditTransaction(code, file);
     var foundLibraryDirective = false;
     for (Directive directive in unit.directives) {
@@ -419,10 +419,10 @@ class _UrlNormalizer extends TreeVisitor {
 
     // TODO(sigmund): emit source maps when barback supports it (see
     // dartbug.com/12340)
-    return (output.commit()..build(file.url)).text;
+    return (output.commit()..build(file.url.toString())).text;
   }
 
-  String _newUrl(String href, Span span) {
+  String _newUrl(String href, SourceSpan span) {
     // Uri.parse blows up on invalid characters (like {{). Encoding the uri
     // allows it to be parsed, which does the correct thing in the general case.
     // This uri not used to build the new uri, so it never needs to be decoded.

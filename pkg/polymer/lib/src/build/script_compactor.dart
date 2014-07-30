@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/element.dart' hide Element;
 import 'package:analyzer/src/generated/element.dart' as analyzer show Element;
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
-import 'package:source_maps/span.dart' show SourceFile, Span;
+import 'package:source_span/source_span.dart';
 import 'package:smoke/codegen/generator.dart';
 import 'package:smoke/codegen/recorder.dart';
 import 'package:code_transformers/resolver.dart';
@@ -502,8 +502,6 @@ class _CustomTagInitializer implements _Initializer {
       "() => Polymer.register('$tagName', $prefix.$typeName)";
 }
 
-_getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);
-
 const MAIN_HEADER = """
 library app_bootstrap;
 
@@ -595,7 +593,7 @@ class _HtmlExtractor extends TreeVisitor {
   }
 
   void _addExpression(String stringExpression, bool inEvent, bool isTwoWay,
-      Span span) {
+      SourceSpan span) {
 
     if (inEvent) {
       if (stringExpression.startsWith('@')) {
@@ -623,7 +621,7 @@ class _SubExpressionVisitor extends pe.RecursiveVisitor {
   final SmokeCodeGenerator generator;
   final TransformLogger logger;
   bool _includeSetter;
-  Span _currentSpan;
+  SourceSpan _currentSpan;
 
   _SubExpressionVisitor(this.generator, this.logger);
 

@@ -3,6 +3,10 @@
 This file contains highlights of what changes on each version of the observe
 package.
 
+#### Pub version 0.11.0+1
+  * Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan`
+    class.
+
 #### Pub version 0.11.0
   * Updated to match [observe-js#e212e74][e212e74] (release 0.3.4)
   * ListPathObserver has been deprecated  (it was deleted a while ago in

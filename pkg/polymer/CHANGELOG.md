@@ -4,6 +4,10 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.0+1
+  * Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan`
+    class.
+
 #### Pub version 0.12.0
  * Updated to match polymer 0.3.4 ([polymer-dev#6ad2d61][6ad2d61]), this
    includes the following changes:

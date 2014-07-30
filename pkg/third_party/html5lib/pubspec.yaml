@@ -1,5 +1,5 @@
 name: html5lib
-version: 0.11.0+2
+version: 0.12.0
 author: Dart Team <misc@dartlang.org>
 description: A library for working with HTML documents.
 homepage: http://pub.dartlang.org/packages/html5lib
@@ -7,7 +7,7 @@ environment:
   sdk: '>=1.2.0 <2.0.0'
 dependencies:
   csslib: '>=0.10.0 <0.12.0'
-  source_maps: '>=0.9.1 <0.10.0'
+  source_span: '>=1.0.0 <2.0.0'
   utf: '>=0.9.0 <0.10.0'
 dev_dependencies:
   path: '>=0.9.0 <2.0.0'
