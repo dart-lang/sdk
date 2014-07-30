@@ -1,5 +1,5 @@
 name: smoke
-version: 0.2.0-dev
+version: 0.2.0
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 homepage: "https://api.dartlang.org/apidocs/channels/be/#smoke"
 description: >

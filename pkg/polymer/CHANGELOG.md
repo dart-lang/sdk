@@ -4,26 +4,21 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
-#### Pub version 0.12.0-pre.1.dev
+#### Pub version 0.12.0
  * Updated to match polymer 0.3.4 ([polymer-dev#6ad2d61][6ad2d61]), this
    includes the following changes:
      * added @ComputedProperty
      * @published can now be written using the readValue/writeValue helper
        methods to match the same timing semantics as Javscript properties.
-     * underlying packages are also updated. Noticable changes are that
-       path-observers syntax is slightly different. See the `observe` package
-       for details.
-  * Patched polymer.js to include also a cherry-pick of
-    [commit#3b690ad][3b690ad], which fixes CSP.
-
-#### Pub version 0.12.0-dev
- * Polymer Expressions had a breaking change so we also bumped the version on
-   this package.
+     * underlying packages are also updated. Some noticeable changes are:
+       * observe: path-observers syntax is slightly different
+       * polymer_expressions: updating the value of an expression will issue a
+         notification.
+       * template_binding: better NodeBind interop support (for
+         two-way bindings with JS polymer elements).
+ * Several fixes for CSP, including a cherry-pick from polymer.js
+   [commit#3b690ad][3b690ad].
  * Fix for [17596](https://code.google.com/p/dart/issues/detail?id=17596)
-
-#### Pub version 0.11.1-dev
- * Use the latest template_binding with better NodeBind interop support (for
-   two-way bindings with JS polymer elements).
  * Fix for [19770](https://code.google.com/p/dart/issues/detail?id=19770)
 
 #### Pub version 0.11.0+5
@@ -52,6 +47,10 @@ web_components, and template_binding) if they impact polymer.
   * **breaking change**: enteredView/leftView were renamed to attached/detached.
     The old lifecycle methods will not be invoked.
   * **breaking change**: Event bindings with `@` are no longer supported.
+  * **breaking change**: `@published` by default is no longer reflected as an
+    attribute by default. This might break if you try to use the attribute in
+    places like CSS selectors. To make it reflected back to an attribute use
+    `@PublishedProperty(reflect: true)`.
 
 #### Pub version 0.10.1
   * Reduce the analyzer work by mocking a small subset of the core libraries.

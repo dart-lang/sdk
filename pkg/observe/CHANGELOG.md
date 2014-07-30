@@ -3,7 +3,7 @@
 This file contains highlights of what changes on each version of the observe
 package.
 
-#### Pub version 0.12.0-dev
+#### Pub version 0.11.0
   * Updated to match [observe-js#e212e74][e212e74] (release 0.3.4)
   * ListPathObserver has been deprecated  (it was deleted a while ago in
     observe-js). We plan to delete it in a future release. You may copy the code
@@ -13,11 +13,9 @@ package.
   * **breaking change**: PropertyPath no longer allows numbers as fields, you
     need to use indexers instead. For example, you now need to write `a[3].d`
     instead of `a.3.d`.
-
-#### Pub version 0.11.0-dev
-  * PathObserver.value= no longer discards changes (this is in combination with
-    a change in template_binding and polymer to improve interop with JS custom
-    elements).
+  * **breaking change**: PathObserver.value= no longer discards changes (this is
+    in combination with a change in template_binding and polymer to improve
+    interop with JS custom elements).
 
 #### Pub version 0.10.0+3
   * minor changes to documentation, deprecated `discardListChages` in favor of

@@ -3,11 +3,9 @@
 This file contains highlights of what changes on each version of the
 polymer_expressions package.
 
-#### Pub version 0.12.0-pre.1.dev
+#### Pub version 0.12.0
   * Exposed a couple new APIs to create a polymer expression binding outside the
     context of a template binding.
-
-#### Pub version 0.12.0-dev
   * Updated to depend on latest template_binding and observe. Setting a value on
     a polymer expression binding now produces a change notification.
 

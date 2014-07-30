@@ -3,11 +3,7 @@
 This file contains highlights of what changes on each version of the
 template_binding package.
 
-#### Pub version 0.12.0-pre.1.dev
-  * Fix bug in translation of text to textContent (in case custom-elements use
-    `text` as an attribute name).
-
-#### Pub version 0.12.0-dev
+#### Pub version 0.12.0
   * NodeBind interop support. This allows elements such as Polymer's
     core-elements and paper-elements to work properly with Dart binding paths,
     including using Elements and functions as values, and two-way bindings.
