@@ -2,9 +2,15 @@ name: markdown_converter
 description: This hello world example implements a simple
              transformer that converts a markdown file (with
              a ".mdown", ".md", or a ".markdown" extension) to HTML.
+
 dependencies:
-  barback: any
+  barback: ">=0.14.1 <0.16.0"
   markdown: any
+
+# Override the barback dependency so this example always uses the version
+# of barback it's bundled with.
+dependency_overrides:
+  barback: {path: ../..}
 
 transformers:
 - markdown_converter

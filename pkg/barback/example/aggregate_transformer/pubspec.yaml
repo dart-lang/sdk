@@ -1,0 +1,15 @@
+name: aggregate_transformer
+description: This example implements an aggregate transformer.
+  It collects recipes, stored as incomplete HTML files, into
+  a single, complete HTML file.
+
+dependencies:
+  barback: ">=0.14.1 <0.16.0"
+
+# Override the barback dependency so this example always uses the version
+# of barback it's bundled with.
+dependency_overrides:
+  barback: {path: ../..}
+
+transformers:
+- aggregate_transformer

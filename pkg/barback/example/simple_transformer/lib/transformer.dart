@@ -14,8 +14,8 @@ class InsertCopyright extends Transformer {
   // class to be publicly available as a loadable transformer plugin.
   InsertCopyright.asPlugin();
 
-  Future<bool> isPrimary(Asset input) {
-    return new Future.value(input.id.extension == '.txt');
+  Future<bool> isPrimary(AssetId id) {
+    return new Future.value(id.extension == '.txt');
   }
 
   Future apply(Transform transform) {

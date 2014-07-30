@@ -2,8 +2,14 @@ name: simple_transformer
 description: This hello world example implements a simple
              transformer that inserts a copyright string into
              an input asset - a file that ends with ".txt".
+
 dependencies:
-  barback: any
+  barback: ">=0.14.1 <0.16.0"
+
+# Override the barback dependency so this example always uses the version
+# of barback it's bundled with.
+dependency_overrides:
+  barback: {path: ../..}
 
 transformers:
 - simple_transformer
