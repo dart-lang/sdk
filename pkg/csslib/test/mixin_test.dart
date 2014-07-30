@@ -617,7 +617,7 @@ foo {
   expect(error.span.start.line, 9);
   expect(error.span.end.offset, 83);
   error = errors[3];
-  expect(error.message, 'expected {, but found end of file(\n)');
+  expect(error.message, 'expected {, but found end of file()');
   expect(error.span.start.line, 9);
   expect(error.span.end.offset, 86);
   error = errors[4];
