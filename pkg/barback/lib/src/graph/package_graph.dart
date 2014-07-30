@@ -208,7 +208,7 @@ class PackageGraph {
       buffer.write("[${entry.level} ${entry.transform}] ");
 
       if (entry.span != null) {
-        buffer.write(entry.span.getLocationMessage(entry.message));
+        buffer.write(entry.span.message(entry.message));
       } else {
         buffer.write(entry.message);
       }

@@ -1,5 +1,5 @@
 name: smoke
-version: 0.2.0+1
+version: 0.2.0+2
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 homepage: "https://api.dartlang.org/apidocs/channels/be/#smoke"
 description: >
@@ -7,7 +7,7 @@ description: >
   can be replaced with non-reflective calls using code generation. See README.md
   for mode details.
 dependencies:
-  barback: ">=0.9.0 <0.15.0"
+  barback: ">=0.9.0 <0.16.0"
   logging: ">=0.9.0 <0.10.0"
   analyzer: ">=0.13.0 <0.16.0"
 # TODO(sigmund): once we have some easier way to do global app-level

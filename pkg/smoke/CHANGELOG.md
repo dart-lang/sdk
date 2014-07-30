@@ -2,6 +2,9 @@
 
 This file contains highlights of what changes on each version of this package.
 
+#### Pub version 0.2.0+2
+  * Widen the constraint on barback.
+
 #### Pub version 0.2.0+1
   * Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan`
     class.

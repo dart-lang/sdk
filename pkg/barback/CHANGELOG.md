@@ -1,3 +1,8 @@
+## 0.15.0
+
+* Fully switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan`
+  class.
+
 ## 0.14.2
 
 * All TransformLogger methods now accept SourceSpans from the source_span

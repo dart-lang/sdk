@@ -4,6 +4,9 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.0+2
+  * Widen the constraint on barback.
+
 #### Pub version 0.12.0+1
   * Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan`
     class.

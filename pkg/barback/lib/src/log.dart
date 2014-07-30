@@ -4,7 +4,7 @@
 
 library barback.log;
 
-import 'package:source_maps/span.dart';
+import 'package:source_span/source_span.dart';
 
 import 'asset/asset_id.dart';
 import 'errors.dart';
@@ -34,8 +34,8 @@ class LogEntry {
   final String message;
 
   /// The location that the message pertains to or null if not associated with
-  /// a source [Span].
-  final Span span;
+  /// a [SourceSpan].
+  final SourceSpan span;
 
   LogEntry(this.transform, this.assetId, this.level, this.message, this.span);
 }

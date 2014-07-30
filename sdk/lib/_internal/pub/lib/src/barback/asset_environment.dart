@@ -673,7 +673,7 @@ void _log(LogEntry entry) {
   var prefix = "[${prefixParts.join(' ')}]:";
   var message = entry.message;
   if (entry.span != null) {
-    message = entry.span.getLocationMessage(entry.message);
+    message = entry.span.message(entry.message);
   }
 
   switch (entry.level) {
