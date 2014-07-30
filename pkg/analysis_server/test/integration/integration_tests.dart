@@ -517,7 +517,14 @@ class Server {
    */
   bool _receivedBadDataFromServer = false;
 
-  Server._(this._process);
+  /**
+   * Stopwatch that we use to generate timing information for debug output.
+   */
+  Stopwatch _time = new Stopwatch();
+
+  Server._(this._process) {
+    _time.start();
+  }
 
   /**
    * Get a stream which will receive notifications of the given event type.
@@ -702,6 +709,9 @@ class Server {
    * [debugStdio] has been called.
    */
   void _recordStdio(String line) {
+    double elapsedTime = _time.elapsedTicks.toDouble() /
+        _time.frequency.toDouble();
+    line = "$elapsedTime: $line";
     if (_debuggingStdio) {
       print(line);
     }
