@@ -20,8 +20,14 @@ abstract class AbstractAnalysisServerIntegrationTest {
   /**
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.
+   *
+   * TODO(paulberry): the extra-long timeout (20s) is because sometimes the
+   * buildbots are slow to spawn a new analysis server process.  It would be
+   * better to wait for the initial "server.connected" message with a long
+   * timeout, and keep this timeout short.
+   *
    */
-  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 20);
 
   /**
    * Connection to the analysis server.
