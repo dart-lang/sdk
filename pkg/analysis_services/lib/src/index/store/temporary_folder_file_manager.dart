@@ -23,7 +23,19 @@ class TemporaryFolderFileManager implements FileManager {
   @override
   void clear() {
     if (_directory != null) {
-      _directory.deleteSync(recursive: true);
+      try {
+        _directory.deleteSync(recursive: true);
+      } on FileSystemException {
+        // For some reason, on Windows this sometimes results in the error:
+        // "FileSystemException: Deletion failed, path = '...' (OS Error: The
+        // process cannot access the file because it is being used by another
+        // process., errno = 32).  (Speculation: perhaps createTempSync is not
+        // successfully creating a unique name, so multiple processes are
+        // trying to access the same file?)
+        //
+        // For now, work around the problem by ignoring the exception.
+        // TODO(paulberry): fix the actual root cause of this bug.
+      }
       _directory = null;
     }
   }
