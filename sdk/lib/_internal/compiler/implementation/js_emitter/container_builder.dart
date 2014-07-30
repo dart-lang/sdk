@@ -534,13 +534,15 @@ class ContainerBuilder extends CodeEmitterHelper {
             new jsAst.LiteralString(
                 '"new ${Elements.reconstructConstructorName(member)}"');
       } else {
-        reflectionName = js.string(member.name);
+        reflectionName =
+            js.string(namer.privateName(member.library, member.name));
       }
       expressions
           ..add(reflectionName)
           ..addAll(task.metadataEmitter.computeMetadata(member).map(js.number));
     } else if (isClosure && canBeApplied) {
-      expressions.add(js.string(member.name));
+      expressions.add(js.string(namer.privateName(member.library,
+                                                  member.name)));
     }
     jsAst.ArrayInitializer arrayInit =
       new jsAst.ArrayInitializer.from(expressions);

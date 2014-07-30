@@ -154,7 +154,8 @@ class ClassEmitter extends CodeEmitterHelper {
             metadata = new jsAst.LiteralNull();
           }
           fieldMetadata.add(metadata);
-          recordMangledField(field, accessorName, field.name);
+          recordMangledField(field, accessorName,
+              namer.privateName(field.library, field.name));
           String fieldName = name;
           String fieldCode = '';
           String reflectionMarker = '';
