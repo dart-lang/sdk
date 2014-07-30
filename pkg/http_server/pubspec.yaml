@@ -1,5 +1,5 @@
 name: http_server
-version: 0.9.2+3
+version: 0.9.3
 author: Dart Team <misc@dartlang.org>
 description: Library of HTTP server classes.
 homepage: http://www.dartlang.org

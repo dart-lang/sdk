@@ -305,6 +305,44 @@ void main() {
           });
       });
     });
+
+    group('path-prefix', () {
+      testVirtualDir('simple', (dir) {
+        var virDir = new VirtualDirectory(dir.path, pathPrefix: '/path');
+        virDir.allowDirectoryListing = true;
+        virDir.directoryHandler = (d, request) {
+          expect(FileSystemEntity.identicalSync(dir.path, d.path), isTrue);
+          return request.response.close();
+        };
+
+        return getStatusCodeForVirtDir(virDir, '/path')
+          .then((result) {
+            expect(result, HttpStatus.OK);
+          });
+      });
+
+      testVirtualDir('trailing-slash', (dir) {
+        var virDir = new VirtualDirectory(dir.path, pathPrefix: '/path/');
+        virDir.allowDirectoryListing = true;
+        virDir.directoryHandler = (d, request) {
+          expect(FileSystemEntity.identicalSync(dir.path, d.path), isTrue);
+          return request.response.close();
+        };
+
+        return getStatusCodeForVirtDir(virDir, '/path')
+          .then((result) {
+            expect(result, HttpStatus.OK);
+          });
+      });
+
+      testVirtualDir('not-matching', (dir) {
+        var virDir = new VirtualDirectory(dir.path, pathPrefix: '/path/');
+        return getStatusCodeForVirtDir(virDir, '/')
+          .then((result) {
+            expect(result, HttpStatus.NOT_FOUND);
+          });
+      });
+    });
   });
 
   group('links', () {
