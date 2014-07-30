@@ -793,8 +793,16 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
     return _extractTarGzWindows(stream, destination);
   }
 
-  return startProcess("tar",
-      ["--extract", "--gunzip", "--directory", destination]).then((process) {
+  var args = ["--extract", "--gunzip", "--directory", destination];
+  if (Platform.operatingSystem == "linux") {
+    // BSD tar (the default on OS X) can insert strange headers to a tarfile
+    // that GNU tar (the default on Linux) is unable to understand. This will
+    // cause GNU tar to emit a number of harmless but scary-looking warnings
+    // which are silenced by this flag.
+    args.insert(0, "--warning=no-unknown-keyword");
+  }
+
+  return startProcess("tar", args).then((process) {
     // Ignore errors on process.std{out,err}. They'll be passed to
     // process.exitCode, and we don't want them being top-levelled by
     // std{out,err}Sink.
