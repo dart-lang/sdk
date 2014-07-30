@@ -205,6 +205,10 @@ source_maps/test/vlq_test: RuntimeError # A VLQ test checks for large numbers th
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
+[ $runtime == ie9 || $runtime == ie10 ]
+csslib/test/declaration_test: RuntimeError # Issue 20274
+csslib/test/mixin_test: RuntimeError # Issue 20274
+
 [ $runtime == ie9 ]
 mime/test/mime_multipart_transformer_test: Skip # No typed_data on IE9.
 typed_data/test/typed_buffers_test: Fail, Crash # No typed_data on IE9.
