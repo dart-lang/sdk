@@ -10028,10 +10028,8 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     ArgumentListNode* factory_param = new(I) ArgumentListNode(
         literal_pos);
     if (element_list.length() == 0) {
-      // TODO(srdjan): Use Object::empty_array once issue 9871 has been fixed.
-      Array& empty_array = Array::ZoneHandle(I, Object::empty_array().raw());
       LiteralNode* empty_array_literal =
-          new(I) LiteralNode(TokenPos(), empty_array);
+          new(I) LiteralNode(TokenPos(), Object::empty_array());
       factory_param->Add(empty_array_literal);
     } else {
       ArrayNode* list = new(I) ArrayNode(TokenPos(), type, element_list);
