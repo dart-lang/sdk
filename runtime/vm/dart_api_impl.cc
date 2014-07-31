@@ -4793,7 +4793,9 @@ static void CompileSource(Isolate* isolate,
     *result = Api::NewHandle(isolate, lib.raw());
   } else {
     *result = Api::NewHandle(isolate, error.raw());
-    lib.SetLoadError();
+    // Compilation errors are not Dart instances, so just mark the library
+    // as having failed to load without providing an error instance.
+    lib.SetLoadError(Instance::Handle());
   }
 }
 
@@ -5028,6 +5030,34 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
+                                                Dart_Handle error_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library_in);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library_in, Library);
+  }
+  const Instance& err = Api::UnwrapInstanceHandle(isolate, error_in);
+  if (err.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, error_in, Instance);
+  }
+  CHECK_CALLBACK_STATE(isolate);
+
+  const GrowableObjectArray& pending_deferred_loads =
+      GrowableObjectArray::Handle(
+          isolate->object_store()->pending_deferred_loads());
+  for (intptr_t i = 0; i < pending_deferred_loads.Length(); i++) {
+    if (pending_deferred_loads.At(i) == lib.raw()) {
+      lib.SetLoadError(err);
+      return Api::Null();
+    }
+  }
+  return error_in;
+}
+
+
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source) {
   Isolate* isolate = Isolate::Current();
@@ -5051,7 +5081,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     library.Register();
   } else if (library.LoadInProgress() ||
       library.Loaded() ||
-      library.LoadError()) {
+      library.LoadFailed()) {
     // The source for this library has either been loaded or is in the
     // process of loading.  Return an error.
     return Api::NewError("%s: library '%s' has already been loaded.",
@@ -5212,6 +5242,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
 
     const Object& res =
         Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
+    isolate->object_store()->clear_pending_deferred_loads();
     if (res.IsError() || res.IsUnhandledException()) {
       return Api::NewHandle(isolate, res.raw());
     }

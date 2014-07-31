@@ -711,10 +711,24 @@ void FUNCTION_NAME(Builtin_LoadScript)(Dart_NativeArguments args) {
 // Callback function, gets called from asynchronous script and library
 // reading code when there is an i/o error.
 void FUNCTION_NAME(Builtin_AsyncLoadError)(Dart_NativeArguments args) {
-  // Dart_Handle script_uri = Dart_GetNativeArgument(args, 0);
-  Dart_Handle error = Dart_GetNativeArgument(args, 1);
-  Dart_Handle res = Dart_NewUnhandledExceptionError(error);
-  Dart_PropagateError(res);
+  //  Dart_Handle source_uri = Dart_GetNativeArgument(args, 0);
+  Dart_Handle library_uri = Dart_GetNativeArgument(args, 1);
+  Dart_Handle error = Dart_GetNativeArgument(args, 2);
+
+  Dart_Handle library = Dart_LookupLibrary(library_uri);
+  // If a library with the given uri exists, give it a chance to handle
+  // the error. If the load requests stems from a deferred library load,
+  // an IO error is not fatal.
+  if (!Dart_IsError(library)) {
+    ASSERT(Dart_IsLibrary(library));
+    Dart_Handle res = Dart_LibraryHandleError(library, error);
+    if (Dart_IsNull(res)) {
+      return;
+    }
+  }
+  // The error was not handled above. Propagate an unhandled exception.
+  error = Dart_NewUnhandledExceptionError(error);
+  Dart_PropagateError(error);
 }
 
 
@@ -737,7 +751,12 @@ void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
     DART_CHECK_VALID(library);
     result = Dart_LoadSource(library, resolved_script_uri, sourceText);
   }
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    // TODO(hausner): If compilation/loading errors are supposed to
+    // be observable by the program, we need to mark the bad library
+    // with the error instead of propagating it.
+    Dart_PropagateError(result);
+  }
 }
 
 
@@ -746,6 +765,9 @@ void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
 void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
   Dart_Handle res = Dart_FinalizeLoading(true);
   if (Dart_IsError(res)) {
+    // TODO(hausner): If compilation/loading errors are supposed to
+    // be observable by the program, we need to mark the bad library
+    // with the error instead of propagating it.
     Dart_PropagateError(res);
   }
 }

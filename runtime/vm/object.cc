@@ -8548,10 +8548,32 @@ void Library::SetLoaded() const {
 }
 
 
-void Library::SetLoadError() const {
+void Library::SetLoadError(const Instance& error) const {
   // Should not be already successfully loaded or just allocated.
-  ASSERT(LoadInProgress() || LoadRequested() || LoadError());
+  ASSERT(LoadInProgress() || LoadRequested() || LoadFailed());
   raw_ptr()->load_state_ = RawLibrary::kLoadError;
+  StorePointer(&raw_ptr()->load_error_, error.raw());
+}
+
+
+RawInstance* Library::TransitiveLoadError() const {
+  if (LoadError() != Instance::null()) {
+    return LoadError();
+  }
+  intptr_t num_imp = num_imports();
+  Library& lib = Library::Handle();
+  Instance& error = Instance::Handle();
+  for (intptr_t i = 0; i < num_imp; i++) {
+    lib = ImportLibraryAt(i);
+    // Break potential import cycles while recursing through imports.
+    set_num_imports(0);
+    error = lib.TransitiveLoadError();
+    set_num_imports(num_imp);
+    if (!error.IsNull()) {
+      break;
+    }
+  }
+  return error.raw();
 }
 
 
@@ -9353,6 +9375,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->imports_ = Object::empty_array().raw();
   result.raw_ptr()->exports_ = Object::empty_array().raw();
   result.raw_ptr()->loaded_scripts_ = Array::null();
+  result.raw_ptr()->load_error_ = Instance::null();
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
@@ -9729,13 +9752,28 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
 }
 
 
+RawInstance* LibraryPrefix::LoadError() const {
+  Library& lib = Library::Handle();
+  Instance& error = Instance::Handle();
+  for (int32_t i = 0; i < num_imports(); i++) {
+    lib = GetLibrary(i);
+    ASSERT(!lib.IsNull());
+    error = lib.TransitiveLoadError();
+    if (!error.IsNull()) {
+      return error.raw();
+    }
+  }
+  return Instance::null();
+}
+
+
 bool LibraryPrefix::ContainsLibrary(const Library& library) const {
-  intptr_t num_current_imports = num_imports();
+  int32_t num_current_imports = num_imports();
   if (num_current_imports > 0) {
     Library& lib = Library::Handle();
     const String& url = String::Handle(library.url());
     String& lib_url = String::Handle();
-    for (intptr_t i = 0; i < num_current_imports; i++) {
+    for (int32_t i = 0; i < num_current_imports; i++) {
       lib = GetLibrary(i);
       ASSERT(!lib.IsNull());
       lib_url = lib.url();
@@ -9846,6 +9884,10 @@ bool LibraryPrefix::LoadLibrary() const {
     Isolate* isolate = Isolate::Current();
     Api::Scope api_scope(isolate);
     deferred_lib.SetLoadRequested();
+    const GrowableObjectArray& pending_deferred_loads =
+        GrowableObjectArray::Handle(
+            isolate->object_store()->pending_deferred_loads());
+    pending_deferred_loads.Add(deferred_lib);
     const String& lib_url = String::Handle(isolate, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
     handler(Dart_kImportTag,

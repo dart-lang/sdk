@@ -803,8 +803,9 @@ class RawLibrary : public RawObject {
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
   RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
+  RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
+    return reinterpret_cast<RawObject**>(&ptr()->load_error_);
   }
 
   int32_t index_;               // Library id number.

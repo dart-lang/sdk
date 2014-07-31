@@ -2132,7 +2132,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
     prefix_name = prefix.name();
     ASSERT(!prefix_name.IsNull());
     prefix_name = String::Concat(prefix_name, Symbols::Dot());
-    for (intptr_t i = 0; i < prefix.num_imports(); i++) {
+    for (int32_t i = 0; i < prefix.num_imports(); i++) {
       imported = prefix.GetLibrary(i);
       CollectLibraryFields(field_list, imported, prefix_name, false);
     }

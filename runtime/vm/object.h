@@ -2654,10 +2654,12 @@ class Library : public Object {
   void SetLoadInProgress() const;
   bool Loaded() const { return raw_ptr()->load_state_ == RawLibrary::kLoaded; }
   void SetLoaded() const;
-  bool LoadError() const {
+  bool LoadFailed() const {
     return raw_ptr()->load_state_ == RawLibrary::kLoadError;
   }
-  void SetLoadError() const;
+  RawInstance* LoadError() const { return raw_ptr()->load_error_; }
+  void SetLoadError(const Instance& error) const;
+  RawInstance* TransitiveLoadError() const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibrary));
@@ -4382,8 +4384,10 @@ class LibraryPrefix : public Instance {
   virtual RawString* DictionaryName() const { return name(); }
 
   RawArray* imports() const { return raw_ptr()->imports_; }
-  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
+  int32_t num_imports() const { return raw_ptr()->num_imports_; }
   RawLibrary* importer() const { return raw_ptr()->importer_; }
+
+  RawInstance* LoadError() const;
 
   bool ContainsLibrary(const Library& library) const;
   RawLibrary* GetLibrary(int index) const;

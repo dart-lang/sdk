@@ -108,7 +108,7 @@ void _makeHttpRequest(String uri) {
 }
 
 
-void _httpGet(Uri uri, loadCallback(List<int> data)) {
+void _httpGet(Uri uri, String libraryUri, loadCallback(List<int> data)) {
   var httpClient = new HttpClient();
   try {
     httpClient.getUrl(uri)
@@ -125,7 +125,7 @@ void _httpGet(Uri uri, loadCallback(List<int> data)) {
               if (response.statusCode != 200) {
                 var msg = 'Failure getting $uri: '
                           '${response.statusCode} ${response.reasonPhrase}';
-                _asyncLoadError(uri.toString(), msg);
+                _asyncLoadError(uri.toString(), libraryUri, msg);
               }
 
               List<int> data = builder.takeBytes();
@@ -133,14 +133,14 @@ void _httpGet(Uri uri, loadCallback(List<int> data)) {
               loadCallback(data);
             },
             onError: (error) {
-              _asyncLoadError(uri.toString(), error);
+              _asyncLoadError(uri.toString(), libraryUri, error);
             });
       })
       .catchError((error) {
-        _asyncLoadError(uri.toString(), error);
+        _asyncLoadError(uri.toString(), libraryUri, error);
       });
   } catch (error) {
-    _asyncLoadError(uri.toString(), error);
+    _asyncLoadError(uri.toString(), libraryUri, error);
   }
   // TODO(floitsch): remove this line. It's just here to push an event on the
   // event loop so that we invoke the scheduled microtasks. Also remove the
@@ -329,12 +329,17 @@ void _loadScript(String uri, List<int> data) {
 }
 
 
-void _asyncLoadErrorCallback(uri, error) native "Builtin_AsyncLoadError";
+void _asyncLoadErrorCallback(uri, libraryUri, error)
+    native "Builtin_AsyncLoadError";
 
-void _asyncLoadError(uri, error) {
+void _asyncLoadError(uri, libraryUri, error) {
   assert(_numOutstandingLoadRequests > 0);
+  _logResolution("_asyncLoadError($uri), error: $error");
   _numOutstandingLoadRequests--;
-  _asyncLoadErrorCallback(uri, error);
+  _asyncLoadErrorCallback(uri, libraryUri, error);
+  if (_numOutstandingLoadRequests == 0) {
+    _signalDoneLoading();
+  }
 }
 
 
@@ -347,7 +352,7 @@ _loadDataAsync(String uri) {
   _logResolution("_loadDataAsync($uri), "
                  "${_numOutstandingLoadRequests} requests outstanding");
   if (sourceUri.scheme == 'http') {
-    _httpGet(sourceUri, (data) {
+    _httpGet(sourceUri, null, (data) {
       _loadScript(uri, data);
     });
   } else {
@@ -356,7 +361,7 @@ _loadDataAsync(String uri) {
       _loadScript(uri, data);
     },
     onError: (e) {
-      _asyncLoadError(uri, e);
+      _asyncLoadError(uri, null, e);
     });
   }
 }
@@ -388,7 +393,7 @@ _loadSourceAsync(int tag, String uri, String libraryUri) {
   _logResolution("_loadLibrarySource($uri), "
                  "${_numOutstandingLoadRequests} requests outstanding");
   if (sourceUri.scheme == 'http') {
-    _httpGet(sourceUri, (data) {
+    _httpGet(sourceUri, libraryUri, (data) {
       var text = UTF8.decode(data);
       _loadLibrarySource(tag, uri, libraryUri, text);
     });
@@ -398,7 +403,7 @@ _loadSourceAsync(int tag, String uri, String libraryUri) {
       _loadLibrarySource(tag, uri, libraryUri, text);
     },
     onError: (e) {
-      _asyncLoadError(uri, e);
+      _asyncLoadError(uri, libraryUri, e);
     });
   }
 }
