@@ -113,6 +113,10 @@ Warning!
       contains("ERROR"),                          // That it's an error.
     ]));
 
+    // In barback >=0.15.0, the span will point to the location where the error
+    // occurred.
+    pub.stderr.expect(allow(inOrder(["d", "^"])));
+
     pub.stderr.expect("Build failed.");
 
     pub.shouldExit(exit_codes.DATA);
