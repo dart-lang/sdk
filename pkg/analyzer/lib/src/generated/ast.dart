@@ -11837,7 +11837,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     try {
       node.accept(this);
     } on NodeLocator_NodeFoundException catch (exception) {
-    } on JavaException catch (exception) {
+    } catch (exception) {
       AnalysisEngine.instance.logger.logInformation2("Unable to locate element at offset (${_startOffset} - ${_endOffset})", exception);
       return null;
     }
@@ -11858,7 +11858,7 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
       node.visitChildren(this);
     } on NodeLocator_NodeFoundException catch (exception) {
       throw exception;
-    } on JavaException catch (exception) {
+    } catch (exception) {
       // Ignore the exception and proceed in order to visit the rest of the structure.
       AnalysisEngine.instance.logger.logInformation2("Exception caught while traversing an AST structure.", exception);
     }

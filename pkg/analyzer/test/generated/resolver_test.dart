@@ -668,6 +668,34 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_constConstructorWithFieldInitializedByNonConst() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  final int i = f();",
+        "  const A();",
+        "}",
+        "int f() {",
+        "  return 3;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST]);
+    verify([source]);
+  }
+
+  void test_constConstructorWithFieldInitializedByNonConst_static() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  static final int i = f();",
+        "  const A();",
+        "}",
+        "int f() {",
+        "  return 3;",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_constConstructorWithMixin() {
     Source source = addSource(EngineTestCase.createSource([
         "class M {",
@@ -4267,6 +4295,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_consistentCaseExpressionTypes_dynamic);
       });
+      _ut.test('test_constConstructorWithFieldInitializedByNonConst', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constConstructorWithFieldInitializedByNonConst);
+      });
+      _ut.test('test_constConstructorWithFieldInitializedByNonConst_static', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constConstructorWithFieldInitializedByNonConst_static);
+      });
       _ut.test('test_constConstructorWithMixin', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constConstructorWithMixin);
@@ -6461,7 +6497,7 @@ class ElementResolverTest extends EngineTestCase {
     _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
     try {
       return _visitor.elementResolver_J2DAccessor as ElementResolver;
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not create resolver", exception);
     }
   }
@@ -6526,7 +6562,7 @@ class ElementResolverTest extends EngineTestCase {
         _visitor.enclosingClass_J2DAccessor = null;
         _visitor.nameScope_J2DAccessor = outerScope;
       }
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -6567,7 +6603,7 @@ class ElementResolverTest extends EngineTestCase {
       } finally {
         _visitor.nameScope_J2DAccessor = outerScope;
       }
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -6595,7 +6631,7 @@ class ElementResolverTest extends EngineTestCase {
       } finally {
         _visitor.labelScope_J2DAccessor = outerScope;
       }
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);
     }
   }
@@ -16096,6 +16132,24 @@ class NonHintCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_propagatedFieldType() {
+    // From dartbug.com/20019
+    Source source = addSource(EngineTestCase.createSource([
+        "class A { }",
+        "class X<T> {",
+        "  final x = new List<T>();",
+        "}",
+        "class Z {",
+        "  final X<A> y = new X<A>();",
+        "  foo() {",
+        "    y.x.add(new A());",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_proxy_annotation_prefixed() {
     Source source = addSource(EngineTestCase.createSource([
         "library L;",
@@ -16577,6 +16631,10 @@ class NonHintCodeTest extends ResolverTestCase {
       _ut.test('test_overrideOnNonOverridingSetter_inSuperclass', () {
         final __test = new NonHintCodeTest();
         runJUnitTest(__test, __test.test_overrideOnNonOverridingSetter_inSuperclass);
+      });
+      _ut.test('test_propagatedFieldType', () {
+        final __test = new NonHintCodeTest();
+        runJUnitTest(__test, __test.test_propagatedFieldType);
       });
       _ut.test('test_proxy_annotation_prefixed', () {
         final __test = new NonHintCodeTest();
@@ -17216,12 +17274,14 @@ class ResolverTestCase extends EngineTestCase {
     return library;
   }
 
-  Expression findTopLevelConstantExpression(CompilationUnit compilationUnit, String name) {
+  Expression findTopLevelConstantExpression(CompilationUnit compilationUnit, String name) => findTopLevelDeclaration(compilationUnit, name).initializer;
+
+  VariableDeclaration findTopLevelDeclaration(CompilationUnit compilationUnit, String name) {
     for (CompilationUnitMember member in compilationUnit.declarations) {
       if (member is TopLevelVariableDeclaration) {
         for (VariableDeclaration variable in member.variables.variables) {
           if (variable.name.name == name) {
-            return variable.initializer;
+            return variable;
           }
         }
       }
@@ -19512,7 +19572,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   DartType _analyze4(Expression node, InterfaceType thisType, bool useStaticType) {
     try {
       _analyzer.thisType_J2DAccessor = thisType;
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not set type of 'this'", exception);
     }
     node.accept(_analyzer);
@@ -19618,7 +19678,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _visitor.overrideManager.enterScope();
     try {
       return _visitor.typeAnalyzer_J2DAccessor as StaticTypeAnalyzer;
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Could not create analyzer", exception);
     }
   }
@@ -26569,10 +26629,73 @@ class TypeOverrideManagerTest extends EngineTestCase {
 }
 
 class TypePropagationTest extends ResolverTestCase {
+  void fail_mergePropagatedTypesAtJoinPoint_1() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f1(x) {",
+        "  var y = [];",
+        "  if (x) {",
+        "    y = 0;",
+        "  } else {",
+        "    y = '';",
+        "  }",
+        "  // Propagated type is [List] here: incorrect.",
+        "  // Best we can do is [Object]?",
+        "  return y; // marker",
+        "}"]), null, typeProvider.dynamicType);
+  }
+
+  void fail_mergePropagatedTypesAtJoinPoint_2() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f2(x) {",
+        "  var y = [];",
+        "  if (x) {",
+        "    y = 0;",
+        "  } else {",
+        "  }",
+        "  // Propagated type is [List] here: incorrect.",
+        "  // Best we can do is [Object]?",
+        "  return y; // marker",
+        "}"]), null, typeProvider.dynamicType);
+  }
+
+  void fail_mergePropagatedTypesAtJoinPoint_3() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f4(x) {",
+        "  var y = [];",
+        "  if (x) {",
+        "    y = 0;",
+        "  } else {",
+        "    y = 1.5;",
+        "  }",
+        "  // Propagated type is [List] here: incorrect.",
+        "  // A correct answer is the least upper bound of [int] and [double],",
+        "  // i.e. [num].",
+        "  return y; // marker",
+        "}"]), null, typeProvider.numType);
+  }
+
+  void fail_mergePropagatedTypesAtJoinPoint_5() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f6(x,y) {",
+        "  var z = [];",
+        "  if (x || (z = y) < 0) {",
+        "  } else {",
+        "    z = 0;",
+        "  }",
+        "  // Propagated type is [List] here: incorrect.",
+        "  // Best we can do is [Object]?",
+        "  return z; // marker",
+        "}"]), null, typeProvider.dynamicType);
+  }
+
   void fail_propagatedReturnType_functionExpression() {
     // TODO(scheglov) disabled because we don't resolve function expression
     String code = EngineTestCase.createSource(["main() {", "  var v = (() {return 42;})();", "}"]);
-    _check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+    _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_as() {
@@ -26701,16 +26824,7 @@ class TypePropagationTest extends ResolverTestCase {
         "f(A a) {",
         "  return a.v; // marker",
         "}"]);
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v; // marker", (node) => node is SimpleIdentifier);
-      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
-      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
-    }
+    _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_finalPropertyInducingVariable_classMember_instance_inherited() {
@@ -26722,16 +26836,7 @@ class TypePropagationTest extends ResolverTestCase {
         "    return v; // marker",
         "  }",
         "}"]);
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v; // marker", (node) => node is SimpleIdentifier);
-      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
-      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
-    }
+    _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
@@ -26743,16 +26848,7 @@ class TypePropagationTest extends ResolverTestCase {
         "    return p.v; // marker",
         "  }",
         "}"]);
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v; // marker", (node) => node is SimpleIdentifier);
-      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
-      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
-    }
+    _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_finalPropertyInducingVariable_classMember_static() {
@@ -26762,16 +26858,7 @@ class TypePropagationTest extends ResolverTestCase {
         "f() {",
         "  return A.V; // marker",
         "}"]);
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "V; // marker", (node) => node is SimpleIdentifier);
-      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
-      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
-    }
+    _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_finalPropertyInducingVariable_topLevelVaraible_prefixed() {
@@ -26779,18 +26866,9 @@ class TypePropagationTest extends ResolverTestCase {
     String code = EngineTestCase.createSource([
         "import 'lib.dart' as p;",
         "f() {",
-        "  var v2 = p.V; // prefixed",
+        "  var v2 = p.V; // marker prefixed",
         "}"]);
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "V; // prefixed", (node) => node is SimpleIdentifier);
-      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
-      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
-    }
+    _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_finalPropertyInducingVariable_topLevelVaraible_simple() {
@@ -26798,18 +26876,9 @@ class TypePropagationTest extends ResolverTestCase {
     String code = EngineTestCase.createSource([
         "import 'lib.dart';",
         "f() {",
-        "  return V; // simple",
+        "  return V; // marker simple",
         "}"]);
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    {
-      SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "V; // simple", (node) => node is SimpleIdentifier);
-      JUnitTestCase.assertSame(typeProvider.dynamicType, identifier.staticType);
-      JUnitTestCase.assertSame(typeProvider.intType, identifier.propagatedType);
-    }
+    _assertTypeOfMarkedExpression(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_forEach() {
@@ -27442,14 +27511,29 @@ class TypePropagationTest extends ResolverTestCase {
     JUnitTestCase.assertSame(typeProvider.dynamicType, typeArguments[1]);
   }
 
+  void test_mergePropagatedTypesAtJoinPoint_4() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f5(x) {",
+        "  var y = [];",
+        "  if (x) {",
+        "    y = 0;",
+        "  } else {",
+        "    return y;",
+        "  }",
+        "  // Propagated type is [int] here: correct.",
+        "  return y; // marker",
+        "}"]), null, typeProvider.intType);
+  }
+
   void test_propagatedReturnType_function_hasReturnType_returnsNull() {
     String code = EngineTestCase.createSource(["String f() => null;", "main() {", "  var v = f();", "}"]);
-    _check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.stringType);
+    _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.stringType);
   }
 
   void test_propagatedReturnType_function_lessSpecificStaticReturnType() {
     String code = EngineTestCase.createSource(["Object f() => 42;", "main() {", "  var v = f();", "}"]);
-    _check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+    _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_propagatedReturnType_function_moreSpecificStaticReturnType() {
@@ -27458,7 +27542,7 @@ class TypePropagationTest extends ResolverTestCase {
         "main() {",
         "  var v = f(3);",
         "}"]);
-    _check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+    _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_propagatedReturnType_function_noReturnTypeName_blockBody_multipleReturns() {
@@ -27470,7 +27554,7 @@ class TypePropagationTest extends ResolverTestCase {
         "main() {",
         "  var v = f();",
         "}"]);
-    _check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.numType);
+    _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.numType);
   }
 
   void test_propagatedReturnType_function_noReturnTypeName_blockBody_oneReturn() {
@@ -27482,17 +27566,17 @@ class TypePropagationTest extends ResolverTestCase {
         "main() {",
         "  var v = f();",
         "}"]);
-    _check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+    _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_propagatedReturnType_function_noReturnTypeName_expressionBody() {
     String code = EngineTestCase.createSource(["f() => 42;", "main() {", "  var v = f();", "}"]);
-    _check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+    _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_propagatedReturnType_localFunction() {
     String code = EngineTestCase.createSource(["main() {", "  f() => 42;", "  var v = f();", "}"]);
-    _check_propagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
+    _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_query() {
@@ -27540,7 +27624,7 @@ class TypePropagationTest extends ResolverTestCase {
    * @param code the code that assigns the value to the variable "v", no matter how. We check that
    *          "v" has expected static and propagated type.
    */
-  void _check_propagatedReturnType(String code, DartType expectedStaticType, DartType expectedPropagatedType) {
+  void _assertPropagatedReturnType(String code, DartType expectedStaticType, DartType expectedPropagatedType) {
     Source source = addSource(code);
     LibraryElement library = resolve(source);
     assertNoErrors(source);
@@ -27550,6 +27634,29 @@ class TypePropagationTest extends ResolverTestCase {
     SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v = ", (node) => node is SimpleIdentifier);
     JUnitTestCase.assertSame(expectedStaticType, identifier.staticType);
     JUnitTestCase.assertSame(expectedPropagatedType, identifier.propagatedType);
+  }
+
+  /**
+   * Check the static and propagated types of the expression marked with "; // marker" comment.
+   *
+   * @param code source code to analyze, with the expression to check marked with "// marker".
+   * @param expectedStaticType if non-null, check actual static type is equal to this.
+   * @param expectedPropagatedType if non-null, check actual static type is equal to this.
+   * @throws Exception
+   */
+  void _assertTypeOfMarkedExpression(String code, DartType expectedStaticType, DartType expectedPropagatedType) {
+    Source source = addSource(code);
+    LibraryElement library = resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "; // marker", (node) => node is SimpleIdentifier);
+    if (expectedStaticType != null) {
+      JUnitTestCase.assertSame(expectedStaticType, identifier.staticType);
+    }
+    if (expectedPropagatedType != null) {
+      JUnitTestCase.assertSame(expectedPropagatedType, identifier.propagatedType);
+    }
   }
 
   static dartSuite() {
@@ -27713,6 +27820,10 @@ class TypePropagationTest extends ResolverTestCase {
       _ut.test('test_mapLiteral_same', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_mapLiteral_same);
+      });
+      _ut.test('test_mergePropagatedTypesAtJoinPoint_4', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_mergePropagatedTypesAtJoinPoint_4);
       });
       _ut.test('test_propagatedReturnType_function_hasReturnType_returnsNull', () {
         final __test = new TypePropagationTest();

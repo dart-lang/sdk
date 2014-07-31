@@ -543,7 +543,7 @@ class SourceFactory {
         }
       }
       throw new IllegalArgumentException("No resolver for kind: ${kind}");
-    } on JavaException catch (exception) {
+    } catch (exception) {
       throw new IllegalArgumentException("Invalid URI in encoding");
     }
   }

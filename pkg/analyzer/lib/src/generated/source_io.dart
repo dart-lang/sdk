@@ -158,7 +158,7 @@ class FileBasedSource implements Source {
     try {
       Uri resolvedUri = file.toURI().resolveUri(containedUri);
       return new FileBasedSource.con2(new JavaFile.fromUri(resolvedUri), uriKind);
-    } on JavaException catch (exception) {
+    } catch (exception) {
     }
     return null;
   }
@@ -387,7 +387,7 @@ class PackageUriResolver extends UriResolver {
                 String relPath = sourcePath.substring(pkgCanonicalPath.length);
                 return parseUriWithException("${PACKAGE_SCHEME}:${pkgFolder.getName()}${relPath}");
               }
-            } on JavaException catch (e) {
+            } catch (e) {
             }
           }
         }

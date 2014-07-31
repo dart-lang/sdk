@@ -315,7 +315,7 @@ class ConstantValueComputer {
    * Determine whether the given string is a valid name for a public symbol (i.e. whether it is
    * allowed for a call to the Symbol constructor).
    */
-  static bool isValidPublicSymbol(String name) => name.isEmpty || new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
+  static bool isValidPublicSymbol(String name) => name.isEmpty || name == "void" || new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
 
   /**
    * The type provider used to access the known types.
