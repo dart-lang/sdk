@@ -8,9 +8,10 @@ library source_maps.parser;
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:source_span/source_span.dart';
+
 import 'builder.dart' as builder;
-import 'span.dart';
-import 'src/span_wrapper.dart';
+import 'src/source_map_span.dart';
 import 'src/utils.dart';
 import 'src/vlq.dart';
 
@@ -49,19 +50,11 @@ Mapping parseJson(Map map, {Map<String, Map> otherMaps}) {
 /// A mapping parsed out of a source map.
 abstract class Mapping {
   /// Returns the span associated with [line] and [column].
-  ///
-  /// The values of [files] can be either `source_map` [SourceFile]s or
-  /// `source_span` `SourceFile`s. Using `source_map` [SourceFile]s is
-  /// deprecated and will be unsupported in version 0.10.0.
-  Span spanFor(int line, int column, {Map<String, dynamic> files});
+  SourceMapSpan spanFor(int line, int column, {Map<String, SourceFile> files});
 
   /// Returns the span associated with [location].
-  ///
-  /// The values of [files] may be either `source_map` [SourceFile]s or
-  /// `source_span` `SourceFile`s. Using `source_map` [SourceFile]s is
-  /// deprecated and will be unsupported in version 0.10.0.
-  Span spanForLocation(location, {Map<String, dynamic> files}) {
-    location = LocationWrapper.wrap(location);
+  SourceMapSpan spanForLocation(SourceLocation location,
+      {Map<String, SourceFile> files}) {
     return spanFor(location.line, location.column, files: files);
   }
 }
@@ -124,7 +117,7 @@ class MultiSectionMapping extends Mapping {
     return _lineStart.length - 1;
   }
 
-  Span spanFor(int line, int column, {Map<String, dynamic> files}) {
+  SourceMapSpan spanFor(int line, int column, {Map<String, SourceFile> files}) {
     int index = _indexFor(line, column);
     return _maps[index].spanFor(
         line - _lineStart[index], column - _columnStart[index], files: files);
@@ -191,8 +184,9 @@ class SingleMapping extends Mapping {
       if (sourceEntry.source == null) {
         targetEntries.add(new TargetEntry(sourceEntry.target.column));
       } else {
+        var sourceUrl = sourceEntry.source.sourceUrl;
         var urlId = urls.putIfAbsent(
-            sourceEntry.source.sourceUrl, () => urls.length);
+            sourceUrl == null ? '' : sourceUrl.toString(), () => urls.length);
         var srcNameId = sourceEntry.identifierName == null ? null :
             names.putIfAbsent(sourceEntry.identifierName, () => names.length);
         targetEntries.add(new TargetEntry(
@@ -363,7 +357,7 @@ class SingleMapping extends Mapping {
     return (index <= 0) ? null : entries[index - 1];
   }
 
-  Span spanFor(int line, int column, {Map<String, dynamic> files}) {
+  SourceMapSpan spanFor(int line, int column, {Map<String, SourceFile> files}) {
     var entry = _findColumn(line, column, _findLine(line));
     if (entry == null || entry.sourceUrlId == null) return null;
     var url = urls[entry.sourceUrlId];
@@ -371,21 +365,24 @@ class SingleMapping extends Mapping {
       url = '${sourceRoot}${url}';
     }
     if (files != null && files[url] != null) {
-      var file = SourceFileWrapper.wrap(files[url]);
+      var file = files[url];
       var start = file.getOffset(entry.sourceLine, entry.sourceColumn);
       if (entry.sourceNameId != null) {
         var text = names[entry.sourceNameId];
-        return new FileSpan(files[url], start, start + text.length, true);
+        return new SourceMapFileSpan(
+            files[url].span(start, start + text.length),
+            isIdentifier: true);
       } else {
-        return new FileSpan(files[url], start);
+        return new SourceMapFileSpan(files[url].location(start).pointSpan());
       }
     } else {
+      var start = new SourceLocation(0,
+          sourceUrl: url, line: entry.sourceLine, column: entry.sourceColumn);
       // Offset and other context is not available.
       if (entry.sourceNameId != null) {
-        return new FixedSpan(url, 0, entry.sourceLine, entry.sourceColumn,
-            text: names[entry.sourceNameId], isIdentifier: true);
+        return new SourceMapSpan.identifier(start, names[entry.sourceNameId]);
       } else {
-        return new FixedSpan(url, 0, entry.sourceLine, entry.sourceColumn);
+        return new SourceMapSpan(start, start, '');
       }
     }
   }

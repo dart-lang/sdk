@@ -16,7 +16,7 @@ main() {
         ..addSpan(inputFunction, outputFunction)
         ..addSpan(inputVar2, outputVar2)
         ..addSpan(inputExpr, outputExpr))
-        .build(output.url);
+        .build(output.url.toString());
     expect(map, equals(EXPECTED_MAP));
   });
 
@@ -26,7 +26,7 @@ main() {
         ..addLocation(inputFunction.start, outputFunction.start, 'longName')
         ..addLocation(inputVar2.start, outputVar2.start, 'longVar2')
         ..addLocation(inputExpr.start, outputExpr.start, null))
-        .toJson(output.url);
+        .toJson(output.url.toString());
     expect(str, JSON.encode(EXPECTED_MAP));
   });
 }

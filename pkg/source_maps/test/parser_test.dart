@@ -104,7 +104,7 @@ main() {
     var inputMap = new Map.from(MAP_WITH_SOURCE_LOCATION);
     inputMap['sourceRoot'] = '/pkg/';
     var mapping = parseJson(inputMap);
-    expect(mapping.spanFor(0, 0).sourceUrl, "/pkg/input.dart");
+    expect(mapping.spanFor(0, 0).sourceUrl, Uri.parse("/pkg/input.dart"));
 
     var newSourceRoot = '/new/';
 

@@ -4,6 +4,9 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.0+4
+  * Widen the constraint on source_maps.
+
 #### Pub version 0.12.0+3
   * Fix a final use of `getLocationMessage`.
 

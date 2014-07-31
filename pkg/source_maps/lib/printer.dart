@@ -5,11 +5,10 @@
 /// Contains a code printer that generates code by recording the source maps.
 library source_maps.printer;
 
-import 'package:source_span/source_span.dart' as source_span;
+import 'package:source_span/source_span.dart';
 
 import 'builder.dart';
-import 'span.dart';
-import 'src/span_wrapper.dart';
+import 'src/source_map_span.dart';
 
 const int _LF = 10;
 const int _CR = 13;
@@ -24,7 +23,7 @@ class Printer {
   String get map => _maps.toJson(filename);
 
   /// Current source location mapping.
-  Location _loc;
+  SourceLocation _loc;
 
   /// Current line in the buffer;
   int _line = 0;
@@ -49,11 +48,12 @@ class Printer {
         _line++;
         _column = 0;
         if (projectMarks && _loc != null) {
-          if (_loc is FixedLocation) {
-            mark(new FixedLocation(0, _loc.sourceUrl, _loc.line + 1, 0));
-          } else if (_loc is FileLocation) {
+          if (_loc is FileLocation) {
             var file = (_loc as FileLocation).file;
-            mark(new FileLocation(file, file.getOffset(_loc.line + 1, 0)));
+            mark(file.location(file.getOffset(_loc.line + 1)));
+          } else {
+            mark(new SourceLocation(0,
+                sourceUrl: _loc.sourceUrl, line: _loc.line + 1, column: 0));
           }
         }
       } else {
@@ -72,21 +72,23 @@ class Printer {
   }
 
   /// Marks that the current point in the target file corresponds to the [mark]
-  /// in the source file, which can be either a [Location] or a [Span]. When the
-  /// mark is an identifier's Span, this also records the name of the identifier
-  /// in the source map information.
+  /// in the source file, which can be either a [SourceLocation] or a
+  /// [SourceSpan]. When the mark is a [SourceMapSpan] with `isIdentifier` set,
+  /// this also records the name of the identifier in the source map
+  /// information.
   void mark(mark) {
     var loc;
     var identifier = null;
-    if (mark is Location || mark is source_span.SourceLocation) {
-      loc = LocationWrapper.wrap(mark);
-    } else if (mark is Span || mark is source_span.SourceSpan) {
-      mark = SpanWrapper.wrap(mark);
+    if (mark is SourceLocation) {
+      loc = mark;
+    } else if (mark is SourceSpan) {
       loc = mark.start;
-      if (mark.isIdentifier) identifier = mark.text;
+      if (mark is SourceMapSpan && mark.isIdentifier) identifier = mark.text;
     }
-    _maps.addLocation(loc,
-        new FixedLocation(_buff.length, null, _line, _column), identifier);
+    _maps.addLocation(
+        loc,
+        new SourceLocation(_buff.length, line: _line, column: _column),
+        identifier);
     _loc = loc;
   }
 }
@@ -101,7 +103,8 @@ class Printer {
 class NestedPrinter implements NestedItem {
 
   /// Items recoded by this printer, which can be [String] literals,
-  /// [NestedItem]s, and source map information like [Location] and [Span].
+  /// [NestedItem]s, and source map information like [SourceLocation] and
+  /// [SourceSpan].
   List _items = [];
 
   /// Internal buffer to merge consecutive strings added to this printer.
@@ -128,19 +131,16 @@ class NestedPrinter implements NestedItem {
   /// location of [object] in the original input. Only one, [location] or
   /// [span], should be provided at a time.
   ///
-  /// [location] can be either a [Location] or a [SourceLocation]. [span] can be
-  /// either a [Span] or a [SourceSpan]. Using a [Location] or a [Span] is
-  /// deprecated and will be unsupported in version 0.10.0.
-  ///
   /// Indicate [isOriginal] when [object] is copied directly from the user code.
   /// Setting [isOriginal] will make this printer propagate source map locations
   /// on every line-break.
-  void add(object, {location, span, bool isOriginal: false}) {
+  void add(object, {SourceLocation location, SourceSpan span,
+      bool isOriginal: false}) {
     if (object is! String || location != null || span != null || isOriginal) {
       _flush();
       assert(location == null || span == null);
-      if (location != null) _items.add(LocationWrapper.wrap(location));
-      if (span != null) _items.add(SpanWrapper.wrap(span));
+      if (location != null) _items.add(location);
+      if (span != null) _items.add(span);
       if (isOriginal) _items.add(_ORIGINAL);
     }
 
@@ -164,16 +164,12 @@ class NestedPrinter implements NestedItem {
   /// The [location] and [span] parameters indicate the corresponding source map
   /// location of [object] in the original input. Only one, [location] or
   /// [span], should be provided at a time.
-  ///
-  /// [location] can be either a [Location] or a [SourceLocation]. [span] can be
-  /// either a [Span] or a [SourceSpan]. Using a [Location] or a [Span] is
-  /// deprecated and will be unsupported in version 0.10.0.
-  void addLine(String line, {location, span}) {
+  void addLine(String line, {SourceLocation location, SourceSpan span}) {
     if (location != null || span != null) {
       _flush();
       assert(location == null || span == null);
-      if (location != null) _items.add(LocationWrapper.wrap(location));
-      if (span != null) _items.add(SpanWrapper.wrap(span));
+      if (location != null) _items.add(location);
+      if (span != null) _items.add(span);
     }
     if (line == null) return;
     if (line != '') {
@@ -235,7 +231,7 @@ class NestedPrinter implements NestedItem {
       } else if (item is String) {
         printer.add(item, projectMarks: propagate);
         propagate = false;
-      } else if (item is Location || item is Span) {
+      } else if (item is SourceLocation || item is SourceSpan) {
         printer.mark(item);
       } else if (item == _ORIGINAL) {
         // we insert booleans when we are about to quote text that was copied

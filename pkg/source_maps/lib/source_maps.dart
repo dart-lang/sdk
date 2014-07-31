@@ -11,7 +11,8 @@
 ///         ..add(inputSpan3, outputSpan3)
 ///         .toJson(outputFile);
 ///
-/// Use the [Span] and [SourceFile] classes to specify span locations.
+/// Use the source_span package's [SourceSpan] and [SourceFile] classes to
+/// specify span locations.
 ///
 /// Parse a source map using [parse], and call `spanFor` on the returned mapping
 /// object. For example:
@@ -40,4 +41,4 @@ export "builder.dart";
 export "parser.dart";
 export "printer.dart";
 export "refactor.dart";
-export "span.dart";
+export 'src/source_map_span.dart';

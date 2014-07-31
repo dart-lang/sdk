@@ -6,8 +6,8 @@ library test.printer_test;
 
 import 'dart:convert';
 import 'package:unittest/unittest.dart';
-import 'package:source_maps/printer.dart';
-import 'package:source_maps/span.dart';
+import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 import 'common.dart';
 
 main() {
@@ -53,13 +53,12 @@ main() {
     // 8 new lines in the source map:
     expect(printer.map.split(';').length, 8);
 
-    asFixed(Span s) => new FixedSpan(s.sourceUrl,
-        s.start.offset, s.start.line, s.start.column,
-        text: s.text, isIdentifier: s.isIdentifier);
+    asFixed(SourceMapSpan s) => new SourceMapSpan(s.start, s.end, s.text,
+        isIdentifier: s.isIdentifier);
 
     // The result is the same if we use fixed positions
     var printer2 = new Printer('output2.dart');
-    printer2..mark(new FixedSpan('input.dart', 0, 0, 0))
+    printer2..mark(new SourceLocation(0, sourceUrl: 'input.dart').pointSpan())
         ..add(segments[0], projectMarks: true)
         ..mark(asFixed(inputVar1))
         ..add('_s')

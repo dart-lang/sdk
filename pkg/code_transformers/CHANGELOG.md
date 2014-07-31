@@ -1,3 +1,7 @@
+## 0.2.0+2
+
+* Widen the constraint on source_maps.
+
 ## 0.2.0+1
 
 * Widen the constraint on barback.
