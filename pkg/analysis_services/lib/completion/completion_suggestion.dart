@@ -12,13 +12,59 @@ import 'package:analyzer/src/generated/element.dart';
  * A single completion suggestion.
  */
 class CompletionSuggestion implements HasToJson {
+
+  /**
+   *  The kind of element being suggested.
+   */
   final CompletionSuggestionKind kind;
+
+  /**
+   * The relevance of this completion suggestion.
+   */
   final CompletionRelevance relevance;
+
+  /**
+   * The identifier to be inserted if the suggestion is selected.
+   * If the suggestion is for a method or function, the client might want to
+   * additionally insert a template for the parameters.
+   * The information required in order to do so is contained in other fields.
+   */
   final String completion;
+
+  /**
+   * The offset, relative to the beginning of the completion, of where
+   * the selection should be placed after insertion.
+   */
   final int selectionOffset;
+
+  /**
+   * The number of characters that should be selected after insertion.
+   */
   final int selectionLength;
+
+  /**
+   * `true` if the suggested element is deprecated.
+   */
   final bool isDeprecated;
+
+  /**
+   * True if the element is not known to be valid for the target.
+   * This happens if the type of the target is dynamic.
+   */
   final bool isPotential;
+
+  // optional fields
+
+//  final String docSummary;
+//  final String docComplete;
+//  final String declaringType;
+//  final String returnType;
+//  final List<String> parameterNames;
+//  final List<String> parameterTypes;
+//  final int requiredParameterCount;
+//  final int positionalParameterCount;
+//  final String parameterName;
+//  final String parameterType;
 
   CompletionSuggestion(this.kind, this.relevance, this.completion,
       this.selectionOffset, this.selectionLength, this.isDeprecated,

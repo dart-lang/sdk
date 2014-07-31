@@ -8,7 +8,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
-import 'package:analysis_services/completion/top_level_computer.dart';
+import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/search/search_engine.dart';
 
@@ -33,7 +33,7 @@ class CompletionDomainHandler implements RequestHandler {
   int _nextCompletionId = 0;
 
   /**
-   * Initialize a newly created handler to handle requests for the given [server].
+   * Initialize a new request handler for the given [server].
    */
   CompletionDomainHandler(this.server);
 
@@ -42,7 +42,7 @@ class CompletionDomainHandler implements RequestHandler {
     try {
       String requestName = request.method;
       if (requestName == COMPLETION_GET_SUGGESTIONS) {
-        return getSuggestions(request);
+        return processRequest(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
@@ -50,22 +50,34 @@ class CompletionDomainHandler implements RequestHandler {
     return null;
   }
 
-  Response getSuggestions(Request request) {
+  /**
+   * Process a `completion.getSuggestions` request.
+   */
+  Response processRequest(Request request) {
     // extract param
     String file = request.getRequiredParameter(FILE).asString();
     int offset = request.getRequiredParameter(OFFSET).asInt();
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    var computer = new TopLevelComputer(server.searchEngine);
-    var future = computer.compute();
-    future.then((List<CompletionSuggestion> results) {
-      _sendCompletionNotification(completionId, true, results);
+    CompletionComputer.create(server.searchEngine).then((computers) {
+      int count = computers.length;
+      List<CompletionSuggestion> results = new List<CompletionSuggestion>();
+      computers.forEach((CompletionComputer c) {
+        c.compute().then((List<CompletionSuggestion> partialResults) {
+          // send aggregate results as we compute them
+          results.addAll(partialResults);
+          sendCompletionNotification(completionId, --count == 0, results);
+        });
+      });
     });
-    // respond
+    // initial response without results
     return new Response(request.id)..setResult(ID, completionId);
   }
 
-  void _sendCompletionNotification(String completionId, bool isLast,
+  /**
+   * Send completion notification results.
+   */
+  void sendCompletionNotification(String completionId, bool isLast,
       Iterable<CompletionSuggestion> results) {
     Notification notification = new Notification(COMPLETION_RESULTS);
     notification.setParameter(ID, completionId);
@@ -74,4 +86,3 @@ class CompletionDomainHandler implements RequestHandler {
     server.sendNotification(notification);
   }
 }
-

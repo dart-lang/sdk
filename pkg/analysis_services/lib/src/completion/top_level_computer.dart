@@ -6,6 +6,7 @@ library services.completion.computer.toplevel;
 
 import 'dart:async';
 
+import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -13,7 +14,7 @@ import 'package:analyzer/src/generated/element.dart';
 /**
  * A computer for `completion.getSuggestions` request results.
  */
-class TopLevelComputer {
+class TopLevelComputer extends CompletionComputer {
   final SearchEngine searchEngine;
 
   TopLevelComputer(this.searchEngine);

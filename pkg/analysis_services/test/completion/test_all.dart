@@ -6,12 +6,14 @@ library test.services.completion;
 
 import 'package:unittest/unittest.dart';
 
-import 'top_level_computer_test.dart' as toplevel_test;
+import 'completion_computer_test.dart' as completion_test;
+import 'top_level_computer_test.dart' as topLevel_test;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
   group('completion', () {
-    toplevel_test.main();
+    completion_test.main();
+    topLevel_test.main();
   });
 }
