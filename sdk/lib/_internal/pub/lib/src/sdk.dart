@@ -17,12 +17,12 @@ import 'version.dart';
 /// When running from the actual built SDK, this will be the SDK that contains
 /// the running Dart executable. When running from the repo, it will be the
 /// "sdk" directory in the Dart repository itself.
-String get rootDirectory =>
+final String rootDirectory =
     runningFromSdk ? _rootDirectory : path.join(repoRoot, "sdk");
 
 /// Gets the path to the root directory of the SDK, assuming that the currently
 /// running Dart executable is within it.
-String get _rootDirectory =>
+final String _rootDirectory =
     path.dirname(path.dirname(Platform.executable));
 
 /// The SDK's revision number formatted to be a semantic version.
