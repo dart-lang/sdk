@@ -82,13 +82,7 @@ main() {
   }
 
   test_connected() {
-    Completer receivedConnected = new Completer();
-    server.onNotification(SERVER_CONNECTED).listen((params) {
-      expect(receivedConnected.isCompleted, isFalse);
-      receivedConnected.complete();
-      expect(params, isNull);
-    });
-    return receivedConnected.future;
+    expect(serverConnectedParams, isNull);
   }
 
   test_error() {
