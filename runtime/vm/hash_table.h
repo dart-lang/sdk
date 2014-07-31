@@ -43,16 +43,21 @@ namespace dart {
 //
 // The classes all wrap an Array handle, and metods like HashSet::Insert can
 // trigger growth into a new RawArray, updating the handle. Debug mode asserts
-// that 'Release' was called to get the final RawArray before destruction.
+// that 'Release' was called once to access the final array before destruction.
 //
 // Example use:
-//  typedef UnorderedHashMap<FooTraits> ResolvedNamesMap;
+//  typedef UnorderedHashMap<FooTraits> FooMap;
 //  ...
-//  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+//  FooMap cache(get_foo_cache());
 //  cache.UpdateOrInsert(name0, obj0);
 //  cache.UpdateOrInsert(name1, obj1);
 //  ...
-//  StorePointer(&raw_ptr()->resolved_names_, cache.Release());
+//  set_foo_cache(cache.Release());
+//
+// If you *know* that no mutating operations were called, you can optimize:
+//  ...
+//  obj ^= cache.GetOrNull(name);
+//  ASSERT(cache.Release().raw() == get_foo_cache());
 //
 // TODO(koda): When exposing these to Dart code, document and assert that
 // KeyTraits methods must not run Dart code (since the C++ code doesn't check
@@ -79,17 +84,25 @@ template<typename KeyTraits, intptr_t kPayloadSize, intptr_t kMetaDataSize>
 class HashTable : public ValueObject {
  public:
   typedef KeyTraits Traits;
-  explicit HashTable(Array& data) : data_(data) {}
+  // Uses 'isolate' for handle allocation. 'Release' must be called at the end
+  // to obtain the final table after potential growth/shrinkage.
+  HashTable(Isolate* isolate, RawArray* data)
+      : isolate_(isolate), data_(&Array::Handle(isolate_, data)) {}
+  // Like above, except uses current isolate.
+  explicit HashTable(RawArray* data)
+      : isolate_(Isolate::Current()), data_(&Array::Handle(isolate_, data)) {}
 
-  RawArray* Release() {
-    ASSERT(!data_.IsNull());
-    RawArray* array = data_.raw();
-    data_ = Array::null();
-    return array;
+  Array& Release() {
+    ASSERT(data_ != NULL);
+    Array* result = data_;
+    // Ensure that no methods are called after 'Release'.
+    data_ = NULL;
+    return *result;
   }
 
   ~HashTable() {
-    ASSERT(data_.IsNull());
+    // Ensure that 'Release' was called.
+    ASSERT(data_ == NULL);
   }
 
   // Returns a backing storage size such that 'num_occupied' distinct keys can
@@ -103,12 +116,12 @@ class HashTable : public ValueObject {
 
   // Initializes an empty table.
   void Initialize() const {
-    ASSERT(data_.Length() >= ArrayLengthForNumOccupied(0));
-    Smi& zero = Smi::Handle(Smi::New(0));
-    data_.SetAt(kOccupiedEntriesIndex, zero);
-    data_.SetAt(kDeletedEntriesIndex, zero);
-    for (intptr_t i = kHeaderSize; i < data_.Length(); ++i) {
-      data_.SetAt(i, Object::sentinel());
+    ASSERT(data_->Length() >= ArrayLengthForNumOccupied(0));
+    Smi& zero = Smi::Handle(isolate(), Smi::New(0));
+    data_->SetAt(kOccupiedEntriesIndex, zero);
+    data_->SetAt(kDeletedEntriesIndex, zero);
+    for (intptr_t i = kHeaderSize; i < data_->Length(); ++i) {
+      data_->SetAt(i, Object::sentinel());
     }
   }
 
@@ -124,7 +137,7 @@ class HashTable : public ValueObject {
     ASSERT(NumOccupied() < NumEntries());
     // TODO(koda): Add salt.
     intptr_t probe = static_cast<uword>(KeyTraits::Hash(key)) % NumEntries();
-    Object& obj = Object::Handle();
+    Object& obj = Object::Handle(isolate());
     // TODO(koda): Consider quadratic probing.
     for (; ; probe = (probe + 1) % NumEntries()) {
       if (IsUnused(probe)) {
@@ -151,7 +164,7 @@ class HashTable : public ValueObject {
     ASSERT(entry != NULL);
     ASSERT(NumOccupied() < NumEntries());
     intptr_t probe = static_cast<uword>(KeyTraits::Hash(key)) % NumEntries();
-    Object& obj = Object::Handle();
+    Object& obj = Object::Handle(isolate());
     intptr_t deleted = -1;
     // TODO(koda): Consider quadratic probing.
     for (; ; probe = (probe + 1) % NumEntries()) {
@@ -205,14 +218,14 @@ class HashTable : public ValueObject {
   }
   RawObject* GetPayload(intptr_t entry, intptr_t component) const {
     ASSERT(IsOccupied(entry));
-    return data_.At(PayloadIndex(entry, component));
+    return data_->At(PayloadIndex(entry, component));
   }
   void UpdatePayload(intptr_t entry,
                      intptr_t component,
                      const Object& value) const {
     ASSERT(IsOccupied(entry));
     ASSERT(0 <= component && component < kPayloadSize);
-    data_.SetAt(PayloadIndex(entry, component), value);
+    data_->SetAt(PayloadIndex(entry, component), value);
   }
   // Deletes both the key and payload of the specified entry.
   void DeleteEntry(intptr_t entry) const {
@@ -225,7 +238,7 @@ class HashTable : public ValueObject {
     AdjustSmiValueAt(kDeletedEntriesIndex, 1);
   }
   intptr_t NumEntries() const {
-    return (data_.Length() - kFirstKeyIndex) / kEntrySize;
+    return (data_->Length() - kFirstKeyIndex) / kEntrySize;
   }
   intptr_t NumUnused() const {
     return NumEntries() - NumOccupied() - NumDeleted();
@@ -256,28 +269,33 @@ class HashTable : public ValueObject {
   }
 
   RawObject* InternalGetKey(intptr_t entry) const {
-    return data_.At(KeyIndex(entry));
+    return data_->At(KeyIndex(entry));
   }
 
   void InternalSetKey(intptr_t entry, const Object& key) const {
-    data_.SetAt(KeyIndex(entry), key);
+    data_->SetAt(KeyIndex(entry), key);
   }
 
   intptr_t GetSmiValueAt(intptr_t index) const {
-    ASSERT(Object::Handle(data_.At(index)).IsSmi());
-    return Smi::Value(Smi::RawCast(data_.At(index)));
+    ASSERT(Object::Handle(isolate(), data_->At(index)).IsSmi());
+    return Smi::Value(Smi::RawCast(data_->At(index)));
   }
 
   void SetSmiValueAt(intptr_t index, intptr_t value) const {
-    const Smi& smi = Smi::Handle(Smi::New(value));
-    data_.SetAt(index, smi);
+    const Smi& smi = Smi::Handle(isolate(), Smi::New(value));
+    data_->SetAt(index, smi);
   }
 
   void AdjustSmiValueAt(intptr_t index, intptr_t delta) const {
     SetSmiValueAt(index, (GetSmiValueAt(index) + delta));
   }
 
-  Array& data_;
+  Isolate* isolate() const { return isolate_; }
+
+  Isolate* isolate_;
+  // This is a pointer rather than a reference, to enable Release nulling it,
+  // preventing post-Release modification.
+  Array* data_;
 
   friend class HashTables;
 };
@@ -289,7 +307,9 @@ class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
  public:
   typedef HashTable<KeyTraits, kUserPayloadSize, 0> BaseTable;
   static const intptr_t kPayloadSize = kUserPayloadSize;
-  explicit UnorderedHashTable(Array& data) : BaseTable(data) {}
+  explicit UnorderedHashTable(RawArray* data) : BaseTable(data) {}
+  UnorderedHashTable(Isolate* isolate, RawArray* data)
+      : BaseTable(isolate, data) {}
   // Note: Does not check for concurrent modification.
   class Iterator {
    public:
@@ -326,7 +346,9 @@ class EnumIndexHashTable
   typedef HashTable<KeyTraits, kUserPayloadSize + 1, 1> BaseTable;
   static const intptr_t kPayloadSize = kUserPayloadSize;
   static const intptr_t kNextEnumIndex = BaseTable::kMetaDataIndex;
-  explicit EnumIndexHashTable(Array& data) : BaseTable(data) {}
+  EnumIndexHashTable(Isolate* isolate, RawArray* data)
+      : BaseTable(isolate, data) {}
+  explicit EnumIndexHashTable(RawArray* data) : BaseTable(data) {}
   // Note: Does not check for concurrent modification.
   class Iterator {
    public:
@@ -369,8 +391,8 @@ class EnumIndexHashTable
 
   void InsertKey(intptr_t entry, const Object& key) const {
     BaseTable::InsertKey(entry, key);
-    const Smi& next_enum_index =
-        Smi::Handle(Smi::New(BaseTable::GetSmiValueAt(kNextEnumIndex)));
+    const Smi& next_enum_index = Smi::Handle(BaseTable::isolate(),
+        Smi::New(BaseTable::GetSmiValueAt(kNextEnumIndex)));
     BaseTable::UpdatePayload(entry, kPayloadSize, next_enum_index);
     // TODO(koda): Handle possible Smi overflow from repeated insert/delete.
     BaseTable::AdjustSmiValueAt(kNextEnumIndex, 1);
@@ -386,10 +408,10 @@ class HashTables : public AllStatic {
   template<typename Table>
   static RawArray* New(intptr_t initial_capacity,
                        Heap::Space space = Heap::kNew) {
-    Table table(Array::Handle(Array::New(
-        Table::ArrayLengthForNumOccupied(initial_capacity), space)));
+    Table table(Array::New(
+        Table::ArrayLengthForNumOccupied(initial_capacity), space));
     table.Initialize();
-    return table.Release();
+    return table.Release().raw();
   }
 
   // Clears 'to' and inserts all elements from 'from', in iteration order.
@@ -425,11 +447,11 @@ class HashTables : public AllStatic {
     }
     double target = (low + high) / 2.0;
     intptr_t new_capacity = (1 + table.NumOccupied()) / target;
-    Table new_table(Array::Handle(New<Table>(
+    Table new_table(New<Table>(
         new_capacity,
-        table.data_.IsOld() ? Heap::kOld : Heap::kNew)));
+        table.data_->IsOld() ? Heap::kOld : Heap::kNew));
     Copy(table, new_table);
-    table.data_ = new_table.Release();
+    *table.data_ = new_table.Release().raw();
   }
 
   // Serializes a table by concatenating its entries as an array.
@@ -459,7 +481,8 @@ class HashTables : public AllStatic {
 template<typename BaseIterTable>
 class HashMap : public BaseIterTable {
  public:
-  explicit HashMap(Array& data) : BaseIterTable(data) {}
+  explicit HashMap(RawArray* data) : BaseIterTable(data) {}
+  HashMap(Isolate* isolate, RawArray* data) : BaseIterTable(isolate, data) {}
   template<typename Key>
   RawObject* GetOrNull(const Key& key, bool* present = NULL) const {
     intptr_t entry = BaseIterTable::FindKey(key);
@@ -506,7 +529,7 @@ class HashMap : public BaseIterTable {
     EnsureCapacity();
     intptr_t entry = -1;
     if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
-      Object& new_key = Object::Handle(
+      Object& new_key = Object::Handle(BaseIterTable::isolate(),
           BaseIterTable::BaseTable::Traits::NewKey(key));
       BaseIterTable::InsertKey(entry, new_key);
       BaseIterTable::UpdatePayload(entry, 0, value_if_absent);
@@ -539,7 +562,8 @@ template<typename KeyTraits>
 class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
  public:
   typedef HashMap<UnorderedHashTable<KeyTraits, 1> > BaseMap;
-  explicit UnorderedHashMap(Array& data) : BaseMap(data) {}
+  explicit UnorderedHashMap(RawArray* data) : BaseMap(data) {}
+  UnorderedHashMap(Isolate* isolate, RawArray* data) : BaseMap(isolate, data) {}
 };
 
 
@@ -547,14 +571,16 @@ template<typename KeyTraits>
 class EnumIndexHashMap : public HashMap<EnumIndexHashTable<KeyTraits, 1> > {
  public:
   typedef HashMap<EnumIndexHashTable<KeyTraits, 1> > BaseMap;
-  explicit EnumIndexHashMap(Array& data) : BaseMap(data) {}
+  explicit EnumIndexHashMap(RawArray* data) : BaseMap(data) {}
+  EnumIndexHashMap(Isolate* isolate, RawArray* data) : BaseMap(isolate, data) {}
 };
 
 
 template<typename BaseIterTable>
 class HashSet : public BaseIterTable {
  public:
-  explicit HashSet(Array& data) : BaseIterTable(data) {}
+  explicit HashSet(RawArray* data) : BaseIterTable(data) {}
+  HashSet(Isolate* isolate, RawArray* data) : BaseIterTable(isolate, data) {}
   bool Insert(const Object& key) {
     EnsureCapacity();
     intptr_t entry = -1;
@@ -584,7 +610,7 @@ class HashSet : public BaseIterTable {
     EnsureCapacity();
     intptr_t entry = -1;
     if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
-      Object& new_key = Object::Handle(
+      Object& new_key = Object::Handle(BaseIterTable::isolate(),
           BaseIterTable::BaseTable::Traits::NewKey(key));
       BaseIterTable::InsertKey(entry, new_key);
       return new_key.raw();
@@ -625,7 +651,8 @@ template<typename KeyTraits>
 class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
  public:
   typedef HashSet<UnorderedHashTable<KeyTraits, 0> > BaseSet;
-  explicit UnorderedHashSet(Array& data) : BaseSet(data) {}
+  explicit UnorderedHashSet(RawArray* data) : BaseSet(data) {}
+  UnorderedHashSet(Isolate* isolate, RawArray* data) : BaseSet(isolate, data) {}
 };
 
 
@@ -633,7 +660,8 @@ template<typename KeyTraits>
 class EnumIndexHashSet : public HashSet<EnumIndexHashTable<KeyTraits, 0> > {
  public:
   typedef HashSet<EnumIndexHashTable<KeyTraits, 0> > BaseSet;
-  explicit EnumIndexHashSet(Array& data) : BaseSet(data) {}
+  explicit EnumIndexHashSet(RawArray* data) : BaseSet(data) {}
+  EnumIndexHashSet(Isolate* isolate, RawArray* data) : BaseSet(isolate, data) {}
 };
 
 }  // namespace dart

@@ -60,7 +60,7 @@ void Validate(const Table& table) {
 
 TEST_CASE(HashTable) {
   typedef HashTable<TestTraits, 2, 1> Table;
-  Table table(Array::Handle(HashTables::New<Table>(5)));
+  Table table(HashTables::New<Table>(5));
   // Ensure that we did get at least 5 entries.
   EXPECT_LE(5, table.NumEntries());
   EXPECT_EQ(0, table.NumOccupied());
@@ -121,7 +121,7 @@ TEST_CASE(HashTable) {
 
 TEST_CASE(EnumIndexHashMap) {
   typedef EnumIndexHashMap<TestTraits> Table;
-  Table table(Array::Handle(HashTables::New<Table>(5)));
+  Table table(HashTables::New<Table>(5));
   table.UpdateOrInsert(String::Handle(String::New("a")),
                        String::Handle(String::New("A")));
   EXPECT(table.ContainsKey("a"));
@@ -228,7 +228,7 @@ void VerifyStringMapsEqual(const std::map<std::string, int>& expected,
 template<typename Set>
 void TestSet(intptr_t initial_capacity, bool ordered) {
   std::set<std::string> expected;
-  Set actual(Array::Handle(HashTables::New<Set>(initial_capacity)));
+  Set actual(HashTables::New<Set>(initial_capacity));
   // Insert the following strings twice:
   // aaa...aaa (length 26)
   // bbb..bbb
@@ -253,7 +253,7 @@ void TestSet(intptr_t initial_capacity, bool ordered) {
 template<typename Map>
 void TestMap(intptr_t initial_capacity, bool ordered) {
   std::map<std::string, int> expected;
-  Map actual(Array::Handle(HashTables::New<Map>(initial_capacity)));
+  Map actual(HashTables::New<Map>(initial_capacity));
   // Insert the following (strings, int) mapping:
   // aaa...aaa -> 26
   // bbb..bbb -> 25

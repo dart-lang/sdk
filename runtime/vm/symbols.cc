@@ -217,7 +217,7 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
 
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
   ASSERT(isolate != NULL);
-  SymbolTable table(Array::Handle(isolate->object_store()->symbol_table()));
+  SymbolTable table(isolate, isolate->object_store()->symbol_table());
   *size = table.NumOccupied();
   *capacity = table.NumEntries();
   table.Release();
@@ -228,13 +228,11 @@ void Symbols::AddToVMIsolate(const String& str) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   Isolate* isolate = Dart::vm_isolate();
-  Array& array = Array::Handle(isolate->object_store()->symbol_table());
-  SymbolTable table(array);
+  SymbolTable table(isolate, isolate->object_store()->symbol_table());
   bool present = table.Insert(str);
   str.SetCanonical();
   ASSERT(!present);
-  isolate->object_store()->set_symbol_table(array);
-  table.Release();
+  isolate->object_store()->set_symbol_table(table.Release());
 }
 
 
@@ -283,21 +281,18 @@ RawString* Symbols::FromUTF32(const int32_t* utf32_array, intptr_t len) {
 // StringType can be StringSlice, Latin1Array, UTF16Array or UTF32Array.
 template<typename StringType>
 RawString* Symbols::NewSymbol(const StringType& str) {
-  String& symbol = String::Handle();
+  Isolate* isolate = Isolate::Current();
+  String& symbol = String::Handle(isolate);
   {
-    Isolate* isolate = Dart::vm_isolate();
-    Array& array = Array::Handle(isolate->object_store()->symbol_table());
-    SymbolTable table(array);
+    Isolate* vm_isolate = Dart::vm_isolate();
+    SymbolTable table(isolate, vm_isolate->object_store()->symbol_table());
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
-    Isolate* isolate = Isolate::Current();
-    Array& array = Array::Handle(isolate->object_store()->symbol_table());
-    SymbolTable table(array);
+    SymbolTable table(isolate, isolate->object_store()->symbol_table());
     symbol ^= table.InsertNewOrGet(str);
-    isolate->object_store()->set_symbol_table(array);
-    table.Release();
+    isolate->object_store()->set_symbol_table(table.Release());
   }
   ASSERT(symbol.IsSymbol());
   return symbol.raw();

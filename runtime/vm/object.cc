@@ -7724,8 +7724,7 @@ class CompressedTokenStreamData : public ValueObject {
   CompressedTokenStreamData() :
       buffer_(NULL),
       stream_(&buffer_, Reallocate, kInitialBufferSize),
-      tokens_(Array::Handle(
-          HashTables::New<CompressedTokenMap>(kInitialTableSize))) {
+      tokens_(HashTables::New<CompressedTokenMap>(kInitialTableSize)) {
   }
   ~CompressedTokenStreamData() {
     // Safe to discard the hash table now.
@@ -8750,11 +8749,10 @@ typedef UnorderedHashMap<StringEqualsTraits> ResolvedNamesMap;
 // name does not resolve to anything in this library.
 bool Library::LookupResolvedNamesCache(const String& name,
                                        Object* obj) const {
-  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+  ResolvedNamesMap cache(resolved_names());
   bool present = false;
   *obj = cache.GetOrNull(name, &present);
-  RawArray* array = cache.Release();
-  ASSERT(array == resolved_names());
+  ASSERT(cache.Release().raw() == resolved_names());
   return present;
 }
 
@@ -8767,9 +8765,9 @@ void Library::AddToResolvedNamesCache(const String& name,
   if (!FLAG_use_lib_cache) {
     return;
   }
-  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+  ResolvedNamesMap cache(resolved_names());
   cache.UpdateOrInsert(name, obj);
-  StorePointer(&raw_ptr()->resolved_names_, cache.Release());
+  StorePointer(&raw_ptr()->resolved_names_, cache.Release().raw());
 }
 
 
@@ -18150,12 +18148,9 @@ typedef EnumIndexHashMap<DefaultHashTraits> EnumIndexDefaultMap;
 
 
 intptr_t LinkedHashMap::Length() const {
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   intptr_t result = map.NumOccupied();
-  {
-    RawArray* array = map.Release();
-    ASSERT(array == data());
-  }
+  ASSERT(map.Release().raw() == data());
   return result;
 }
 
@@ -18163,47 +18158,41 @@ intptr_t LinkedHashMap::Length() const {
 void LinkedHashMap::InsertOrUpdate(const Object& key,
                                      const Object& value) const {
   ASSERT(!IsNull());
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   if (!map.UpdateOrInsert(key, value)) {
     SetModified();
   }
-  StorePointer(&raw_ptr()->data_, map.Release());
+  StorePointer(&raw_ptr()->data_, map.Release().raw());
 }
 
 
 RawObject* LinkedHashMap::LookUp(const Object& key) const {
   ASSERT(!IsNull());
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   const Object& result = Object::Handle(map.GetOrNull(key));
-  {
-    RawArray* array = map.Release();
-    ASSERT(array == data());
-  }
+  ASSERT(map.Release().raw() == data());
   return result.raw();
 }
 
 
 bool LinkedHashMap::Contains(const Object& key) const {
   ASSERT(!IsNull());
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   bool result = map.ContainsKey(key);
-  {
-    RawArray* array = map.Release();
-    ASSERT(array == data());
-  }
+  ASSERT(map.Release().raw() == data());
   return result;
 }
 
 
 RawObject* LinkedHashMap::Remove(const Object& key) const {
   ASSERT(!IsNull());
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   // TODO(koda): Make 'Remove' also return the old value.
   const Object& result = Object::Handle(map.GetOrNull(key));
   if (map.Remove(key)) {
     SetModified();
   }
-  StorePointer(&raw_ptr()->data_, map.Release());
+  StorePointer(&raw_ptr()->data_, map.Release().raw());
   return result.raw();
 }
 
@@ -18211,19 +18200,18 @@ RawObject* LinkedHashMap::Remove(const Object& key) const {
 void LinkedHashMap::Clear() const {
   ASSERT(!IsNull());
   if (Length() != 0) {
-    EnumIndexDefaultMap map(Array::Handle(data()));
+    EnumIndexDefaultMap map(data());
     map.Initialize();
     SetModified();
-    StorePointer(&raw_ptr()->data_, map.Release());
+    StorePointer(&raw_ptr()->data_, map.Release().raw());
   }
 }
 
 
 RawArray* LinkedHashMap::ToArray() const {
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   const Array& result = Array::Handle(HashTables::ToArray(map, true));
-  RawArray* array = map.Release();
-  ASSERT(array == data());
+  ASSERT(map.Release().raw() == data());
   return result.raw();
 }
 
