@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library cps_to_tree;
+library tree_ir_builder;
 
 import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart';
