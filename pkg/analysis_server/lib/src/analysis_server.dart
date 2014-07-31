@@ -403,6 +403,7 @@ class AnalysisServer {
             new CaughtException(exception, stackTrace));
       }
       _sendServerErrorNotification(exception, stackTrace);
+      shutdown();
     } finally {
       if (!operationQueue.isEmpty) {
         _schedulePerformOperation();
@@ -740,7 +741,7 @@ class AnalysisServer {
   }
 
   /**
-   * Sends a non-fatal `server.error` notification.
+   * Sends a fatal `server.error` notification.
    */
   void _sendServerErrorNotification(exception, stackTrace) {
     // prepare exception.toString()
@@ -759,7 +760,7 @@ class AnalysisServer {
     }
     // send the notification
     Notification notification = new Notification(SERVER_ERROR);
-    notification.setParameter(FATAL, false);
+    notification.setParameter(FATAL, true);
     notification.setParameter(MESSAGE, exceptionString);
     notification.setParameter(STACK_TRACE, stackTraceString);
     channel.sendNotification(notification);
