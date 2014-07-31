@@ -18,6 +18,7 @@ import 'analysis_abstract.dart';
 
 
 main() {
+  groupSep = ' | ';
   runReflectiveTests(AnalysisNotificationNavigationTest);
 }
 
