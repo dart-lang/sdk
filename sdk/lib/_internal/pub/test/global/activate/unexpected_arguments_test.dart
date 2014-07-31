@@ -12,12 +12,11 @@ main() {
         error: """
             Unexpected arguments "bar" and "baz".
 
-            Usage: pub global activate [--source source] <package> [version]
-            -h, --help      Print usage information for this command.
-            -s, --source    The source used to find the package.
-                            [git, hosted (default), path]
+            Usage: pub global activate <package> [version]
+            -h, --help    Print usage information for this command.
 
-            Run "pub help" to see global options.""",
+            Run "pub help" to see global options.
+            """,
         exitCode: exit_codes.USAGE);
   });
 }

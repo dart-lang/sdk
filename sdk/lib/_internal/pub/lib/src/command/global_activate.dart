@@ -13,63 +13,34 @@ import '../version.dart';
 /// Handles the `global activate` pub command.
 class GlobalActivateCommand extends PubCommand {
   String get description => "Make a package's executables globally available.";
-  String get usage => "pub global activate [--source source] <package> [version]";
+  String get usage => "pub global activate <package> [version]";
   bool get takesArguments => true;
 
-  GlobalActivateCommand() {
-    commandParser.addOption("source",
-        abbr: "s",
-        help: "The source used to find the package.",
-        allowed: ["git", "hosted", "path"],
-        defaultsTo: "hosted");
-  }
-
   Future onRun() {
-    var args = commandOptions.rest;
-
-    readArg(String error) {
-      if (args.isEmpty) usageError(error);
-      var arg = args.first;
-      args = args.skip(1);
-      return arg;
+    // Make sure there is a package.
+    if (commandOptions.rest.isEmpty) {
+      usageError("No package to activate given.");
     }
 
-    validateNoExtraArgs() {
-      if (args.isEmpty) return;
-      var unexpected = args.map((arg) => '"$arg"');
+    // Don't allow extra arguments.
+    if (commandOptions.rest.length > 2) {
+      var unexpected = commandOptions.rest.skip(2).map((arg) => '"$arg"');
       var arguments = pluralize("argument", unexpected.length);
       usageError("Unexpected $arguments ${toSentence(unexpected)}.");
     }
 
-    var package = readArg("No package to activate given.");
+    var package = commandOptions.rest.first;
 
-    switch (commandOptions["source"]) {
-      case "git":
-        // Parse the git ref.
-        // TODO(bob): Test.
-        var ref = readArg("Must provide a Git ref for the package.");
-        validateNoExtraArgs();
-        return globals.activateGit(package, ref);
-
-      case "hosted":
-        // Parse the version constraint, if there is one.
-        var constraint = VersionConstraint.any;
-        if (args.isNotEmpty) {
-          try {
-            constraint = new VersionConstraint.parse(readArg(""));
-          } on FormatException catch (error) {
-            usageError(error.message);
-          }
-        }
-
-        validateNoExtraArgs();
-        return globals.activateHosted(package, constraint);
-
-      case "path":
-        validateNoExtraArgs();
-        return globals.activatePath(package);
+    // Parse the version constraint, if there is one.
+    var constraint = VersionConstraint.any;
+    if (commandOptions.rest.length == 2) {
+      try {
+        constraint = new VersionConstraint.parse(commandOptions.rest[1]);
+      } on FormatException catch (error) {
+        usageError(error.message);
+      }
     }
 
-    throw "unreachable";
+    return globals.activate(package, constraint);
   }
 }

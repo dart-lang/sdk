@@ -6,7 +6,7 @@ library pub.source.path;
 
 import 'dart:async';
 
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 
 import '../exceptions.dart';
 import '../io.dart';
@@ -17,17 +17,6 @@ import '../utils.dart';
 
 /// A package [Source] that gets packages from a given local file path.
 class PathSource extends Source {
-  /// Returns a valid description for a reference to a package at [path].
-  static describePath(String path) {
-    return {
-      "path": path,
-      "relative": p.isRelative(path)
-    };
-  }
-
-  /// Given a valid path reference description, returns the actual path.
-  static String pathFromDescription(description) => description["path"];
-
   final name = 'path';
 
   Future<Pubspec> doDescribe(PackageId id) {
@@ -90,14 +79,14 @@ class PathSource extends Source {
 
     // Resolve the path relative to the containing file path, and remember
     // whether the original path was relative or absolute.
-    var isRelative = p.isRelative(description);
-    if (p.isRelative(description)) {
+    bool isRelative = path.isRelative(description);
+    if (path.isRelative(description)) {
       // Can't handle relative paths coming from pubspecs that are not on the
       // local file system.
       assert(containingPath != null);
 
-      description = p.normalize(
-          p.join(p.dirname(containingPath), description));
+      description = path.normalize(
+          path.join(path.dirname(containingPath), description));
     }
 
     return {
@@ -113,7 +102,7 @@ class PathSource extends Source {
   dynamic serializeDescription(String containingPath, description) {
     if (description["relative"]) {
       return {
-        "path": p.relative(description['path'], from: containingPath),
+        "path": path.relative(description['path'], from: containingPath),
         "relative": true
       };
     }
@@ -124,7 +113,7 @@ class PathSource extends Source {
   String formatDescription(String containingPath, description) {
     var sourcePath = description["path"];
     if (description["relative"]) {
-      sourcePath = p.relative(description['path'], from: containingPath);
+      sourcePath = path.relative(description['path'], from: containingPath);
     }
 
     return sourcePath;
