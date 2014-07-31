@@ -146,7 +146,6 @@ LibTest/html/Document/childNodes_A01_t01: RuntimeError # Issue 17758.  Please tr
 LibTest/html/Document/clone_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Document/clone_A01_t02: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Document/securityPolicy_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
-LibTest/html/Element/Element.tag_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/borderEdge_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/contentEdge_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/dataset_A02_t01: RuntimeError # Issue 17758.  Please triage this failure.
@@ -156,7 +155,6 @@ LibTest/html/Element/getClientRects_A01_t02: RuntimeError # Issue 17758.  Please
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Issue 17758.  Please triage this failure.
-LibTest/html/Element/isTagSupported_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/marginEdge_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/paddingEdge_A01_t01: RuntimeError # Issue 17758.  Please triage this failure.
 LibTest/html/Element/replaceWith_A01_t02: RuntimeError # Issue 17758.  Please triage this failure.
@@ -258,14 +256,6 @@ LibTest/html/Node/previousNode_A01_t01: RuntimeError # co19-roll r722: Please tr
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Issue 19055.
 WebPlatformTest/custom-elements/concepts/type_A05_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/custom-elements/concepts/type_A06_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/custom-elements/instantiating/createElement_A02_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/template-end-tag-without-start-one_t01: RuntimeError # co19-roll r722: Please triage this failure.
