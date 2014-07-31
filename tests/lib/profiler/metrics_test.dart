@@ -33,32 +33,32 @@ testGauge2() {
 
   Expect.throws(() {
     // min > max.
-    gauge = new Gauge.range('test', 'alpha bravo', 2.0, 1.0);
+    gauge = new Gauge('test', 'alpha bravo', 2.0, 1.0);
   });
 
   Expect.throws(() {
     // min == max.
-    gauge = new Gauge.range('test', 'alpha bravo', 1.0, 1.0);
+    gauge = new Gauge('test', 'alpha bravo', 1.0, 1.0);
   });
 
   Expect.throws(() {
     // min is null
-    gauge = new Gauge.range('test', 'alpha bravo', null, 1.0);
+    gauge = new Gauge('test', 'alpha bravo', null, 1.0);
   });
 
   Expect.throws(() {
     // min is not a double
-    gauge = new Gauge.range('test', 'alpha bravo', 'string', 1.0);
+    gauge = new Gauge('test', 'alpha bravo', 'string', 1.0);
   });
 
   Expect.throws(() {
     // max is null
-    gauge = new Gauge.range('test', 'alpha bravo', 1.0, null);
+    gauge = new Gauge('test', 'alpha bravo', 1.0, null);
   });
 
   Expect.throws(() {
     // max is not a double
-    gauge = new Gauge.range('test', 'alpha bravo', 1.0, 4);
+    gauge = new Gauge('test', 'alpha bravo', 1.0, 4);
   });
 }
 
