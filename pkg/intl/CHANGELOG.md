@@ -1,3 +1,7 @@
+## 0.11.4
+
+ * Broaden the pubspec constraints to allow current analyzer versions.
+
 ## 0.11.3
 
  * Add a --[no]-use-deferred-loading flag to generate_from_arb.dart and 
