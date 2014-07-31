@@ -474,10 +474,27 @@ class VersionRange implements VersionConstraint {
 
   /// Tests if [other] matches falls within this version range.
   bool allows(Version other) {
-    if (min != null && other < min) return false;
-    if (min != null && !includeMin && other == min) return false;
-    if (max != null && other > max) return false;
-    if (max != null && !includeMax && other == max) return false;
+    if (min != null) {
+      if (other < min) return false;
+      if (!includeMin && other == min) return false;
+    }
+
+    if (max != null) {
+      if (other > max) return false;
+      if (!includeMax && other == max) return false;
+
+      // If the max isn't itself a pre-release, don't allow any pre-release
+      // versions of the max.
+      //
+      // See: https://www.npmjs.org/doc/misc/semver.html
+      if (!includeMax &&
+          !max.isPreRelease && other.isPreRelease &&
+          other.major == max.major && other.minor == max.minor &&
+          other.patch == max.patch) {
+        return false;
+      }
+    }
+
     return true;
   }
 

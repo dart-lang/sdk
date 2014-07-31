@@ -893,11 +893,11 @@ void prerelease() {
     },
     'a 1.0.0-dev': {},
     'a 1.1.0-dev': {},
-    'a 2.0.0-dev': {},
+    'a 1.9.0-dev': {},
     'a 3.0.0': {}
   }, result: {
     'myapp from root': '0.0.0',
-    'a': '2.0.0-dev'
+    'a': '1.9.0-dev'
   });
 
   testResolve('use an earlier stable version on a < constraint', {

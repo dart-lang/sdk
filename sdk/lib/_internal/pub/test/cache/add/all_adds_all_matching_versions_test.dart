@@ -14,7 +14,6 @@ main() {
       packageMap("foo", "1.2.2"),
       packageMap("foo", "1.2.3-dev"),
       packageMap("foo", "1.2.3"),
-      packageMap("foo", "2.0.0-dev"),
       packageMap("foo", "2.0.0")
     ]);
 
@@ -22,8 +21,7 @@ main() {
         output: '''
           Downloading foo 1.2.2...
           Downloading foo 1.2.3-dev...
-          Downloading foo 1.2.3...
-          Downloading foo 2.0.0-dev...''');
+          Downloading foo 1.2.3...''');
 
     d.cacheDir({"foo": "1.2.2"}).validate();
     d.cacheDir({"foo": "1.2.3-dev"}).validate();
