@@ -420,13 +420,20 @@ class _Utf8Decoder {
     int value = _value;
     int expectedUnits = _expectedUnits;
     int extraUnits = _extraUnits;
-    int singleBytesCount = 0;
     _value = 0;
     _expectedUnits = 0;
     _extraUnits = 0;
 
+    int scanOneByteCharacters(units, int from) {
+      final to = endIndex;
+      final mask = ~_ONE_BYTE_LIMIT;
+      for (var i = from; i < to; i++) {
+        if ((units[i] & mask) != 0) return i - from;
+      }
+      return to - from;
+    }
+
     void addSingleBytes(int from, int to) {
-      assert(singleBytesCount > 0);
       assert(from >= startIndex && from <= endIndex);
       assert(to >= startIndex && to <= endIndex);
       if (from == 0 && to == codeUnits.length) {
@@ -435,7 +442,6 @@ class _Utf8Decoder {
         _stringSink.write(
             new String.fromCharCodes(codeUnits.sublist(from, to)));
       }
-      singleBytesCount = 0;
     }
 
     int i = startIndex;
@@ -485,6 +491,13 @@ class _Utf8Decoder {
       }
 
       while (i < endIndex) {
+        int oneBytes = scanOneByteCharacters(codeUnits, i);
+        if (oneBytes > 0) {
+          _isFirstCharacter = false;
+          addSingleBytes(i, i + oneBytes);
+          i += oneBytes;
+          if (i == endIndex) break;
+        }
         int unit = codeUnits[i++];
         // TODO(floitsch): the way we test we could potentially allow
         // units that are too large, if they happen to have the
@@ -493,23 +506,13 @@ class _Utf8Decoder {
         // https://codereview.chromium.org/22929022/diff/1/sdk/lib/convert/utf.dart?column_width=80
         if (unit < 0) {
           // TODO(floitsch): should this be unit <= 0 ?
-          if (singleBytesCount > 0) {
-            int to = i - 1;
-            addSingleBytes(to - singleBytesCount, to);
-          }
           if (!_allowMalformed) {
             throw new FormatException(
                 "Negative UTF-8 code unit: -0x${(-unit).toRadixString(16)}");
           }
           _stringSink.writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
-        } else if (unit <= _ONE_BYTE_LIMIT) {
-          _isFirstCharacter = false;
-          singleBytesCount++;
         } else {
-          if (singleBytesCount > 0) {
-            int to = i - 1;
-            addSingleBytes(to - singleBytesCount, to);
-          }
+          assert(unit > _ONE_BYTE_LIMIT);
           if ((unit & 0xE0) == 0xC0) {
             value = unit & 0x1F;
             expectedUnits = extraUnits = 1;
@@ -537,9 +540,6 @@ class _Utf8Decoder {
         }
       }
       break loop;
-    }
-    if (singleBytesCount > 0) {
-      addSingleBytes(i - singleBytesCount, endIndex);
     }
     if (expectedUnits > 0) {
       _value = value;
