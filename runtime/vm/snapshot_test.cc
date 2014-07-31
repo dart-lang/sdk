@@ -1205,7 +1205,8 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
     // Load the library.
     Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
-                                              NewString(kLibScriptChars));
+                                              NewString(kLibScriptChars),
+                                              0, 0);
     EXPECT_VALID(import_lib);
 
     // Create a test library and Load up a test script in it.
@@ -1375,7 +1376,8 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
     // Load the library.
     Dart_Handle import_lib = Dart_LoadLibrary(NewString("dart_import_lib"),
-                                              NewString(kLibScriptChars));
+                                              NewString(kLibScriptChars),
+                                              0, 0);
     EXPECT_VALID(import_lib);
 
     // Create a test library and Load up a test script in it.

@@ -4803,7 +4803,7 @@ static void CompileSource(Isolate* isolate,
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
-                                        intptr_t col_offset) {
+                                        intptr_t column_offset) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_script_loading);
@@ -4826,8 +4826,8 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
     return Api::NewError("%s: argument 'line_offset' must be positive number",
                          CURRENT_FUNC);
   }
-  if (col_offset < 0) {
-    return Api::NewError("%s: argument 'col_offset' must be positive number",
+  if (column_offset < 0) {
+    return Api::NewError("%s: argument 'column_offset' must be positive number",
                          CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(isolate);
@@ -4841,7 +4841,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 
   const Script& script = Script::Handle(
       isolate, Script::New(url_str, source_str, RawScript::kScriptTag));
-  script.SetLocationOffset(line_offset, col_offset);
+  script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(isolate, library, script, &result);
   return result;
@@ -5059,7 +5059,9 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
 
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source) {
+                                         Dart_Handle source,
+                                         intptr_t line_offset,
+                                         intptr_t column_offset) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_script_loading);
@@ -5070,6 +5072,14 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   const String& source_str = Api::UnwrapStringHandle(isolate, source);
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
+  }
+  if (line_offset < 0) {
+    return Api::NewError("%s: argument 'line_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
+  if (column_offset < 0) {
+    return Api::NewError("%s: argument 'column_offset' must be positive number",
+                         CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(isolate);
 
@@ -5089,6 +5099,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   }
   const Script& script = Script::Handle(
       isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
+  script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(isolate, library, script, &result);
   // Propagate the error out right now.
@@ -5154,7 +5165,9 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
-                                        Dart_Handle source) {
+                                        Dart_Handle source,
+                                        intptr_t line_offset,
+                                        intptr_t column_offset) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_script_loading);
@@ -5170,12 +5183,21 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
   }
+  if (line_offset < 0) {
+    return Api::NewError("%s: argument 'line_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
+  if (column_offset < 0) {
+    return Api::NewError("%s: argument 'column_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
   CHECK_CALLBACK_STATE(isolate);
 
   NoHeapGrowthControlScope no_growth_control;
 
   const Script& script = Script::Handle(
       isolate, Script::New(url_str, source_str, RawScript::kSourceTag));
+  script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(isolate, lib, script, &result);
   return result;

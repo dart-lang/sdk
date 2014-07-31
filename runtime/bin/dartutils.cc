@@ -504,7 +504,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
       return Dart_LoadSource(
           library,
           part_uri_obj,
-          Builtin::PartSource(Builtin::kIOLibrary, url_string));
+          Builtin::PartSource(Builtin::kIOLibrary, url_string), 0, 0);
     } else {
       ASSERT(tag == Dart_kImportTag);
       return NewError("Unable to import '%s' ", url_string);
@@ -744,12 +744,12 @@ void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
 
   Dart_Handle result;
   if (tag == Dart_kImportTag) {
-    result = Dart_LoadLibrary(resolved_script_uri, sourceText);
+    result = Dart_LoadLibrary(resolved_script_uri, sourceText, 0, 0);
   } else {
     ASSERT(tag == Dart_kSourceTag);
     Dart_Handle library = Dart_LookupLibrary(library_uri);
     DART_CHECK_VALID(library);
-    result = Dart_LoadSource(library, resolved_script_uri, sourceText);
+    result = Dart_LoadSource(library, resolved_script_uri, sourceText, 0, 0);
   }
   if (Dart_IsError(result)) {
     // TODO(hausner): If compilation/loading errors are supposed to
@@ -793,9 +793,9 @@ Dart_Handle DartUtils::LoadSource(Dart_Handle library,
   // Load it according to the specified tag.
   if (tag == Dart_kImportTag) {
     // Return library object or an error string.
-    return Dart_LoadLibrary(url, source);
+    return Dart_LoadLibrary(url, source, 0, 0);
   } else if (tag == Dart_kSourceTag) {
-    return Dart_LoadSource(library, url, source);
+    return Dart_LoadSource(library, url, source, 0, 0);
   }
   return Dart_NewApiError("wrong tag");
 }

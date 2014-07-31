@@ -586,7 +586,7 @@ Dart_Handle Service::LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadSource(library, url, source);
+  return Dart_LoadSource(library, url, source, 0, 0);
 }
 
 

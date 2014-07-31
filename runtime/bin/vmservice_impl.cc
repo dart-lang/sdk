@@ -194,7 +194,7 @@ Dart_Handle VmService::LoadScript(const char* name) {
 Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
   Dart_Handle url = Dart_NewStringFromCString(name);
   Dart_Handle source = GetSource(name);
-  return Dart_LoadSource(library, url, source);
+  return Dart_LoadSource(library, url, source, 0, 0);
 }
 
 
@@ -287,7 +287,7 @@ Dart_Handle VmService::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadSource(library, url, source);
+  return Dart_LoadSource(library, url, source, 0, 0);
 }
 
 

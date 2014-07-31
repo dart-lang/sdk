@@ -2640,7 +2640,9 @@ DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library,
 
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source);
+                                         Dart_Handle source,
+                                         intptr_t line_offset,
+                                         intptr_t column_offset);
 
 /**
  * Imports a library into another library, optionally with a prefix.
@@ -2668,7 +2670,9 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
  */
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
-                                        Dart_Handle source);
+                                        Dart_Handle source,
+                                        intptr_t line_offset,
+                                        intptr_t column_offset);
 /* TODO(turnidge): Rename to Dart_LibraryLoadSource? */
 
 
