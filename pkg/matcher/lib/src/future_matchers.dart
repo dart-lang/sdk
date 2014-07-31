@@ -6,9 +6,9 @@ library matcher.future_matchers;
 
 import 'dart:async';
 
-import 'core_matchers.dart';
 import 'expect.dart';
 import 'interfaces.dart';
+import 'util.dart';
 
 /// Matches a [Future] that completes successfully with a value. Note that this
 /// creates an asynchronous expectation. The call to `expect()` that includes

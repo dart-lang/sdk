@@ -10,9 +10,6 @@ import 'interfaces.dart';
 /// A matcher for ArgumentErrors.
 const Matcher isArgumentError = const _ArgumentError();
 
-/// A matcher for functions that throw ArgumentError.
-const Matcher throwsArgumentError = const Throws(isArgumentError);
-
 class _ArgumentError extends TypeMatcher {
   const _ArgumentError(): super("ArgumentError");
   bool matches(item, Map matchState) => item is ArgumentError;
@@ -22,10 +19,6 @@ class _ArgumentError extends TypeMatcher {
 const Matcher isConcurrentModificationError =
     const _ConcurrentModificationError();
 
-/// A matcher for functions that throw ConcurrentModificationError.
-const Matcher throwsConcurrentModificationError =
-  const Throws(isConcurrentModificationError);
-
 class _ConcurrentModificationError extends TypeMatcher {
   const _ConcurrentModificationError(): super("ConcurrentModificationError");
   bool matches(item, Map matchState) => item is ConcurrentModificationError;
@@ -34,10 +27,6 @@ class _ConcurrentModificationError extends TypeMatcher {
 /// A matcher for CyclicInitializationError.
 const Matcher isCyclicInitializationError = const _CyclicInitializationError();
 
-/// A matcher for functions that throw CyclicInitializationError.
-const Matcher throwsCyclicInitializationError =
-  const Throws(isCyclicInitializationError);
-
 class _CyclicInitializationError extends TypeMatcher {
   const _CyclicInitializationError(): super("CyclicInitializationError");
   bool matches(item, Map matchState) => item is CyclicInitializationError;
@@ -45,9 +34,6 @@ class _CyclicInitializationError extends TypeMatcher {
 
 /// A matcher for Exceptions.
 const Matcher isException = const _Exception();
-
-/// A matcher for functions that throw Exception.
-const Matcher throwsException = const Throws(isException);
 
 class _Exception extends TypeMatcher {
   const _Exception(): super("Exception");
@@ -62,9 +48,6 @@ class _FallThroughError extends TypeMatcher {
 /// A matcher for FormatExceptions.
 const Matcher isFormatException = const _FormatException();
 
-/// A matcher for functions that throw FormatException.
-const Matcher throwsFormatException = const Throws(isFormatException);
-
 class _FormatException extends TypeMatcher {
   const _FormatException(): super("FormatException");
   bool matches(item, Map matchState) => item is FormatException;
@@ -72,9 +55,6 @@ class _FormatException extends TypeMatcher {
 
 /// A matcher for NoSuchMethodErrors.
 const Matcher isNoSuchMethodError = const _NoSuchMethodError();
-
-/// A matcher for functions that throw NoSuchMethodError.
-const Matcher throwsNoSuchMethodError = const Throws(isNoSuchMethodError);
 
 class _NoSuchMethodError extends TypeMatcher {
   const _NoSuchMethodError(): super("NoSuchMethodError");
@@ -84,9 +64,6 @@ class _NoSuchMethodError extends TypeMatcher {
 /// A matcher for NullThrownError.
 const Matcher isNullThrownError = const _NullThrownError();
 
-/// A matcher for functions that throw NullThrownError.
-const Matcher throwsNullThrownError = const Throws(isNullThrownError);
-
 class _NullThrownError extends TypeMatcher {
   const _NullThrownError(): super("NullThrownError");
   bool matches(item, Map matchState) => item is NullThrownError;
@@ -94,9 +71,6 @@ class _NullThrownError extends TypeMatcher {
 
 /// A matcher for RangeErrors.
 const Matcher isRangeError = const _RangeError();
-
-/// A matcher for functions that throw RangeError.
-const Matcher throwsRangeError = const Throws(isRangeError);
 
 class _RangeError extends TypeMatcher {
   const _RangeError(): super("RangeError");
@@ -106,9 +80,6 @@ class _RangeError extends TypeMatcher {
 /// A matcher for StateErrors.
 const Matcher isStateError = const _StateError();
 
-/// A matcher for functions that throw StateError.
-const Matcher throwsStateError = const Throws(isStateError);
-
 class _StateError extends TypeMatcher {
   const _StateError(): super("StateError");
   bool matches(item, Map matchState) => item is StateError;
@@ -117,9 +88,6 @@ class _StateError extends TypeMatcher {
 /// A matcher for UnimplementedErrors.
 const Matcher isUnimplementedError = const _UnimplementedError();
 
-/// A matcher for functions that throw Exception.
-const Matcher throwsUnimplementedError = const Throws(isUnimplementedError);
-
 class _UnimplementedError extends TypeMatcher {
   const _UnimplementedError(): super("UnimplementedError");
   bool matches(item, Map matchState) => item is UnimplementedError;
@@ -127,9 +95,6 @@ class _UnimplementedError extends TypeMatcher {
 
 /// A matcher for UnsupportedError.
 const Matcher isUnsupportedError = const _UnsupportedError();
-
-/// A matcher for functions that throw UnsupportedError.
-const Matcher throwsUnsupportedError = const Throws(isUnsupportedError);
 
 class _UnsupportedError extends TypeMatcher {
   const _UnsupportedError(): super("UnsupportedError");
