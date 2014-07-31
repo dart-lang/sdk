@@ -7,19 +7,20 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('defaults to the package name if the script is omitted', () {
-    servePackages([
-      packageMap("foo", "1.0.0")
-    ], contents: [
+  integration('runs a script in a local activated package', () {
+    d.dir("foo", [
+      d.libPubspec("foo", "1.0.0"),
       d.dir("bin", [
-        d.file("foo.dart", "main(args) => print('foo');")
+        d.file("foo.dart", "main() => print('ok');")
       ])
-    ]);
+    ]).create();
 
-    schedulePub(args: ["global", "activate", "foo"]);
+    schedulePub(args: ["global", "activate", "--source", "path", "../foo"]);
+
+    d.file("foo/bin/foo.dart", "main() => print('changed');").create();
 
     var pub = pubRun(global: true, args: ["foo"]);
-    pub.stdout.expect("foo");
+    pub.stdout.expect("changed");
     pub.shouldExit();
   });
 }

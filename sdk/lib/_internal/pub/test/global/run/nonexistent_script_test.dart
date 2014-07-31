@@ -9,7 +9,7 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('errors if the script does not exist.', () {
+  integration('errors if the script does not exist', () {
     servePackages([packageMap("foo", "1.0.0")]);
 
     schedulePub(args: ["global", "activate", "foo"]);

@@ -12,8 +12,10 @@ main() {
         error: """
             Could not parse version "1.0". Unknown text at "1.0".
 
-            Usage: pub global activate <package> [version]
-            -h, --help    Print usage information for this command.
+            Usage: pub global activate [--source source] <package> [version]
+            -h, --help      Print usage information for this command.
+            -s, --source    The source used to find the package.
+                            [git, hosted (default), path]
 
             Run "pub help" to see global options.
             """,

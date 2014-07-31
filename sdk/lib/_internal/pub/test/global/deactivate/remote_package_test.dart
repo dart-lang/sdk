@@ -2,24 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('defaults to the package name if the script is omitted', () {
+  integration('deactivates an active hosted package', () {
     servePackages([
       packageMap("foo", "1.0.0")
-    ], contents: [
-      d.dir("bin", [
-        d.file("foo.dart", "main(args) => print('foo');")
-      ])
     ]);
 
     schedulePub(args: ["global", "activate", "foo"]);
 
-    var pub = pubRun(global: true, args: ["foo"]);
-    pub.stdout.expect("foo");
-    pub.shouldExit();
+    schedulePub(args: ["global", "deactivate", "foo"],
+        output: "Deactivated package foo 1.0.0.");
   });
 }

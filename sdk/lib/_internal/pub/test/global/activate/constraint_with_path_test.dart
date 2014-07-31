@@ -7,17 +7,18 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('fails if no package was given', () {
-    schedulePub(args: ["global", "activate"],
+  integration('fails if a version is passed with the path source', () {
+    schedulePub(args: ["global", "activate", "-spath", "foo", "1.2.3"],
         error: """
-            No package to activate given.
+            Unexpected argument "1.2.3".
 
             Usage: pub global activate [--source source] <package> [version]
             -h, --help      Print usage information for this command.
             -s, --source    The source used to find the package.
                             [git, hosted (default), path]
 
-            Run "pub help" to see global options.""",
+            Run "pub help" to see global options.
+            """,
         exitCode: exit_codes.USAGE);
   });
 }

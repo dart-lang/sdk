@@ -7,10 +7,12 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('fails if no package was given', () {
-    schedulePub(args: ["global", "activate"],
+  integration('fails if no git ref was given', () {
+    ensureGit();
+
+    schedulePub(args: ["global", "activate", "-sgit", "foo"],
         error: """
-            No package to activate given.
+            Must provide a Git ref for the package.
 
             Usage: pub global activate [--source source] <package> [version]
             -h, --help      Print usage information for this command.

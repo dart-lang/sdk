@@ -7,6 +7,7 @@ library pub.command.global_deactivate;
 import 'dart:async';
 
 import '../command.dart';
+import '../log.dart' as log;
 import '../utils.dart';
 
 /// Handles the `global deactivate` pub command.
@@ -28,7 +29,10 @@ class GlobalDeactivateCommand extends PubCommand {
       usageError("Unexpected $arguments ${toSentence(unexpected)}.");
     }
 
-    globals.deactivate(commandOptions.rest.first);
+    var name = commandOptions.rest.first;
+    if (!globals.deactivate(name, logDeletion: true)) {
+      dataError("No active package ${log.bold(name)}.");
+    }
     return null;
   }
 }
