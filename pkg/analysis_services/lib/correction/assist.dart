@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 
 
 /**
- * Computes [Assist]s for the given location.
+ * Computes [Assist]s at the given location.
  *
  * Returns the computed [Assist]s, not `null`.
  */
@@ -130,4 +130,7 @@ class AssistKind {
   final String message;
 
   const AssistKind(this.name, this.relevance, this.message);
+
+  @override
+  String toString() => name;
 }

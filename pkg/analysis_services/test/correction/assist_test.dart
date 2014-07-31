@@ -340,6 +340,873 @@ void f() {}
     assertNoAssistAt('f();', AssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  void test_convertToBlockBody_OK_closure() {
+    _indexTestUnit('''
+setup(x) {}
+main() {
+  setup(() => print('done'));
+}
+''');
+    assertHasAssistAt('() => print', AssistKind.CONVERT_INTO_BLOCK_BODY, '''
+setup(x) {}
+main() {
+  setup(() {
+    return print('done');
+  });
+}
+''');
+  }
+
+  void test_convertToBlockBody_OK_method() {
+    _indexTestUnit('''
+class A {
+  mmm() => 123;
+}
+''');
+    assertHasAssistAt('mmm()', AssistKind.CONVERT_INTO_BLOCK_BODY, '''
+class A {
+  mmm() {
+    return 123;
+  }
+}
+''');
+  }
+
+  void test_convertToBlockBody_OK_onName() {
+    _indexTestUnit('''
+fff() => 123;
+''');
+    assertHasAssistAt('fff()', AssistKind.CONVERT_INTO_BLOCK_BODY, '''
+fff() {
+  return 123;
+}
+''');
+  }
+
+  void test_convertToBlockBody_OK_onValue() {
+    _indexTestUnit('''
+fff() => 123;
+''');
+    assertHasAssistAt('23;', AssistKind.CONVERT_INTO_BLOCK_BODY, '''
+fff() {
+  return 123;
+}
+''');
+  }
+
+  void test_convertToBlockBody_wrong_noEnclosingFunction() {
+    _indexTestUnit('''
+var v = 123;
+''');
+    assertNoAssistAt('v =', AssistKind.CONVERT_INTO_BLOCK_BODY);
+  }
+
+  void test_convertToBlockBody_wrong_notExpressionBlock() {
+    _indexTestUnit('''
+fff() {
+  return 123;
+}
+''');
+    assertNoAssistAt('fff() {', AssistKind.CONVERT_INTO_BLOCK_BODY);
+  }
+
+  void test_convertToExpressionBody_OK_closure() {
+    _indexTestUnit('''
+setup(x) {}
+main() {
+  setup(() {
+    return 42;
+  });
+}
+''');
+    assertHasAssistAt('42;', AssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
+setup(x) {}
+main() {
+  setup(() => 42);
+}
+''');
+  }
+
+  void test_convertToExpressionBody_OK_function_onBlock() {
+    _indexTestUnit('''
+fff() {
+  return 42;
+}
+''');
+    assertHasAssistAt('{', AssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
+fff() => 42;
+''');
+  }
+
+  void test_convertToExpressionBody_OK_function_onName() {
+    _indexTestUnit('''
+fff() {
+  return 42;
+}
+''');
+    assertHasAssistAt('ff()', AssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
+fff() => 42;
+''');
+  }
+
+  void test_convertToExpressionBody_OK_method_onBlock() {
+    _indexTestUnit('''
+class A {
+  m() { // marker
+    return 42;
+  }
+}
+''');
+    assertHasAssistAt(
+        '{ // marker',
+        AssistKind.CONVERT_INTO_EXPRESSION_BODY,
+        '''
+class A {
+  m() => 42;
+}
+''');
+  }
+
+  void test_convertToExpressionBody_OK_topFunction_onReturnStatement() {
+    _indexTestUnit('''
+fff() {
+  return 42;
+}
+''');
+    assertHasAssistAt('return', AssistKind.CONVERT_INTO_EXPRESSION_BODY, '''
+fff() => 42;
+''');
+  }
+
+  void test_convertToExpressionBody_wrong_already() {
+    _indexTestUnit('''
+fff() => 42;
+''');
+    assertNoAssistAt('fff()', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  void test_convertToExpressionBody_wrong_moreThanOneStatement() {
+    _indexTestUnit('''
+fff() {
+  var v = 42;
+  return v;
+}
+''');
+    assertNoAssistAt('fff()', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  void test_convertToExpressionBody_wrong_noEnclosingFunction() {
+    _indexTestUnit('''
+var V = 42;
+''');
+    assertNoAssistAt('V = ', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  void test_convertToExpressionBody_wrong_noReturn() {
+    _indexTestUnit('''
+fff() {
+  var v = 42;
+}
+''');
+    assertNoAssistAt('fff()', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  void test_convertToExpressionBody_wrong_noReturnValue() {
+    _indexTestUnit('''
+fff() {
+  return;
+}
+''');
+    assertNoAssistAt('fff()', AssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  void test_convertToIsNotEmpty_OK_on_isEmpty() {
+    _indexTestUnit('''
+main(String str) {
+  !str.isEmpty;
+}
+''');
+    assertHasAssistAt('isEmpty', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
+main(String str) {
+  str.isNotEmpty;
+}
+''');
+  }
+
+  void test_convertToIsNotEmpty_OK_on_str() {
+    _indexTestUnit('''
+main(String str) {
+  !str.isEmpty;
+}
+''');
+    assertHasAssistAt('str.', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
+main(String str) {
+  str.isNotEmpty;
+}
+''');
+  }
+
+  void test_convertToIsNotEmpty_OK_propertyAccess() {
+    _indexTestUnit('''
+main(String str) {
+  !'text'.isEmpty;
+}
+''');
+    assertHasAssistAt('isEmpty', AssistKind.CONVERT_INTO_IS_NOT_EMPTY, '''
+main(String str) {
+  'text'.isNotEmpty;
+}
+''');
+  }
+
+  void test_convertToIsNotEmpty_wrong_notInPrefixExpression() {
+    _indexTestUnit('''
+main(String str) {
+  str.isEmpty;
+}
+''');
+    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_convertToIsNotEmpty_wrong_notIsEmpty() {
+    _indexTestUnit('''
+main(int p) {
+  !p.isEven;
+}
+''');
+    assertNoAssistAt('isEven;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_convertToIsNotEmpty_wrote_noIsNotEmpty() {
+    _indexTestUnit('''
+class A {
+  bool get isEmpty => false;
+}
+main(A a) {
+  !a.isEmpty;
+}
+''');
+    assertNoAssistAt('isEmpty;', AssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_convertToIsNot_OK_childOfIs_left() {
+    _indexTestUnit('''
+main(p) {
+  !(p is String);
+}
+''');
+    assertHasAssistAt('p is', AssistKind.CONVERT_INTO_IS_NOT, '''
+main(p) {
+  p is! String;
+}
+''');
+  }
+
+  void test_convertToIsNot_OK_childOfIs_right() {
+    _indexTestUnit('''
+main(p) {
+  !(p is String);
+}
+''');
+    assertHasAssistAt('String)', AssistKind.CONVERT_INTO_IS_NOT, '''
+main(p) {
+  p is! String;
+}
+''');
+  }
+
+  void test_convertToIsNot_OK_is() {
+    _indexTestUnit('''
+main(p) {
+  !(p is String);
+}
+''');
+    assertHasAssistAt('is String', AssistKind.CONVERT_INTO_IS_NOT, '''
+main(p) {
+  p is! String;
+}
+''');
+  }
+
+  void test_convertToIsNot_OK_is_higherPrecedencePrefix() {
+    _indexTestUnit('''
+main(p) {
+  !!(p is String);
+}
+''');
+    assertHasAssistAt('is String', AssistKind.CONVERT_INTO_IS_NOT, '''
+main(p) {
+  !(p is! String);
+}
+''');
+  }
+
+  void test_convertToIsNot_OK_is_not_higherPrecedencePrefix() {
+    _indexTestUnit('''
+main(p) {
+  !!(p is String);
+}
+''');
+    assertHasAssistAt('!(p', AssistKind.CONVERT_INTO_IS_NOT, '''
+main(p) {
+  !(p is! String);
+}
+''');
+  }
+
+  void test_convertToIsNot_OK_not() {
+    _indexTestUnit('''
+main(p) {
+  !(p is String);
+}
+''');
+    assertHasAssistAt('!(p', AssistKind.CONVERT_INTO_IS_NOT, '''
+main(p) {
+  p is! String;
+}
+''');
+  }
+
+  void test_convertToIsNot_OK_parentheses() {
+    _indexTestUnit('''
+main(p) {
+  !(p is String);
+}
+''');
+    assertHasAssistAt('(p is', AssistKind.CONVERT_INTO_IS_NOT, '''
+main(p) {
+  p is! String;
+}
+''');
+  }
+
+  void test_convertToIsNot_wrong_is_alreadyIsNot() {
+    _indexTestUnit('''
+main(p) {
+  p is! String;
+}
+''');
+    assertNoAssistAt('is!', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNot_wrong_is_noEnclosingParenthesis() {
+    _indexTestUnit('''
+main(p) {
+  p is String;
+}
+''');
+    assertNoAssistAt('is String', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNot_wrong_is_noPrefix() {
+    _indexTestUnit('''
+main(p) {
+  (p is String);
+}
+''');
+    assertNoAssistAt('is String', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNot_wrong_is_notIsExpression() {
+    _indexTestUnit('''
+main(p) {
+  123 + 456;
+}
+''');
+    assertNoAssistAt('123 +', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNot_wrong_is_notTheNotOperator() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+main(p) {
+  ++(p is String);
+}
+''');
+    assertNoAssistAt('is String', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNot_wrong_not_alreadyIsNot() {
+    _indexTestUnit('''
+main(p) {
+  !(p is! String);
+}
+''');
+    assertNoAssistAt('!(p', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNot_wrong_not_noEnclosingParenthesis() {
+    _indexTestUnit('''
+main(p) {
+  !p;
+}
+''');
+    assertNoAssistAt('!p', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNot_wrong_not_notIsExpression() {
+    _indexTestUnit('''
+main(p) {
+  !(p == null);
+}
+''');
+    assertNoAssistAt('!(p', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_convertToIsNot_wrong_not_notTheNotOperator() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+main(p) {
+  ++(p is String);
+}
+''');
+    assertNoAssistAt('++(', AssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_1() {
+    _indexTestUnit('''
+main() {
+  1 * 2 * 3 + 4;
+}
+''');
+    assertHasAssistAt('* 2', AssistKind.EXCHANGE_OPERANDS, '''
+main() {
+  2 * 3 * 1 + 4;
+}
+''');
+  }
+
+  void test_exchangeBinaryExpressionArguments_OK_extended_mixOperator_2() {
+    _indexTestUnit('''
+main() {
+  1 + 2 - 3 + 4;
+}
+''');
+    assertHasAssistAt('+ 2', AssistKind.EXCHANGE_OPERANDS, '''
+main() {
+  2 + 1 - 3 + 4;
+}
+''');
+  }
+
+  void
+      test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterFirst() {
+    _indexTestUnit('''
+main() {
+  1 + 2 + 3;
+}
+''');
+    assertHasAssistAt('+ 2', AssistKind.EXCHANGE_OPERANDS, '''
+main() {
+  2 + 3 + 1;
+}
+''');
+  }
+
+  void
+      test_exchangeBinaryExpressionArguments_OK_extended_sameOperator_afterSecond() {
+    _indexTestUnit('''
+main() {
+  1 + 2 + 3;
+}
+''');
+    assertHasAssistAt('+ 3', AssistKind.EXCHANGE_OPERANDS, '''
+main() {
+  3 + 1 + 2;
+}
+''');
+  }
+
+  void test_exchangeBinaryExpressionArguments_OK_simple_afterOperator() {
+    _indexTestUnit('''
+main() {
+  1 + 2;
+}
+''');
+    assertHasAssistAt(' 2', AssistKind.EXCHANGE_OPERANDS, '''
+main() {
+  2 + 1;
+}
+''');
+  }
+
+  void test_exchangeBinaryExpressionArguments_OK_simple_beforeOperator() {
+    _indexTestUnit('''
+main() {
+  1 + 2;
+}
+''');
+    assertHasAssistAt('+ 2', AssistKind.EXCHANGE_OPERANDS, '''
+main() {
+  2 + 1;
+}
+''');
+  }
+
+  void test_exchangeBinaryExpressionArguments_OK_simple_fullSelection() {
+    _indexTestUnit('''
+main() {
+  1 + 2;
+}
+''');
+    length = '1 + 2'.length;
+    assertHasAssistAt('1 + 2', AssistKind.EXCHANGE_OPERANDS, '''
+main() {
+  2 + 1;
+}
+''');
+  }
+
+  void test_exchangeBinaryExpressionArguments_OK_simple_withLength() {
+    _indexTestUnit('''
+main() {
+  1 + 2;
+}
+''');
+    length = 2;
+    assertHasAssistAt('+ 2', AssistKind.EXCHANGE_OPERANDS, '''
+main() {
+  2 + 1;
+}
+''');
+  }
+
+  void test_exchangeBinaryExpressionArguments_wrong_extraLength() {
+    _indexTestUnit('''
+main() {
+  111 + 222;
+}
+''');
+    length = 3;
+    assertNoAssistAt('+ 222', AssistKind.EXCHANGE_OPERANDS);
+  }
+
+  void test_exchangeBinaryExpressionArguments_wrong_onOperand() {
+    _indexTestUnit('''
+main() {
+  111 + 222;
+}
+''');
+    length = 3;
+    assertNoAssistAt('11 +', AssistKind.EXCHANGE_OPERANDS);
+  }
+
+  void test_exchangeBinaryExpressionArguments_wrong_selectionWithBinary() {
+    _indexTestUnit('''
+main() {
+  1 + 2 + 3;
+}
+''');
+    length = '1 + 2 + 3'.length;
+    assertNoAssistAt('1 + 2 + 3', AssistKind.EXCHANGE_OPERANDS);
+  }
+
+  void test_joinVariableDeclaration_onAssignment_OK() {
+    _indexTestUnit('''
+main() {
+  var v;
+  v = 1;
+}
+''');
+    assertHasAssistAt('v =', AssistKind.JOIN_VARIABLE_DECLARATION, '''
+main() {
+  var v = 1;
+}
+''');
+  }
+
+  void test_joinVariableDeclaration_onAssignment_wrong_hasInitializer() {
+    _indexTestUnit('''
+main() {
+  var v = 1;
+  v = 2;
+}
+''');
+    assertNoAssistAt('v = 2', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onAssignment_wrong_notAdjacent() {
+    _indexTestUnit('''
+main() {
+  var v;
+  var bar;
+  v = 1;
+}
+''');
+    assertNoAssistAt('v = 1', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onAssignment_wrong_notAssignment() {
+    _indexTestUnit('''
+main() {
+  var v;
+  v += 1;
+}
+''');
+    assertNoAssistAt('v += 1', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onAssignment_wrong_notDeclaration() {
+    _indexTestUnit('''
+main(var v) {
+  v = 1;
+}
+''');
+    assertNoAssistAt('v = 1', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onAssignment_wrong_notLeftArgument() {
+    _indexTestUnit('''
+main() {
+  var v;
+  1 + v; // marker
+}
+''');
+    assertNoAssistAt('v; // marker', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onAssignment_wrong_notOneVariable() {
+    _indexTestUnit('''
+main() {
+  var v, v2;
+  v = 1;
+}
+''');
+    assertNoAssistAt('v = 1', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onAssignment_wrong_notResolved() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+main() {
+  var v;
+  x = 1;
+}
+''');
+    assertNoAssistAt('x = 1', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onAssignment_wrong_notSameBlock() {
+    _indexTestUnit('''
+main() {
+  var v;
+  {
+    v = 1;
+  }
+}
+''');
+    assertNoAssistAt('v = 1', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onDeclaration_OK_onName() {
+    _indexTestUnit('''
+main() {
+  var v;
+  v = 1;
+}
+''');
+    assertHasAssistAt('v;', AssistKind.JOIN_VARIABLE_DECLARATION, '''
+main() {
+  var v = 1;
+}
+''');
+  }
+
+  void test_joinVariableDeclaration_onDeclaration_OK_onType() {
+    _indexTestUnit('''
+main() {
+  int v;
+  v = 1;
+}
+''');
+    assertHasAssistAt('int v', AssistKind.JOIN_VARIABLE_DECLARATION, '''
+main() {
+  int v = 1;
+}
+''');
+  }
+
+  void test_joinVariableDeclaration_onDeclaration_OK_onVar() {
+    _indexTestUnit('''
+main() {
+  var v;
+  v = 1;
+}
+''');
+    assertHasAssistAt('var v', AssistKind.JOIN_VARIABLE_DECLARATION, '''
+main() {
+  var v = 1;
+}
+''');
+  }
+
+  void test_joinVariableDeclaration_onDeclaration_wrong_hasInitializer() {
+    _indexTestUnit('''
+main() {
+  var v = 1;
+  v = 2;
+}
+''');
+    assertNoAssistAt('v = 1', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onDeclaration_wrong_lastStatement() {
+    _indexTestUnit('''
+main() {
+  if (true)
+    var v;
+}
+''');
+    assertNoAssistAt('v;', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void
+      test_joinVariableDeclaration_onDeclaration_wrong_nextNotAssignmentExpression() {
+    _indexTestUnit('''
+main() {
+  var v;
+  42;
+}
+''');
+    assertNoAssistAt('v;', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void
+      test_joinVariableDeclaration_onDeclaration_wrong_nextNotExpressionStatement() {
+    _indexTestUnit('''
+main() {
+  var v;
+  if (true) return;
+}
+''');
+    assertNoAssistAt('v;', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void
+      test_joinVariableDeclaration_onDeclaration_wrong_nextNotPureAssignment() {
+    _indexTestUnit('''
+main() {
+  var v;
+  v += 1;
+}
+''');
+    assertNoAssistAt('v;', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_joinVariableDeclaration_onDeclaration_wrong_notOneVariable() {
+    _indexTestUnit('''
+main() {
+  var v, v2;
+  v = 1;
+}
+''');
+    assertNoAssistAt('v, ', AssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  void test_removeTypeAnnotation_classField_OK() {
+    _indexTestUnit('''
+class A {
+  int v = 1;
+}
+''');
+    assertHasAssistAt('v = ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+class A {
+  var v = 1;
+}
+''');
+  }
+
+  void test_removeTypeAnnotation_localVariable_OK() {
+    _indexTestUnit('''
+main() {
+  int a = 1, b = 2;
+}
+''');
+    assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+main() {
+  var a = 1, b = 2;
+}
+''');
+  }
+
+  void test_removeTypeAnnotation_topLevelVariable_OK() {
+    _indexTestUnit('''
+int V = 1;
+''');
+    assertHasAssistAt('int ', AssistKind.REMOVE_TYPE_ANNOTATION, '''
+var V = 1;
+''');
+  }
+
+  void test_replaceConditionalWithIfElse_OK_assignment() {
+    _indexTestUnit('''
+main() {
+  var v;
+  v = true ? 111 : 222;
+}
+''');
+    // on conditional
+    assertHasAssistAt('11 :', AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE, '''
+main() {
+  var v;
+  if (true) {
+    v = 111;
+  } else {
+    v = 222;
+  }
+}
+''');
+    // on variable
+    assertHasAssistAt('v =', AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE, '''
+main() {
+  var v;
+  if (true) {
+    v = 111;
+  } else {
+    v = 222;
+  }
+}
+''');
+  }
+
+  void test_replaceConditionalWithIfElse_OK_return() {
+    _indexTestUnit('''
+main() {
+  return true ? 111 : 222;
+}
+''');
+    assertHasAssistAt(
+        'return ',
+        AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE,
+        '''
+main() {
+  if (true) {
+    return 111;
+  } else {
+    return 222;
+  }
+}
+''');
+  }
+
+  void test_replaceConditionalWithIfElse_OK_variableDeclaration() {
+    _indexTestUnit('''
+main() {
+  int a = 1, vvv = true ? 111 : 222, b = 2;
+}
+''');
+    assertHasAssistAt('11 :', AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE, '''
+main() {
+  int a = 1, vvv, b = 2;
+  if (true) {
+    vvv = 111;
+  } else {
+    vvv = 222;
+  }
+}
+''');
+  }
+
   String _applyEdits(String code, List<Edit> edits) {
     edits.sort((a, b) => b.offset - a.offset);
     edits.forEach((Edit edit) {

@@ -29,6 +29,8 @@ abstract class Comparable<T> {
 }
 
 class String implements Comparable<String> {
+  bool get isEmpty => false;
+  bool get isNotEmpty => false;
 }
 
 class bool extends Object {}
@@ -40,6 +42,7 @@ abstract class num implements Comparable<num> {
   int toInt();
 }
 abstract class int extends num {
+  bool get isEven => false;
   int operator -();
 }
 class double extends num {}

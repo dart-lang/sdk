@@ -9,6 +9,7 @@ library services.src.correction.assist;
 
 import 'package:analysis_services/correction/assist.dart';
 import 'package:analysis_services/correction/change.dart';
+import 'package:analysis_services/search/hierarchy.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/correction/name_suggestion.dart';
 import 'package:analysis_services/src/correction/source_buffer.dart';
@@ -46,8 +47,6 @@ class AssistProcessor {
   int selectionEnd;
   CorrectionUtils utils;
   AstNode node;
-  AstNode coveredNode;
-
 
   AssistProcessor(this.searchEngine, this.source, this.file, this.unit,
       this.selectionOffset, this.selectionLength) {
@@ -65,8 +64,7 @@ class AssistProcessor {
 
   List<Assist> compute() {
     utils = new CorrectionUtils(unit);
-    node = new NodeLocator.con1(selectionOffset).searchWithin(unit);
-    coveredNode = new NodeLocator.con2(
+    node = new NodeLocator.con2(
         selectionOffset,
         selectionEnd).searchWithin(unit);
     // try to add proposals
@@ -92,6 +90,31 @@ class AssistProcessor {
     _addProposal_surroundWith();
     // done
     return assists;
+  }
+
+  FunctionBody getEnclosingFunctionBody() {
+    {
+      FunctionExpression function =
+          node.getAncestor((node) => node is FunctionExpression);
+      if (function != null) {
+        return function.body;
+      }
+    }
+    {
+      FunctionDeclaration function =
+          node.getAncestor((node) => node is FunctionDeclaration);
+      if (function != null) {
+        return function.functionExpression.body;
+      }
+    }
+    {
+      MethodDeclaration method =
+          node.getAncestor((node) => node is MethodDeclaration);
+      if (method != null) {
+        return method.body;
+      }
+    }
+    return null;
   }
 
   void _addAssist(AssistKind kind, List args, {String assistFile}) {
@@ -229,256 +252,251 @@ class AssistProcessor {
   }
 
   void _addProposal_convertToBlockFunctionBody() {
-    // TODO(scheglov) implement
-//    FunctionBody body = enclosingFunctionBody;
-//    // prepare expression body
-//    if (body is! ExpressionFunctionBody) {
-//      return;
-//    }
-//    Expression returnValue = (body as ExpressionFunctionBody).expression;
-//    // prepare prefix
-//    String prefix;
-//    {
-//      AstNode bodyParent = body.parent;
-//      prefix = utils.getNodePrefix(bodyParent);
-//    }
-//    // add change
-//    String eol = utils.endOfLine;
-//    String indent = utils.getIndent(1);
-//    String newBodySource =
-//        "{${eol}${prefix}${indent}return ${_getSource(returnValue)};${eol}${prefix}}";
-//    _addReplaceEdit(rangeNode(body), newBodySource);
-//    // add proposal
-//    _addAssist(AssistKind.CONVERT_INTO_BLOCK_BODY, []);
+    FunctionBody body = getEnclosingFunctionBody();
+    // prepare expression body
+    if (body is! ExpressionFunctionBody) {
+      _coverageMarker();
+      return;
+    }
+    Expression returnValue = (body as ExpressionFunctionBody).expression;
+    // prepare prefix
+    String prefix = utils.getNodePrefix(body.parent);
+    // add change
+    String indent = utils.getIndent(1);
+    String returnSource = 'return ' + _getSource(returnValue);
+    String newBodySource = "{$eol$prefix${indent}$returnSource;$eol$prefix}";
+    _addReplaceEdit(rangeNode(body), newBodySource);
+    // add proposal
+    _addAssist(AssistKind.CONVERT_INTO_BLOCK_BODY, []);
   }
 
   void _addProposal_convertToExpressionFunctionBody() {
-    // TODO(scheglov) implement
-//    // prepare current body
-//    FunctionBody body = enclosingFunctionBody;
-//    if (body is! BlockFunctionBody) {
-//      return;
-//    }
-//    // prepare return statement
-//    List<Statement> statements = (body as BlockFunctionBody).block.statements;
-//    if (statements.length != 1) {
-//      return;
-//    }
-//    if (statements[0] is! ReturnStatement) {
-//      return;
-//    }
-//    ReturnStatement returnStatement = statements[0] as ReturnStatement;
-//    // prepare returned expression
-//    Expression returnExpression = returnStatement.expression;
-//    if (returnExpression == null) {
-//      return;
-//    }
-//    // add change
-//    String newBodySource = "=> ${_getSource(returnExpression)}";
-//    if (body.parent is! FunctionExpression ||
-//        body.parent.parent is FunctionDeclaration) {
-//      newBodySource += ";";
-//    }
-//    _addReplaceEdit(rangeNode(body), newBodySource);
-//    // add proposal
-//    _addAssist(
-//        AssistKind.CONVERT_INTO_EXPRESSION_BODY,
-//        []);
+    // prepare current body
+    FunctionBody body = getEnclosingFunctionBody();
+    if (body is! BlockFunctionBody) {
+      _coverageMarker();
+      return;
+    }
+    // prepare return statement
+    List<Statement> statements = (body as BlockFunctionBody).block.statements;
+    if (statements.length != 1) {
+      _coverageMarker();
+      return;
+    }
+    if (statements[0] is! ReturnStatement) {
+      _coverageMarker();
+      return;
+    }
+    ReturnStatement returnStatement = statements[0] as ReturnStatement;
+    // prepare returned expression
+    Expression returnExpression = returnStatement.expression;
+    if (returnExpression == null) {
+      _coverageMarker();
+      return;
+    }
+    // add change
+    String newBodySource = "=> ${_getSource(returnExpression)}";
+    if (body.parent is! FunctionExpression ||
+        body.parent.parent is FunctionDeclaration) {
+      newBodySource += ";";
+    }
+    _addReplaceEdit(rangeNode(body), newBodySource);
+    // add proposal
+    _addAssist(AssistKind.CONVERT_INTO_EXPRESSION_BODY, []);
   }
 
   /**
    * Converts "!isEmpty" -> "isNotEmpty" if possible.
    */
   void _addProposal_convertToIsNotEmpty() {
-    // TODO(scheglov) implement
-//    // prepare "expr.isEmpty"
-//    AstNode isEmptyAccess = null;
-//    SimpleIdentifier isEmptyIdentifier = null;
-//    if (node is SimpleIdentifier) {
-//      SimpleIdentifier identifier = node as SimpleIdentifier;
-//      AstNode parent = identifier.parent;
-//      // normal case (but rare)
-//      if (parent is PropertyAccess) {
-//        PropertyAccess propertyAccess = parent;
-//        isEmptyIdentifier = propertyAccess.propertyName;
-//        isEmptyAccess = propertyAccess;
-//      }
-//      // usual case
-//      if (parent is PrefixedIdentifier) {
-//        PrefixedIdentifier prefixedIdentifier = parent;
-//        isEmptyIdentifier = prefixedIdentifier.identifier;
-//        isEmptyAccess = prefixedIdentifier;
-//      }
-//    }
-//    if (isEmptyIdentifier == null) {
-//      return;
-//    }
-//    // should be "isEmpty"
-//    Element propertyElement = isEmptyIdentifier.bestElement;
-//    if (propertyElement == null || "isEmpty" != propertyElement.name) {
-//      return;
-//    }
-//    // should have "isNotEmpty"
-//    Element propertyTarget = propertyElement.enclosingElement;
-//    if (propertyTarget == null ||
-//        CorrectionUtils.getChildren2(propertyTarget, "isNotEmpty").isEmpty) {
-//      return;
-//    }
-//    // should be in PrefixExpression
-//    if (isEmptyAccess.parent is! PrefixExpression) {
-//      return;
-//    }
-//    PrefixExpression prefixExpression =
-//        isEmptyAccess.parent as PrefixExpression;
-//    // should be !
-//    if (prefixExpression.operator.type != TokenType.BANG) {
-//      return;
-//    }
-//    // do replace
-//    _addRemoveEdit(
-//        rangeStartStart(prefixExpression, prefixExpression.operand));
-//    _addReplaceEdit(
-//        rangeNode(isEmptyIdentifier),
-//        "isNotEmpty");
-//    // add proposal
-//    _addAssist(AssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
+    // prepare "expr.isEmpty"
+    AstNode isEmptyAccess = null;
+    SimpleIdentifier isEmptyIdentifier = null;
+    if (node is SimpleIdentifier) {
+      SimpleIdentifier identifier = node as SimpleIdentifier;
+      AstNode parent = identifier.parent;
+      // normal case (but rare)
+      if (parent is PropertyAccess) {
+        isEmptyIdentifier = parent.propertyName;
+        isEmptyAccess = parent;
+      }
+      // usual case
+      if (parent is PrefixedIdentifier) {
+        isEmptyIdentifier = parent.identifier;
+        isEmptyAccess = parent;
+      }
+    }
+    if (isEmptyIdentifier == null) {
+      _coverageMarker();
+      return;
+    }
+    // should be "isEmpty"
+    Element propertyElement = isEmptyIdentifier.bestElement;
+    if (propertyElement == null || "isEmpty" != propertyElement.name) {
+      _coverageMarker();
+      return;
+    }
+    // should have "isNotEmpty"
+    Element propertyTarget = propertyElement.enclosingElement;
+    if (propertyTarget == null ||
+        getChildren(propertyTarget, "isNotEmpty").isEmpty) {
+      _coverageMarker();
+      return;
+    }
+    // should be in PrefixExpression
+    if (isEmptyAccess.parent is! PrefixExpression) {
+      _coverageMarker();
+      return;
+    }
+    PrefixExpression prefixExpression =
+        isEmptyAccess.parent as PrefixExpression;
+    // should be !
+    if (prefixExpression.operator.type != TokenType.BANG) {
+      return;
+    }
+    // do replace
+    _addRemoveEdit(rangeStartStart(prefixExpression, prefixExpression.operand));
+    _addReplaceEdit(rangeNode(isEmptyIdentifier), "isNotEmpty");
+    // add proposal
+    _addAssist(AssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
   }
 
   void _addProposal_convertToIsNot_onIs() {
-    // TODO(scheglov) implement
-//    // may be child of "is"
-//    AstNode node = this.node;
-//    while (node != null && node is! IsExpression) {
-//      node = node.parent;
-//    }
-//    // prepare "is"
-//    if (node is! IsExpression) {
-//      return;
-//    }
-//    IsExpression isExpression = node as IsExpression;
-//    if (isExpression.notOperator != null) {
-//      return;
-//    }
-//    // prepare enclosing ()
-//    AstNode parent = isExpression.parent;
-//    if (parent is! ParenthesizedExpression) {
-//      return;
-//    }
-//    ParenthesizedExpression parExpression = parent as ParenthesizedExpression;
-//    // prepare enclosing !()
-//    AstNode parent2 = parent.parent;
-//    if (parent2 is! PrefixExpression) {
-//      return;
-//    }
-//    PrefixExpression prefExpression = parent2 as PrefixExpression;
-//    if (prefExpression.operator.type != TokenType.BANG) {
-//      return;
-//    }
-//    // strip !()
-//    if (CorrectionUtils.getParentPrecedence(prefExpression) >=
-//        TokenType.IS.precedence) {
-//      _addRemoveEdit(rangeToken(prefExpression.operator));
-//    } else {
-//      _addRemoveEdit(
-//          rangeStartEnd(
-//              prefExpression,
-//              parExpression.leftParenthesis));
-//      _addRemoveEdit(
-//          rangeStartEnd(
-//              parExpression.rightParenthesis,
-//              prefExpression));
-//    }
-//    _addInsertEdit(isExpression.isOperator.end, "!");
-//    // add proposal
-//    _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
+    // may be child of "is"
+    AstNode node = this.node;
+    while (node != null && node is! IsExpression) {
+      node = node.parent;
+    }
+    // prepare "is"
+    if (node is! IsExpression) {
+      _coverageMarker();
+      return;
+    }
+    IsExpression isExpression = node as IsExpression;
+    if (isExpression.notOperator != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare enclosing ()
+    AstNode parent = isExpression.parent;
+    if (parent is! ParenthesizedExpression) {
+      _coverageMarker();
+      return;
+    }
+    ParenthesizedExpression parExpression = parent as ParenthesizedExpression;
+    // prepare enclosing !()
+    AstNode parent2 = parent.parent;
+    if (parent2 is! PrefixExpression) {
+      _coverageMarker();
+      return;
+    }
+    PrefixExpression prefExpression = parent2 as PrefixExpression;
+    if (prefExpression.operator.type != TokenType.BANG) {
+      _coverageMarker();
+      return;
+    }
+    // strip !()
+    if (getExpressionParentPrecedence(prefExpression) >=
+        TokenType.IS.precedence) {
+      _addRemoveEdit(rangeToken(prefExpression.operator));
+    } else {
+      _addRemoveEdit(
+          rangeStartEnd(prefExpression, parExpression.leftParenthesis));
+      _addRemoveEdit(
+          rangeStartEnd(parExpression.rightParenthesis, prefExpression));
+    }
+    _addInsertEdit(isExpression.isOperator.end, "!");
+    // add proposal
+    _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
   }
 
   void _addProposal_convertToIsNot_onNot() {
-    // TODO(scheglov) implement
-//    // may be () in prefix expression
-//    if (node is ParenthesizedExpression && node.parent is PrefixExpression) {
-//      node = node.parent;
-//    }
-//    // prepare !()
-//    if (node is! PrefixExpression) {
-//      return;
-//    }
-//    PrefixExpression prefExpression = node as PrefixExpression;
-//    // should be ! operator
-//    if (prefExpression.operator.type != TokenType.BANG) {
-//      return;
-//    }
-//    // prepare !()
-//    Expression operand = prefExpression.operand;
-//    if (operand is! ParenthesizedExpression) {
-//      return;
-//    }
-//    ParenthesizedExpression parExpression = operand as ParenthesizedExpression;
-//    operand = parExpression.expression;
-//    // prepare "is"
-//    if (operand is! IsExpression) {
-//      return;
-//    }
-//    IsExpression isExpression = operand as IsExpression;
-//    if (isExpression.notOperator != null) {
-//      return;
-//    }
-//    // strip !()
-//    if (getExpressionParentPrecedence(prefExpression) >=
-//        TokenType.IS.precedence) {
-//      _addRemoveEdit(rangeToken(prefExpression.operator));
-//    } else {
-//      _addRemoveEdit(
-//          rangeStartEnd(
-//              prefExpression,
-//              parExpression.leftParenthesis));
-//      _addRemoveEdit(
-//          rangeStartEnd(
-//              parExpression.rightParenthesis,
-//              prefExpression));
-//    }
-//    _addInsertEdit(isExpression.isOperator.end, "!");
-//    // add proposal
-//    _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
+    // may be () in prefix expression
+    if (node is ParenthesizedExpression && node.parent is PrefixExpression) {
+      node = node.parent;
+    }
+    // prepare !()
+    if (node is! PrefixExpression) {
+      _coverageMarker();
+      return;
+    }
+    PrefixExpression prefExpression = node as PrefixExpression;
+    // should be ! operator
+    if (prefExpression.operator.type != TokenType.BANG) {
+      _coverageMarker();
+      return;
+    }
+    // prepare !()
+    Expression operand = prefExpression.operand;
+    if (operand is! ParenthesizedExpression) {
+      _coverageMarker();
+      return;
+    }
+    ParenthesizedExpression parExpression = operand as ParenthesizedExpression;
+    operand = parExpression.expression;
+    // prepare "is"
+    if (operand is! IsExpression) {
+      _coverageMarker();
+      return;
+    }
+    IsExpression isExpression = operand as IsExpression;
+    if (isExpression.notOperator != null) {
+      _coverageMarker();
+      return;
+    }
+    // strip !()
+    if (getExpressionParentPrecedence(prefExpression) >=
+        TokenType.IS.precedence) {
+      _addRemoveEdit(rangeToken(prefExpression.operator));
+    } else {
+      _addRemoveEdit(
+          rangeStartEnd(prefExpression, parExpression.leftParenthesis));
+      _addRemoveEdit(
+          rangeStartEnd(parExpression.rightParenthesis, prefExpression));
+    }
+    _addInsertEdit(isExpression.isOperator.end, "!");
+    // add proposal
+    _addAssist(AssistKind.CONVERT_INTO_IS_NOT, []);
   }
 
   void _addProposal_exchangeOperands() {
-    // TODO(scheglov) implement
-//    // check that user invokes quick assist on binary expression
-//    if (node is! BinaryExpression) {
-//      return;
-//    }
-//    BinaryExpression binaryExpression = node as BinaryExpression;
-//    // prepare operator position
-//    int offset =
-//        _isOperatorSelected(binaryExpression, _selectionOffset, _selectionLength);
-//    if (offset == -1) {
-//      return;
-//    }
-//    // add edits
-//    {
-//      Expression leftOperand = binaryExpression.leftOperand;
-//      Expression rightOperand = binaryExpression.rightOperand;
-//      // find "wide" enclosing binary expression with same operator
-//      while (binaryExpression.parent is BinaryExpression) {
-//        BinaryExpression newBinaryExpression =
-//            binaryExpression.parent as BinaryExpression;
-//        if (newBinaryExpression.operator.type !=
-//            binaryExpression.operator.type) {
-//          break;
-//        }
-//        binaryExpression = newBinaryExpression;
-//      }
-//      // exchange parts of "wide" expression parts
-//      SourceRange leftRange =
-//          rangeStartEnd(binaryExpression, leftOperand);
-//      SourceRange rightRange =
-//          rangeStartEnd(rightOperand, binaryExpression);
-//      _addReplaceEdit(leftRange, _getSource2(rightRange));
-//      _addReplaceEdit(rightRange, _getSource2(leftRange));
-//    }
-//    // add proposal
-//    _addAssist(AssistKind.EXCHANGE_OPERANDS, []);
+    // check that user invokes quick assist on binary expression
+    if (node is! BinaryExpression) {
+      _coverageMarker();
+      return;
+    }
+    BinaryExpression binaryExpression = node as BinaryExpression;
+    // prepare operator position
+    if (!_isOperatorSelected(
+        binaryExpression,
+        selectionOffset,
+        selectionLength)) {
+      _coverageMarker();
+      return;
+    }
+    // add edits
+    {
+      Expression leftOperand = binaryExpression.leftOperand;
+      Expression rightOperand = binaryExpression.rightOperand;
+      // find "wide" enclosing binary expression with same operator
+      while (binaryExpression.parent is BinaryExpression) {
+        BinaryExpression newBinaryExpression =
+            binaryExpression.parent as BinaryExpression;
+        if (newBinaryExpression.operator.type !=
+            binaryExpression.operator.type) {
+          _coverageMarker();
+          break;
+        }
+        binaryExpression = newBinaryExpression;
+      }
+      // exchange parts of "wide" expression parts
+      SourceRange leftRange = rangeStartEnd(binaryExpression, leftOperand);
+      SourceRange rightRange = rangeStartEnd(rightOperand, binaryExpression);
+      _addReplaceEdit(leftRange, _getSource2(rightRange));
+      _addReplaceEdit(rightRange, _getSource2(leftRange));
+    }
+    // add proposal
+    _addAssist(AssistKind.EXCHANGE_OPERANDS, []);
   }
 
   void _addProposal_extractClassIntoPart() {
@@ -541,22 +559,20 @@ class AssistProcessor {
 //    // prepare whole import namespace
 //    ImportElement importElement = importDirective.element;
 //    Map<String, Element> namespace =
-//        CorrectionUtils.getImportNamespace(importElement);
+//        getImportNamespace(importElement);
 //    // prepare names of referenced elements (from this import)
 //    Set<String> referencedNames = new Set();
-//    // TODO(scheglov)
-////    SearchEngine searchEngine = _assistContext.searchEngine;
-////    for (Element element in namespace.values) {
-////      List<SearchMatch> references =
-////          searchEngine.searchReferences(element, null, null);
-////      for (SearchMatch match in references) {
-////        LibraryElement library = match.element.library;
-////        if (_unitLibraryElement == library) {
-////          referencedNames.add(element.displayName);
-////          break;
-////        }
-////      }
-////    }
+//    for (Element element in namespace.values) {
+//      List<SearchMatch> references =
+//          searchEngine.searchReferences(element, null, null);
+//      for (SearchMatch match in references) {
+//        LibraryElement library = match.element.library;
+//        if (unitLibraryElement == library) {
+//          referencedNames.add(element.displayName);
+//          break;
+//        }
+//      }
+//    }
 //    // ignore if unused
 //    if (referencedNames.isEmpty) {
 //      return;
@@ -591,9 +607,10 @@ class AssistProcessor {
 //    _addReplaceEdit(rangeNode(elseStatement), thenSource);
 //    // add proposal
 //    _addAssist(AssistKind.INVERT_IF_STATEMENT, []);
-//  }
-//
-//  void _addProposal_joinIfStatementInner() {
+  }
+
+  void _addProposal_joinIfStatementInner() {
+    // TODO(scheglov) implement
 //    // climb up condition to the (supposedly) "if" statement
 //    AstNode node = this.node;
 //    while (node is Expression) {
@@ -620,7 +637,6 @@ class AssistProcessor {
 //    }
 //    // prepare environment
 //    String prefix = utils.getNodePrefix(targetIfStatement);
-//    String eol = utils.endOfLine;
 //    // merge conditions
 //    String condition;
 //    {
@@ -684,7 +700,6 @@ class AssistProcessor {
 //    }
 //    // prepare environment
 //    String prefix = utils.getNodePrefix(outerIfStatement);
-//    String eol = utils.endOfLine;
 //    // merge conditions
 //    String condition;
 //    {
@@ -720,296 +735,292 @@ class AssistProcessor {
   }
 
   void _addProposal_joinVariableDeclaration_onAssignment() {
-    // TODO(scheglov) implement
-//    // check that node is LHS in assignment
-//    if (node is SimpleIdentifier &&
-//        node.parent is AssignmentExpression &&
-//        identical((node.parent as AssignmentExpression).leftHandSide, node) &&
-//        node.parent.parent is ExpressionStatement) {
-//    } else {
-//      return;
-//    }
-//    AssignmentExpression assignExpression =
-//        node.parent as AssignmentExpression;
-//    // check that binary expression is assignment
-//    if (assignExpression.operator.type != TokenType.EQ) {
-//      return;
-//    }
-//    // prepare "declaration" statement
-//    Element element = (node as SimpleIdentifier).staticElement;
-//    if (element == null) {
-//      return;
-//    }
-//    int declOffset = element.nameOffset;
-//    AstNode declNode = new NodeLocator.con1(declOffset).searchWithin(_unit);
-//    if (declNode != null &&
-//        declNode.parent is VariableDeclaration &&
-//        identical((declNode.parent as VariableDeclaration).name, declNode) &&
-//        declNode.parent.parent is VariableDeclarationList &&
-//        declNode.parent.parent.parent is VariableDeclarationStatement) {
-//    } else {
-//      return;
-//    }
-//    VariableDeclaration decl = declNode.parent as VariableDeclaration;
-//    VariableDeclarationStatement declStatement =
-//        decl.parent.parent as VariableDeclarationStatement;
-//    // may be has initializer
-//    if (decl.initializer != null) {
-//      return;
-//    }
-//    // check that "declaration" statement declared only one variable
-//    if (declStatement.variables.variables.length != 1) {
-//      return;
-//    }
-//
-//        // check that "declaration" and "assignment" statements are part of same Block
-//    ExpressionStatement assignStatement =
-//        node.parent.parent as ExpressionStatement;
-//    if (assignStatement.parent is Block &&
-//        identical(assignStatement.parent, declStatement.parent)) {
-//    } else {
-//      return;
-//    }
-//    Block block = assignStatement.parent as Block;
-//    // check that "declaration" and "assignment" statements are adjacent
-//    List<Statement> statements = block.statements;
-//    if (statements.indexOf(assignStatement) ==
-//        statements.indexOf(declStatement) + 1) {
-//    } else {
-//      return;
-//    }
-//    // add edits
-//    {
-//      int assignOffset = assignExpression.operator.offset;
-//      _addReplaceEdit(
-//          rangeEndStart(declNode, assignOffset),
-//          " ");
-//    }
-//    // add proposal
-//    _addAssist(AssistKind.JOIN_VARIABLE_DECLARATION, []);
+    // check that node is LHS in assignment
+    if (node is SimpleIdentifier &&
+        node.parent is AssignmentExpression &&
+        identical((node.parent as AssignmentExpression).leftHandSide, node) &&
+        node.parent.parent is ExpressionStatement) {
+    } else {
+      _coverageMarker();
+      return;
+    }
+    AssignmentExpression assignExpression = node.parent as AssignmentExpression;
+    // check that binary expression is assignment
+    if (assignExpression.operator.type != TokenType.EQ) {
+      _coverageMarker();
+      return;
+    }
+    // prepare "declaration" statement
+    Element element = (node as SimpleIdentifier).staticElement;
+    if (element == null) {
+      _coverageMarker();
+      return;
+    }
+    int declOffset = element.nameOffset;
+    AstNode declNode = new NodeLocator.con1(declOffset).searchWithin(unit);
+    if (declNode != null &&
+        declNode.parent is VariableDeclaration &&
+        identical((declNode.parent as VariableDeclaration).name, declNode) &&
+        declNode.parent.parent is VariableDeclarationList &&
+        declNode.parent.parent.parent is VariableDeclarationStatement) {
+    } else {
+      _coverageMarker();
+      return;
+    }
+    VariableDeclaration decl = declNode.parent as VariableDeclaration;
+    VariableDeclarationStatement declStatement =
+        decl.parent.parent as VariableDeclarationStatement;
+    // may be has initializer
+    if (decl.initializer != null) {
+      _coverageMarker();
+      return;
+    }
+    // check that "declaration" statement declared only one variable
+    if (declStatement.variables.variables.length != 1) {
+      _coverageMarker();
+      return;
+    }
+    // check that the "declaration" and "assignment" statements are
+    // parts of the same Block
+    ExpressionStatement assignStatement =
+        node.parent.parent as ExpressionStatement;
+    if (assignStatement.parent is Block &&
+        assignStatement.parent == declStatement.parent) {
+    } else {
+      _coverageMarker();
+      return;
+    }
+    Block block = assignStatement.parent as Block;
+    // check that "declaration" and "assignment" statements are adjacent
+    List<Statement> statements = block.statements;
+    if (statements.indexOf(assignStatement) ==
+        statements.indexOf(declStatement) + 1) {
+    } else {
+      _coverageMarker();
+      return;
+    }
+    // add edits
+    {
+      int assignOffset = assignExpression.operator.offset;
+      _addReplaceEdit(rangeEndStart(declNode, assignOffset), " ");
+    }
+    // add proposal
+    _addAssist(AssistKind.JOIN_VARIABLE_DECLARATION, []);
   }
 
   void _addProposal_joinVariableDeclaration_onDeclaration() {
-    // TODO(scheglov) implement
-//    // prepare enclosing VariableDeclarationList
-//    VariableDeclarationList declList =
-//        node.getAncestor((node) => node is VariableDeclarationList);
-//    if (declList != null && declList.variables.length == 1) {
-//    } else {
-//      return;
-//    }
-//    VariableDeclaration decl = declList.variables[0];
-//    // already initialized
-//    if (decl.initializer != null) {
-//      return;
-//    }
-//    // prepare VariableDeclarationStatement in Block
-//    if (declList.parent is VariableDeclarationStatement &&
-//        declList.parent.parent is Block) {
-//    } else {
-//      return;
-//    }
-//    VariableDeclarationStatement declStatement =
-//        declList.parent as VariableDeclarationStatement;
-//    Block block = declStatement.parent as Block;
-//    List<Statement> statements = block.statements;
-//    // prepare assignment
-//    AssignmentExpression assignExpression;
-//    {
-//      // declaration should not be last Statement
-//      int declIndex = statements.indexOf(declStatement);
-//      if (declIndex < statements.length - 1) {
-//      } else {
-//        return;
-//      }
-//      // next Statement should be assignment
-//      Statement assignStatement = statements[declIndex + 1];
-//      if (assignStatement is ExpressionStatement) {
-//      } else {
-//        return;
-//      }
-//      ExpressionStatement expressionStatement =
-//          assignStatement as ExpressionStatement;
-//      // expression should be assignment
-//      if (expressionStatement.expression is AssignmentExpression) {
-//      } else {
-//        return;
-//      }
-//      assignExpression = expressionStatement.expression as AssignmentExpression;
-//    }
-//    // check that pure assignment
-//    if (assignExpression.operator.type != TokenType.EQ) {
-//      return;
-//    }
-//    // add edits
-//    {
-//      int assignOffset = assignExpression.operator.offset;
-//      _addReplaceEdit(
-//          rangeEndStart(decl.name, assignOffset),
-//          " ");
-//    }
-//    // add proposal
-//    _addAssist(AssistKind.JOIN_VARIABLE_DECLARATION, []);
+    // prepare enclosing VariableDeclarationList
+    VariableDeclarationList declList =
+        node.getAncestor((node) => node is VariableDeclarationList);
+    if (declList != null && declList.variables.length == 1) {
+    } else {
+      _coverageMarker();
+      return;
+    }
+    VariableDeclaration decl = declList.variables[0];
+    // already initialized
+    if (decl.initializer != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare VariableDeclarationStatement in Block
+    if (declList.parent is VariableDeclarationStatement &&
+        declList.parent.parent is Block) {
+    } else {
+      _coverageMarker();
+      return;
+    }
+    VariableDeclarationStatement declStatement =
+        declList.parent as VariableDeclarationStatement;
+    Block block = declStatement.parent as Block;
+    List<Statement> statements = block.statements;
+    // prepare assignment
+    AssignmentExpression assignExpression;
+    {
+      // declaration should not be last Statement
+      int declIndex = statements.indexOf(declStatement);
+      if (declIndex < statements.length - 1) {
+      } else {
+        _coverageMarker();
+        return;
+      }
+      // next Statement should be assignment
+      Statement assignStatement = statements[declIndex + 1];
+      if (assignStatement is ExpressionStatement) {
+      } else {
+        _coverageMarker();
+        return;
+      }
+      ExpressionStatement expressionStatement =
+          assignStatement as ExpressionStatement;
+      // expression should be assignment
+      if (expressionStatement.expression is AssignmentExpression) {
+      } else {
+        _coverageMarker();
+        return;
+      }
+      assignExpression = expressionStatement.expression as AssignmentExpression;
+    }
+    // check that pure assignment
+    if (assignExpression.operator.type != TokenType.EQ) {
+      _coverageMarker();
+      return;
+    }
+    // add edits
+    {
+      int assignOffset = assignExpression.operator.offset;
+      _addReplaceEdit(rangeEndStart(decl.name, assignOffset), " ");
+    }
+    // add proposal
+    _addAssist(AssistKind.JOIN_VARIABLE_DECLARATION, []);
   }
 
   void _addProposal_removeTypeAnnotation() {
-    // TODO(scheglov) implement
-//    AstNode typeStart = null;
-//    AstNode typeEnd = null;
-//    // try top-level variable
-//    {
-//      TopLevelVariableDeclaration declaration =
-//          node.getAncestor((node) => node is TopLevelVariableDeclaration);
-//      if (declaration != null) {
-//        TypeName typeNode = declaration.variables.type;
-//        if (typeNode != null) {
-//          VariableDeclaration field = declaration.variables.variables[0];
-//          typeStart = declaration;
-//          typeEnd = field;
-//        }
-//      }
-//    }
-//    // try class field
-//    {
-//      FieldDeclaration fieldDeclaration =
-//          node.getAncestor((node) => node is FieldDeclaration);
-//      if (fieldDeclaration != null) {
-//        TypeName typeNode = fieldDeclaration.fields.type;
-//        if (typeNode != null) {
-//          VariableDeclaration field = fieldDeclaration.fields.variables[0];
-//          typeStart = fieldDeclaration;
-//          typeEnd = field;
-//        }
-//      }
-//    }
-//    // try local variable
-//    {
-//      VariableDeclarationStatement statement =
-//          node.getAncestor((node) => node is VariableDeclarationStatement);
-//      if (statement != null) {
-//        TypeName typeNode = statement.variables.type;
-//        if (typeNode != null) {
-//          VariableDeclaration variable = statement.variables.variables[0];
-//          typeStart = typeNode;
-//          typeEnd = variable;
-//        }
-//      }
-//    }
-//    // add edit
-//    if (typeStart != null && typeEnd != null) {
-//      SourceRange typeRange =
-//          rangeStartStart(typeStart, typeEnd);
-//      _addReplaceEdit(typeRange, "var ");
-//    }
-//    // add proposal
-//    _addAssist(AssistKind.REMOVE_TYPE_ANNOTATION, []);
+    AstNode typeStart = null;
+    AstNode typeEnd = null;
+    // try top-level variable
+    {
+      TopLevelVariableDeclaration declaration =
+          node.getAncestor((node) => node is TopLevelVariableDeclaration);
+      if (declaration != null) {
+        TypeName typeNode = declaration.variables.type;
+        if (typeNode != null) {
+          VariableDeclaration field = declaration.variables.variables[0];
+          typeStart = declaration;
+          typeEnd = field;
+        }
+      }
+    }
+    // try class field
+    {
+      FieldDeclaration fieldDeclaration =
+          node.getAncestor((node) => node is FieldDeclaration);
+      if (fieldDeclaration != null) {
+        TypeName typeNode = fieldDeclaration.fields.type;
+        if (typeNode != null) {
+          VariableDeclaration field = fieldDeclaration.fields.variables[0];
+          typeStart = fieldDeclaration;
+          typeEnd = field;
+        }
+      }
+    }
+    // try local variable
+    {
+      VariableDeclarationStatement statement =
+          node.getAncestor((node) => node is VariableDeclarationStatement);
+      if (statement != null) {
+        TypeName typeNode = statement.variables.type;
+        if (typeNode != null) {
+          VariableDeclaration variable = statement.variables.variables[0];
+          typeStart = typeNode;
+          typeEnd = variable;
+        }
+      }
+    }
+    // add edit
+    if (typeStart != null && typeEnd != null) {
+      SourceRange typeRange = rangeStartStart(typeStart, typeEnd);
+      _addReplaceEdit(typeRange, "var ");
+    }
+    // add proposal
+    _addAssist(AssistKind.REMOVE_TYPE_ANNOTATION, []);
   }
 
   void _addProposal_replaceConditionalWithIfElse() {
-    // TODO(scheglov) implement
-//    ConditionalExpression conditional = null;
-//    // may be on Statement with Conditional
-//    Statement statement = node.getAncestor((node) => node is Statement);
-//    if (statement == null) {
-//      return;
-//    }
-//    // variable declaration
-//    bool inVariable = false;
-//    if (statement is VariableDeclarationStatement) {
-//      VariableDeclarationStatement variableStatement = statement;
-//      for (VariableDeclaration variable in
-//          variableStatement.variables.variables) {
-//        if (variable.initializer is ConditionalExpression) {
-//          conditional = variable.initializer as ConditionalExpression;
-//          inVariable = true;
-//          break;
-//        }
-//      }
-//    }
-//    // assignment
-//    bool inAssignment = false;
-//    if (statement is ExpressionStatement) {
-//      ExpressionStatement exprStmt = statement;
-//      if (exprStmt.expression is AssignmentExpression) {
-//        AssignmentExpression assignment =
-//            exprStmt.expression as AssignmentExpression;
-//        if (assignment.operator.type == TokenType.EQ &&
-//            assignment.rightHandSide is ConditionalExpression) {
-//          conditional = assignment.rightHandSide as ConditionalExpression;
-//          inAssignment = true;
-//        }
-//      }
-//    }
-//    // return
-//    bool inReturn = false;
-//    if (statement is ReturnStatement) {
-//      ReturnStatement returnStatement = statement;
-//      if (returnStatement.expression is ConditionalExpression) {
-//        conditional = returnStatement.expression as ConditionalExpression;
-//        inReturn = true;
-//      }
-//    }
-//    // prepare environment
-//    String eol = utils.endOfLine;
-//    String indent = utils.getIndent(1);
-//    String prefix = utils.getNodePrefix(statement);
-//    // Type v = Conditional;
-//    if (inVariable) {
-//      VariableDeclaration variable = conditional.parent as VariableDeclaration;
-//      _addRemoveEdit(
-//          rangeEndEnd(variable.name, conditional));
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeEndLength(statement, 0),
-////          MessageFormat.format(
-////              "{3}{4}if ({0}) '{'{3}{4}{5}{6} = {1};{3}{4}'} else {'{3}{4}{5}{6} = {2};{3}{4}'}'",
-////              [
-////                  _getSource(conditional.condition),
-////                  _getSource(conditional.thenExpression),
-////                  _getSource(conditional.elseExpression),
-////                  eol,
-////                  prefix,
-////                  indent,
-////                  variable.name]));
-//    }
-//    // v = Conditional;
-//    if (inAssignment) {
-//      AssignmentExpression assignment =
-//          conditional.parent as AssignmentExpression;
-//      Expression leftSide = assignment.leftHandSide;
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeNode(statement),
-////          MessageFormat.format(
-////              "if ({0}) '{'{3}{4}{5}{6} = {1};{3}{4}'} else {'{3}{4}{5}{6} = {2};{3}{4}'}'",
-////              [
-////                  _getSource(conditional.condition),
-////                  _getSource(conditional.thenExpression),
-////                  _getSource(conditional.elseExpression),
-////                  eol,
-////                  prefix,
-////                  indent,
-////                  _getSource(leftSide)]));
-//    }
-//    // return Conditional;
-//    if (inReturn) {
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeNode(statement),
-////          MessageFormat.format(
-////              "if ({0}) '{'{3}{4}{5}return {1};{3}{4}'} else {'{3}{4}{5}return {2};{3}{4}'}'",
-////              [
-////                  _getSource(conditional.condition),
-////                  _getSource(conditional.thenExpression),
-////                  _getSource(conditional.elseExpression),
-////                  eol,
-////                  prefix,
-////                  indent]));
-//    }
-//    // add proposal
-//    _addAssist(
-//        AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE,
-//        []);
+    ConditionalExpression conditional = null;
+    // may be on Statement with Conditional
+    Statement statement = node.getAncestor((node) => node is Statement);
+    if (statement == null) {
+      _coverageMarker();
+      return;
+    }
+    // variable declaration
+    bool inVariable = false;
+    if (statement is VariableDeclarationStatement) {
+      VariableDeclarationStatement variableStatement = statement;
+      for (VariableDeclaration variable in
+          variableStatement.variables.variables) {
+        if (variable.initializer is ConditionalExpression) {
+          conditional = variable.initializer as ConditionalExpression;
+          inVariable = true;
+          break;
+        }
+      }
+    }
+    // assignment
+    bool inAssignment = false;
+    if (statement is ExpressionStatement) {
+      ExpressionStatement exprStmt = statement;
+      if (exprStmt.expression is AssignmentExpression) {
+        AssignmentExpression assignment =
+            exprStmt.expression as AssignmentExpression;
+        if (assignment.operator.type == TokenType.EQ &&
+            assignment.rightHandSide is ConditionalExpression) {
+          conditional = assignment.rightHandSide as ConditionalExpression;
+          inAssignment = true;
+        }
+      }
+    }
+    // return
+    bool inReturn = false;
+    if (statement is ReturnStatement) {
+      ReturnStatement returnStatement = statement;
+      if (returnStatement.expression is ConditionalExpression) {
+        conditional = returnStatement.expression as ConditionalExpression;
+        inReturn = true;
+      }
+    }
+    // prepare environment
+    String indent = utils.getIndent(1);
+    String prefix = utils.getNodePrefix(statement);
+    // Type v = Conditional;
+    if (inVariable) {
+      VariableDeclaration variable = conditional.parent as VariableDeclaration;
+      _addRemoveEdit(rangeEndEnd(variable.name, conditional));
+      String conditionSrc = _getSource(conditional.condition);
+      String thenSrc = _getSource(conditional.thenExpression);
+      String elseSrc = _getSource(conditional.elseExpression);
+      String name = variable.name.name;
+      String src = eol;
+      src += prefix + 'if ($conditionSrc) {' + eol;
+      src += prefix + indent + '$name = $thenSrc;' + eol;
+      src += prefix + '} else {' + eol;
+      src += prefix + indent + '$name = $elseSrc;' + eol;
+      src += prefix + '}';
+      _addReplaceEdit(rangeEndLength(statement, 0), src);
+    }
+    // v = Conditional;
+    if (inAssignment) {
+      AssignmentExpression assignment =
+          conditional.parent as AssignmentExpression;
+      Expression leftSide = assignment.leftHandSide;
+      String conditionSrc = _getSource(conditional.condition);
+      String thenSrc = _getSource(conditional.thenExpression);
+      String elseSrc = _getSource(conditional.elseExpression);
+      String name = _getSource(leftSide);
+      String src = '';
+      src += 'if ($conditionSrc) {' + eol;
+      src += prefix + indent + '$name = $thenSrc;' + eol;
+      src += prefix + '} else {' + eol;
+      src += prefix + indent + '$name = $elseSrc;' + eol;
+      src += prefix + '}';
+      _addReplaceEdit(rangeNode(statement), src);
+    }
+    // return Conditional;
+    if (inReturn) {
+      String conditionSrc = _getSource(conditional.condition);
+      String thenSrc = _getSource(conditional.thenExpression);
+      String elseSrc = _getSource(conditional.elseExpression);
+      String src = '';
+      src += 'if ($conditionSrc) {' + eol;
+      src += prefix + indent + 'return $thenSrc;' + eol;
+      src += prefix + '} else {' + eol;
+      src += prefix + indent + 'return $elseSrc;' + eol;
+      src += prefix + '}';
+      _addReplaceEdit(rangeNode(statement), src);
+    }
+    // add proposal
+    _addAssist(AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE, []);
   }
 
   void _addProposal_replaceIfElseWithConditional() {
@@ -1109,7 +1120,6 @@ class AssistProcessor {
 //    }
 //    // prepare environment
 //    String prefix = utils.getNodePrefix(ifStatement);
-//    String eol = utils.endOfLine;
 //    String indent = utils.getIndent(1);
 //    // prepare "rightCondition"
 //    String rightConditionSource;
@@ -1210,7 +1220,6 @@ class AssistProcessor {
 //        rangeEndStart(variable.name, statement.semicolon));
 //    // TODO(scheglov)
 ////    // add assignment statement
-////    String eol = _utils.endOfLine;
 ////    String indent = _utils.getNodePrefix(statement);
 ////    String assignSource =
 ////        MessageFormat.format(
@@ -1253,7 +1262,6 @@ class AssistProcessor {
 //    Statement lastStatement = selectedStatements[selectedStatements.length - 1];
 //    SourceRange statementsRange = utils.getLinesRange(selectedStatements);
 //    // prepare environment
-//    String eol = utils.endOfLine;
 //    String indentOld = utils.getNodePrefix(firstStatement);
 //    String indentNew = "${indentOld}${utils.getIndent(1)}";
 //    // "block"
@@ -1522,16 +1530,6 @@ class AssistProcessor {
   }
 
   /**
-   * This method does nothing, but we invoke it in places where Dart VM
-   * coverage agent fails to provide coverage information - such as almost
-   * all "return" statements.
-   *
-   * https://code.google.com/p/dart/issues/detail?id=19912
-   */
-  void _coverageMarker() {
-  }
-
-  /**
    * Returns an existing or just added [LinkedPositionGroup] with [groupId].
    */
   LinkedPositionGroup _getLinkedPosition(String groupId) {
@@ -1575,5 +1573,42 @@ class AssistProcessor {
         fixGroup.addProposal(proposal);
       });
     });
+  }
+
+  /**
+   * This method does nothing, but we invoke it in places where Dart VM
+   * coverage agent fails to provide coverage information - such as almost
+   * all "return" statements.
+   *
+   * https://code.google.com/p/dart/issues/detail?id=19912
+   */
+  static void _coverageMarker() {
+  }
+
+  /**
+   * Returns `true` if the selection covers an operator of the given
+   * [BinaryExpression].
+   */
+  static bool _isOperatorSelected(BinaryExpression binaryExpression, int offset,
+      int length) {
+    AstNode left = binaryExpression.leftOperand;
+    AstNode right = binaryExpression.rightOperand;
+    // between the nodes
+    if (offset >= left.endToken.end && offset + length <= right.offset) {
+      _coverageMarker();
+      return true;
+    }
+    // or exactly select the node (but not with infix expressions)
+    if (offset == left.offset && offset + length == right.endToken.end) {
+      if (left is BinaryExpression || right is BinaryExpression) {
+        _coverageMarker();
+        return false;
+      }
+      _coverageMarker();
+      return true;
+    }
+    // invalid selection (part of node, etc)
+    _coverageMarker();
+    return false;
   }
 }
