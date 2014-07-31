@@ -1984,6 +1984,91 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
 }
 
 
+TEST_CASE(Service_MetricsList) {
+  const char* kScript =
+    "import 'dart:profiler';\n"
+    "var port;\n"  // Set to our mock port by C++.
+    "\n"
+    "main() {\n"
+    "  var counter = new Counter('a.b.c', 'description');\n"
+    "  Metrics.register(counter);\n"
+    "  return counter;\n"
+    "}\n"
+    "";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+
+  Array& service_msg = Array::Handle();
+  service_msg = Eval(h_lib, "[0, port, ['metrics'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+  // Expect MetricList.
+  // TODO(johnmccutchan): Test that list length is 1.
+  EXPECT_SUBSTRING("\"type\":\"MetricList\"", handler.msg());
+}
+
+
+TEST_CASE(Service_Metric) {
+  const char* kScript =
+    "import 'dart:profiler';\n"
+    "var port;\n"  // Set to our mock port by C++.
+    "\n"
+    "main() {\n"
+    "  var counter = new Counter('a.b.c', 'description');\n"
+    "  Metrics.register(counter);\n"
+    "  return counter;\n"
+    "}\n"
+    "";
+
+  Isolate* isolate = Isolate::Current();
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(h_lib, NewString("port"), port));
+
+  // Request existing metric.
+  Array& service_msg = Array::Handle();
+  service_msg = Eval(h_lib, "[0, port, ['metrics', 'a.b.c'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+
+  // Expect Counter.
+  EXPECT_SUBSTRING("\"type\":\"Counter\"", handler.msg());
+
+  // Request invalid metric.
+  service_msg = Eval(h_lib, "[0, port, ['metrics', 'a.b.c.d'], [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  handler.HandleNextMessage();
+
+  // Expect error.
+  EXPECT_SUBSTRING("\"type\":\"Error\"", handler.msg());
+}
+
+
 // TODO(zra): Remove when tests are ready to enable.
 #if !defined(TARGET_ARCH_ARM64)
 

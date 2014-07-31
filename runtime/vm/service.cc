@@ -1580,6 +1580,80 @@ static RawObject* LookupObjectId(Isolate* isolate,
 }
 
 
+static RawClass* GetMetricsClass(Isolate* isolate) {
+  const Library& prof_lib =
+      Library::Handle(isolate, Library::ProfilerLibrary());
+  ASSERT(!prof_lib.IsNull());
+  const String& metrics_cls_name =
+      String::Handle(isolate, String::New("Metrics"));
+  ASSERT(!metrics_cls_name.IsNull());
+  const Class& metrics_cls =
+      Class::Handle(isolate, prof_lib.LookupClass(metrics_cls_name));
+  ASSERT(!metrics_cls.IsNull());
+  return metrics_cls.raw();
+}
+
+
+static bool HandleMetricsList(Isolate* isolate, JSONStream* js) {
+  const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
+  const String& print_metrics_name =
+      String::Handle(String::New("_printMetrics"));
+  ASSERT(!print_metrics_name.IsNull());
+  const Function& print_metrics = Function::Handle(
+      isolate,
+      metrics_cls.LookupStaticFunctionAllowPrivate(print_metrics_name));
+  ASSERT(!print_metrics.IsNull());
+  const Array& args = Object::empty_array();
+  const Object& result =
+      Object::Handle(isolate, DartEntry::InvokeFunction(print_metrics, args));
+  ASSERT(!result.IsNull());
+  ASSERT(result.IsString());
+  TextBuffer* buffer = js->buffer();
+  buffer->AddString(String::Cast(result).ToCString());
+  return true;
+}
+
+
+static bool HandleMetric(Isolate* isolate, JSONStream* js, const char* id) {
+  const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
+  const String& print_metric_name =
+      String::Handle(String::New("_printMetric"));
+  ASSERT(!print_metric_name.IsNull());
+  const Function& print_metric = Function::Handle(
+      isolate,
+      metrics_cls.LookupStaticFunctionAllowPrivate(print_metric_name));
+  ASSERT(!print_metric.IsNull());
+  const String& arg0 = String::Handle(String::New(id));
+  ASSERT(!arg0.IsNull());
+  const Array& args = Array::Handle(Array::New(1));
+  ASSERT(!args.IsNull());
+  args.SetAt(0, arg0);
+  const Object& result =
+      Object::Handle(isolate, DartEntry::InvokeFunction(print_metric, args));
+  if (!result.IsNull()) {
+    ASSERT(result.IsString());
+    TextBuffer* buffer = js->buffer();
+    buffer->AddString(String::Cast(result).ToCString());
+    return true;
+  }
+  PrintError(js, "Metric %s not found\n", id);
+  return true;
+}
+
+
+static bool HandleMetrics(Isolate* isolate, JSONStream* js) {
+  if (js->num_arguments() == 1) {
+    return HandleMetricsList(isolate, js);
+  }
+  if (js->num_arguments() > 2) {
+    PrintError(js, "Command too long");
+    return true;
+  }
+  const char* arg = js->GetArgument(1);
+  return HandleMetric(isolate, js, arg);
+}
+
+
 static bool HandleObjects(Isolate* isolate, JSONStream* js) {
   REQUIRE_COLLECTION_ID("objects");
   if (js->num_arguments() < 2) {
@@ -2103,6 +2177,7 @@ static IsolateMessageHandlerEntry isolate_handlers[] = {
   { "debug", HandleDebug },
   { "heapmap", HandleHeapMap },
   { "libraries", HandleLibraries },
+  { "metrics", HandleMetrics },
   { "objects", HandleObjects },
   { "profile", HandleProfile },
   { "scripts", HandleScripts },
