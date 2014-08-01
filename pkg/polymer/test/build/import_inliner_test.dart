@@ -924,6 +924,38 @@ void urlAttributeTests() {
           '<img src="foo/{{bar}}">'
           '</body></html>',
     });
+
+  testPhases('relative paths in _* attributes are normalized', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="foo/test.html">'
+          '</head></html>',
+      'a|web/foo/test.html':
+          '<img _src="./{{bar}}">'
+          '<a _href="./{{bar}}">test</a>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img _src="foo/{{bar}}">'
+          '<a _href="foo/{{bar}}">test</a>'
+          '</body></html>',
+    });
+
+  testPhases('warnings are given about _* attributes', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="foo/{{bar}}">'
+          '<a _href="foo/bar">test</a>'
+          '</body></html>',
+  }, {}, [
+      'warning: When using bindings with the "src" attribute you may '
+          'experience errors in certain browsers. Please use the "_src" '
+          'attribute instead. For more information, see http://goo.gl/5av8cU '
+          '(web/test.html 0 40)',
+      'warning: The "_href" attribute is only supported when using bindings. '
+          'Please change to the "href" attribute. (web/test.html 0 63)',
+
+  ]);
 }
 
 void entryPointTests() {

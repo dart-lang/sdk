@@ -343,6 +343,18 @@ class _UrlNormalizer extends TreeVisitor {
     if (!isCustomTagName(node.localName)) {
       node.attributes.forEach((name, value) {
         if (_urlAttributes.contains(name)) {
+          if (!name.startsWith('_') && value.contains(_BINDINGS)) {
+            transform.logger.warning(
+                'When using bindings with the "$name" attribute you may '
+                'experience errors in certain browsers. Please use the '
+                '"_$name" attribute instead. For more information, see '
+                'http://goo.gl/5av8cU', span: node.sourceSpan, asset: sourceId);
+          } else if (name.startsWith('_') && !value.contains(_BINDINGS)) {
+            transform.logger.warning(
+                'The "$name" attribute is only supported when using bindings. '
+                'Please change to the "${name.substring(1)}" attribute.',
+                span: node.sourceSpan, asset: sourceId);
+          }
           if (value != '' && !value.trim().startsWith(_BINDINGS)) {
             node.attributes[name] = _newUrl(value, node.sourceSpan);
             changed = changed || value != node.attributes[name];
@@ -463,18 +475,20 @@ class _UrlNormalizer extends TreeVisitor {
 ///
 /// Every one of these attributes is a URL in every context where it is used in
 /// the DOM. The comments show every DOM element where an attribute can be used.
+///
+/// The _* version of each attribute is also supported, see http://goo.gl/5av8cU
 const _urlAttributes = const [
-  'action',     // in form
-  'background', // in body
-  'cite',       // in blockquote, del, ins, q
-  'data',       // in object
-  'formaction', // in button, input
-  'href',       // in a, area, link, base, command
-  'icon',       // in command
-  'manifest',   // in html
-  'poster',     // in video
-  'src',        // in audio, embed, iframe, img, input, script, source, track,
-                //    video
+  'action', '_action',          // in form
+  'background', '_background',  // in body
+  'cite', '_cite',              // in blockquote, del, ins, q
+  'data', '_data',              // in object
+  'formaction', '_formaction',  // in button, input
+  'href', '_href',              // in a, area, link, base, command
+  'icon', '_icon',              // in command
+  'manifest', '_manifest',      // in html
+  'poster', '_poster',          // in video
+  'src', '_src',                // in audio, embed, iframe, img, input, script,
+                                //    source, track,video
 ];
 
 /// When inlining <link rel="stylesheet"> tags copy over all attributes to the
