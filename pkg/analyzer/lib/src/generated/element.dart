@@ -4667,22 +4667,45 @@ class FieldMember extends VariableMember implements FieldElement {
    * @return the field element that will return the correctly substituted types
    */
   static FieldElement from(FieldElement baseField, InterfaceType definingType) {
-    if (baseField == null || definingType.typeArguments.length == 0) {
-      return baseField;
-    }
-    DartType baseType = baseField.type;
-    if (baseType == null) {
-      return baseField;
-    }
-    List<DartType> argumentTypes = definingType.typeArguments;
-    List<DartType> parameterTypes = definingType.element.type.typeArguments;
-    DartType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
+    if (!_isChangedByTypeSubstitution(baseField, definingType)) {
       return baseField;
     }
     // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
     // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new FieldMember(baseField, definingType);
+  }
+
+  /**
+   * Determine whether the given field's type is changed when type parameters from the defining
+   * type's declaration are replaced with the actual type arguments from the defining type.
+   *
+   * @param baseField the base field
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return true if the type is changed by type substitution.
+   */
+  static bool _isChangedByTypeSubstitution(FieldElement baseField, InterfaceType definingType) {
+    List<DartType> argumentTypes = definingType.typeArguments;
+    if (baseField != null && argumentTypes.length != 0) {
+      DartType baseType = baseField.type;
+      List<DartType> parameterTypes = definingType.element.type.typeArguments;
+      if (baseType != null) {
+        DartType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
+        if (baseType != substitutedType) {
+          return true;
+        }
+      }
+      // If the field has a propagated type, then we need to check whether the propagated type
+      // needs substitution.
+      DartType basePropagatedType = baseField.propagatedType;
+      if (basePropagatedType != null) {
+        DartType substitutedPropagatedType = basePropagatedType.substitute2(argumentTypes, parameterTypes);
+        if (basePropagatedType != substitutedPropagatedType) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -4713,6 +4736,15 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   bool get isStatic => baseElement.isStatic;
+
+  @override
+  String toString() {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append(type);
+    builder.append(" ");
+    builder.append(displayName);
+    return builder.toString();
+  }
 
   @override
   InterfaceType get definingType => super.definingType as InterfaceType;
@@ -7413,14 +7445,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
  * Combination of [AngularTagSelectorElementImpl] and [HasAttributeSelectorElementImpl].
  */
 class IsTagHasAttributeSelectorElementImpl extends AngularSelectorElementImpl {
-  final String tagName;
+  String _tagName;
 
-  final String attributeName;
+  String _attributeName;
 
-  IsTagHasAttributeSelectorElementImpl(this.tagName, this.attributeName) : super(null, -1);
+  IsTagHasAttributeSelectorElementImpl(String tagName, String attributeName) : super("${tagName}[${attributeName}]", -1) {
+    this._tagName = tagName;
+    this._attributeName = attributeName;
+  }
 
   @override
-  bool apply(XmlTagNode node) => node.tag == tagName && node.getAttribute(attributeName) != null;
+  bool apply(XmlTagNode node) => node.tag == _tagName && node.getAttribute(_attributeName) != null;
+
+  String get attributeName => _attributeName;
+
+  String get tagName => _tagName;
 }
 
 /**
@@ -9900,19 +9939,46 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
    * @return the property accessor element that will return the correctly substituted types
    */
   static PropertyAccessorElement from(PropertyAccessorElement baseAccessor, InterfaceType definingType) {
-    if (baseAccessor == null || definingType.typeArguments.length == 0) {
-      return baseAccessor;
-    }
-    FunctionType baseType = baseAccessor.type;
-    List<DartType> argumentTypes = definingType.typeArguments;
-    List<DartType> parameterTypes = definingType.element.type.typeArguments;
-    FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
-    if (baseType == substitutedType) {
+    if (!_isChangedByTypeSubstitution(baseAccessor, definingType)) {
       return baseAccessor;
     }
     // TODO(brianwilkerson) Consider caching the substituted type in the instance. It would use more
     // memory but speed up some operations. We need to see how often the type is being re-computed.
     return new PropertyAccessorMember(baseAccessor, definingType);
+  }
+
+  /**
+   * Determine whether the given property accessor's type is changed when type parameters from the
+   * defining type's declaration are replaced with the actual type arguments from the defining type.
+   *
+   * @param baseAccessor the base property accessor
+   * @param definingType the type defining the parameters and arguments to be used in the
+   *          substitution
+   * @return true if the type is changed by type substitution.
+   */
+  static bool _isChangedByTypeSubstitution(PropertyAccessorElement baseAccessor, InterfaceType definingType) {
+    List<DartType> argumentTypes = definingType.typeArguments;
+    if (baseAccessor != null && argumentTypes.length != 0) {
+      FunctionType baseType = baseAccessor.type;
+      List<DartType> parameterTypes = definingType.element.type.typeArguments;
+      FunctionType substitutedType = baseType.substitute2(argumentTypes, parameterTypes);
+      if (baseType != substitutedType) {
+        return true;
+      }
+      // If this property accessor is based on a field, that field might have a propagated type.
+      // In which case we need to check whether the propagated type of the field needs substitution.
+      PropertyInducingElement field = baseAccessor.variable;
+      if (!field.isSynthetic) {
+        DartType baseFieldType = field.propagatedType;
+        if (baseFieldType != null) {
+          DartType substitutedFieldType = baseFieldType.substitute2(argumentTypes, parameterTypes);
+          if (baseFieldType != substitutedFieldType) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /**

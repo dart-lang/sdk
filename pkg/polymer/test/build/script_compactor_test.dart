@@ -738,6 +738,125 @@ codegenTests(phases) {
           'main(){}',
     });
 
+  computedDeclaration(name, expr) =>
+      '#$name: const Declaration(#$name, dynamic, kind: PROPERTY,'
+      ' isFinal: true, annotations: const [const smoke_1.ComputedProperty'
+      '(\'$expr\')])';
+
+  testPhases('computed properties', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><body>'
+          '<polymer-element name="x-foo"><template>'
+          '</template></polymer-element>',
+      'a|web/test.html._data': expectedData(['web/a.dart']),
+      'a|web/a.dart':
+          'library a;\n'
+          'import "package:polymer/polymer.dart";\n'
+          '@CustomTag("x-foo")\n'
+          'class XFoo extends PolymerElement {\n'
+          '  @ComputedProperty("ta.tb")\n'
+          '  get pa => readValue(#pa);\n'
+          '  @ComputedProperty(" tc ")\n' // extra space inside is OK
+          '  get pb => null;\n'
+          '  @ComputedProperty("td.m1(te)")\n'
+          '  get pc => null;\n'
+          '  @ComputedProperty("m2(tf)")\n'
+          '  get pd => null;\n'
+          '  @ComputedProperty("")\n'              // empty is ignored
+          '  get pe => null;\n'
+          '  @ComputedProperty(" ")\n'
+          '  get pf => null;\n'
+          '  @ComputedProperty("tg + th")\n'
+          '  get pg => null;\n'
+          '  @ComputedProperty("ti.tj | tk")\n'
+          '  get ph => null;\n'
+          '}\n'
+          'main(){}',
+    }, {
+      'a|web/test.html_bootstrap.dart':
+          '''$MAIN_HEADER
+          import 'a.dart' as i0;
+          ${DEFAULT_IMPORTS.join('\n')}
+          import 'a.dart' as smoke_0;
+          import 'package:polymer/polymer.dart' as smoke_1;
+
+          void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false,
+                getters: {
+                  #m1: (o) => o.m1,
+                  #m2: (o) => o.m2,
+                  #pa: (o) => o.pa,
+                  #pb: (o) => o.pb,
+                  #pc: (o) => o.pc,
+                  #pd: (o) => o.pd,
+                  #pe: (o) => o.pe,
+                  #pf: (o) => o.pf,
+                  #pg: (o) => o.pg,
+                  #ph: (o) => o.ph,
+                  #ta: (o) => o.ta,
+                  #tb: (o) => o.tb,
+                  #tc: (o) => o.tc,
+                  #td: (o) => o.td,
+                  #te: (o) => o.te,
+                  #tf: (o) => o.tf,
+                  #tg: (o) => o.tg,
+                  #th: (o) => o.th,
+                  #ti: (o) => o.ti,
+                  #tj: (o) => o.tj,
+                  #tk: (o) => o.tk,
+                },
+                setters: {
+                  #tb: (o, v) { o.tb = v; },
+                  #tc: (o, v) { o.tc = v; },
+                  #tj: (o, v) { o.tj = v; },
+                },
+                parents: {
+                  smoke_0.XFoo: smoke_1.PolymerElement,
+                },
+                declarations: {
+                  smoke_0.XFoo: {
+                    ${computedDeclaration('pa', 'ta.tb')},
+                    ${computedDeclaration('pb', ' tc ')},
+                    ${computedDeclaration('pc', 'td.m1(te)')},
+                    ${computedDeclaration('pd', 'm2(tf)')},
+                    ${computedDeclaration('pe', '')},
+                    ${computedDeclaration('pf', ' ')},
+                    ${computedDeclaration('pg', 'tg + th')},
+                    ${computedDeclaration('ph', 'ti.tj | tk')},
+                  },
+                },
+                names: {
+                  #m1: r'm1',
+                  #m2: r'm2',
+                  #pa: r'pa',
+                  #pb: r'pb',
+                  #pc: r'pc',
+                  #pd: r'pd',
+                  #pe: r'pe',
+                  #pf: r'pf',
+                  #pg: r'pg',
+                  #ph: r'ph',
+                  #ta: r'ta',
+                  #tb: r'tb',
+                  #tc: r'tc',
+                  #td: r'td',
+                  #te: r'te',
+                  #tf: r'tf',
+                  #tg: r'tg',
+                  #th: r'th',
+                  #ti: r'ti',
+                  #tj: r'tj',
+                  #tk: r'tk',
+                }));
+            configureForDeployment([
+                () => Polymer.register(\'x-foo\', i0.XFoo),
+              ]);
+            i0.main();
+          }
+          '''.replaceAll('\n          ', '\n'),
+    });
+
   final field1Details = "annotations: const [smoke_1.published]";
   final field3Details = "isFinal: true, annotations: const [smoke_1.published]";
   final prop1Details = "kind: PROPERTY, annotations: const [smoke_1.published]";

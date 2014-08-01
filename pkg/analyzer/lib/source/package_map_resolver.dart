@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library resolver.package;
+library source.package_map_resolver;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -81,8 +81,23 @@ class PackageMapUriResolver extends UriResolver {
     // Return a NonExistingSource instance.
     // This helps provide more meaningful error messages to users
     // (a missing file error, as opposed to an invalid URI error).
-    // TODO(scheglov) move NonExistingSource to "source.dart"
     return new NonExistingSource(uri.toString(), UriKind.PACKAGE_URI);
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    String sourcePath = source.fullName;
+    for (String pkgName in packageMap.keys) {
+      List<Folder> pkgFolders = packageMap[pkgName];
+      for (Folder pkgFolder in pkgFolders) {
+        String pkgFolderPath = pkgFolder.path;
+        if (sourcePath.startsWith(pkgFolderPath)) {
+          String relPath = sourcePath.substring(pkgFolderPath.length);
+          return new Uri(path: '${PACKAGE_SCHEME}:$pkgName$relPath');
+        }
+      }
+    }
+    return null;
   }
 
   /**

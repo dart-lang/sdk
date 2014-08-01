@@ -2406,7 +2406,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartEntry = new ScanDartTask(this, source, dartEntry.modificationTime, dartEntry.getValue(SourceEntry.CONTENT)).perform(_resultRecorder) as DartEntry;
       } on AnalysisException catch (exception) {
         throw exception;
-      } on JavaException catch (exception, stackTrace) {
+      } catch (exception, stackTrace) {
         throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
       }
       state = dartEntry.getState(descriptor);
@@ -2488,7 +2488,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         htmlEntry = new ParseHtmlTask(this, source, htmlEntry.modificationTime, htmlEntry.getValue(SourceEntry.CONTENT)).perform(_resultRecorder) as HtmlEntry;
       } on AnalysisException catch (exception) {
         throw exception;
-      } on JavaException catch (exception, stackTrace) {
+      } catch (exception, stackTrace) {
         throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
       }
       state = htmlEntry.getState(descriptor);
@@ -3307,6 +3307,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * @return the next task that needs to be performed for the given source
    */
   AnalysisContextImpl_TaskData _getNextAnalysisTaskForSource(Source source, SourceEntry sourceEntry, bool isPriority, bool hintsEnabled) {
+    // Refuse to generate tasks for html based files that are above 1500 KB
+//    if (sourceEntry is HtmlEntryImpl && source is FileBasedSource) {
+//      // TODO (jwren) we still need to report an error of some kind back to the client.
+//      JavaFile file = (source as FileBasedSource).file;
+//      if (file.length() > (1500 * 1024)) {
+//        return new AnalysisContextImpl_TaskData(null, false);
+//      }
+//    }
     if (sourceEntry == null) {
       return new AnalysisContextImpl_TaskData(null, false);
     }
@@ -5696,18 +5704,21 @@ class AnalysisContextImpl_CycleBuilder {
     List<CycleBuilder_SourceEntryPair> pairs = new List<CycleBuilder_SourceEntryPair>();
     Source librarySource = library.librarySource;
     DartEntry libraryEntry = AnalysisContextImpl_this._getReadableDartEntry(librarySource);
-    if (libraryEntry != null && libraryEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
-      _ensureResolvableCompilationUnit(librarySource, libraryEntry);
-      pairs.add(new CycleBuilder_SourceEntryPair(librarySource, libraryEntry));
-      List<Source> partSources = _getSources(librarySource, libraryEntry, DartEntry.INCLUDED_PARTS);
-      int count = partSources.length;
-      for (int i = 0; i < count; i++) {
-        Source partSource = partSources[i];
-        DartEntry partEntry = AnalysisContextImpl_this._getReadableDartEntry(partSource);
-        if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
-          _ensureResolvableCompilationUnit(partSource, partEntry);
-          pairs.add(new CycleBuilder_SourceEntryPair(partSource, partEntry));
-        }
+    if (libraryEntry == null) {
+      throw new AnalysisException("Cannot find entry for ${librarySource.fullName}");
+    } else if (libraryEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
+      throw new AnalysisException("Cannot compute parsed unit for ${librarySource.fullName}");
+    }
+    _ensureResolvableCompilationUnit(librarySource, libraryEntry);
+    pairs.add(new CycleBuilder_SourceEntryPair(librarySource, libraryEntry));
+    List<Source> partSources = _getSources(librarySource, libraryEntry, DartEntry.INCLUDED_PARTS);
+    int count = partSources.length;
+    for (int i = 0; i < count; i++) {
+      Source partSource = partSources[i];
+      DartEntry partEntry = AnalysisContextImpl_this._getReadableDartEntry(partSource);
+      if (partEntry != null && partEntry.getState(DartEntry.PARSED_UNIT) != CacheState.ERROR) {
+        _ensureResolvableCompilationUnit(partSource, partEntry);
+        pairs.add(new CycleBuilder_SourceEntryPair(partSource, partEntry));
       }
     }
     return pairs;
@@ -6635,7 +6646,7 @@ abstract class AnalysisTask {
       internalPerform();
     } on AnalysisException catch (exception) {
       throw exception;
-    } on JavaException catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
     }
   }
@@ -13309,7 +13320,7 @@ class ParseHtmlTask extends AnalysisTask {
       _unit.accept(new RecursiveXmlVisitor_ParseHtmlTask_internalPerform(this, errorListener));
       _errors = errorListener.getErrorsForSource(source);
       _referencedLibraries = librarySources;
-    } on JavaException catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
     }
   }
@@ -14916,7 +14927,7 @@ class ScanDartTask extends AnalysisTask {
       _tokenStream = scanner.tokenize();
       _lineInfo = new LineInfo(scanner.lineStarts);
       _errors = errorListener.getErrorsForSource(source);
-    } on JavaException catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       throw new AnalysisException("Exception", new CaughtException(exception, stackTrace));
     } finally {
       timeCounterScan.stop();

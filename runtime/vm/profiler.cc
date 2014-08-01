@@ -34,8 +34,13 @@ DEFINE_FLAG(int, profile_period, 1000,
             "Time between profiler samples in microseconds. Minimum 50.");
 DEFINE_FLAG(int, profile_depth, 8,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
+#if defined(PROFILE_NATIVE_CODE)
+DEFINE_FLAG(bool, profile_vm, true,
+            "Always collect native stack traces.");
+#else
 DEFINE_FLAG(bool, profile_vm, false,
             "Always collect native stack traces.");
+#endif
 
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;

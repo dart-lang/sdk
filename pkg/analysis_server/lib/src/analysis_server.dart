@@ -17,8 +17,8 @@ import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
-import 'package:analysis_server/src/package_uri_resolver.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -401,6 +402,8 @@ class AnalysisServer {
             'Unexpected exception during analysis',
             new CaughtException(exception, stackTrace));
       }
+      _sendServerErrorNotification(exception, stackTrace);
+      shutdown();
     } finally {
       if (!operationQueue.isEmpty) {
         _schedulePerformOperation();
@@ -693,6 +696,16 @@ class AnalysisServer {
     }
   }
 
+  void shutdown() {
+    running = false;
+    if (index != null) {
+      index.clear();
+      index.stop();
+    }
+    // Defer closing the channel so that the shutdown response can be sent.
+    new Future(channel.close);
+  }
+
   /**
    * Return the [CompilationUnit] of the Dart file with the given [path].
    * Return `null` if the file is not a part of any context.
@@ -725,6 +738,32 @@ class AnalysisServer {
    */
   void _schedulePerformOperation() {
     new Future(performOperation);
+  }
+
+  /**
+   * Sends a fatal `server.error` notification.
+   */
+  void _sendServerErrorNotification(exception, stackTrace) {
+    // prepare exception.toString()
+    String exceptionString;
+    if (exception != null) {
+      exceptionString = exception.toString();
+    } else {
+      exceptionString = 'null exception';
+    }
+    // prepare stackTrace.toString()
+    String stackTraceString;
+    if (stackTrace != null) {
+      stackTraceString = stackTrace.toString();
+    } else {
+      stackTraceString = 'null stackTrace';
+    }
+    // send the notification
+    Notification notification = new Notification(SERVER_ERROR);
+    notification.setParameter(FATAL, true);
+    notification.setParameter(MESSAGE, exceptionString);
+    notification.setParameter(STACK_TRACE, stackTraceString);
+    channel.sendNotification(notification);
   }
 }
 

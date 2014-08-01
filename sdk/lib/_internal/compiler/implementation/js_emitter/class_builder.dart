@@ -24,8 +24,10 @@ class ClassBuilder {
   ClassBuilder(this.element, this.namer);
 
   // Has the same signature as [DefineStubFunction].
-  void addProperty(String name, jsAst.Expression value) {
-    properties.add(new jsAst.Property(js.string(name), value));
+  jsAst.Property addProperty(String name, jsAst.Expression value) {
+    jsAst.Property property = new jsAst.Property(js.string(name), value);
+    properties.add(property);
+    return property;
   }
 
   void addField(String field) {

@@ -139,8 +139,7 @@ main() {
   test_getHover_noInfo() {
     String filename = 'test.dart';
     String pathname = normalizePath(filename);
-    String text =
-        r'''
+    String text = r'''
 main() {
   // no code
 }
@@ -153,12 +152,102 @@ main() {
     // request is made.  So wait for analysis to finish before testing anything.
     return analysisFinished.then((_) {
       return server.send(ANALYSIS_GET_HOVER, {
-              'file': pathname,
-              'offset': text.indexOf('no code')
-            }).then((result) {
-              expect(result, isAnalysisGetHoverResult);
-              expect(result['hovers'], hasLength(0));
+        'file': pathname,
+        'offset': text.indexOf('no code')
+      }).then((result) {
+        expect(result, isAnalysisGetHoverResult);
+        expect(result['hovers'], hasLength(0));
       });
+    });
+  }
+
+  test_getErrors_before_analysis() {
+    return getErrorsTest(false);
+  }
+
+  test_getErrors_after_analysis() {
+    return getErrorsTest(true);
+  }
+
+  Future getErrorsTest(bool afterAnalysis) {
+    String filename = 'test.dart';
+    String pathname = normalizePath(filename);
+    String text = r'''
+main() {
+  var x // parse error: missing ';'
+}''';
+    writeFile(filename, text);
+    setAnalysisRoots(['']);
+    Future finishTest() {
+      return server.send(ANALYSIS_GET_ERRORS, {
+        'file': pathname
+      }).then((result) {
+        expect(result, isAnalysisGetErrorsResult);
+        expect(result['errors'], equals(currentAnalysisErrors[pathname]));
+      });
+    }
+    if (afterAnalysis) {
+      return analysisFinished.then((_) => finishTest());
+    } else {
+      return finishTest();
+    }
+  }
+
+  test_updateContent_content_only() {
+    return updateContentTest(false);
+  }
+
+  test_updateContent_including_offset_and_lengths() {
+    return updateContentTest(true);
+  }
+
+  Future updateContentTest(bool includeOffsetAndLengths) {
+    String filename = 'test.dart';
+    String pathname = normalizePath(filename);
+    String goodText = r'''
+main() {
+  print("Hello, world!");
+}''';
+    String badText = goodText.replaceAll(';', '');
+    writeFile(filename, badText);
+    setAnalysisRoots(['']);
+    return analysisFinished.then((_) {
+      // The contents on disk (badText) are missing a semicolon.
+      expect(currentAnalysisErrors[pathname], isNot(isEmpty));
+      var contentChange = {
+        'content': goodText
+      };
+      if (includeOffsetAndLengths) {
+        contentChange['offset'] = goodText.indexOf(';');
+        contentChange['oldLength'] = 0;
+        contentChange['newLength'] = 1;
+      }
+      return server.send(ANALYSIS_UPDATE_CONTENT, {
+        'files': {
+          pathname: contentChange
+        }
+      });
+    }).then((result) {
+      expect(result, isNull);
+      return analysisFinished;
+    }).then((_) {
+      // There should be no errors now because the contents on disk have been
+      // overriden with goodText.
+      expect(currentAnalysisErrors[pathname], isEmpty);
+      return server.send(ANALYSIS_UPDATE_CONTENT, {
+        'files': {
+          pathname: {
+            'content': null
+          }
+        }
+      });
+    }).then((result) {
+      expect(result, isNull);
+      return analysisFinished;
+    }).then((_) {
+      // Now there should be errors again, because the contents on disk are no
+      // longer overridden.
+      expect(currentAnalysisErrors[pathname], isNot(isEmpty));
     });
   }
 }

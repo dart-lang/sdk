@@ -133,6 +133,7 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   List<Response> responsesReceived = [];
   List<Notification> notificationsReceived = [];
+  bool _closed = false;
 
   MockServerChannel() {
   }
@@ -144,6 +145,10 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   @override
   void sendNotification(Notification notification) {
+    // Don't deliver notifications after the connection is closed.
+    if (_closed) {
+      return;
+    }
     notificationsReceived.add(notification);
     // Wrap send notification in future to simulate websocket
     // TODO(scheglov) ask Dan why and decide what to do
@@ -155,6 +160,10 @@ class MockServerChannel implements ServerCommunicationChannel {
    * Simulate request/response pair.
    */
   Future<Response> sendRequest(Request request) {
+    // No further requests should be sent after the connection is closed.
+    if (_closed) {
+      throw new Exception('sendRequest after connection closed');
+    }
     // Wrap send request in future to simulate websocket
     new Future(() => requestController.add(request));
     return waitForResponse(request);
@@ -162,6 +171,10 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   @override
   void sendResponse(Response response) {
+    // Don't deliver responses after the connection is closed.
+    if (_closed) {
+      return;
+    }
     responsesReceived.add(response);
     // Wrap send response in future to simulate websocket
     new Future(() => responseController.add(response));
@@ -180,6 +193,11 @@ class MockServerChannel implements ServerCommunicationChannel {
     return responseController.stream.firstWhere((response) {
       return response.id == id;
     });
+  }
+
+  @override
+  void close() {
+    _closed = true;
   }
 }
 

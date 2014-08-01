@@ -74,9 +74,12 @@ Matcher isMinifiedDart2JSOutput =
 Matcher isUnminifiedDart2JSOutput =
     contains("// The code supports the following hooks");
 
-/// The directory containing the version of barback that should be used for this
-/// test.
-String _barbackDir;
+/// A map from package names to paths from which those packages should be loaded
+/// for [createLockFile].
+///
+/// This allows older versions of dependencies than those that exist in the repo
+/// to be used when testing pub.
+Map<String, String> _packageOverrides;
 
 /// A map from barback versions to the paths of directories in the repo
 /// containing them.
@@ -84,6 +87,18 @@ String _barbackDir;
 /// This includes the latest version of barback from pkg as well as all old
 /// versions of barback in third_party.
 final _barbackVersions = _findBarbackVersions();
+
+/// Some older barback versions require older versions of barback's dependencies
+/// than those that are in the repo.
+///
+/// This is a map from barback version ranges to the dependencies for those
+/// barback versions. Each dependency version listed here should be included in
+/// third_party/pkg.
+final _barbackDeps = {
+  new VersionConstraint.parse("<0.15.0"): {
+    "source_maps": "0.9.4"
+  }
+};
 
 /// Populates [_barbackVersions].
 Map<Version, String> _findBarbackVersions() {
@@ -119,7 +134,19 @@ void withBarbackVersions(String versionConstraint, void callback()) {
   for (var version in validVersions) {
     group("with barback $version", () {
       setUp(() {
-        _barbackDir = _barbackVersions[version];
+        _packageOverrides = {};
+        _packageOverrides['barback'] = _barbackVersions[version];
+        _barbackDeps.forEach((constraint, deps) {
+          if (!constraint.allows(version)) return;
+          deps.forEach((packageName, version) {
+            _packageOverrides[packageName] = path.join(
+                repoRoot, 'third_party', 'pkg', '$packageName-$version');
+          });
+        });
+
+        currentSchedule.onComplete.schedule(() {
+          _packageOverrides = null;
+        });
       });
 
       callback();
@@ -789,13 +816,14 @@ Iterable<String> pkg, Map<String, String> hosted}) {
       if (dependencies.containsKey(package)) return;
 
       var packagePath;
-      if (package == 'barback') {
-        if (_barbackDir == null) {
-          throw new StateError("createLockFile() can only create a lock file "
-              "with a barback dependency within a withBarbackVersions() "
-              "block.");
-        }
-        packagePath = _barbackDir;
+      if (package == 'barback' && _packageOverrides == null) {
+        throw new StateError("createLockFile() can only create a lock file "
+            "with a barback dependency within a withBarbackVersions() "
+            "block.");
+      }
+
+      if (_packageOverrides.containsKey(package)) {
+        packagePath = _packageOverrides[package];
       } else {
         packagePath = path.join(pkgPath, package);
       }

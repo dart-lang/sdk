@@ -28,9 +28,9 @@ class HTTPRequestDataReader implements LocaleDataReader {
     return _getString('$url$locale.json?cacheBlocker=$someNumber', request)
       .then((r) => r.responseText);
   }
-  
+
   /// Read a string with the given request. This is a stripped down copy
-  /// of HttpRequest getString, but was the simplest way I could find to 
+  /// of HttpRequest getString, but was the simplest way I could find to
   /// issue a request with a timeout.
   Future<HttpRequest> _getString(String url, HttpRequest xhr) {
     var completer = new Completer<HttpRequest>();

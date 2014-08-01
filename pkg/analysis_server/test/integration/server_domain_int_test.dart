@@ -16,13 +16,12 @@ import 'integration_tests.dart';
 class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
     {
   test_getVersion() {
-    return server.send('server.getVersion', null).then((response) {
+    return server.send(SERVER_GET_VERSION, null).then((response) {
       expect(response, isServerGetVersionResult);
     });
   }
 
-  fail_test_shutdown() {
-    // TODO(paulberry): fix the server so that it passes this test.
+  test_shutdown() {
     return server.send(SERVER_SHUTDOWN, null).then((response) {
       expect(response, isNull);
       return new Future.delayed(new Duration(seconds: 1)).then((_) {
@@ -83,13 +82,7 @@ main() {
   }
 
   test_connected() {
-    Completer receivedConnected = new Completer();
-    server.onNotification(SERVER_CONNECTED).listen((params) {
-      expect(receivedConnected.isCompleted, isFalse);
-      receivedConnected.complete();
-      expect(params, isNull);
-    });
-    return receivedConnected.future;
+    expect(serverConnectedParams, isNull);
   }
 
   test_error() {

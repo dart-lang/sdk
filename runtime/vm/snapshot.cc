@@ -136,6 +136,12 @@ const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {
          ((1 << RawObject::kWatchedBit) | (1 << RawObject::kMarkBit)));
   ASSERT((kObjectAlignmentMask & kObjectId) == kObjectId);
   const Snapshot* snapshot = reinterpret_cast<const Snapshot*>(raw_memory);
+  // If the raw length is negative or greater than what the local machine can
+  // handle, then signal an error.
+  int64_t snapshot_length = ReadUnaligned(&snapshot->unaligned_length_);
+  if ((snapshot_length < 0) || (snapshot_length > kIntptrMax)) {
+    return NULL;
+  }
   return snapshot;
 }
 
@@ -745,7 +751,7 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   Heap* heap = isolate()->heap();
 
-  uword address = heap->TryAllocate(size, Heap::kOld);
+  uword address = heap->TryAllocate(size, Heap::kOld, PageSpace::kForceGrowth);
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.

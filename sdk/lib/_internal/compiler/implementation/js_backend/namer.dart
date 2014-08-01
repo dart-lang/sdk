@@ -359,11 +359,10 @@ class Namer implements ClosureNamer {
     if (!isPrivateName(name)) return nameString;
 
     // The first library asking for a short private name wins.
-    LibraryElement owner = shouldMinify
-        ? library
-        : shortPrivateNameOwners.putIfAbsent(nameString, () => library);
+    LibraryElement owner =
+        shortPrivateNameOwners.putIfAbsent(nameString, () => library);
 
-    if (owner == library && !shouldMinify && !nameString.contains('\$')) {
+    if (owner == library && !nameString.contains('\$')) {
       // Since the name doesn't contain $ it doesn't clash with any
       // of the private names that have the library name as the prefix.
       return nameString;

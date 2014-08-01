@@ -11,6 +11,14 @@ import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
 
 /**
+ * Returns a JSON correponding to the given Engine element.
+ */
+Map<String, Object> engineElementToJson(engine.Element element) {
+  return new Element.fromEngine(element).toJson();
+}
+
+
+/**
  * Information about an element.
  */
 class Element {
@@ -354,6 +362,15 @@ class Location {
         startColumn);
   }
 
+  factory Location.fromJson(Map<String, Object> map) {
+    return new Location(
+        map[FILE],
+        map[OFFSET],
+        map[LENGTH],
+        map[START_LINE],
+        map[START_COLUMN]);
+  }
+
   factory Location.fromOffset(engine.Element element, int offset, int length) {
     Source source = element.source;
     LineInfo lineInfo = element.context.getLineInfo(source);
@@ -368,15 +385,6 @@ class Location {
         length,
         startLine,
         startColumn);
-  }
-
-  factory Location.fromJson(Map<String, Object> map) {
-    return new Location(
-        map[FILE],
-        map[OFFSET],
-        map[LENGTH],
-        map[START_LINE],
-        map[START_COLUMN]);
   }
 
   Map<String, Object> toJson() {

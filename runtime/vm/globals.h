@@ -51,8 +51,8 @@ const intptr_t kOffsetOfPtr = 32;
   (reinterpret_cast<intptr_t>(&(reinterpret_cast<type*>(kOffsetOfPtr)->field)) \
       - kOffsetOfPtr)
 
-#define OFFSET_OF_RETURNED_VALUE(type, accessor)                            \
-  (reinterpret_cast<intptr_t>(                                              \
+#define OFFSET_OF_RETURNED_VALUE(type, accessor)                               \
+  (reinterpret_cast<intptr_t>(                                                 \
       (reinterpret_cast<type*>(kOffsetOfPtr)->accessor())) - kOffsetOfPtr)
 
 

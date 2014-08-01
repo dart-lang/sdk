@@ -6,12 +6,13 @@ library observe.src.list_diff;
 
 import 'dart:math' as math;
 import 'dart:collection' show UnmodifiableListView;
+import 'change_record.dart' show ChangeRecord;
 
 /// A summary of an individual change to a [List].
 ///
 /// Each delta represents that at the [index], [removed] sequence of items were
 /// removed, and counting forward from [index], [addedCount] items were added.
-class ListChangeRecord {
+class ListChangeRecord extends ChangeRecord {
   /// The list that changed.
   final List object;
 

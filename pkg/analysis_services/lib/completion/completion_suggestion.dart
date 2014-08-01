@@ -12,13 +12,59 @@ import 'package:analyzer/src/generated/element.dart';
  * A single completion suggestion.
  */
 class CompletionSuggestion implements HasToJson {
+
+  /**
+   *  The kind of element being suggested.
+   */
   final CompletionSuggestionKind kind;
+
+  /**
+   * The relevance of this completion suggestion.
+   */
   final CompletionRelevance relevance;
+
+  /**
+   * The identifier to be inserted if the suggestion is selected.
+   * If the suggestion is for a method or function, the client might want to
+   * additionally insert a template for the parameters.
+   * The information required in order to do so is contained in other fields.
+   */
   final String completion;
+
+  /**
+   * The offset, relative to the beginning of the completion, of where
+   * the selection should be placed after insertion.
+   */
   final int selectionOffset;
+
+  /**
+   * The number of characters that should be selected after insertion.
+   */
   final int selectionLength;
+
+  /**
+   * `true` if the suggested element is deprecated.
+   */
   final bool isDeprecated;
+
+  /**
+   * True if the element is not known to be valid for the target.
+   * This happens if the type of the target is dynamic.
+   */
   final bool isPotential;
+
+  // optional fields
+
+//  final String docSummary;
+//  final String docComplete;
+//  final String declaringType;
+//  final String returnType;
+//  final List<String> parameterNames;
+//  final List<String> parameterTypes;
+//  final int requiredParameterCount;
+//  final int positionalParameterCount;
+//  final String parameterName;
+//  final String parameterType;
 
   CompletionSuggestion(this.kind, this.relevance, this.completion,
       this.selectionOffset, this.selectionLength, this.isDeprecated,
@@ -66,6 +112,8 @@ class CompletionSuggestionKind {
       const CompletionSuggestionKind('FUNCTION');
   static const CompletionSuggestionKind FUNCTION_ALIAS =
       const CompletionSuggestionKind('FUNCTION_ALIAS');
+  static const CompletionSuggestionKind FUNCTION_TYPE_ALIAS =
+      const CompletionSuggestionKind('FUNCTION_TYPE_ALIAS');
   static const CompletionSuggestionKind GETTER =
       const CompletionSuggestionKind('GETTER');
   static const CompletionSuggestionKind IMPORT =
@@ -107,6 +155,7 @@ class CompletionSuggestionKind {
     if (FIELD.name == name) return FIELD;
     if (FUNCTION.name == name) return FUNCTION;
     if (FUNCTION_ALIAS.name == name) return FUNCTION_ALIAS;
+    if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
     if (GETTER.name == name) return GETTER;
     if (IMPORT.name == name) return IMPORT;
     if (LIBRARY_PREFIX.name == name) return LIBRARY_PREFIX;
@@ -149,7 +198,6 @@ class CompletionSuggestionKind {
     //    ElementKind.LIBRARY,
     //    ElementKind.LOCAL_VARIABLE,
     if (kind == ElementKind.METHOD) return METHOD;
-    //    ElementKind.METHOD,
     //    ElementKind.NAME,
     if (kind == ElementKind.PARAMETER) return PARAMETER;
     //    ElementKind.POLYMER_ATTRIBUTE,
@@ -158,7 +206,7 @@ class CompletionSuggestionKind {
     //    ElementKind.PREFIX,
     if (kind == ElementKind.SETTER) return SETTER;
     if (kind == ElementKind.TOP_LEVEL_VARIABLE) return TOP_LEVEL_VARIABLE;
-    //    ElementKind.FUNCTION_TYPE_ALIAS,
+    if (kind == ElementKind.FUNCTION_TYPE_ALIAS) return FUNCTION_TYPE_ALIAS;
     //    ElementKind.TYPE_PARAMETER,
     //    ElementKind.UNIVERSE
     throw new ArgumentError('Unknown CompletionSuggestionKind for: $kind');

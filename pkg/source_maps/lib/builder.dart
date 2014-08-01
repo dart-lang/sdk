@@ -9,9 +9,10 @@ library source_maps.builder;
 
 import 'dart:convert';
 
+import 'package:source_span/source_span.dart';
+
 import 'parser.dart';
-import 'span.dart';
-import 'src/span_wrapper.dart';
+import 'src/source_map_span.dart';
 
 /// Builds a source map given a set of mappings.
 class SourceMapBuilder {
@@ -19,39 +20,33 @@ class SourceMapBuilder {
   final List<Entry> _entries = <Entry>[];
 
   /// Adds an entry mapping the [targetOffset] to [source].
-  ///
-  /// [source] can be either a [Location] or a [SourceLocation]. Using a
-  /// [Location] is deprecated and will be unsupported in version 0.10.0.
-  void addFromOffset(source, targetFile, int targetOffset, String identifier) {
+  void addFromOffset(SourceLocation source, SourceFile targetFile,
+      int targetOffset, String identifier) {
     if (targetFile == null) {
       throw new ArgumentError('targetFile cannot be null');
     }
-    _entries.add(new Entry(source,
-          new FileLocation(targetFile, targetOffset), identifier));
+    _entries.add(
+        new Entry(source, targetFile.location(targetOffset), identifier));
   }
 
   /// Adds an entry mapping [target] to [source].
   ///
-  /// [source] and [target] can be either a [Span] or a [SourceSpan]. Using a
-  /// [Span] is deprecated and will be unsupported in version 0.10.0.
-  ///
-  /// If [isIdentifier] is true, this entry is considered to represent an
-  /// identifier whose value will be stored in the source map.
-  void addSpan(source, target, {bool isIdentifier}) {
-    source = SpanWrapper.wrap(source);
-    target = SpanWrapper.wrap(target);
-    if (isIdentifier == null) isIdentifier = source.isIdentifier;
+  /// If [isIdentifier] is true or if [target] is a [SourceMapSpan] with
+  /// `isIdentifier` set to true, this entry is considered to represent an
+  /// identifier whose value will be stored in the source map. [isIdenfier]
+  /// takes precedence over [target]'s `isIdentifier` value.
+  void addSpan(SourceSpan source, SourceSpan target, {bool isIdentifier}) {
+    if (isIdentifier == null) {
+      isIdentifier = source is SourceMapSpan ? source.isIdentifier : false;
+    }
 
     var name = isIdentifier ? source.text : null;
     _entries.add(new Entry(source.start, target.start, name));
   }
 
   /// Adds an entry mapping [target] to [source].
-  ///
-  /// [source] and [target] can be either a [Location] or a [SourceLocation].
-  /// Using a [Location] is deprecated and will be unsupported in version
-  /// 0.10.0.
-  void addLocation(source, target, String identifier) {
+  void addLocation(SourceLocation source, SourceLocation target,
+      String identifier) {
     _entries.add(new Entry(source, target, identifier));
   }
 
@@ -67,22 +62,16 @@ class SourceMapBuilder {
 /// An entry in the source map builder.
 class Entry implements Comparable {
   /// Span denoting the original location in the input source file
-  final Location source;
+  final SourceLocation source;
 
   /// Span indicating the corresponding location in the target file.
-  final Location target;
+  final SourceLocation target;
 
   /// An identifier name, when this location is the start of an identifier.
   final String identifierName;
 
   /// Creates a new [Entry] mapping [target] to [source].
-  ///
-  /// [source] and [target] can be either a [Location] or a [SourceLocation].
-  /// Using a [Location] is deprecated and will be unsupported in version
-  /// 0.10.0.
-  Entry(source, target, this.identifierName)
-      : source = LocationWrapper.wrap(source),
-        target = LocationWrapper.wrap(target);
+  Entry(this.source, this.target, this.identifierName);
 
   /// Implements [Comparable] to ensure that entries are ordered by their
   /// location in the target file. We sort primarily by the target offset
@@ -91,7 +80,8 @@ class Entry implements Comparable {
   int compareTo(Entry other) {
     int res = target.compareTo(other.target);
     if (res != 0) return res;
-    res = source.sourceUrl.compareTo(other.source.sourceUrl);
+    res = source.sourceUrl.toString().compareTo(
+        other.source.sourceUrl.toString());
     if (res != 0) return res;
     return source.compareTo(other.source);
   }

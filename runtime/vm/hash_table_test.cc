@@ -33,6 +33,9 @@ class TestTraits {
   static uword Hash(const Object& obj) {
     return String::Cast(obj).Length();
   }
+  static RawObject* NewKey(const char* key) {
+    return String::New(key);
+  }
 };
 
 
@@ -57,7 +60,7 @@ void Validate(const Table& table) {
 
 TEST_CASE(HashTable) {
   typedef HashTable<TestTraits, 2, 1> Table;
-  Table table(Array::Handle(HashTables::New<Table>(5)));
+  Table table(HashTables::New<Table>(5));
   // Ensure that we did get at least 5 entries.
   EXPECT_LE(5, table.NumEntries());
   EXPECT_EQ(0, table.NumOccupied());
@@ -118,7 +121,7 @@ TEST_CASE(HashTable) {
 
 TEST_CASE(EnumIndexHashMap) {
   typedef EnumIndexHashMap<TestTraits> Table;
-  Table table(Array::Handle(HashTables::New<Table>(5)));
+  Table table(HashTables::New<Table>(5));
   table.UpdateOrInsert(String::Handle(String::New("a")),
                        String::Handle(String::New("A")));
   EXPECT(table.ContainsKey("a"));
@@ -128,6 +131,18 @@ TEST_CASE(EnumIndexHashMap) {
   EXPECT(a_value.Equals("AAA"));
   Object& null_value = Object::Handle(table.GetOrNull("0"));
   EXPECT(null_value.IsNull());
+
+  // Test on-demand allocation of a new key object using NewKey in traits.
+  String& b_value = String::Handle();
+  b_value ^=
+      table.InsertNewOrGetValue("b", String::Handle(String::New("BBB")));
+  EXPECT(b_value.Equals("BBB"));
+  {
+    // When the key is already present, there should be no allocation.
+    NoGCScope no_gc;
+    b_value ^= table.InsertNewOrGetValue("b", a_value);
+    EXPECT(b_value.Equals("BBB"));
+  }
   table.Release();
 }
 
@@ -213,7 +228,7 @@ void VerifyStringMapsEqual(const std::map<std::string, int>& expected,
 template<typename Set>
 void TestSet(intptr_t initial_capacity, bool ordered) {
   std::set<std::string> expected;
-  Set actual(Array::Handle(HashTables::New<Set>(initial_capacity)));
+  Set actual(HashTables::New<Set>(initial_capacity));
   // Insert the following strings twice:
   // aaa...aaa (length 26)
   // bbb..bbb
@@ -238,7 +253,7 @@ void TestSet(intptr_t initial_capacity, bool ordered) {
 template<typename Map>
 void TestMap(intptr_t initial_capacity, bool ordered) {
   std::map<std::string, int> expected;
-  Map actual(Array::Handle(HashTables::New<Map>(initial_capacity)));
+  Map actual(HashTables::New<Map>(initial_capacity));
   // Insert the following (strings, int) mapping:
   // aaa...aaa -> 26
   // bbb..bbb -> 25

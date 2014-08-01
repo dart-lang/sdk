@@ -2624,8 +2624,25 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 /* TODO(turnidge): Consider returning Dart_Null() when the library is
  * not found to distinguish that from a true error case. */
 
+
+/**
+ * Report an loading error for the library.
+ *
+ * \param library The library that failed to load.
+ * \param error The Dart error instance containing the load error.
+ *
+ * \return If the VM handles the error, the return value is
+ * a null handle. If it doesn't handle the error, the error
+ * object is returned.
+ */
+DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library,
+                                                Dart_Handle error);
+
+
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source);
+                                         Dart_Handle source,
+                                         intptr_t line_offset,
+                                         intptr_t column_offset);
 
 /**
  * Imports a library into another library, optionally with a prefix.
@@ -2653,7 +2670,9 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
  */
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
-                                        Dart_Handle source);
+                                        Dart_Handle source,
+                                        intptr_t line_offset,
+                                        intptr_t column_offset);
 /* TODO(turnidge): Rename to Dart_LibraryLoadSource? */
 
 

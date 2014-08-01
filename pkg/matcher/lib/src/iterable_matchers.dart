@@ -6,8 +6,8 @@ library matcher.iterable_matchers;
 
 import 'core_matchers.dart';
 import 'description.dart';
-import 'expect.dart';
 import 'interfaces.dart';
+import 'util.dart';
 
 /// Returns a matcher which matches [Iterable]s in which all elements
 /// match the given [matcher].

@@ -187,6 +187,10 @@ const POLYMER_MOCKS = const {
       'part of polymer;\n'
       'class PublishedProperty { const PublishedProperty(); }\n'
       'const published = const PublishedProperty();\n'
+      'class ComputedProperty {'
+      '  final String expression;\n'
+      '  const ComputedProperty();'
+      '}\n'
       'class ObserveProperty { const ObserveProperty(); }\n'
       'abstract class Polymer {}\n'
       'class PolymerElement extends HtmlElement with Polymer {}\n',

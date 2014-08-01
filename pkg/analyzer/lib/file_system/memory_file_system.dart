@@ -217,7 +217,7 @@ class _MemoryFileSource implements Source {
   int get hashCode => _file.hashCode;
 
   @override
-  bool get isInSystemLibrary => false;
+  bool get isInSystemLibrary => uriKind == UriKind.DART_URI;
 
   @override
   int get modificationStamp => _file._timestamp;

@@ -6,7 +6,7 @@ library csslib.parser;
 
 import 'dart:math' as math;
 
-import 'package:source_maps/span.dart' show SourceFile, Span, FileSpan;
+import 'package:source_span/source_span.dart';
 
 import "visitor.dart";
 import 'src/messages.dart';
@@ -59,7 +59,7 @@ StyleSheet compile(input, {List<Message> errors, List<String> options,
 
   _createMessages(errors: errors, options: options);
 
-  var file = new SourceFile.text(null, source);
+  var file = new SourceFile(source);
 
   var tree = new _Parser(file, source).parse();
 
@@ -91,7 +91,7 @@ StyleSheet parse(input, {List<Message> errors, List<String> options}) {
 
   _createMessages(errors: errors, options: options);
 
-  var file = new SourceFile.text(null, source);
+  var file = new SourceFile(source);
   return new _Parser(file, source).parse();
 }
 
@@ -106,7 +106,7 @@ StyleSheet selector(input, {List<Message> errors}) {
 
   _createMessages(errors: errors);
 
-  var file = new SourceFile.text(null, source);
+  var file = new SourceFile(source);
   return (new _Parser(file, source)
       ..tokenizer.inSelector = true)
       .parseSelector();
@@ -117,7 +117,7 @@ SelectorGroup parseSelectorGroup(input, {List<Message> errors}) {
 
   _createMessages(errors: errors);
 
-  var file = new SourceFile.text(null, source);
+  var file = new SourceFile(source);
   return (new _Parser(file, source)
       // TODO(jmesserly): this fix should be applied to the parser. It's tricky
       // because by the time the flag is set one token has already been fetched.
@@ -320,21 +320,21 @@ class _Parser {
     _error(message, tok.span);
   }
 
-  void _error(String message, Span location) {
+  void _error(String message, SourceSpan location) {
     if (location == null) {
       location = _peekToken.span;
     }
     messages.error(message, location);
   }
 
-  void _warning(String message, Span location) {
+  void _warning(String message, SourceSpan location) {
     if (location == null) {
       location = _peekToken.span;
     }
     messages.warning(message, location);
   }
 
-  Span _makeSpan(int start) {
+  SourceSpan _makeSpan(int start) {
     // TODO(terry): there are places where we are creating spans before we eat
     // the tokens, so using _previousToken.end is not always valid.
     var end = _previousToken != null && _previousToken.end >= start
@@ -942,7 +942,7 @@ class _Parser {
     return tokId;
   }
 
-  IncludeDirective processInclude(Span span, {bool eatSemiColon: true}) {
+  IncludeDirective processInclude(SourceSpan span, {bool eatSemiColon: true}) {
     /* Stylet grammar:
     *
      *  @include IDENT [(args,...)];
@@ -2283,7 +2283,7 @@ class _Parser {
   }
 
   /** Process all dimension units. */
-  LiteralTerm processDimension(Token t, var value, Span span) {
+  LiteralTerm processDimension(Token t, var value, SourceSpan span) {
     LiteralTerm term;
     var unitType = this._peek();
 
@@ -2538,7 +2538,7 @@ class _Parser {
     }
   }
 
-  HexColorTerm _parseHex(String hexText, Span span) {
+  HexColorTerm _parseHex(String hexText, SourceSpan span) {
     var hexValue = 0;
 
      for (var i = 0; i < hexText.length; i++) {

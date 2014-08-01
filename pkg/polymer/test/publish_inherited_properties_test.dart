@@ -6,6 +6,7 @@ import 'dart:html';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:polymer/polymer.dart';
+import 'package:logging/logging.dart';
 
 // Dart note: unlike JS, you can't publish something that doesn't
 // have a corresponding field because we can't dynamically add properties.
@@ -26,16 +27,20 @@ class XBar extends XFoo {
 class XZot extends XBar {
   XZot.created() : super.created();
 
+  // Note: this is published because it appears in the `attributes` attribute.
   var m;
+
   @published int zot = 3;
 }
 
-// TODO(sigmund): uncomment this part of the test too (see dartbug.com/14559)
-// class XWho extends XZot {
-//   XWho.created() : super.created();
-//
-//   @published var zap;
-// }
+// Regresion test for dartbug.comk/14559. The bug is still open, but we don't
+// hit it now that we use smoke. The bug was assinging @CustomTag('x-zot') to
+// this class incorrectly and as a result `zap` was listed in `x-zot`.
+class XWho extends XZot {
+  XWho.created() : super.created();
+
+  @published var zap;
+}
 
 @CustomTag('x-squid')
 class XSquid extends XZot {
@@ -47,11 +52,13 @@ class XSquid extends XZot {
 }
 
 main() => initPolymer().run(() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((r) => print('${r.loggerName} ${r.message}'));
   useHtmlConfiguration();
 
-  setUp(() => Polymer.onReady.then((_) {
-    Polymer.register('x-noscript', XZot);
-  }));
+  Polymer.register('x-noscript', XZot);
+
+  setUp(() => Polymer.onReady);
 
   test('published properties', () {
     published(tag) => (new Element.tag(tag) as PolymerElement)
@@ -60,7 +67,6 @@ main() => initPolymer().run(() {
     expect(published('x-zot'), ['Foo', 'Bar', 'zot', 'm']);
     expect(published('x-squid'), ['Foo', 'Bar', 'zot', 'm', 'baz', 'squid']);
     expect(published('x-noscript'), ['Foo', 'Bar', 'zot', 'm']);
-    // TODO(sigmund): uncomment, see above
-    // expect(published('x-squid'), [#Foo, #Bar, #zot, #zap, #baz, #squid]);
+    expect(published('x-squid'), ['Foo', 'Bar', 'zot', 'm', 'baz', 'squid']);
   });
 });

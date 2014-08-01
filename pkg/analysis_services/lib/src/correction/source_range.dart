@@ -24,9 +24,14 @@ SourceRange rangeEndEnd(a, b) {
   return new SourceRange(offset, length);
 }
 
+SourceRange rangeEndLength(a, int length) {
+  int offset = a is int ? a : a.end;
+  return new SourceRange(offset, length);
+}
+
 SourceRange rangeEndStart(a, b) {
   int offset = a.end;
-  var length = b.offset - offset;
+  var length = (b is int ? b : b.offset) - offset;
   return new SourceRange(offset, length);
 }
 
@@ -45,6 +50,12 @@ SourceRange rangeNodes(List<AstNode> nodes) {
   AstNode first = nodes.first;
   AstNode last = nodes.last;
   return rangeStartEnd(first, last);
+}
+
+SourceRange rangeOffsetEnd(o) {
+  int offset = o.offset;
+  int length = o.end - offset;
+  return new SourceRange(offset, length);
 }
 
 SourceRange rangeStartEnd(a, b) {

@@ -11,7 +11,7 @@ import 'package:analyzer/src/generated/constant.dart' show EvaluationResult;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:barback/barback.dart';
 import 'package:source_maps/refactor.dart';
-import 'package:source_maps/span.dart' show SourceFile, Span;
+import 'package:source_span/source_span.dart';
 
 
 /// Class for working with a barback based resolved AST.
@@ -86,7 +86,7 @@ abstract class Resolver {
 
   /// Get the source span where the specified element was defined or null if
   /// the element came from the Dart SDK.
-  Span getSourceSpan(Element element);
+  SourceSpan getSourceSpan(Element element);
 
   /// Get a [SourceFile] with the contents of the file that defines [element],
   /// or null if the element came from the Dart SDK.

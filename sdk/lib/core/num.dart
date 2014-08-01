@@ -16,6 +16,7 @@ abstract class num implements Comparable<num> {
    *
    * If both operands are doubles, they are equal if they have the same
    * representation, except that:
+   *
    *   * zero and minus zero (0.0 and -0.0) are considered equal. They
    *     both have the numerical value zero.
    *   * NaN is not equal to anything, including NaN. If either operand is
@@ -23,7 +24,7 @@ abstract class num implements Comparable<num> {
    *
    * If one operand is a double and the other is an int, they are equal if
    * the double has an integer value (finite with no fractional part) and
-   * `identical(doubleValue.toInt(), intValue)`.
+   * `identical(doubleValue.toInt(), intValue)` is true.
    *
    * If both operands are integers, they are equal if they have the same value.
    *

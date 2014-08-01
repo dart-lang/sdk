@@ -12,7 +12,7 @@ import 'package:barback/barback.dart';
 import 'package:code_transformers/assets.dart';
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/dom_parsing.dart';
-import 'package:source_maps/span.dart';
+import 'package:source_span/source_span.dart';
 
 import 'common.dart';
 import 'utils.dart';
@@ -130,7 +130,7 @@ class Linter extends Transformer with PolymerTransformer {
 class _ElementSummary {
   final String tagName;
   final String extendsTag;
-  final Span span;
+  final SourceSpan span;
 
   _ElementSummary extendsType;
   bool hasConflict = false;

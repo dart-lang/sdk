@@ -6,6 +6,7 @@ library test.end2end_test;
 
 import 'package:unittest/unittest.dart';
 import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 import 'common.dart';
 
 main() {
@@ -33,7 +34,7 @@ main() {
         ..addSpan(inputFunction, outputFunction)
         ..addSpan(inputVar2, outputVar2)
         ..addSpan(inputExpr, outputExpr))
-        .build(output.url);
+        .build(output.url.toString());
     var mapping = parseJson(map);
     check(outputVar1, mapping, inputVar1, false);
     check(outputVar2, mapping, inputVar2, false);
@@ -47,7 +48,7 @@ main() {
         ..addSpan(inputFunctionNoSymbol, outputFunctionNoSymbol)
         ..addSpan(inputVar2NoSymbol, outputVar2NoSymbol)
         ..addSpan(inputExpr, outputExpr))
-        .build(output.url);
+        .build(output.url.toString());
     var mapping = parseJson(map);
     check(outputVar1NoSymbol, mapping, inputVar1NoSymbol, false);
     check(outputVar2NoSymbol, mapping, inputVar2NoSymbol, false);
@@ -65,7 +66,7 @@ main() {
         ..addSpan(inputVar2, outputVar2)
         ..addSpan(inputExpr, outputExpr)
         ..addSpan(inputExpr, outputExpr))
-        .build(output.url);
+        .build(output.url.toString());
     var mapping = parseJson(map);
     check(outputVar1, mapping, inputVar1, false);
     check(outputVar2, mapping, inputVar2, false);
@@ -82,7 +83,7 @@ main() {
         ..addSpan(inputVar2NoSymbol, outputVar2NoSymbol)
         ..addSpan(inputVar2NoSymbol, outputVar2NoSymbol)
         ..addSpan(inputExpr, outputExpr))
-        .build(output.url);
+        .build(output.url.toString());
     var mapping = parseJson(map);
     check(outputVar1NoSymbol, mapping, inputVar1NoSymbol, false);
     check(outputVar2NoSymbol, mapping, inputVar2NoSymbol, false);
@@ -96,7 +97,7 @@ main() {
         ..addSpan(inputFunction, outputFunction)
         ..addSpan(inputVar2, outputVar2)
         ..addSpan(inputExpr, outputExpr))
-        .toJson(output.url);
+        .toJson(output.url.toString());
     var mapping = parse(json);
     check(outputVar1, mapping, inputVar1, true);
     check(outputVar2, mapping, inputVar2, true);
@@ -106,7 +107,7 @@ main() {
 
   test('printer projecting marks + parse', () {
     var out = INPUT.replaceAll('long', '_s');
-    var file = new SourceFile.text('output2.dart', out);
+    var file = new SourceFile(out, url: 'output2.dart');
     var printer = new Printer('output2.dart');
     printer.mark(ispan(0, 0));
 
@@ -132,10 +133,11 @@ main() {
     expect(printer.text, out);
 
     var mapping = parse(printer.map);
-    checkHelper(Span inputSpan, int adjustment) {
+    checkHelper(SourceMapSpan inputSpan, int adjustment) {
       var start = inputSpan.start.offset - adjustment;
       var end = (inputSpan.end.offset - adjustment) - 2;
-      var span = new FileSpan(file, start, end, inputSpan.isIdentifier);
+      var span = new SourceMapFileSpan(file.span(start, end),
+          isIdentifier: inputSpan.isIdentifier);
       check(span, mapping, inputSpan, true);
     }
 
@@ -145,17 +147,16 @@ main() {
     checkHelper(inputExpr, 6);
 
     // We projected correctly lines that have no mappings
-    check(new FileSpan(file, 66, 66, false), mapping, ispan(45, 45), true);
-    check(new FileSpan(file, 63, 64, false), mapping, ispan(45, 45), true);
-    check(new FileSpan(file, 68, 68, false), mapping, ispan(70, 70), true);
-    check(new FileSpan(file, 71, 71, false), mapping, ispan(70, 70), true);
+    check(file.span(66, 66), mapping, ispan(45, 45), true);
+    check(file.span(63, 64), mapping, ispan(45, 45), true);
+    check(file.span(68, 68), mapping, ispan(70, 70), true);
+    check(file.span(71, 71), mapping, ispan(70, 70), true);
 
     // Start of the last line
     var oOffset = out.length - 2;
     var iOffset = INPUT.length - 2;
-    check(new FileSpan(file, oOffset, oOffset, false), mapping,
-        ispan(iOffset, iOffset), true);
-    check(new FileSpan(file, oOffset + 1, oOffset + 1, false), mapping,
+    check(file.span(oOffset, oOffset), mapping, ispan(iOffset, iOffset), true);
+    check(file.span(oOffset + 1, oOffset + 1), mapping,
         ispan(iOffset, iOffset), true);
   });
 }

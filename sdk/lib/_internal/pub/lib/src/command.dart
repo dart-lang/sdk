@@ -105,6 +105,10 @@ abstract class PubCommand {
   GlobalPackages get globals => _globals;
   GlobalPackages _globals;
 
+  /// The parsed options for the pub executable.
+  ArgResults get globalOptions => _globalOptions;
+  ArgResults _globalOptions;
+
   /// The parsed options for this command.
   ArgResults get commandOptions => _commandOptions;
   ArgResults _commandOptions;
@@ -115,7 +119,10 @@ abstract class PubCommand {
   /// is not a package.
   Entrypoint get entrypoint {
     // Lazy load it.
-    if (_entrypoint == null) _entrypoint = new Entrypoint(path.current, _cache);
+    if (_entrypoint == null) {
+      _entrypoint = new Entrypoint(path.current, _cache,
+          packageSymlinks: globalOptions['package-symlinks']);
+    }
     return _entrypoint;
   }
 
@@ -181,8 +188,10 @@ abstract class PubCommand {
         help: 'Print usage information for this command.');
   }
 
-  /// Runs this command using a system cache at [cacheDir] with [options].
-  Future run(String cacheDir, ArgResults options) {
+  /// Runs this command using a system cache at [cacheDir] with [globalOptions]
+  /// and [options].
+  Future run(String cacheDir, ArgResults globalOptions, ArgResults options) {
+    _globalOptions = globalOptions;
     _commandOptions = options;
 
     _cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
@@ -305,6 +314,8 @@ ArgParser _initArgParser() {
       help: 'Shortcut for "--verbosity=all".');
   argParser.addFlag('with-prejudice', hide: !isAprilFools, negatable: false,
       help: 'Execute commands with prejudice.');
+  argParser.addFlag('package-symlinks', hide: true, negatable: true,
+      defaultsTo: true);
 
   // Register the commands.
   PubCommand.mainCommands.forEach((name, command) {

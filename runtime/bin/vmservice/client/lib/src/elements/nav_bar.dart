@@ -4,6 +4,7 @@
 
 library nav_bar_element;
 
+import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
@@ -128,6 +129,23 @@ class NavNotifyItemElement extends ObservatoryElement {
   @published ObservableList<ServiceEvent> events;
   @published ServiceEvent event;
   
+  Future resume(_) {
+    app.removePauseEvents(event.isolate);
+    return event.isolate.resume();
+  }
+  Future stepInto(_) {
+    app.removePauseEvents(event.isolate);
+    return event.isolate.stepInto();
+  }
+  Future stepOver(_) {
+    app.removePauseEvents(event.isolate);
+    return event.isolate.stepOver();
+  }
+  Future stepOut(_) {
+    app.removePauseEvents(event.isolate);
+    return event.isolate.stepOut();
+  }
+
   void closeItem(MouseEvent e, var detail, Element target) {
     events.remove(event);
   }

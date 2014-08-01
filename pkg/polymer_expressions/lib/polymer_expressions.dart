@@ -97,7 +97,7 @@ class PolymerExpressions extends BindingDelegate {
               ? model
               : _scopeFactory.modelScope(model: model, variables: globals);
           if (oneTime) {
-            return _Binding._oneTime(expr, scope, null);
+            return _Binding._oneTime(expr, scope);
           }
           return new _Binding(expr, scope);
         };
@@ -250,6 +250,23 @@ class PolymerExpressions extends BindingDelegate {
     }
   }
 
+  /// Parse the expression string and return an expression tree.
+  static Expression getExpression(String exprString) =>
+      new Parser(exprString).parse();
+
+  /// Determines the value of evaluating [expr] on the given [model] and returns
+  /// either its value or a binding for it. If [oneTime] is true, it direclty
+  /// returns the value. Otherwise, when [oneTime] is false, it returns a
+  /// [Bindable] that besides evaluating the expression, it will also react to
+  /// observable changes from the model and update the value accordingly.
+  static getBinding(Expression expr, model, {Map<String, Object> globals,
+      oneTime: false}) {
+    if (globals == null) globals = new Map.from(DEFAULT_GLOBALS);
+    var scope = model is Scope ? model
+        : new Scope(model: model, variables: globals);
+    return oneTime ? _Binding._oneTime(expr, scope)
+        : new _Binding(expr, scope);
+  }
 }
 
 typedef Object _Converter(Object);
@@ -264,10 +281,9 @@ class _Binding extends Bindable {
   ExpressionObserver _observer;
   var _value;
 
-  _Binding(this._expr, this._scope, [converter])
-      : _converter = converter == null ? _identity : converter;
+  _Binding(this._expr, this._scope, [this._converter]);
 
-  static Object _oneTime(Expression expr, Scope scope, _Converter converter) {
+  static Object _oneTime(Expression expr, Scope scope, [_Converter converter]) {
     try {
       var value = eval(expr, scope);
       return (converter == null) ? value : converter(value);
@@ -280,7 +296,7 @@ class _Binding extends Bindable {
 
   bool _convertAndCheck(newValue, {bool skipChanges: false}) {
     var oldValue = _value;
-    _value = _converter(newValue);
+    _value = _converter == null ? newValue : _converter(newValue);
 
     if (!skipChanges && _callback != null && oldValue != _value) {
       _callback(_value);
@@ -289,20 +305,19 @@ class _Binding extends Bindable {
     return false;
   }
 
-  // TODO(jmesserly): this should discard changes, but it caused
-  // a strange infinite loop in one of the bindings_tests.
-  // For now skipping the test. See http://dartbug.com/19105.
   get value {
     // if there's a callback, then _value has been set, if not we need to
     // force an evaluation
-    if (_callback != null) return _value;
-    return _oneTime(_expr, _scope, _converter);
+    if (_callback != null) {
+      _check(skipChanges: true);
+      return _value;
+    }
+    return _Binding._oneTime(_expr, _scope, _converter);
   }
 
   set value(v) {
     try {
-      var newValue = assign(_expr, v, _scope, checkAssignability: false);
-      _convertAndCheck(newValue);
+      assign(_expr, v, _scope, checkAssignability: false);
     } catch (e, s) {
       new Completer().completeError(
           "Error evaluating expression '$_expr': $e", s);
@@ -325,8 +340,7 @@ class _Binding extends Bindable {
 
   bool _check({bool skipChanges: false}) {
     try {
-      // this causes a call to _updateValue with the new value
-      update(_observer, _scope);
+      update(_observer, _scope, skipChanges: skipChanges);
       return _convertAndCheck(_observer.currentValue, skipChanges: skipChanges);
     } catch (e, s) {
       new Completer().completeError(

@@ -125,6 +125,9 @@ def GetBuildInfo(builder_name, is_buildbot):
       arch = 'x64'
     if dart2js_pattern.group(14) == 'batch':
       batch = True
+    # This is temporary, slowly enabling this.
+    if system == 'linux':
+      batch = True
     shard_index = dart2js_pattern.group(15)
     total_shards = dart2js_pattern.group(16)
   elif dartium_pattern:

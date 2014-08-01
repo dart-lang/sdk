@@ -12,6 +12,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/search_result.dart';
+import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -126,6 +127,30 @@ class SearchDomainHandler implements RequestHandler {
     return new Response(request.id)..setResult(ID, searchId);
   }
 
+  /**
+   * Implement the `search.getTypeHierarchy` request.
+   */
+  Response getTypeHierarchy(Request request) {
+    // prepare parameters
+    String file = request.getRequiredParameter(FILE).asString();
+    int offset = request.getRequiredParameter(OFFSET).asInt();
+    // prepare Element
+    List<Element> elements = server.getElementsAtOffset(file, offset);
+    if (elements.isEmpty) {
+      return new Response(request.id);
+    }
+    Element element = elements.first;
+    // prepare type hierarchy
+    TypeHierarchyComputer computer = new TypeHierarchyComputer(searchEngine);
+    computer.compute(element).then((TypeHierarchyItem item) {
+      Response response = new Response(request.id);
+      response.setResult(HIERARCHY, item);
+      server.sendResponse(response);
+    });
+    // delay response
+    return Response.DELAYED_RESPONSE;
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -138,6 +163,8 @@ class SearchDomainHandler implements RequestHandler {
         return findMemberReferences(request);
       } else if (requestName == SEARCH_FIND_TOP_LEVEL_DECLARATIONS) {
         return findTopLevelDeclarations(request);
+      } else if (requestName == SEARCH_GET_TYPE_HIERARCHY) {
+        return getTypeHierarchy(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;

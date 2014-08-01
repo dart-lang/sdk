@@ -55,6 +55,16 @@
         'defines': [
           'DEBUG',
         ],
+        'conditions': [
+          ['c_frame_pointers==1', {
+            'cflags': [
+              '-fno-omit-frame-pointer',
+            ],
+            'defines': [
+              'PROFILE_NATIVE_CODE'
+            ],
+          }],
+        ],
       },
       'Dart_Android_Release': {
         'abstract': 1,
@@ -68,10 +78,17 @@
         'cflags': [
           '-fdata-sections',
           '-ffunction-sections',
-          # Uncomment the following line and pass --profile-vm to enable
-          # profiling of C++ code within Observatory.
-          # '-fno-omit-frame-pointer',
           '-O3',
+        ],
+        'conditions': [
+          ['c_frame_pointers==1', {
+            'cflags': [
+              '-fno-omit-frame-pointer',
+            ],
+            'defines': [
+              'PROFILE_NATIVE_CODE'
+            ],
+          }],
         ],
       },
       'Dart_Android_ia32_Base': {

@@ -354,6 +354,13 @@ class ObjectStore {
     return pending_functions_;
   }
 
+  RawGrowableObjectArray* pending_deferred_loads() const {
+    return pending_deferred_loads_;
+  }
+  void clear_pending_deferred_loads() {
+    pending_deferred_loads_ = GrowableObjectArray::New();
+  }
+
   RawGrowableObjectArray* resume_capabilities() const {
     return resume_capabilities_;
   }
@@ -504,6 +511,7 @@ class ObjectStore {
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;
   RawGrowableObjectArray* pending_functions_;
+  RawGrowableObjectArray* pending_deferred_loads_;
   RawGrowableObjectArray* resume_capabilities_;
   RawError* sticky_error_;
   RawString* unhandled_exception_handler_;

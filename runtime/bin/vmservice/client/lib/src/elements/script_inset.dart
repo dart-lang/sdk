@@ -25,6 +25,7 @@ class ScriptInsetElement extends ObservatoryElement {
   @observable int currentLine;
   @observable int startLine;
   @observable int endLine;
+  @observable bool linesReady = false;
 
   @observable List<ScriptLine> lines = toObservable([]);
 
@@ -34,11 +35,15 @@ class ScriptInsetElement extends ObservatoryElement {
 
   MutationObserver _observer;
 
-  void _onMutation(mutations, observer) {
+  void _scrollToCurrentPos() {
     var line = shadowRoot.querySelector('#line-$currentLine');
     if (line != null) {
       line.scrollIntoView();
     }
+  }
+
+  void _onMutation(mutations, observer) {
+    _scrollToCurrentPos();
   } 
 
   void attached() {
@@ -60,6 +65,7 @@ class ScriptInsetElement extends ObservatoryElement {
 
   void currentPosChanged(oldValue) {
     _updateLines();
+    _scrollToCurrentPos();
   }
 
   void startPosChanged(oldValue) {
@@ -77,6 +83,7 @@ class ScriptInsetElement extends ObservatoryElement {
   var _updateFuture;
 
   void _updateLines() {
+    linesReady = false;
     if (_updateFuture != null) {
       // Already scheduled.
       return;
@@ -103,11 +110,39 @@ class ScriptInsetElement extends ObservatoryElement {
     endLine = (endPos != null
                ? script.tokenToLine(endPos)
                : script.lines.length);
+
     lines.clear();
     for (int i = (startLine - 1); i <= (endLine - 1); i++) {
       lines.add(script.lines[i]);
     }
+    linesReady = true;
   }
 
   ScriptInsetElement.created() : super.created();
+}
+
+@CustomTag('breakpoint-toggle')
+class BreakpointToggleElement extends ObservatoryElement {
+  @published ScriptLine line;
+  @observable bool busy = false;
+
+  void toggleBreakpoint(var a, var b, var c) {
+    if (busy) {
+      return;
+    }
+    busy = true;
+    if (line.bpt == null) {
+      // No breakpoint.  Set it.
+      line.script.isolate.setBreakpoint(line.script, line.line).then((_) {
+          busy = false;
+      });
+    } else {
+      // Existing breakpoint.  Remove it.
+      line.script.isolate.clearBreakpoint(line.bpt).then((_) {
+          busy = false;
+      });
+    }
+  }
+
+  BreakpointToggleElement.created() : super.created();
 }

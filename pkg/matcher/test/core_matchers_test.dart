@@ -33,6 +33,16 @@ void main() {
     shouldFail(null, isNotNull, "Expected: not null Actual: <null>");
   });
 
+  test('isNaN', () {
+    shouldPass(double.NAN, isNaN);
+    shouldFail(3.1, isNaN, "Expected: NaN Actual: <3.1>");
+  });
+
+  test('isNotNaN', () {
+    shouldPass(3.1, isNotNaN);
+    shouldFail(double.NAN, isNotNaN, "Expected: not NaN Actual: <NaN>");
+  });
+
   test('same', () {
     var a = new Map();
     var b = new Map();
@@ -71,38 +81,6 @@ void main() {
     shouldPass(null, anything);
     shouldPass(a, anything);
     shouldFail(a, isNot(anything), "Expected: not anything Actual: {}");
-  });
-
-  test('throws', () {
-    shouldFail(doesNotThrow, throws,
-        matches(
-            r"Expected: throws"
-            r"  Actual: <Closure(: \(\) => dynamic "
-            r"from Function 'doesNotThrow': static\.)?>"
-            r"   Which: did not throw"));
-    shouldPass(doesThrow, throws);
-    shouldFail(true, throws,
-        "Expected: throws"
-        "  Actual: <true>"
-        "   Which: is not a Function or Future");
-  });
-
-  test('throwsA', () {
-    shouldPass(doesThrow, throwsA(equals('X')));
-    shouldFail(doesThrow, throwsA(equals('Y')),
-        matches(
-            r"Expected: throws 'Y'"
-            r"  Actual: <Closure(: \(\) => dynamic "
-            r"from Function 'doesThrow': static\.)?>"
-            r"   Which: threw 'X'"));
-  });
-
-  test('throwsA', () {
-    shouldPass(doesThrow, throwsA(equals('X')));
-    shouldFail(doesThrow, throwsA(equals('Y')),
-        matches("Expected: throws 'Y'.*"
-        "Actual: <Closure.*"
-        "Which: threw 'X'"));
   });
 
   test('returnsNormally', () {
@@ -199,31 +177,4 @@ void main() {
       shouldPass('cow', predicate((x) => x is String, "an instance of String"));
     });
   });
-
-  group('exception/error matchers', () {
-    test('throwsCyclicInitializationError', () {
-      expect(() => _Bicycle.foo, throwsCyclicInitializationError);
-    });
-
-    test('throwsConcurrentModificationError', () {
-      expect(() {
-        var a = { 'foo': 'bar' };
-        for (var k in a.keys) {
-          a.remove(k);
-        }
-      }, throwsConcurrentModificationError);
-    });
-
-    test('throwsNullThrownError', () {
-      expect(() => throw null, throwsNullThrownError);
-    });
-  });
-}
-
-class _Bicycle {
-  static final foo = bar();
-
-  static bar() {
-    return foo + 1;
-  }
 }

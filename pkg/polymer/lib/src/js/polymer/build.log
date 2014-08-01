@@ -1,33 +1,37 @@
 BUILD LOG
 ---------
-Build Time: 2014-05-23T14:36:17
+Build Time: 2014-07-24T17:50:13
 
 NODEJS INFORMATION
 ==================
-nodejs: v0.10.24
+nodejs: v0.10.21
 chai: 1.9.1
-grunt: 0.4.5
 grunt-audit: 0.0.3
-grunt-concat-sourcemap: 0.4.1
+grunt: 0.4.5
+grunt-concat-sourcemap: 0.4.3
 grunt-contrib-concat: 0.4.0
 grunt-contrib-uglify: 0.4.0
-grunt-contrib-yuidoc: 0.5.2
 grunt-karma: 0.8.3
-karma: 0.12.16
+grunt-contrib-yuidoc: 0.5.2
+grunt-string-replace: 0.2.7
+karma: 0.12.17
 karma-crbot-reporter: 0.0.4
 karma-firefox-launcher: 0.1.3
 karma-ie-launcher: 0.1.5
-karma-mocha: 0.1.3
+karma-mocha: 0.1.6
 karma-safari-launcher: 0.1.1
 karma-script-launcher: 0.1.0
-mocha: 1.19.0
+mocha: 1.20.1
 
 REPO REVISIONS
 ==============
-polymer-expressions: b21c350b298b5dfc645350aaa0fd4d65c3cc061d
-polymer-gestures: b2949ff40fd6647e3a101cbad8e0ef716961365b
-polymer-dev: 5d175407c142f1eff6e1300242370975a940a282
+polymer-expressions: 20247f68f0bc401cbca852fb3cfbdf12ec95a135
+polymer-gestures: 1353a3aadee345e3e4cd35f9788d02595a27cb30
+polymer-dev:
+  (0.3.4) 6a3e1b0e2a0bbe546f6896b3f4f064950d7aee8f
+  (with patch for CSP issue) 370b65fa23d6bb283923b10a0b9078863f5e9676
 
 BUILD HASHES
 ============
-build/polymer.js: 7c30f9285eb23a3cce2c20339f510797585a723d
+build/polymer.js: ebbc1241930fb9a1bd7d216b0e3510dc1d5963da
+(without patch, it would be 3e0477c0b09f5800e359044f3358fd1edc6f8449)

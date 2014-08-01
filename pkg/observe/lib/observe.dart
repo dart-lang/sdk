@@ -113,5 +113,5 @@ export 'src/observable_box.dart';
 export 'src/observable_list.dart';
 export 'src/observable_map.dart';
 export 'src/observer_transform.dart';
-export 'src/path_observer.dart';
+export 'src/path_observer.dart' hide getSegmentsOfPropertyPathForTesting;
 export 'src/to_observable.dart';

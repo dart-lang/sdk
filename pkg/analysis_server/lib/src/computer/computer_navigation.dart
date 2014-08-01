@@ -31,7 +31,7 @@ class DartUnitNavigationComputer {
   }
 
   void _addRegion(int offset, int length, Element element) {
-    if (element == null) {
+    if (element == null || element == DynamicElementImpl.instance) {
       return;
     }
     if (element is FieldFormalParameterElement) {
@@ -104,7 +104,9 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
         lastNode = firstNode;
       }
       if (firstNode != null && lastNode != null) {
-        computer._addRegion_nodeStart_nodeEnd(firstNode, lastNode,
+        computer._addRegion_nodeStart_nodeEnd(
+            firstNode,
+            lastNode,
             node.element);
       }
     }
@@ -149,14 +151,18 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitPartDirective(PartDirective node) {
-    computer._addRegion_tokenStart_nodeEnd(node.keyword, node.uri,
+    computer._addRegion_tokenStart_nodeEnd(
+        node.keyword,
+        node.uri,
         node.element);
     return super.visitPartDirective(node);
   }
 
   @override
   visitPartOfDirective(PartOfDirective node) {
-    computer._addRegion_tokenStart_nodeEnd(node.keyword, node.libraryName,
+    computer._addRegion_tokenStart_nodeEnd(
+        node.keyword,
+        node.libraryName,
         node.element);
     return super.visitPartOfDirective(node);
   }

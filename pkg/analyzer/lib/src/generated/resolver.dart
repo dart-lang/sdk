@@ -1386,7 +1386,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.constKeyword != null) {
-      _validateInitializers(node);
+      _validateConstructorInitializers(node);
+      _validateFieldInitializers(node.parent as ClassDeclaration, node);
     }
     _validateDefaultValues(node.parameters);
     return super.visitConstructorDeclaration(node);
@@ -1651,6 +1652,31 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Validates that the expressions of the given initializers (of a constant constructor) are all
+   * compile time constants.
+   *
+   * @param constructor the constant constructor declaration to validate
+   */
+  void _validateConstructorInitializers(ConstructorDeclaration constructor) {
+    List<ParameterElement> parameterElements = constructor.parameters.parameterElements;
+    NodeList<ConstructorInitializer> initializers = constructor.initializers;
+    for (ConstructorInitializer initializer in initializers) {
+      if (initializer is ConstructorFieldInitializer) {
+        ConstructorFieldInitializer fieldInitializer = initializer;
+        _validateInitializerExpression(parameterElements, fieldInitializer.expression);
+      }
+      if (initializer is RedirectingConstructorInvocation) {
+        RedirectingConstructorInvocation invocation = initializer;
+        _validateInitializerInvocationArguments(parameterElements, invocation.argumentList);
+      }
+      if (initializer is SuperConstructorInvocation) {
+        SuperConstructorInvocation invocation = initializer;
+        _validateInitializerInvocationArguments(parameterElements, invocation.argumentList);
+      }
+    }
+  }
+
+  /**
    * Validate that the default value associated with each of the parameters in the given list is a
    * compile time constant.
    *
@@ -1670,6 +1696,34 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           element.evaluationResult = result;
           if (result is ValidResult) {
             _reportErrorIfFromDeferredLibrary(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Validates that the expressions of any field initializers in the class declaration are all
+   * compile time constants. Since this is only required if the class has a constant constructor,
+   * the error is reported at the constructor site.
+   *
+   * @param classDeclaration the class which should be validated
+   * @param errorSite the site at which errors should be reported.
+   */
+  void _validateFieldInitializers(ClassDeclaration classDeclaration, ConstructorDeclaration errorSite) {
+    NodeList<ClassMember> members = classDeclaration.members;
+    for (ClassMember member in members) {
+      if (member is FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = member;
+        if (!fieldDeclaration.isStatic) {
+          for (VariableDeclaration variableDeclaration in fieldDeclaration.fields.variables) {
+            Expression initializer = variableDeclaration.initializer;
+            if (initializer != null) {
+              EvaluationResultImpl result = initializer.accept(new ConstantVisitor.con1(_typeProvider));
+              if (result is! ValidResult) {
+                _errorReporter.reportErrorForNode(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST, errorSite, [variableDeclaration.name.name]);
+              }
+            }
           }
         }
       }
@@ -1704,31 +1758,6 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     }
     for (Expression argument in argumentList.arguments) {
       _validateInitializerExpression(parameterElements, argument);
-    }
-  }
-
-  /**
-   * Validates that the expressions of the given initializers (of a constant constructor) are all
-   * compile time constants.
-   *
-   * @param constructor the constant constructor declaration to validate
-   */
-  void _validateInitializers(ConstructorDeclaration constructor) {
-    List<ParameterElement> parameterElements = constructor.parameters.parameterElements;
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    for (ConstructorInitializer initializer in initializers) {
-      if (initializer is ConstructorFieldInitializer) {
-        ConstructorFieldInitializer fieldInitializer = initializer;
-        _validateInitializerExpression(parameterElements, fieldInitializer.expression);
-      }
-      if (initializer is RedirectingConstructorInvocation) {
-        RedirectingConstructorInvocation invocation = initializer;
-        _validateInitializerInvocationArguments(parameterElements, invocation.argumentList);
-      }
-      if (initializer is SuperConstructorInvocation) {
-        SuperConstructorInvocation invocation = initializer;
-        _validateInitializerInvocationArguments(parameterElements, invocation.argumentList);
-      }
     }
   }
 
@@ -3859,7 +3888,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
       }
       holder.validate();
-    } on JavaException catch (ex) {
+    } catch (ex) {
       if (node.name.staticElement == null) {
         ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
         JavaStringBuilder builder = new JavaStringBuilder();
@@ -15286,7 +15315,7 @@ class LibraryImportScope extends Scope {
    * @param errorListener the listener that is to be informed when an error is encountered
    */
   LibraryImportScope(this._definingLibrary, this.errorListener) {
-    _createImportedNamespaces(_definingLibrary);
+    _createImportedNamespaces();
   }
 
   @override
@@ -15302,7 +15331,8 @@ class LibraryImportScope extends Scope {
     if (foundElement != null) {
       return foundElement;
     }
-    for (Namespace nameSpace in _importedNamespaces) {
+    for (int i = 0; i < _importedNamespaces.length; i++) {
+      Namespace nameSpace = _importedNamespaces[i];
       Element element = nameSpace.get(name);
       if (element != null) {
         if (foundElement == null) {
@@ -15321,7 +15351,7 @@ class LibraryImportScope extends Scope {
       int count = conflictingMembers.length;
       List<String> libraryNames = new List<String>(count);
       for (int i = 0; i < count; i++) {
-        libraryNames[i] = _getLibraryName(conflictingMembers[i], "");
+        libraryNames[i] = _getLibraryName(conflictingMembers[i]);
       }
       libraryNames.sort();
       errorListener.onError(new AnalysisError.con2(getSource(identifier), identifier.offset, identifier.length, StaticWarningCode.AMBIGUOUS_IMPORT, [
@@ -15342,9 +15372,9 @@ class LibraryImportScope extends Scope {
    * @param definingLibrary the element representing the library that imports the libraries for
    *          which namespaces will be created
    */
-  void _createImportedNamespaces(LibraryElement definingLibrary) {
+  void _createImportedNamespaces() {
     NamespaceBuilder builder = new NamespaceBuilder();
-    List<ImportElement> imports = definingLibrary.imports;
+    List<ImportElement> imports = _definingLibrary.imports;
     int count = imports.length;
     _importedNamespaces = new List<Namespace>(count);
     for (int i = 0; i < count; i++) {
@@ -15356,18 +15386,47 @@ class LibraryImportScope extends Scope {
    * Returns the name of the library that defines given element.
    *
    * @param element the element to get library name
-   * @param def the default name to use
    * @return the name of the library that defines given element
    */
-  String _getLibraryName(Element element, String def) {
+  String _getLibraryName(Element element) {
     if (element == null) {
-      return def;
+      return StringUtilities.EMPTY;
     }
     LibraryElement library = element.library;
     if (library == null) {
-      return def;
+      return StringUtilities.EMPTY;
     }
-    return library.definingCompilationUnit.displayName;
+    List<ImportElement> imports = _definingLibrary.imports;
+    int count = imports.length;
+    for (int i = 0; i < count; i++) {
+      if (identical(imports[i].importedLibrary, library)) {
+        return library.definingCompilationUnit.displayName;
+      }
+    }
+    List<String> indirectSources = new List<String>();
+    for (int i = 0; i < count; i++) {
+      LibraryElement importedLibrary = imports[i].importedLibrary;
+      for (LibraryElement exportedLibrary in importedLibrary.exportedLibraries) {
+        if (identical(exportedLibrary, library)) {
+          indirectSources.add(importedLibrary.definingCompilationUnit.displayName);
+        }
+      }
+    }
+    int indirectCount = indirectSources.length;
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append(library.definingCompilationUnit.displayName);
+    if (indirectCount > 0) {
+      builder.append(" (via ");
+      if (indirectCount > 1) {
+        List<String> indirectNames = new List.from(indirectSources);
+        indirectNames.sort();
+        builder.append(StringUtilities.printListOfQuotedNames(indirectNames));
+      } else {
+        builder.append(indirectSources[0]);
+      }
+      builder.append(")");
+    }
+    return builder.toString();
   }
 
   /**
@@ -15393,8 +15452,8 @@ class LibraryImportScope extends Scope {
       }
     }
     if (sdkElement != null && to > 0) {
-      String sdkLibName = _getLibraryName(sdkElement, "");
-      String otherLibName = _getLibraryName(conflictingMembers[0], "");
+      String sdkLibName = _getLibraryName(sdkElement);
+      String otherLibName = _getLibraryName(conflictingMembers[0]);
       errorListener.onError(new AnalysisError.con2(getSource(identifier), identifier.offset, identifier.length, StaticWarningCode.CONFLICTING_DART_IMPORT, [name, sdkLibName, otherLibName]));
     }
     if (to == length) {
@@ -22976,8 +23035,22 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     super.visitConstructorDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
-    if (element != null) {
-      // TODO(brianwilkerson) Figure out how the element could ever be null.
+    if (element == null) {
+      ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
+      JavaStringBuilder builder = new JavaStringBuilder();
+      builder.append("The element for the constructor ");
+      builder.append(node.name == null ? "<unnamed>" : node.name.name);
+      builder.append(" in ");
+      if (classNode == null) {
+        builder.append("<unknown class>");
+      } else {
+        builder.append(classNode.name.name);
+      }
+      builder.append(" in ");
+      builder.append(source.fullName);
+      builder.append(" was not set while trying to resolve types.");
+      AnalysisEngine.instance.logger.logError2(builder.toString(), new AnalysisException());
+    } else {
       ClassElement definingClass = element.enclosingElement as ClassElement;
       element.returnType = definingClass.type;
       FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
@@ -23036,6 +23109,15 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     super.visitFunctionDeclaration(node);
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
+    if (element == null) {
+      JavaStringBuilder builder = new JavaStringBuilder();
+      builder.append("The element for the top-level function ");
+      builder.append(node.name);
+      builder.append(" in ");
+      builder.append(source.fullName);
+      builder.append(" was not set while trying to resolve types.");
+      AnalysisEngine.instance.logger.logError2(builder.toString(), new AnalysisException());
+    }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
     ClassElement definingClass = element.getAncestor((element) => element is ClassElement);
@@ -23071,18 +23153,17 @@ class TypeResolverVisitor extends ScopedVisitor {
     ExecutableElementImpl element = node.element as ExecutableElementImpl;
     if (element == null) {
       ClassDeclaration classNode = node.getAncestor((node) => node is ClassDeclaration);
-      ClassElement classElement = classNode.element;
       JavaStringBuilder builder = new JavaStringBuilder();
       builder.append("The element for the method ");
-      builder.append(node.name);
+      builder.append(node.name.name);
       builder.append(" in ");
-      builder.append(classNode.name);
-      builder.append(" in ");
-      if (classElement != null) {
-        builder.append(classElement.source.fullName);
+      if (classNode == null) {
+        builder.append("<unknown class>");
       } else {
-        builder.append("<element from class also not resolved>");
+        builder.append(classNode.name.name);
       }
+      builder.append(" in ");
+      builder.append(source.fullName);
       builder.append(" was not set while trying to resolve types.");
       AnalysisEngine.instance.logger.logError2(builder.toString(), new AnalysisException());
     }

@@ -1301,7 +1301,7 @@ class IncrementalParser {
         }
       } on InsufficientContextException catch (exception) {
         advanceToParent = true;
-      } on JavaException catch (exception) {
+      } catch (exception) {
         return null;
       }
       if (advanceToParent) {
@@ -4109,7 +4109,7 @@ class Parser {
         // long term approach.
         return null;
       }
-    } on JavaException catch (exception) {
+    } catch (exception) {
     }
     return null;
   }
@@ -6214,6 +6214,8 @@ class Parser {
         string = andAdvance;
         hasMore = _matches(TokenType.STRING_INTERPOLATION_EXPRESSION) || _matches(TokenType.STRING_INTERPOLATION_IDENTIFIER);
         elements.add(new InterpolationString(string, _computeStringValue(string.lexeme, false, !hasMore)));
+      } else {
+        hasMore = false;
       }
     }
     return new StringInterpolation(elements);
@@ -6339,6 +6341,8 @@ class Parser {
         }
       }
     } else if (_currentToken.isOperator) {
+      components.add(andAdvance);
+    } else if (_tokenMatchesKeyword(_currentToken, Keyword.VOID)) {
       components.add(andAdvance);
     } else {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);

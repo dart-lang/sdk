@@ -43,18 +43,28 @@ class Entrypoint {
   /// the network.
   final SystemCache cache;
 
+  /// Whether to create and symlink a "packages" directory containing links to
+  /// the installed packages.
+  final bool _packageSymlinks;
+
   /// The lockfile for the entrypoint.
   ///
   /// If not provided to the entrypoint, it will be laoded lazily from disc.
   LockFile _lockFile;
 
   /// Loads the entrypoint from a package at [rootDir].
-  Entrypoint(String rootDir, SystemCache cache)
+  ///
+  /// If [packageSymlinks] is `true`, this will create a "packages" directory
+  /// with symlinks to the installed packages. This directory will be symlinked
+  /// into any directory that might contain an entrypoint.
+  Entrypoint(String rootDir, SystemCache cache, {bool packageSymlinks: true})
       : root = new Package.load(null, rootDir, cache.sources),
-        cache = cache;
+        cache = cache,
+        _packageSymlinks = packageSymlinks;
 
   /// Creates an entrypoint given package and lockfile objects.
-  Entrypoint.inMemory(this.root, this._lockFile, this.cache);
+  Entrypoint.inMemory(this.root, this._lockFile, this.cache)
+      : _packageSymlinks = false;
 
   /// The path to the entrypoint's "packages" directory.
   String get packagesDir => path.join(root.dir, 'packages');
@@ -109,12 +119,19 @@ class Entrypoint {
         return null;
       }
 
-      // Install the packages.
-      cleanDir(packagesDir);
+      // Install the packages and maybe link them into the entrypoint.
+      if (_packageSymlinks) {
+        cleanDir(packagesDir);
+      } else {
+        deleteEntry(packagesDir);
+      }
+
       return Future.wait(result.packages.map(_get)).then((ids) {
         _saveLockFile(ids);
-        _linkSelf();
-        _linkSecondaryPackageDirs();
+
+        if (_packageSymlinks) _linkSelf();
+        _linkOrDeleteSecondaryPackageDirs();
+
         result.summarizeChanges(type, dryRun: dryRun);
       });
     });
@@ -128,11 +145,17 @@ class Entrypoint {
   Future<PackageId> _get(PackageId id) {
     if (id.isRoot) return new Future.value(id);
 
-    var packageDir = path.join(packagesDir, id.name);
-    if (entryExists(packageDir)) deleteEntry(packageDir);
-
     var source = cache.sources[id.source];
-    return source.get(id, packageDir).then((_) => source.resolveId(id));
+    return syncFuture(() {
+      if (!_packageSymlinks) {
+        if (source is! CachedSource) return null;
+        return source.downloadToSystemCache(id);
+      }
+
+      var packageDir = path.join(packagesDir, id.name);
+      if (entryExists(packageDir)) deleteEntry(packageDir);
+      return source.get(id, packageDir);
+    }).then((_) => source.resolveId(id));
   }
 
   /// Determines whether or not the lockfile is out of date with respect to the
@@ -257,28 +280,34 @@ class Entrypoint {
         isSelfLink: true, relative: true);
   }
 
-  /// Add "packages" directories to the whitelist of directories that may
-  /// contain Dart entrypoints.
-  void _linkSecondaryPackageDirs() {
+  /// If [packageSymlinks] is true, add "packages" directories to the whitelist
+  /// of directories that may contain Dart entrypoints.
+  ///
+  /// Otherwise, delete any "packages" directories in the whitelist of
+  /// directories that may contain Dart entrypoints.
+  void _linkOrDeleteSecondaryPackageDirs() {
     // Only the main "bin" directory gets a "packages" directory, not its
     // subdirectories.
     var binDir = path.join(root.dir, 'bin');
-    if (dirExists(binDir)) _linkSecondaryPackageDir(binDir);
+    if (dirExists(binDir)) _linkOrDeleteSecondaryPackageDir(binDir);
 
     // The others get "packages" directories in subdirectories too.
     for (var dir in ['benchmark', 'example', 'test', 'tool', 'web']) {
-      _linkSecondaryPackageDirsRecursively(path.join(root.dir, dir));
+      _linkOrDeleteSecondaryPackageDirsRecursively(path.join(root.dir, dir));
     }
  }
 
-  /// Creates a symlink to the `packages` directory in [dir] and all its
+  /// If [packageSymlinks] is true, creates a symlink to the "packages"
+  /// directory in [dir] and all its subdirectories.
+  ///
+  /// Otherwise, deletes any "packages" directories in [dir] and all its
   /// subdirectories.
-  void _linkSecondaryPackageDirsRecursively(String dir) {
+  void _linkOrDeleteSecondaryPackageDirsRecursively(String dir) {
     if (!dirExists(dir)) return;
-    _linkSecondaryPackageDir(dir);
+    _linkOrDeleteSecondaryPackageDir(dir);
     _listDirWithoutPackages(dir)
         .where(dirExists)
-        .forEach(_linkSecondaryPackageDir);
+        .forEach(_linkOrDeleteSecondaryPackageDir);
   }
 
   // TODO(nweiz): roll this into [listDir] in io.dart once issue 4775 is fixed.
@@ -294,11 +323,13 @@ class Entrypoint {
     }));
   }
 
-  /// Creates a symlink to the `packages` directory in [dir]. Will replace one
-  /// if already there.
-  void _linkSecondaryPackageDir(String dir) {
+  /// If [packageSymlinks] is true, creates a symlink to the "packages"
+  /// directory in [dir].
+  ///
+  /// Otherwise, deletes a "packages" directories in [dir] if one exists.
+  void _linkOrDeleteSecondaryPackageDir(String dir) {
     var symlink = path.join(dir, 'packages');
     if (entryExists(symlink)) deleteEntry(symlink);
-    createSymlink(packagesDir, symlink, relative: true);
+    if (_packageSymlinks) createSymlink(packagesDir, symlink, relative: true);
   }
 }

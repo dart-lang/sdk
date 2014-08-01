@@ -2,7 +2,7 @@ library inputstream;
 
 import 'dart:collection';
 import 'package:utf/utf.dart';
-import 'package:source_maps/span.dart' show SourceFile;
+import 'package:source_span/source_span.dart';
 import 'char_encodings.dart';
 import 'constants.dart';
 import 'utils.dart';
@@ -135,8 +135,9 @@ class HtmlInputStream {
     // Free decoded characters if they aren't needed anymore.
     if (_rawBytes != null) _rawChars = null;
 
-    fileInfo = new SourceFile(sourceUrl, _lineStarts,
-        generateSpans ? _chars : null);
+    // TODO(sigmund): Don't parse the file at all if spans aren't being
+    // generated.
+    fileInfo = new SourceFile.decoded(_chars, url: sourceUrl);
   }
 
 

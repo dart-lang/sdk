@@ -87,7 +87,7 @@ void Builtin::SetNativeResolver(BuiltinLibraryId id) {
 
 
 Dart_Handle Builtin::LoadLibrary(Dart_Handle url, BuiltinLibraryId id) {
-  Dart_Handle library = Dart_LoadLibrary(url, Source(id));
+  Dart_Handle library = Dart_LoadLibrary(url, Source(id), 0, 0);
   if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
     // Setup the native resolver for built in library functions.
     DART_CHECK_VALID(

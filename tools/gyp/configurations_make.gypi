@@ -135,27 +135,41 @@
 
       'Dart_Linux_Debug': {
         'abstract': 1,
+        'conditions': [
+          ['c_frame_pointers==1', {
+            'cflags': [
+              '-fno-omit-frame-pointer',
+              # Clang on Linux will still omit frame pointers from leaf
+              # functions unless told otherwise:
+              # '-mno-omit-leaf-frame-pointer',
+            ],
+            'defines': [
+              'PROFILE_NATIVE_CODE'
+            ],
+          }],
+        ],
         'cflags': [
           '-O<(dart_debug_optimization_level)',
-          # Uncomment the following line and pass --profile-vm to enable
-          # profiling of C++ code within Observatory.
-          # '-fno-omit-frame-pointer',
-          # Clang on Linux will still omit frame pointers from leaf functions
-          # unless told otherwise:
-          # '-mno-omit-leaf-frame-pointer',
         ],
       },
 
       'Dart_Linux_Release': {
         'abstract': 1,
+        'conditions': [
+          ['c_frame_pointers==1', {
+            'cflags': [
+              '-fno-omit-frame-pointer',
+              # Clang on Linux will still omit frame pointers from leaf
+              # functions unless told otherwise:
+              # '-mno-omit-leaf-frame-pointer',
+            ],
+            'defines': [
+              'PROFILE_NATIVE_CODE'
+            ],
+          }],
+        ],
         'cflags': [
           '-O3',
-          # Uncomment the following line and pass --profile-vm to enable
-          # profiling of C++ code within Observatory.
-          # '-fno-omit-frame-pointer',
-          # Clang on Linux will still omit frame pointers from leaf functions
-          # unless told otherwise:
-          # '-mno-omit-leaf-frame-pointer',
         ],
       },
     },

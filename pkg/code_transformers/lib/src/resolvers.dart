@@ -7,6 +7,7 @@ library code_transformers.src.resolvers;
 import 'dart:async';
 import 'package:barback/barback.dart';
 
+import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 
@@ -27,19 +28,20 @@ class Resolvers {
   final Map<AssetId, Resolver> _resolvers = {};
   final DartSdk dartSdk;
   final DartUriResolver dartUriResolver;
+  final AnalysisOptions options;
 
-  Resolvers.fromSdk(this.dartSdk, this.dartUriResolver);
+  Resolvers.fromSdk(this.dartSdk, this.dartUriResolver, {this.options});
 
-  factory Resolvers(dartSdkDirectory) {
+  factory Resolvers(dartSdkDirectory, {AnalysisOptions options}) {
     var sdk = new DirectoryBasedDartSdkProxy(dartSdkDirectory);
     var uriResolver = new DartUriResolverProxy(sdk);
-    return new Resolvers.fromSdk(sdk, uriResolver);
+    return new Resolvers.fromSdk(sdk, uriResolver, options: options);
   }
 
   factory Resolvers.fromMock(Map<String, String> sources,
-      {bool reportMissing: false}) {
+      {bool reportMissing: false, AnalysisOptions options}) {
     var sdk = new MockDartSdk(sources, reportMissing: reportMissing);
-    return new Resolvers.fromSdk(sdk, sdk.resolver);
+    return new Resolvers.fromSdk(sdk, sdk.resolver, options: options);
   }
 
   /// Get a resolver for [transform]. If provided, this resolves the code
@@ -52,7 +54,7 @@ class Resolvers {
   Future<Resolver> get(Transform transform, [List<AssetId> entryPoints]) {
     var id = transform.primaryInput.id;
     var resolver = _resolvers.putIfAbsent(id,
-        () => new ResolverImpl(dartSdk, dartUriResolver));
+        () => new ResolverImpl(dartSdk, dartUriResolver, options: options));
     return resolver.resolve(transform, entryPoints);
   }
 }

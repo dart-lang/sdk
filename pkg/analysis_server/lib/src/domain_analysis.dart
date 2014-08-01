@@ -12,6 +12,7 @@ import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
+import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -27,9 +28,16 @@ class AnalysisDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
+   * The [SearchEngine] for this server.
+   */
+  SearchEngine searchEngine;
+
+  /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  AnalysisDomainHandler(this.server);
+  AnalysisDomainHandler(this.server) {
+    searchEngine = server.searchEngine;
+  }
 
   /**
    * Implement the `analysis.getErrors` request.

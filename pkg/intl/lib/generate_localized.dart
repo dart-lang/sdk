@@ -192,7 +192,7 @@ String generateMainImportFile() {
   output.write("\nMap<String, Function> _deferredLibraries = {\n");
   for (var rawLocale in allLocales) {
     var locale = Intl.canonicalizedLocale(rawLocale);
-    var loadOperation = (useDeferredLoading) 
+    var loadOperation = (useDeferredLoading)
         ? "  '$locale' : () => ${_libraryName(locale)}.loadLibrary(),\n"
         : "  '$locale' : () => new Future.value(null),\n";
     output.write(loadOperation);
@@ -243,7 +243,7 @@ Future initializeMessages(String localeName) {
   initializeInternalMessageLookup(() => new CompositeMessageLookup());
   var lib = _deferredLibraries[Intl.canonicalizedLocale(localeName)];
   var load = lib == null ? new Future.value(false) : lib();
-  return load.then((_) => 
+  return load.then((_) =>
       messageLookup.addLocale(localeName, _findGeneratedMessagesFor));
 }
 

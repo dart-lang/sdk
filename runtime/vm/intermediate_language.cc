@@ -2410,7 +2410,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
                                      ArgumentCount(),
-                                     argument_names(),
                                      locs(),
                                      unary_ic_data);
     } else {
@@ -2418,7 +2417,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
                                      ArgumentCount(),
-                                     argument_names(),
                                      locs(),
                                      *call_ic_data);
     }
@@ -2431,7 +2429,6 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateInstanceCall(deopt_id(),
                                    token_pos(),
                                    ArgumentCount(),
-                                   argument_names(),
                                    locs(),
                                    *call_ic_data);
   }
@@ -3120,7 +3117,7 @@ void LoadIndexedInstr::InferRange() {
                          RangeBoundary::FromConstant(65535));
       break;
     case kTypedDataInt32ArrayCid:
-      if (CanDeoptimize()) {
+      if (Typed32BitIsSmi()) {
         range_ = Range::UnknownSmi();
       } else {
         range_ = new Range(RangeBoundary::FromConstant(kMinInt32),
@@ -3128,7 +3125,7 @@ void LoadIndexedInstr::InferRange() {
       }
       break;
     case kTypedDataUint32ArrayCid:
-      if (CanDeoptimize()) {
+      if (Typed32BitIsSmi()) {
         range_ = Range::UnknownSmi();
       } else {
         range_ = new Range(RangeBoundary::FromConstant(0),

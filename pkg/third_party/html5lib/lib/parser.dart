@@ -15,7 +15,7 @@ library parser;
 
 import 'dart:collection';
 import 'dart:math';
-import 'package:source_maps/span.dart' show Span, FileSpan;
+import 'package:source_span/source_span.dart';
 
 import 'src/treebuilder.dart';
 import 'src/constants.dart';
@@ -32,7 +32,7 @@ import 'dom.dart';
 /// [encoding], which must be a string. If specified that encoding will be
 /// used regardless of any BOM or later declaration (such as in a meta element).
 ///
-/// Set [generateSpans] if you want to generate [Span]s, otherwise the
+/// Set [generateSpans] if you want to generate [SourceSpan]s, otherwise the
 /// [Node.sourceSpan] property will be `null`. When using [generateSpans] you
 /// can additionally pass [sourceUrl] to indicate where the [input] was
 /// extracted from.
@@ -52,7 +52,7 @@ Document parse(input, {String encoding, bool generateSpans: false,
 /// [encoding], which must be a string. If specified, that encoding will be used,
 /// regardless of any BOM or later declaration (such as in a meta element).
 ///
-/// Set [generateSpans] if you want to generate [Span]s, otherwise the
+/// Set [generateSpans] if you want to generate [SourceSpan]s, otherwise the
 /// [Node.sourceSpan] property will be `null`. When using [generateSpans] you can
 /// additionally pass [sourceUrl] to indicate where the [input] was extracted
 /// from.
@@ -70,7 +70,7 @@ class HtmlParser {
   /// Raise an exception on the first error encountered.
   final bool strict;
 
-  /// True to generate [Span]s for the [Node.sourceSpan] property.
+  /// True to generate [SourceSpan]s for the [Node.sourceSpan] property.
   final bool generateSpans;
 
   final HtmlTokenizer tokenizer;
@@ -363,12 +363,13 @@ class HtmlParser {
 
   /// The last span available. Used for EOF errors if we don't have something
   /// better.
-  Span get _lastSpan {
+  SourceSpan get _lastSpan {
+    if (tokenizer.stream.fileInfo == null) return null;
     var pos = tokenizer.stream.position;
-    return new FileSpan(tokenizer.stream.fileInfo, pos, pos);
+    return tokenizer.stream.fileInfo.location(pos).pointSpan();
   }
 
-  void parseError(Span span, String errorcode,
+  void parseError(SourceSpan span, String errorcode,
       [Map datavars = const {}]) {
 
     if (!generateSpans && span == null) {
@@ -2177,9 +2178,7 @@ class InTableTextPhase extends Phase {
     var span = null;
 
     if (parser.generateSpans) {
-      span = new FileSpan.union(
-          characterTokens[0].span,
-          characterTokens.last.span);
+      span = characterTokens[0].span.expand(characterTokens.last.span);
     }
 
     if (!allWhitespace(data)) {
@@ -3333,9 +3332,9 @@ class AfterAfterFramesetPhase extends Phase {
 
 
 /// Error in parsed document.
-class ParseError implements Exception {
+class ParseError implements SourceSpanException {
   final String errorCode;
-  final Span span;
+  final SourceSpan span;
   final Map data;
 
   ParseError(this.errorCode, this.span, this.data);
@@ -3352,8 +3351,8 @@ class ParseError implements Exception {
   /// [toString] will include 'ParserError:' as a prefix.
   String get message => formatStr(errorMessages[errorCode], data);
 
-  String toString() {
-    var res = span.getLocationMessage(message);
+  String toString({color}) {
+    var res = span.message(message, color: color);
     return span.sourceUrl == null ? 'ParserError on $res' : 'On $res';
   }
 }

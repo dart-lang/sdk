@@ -99,15 +99,20 @@ class HttpMultiServer extends StreamView<HttpRequest> implements HttpServer {
   /// [HttpServer.bindSecure].
   static Future<HttpServer> _loopback(int port,
       Future<HttpServer> bind(InternetAddress address, int port)) {
-    return bind(InternetAddress.LOOPBACK_IP_V4, port).then((v4Server) {
+    return Future.wait([
+      supportsIpV6,
+      bind(InternetAddress.LOOPBACK_IP_V4, port)
+    ]).then((results) {
+      var supportsIpV6 = results[0];
+      var v4Server = results[1];
+
+      if (!supportsIpV6) return v4Server;
+
       // Reuse the IPv4 server's port so that if [port] is 0, both servers use
       // the same ephemeral port.
       return bind(InternetAddress.LOOPBACK_IP_V6, v4Server.port)
-          .then((v6Server) => new HttpMultiServer([v4Server, v6Server]))
-          .catchError((error) {
-        // If we fail to bind to IPv6, just use IPv4.
-        if (error is SocketException) return v4Server;
-        throw error;
+          .then((v6Server) {
+        return new HttpMultiServer([v4Server, v6Server]);
       });
     });
   }

@@ -1012,7 +1012,7 @@ void testHangs() {
   expect(errorMessage.span, isNotNull);
   expect(errorMessage.span.start.line, 7);
   expect(errorMessage.span.start.column, 0);
-  expect(errorMessage.span.text, '');
+  expect(errorMessage.span.text.trim(), '');
 }
 
 main() {

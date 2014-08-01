@@ -4,7 +4,7 @@
 
 part of polymer;
 
-/// Use this annotation to publish a field as an attribute.
+/// Use this annotation to publish a property as an attribute.
 ///
 /// You can also use [PublishedProperty] to provide additional information,
 /// such as automatically syncing the property back to the attribute.
@@ -24,15 +24,31 @@ part of polymer;
 ///       //
 ///       // If the template is instantiated or given a model, `x` will be
 ///       // used for this field and updated whenever `volume` changes.
-///       @published double volume;
+///       @published
+///       double get volume => readValue(#volume);
+///       set volume(double newValue) => writeValue(#volume, newValue);
 ///
 ///       // This will be available as an HTML attribute, like above, but it
 ///       // will also serialize values set to the property to the attribute.
 ///       // In other words, attributes['volume2'] will contain a serialized
 ///       // version of this field.
-///       @PublishedProperty(reflect: true) double volume2;
+///       @PublishedProperty(reflect: true)
+///       double get volume2 => readValue(#volume2);
+///       set volume2(double newValue) => writeValue(#volume2, newValue);
 ///     }
 ///
+/// **Important note**: the pattern using `readValue` and `writeValue`
+/// guarantees that reading the property will give you the latest value at any
+/// given time, even if change notifications have not been propagated.
+///
+/// We still support using @published on a field, but this will not
+/// provide the same guarantees, so this is discouraged. For example:
+///
+///       // Avoid this if possible. This will be available as an HTML
+///       // attribute too, but you might need to delay reading volume3 
+///       // asynchronously to guarantee that you read the latest value
+///       // set through bindings.
+///       @published double volume3;
 const published = const PublishedProperty();
 
 /// An annotation used to publish a field as an attribute. See [published].
@@ -72,6 +88,45 @@ class ObserveProperty {
   const ObserveProperty(this._names);
 }
 
+/// Use this to create computed properties that are updated automatically. The
+/// annotation includes a polymer expression that describes how this property
+/// value can be expressed in terms of the values of other properties. For
+/// example:
+///
+///     class MyPlaybackElement extends PolymerElement {
+///       @observable int x;
+///
+///       // Reading xTimes2 will return x * 2.
+///       @ComputedProperty('x * 2')
+///       int get xTimes2 => readValue(#xTimes2);
+///
+/// If the polymer expression is assignable, you can also define a setter for
+/// it. For example:
+///
+///       // Reading c will return a.b, writing c will update a.b.
+///       @ComputedProperty('a.b')
+///       get c => readValue(#c);
+///       set c(newValue) => writeValue(#c, newValue);
+///
+/// The expression can do anything that is allowed in a polymer expresssion,
+/// even making calls to methods in your element. However, dependencies that are
+/// only used within those methods and that are not visible in the polymer
+/// expression, will not be observed. For example:
+///
+///       // Because `x` only appears inside method `m`, we will not notice
+///       // that `d` has changed if `x` is modified. However, `d` will be
+///       // updated whenever `c` changes.
+///       @ComputedProperty('m(c)')
+///       get d => readValue(#d);
+///
+///       m(c) => c + x;
+class ComputedProperty {
+  /// A polymer expression, evaluated in the context of the custom element where
+  /// this annotation is used.
+  final String expression;
+
+  const ComputedProperty(this.expression);
+}
 
 /// Base class for PolymerElements deriving from HtmlElement.
 ///
@@ -174,7 +229,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   @deprecated PolymerDeclaration get declaration => _element;
 
   Map<String, StreamSubscription> _namedObservers;
-  List<Iterable<Bindable>> _observers = [];
+  List<Bindable> _observers = [];
 
   bool _unbound; // lazy-initialized
   PolymerJob _unbindAllJob;
@@ -238,6 +293,53 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   /// prevent that from happening.
   bool get preventDispose => false;
 
+  /// Properties exposed by this element.
+  // Dart note: unlike Javascript we can't override the original property on
+  // the object, so we use this mechanism instead to define properties. See more
+  // details in [_PropertyAccessor].
+  Map<Symbol, _PropertyAccessor> _properties = {};
+
+  /// Helper to implement a property with the given [name]. This is used for
+  /// normal and computed properties. Normal properties can provide the initial
+  /// value using the [initialValue] function. Computed properties ignore
+  /// [initialValue], their value is derived from the expression in the
+  /// [ComputedProperty] annotation that appears above the getter that uses this
+  /// helper.
+  readValue(Symbol name, [initialValue()]) {
+    var property = _properties[name];
+    if (property == null) {
+      var value;
+      // Dart note: most computed properties are created in advance in
+      // createComputedProperties, but if one computed property depends on
+      // another, the declaration order might matter. Rather than trying to
+      // register them in order, we include here also the option of lazily
+      // creating the property accessor on the first read.
+      var binding = _getBindingForComputedProperty(name);
+      if (binding == null) { // normal property
+        value = initialValue != null ? initialValue() : null;
+      } else {
+        value = binding.value;
+      }
+      property = _properties[name] = new _PropertyAccessor(name, this, value);
+    }
+    return property.value;
+  }
+
+  /// Helper to implement a setter of a property with the given [name] on a
+  /// polymer element. This can be used on normal properties and also on
+  /// computed properties, as long as the expression used for the computed
+  /// property is assignable (see [ComputedProperty]).
+  writeValue(Symbol name, newValue) {
+    var property = _properties[name];
+    if (property == null) {
+      // Note: computed properties are created in advance in
+      // createComputedProperties, so we should only need to create here
+      // non-computed properties.
+      property = _properties[name] = new _PropertyAccessor(name, this, null);
+    }
+    property.value = newValue;
+  }
+
   /// If this class is used as a mixin, this method must be called from inside
   /// of the `created()` constructor.
   ///
@@ -291,6 +393,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   makeElementReady() {
     if (_readied) return;
     _readied = true;
+    createComputedProperties();
 
     // TODO(sorvell): We could create an entry point here
     // for the user to compute property values.
@@ -554,7 +657,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       syntax = element.syntax;
     }
     var dom = t.createInstance(this, syntax);
-    registerObservers(getTemplateInstanceBindings(dom));
+    _observers.addAll(getTemplateInstanceBindings(dom));
     return dom;
   }
 
@@ -640,7 +743,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     if (observe != null) {
       var o = _propertyObserver = new CompoundObserver();
       // keep track of property observer so we can shut it down
-      registerObservers([o]);
+      _observers.add(o);
 
       for (var path in observe.keys) {
         o.addPath(this, path);
@@ -656,10 +759,13 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     if (_propertyObserver != null) {
       _propertyObserver.open(notifyPropertyChanges);
     }
-    // Dart note: we need an extra listener.
-    // see comment on [_propertyChange].
+
+    // Dart note: we need an extra listener only to continue supporting
+    // @published properties that follow the old syntax until we get rid of it.
+    // This workaround has timing issues so we prefer the new, not so nice,
+    // syntax.
     if (_element._publish != null) {
-      changes.listen(_propertyChange);
+      changes.listen(_propertyChangeWorkaround);
     }
   }
 
@@ -705,19 +811,26 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
-  // Dart note: this is not called by observe-js because we don't have
-  // the mechanism for defining properties on our proto.
-  // TODO(jmesserly): this has similar timing issues as our @published
-  // properties do generally -- it's async when it should be sync.
-  void _propertyChange(List<ChangeRecord> records) {
+  // Dart note: this workaround is only for old-style @published properties,
+  // which have timing issues. See _bindOldStylePublishedProperty below.
+  // TODO(sigmund): deprecate this.
+  void _propertyChangeWorkaround(List<ChangeRecord> records) {
     for (var record in records) {
       if (record is! PropertyChangeRecord) continue;
 
-      final name = smoke.symbolToName(record.name);
-      final reflect = _element._reflect;
-      if (reflect != null && reflect.contains(name)) {
-        reflectPropertyToAttribute(name);
-      }
+      var name = record.name;
+      // The setter of a new-style property will create an accessor in
+      // _properties[name]. We can skip the workaround for those properties.
+      if (_properties[name] != null) continue;
+      _propertyChange(name);
+    }
+  }
+
+  void _propertyChange(Symbol nameSymbol) {
+    var name = smoke.symbolToName(nameSymbol);
+    var reflect = _element._reflect;
+    if (reflect != null && reflect.contains(name)) {
+      reflectPropertyToAttribute(name);
     }
   }
 
@@ -751,19 +864,97 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     }
   }
 
-  void registerObservers(Iterable<Bindable> observers) {
-    _observers.add(observers);
+  emitPropertyChangeRecord(Symbol name, newValue, oldValue) {
+    if (identical(oldValue, newValue)) return;
+    _propertyChange(name);
   }
 
+  bindToAccessor(Symbol name, Bindable bindable, {resolveBindingValue: false}) {
+    // Dart note: our pattern is to declare the initial value in the getter.  We
+    // read it via smoke to ensure that the value is initialized correctly.
+    var oldValue = smoke.read(this, name);
+    var property = _properties[name];
+    if (property == null) {
+      // We know that _properties[name] is null only for old-style @published
+      // properties. This fallback is here to make it easier to deprecate the
+      // old-style of published properties, which have bad timing guarantees
+      // (see comment in _PolymerBinding).
+      return _bindOldStylePublishedProperty(name, bindable, oldValue);
+    }
+
+    property.bindable = bindable;
+    var value = bindable.open(property.updateValue);
+
+    if (resolveBindingValue) {
+      // capture A's value if B's value is null or undefined,
+      // otherwise use B's value
+      var v = (value == null ? oldValue : value);
+      if (!identical(value, oldValue)) {
+        bindable.value = value = v;
+      }
+    }
+
+    property.updateValue(value);
+    var o = new _CloseOnlyBinding(property);
+    _observers.add(o);
+    return o;
+  }
+
+  // Dart note: this fallback uses our old-style binding mechanism to be able to
+  // link @published properties with bindings. This mechanism is backwards from
+  // what Javascript does because we can't override the original property. This
+  // workaround also brings some timing issues which are described in detail in
+  // dartbug.com/18343.
+  // TODO(sigmund): deprecate old-style @published properties.
+  _bindOldStylePublishedProperty(Symbol name, Bindable bindable, oldValue) {
+    // capture A's value if B's value is null or undefined,
+    // otherwise use B's value
+    if (bindable.value == null) bindable.value = oldValue;
+
+    var o = new _PolymerBinding(this, name, bindable);
+    _observers.add(o);
+    return o;
+  }
+
+  _getBindingForComputedProperty(Symbol name) {
+    var exprString = element._computed[name];
+    if (exprString == null) return null;
+    var expr = PolymerExpressions.getExpression(exprString);
+    return PolymerExpressions.getBinding(expr, this,
+        globals: element.syntax.globals);
+  }
+
+  createComputedProperties() {
+    var computed = this.element._computed;
+    for (var name in computed.keys) {
+      try {
+        // Dart note: this is done in Javascript by modifying the prototype in
+        // declaration/properties.js, we can't do that, so we do it here.
+        var binding = _getBindingForComputedProperty(name);
+
+        // Follow up note: ideally we would only create the accessor object
+        // here, but some computed properties might depend on others and
+        // evaluating `binding.value` could try to read the value of another
+        // computed property that we haven't created yet. For this reason we
+        // also allow to also create the accessor in [readValue].
+        if (_properties[name] == null) {
+          _properties[name] = new _PropertyAccessor(name, this, binding.value);
+        }
+        bindToAccessor(name, binding);
+      } catch (e) {
+        window.console.error('Failed to create computed property $name'
+            ' (${computed[name]}): $e');
+      }
+    }
+  }
+
+  // Dart note: to simplify the code above we made registerObserver calls
+  // directly invoke _observers.add/addAll.
   void closeObservers() {
-    _observers.forEach(closeObserverList);
-    _observers = [];
-  }
-
-  void closeObserverList(Iterable<Bindable> observers) {
-    for (var o in observers) {
+    for (var o in _observers) {
       if (o != null) o.close();
     }
+    _observers = [];
   }
 
   /// Bookkeeping observers for memory management.
@@ -800,7 +991,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   ///       bindProperty(#myProperty,
   ///           new PathObserver(this, 'myModel.path.to.otherProp'));
   ///     }
-  Bindable bindProperty(Symbol name, Bindable bindable, {oneTime: false}) {
+  Bindable bindProperty(Symbol name, bindableOrValue, {oneTime: false}) {
     // Dart note: normally we only reach this code when we know it's a
     // property, but if someone uses bindProperty directly they might get a
     // NoSuchMethodError either from the getField below, or from the setField
@@ -808,23 +999,20 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // difference from Polymer.js behavior.
 
     if (_bindLog.isLoggable(Level.FINE)) {
-      _bindLog.fine('bindProperty: [$bindable] to [$_name].[$name]');
+      _bindLog.fine('bindProperty: [$bindableOrValue] to [$_name].[$name]');
     }
 
-    // capture A's value if B's value is null or undefined,
-    // otherwise use B's value
-    // TODO(sorvell): need to review, can do with ObserverTransform
-    var v = bindable.value;
-    if (v == null) {
-      bindable.value = smoke.read(this, name);
+    if (oneTime) {
+      if (bindableOrValue is Bindable) {
+        _bindLog.warning('bindProperty: expected non-bindable value '
+            'on a one-time binding to [$_name].[$name], '
+            'but found $bindableOrValue.');
+      }
+      smoke.write(this, name, bindableOrValue);
+      return null;
     }
 
-    // TODO(jmesserly): we need to fix this -- it doesn't work like Polymer.js
-    // bindings. https://code.google.com/p/dart/issues/detail?id=18343
-    // apply Polymer two-way reference binding
-    //return Observer.bindToInstance(inA, inProperty, observable,
-    //    resolveBindingValue);
-    return new _PolymerBinding(this, name, bindable);
+    return bindToAccessor(name, bindableOrValue, resolveBindingValue: true);
   }
 
   /// Attach event listeners on the host (this) element.
@@ -997,9 +1185,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
         _STYLE_CONTROLLER_SCOPE);
     applyStyleToScope(style, scope);
     // cache that this style has been applied
-    Set styles = _scopeStyles[scope];
-    if (styles == null) _scopeStyles[scope] = styles = new Set();
-    styles.add('$_name$name');
+    styleCacheForScope(scope).add('$_name$name');
   }
 
   Node findStyleScope([node]) {
@@ -1012,9 +1198,23 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     return n;
   }
 
-  bool scopeHasNamedStyle(Node scope, String name) {
-    Set styles = _scopeStyles[scope];
-    return styles != null && styles.contains(name);
+  bool scopeHasNamedStyle(Node scope, String name) =>
+      styleCacheForScope(scope).contains(name);
+
+  Map _polyfillScopeStyleCache = {};
+
+  Set styleCacheForScope(Node scope) {
+    var styles;
+    if (_hasShadowDomPolyfill) {
+      var name = scope is ShadowRoot ? scope.host.localName
+          : (scope as Element).localName;
+      var styles = _polyfillScopeStyleCache[name];
+      if (styles == null) _polyfillScopeStyleCache[name] = styles = new Set();
+    } else {
+      styles = _scopeStyles[scope];
+      if (styles == null) _scopeStyles[scope] = styles = new Set();
+    }
+    return styles;
   }
 
   static final _scopeStyles = new Expando();
@@ -1079,12 +1279,14 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   }
 }
 
-// Dart note: Polymer addresses n-way bindings by metaprogramming: redefine
-// the property on the PolymerElement instance to always get its value from the
-// model@path. We can't replicate this in Dart so we do the next best thing:
-// listen to changes on both sides and update the values.
-// TODO(jmesserly): our approach leads to race conditions in the bindings.
-// See http://code.google.com/p/dart/issues/detail?id=13567
+// Dart note: this is related to _bindOldStylePublishedProperty. Polymer
+// addresses n-way bindings by metaprogramming: redefine the property on the
+// PolymerElement instance to always get its value from the model@path. This is
+// supported in Dart using a new style of @published property declaration using
+// the `readValue` and `writeValue` methods above. In the past we used to work
+// around this by listening to changes on both sides and updating the values.
+// This object provides the hooks to do this.
+// TODO(sigmund,jmesserly): delete after a deprecation period.
 class _PolymerBinding extends Bindable {
   final Polymer _target;
   final Symbol _property;
@@ -1100,6 +1302,8 @@ class _PolymerBinding extends Bindable {
   void _updateNode(newValue) {
     _lastValue = newValue;
     smoke.write(_target, _property, newValue);
+    // Note: we don't invoke emitPropertyChangeRecord here because that's
+    // done by listening on changes on the PolymerElement.
   }
 
   void _propertyValueChanged(List<ChangeRecord> records) {
@@ -1124,6 +1328,24 @@ class _PolymerBinding extends Bindable {
       _sub = null;
     }
     _bindable.close();
+  }
+}
+
+// Ported from an inline object in instance/properties.js#bindToAccessor.
+class _CloseOnlyBinding extends Bindable {
+  final _PropertyAccessor accessor;
+
+  _CloseOnlyBinding(this.accessor);
+
+  open(callback) {}
+  get value => null;
+  set value(newValue) {}
+  deliver() {}
+
+  void close() {
+    if (accessor.bindable == null) return;
+    accessor.bindable.close();
+    accessor.bindable = null;
   }
 }
 

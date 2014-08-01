@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.src.index.store.separate_file_mananer;
+library test.services.src.index.store.temporary_folder_file_mananer;
 
 import 'dart:io';
 
-import 'package:analysis_services/src/index/store/separate_file_manager.dart';
+import 'package:analysis_services/src/index/store/temporary_folder_file_manager.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
@@ -20,16 +20,14 @@ main() {
 
 @ReflectiveTestCase()
 class _SeparateFileManagerTest {
-  Directory tempDir;
-  SeparateFileManager fileManager;
+  TemporaryFolderFileManager fileManager;
 
   void setUp() {
-    tempDir = Directory.systemTemp.createTempSync('AnalysisServer_index');
-    fileManager = new SeparateFileManager(tempDir);
+    fileManager = new TemporaryFolderFileManager();
   }
 
   void tearDown() {
-    tempDir.delete(recursive: true);
+    fileManager.clear();
   }
 
   test_clear() {
@@ -45,6 +43,13 @@ class _SeparateFileManagerTest {
   }
 
   test_delete_doesNotExist() {
+    return fileManager.write('other.index', <int>[1, 2, 3, 4]).then((_) {
+      String name = "42.index";
+      fileManager.delete(name);
+    });
+  }
+
+  test_delete_noDirectory() {
     String name = "42.index";
     fileManager.delete(name);
   }
@@ -68,7 +73,18 @@ class _SeparateFileManagerTest {
     });
   }
 
+  test_read_noDirectory() {
+    String name = "42.index";
+    return fileManager.read(name).then((bytes) {
+      expect(bytes, isNull);
+    });
+  }
+
   bool _existsSync(String name) {
-    return new File(join(tempDir.path, name)).existsSync();
+    Directory directory = fileManager.test_directory;
+    if (directory == null) {
+      return false;
+    }
+    return new File(join(directory.path, name)).existsSync();
   }
 }

@@ -5,7 +5,7 @@
 library csslib.src.messages;
 
 import 'package:logging/logging.dart' show Level;
-import 'package:source_maps/span.dart' show Span;
+import 'package:source_span/source_span.dart';
 
 import 'options.dart';
 
@@ -43,16 +43,16 @@ final Map<Level, String> _ERROR_LABEL = (() {
 class Message {
   final Level level;
   final String message;
-  final Span span;
+  final SourceSpan span;
   final bool useColors;
 
-  Message(this.level, this.message, {Span span, bool useColors: false})
+  Message(this.level, this.message, {SourceSpan span, bool useColors: false})
       : this.span = span, this.useColors = useColors;
 
   String toString() {
     var output = new StringBuffer();
     bool colors = useColors && _ERROR_COLORS.containsKey(level);
-    var levelColor =  _ERROR_COLORS[level];
+    var levelColor = colors ? _ERROR_COLORS[level] : null;
     if (colors) output.write(levelColor);
     output..write(_ERROR_LABEL[level])..write(' ');
     if (colors) output.write(NO_COLOR);
@@ -61,8 +61,7 @@ class Message {
       output.write(message);
     } else {
       output.write('on ');
-      output.write(span.getLocationMessage(message, useColors: colors,
-          color: levelColor));
+      output.write(span.message(message, color: levelColor));
     }
 
     return output.toString();
@@ -87,7 +86,7 @@ class Messages {
       : options = options != null ? options : new PreprocessorOptions();
 
   /** Report a compile-time CSS error. */
-  void error(String message, Span span) {
+  void error(String message, SourceSpan span) {
     var msg = new Message(Level.SEVERE, message, span: span,
         useColors: options.useColors);
 
@@ -97,7 +96,7 @@ class Messages {
   }
 
   /** Report a compile-time CSS warning. */
-  void warning(String message, Span span) {
+  void warning(String message, SourceSpan span) {
     if (options.warningsAsErrors) {
       error(message, span);
     } else {
@@ -109,7 +108,7 @@ class Messages {
   }
 
   /** Report and informational message about what the compiler is doing. */
-  void info(String message, Span span) {
+  void info(String message, SourceSpan span) {
     var msg = new Message(Level.INFO, message, span: span,
         useColors: options.useColors);
 

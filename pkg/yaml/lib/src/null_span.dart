@@ -6,7 +6,7 @@ library yaml.null_span;
 
 import 'package:source_span/source_span.dart';
 
-/// A [Span] with no location information.
+/// A [SourceSpan] with no location information.
 ///
 /// This is used with [YamlMap.wrap] and [YamlList.wrap] to provide means of
 /// accessing a non-YAML map that behaves transparently like a map parsed from

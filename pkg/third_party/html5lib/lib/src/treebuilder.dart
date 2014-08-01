@@ -4,7 +4,7 @@ library treebuilder;
 import 'dart:collection';
 import 'package:html5lib/dom.dart';
 import 'package:html5lib/parser.dart' show getElementNameTuple;
-import 'package:source_maps/span.dart' show FileSpan;
+import 'package:source_span/source_span.dart';
 import 'constants.dart';
 import 'list_proxy.dart';
 import 'token.dart';

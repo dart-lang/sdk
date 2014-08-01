@@ -173,7 +173,7 @@ Future invokeCommand(String cacheDir, ArgResults mainOptions) {
   }
 
   return syncFuture(() {
-    return command.run(cacheDir, options);
+    return command.run(cacheDir, mainOptions, options);
   }).whenComplete(() {
     command.cache.deleteTempDir();
   });

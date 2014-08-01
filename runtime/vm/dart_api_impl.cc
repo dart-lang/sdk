@@ -4793,7 +4793,9 @@ static void CompileSource(Isolate* isolate,
     *result = Api::NewHandle(isolate, lib.raw());
   } else {
     *result = Api::NewHandle(isolate, error.raw());
-    lib.SetLoadError();
+    // Compilation errors are not Dart instances, so just mark the library
+    // as having failed to load without providing an error instance.
+    lib.SetLoadError(Instance::Handle());
   }
 }
 
@@ -4801,7 +4803,7 @@ static void CompileSource(Isolate* isolate,
 DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         Dart_Handle source,
                                         intptr_t line_offset,
-                                        intptr_t col_offset) {
+                                        intptr_t column_offset) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_script_loading);
@@ -4824,8 +4826,8 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
     return Api::NewError("%s: argument 'line_offset' must be positive number",
                          CURRENT_FUNC);
   }
-  if (col_offset < 0) {
-    return Api::NewError("%s: argument 'col_offset' must be positive number",
+  if (column_offset < 0) {
+    return Api::NewError("%s: argument 'column_offset' must be positive number",
                          CURRENT_FUNC);
   }
   CHECK_CALLBACK_STATE(isolate);
@@ -4839,7 +4841,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
 
   const Script& script = Script::Handle(
       isolate, Script::New(url_str, source_str, RawScript::kScriptTag));
-  script.SetLocationOffset(line_offset, col_offset);
+  script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(isolate, library, script, &result);
   return result;
@@ -5028,8 +5030,38 @@ DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_LibraryHandleError(Dart_Handle library_in,
+                                                Dart_Handle error_in) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library_in);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library_in, Library);
+  }
+  const Instance& err = Api::UnwrapInstanceHandle(isolate, error_in);
+  if (err.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, error_in, Instance);
+  }
+  CHECK_CALLBACK_STATE(isolate);
+
+  const GrowableObjectArray& pending_deferred_loads =
+      GrowableObjectArray::Handle(
+          isolate->object_store()->pending_deferred_loads());
+  for (intptr_t i = 0; i < pending_deferred_loads.Length(); i++) {
+    if (pending_deferred_loads.At(i) == lib.raw()) {
+      lib.SetLoadError(err);
+      return Api::Null();
+    }
+  }
+  return error_in;
+}
+
+
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
-                                         Dart_Handle source) {
+                                         Dart_Handle source,
+                                         intptr_t line_offset,
+                                         intptr_t column_offset) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_script_loading);
@@ -5041,6 +5073,14 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
   }
+  if (line_offset < 0) {
+    return Api::NewError("%s: argument 'line_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
+  if (column_offset < 0) {
+    return Api::NewError("%s: argument 'column_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
   CHECK_CALLBACK_STATE(isolate);
 
   NoHeapGrowthControlScope no_growth_control;
@@ -5051,7 +5091,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
     library.Register();
   } else if (library.LoadInProgress() ||
       library.Loaded() ||
-      library.LoadError()) {
+      library.LoadFailed()) {
     // The source for this library has either been loaded or is in the
     // process of loading.  Return an error.
     return Api::NewError("%s: library '%s' has already been loaded.",
@@ -5059,6 +5099,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
   }
   const Script& script = Script::Handle(
       isolate, Script::New(url_str, source_str, RawScript::kLibraryTag));
+  script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(isolate, library, script, &result);
   // Propagate the error out right now.
@@ -5124,7 +5165,9 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
-                                        Dart_Handle source) {
+                                        Dart_Handle source,
+                                        intptr_t line_offset,
+                                        intptr_t column_offset) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_script_loading);
@@ -5140,12 +5183,21 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
   if (source_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, source, String);
   }
+  if (line_offset < 0) {
+    return Api::NewError("%s: argument 'line_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
+  if (column_offset < 0) {
+    return Api::NewError("%s: argument 'column_offset' must be positive number",
+                         CURRENT_FUNC);
+  }
   CHECK_CALLBACK_STATE(isolate);
 
   NoHeapGrowthControlScope no_growth_control;
 
   const Script& script = Script::Handle(
       isolate, Script::New(url_str, source_str, RawScript::kSourceTag));
+  script.SetLocationOffset(line_offset, column_offset);
   Dart_Handle result;
   CompileSource(isolate, lib, script, &result);
   return result;
@@ -5212,6 +5264,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
 
     const Object& res =
         Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
+    isolate->object_store()->clear_pending_deferred_loads();
     if (res.IsError() || res.IsUnhandledException()) {
       return Api::NewHandle(isolate, res.raw());
     }

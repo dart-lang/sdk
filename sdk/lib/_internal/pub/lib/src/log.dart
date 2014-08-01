@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
 
@@ -316,9 +315,7 @@ void exception(exception, [StackTrace trace]) {
 
   // This is basically the top-level exception handler so that we don't
   // spew a stack trace on our users.
-  if (exception is SpanException) {
-    error(exception.toString(useColors: canUseSpecialChars));
-  } else if (exception is SourceSpanException) {
+  if (exception is SourceSpanException) {
     error(exception.toString(color: canUseSpecialChars));
   } else {
     error(getErrorMessage(exception));
@@ -510,8 +507,7 @@ class _JsonLogger {
     }
 
     // If the error came from a file, include the path.
-    if ((error is SpanException || error is SourceSpanException) &&
-        error.span.sourceUrl != null) {
+    if (error is SourceSpanException && error.span.sourceUrl != null) {
       errorJson["path"] = p.fromUri(error.span.sourceUrl);
     }
 

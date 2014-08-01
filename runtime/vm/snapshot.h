@@ -142,24 +142,32 @@ class Snapshot {
 
   // Getters.
   const uint8_t* content() const { return content_; }
-  intptr_t length() const { return static_cast<intptr_t>(length_); }
-  Kind kind() const { return static_cast<Kind>(kind_); }
+  intptr_t length() const {
+    return static_cast<intptr_t>(ReadUnaligned(&unaligned_length_));
+  }
+  Kind kind() const {
+    return static_cast<Kind>(ReadUnaligned(&unaligned_kind_));
+  }
 
-  bool IsMessageSnapshot() const { return kind_ == kMessage; }
-  bool IsScriptSnapshot() const { return kind_ == kScript; }
-  bool IsFullSnapshot() const { return kind_ == kFull; }
+  bool IsMessageSnapshot() const { return kind() == kMessage; }
+  bool IsScriptSnapshot() const { return kind() == kScript; }
+  bool IsFullSnapshot() const { return kind() == kFull; }
   uint8_t* Addr() { return reinterpret_cast<uint8_t*>(this); }
 
-  static intptr_t length_offset() { return OFFSET_OF(Snapshot, length_); }
+  static intptr_t length_offset() {
+    return OFFSET_OF(Snapshot, unaligned_length_);
+  }
   static intptr_t kind_offset() {
-    return OFFSET_OF(Snapshot, kind_);
+    return OFFSET_OF(Snapshot, unaligned_kind_);
   }
 
  private:
-  Snapshot() : length_(0), kind_(kFull) {}
+  // Prevent Snapshot from ever being allocated directly.
+  Snapshot();
 
-  int64_t length_;  // Stream length.
-  int64_t kind_;  // Kind of snapshot.
+  // The following fields are potentially unaligned.
+  int64_t unaligned_length_;  // Stream length.
+  int64_t unaligned_kind_;  // Kind of snapshot.
   uint8_t content_[];  // Stream content.
 
   DISALLOW_COPY_AND_ASSIGN(Snapshot);

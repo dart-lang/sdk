@@ -6,6 +6,7 @@
 library test.common;
 
 import 'package:source_maps/source_maps.dart';
+import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
 /// Content of the source file
@@ -18,40 +19,40 @@ int longName(int longVar2) {
   return longVar1 + longVar2;
 }
 ''';
-var input = new SourceFile.text('input.dart', INPUT);
+var input = new SourceFile(INPUT, url: 'input.dart');
 
 /// A span in the input file
-Span ispan(int start, int end, [bool isIdentifier = false]) =>
-    new FileSpan(input, start, end, isIdentifier);
+SourceMapSpan ispan(int start, int end, [bool isIdentifier = false]) =>
+    new SourceMapFileSpan(input.span(start, end), isIdentifier: isIdentifier);
 
-Span inputVar1 = ispan(30, 38, true);
-Span inputFunction = ispan(74, 82, true);
-Span inputVar2 = ispan(87, 95, true);
+SourceMapSpan inputVar1 = ispan(30, 38, true);
+SourceMapSpan inputFunction = ispan(74, 82, true);
+SourceMapSpan inputVar2 = ispan(87, 95, true);
 
-Span inputVar1NoSymbol = ispan(30, 38);
-Span inputFunctionNoSymbol = ispan(74, 82);
-Span inputVar2NoSymbol = ispan(87, 95);
+SourceMapSpan inputVar1NoSymbol = ispan(30, 38);
+SourceMapSpan inputFunctionNoSymbol = ispan(74, 82);
+SourceMapSpan inputVar2NoSymbol = ispan(87, 95);
 
-Span inputExpr = ispan(108, 127);
+SourceMapSpan inputExpr = ispan(108, 127);
 
 /// Content of the target file
 const String OUTPUT = '''
 var x = 3;
 f(y) => x + y;
 ''';
-var output = new SourceFile.text('output.dart', OUTPUT);
+var output = new SourceFile(OUTPUT, url: 'output.dart');
 
 /// A span in the output file
-Span ospan(int start, int end, [bool isIdentifier = false]) =>
-    new FileSpan(output, start, end, isIdentifier);
+SourceMapSpan ospan(int start, int end, [bool isIdentifier = false]) =>
+    new SourceMapFileSpan(output.span(start, end), isIdentifier: isIdentifier);
 
-Span outputVar1 = ospan(4, 5, true);
-Span outputFunction = ospan(11, 12, true);
-Span outputVar2 = ospan(13, 14, true);
-Span outputVar1NoSymbol = ospan(4, 5);
-Span outputFunctionNoSymbol = ospan(11, 12);
-Span outputVar2NoSymbol = ospan(13, 14);
-Span outputExpr = ospan(19, 24);
+SourceMapSpan outputVar1 = ospan(4, 5, true);
+SourceMapSpan outputFunction = ospan(11, 12, true);
+SourceMapSpan outputVar2 = ospan(13, 14, true);
+SourceMapSpan outputVar1NoSymbol = ospan(4, 5);
+SourceMapSpan outputFunctionNoSymbol = ospan(11, 12);
+SourceMapSpan outputVar2NoSymbol = ospan(13, 14);
+SourceMapSpan outputExpr = ospan(19, 24);
 
 /// Expected output mapping when recording the following four mappings:
 ///      inputVar1       <=   outputVar1
@@ -70,7 +71,8 @@ const Map<String, dynamic> EXPECTED_MAP = const {
     'file': 'output.dart'
 };
 
-check(Span outputSpan, Mapping mapping, Span inputSpan, bool realOffsets) {
+check(SourceSpan outputSpan, Mapping mapping, SourceMapSpan inputSpan,
+    bool realOffsets) {
   var line = outputSpan.start.line;
   var column = outputSpan.start.column;
   var files = realOffsets ? {'input.dart': input} : null; 

@@ -20,6 +20,7 @@ class ObservatoryApplication extends Observable {
     }
     if (_vm != null) {
       // Disconnect from current VM.
+      notifications.clear();
       _vm.disconnect();
     }
     if (vm != null) {
@@ -27,6 +28,7 @@ class ObservatoryApplication extends Observable {
       vm.onConnect.then(_vmConnected);
       vm.onDisconnect.then(_vmDisconnected);
       vm.errors.stream.listen(_onError);
+      vm.events.stream.listen(_onEvent);
       vm.exceptions.stream.listen(_onException);
     }
     _vm = vm;
@@ -59,7 +61,7 @@ class ObservatoryApplication extends Observable {
       });
   }
 
-  void _handleEvent(ServiceEvent event) {
+  void _onEvent(ServiceEvent event) {
     switch(event.eventType) {
       case 'IsolateCreated':
         // vm.reload();
@@ -74,7 +76,7 @@ class ObservatoryApplication extends Observable {
         break;
         
       case 'BreakpointResolved':
-        // Do nothing.
+        event.isolate.reloadBreakpoints();
         break;
 
       case 'BreakpointReached':

@@ -63,6 +63,11 @@ abstract class ServerCommunicationChannel {
    * Send the given [response] to the client.
    */
   void sendResponse(Response response);
+
+  /**
+   * Close the communication channel.
+   */
+  void close();
 }
 
 /**
@@ -167,6 +172,11 @@ class WebSocketServerChannel implements ServerCommunicationChannel {
       sendResponse(new Response.invalidRequestFormat());
     }
   }
+
+  @override
+  void close() {
+    socket.close(WebSocketStatus.NORMAL_CLOSURE);
+  }
 }
 
 /**
@@ -242,18 +252,28 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
     input.transform((new Utf8Codec()).decoder).transform(new LineSplitter()
         ).listen((String data) => _readRequest(data, onRequest), onError: onError,
         onDone: () {
-      _closed.complete();
+      close();
       onDone();
     });
   }
 
   @override
   void sendNotification(Notification notification) {
+    // Don't send any further notifications after the communication channel is
+    // closed.
+    if (_closed.isCompleted) {
+      return;
+    }
     output.writeln(JSON.encode(notification.toJson()));
   }
 
   @override
   void sendResponse(Response response) {
+    // Don't send any further responses after the communication channel is
+    // closed.
+    if (_closed.isCompleted) {
+      return;
+    }
     output.writeln(JSON.encode(response.toJson()));
   }
 
@@ -262,6 +282,10 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
    * the request.
    */
   void _readRequest(Object data, void onRequest(Request request)) {
+    // Ignore any further requests after the communication channel is closed.
+    if (_closed.isCompleted) {
+      return;
+    }
     // Parse the string as a JSON descriptor and process the resulting
     // structure as a request.
     Request request = new Request.fromString(data);
@@ -270,6 +294,13 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
       return;
     }
     onRequest(request);
+  }
+
+  @override
+  void close() {
+    if (!_closed.isCompleted) {
+      _closed.complete();
+    }
   }
 }
 

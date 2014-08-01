@@ -28,7 +28,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, enable_debugger, true, "Enables debugger step checks");
 DEFINE_FLAG(bool, show_invisible_frames, false,
             "Show invisible frames in debugger stack traces");
 DEFINE_FLAG(bool, trace_debugger_stacktrace, false,
@@ -144,7 +143,8 @@ void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Breakpoint");
 
-  jsobj.AddProperty("id", id());
+  jsobj.AddPropertyF("id", "debug/breakpoints/%" Pd "", id());
+  jsobj.AddProperty("breakpointNumber", id());
   jsobj.AddProperty("enabled", IsEnabled());
   jsobj.AddProperty("resolved", IsResolved());
 
@@ -155,9 +155,7 @@ void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   {
     JSONObject location(&jsobj, "location");
     location.AddProperty("type", "Location");
-
-    const String& url = String::Handle(script.url());
-    location.AddProperty("script", url.ToCString());
+    location.AddProperty("script", script);
     location.AddProperty("tokenPos", token_pos);
   }
 }
@@ -529,7 +527,8 @@ void DebuggerEvent::PrintJSON(JSONStream* js) const {
   jsobj.AddProperty("id", "");
   jsobj.AddProperty("eventType", EventTypeToCString(type()));
   jsobj.AddProperty("isolate", isolate());
-  if (type() == kBreakpointResolved || type() == kBreakpointReached) {
+  if ((type() == kBreakpointResolved || type() == kBreakpointReached) &&
+      breakpoint() != NULL) {
     jsobj.AddProperty("breakpoint", breakpoint());
   }
   if (type() == kExceptionThrown) {
@@ -2133,7 +2132,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
     prefix_name = prefix.name();
     ASSERT(!prefix_name.IsNull());
     prefix_name = String::Concat(prefix_name, Symbols::Dot());
-    for (intptr_t i = 0; i < prefix.num_imports(); i++) {
+    for (int32_t i = 0; i < prefix.num_imports(); i++) {
       imported = prefix.GetLibrary(i);
       CollectLibraryFields(field_list, imported, prefix_name, false);
     }
@@ -2204,6 +2203,9 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
 bool Debugger::IsDebuggable(const Function& func) {
   if (!IsDebuggableFunctionKind(func)) {
     return false;
+  }
+  if (Service::IsRunning()) {
+    return true;
   }
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
@@ -2481,10 +2483,18 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
       } else {
         prev_bpt->set_next(curr_bpt->next());
       }
+
       // Remove references from code breakpoints to this source breakpoint,
       // and disable the code breakpoints.
       UnlinkCodeBreakpoints(curr_bpt);
       delete curr_bpt;
+
+      // Remove references from the current debugger pause event.
+      if (pause_event_ != NULL &&
+          pause_event_->type() == DebuggerEvent::kBreakpointReached &&
+          pause_event_->breakpoint() == curr_bpt) {
+        pause_event_->set_breakpoint(NULL);
+      }
       return;
     }
     prev_bpt = curr_bpt;

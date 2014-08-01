@@ -41,19 +41,36 @@ class VirtualDirectory {
    */
   bool jailRoot = true;
 
+  final List<String> _pathPrefixSegments;
+
+
   final RegExp _invalidPathRegExp = new RegExp("[\\\/\x00]");
 
   _ErrorCallback _errorCallback;
   _DirCallback _dirCallback;
+
+  static List<String> _parsePathPrefix(String pathPrefix) {
+    if (pathPrefix == null) return <String>[];
+    return new Uri(path: pathPrefix).pathSegments
+        .where((segment) => segment.isNotEmpty)
+        .toList();
+  }
 
   /*
    * Create a new [VirtualDirectory] for serving static file content of
    * the path [root].
    *
    * The [root] is not required to exist. If the [root] doesn't exist at time of
-   * a request, a 404 is generated.
+   * a request, a 404 response is generated.
+   *
+   * If [pathPrefix] is set, [pathPrefix] will indicate the expected path prefix
+   * of incoming requests. When locating the resource on disk, the prefix will
+   * be trimmed from the requests uri, before locating the actual resource.
+   * If the requests uri doesn't start with [pathPrefix], a 404 response is
+   * generated.
    */
-  VirtualDirectory(this.root);
+  VirtualDirectory(this.root, {String pathPrefix})
+      : _pathPrefixSegments = _parsePathPrefix(pathPrefix);
 
   /**
    * Serve a [Stream] of [HttpRequest]s, in this [VirtualDirectory].
@@ -65,7 +82,14 @@ class VirtualDirectory {
    * Serve a single [HttpRequest], in this [VirtualDirectory].
    */
   Future serveRequest(HttpRequest request) {
-    return _locateResource('.', request.uri.pathSegments.iterator..moveNext())
+    var iterator = request.uri.pathSegments.iterator;
+    for (var segment in _pathPrefixSegments) {
+      if (!iterator.moveNext() || iterator.current != segment) {
+        _serveErrorPage(HttpStatus.NOT_FOUND, request);
+        return request.response.done;
+      }
+    }
+    return _locateResource('.', iterator..moveNext())
         .then((entity) {
           if (entity is File) {
             serveFile(entity, request);

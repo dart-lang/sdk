@@ -2,7 +2,7 @@
 library token;
 
 import 'dart:collection';
-import 'package:source_maps/span.dart' show FileSpan;
+import 'package:source_span/source_span.dart';
 
 /// An html5 token.
 abstract class Token {

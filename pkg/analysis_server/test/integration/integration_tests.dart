@@ -18,9 +18,15 @@ import 'package:unittest/unittest.dart';
  */
 abstract class AbstractAnalysisServerIntegrationTest {
   /**
+   * Amount of time to give the server to respond to a shutdown request before
+   * forcibly terminating it.
+   */
+  static const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 5);
+
+  /**
    * Connection to the analysis server.
    */
-  Server server;
+  final Server server = new Server();
 
   /**
    * Temporary directory in which source files can be stored.
@@ -33,6 +39,18 @@ abstract class AbstractAnalysisServerIntegrationTest {
    */
   HashMap<String, dynamic> currentAnalysisErrors = new HashMap<String, dynamic>(
       );
+
+  /**
+   * True if the teardown process should skip sending a "server.shutdown"
+   * request (e.g. because the server is known to have already shutdown).
+   */
+  bool skipShutdown = false;
+
+  /**
+   * Data associated with the "server.connected" notification that was received
+   * when the server started up.
+   */
+  var serverConnectedParams;
 
   /**
    * Write a source file with the given contents.  [relativePath]
@@ -119,22 +137,46 @@ abstract class AbstractAnalysisServerIntegrationTest {
    */
   Future setUp() {
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
-    return Server.start().then((Server server) {
-      this.server = server;
-      server.onNotification(ANALYSIS_ERRORS).listen((params) {
-        expect(params, isMap);
-        expect(params['file'], isString);
-        currentAnalysisErrors[params['file']] = params['errors'];
-      });
+
+    server.onNotification(ANALYSIS_ERRORS).listen((params) {
+      expect(params, isMap);
+      expect(params['file'], isString);
+      currentAnalysisErrors[params['file']] = params['errors'];
+    });
+    Completer serverConnected = new Completer();
+    server.onNotification(SERVER_CONNECTED).listen((_) {
+      expect(serverConnected.isCompleted, isFalse);
+      serverConnected.complete();
+    });
+    return server.start().then((params) {
+      serverConnectedParams = params;
+      server.exitCode.then((_) { skipShutdown = true; });
+      return serverConnected.future;
     });
   }
 
   /**
-   * After every test, the server stopped and [sourceDirectory] is deleted.
+   * After every test, the server is stopped and [sourceDirectory] is deleted.
    */
   Future tearDown() {
-    return server.kill().then((_) {
+    return _shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
+    });
+  }
+
+  /**
+   * If [skipShutdown] is not set, shut down the server.
+   */
+  Future _shutdownIfNeeded() {
+    if (skipShutdown) {
+      return new Future.value();
+    }
+    // Give the server a short time to comply with the shutdown request; if it
+    // doesn't exit, then forcibly terminate it.
+    Completer processExited = new Completer();
+    server.send(SERVER_SHUTDOWN, null);
+    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
+      return server.kill();
     });
   }
 }
@@ -146,8 +188,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
 // Matchers common to all domains
 // ------------------------------
 
-const Matcher isResponse = const MatchesJsonObject('response',
-    const {
+const Matcher isResponse = const MatchesJsonObject('response', const {
   'id': isString
 }, optionalFields: const {
   'result': anything,
@@ -186,6 +227,12 @@ const Matcher isServerGetVersionResult = const MatchesJsonObject(
 const Matcher isServerStatusParams = const MatchesJsonObject(
     'server.status params', null, optionalFields: const {
   'analysis': isAnalysisStatus
+});
+
+// analysis.getErrors
+final Matcher isAnalysisGetErrorsResult = new MatchesJsonObject(
+    'analysis.getErrors result', {
+  'errors': isListOf(isAnalysisError)
 });
 
 // analysis.getHover
@@ -428,9 +475,9 @@ Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
  */
 class Server {
   /**
-   * Server process object.
+   * Server process object, or null if server hasn't been started yet.
    */
-  Process _process;
+  Process _process = null;
 
   /**
    * Commands that have been sent to the server but not yet acknowledged, and
@@ -477,7 +524,10 @@ class Server {
    */
   bool _receivedBadDataFromServer = false;
 
-  Server._(this._process);
+  /**
+   * Stopwatch that we use to generate timing information for debug output.
+   */
+  Stopwatch _time = new Stopwatch();
 
   /**
    * Get a stream which will receive notifications of the given event type.
@@ -499,42 +549,37 @@ class Server {
    * Start the server.  If [debugServer] is true, the server will be started
    * with "--debug", allowing a debugger to be attached.
    */
-  static Future<Server> start({bool debugServer: false}) {
+  Future start({bool debugServer: false}) {
+    if (_process != null) {
+      throw new Exception('Process already started');
+    }
+    _time.start();
     // TODO(paulberry): move the logic for finding the script, the dart
     // executable, and the package root into a shell script.
     String dartBinary = Platform.executable;
-    String scriptDir = dirname(Platform.script.path);
-    String serverPath = normalize(join(scriptDir, '..',
-        '..', 'bin', 'server.dart'));
-    String repoPath = normalize(join(scriptDir, '..', '..', '..', '..'));
-    String buildDirName;
-    if (Platform.isWindows) {
-      buildDirName = 'build';
-    } else if (Platform.isMacOS){
-      buildDirName = 'xcodebuild';
-    } else {
-      buildDirName = 'out';
-    }
-    String dartConfiguration = 'ReleaseIA32'; // TODO(paulberry): this is a guess
-    String buildPath = join(repoPath, buildDirName, dartConfiguration);
-    String packageRoot = join(buildPath, 'packages');
+    String scriptDir = dirname(Platform.script.toFilePath(windows:
+        Platform.isWindows));
+    String serverPath = normalize(join(scriptDir, '..', '..', 'bin',
+        'server.dart'));
     List<String> arguments = [];
     if (debugServer) {
       arguments.add('--debug');
     }
-    arguments.add('--package-root=$packageRoot');
+    if (Platform.packageRoot.isNotEmpty) {
+      arguments.add('--package-root=${Platform.packageRoot}');
+    }
     arguments.add(serverPath);
     return Process.start(dartBinary, arguments).then((Process process) {
-      Server server = new Server._(process);
+      _process = process;
       process.stdout.transform((new Utf8Codec()).decoder).transform(
           new LineSplitter()).listen((String line) {
         String trimmedLine = line.trim();
-        server._recordStdio('RECV: $trimmedLine');
+        _recordStdio('RECV: $trimmedLine');
         var message;
         try {
           message = JSON.decoder.convert(trimmedLine);
         } catch (exception) {
-          server._badDataFromServer();
+          _badDataFromServer();
           return;
         }
         expect(message, isMap);
@@ -542,11 +587,11 @@ class Server {
         if (messageAsMap.containsKey('id')) {
           expect(messageAsMap['id'], isString);
           String id = message['id'];
-          Completer completer = server._pendingCommands[id];
+          Completer completer = _pendingCommands[id];
           if (completer == null) {
             fail('Unexpected response from server: id=$id');
           } else {
-            server._pendingCommands.remove(id);
+            _pendingCommands.remove(id);
           }
           if (messageAsMap.containsKey('error')) {
             // TODO(paulberry): propagate the error info to the completer.
@@ -566,7 +611,7 @@ class Server {
           expect(messageAsMap['event'], isString);
           String event = messageAsMap['event'];
           StreamController notificationController =
-              server._notificationControllers[event];
+              _notificationControllers[event];
           if (notificationController != null) {
             notificationController.add(messageAsMap['params']);
           }
@@ -579,17 +624,29 @@ class Server {
       process.stderr.transform((new Utf8Codec()).decoder).transform(
           new LineSplitter()).listen((String line) {
         String trimmedLine = line.trim();
-        server._recordStdio('ERR:  $trimmedLine');
-        server._badDataFromServer();
+        _recordStdio('ERR:  $trimmedLine');
+        _badDataFromServer();
       });
-      return server;
+      process.exitCode.then((int code) {
+        _recordStdio('TERMINATED WITH EXIT CODE $code');
+        if (code != 0) {
+          _badDataFromServer();
+        }
+      });
     });
   }
+
+  /**
+   * Future that completes when the server process exits.
+   */
+  Future<int> get exitCode => _process.exitCode;
 
   /**
    * Stop the server.
    */
   Future kill() {
+    debugStdio();
+    _recordStdio('PROCESS FORCIBLY TERMINATED');
     _process.kill();
     return _process.exitCode;
   }
@@ -658,6 +715,8 @@ class Server {
    * [debugStdio] has been called.
    */
   void _recordStdio(String line) {
+    double elapsedTime = _time.elapsedTicks / _time.frequency;
+    line = "$elapsedTime: $line";
     if (_debuggingStdio) {
       print(line);
     }

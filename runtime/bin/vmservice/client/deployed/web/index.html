@@ -978,10 +978,15 @@ hr {
       .idle {
         color: #0489c3;
         cursor: pointer;
+        text-decoration: none;
+      }
+      .idle:hover {
+        text-decoration: underline;
       }
       .busy {
         color: #aaa;
         cursor: wait;
+        text-decoration: none;
       }
     </style>
 
@@ -989,10 +994,16 @@ hr {
       <span class="busy">[{{ label }}]</span>
     </template>
     <template if="{{ !busy }}">
-      <span class="idle"><a on-click="{{ doAction }}">[{{ label }}]</a></span>
+      <template if="{{ color == null }}">
+        <span class="idle"><a on-click="{{ doAction }}">[{{ label }}]</a></span>
+      </template>
+      <template if="{{ color != null }}">
+        <span class="idle" style="color:{{ color }}"><a on-click="{{ doAction }}">[{{ label }}]</a></span>
+      </template>
     </template>
   </template>
 </polymer-element>
+
 
 
 
@@ -1556,27 +1567,27 @@ hr {
         background: rgba(255,255,255,0.5);
       }
     </style>
-    <template if="{{ event.eventType == 'IsolateInterrupted' }}">
+    <template if="{{ event.eventType == 'IsolateInterrupted' ||
+                     event.eventType == 'BreakpointReached' ||
+                     event.eventType == 'ExceptionThrown' }}">
       <div class="item">
         Isolate
         <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
         is paused
-        <a class="boxclose" on-click="{{ closeItem }}">×</a>
-      </div>
-    </template>
-    <template if="{{ event.eventType == 'BreakpointReached' }}">
-      <div class="item">
-        Isolate
-        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
-        is paused at breakpoint {{ event.breakpoint['id'] }}
-        <a class="boxclose" on-click="{{ closeItem }}">×</a>
-      </div>
-    </template>
-    <template if="{{ event.eventType == 'ExceptionThrown' }}">
-      <div class="item">
-        Isolate
-        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
-        is paused at exception
+        <template if="{{ event.breakpoint != null }}">
+          at breakpoint
+        </template>
+        <template if="{{ event.eventType == 'ExceptionThrown' }}">
+          at exception
+        </template>
+
+        <br><br>
+        <action-link callback="{{ resume }}" label="resume" color="white">
+        </action-link>
+        <action-link callback="{{ stepInto }}" label="step" color="white">
+        </action-link>
+        <action-link callback="{{ stepOver }}" label="step&nbsp;over" color="white"></action-link>
+        <action-link callback="{{ stepOut }}" label="step&nbsp;out" color="white"></action-link>
         <a class="boxclose" on-click="{{ closeItem }}">×</a>
       </div>
     </template>
@@ -3450,29 +3461,106 @@ hr {
       <content></content>
       <div class="sourceBox" style="height:{{height}}">
         <div class="sourceTable">
-          <template repeat="{{ line in lines }}">
-            <div class="sourceRow" id="{{ makeLineId(line.line) }}">
-              <template if="{{ line.hits == null }}">
-                <div class="hitsNone">{{ line.line }}</div>
-              </template>
-              <template if="{{ line.hits == 0 }}">
-                <div class="hitsNotExecuted">{{ line.line }}</div>
-              </template>
-              <template if="{{ line.hits > 0 }}">
-                <div class="hitsExecuted">{{ line.line }}</div>
-              </template>
-              <div class="sourceItem">&nbsp;</div>
-              <template if="{{ line.line == currentLine }}">
-                <div id="currentLine" class="sourceItemCurrent">{{line.text}}</div>
-              </template>
-              <template if="{{ line.line != currentLine }}">
-                <div class="sourceItem">{{line.text}}</div>
-              </template>
+          <template if="{{ linesReady }}">
+            <template repeat="{{ line in lines }}">
+              <div class="sourceRow" id="{{ makeLineId(line.line) }}">
+                <breakpoint-toggle line="{{ line }}"></breakpoint-toggle>
+
+                <div class="sourceItem">&nbsp;</div>
+
+                <template if="{{ line.hits == null ||
+                              line.hits < 0 }}">
+                  <div class="hitsNone">{{ line.line }}</div>
+                </template>
+                <template if="{{ line.hits == 0 }}">
+                  <div class="hitsNotExecuted">{{ line.line }}</div>
+                </template>
+                <template if="{{ line.hits > 0 }}">
+                  <div class="hitsExecuted">{{ line.line }}</div>
+                </template>
+
+                <div class="sourceItem">&nbsp;</div>
+
+                <template if="{{ line.line == currentLine }}">
+                  <div class="sourceItemCurrent">{{line.text}}</div>
+                </template>
+                <template if="{{ line.line != currentLine }}">
+                  <div class="sourceItem">{{line.text}}</div>
+                </template>
+              </div>
+            </template>
+          </template>
+
+          <template if="{{ !linesReady }}">
+            <div class="sourceRow">
+              <div class="sourceItem">loading...</div>
             </div>
           </template>
         </div>
       </div>
     </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="breakpoint-toggle" extends="observatory-element">
+  <template>
+    <style>
+      .emptyBreakpoint, .possibleBreakpoint, .busyBreakpoint, .unresolvedBreakpoint, .resolvedBreakpoint  {
+        display: table-cell;
+        vertical-align: top;
+        font: 400 14px consolas, courier, monospace;
+        min-width: 1em;
+        text-align: center;
+        cursor: pointer;
+      }
+      .possibleBreakpoint {
+        color: #e0e0e0;
+      }
+      .possibleBreakpoint:hover {
+        color: white;
+        background-color: #777;
+      }
+      .busyBreakpoint {
+        color: white;
+        background-color: black;
+        cursor: wait;
+      }
+      .unresolvedBreakpoint {
+        color: white;
+        background-color: #cac;
+      }
+      .resolvedBreakpoint {
+        color: white;
+        background-color: #e66;
+      }
+    </style>
+
+    <template if="{{ line.possibleBpt &amp;&amp; busy}}">
+      <div class="busyBreakpoint">B</div>
+    </template>
+
+    <template if="{{ line.bpt == null &amp;&amp; !line.possibleBpt }}">
+      <div class="emptyBreakpoint">&nbsp;</div>
+    </template>
+
+    <template if="{{ line.bpt == null &amp;&amp; line.possibleBpt &amp;&amp; !busy}}">
+      <div class="possibleBreakpoint">
+        <a on-click="{{ toggleBreakpoint }}">B</a>
+      </div>
+    </template>
+
+    <template if="{{ line.bpt != null &amp;&amp; !line.bpt['resolved'] &amp;&amp; !busy}}">
+      <div class="unresolvedBreakpoint">
+        <a on-click="{{ toggleBreakpoint }}">B</a>
+      </div>
+    </template>
+
+    <template if="{{ line.bpt != null &amp;&amp; line.bpt['resolved'] &amp;&amp; !busy}}">
+      <div class="resolvedBreakpoint">
+        <a on-click="{{ toggleBreakpoint }}">B</a>
+      </div>
+    </template>
+
   </template>
 </polymer-element>
 
@@ -12751,10 +12839,10 @@ hr {
       <div class="flex-item-10-percent">
         <isolate-ref ref="{{ isolate }}"></isolate-ref>
       </div>
-      <div class="flex-item-20-percent">
+      <div class="flex-item-30-percent">
         <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
       </div>
-      <div class="flex-item-50-percent">
+      <div class="flex-item-40-percent">
         <isolate-location isolate="{{ isolate }}"></isolate-location>
       </div>
       <div class="flex-item-10-percent">
@@ -12779,6 +12867,10 @@ hr {
     <template if="{{ isolate.pauseEvent != null }}">
       <strong>paused</strong>
       <action-link callback="{{ resume }}" label="resume"></action-link>
+
+      <action-link callback="{{ stepInto }}" label="step"></action-link>
+      <action-link callback="{{ stepOver }}" label="step&nbsp;over"></action-link>
+      <action-link callback="{{ stepOut }}" label="step&nbsp;out"></action-link>
     </template>
 
     <template if="{{ isolate.running }}">
@@ -12803,23 +12895,21 @@ hr {
       <template if="{{ isolate.pauseEvent.eventType == 'IsolateCreated' }}">
         at isolate start
       </template>
+
       <template if="{{ isolate.pauseEvent.eventType == 'IsolateShutdown' }}">
         at isolate exit
       </template>
-      <template if="{{ isolate.pauseEvent.eventType == 'IsolateInterrupted' }}">
+
+      <template if="{{ isolate.pauseEvent.eventType == 'IsolateInterrupted' ||
+                       isolate.pauseEvent.eventType == 'BreakpointReached' ||
+                       isolate.pauseEvent.eventType == 'ExceptionThrown' }}">
+        <template if="{{ isolate.pauseEvent.breakpoint != null }}">
+          by breakpoint
+        </template>
+        <template if="{{ isolate.pauseEvent.eventType == 'ExceptionThrown' }}">
+          by exception
+        </template>
         at
-        <function-ref ref="{{ isolate.topFrame['function'] }}">
-        </function-ref>
-        (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
-      </template>
-      <template if="{{ isolate.pauseEvent.eventType == 'BreakpointReached' }}">
-        at breakpoint {{ isolate.pauseEvent.breakpoint['id'] }}
-        <function-ref ref="{{ isolate.topFrame['function'] }}">
-        </function-ref>
-        (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
-      </template>
-      <template if="{{ isolate.pauseEvent.eventType == 'ExceptionThrown' }}">
-        at exception
         <function-ref ref="{{ isolate.topFrame['function'] }}">
         </function-ref>
         (<script-ref ref="{{ isolate.topFrame['script'] }}" pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
@@ -13466,10 +13556,10 @@ hr {
     <div class="flex-row">
       <div class="flex-item-10-percent">
       </div>
-      <div class="flex-item-20-percent">
+      <div class="flex-item-30-percent">
         <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
       </div>
-      <div class="flex-item-60-percent">
+      <div class="flex-item-50-percent">
         <isolate-location isolate="{{ isolate }}"></isolate-location>
       </div>
       <div class="flex-item-10-percent">

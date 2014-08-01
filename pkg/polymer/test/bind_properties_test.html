@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <!--polymer-test: this comment is needed for test_suite.dart-->
+  <head>
+    <title>port of bindProperties test</title>
+    <script src="packages/web_components/platform.js"></script>
+    <script src="packages/web_components/dart_support.js"></script>
+    <link rel="import" href="packages/polymer/polymer.html">
+    <script src="/root_dart/tools/testing/dart/test_controller.js"></script>
+  </head>
+
+  <body>
+    <polymer-element name="x-baz" attributes="val">
+      <template>{{ val }}</template>
+    </polymer-element>
+
+    <polymer-element name="x-bar" attributes="val">
+      <template>
+        <x-baz id=baz val="{{ val }}"></x-baz>
+      </template>
+    </polymer-element>
+
+    <polymer-element name="x-bat" attributes="val">
+      <template>{{ val }}</template>
+    </polymer-element>
+
+    <polymer-element name="x-foo" attributes="val">
+      <template>
+        <x-bar id=bar val="{{ val }}"></x-bar>
+        <x-bat id=bat val="{{ val }}"></x-bat>
+      </template>
+    </polymer-element>
+
+    <polymer-element name="bind-properties-test">
+      <template>
+        <x-foo id="foo" val="{{ obj['path']['to']['value'] }}"></x-foo>
+      </template>
+    </polymer-element>
+    <bind-properties-test></bind-properties-test>
+    <script type="application/dart" src="bind_properties_test.dart"></script>
+  </body>
+</html>

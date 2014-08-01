@@ -823,7 +823,7 @@ class Printer implements NodeVisitor {
         forceLine();
         indent();
       }
-      visitProperty(properties[i]);
+      visit(properties[i]);
     }
     --indentLevel;
     if (!node.isOneLiner && !properties.isEmpty) {

@@ -1,3 +1,13 @@
+## 0.11.1+1
+
+* Refactored libraries and tests.
+
+* Fixed spelling mistake.
+
+## 0.11.1
+
+* Added `isNaN` and `isNotNaN` matchers.
+
 ## 0.11.0
 
 * Removed deprecated matchers.

@@ -833,7 +833,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     intptr_t argument_count,
-    const Array& argument_names,
     LocationSummary* locs,
     const ICData& ic_data) {
   ASSERT(!ic_data.IsNull());

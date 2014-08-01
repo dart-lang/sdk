@@ -7,7 +7,7 @@ library css;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:source_maps/span.dart' show SourceFile;
+import 'package:source_span/source_span.dart';
 
 import 'parser.dart';
 import 'visitor.dart';
@@ -36,7 +36,7 @@ void _compile(String inputPath, bool verbose) {
     // Read the file.
     var filename = path.basename(inputPath);
     var contents = new File(inputPath).readAsStringSync();
-    var file = new SourceFile.text(inputPath, contents);
+    var file = new SourceFile(contents, url: path.toUri(inputPath));
 
     // Parse the CSS.
     var tree = _time('Parse $filename',

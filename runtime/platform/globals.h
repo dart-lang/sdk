@@ -477,6 +477,15 @@ inline D bit_copy(const S& source) {
 }
 
 
+// Similar to bit_copy and bit_cast, but does take the type from the argument.
+template <typename T>
+static inline T ReadUnaligned(const T* ptr) {
+  T value;
+  memcpy(&value, ptr, sizeof(value));
+  return value;
+}
+
+
 // On Windows the reentrent version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
 #if defined(TARGET_OS_WINDOWS)

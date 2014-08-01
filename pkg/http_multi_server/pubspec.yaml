@@ -1,5 +1,5 @@
 name: http_multi_server
-version: 1.0.1
+version: 1.0.2
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description:
@@ -8,4 +8,4 @@ dev_dependencies:
   unittest: ">=0.11.0 <0.12.0"
   http: ">=0.11.0 <0.12.0"
 environment:
-  sdk: ">=1.4.0 <2.0.0"
+  sdk: ">=1.6.0-dev.6.0 <2.0.0"

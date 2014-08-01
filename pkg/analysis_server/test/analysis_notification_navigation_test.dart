@@ -18,6 +18,7 @@ import 'analysis_abstract.dart';
 
 
 main() {
+  groupSep = ' | ';
   runReflectiveTests(AnalysisNotificationNavigationTest);
 }
 
@@ -469,6 +470,27 @@ main() {
       expect(testTarget.isAbstract, false);
       expect(testTarget.parameters, isNull);
       expect(testTarget.returnType, isNull);
+    });
+  }
+
+  test_type_dynamic() {
+    addTestFile('''
+main() {
+  dynamic v = null;
+}
+''');
+    return prepareNavigation().then((_) {
+      assertNoRegionAt('dynamic');
+    });
+  }
+
+  test_type_void() {
+    addTestFile('''
+void main() {
+}
+''');
+    return prepareNavigation().then((_) {
+      assertNoRegionAt('void');
     });
   }
 }

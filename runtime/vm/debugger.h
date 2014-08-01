@@ -350,6 +350,8 @@ class Debugger {
 
   // Set breakpoint at closest location to function entry.
   SourceBreakpoint* SetBreakpointAtEntry(const Function& target_function);
+
+  // TODO(turnidge): script_url may no longer be specific enough.
   SourceBreakpoint* SetBreakpointAtLine(const String& script_url,
                                         intptr_t line_number);
   void OneTimeBreakAtEntry(const Function& target_function);

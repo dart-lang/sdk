@@ -17,7 +17,7 @@ import 'package:html5lib/dom.dart' show
     Document, DocumentFragment, Element, Node;
 import 'package:html5lib/dom_parsing.dart' show TreeVisitor;
 import 'package:source_maps/refactor.dart' show TextEditTransaction;
-import 'package:source_maps/span.dart';
+import 'package:source_span/source_span.dart';
 
 import 'common.dart';
 
@@ -226,21 +226,27 @@ class _HtmlInliner extends PolymerTransformer {
   bool _extractScripts(Document doc, {bool injectLibraryName: true}) {
     bool changed = false;
     for (var script in doc.querySelectorAll('script')) {
-      if (script.attributes['type'] != TYPE_DART) continue;
-
       var src = script.attributes['src'];
       if (src != null) continue;
 
+      var type = script.attributes['type'];
+      var isDart = type == TYPE_DART;
+
+      var shouldExtract = isDart ||
+          (options.contentSecurityPolicy && (type == null || type == TYPE_JS));
+      if (!shouldExtract) continue;
+
+      var extension =  isDart ? 'dart' : 'js';
       final filename = path.url.basename(docId.path);
       final count = inlineScriptCounter++;
       var code = script.text;
       // TODO(sigmund): ensure this path is unique (dartbug.com/12618).
-      script.attributes['src'] = src = '$filename.$count.dart';
+      script.attributes['src'] = src = '$filename.$count.$extension';
       script.text = '';
       changed = true;
 
-      var newId = docId.addExtension('.$count.dart');
-      if (injectLibraryName && !_hasLibraryDirective(code)) {
+      var newId = docId.addExtension('.$count.$extension');
+      if (isDart && injectLibraryName && !_hasLibraryDirective(code)) {
         var libName = _libraryNameFor(docId, count);
         code = "library $libName;\n$code";
       }
@@ -369,7 +375,7 @@ class _UrlNormalizer extends TreeVisitor {
   // Maybe it's reliable enough for finding URLs in CSS? I'm not sure.
   String visitCss(String cssText) {
     var url = spanUrlFor(sourceId, transform);
-    var src = new SourceFile.text(url, cssText);
+    var src = new SourceFile(cssText, url: url);
     return cssText.replaceAllMapped(_URL, (match) {
       // Extract the URL, without any surrounding quotes.
       var span = src.span(match.start, match.end);
@@ -381,7 +387,7 @@ class _UrlNormalizer extends TreeVisitor {
 
   String visitInlineDart(String code) {
     var unit = parseDirectives(code, suppressErrors: true);
-    var file = new SourceFile.text(spanUrlFor(sourceId, transform), code);
+    var file = new SourceFile(code, url: spanUrlFor(sourceId, transform));
     var output = new TextEditTransaction(code, file);
     var foundLibraryDirective = false;
     for (Directive directive in unit.directives) {
@@ -413,10 +419,10 @@ class _UrlNormalizer extends TreeVisitor {
 
     // TODO(sigmund): emit source maps when barback supports it (see
     // dartbug.com/12340)
-    return (output.commit()..build(file.url)).text;
+    return (output.commit()..build(file.url.toString())).text;
   }
 
-  String _newUrl(String href, Span span) {
+  String _newUrl(String href, SourceSpan span) {
     // Uri.parse blows up on invalid characters (like {{). Encoding the uri
     // allows it to be parsed, which does the correct thing in the general case.
     // This uri not used to build the new uri, so it never needs to be decoded.

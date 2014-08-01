@@ -92,7 +92,7 @@ class PackageNotFoundException extends WrappedException {
 
 /// All the names of user-facing exceptions.
 final _userFacingExceptions = new Set<String>.from([
-  'ApplicationException',
+  'ApplicationException', 'GitException',
   // This refers to http.ClientException.
   'ClientException',
   // Errors coming from the Dart analyzer are probably caused by syntax errors

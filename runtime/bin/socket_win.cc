@@ -106,7 +106,6 @@ intptr_t Socket::GetPort(intptr_t fd) {
   if (getsockname(socket_handle->socket(),
                   &raw.addr,
                   &size) == SOCKET_ERROR) {
-    Log::PrintErr("Error getsockname: %d\n", WSAGetLastError());
     return 0;
   }
   return SocketAddress::GetAddrPort(&raw);
@@ -557,7 +556,6 @@ static bool SetBlockingHelper(intptr_t fd, bool blocking) {
   u_long iMode = blocking ? 0 : 1;
   int status = ioctlsocket(handle->socket(), FIONBIO, &iMode);
   if (status != NO_ERROR) {
-    Log::PrintErr("ioctlsocket FIONBIO failed: %d\n", status);
     return false;
   }
   return true;

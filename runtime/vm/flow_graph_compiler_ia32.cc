@@ -1594,6 +1594,8 @@ void ParallelMoveResolver::EmitMove(int index) {
         __ movsd(destination.fpu_reg(),
             FieldAddress(EAX, Double::value_offset()));
         __ popl(EAX);
+      } else if (Utils::DoublesBitEqual(constant.value(), 0.0)) {
+        __ xorps(destination.fpu_reg(), destination.fpu_reg());
       } else {
         __ movsd(destination.fpu_reg(), Address::Absolute(addr));
       }
@@ -1605,6 +1607,8 @@ void ParallelMoveResolver::EmitMove(int index) {
         __ LoadObject(EAX, constant);
         __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
         __ popl(EAX);
+      } else if (Utils::DoublesBitEqual(constant.value(), 0.0)) {
+        __ xorps(XMM0, XMM0);
       } else {
         __ movsd(XMM0, Address::Absolute(addr));
       }

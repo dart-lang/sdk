@@ -41,6 +41,9 @@ class PolymerDeclaration {
 
   Map<PropertyPath, List<Symbol>> _observe;
 
+  /// Name and expression for each computed property.
+  Map<Symbol, String> _computed = {};
+
   Map<String, Object> _instanceAttributes;
 
   /// A set of properties that should be automatically reflected to attributes.
@@ -110,6 +113,7 @@ class PolymerDeclaration {
     // desugar compound observer syntax, e.g. @ObserveProperty('a b c')
     explodeObservers();
 
+    createPropertyAccessors();
     // install mdv delegate on template
     installBindingDelegate(fetchTemplate());
     // install external stylesheets as if they are inline
@@ -210,7 +214,8 @@ class PolymerDeclaration {
         // remove excess ws
         attr = attr.trim();
 
-        // do not override explicit entries
+        // if the user hasn't specified a value, we want to use the
+        // default, unless a superclass has already chosen one
         if (attr == '') continue;
 
         var property = smoke.nameToSymbol(attr);
@@ -447,6 +452,26 @@ class PolymerDeclaration {
       map['$path'.toLowerCase()] = value;
     });
     return map;
+  }
+
+  void createPropertyAccessors() {
+    // Dart note: since we don't have a prototype in Dart, most of the work of
+    // createPolymerAccessors is done lazily on the first access of properties.
+    // Here we just extract the information from annotations and store it as
+    // properties on the declaration.
+    var options = const smoke.QueryOptions(includeInherited: true,
+        includeUpTo: HtmlElement, withAnnotations: const [ComputedProperty]);
+    var existing = {};
+    for (var decl in smoke.query(type, options)) {
+      var meta = decl.annotations.firstWhere((e) => e is ComputedProperty);
+      var name = decl.name;
+      var prev = existing[name];
+      // The definition of a child class takes priority.
+      if (prev == null || smoke.isSubclassOf(decl.type, prev.type)) {
+        _computed[name] = meta.expression;
+        existing[name] = decl;
+      }
+    }
   }
 }
 

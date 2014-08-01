@@ -125,26 +125,6 @@ main() {
     });
   }
 
-  test_classType() {
-    addTestFile('''
-main() {
-  int a = 1;
-  int b = 2;
-  int c = 3;
-}
-int VVV = 4;
-''');
-    return prepareOccurrences().then((_) {
-      assertHasRegion('int a');
-      expect(testOccurences.element.kind, ElementKind.CLASS);
-      expect(testOccurences.element.name, 'int');
-      assertHasOffset('int a');
-      assertHasOffset('int b');
-      assertHasOffset('int c');
-      assertHasOffset('int VVV');
-    });
-  }
-
   test_field() {
     addTestFile('''
 class A {
@@ -236,6 +216,51 @@ main() {
       expect(testOccurences.element.kind, ElementKind.TOP_LEVEL_VARIABLE);
       assertHasOffset('VVV = 2;');
       assertHasOffset('VVV);');
+    });
+  }
+
+  test_type_class() {
+    addTestFile('''
+main() {
+  int a = 1;
+  int b = 2;
+  int c = 3;
+}
+int VVV = 4;
+''');
+    return prepareOccurrences().then((_) {
+      assertHasRegion('int a');
+      expect(testOccurences.element.kind, ElementKind.CLASS);
+      expect(testOccurences.element.name, 'int');
+      assertHasOffset('int a');
+      assertHasOffset('int b');
+      assertHasOffset('int c');
+      assertHasOffset('int VVV');
+    });
+  }
+
+  test_type_dynamic() {
+    addTestFile('''
+main() {
+  dynamic a = 1;
+  dynamic b = 2;
+}
+dynamic V = 3;
+''');
+    return prepareOccurrences().then((_) {
+      int offset = findOffset('dynamic a');
+      findRegion(offset, 'dynamic'.length, false);
+    });
+  }
+
+  test_type_void() {
+    addTestFile('''
+void main() {
+}
+''');
+    return prepareOccurrences().then((_) {
+      int offset = findOffset('void main()');
+      findRegion(offset, 'void'.length, false);
     });
   }
 }

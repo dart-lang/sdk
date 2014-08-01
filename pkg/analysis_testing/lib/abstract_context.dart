@@ -40,9 +40,12 @@ typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest {
   static final DartSdk SDK = new MockSdk();
+  static final UriResolver SDK_RESOLVER = new DartUriResolver(SDK);
 
   MemoryResourceProvider provider = new MemoryResourceProvider();
+  UriResolver resourceResolver;
   AnalysisContext context;
+
 
   Source addSource(String path, String content) {
     File file = provider.newFile(path, content);
@@ -54,6 +57,18 @@ class AbstractContextTest {
     return source;
   }
 
+  /**
+   * Performs all analysis tasks in [context].
+   */
+  void performAllAnalysisTasks() {
+    while (true) {
+      AnalysisResult result = context.performAnalysisTask();
+      if (!result.hasMoreWork) {
+        break;
+      }
+    }
+  }
+
   CompilationUnit resolveDartUnit(Source unitSource, Source librarySource) {
     return context.resolveCompilationUnit2(unitSource, librarySource);
   }
@@ -63,9 +78,9 @@ class AbstractContextTest {
   }
 
   void setUp() {
+    resourceResolver = new ResourceUriResolver(provider);
     context = AnalysisEngine.instance.createAnalysisContext();
-    context.sourceFactory = new SourceFactory(<UriResolver>[new DartUriResolver(
-        SDK), new ResourceUriResolver(provider)]);
+    context.sourceFactory = new SourceFactory([SDK_RESOLVER, resourceResolver]);
   }
 
   void tearDown() {

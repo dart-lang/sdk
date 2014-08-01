@@ -154,7 +154,8 @@ class ClassEmitter extends CodeEmitterHelper {
             metadata = new jsAst.LiteralNull();
           }
           fieldMetadata.add(metadata);
-          recordMangledField(field, accessorName, field.name);
+          recordMangledField(field, accessorName,
+              namer.privateName(field.library, field.name));
           String fieldName = name;
           String fieldCode = '';
           String reflectionMarker = '';
@@ -227,7 +228,11 @@ class ClassEmitter extends CodeEmitterHelper {
             DartType type = field.type;
             reflectionMarker = '-${task.metadataEmitter.reifyType(type)}';
           }
-          builder.addField('$fieldName$fieldCode$reflectionMarker');
+          String builtFieldname = '$fieldName$fieldCode$reflectionMarker';
+          builder.addField(builtFieldname);
+          // Add 1 because adding a field to the class also requires a comma
+          compiler.dumpInfoTask.recordFieldNameSize(field,
+              builtFieldname.length + 1);
           fieldsAdded = true;
         }
       });
@@ -526,7 +531,8 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression code = backend.generatedCode[member];
     assert(code != null);
     String setterName = namer.setterNameFromAccessorName(accessorName);
-    builder.addProperty(setterName, code);
+    compiler.dumpInfoTask.registerElementAst(member,
+        builder.addProperty(setterName, code));
     generateReflectionDataForFieldGetterOrSetter(
         member, setterName, builder, isGetter: false);
   }
@@ -617,8 +623,9 @@ class ClassEmitter extends CodeEmitterHelper {
     }
     jsAst.Expression convertRtiToRuntimeType =
         namer.elementAccess(backend.findHelper('convertRtiToRuntimeType'));
-    builder.addProperty(name,
-        js('function () { return #(#) }',
-            [convertRtiToRuntimeType, computeTypeVariable]));
+    compiler.dumpInfoTask.registerElementAst(element,
+        builder.addProperty(name,
+            js('function () { return #(#) }',
+                [convertRtiToRuntimeType, computeTypeVariable])));
   }
 }

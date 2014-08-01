@@ -72,9 +72,6 @@ class Platform {
   static final _localHostname = _Platform.localHostname;
   static final _version = _Platform.version;
 
-  // This script singleton is written to by the embedder if applicable.
-  static String _nativeScript = '';
-
   /**
    * Get the number of processors of the machine.
    */

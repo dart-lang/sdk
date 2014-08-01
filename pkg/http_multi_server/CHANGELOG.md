@@ -1,3 +1,7 @@
+## 1.0.2
+
+* Remove the workaround for [issue 19815][].
+
 ## 1.0.1
 
 * Ignore errors from one of the servers if others are still bound. In

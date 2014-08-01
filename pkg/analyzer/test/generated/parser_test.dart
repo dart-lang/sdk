@@ -9196,6 +9196,14 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertEquals("a", components[0].lexeme);
   }
 
+  void test_parseSymbolLiteral_void() {
+    SymbolLiteral literal = ParserTestCase.parse4("parseSymbolLiteral", "#void", []);
+    JUnitTestCase.assertNotNull(literal.poundSign);
+    List<Token> components = literal.components;
+    EngineTestCase.assertLength(1, components);
+    JUnitTestCase.assertEquals("void", components[0].lexeme);
+  }
+
   void test_parseThrowExpression() {
     ThrowExpression expression = ParserTestCase.parse4("parseThrowExpression", "throw x;", []);
     JUnitTestCase.assertNotNull(expression.keyword);
@@ -11935,6 +11943,10 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseSymbolLiteral_single', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseSymbolLiteral_single);
+      });
+      _ut.test('test_parseSymbolLiteral_void', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseSymbolLiteral_void);
       });
       _ut.test('test_parseThrowExpression', () {
         final __test = new SimpleParserTest();

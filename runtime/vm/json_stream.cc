@@ -307,6 +307,12 @@ void JSONStream::PrintProperty(const char* name, const DebuggerEvent* event) {
 }
 
 
+void JSONStream::PrintProperty(const char* name, SourceBreakpoint* bpt) {
+  PrintPropertyName(name);
+  PrintValue(bpt);
+}
+
+
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintPropertyName(name);
   PrintValue(isolate);

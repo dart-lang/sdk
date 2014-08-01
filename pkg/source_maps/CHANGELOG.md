@@ -1,3 +1,8 @@
+## 0.10.0
+
+* Remove the `Span`, `Location` and `SourceFile` classes. Use the
+  corresponding `source_span` classes instead.
+
 ## 0.9.4
 
 * Update `SpanFormatException` with `source` and `offset`.

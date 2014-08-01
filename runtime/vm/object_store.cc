@@ -110,6 +110,7 @@ bool ObjectStore::PreallocateObjects() {
 
   ASSERT(this->pending_functions() == GrowableObjectArray::null());
   this->pending_functions_ = GrowableObjectArray::New();
+  this->pending_deferred_loads_ = GrowableObjectArray::New();
 
   this->resume_capabilities_ = GrowableObjectArray::New();
 

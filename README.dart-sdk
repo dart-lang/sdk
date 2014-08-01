@@ -8,8 +8,9 @@ bin/             Binaries/scripts to compile, run, and manage Dart applications.
   dart           Dart virtual machine
   dart2js        Dart-to-JavaScript compiler
   dartanalyzer   Dart static analyzer
-  dartdoc        Dart documentation generator
+  docgen         Dart documentation generator
   pub            Pub, the Dart package manager
+  dartfmt        Dart code formatter
 
 lib/             Libraries that are shipped with the Dart runtime. More 
                  information is available at api.dartlang.org.
@@ -17,6 +18,8 @@ lib/             Libraries that are shipped with the Dart runtime. More
 packages/        Additional packages that are shipped outside of the Dart 
                  runtime. More information is available at api.dartlang.org.
 
-version          The version number of the SDK (ex. 0.1.2.0_r1234).
+version          The version number of the SDK (ex. 1.5.1).
+
+revision         The Subversion revision of the SDK build (ex. 37107).
 
 util/            Support files for dart_analyzer and pub.

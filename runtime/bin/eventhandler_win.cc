@@ -898,7 +898,6 @@ void ClientSocket::ConnectComplete(OverlappedBuffer* buffer) {
   OverlappedBuffer::DisposeBuffer(buffer);
   // Update socket to support full socket API, after ConnectEx completed.
   setsockopt(socket(), SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
-  connected_ = true;
   Dart_Port p = port();
   if (p != ILLEGAL_PORT) {
     // If the port is set, we already listen for this socket in Dart.
@@ -925,7 +924,7 @@ void ClientSocket::EnsureInitialized(
 
 
 bool ClientSocket::IsClosed() {
-  return closed_;
+  return connected_ && closed_;
 }
 
 
@@ -1197,6 +1196,8 @@ void EventHandlerImplementation::HandleConnect(
   } else {
     client_socket->ConnectComplete(buffer);
   }
+  client_socket->mark_connected();
+  DeleteIfClosed(client_socket);
 }
 
 

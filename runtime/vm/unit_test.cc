@@ -104,7 +104,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return Dart_LoadSource(library,
                            url,
                            Builtin::PartSource(Builtin::kIOLibrary,
-                                               url_chars));
+                                               url_chars),
+                           0, 0);
   }
   return DartUtils::LoadSource(library, url, tag, url_chars);
 }

@@ -37,8 +37,9 @@ some text
   });
 
   group("if", () {
-    test("removes sections with non-matching versions", () {
-      expect(_preprocess('''
+    group("with a version range", () {
+      test("removes sections with non-matching versions", () {
+        expect(_preprocess('''
 before
 //# if barback <1.0.0
 inside
@@ -48,10 +49,10 @@ after
 before
 after
 '''));
-    });
+      });
 
-    test("doesn't insert section with non-matching versions", () {
-      expect(_preprocess('''
+      test("doesn't insert section with non-matching versions", () {
+        expect(_preprocess('''
 before
 //# if barback <1.0.0
 //> inside
@@ -61,10 +62,10 @@ after
 before
 after
 '''));
-    });
+      });
 
-    test("doesn't remove sections with matching versions", () {
-      expect(_preprocess('''
+      test("doesn't remove sections with matching versions", () {
+        expect(_preprocess('''
 before
 //# if barback >1.0.0
 inside
@@ -75,10 +76,10 @@ before
 inside
 after
 '''));
-    });
+      });
 
-    test("inserts sections with matching versions", () {
-      expect(_preprocess('''
+      test("inserts sections with matching versions", () {
+        expect(_preprocess('''
 before
 //# if barback >1.0.0
 //> inside
@@ -89,10 +90,10 @@ before
 inside
 after
 '''));
-    });
+      });
 
-    test("allows version ranges", () {
-      expect(_preprocess('''
+      test("allows multi-element version ranges", () {
+        expect(_preprocess('''
 before
 //# if barback >=1.0.0 <2.0.0
 inside 1
@@ -106,6 +107,63 @@ before
 inside 1
 after
 '''));
+      });
+    });
+
+    group("with a package name", () {
+      test("removes sections for a nonexistent package", () {
+        expect(_preprocess('''
+before
+//# if fblthp
+inside
+//# end
+after
+'''), equals('''
+before
+after
+'''));
+      });
+
+      test("doesn't insert sections for a nonexistent package", () {
+        expect(_preprocess('''
+before
+//# if fblthp
+//> inside
+//# end
+after
+'''), equals('''
+before
+after
+'''));
+      });
+
+      test("doesn't remove sections with an existent package", () {
+        expect(_preprocess('''
+before
+//# if barback
+inside
+//# end
+after
+'''), equals('''
+before
+inside
+after
+'''));
+      });
+
+      test("inserts sections with an existent package", () {
+        expect(_preprocess('''
+before
+//# if barback
+//> inside
+//# end
+after
+'''), equals('''
+before
+inside
+after
+'''));
+      });
     });
   });
 
@@ -189,18 +247,8 @@ after
         expect(() => _preprocess('//# if\n//# end'), throwsFormatException);
       });
 
-      test("disallows if with no version range", () {
-        expect(() => _preprocess('//# if barback\n//# end'),
-            throwsFormatException);
-      });
-
       test("disallows if with no package", () {
         expect(() => _preprocess('//# if <=1.0.0\n//# end'),
-            throwsFormatException);
-      });
-
-      test("disallows unknown package name", () {
-        expect(() => _preprocess('//# if polymer <=1.0.0\n//# end'),
             throwsFormatException);
       });
 
@@ -252,4 +300,4 @@ after
 }
 
 String _preprocess(String input) =>
-    preprocess(input, new Version.parse("1.2.3"), 'source/url');
+    preprocess(input, {'barback': new Version.parse("1.2.3")}, 'source/url');

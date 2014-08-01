@@ -328,8 +328,8 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   if (libraryBuiltinId != Builtin::kInvalidLibrary) {
     // Special case for parting sources of a builtin library.
     if (tag == Dart_kSourceTag) {
-      return Dart_LoadSource(
-          library, url, Builtin::PartSource(libraryBuiltinId, url_string));
+      return Dart_LoadSource(library, url,
+          Builtin::PartSource(libraryBuiltinId, url_string), 0, 0);
     }
     ASSERT(tag == Dart_kImportTag);
     return DartUtils::NewError("Unable to import '%s' ", url_string);

@@ -17,7 +17,7 @@ import 'package:barback/barback.dart';
 import 'package:code_transformers/assets.dart';
 import 'package:path/path.dart' as native_path;
 import 'package:source_maps/refactor.dart';
-import 'package:source_maps/span.dart' show SourceFile, Span;
+import 'package:source_span/source_span.dart';
 
 import 'resolver.dart';
 import 'dart_sdk.dart' show UriAnnotatedSource;
@@ -254,7 +254,7 @@ class ResolverImpl implements Resolver {
     return null;
   }
 
-  Span getSourceSpan(Element element) {
+  SourceSpan getSourceSpan(Element element) {
     var sourceFile = getSourceFile(element);
     if (sourceFile == null) return null;
     return sourceFile.span(element.node.offset, element.node.end);
@@ -285,7 +285,7 @@ class ResolverImpl implements Resolver {
 
     var importUri = _getSourceUri(element);
     var spanPath = importUri != null ? importUri.toString() : assetId.path;
-    return new SourceFile.text(spanPath, sources[assetId].rawContents);
+    return new SourceFile(sources[assetId].rawContents, url: spanPath);
   }
 }
 
@@ -390,13 +390,13 @@ class _AssetBasedSource extends Source {
   }
 
   /// For logging errors.
-  Span _getSpan(AstNode node, [String contents]) =>
+  SourceSpan _getSpan(AstNode node, [String contents]) =>
       _getSourceFile(contents).span(node.offset, node.end);
   /// For logging errors.
   SourceFile _getSourceFile([String contents]) {
     var uri = getSourceUri();
     var path = uri != null ? uri.toString() : assetId.path;
-    return new SourceFile.text(path, contents != null ? contents : rawContents);
+    return new SourceFile(contents != null ? contents : rawContents, url: path);
   }
 
   /// Gets a URI which would be appropriate for importing this file.
@@ -448,7 +448,7 @@ class _AssetUriResolver implements UriResolver {
 
 /// Get an asset ID for a URL relative to another source asset.
 AssetId _resolve(AssetId source, String url, TransformLogger logger,
-    Span span) {
+    SourceSpan span) {
   if (url == null || url == '') return null;
   var uri = Uri.parse(url);
 

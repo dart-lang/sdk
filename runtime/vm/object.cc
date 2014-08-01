@@ -5425,6 +5425,11 @@ void Function::set_kind(RawFunction::Kind value) const {
 }
 
 
+void Function::set_modifier(RawFunction::AsyncModifier value) const {
+  set_kind_tag(ModifierBits::update(value, raw_ptr()->kind_tag_));
+}
+
+
 void Function::set_is_intrinsic(bool value) const {
   set_kind_tag(IntrinsicBit::update(value, raw_ptr()->kind_tag_));
 }
@@ -5455,6 +5460,11 @@ void Function::set_is_external(bool value) const {
 }
 
 
+void Function::set_is_async_closure(bool value) const {
+  set_kind_tag(AsyncClosureBit::update(value, raw_ptr()->kind_tag_));
+}
+
+
 void Function::set_token_pos(intptr_t value) const {
   ASSERT(value >= 0);
   raw_ptr()->token_pos_ = value;
@@ -5462,7 +5472,7 @@ void Function::set_token_pos(intptr_t value) const {
 
 
 void Function::set_kind_tag(intptr_t value) const {
-  raw_ptr()->kind_tag_ = static_cast<uint16_t>(value);
+  raw_ptr()->kind_tag_ = static_cast<uint32_t>(value);
 }
 
 
@@ -6052,6 +6062,7 @@ RawFunction* Function::New(const String& name,
   result.set_parameter_names(Object::empty_array());
   result.set_name(name);
   result.set_kind(kind);
+  result.set_modifier(RawFunction::kNoModifier);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
   result.set_is_abstract(is_abstract);
@@ -6061,6 +6072,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_intrinsic(false);
   result.set_is_recognized(false);
   result.set_is_redirecting(false);
+  result.set_is_async_closure(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
@@ -6845,6 +6857,8 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 RawString* Field::GetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
+  // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
+  // to Symbols.
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
@@ -6857,6 +6871,8 @@ RawString* Field::GetterSymbol(const String& field_name) {
 
 RawString* Field::SetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
+  // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
+  // to Symbols.
   return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
@@ -7693,6 +7709,10 @@ class CompressedTokenTraits {
       return String::Cast(key).Hash();
     }
   }
+
+  static RawObject* NewKey(const Scanner::TokenDescriptor& descriptor) {
+    return LiteralToken::New(descriptor.kind, *descriptor.literal);
+  }
 };
 typedef UnorderedHashMap<CompressedTokenTraits> CompressedTokenMap;
 
@@ -7704,8 +7724,7 @@ class CompressedTokenStreamData : public ValueObject {
   CompressedTokenStreamData() :
       buffer_(NULL),
       stream_(&buffer_, Reallocate, kInitialBufferSize),
-      tokens_(Array::Handle(
-          HashTables::New<CompressedTokenMap>(kInitialTableSize))) {
+      tokens_(HashTables::New<CompressedTokenMap>(kInitialTableSize)) {
   }
   ~CompressedTokenStreamData() {
     // Safe to discard the hash table now.
@@ -7715,32 +7734,20 @@ class CompressedTokenStreamData : public ValueObject {
   // Add an IDENT token into the stream and the token hash map.
   void AddIdentToken(const String* ident) {
     ASSERT(ident->IsSymbol());
-    intptr_t index = tokens_.NumOccupied();
-    intptr_t entry;
-    if (!tokens_.FindKeyOrDeletedOrUnused(*ident, &entry)) {
-      tokens_.InsertKey(entry, *ident);
-      tokens_.UpdatePayload(entry, 0, Smi::Handle(Smi::New(index)));
-      HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, tokens_);
-    } else {
-      index = Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0)));
-    }
+    const intptr_t fresh_index = tokens_.NumOccupied();
+    intptr_t index = Smi::Value(Smi::RawCast(
+        tokens_.InsertOrGetValue(*ident,
+                                 Smi::Handle(Smi::New(fresh_index)))));
     WriteIndex(index);
   }
 
   // Add a LITERAL token into the stream and the token hash map.
   void AddLiteralToken(const Scanner::TokenDescriptor& descriptor) {
     ASSERT(descriptor.literal->IsSymbol());
-    intptr_t index = tokens_.NumOccupied();
-    intptr_t entry;
-    if (!tokens_.FindKeyOrDeletedOrUnused(descriptor, &entry)) {
-      LiteralToken& new_literal = LiteralToken::Handle(
-          LiteralToken::New(descriptor.kind, *descriptor.literal));
-      tokens_.InsertKey(entry, new_literal);
-      tokens_.UpdatePayload(entry, 0, Smi::Handle(Smi::New(index)));
-      HashTables::EnsureLoadFactor(0.0, kMaxLoadFactor, tokens_);
-    } else {
-      index = Smi::Value(Smi::RawCast(tokens_.GetPayload(entry, 0)));
-    }
+    const intptr_t fresh_index = tokens_.NumOccupied();
+    intptr_t index = Smi::Value(Smi::RawCast(
+        tokens_.InsertNewOrGetValue(descriptor,
+                                    Smi::Handle(Smi::New(fresh_index)))));
     WriteIndex(index);
   }
 
@@ -7782,7 +7789,6 @@ class CompressedTokenStreamData : public ValueObject {
   }
 
   static const intptr_t kInitialTableSize = 32;
-  static const double kMaxLoadFactor;
 
   uint8_t* buffer_;
   WriteStream stream_;
@@ -7790,9 +7796,6 @@ class CompressedTokenStreamData : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
 };
-
-
-const double CompressedTokenStreamData::kMaxLoadFactor = 0.75;
 
 
 RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
@@ -8545,10 +8548,32 @@ void Library::SetLoaded() const {
 }
 
 
-void Library::SetLoadError() const {
+void Library::SetLoadError(const Instance& error) const {
   // Should not be already successfully loaded or just allocated.
-  ASSERT(LoadInProgress() || LoadRequested() || LoadError());
+  ASSERT(LoadInProgress() || LoadRequested() || LoadFailed());
   raw_ptr()->load_state_ = RawLibrary::kLoadError;
+  StorePointer(&raw_ptr()->load_error_, error.raw());
+}
+
+
+RawInstance* Library::TransitiveLoadError() const {
+  if (LoadError() != Instance::null()) {
+    return LoadError();
+  }
+  intptr_t num_imp = num_imports();
+  Library& lib = Library::Handle();
+  Instance& error = Instance::Handle();
+  for (intptr_t i = 0; i < num_imp; i++) {
+    lib = ImportLibraryAt(i);
+    // Break potential import cycles while recursing through imports.
+    set_num_imports(0);
+    error = lib.TransitiveLoadError();
+    set_num_imports(num_imp);
+    if (!error.IsNull()) {
+      break;
+    }
+  }
+  return error.raw();
 }
 
 
@@ -8746,11 +8771,10 @@ typedef UnorderedHashMap<StringEqualsTraits> ResolvedNamesMap;
 // name does not resolve to anything in this library.
 bool Library::LookupResolvedNamesCache(const String& name,
                                        Object* obj) const {
-  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+  ResolvedNamesMap cache(resolved_names());
   bool present = false;
   *obj = cache.GetOrNull(name, &present);
-  RawArray* array = cache.Release();
-  ASSERT(array == resolved_names());
+  ASSERT(cache.Release().raw() == resolved_names());
   return present;
 }
 
@@ -8763,9 +8787,9 @@ void Library::AddToResolvedNamesCache(const String& name,
   if (!FLAG_use_lib_cache) {
     return;
   }
-  ResolvedNamesMap cache(Array::Handle(resolved_names()));
+  ResolvedNamesMap cache(resolved_names());
   cache.UpdateOrInsert(name, obj);
-  StorePointer(&raw_ptr()->resolved_names_, cache.Release());
+  StorePointer(&raw_ptr()->resolved_names_, cache.Release().raw());
 }
 
 
@@ -9351,6 +9375,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.raw_ptr()->imports_ = Object::empty_array().raw();
   result.raw_ptr()->exports_ = Object::empty_array().raw();
   result.raw_ptr()->loaded_scripts_ = Array::null();
+  result.raw_ptr()->load_error_ = Instance::null();
   result.set_native_entry_resolver(NULL);
   result.set_native_entry_symbol_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
@@ -9727,13 +9752,28 @@ RawLibrary* LibraryPrefix::GetLibrary(int index) const {
 }
 
 
+RawInstance* LibraryPrefix::LoadError() const {
+  Library& lib = Library::Handle();
+  Instance& error = Instance::Handle();
+  for (int32_t i = 0; i < num_imports(); i++) {
+    lib = GetLibrary(i);
+    ASSERT(!lib.IsNull());
+    error = lib.TransitiveLoadError();
+    if (!error.IsNull()) {
+      return error.raw();
+    }
+  }
+  return Instance::null();
+}
+
+
 bool LibraryPrefix::ContainsLibrary(const Library& library) const {
-  intptr_t num_current_imports = num_imports();
+  int32_t num_current_imports = num_imports();
   if (num_current_imports > 0) {
     Library& lib = Library::Handle();
     const String& url = String::Handle(library.url());
     String& lib_url = String::Handle();
-    for (intptr_t i = 0; i < num_current_imports; i++) {
+    for (int32_t i = 0; i < num_current_imports; i++) {
       lib = GetLibrary(i);
       ASSERT(!lib.IsNull());
       lib_url = lib.url();
@@ -9844,6 +9884,10 @@ bool LibraryPrefix::LoadLibrary() const {
     Isolate* isolate = Isolate::Current();
     Api::Scope api_scope(isolate);
     deferred_lib.SetLoadRequested();
+    const GrowableObjectArray& pending_deferred_loads =
+        GrowableObjectArray::Handle(
+            isolate->object_store()->pending_deferred_loads());
+    pending_deferred_loads.Add(deferred_lib);
     const String& lib_url = String::Handle(isolate, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
     handler(Dart_kImportTag,
@@ -12130,18 +12174,6 @@ uword Code::GetPatchCodePc() const {
 uword Code::GetLazyDeoptPc() const {
   return (lazy_deopt_pc_offset() != kInvalidPc)
       ? EntryPoint() + lazy_deopt_pc_offset() : 0;
-}
-
-
-bool Code::ObjectExistsInArea(intptr_t start_offset,
-                              intptr_t end_offset) const {
-  for (intptr_t i = 0; i < this->pointer_offsets_length(); i++) {
-    const intptr_t offset = this->GetPointerOffsetAt(i);
-    if ((start_offset <= offset) && (offset < end_offset)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
@@ -18158,12 +18190,9 @@ typedef EnumIndexHashMap<DefaultHashTraits> EnumIndexDefaultMap;
 
 
 intptr_t LinkedHashMap::Length() const {
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   intptr_t result = map.NumOccupied();
-  {
-    RawArray* array = map.Release();
-    ASSERT(array == data());
-  }
+  ASSERT(map.Release().raw() == data());
   return result;
 }
 
@@ -18171,47 +18200,41 @@ intptr_t LinkedHashMap::Length() const {
 void LinkedHashMap::InsertOrUpdate(const Object& key,
                                      const Object& value) const {
   ASSERT(!IsNull());
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   if (!map.UpdateOrInsert(key, value)) {
     SetModified();
   }
-  StorePointer(&raw_ptr()->data_, map.Release());
+  StorePointer(&raw_ptr()->data_, map.Release().raw());
 }
 
 
 RawObject* LinkedHashMap::LookUp(const Object& key) const {
   ASSERT(!IsNull());
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   const Object& result = Object::Handle(map.GetOrNull(key));
-  {
-    RawArray* array = map.Release();
-    ASSERT(array == data());
-  }
+  ASSERT(map.Release().raw() == data());
   return result.raw();
 }
 
 
 bool LinkedHashMap::Contains(const Object& key) const {
   ASSERT(!IsNull());
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   bool result = map.ContainsKey(key);
-  {
-    RawArray* array = map.Release();
-    ASSERT(array == data());
-  }
+  ASSERT(map.Release().raw() == data());
   return result;
 }
 
 
 RawObject* LinkedHashMap::Remove(const Object& key) const {
   ASSERT(!IsNull());
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   // TODO(koda): Make 'Remove' also return the old value.
   const Object& result = Object::Handle(map.GetOrNull(key));
   if (map.Remove(key)) {
     SetModified();
   }
-  StorePointer(&raw_ptr()->data_, map.Release());
+  StorePointer(&raw_ptr()->data_, map.Release().raw());
   return result.raw();
 }
 
@@ -18219,19 +18242,18 @@ RawObject* LinkedHashMap::Remove(const Object& key) const {
 void LinkedHashMap::Clear() const {
   ASSERT(!IsNull());
   if (Length() != 0) {
-    EnumIndexDefaultMap map(Array::Handle(data()));
+    EnumIndexDefaultMap map(data());
     map.Initialize();
     SetModified();
-    StorePointer(&raw_ptr()->data_, map.Release());
+    StorePointer(&raw_ptr()->data_, map.Release().raw());
   }
 }
 
 
 RawArray* LinkedHashMap::ToArray() const {
-  EnumIndexDefaultMap map(Array::Handle(data()));
+  EnumIndexDefaultMap map(data());
   const Array& result = Array::Handle(HashTables::ToArray(map, true));
-  RawArray* array = map.Release();
-  ASSERT(array == data());
+  ASSERT(map.Release().raw() == data());
   return result.raw();
 }
 

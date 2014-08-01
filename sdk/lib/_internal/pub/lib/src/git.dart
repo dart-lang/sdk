@@ -10,12 +10,13 @@ import 'dart:io';
 
 import 'package:stack_trace/stack_trace.dart';
 
+import 'exceptions.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'utils.dart';
 
 /// An exception thrown because a git command failed.
-class GitException implements Exception {
+class GitException implements ApplicationException {
   /// The arguments to the git command.
   final List<String> args;
 

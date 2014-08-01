@@ -16,7 +16,6 @@ import 'package:html5lib/dom.dart' show Document;
 import 'package:html5lib/parser.dart' show HtmlParser;
 import 'package:path/path.dart' as path;
 import 'package:observe/transformer.dart' show ObservableTransformer;
-import 'package:source_maps/span.dart' show Span;
 
 const _ignoredErrors = const [
   'unexpected-dash-after-double-dash-in-comment',
@@ -125,9 +124,9 @@ abstract class PolymerTransformer {
   String toString() => 'polymer ($runtimeType)';
 }
 
-/// Gets the appropriate URL to use in a [Span] to produce messages
-/// (e.g. warnings) for users. This will attempt to format the URL in the most
-/// useful way:
+/// Gets the appropriate URL to use in a span to produce messages (e.g.
+/// warnings) for users. This will attempt to format the URL in the most useful
+/// way:
 ///
 /// - If the asset is within the primary package, then use the [id.path],
 ///   the user will know it is a file from their own code.

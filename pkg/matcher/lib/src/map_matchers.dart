@@ -4,8 +4,8 @@
 
 library matcher.map_matchers;
 
-import 'expect.dart';
 import 'interfaces.dart';
+import 'util.dart';
 
 /// Returns a matcher which matches maps containing the given [value].
 Matcher containsValue(value) => new _ContainsValue(value);

@@ -615,6 +615,11 @@ class RawFunction : public RawObject {
     kInvokeFieldDispatcher,  // invokes a field as a closure.
   };
 
+  enum AsyncModifier {
+    kNoModifier,
+    kAsync,
+  };
+
  private:
   // So that the MarkingVisitor::DetachCode can null out the code fields.
   friend class MarkingVisitor;
@@ -650,7 +655,7 @@ class RawFunction : public RawObject {
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
-  uint16_t kind_tag_;  // See Function::KindTagBits.
+  uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;
 };
@@ -798,8 +803,9 @@ class RawLibrary : public RawObject {
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
   RawArray* loaded_scripts_;     // Array of scripts loaded in this library.
+  RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->loaded_scripts_);
+    return reinterpret_cast<RawObject**>(&ptr()->load_error_);
   }
 
   int32_t index_;               // Library id number.

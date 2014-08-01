@@ -9,7 +9,7 @@ import 'dart:math' show min, max;
 
 import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
-import 'package:source_maps/span.dart' show Span;
+import 'package:source_span/source_span.dart';
 
 /// Create an [AssetId] for a [url] seen in the [source] asset.
 ///
@@ -25,7 +25,7 @@ import 'package:source_maps/span.dart' show Span;
 /// absolute.
 // TODO(sigmund): delete once this is part of barback (dartbug.com/12610)
 AssetId uriToAssetId(AssetId source, String url, TransformLogger logger,
-    Span span, {bool errorOnAbsolute: true}) {
+    SourceSpan span, {bool errorOnAbsolute: true}) {
   if (url == null || url == '') return null;
   var uri = Uri.parse(url);
   var urlBuilder = path.url;
@@ -94,7 +94,7 @@ AssetId uriToAssetId(AssetId source, String url, TransformLogger logger,
 }
 
 AssetId _extractOtherPackageId(int index, List segments,
-    TransformLogger logger, Span span) {
+    TransformLogger logger, SourceSpan span) {
   if (index >= segments.length) return null;
   var prefix = segments[index];
   if (prefix != 'packages' && prefix != 'assets') return null;

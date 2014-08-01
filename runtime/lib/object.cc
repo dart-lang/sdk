@@ -290,4 +290,17 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
   return Bool::Get(hasCompleted).raw();
 }
 
+
+DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+  // Currently all errors are Dart instances, e.g. I/O errors
+  // created by deferred loading code. LanguageErrors from
+  // failed loading or finalization attempts are propagated and result
+  // in the isolate's death.
+  const Instance& error = Instance::Handle(prefix.LoadError());
+  return error.raw();
+}
+
+
 }  // namespace dart

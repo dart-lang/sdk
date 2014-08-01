@@ -39,9 +39,6 @@
             'DebugInformationFormat': '3',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
-            # Uncomment the following line and pass --profile-vm to enable
-            # profiling of C++ code within Observatory.
-            # 'OmitFramePointers': 'false',
             'RuntimeLibrary': '1',  # /MTd - Multi-threaded, static (debug)
           },
           'VCLinkerTool': {
@@ -55,6 +52,18 @@
             ],
           },
         },
+        'conditions': [
+          ['c_frame_pointers==1', {
+            'msvs_settings': {
+              'VCCLCompilerTool': {
+                'OmitFramePointers': 'false',
+              },
+            },
+            'defines': [
+              'PROFILE_NATIVE_CODE'
+            ],
+          }],
+        ],
         # C4351 warns MSVC follows the C++ specification regarding array
         # initialization in member initializers.  Code that expects the
         # specified behavior should silence this warning.
@@ -71,9 +80,6 @@
             'FavorSizeOrSpeed': '0',
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
-            # Uncomment the following line and pass --profile-vm to enable
-            # profiling of C++ code within Observatory.
-            # 'OmitFramePointers': 'false',
             'StringPooling': 'true',
             'RuntimeLibrary': '0',  # /MT - Multi-threaded, static
           },
@@ -90,6 +96,18 @@
             ],
           },
         },
+        'conditions': [
+          ['c_frame_pointers==1', {
+            'msvs_settings': {
+              'VCCLCompilerTool': {
+                'OmitFramePointers': 'false',
+              },
+            },
+            'defines': [
+              'PROFILE_NATIVE_CODE'
+            ],
+          }],
+        ],
         # C4351 warns MSVC follows the C++ specification regarding array
         # initialization in member initializers.  Code that expects the
         # specified behavior should silence this warning.

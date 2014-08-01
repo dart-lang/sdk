@@ -8,9 +8,9 @@
 /// [guessIndent] helps to guess the appropriate indentiation for the new code.
 library source_maps.refactor;
 
-import 'span.dart';
+import 'package:source_span/source_span.dart';
+
 import 'printer.dart';
-import 'src/span_wrapper.dart';
 
 /// Editable text transaction.
 ///
@@ -22,12 +22,7 @@ class TextEditTransaction {
   final _edits = <_TextEdit>[];
 
   /// Creates a new transaction.
-  ///
-  /// [file] can be either a `source_map` [SourceFile] or a `source_span`
-  /// `SourceFile`. Using a `source_map` [SourceFile] is deprecated and will be
-  /// unsupported in version 0.10.0.
-  TextEditTransaction(this.original, file)
-      : file = SourceFileWrapper.wrap(file);
+  TextEditTransaction(this.original, this.file);
 
   bool get hasEdits => _edits.length > 0;
 
@@ -38,8 +33,8 @@ class TextEditTransaction {
     _edits.add(new _TextEdit(begin, end, replacement));
   }
 
-  /// Create a source map [Location] for [offset].
-  Location _loc(int offset) =>
+  /// Create a source map [SourceLocation] for [offset].
+  SourceLocation _loc(int offset) =>
       file != null ? file.location(offset) : null;
 
   /// Applies all pending [edit]s and returns a [NestedPrinter] containing the
@@ -62,7 +57,7 @@ class TextEditTransaction {
     for (var edit in _edits) {
       if (consumed > edit.begin) {
         var sb = new StringBuffer();
-        sb..write(file.location(edit.begin).formatString)
+        sb..write(file.location(edit.begin).toolString)
             ..write(': overlapping edits. Insert at offset ')
             ..write(edit.begin)
             ..write(' but have consumed ')

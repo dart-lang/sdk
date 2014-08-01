@@ -8,8 +8,8 @@ import 'package:unittest/unittest.dart';
 
 import 'codec_test.dart' as codec_test;
 import 'collection_test.dart' as collection_test;
-import 'separate_file_manager_test.dart' as separate_file_manager_test;
 import 'split_store_test.dart' as split_store_test;
+import 'temporary_folder_file_manager_test.dart' as tmp_file_manager_test;
 
 
 /**
@@ -20,7 +20,7 @@ main() {
   group('store', () {
     codec_test.main();
     collection_test.main();
-    separate_file_manager_test.main();
+    tmp_file_manager_test.main();
     split_store_test.main();
   });
 }

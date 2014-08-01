@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
 import 'package:source_maps/refactor.dart';
-import 'package:source_maps/span.dart' show SourceFile;
+import 'package:source_span/source_span.dart';
 
 /// A [Transformer] that replaces observables based on dirty-checking with an
 /// implementation based on change notifications.
@@ -65,7 +65,7 @@ class ObservableTransformer extends Transformer {
       // TODO(sigmund): improve how we compute this url
       var url = id.path.startsWith('lib/')
             ? 'package:${id.package}/${id.path.substring(4)}' : id.path;
-      var sourceFile = new SourceFile.text(url, content);
+      var sourceFile = new SourceFile(content, url: url);
       var transaction = _transformCompilationUnit(
           content, sourceFile, transform.logger);
       if (!transaction.hasEdits) {

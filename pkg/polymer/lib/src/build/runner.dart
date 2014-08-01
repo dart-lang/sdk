@@ -367,9 +367,8 @@ String _consoleFormatter(LogEntry entry) {
   if (entry.span == null) {
     output.write(entry.message);
   } else {
-    output.write(entry.span.getLocationMessage(entry.message,
-          useColors: useColors,
-          color: levelColor));
+    output.write(entry.span.message(entry.message,
+          color: useColors ? levelColor : null));
   }
   return output.toString();
 }

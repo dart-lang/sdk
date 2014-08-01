@@ -9,6 +9,7 @@ import "dart:isolate";
 class _LibraryPrefix {
 
   bool _load() native "LibraryPrefix_load";
+  Error _loadError() native "LibraryPrefix_loadError";
 
   bool _invalidateDependentCode()
       native "LibraryPrefix_invalidateDependentCode";
@@ -43,10 +44,14 @@ var _outstandingLoadRequests = new Map<_LibraryPrefix, Completer>();
 // Called from the VM when all outstanding load requests have
 // finished.
 _completeDeferredLoads() {
-  var lenghth = _outstandingLoadRequests;
   _outstandingLoadRequests.forEach((prefix, completer) {
-    prefix._invalidateDependentCode();
-    completer.complete(true);
+    var error = prefix._loadError();
+    if (error != null) {
+      completer.completeError(error);
+    } else {
+      prefix._invalidateDependentCode();
+      completer.complete(true);
+    }
   });
   _outstandingLoadRequests.clear();
 }

@@ -17,7 +17,6 @@
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
-#include "bin/log.h"
 #include "bin/socket.h"
 #include "platform/signal_blocker.h"
 #include "vm/thread.h"
@@ -58,10 +57,6 @@ intptr_t Socket::Create(RawAddr addr) {
   fd = NO_RETRY_EXPECTED(
       socket(addr.ss.ss_family, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0));
   if (fd < 0) {
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    Log::PrintErr("Error Create: %s\n",
-                  strerror_r(errno, error_buf, kBufferSize));
     return -1;
   }
   return fd;
@@ -156,10 +151,6 @@ intptr_t Socket::GetPort(intptr_t fd) {
   RawAddr raw;
   socklen_t size = sizeof(raw);
   if (NO_RETRY_EXPECTED(getsockname(fd, &raw.addr, &size))) {
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    Log::PrintErr("Error getsockname: %s\n",
-                  strerror_r(errno, error_buf, kBufferSize));
     return 0;
   }
   return SocketAddress::GetAddrPort(&raw);
@@ -445,12 +436,7 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 
 void Socket::Close(intptr_t fd) {
   ASSERT(fd >= 0);
-  int err = TEMP_FAILURE_RETRY(close(fd));
-  if (err != 0) {
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    Log::PrintErr("%s\n", strerror_r(errno, error_buf, kBufferSize));
-  }
+  VOID_TEMP_FAILURE_RETRY(close(fd));
 }
 
 

@@ -13,15 +13,14 @@ import 'analysis_notification_outline_test.dart' as analysis_notification_outlin
 import 'analysis_notification_overrides_test.dart' as analysis_notification_overrides_test;
 import 'analysis_server_test.dart' as analysis_server_test;
 import 'channel_test.dart' as channel_test;
-import 'completion_test.dart' as completion_test;
 import 'computer/test_all.dart' as computer_test_all;
 import 'context_directory_manager_test.dart' as context_directory_manager_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
+import 'domain_completion_test.dart' as completion_test;
 import 'domain_server_test.dart' as domain_server_test;
 import 'edit/test_all.dart' as edit_all;
 import 'operation/test_all.dart' as operation_test_all;
 import 'package_map_provider_test.dart' as package_map_provider_test;
-import 'package_uri_resolver_test.dart' as package_uri_resolver_test;
 import 'protocol_test.dart' as protocol_test;
 import 'search/test_all.dart' as search_all;
 import 'socket_server_test.dart' as socket_server_test;
@@ -49,7 +48,6 @@ main() {
     edit_all.main();
     operation_test_all.main();
     package_map_provider_test.main();
-    package_uri_resolver_test.main();
     protocol_test.main();
     search_all.main();
     socket_server_test.main();

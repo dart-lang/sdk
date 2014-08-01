@@ -12,6 +12,8 @@ import 'package:logging/logging.dart' show Logger, Level;
 import 'package:observe/observe.dart';
 import 'package:smoke/smoke.dart' as smoke;
 
+import 'package:utf/utf.dart' show stringToCodepoints;
+
 /// A data-bound path starting from a view-model or model object, for example
 /// `foo.bar.baz`.
 ///
@@ -34,9 +36,9 @@ class PathObserver extends _Observer implements Bindable {
   /// See [open] and [value].
   PathObserver(Object object, [path])
       : _object = object,
-        _path = path is PropertyPath ? path : new PropertyPath(path);
+        _path = new PropertyPath(path);
 
-  bool get _isClosed => _path == null;
+  PropertyPath get path => _path;
 
   /// Sets the value at this path.
   void set value(Object newValue) {
@@ -67,7 +69,7 @@ class PathObserver extends _Observer implements Bindable {
     _object = null;
   }
 
-  void _iterateObjects(void observe(obj)) {
+  void _iterateObjects(void observe(obj, prop)) {
     _path._iterateObjects(_object, observe);
   }
 
@@ -76,7 +78,7 @@ class PathObserver extends _Observer implements Bindable {
     _value = _path.getValueFrom(_object);
     if (skipChanges || _value == oldValue) return false;
 
-    _report(_value, oldValue);
+    _report(_value, oldValue, this);
     return true;
   }
 }
@@ -106,30 +108,33 @@ class PropertyPath {
   /// Note that this constructor will canonicalize identical paths in some cases
   /// to save memory, but this is not guaranteed. Use [==] for comparions
   /// purposes instead of [identical].
+  // Dart note: this is ported from `function getPath`.
   factory PropertyPath([path]) {
+    if (path is PropertyPath) return path;
+    if (path == null || (path is List && path.isEmpty)) path = '';
+
     if (path is List) {
       var copy = new List.from(path, growable: false);
       for (var segment in copy) {
-        if (segment is! int && segment is! Symbol) {
-          throw new ArgumentError('List must contain only ints and Symbols');
+        // Dart note: unlike Javascript, we don't support arbitraty objects that
+        // can be converted to a String.
+        // TODO(sigmund): consider whether we should support that here. It might
+        // be easier to add support for that if we switch first to use strings
+        // for everything instead of symbols.
+        if (segment is! int && segment is! String && segment is! Symbol) {
+          throw new ArgumentError(
+              'List must contain only ints, Strings, and Symbols');
         }
       }
       return new PropertyPath._(copy);
     }
 
-    if (path == null) path = '';
-
     var pathObj = _pathCache[path];
     if (pathObj != null) return pathObj;
 
-    if (!_isPathValid(path)) return _InvalidPropertyPath._instance;
 
-    final segments = [];
-    for (var segment in path.trim().split('.')) {
-      if (segment == '') continue;
-      var index = int.parse(segment, radix: 10, onError: (_) => null);
-      segments.add(index != null ? index : smoke.nameToSymbol(segment));
-    }
+    final segments = new _PathParser().parse(path);
+    if (segments == null) return _InvalidPropertyPath._instance;
 
     // TODO(jmesserly): we could use an UnmodifiableListView here, but that adds
     // memory overhead.
@@ -149,9 +154,26 @@ class PropertyPath {
 
   String toString() {
     if (!isValid) return '<invalid path>';
-    return _segments
-        .map((s) => s is Symbol ? smoke.symbolToName(s) : s)
-        .join('.');
+    var sb = new StringBuffer();
+    bool first = true;
+    for (var key in _segments) {
+      if (key is Symbol) {
+        if (!first) sb.write('.');
+        sb.write(smoke.symbolToName(key));
+      } else {
+        _formatAccessor(sb, key);
+      }
+      first = false;
+    }
+    return sb.toString();
+  }
+
+  _formatAccessor(StringBuffer sb, Object key) {
+    if (key is int) {
+      sb.write('[$key]');
+    } else {
+      sb.write('["${key.toString().replaceAll('"', '\\"')}"]');
+    }
   }
 
   bool operator ==(other) {
@@ -206,18 +228,26 @@ class PropertyPath {
     return _setObjectProperty(obj, _segments[end], value);
   }
 
-  void _iterateObjects(Object obj, void observe(obj)) {
+  void _iterateObjects(Object obj, void observe(obj, prop)) {
     if (!isValid || isEmpty) return;
 
     int i = 0, last = _segments.length - 1;
     while (obj != null) {
-      observe(obj);
+      // _segments[0] is passed to indicate that we are only observing that
+      // property of obj. See observe declaration in _ObserveSet.
+      observe(obj, _segments[0]);
 
       if (i >= last) break;
       obj = _getObjectProperty(obj, _segments[i++]);
     }
   }
+
+  // Dart note: it doesn't make sense to have compiledGetValueFromFn in Dart.
 }
+
+
+/// Visible only for testing:
+getSegmentsOfPropertyPathForTesting(p) => p._segments;
 
 class _InvalidPropertyPath extends PropertyPath {
   static final _instance = new _InvalidPropertyPath();
@@ -250,6 +280,8 @@ _getObjectProperty(object, property) {
     if (object is List && property >= 0 && property < object.length) {
       return object[property];
     }
+  } else if (property is String) {
+    return object[property];
   } else if (property is Symbol) {
     // Support indexer if available, e.g. Maps or polymer_expressions Scope.
     // This is the default syntax used by polymer/nodebind and
@@ -309,21 +341,192 @@ bool _setObjectProperty(object, property, value) {
 
 // From: https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
 
-final _pathRegExp = () {
+final _identRegExp = () {
   const identStart = '[\$_a-zA-Z]';
   const identPart = '[\$_a-zA-Z0-9]';
-  const ident = '$identStart+$identPart*';
-  const elementIndex = '(?:[0-9]|[1-9]+[0-9]+)';
-  const identOrElementIndex = '(?:$ident|$elementIndex)';
-  const path = '(?:$identOrElementIndex)(?:\\.$identOrElementIndex)*';
-  return new RegExp('^$path\$');
+  return new RegExp('^$identStart+$identPart*\$');
 }();
 
-bool _isPathValid(String s) {
-  s = s.trim();
-  if (s == '') return true;
-  if (s[0] == '.') return false;
-  return _pathRegExp.hasMatch(s);
+_isIdent(s) => _identRegExp.hasMatch(s);
+
+// Dart note: refactored to convert to codepoints once and operate on codepoints
+// rather than characters.
+class _PathParser {
+  List keys = [];
+  int index = -1;
+  String key;
+
+  final Map<String, List<String>> _pathStateMachine = {
+    'beforePath': {
+      'ws': ['beforePath'],
+      'ident': ['inIdent', 'append'],
+      '[': ['beforeElement'],
+      'eof': ['afterPath']
+    },
+
+    'inPath': {
+      'ws': ['inPath'],
+      '.': ['beforeIdent'],
+      '[': ['beforeElement'],
+      'eof': ['afterPath']
+    },
+
+    'beforeIdent': {
+      'ws': ['beforeIdent'],
+      'ident': ['inIdent', 'append']
+    },
+
+    'inIdent': {
+      'ident': ['inIdent', 'append'],
+      '0': ['inIdent', 'append'],
+      'number': ['inIdent', 'append'],
+      'ws': ['inPath', 'push'],
+      '.': ['beforeIdent', 'push'],
+      '[': ['beforeElement', 'push'],
+      'eof': ['afterPath', 'push']
+    },
+
+    'beforeElement': {
+      'ws': ['beforeElement'],
+      '0': ['afterZero', 'append'],
+      'number': ['inIndex', 'append'],
+      "'": ['inSingleQuote', 'append', ''],
+      '"': ['inDoubleQuote', 'append', '']
+    },
+
+    'afterZero': {
+      'ws': ['afterElement', 'push'],
+      ']': ['inPath', 'push']
+    },
+
+    'inIndex': {
+      '0': ['inIndex', 'append'],
+      'number': ['inIndex', 'append'],
+      'ws': ['afterElement'],
+      ']': ['inPath', 'push']
+    },
+
+    'inSingleQuote': {
+      "'": ['afterElement'],
+      'eof': ['error'],
+      'else': ['inSingleQuote', 'append']
+    },
+
+    'inDoubleQuote': {
+      '"': ['afterElement'],
+      'eof': ['error'],
+      'else': ['inDoubleQuote', 'append']
+    },
+
+    'afterElement': {
+      'ws': ['afterElement'],
+      ']': ['inPath', 'push']
+    }
+  };
+
+  /// From getPathCharType: determines the type of a given [code]point.
+  String _getPathCharType(code) {
+    if (code == null) return 'eof';
+    switch(code) {
+      case 0x5B: // [
+      case 0x5D: // ]
+      case 0x2E: // .
+      case 0x22: // "
+      case 0x27: // '
+      case 0x30: // 0
+        return _char(code);
+
+      case 0x5F: // _
+      case 0x24: // $
+        return 'ident';
+
+      case 0x20: // Space
+      case 0x09: // Tab
+      case 0x0A: // Newline
+      case 0x0D: // Return
+      case 0xA0:  // No-break space
+      case 0xFEFF:  // Byte Order Mark
+      case 0x2028:  // Line Separator
+      case 0x2029:  // Paragraph Separator
+        return 'ws';
+    }
+
+    // a-z, A-Z
+    if ((0x61 <= code && code <= 0x7A) || (0x41 <= code && code <= 0x5A))
+      return 'ident';
+
+    // 1-9
+    if (0x31 <= code && code <= 0x39)
+      return 'number';
+
+    return 'else';
+  }
+
+  static String _char(int codepoint) => new String.fromCharCodes([codepoint]);
+
+  void push() {
+    if (key == null) return;
+
+    // Dart note: we store the keys with different types, rather than
+    // parsing/converting things later in toString.
+    if (_isIdent(key)) {
+      keys.add(smoke.nameToSymbol(key));
+    } else {
+      var index = int.parse(key, radix: 10, onError: (_) => null);
+      keys.add(index != null ? index : key);
+    }
+    key = null;
+  }
+
+  void append(newChar) {
+    key = (key == null) ? newChar : '$key$newChar';
+  }
+
+  bool _maybeUnescapeQuote(String mode, codePoints) {
+    if (index >= codePoints.length) return false;
+    var nextChar = _char(codePoints[index + 1]);
+    if ((mode == 'inSingleQuote' && nextChar == "'") ||
+        (mode == 'inDoubleQuote' && nextChar == '"')) {
+      index++;
+      append(nextChar);
+      return true;
+    }
+    return false;
+  }
+
+  /// Returns the parsed keys, or null if there was a parse error.
+  List<String> parse(String path) {
+    var codePoints = stringToCodepoints(path);
+    var mode = 'beforePath';
+
+    while (mode != null) {
+      index++;
+      var c = index >= codePoints.length ? null : codePoints[index];
+
+      if (c != null &&
+          _char(c) == '\\' && _maybeUnescapeQuote(mode, codePoints)) continue;
+
+      var type = _getPathCharType(c);
+      if (mode == 'error') return null;
+
+      var typeMap = _pathStateMachine[mode];
+      var transition = typeMap[type];
+      if (transition == null) transition = typeMap['else'];
+      if (transition == null) return null; // parse error;
+
+      mode = transition[0];
+      var actionName = transition.length > 1 ? transition[1] : null;
+      if (actionName == 'push' && key != null) push();
+      if (actionName == 'append') {
+        var newChar = transition.length > 2 && transition[2] != null
+            ? transition[2] : _char(c);
+        append(newChar);
+      }
+
+      if (mode == 'afterPath') return keys;
+    }
+    return null; // parse error
+  }
 }
 
 final Logger _logger = new Logger('observe.PathObserver');
@@ -364,11 +567,10 @@ const int _pathCacheLimit = 100;
 ///
 class CompoundObserver extends _Observer implements Bindable {
   _ObservedSet _directObserver;
+  bool _reportChangesOnOpen;
   List _observed = [];
 
-  bool get _isClosed => _observed == null;
-
-  CompoundObserver() {
+  CompoundObserver([this._reportChangesOnOpen = false]) {
     _value = [];
   }
 
@@ -387,8 +589,6 @@ class CompoundObserver extends _Observer implements Bindable {
   open(callback) => super.open(callback);
 
   void _connect() {
-    _check(skipChanges: true);
-
     for (var i = 0; i < _observed.length; i += 2) {
       var object = _observed[i];
       if (!identical(object, _observerSentinel)) {
@@ -396,22 +596,24 @@ class CompoundObserver extends _Observer implements Bindable {
         break;
       }
     }
+
+    _check(skipChanges: !_reportChangesOnOpen);
   }
 
   void _disconnect() {
+    for (var i = 0; i < _observed.length; i += 2) {
+      if (identical(_observed[i], _observerSentinel)) {
+        _observed[i + 1].close();
+      }
+    }
+
+    _observed = null;
     _value = null;
 
     if (_directObserver != null) {
       _directObserver.close(this);
       _directObserver = null;
     }
-
-    for (var i = 0; i < _observed.length; i += 2) {
-      if (identical(_observed[i], _observerSentinel)) {
-        _observed[i + 1].close();
-      }
-    }
-    _observed = null;
   }
 
   /// Adds a dependency on the property [path] accessed from [object].
@@ -422,8 +624,10 @@ class CompoundObserver extends _Observer implements Bindable {
       throw new StateError('Cannot add paths once started.');
     }
 
-    if (path is! PropertyPath) path = new PropertyPath(path);
+    path = new PropertyPath(path);
     _observed..add(object)..add(path);
+    if (!_reportChangesOnOpen) return;
+    _value.add(path.getValueFrom(object));
   }
 
   void addObserver(Bindable observer) {
@@ -431,11 +635,12 @@ class CompoundObserver extends _Observer implements Bindable {
       throw new StateError('Cannot add observers once started.');
     }
 
-    observer.open((_) => deliver());
     _observed..add(_observerSentinel)..add(observer);
+    if (!_reportChangesOnOpen) return;
+    _value.add(observer.open((_) => deliver()));
   }
 
-  void _iterateObjects(void observe(obj)) {
+  void _iterateObjects(void observe(obj, prop)) {
     for (var i = 0; i < _observed.length; i += 2) {
       var object = _observed[i];
       if (!identical(object, _observerSentinel)) {
@@ -449,11 +654,17 @@ class CompoundObserver extends _Observer implements Bindable {
     _value.length = _observed.length ~/ 2;
     var oldValues = null;
     for (var i = 0; i < _observed.length; i += 2) {
-      var pathOrObserver = _observed[i + 1];
       var object = _observed[i];
-      var value = identical(object, _observerSentinel) ?
-          (pathOrObserver as Bindable).value :
-          (pathOrObserver as PropertyPath).getValueFrom(object);
+      var path = _observed[i + 1];
+      var value;
+      if (identical(object, _observerSentinel)) {
+        var observable = path as Bindable;
+        value = _state == _Observer._UNOPENED ?
+            observable.open((_) => this.deliver()) :
+            observable.value;
+      } else {
+        value = (path as PropertyPath).getValueFrom(object);
+      }
 
       if (skipChanges) {
         _value[i ~/ 2] = value;
@@ -491,26 +702,28 @@ abstract class Indexable<K, V> {
 const _observerSentinel = const _ObserverSentinel();
 class _ObserverSentinel { const _ObserverSentinel(); }
 
+// Visible for testing
+get observerSentinelForTesting => _observerSentinel;
+
 // A base class for the shared API implemented by PathObserver and
 // CompoundObserver and used in _ObservedSet.
 abstract class _Observer extends Bindable {
-  static int _nextBirthId = 0;
-
-  /// A number indicating when the object was created.
-  final int _birthId = _nextBirthId++;
-
   Function _notifyCallback;
   int _notifyArgumentCount;
   var _value;
 
   // abstract members
-  void _iterateObjects(void observe(obj));
+  void _iterateObjects(void observe(obj, prop));
   void _connect();
   void _disconnect();
-  bool get _isClosed;
   bool _check({bool skipChanges: false});
 
-  bool get _isOpen => _notifyCallback != null;
+  static int _UNOPENED = 0;
+  static int _OPENED = 1;
+  static int _CLOSED = 2;
+  int _state = _UNOPENED;
+  bool get _isOpen => _state == _OPENED;
+  bool get _isClosed => _state == _CLOSED;
 
   /// The number of arguments the subclass will pass to [_report].
   int get _reportArgumentCount;
@@ -529,6 +742,7 @@ abstract class _Observer extends Bindable {
     _notifyArgumentCount = min(_reportArgumentCount, smoke.maxArgs(callback));
 
     _connect();
+    _state = _OPENED;
     return _value;
   }
 
@@ -540,6 +754,7 @@ abstract class _Observer extends Bindable {
     _disconnect();
     _value = null;
     _notifyCallback = null;
+    _state = _CLOSED;
   }
 
   _discardChanges() {
@@ -575,6 +790,25 @@ abstract class _Observer extends Bindable {
   }
 }
 
+/// The observedSet abstraction is a perf optimization which reduces the total
+/// number of Object.observe observations of a set of objects. The idea is that
+/// groups of Observers will have some object dependencies in common and this
+/// observed set ensures that each object in the transitive closure of
+/// dependencies is only observed once. The observedSet acts as a write barrier
+/// such that whenever any change comes through, all Observers are checked for
+/// changed values.
+///
+/// Note that this optimization is explicitly moving work from setup-time to
+/// change-time.
+///
+/// TODO(rafaelw): Implement "garbage collection". In order to move work off
+/// the critical path, when Observers are closed, their observed objects are
+/// not Object.unobserve(d). As a result, it's possible that if the observedSet
+/// is kept open, but some Observers have been closed, it could cause "leaks"
+/// (prevent otherwise collectable objects from being collected). At some
+/// point, we should implement incremental "gc" which keeps a list of
+/// observedSets which may need clean-up and does small amounts of cleanup on a
+/// timeout until all is clean.
 class _ObservedSet {
   /// To prevent sequential [PathObserver]s and [CompoundObserver]s from
   /// observing the same object, we check if they are observing the same root
@@ -590,50 +824,54 @@ class _ObservedSet {
   /// reuse an [_ObservedSet] that starts from the same object.
   Object _rootObject;
 
+  /// Subset of properties in [_rootObject] that we care about.
+  Set _rootObjectProperties;
+
   /// Observers associated with this root object, in birth order.
-  final Map<int, _Observer> _observers = new SplayTreeMap();
+  final List<_Observer> _observers = [];
 
   // Dart note: the JS implementation is O(N^2) because Array.indexOf is used
-  // for lookup in these two arrays. We use HashMap to avoid this problem. It
+  // for lookup in this array. We use HashMap to avoid this problem. It
   // also gives us a nice way of tracking the StreamSubscription.
   Map<Object, StreamSubscription> _objects;
-  Map<Object, StreamSubscription> _toRemove;
 
-  bool _resetNeeded = false;
-
-  factory _ObservedSet(_Observer observer, Object rootObj) {
-    if (_lastSet == null || !identical(_lastSet._rootObject, rootObj)) {
-      _lastSet = new _ObservedSet._(rootObj);
+  factory _ObservedSet(_Observer observer, Object rootObject) {
+    if (_lastSet == null || !identical(_lastSet._rootObject, rootObject)) {
+      _lastSet = new _ObservedSet._(rootObject);
     }
-    _lastSet.open(observer);
+    _lastSet.open(observer, rootObject);
   }
 
-  _ObservedSet._(this._rootObject);
+  _ObservedSet._(rootObject)
+      : _rootObject = rootObject,
+        _rootObjectProperties = rootObject == null ? null : new Set();
 
-  void open(_Observer obs) {
-    _observers[obs._birthId] = obs;
+  void open(_Observer obs, Object rootObject) {
+    if (_rootObject == null) {
+      _rootObject = rootObject;
+      _rootObjectProperties = new Set();
+    }
+
+    _observers.add(obs);
     obs._iterateObjects(observe);
   }
 
   void close(_Observer obs) {
-    var anyLeft = false;
-
-    _observers.remove(obs._birthId);
-
-    if (_observers.isNotEmpty) {
-      _resetNeeded = true;
-      scheduleMicrotask(reset);
-      return;
-    }
-    _resetNeeded = false;
+    if (_observers.isNotEmpty) return;
 
     if (_objects != null) {
       for (var sub in _objects) sub.cancel();
       _objects = null;
     }
+    _rootObject = null;
+    _rootObjectProperties = null;
   }
 
-  void observe(Object obj) {
+  /// Observe now takes a second argument to indicate which property of an
+  /// object is being observed, so we don't trigger change notifications on
+  /// changes to unrelated properties.
+  void observe(Object obj, Object prop) {
+    if (identical(obj, _rootObject)) _rootObjectProperties.add(prop);
     if (obj is ObservableList) _observeStream(obj.listChanges);
     if (obj is Observable) _observeStream(obj.changes);
   }
@@ -644,37 +882,46 @@ class _ObservedSet {
     // going forward.
 
     if (_objects == null) _objects = new HashMap();
-    StreamSubscription sub = null;
-    if (_toRemove != null) sub = _toRemove.remove(stream);
-    if (sub != null) {
-      _objects[stream] = sub;
-    } else if (!_objects.containsKey(stream)) {
+    if (!_objects.containsKey(stream)) {
       _objects[stream] = stream.listen(_callback);
     }
   }
 
-  void reset() {
-    if (!_resetNeeded) return;
-
-    var objs = _toRemove == null ? new HashMap() : _toRemove;
-    _toRemove = _objects;
-    _objects = objs;
-    for (var observer in _observers.values) {
-      if (observer._isOpen) observer._iterateObjects(observe);
+  /// Whether we can ignore all change events in [records]. This is true if all
+  /// records are for properties in the [_rootObject] and we are not observing
+  /// any of those properties. Changes on objects other than [_rootObject], or
+  /// changes for properties in [_rootObjectProperties] can't be ignored.
+  // Dart note: renamed from `allRootObjNonObservedProps` in the JS code.
+  bool _canIgnoreRecords(List<ChangeRecord> records) {
+    for (var rec in records) {
+      if (rec is PropertyChangeRecord) {
+        if (!identical(rec.object, _rootObject) ||
+            _rootObjectProperties.contains(rec.name)) {
+          return false;
+        }
+      } else if (rec is ListChangeRecord) {
+        if (!identical(rec.object, _rootObject) ||
+            _rootObjectProperties.contains(rec.index)) {
+          return false;
+        }
+      } else {
+        // TODO(sigmund): consider adding object to MapChangeRecord, and make
+        // this more precise.
+        return false;
+      }
     }
-
-    for (var sub in _toRemove.values) sub.cancel();
-
-    _toRemove = null;
+    return true;
   }
 
   void _callback(records) {
-    for (var observer in _observers.values.toList(growable: false)) {
-      if (observer._isOpen) observer._check();
+    if (_canIgnoreRecords(records)) return;
+    for (var observer in _observers.toList(growable: false)) {
+      if (observer._isOpen) observer._iterateObjects(observe);
     }
 
-    _resetNeeded = true;
-    scheduleMicrotask(reset);
+    for (var observer in _observers.toList(growable: false)) {
+      if (observer._isOpen) observer._check();
+    }
   }
 }
 
