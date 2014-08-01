@@ -319,7 +319,7 @@ convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
 convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 
 [ $compiler == dart2js ]
-profiler/metrics_num_test: Skip
+profiler/metrics_num_test: Skip # Because of a int / double type test.
 
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.

@@ -8,7 +8,7 @@ import 'package:expect/expect.dart';
 
 testGaugeDouble() {
   Expect.throws(() {
-    // max is not a double
+    // max argument is not a double
     gauge = new Gauge('test', 'alpha bravo', 1.0, 4);
   });
 }
