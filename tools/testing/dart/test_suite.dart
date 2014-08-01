@@ -2106,16 +2106,22 @@ class TestUtils {
   }
 
   /**
+   * Gets extra options under [key] passed to the testing script.
+   */
+  static List<String> getExtraOptions(Map configuration, String key) {
+    if (configuration[key] == null) return <String>[];
+    return configuration[key]
+        .split(" ")
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+  }
+
+  /**
    * Gets extra vm options passed to the testing script.
    */
-  static List<String> getExtraVmOptions(Map configuration) {
-    var extraVmOptions = [];
-    if (configuration['vm_options'] != null) {
-      extraVmOptions = configuration['vm_options'].split(" ");
-      extraVmOptions.removeWhere((s) => s.trim() == "");
-    }
-    return extraVmOptions;
-  }
+  static List<String> getExtraVmOptions(Map configuration) =>
+      getExtraOptions(configuration, 'vm_options');
 
   static String getShortName(String path) {
     final PATH_REPLACEMENTS = const {

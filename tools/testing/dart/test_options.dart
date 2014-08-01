@@ -420,6 +420,12 @@ Note: currently only implemented for dart2js.''',
               [],
               null),
           new _TestOptionSpecification(
+              'dart2js_options',
+              'Extra options for dart2js compilation step',
+              ['--dart2js-options'],
+              [],
+              null),
+          new _TestOptionSpecification(
               'exclude_suite',
               'Exclude suites from default selector, only works when no'
               ' selector has been specified on the command line',
