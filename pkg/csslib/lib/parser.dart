@@ -1295,7 +1295,7 @@ class _Parser {
    *       : '.' IDENT
    */
   simpleSelector() {
-    // TODO(terry): Nathan makes a good point parsing of namespace and element
+    // TODO(terry): Natalie makes a good point parsing of namespace and element
     //              are essentially the same (asterisk or identifier) other
     //              than the error message for element.  Should consolidate the
     //              code.

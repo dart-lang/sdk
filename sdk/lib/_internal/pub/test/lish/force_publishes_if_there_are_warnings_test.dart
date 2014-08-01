@@ -20,7 +20,7 @@ main() {
 
   integration('--force publishes if there are warnings', () {
     var pkg = packageMap("test_pkg", "1.0.0");
-    pkg["author"] = "Nathan Weizenbaum";
+    pkg["author"] = "Natalie Weizenbaum";
     d.dir(appPath, [d.pubspec(pkg)]).create();
 
     var server = new ScheduledServer();
@@ -39,7 +39,7 @@ main() {
     pub.shouldExit(exit_codes.SUCCESS);
     pub.stderr.expect(consumeThrough('Suggestions:'));
     pub.stderr.expect(emitsLines(
-        '* Author "Nathan Weizenbaum" in pubspec.yaml should have an email '
+        '* Author "Natalie Weizenbaum" in pubspec.yaml should have an email '
             'address\n'
         '  (e.g. "name <email>").'));
     pub.stdout.expect(consumeThrough('Package test_pkg 1.0.0 uploaded!'));

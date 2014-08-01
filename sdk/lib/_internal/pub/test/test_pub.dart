@@ -876,7 +876,7 @@ Map packageMap(String name, String version, [Map dependencies]) {
   var package = {
     "name": name,
     "version": version,
-    "author": "Nathan Weizenbaum <nweiz@google.com>",
+    "author": "Natalie Weizenbaum <nweiz@google.com>",
     "homepage": "http://pub.dartlang.org",
     "description": "A package, I guess."
   };

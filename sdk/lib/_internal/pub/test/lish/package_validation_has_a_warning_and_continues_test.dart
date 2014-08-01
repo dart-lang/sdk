@@ -20,7 +20,7 @@ main() {
 
   integration('package validation has a warning and continues', () {
     var pkg = packageMap("test_pkg", "1.0.0");
-    pkg["author"] = "Nathan Weizenbaum";
+    pkg["author"] = "Natalie Weizenbaum";
     d.dir(appPath, [d.pubspec(pkg)]).create();
 
     var server = new ScheduledServer();

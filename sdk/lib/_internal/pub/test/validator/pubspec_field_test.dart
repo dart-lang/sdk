@@ -115,7 +115,7 @@ main() {
 
     integration('has a single author without an email', () {
       var pkg = packageMap("test_pkg", "1.0.0");
-      pkg["author"] = "Nathan Weizenbaum";
+      pkg["author"] = "Natalie Weizenbaum";
       d.dir(appPath, [d.pubspec(pkg)]).create();
 
       expectValidationWarning(pubspecField);
@@ -126,7 +126,7 @@ main() {
       pkg.remove("author");
       pkg["authors"] = [
         "Bob Nystrom <rnystrom@google.com>",
-        "Nathan Weizenbaum",
+        "Natalie Weizenbaum",
         "John Messerly <jmesserly@google.com>"
       ];
       d.dir(appPath, [d.pubspec(pkg)]).create();
