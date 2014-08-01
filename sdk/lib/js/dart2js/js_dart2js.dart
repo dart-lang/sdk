@@ -495,9 +495,10 @@ bool _isLocalObject(o) => JS('bool', '# instanceof Object', o);
 final _dartProxyCtor = JS('', 'function DartObject(o) { this.o = o; }');
 
 dynamic _convertToJS(dynamic o) {
-  if (o == null) {
-    return null;
-  } else if (o is String || o is num || o is bool) {
+  // Note: we don't write `if (o == null) return null;` to make sure dart2js
+  // doesn't convert `return null;` into `return;` (which would make `null` be
+  // `undefined` in Javascprit). See dartbug.com/20305 for details.
+  if (o == null || o is String || o is num || o is bool) {
     return o;
   } else if (o is Blob || o is Event || o is KeyRange || o is ImageData
       || o is Node || o is TypedData || o is Window) {
