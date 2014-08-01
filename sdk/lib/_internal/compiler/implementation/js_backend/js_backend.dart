@@ -25,7 +25,6 @@ import '../universe/universe.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
 
-import '../compilation_info.dart';
 import '../dump_info.dart';
 
 part 'backend.dart';

@@ -49,8 +49,6 @@ abstract class Enqueuer {
   bool hasEnqueuedReflectiveElements = false;
   bool hasEnqueuedReflectiveStaticFields = false;
 
-  CompilationInformation get compilationInfo;
-
   Enqueuer(this.name, this.compiler, this.itemCompilationContextCreator);
 
   Queue<WorkItem> get queue;
@@ -71,9 +69,7 @@ abstract class Enqueuer {
    */
   void addToWorkList(Element element) {
     assert(invariant(element, element.isDeclaration));
-    if (internalAddToWorkList(element)) {
-      compilationInfo.addsToWorkList(compiler.currentElement, element);
-    }
+    internalAddToWorkList(element);
   }
 
   /**
@@ -189,7 +185,6 @@ abstract class Enqueuer {
           memberName, () => const Link<Element>());
       instanceFunctionsByName[memberName] = members.prepend(member);
       if (universe.hasInvocation(member, compiler)) {
-        compilationInfo.enqueues(getContext(), member);
         addToWorkList(member);
         return;
       }
@@ -220,8 +215,6 @@ abstract class Enqueuer {
 
   void enableNoSuchMethod(Element element) {}
   void enableIsolateSupport() {}
-
-  Element getContext() => compiler.currentElement;
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {
@@ -254,33 +247,32 @@ abstract class Enqueuer {
     });
   }
 
-  void registerNewSelector(Element context,
-                           Selector selector,
+  void registerNewSelector(Selector selector,
                            Map<String, Set<Selector>> selectorsMap) {
     String name = selector.name;
     Set<Selector> selectors =
         selectorsMap.putIfAbsent(name, () => new Setlet<Selector>());
     if (!selectors.contains(selector)) {
       selectors.add(selector);
-      handleUnseenSelector(context, name, selector);
+      handleUnseenSelector(name, selector);
     }
   }
 
-  void registerInvocation(Element context, Selector selector) {
+  void registerInvocation(Selector selector) {
     task.measure(() {
-      registerNewSelector(context, selector, universe.invokedNames);
+      registerNewSelector(selector, universe.invokedNames);
     });
   }
 
-  void registerInvokedGetter(Element context, Selector selector) {
+  void registerInvokedGetter(Selector selector) {
     task.measure(() {
-      registerNewSelector(context, selector, universe.invokedGetters);
+      registerNewSelector(selector, universe.invokedGetters);
     });
   }
 
-  void registerInvokedSetter(Element context, Selector selector) {
+  void registerInvokedSetter(Selector selector) {
     task.measure(() {
-      registerNewSelector(context, selector, universe.invokedSetters);
+      registerNewSelector(selector, universe.invokedSetters);
     });
   }
 
@@ -333,11 +325,11 @@ abstract class Enqueuer {
         // well.
         // TODO(herhut): Use TypedSelector.subtype for enqueueing
         Selector selector = new Selector.fromElement(element, compiler);
-        registerSelectorUse(element, selector);
+        registerSelectorUse(selector);
         if (element.isField) {
           Selector selector =
               new Selector.setter(element.name, element.library);
-          registerInvokedSetter(element, selector);
+          registerInvokedSetter(selector);
         }
       }
     }
@@ -474,11 +466,8 @@ abstract class Enqueuer {
     processLink(instanceFunctionsByName, n, f);
   }
 
-  void handleUnseenSelector(Element context,
-                            String methodName,
-                            Selector selector) {
+  void handleUnseenSelector(String methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
-      compilationInfo.enqueues(context, member);
       if (selector.appliesUnnamed(member, compiler)) {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member, compiler.globalDependencies);
@@ -535,27 +524,27 @@ abstract class Enqueuer {
     universe.staticFunctionsNeedingGetter.add(element);
   }
 
-  void registerDynamicInvocation(Element context, Selector selector) {
+  void registerDynamicInvocation(Selector selector) {
     assert(selector != null);
-    registerInvocation(context, selector);
+    registerInvocation(selector);
   }
 
-  void registerSelectorUse(Element context, Selector selector) {
+  void registerSelectorUse(Selector selector) {
     if (selector.isGetter) {
-      registerInvokedGetter(context, selector);
+      registerInvokedGetter(selector);
     } else if (selector.isSetter) {
-      registerInvokedSetter(context, selector);
+      registerInvokedSetter(selector);
     } else {
-      registerInvocation(context, selector);
+      registerInvocation(selector);
     }
   }
 
-  void registerDynamicGetter(Element context, Selector selector) {
-    registerInvokedGetter(context, selector);
+  void registerDynamicGetter(Selector selector) {
+    registerInvokedGetter(selector);
   }
 
-  void registerDynamicSetter(Element context, Selector selector) {
-    registerInvokedSetter(context, selector);
+  void registerDynamicSetter(Selector selector) {
+    registerInvokedSetter(selector);
   }
 
   void registerGetterForSuperMethod(Element element) {
@@ -663,16 +652,12 @@ class ResolutionEnqueuer extends Enqueuer {
    */
   final Queue<DeferredTask> deferredTaskQueue;
 
-  CompilationInformation compilationInfo;
-
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator())
       : super('resolution enqueuer', compiler, itemCompilationContextCreator),
         resolvedElements = new Set<AstElement>(),
         queue = new Queue<ResolutionWorkItem>(),
-        deferredTaskQueue = new Queue<DeferredTask>() {
-    compilationInfo = new CompilationInformation(this, compiler.dumpInfo);
-  }
+        deferredTaskQueue = new Queue<DeferredTask>();
 
   bool get isResolutionQueue => true;
 
@@ -815,15 +800,11 @@ class CodegenEnqueuer extends Enqueuer {
 
   final Set<Element> newlyEnqueuedElements;
 
-  CompilationInformation compilationInfo;
-
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator())
       : queue = new Queue<CodegenWorkItem>(),
         newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
-        super('codegen enqueuer', compiler, itemCompilationContextCreator) {
-    compilationInfo = new CompilationInformation(this, compiler.dumpInfo);
-  }
+        super('codegen enqueuer', compiler, itemCompilationContextCreator);
 
   bool isProcessed(Element member) =>
       member.isAbstract || generatedCode.containsKey(member);

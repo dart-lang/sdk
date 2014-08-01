@@ -18,11 +18,11 @@ import 'dart2jslib.dart' show
     CodeBuffer;
 import 'dart_types.dart' show DartType;
 import 'types/types.dart' show TypeMask;
-import 'util/util.dart' show modifiersToString;
+import 'util/util.dart' show modifiersToString, SpannableAssertionFailure;
 import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js/js.dart' as jsAst;
-import 'compilation_info.dart' show CompilationInformation;
+import 'universe/universe.dart' show Selector;
 
 /// Maps elements to an id.  Supports lookups in
 /// both directions.
@@ -33,6 +33,8 @@ class ElementMapper {
   String name;
 
   ElementMapper(this.name);
+
+  Iterable<Element> get elements => _elementToId.keys;
 
   String add(Element e) {
     if (_elementToId.containsKey(e)) {
@@ -53,6 +55,8 @@ class DividedElementMapper {
   ElementMapper _field = new ElementMapper('field');
   ElementMapper _class = new ElementMapper('class');
   ElementMapper _function = new ElementMapper('function');
+
+  Iterable<Element> get functions => _function.elements;
 
   // Convert this database of elements into JSON for rendering
   Map<String, dynamic> _toJson(ElementToJsonVisitor elementToJson) {
@@ -78,8 +82,6 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   DividedElementMapper mapper = new DividedElementMapper();
   Compiler compiler;
 
-  CompilationInformation compilationInfo;
-
   Map<Element, Map<String, dynamic>> jsonCache = {};
   Map<Element, jsAst.Expression> codeCache;
 
@@ -91,7 +93,6 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
 
   ElementToJsonVisitor(Compiler compiler) {
     this.compiler = compiler;
-    this.compilationInfo = compiler.enqueuer.codegen.compilationInfo;
 
     programSize = compiler.assembledCode.length;
     compilationMoment = new DateTime.now();
@@ -108,8 +109,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   // If keeping the element is in question (like if a function has a size
   // of zero), only keep it if it holds dependencies to elsewhere.
   bool shouldKeep(Element element) {
-    return compilationInfo.addsToWorkListMap.containsKey(element) ||
-           compilationInfo.enqueuesMap.containsKey(element);
+    return compiler.dumpInfoTask.selectorsFromElement.containsKey(element);
   }
 
   Map<String, dynamic> toJson() {
@@ -119,6 +119,17 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   // Memoization of the JSON creating process.
   Map<String, dynamic> process(Element element) {
     return jsonCache.putIfAbsent(element, () => element.accept(this));
+  }
+
+  // Returns the id of an [element] if it has already been processed.
+  // If the element has not been processed, this function does not
+  // process it, and simply returns null instead.
+  String idOf(Element element) {
+    if (jsonCache.containsKey(element) && jsonCache[element] != null) {
+      return jsonCache[element]['id'];
+    } else {
+      return null;
+    }
   }
 
   Map<String, dynamic> visitElement(Element element) {
@@ -348,6 +359,33 @@ class DumpInfoTask extends CompilerTask {
   final Map<jsAst.Node, int> _nodeBeforeSize = <jsAst.Node, int>{};
   final Map<Element, int> _fieldNameToSize = <Element, int>{};
 
+  final Map<Element, Set<Selector>> selectorsFromElement = {};
+
+  /**
+   * Registers that a function uses a selector in the
+   * function body
+   */
+  void elementUsesSelector(Element element, Selector selector) {
+    if (compiler.dumpInfo) {
+      selectorsFromElement
+          .putIfAbsent(element, () => new Set<Selector>())
+          .add(selector);
+    }
+  }
+
+  /**
+   * Returns an iterable of [Element]s that are used by
+   * [element].
+   */
+  Iterable<Element> getRetaining(Element element) {
+    if (!selectorsFromElement.containsKey(element)) {
+      return const <Element>[];
+    } else {
+      return selectorsFromElement[element].expand(
+          (s) => compiler.world.allFunctions.filter(s));
+    }
+  }
+
   /**
    * A callback that can be called before a jsAst [node] is
    * pretty-printed. The size of the code buffer ([aftersize])
@@ -463,35 +501,25 @@ class DumpInfoTask extends CompilerTask {
 
   void dumpInfoJson(StringSink buffer) {
     JsonEncoder encoder = const JsonEncoder();
-
-    // `A` uses and depends on the functions `Bs`.
-    //     A         Bs
-    Map<String, List<String>> holding = <String, List<String>>{};
-
     DateTime startToJsonTime = new DateTime.now();
 
-    CompilationInformation compilationInfo =
-      infoCollector.compiler.enqueuer.codegen.compilationInfo;
-    compilationInfo.addsToWorkListMap.forEach((func, deps) {
-      if (func != null) {
-        var funcJson = infoCollector.process(func);
-        if (funcJson != null) {
-          var funcId = funcJson['id'];
-
-          List<String> heldList = <String>[];
-
-          for (var held in deps) {
-            // "process" to get the ids of the elements.
-            var heldJson = infoCollector.process(held);
-            if (heldJson != null) {
-              var heldId = heldJson['id'];
-              heldList.add(heldId);
-            }
-          }
-          holding[funcId] = heldList;
+    Map<String, List<String>> holding = <String, List<String>>{};
+    for (Element fn in infoCollector.mapper.functions) {
+      Iterable<Element> pulling = getRetaining(fn);
+      // Don't bother recording an empty list of dependencies.
+      if (pulling.length > 0) {
+        String fnId = infoCollector.idOf(fn);
+        // Some dart2js builtin functions are not
+        // recorded.  Don't register these.
+        if (fnId != null) {
+          holding[fnId] = pulling
+            .map((a) => infoCollector.idOf(a))
+            // Filter non-null ids for the same reason as above.
+            .where((a) => a != null)
+            .toList();
         }
       }
-    });
+    }
 
     Map<String, dynamic> outJson = {
       'elements': infoCollector.toJson(),

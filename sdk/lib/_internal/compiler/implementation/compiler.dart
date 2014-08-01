@@ -84,15 +84,18 @@ class CodegenRegistry extends Registry {
   }
 
   void registerDynamicInvocation(Selector selector) {
-    world.registerDynamicInvocation(currentElement, selector);
+    world.registerDynamicInvocation(selector);
+    compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
   void registerDynamicSetter(Selector selector) {
-    world.registerDynamicSetter(currentElement, selector);
+    world.registerDynamicSetter(selector);
+    compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
   void registerDynamicGetter(Selector selector) {
-    world.registerDynamicGetter(currentElement, selector);
+    world.registerDynamicGetter(selector);
+    compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
   void registerGetterForSuperMethod(Element element) {
@@ -131,7 +134,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerSelectorUse(Selector selector) {
-    world.registerSelectorUse(currentElement, selector);
+    world.registerSelectorUse(selector);
   }
 
   void registerFactoryWithTypeArguments() {
@@ -313,7 +316,7 @@ abstract class Backend {
    * backend.
    */
   void enableNoSuchMethod(Element context, Enqueuer enqueuer) {
-    enqueuer.registerInvocation(null, compiler.noSuchMethodSelector);
+    enqueuer.registerInvocation(compiler.noSuchMethodSelector);
   }
 
   /// Call this method to enable support for isolates.

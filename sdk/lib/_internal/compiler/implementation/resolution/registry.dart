@@ -19,8 +19,6 @@ class ResolutionRegistry extends Registry {
 
   bool get isForResolution => true;
 
-  Element get currentElement => mapping.currentElement;
-
   ResolutionEnqueuer get world => compiler.enqueuer.resolution;
 
   World get universe => compiler.world;
@@ -223,7 +221,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerDynamicInvocation(Selector selector) {
-    world.registerDynamicInvocation(currentElement, selector);
+    world.registerDynamicInvocation(selector);
   }
 
   void registerSuperNoSuchMethod() {
@@ -255,11 +253,11 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerDynamicGetter(Selector selector) {
-    world.registerDynamicGetter(currentElement, selector);
+    world.registerDynamicGetter(selector);
   }
 
   void registerDynamicSetter(Selector selector) {
-    world.registerDynamicSetter(currentElement, selector);
+    world.registerDynamicSetter(selector);
   }
 
   void registerConstSymbol(String name) {
