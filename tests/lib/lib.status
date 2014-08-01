@@ -19,6 +19,7 @@ mirrors/mirrors_reader_test: Skip # Issue 16589
 async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16898
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 16898
 mirrors/deferred_mirrors_metatarget_test: Fail # Issue 16898
+js/null_test: Fail # Issue 20310
 
 [ $compiler == dart2js ]
 async/schedule_microtask6_test: RuntimeError # global error handling is not supported. http://dartbug.com/5958
