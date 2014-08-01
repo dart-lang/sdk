@@ -7,10 +7,11 @@ library domain.completion;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/completion/completion_computer.dart';
+import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/search/search_engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -21,11 +22,6 @@ class CompletionDomainHandler implements RequestHandler {
    * The analysis server that is using this handler to process requests.
    */
   final AnalysisServer server;
-
-  /**
-   * The [SearchEngine] for this server.
-   */
-  SearchEngine searchEngine;
 
   /**
    * The next completion response id.
@@ -59,14 +55,22 @@ class CompletionDomainHandler implements RequestHandler {
     int offset = request.getRequiredParameter(OFFSET).asInt();
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    CompletionComputer.create(server.searchEngine).then((computers) {
+    Source source = server.getSource(file);
+    CompletionManager manager =
+        CompletionManager.create(source, offset, server.searchEngine);
+    manager.generate().then((List<CompletionComputer> computers) {
       int count = computers.length;
       List<CompletionSuggestion> results = new List<CompletionSuggestion>();
       computers.forEach((CompletionComputer c) {
         c.compute().then((List<CompletionSuggestion> partialResults) {
           // send aggregate results as we compute them
           results.addAll(partialResults);
-          sendCompletionNotification(completionId, --count == 0, results);
+          sendCompletionNotification(
+              manager.replacementOffset,
+              manager.replacementLength,
+              completionId,
+              --count == 0,
+              results);
         });
       });
     });
@@ -77,12 +81,14 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Send completion notification results.
    */
-  void sendCompletionNotification(String completionId, bool isLast,
-      Iterable<CompletionSuggestion> results) {
+  void sendCompletionNotification(int replacementOffset, int replacementLength,
+      String completionId, bool isLast, Iterable<CompletionSuggestion> results) {
     Notification notification = new Notification(COMPLETION_RESULTS);
     notification.setParameter(ID, completionId);
-    notification.setParameter(LAST, isLast);
+    notification.setParameter(REPLACEMENT_OFFSET, replacementOffset);
+    notification.setParameter(REPLACEMENT_LENGTH, replacementLength);
     notification.setParameter(RESULTS, results);
+    notification.setParameter(LAST, isLast);
     server.sendNotification(notification);
   }
 }

@@ -4,9 +4,30 @@
 
 library services.completion.suggestion;
 
-import 'package:analysis_services/json.dart';
 import 'package:analysis_services/constants.dart';
+import 'package:analysis_services/json.dart';
 import 'package:analyzer/src/generated/element.dart';
+
+/**
+ * An enumeration of the relevance of a completion suggestion.
+ */
+class CompletionRelevance {
+  static const CompletionRelevance LOW = const CompletionRelevance('LOW');
+  static const CompletionRelevance DEFAULT =
+      const CompletionRelevance('DEFAULT');
+  static const CompletionRelevance HIGH = const CompletionRelevance('HIGH');
+
+  final String name;
+
+  const CompletionRelevance(this.name);
+
+  static CompletionRelevance value(String name) {
+    if (LOW.name == name) return LOW;
+    if (DEFAULT.name == name) return DEFAULT;
+    if (HIGH.name == name) return HIGH;
+    throw new ArgumentError('Unknown CompletionRelevance: $name');
+  }
+}
 
 /**
  * A single completion suggestion.
@@ -100,6 +121,8 @@ class CompletionSuggestion implements HasToJson {
  * in a completion suggestion.
  */
 class CompletionSuggestionKind {
+  static const CompletionSuggestionKind ARGUMENT_LIST =
+      const CompletionSuggestionKind('ARGUMENT_LIST');
   static const CompletionSuggestionKind CLASS =
       const CompletionSuggestionKind('CLASS');
   static const CompletionSuggestionKind CLASS_ALIAS =
@@ -110,8 +133,6 @@ class CompletionSuggestionKind {
       const CompletionSuggestionKind('FIELD');
   static const CompletionSuggestionKind FUNCTION =
       const CompletionSuggestionKind('FUNCTION');
-  static const CompletionSuggestionKind FUNCTION_ALIAS =
-      const CompletionSuggestionKind('FUNCTION_ALIAS');
   static const CompletionSuggestionKind FUNCTION_TYPE_ALIAS =
       const CompletionSuggestionKind('FUNCTION_TYPE_ALIAS');
   static const CompletionSuggestionKind GETTER =
@@ -124,22 +145,22 @@ class CompletionSuggestionKind {
       const CompletionSuggestionKind('METHOD');
   static const CompletionSuggestionKind METHOD_NAME =
       const CompletionSuggestionKind('METHOD_NAME');
+  static const CompletionSuggestionKind NAMED_ARGUMENT =
+      const CompletionSuggestionKind('NAMED_ARGUMENT');
+  static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
+      const CompletionSuggestionKind('OPTIONAL_ARGUMENT');
   static const CompletionSuggestionKind PARAMETER =
       const CompletionSuggestionKind('PARAMETER');
   static const CompletionSuggestionKind SETTER =
       const CompletionSuggestionKind('SETTER');
-  static const CompletionSuggestionKind VARIABLE =
-      const CompletionSuggestionKind('VARIABLE');
-  static const CompletionSuggestionKind TYPE_PARAMETER =
-      const CompletionSuggestionKind('TYPE_PARAMETER');
-  static const CompletionSuggestionKind ARGUMENT_LIST =
-      const CompletionSuggestionKind('ARGUMENT_LIST');
-  static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
-      const CompletionSuggestionKind('OPTIONAL_ARGUMENT');
-  static const CompletionSuggestionKind NAMED_ARGUMENT =
-      const CompletionSuggestionKind('NAMED_ARGUMENT');
   static const CompletionSuggestionKind TOP_LEVEL_VARIABLE =
       const CompletionSuggestionKind('TOP_LEVEL_VARIABLE');
+  static const CompletionSuggestionKind TYPE_PARAMETER =
+      const CompletionSuggestionKind('TYPE_PARAMETER');
+  // TODO (danrubel) consider renaming VARIABLE --> LOCAL_VARIABLE
+  //                 to match ElementKind.LOCAL_VARIABLE
+  static const CompletionSuggestionKind VARIABLE =
+      const CompletionSuggestionKind('VARIABLE');
 
   final String name;
 
@@ -147,30 +168,6 @@ class CompletionSuggestionKind {
 
   @override
   String toString() => name;
-
-  static CompletionSuggestionKind valueOf(String name) {
-    if (CLASS.name == name) return CLASS;
-    if (CLASS_ALIAS.name == name) return CLASS_ALIAS;
-    if (CONSTRUCTOR.name == name) return CONSTRUCTOR;
-    if (FIELD.name == name) return FIELD;
-    if (FUNCTION.name == name) return FUNCTION;
-    if (FUNCTION_ALIAS.name == name) return FUNCTION_ALIAS;
-    if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
-    if (GETTER.name == name) return GETTER;
-    if (IMPORT.name == name) return IMPORT;
-    if (LIBRARY_PREFIX.name == name) return LIBRARY_PREFIX;
-    if (METHOD.name == name) return METHOD;
-    if (METHOD_NAME.name == name) return METHOD_NAME;
-    if (PARAMETER.name == name) return PARAMETER;
-    if (SETTER.name == name) return SETTER;
-    if (VARIABLE.name == name) return VARIABLE;
-    if (TYPE_PARAMETER.name == name) return TYPE_PARAMETER;
-    if (ARGUMENT_LIST.name == name) return ARGUMENT_LIST;
-    if (OPTIONAL_ARGUMENT.name == name) return OPTIONAL_ARGUMENT;
-    if (NAMED_ARGUMENT.name == name) return NAMED_ARGUMENT;
-    if (TOP_LEVEL_VARIABLE.name == name) return TOP_LEVEL_VARIABLE;
-    throw new ArgumentError('Unknown CompletionSuggestionKind: $name');
-  }
 
   static CompletionSuggestionKind fromElementKind(ElementKind kind) {
     //    ElementKind.ANGULAR_FORMATTER,
@@ -191,12 +188,13 @@ class CompletionSuggestionKind {
     //    ElementKind.EXTERNAL_HTML_SCRIPT,
     if (kind == ElementKind.FIELD) return FIELD;
     if (kind == ElementKind.FUNCTION) return FUNCTION;
+    if (kind == ElementKind.FUNCTION_TYPE_ALIAS) return FUNCTION_TYPE_ALIAS;
     if (kind == ElementKind.GETTER) return GETTER;
     //    ElementKind.HTML,
     if (kind == ElementKind.IMPORT) return IMPORT;
     //    ElementKind.LABEL,
     //    ElementKind.LIBRARY,
-    //    ElementKind.LOCAL_VARIABLE,
+    if (kind == ElementKind.LOCAL_VARIABLE) return VARIABLE;
     if (kind == ElementKind.METHOD) return METHOD;
     //    ElementKind.NAME,
     if (kind == ElementKind.PARAMETER) return PARAMETER;
@@ -206,30 +204,31 @@ class CompletionSuggestionKind {
     //    ElementKind.PREFIX,
     if (kind == ElementKind.SETTER) return SETTER;
     if (kind == ElementKind.TOP_LEVEL_VARIABLE) return TOP_LEVEL_VARIABLE;
-    if (kind == ElementKind.FUNCTION_TYPE_ALIAS) return FUNCTION_TYPE_ALIAS;
     //    ElementKind.TYPE_PARAMETER,
     //    ElementKind.UNIVERSE
     throw new ArgumentError('Unknown CompletionSuggestionKind for: $kind');
   }
-}
 
-/**
- * An enumeration of the relevance of a completion suggestion.
- */
-class CompletionRelevance {
-  static const CompletionRelevance LOW = const CompletionRelevance('LOW');
-  static const CompletionRelevance DEFAULT =
-      const CompletionRelevance('DEFAULT');
-  static const CompletionRelevance HIGH = const CompletionRelevance('HIGH');
-
-  final String name;
-
-  const CompletionRelevance(this.name);
-
-  static CompletionRelevance value(String name) {
-    if (LOW.name == name) return LOW;
-    if (DEFAULT.name == name) return DEFAULT;
-    if (HIGH.name == name) return HIGH;
-    throw new ArgumentError('Unknown CompletionRelevance: $name');
+  static CompletionSuggestionKind valueOf(String name) {
+    if (ARGUMENT_LIST.name == name) return ARGUMENT_LIST;
+    if (CLASS.name == name) return CLASS;
+    if (CLASS_ALIAS.name == name) return CLASS_ALIAS;
+    if (CONSTRUCTOR.name == name) return CONSTRUCTOR;
+    if (FIELD.name == name) return FIELD;
+    if (FUNCTION.name == name) return FUNCTION;
+    if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
+    if (GETTER.name == name) return GETTER;
+    if (IMPORT.name == name) return IMPORT;
+    if (LIBRARY_PREFIX.name == name) return LIBRARY_PREFIX;
+    if (METHOD.name == name) return METHOD;
+    if (METHOD_NAME.name == name) return METHOD_NAME;
+    if (NAMED_ARGUMENT.name == name) return NAMED_ARGUMENT;
+    if (OPTIONAL_ARGUMENT.name == name) return OPTIONAL_ARGUMENT;
+    if (PARAMETER.name == name) return PARAMETER;
+    if (SETTER.name == name) return SETTER;
+    if (TOP_LEVEL_VARIABLE.name == name) return TOP_LEVEL_VARIABLE;
+    if (TYPE_PARAMETER.name == name) return TYPE_PARAMETER;
+    if (VARIABLE.name == name) return VARIABLE;
+    throw new ArgumentError('Unknown CompletionSuggestionKind: $name');
   }
 }
