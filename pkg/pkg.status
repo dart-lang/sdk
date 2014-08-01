@@ -20,39 +20,12 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 18931 (Disabled for Chrome 35 roll)
-polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
+polymer/example/component/news/test/news_index_test: RuntimeError # Issue 18931
 intl/test/date_time_format_http_request_test: Pass, Timeout # Issue 19544
 polymer/e2e_test/experimental_boot/test/import_test: Skip # Issue 20307 (Timing out)
 polymer/e2e_test/experimental_boot/test/double_init_test: Skip # Issue 20307 (Timing out)
-
-[ $compiler == none && ($runtime == dartium) ]
-polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
-polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
-polymer/test/bind_test: Pass, RuntimeError # Issue 18931
-polymer/test/computed_properties_test: Pass, RuntimeError # Issue 18931
-polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
-polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
-polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
-polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
-polymer/test/event_path_declarative_test: Pass, RuntimeError, Timeout # Issue 18931
-polymer/test/events_test: Pass, RuntimeError # Issue 18931
-polymer/test/instance_attrs_test: Pass, RuntimeError # Issue 18931
-polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
-polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
-polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
-polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
-polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
-polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
-polymer/test/property_change_test: Pass, Timeout # Issue 18931
-polymer/test/publish_attributes_test: Pass, RuntimeError # Issue 18931
-polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
-polymer/test/register_test: Pass, RuntimeError # Issue 18931
-polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
-polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
-polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 18931
-web_components/test/interop_test: Pass, RuntimeError # Issue 18931
 
 [ $compiler == none && ($runtime == dartium) && $mode == debug ]
 polymer/test/instance_attrs_test: Skip # Issue 19496
@@ -110,13 +83,6 @@ http/test/html/client_test: Fail # Issue 19750
 scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
 json_rpc_2/test/server/server_test: Fail # Issue 19750
 shelf/test/log_middleware_test: Fail # Issue 19750
-
-[ $compiler == dart2js && $runtime == drt ]
-third_party/angular_tests/browser_test/core_dom/compiler: Fail # Issue 19329
-third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
-third_party/angular_tests/browser_test/core/templateurl: Fail # Issue 19329
-web_components/test/interop_test: Pass, Fail # Issue 19329
-web_components/test/interop2_test: Fail # Issue 19329
 
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
@@ -348,12 +314,6 @@ polymer/test/unbind_test: Pass, Fail # Issue 15259
 # not minified.
 matcher/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
-[ $arch == mips ]
-*: Skip  # Issue 13650
-
-[ $arch == arm ]
-*: Skip  # Issue 13624
-
 [ $arch == simarm && $checked ]
 watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 
@@ -364,7 +324,7 @@ watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
-[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
+[ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 serialization/test/no_library_test: Skip # Expected Failure
 serialization/test/serialization_test: Fail # 13921
 unittest/test/async_exception_test: RuntimeError # 13921
@@ -415,10 +375,6 @@ scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
 
 [ $browser || $runtime == vm ]
 unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
-
-
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
