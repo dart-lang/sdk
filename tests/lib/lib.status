@@ -318,5 +318,8 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Pass, Slow
 convert/chunked_conversion_utf88_test: Skip  # Pass, Slow Issue 12644.
 convert/utf85_test: Skip  # Pass, Slow Issue 12644.
 
+[ $compiler == dart2js ]
+profiler/metrics_num_test: Skip
+
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.

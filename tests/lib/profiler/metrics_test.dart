@@ -55,11 +55,6 @@ testGauge2() {
     // max is null
     gauge = new Gauge('test', 'alpha bravo', 1.0, null);
   });
-
-  Expect.throws(() {
-    // max is not a double
-    gauge = new Gauge('test', 'alpha bravo', 1.0, 4);
-  });
 }
 
 testCounter() {
