@@ -27,6 +27,33 @@ intl/test/date_time_format_http_request_test: Pass, Timeout # Issue 19544
 polymer/e2e_test/experimental_boot/test/import_test: Skip # Issue 20307 (Timing out)
 polymer/e2e_test/experimental_boot/test/double_init_test: Skip # Issue 20307 (Timing out)
 
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
+polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
+polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
+polymer/test/bind_test: Pass, RuntimeError # Issue 18931
+polymer/test/computed_properties_test: Pass, RuntimeError # Issue 18931
+polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
+polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_path_declarative_test: Pass, RuntimeError, Timeout # Issue 18931
+polymer/test/events_test: Pass, RuntimeError # Issue 18931
+polymer/test/instance_attrs_test: Pass, RuntimeError # Issue 18931
+polymer/test/js_custom_event_test: Pass, RuntimeError # Issue 18931
+polymer/test/js_interop_test: Pass, RuntimeError # Issue 18931
+polymer/test/nested_binding_test: Pass, RuntimeError # Issue 18931
+polymer/test/noscript_test: Pass, RuntimeError # Issue 18931
+polymer/test/prop_attr_bind_reflection_test: Pass, RuntimeError # Issue 18931
+polymer/test/prop_attr_reflection_test: Pass, RuntimeError # Issue 18931
+polymer/test/property_change_test: Pass, Timeout # Issue 18931
+polymer/test/publish_attributes_test: Pass, RuntimeError # Issue 18931
+polymer/test/publish_inherited_properties_test: Pass, RuntimeError # Issue 18931
+polymer/test/register_test: Pass, RuntimeError # Issue 18931
+polymer/test/take_attributes_test: Pass, RuntimeError # Issue 18931
+polymer/test/template_distribute_dynamic_test: Pass, RuntimeError # Issue 18931
+polymer/test/two_way_bind_test: Pass, RuntimeError # Issue 18931
+web_components/test/interop_test: Pass, RuntimeError # Issue 18931
+
 [ $compiler == none && ($runtime == dartium) && $mode == debug ]
 polymer/test/instance_attrs_test: Skip # Issue 19496
 
