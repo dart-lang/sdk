@@ -1,5 +1,5 @@
 name: code_transformers
-version: 0.2.0+2
+version: 0.2.0+3
 author: "Dart Team <misc@dartlang.org>"
 description: Collection of utilities related to creating barback transformers.
 homepage: http://www.dartlang.org
@@ -7,7 +7,7 @@ dependencies:
   analyzer: ">=0.15.6 <0.22.0"
   barback: ">=0.14.2 <0.16.0"
   path: ">=0.9.0 <2.0.0"
-  source_maps: ">=0.9.0 <0.11.0"
+  source_maps: ">=0.9.4 <0.11.0"
   source_span: ">=1.0.0 <2.0.0"
 dev_dependencies:
   unittest: ">=0.10.1 <0.11.0"

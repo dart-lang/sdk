@@ -1,3 +1,8 @@
+## 0.2.0+3
+
+* Raise the lower bound on the source_maps constraint to exclude incompatible
+  versions.
+
 ## 0.2.0+2
 
 * Widen the constraint on source_maps.
