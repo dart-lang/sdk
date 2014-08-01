@@ -1,13 +1,5 @@
 name: source_maps
-
-# Note! This version number is referenced directly in the pub source code in
-# lib/src/barback.dart. Pub implicitly places a version constraint on
-# source_maps to ensure users only select a version of source_maps that works
-# with their current version of pub.
-#
-# When the minor version is upgraded, you *must* update that version constraint
-# in pub to stay in sync with this.
-version: 0.9.4-dev
+version: 0.10.0
 author: Dart Team <misc@dartlang.org>
 description: Library to programmatically manipulate source map files.
 homepage: http://www.dartlang.org
