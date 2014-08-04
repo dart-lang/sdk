@@ -10,7 +10,6 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/constants.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
 /**
@@ -56,23 +55,16 @@ class CompletionDomainHandler implements RequestHandler {
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
     Source source = server.getSource(file);
-    CompletionManager manager =
-        CompletionManager.create(source, offset, server.searchEngine);
-    manager.generate().then((List<CompletionComputer> computers) {
-      int count = computers.length;
-      List<CompletionSuggestion> results = new List<CompletionSuggestion>();
-      computers.forEach((CompletionComputer c) {
-        c.compute().then((List<CompletionSuggestion> partialResults) {
-          // send aggregate results as we compute them
-          results.addAll(partialResults);
-          sendCompletionNotification(
-              manager.replacementOffset,
-              manager.replacementLength,
-              completionId,
-              --count == 0,
-              results);
-        });
-      });
+    CompletionManager.create(
+        source,
+        offset,
+        server.searchEngine).results().listen((CompletionResult result) {
+      sendCompletionNotification(
+          completionId,
+          result.replacementOffset,
+          result.replacementLength,
+          result.suggestions,
+          result.last);
     });
     // initial response without results
     return new Response(request.id)..setResult(ID, completionId);
@@ -81,8 +73,8 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Send completion notification results.
    */
-  void sendCompletionNotification(int replacementOffset, int replacementLength,
-      String completionId, bool isLast, Iterable<CompletionSuggestion> results) {
+  void sendCompletionNotification(String completionId, int replacementOffset,
+      int replacementLength, Iterable<CompletionSuggestion> results, bool isLast) {
     Notification notification = new Notification(COMPLETION_RESULTS);
     notification.setParameter(ID, completionId);
     notification.setParameter(REPLACEMENT_OFFSET, replacementOffset);

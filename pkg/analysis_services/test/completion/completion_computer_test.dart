@@ -5,12 +5,12 @@
 library test.services.completion.suggestion;
 
 import 'package:analysis_services/completion/completion_computer.dart';
-import 'package:analysis_services/src/completion/top_level_computer.dart';
 import 'package:analysis_testing/reflective_tests.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import 'completion_test_util.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'dart:async';
 
 main() {
   groupSep = ' | ';
@@ -64,9 +64,12 @@ class DartCompletionManagerTest extends AbstractCompletionTest {
   test_topLevel() {
     Source source = addSource('/does/not/exist.dart', '');
     var manager = new DartCompletionManager(source, 0, searchEngine);
-    manager.generate().then((List<CompletionComputer> computers) {
-      assertContainsType(computers, TopLevelComputer);
-      expect(computers, hasLength(1));
+    bool anyResult;
+    manager.results().forEach((_) {
+      anyResult = true;
+    });
+    return new Future.delayed(Duration.ZERO, () {
+      expect(anyResult, isTrue);
     });
   }
 }

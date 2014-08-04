@@ -17,6 +17,7 @@ import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
+import 'mocks.dart';
 
 main() {
   groupSep = ' | ';
@@ -81,7 +82,9 @@ class CompletionTest extends AbstractAnalysisTest {
       Response response = handleSuccessfulRequest(request);
       completionId = response.getResult(ID);
       assertValidId(completionId);
-      return waitForSuggestions();
+      return pumpEventQueue().then((_) {
+        expect(suggestionsDone, isTrue);
+      });
     });
   }
 
@@ -149,12 +152,5 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, 'test');
       assertNoResult('HtmlElement');
     });
-  }
-
-  Future waitForSuggestions() {
-    if (suggestionsDone) {
-      return new Future.value();
-    }
-    return new Future.delayed(Duration.ZERO, waitForSuggestions);
   }
 }
