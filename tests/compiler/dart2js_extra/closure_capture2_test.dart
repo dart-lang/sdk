@@ -11,14 +11,12 @@ closure0() {
   var g;
   {
     var x = 499;
-    // TODO(floitsch): remove name from functions.
-    f = fun() { return x; };
+    f = () { return x; };
     x++;
   }
   {
     var x = 42;
-    // TODO(floitsch): remove name from functions.
-    g = fun() { return x; };
+    g = () { return x; };
     x++;
   }
   Expect.equals(500, f());
@@ -29,8 +27,7 @@ closure1() {
   // f captures variable $0 which once could yield to troubles with HForeign if
   // we did not mangle correctly.
   var $1 = 499;
-  // TODO(floitsch): remove name from functions.
-  var f = fun() { return $1; };
+  var f = () { return $1; };
   $1++;
   Expect.equals(500, f());
 }

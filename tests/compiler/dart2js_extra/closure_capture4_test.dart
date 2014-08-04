@@ -8,7 +8,7 @@ closure0() {
   var input = [1, 2, 3];
   var fs = [];
   for (var x in input) {
-    fs.add(fun() { return x; });
+    fs.add(() { return x; });
   }
   Expect.equals(3, fs.length);
   Expect.equals(1, fs[0]());
@@ -20,7 +20,7 @@ closure1() {
   var input = [1, 2, 3];
   var fs = [];
   for (var x in input) {
-    fs.add(fun() { return x; });
+    fs.add(() { return x; });
     x++;
   }
   Expect.equals(3, fs.length);
@@ -34,7 +34,7 @@ closure2() {
   var fs = [];
   for (var i = 0; i < input.length; i++) {
     var j = i;
-    fs.add(fun() { return input[j]; });
+    fs.add(() { return input[j]; });
   }
   Expect.equals(3, fs.length);
   Expect.equals(1, fs[0]());
@@ -47,7 +47,7 @@ closure3() {
   var fs = [];
   for (var i = 0; i < input.length; i++) {
     var x = input[i];
-    fs.add(fun() { return x; });
+    fs.add(() { return x; });
     x++;
   }
   Expect.equals(3, fs.length);
@@ -62,7 +62,7 @@ closure4() {
   var x;
   for (var i = 0; i < input.length; i++) {
     x = input[i];
-    fs.add(fun() { return x; });
+    fs.add(() { return x; });
     x++;
   }
   Expect.equals(3, fs.length);
@@ -77,7 +77,7 @@ closure5() {
   var i = 0;
   do {
     var x = input[i];
-    fs.add(fun() { return x; });
+    fs.add(() { return x; });
   } while (++i < input.length);
   Expect.equals(3, fs.length);
   Expect.equals(1, fs[0]());

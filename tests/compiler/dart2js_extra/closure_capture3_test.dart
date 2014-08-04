@@ -9,13 +9,13 @@ class Closure {
   Closure(val) : this.x = val;
 
   foo() {
-    return fun() {
+    return () {
       return x;
     };
   }
 
   bar() {
-    return fun() {
+    return () {
       return toto();
     };
   }
@@ -25,8 +25,8 @@ class Closure {
   }
 
   nestedClosure() {
-    var f = g() { return x; };
-    return fun() { return f() + 2; };
+    var f = () { return x; };
+    return () { return f() + 2; };
   }
 }
 
