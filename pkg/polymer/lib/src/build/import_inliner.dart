@@ -268,8 +268,8 @@ String _libraryNameFor(AssetId id, int suffix) {
       '${path.extension(id.path).substring(1)}';
   if (name.startsWith('lib/')) name = name.substring(4);
   name = name.split('/').map((part) {
-    part = part.replaceAll(INVALID_LIB_CHARS_REGEX, '_');
-    if (part.startsWith(NUM_REGEX)) part = '_${part}';
+    part = part.replaceAll(_INVALID_LIB_CHARS_REGEX, '_');
+    if (part.startsWith(_NUM_REGEX)) part = '_${part}';
     return part;
   }).join(".");
   return '${id.package}.${name}_$suffix';
@@ -343,19 +343,19 @@ class _UrlNormalizer extends TreeVisitor {
     if (!isCustomTagName(node.localName)) {
       node.attributes.forEach((name, value) {
         if (_urlAttributes.contains(name)) {
-          if (!name.startsWith('_') && value.contains(_BINDINGS)) {
+          if (!name.startsWith('_') && value.contains(_BINDING_REGEX)) {
             transform.logger.warning(
                 'When using bindings with the "$name" attribute you may '
                 'experience errors in certain browsers. Please use the '
                 '"_$name" attribute instead. For more information, see '
                 'http://goo.gl/5av8cU', span: node.sourceSpan, asset: sourceId);
-          } else if (name.startsWith('_') && !value.contains(_BINDINGS)) {
+          } else if (name.startsWith('_') && !value.contains(_BINDING_REGEX)) {
             transform.logger.warning(
                 'The "$name" attribute is only supported when using bindings. '
                 'Please change to the "${name.substring(1)}" attribute.',
                 span: node.sourceSpan, asset: sourceId);
           }
-          if (value != '' && !value.trim().startsWith(_BINDINGS)) {
+          if (value != '' && !value.trim().startsWith(_BINDING_REGEX)) {
             node.attributes[name] = _newUrl(value, node.sourceSpan);
             changed = changed || value != node.attributes[name];
           }
@@ -378,7 +378,6 @@ class _UrlNormalizer extends TreeVisitor {
 
   static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);
   static final _QUOTE = new RegExp('["\']', multiLine: true);
-  static final _BINDINGS = new RegExp(r'({{)|(\[\[)');
 
   /// Visit the CSS text and replace any relative URLs so we can inline it.
   // Ported from:
@@ -435,26 +434,43 @@ class _UrlNormalizer extends TreeVisitor {
   }
 
   String _newUrl(String href, SourceSpan span) {
-    // Uri.parse blows up on invalid characters (like {{). Encoding the uri
-    // allows it to be parsed, which does the correct thing in the general case.
-    // This uri not used to build the new uri, so it never needs to be decoded.
-    var uri = Uri.parse(Uri.encodeFull(href));
+    // Placeholder for everything past the start of the first binding.
+    const placeholder = '_';
+    // We only want to parse the part of the href leading up to the first
+    // binding, anything after that is not informative.
+    var hrefToParse;
+    var firstBinding = href.indexOf(_BINDING_REGEX);
+    if (firstBinding == -1) {
+      hrefToParse = href;
+    } else if (firstBinding == 0) {
+      return href;
+    } else {
+      hrefToParse = '${href.substring(0, firstBinding)}$placeholder';
+    }
+
+    var uri = Uri.parse(hrefToParse);
     if (uri.isAbsolute) return href;
     if (!uri.scheme.isEmpty) return href;
     if (!uri.host.isEmpty) return href;
     if (uri.path.isEmpty) return href;  // Implies standalone ? or # in URI.
     if (path.isAbsolute(href)) return href;
 
-    var id = uriToAssetId(sourceId, href, transform.logger, span);
+    var id = uriToAssetId(sourceId, hrefToParse, transform.logger, span);
     if (id == null) return href;
     var primaryId = transform.primaryInput.id;
 
-    if (id.path.startsWith('lib/')) {
-      return '${topLevelPath}packages/${id.package}/${id.path.substring(4)}';
+    // Build the new path, placing back any suffixes that we stripped earlier.
+    var prefix = (firstBinding == -1) ? id.path
+        : id.path.substring(0, id.path.length - placeholder.length);
+    var suffix = (firstBinding == -1) ? '' : href.substring(firstBinding);
+    var newPath = '$prefix$suffix';
+
+    if (newPath.startsWith('lib/')) {
+      return '${topLevelPath}packages/${id.package}/${newPath.substring(4)}';
     }
 
-    if (id.path.startsWith('asset/')) {
-      return '${topLevelPath}assets/${id.package}/${id.path.substring(6)}';
+    if (newPath.startsWith('asset/')) {
+      return '${topLevelPath}assets/${id.package}/${newPath.substring(6)}';
     }
 
     if (primaryId.package != id.package) {
@@ -465,7 +481,7 @@ class _UrlNormalizer extends TreeVisitor {
     }
 
     var builder = path.url;
-    return builder.relative(builder.join('/', id.path),
+    return builder.relative(builder.join('/', newPath),
         from: builder.join('/', builder.dirname(primaryId.path)));
   }
 }
@@ -496,8 +512,9 @@ const _urlAttributes = const [
 const IGNORED_LINKED_STYLE_ATTRS =
     const ['charset', 'href', 'href-lang', 'rel', 'rev'];
 
-/// Global RegExp objects for validating generated library names.
-final INVALID_LIB_CHARS_REGEX = new RegExp('[^a-z0-9_]');
-final NUM_REGEX = new RegExp('[0-9]');
+/// Global RegExp objects.
+final _INVALID_LIB_CHARS_REGEX = new RegExp('[^a-z0-9_]');
+final _NUM_REGEX = new RegExp('[0-9]');
+final _BINDING_REGEX = new RegExp(r'(({{.*}})|(\[\[.*\]\]))');
 
 _getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);

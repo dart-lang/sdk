@@ -898,7 +898,7 @@ void urlAttributeTests() {
       'a|web/foo/test.html':
           '<img src="{{bar}}">'
           '<img src="[[bar]]">',
-  }, {
+    }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '<img src="{{bar}}">'
@@ -907,7 +907,7 @@ void urlAttributeTests() {
       'a|web/foo/test.html':
           '<img src="{{bar}}">'
           '<img src="[[bar]]">',
-  });
+    });
 
   testPhases('relative paths followed by bindings are normalized', phases, {
       'a|web/test.html':
@@ -956,6 +956,32 @@ void urlAttributeTests() {
           'Please change to the "href" attribute. (web/test.html 0 63)',
 
   ]);
+
+  testPhases('arbitrary bindings can exist in paths', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="./{{(bar[2] + baz[\'foo\']) * 14 / foobar() - 0.5}}.jpg">'
+          '<img src="./[[bar[2]]].jpg">'
+          '</body></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="{{(bar[2] + baz[\'foo\']) * 14 / foobar() - 0.5}}.jpg">'
+          '<img src="[[bar[2]]].jpg">'
+          '</body></html>',
+    });
+
+  testPhases('multiple bindings can exist in paths', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="./{{bar[0]}}/{{baz[1]}}.{{extension}}">'
+          '</body></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="{{bar[0]}}/{{baz[1]}}.{{extension}}">'
+          '</body></html>',
+    });
 }
 
 void entryPointTests() {
