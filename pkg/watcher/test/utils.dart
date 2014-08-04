@@ -4,7 +4,6 @@
 
 library watcher.test.utils;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -250,16 +249,16 @@ Matcher isRemoveEvent(String path) => isWatchEvent(ChangeType.REMOVE, path);
 
 /// Expects that the next event emitted will be for an add event for [path].
 void expectAddEvent(String path) =>
-  _expectOrCollect(isWatchEvent(ChangeType.ADD, path));
+    _expectOrCollect(isWatchEvent(ChangeType.ADD, path));
 
 /// Expects that the next event emitted will be for a modification event for
 /// [path].
 void expectModifyEvent(String path) =>
-  _expectOrCollect(isWatchEvent(ChangeType.MODIFY, path));
+    _expectOrCollect(isWatchEvent(ChangeType.MODIFY, path));
 
 /// Expects that the next event emitted will be for a removal event for [path].
 void expectRemoveEvent(String path) =>
-  _expectOrCollect(isWatchEvent(ChangeType.REMOVE, path));
+    _expectOrCollect(isWatchEvent(ChangeType.REMOVE, path));
 
 /// Consumes an add event for [path] if one is emitted at this point in the
 /// schedule, but doesn't throw an error if it isn't.
@@ -267,7 +266,7 @@ void expectRemoveEvent(String path) =>
 /// If this is used at the end of a test, [startClosingEventStream] should be
 /// called before it.
 void allowAddEvent(String path) =>
-  _expectOrCollect(allow(isWatchEvent(ChangeType.ADD, path)));
+    _expectOrCollect(allow(isWatchEvent(ChangeType.ADD, path)));
 
 /// Consumes a modification event for [path] if one is emitted at this point in
 /// the schedule, but doesn't throw an error if it isn't.
@@ -275,7 +274,7 @@ void allowAddEvent(String path) =>
 /// If this is used at the end of a test, [startClosingEventStream] should be
 /// called before it.
 void allowModifyEvent(String path) =>
-  _expectOrCollect(allow(isWatchEvent(ChangeType.MODIFY, path)));
+    _expectOrCollect(allow(isWatchEvent(ChangeType.MODIFY, path)));
 
 /// Consumes a removal event for [path] if one is emitted at this point in the
 /// schedule, but doesn't throw an error if it isn't.
@@ -283,7 +282,7 @@ void allowModifyEvent(String path) =>
 /// If this is used at the end of a test, [startClosingEventStream] should be
 /// called before it.
 void allowRemoveEvent(String path) =>
-  _expectOrCollect(allow(isWatchEvent(ChangeType.REMOVE, path)));
+    _expectOrCollect(allow(isWatchEvent(ChangeType.REMOVE, path)));
 
 /// Schedules writing a file in the sandbox at [path] with [contents].
 ///

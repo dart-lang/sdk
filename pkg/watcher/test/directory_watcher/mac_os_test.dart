@@ -9,7 +9,7 @@ import 'package:watcher/watcher.dart';
 import 'shared.dart';
 import '../utils.dart';
 
-main() {
+void main() {
   initConfig();
   MacOSDirectoryWatcher.logDebugInfo = true;
 

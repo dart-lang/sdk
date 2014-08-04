@@ -6,7 +6,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 
 import '../utils.dart';
 
-sharedTests() {
+void sharedTests() {
   test('ready does not complete until after subscription', () {
     var watcher = createWatcher(waitForReady: false);
 

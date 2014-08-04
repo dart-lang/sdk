@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:watcher/src/directory_watcher/windows.dart';
 import 'package:watcher/watcher.dart';
@@ -10,7 +9,7 @@ import 'package:watcher/watcher.dart';
 import 'shared.dart';
 import '../utils.dart';
 
-main() {
+void main() {
   initConfig();
 
   watcherFactory = (dir) => new WindowsDirectoryWatcher(dir);
@@ -24,4 +23,3 @@ main() {
         new isInstanceOf<WindowsDirectoryWatcher>());
   });
 }
-

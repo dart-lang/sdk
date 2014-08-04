@@ -7,7 +7,7 @@ import 'package:watcher/src/utils.dart';
 
 import '../utils.dart';
 
-sharedTests() {
+void sharedTests() {
   test('does not notify for files that already exist when started', () {
     // Make some pre-existing files.
     writeFile("a.txt");
