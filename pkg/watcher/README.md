@@ -1,2 +1,4 @@
-A file watcher. It monitors (currently by polling) for changes to contents of
-directories and notifies you when files have been added, removed, or modified.
+A file system watcher.
+
+It monitors changes to contents of directories and sends notifications when
+files have been added, removed, or modified.
