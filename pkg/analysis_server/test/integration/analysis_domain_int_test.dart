@@ -12,6 +12,7 @@ import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_tests.dart';
+import 'protocol_matchers.dart';
 
 @ReflectiveTestCase()
 class AnalysisDomainIntegrationTest extends

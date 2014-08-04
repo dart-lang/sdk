@@ -13,6 +13,8 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
+import 'protocol_matchers.dart';
+
 /**
  * Base class for analysis server integration tests.
  */
@@ -150,7 +152,9 @@ abstract class AbstractAnalysisServerIntegrationTest {
     });
     return server.start().then((params) {
       serverConnectedParams = params;
-      server.exitCode.then((_) { skipShutdown = true; });
+      server.exitCode.then((_) {
+        skipShutdown = true;
+      });
       return serverConnected.future;
     });
   }
@@ -181,31 +185,11 @@ abstract class AbstractAnalysisServerIntegrationTest {
   }
 }
 
-// Matchers for data types defined in the analysis server API
-// ==========================================================
-// TODO(paulberry): add more matchers.
-
-// Matchers common to all domains
-// ------------------------------
-
-const Matcher isResponse = const MatchesJsonObject('response', const {
+final Matcher isResponse = new MatchesJsonObject('response', {
   'id': isString
-}, optionalFields: const {
+}, optionalFields: {
   'result': anything,
   'error': isError
-});
-
-const Matcher isError = const MatchesJsonObject('Error', const {
-  // TODO(paulberry): once we decide what the set of permitted error codes are,
-  // add validation for 'code'.
-  'code': anything,
-  'message': isString
-}, optionalFields: const {
-  // TODO(paulberry): API spec says that 'data' is required, but sometimes we
-  // don't see it (example: error "Expected parameter subscriptions to be a
-  // string list map" in response to a malformed "analysis.setSubscriptions"
-  // command).
-  'data': anything
 });
 
 const Matcher isNotification = const MatchesJsonObject('notification', const {
@@ -214,104 +198,111 @@ const Matcher isNotification = const MatchesJsonObject('notification', const {
   'params': isMap
 });
 
-// Matchers for specific responses and notifications
-// -------------------------------------------------
-
-// server.getVersion
-const Matcher isServerGetVersionResult = const MatchesJsonObject(
-    'server.getVersion result', const {
-  'version': isString
-});
-
-// server.status
-const Matcher isServerStatusParams = const MatchesJsonObject(
-    'server.status params', null, optionalFields: const {
-  'analysis': isAnalysisStatus
-});
-
-// analysis.getErrors
-final Matcher isAnalysisGetErrorsResult = new MatchesJsonObject(
-    'analysis.getErrors result', {
-  'errors': isListOf(isAnalysisError)
-});
-
-// analysis.getHover
-final Matcher isAnalysisGetHoverResult = new MatchesJsonObject(
-    'analysis.getHover result', {
-  'hovers': isListOf(isHoverInformation)
-});
-
-// Matchers for data types used in responses and notifications
-// -----------------------------------------------------------
-
 const Matcher isString = const isInstanceOf<String>('String');
 
 const Matcher isInt = const isInstanceOf<int>('int');
 
 const Matcher isBool = const isInstanceOf<bool>('bool');
 
-// AnalysisError
-final Matcher isAnalysisError = new MatchesJsonObject('AnalysisError', {
-  'severity': isErrorSeverity,
-  'type': isErrorType,
-  'location': isLocation,
-  'message': isString,
-}, optionalFields: {
-  'correction': isString
-});
-
-// AnalysisStatus
-const Matcher isAnalysisStatus = const MatchesJsonObject('AnalysisStatus', const
-    {
-  'analyzing': isBool
-}, optionalFields: const {
-  'analysisTarget': isString
-});
-
-// ErrorSeverity
-final Matcher isErrorSeverity = isIn(['INFO', 'WARNING', 'ERROR']);
-
-// ErrorType
-final Matcher isErrorType = isIn(['COMPILE_TIME_ERROR', 'HINT',
-    'STATIC_TYPE_WARNING', 'STATIC_WARNING', 'SYNTACTIC_ERROR', 'TODO']);
-
-// HoverInformation
-const Matcher isHoverInformation = const MatchesJsonObject('HoverInformation',
-    const {
-  'offset': isInt,
-  'length': isInt
-}, optionalFields: const {
-  'containingLibraryPath': isString,
-  'containingLibraryName': isString,
-  'dartdoc': isString,
-  'elementDescription': isString,
-  'elementKind': isString,
-  'parameter': isString,
-  'propagatedType': isString,
-  'staticType': isString
-});
-
-// Location
-const Matcher isLocation = const MatchesJsonObject('Location', const {
-  'file': isString,
-  'offset': isInt,
-  'length': isInt,
-  'startLine': isInt,
-  'startColumn': isInt
-});
-
+const Matcher isObject = isMap;
 
 /**
  * Type of closures used by MatchesJsonObject to record field mismatches.
  */
-typedef Description MismatchDescriber(Description mismatchDescription, bool
-    verbose);
+typedef Description MismatchDescriber(Description mismatchDescription);
+
+/**
+ * Base class for matchers that operate by recursing through the contents of
+ * an object.
+ */
+abstract class _RecursiveMatcher extends Matcher {
+  const _RecursiveMatcher();
+
+  @override
+  bool matches(item, Map matchState) {
+    List<MismatchDescriber> mismatches = <MismatchDescriber>[];
+    populateMismatches(item, mismatches);
+    if (mismatches.isEmpty) {
+      return true;
+    } else {
+      addStateInfo(matchState, {
+        'mismatches': mismatches
+      });
+      return false;
+    }
+  }
+
+  @override
+  Description describeMismatch(item, Description mismatchDescription, Map
+      matchState, bool verbose) {
+    List<MismatchDescriber> mismatches = matchState['mismatches'];
+    if (mismatches != null) {
+      for (int i = 0; i < mismatches.length; i++) {
+        MismatchDescriber mismatch = mismatches[i];
+        if (i > 0) {
+          if (mismatches.length == 2) {
+            mismatchDescription = mismatchDescription.add(' and ');
+          } else if (i == mismatches.length - 1) {
+            mismatchDescription = mismatchDescription.add(', and ');
+          } else {
+            mismatchDescription = mismatchDescription.add(', ');
+          }
+        }
+        mismatchDescription = mismatch(mismatchDescription);
+      }
+      return mismatchDescription;
+    } else {
+      return super.describeMismatch(item, mismatchDescription, matchState,
+          verbose);
+    }
+  }
+
+  /**
+   * Populate [mismatches] with descriptions of all the ways in which [item]
+   * does not match.
+   */
+  void populateMismatches(item, List<MismatchDescriber> mismatches);
+
+  /**
+   * Create a [MismatchDescriber] describing a mismatch with a simple string.
+   */
+  MismatchDescriber simpleDescription(String description) => (Description
+      mismatchDescription) {
+    mismatchDescription.add(description);
+  };
+
+  /**
+   * Check the type of a substructure whose value is [item], using [matcher].
+   * If it doesn't match, record a closure in [mismatches] which can describe
+   * the mismatch.  [describeSubstructure] is used to describe which
+   * substructure did not match.
+   */
+  checkSubstructure(item, Matcher matcher, List<MismatchDescriber>
+      mismatches, Description describeSubstructure(Description)) {
+    Map subState = {};
+    if (!matcher.matches(item, subState)) {
+      mismatches.add((Description mismatchDescription) {
+        mismatchDescription = mismatchDescription.add('contains malformed ');
+        mismatchDescription = describeSubstructure(mismatchDescription);
+        mismatchDescription = mismatchDescription.add(' (should be '
+            ).addDescriptionOf(matcher);
+        String subDescription = matcher.describeMismatch(item,
+            new StringDescription(), subState, false).toString();
+        if (subDescription.isNotEmpty) {
+          mismatchDescription = mismatchDescription.add('; ').add(subDescription
+              );
+        }
+        return mismatchDescription.add(')');
+      });
+    }
+  }
+}
 
 /**
  * Matcher that matches a JSON object, with a given set of required and
  * optional fields, and their associated types (expressed as [Matcher]s).
  */
-class MatchesJsonObject extends Matcher {
+class MatchesJsonObject extends _RecursiveMatcher {
   /**
    * Short description of the expected type.
    */
@@ -333,15 +324,15 @@ class MatchesJsonObject extends Matcher {
       MatchesJsonObject(this.description, this.requiredFields, {this.optionalFields});
 
   @override
-  bool matches(item, Map matchState) {
+  void populateMismatches(item, List<MismatchDescriber> mismatches) {
     if (item is! Map) {
-      return false;
+      mismatches.add(simpleDescription('is not a map'));
+      return;
     }
-    List<MismatchDescriber> mismatches = <MismatchDescriber>[];
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
         if (!item.containsKey(key)) {
-          mismatches.add((Description mismatchDescription, bool verbose) =>
+          mismatches.add((Description mismatchDescription) =>
               mismatchDescription.add('is missing field ').addDescriptionOf(key).add(' ('
               ).addDescriptionOf(valueMatcher).add(')'));
         } else {
@@ -355,48 +346,15 @@ class MatchesJsonObject extends Matcher {
       } else if (optionalFields != null && optionalFields.containsKey(key)) {
         _checkField(key, value, optionalFields[key], mismatches);
       } else {
-        mismatches.add((Description mismatchDescription, bool verbose) =>
+        mismatches.add((Description mismatchDescription) =>
             mismatchDescription.add('has unexpected field ').addDescriptionOf(key));
       }
     });
-    if (mismatches.isEmpty) {
-      return true;
-    } else {
-      addStateInfo(matchState, {
-        'mismatches': mismatches
-      });
-      return false;
-    }
   }
 
   @override
   Description describe(Description description) => description.add(
       this.description);
-
-  @override
-  Description describeMismatch(item, Description mismatchDescription, Map
-      matchState, bool verbose) {
-    List<MismatchDescriber> mismatches = matchState['mismatches'];
-    if (mismatches != null) {
-      for (int i = 0; i < mismatches.length; i++) {
-        MismatchDescriber mismatch = mismatches[i];
-        if (i > 0) {
-          if (mismatches.length == 2) {
-            mismatchDescription = mismatchDescription.add(' and ');
-          } else if (i == mismatches.length - 1) {
-            mismatchDescription = mismatchDescription.add(', and ');
-          } else {
-            mismatchDescription = mismatchDescription.add(', ');
-          }
-        }
-        mismatchDescription = mismatch(mismatchDescription, verbose);
-      }
-      return mismatchDescription;
-    } else {
-      return super.describeMismatch(item, mismatchDescription, matchState,
-          verbose);
-    }
-  }
 
   /**
    * Check the type of a field called [key], having value [value], using
@@ -405,21 +363,8 @@ class MatchesJsonObject extends Matcher {
    */
   void _checkField(String key, value, Matcher
       valueMatcher, List<MismatchDescriber> mismatches) {
-    Map subState = {};
-    if (!valueMatcher.matches(value, subState)) {
-      mismatches.add((Description mismatchDescription, bool verbose) {
-        mismatchDescription = mismatchDescription.add(
-            'contains malformed field ').addDescriptionOf(key).add(' (should be '
-            ).addDescriptionOf(valueMatcher);
-        String subDescription = valueMatcher.describeMismatch(value,
-            new StringDescription(), subState, false).toString();
-        if (subDescription.isNotEmpty) {
-          mismatchDescription = mismatchDescription.add('; ').add(subDescription
-              );
-        }
-        return mismatchDescription.add(')');
-      });
-    }
+    checkSubstructure(value, valueMatcher, mismatches, (Description description)
+        => description.add('field ').addDescriptionOf(key));
   }
 }
 
@@ -468,6 +413,45 @@ class _ListOf extends Matcher {
 }
 
 Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
+
+/**
+ * Matcher that matches a map of objects, where each key/value pair in the
+ * map satisies the given key and value matchers.
+ */
+class _MapOf extends _RecursiveMatcher {
+  /**
+   * Matcher which every key in the map must satisfy.
+   */
+  final Matcher keyMatcher;
+
+  /**
+   * Matcher which every value in the map must satisfy.
+   */
+  final Matcher valueMatcher;
+
+  _MapOf(this.keyMatcher, this.valueMatcher);
+
+  @override
+  void populateMismatches(item, List<MismatchDescriber> mismatches) {
+    if (item is! Map) {
+      mismatches.add(simpleDescription('is not a map'));
+      return;
+    }
+    item.forEach((key, value) {
+      checkSubstructure(key, keyMatcher, mismatches, (Description description)
+          => description.add('key ').addDescriptionOf(key));
+      checkSubstructure(value, valueMatcher, mismatches, (Description
+          description) => description.add('field ').addDescriptionOf(key));
+    });
+  }
+
+  @override
+  Description describe(Description description) => description.add('Map from '
+      ).addDescriptionOf(keyMatcher).add(' to ').addDescriptionOf(valueMatcher);
+}
+
+Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) => new _MapOf(
+    keyMatcher, valueMatcher);
 
 /**
  * Instances of the class [Server] manage a connection to a server process, and
