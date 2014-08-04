@@ -12,39 +12,71 @@ class _AsyncCallbackEntry {
   _AsyncCallbackEntry(this.callback);
 }
 
+/** Head of single linked list of pending callbacks. */
 _AsyncCallbackEntry _nextCallback;
+/** Tail of single linked list of pending callbacks. */
 _AsyncCallbackEntry _lastCallback;
+/**
+ * Whether we are currently inside the callback loop.
+ *
+ * If we are inside the loop, we never need to schedule the loop,
+ * even if adding a first element.
+ */
+bool _isInCallbackLoop = false;
 
 void _asyncRunCallbackLoop() {
-  _AsyncCallbackEntry entry = _nextCallback;
-  // As long as we are iterating over the registered callbacks we don't
-  // set the [_lastCallback] entry.
-  while (entry != null) {
+  while (_nextCallback != null) {
+    _AsyncCallbackEntry entry = _nextCallback;
+    _nextCallback = entry.next;
+    if (_nextCallback == null) _lastCallback = null;
     entry.callback();
-    entry = _nextCallback = entry.next;
   }
-  // Any new callback must register a callback function now.
-  _lastCallback = null;
 }
 
 void _asyncRunCallback() {
+  _isInCallbackLoop = true;
   try {
     _asyncRunCallbackLoop();
-  } catch (e, s) {
-    _AsyncRun._scheduleImmediate(_asyncRunCallback);
-    _nextCallback = _nextCallback.next;
-    rethrow;
+  } finally {
+    _isInCallbackLoop = false;
+    if (_nextCallback != null) _AsyncRun._scheduleImmediate(_asyncRunCallback);
   }
 }
 
+/**
+ * Schedules a callback to be called as a microtask.
+ *
+ * The microtask is called after all other currently scheduled
+ * microtasks, but as part of the current system event.
+ */
 void _scheduleAsyncCallback(callback) {
   // Optimizing a group of Timer.run callbacks to be executed in the
   // same Timer callback.
-  if (_lastCallback == null) {
+  if (_nextCallback == null) {
     _nextCallback = _lastCallback = new _AsyncCallbackEntry(callback);
-    _AsyncRun._scheduleImmediate(_asyncRunCallback);
+    if (!_isInCallbackLoop) {
+      _AsyncRun._scheduleImmediate(_asyncRunCallback);
+    }
   } else {
-    _lastCallback = _lastCallback.next = new _AsyncCallbackEntry(callback);
+    _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
+    _lastCallback.next = newEntry;
+    _lastCallback = newEntry;
+  }
+}
+
+/**
+ * Schedules a callback to be called before all other currently scheduled ones.
+ *
+ * This callback takes priority over existing scheduled callbacks.
+ * It is only used internally to give higher priority to error reporting.
+ */
+void _schedulePriorityAsyncCallback(callback) {
+  if (_nextCallback == null) {
+    _scheduleAsyncCallback(callback);
+  } else {
+    _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
+    newEntry.next = _nextCallback;
+    _nextCallback = newEntry;
   }
 }
 
