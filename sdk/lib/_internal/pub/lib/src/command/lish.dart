@@ -26,7 +26,20 @@ class LishCommand extends PubCommand {
   List<String> get aliases => const ["lish", "lush"];
 
   /// The URL of the server to which to upload the package.
-  Uri get server => Uri.parse(commandOptions['server']);
+  Uri get server {
+    // An explicit argument takes precedence.
+    if (commandOptions.wasParsed('server')) {
+      return Uri.parse(commandOptions['server']);
+    }
+
+    // Otherwise, use the one specified in the pubspec.
+    if (entrypoint.root.pubspec.publishTo != null) {
+      return Uri.parse(entrypoint.root.pubspec.publishTo);
+    }
+
+    // Otherwise, use the default.
+    return Uri.parse(HostedSource.defaultUrl);
+  }
 
   /// Whether the publish is just a preview.
   bool get dryRun => commandOptions['dry-run'];
@@ -96,6 +109,12 @@ class LishCommand extends PubCommand {
   Future onRun() {
     if (force && dryRun) {
       usageError('Cannot use both --force and --dry-run.');
+    }
+
+    if (entrypoint.root.pubspec.isPrivate) {
+      dataError('A private package cannot be published.\n'
+          'You can enable this by changing the "publishTo" field in your '
+              'pubspec.');
     }
 
     var files = entrypoint.root.listFiles();
