@@ -4,6 +4,9 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.0+7
+  * Widen the constraint on `unittest`.
+
 #### Pub version 0.12.0+6
   * Widen the constraint on analyzer.
   * Support for `_src` and similar attributes in polymer transformers.
