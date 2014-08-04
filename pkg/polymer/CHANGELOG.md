@@ -4,6 +4,23 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.1-dev
+  * Added the ability to override the stylesheet inlining behavior. There is now
+    an option exposed in the pubspec.yaml called `inline_stylesheets`. There are
+    two possible values, a boolean or a map. If only a boolean is supplied then
+    that will set the global default behavior. If a map is supplied, then the
+    keys should be file paths, and the value is a boolean. You can use the
+    special key 'default' to set the default value.
+
+    For example, the following would change the default to not inline any
+    styles, except for the foo.css file in your web folder and the bar.css file
+    under the foo packages lib directory:
+
+        inline_stylesheets:
+            default: false
+            web/foo.css: true
+            packages/foo/bar.css: true
+
 #### Pub version 0.12.0+7
   * Widen the constraint on `unittest`.
 

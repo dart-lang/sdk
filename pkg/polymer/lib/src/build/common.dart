@@ -52,6 +52,13 @@ class TransformOptions {
   /// considered an entry point.
   final List<String> entryPoints;
 
+  /// Map of stylesheet paths that should or should not be inlined. The paths
+  /// are relative to the package root and are represented using posix style,
+  /// which matches the representation used in asset ids in barback.
+  ///
+  /// There is an additional special key 'default' for the global default.
+  final Map<String, bool> inlineStylesheets;
+
   /// True to enable Content Security Policy.
   /// This means the HTML page will include *.dart.precompiled.js
   ///
@@ -75,10 +82,11 @@ class TransformOptions {
   // reachable (entry point+imported) html if deploying. See dartbug.com/17199.
   final bool lint;
 
-  TransformOptions({entryPoints, this.contentSecurityPolicy: false,
-      this.directlyIncludeJS: true, this.releaseMode: true, this.lint: true})
+  TransformOptions({entryPoints, this.inlineStylesheets,
+      this.contentSecurityPolicy: false, this.directlyIncludeJS: true,
+      this.releaseMode: true, this.lint: true})
       : entryPoints = entryPoints == null ? null
-          : entryPoints.map(_systemToAssetPath).toList();
+          : entryPoints.map(systemToAssetPath).toList();
 
   /// Whether an asset with [id] is an entry point HTML file.
   bool isHtmlEntryPoint(AssetId id) {
@@ -90,6 +98,22 @@ class TransformOptions {
     }
 
     return entryPoints.contains(id.path);
+  }
+
+  // Whether a stylesheet with [id] should be inlined, the default is true.
+  bool shouldInlineStylesheet(AssetId id) {
+    // Note: [id.path] is a relative path from the root of a package.
+    // Default is to inline everything
+    if (inlineStylesheets == null) return true;
+    // First check for the full asset path overrides.
+    var override = inlineStylesheets[id.toString()];
+    if (override != null) return override;
+    // Then check just the path overrides (if the package was not specified).
+    override = inlineStylesheets[id.path];
+    if (override != null) return override;
+    // Then check the global default setting.
+    var globalDefault = inlineStylesheets['default'];
+    return (globalDefault != null) ? globalDefault : true;
   }
 }
 
@@ -176,7 +200,7 @@ String assetUrlFor(AssetId id, AssetId sourceId, TransformLogger logger,
 
 
 /// Convert system paths to asset paths (asset paths are posix style).
-String _systemToAssetPath(String assetPath) {
+String systemToAssetPath(String assetPath) {
   if (path.Style.platform != path.Style.windows) return assetPath;
   return path.posix.joinAll(path.split(assetPath));
 }

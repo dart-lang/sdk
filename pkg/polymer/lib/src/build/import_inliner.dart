@@ -107,8 +107,9 @@ class _HtmlInliner extends PolymerTransformer {
 
       } else if (rel == 'stylesheet') {
         if (id == null) return null;
-        changed = true;
+        if (!options.shouldInlineStylesheet(id)) return null;
 
+        changed = true;
         return _inlineStylesheet(id, tag);
       }
     }).then((_) => changed);

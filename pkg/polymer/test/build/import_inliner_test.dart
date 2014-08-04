@@ -864,6 +864,57 @@ void stylesheetTests() {
        'a|web/bar.css':
            'h2 { font-size: 35px; }',
      });
+
+  testPhases(
+      'can configure default stylesheet inlining',
+      [[new ImportInliner(new TransformOptions(
+          inlineStylesheets: {'default': false}))]], {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="foo.css">'
+            '</body></html>',
+        'a|web/foo.css':
+            'h1 { font-size: 70px; }',
+      }, {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="foo.css">'
+            '</body></html>',
+      });
+
+  testPhases(
+      'can override default stylesheet inlining',
+      [[new ImportInliner(new TransformOptions(
+          inlineStylesheets: {
+              'default': false,
+              'web/foo.css': true,
+              'b|lib/baz.css': true,
+          }))]],
+      {
+          'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="bar.css">'
+            '<link rel="stylesheet" href="foo.css">'
+            '<link rel="stylesheet" href="packages/b/baz.css">'
+            '<link rel="stylesheet" href="packages/c/buz.css">'
+            '</body></html>',
+          'a|web/foo.css':
+            'h1 { font-size: 70px; }',
+          'a|web/bar.css':
+            'h1 { font-size: 35px; }',
+          'b|lib/baz.css':
+            'h1 { font-size: 20px; }',
+          'c|lib/buz.css':
+            'h1 { font-size: 10px; }',
+      }, {
+          'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="bar.css">'
+            '<style>h1 { font-size: 70px; }</style>'
+            '<style>h1 { font-size: 20px; }</style>'
+            '<link rel="stylesheet" href="packages/c/buz.css">'
+            '</body></html>',
+      });
 }
 
 void urlAttributeTests() {

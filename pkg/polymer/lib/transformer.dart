@@ -7,6 +7,7 @@ library polymer.transformer;
 
 import 'package:barback/barback.dart';
 import 'package:observe/transformer.dart';
+import 'package:path/path.dart' as path;
 
 import 'src/build/build_filter.dart';
 import 'src/build/common.dart';
@@ -42,6 +43,7 @@ TransformOptions _parseSettings(BarbackSettings settings) {
   bool lint = args['lint'] != false; // defaults to true
   return new TransformOptions(
       entryPoints: _readEntrypoints(args['entry_points']),
+      inlineStylesheets: _readInlineStylesheets(args['inline_stylesheets']),
       directlyIncludeJS: jsOption == null ? releaseMode : jsOption,
       contentSecurityPolicy: csp,
       releaseMode: releaseMode,
@@ -67,6 +69,41 @@ _readEntrypoints(value) {
   return entryPoints;
 }
 
+Map<String, bool> _readInlineStylesheets(settingValue) {
+  if (settingValue == null) return null;
+  var inlineStylesheets = {};
+  bool error = false;
+  if (settingValue is Map) {
+    settingValue.forEach((key, value) {
+      if (value is! bool || key is! String) {
+        error = true;
+        return;
+      }
+      if (key == 'default') {
+        inlineStylesheets[key] = value;
+        return;
+      };
+      key = systemToAssetPath(key);
+      // Special case package urls, convert to AssetId and use serialized form.
+      var packageMatch = _PACKAGE_PATH_REGEX.matchAsPrefix(key);
+      if (packageMatch != null) {
+        var package = packageMatch[1];
+        var path = 'lib/${packageMatch[2]}';
+        key = new AssetId(package, path).toString();
+      }
+      inlineStylesheets[key] = value;
+    });
+  } else if (settingValue is bool) {
+    inlineStylesheets['default'] = settingValue;
+  } else {
+    error = true;
+  }
+  if (error) {
+    print('Invalid value for "inline_stylesheets" in the polymer transformer.');
+  }
+  return inlineStylesheets;
+}
+
 /// Create deploy phases for Polymer. Note that inlining HTML Imports
 /// comes first (other than linter, if [options.linter] is enabled), which
 /// allows the rest of the HTML-processing phases to operate only on HTML that
@@ -85,3 +122,5 @@ List<List<Transformer>> createDeployPhases(
     [new BuildFilter(options)]
   ]);
 }
+
+final RegExp _PACKAGE_PATH_REGEX = new RegExp(r'packages\/([^\/]+)\/(.*)');
