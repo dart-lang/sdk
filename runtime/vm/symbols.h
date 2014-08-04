@@ -475,6 +475,8 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
                         intptr_t begin_index,
                         intptr_t length);
 
+  static RawString* FromConcat(const String& str1, const String& str2);
+
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);
 

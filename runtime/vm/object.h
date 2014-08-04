@@ -5402,6 +5402,9 @@ class String : public Instance {
     return result;
   }
 
+  // Returns the hash of str1 + str2.
+  static intptr_t HashConcat(const String& str1, const String& str2);
+
   virtual RawObject* HashCode() const { return Integer::New(Hash()); }
 
   int32_t CharAt(intptr_t index) const;
@@ -5428,6 +5431,9 @@ class String : public Instance {
 
   // Compares to an array of UTF-32 encoded characters.
   bool Equals(const int32_t* characters, intptr_t len) const;
+
+  // True iff this string equals str1 + str2.
+  bool EqualsConcat(const String& str1, const String& str2) const;
 
   virtual bool OperatorEquals(const Instance& other) const {
     return Equals(other);
@@ -5627,6 +5633,7 @@ class String : public Instance {
   friend class Symbols;
   friend class StringSlice;  // SetHash
   template<typename CharType> friend class CharArray;  // SetHash
+  friend class ConcatString;  // SetHash
   friend class OneByteString;
   friend class TwoByteString;
   friend class ExternalOneByteString;
@@ -5761,6 +5768,7 @@ class OneByteString : public AllStatic {
   friend class String;
   friend class ExternalOneByteString;
   friend class SnapshotReader;
+  friend class StringHasher;
 };
 
 
