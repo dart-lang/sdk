@@ -1,3 +1,8 @@
+## 1.2.3
+
+* Don't cache path Context based on cwd, as cwd involves a system-call to
+  compute.
+
 ## 1.2.2
 
 * Remove the documentation link from the pubspec so this is linked to

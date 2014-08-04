@@ -49,7 +49,7 @@ library path;
 import 'src/context.dart';
 import 'src/style.dart';
 
-export 'src/context.dart';
+export 'src/context.dart' hide createInternal;
 export 'src/path_exception.dart';
 export 'src/style.dart';
 
@@ -62,22 +62,9 @@ final windows = new Context(style: Style.windows);
 /// A default context for manipulating URLs.
 final url = new Context(style: Style.url);
 
-/// The result of [Uri.base] last time the current working directory was
-/// calculated.
-///
-/// This is used to invalidate [_cachedContext] when the working directory has
-/// changed since the last time a function was called.
-Uri _lastBaseUri;
-
 /// An internal context for the current OS so we can provide a straight
 /// functional interface and not require users to create one.
-Context get _context {
-  if (_cachedContext != null && Uri.base == _lastBaseUri) return _cachedContext;
-  _lastBaseUri = Uri.base;
-  _cachedContext = new Context();
-  return _cachedContext;
-}
-Context _cachedContext;
+final Context _context = createInternal();
 
 /// Returns the [Style] of the current context.
 ///

@@ -10,6 +10,8 @@ import 'parsed_path.dart';
 import 'path_exception.dart';
 import '../path.dart' as p;
 
+Context createInternal() => new Context._internal();
+
 /// An instantiable class for manipulating paths. Unlike the top-level
 /// functions, this lets you explicitly select what platform the paths will use.
 class Context {
@@ -41,13 +43,20 @@ class Context {
     return new Context._(style, current);
   }
 
-  Context._(this.style, this.current);
+  /// Create a [Context] to be used internally within path.
+  Context._internal() : style = Style.platform;
+
+  Context._(this.style, this._current);
 
   /// The style of path that this context works with.
   final InternalStyle style;
 
-  /// The current directory that relative paths will be relative to.
-  final String current;
+  /// The current directory given when Context was created. If null, current
+  /// directory is evaluated from 'p.current'.
+  final String _current;
+
+  /// The current directory that relative paths are relative to.
+  String get current => _current != null ? _current : p.current;
 
   /// Gets the path separator for the context's [style]. On Mac and Linux,
   /// this is `/`. On Windows, it's `\`.
