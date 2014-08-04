@@ -86,6 +86,7 @@ docgen/test/*: Skip # Too slow
 polymer/test/build/all_phases_test: Skip # Slow
 polymer/test/build/script_compactor_test: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
+analysis_server/*: Skip # Timeout in some tests.
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
