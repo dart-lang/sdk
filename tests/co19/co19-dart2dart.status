@@ -27,8 +27,6 @@ LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: RuntimeError # c
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # co19-roll r607: Please triage this failure
 
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: CompileTimeError # dart issue 17523
-
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 
 Language/03_Overview/2_Privacy_A01_t19: Fail # Calling unresolved class constructor.

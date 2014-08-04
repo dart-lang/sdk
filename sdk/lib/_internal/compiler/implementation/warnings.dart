@@ -1175,7 +1175,8 @@ main() => A.A = 1;
 
   static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
       const MessageKind(
-          "Deferred loading is not supported by the dart backend yet.");
+          "Deferred loading is not supported by the dart backend yet."
+          "The output will not be split.");
 
   static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
       const MessageKind(
