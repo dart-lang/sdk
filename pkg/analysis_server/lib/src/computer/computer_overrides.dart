@@ -67,14 +67,13 @@ class DartUnitOverridesComputer {
     }
     // is there any override?
     if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
-      Element superElement = superEngineElement != null ?
-          new Element.fromEngine(superEngineElement) : null;
-      List<Element> interfaceElements = interfaceEngineElements.map(
-          (engineElement) {
-        return new Element.fromEngine(engineElement);
-      }).toList();
-      _overrides.add(new Override(offset, length, superElement,
-          interfaceElements));
+      OverriddenMember superMember = superEngineElement != null ?
+          OverriddenMember.fromEngine(superEngineElement) :
+          null;
+      List<OverriddenMember> interfaceMembers =
+          interfaceEngineElements.map(OverriddenMember.fromEngine).toList();
+      _overrides.add(
+          new Override(offset, length, superMember, interfaceMembers));
     }
   }
 
@@ -105,56 +104,82 @@ class DartUnitOverridesComputer {
 }
 
 
+class OverriddenMember implements HasToJson {
+  final Element element;
+  final String className;
+
+  OverriddenMember(this.element, this.className);
+
+  Map<String, Object> toJson() {
+    return {
+      ELEMENT: element.toJson(),
+      CLASS_NAME: className
+    };
+  }
+
+  @override
+  String toString() => toJson().toString();
+
+  static OverriddenMember fromEngine(engine.Element member) {
+    Element element = new Element.fromEngine(member);
+    String className = member.enclosingElement.displayName;
+    return new OverriddenMember(element, className);
+  }
+
+  static OverriddenMember fromJson(Map<String, Object> json) {
+    Map<String, Object> elementJson = json[ELEMENT];
+    Element element = new Element.fromJson(elementJson);
+    String className = json[CLASS_NAME];
+    return new OverriddenMember(element, className);
+  }
+}
+
+
 class Override implements HasToJson {
   final int offset;
   final int length;
-  final Element superclassElement;
-  final List<Element> interfaceElements;
+  final OverriddenMember superclassMember;
+  final List<OverriddenMember> interfaceMembers;
 
-  Override(this.offset, this.length, this.superclassElement,
-      this.interfaceElements);
-
-  factory Override.fromJson(Map<String, Object> map) {
-    int offset = map[OFFSET];
-    int length = map[LENGTH];
-    // super
-    Element superclassElement = null;
-    {
-      Map<String, Object> superJson = map[SUPER_CLASS_ELEMENT];
-      if (superJson != null) {
-        superclassElement = new Element.fromJson(superJson);
-      }
-    }
-    // interfaces
-    List<Element> interfaceElements = null;
-    {
-      List<Map<String, Object>> jsonList = map[INTERFACE_ELEMENTS];
-      if (jsonList != null) {
-        interfaceElements = <Element>[];
-        for (Map<String, Object> json in jsonList) {
-          interfaceElements.add(new Element.fromJson(json));
-        }
-      }
-    }
-    // done
-    return new Override(offset, length, superclassElement, interfaceElements);
-  }
+  Override(this.offset, this.length, this.superclassMember,
+      this.interfaceMembers);
 
   Map<String, Object> toJson() {
     Map<String, Object> json = <String, Object>{};
     json[OFFSET] = offset;
     json[LENGTH] = length;
-    if (superclassElement != null) {
-      json[SUPER_CLASS_ELEMENT] = superclassElement.toJson();
+    if (superclassMember != null) {
+      json[SUPER_CLASS_MEMBER] = superclassMember.toJson();
     }
-    if (interfaceElements != null && interfaceElements.isNotEmpty) {
-      json[INTERFACE_ELEMENTS] = interfaceElements.map((element) {
-        return element.toJson();
-      }).toList();
+    if (interfaceMembers != null && interfaceMembers.isNotEmpty) {
+      json[INTERFACE_MEMBERS] = objectToJson(interfaceMembers);
     }
     return json;
   }
 
   @override
   String toString() => toJson().toString();
+
+  static Override fromJson(Map<String, Object> map) {
+    int offset = map[OFFSET];
+    int length = map[LENGTH];
+    // super
+    OverriddenMember superclassMember = null;
+    {
+      Map<String, Object> superJson = map[SUPER_CLASS_MEMBER];
+      if (superJson != null) {
+        superclassMember = OverriddenMember.fromJson(superJson);
+      }
+    }
+    // interfaces
+    List<OverriddenMember> interfaceElements = null;
+    {
+      List<Map<String, Object>> jsonList = map[INTERFACE_MEMBERS];
+      if (jsonList != null) {
+        interfaceElements = jsonList.map(OverriddenMember.fromJson).toList();
+      }
+    }
+    // done
+    return new Override(offset, length, superclassMember, interfaceElements);
+  }
 }
