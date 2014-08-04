@@ -260,9 +260,9 @@ class _StringBase {
   static bool _isOneByteWhitespace(int codePoint) {
     return
       (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)) || // CR, LF, TAB, etc.
-      (codePoint == 0x85) ||  // NEL
-      (codePoint == 0xA0);  // NBSP
+      ((codePoint <= 13) ? (9 <= codePoint)  // CR, LF, TAB, etc.
+                         : ((codePoint == 0x85) ||  // NEL
+                            (codePoint == 0xA0)));  // NBSP
   }
 
   // Characters with Whitespace property (Unicode 6.2).
@@ -281,16 +281,17 @@ class _StringBase {
   //
   // BOM: 0xFEFF
   static bool _isTwoByteWhitespace(int codeUnit) {
-    if (codeUnit < 256) return _isOneByteWhitespace(codeUnit);
-    return (codeUnit == 0x1680) ||
-        (codeUnit == 0x180E) ||
-        ((0x2000 <= codeUnit) && (codeUnit <= 0x200A)) ||
-        (codeUnit == 0x2028) ||
-        (codeUnit == 0x2029) ||
-        (codeUnit == 0x202F) ||
-        (codeUnit == 0x205F) ||
-        (codeUnit == 0x3000) ||
-        (codeUnit == 0xFEFF);
+    if (codeUnit <= 0xA0) return _isOneByteWhitespace(codeUnit);
+    return (codeUnit <= 0x200A)
+            ? ((codeUnit == 0x1680) ||
+               (codeUnit == 0x180E) ||
+               (0x2000 <= codeUnit))
+            : ((codeUnit == 0x2028) ||
+               (codeUnit == 0x2029) ||
+               (codeUnit == 0x202F) ||
+               (codeUnit == 0x205F) ||
+               (codeUnit == 0x3000) ||
+               (codeUnit == 0xFEFF));
   }
 
   int _firstNonWhitespace() {
