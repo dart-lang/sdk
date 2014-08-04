@@ -7,6 +7,8 @@
 
 library services.src.correction.assist;
 
+import 'dart:collection';
+
 import 'package:analysis_services/correction/assist.dart';
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/search/hierarchy.dart';
@@ -21,6 +23,10 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
+
+
+
+typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
 
 
 /**
@@ -79,6 +85,7 @@ class AssistProcessor {
     _addProposal_extractClassIntoPart();
     _addProposal_importAddShow();
     _addProposal_invertIf();
+    _addProposal_joinIfStatementInner();
     _addProposal_joinIfStatementOuter();
     _addProposal_joinVariableDeclaration_onAssignment();
     _addProposal_joinVariableDeclaration_onDeclaration();
@@ -545,193 +552,189 @@ class AssistProcessor {
   }
 
   void _addProposal_importAddShow() {
-    // TODO(scheglov) implement
-//    // prepare ImportDirective
-//    ImportDirective importDirective =
-//        node.getAncestor((node) => node is ImportDirective);
-//    if (importDirective == null) {
-//      return;
-//    }
-//    // there should be no existing combinators
-//    if (!importDirective.combinators.isEmpty) {
-//      return;
-//    }
-//    // prepare whole import namespace
-//    ImportElement importElement = importDirective.element;
-//    Map<String, Element> namespace =
-//        getImportNamespace(importElement);
-//    // prepare names of referenced elements (from this import)
-//    Set<String> referencedNames = new Set();
-//    for (Element element in namespace.values) {
-//      List<SearchMatch> references =
-//          searchEngine.searchReferences(element, null, null);
-//      for (SearchMatch match in references) {
-//        LibraryElement library = match.element.library;
-//        if (unitLibraryElement == library) {
-//          referencedNames.add(element.displayName);
-//          break;
-//        }
-//      }
-//    }
-//    // ignore if unused
-//    if (referencedNames.isEmpty) {
-//      return;
-//    }
-//    // prepare change
-//    String sb = " show ${StringUtils.join(referencedNames, ", ")}";
-//    _addInsertEdit(importDirective.end - 1, sb.toString());
-//    // add proposal
-//    _addAssist(AssistKind.IMPORT_ADD_SHOW, []);
+    // prepare ImportDirective
+    ImportDirective importDirective =
+        node.getAncestor((node) => node is ImportDirective);
+    if (importDirective == null) {
+      _coverageMarker();
+      return;
+    }
+    // there should be no existing combinators
+    if (importDirective.combinators.isNotEmpty) {
+      _coverageMarker();
+      return;
+    }
+    // prepare whole import namespace
+    ImportElement importElement = importDirective.element;
+    Map<String, Element> namespace = getImportNamespace(importElement);
+    // prepare names of referenced elements (from this import)
+    SplayTreeSet<String> referencedNames = new SplayTreeSet<String>();
+    _SimpleIdentifierRecursiveAstVisitor visitor =
+        new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
+      Element element = node.staticElement;
+      if (namespace[node.name] == element) {
+        referencedNames.add(element.displayName);
+      }
+    });
+    unit.accept(visitor);
+    // ignore if unused
+    if (referencedNames.isEmpty) {
+      _coverageMarker();
+      return;
+    }
+    // prepare change
+    String showCombinator = " show ${StringUtils.join(referencedNames, ", ")}";
+    _addInsertEdit(importDirective.end - 1, showCombinator);
+    // add proposal
+    _addAssist(AssistKind.IMPORT_ADD_SHOW, []);
   }
 
   void _addProposal_invertIf() {
-    // TODO(scheglov) implement
-//    if (node is! IfStatement) {
-//      return;
-//    }
-//    IfStatement ifStatement = node as IfStatement;
-//    Expression condition = ifStatement.condition;
-//    // should have both "then" and "else"
-//    Statement thenStatement = ifStatement.thenStatement;
-//    Statement elseStatement = ifStatement.elseStatement;
-//    if (thenStatement == null || elseStatement == null) {
-//      return;
-//    }
-//    // prepare source
-//    String invertedCondition = utils.invertCondition(condition);
-//    String thenSource = _getSource(thenStatement);
-//    String elseSource = _getSource(elseStatement);
-//    // do replacements
-//    _addReplaceEdit(rangeNode(condition), invertedCondition);
-//    _addReplaceEdit(rangeNode(thenStatement), elseSource);
-//    _addReplaceEdit(rangeNode(elseStatement), thenSource);
-//    // add proposal
-//    _addAssist(AssistKind.INVERT_IF_STATEMENT, []);
+    if (node is! IfStatement) {
+      return;
+    }
+    IfStatement ifStatement = node as IfStatement;
+    Expression condition = ifStatement.condition;
+    // should have both "then" and "else"
+    Statement thenStatement = ifStatement.thenStatement;
+    Statement elseStatement = ifStatement.elseStatement;
+    if (thenStatement == null || elseStatement == null) {
+      return;
+    }
+    // prepare source
+    String invertedCondition = utils.invertCondition(condition);
+    String thenSource = _getSource(thenStatement);
+    String elseSource = _getSource(elseStatement);
+    // do replacements
+    _addReplaceEdit(rangeNode(condition), invertedCondition);
+    _addReplaceEdit(rangeNode(thenStatement), elseSource);
+    _addReplaceEdit(rangeNode(elseStatement), thenSource);
+    // add proposal
+    _addAssist(AssistKind.INVERT_IF_STATEMENT, []);
   }
 
   void _addProposal_joinIfStatementInner() {
-    // TODO(scheglov) implement
-//    // climb up condition to the (supposedly) "if" statement
-//    AstNode node = this.node;
-//    while (node is Expression) {
-//      node = node.parent;
-//    }
-//    // prepare target "if" statement
-//    if (node is! IfStatement) {
-//      return;
-//    }
-//    IfStatement targetIfStatement = node as IfStatement;
-//    if (targetIfStatement.elseStatement != null) {
-//      return;
-//    }
-//    // prepare inner "if" statement
-//    Statement targetThenStatement = targetIfStatement.thenStatement;
-//    Statement innerStatement =
-//        CorrectionUtils.getSingleStatement(targetThenStatement);
-//    if (innerStatement is! IfStatement) {
-//      return;
-//    }
-//    IfStatement innerIfStatement = innerStatement as IfStatement;
-//    if (innerIfStatement.elseStatement != null) {
-//      return;
-//    }
-//    // prepare environment
-//    String prefix = utils.getNodePrefix(targetIfStatement);
-//    // merge conditions
-//    String condition;
-//    {
-//      Expression targetCondition = targetIfStatement.condition;
-//      Expression innerCondition = innerIfStatement.condition;
-//      String targetConditionSource = _getSource(targetCondition);
-//      String innerConditionSource = _getSource(innerCondition);
-//      if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
-//        targetConditionSource = "(${targetConditionSource})";
-//      }
-//      if (_shouldWrapParenthesisBeforeAnd(innerCondition)) {
-//        innerConditionSource = "(${innerConditionSource})";
-//      }
-//      condition = "${targetConditionSource} && ${innerConditionSource}";
-//    }
-//    // replace target "if" statement
-//    {
-//      Statement innerThenStatement = innerIfStatement.thenStatement;
-//      List<Statement> innerThenStatements =
-//          CorrectionUtils.getStatements(innerThenStatement);
-//      SourceRange lineRanges = utils.getLinesRange(innerThenStatements);
-//      String oldSource = utils.getText3(lineRanges);
-//      String newSource = utils.getIndentSource2(oldSource, false);
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeNode(targetIfStatement),
-////          MessageFormat.format(
-////              "if ({0}) '{'{1}{2}{3}'}'",
-////              [condition, eol, newSource, prefix]));
-//    }
-//    // done
-//    _addAssist(AssistKind.JOIN_IF_WITH_INNER, []);
+    // climb up condition to the (supposedly) "if" statement
+    AstNode node = this.node;
+    while (node is Expression) {
+      node = node.parent;
+    }
+    // prepare target "if" statement
+    if (node is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement targetIfStatement = node as IfStatement;
+    if (targetIfStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare inner "if" statement
+    Statement targetThenStatement = targetIfStatement.thenStatement;
+    Statement innerStatement = getSingleStatement(targetThenStatement);
+    if (innerStatement is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement innerIfStatement = innerStatement as IfStatement;
+    if (innerIfStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(targetIfStatement);
+    // merge conditions
+    String condition;
+    {
+      Expression targetCondition = targetIfStatement.condition;
+      Expression innerCondition = innerIfStatement.condition;
+      String targetConditionSource = _getSource(targetCondition);
+      String innerConditionSource = _getSource(innerCondition);
+      if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
+        targetConditionSource = "(${targetConditionSource})";
+      }
+      if (_shouldWrapParenthesisBeforeAnd(innerCondition)) {
+        innerConditionSource = "(${innerConditionSource})";
+      }
+      condition = "${targetConditionSource} && ${innerConditionSource}";
+    }
+    // replace target "if" statement
+    {
+      Statement innerThenStatement = innerIfStatement.thenStatement;
+      List<Statement> innerThenStatements = getStatements(innerThenStatement);
+      SourceRange lineRanges =
+          utils.getLinesRangeStatements(innerThenStatements);
+      String oldSource = utils.getText3(lineRanges);
+      String newSource = utils.getIndentSource2(oldSource, false);
+      _addReplaceEdit(
+          rangeNode(targetIfStatement),
+          "if ($condition) {${eol}${newSource}${prefix}}");
+    }
+    // done
+    _addAssist(AssistKind.JOIN_IF_WITH_INNER, []);
   }
 
   void _addProposal_joinIfStatementOuter() {
-    // TODO(scheglov) implement
-//    // climb up condition to the (supposedly) "if" statement
-//    AstNode node = this.node;
-//    while (node is Expression) {
-//      node = node.parent;
-//    }
-//    // prepare target "if" statement
-//    if (node is! IfStatement) {
-//      return;
-//    }
-//    IfStatement targetIfStatement = node as IfStatement;
-//    if (targetIfStatement.elseStatement != null) {
-//      return;
-//    }
-//    // prepare outer "if" statement
-//    AstNode parent = targetIfStatement.parent;
-//    if (parent is Block) {
-//      parent = parent.parent;
-//    }
-//    if (parent is! IfStatement) {
-//      return;
-//    }
-//    IfStatement outerIfStatement = parent as IfStatement;
-//    if (outerIfStatement.elseStatement != null) {
-//      return;
-//    }
-//    // prepare environment
-//    String prefix = utils.getNodePrefix(outerIfStatement);
-//    // merge conditions
-//    String condition;
-//    {
-//      Expression targetCondition = targetIfStatement.condition;
-//      Expression outerCondition = outerIfStatement.condition;
-//      String targetConditionSource = _getSource(targetCondition);
-//      String outerConditionSource = _getSource(outerCondition);
-//      if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
-//        targetConditionSource = "(${targetConditionSource})";
-//      }
-//      if (_shouldWrapParenthesisBeforeAnd(outerCondition)) {
-//        outerConditionSource = "(${outerConditionSource})";
-//      }
-//      condition = "${outerConditionSource} && ${targetConditionSource}";
-//    }
-//    // replace outer "if" statement
-//    {
-//      Statement targetThenStatement = targetIfStatement.thenStatement;
-//      List<Statement> targetThenStatements =
-//          CorrectionUtils.getStatements(targetThenStatement);
-//      SourceRange lineRanges = utils.getLinesRange(targetThenStatements);
-//      String oldSource = utils.getText3(lineRanges);
-//      String newSource = utils.getIndentSource2(oldSource, false);
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeNode(outerIfStatement),
-////          MessageFormat.format(
-////              "if ({0}) '{'{1}{2}{3}'}'",
-////              [condition, eol, newSource, prefix]));
-//    }
-//    // done
-//    _addAssist(AssistKind.JOIN_IF_WITH_OUTER, []);
+    // climb up condition to the (supposedly) "if" statement
+    AstNode node = this.node;
+    while (node is Expression) {
+      node = node.parent;
+    }
+    // prepare target "if" statement
+    if (node is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement targetIfStatement = node as IfStatement;
+    if (targetIfStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare outer "if" statement
+    AstNode parent = targetIfStatement.parent;
+    if (parent is Block) {
+      parent = parent.parent;
+    }
+    if (parent is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement outerIfStatement = parent as IfStatement;
+    if (outerIfStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(outerIfStatement);
+    // merge conditions
+    String condition;
+    {
+      Expression targetCondition = targetIfStatement.condition;
+      Expression outerCondition = outerIfStatement.condition;
+      String targetConditionSource = _getSource(targetCondition);
+      String outerConditionSource = _getSource(outerCondition);
+      if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
+        targetConditionSource = "(${targetConditionSource})";
+      }
+      if (_shouldWrapParenthesisBeforeAnd(outerCondition)) {
+        outerConditionSource = "(${outerConditionSource})";
+      }
+      condition = "${outerConditionSource} && ${targetConditionSource}";
+    }
+    // replace outer "if" statement
+    {
+      Statement targetThenStatement = targetIfStatement.thenStatement;
+      List<Statement> targetThenStatements = getStatements(targetThenStatement);
+      SourceRange lineRanges =
+          utils.getLinesRangeStatements(targetThenStatements);
+      String oldSource = utils.getText3(lineRanges);
+      String newSource = utils.getIndentSource2(oldSource, false);
+      _addReplaceEdit(
+          rangeNode(outerIfStatement),
+          "if ($condition) {${eol}${newSource}${prefix}}");
+    }
+    // done
+    _addAssist(AssistKind.JOIN_IF_WITH_OUTER, []);
   }
 
   void _addProposal_joinVariableDeclaration_onAssignment() {
@@ -1024,213 +1027,206 @@ class AssistProcessor {
   }
 
   void _addProposal_replaceIfElseWithConditional() {
-    // TODO(scheglov) implement
-//    // should be "if"
-//    if (node is! IfStatement) {
-//      return;
-//    }
-//    IfStatement ifStatement = node as IfStatement;
-//    // single then/else statements
-//    Statement thenStatement =
-//        CorrectionUtils.getSingleStatement(ifStatement.thenStatement);
-//    Statement elseStatement =
-//        CorrectionUtils.getSingleStatement(ifStatement.elseStatement);
-//    if (thenStatement == null || elseStatement == null) {
-//      return;
-//    }
-//    // returns
-//    if (thenStatement is ReturnStatement || elseStatement is ReturnStatement) {
-//      ReturnStatement thenReturn = thenStatement as ReturnStatement;
-//      ReturnStatement elseReturn = elseStatement as ReturnStatement;
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeNode(ifStatement),
-////          MessageFormat.format(
-////              "return {0} ? {1} : {2};",
-////              [
-////                  _getSource(ifStatement.condition),
-////                  _getSource(thenReturn.expression),
-////                  _getSource(elseReturn.expression)]));
-//    }
-//    // assignments -> v = Conditional;
-//    if (thenStatement is ExpressionStatement &&
-//        elseStatement is ExpressionStatement) {
-//      Expression thenExpression = thenStatement.expression;
-//      Expression elseExpression = elseStatement.expression;
-//      if (thenExpression is AssignmentExpression &&
-//          elseExpression is AssignmentExpression) {
-//        AssignmentExpression thenAssignment = thenExpression;
-//        AssignmentExpression elseAssignment = elseExpression;
-//        String thenTarget = _getSource(thenAssignment.leftHandSide);
-//        String elseTarget = _getSource(elseAssignment.leftHandSide);
-//        if (thenAssignment.operator.type == TokenType.EQ &&
-//            elseAssignment.operator.type == TokenType.EQ &&
-//            StringUtils.equals(thenTarget, elseTarget)) {
-//          // TODO(scheglov)
-////          _addReplaceEdit(
-////              rangeNode(ifStatement),
-////              MessageFormat.format(
-////                  "{0} = {1} ? {2} : {3};",
-////                  [
-////                      thenTarget,
-////                      _getSource(ifStatement.condition),
-////                      _getSource(thenAssignment.rightHandSide),
-////                      _getSource(elseAssignment.rightHandSide)]));
-//        }
-//      }
-//    }
-//    // add proposal
-//    _addAssist(
-//        AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL,
-//        []);
+    // should be "if"
+    if (node is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement ifStatement = node as IfStatement;
+    // single then/else statements
+    Statement thenStatement = getSingleStatement(ifStatement.thenStatement);
+    Statement elseStatement = getSingleStatement(ifStatement.elseStatement);
+    if (thenStatement == null || elseStatement == null) {
+      _coverageMarker();
+      return;
+    }
+    // returns
+    if (thenStatement is ReturnStatement || elseStatement is ReturnStatement) {
+      ReturnStatement thenReturn = thenStatement as ReturnStatement;
+      ReturnStatement elseReturn = elseStatement as ReturnStatement;
+      String conditionSrc = _getSource(ifStatement.condition);
+      String theSrc = _getSource(thenReturn.expression);
+      String elseSrc = _getSource(elseReturn.expression);
+      _addReplaceEdit(
+          rangeNode(ifStatement),
+          'return $conditionSrc ? $theSrc : $elseSrc;');
+    }
+    // assignments -> v = Conditional;
+    if (thenStatement is ExpressionStatement &&
+        elseStatement is ExpressionStatement) {
+      Expression thenExpression = thenStatement.expression;
+      Expression elseExpression = elseStatement.expression;
+      if (thenExpression is AssignmentExpression &&
+          elseExpression is AssignmentExpression) {
+        AssignmentExpression thenAssignment = thenExpression;
+        AssignmentExpression elseAssignment = elseExpression;
+        String thenTarget = _getSource(thenAssignment.leftHandSide);
+        String elseTarget = _getSource(elseAssignment.leftHandSide);
+        if (thenAssignment.operator.type == TokenType.EQ &&
+            elseAssignment.operator.type == TokenType.EQ &&
+            StringUtils.equals(thenTarget, elseTarget)) {
+          String conditionSrc = _getSource(ifStatement.condition);
+          String theSrc = _getSource(thenAssignment.rightHandSide);
+          String elseSrc = _getSource(elseAssignment.rightHandSide);
+          _addReplaceEdit(
+              rangeNode(ifStatement),
+              '$thenTarget = $conditionSrc ? $theSrc : $elseSrc;');
+        }
+      }
+    }
+    // add proposal
+    _addAssist(AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL, []);
   }
 
   void _addProposal_splitAndCondition() {
-    // TODO(scheglov) implement
-//    // check that user invokes quick assist on binary expression
-//    if (node is! BinaryExpression) {
-//      return;
-//    }
-//    BinaryExpression binaryExpression = node as BinaryExpression;
-//    // prepare operator position
-//    int offset =
-//        _isOperatorSelected(binaryExpression, _selectionOffset, _selectionLength);
-//    if (offset == -1) {
-//      return;
-//    }
-//    // should be &&
-//    if (binaryExpression.operator.type != TokenType.AMPERSAND_AMPERSAND) {
-//      return;
-//    }
-//    // prepare "if"
-//    Statement statement = node.getAncestor((node) => node is Statement);
-//    if (statement is! IfStatement) {
-//      return;
-//    }
-//    IfStatement ifStatement = statement as IfStatement;
-//    // check that binary expression is part of first level && condition of "if"
-//    BinaryExpression condition = binaryExpression;
-//    while (condition.parent is BinaryExpression &&
-//        (condition.parent as BinaryExpression).operator.type ==
-//            TokenType.AMPERSAND_AMPERSAND) {
-//      condition = condition.parent as BinaryExpression;
-//    }
-//    if (!identical(ifStatement.condition, condition)) {
-//      return;
-//    }
-//    // prepare environment
-//    String prefix = utils.getNodePrefix(ifStatement);
-//    String indent = utils.getIndent(1);
-//    // prepare "rightCondition"
-//    String rightConditionSource;
-//    {
-//      SourceRange rightConditionRange =
-//          rangeStartEnd(binaryExpression.rightOperand, condition);
-//      rightConditionSource = _getSource2(rightConditionRange);
-//    }
-//    // remove "&& rightCondition"
-//    _addRemoveEdit(
-//        rangeEndEnd(binaryExpression.leftOperand, condition));
-//    // update "then" statement
-//    Statement thenStatement = ifStatement.thenStatement;
-//    Statement elseStatement = ifStatement.elseStatement;
-//    if (thenStatement is Block) {
-//      Block thenBlock = thenStatement;
-//      SourceRange thenBlockRange = rangeNode(thenBlock);
-//      // insert inner "if" with right part of "condition"
-//      {
-//        String source =
-//            "${eol}${prefix}${indent}if (${rightConditionSource}) {";
-//        int thenBlockInsideOffset = thenBlockRange.offset + 1;
-//        _addInsertEdit(thenBlockInsideOffset, source);
-//      }
-//      // insert closing "}" for inner "if"
-//      {
-//        int thenBlockEnd = thenBlockRange.end;
-//        String source = "${indent}}";
-//        // may be move "else" statements
-//        if (elseStatement != null) {
-//          List<Statement> elseStatements =
-//              CorrectionUtils.getStatements(elseStatement);
-//          SourceRange elseLinesRange = utils.getLinesRange(elseStatements);
-//          String elseIndentOld = "${prefix}${indent}";
-//          String elseIndentNew = "${elseIndentOld}${indent}";
-//          String newElseSource =
-//              utils.getIndentSource(elseLinesRange, elseIndentOld, elseIndentNew);
-//          // append "else" block
-//          source += " else {${eol}";
-//          source += newElseSource;
-//          source += "${prefix}${indent}}";
-//          // remove old "else" range
-//          _addRemoveEdit(
-//              rangeStartEnd(thenBlockEnd, elseStatement));
-//        }
-//        // insert before outer "then" block "}"
-//        source += "${eol}${prefix}";
-//        _addInsertEdit(thenBlockEnd - 1, source);
-//      }
-//    } else {
-//      // insert inner "if" with right part of "condition"
-//      {
-//        String source = "${eol}${prefix}${indent}if (${rightConditionSource})";
-//        _addInsertEdit(ifStatement.rightParenthesis.offset + 1, source);
-//      }
-//      // indent "else" statements to correspond inner "if"
-//      if (elseStatement != null) {
-//        SourceRange elseRange =
-//            rangeStartEnd(ifStatement.elseKeyword.offset, elseStatement);
-//        SourceRange elseLinesRange = utils.getLinesRange2(elseRange);
-//        String elseIndentOld = prefix;
-//        String elseIndentNew = "${elseIndentOld}${indent}";
-//        edits.add(
-//            utils.createIndentEdit(elseLinesRange, elseIndentOld, elseIndentNew));
-//      }
-//    }
-//    // indent "then" statements to correspond inner "if"
-//    {
-//      List<Statement> thenStatements =
-//          CorrectionUtils.getStatements(thenStatement);
-//      SourceRange linesRange = utils.getLinesRange(thenStatements);
-//      String thenIndentOld = "${prefix}${indent}";
-//      String thenIndentNew = "${thenIndentOld}${indent}";
-//      edits.add(
-//          utils.createIndentEdit(linesRange, thenIndentOld, thenIndentNew));
-//    }
-//    // add proposal
-//    _addAssist(AssistKind.SPLIT_AND_CONDITION, []);
+    // check that user invokes quick assist on binary expression
+    if (node is! BinaryExpression) {
+      _coverageMarker();
+      return;
+    }
+    BinaryExpression binaryExpression = node as BinaryExpression;
+    // prepare operator position
+    if (!_isOperatorSelected(
+        binaryExpression,
+        selectionOffset,
+        selectionLength)) {
+      _coverageMarker();
+      return;
+    }
+    // should be &&
+    if (binaryExpression.operator.type != TokenType.AMPERSAND_AMPERSAND) {
+      _coverageMarker();
+      return;
+    }
+    // prepare "if"
+    Statement statement = node.getAncestor((node) => node is Statement);
+    if (statement is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement ifStatement = statement as IfStatement;
+    // check that binary expression is part of first level && condition of "if"
+    BinaryExpression condition = binaryExpression;
+    while (condition.parent is BinaryExpression &&
+        (condition.parent as BinaryExpression).operator.type ==
+            TokenType.AMPERSAND_AMPERSAND) {
+      condition = condition.parent as BinaryExpression;
+    }
+    if (!identical(ifStatement.condition, condition)) {
+      _coverageMarker();
+      return;
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(ifStatement);
+    String indent = utils.getIndent(1);
+    // prepare "rightCondition"
+    String rightConditionSource;
+    {
+      SourceRange rightConditionRange =
+          rangeStartEnd(binaryExpression.rightOperand, condition);
+      rightConditionSource = _getSource2(rightConditionRange);
+    }
+    // remove "&& rightCondition"
+    _addRemoveEdit(rangeEndEnd(binaryExpression.leftOperand, condition));
+    // update "then" statement
+    Statement thenStatement = ifStatement.thenStatement;
+    Statement elseStatement = ifStatement.elseStatement;
+    if (thenStatement is Block) {
+      Block thenBlock = thenStatement;
+      SourceRange thenBlockRange = rangeNode(thenBlock);
+      // insert inner "if" with right part of "condition"
+      {
+        String source =
+            "${eol}${prefix}${indent}if (${rightConditionSource}) {";
+        int thenBlockInsideOffset = thenBlockRange.offset + 1;
+        _addInsertEdit(thenBlockInsideOffset, source);
+      }
+      // insert closing "}" for inner "if"
+      {
+        int thenBlockEnd = thenBlockRange.end;
+        String source = "${indent}}";
+        // may be move "else" statements
+        if (elseStatement != null) {
+          List<Statement> elseStatements = getStatements(elseStatement);
+          SourceRange elseLinesRange =
+              utils.getLinesRangeStatements(elseStatements);
+          String elseIndentOld = "${prefix}${indent}";
+          String elseIndentNew = "${elseIndentOld}${indent}";
+          String newElseSource =
+              utils.getIndentSource(elseLinesRange, elseIndentOld, elseIndentNew);
+          // append "else" block
+          source += " else {${eol}";
+          source += newElseSource;
+          source += "${prefix}${indent}}";
+          // remove old "else" range
+          _addRemoveEdit(rangeStartEnd(thenBlockEnd, elseStatement));
+        }
+        // insert before outer "then" block "}"
+        source += "${eol}${prefix}";
+        _addInsertEdit(thenBlockEnd - 1, source);
+      }
+    } else {
+      // insert inner "if" with right part of "condition"
+      {
+        String source = "${eol}${prefix}${indent}if (${rightConditionSource})";
+        _addInsertEdit(ifStatement.rightParenthesis.offset + 1, source);
+      }
+      // indent "else" statements to correspond inner "if"
+      if (elseStatement != null) {
+        SourceRange elseRange =
+            rangeStartEnd(ifStatement.elseKeyword.offset, elseStatement);
+        SourceRange elseLinesRange = utils.getLinesRange(elseRange);
+        String elseIndentOld = prefix;
+        String elseIndentNew = "${elseIndentOld}${indent}";
+        edits.add(
+            utils.createIndentEdit(elseLinesRange, elseIndentOld, elseIndentNew));
+      }
+    }
+    // indent "then" statements to correspond inner "if"
+    {
+      List<Statement> thenStatements = getStatements(thenStatement);
+      SourceRange linesRange = utils.getLinesRangeStatements(thenStatements);
+      String thenIndentOld = "${prefix}${indent}";
+      String thenIndentNew = "${thenIndentOld}${indent}";
+      edits.add(
+          utils.createIndentEdit(linesRange, thenIndentOld, thenIndentNew));
+    }
+    // add proposal
+    _addAssist(AssistKind.SPLIT_AND_CONDITION, []);
   }
 
   void _addProposal_splitVariableDeclaration() {
-    // TODO(scheglov) implement
-//    // prepare DartVariableStatement, should be part of Block
-//    VariableDeclarationStatement statement =
-//        node.getAncestor((node) => node is VariableDeclarationStatement);
-//    if (statement != null && statement.parent is Block) {
-//    } else {
-//      return;
-//    }
-//    // check that statement declares single variable
-//    List<VariableDeclaration> variables = statement.variables.variables;
-//    if (variables.length != 1) {
-//      return;
-//    }
-//    VariableDeclaration variable = variables[0];
-//    // remove initializer value
-//    _addRemoveEdit(
-//        rangeEndStart(variable.name, statement.semicolon));
-//    // TODO(scheglov)
-////    // add assignment statement
-////    String indent = _utils.getNodePrefix(statement);
-////    String assignSource =
-////        MessageFormat.format(
-////            "{0} = {1};",
-////            [variable.name.name, _getSource(variable.initializer)]);
-////    SourceRange assignRange = rangeEndLength(statement, 0);
-////    _addReplaceEdit(assignRange, "${eol}${indent}${assignSource}");
-////    // add proposal
-////    _addUnitCorrectionProposal(
-////        AssistKind.SPLIT_VARIABLE_DECLARATION,
-////        []);
+    // prepare DartVariableStatement, should be part of Block
+    VariableDeclarationStatement statement =
+        node.getAncestor((node) => node is VariableDeclarationStatement);
+    if (statement != null && statement.parent is Block) {
+    } else {
+      _coverageMarker();
+      return;
+    }
+    // check that statement declares single variable
+    List<VariableDeclaration> variables = statement.variables.variables;
+    if (variables.length != 1) {
+      _coverageMarker();
+      return;
+    }
+    VariableDeclaration variable = variables[0];
+    // prepare initializer
+    Expression initializer = variable.initializer;
+    if (initializer == null) {
+      _coverageMarker();
+      return;
+    }
+    // remove initializer value
+    _addRemoveEdit(rangeEndStart(variable.name, statement.semicolon));
+    // add assignment statement
+    String indent = utils.getNodePrefix(statement);
+    String name = variable.name.name;
+    String initSrc = _getSource(initializer);
+    SourceRange assignRange = rangeEndLength(statement, 0);
+    _addReplaceEdit(assignRange, eol + indent + name + ' = ' + initSrc + ';');
+    // add proposal
+    _addAssist(AssistKind.SPLIT_VARIABLE_DECLARATION, []);
   }
 
   void _addProposal_surroundWith() {
@@ -1610,5 +1606,30 @@ class AssistProcessor {
     // invalid selection (part of node, etc)
     _coverageMarker();
     return false;
+  }
+
+  /**
+   * Checks if the given [Expression] should be wrapped with parenthesis when we
+   * want to use it as operand of a logical `and` expression.
+   */
+  static bool _shouldWrapParenthesisBeforeAnd(Expression expr) {
+    if (expr is BinaryExpression) {
+      BinaryExpression binary = expr;
+      int precedence = binary.operator.type.precedence;
+      return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
+    }
+    return false;
+  }
+}
+
+
+class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor {
+  final _SimpleIdentifierVisitor visitor;
+
+  _SimpleIdentifierRecursiveAstVisitor(this.visitor);
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    visitor(node);
   }
 }

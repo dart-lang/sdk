@@ -7,12 +7,14 @@
 
 library services.src.correction.util;
 
+import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/src/correction/source_range.dart';
 import 'package:analysis_services/src/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
@@ -143,11 +145,39 @@ Expression getQualifiedPropertyTarget(AstNode node) {
 }
 
 /**
+ * Returns the given [Statement] if not a [Block], or the first child
+ * [Statement] if a [Block], or `null` if more than one child.
+ */
+Statement getSingleStatement(Statement statement) {
+  if (statement is Block) {
+    List<Statement> blockStatements = statement.statements;
+    if (blockStatements.length != 1) {
+      return null;
+    }
+    return blockStatements[0];
+  }
+  return statement;
+}
+
+/**
  * Returns the [String] content of the given [Source].
  */
 String getSourceContent(AnalysisContext context, Source source) {
   return context.getContents(source).data;
 }
+
+
+/**
+ * Returns the given [Statement] if not a [Block], or all the children
+ * [Statement]s if a [Block].
+ */
+List<Statement> getStatements(Statement statement) {
+  if (statement is Block) {
+    return statement.statements;
+  }
+  return [statement];
+}
+
 
 class CorrectionUtils {
   final CompilationUnit unit;
@@ -177,6 +207,16 @@ class CorrectionUtils {
   }
 
   /**
+   * Returns an [Edit] that changes indentation of the source of the given
+   * [SourceRange] from [oldIndent] to [newIndent], keeping indentation of lines
+   * relative to each other.
+   */
+  Edit createIndentEdit(SourceRange range, String oldIndent, String newIndent) {
+    String newSource = getIndentSource(range, oldIndent, newIndent);
+    return new Edit(range.offset, range.length, newSource);
+  }
+
+  /**
    * Returns the actual type source of the given [Expression], may be `null`
    * if can not be resolved, should be treated as the `dynamic` type.
    */
@@ -195,6 +235,95 @@ class CorrectionUtils {
    * Returns the indentation with the given level.
    */
   String getIndent(int level) => repeat('  ', level);
+
+  /**
+   * Returns the source of the given [SourceRange] with indentation changed
+   * from [oldIndent] to [newIndent], keeping indentation of lines relative
+   * to each other.
+   */
+  String getIndentSource(SourceRange range, String oldIndent,
+      String newIndent) {
+    String oldSource = getText3(range);
+    return getIndentSource3(oldSource, oldIndent, newIndent);
+  }
+
+  /**
+   * Indents given source left or right.
+   */
+  String getIndentSource2(String source, bool right) {
+    // TODO(scheglov) rename
+    StringBuffer sb = new StringBuffer();
+    String indent = getIndent(1);
+    String eol = endOfLine;
+    List<String> lines = source.split(eol);
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      // last line, stop if empty
+      if (i == lines.length - 1 && isEmpty(line)) {
+        break;
+      }
+      // update line
+      if (right) {
+        line = "${indent}${line}";
+      } else {
+        line = removeStart(line, indent);
+      }
+      // append line
+      sb.write(line);
+      sb.write(eol);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Returns the source with indentation changed from [oldIndent] to
+   * [newIndent], keeping indentation of lines relative to each other.
+   */
+  String getIndentSource3(String source, String oldIndent, String newIndent) {
+    // TODO(scheglov) rename
+    // prepare STRING token ranges
+    List<SourceRange> lineRanges = [];
+    {
+      var token = unit.beginToken;
+      while (token != null && token.type != TokenType.EOF) {
+        if (token.type == TokenType.STRING) {
+          lineRanges.add(rangeToken(token));
+        }
+        token = token.next;
+      }
+    }
+    // re-indent lines
+    StringBuffer sb = new StringBuffer();
+    String eol = endOfLine;
+    List<String> lines = source.split(eol);
+    int lineOffset = 0;
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      // last line, stop if empty
+      if (i == lines.length - 1 && isEmpty(line)) {
+        break;
+      }
+      // check if "offset" is in one of the String ranges
+      bool inString = false;
+      for (SourceRange lineRange in lineRanges) {
+        if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
+          inString = true;
+        }
+        if (lineOffset > lineRange.end) {
+          break;
+        }
+      }
+      lineOffset += line.length + eol.length;
+      // update line indent
+      if (!inString) {
+        line = "${newIndent}${removeStart(line, oldIndent)}";
+      }
+      // append line
+      sb.write(line);
+      sb.write(eol);
+    }
+    return sb.toString();
+  }
 
   /**
    * Returns a [InsertDesc] describing where to insert a new library-related
@@ -433,6 +562,14 @@ class CorrectionUtils {
   }
 
   /**
+   * Returns a [SourceRange] that covers all the given [Statement]s.
+   */
+  SourceRange getLinesRangeStatements(List<Statement> statements) {
+    SourceRange range = rangeNodes(statements);
+    return getLinesRange(range);
+  }
+
+  /**
    * Returns the line prefix consisting of spaces and tabs on the left from the given
    *         [AstNode].
    */
@@ -575,6 +712,12 @@ class CorrectionUtils {
   }
 
   /**
+   * @return the source of the inverted condition for the given logical expression.
+   */
+  String invertCondition(Expression expression) =>
+      _invertCondition0(expression)._source;
+
+  /**
    * @return the [ImportElement] used to import given [Element] into [library].
    *         May be `null` if was not imported, i.e. declared in the same library.
    */
@@ -587,6 +730,97 @@ class CorrectionUtils {
     }
     return null;
   }
+
+  /**
+   * @return the [InvertedCondition] for the given logical expression.
+   */
+  _InvertedCondition _invertCondition0(Expression expression) {
+    if (expression is BooleanLiteral) {
+      BooleanLiteral literal = expression;
+      if (literal.value) {
+        return _InvertedCondition._simple("false");
+      } else {
+        return _InvertedCondition._simple("true");
+      }
+    }
+    if (expression is BinaryExpression) {
+      BinaryExpression binary = expression;
+      TokenType operator = binary.operator.type;
+      Expression le = binary.leftOperand;
+      Expression re = binary.rightOperand;
+      _InvertedCondition ls = _invertCondition0(le);
+      _InvertedCondition rs = _invertCondition0(re);
+      if (operator == TokenType.LT) {
+        return _InvertedCondition._binary2(ls, " >= ", rs);
+      }
+      if (operator == TokenType.GT) {
+        return _InvertedCondition._binary2(ls, " <= ", rs);
+      }
+      if (operator == TokenType.LT_EQ) {
+        return _InvertedCondition._binary2(ls, " > ", rs);
+      }
+      if (operator == TokenType.GT_EQ) {
+        return _InvertedCondition._binary2(ls, " < ", rs);
+      }
+      if (operator == TokenType.EQ_EQ) {
+        return _InvertedCondition._binary2(ls, " != ", rs);
+      }
+      if (operator == TokenType.BANG_EQ) {
+        return _InvertedCondition._binary2(ls, " == ", rs);
+      }
+      if (operator == TokenType.AMPERSAND_AMPERSAND) {
+        return _InvertedCondition._binary(
+            TokenType.BAR_BAR.precedence,
+            ls,
+            " || ",
+            rs);
+      }
+      if (operator == TokenType.BAR_BAR) {
+        return _InvertedCondition._binary(
+            TokenType.AMPERSAND_AMPERSAND.precedence,
+            ls,
+            " && ",
+            rs);
+      }
+    }
+    if (expression is IsExpression) {
+      IsExpression isExpression = expression;
+      String expressionSource = getText(isExpression.expression);
+      String typeSource = getText(isExpression.type);
+      if (isExpression.notOperator == null) {
+        return _InvertedCondition._simple(
+            "${expressionSource} is! ${typeSource}");
+      } else {
+        return _InvertedCondition._simple(
+            "${expressionSource} is ${typeSource}");
+      }
+    }
+    if (expression is PrefixExpression) {
+      PrefixExpression prefixExpression = expression;
+      TokenType operator = prefixExpression.operator.type;
+      if (operator == TokenType.BANG) {
+        Expression operand = prefixExpression.operand;
+        while (operand is ParenthesizedExpression) {
+          ParenthesizedExpression pe = operand as ParenthesizedExpression;
+          operand = pe.expression;
+        }
+        return _InvertedCondition._simple(getText(operand));
+      }
+    }
+    if (expression is ParenthesizedExpression) {
+      ParenthesizedExpression pe = expression;
+      Expression innerExpresion = pe.expression;
+      while (innerExpresion is ParenthesizedExpression) {
+        innerExpresion = (innerExpresion as ParenthesizedExpression).expression;
+      }
+      return _invertCondition0(innerExpresion);
+    }
+    DartType type = expression.bestType;
+    if (type.displayName == "bool") {
+      return _InvertedCondition._simple("!${getText(expression)}");
+    }
+    return _InvertedCondition._simple(getText(expression));
+  }
 }
 
 
@@ -597,4 +831,49 @@ class CorrectionUtils_InsertDesc {
   int offset = 0;
   String prefix = "";
   String suffix = "";
+}
+
+
+/**
+ * A container with a source and its precedence.
+ */
+class _InvertedCondition {
+  final int _precedence;
+
+  final String _source;
+
+  _InvertedCondition(this._precedence, this._source);
+
+  static _InvertedCondition _binary(int precedence, _InvertedCondition left,
+      String operation, _InvertedCondition right) {
+    String src =
+        _parenthesizeIfRequired(left, precedence) +
+        operation +
+        _parenthesizeIfRequired(right, precedence);
+    return new _InvertedCondition(precedence, src);
+  }
+
+  static _InvertedCondition _binary2(_InvertedCondition left, String operation,
+      _InvertedCondition right) {
+    // TODO(scheglov) conside merging with "_binary()" after testing
+    return new _InvertedCondition(
+        1 << 20,
+        "${left._source}${operation}${right._source}");
+  }
+
+  /**
+ * Adds enclosing parenthesis if the precedence of the [_InvertedCondition] if less than the
+ * precedence of the expression we are going it to use in.
+ */
+  static String _parenthesizeIfRequired(_InvertedCondition expr,
+      int newOperatorPrecedence) {
+    if (expr._precedence < newOperatorPrecedence) {
+      return "(${expr._source})";
+    }
+    return expr._source;
+  }
+
+
+  static _InvertedCondition _simple(String source) =>
+      new _InvertedCondition(2147483647, source);
 }

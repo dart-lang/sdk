@@ -18,7 +18,11 @@ class MockSdk implements DartSdk {
   static const _MockSdkLibrary LIB_CORE =
       const _MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
 library dart.core;
-class Object {}
+
+class Object {
+  bool operator ==(other) => identical(this, other);
+}
+
 class Function {}
 class StackTrace {}
 class Symbol {}
@@ -80,6 +84,8 @@ class Stream<T> {}
 library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
+num min(num a, num b) => 0;
+num max(num a, num b) => 0;
 ''');
 
   static const _MockSdkLibrary LIB_HTML =
