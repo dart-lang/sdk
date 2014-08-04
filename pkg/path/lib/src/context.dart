@@ -44,7 +44,7 @@ class Context {
   }
 
   /// Create a [Context] to be used internally within path.
-  Context._internal() : style = Style.platform;
+  Context._internal() : style = Style.platform, _current = null;
 
   Context._(this.style, this._current);
 
