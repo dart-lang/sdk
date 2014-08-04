@@ -24,8 +24,6 @@ polymer/test/build/script_compactor_test: Pass, Slow
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
 polymer/example/component/news/test/news_index_test: RuntimeError # Issue 18931
 intl/test/date_time_format_http_request_test: Pass, Timeout # Issue 19544
-polymer/e2e_test/experimental_boot/test/import_test: Skip # Issue 20307 (Timing out)
-polymer/e2e_test/experimental_boot/test/double_init_test: Skip # Issue 20307 (Timing out)
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
