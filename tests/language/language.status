@@ -143,6 +143,7 @@ generic_instanceof3_test: Pass, Crash # Issue 17440.
 [ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
 stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
+large_class_declaration_test: Skip # Times out. Issue 20352
 
 [ $compiler == none ]
 const_constructor_nonconst_field_test/01: Fail # Issue 18779, 18780
