@@ -440,12 +440,12 @@ class ClosureTranslator extends Visitor {
   // List of encountered closures.
   List<Expression> closures = <Expression>[];
 
-  // The variables that have been declared in the current scope.
-  List<Local> scopeVariables;
+  // The local variables that have been declared in the current scope.
+  List<LocalVariableElement> scopeVariables;
 
-  // Keep track of the mutated variables so that we don't need to box
+  // Keep track of the mutated local variables so that we don't need to box
   // non-mutated variables.
-  Set<VariableElement> mutatedVariables = new Set<VariableElement>();
+  Set<LocalVariableElement> mutatedVariables = new Set<LocalVariableElement>();
 
   MemberElement outermostElement;
   ExecutableElement executableContext;
@@ -601,7 +601,7 @@ class ClosureTranslator extends Visitor {
     useLocal(new TypeVariableLocal(typeVariable, outermostElement));
   }
 
-  void declareLocal(Local element) {
+  void declareLocal(LocalVariableElement element) {
     scopeVariables.add(element);
   }
 
@@ -793,13 +793,9 @@ class ClosureTranslator extends Visitor {
       }
     }
 
-    bool isAssignable(var variable) {
-      return variable is Element && variable.isAssignable;
-    }
-
-    for (Local variable in scopeVariables) {
+    for (LocalVariableElement variable in scopeVariables) {
       // No need to box non-assignable elements.
-      if (!isAssignable(variable)) continue;
+      if (!variable.isAssignable) continue;
       if (!mutatedVariables.contains(variable)) continue;
       boxCapturedVariable(variable);
     }
@@ -810,8 +806,8 @@ class ClosureTranslator extends Visitor {
   }
 
   void inNewScope(Node node, Function action) {
-    List<Local> oldScopeVariables = scopeVariables;
-    scopeVariables = <Local>[];
+    List<LocalVariableElement> oldScopeVariables = scopeVariables;
+    scopeVariables = <LocalVariableElement>[];
     action();
     attachCapturedScopeVariables(node);
     mutatedVariables.removeAll(scopeVariables);
@@ -929,28 +925,6 @@ class ClosureTranslator extends Visitor {
     closureMappingCache[node] = closureData;
 
     inNewScope(node, () {
-      // We have to declare the implicit 'this' parameter.
-      if (!insideClosure && closureData.thisLocal != null) {
-        declareLocal(closureData.thisLocal);
-      }
-      // If we are inside a named closure we have to declare ourselve. For
-      // simplicity we declare the local even if the closure does not have a
-      // name.
-      // It will simply not be used.
-      if (insideClosure) {
-        declareLocal(closure);
-      }
-
-      if (executableContext.isFactoryConstructor &&
-          compiler.backend.classNeedsRti(executableContext.enclosingElement)) {
-        // Declare the type parameters in the scope. Generative
-        // constructors just use 'this'.
-        ClassElement cls = executableContext.enclosingClass;
-        cls.typeVariables.forEach((TypeVariableType typeVariable) {
-          declareLocal(new TypeVariableLocal(typeVariable, executableContext));
-        });
-      }
-
       DartType type = element.type;
       // If the method needs RTI, or checked mode is set, we need to
       // escape the potential type variables used in that closure.
@@ -998,13 +972,6 @@ class ClosureTranslator extends Visitor {
       if (node.initializers != null) node.initializers.accept(this);
       if (node.body != null) node.body.accept(this);
     });
-  }
-
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    node.visitChildren(this);
-    LocalFunctionElement localFunction =
-        elements.getFunctionDefinition(node.function);
-    declareLocal(localFunction);
   }
 
   visitTryStatement(TryStatement node) {
