@@ -573,7 +573,7 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitFunctionExpression(ast.FunctionExpression node) {
-    Element element = elements[node];
+    LocalFunctionElement element = elements.getFunctionDefinition(node);
     // We don't put the closure in the work queue of the
     // inferrer, because it will share information with its enclosing
     // method, like for example the types of local variables.
@@ -607,7 +607,7 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   T visitFunctionDeclaration(ast.FunctionDeclaration node) {
-    Element element = elements[node];
+    LocalFunctionElement element = elements.getFunctionDefinition(node.function);
     T type = inferrer.concreteTypes.putIfAbsent(node.function, () {
       return types.allocateClosure(node.function, element);
     });
@@ -1231,26 +1231,27 @@ class SimpleTypeInferrerVisitor<T>
                                           sideEffects,
                                           inLoop);
   }
+  T visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
+    Element element = elements.getRedirectingTargetConstructor(node);
+    if (Elements.isErroneousElement(element)) {
+      recordReturnType(types.dynamicType);
+    } else {
+      // We don't create a selector for redirecting factories, and
+      // the send is just a property access. Therefore we must
+      // manually create the [ArgumentsTypes] of the call, and
+      // manually register [analyzedElement] as a caller of [element].
+      T mask = synthesizeForwardingCall(node.constructorReference, element);
+      recordReturnType(mask);
+    }
+    locals.seenReturnOrThrow = true;
+    return null;
+  }
 
   T visitReturn(ast.Return node) {
-    if (node.isRedirectingFactoryBody) {
-      Element element = elements[node.expression];
-      if (Elements.isErroneousElement(element)) {
-        recordReturnType(types.dynamicType);
-      } else {
-        // We don't create a selector for redirecting factories, and
-        // the send is just a property access. Therefore we must
-        // manually create the [ArgumentsTypes] of the call, and
-        // manually register [analyzedElement] as a caller of [element].
-        T mask = synthesizeForwardingCall(node.expression, element);
-        recordReturnType(mask);
-      }
-    } else {
-      ast.Node expression = node.expression;
-      recordReturnType(expression == null
-          ? types.nullType
-          : expression.accept(this));
-    }
+    ast.Node expression = node.expression;
+    recordReturnType(expression == null
+        ? types.nullType
+        : expression.accept(this));
     locals.seenReturnOrThrow = true;
     return null;
   }
@@ -1275,7 +1276,7 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     ast.Node identifier = node.declaredIdentifier;
-    Element element = elements[identifier];
+    Element element = elements.getForInVariable(node);
     Selector selector = elements.getSelector(identifier);
 
     T receiverType;

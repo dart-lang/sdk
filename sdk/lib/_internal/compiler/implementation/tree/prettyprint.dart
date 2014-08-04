@@ -303,6 +303,12 @@ class PrettyPrinter implements Visitor {
     visitNodeWithChildren(node, "ParenthesizedExpression");
   }
 
+  visitRedirectingFactoryBody(RedirectingFactoryBody node) {
+    openNode(node, "RedirectingFactoryBody");
+    visitChildNode(node.constructorReference, "constructorReference");
+    closeNode();
+  }
+
   visitRethrow(Rethrow node) {
     visitNodeWithChildren(node, "Rethrow");
   }

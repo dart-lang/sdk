@@ -1477,6 +1477,11 @@ main() {}
           howToFix: "Try using a different name.",
           examples: const ["do() {} main() {}"]);
 
+  static const MessageKind  NAMED_FUNCTION_EXPRESSION =
+      const MessageKind("Function expression '#{name}' cannot be named.",
+          howToFix: "Try removing the name.",
+          examples: const ["main() { var f = func() {}; }"]);
+
   static const MessageKind UNUSED_METHOD = const MessageKind(
       "The method '#{name}' is never called.",
       howToFix: "Consider deleting it.",

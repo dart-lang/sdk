@@ -17,13 +17,18 @@ abstract class TreeElements {
   Setlet<Element> get otherDependencies;
 
   Element operator[](Node node);
-  Selector getSelector(Send send);
+
+  // TODO(johnniwinther): Investigate whether [Node] could be a [Send].
+  Selector getSelector(Node node);
   Selector getGetterSelectorInComplexSendSet(SendSet node);
   Selector getOperatorSelectorInComplexSendSet(SendSet node);
   DartType getType(Node node);
   void setSelector(Node node, Selector selector);
   void setGetterSelectorInComplexSendSet(SendSet node, Selector selector);
   void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector);
+
+  /// Returns the for-in loop variable for [node].
+  Element getForInVariable(ForIn node);
   Selector getIteratorSelector(ForIn node);
   Selector getMoveNextSelector(ForIn node);
   Selector getCurrentSelector(ForIn node);
@@ -33,6 +38,13 @@ abstract class TreeElements {
   void setConstant(Node node, Constant constant);
   Constant getConstant(Node node);
   bool isAssert(Send send);
+
+  /// Returns the [FunctionElement] defined by [node].
+  FunctionElement getFunctionDefinition(FunctionExpression node);
+
+  /// Returns target constructor for the redirecting factory body [node].
+  ConstructorElement getRedirectingTargetConstructor(
+      RedirectingFactoryBody node);
 
   /**
    * Returns [:true:] if [node] is a type literal.
@@ -196,6 +208,10 @@ class TreeElementMapping implements TreeElements {
     return selectors[node.inToken];
   }
 
+  Element getForInVariable(ForIn node) {
+    return this[node];
+  }
+
   void setConstant(Node node, Constant constant) {
     constants[node] = constant;
   }
@@ -283,6 +299,15 @@ class TreeElementMapping implements TreeElements {
 
   bool isAssert(Send node) {
     return asserts.contains(node);
+  }
+
+  FunctionElement getFunctionDefinition(FunctionExpression node) {
+    return this[node];
+  }
+
+  ConstructorElement getRedirectingTargetConstructor(
+      RedirectingFactoryBody node) {
+    return this[node];
   }
 
   void defineTarget(Node node, JumpTarget target) {
@@ -598,7 +623,7 @@ class ResolverTask extends CompilerTask {
 
         ResolverVisitor visitor = visitorFor(element);
         ResolutionRegistry registry = visitor.registry;
-        registry.useElement(tree, element);
+        registry.defineFunction(tree, element);
         visitor.setupFunction(tree, element);
 
         if (isConstructor && !element.isForwardingConstructor) {
@@ -657,7 +682,7 @@ class ResolverTask extends CompilerTask {
         useEnclosingScope: useEnclosingScope);
   }
 
-  TreeElements resolveField(VariableElementX element) {
+  TreeElements resolveField(FieldElementX element) {
     VariableDefinitions tree = element.parseNode(compiler);
     if(element.modifiers.isStatic && element.isTopLevel) {
       error(element.modifiers.getStatic(),
@@ -672,7 +697,6 @@ class ResolverTask extends CompilerTask {
     } else {
       element.variables.type = const DynamicType();
     }
-    registry.useElement(tree, element);
 
     Expression initializer = element.initializer;
     Modifiers modifiers = element.modifiers;
@@ -776,9 +800,8 @@ class ResolverTask extends CompilerTask {
       assert(invariant(node, treeElements != null,
           message: 'No TreeElements cached for $factory.'));
       FunctionExpression functionNode = factory.parseNode(compiler);
-      Return redirectionNode = functionNode.body;
-      InterfaceType factoryType =
-          treeElements.getType(redirectionNode.expression);
+      RedirectingFactoryBody redirectionNode = functionNode.body;
+      InterfaceType factoryType = treeElements.getType(redirectionNode);
 
       targetType = targetType.substByContext(factoryType);
       factory.effectiveTarget = target;
@@ -2018,20 +2041,21 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
       : typeResolver = new TypeResolver(compiler),
         super(compiler);
 
-  Element defineElement(Node node, Element element,
-                        {bool doAddToScope: true}) {
-    invariant(node, element != null);
-    registry.defineElement(node, element);
-    if (doAddToScope) {
-      Element existing = scope.add(element);
-      if (existing != element) {
-        reportDuplicateDefinition(node, element, existing);
-      }
+  /// Add [element] to the current scope and check for duplicate definitions.
+  void addToScope(Element element) {
+    Element existing = scope.add(element);
+    if (existing != element) {
+      reportDuplicateDefinition(element.name, element, existing);
     }
-    return element;
   }
 
-  void reportDuplicateDefinition(/*Node|String*/ name,
+  /// Register [node] as the definition of [element].
+  void defineLocalVariable(Node node, LocalVariableElement element) {
+    invariant(node, element != null);
+    registry.defineElement(node, element);
+  }
+
+  void reportDuplicateDefinition(String name,
                                  Spannable definition,
                                  Spannable existing) {
     compiler.reportError(definition,
@@ -2057,6 +2081,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   bool inInstanceContext;
   bool inCheckContext;
   bool inCatchBlock;
+
   Scope scope;
   ClassElement currentClass;
   ExpressionStatement currentExpressionStatement;
@@ -2314,7 +2339,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (element.isInitializingFormal) {
         registry.useElement(parameterNode, element);
       } else {
-        defineElement(parameterNode, element);
+        LocalParameterElement parameterElement = element;
+        defineLocalVariable(parameterNode, parameterElement);
+        addToScope(parameterElement);
       }
       parameterNodes = parameterNodes.tail;
     });
@@ -2392,14 +2419,26 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     assert(node.function.name != null);
-    visit(node.function);
-    FunctionElement functionElement = registry.getDefinition(node.function);
-    // TODO(floitsch): this might lead to two errors complaining about
-    // shadowing.
-    defineElement(node, functionElement);
+    visitFunctionExpression(node.function, inFunctionDeclaration: true);
   }
 
-  visitFunctionExpression(FunctionExpression node) {
+
+  /// Process a local function declaration or an anonymous function expression.
+  ///
+  /// [inFunctionDeclaration] is `true` when the current node is the immediate
+  /// child of a function declaration.
+  ///
+  /// This is used to distinguish local function declarations from anonymous
+  /// function expressions.
+  visitFunctionExpression(FunctionExpression node,
+                          {bool inFunctionDeclaration: false}) {
+    bool doAddToScope = inFunctionDeclaration;
+    if (!inFunctionDeclaration && node.name != null) {
+      compiler.reportError(
+          node.name,
+          MessageKind.NAMED_FUNCTION_EXPRESSION,
+          {'name': node.name});
+    }
     visit(node.returnType);
     String name;
     if (node.name == null) {
@@ -2413,9 +2452,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     function.functionSignatureCache =
         SignatureResolver.analyze(compiler, node.parameters, node.returnType,
             function, registry, createRealParameters: true);
+    registry.defineFunction(node, function);
+    if (doAddToScope) {
+      addToScope(function);
+    }
     Scope oldScope = scope; // The scope is modified by [setupFunction].
     setupFunction(node, function);
-    defineElement(node, function, doAddToScope: node.name != null);
 
     Element previousEnclosingElement = enclosingElement;
     enclosingElement = function;
@@ -3008,23 +3050,19 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitReturn(Return node) {
-    if (node.isRedirectingFactoryBody) {
-      handleRedirectingFactoryBody(node);
-    } else {
-      Node expression = node.expression;
-      if (expression != null &&
-          enclosingElement.isGenerativeConstructor) {
-        // It is a compile-time error if a return statement of the form
-        // `return e;` appears in a generative constructor.  (Dart Language
-        // Specification 13.12.)
-        compiler.reportError(expression,
-                             MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
-      }
-      visit(node.expression);
+    Node expression = node.expression;
+    if (expression != null &&
+        enclosingElement.isGenerativeConstructor) {
+      // It is a compile-time error if a return statement of the form
+      // `return e;` appears in a generative constructor.  (Dart Language
+      // Specification 13.12.)
+      compiler.reportError(expression,
+                           MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
     }
+    visit(node.expression);
   }
 
-  void handleRedirectingFactoryBody(Return node) {
+  visitRedirectingFactoryBody(RedirectingFactoryBody node) {
     final isSymbolConstructor = enclosingElement == compiler.symbolConstructor;
     if (!enclosingElement.isFactoryConstructor) {
       compiler.reportError(
@@ -3037,7 +3075,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     ConstructorElement redirectionTarget = resolveRedirectingFactory(
         node, inConstContext: isConstConstructor);
     constructor.immediateRedirectionTarget = redirectionTarget;
-    registry.useElement(node.expression, redirectionTarget);
+    registry.setRedirectingTargetConstructor(node, redirectionTarget);
     if (Elements.isUnresolved(redirectionTarget)) {
       registry.registerThrowNoSuchMethod();
       return;
@@ -3055,7 +3093,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // Check that the target constructor is type compatible with the
     // redirecting constructor.
     ClassElement targetClass = redirectionTarget.enclosingClass;
-    InterfaceType type = registry.getType(node.expression);
+    InterfaceType type = registry.getType(node);
     FunctionType targetType = redirectionTarget.computeType(compiler)
         .subst(type.typeArguments, targetClass.typeVariables);
     FunctionType constructorType = constructor.computeType(compiler);
@@ -3296,7 +3334,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return node.accept(new ConstructorResolver(compiler, this));
   }
 
-  ConstructorElement resolveRedirectingFactory(Return node,
+  ConstructorElement resolveRedirectingFactory(RedirectingFactoryBody node,
                                                {bool inConstContext: false}) {
     return node.accept(new ConstructorResolver(compiler, this,
                                                inConstContext: inConstContext));
@@ -3494,7 +3532,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     if (loopVariable != null) {
       // loopVariable may be null if it could not be resolved.
-      registry.defineElement(declaration, loopVariable);
+      registry.setForInVariable(node, loopVariable);
     }
     visitLoopBodyIn(node, node.body, blockScope);
   }
@@ -3930,9 +3968,7 @@ class TypedefResolverVisitor extends TypeDefinitionVisitor {
     element.functionSignature = signature;
 
     scope = new MethodScope(scope, element);
-    signature.forEachParameter((FormalElement element) {
-      defineElement(element.node, element);
-    });
+    signature.forEachParameter(addToScope);
 
     element.alias = signature.type;
 
@@ -4579,10 +4615,11 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   visitNodeList(NodeList node) {
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
       Identifier name = visit(link.head);
-      VariableElement element = new LocalVariableElementX(
+      LocalVariableElement element = new LocalVariableElementX(
           name.source, resolver.enclosingElement,
           variables, name.token);
-      resolver.defineElement(link.head, element);
+      resolver.defineLocalVariable(link.head, element);
+      resolver.addToScope(element);
       if (definitions.modifiers.isConst) {
         compiler.enqueuer.resolution.addDeferredAction(element, () {
           compiler.resolver.constantCompiler.compileConstant(element);
@@ -4762,10 +4799,10 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
   }
 
   /// Assumed to be called by [resolveRedirectingFactory].
-  Element visitReturn(Return node) {
-    Node expression = node.expression;
-    return finishConstructorReference(visit(expression),
-                                      expression, expression);
+  Element visitRedirectingFactoryBody(RedirectingFactoryBody node) {
+    Node constructorReference = node.constructorReference;
+    return finishConstructorReference(visit(constructorReference),
+        constructorReference, node);
   }
 }
 

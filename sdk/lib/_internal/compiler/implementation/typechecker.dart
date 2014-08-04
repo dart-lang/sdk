@@ -579,7 +579,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     DartType type;
     DartType returnType;
     DartType previousType;
-    final FunctionElement element = elements[node];
+    final FunctionElement element = elements.getFunctionDefinition(node);
     assert(invariant(node, element != null,
                      message: 'FunctionExpression with no element'));
     if (Elements.isUnresolved(element)) return const DynamicType();
@@ -1558,6 +1558,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return type;
   }
 
+  DartType visitRedirectingFactoryBody(RedirectingFactoryBody node) {
+    // TODO(lrn): Typecheck the body. It must refer to the constructor
+    // of a subtype.
+    return StatementType.RETURNING;
+  }
+
   DartType visitRethrow(Rethrow node) {
     return StatementType.RETURNING;
   }
@@ -1565,11 +1571,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   /** Dart Programming Language Specification: 11.10 Return */
   DartType visitReturn(Return node) {
     if (identical(node.beginToken.stringValue, 'native')) {
-      return StatementType.RETURNING;
-    }
-    if (node.isRedirectingFactoryBody) {
-      // TODO(lrn): Typecheck the body. It must refer to the constructor
-      // of a subtype.
       return StatementType.RETURNING;
     }
 

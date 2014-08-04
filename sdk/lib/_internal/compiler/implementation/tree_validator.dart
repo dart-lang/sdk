@@ -58,7 +58,7 @@ class ValidatorVisitor extends Visitor {
   }
 
   visitReturn(Return node) {
-    if (!node.isRedirectingFactoryBody && node.hasExpression) {
+    if (node.hasExpression) {
       // We allow non-expression expressions in Return nodes, but only when
       // using them to hold redirecting factory constructors.
       expect(node, node.expression.asExpression() != null);

@@ -1002,7 +1002,8 @@ class ClosureTranslator extends Visitor {
 
   visitFunctionDeclaration(FunctionDeclaration node) {
     node.visitChildren(this);
-    LocalFunctionElement localFunction = elements[node];
+    LocalFunctionElement localFunction =
+        elements.getFunctionDefinition(node.function);
     declareLocal(localFunction);
   }
 

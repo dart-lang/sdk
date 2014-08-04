@@ -65,6 +65,9 @@ abstract class Visitor<R> {
   R visitPartOf(PartOf node) => visitNode(node);
   R visitPostfix(Postfix node) => visitNodeList(node);
   R visitPrefix(Prefix node) => visitNodeList(node);
+  R visitRedirectingFactoryBody(RedirectingFactoryBody node) {
+    return visitStatement(node);
+  }
   R visitRethrow(Rethrow node) => visitStatement(node);
   R visitReturn(Return node) => visitStatement(node);
   R visitSend(Send node) => visitExpression(node);
@@ -110,7 +113,7 @@ Token firstBeginToken(Node first, Node second) {
  * token stream. These references are stored in fields ending with
  * "Token".
  */
-abstract class Node extends TreeElementMixin implements Spannable {
+abstract class Node extends NullTreeElementMixin implements Spannable {
   final int hashCode;
   static int _HASH_COUNTER = 0;
 
@@ -185,6 +188,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   ParenthesizedExpression asParenthesizedExpression() => null;
   Part asPart() => null;
   PartOf asPartOf() => null;
+  RedirectingFactoryBody asRedirectingFactoryBody() => null;
   Rethrow asRethrow() => null;
   Return asReturn() => null;
   Send asSend() => null;
@@ -338,7 +342,7 @@ class ErrorExpression extends LiteralNull {
  * property access, assignment, operators, and method calls with this
  * one node.
  */
-class Send extends Expression {
+class Send extends Expression with StoredTreeElementMixin {
   final Node receiver;
   final Node selector;
   final NodeList argumentsNode;
@@ -701,7 +705,7 @@ class FunctionDeclaration extends Statement {
   Token getEndToken() => function.getEndToken();
 }
 
-class FunctionExpression extends Expression {
+class FunctionExpression extends Expression with StoredTreeElementMixin {
   final Node name;
 
   /**
@@ -728,8 +732,7 @@ class FunctionExpression extends Expression {
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
   bool get isRedirectingFactory {
-    return body != null && body.asReturn() != null &&
-        body.asReturn().isRedirectingFactoryBody;
+    return body != null && body.asRedirectingFactoryBody() != null;
   }
 
   visitChildren(Visitor visitor) {
@@ -975,7 +978,7 @@ class LiteralSymbol extends Expression {
   }
 }
 
-class Identifier extends Expression {
+class Identifier extends Expression with StoredTreeElementMixin {
   final Token token;
 
   String get source => token.value;
@@ -1022,8 +1025,6 @@ class Return extends Statement {
 
   bool get hasExpression => expression != null;
 
-  bool get isRedirectingFactoryBody => beginToken.stringValue == '=';
-
   accept(Visitor visitor) => visitor.visitReturn(this);
 
   visitChildren(Visitor visitor) {
@@ -1036,6 +1037,27 @@ class Return extends Statement {
     if (endToken == null) return expression.getEndToken();
     return endToken;
   }
+}
+
+class RedirectingFactoryBody extends Statement with StoredTreeElementMixin {
+  final Node constructorReference;
+  final Token beginToken;
+  final Token endToken;
+
+  RedirectingFactoryBody(this.beginToken, this.endToken,
+                         this.constructorReference);
+
+  RedirectingFactoryBody asRedirectingFactoryBody() => this;
+
+  accept(Visitor visitor) => visitor.visitRedirectingFactoryBody(this);
+
+  visitChildren(Visitor visitor) {
+    constructorReference.accept(visitor);
+  }
+
+  Token getBeginToken() => beginToken;
+
+  Token getEndToken() => endToken;
 }
 
 class ExpressionStatement extends Statement {
@@ -1665,7 +1687,7 @@ class ContinueStatement extends GotoStatement {
   accept(Visitor visitor) => visitor.visitContinueStatement(this);
 }
 
-class ForIn extends Loop {
+class ForIn extends Loop with StoredTreeElementMixin {
   final Node declaredIdentifier;
   final Expression expression;
 
