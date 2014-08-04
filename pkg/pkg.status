@@ -117,6 +117,12 @@ crypto/test/base64_test: Slow, Pass
 [ $checked && $runtime == drt ]
 polymer/test/event_handlers_test: Pass, RuntimeError # Issue 19190
 
+[ $compiler == dart2js && $runtime == drt ]
+third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
+
+[ $compiler == dart2js && $checked && $runtime == drt ]
+web_components/test/interop_test: Fail # Issue 19329
+
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
 collection/test/priority_queue_test: Pass, Slow # Issue 16426
