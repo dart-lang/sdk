@@ -108,8 +108,6 @@ class AnalysisDomainHandler implements RequestHandler {
         return updateContent(request);
       } else if (requestName == ANALYSIS_UPDATE_OPTIONS) {
         return updateOptions(request);
-      } else if (requestName == ANALYSIS_UPDATE_SDKS) {
-        return updateSdks(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
@@ -241,23 +239,6 @@ class AnalysisDomainHandler implements RequestHandler {
     });
     server.updateOptions(updaters);
     return new Response(request.id);
-  }
-
-  /**
-   * Implement the 'analysis.updateSdks' request.
-   */
-  Response updateSdks(Request request) {
-    // added
-    RequestDatum addedDatum = request.getRequiredParameter(ADDED);
-    List<String> added = addedDatum.asStringList();
-    // removed
-    RequestDatum removedDatum = request.getRequiredParameter(REMOVED);
-    List<String> removed = removedDatum.asStringList();
-    // default
-    RequestDatum defaultDatum = request.getRequiredParameter(DEFAULT);
-    String defaultSdk = defaultDatum.asString();
-    // TODO(scheglov) implement
-    return null;
   }
 }
 

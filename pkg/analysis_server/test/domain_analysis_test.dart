@@ -144,16 +144,6 @@ main() {
         expect(options.enableDeferredLoading, equals(enableDeferredLoading));
       });
     });
-
-    test('updateSdks', () {
-      var request = new Request('0', ANALYSIS_UPDATE_SDKS);
-      request.setParameter(ADDED, ['/dart/sdk-1.3', '/dart/sdk-1.4']);
-      request.setParameter(REMOVED, ['/dart/sdk-1.2']);
-      request.setParameter(DEFAULT, '/dart/sdk-1.4');
-      var response = handler.handleRequest(request);
-      // TODO(scheglov) implement
-      expect(response, isNull);
-    });
   });
 }
 

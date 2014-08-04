@@ -28,7 +28,6 @@ const String ANALYSIS_SET_PRIORITY_FILES = 'analysis.setPriorityFiles';
 const String ANALYSIS_SET_SUBSCRIPTIONS = 'analysis.setSubscriptions';
 const String ANALYSIS_UPDATE_CONTENT = 'analysis.updateContent';
 const String ANALYSIS_UPDATE_OPTIONS = 'analysis.updateOptions';
-const String ANALYSIS_UPDATE_SDKS = 'analysis.updateSdks';
 
 //
 // Analysis notifications
