@@ -271,7 +271,7 @@ class AssistProcessor {
     String prefix = utils.getNodePrefix(body.parent);
     // add change
     String indent = utils.getIndent(1);
-    String returnSource = 'return ' + _getSource(returnValue);
+    String returnSource = 'return ' + _getNodeText(returnValue);
     String newBodySource = "{$eol$prefix${indent}$returnSource;$eol$prefix}";
     _addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
@@ -303,7 +303,7 @@ class AssistProcessor {
       return;
     }
     // add change
-    String newBodySource = "=> ${_getSource(returnExpression)}";
+    String newBodySource = "=> ${_getNodeText(returnExpression)}";
     if (body.parent is! FunctionExpression ||
         body.parent.parent is FunctionDeclaration) {
       newBodySource += ";";
@@ -500,8 +500,8 @@ class AssistProcessor {
       // exchange parts of "wide" expression parts
       SourceRange leftRange = rangeStartEnd(binaryExpression, leftOperand);
       SourceRange rightRange = rangeStartEnd(rightOperand, binaryExpression);
-      _addReplaceEdit(leftRange, _getSource2(rightRange));
-      _addReplaceEdit(rightRange, _getSource2(leftRange));
+      _addReplaceEdit(leftRange, _getRangeText(rightRange));
+      _addReplaceEdit(rightRange, _getRangeText(leftRange));
     }
     // add proposal
     _addAssist(AssistKind.EXCHANGE_OPERANDS, []);
@@ -604,8 +604,8 @@ class AssistProcessor {
     }
     // prepare source
     String invertedCondition = utils.invertCondition(condition);
-    String thenSource = _getSource(thenStatement);
-    String elseSource = _getSource(elseStatement);
+    String thenSource = _getNodeText(thenStatement);
+    String elseSource = _getNodeText(elseStatement);
     // do replacements
     _addReplaceEdit(rangeNode(condition), invertedCondition);
     _addReplaceEdit(rangeNode(thenStatement), elseSource);
@@ -649,8 +649,8 @@ class AssistProcessor {
     {
       Expression targetCondition = targetIfStatement.condition;
       Expression innerCondition = innerIfStatement.condition;
-      String targetConditionSource = _getSource(targetCondition);
-      String innerConditionSource = _getSource(innerCondition);
+      String targetConditionSource = _getNodeText(targetCondition);
+      String innerConditionSource = _getNodeText(innerCondition);
       if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
         targetConditionSource = "(${targetConditionSource})";
       }
@@ -665,8 +665,8 @@ class AssistProcessor {
       List<Statement> innerThenStatements = getStatements(innerThenStatement);
       SourceRange lineRanges =
           utils.getLinesRangeStatements(innerThenStatements);
-      String oldSource = utils.getText3(lineRanges);
-      String newSource = utils.getIndentSource2(oldSource, false);
+      String oldSource = utils.getRangeText(lineRanges);
+      String newSource = utils.indentSourceLeftRight(oldSource, false);
       _addReplaceEdit(
           rangeNode(targetIfStatement),
           "if ($condition) {${eol}${newSource}${prefix}}");
@@ -712,8 +712,8 @@ class AssistProcessor {
     {
       Expression targetCondition = targetIfStatement.condition;
       Expression outerCondition = outerIfStatement.condition;
-      String targetConditionSource = _getSource(targetCondition);
-      String outerConditionSource = _getSource(outerCondition);
+      String targetConditionSource = _getNodeText(targetCondition);
+      String outerConditionSource = _getNodeText(outerCondition);
       if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
         targetConditionSource = "(${targetConditionSource})";
       }
@@ -728,8 +728,8 @@ class AssistProcessor {
       List<Statement> targetThenStatements = getStatements(targetThenStatement);
       SourceRange lineRanges =
           utils.getLinesRangeStatements(targetThenStatements);
-      String oldSource = utils.getText3(lineRanges);
-      String newSource = utils.getIndentSource2(oldSource, false);
+      String oldSource = utils.getRangeText(lineRanges);
+      String newSource = utils.indentSourceLeftRight(oldSource, false);
       _addReplaceEdit(
           rangeNode(outerIfStatement),
           "if ($condition) {${eol}${newSource}${prefix}}");
@@ -981,9 +981,9 @@ class AssistProcessor {
     if (inVariable) {
       VariableDeclaration variable = conditional.parent as VariableDeclaration;
       _addRemoveEdit(rangeEndEnd(variable.name, conditional));
-      String conditionSrc = _getSource(conditional.condition);
-      String thenSrc = _getSource(conditional.thenExpression);
-      String elseSrc = _getSource(conditional.elseExpression);
+      String conditionSrc = _getNodeText(conditional.condition);
+      String thenSrc = _getNodeText(conditional.thenExpression);
+      String elseSrc = _getNodeText(conditional.elseExpression);
       String name = variable.name.name;
       String src = eol;
       src += prefix + 'if ($conditionSrc) {' + eol;
@@ -998,10 +998,10 @@ class AssistProcessor {
       AssignmentExpression assignment =
           conditional.parent as AssignmentExpression;
       Expression leftSide = assignment.leftHandSide;
-      String conditionSrc = _getSource(conditional.condition);
-      String thenSrc = _getSource(conditional.thenExpression);
-      String elseSrc = _getSource(conditional.elseExpression);
-      String name = _getSource(leftSide);
+      String conditionSrc = _getNodeText(conditional.condition);
+      String thenSrc = _getNodeText(conditional.thenExpression);
+      String elseSrc = _getNodeText(conditional.elseExpression);
+      String name = _getNodeText(leftSide);
       String src = '';
       src += 'if ($conditionSrc) {' + eol;
       src += prefix + indent + '$name = $thenSrc;' + eol;
@@ -1012,9 +1012,9 @@ class AssistProcessor {
     }
     // return Conditional;
     if (inReturn) {
-      String conditionSrc = _getSource(conditional.condition);
-      String thenSrc = _getSource(conditional.thenExpression);
-      String elseSrc = _getSource(conditional.elseExpression);
+      String conditionSrc = _getNodeText(conditional.condition);
+      String thenSrc = _getNodeText(conditional.thenExpression);
+      String elseSrc = _getNodeText(conditional.elseExpression);
       String src = '';
       src += 'if ($conditionSrc) {' + eol;
       src += prefix + indent + 'return $thenSrc;' + eol;
@@ -1045,9 +1045,9 @@ class AssistProcessor {
     if (thenStatement is ReturnStatement || elseStatement is ReturnStatement) {
       ReturnStatement thenReturn = thenStatement as ReturnStatement;
       ReturnStatement elseReturn = elseStatement as ReturnStatement;
-      String conditionSrc = _getSource(ifStatement.condition);
-      String theSrc = _getSource(thenReturn.expression);
-      String elseSrc = _getSource(elseReturn.expression);
+      String conditionSrc = _getNodeText(ifStatement.condition);
+      String theSrc = _getNodeText(thenReturn.expression);
+      String elseSrc = _getNodeText(elseReturn.expression);
       _addReplaceEdit(
           rangeNode(ifStatement),
           'return $conditionSrc ? $theSrc : $elseSrc;');
@@ -1061,14 +1061,14 @@ class AssistProcessor {
           elseExpression is AssignmentExpression) {
         AssignmentExpression thenAssignment = thenExpression;
         AssignmentExpression elseAssignment = elseExpression;
-        String thenTarget = _getSource(thenAssignment.leftHandSide);
-        String elseTarget = _getSource(elseAssignment.leftHandSide);
+        String thenTarget = _getNodeText(thenAssignment.leftHandSide);
+        String elseTarget = _getNodeText(elseAssignment.leftHandSide);
         if (thenAssignment.operator.type == TokenType.EQ &&
             elseAssignment.operator.type == TokenType.EQ &&
             StringUtils.equals(thenTarget, elseTarget)) {
-          String conditionSrc = _getSource(ifStatement.condition);
-          String theSrc = _getSource(thenAssignment.rightHandSide);
-          String elseSrc = _getSource(elseAssignment.rightHandSide);
+          String conditionSrc = _getNodeText(ifStatement.condition);
+          String theSrc = _getNodeText(thenAssignment.rightHandSide);
+          String elseSrc = _getNodeText(elseAssignment.rightHandSide);
           _addReplaceEdit(
               rangeNode(ifStatement),
               '$thenTarget = $conditionSrc ? $theSrc : $elseSrc;');
@@ -1125,7 +1125,7 @@ class AssistProcessor {
     {
       SourceRange rightConditionRange =
           rangeStartEnd(binaryExpression.rightOperand, condition);
-      rightConditionSource = _getSource2(rightConditionRange);
+      rightConditionSource = _getRangeText(rightConditionRange);
     }
     // remove "&& rightCondition"
     _addRemoveEdit(rangeEndEnd(binaryExpression.leftOperand, condition));
@@ -1154,7 +1154,7 @@ class AssistProcessor {
           String elseIndentOld = "${prefix}${indent}";
           String elseIndentNew = "${elseIndentOld}${indent}";
           String newElseSource =
-              utils.getIndentSource(elseLinesRange, elseIndentOld, elseIndentNew);
+              utils.replaceSourceRangeIndent(elseLinesRange, elseIndentOld, elseIndentNew);
           // append "else" block
           source += " else {${eol}";
           source += newElseSource;
@@ -1223,7 +1223,7 @@ class AssistProcessor {
     // add assignment statement
     String indent = utils.getNodePrefix(statement);
     String name = variable.name.name;
-    String initSrc = _getSource(initializer);
+    String initSrc = _getNodeText(initializer);
     SourceRange assignRange = rangeEndLength(statement, 0);
     _addReplaceEdit(assignRange, eol + indent + name + ' = ' + initSrc + ';');
     // add proposal
@@ -1539,19 +1539,17 @@ class AssistProcessor {
   }
 
   /**
-   * Returns the text of the given range in the unit.
+   * Returns the text of the given node in the unit.
    */
-  String _getSource(AstNode node) {
-    // TODO(scheglov) rename
-    return utils.getText(node);
+  String _getNodeText(AstNode node) {
+    return utils.getNodeText(node);
   }
 
   /**
    * Returns the text of the given range in the unit.
    */
-  String _getSource2(SourceRange range) {
-    // TODO(scheglov) rename
-    return utils.getText3(range);
+  String _getRangeText(SourceRange range) {
+    return utils.getRangeText(range);
   }
 
   /**

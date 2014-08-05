@@ -232,7 +232,7 @@ class CorrectionUtils {
    * relative to each other.
    */
   Edit createIndentEdit(SourceRange range, String oldIndent, String newIndent) {
-    String newSource = getIndentSource(range, oldIndent, newIndent);
+    String newSource = replaceSourceRangeIndent(range, oldIndent, newIndent);
     return new Edit(range.offset, range.length, newSource);
   }
 
@@ -255,95 +255,6 @@ class CorrectionUtils {
    * Returns the indentation with the given level.
    */
   String getIndent(int level) => repeat('  ', level);
-
-  /**
-   * Returns the source of the given [SourceRange] with indentation changed
-   * from [oldIndent] to [newIndent], keeping indentation of lines relative
-   * to each other.
-   */
-  String getIndentSource(SourceRange range, String oldIndent,
-      String newIndent) {
-    String oldSource = getText3(range);
-    return getIndentSource3(oldSource, oldIndent, newIndent);
-  }
-
-  /**
-   * Indents given source left or right.
-   */
-  String getIndentSource2(String source, bool right) {
-    // TODO(scheglov) rename
-    StringBuffer sb = new StringBuffer();
-    String indent = getIndent(1);
-    String eol = endOfLine;
-    List<String> lines = source.split(eol);
-    for (int i = 0; i < lines.length; i++) {
-      String line = lines[i];
-      // last line, stop if empty
-      if (i == lines.length - 1 && isEmpty(line)) {
-        break;
-      }
-      // update line
-      if (right) {
-        line = "${indent}${line}";
-      } else {
-        line = removeStart(line, indent);
-      }
-      // append line
-      sb.write(line);
-      sb.write(eol);
-    }
-    return sb.toString();
-  }
-
-  /**
-   * Returns the source with indentation changed from [oldIndent] to
-   * [newIndent], keeping indentation of lines relative to each other.
-   */
-  String getIndentSource3(String source, String oldIndent, String newIndent) {
-    // TODO(scheglov) rename
-    // prepare STRING token ranges
-    List<SourceRange> lineRanges = [];
-    {
-      var token = unit.beginToken;
-      while (token != null && token.type != TokenType.EOF) {
-        if (token.type == TokenType.STRING) {
-          lineRanges.add(rangeToken(token));
-        }
-        token = token.next;
-      }
-    }
-    // re-indent lines
-    StringBuffer sb = new StringBuffer();
-    String eol = endOfLine;
-    List<String> lines = source.split(eol);
-    int lineOffset = 0;
-    for (int i = 0; i < lines.length; i++) {
-      String line = lines[i];
-      // last line, stop if empty
-      if (i == lines.length - 1 && isEmpty(line)) {
-        break;
-      }
-      // check if "offset" is in one of the String ranges
-      bool inString = false;
-      for (SourceRange lineRange in lineRanges) {
-        if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
-          inString = true;
-        }
-        if (lineOffset > lineRange.end) {
-          break;
-        }
-      }
-      lineOffset += line.length + eol.length;
-      // update line indent
-      if (!inString) {
-        line = "${newIndent}${removeStart(line, oldIndent)}";
-      }
-      // append line
-      sb.write(line);
-      sb.write(eol);
-    }
-    return sb.toString();
-  }
 
   /**
    * Returns a [InsertDesc] describing where to insert a new library-related
@@ -412,7 +323,7 @@ class CorrectionUtils {
     String source = _buffer;
     // skip hash-bang
     if (offset < source.length - 2) {
-      String linePrefix = getText2(offset, 2);
+      String linePrefix = getText(offset, 2);
       if (linePrefix == "#!") {
         insertEmptyLineBefore = true;
         offset = getLineNext(offset);
@@ -435,7 +346,7 @@ class CorrectionUtils {
     }
     // skip line comments
     while (offset < source.length - 2) {
-      String linePrefix = getText2(offset, 2);
+      String linePrefix = getText(offset, 2);
       if (linePrefix == "//") {
         insertEmptyLineBefore = true;
         offset = getLineNext(offset);
@@ -549,7 +460,7 @@ class CorrectionUtils {
       }
       lineNonWhitespace++;
     }
-    return getText2(lineStart, lineNonWhitespace - lineStart);
+    return getText(lineStart, lineNonWhitespace - lineStart);
   }
 
   /**
@@ -604,6 +515,13 @@ class CorrectionUtils {
   }
 
   /**
+   * Returns the text of the given [AstNode] in the unit.
+   */
+  String getNodeText(AstNode node) {
+    return getText(node.offset, node.length);
+  }
+
+  /**
    * @return the source for the parameter with the given type and name.
    */
   String getParameterSource(DartType type, String name) {
@@ -651,27 +569,17 @@ class CorrectionUtils {
   }
 
   /**
-   * Returns the text of the given [AstNode] in the unit.
+   * Returns the text of the given range in the unit.
    */
-  String getText(AstNode node) {
-    // TODO(scheglov) rename
-    return getText2(node.offset, node.length);
+  String getRangeText(SourceRange range) {
+    return getText(range.offset, range.length);
   }
 
   /**
    * Returns the text of the given range in the unit.
    */
-  String getText2(int offset, int length) {
-    // TODO(scheglov) rename
+  String getText(int offset, int length) {
     return _buffer.substring(offset, offset + length);
-  }
-
-  /**
-   * Returns the text of the given range in the unit.
-   */
-  String getText3(SourceRange range) {
-    // TODO(scheglov) rename
-    return getText2(range.offset, range.length);
   }
 
   /**
@@ -732,10 +640,97 @@ class CorrectionUtils {
   }
 
   /**
+   * Indents given source left or right.
+   */
+  String indentSourceLeftRight(String source, bool right) {
+    StringBuffer sb = new StringBuffer();
+    String indent = getIndent(1);
+    String eol = endOfLine;
+    List<String> lines = source.split(eol);
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      // last line, stop if empty
+      if (i == lines.length - 1 && isEmpty(line)) {
+        break;
+      }
+      // update line
+      if (right) {
+        line = "${indent}${line}";
+      } else {
+        line = removeStart(line, indent);
+      }
+      // append line
+      sb.write(line);
+      sb.write(eol);
+    }
+    return sb.toString();
+  }
+
+  /**
    * @return the source of the inverted condition for the given logical expression.
    */
   String invertCondition(Expression expression) =>
       _invertCondition0(expression)._source;
+
+  /**
+   * Returns the source with indentation changed from [oldIndent] to
+   * [newIndent], keeping indentation of lines relative to each other.
+   */
+  String replaceSourceIndent(String source, String oldIndent, String newIndent) {
+    // prepare STRING token ranges
+    List<SourceRange> lineRanges = [];
+    {
+      var token = unit.beginToken;
+      while (token != null && token.type != TokenType.EOF) {
+        if (token.type == TokenType.STRING) {
+          lineRanges.add(rangeToken(token));
+        }
+        token = token.next;
+      }
+    }
+    // re-indent lines
+    StringBuffer sb = new StringBuffer();
+    String eol = endOfLine;
+    List<String> lines = source.split(eol);
+    int lineOffset = 0;
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      // last line, stop if empty
+      if (i == lines.length - 1 && isEmpty(line)) {
+        break;
+      }
+      // check if "offset" is in one of the String ranges
+      bool inString = false;
+      for (SourceRange lineRange in lineRanges) {
+        if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
+          inString = true;
+        }
+        if (lineOffset > lineRange.end) {
+          break;
+        }
+      }
+      lineOffset += line.length + eol.length;
+      // update line indent
+      if (!inString) {
+        line = "${newIndent}${removeStart(line, oldIndent)}";
+      }
+      // append line
+      sb.write(line);
+      sb.write(eol);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Returns the source of the given [SourceRange] with indentation changed
+   * from [oldIndent] to [newIndent], keeping indentation of lines relative
+   * to each other.
+   */
+  String replaceSourceRangeIndent(SourceRange range, String oldIndent,
+      String newIndent) {
+    String oldSource = getRangeText(range);
+    return replaceSourceIndent(oldSource, oldIndent, newIndent);
+  }
 
   /**
    * @return the [ImportElement] used to import given [Element] into [library].
@@ -805,8 +800,8 @@ class CorrectionUtils {
     }
     if (expression is IsExpression) {
       IsExpression isExpression = expression;
-      String expressionSource = getText(isExpression.expression);
-      String typeSource = getText(isExpression.type);
+      String expressionSource = getNodeText(isExpression.expression);
+      String typeSource = getNodeText(isExpression.type);
       if (isExpression.notOperator == null) {
         return _InvertedCondition._simple(
             "${expressionSource} is! ${typeSource}");
@@ -824,7 +819,7 @@ class CorrectionUtils {
           ParenthesizedExpression pe = operand as ParenthesizedExpression;
           operand = pe.expression;
         }
-        return _InvertedCondition._simple(getText(operand));
+        return _InvertedCondition._simple(getNodeText(operand));
       }
     }
     if (expression is ParenthesizedExpression) {
@@ -837,9 +832,9 @@ class CorrectionUtils {
     }
     DartType type = expression.bestType;
     if (type.displayName == "bool") {
-      return _InvertedCondition._simple("!${getText(expression)}");
+      return _InvertedCondition._simple("!${getNodeText(expression)}");
     }
-    return _InvertedCondition._simple(getText(expression));
+    return _InvertedCondition._simple(getNodeText(expression));
   }
 }
 
