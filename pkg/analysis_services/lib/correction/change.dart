@@ -11,12 +11,6 @@ import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/json.dart';
 
 
-_fromJsonList(List target, List<Map<String, Object>> jsonList,
-    decoder(Map<String, Object> json)) {
-  target.addAll(jsonList.map(decoder));
-}
-
-
 /**
  * A description of a single change to one or more files. 
  */
@@ -32,15 +26,14 @@ class Change implements HasToJson {
   final List<FileEdit> edits = <FileEdit>[];
 
   /**
-   * A list of the [LinkedPositionGroup]s in the change. 
+   * A list of the [LinkedEditGroup]s in the change. 
    */
-  final List<LinkedPositionGroup> linkedPositionGroups = <LinkedPositionGroup>[
-      ];
+  final List<LinkedEditGroup> linkedEditGroups = <LinkedEditGroup>[];
 
   /**
-   * An optional position to move selection to after applying this change.
+   * The position that should be selected after the edits have been applied.
    */
-  Position endPosition;
+  Position selection;
 
   Change(this.message);
 
@@ -52,36 +45,29 @@ class Change implements HasToJson {
   }
 
   /**
-   * Adds the given [LinkedPositionGroup].
+   * Adds the given [LinkedEditGroup].
    */
-  void addLinkedPositionGroup(LinkedPositionGroup linkedPositionGroup) {
-    linkedPositionGroups.add(linkedPositionGroup);
+  void addLinkedEditGroup(LinkedEditGroup linkedEditGroup) {
+    linkedEditGroups.add(linkedEditGroup);
   }
 
   @override
   Map<String, Object> toJson() {
-    return {
+    Map<String, Object> json = {
       MESSAGE: message,
       EDITS: objectToJson(edits),
-      LINKED_POSITION_GROUPS: objectToJson(linkedPositionGroups)
+      LINKED_EDIT_GROUPS: objectToJson(linkedEditGroups)
     };
+    if (selection != null) {
+      json[SELECTION] = selection.toJson();
+    }
+    return json;
   }
 
   @override
   String toString() =>
       'Change(message=$message, edits=$edits, '
-          'linkedPositionGroups=$linkedPositionGroups)';
-
-  static Change fromJson(Map<String, Object> json) {
-    String message = json[MESSAGE];
-    Change change = new Change(message);
-    _fromJsonList(change.edits, json[EDITS], FileEdit.fromJson);
-    _fromJsonList(
-        change.linkedPositionGroups,
-        json[LINKED_POSITION_GROUPS],
-        LinkedPositionGroup.fromJson);
-    return change;
-  }
+          'linkedEditGroups=$linkedEditGroups, selection=$selection)';
 }
 
 
@@ -132,13 +118,6 @@ class Edit implements HasToJson {
   @override
   String toString() =>
       "Edit(offset=$offset, length=$length, replacement=:>$replacement<:)";
-
-  static Edit fromJson(Map<String, Object> json) {
-    int offset = json[OFFSET];
-    int length = json[LENGTH];
-    String replacement = json[REPLACEMENT];
-    return new Edit(offset, length, replacement);
-  }
 }
 
 
@@ -175,13 +154,6 @@ class FileEdit implements HasToJson {
 
   @override
   String toString() => "FileEdit(file=$file, edits=$edits)";
-
-  static FileEdit fromJson(Map<String, Object> json) {
-    String file = json[FILE];
-    FileEdit fileEdit = new FileEdit(file);
-    _fromJsonList(fileEdit.edits, json[EDITS], Edit.fromJson);
-    return fileEdit;
-  }
 }
 
 
@@ -190,43 +162,84 @@ class FileEdit implements HasToJson {
  * modified - if one gets edited, all other positions in a group are edited the
  * same way. All linked positions in a group have the same content.
  */
-class LinkedPositionGroup implements HasToJson {
+class LinkedEditGroup implements HasToJson {
   final String id;
+  int length;
   final List<Position> positions = <Position>[];
-  final List<String> proposals = <String>[];
+  final List<LinkedEditSuggestion> suggestions = <LinkedEditSuggestion>[];
 
-  LinkedPositionGroup(this.id);
+  LinkedEditGroup(this.id);
 
-  void addPosition(Position position) {
-    if (positions.isNotEmpty && position.length != positions[0].length) {
-      throw new ArgumentError(
-          'All positions should have the same length. '
-              'Was: ${positions[0].length}. New: ${position.length}');
-    }
+  void addPosition(Position position, int length) {
     positions.add(position);
+    this.length = length;
   }
 
-  void addProposal(String proposal) {
-    proposals.add(proposal);
+  void addSuggestion(LinkedEditSuggestion suggestion) {
+    suggestions.add(suggestion);
   }
 
   @override
   Map<String, Object> toJson() {
     return {
       ID: id,
-      POSITIONS: objectToJson(positions)
+      LENGTH: length,
+      POSITIONS: objectToJson(positions),
+      SUGGESTIONS: objectToJson(suggestions)
     };
   }
 
   @override
-  String toString() => 'LinkedPositionGroup(id=$id, positions=$positions)';
+  String toString() =>
+      'LinkedEditGroup(id=$id, length=$length, '
+          'positions=$positions, suggestions=$suggestions)';
+}
 
-  static LinkedPositionGroup fromJson(Map<String, Object> json) {
-    String id = json[ID];
-    LinkedPositionGroup group = new LinkedPositionGroup(id);
-    _fromJsonList(group.positions, json[POSITIONS], Position.fromJson);
-    return group;
+
+/**
+ * A suggestion of a value that could be used to replace all of the linked edit
+ * regions in a [LinkedEditGroup].
+ */
+class LinkedEditSuggestion implements HasToJson {
+  final LinkedEditSuggestionKind kind;
+  final String value;
+
+  LinkedEditSuggestion(this.kind, this.value);
+
+  bool operator ==(other) {
+    if (other is LinkedEditSuggestion) {
+      return other.kind == kind && other.value == value;
+    }
+    return false;
   }
+
+  @override
+  Map<String, Object> toJson() {
+    return {
+      KIND: kind.name,
+      VALUE: value
+    };
+  }
+
+  @override
+  String toString() => '(kind=$kind, value=$value)';
+}
+
+
+/**
+ * An enumeration of the kind of values that can be suggested for a linked edit.
+ */
+class LinkedEditSuggestionKind {
+  static const METHOD = const LinkedEditSuggestionKind('METHOD');
+  static const PARAMETER = const LinkedEditSuggestionKind('PARAMETER');
+  static const TYPE = const LinkedEditSuggestionKind('TYPE');
+  static const VARIABLE = const LinkedEditSuggestionKind('VARIABLE');
+  final String name;
+
+  const LinkedEditSuggestionKind(this.name);
+
+  @override
+  String toString() => name;
 }
 
 
@@ -236,22 +249,18 @@ class LinkedPositionGroup implements HasToJson {
 class Position implements HasToJson {
   final String file;
   final int offset;
-  final int length;
 
-  Position(this.file, this.offset, this.length);
+  Position(this.file, this.offset);
 
   int get hashCode {
     int hash = file.hashCode;
     hash = hash * 31 + offset;
-    hash = hash * 31 + length;
     return hash;
   }
 
   bool operator ==(other) {
     if (other is Position) {
-      return other.file == file &&
-          other.offset == offset &&
-          other.length == length;
+      return other.file == file && other.offset == offset;
     }
     return false;
   }
@@ -260,18 +269,10 @@ class Position implements HasToJson {
   Map<String, Object> toJson() {
     return {
       FILE: file,
-      OFFSET: offset,
-      LENGTH: length
+      OFFSET: offset
     };
   }
 
   @override
-  String toString() => 'Position(file=$file, offset=$offset, length=$length)';
-
-  static Position fromJson(Map<String, Object> json) {
-    String file = json[FILE];
-    int offset = json[OFFSET];
-    int length = json[LENGTH];
-    return new Position(file, offset, length);
-  }
+  String toString() => 'Position(file=$file, offset=$offset)';
 }

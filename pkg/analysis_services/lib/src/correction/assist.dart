@@ -46,8 +46,8 @@ class AssistProcessor {
   String unitLibraryFolder;
 
   final List<Edit> edits = <Edit>[];
-  final Map<String, LinkedPositionGroup> linkedPositionGroups = <String,
-      LinkedPositionGroup>{};
+  final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
+      LinkedEditGroup>{};
   Position exitPosition = null;
   final List<Assist> assists = <Assist>[];
 
@@ -136,8 +136,8 @@ class AssistProcessor {
     Change change = new Change(message);
     change.add(fileEdit);
     linkedPositionGroups.values.forEach(
-        (group) => change.addLinkedPositionGroup(group));
-    change.endPosition = exitPosition;
+        (group) => change.addLinkedEditGroup(group));
+    change.selection = exitPosition;
     // add Assist
     Assist assist = new Assist(kind, change);
     assists.add(assist);
@@ -249,7 +249,7 @@ class AssistProcessor {
         if (i == 0) {
           builder.append(name);
         }
-        builder.addProposal(name);
+        builder.addSuggestion(LinkedEditSuggestionKind.VARIABLE, name);
       }
       builder.endPosition();
     }
@@ -1527,12 +1527,12 @@ class AssistProcessor {
   }
 
   /**
-   * Returns an existing or just added [LinkedPositionGroup] with [groupId].
+   * Returns an existing or just added [LinkedEditGroup] with [groupId].
    */
-  LinkedPositionGroup _getLinkedPosition(String groupId) {
-    LinkedPositionGroup group = linkedPositionGroups[groupId];
+  LinkedEditGroup _getLinkedPosition(String groupId) {
+    LinkedEditGroup group = linkedPositionGroups[groupId];
     if (group == null) {
-      group = new LinkedPositionGroup(groupId);
+      group = new LinkedEditGroup(groupId);
       linkedPositionGroups[groupId] = group;
     }
     return group;
@@ -1561,19 +1561,19 @@ class AssistProcessor {
     String text = builder.toString();
     _addInsertEdit(builder.offset, text);
     // add linked positions
-    builder.linkedPositionGroups.forEach((LinkedPositionGroup group) {
-      LinkedPositionGroup fixGroup = _getLinkedPosition(group.id);
+    builder.linkedPositionGroups.forEach((LinkedEditGroup group) {
+      LinkedEditGroup fixGroup = _getLinkedPosition(group.id);
       group.positions.forEach((Position position) {
-        fixGroup.addPosition(position);
+        fixGroup.addPosition(position, group.length);
       });
-      group.proposals.forEach((String proposal) {
-        fixGroup.addProposal(proposal);
+      group.suggestions.forEach((LinkedEditSuggestion suggestion) {
+        fixGroup.addSuggestion(suggestion);
       });
     });
   }
 
   Position _newPosition(int offset) {
-    return new Position(file, offset, 0);
+    return new Position(file, offset);
   }
 
   /**

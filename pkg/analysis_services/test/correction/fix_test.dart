@@ -50,9 +50,8 @@ class FixProcessorTest extends AbstractSingleUnitTest {
   }
 
   void assertHasPositionGroup(String id, List<Position> expectedPositions) {
-    List<LinkedPositionGroup> linkedPositionGroups =
-        change.linkedPositionGroups;
-    for (LinkedPositionGroup group in linkedPositionGroups) {
+    List<LinkedEditGroup> linkedPositionGroups = change.linkedEditGroups;
+    for (LinkedEditGroup group in linkedPositionGroups) {
       if (group.id == id) {
         expect(group.positions, unorderedEquals(expectedPositions));
         return;
@@ -92,7 +91,7 @@ bool test() {
   Position expectedPosition(String search) {
     int offset = resultCode.indexOf(search);
     int length = getLeadingIdentifierLength(search);
-    return new Position(testFile, offset, length);
+    return new Position(testFile, offset);
   }
 
   List<Position> expectedPositions(List<String> patterns) {
@@ -563,7 +562,7 @@ class B extends A {
     assertHasFix(FixKind.CREATE_MISSING_OVERRIDES, expectedCode);
     // end position should be on "m1", not on "m2", "m3", etc
     {
-      Position endPosition = change.endPosition;
+      Position endPosition = change.selection;
       expect(endPosition, isNotNull);
       expect(endPosition.file, testFile);
       int endOffset = endPosition.offset;
@@ -1608,11 +1607,28 @@ class A {
     _assertHasLinkedPositions('ARG1', ['d,']);
     _assertHasLinkedPositions('ARG2', ['s)']);
     // linked proposals
-    _assertHasLinkedProposals('TYPE0', ['int', 'num', 'Object', 'Comparable']);
-    _assertHasLinkedProposals(
+    _assertHasLinkedSuggestions(
+        'TYPE0',
+        expectedSuggestions(
+            LinkedEditSuggestionKind.TYPE,
+            ['int', 'num', 'Object', 'Comparable']));
+    _assertHasLinkedSuggestions(
         'TYPE1',
-        ['double', 'num', 'Object', 'Comparable']);
-    _assertHasLinkedProposals('TYPE2', ['String', 'Object', 'Comparable']);
+        expectedSuggestions(
+            LinkedEditSuggestionKind.TYPE,
+            ['double', 'num', 'Object', 'Comparable']));
+    _assertHasLinkedSuggestions(
+        'TYPE2',
+        expectedSuggestions(
+            LinkedEditSuggestionKind.TYPE,
+            ['String', 'Object', 'Comparable']));
+  }
+
+  List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
+      List<String> values) {
+    return values.map((value) {
+      return new LinkedEditSuggestion(kind, value);
+    }).toList();
   }
 
   void test_undefinedMethod_createUnqualified_returnType() {
@@ -1811,8 +1827,8 @@ main() {
 
   void _assertHasLinkedPositions(String groupId, List<String> expectedStrings) {
     List<Position> expectedPositions = _findResultPositions(expectedStrings);
-    List<LinkedPositionGroup> groups = change.linkedPositionGroups;
-    for (LinkedPositionGroup group in groups) {
+    List<LinkedEditGroup> groups = change.linkedEditGroups;
+    for (LinkedEditGroup group in groups) {
       if (group.id == groupId) {
         List<Position> actualPositions = group.positions;
         expect(actualPositions, unorderedEquals(expectedPositions));
@@ -1822,11 +1838,12 @@ main() {
     fail('No group with ID=$groupId foind in\n${groups.join('\n')}');
   }
 
-  void _assertHasLinkedProposals(String groupId, List<String> expected) {
-    List<LinkedPositionGroup> groups = change.linkedPositionGroups;
-    for (LinkedPositionGroup group in groups) {
+  void _assertHasLinkedSuggestions(String groupId,
+      List<LinkedEditSuggestion> expected) {
+    List<LinkedEditGroup> groups = change.linkedEditGroups;
+    for (LinkedEditGroup group in groups) {
       if (group.id == groupId) {
-        expect(group.proposals, expected);
+        expect(group.suggestions, expected);
         return;
       }
     }
@@ -1864,7 +1881,7 @@ main() {
     for (String search in searchStrings) {
       int offset = resultCode.indexOf(search);
       int length = getLeadingIdentifierLength(search);
-      positions.add(new Position(testFile, offset, length));
+      positions.add(new Position(testFile, offset));
     }
     return positions;
   }

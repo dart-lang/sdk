@@ -19,9 +19,9 @@ class SourceBuilder {
   final int offset;
   final StringBuffer _buffer = new StringBuffer();
 
-  final List<LinkedPositionGroup> linkedPositionGroups = <LinkedPositionGroup>[
+  final List<LinkedEditGroup> linkedPositionGroups = <LinkedEditGroup>[
       ];
-  LinkedPositionGroup _currentLinkedPositionGroup;
+  LinkedEditGroup _currentLinkedPositionGroup;
   int _currentPositionStart;
   int _exitOffset;
 
@@ -41,12 +41,13 @@ class SourceBuilder {
 
   int get length => _buffer.length;
 
-  void addProposal(String proposal) {
-    _currentLinkedPositionGroup.addProposal(proposal);
+  void addSuggestion(LinkedEditSuggestionKind kind, String value) {
+    var suggestion = new LinkedEditSuggestion(kind, value);
+    _currentLinkedPositionGroup.addSuggestion(suggestion);
   }
 
-  void addProposals(List<String> proposals) {
-    proposals.forEach((proposal) => addProposal(proposal));
+  void addSuggestions(LinkedEditSuggestionKind kind, List<String> values) {
+    values.forEach((value) => addSuggestion(kind, value));
   }
 
   /**
@@ -78,14 +79,14 @@ class SourceBuilder {
    */
   void startPosition(String groupId) {
     assert(_currentLinkedPositionGroup == null);
-    for (LinkedPositionGroup position in linkedPositionGroups) {
+    for (LinkedEditGroup position in linkedPositionGroups) {
       if (position.id == groupId) {
         _currentLinkedPositionGroup = position;
         break;
       }
     }
     if (_currentLinkedPositionGroup == null) {
-      _currentLinkedPositionGroup = new LinkedPositionGroup(groupId);
+      _currentLinkedPositionGroup = new LinkedEditGroup(groupId);
       linkedPositionGroups.add(_currentLinkedPositionGroup);
     }
     _currentPositionStart = _buffer.length;
@@ -100,7 +101,8 @@ class SourceBuilder {
   void _addPosition() {
     int start = offset + _currentPositionStart;
     int end = offset + _buffer.length;
-    Position position = new Position(file, start, end - start);
-    _currentLinkedPositionGroup.addPosition(position);
+    int length = end - start;
+    Position position = new Position(file, start);
+    _currentLinkedPositionGroup.addPosition(position, length);
   }
 }

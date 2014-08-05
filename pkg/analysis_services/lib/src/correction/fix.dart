@@ -55,9 +55,9 @@ class FixProcessor {
   String unitLibraryFolder;
 
   final List<Edit> edits = <Edit>[];
-  final Map<String, LinkedPositionGroup> linkedPositionGroups = <String,
-      LinkedPositionGroup>{};
-  Position endPosition = null;
+  final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
+      LinkedEditGroup>{};
+  Position exitPosition = null;
   final List<Fix> fixes = <Fix>[];
 
   CorrectionUtils utils;
@@ -215,15 +215,15 @@ class FixProcessor {
     Change change = new Change(message);
     change.add(fileEdit);
     linkedPositionGroups.values.forEach(
-        (group) => change.addLinkedPositionGroup(group));
-    change.endPosition = endPosition;
+        (group) => change.addLinkedEditGroup(group));
+    change.selection = exitPosition;
     // add Fix
     Fix fix = new Fix(kind, change);
     fixes.add(fix);
     // clear
     edits.clear();
     linkedPositionGroups.clear();
-    endPosition = null;
+    exitPosition = null;
   }
 
 
@@ -623,7 +623,7 @@ class FixProcessor {
       isFirst = false;
     }
     // add proposal
-    endPosition = new Position(file, insertOffset, 0);
+    exitPosition = new Position(file, insertOffset);
     _insertBuilder(sb);
     _addFix(FixKind.CREATE_MISSING_OVERRIDES, [missingOverrides.length]);
   }
@@ -701,7 +701,7 @@ class FixProcessor {
     }
     // done
     _insertBuilder(sb);
-    endPosition = new Position(file, insertOffset, 0);
+    exitPosition = new Position(file, insertOffset);
     // add proposal
     _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
   }
@@ -1236,7 +1236,7 @@ class FixProcessor {
         excluded.add(favorite);
         sb.startPosition("ARG${i}");
         sb.append(favorite);
-        sb.addProposals(suggestions);
+        sb.addSuggestions(LinkedEditSuggestionKind.PARAMETER, suggestions);
         sb.endPosition();
       }
     }
@@ -1344,9 +1344,9 @@ class FixProcessor {
    * Adds a single linked position to [groupId].
    */
   void _addLinkedPosition(String groupId, SourceRange range) {
-    Position position = new Position(file, range.offset, range.length);
-    LinkedPositionGroup group = _getLinkedPosition(groupId);
-    group.addPosition(position);
+    Position position = new Position(file, range.offset);
+    LinkedEditGroup group = _getLinkedPosition(groupId);
+    group.addPosition(position, range.length);
   }
 
   /**
@@ -1628,12 +1628,12 @@ class FixProcessor {
   }
 
   /**
-   * Returns an existing or just added [LinkedPositionGroup] with [groupId].
+   * Returns an existing or just added [LinkedEditGroup] with [groupId].
    */
-  LinkedPositionGroup _getLinkedPosition(String groupId) {
-    LinkedPositionGroup group = linkedPositionGroups[groupId];
+  LinkedEditGroup _getLinkedPosition(String groupId) {
+    LinkedEditGroup group = linkedPositionGroups[groupId];
     if (group == null) {
-      group = new LinkedPositionGroup(groupId);
+      group = new LinkedEditGroup(groupId);
       linkedPositionGroups[groupId] = group;
     }
     return group;
@@ -1778,13 +1778,13 @@ class FixProcessor {
     String text = builder.toString();
     _addInsertEdit(builder.offset, text);
     // add linked positions
-    builder.linkedPositionGroups.forEach((LinkedPositionGroup group) {
-      LinkedPositionGroup fixGroup = _getLinkedPosition(group.id);
+    builder.linkedPositionGroups.forEach((LinkedEditGroup group) {
+      LinkedEditGroup fixGroup = _getLinkedPosition(group.id);
       group.positions.forEach((Position position) {
-        fixGroup.addPosition(position);
+        fixGroup.addPosition(position, group.length);
       });
-      group.proposals.forEach((String proposal) {
-        fixGroup.addProposal(proposal);
+      group.suggestions.forEach((LinkedEditSuggestion suggestion) {
+        fixGroup.addSuggestion(suggestion);
       });
     });
   }
@@ -1874,7 +1874,7 @@ class FixProcessor {
         type.element is ClassElement) {
       alreadyAdded.add(type);
       ClassElement element = type.element as ClassElement;
-      sb.addProposal(element.name);
+      sb.addSuggestion(LinkedEditSuggestionKind.TYPE, element.name);
       _addSuperTypeProposals(sb, alreadyAdded, element.supertype);
       for (InterfaceType interfaceType in element.interfaces) {
         _addSuperTypeProposals(sb, alreadyAdded, interfaceType);

@@ -35,7 +35,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   Assist assist;
   Change change;
   String resultCode;
-  LinkedPositionGroup linkedPositionGroup;
+  LinkedEditGroup linkedPositionGroup;
 
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
@@ -61,11 +61,12 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     assertHasAssist(kind, expected);
   }
 
-  void assertHasPositionGroup(String id, List<Position> expectedPositions) {
-    List<LinkedPositionGroup> linkedPositionGroups =
-        change.linkedPositionGroups;
-    for (LinkedPositionGroup group in linkedPositionGroups) {
+  void assertHasPositionGroup(String id, int expectedLength,
+      List<Position> expectedPositions) {
+    List<LinkedEditGroup> linkedPositionGroups = change.linkedEditGroups;
+    for (LinkedEditGroup group in linkedPositionGroups) {
       if (group.id == id) {
+        expect(group.length, expectedLength);
         expect(group.positions, unorderedEquals(expectedPositions));
         linkedPositionGroup = group;
         return;
@@ -97,8 +98,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
 
   Position expectedPosition(String search) {
     int offset = resultCode.indexOf(search);
-    int length = getLeadingIdentifierLength(search);
-    return new Position(testFile, offset, length);
+    return new Position(testFile, offset);
   }
 
   List<Position> expectedPositions(List<String> patterns) {
@@ -107,6 +107,13 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
       positions.add(expectedPosition(search));
     });
     return positions;
+  }
+
+  List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
+      List<String> values) {
+    return values.map((value) {
+      return new LinkedEditSuggestion(kind, value);
+    }).toList();
   }
 
   void setUp() {
@@ -306,10 +313,13 @@ main() {
 }
 List<int> readBytes() => <int>[];
 ''');
-    assertHasPositionGroup('NAME', expectedPositions(['readBytes = ']));
+    assertHasPositionGroup('NAME', 9, expectedPositions(['readBytes = ']));
     expect(
-        linkedPositionGroup.proposals,
-        unorderedEquals(['list', 'bytes2', 'readBytes']));
+        linkedPositionGroup.suggestions,
+        unorderedEquals(
+            expectedSuggestions(
+                LinkedEditSuggestionKind.VARIABLE,
+                ['list', 'bytes2', 'readBytes'])));
   }
 
   void test_assignToLocalVariable_alreadyAssignment() {
@@ -2208,8 +2218,8 @@ main() {
 
   void _assertHasLinkedPositions(String groupId, List<String> expectedStrings) {
     List<Position> expectedPositions = _findResultPositions(expectedStrings);
-    List<LinkedPositionGroup> groups = change.linkedPositionGroups;
-    for (LinkedPositionGroup group in groups) {
+    List<LinkedEditGroup> groups = change.linkedEditGroups;
+    for (LinkedEditGroup group in groups) {
       if (group.id == groupId) {
         List<Position> actualPositions = group.positions;
         expect(actualPositions, unorderedEquals(expectedPositions));
@@ -2220,10 +2230,10 @@ main() {
   }
 
   void _assertHasLinkedProposals(String groupId, List<String> expected) {
-    List<LinkedPositionGroup> groups = change.linkedPositionGroups;
-    for (LinkedPositionGroup group in groups) {
+    List<LinkedEditGroup> groups = change.linkedEditGroups;
+    for (LinkedEditGroup group in groups) {
       if (group.id == groupId) {
-        expect(group.proposals, expected);
+        expect(group.suggestions, expected);
         return;
       }
     }
@@ -2234,8 +2244,7 @@ main() {
     List<Position> positions = <Position>[];
     for (String search in searchStrings) {
       int offset = resultCode.indexOf(search);
-      int length = getLeadingIdentifierLength(search);
-      positions.add(new Position(testFile, offset, length));
+      positions.add(new Position(testFile, offset));
     }
     return positions;
   }
