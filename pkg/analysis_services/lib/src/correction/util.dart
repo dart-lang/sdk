@@ -18,6 +18,26 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
+/**
+ * TODO(scheglov) replace with nodes once there will be [CompilationUnit#getComments].
+ *
+ * Returns [SourceRange]s of all comments in [unit].
+ */
+List<SourceRange> getCommentRanges(CompilationUnit unit) {
+  List<SourceRange> ranges = <SourceRange>[];
+  Token token = unit.beginToken;
+  while (token != null && token.type != TokenType.EOF) {
+    Token commentToken = token.precedingComments;
+    while (commentToken != null) {
+      ranges.add(rangeToken(commentToken));
+      commentToken = commentToken.next;
+    }
+    token = token.next;
+  }
+  return ranges;
+}
+
+
 String getDefaultValueCode(DartType type) {
   if (type != null) {
     String typeName = type.displayName;
@@ -78,7 +98,6 @@ Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
   return namespace.definedNames;
 }
 
-
 /**
  * Returns an [Element] exported from the given [LibraryElement].
  */
@@ -88,6 +107,7 @@ Element getExportedElement(LibraryElement library, String name) {
   }
   return getExportNamespaceForLibrary(library)[name];
 }
+
 
 /**
  * Returns [getExpressionPrecedence] for the parent of [node],
@@ -102,7 +122,6 @@ int getExpressionParentPrecedence(AstNode node) {
   }
   return getExpressionPrecedence(parent);
 }
-
 
 /**
  * Returns the precedence of [node] it is an [Expression], negative otherwise.
@@ -158,6 +177,7 @@ Statement getSingleStatement(Statement statement) {
   }
   return statement;
 }
+
 
 /**
  * Returns the [String] content of the given [Source].
@@ -862,9 +882,9 @@ class _InvertedCondition {
   }
 
   /**
- * Adds enclosing parenthesis if the precedence of the [_InvertedCondition] if less than the
- * precedence of the expression we are going it to use in.
- */
+   * Adds enclosing parenthesis if the precedence of the [_InvertedCondition] if less than the
+   * precedence of the expression we are going it to use in.
+   */
   static String _parenthesizeIfRequired(_InvertedCondition expr,
       int newOperatorPrecedence) {
     if (expr._precedence < newOperatorPrecedence) {
@@ -872,7 +892,6 @@ class _InvertedCondition {
     }
     return expr._source;
   }
-
 
   static _InvertedCondition _simple(String source) =>
       new _InvertedCondition(2147483647, source);

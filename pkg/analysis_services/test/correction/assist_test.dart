@@ -14,6 +14,7 @@ import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
 import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
+import 'package:collection/collection.dart';
 import 'package:unittest/unittest.dart';
 
 
@@ -2001,9 +2002,189 @@ main() {
     assertNoAssistAt('v = 1', AssistKind.SPLIT_VARIABLE_DECLARATION);
   }
 
+  void test_surroundWith_block() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_BLOCK, '''
+main() {
+// start
+  {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_doWhile() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_DO_WHILE, '''
+main() {
+// start
+  do {
+    print(0);
+    print(1);
+  } while (condition);
+// end
+}
+''');
+  }
+
+  void test_surroundWith_for() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_FOR, '''
+main() {
+// start
+  for (var v = init; condition; increment) {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_forIn() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_FOR_IN, '''
+main() {
+// start
+  for (var item in iterable) {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_if() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_IF, '''
+main() {
+// start
+  if (condition) {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_tryCatch() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_TRY_CATCH, '''
+main() {
+// start
+  try {
+    print(0);
+    print(1);
+  } on Exception catch (e) {
+    // TODO
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_tryFinally() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_TRY_FINALLY, '''
+main() {
+// start
+  try {
+    print(0);
+    print(1);
+  } finally {
+    // TODO
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_while() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_WHILE, '''
+main() {
+// start
+  while (condition) {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
   String _applyEdits(String code, List<Edit> edits) {
-    edits.sort((a, b) => b.offset - a.offset);
-    edits.forEach((Edit edit) {
+    mergeSort(edits, compare: (a, b) => a.offset - b.offset);
+    edits.reversed.forEach((Edit edit) {
       code = code.substring(0, edit.offset) +
           edit.replacement +
           code.substring(edit.end);
@@ -2062,5 +2243,10 @@ main() {
   void _indexTestUnit(String code) {
     resolveTestUnit(code);
     index.indexUnit(context, testUnit);
+  }
+
+  void _setStartEndSelection() {
+    offset = findOffset('// start\n') + '// start\n'.length;
+    length = findOffset('// end') - offset;
   }
 }

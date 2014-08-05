@@ -23,10 +23,21 @@ class SourceBuilder {
       ];
   LinkedPositionGroup _currentLinkedPositionGroup;
   int _currentPositionStart;
+  int _exitOffset;
 
   SourceBuilder(this.file, this.offset);
 
   SourceBuilder.buffer() : file = null, offset = 0;
+
+  /**
+   * Returns the exit offset, maybe `null` if not set.
+   */
+  int get exitOffset {
+    if (_exitOffset == null) {
+      return null;
+    }
+    return offset + _exitOffset;
+  }
 
   int get length => _buffer.length;
 
@@ -53,6 +64,13 @@ class SourceBuilder {
     assert(_currentLinkedPositionGroup != null);
     _addPosition();
     _currentLinkedPositionGroup = null;
+  }
+
+  /**
+   * Marks the current offset as an "exit" one.
+   */
+  void setExitOffset() {
+    _exitOffset = _buffer.length;
   }
 
   /**
