@@ -998,6 +998,11 @@ class BrowserTestRunner {
   void handleTimeout(BrowserTestingStatus status) {
     // We simply kill the browser and starts up a new one!
     // We could be smarter here, but it does not seems like it is worth it.
+    if (status.timeout) {
+      DebugLogger.error(
+          "Got test timeout for an already restarting browser");
+      return;
+    }
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
@@ -1094,6 +1099,8 @@ class BrowserTestRunner {
          browserName == 'DartiumOnAndroid' ) &&
         status.timeSinceRestart.elapsed > RESTART_BROWSER_INTERVAL) {
       var id = status.browser.id;
+      // Reset stopwatch so we don't trigger again before restarting.
+      status.timeout = true;
       status.browser.close().then((_) {
         // We don't want to start a new browser if we are terminating.
         if (underTermination) return;
@@ -1143,12 +1150,14 @@ class BrowserTestRunner {
   void handleNextTestTimeout(status) {
     DebugLogger.warning(
         "Browser timed out before getting next test. Restarting");
+    if (status.timeout) return;
     numBrowserGetTestTimeouts++;
     if (numBrowserGetTestTimeouts >= MAX_NEXT_TEST_TIMEOUTS) {
       DebugLogger.error(
           "Too many browser timeouts before getting next test. Terminating");
       terminate().then((_) => exit(1));
     } else {
+      status.timeout = true;
       status.browser.close().then((_) => restartBrowser(status.browser.id));
     }
   }
