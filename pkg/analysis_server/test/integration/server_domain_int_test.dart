@@ -49,18 +49,19 @@ class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
     });
     return server_setSubscriptions([]).then((response) {
       expect(response, isNull);
-      writeFile('test.dart', '''
+      String pathname = sourcePath('test.dart');
+      writeFile(pathname, '''
 main() {
   var x;
 }''');
-      setAnalysisRoots(['']);
+      standardAnalysisRoot();
       // Analysis should begin, but no server.status notification should be
       // received.
       return analysisBegun.future.then((_) {
         expect(statusReceived, isFalse);
         return server_setSubscriptions(['STATUS']).then((_) {
           // Tickle test.dart just in case analysis has already completed.
-          writeFile('test.dart', '''
+          writeFile(pathname, '''
 main() {
   var y;
 }''');
@@ -112,11 +113,11 @@ main() {
         }
       }
     });
-    writeFile('test.dart', '''
+    writeFile(sourcePath('test.dart'), '''
 main() {
   var x;
 }''');
-    setAnalysisRoots(['']);
+    standardAnalysisRoot();
     expect(analysisBegun.isCompleted, isFalse);
     expect(analysisFinished.isCompleted, isFalse);
     return analysisBegun.future.then((_) {

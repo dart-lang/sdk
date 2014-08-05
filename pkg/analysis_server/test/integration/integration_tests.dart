@@ -55,17 +55,16 @@ abstract class AbstractAnalysisServerIntegrationTest {
   var serverConnectedParams;
 
   /**
-   * Write a source file with the given contents.  [relativePath]
-   * is relative to [sourceDirectory]; on Windows any forward slashes it
-   * contains are converted to backslashes.
+   * Write a source file with the given absolute [pathname] and [contents].
    *
    * If the file didn't previously exist, it is created.  If it did, it is
    * overwritten.
+   *
+   * Parent directories are created as necessary.
    */
-  void writeFile(String relativePath, String contents) {
-    String absolutePath = normalizePath(relativePath);
-    new Directory(dirname(absolutePath)).createSync(recursive: true);
-    new File(absolutePath).writeAsStringSync(contents);
+  void writeFile(String pathname, String contents) {
+    new Directory(dirname(pathname)).createSync(recursive: true);
+    new File(pathname).writeAsStringSync(contents);
   }
 
   /**
@@ -73,16 +72,17 @@ abstract class AbstractAnalysisServerIntegrationTest {
    * relative to [sourceDirectory].  On Windows any forward slashes in
    * [relativePath] are converted to backslashes.
    */
-  String normalizePath(String relativePath) {
+  String sourcePath(String relativePath) {
     return join(sourceDirectory.path, relativePath.replaceAll('/', separator));
   }
 
   /**
-   * Send the server an 'analysis.setAnalysisRoots' command.
+   * Send the server an 'analysis.setAnalysisRoots' command directing it to
+   * analyze [sourceDirectory].
    */
-  Future setAnalysisRoots(List<String> relativeRoots) {
+  Future standardAnalysisRoot() {
     return server.send(ANALYSIS_SET_ANALYSIS_ROOTS, {
-      'included': relativeRoots.map(normalizePath).toList(),
+      'included': [sourceDirectory.path],
       'excluded': []
     });
   }

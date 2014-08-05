@@ -17,8 +17,7 @@ class CompletionDomainIntegrationTest extends
     AbstractAnalysisServerIntegrationTest {
   fail_test_getSuggestions_string_var() {
     // See dartbug.com/20188
-    String filename = 'test.dart';
-    String pathname = normalizePath(filename);
+    String pathname = sourcePath('test.dart');
     String text =
         r'''
 var test = '';
@@ -26,8 +25,8 @@ main() {
   test.
 }
 ''';
-    writeFile(filename, text);
-    setAnalysisRoots(['']);
+    writeFile(pathname, text);
+    standardAnalysisRoot();
 
     return analysisFinished.then((_) {
       return server.send(COMPLETION_GET_SUGGESTIONS, {

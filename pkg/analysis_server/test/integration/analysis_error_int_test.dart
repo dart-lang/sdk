@@ -14,19 +14,19 @@ import 'protocol_matchers.dart';
 class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest
     {
   test_detect_simple_error() {
-    writeFile('test.dart',
+    String pathname = sourcePath('test.dart');
+    writeFile(pathname,
         '''
 main() {
   var x // parse error: missing ';'
 }''');
-    setAnalysisRoots(['']);
+    standardAnalysisRoot();
     return analysisFinished.then((_) {
-      String filePath = normalizePath('test.dart');
-      expect(currentAnalysisErrors[filePath], isList);
-      List errors = currentAnalysisErrors[filePath];
+      expect(currentAnalysisErrors[pathname], isList);
+      List errors = currentAnalysisErrors[pathname];
       expect(errors, hasLength(1));
       expect(errors[0], isAnalysisError);
-      expect(errors[0]['location']['file'], equals(filePath));
+      expect(errors[0]['location']['file'], equals(pathname));
     });
   }
 }

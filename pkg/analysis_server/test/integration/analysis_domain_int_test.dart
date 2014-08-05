@@ -18,8 +18,7 @@ import 'protocol_matchers.dart';
 class AnalysisDomainIntegrationTest extends
     AbstractAnalysisServerIntegrationTest {
   test_getHover() {
-    String filename = 'test.dart';
-    String pathname = normalizePath(filename);
+    String pathname = sourcePath('test.dart');
     String text =
         r'''
 library lib.test;
@@ -39,8 +38,8 @@ main() {
   func(35);
 }
 ''';
-    writeFile(filename, text);
-    setAnalysisRoots(['']);
+    writeFile(pathname, text);
+    standardAnalysisRoot();
 
     testHover(String target, int length, List<String> descriptionRegexps, String
         kind, List<String> staticTypeRegexps, {bool isCore: false, String docRegexp:
@@ -138,15 +137,14 @@ main() {
   }
 
   test_getHover_noInfo() {
-    String filename = 'test.dart';
-    String pathname = normalizePath(filename);
+    String pathname = sourcePath('test.dart');
     String text = r'''
 main() {
   // no code
 }
 ''';
-    writeFile(filename, text);
-    setAnalysisRoots(['']);
+    writeFile(pathname, text);
+    standardAnalysisRoot();
 
     // Note: analysis.getHover doesn't wait for analysis to complete--it simply
     // returns the latest results that are available at the time that the
@@ -171,14 +169,13 @@ main() {
   }
 
   Future getErrorsTest(bool afterAnalysis) {
-    String filename = 'test.dart';
-    String pathname = normalizePath(filename);
+    String pathname = sourcePath('test.dart');
     String text = r'''
 main() {
   var x // parse error: missing ';'
 }''';
-    writeFile(filename, text);
-    setAnalysisRoots(['']);
+    writeFile(pathname, text);
+    standardAnalysisRoot();
     Future finishTest() {
       return server.send(ANALYSIS_GET_ERRORS, {
         'file': pathname
@@ -203,15 +200,14 @@ main() {
   }
 
   Future updateContentTest(bool includeOffsetAndLengths) {
-    String filename = 'test.dart';
-    String pathname = normalizePath(filename);
+    String pathname = sourcePath('test.dart');
     String goodText = r'''
 main() {
   print("Hello, world!");
 }''';
     String badText = goodText.replaceAll(';', '');
-    writeFile(filename, badText);
-    setAnalysisRoots(['']);
+    writeFile(pathname, badText);
+    standardAnalysisRoot();
     return analysisFinished.then((_) {
       // The contents on disk (badText) are missing a semicolon.
       expect(currentAnalysisErrors[pathname], isNot(isEmpty));
