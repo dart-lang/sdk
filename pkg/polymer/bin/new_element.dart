@@ -2,14 +2,16 @@
 /// Script to create boilerplate for a Polymer element.
 /// Produces .dart and .html files for the element.
 /// 
-/// Run this script with pub run.
+/// Run this script with pub run:
+/// 
+///     pub run polymer:new_element element-name [-o output_dir]
 /// 
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path show absolute, dirname, join, split;
 
 void main(List<String> args) {
-  var parser = new ArgParser();
+  var parser = new ArgParser(allowTrailingOptions: true);
   
   parser.addOption('output-dir', abbr: 'o', help: 'Output directory');
   
@@ -21,13 +23,13 @@ void main(List<String> args) {
     }
     element = options.rest[0];
     _validateElementName(element);
-  } on FormatException catch(e) {
-    print(e);
-    print(parser.getUsage());
+  } catch(e) {
+    print('Usage:');
+    print('  pub run polymer:new_element [-o output_dir] element-name');
     exitCode = 1;
     return;
   } 
-
+  
   var outputDir, startDir;
   
   var outputPath = options['output-dir'];
