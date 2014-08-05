@@ -367,7 +367,7 @@ void testNormalization() {
 
 main() {
   testUri("http:", true);
-  testUri("file://", true);
+  testUri("file:///", true);
   testUri("file", false);
   testUri("http://user@example.com:8080/fisk?query=89&hest=silas", true);
   testUri("http://user@example.com:8080/fisk?query=89&hest=silas#fragment",
@@ -390,7 +390,7 @@ main() {
                           path: "/a/b/c/",
                           query: null,
                           fragment: null).toString());
-  Expect.stringEquals("file://", Uri.parse("file:").toString());
+  Expect.stringEquals("file:///", Uri.parse("file:").toString());
 
   testResolvePath("/a/g", "/a/b/c/./../../g");
   testResolvePath("/a/g", "/a/b/c/./../../g");

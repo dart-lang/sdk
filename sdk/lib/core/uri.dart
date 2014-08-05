@@ -371,8 +371,9 @@ class Uri {
     }
 
     assert(state == NOT_IN_PATH);
-    bool ensureLeadingSlash = (host != null || scheme == "file");
-    path = _makePath(uri, pathStart, index, null, ensureLeadingSlash);
+    bool isFile = (scheme == "file");
+    bool ensureLeadingSlash = host != null;
+    path = _makePath(uri, pathStart, index, null, ensureLeadingSlash, isFile);
 
     if (char == _QUESTION) {
       int numberSignIndex = uri.indexOf('#', index + 1);
@@ -494,10 +495,9 @@ class Uri {
         (userInfo.isNotEmpty || port != null || isFile)) {
       host = "";
     }
-    bool ensureLeadingSlash = (host != null || isFile);
+    bool ensureLeadingSlash = host != null;
     path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
-                     ensureLeadingSlash);
-
+                     ensureLeadingSlash, isFile);
     return new Uri._internal(scheme, userInfo, host, port,
                              path, query, fragment);
   }
@@ -1018,8 +1018,9 @@ class Uri {
 
   static String _makePath(String path, int start, int end,
                           Iterable<String> pathSegments,
-                          bool ensureLeadingSlash) {
-    if (path == null && pathSegments == null) return "";
+                          bool ensureLeadingSlash,
+                          bool isFile) {
+    if (path == null && pathSegments == null) return isFile ? "/" : "";
     if (path != null && pathSegments != null) {
       throw new ArgumentError('Both path and pathSegments specified');
     }
@@ -1029,7 +1030,10 @@ class Uri {
     } else {
       result = pathSegments.map((s) => _uriEncode(_pathCharTable, s)).join("/");
     }
-    if (ensureLeadingSlash && result.isNotEmpty && !result.startsWith("/")) {
+    if (result.isEmpty) {
+      if (isFile) return "/";
+    } else if ((isFile || ensureLeadingSlash) &&
+               result.codeUnitAt(0) != _SLASH) {
       return "/$result";
     }
     return result;
