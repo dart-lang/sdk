@@ -77,8 +77,6 @@ class IrBuilderTask extends CompilerTask {
             nodes[element] = function;
             compiler.tracer.traceCompilation(element.name, null, compiler);
             compiler.tracer.traceGraph("IR Builder", function);
-
-            new ir.RegisterAllocator().visit(function);
           }
         }
       });
