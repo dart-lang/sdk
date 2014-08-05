@@ -552,6 +552,7 @@ class Server {
     if (Platform.packageRoot.isNotEmpty) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
+    arguments.add('--checked');
     arguments.add(serverPath);
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
