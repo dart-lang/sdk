@@ -365,6 +365,68 @@ void testNormalization() {
                         query: "", fragment: "").toString());
 }
 
+void testReplace() {
+  var uris = [
+    Uri.parse(""),
+    Uri.parse("a://@:/?#"),
+    Uri.parse("a://b@c:4/e/f?g#h"),
+    Uri.parse("$SCHEMECHAR://$USERINFOCHAR@$REGNAMECHAR:$DIGIT/$PCHAR/$PCHAR"
+              "?$QUERYCHAR#$QUERYCHAR"),
+  ];
+  for (var uri1 in uris) {
+    for (var uri2 in uris) {
+      if (identical(uri1, uri2)) continue;
+      var scheme = uri1.scheme;
+      var userInfo = uri1.hasAuthority ? uri1.userInfo : "";
+      var host = uri1.hasAuthority ? uri1.host : null;
+      var port = uri1.hasAuthority ? uri1.port : 0;
+      var path = uri1.path;
+      var query = uri1.hasQuery ? uri1.query : null;
+      var fragment = uri1.hasFragment ? uri1.fragment : null;
+
+      var tmp1 = uri1;
+      test() {
+        var tmp2 = new Uri(scheme: scheme, userInfo: userInfo, host: host,
+                           port: port, path: path,
+                           query: query == "" ? null : query,
+                           queryParameters: query == "" ? {} : null,
+                           fragment: fragment);
+        Expect.equals(tmp1, tmp2);
+      }
+
+      test();
+
+      scheme = uri2.scheme;
+      tmp1 = tmp1.replace(scheme: scheme);
+      test();
+
+      if (uri2.hasAuthority) {
+        userInfo = uri2.userInfo;
+        host = uri2.host;
+        port = uri2.port;
+        tmp1 = tmp1.replace(userInfo: userInfo, host: host, port: port);
+        test();
+      }
+
+      path = uri2.path;
+      tmp1 = tmp1.replace(path: path);
+      test();
+
+      if (uri2.hasQuery) {
+        query = uri2.query;
+        tmp1 = tmp1.replace(query: query);
+        test();
+      }
+
+      if (uri2.hasFragment) {
+        fragment = uri2.fragment;
+        tmp1 = tmp1.replace(fragment: fragment);
+        test();
+      }
+    }
+  }
+}
+
 main() {
   testUri("http:", true);
   testUri("file:///", true);
@@ -529,6 +591,7 @@ main() {
   testValidCharacters();
   testInvalidUrls();
   testNormalization();
+  testReplace();
 }
 
 String dump(Uri uri) {

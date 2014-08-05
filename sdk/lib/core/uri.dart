@@ -481,7 +481,7 @@ class Uri {
                Iterable<String> pathSegments,
                String query,
                Map<String, String> queryParameters,
-               fragment}) {
+               String fragment}) {
     scheme = _makeScheme(scheme, _stringOrNullLength(scheme));
     userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
     host = _makeHost(host, 0, _stringOrNullLength(host), false);
@@ -816,6 +816,116 @@ class Uri {
       _checkWindowsPathReservedCharacters(pathSegments, true);
       return new Uri(pathSegments: pathSegments);
     }
+  }
+
+  /**
+   * Returns a new `Uri` based on this one, but with some parts replaced.
+   *
+   * This method takes the same parameters as the [new Uri] constructor,
+   * and they have the same meaning.
+   *
+   * At most one of [path] and [pathSegments] must be provided.
+   * Likewise, at most one of [query] and [queryParameters] must be provided.
+   *
+   * Each part that is not provided will default to the corresponding
+   * value from this `Uri` instead.
+   *
+   * This method is different from [Uri.resolve] which overrides in a
+   * hierarchial manner,
+   * and can instead replace each part of a `Uri` individually.
+   *
+   * Example:
+   *
+   *     Uri uri1 = Uri.parse("a://b@c:4/d/e?f#g");
+   *     Uri uri2 = uri1.replace(scheme: "A", path: "D/E/E", fragment: "G");
+   *     print(uri2);  // prints "A://b@c:4/D/E/E/?f#G"
+   *
+   * This method acts similarly to using the `new Uri` constructor with
+   * some of the arguments taken from this `Uri` . Example:
+   *
+   *     Uri uri3 = new Uri(
+   *         scheme: "A",
+   *         userInfo: uri1.userInfo,
+   *         host: uri1.host,
+   *         port: uri1.port,
+   *         path: "D/E/E",
+   *         query: uri1.query,
+   *         fragment: "G");
+   *     print(uri3);  // prints "A://b@c:4/D/E/E/?f#G"
+   *     print(uri2 == uri3);  // prints true.
+   *
+   * Using this method can be seen as a shorthand for the `Uri` constructor
+   * call above, but may also be slightly faster because the parts taken
+   * from this `Uri` need not be checked for validity again.
+   */
+  Uri replace({String scheme,
+               String userInfo,
+               String host,
+               int port,
+               String path,
+               Iterable<String> pathSegments,
+               String query,
+               Map<String, String> queryParameters,
+               String fragment}) {
+    // Set to true if the scheme has (potentially) changed.
+    // In that case, the default port may also have changed and we need
+    // to check even the existing port.
+    bool schemeChanged = false;
+    if (scheme != null) {
+      scheme = _makeScheme(scheme, scheme.length);
+      schemeChanged = true;
+    } else {
+      scheme = this.scheme;
+    }
+    bool isFile = (scheme == "file");
+    if (userInfo != null) {
+      userInfo = _makeUserInfo(userInfo, 0, userInfo.length);
+    } else {
+      userInfo = this.userInfo;
+    }
+    if (port != null) {
+      port = _makePort(port, scheme);
+    } else {
+      port = this.port;
+      if (schemeChanged) {
+        // The default port might have changed.
+        port = _makePort(port, scheme);
+      }
+    }
+    if (host != null) {
+      host = _makeHost(host, 0, host.length, false);
+    } else if (this.hasAuthority) {
+      host = this.host;
+    } else if (userInfo.isNotEmpty || port != null || isFile) {
+      host = "";
+    }
+
+    bool ensureLeadingSlash = (host != null);
+    if (path != null || pathSegments != null) {
+      path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
+                       ensureLeadingSlash, isFile);
+    } else {
+      path = this.path;
+      if ((isFile || (ensureLeadingSlash && !path.isEmpty)) &&
+          !path.startsWith('/')) {
+        path = "/$path";
+      }
+    }
+
+    if (query != null || queryParameters != null) {
+      query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
+    } else if (this.hasQuery) {
+      query = this.query;
+    }
+
+    if (fragment != null) {
+      fragment = _makeFragment(fragment, 0, fragment.length);
+    } else if (this.hasFragment) {
+      fragment = this.fragment;
+    }
+
+    return new Uri._internal(
+        scheme, userInfo, host, port, path, query, fragment);
   }
 
   /**
