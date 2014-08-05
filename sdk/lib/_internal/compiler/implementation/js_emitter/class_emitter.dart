@@ -80,32 +80,10 @@ class ClassEmitter extends CodeEmitterHelper {
     //        [ constructorName, fields,
     //            fields.map(
     //                (name) => js('this.# = #', [name, name]))]));
-    task.precompiledFunction.add(
-        new jsAst.FunctionDeclaration(
-            new jsAst.VariableDeclaration(constructorName),
-            js('function(#) { #; }',
-                [fields,
-                 fields.map((name) => js('this.# = #', [name, name]))])));
-    // TODO(floitsch): do we actually need the name field?
-    // TODO(floitsch): these should all go through the namer.
-
-    task.precompiledFunction.add(
-        js.statement(r'''{
-          #.builtin$cls = #;
-          if (!"name" in #)
-              #.name = #;
-          $desc=$collectedClasses.#;
-          if ($desc instanceof Array) $desc = $desc[1];
-          #.prototype = $desc;
-        }''',
-            [   constructorName, js.string(constructorName),
-                constructorName,
-                constructorName, js.string(constructorName),
-                constructorName,
-                constructorName
-             ]));
-
-    task.precompiledConstructorNames.add(js('#', constructorName));
+    jsAst.Expression constructorAst = js('function(#) { #; }',
+        [fields,
+         fields.map((name) => js('this.# = #', [name, name]))]);
+    task.emitPrecompiledConstructor(constructorName, constructorAst);
   }
 
   /// Returns `true` if fields added.

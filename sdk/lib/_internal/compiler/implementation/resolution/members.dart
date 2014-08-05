@@ -1301,6 +1301,7 @@ class ResolverTask extends CompilerTask {
 
   TreeElements resolveTypedef(TypedefElementX element) {
     if (element.isResolved) return element.treeElements;
+    compiler.world.allTypedefs.add(element);
     return _resolveTypeDeclaration(element, () {
       ResolutionRegistry registry = new ResolutionRegistry(compiler, element);
       return compiler.withCurrentElement(element, () {
