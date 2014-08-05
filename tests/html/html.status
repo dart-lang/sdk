@@ -57,6 +57,16 @@ xhr_test/xhr: RuntimeError # Issue 19127
 worker_test/functional: Pass, Crash # Issue 9929.
 touchevent_test/supported: Pass, Fail # Issue 17061
 
+[ $compiler == none && $runtime == drt && $system == windows && $checked ]
+fileapi_test/getDirectory: RuntimeError # Issue 20366
+fileapi_test/getFile: RuntimeError # Issue 20366
+fileapi_test/directoryReader: RuntimeError # Issue 20366
+fileapi_test/entry: RuntimeError # Issue 20366
+fileapi_test/fileEntry: RuntimeError # Issue 20366
+indexeddb_2_test: RuntimeError # Issue 20366
+html/indexeddb_5_test: RuntimeError # Issue 20366
+xhr_test/xhr_requestBlob: RuntimeError # Issue 20366
+
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
 input_element_test/supported_datetime-local: Pass, Slow # TODO(dart2js-team): Please triage this failure.
