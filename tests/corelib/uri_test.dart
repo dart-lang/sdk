@@ -365,6 +365,65 @@ void testNormalization() {
                         query: "", fragment: "").toString());
 }
 
+void testReplace() {
+  var uris = [
+    Uri.parse(""),
+    Uri.parse("a://b@c:4/e/f?g#h"),
+    Uri.parse("$SCHEMECHAR://$USERINFOCHAR@$REGNAMECHAR:$DIGIT/$PCHAR/$PCHAR"
+              "?$QUERYCHAR#$QUERYCHAR"),
+  ];
+  for (var uri1 in uris) {
+    for (var uri2 in uris) {
+      if (identical(uri1, uri2)) continue;
+      var scheme = uri1.scheme;
+      var userInfo = uri1.userInfo;
+      var host = uri1.host;
+      var port = uri1.port;
+      var path = uri1.path;
+      var query = uri1.query;
+      var fragment = uri1.fragment;
+
+      var tmp1 = uri1;
+      test() {
+        var tmp2 = new Uri(scheme: scheme, userInfo: userInfo, host: host,
+                           port: port, path: path,
+                           query: query, fragment: fragment);
+        Expect.equals(tmp1, tmp2);
+      }
+
+      test();
+
+      scheme = uri2.scheme;
+      tmp1 = tmp1.replace(scheme: scheme);
+      test();
+
+      userInfo = uri2.userInfo;
+      tmp1 = tmp1.replace(userInfo: userInfo);
+      test();
+
+      host = uri2.host;
+      tmp1 = tmp1.replace(host: host);
+      test();
+
+      port = uri2.port;
+      tmp1 = tmp1.replace(port: port);
+      test();
+
+      path = uri2.path;
+      tmp1 = tmp1.replace(path: path);
+      test();
+
+      query = uri2.query;
+      tmp1 = tmp1.replace(query: query);
+      test();
+
+      fragment = uri2.fragment;
+      tmp1 = tmp1.replace(fragment: fragment);
+      test();
+    }
+  }
+}
+
 main() {
   testUri("http:", true);
   testUri("file:///", true);
@@ -529,6 +588,7 @@ main() {
   testValidCharacters();
   testInvalidUrls();
   testNormalization();
+  testReplace();
 }
 
 String dump(Uri uri) {
