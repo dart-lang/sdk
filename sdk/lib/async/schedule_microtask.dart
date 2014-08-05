@@ -17,6 +17,14 @@ _AsyncCallbackEntry _nextCallback;
 /** Tail of single linked list of pending callbacks. */
 _AsyncCallbackEntry _lastCallback;
 /**
+ * Tail of priority callbacks added by the currently executing callback.
+ *
+ * Priority callbacks are put at the beginning of the
+ * callback queue, so that if one callback schedules more than one
+ * priority callback, they are still enqueued in scheduling order.
+ */
+_AsyncCallbackEntry _lastPriorityCallback;
+/**
  * Whether we are currently inside the callback loop.
  *
  * If we are inside the loop, we never need to schedule the loop,
@@ -26,6 +34,7 @@ bool _isInCallbackLoop = false;
 
 void _asyncRunCallbackLoop() {
   while (_nextCallback != null) {
+    _lastPriorityCallback = null;
     _AsyncCallbackEntry entry = _nextCallback;
     _nextCallback = entry.next;
     if (_nextCallback == null) _lastCallback = null;
@@ -38,6 +47,7 @@ void _asyncRunCallback() {
   try {
     _asyncRunCallbackLoop();
   } finally {
+    _lastPriorityCallback = null;
     _isInCallbackLoop = false;
     if (_nextCallback != null) _AsyncRun._scheduleImmediate(_asyncRunCallback);
   }
@@ -71,12 +81,22 @@ void _scheduleAsyncCallback(callback) {
  * It is only used internally to give higher priority to error reporting.
  */
 void _schedulePriorityAsyncCallback(callback) {
+  _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
   if (_nextCallback == null) {
-    _scheduleAsyncCallback(callback);
+    _nextCallback = _lastCallback = _lastPriorityCallback = entry;
+    if (!_isInCallbackLoop) {
+      _AsyncRun._scheduleImmediate(_asyncRunCallback);
+    }
+  } else if (_lastPriorityCallback == null) {
+    entry.next = _nextCallback;
+    _nextCallback = _lastPriorityCallback = entry;
   } else {
-    _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
-    newEntry.next = _nextCallback;
-    _nextCallback = newEntry;
+    entry.next = _lastPriorityCallback.next;
+    _lastPriorityCallback.next = entry;
+    _lastPriorityCallback = entry;
+    if (entry.next == null) {
+      _lastCallback = entry;
+    }
   }
 }
 
