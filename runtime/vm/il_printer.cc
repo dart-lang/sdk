@@ -4,6 +4,7 @@
 
 #include "vm/il_printer.h"
 
+#include "vm/flow_graph_range_analysis.h"
 #include "vm/intermediate_language.h"
 #include "vm/os.h"
 #include "vm/parser.h"
