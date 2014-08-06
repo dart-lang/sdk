@@ -31,27 +31,31 @@ class TopLevelComputer extends CompletionComputer {
 
       // Compute the set of visible libraries to determine relevance
       var visibleLibraries = new Set<LibraryElement>();
-      visibleLibraries.add(unit.element.library);
-      visibleLibraries.addAll(unit.element.library.importedLibraries);
+      var unitLibrary = unit.element.library;
+      visibleLibraries.add(unitLibrary);
+      visibleLibraries.addAll(unitLibrary.importedLibraries);
 
       // Compute the set of possible classes and top level variables
       var suggestions = new List<CompletionSuggestion>();
       matches.forEach((SearchMatch match) {
         if (match.kind == MatchKind.DECLARATION) {
           Element element = match.element;
-          String completion = element.displayName;
-          suggestions.add(
-              new CompletionSuggestion(
-                  CompletionSuggestionKind.fromElementKind(element.kind),
-                  visibleLibraries.contains(element.library) ?
-                      CompletionRelevance.DEFAULT :
-                      CompletionRelevance.LOW,
-                  completion,
-                  completion.length,
-                  0,
-                  element.isDeprecated,
-                  false // isPotential
-          ));
+          if (element.isPublic || element.library == unitLibrary) {
+            String completion = element.displayName;
+            var relevance = visibleLibraries.contains(element.library) ?
+                CompletionRelevance.DEFAULT :
+                CompletionRelevance.LOW;
+            suggestions.add(
+                new CompletionSuggestion(
+                    CompletionSuggestionKind.fromElementKind(element.kind),
+                    relevance,
+                    completion,
+                    completion.length,
+                    0,
+                    element.isDeprecated,
+                    false // isPotential
+            ));
+          }
         }
       });
       return suggestions;

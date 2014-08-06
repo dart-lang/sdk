@@ -25,15 +25,21 @@ class TopLevelComputerTest extends AbstractCompletionTest {
   }
 
   test_class_1() {
-    addUnit('/testA.dart', 'var T1; class A {bool x;}');
+    addUnit('/testA.dart', 'var T1; class A {bool x;} var _T2; class _D { }');
     addUnit('/testB.dart', 'class B {bool y;}');
-    addTestUnit('import "/testA.dart"; class C {bool v;^}');
+    addTestUnit('import "/testA.dart"; class C {bool v;^} class _E { }');
     return compute().then((_) {
       assertHasResult(CompletionSuggestionKind.CLASS, 'A');
-      assertHasResult(CompletionSuggestionKind.CLASS, 'B', CompletionRelevance.LOW);
+      assertHasResult(
+          CompletionSuggestionKind.CLASS,
+          'B',
+          CompletionRelevance.LOW);
       assertHasResult(CompletionSuggestionKind.CLASS, 'C');
+      assertNoResult('_D');
+      assertHasResult(CompletionSuggestionKind.CLASS, '_E');
       assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
       assertHasResult(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, 'T1');
+      assertNoResult('_T2');
       assertNoResult('x');
       assertNoResult('y');
       assertNoResult('v');
