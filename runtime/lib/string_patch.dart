@@ -247,6 +247,9 @@ class _StringBase {
     if (startIndex == endIndex) {
       return "";
     }
+    if ((startIndex == 0) && (endIndex == this.length)) {
+      return this;
+    }
     if ((startIndex + 1) == endIndex) {
       return this[startIndex];
     }
