@@ -4,11 +4,9 @@
 
 library test.edit.fix;
 
-import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/fix.dart' as services;
 import 'package:analysis_services/index/index.dart' hide Location;
 import 'package:analysis_services/index/local_memory_index.dart';
