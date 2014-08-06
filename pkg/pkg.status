@@ -423,18 +423,6 @@ unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-# We keep both new and old methods, so there are warnings.
-code_transformers/test/entry_point_test: StaticWarning
-code_transformers/test/assets_test: StaticWarning
-code_transformers/test/resolver_test: StaticWarning
-polymer/test/build/all_phases_test: StaticWarning
-polymer/test/build/import_inliner_test: StaticWarning
-polymer/test/build/script_compactor_test: StaticWarning
-polymer/test/build/static_clean_test: StaticWarning
-smoke/test/codegen/end_to_end_test: StaticWarning
-smoke/test/codegen/recorder_test: StaticWarning
-
 [ $runtime == vm && ($system == windows || $system == macos) ]
 watcher/test/*/linux_test: Skip
 

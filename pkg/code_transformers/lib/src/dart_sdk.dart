@@ -108,14 +108,20 @@ class DartSourceProxy implements UriAnnotatedSource {
     return new DartSourceProxy(source, uri);
   }
 
+  // Note: to support both analyzer versions <0.22.0 and analyzer >=0.22.0, we
+  // implement both `resolveRelative` and `resolveRelativeUri`. Only one of them
+  // is available at a time in the analyzer package, so we use the `as dynamic`
+  // in these methods to hide warnings for the code that is missing. These APIs
+  // are invoked from the analyzer itself, so we don't expect them to cause
+  // failures.
   Source resolveRelative(Uri relativeUri) {
     // Assume that the type can be accessed via this URI, since these
     // should only be parts for dart core files.
-    return wrap(_proxy.resolveRelative(relativeUri), uri);
+    return wrap((_proxy as dynamic).resolveRelative(relativeUri), uri);
   }
 
   Uri resolveRelativeUri(Uri relativeUri) {
-    return _proxy.resolveRelativeUri(relativeUri);
+    return (_proxy as dynamic).resolveRelativeUri(relativeUri);
   }
 
   bool exists() => _proxy.exists();
