@@ -41,10 +41,14 @@ main() {
     var dir = io.Directory.current.path;
     try {
       expect(path.absolute('foo/bar'), equals(path.join(dir, 'foo/bar')));
+      expect(path.absolute('foo/bar'),
+          equals(path.context.join(dir, 'foo/bar')));
 
       io.Directory.current = path.dirname(dir);
       expect(path.normalize(path.absolute('foo/bar')),
           equals(path.normalize(path.join(dir, '../foo/bar'))));
+      expect(path.normalize(path.absolute('foo/bar')),
+          equals(path.normalize(path.context.join(dir, '../foo/bar'))));
     } finally {
       io.Directory.current = dir;
     }

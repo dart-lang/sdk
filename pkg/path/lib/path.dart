@@ -62,14 +62,17 @@ final windows = new Context(style: Style.windows);
 /// A default context for manipulating URLs.
 final url = new Context(style: Style.url);
 
-/// An internal context for the current OS so we can provide a straight
-/// functional interface and not require users to create one.
-final Context _context = createInternal();
+/// The system path context.
+///
+/// This differs from a context created with [new Context] in that its
+/// [Context.current] is always the current working directory, rather than being
+/// set once when the context is created.
+final Context context = createInternal();
 
 /// Returns the [Style] of the current context.
 ///
 /// This is the style that all top-level path functions will use.
-Style get style => _context.style;
+Style get style => context.style;
 
 /// Gets the path to the current working directory.
 ///
@@ -89,7 +92,7 @@ String get current {
 
 /// Gets the path separator for the current platform. This is `\` on Windows
 /// and `/` on other platforms (including the browser).
-String get separator => _context.separator;
+String get separator => context.separator;
 
 /// Creates a new path by appending the given path parts to [current].
 /// Equivalent to [join()] with [current] as the first argument. Example:
@@ -97,7 +100,7 @@ String get separator => _context.separator;
 ///     path.absolute('path', 'to/foo'); // -> '/your/current/dir/path/to/foo'
 String absolute(String part1, [String part2, String part3, String part4,
             String part5, String part6, String part7]) =>
-  _context.absolute(part1, part2, part3, part4, part5, part6, part7);
+  context.absolute(part1, part2, part3, part4, part5, part6, part7);
 
 /// Gets the part of [path] after the last separator.
 ///
@@ -107,7 +110,7 @@ String absolute(String part1, [String part2, String part3, String part4,
 /// Trailing separators are ignored.
 ///
 ///     path.basename('path/to/'); // -> 'to'
-String basename(String path) => _context.basename(path);
+String basename(String path) => context.basename(path);
 
 /// Gets the part of [path] after the last separator, and without any trailing
 /// file extension.
@@ -118,7 +121,7 @@ String basename(String path) => _context.basename(path);
 ///
 ///     path.basenameWithoutExtension('path/to/foo.dart/'); // -> 'foo'
 String basenameWithoutExtension(String path) =>
-    _context.basenameWithoutExtension(path);
+    context.basenameWithoutExtension(path);
 
 /// Gets the part of [path] before the last separator.
 ///
@@ -139,7 +142,7 @@ String basenameWithoutExtension(String path) =>
 ///
 ///     path.dirname('foo');  // -> '.'
 ///     path.dirname('');  // -> '.'
-String dirname(String path) => _context.dirname(path);
+String dirname(String path) => context.dirname(path);
 
 /// Gets the file extension of [path]: the portion of [basename] from the last
 /// `.` to the end (including the `.` itself).
@@ -154,7 +157,7 @@ String dirname(String path) => _context.dirname(path);
 ///
 ///     path.extension('~/.bashrc');    // -> ''
 ///     path.extension('~/.notes.txt'); // -> '.txt'
-String extension(String path) => _context.extension(path);
+String extension(String path) => context.extension(path);
 
 // TODO(nweiz): add a UNC example for Windows once issue 7323 is fixed.
 /// Returns the root of [path], if it's absolute, or the empty string if it's
@@ -172,7 +175,7 @@ String extension(String path) => _context.extension(path);
 ///     path.rootPrefix('path/to/foo'); // -> ''
 ///     path.rootPrefix('http://dartlang.org/path/to/foo');
 ///       // -> 'http://dartlang.org'
-String rootPrefix(String path) => _context.rootPrefix(path);
+String rootPrefix(String path) => context.rootPrefix(path);
 
 /// Returns `true` if [path] is an absolute path and `false` if it is a
 /// relative path.
@@ -186,13 +189,13 @@ String rootPrefix(String path) => _context.rootPrefix(path);
 /// relative to the root of the current URL. Since root-relative paths are still
 /// absolute in every other sense, [isAbsolute] will return true for them. They
 /// can be detected using [isRootRelative].
-bool isAbsolute(String path) => _context.isAbsolute(path);
+bool isAbsolute(String path) => context.isAbsolute(path);
 
 /// Returns `true` if [path] is a relative path and `false` if it is absolute.
 /// On POSIX systems, absolute paths start with a `/` (forward slash). On
 /// Windows, an absolute path starts with `\\`, or a drive letter followed by
 /// `:/` or `:\`.
-bool isRelative(String path) => _context.isRelative(path);
+bool isRelative(String path) => context.isRelative(path);
 
 /// Returns `true` if [path] is a root-relative path and `false` if it's not.
 ///
@@ -202,7 +205,7 @@ bool isRelative(String path) => _context.isRelative(path);
 /// can be detected using [isRootRelative].
 ///
 /// No POSIX and Windows paths are root-relative.
-bool isRootRelative(String path) => _context.isRootRelative(path);
+bool isRootRelative(String path) => context.isRootRelative(path);
 
 /// Joins the given path parts into a single path using the current platform's
 /// [separator]. Example:
@@ -219,7 +222,7 @@ bool isRootRelative(String path) => _context.isRootRelative(path);
 ///     path.join('path', '/to', 'foo'); // -> '/to/foo'
 String join(String part1, [String part2, String part3, String part4,
             String part5, String part6, String part7, String part8]) =>
-  _context.join(part1, part2, part3, part4, part5, part6, part7, part8);
+  context.join(part1, part2, part3, part4, part5, part6, part7, part8);
 
 /// Joins the given path parts into a single path using the current platform's
 /// [separator]. Example:
@@ -236,7 +239,7 @@ String join(String part1, [String part2, String part3, String part4,
 ///     path.joinAll(['path', '/to', 'foo']); // -> '/to/foo'
 ///
 /// For a fixed number of parts, [join] is usually terser.
-String joinAll(Iterable<String> parts) => _context.joinAll(parts);
+String joinAll(Iterable<String> parts) => context.joinAll(parts);
 
 // TODO(nweiz): add a UNC example for Windows once issue 7323 is fixed.
 /// Splits [path] into its components using the current platform's [separator].
@@ -259,13 +262,13 @@ String joinAll(Iterable<String> parts) => _context.joinAll(parts);
 ///     // Browser
 ///     path.split('http://dartlang.org/path/to/foo');
 ///       // -> ['http://dartlang.org', 'path', 'to', 'foo']
-List<String> split(String path) => _context.split(path);
+List<String> split(String path) => context.split(path);
 
 /// Normalizes [path], simplifying it by handling `..`, and `.`, and
 /// removing redundant path separators whenever possible.
 ///
 ///     path.normalize('path/./to/..//file.text'); // -> 'path/file.txt'
-String normalize(String path) => _context.normalize(path);
+String normalize(String path) => context.normalize(path);
 
 /// Attempts to convert [path] to an equivalent relative path from the current
 /// directory.
@@ -295,19 +298,19 @@ String normalize(String path) => _context.normalize(path);
 ///     path.relative('http://dartlang.org', from: 'http://pub.dartlang.org');
 ///       // -> 'http://dartlang.org'
 String relative(String path, {String from}) =>
-    _context.relative(path, from: from);
+    context.relative(path, from: from);
 
 /// Returns `true` if [child] is a path beneath `parent`, and `false` otherwise.
 ///
 ///     path.isWithin('/root/path', '/root/path/a'); // -> true
 ///     path.isWithin('/root/path', '/root/other'); // -> false
 ///     path.isWithin('/root/path', '/root/path') // -> false
-bool isWithin(String parent, String child) => _context.isWithin(parent, child);
+bool isWithin(String parent, String child) => context.isWithin(parent, child);
 
 /// Removes a trailing extension from the last part of [path].
 ///
 ///     withoutExtension('path/to/foo.dart'); // -> 'path/to/foo'
-String withoutExtension(String path) => _context.withoutExtension(path);
+String withoutExtension(String path) => context.withoutExtension(path);
 
 /// Returns the path represented by [uri], which may be a [String] or a [Uri].
 ///
@@ -329,7 +332,7 @@ String withoutExtension(String path) => _context.withoutExtension(path);
 /// If [uri] is relative, a relative path will be returned.
 ///
 ///     path.fromUri('path/to/foo'); // -> 'path/to/foo'
-String fromUri(uri) => _context.fromUri(uri);
+String fromUri(uri) => context.fromUri(uri);
 
 /// Returns the URI that represents [path].
 ///
@@ -352,7 +355,7 @@ String fromUri(uri) => _context.fromUri(uri);
 ///
 ///     path.toUri('path/to/foo')
 ///       // -> Uri.parse('path/to/foo')
-Uri toUri(String path) => _context.toUri(path);
+Uri toUri(String path) => context.toUri(path);
 
 /// Returns a terse, human-readable representation of [uri].
 ///
@@ -375,4 +378,4 @@ Uri toUri(String path) => _context.toUri(path);
 ///     path.prettyUri('http://dartlang.org/root/path/a/b.dart');
 ///         // -> r'a/b.dart'
 ///     path.prettyUri('file:///root/path'); // -> 'file:///root/path'
-String prettyUri(uri) => _context.prettyUri(uri);
+String prettyUri(uri) => context.prettyUri(uri);

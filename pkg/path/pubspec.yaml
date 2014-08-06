@@ -1,5 +1,5 @@
 name: path
-version: 1.2.3
+version: 1.3.0
 author: Dart Team <misc@dartlang.org>
 description: >
  A string-based path manipulation library. All of the path operations you know
