@@ -450,8 +450,8 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
    *
    * [host] can either be a [String] or an [InternetAddress]. If [host] is a
    * [String], [connect] will perform a [InternetAddress.lookup] and try
-   * all returned [InternetAddress]es, in turn, until connected. Unless a
-   * connection was established, the error from the first attempt is
+   * all returned [InternetAddress]es, until connected. Unless a
+   * connection was established, the error from the first failing connection is
    * returned.
    */
   external static Future<RawSocket> connect(host, int port);
@@ -543,8 +543,8 @@ abstract class Socket implements Stream<List<int>>, IOSink {
    *
    * [host] can either be a [String] or an [InternetAddress]. If [host] is a
    * [String], [connect] will perform a [InternetAddress.lookup] and try
-   * all returned [InternetAddress]es, in turn, until connected. Unless a
-   * connection was established, the error from the first attempt is
+   * all returned [InternetAddress]es, until connected. Unless a
+   * connection was established, the error from the first failing connection is
    * returned.
    */
   external static Future<Socket> connect(host, int port);
