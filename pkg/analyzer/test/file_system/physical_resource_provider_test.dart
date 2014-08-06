@@ -215,6 +215,13 @@ main() {
           expect(folder == folder2, isFalse);
         });
 
+        test('contains', () {
+          expect(folder.contains(join(path, 'aaa.txt')), isTrue);
+          expect(folder.contains(join(path, 'aaa', 'bbb.txt')), isTrue);
+          expect(folder.contains(join(tempPath, 'baz.txt')), isFalse);
+          expect(folder.contains(path), isFalse);
+        });
+
         group('getChild', () {
           test('does not exist', () {
             var child = folder.getChild('no-such-resource');

@@ -303,6 +303,13 @@ main() {
         expect(folder == folder2, isFalse);
       });
 
+      test('contains', () {
+        expect(folder.contains('/foo/bar/aaa.txt'), isTrue);
+        expect(folder.contains('/foo/bar/aaa/bbb.txt'), isTrue);
+        expect(folder.contains('/baz.txt'), isFalse);
+        expect(folder.contains('/foo/bar'), isFalse);
+      });
+
       group('getChild', () {
         test('does not exist', () {
           File file = folder.getChild('file.txt');

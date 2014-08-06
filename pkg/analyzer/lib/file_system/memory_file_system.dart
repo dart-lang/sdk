@@ -293,6 +293,11 @@ class _MemoryFolder extends _MemoryResource implements Folder {
   }
 
   @override
+  bool contains(String path) {
+    return posix.isWithin(this.path, path);
+  }
+
+  @override
   Resource getChild(String relPath) {
     String childPath = canonicalizePath(relPath);
     _MemoryResource resource = _provider._pathToResource[childPath];

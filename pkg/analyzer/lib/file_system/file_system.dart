@@ -43,6 +43,11 @@ abstract class Folder extends Resource {
   String canonicalizePath(String path);
 
   /**
+   * Return `true` if absolute [path] references a resource in this folder.
+   */
+  bool contains(String path);
+
+  /**
    * Return an existing child [Resource] with the given [relPath].
    * Return a not existing [File] if no such child exist.
    */

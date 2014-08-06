@@ -247,7 +247,7 @@ abstract class ContextDirectoryManager {
   bool isInAnalysisRoot(String path) {
     // TODO(scheglov) check for excluded paths
     for (Folder root in _currentDirectoryInfo.keys) {
-      if (path.startsWith(root.path)) {
+      if (root.contains(path)) {
         return true;
       }
     }
