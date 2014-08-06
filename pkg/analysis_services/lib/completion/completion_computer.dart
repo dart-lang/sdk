@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/completion/top_level_computer.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -28,18 +30,14 @@ abstract class CompletionComputer {
  */
 abstract class CompletionManager {
 
-  /**
-   * Create a manager for the given request.
-   */
-  static CompletionManager create(Source source, int offset,
-      SearchEngine searchEngine) {
-    if (AnalysisEngine.isDartFileName(source.shortName)) {
-      return new DartCompletionManager(source, offset, searchEngine);
-    }
-    return new NoOpCompletionManager(source, offset);
-  }
-
   StreamController<CompletionResult> controller;
+
+  /**
+   * Compute completion results and append them to the stream.
+   * Clients should not call this method directly as it is automatically called
+   * when a client listens to the stream returned by [results].
+   */
+  void compute();
 
   /**
    * Generate a stream of code completion results.
@@ -52,11 +50,17 @@ abstract class CompletionManager {
   }
 
   /**
-   * Compute completion results and append them to the stream.
-   * Clients should not call this method directly as it is automatically called
-   * when a client listens to the stream returned by [results].
+   * Create a manager for the given request.
    */
-  void compute();
+  static CompletionManager create(AnalysisContext context, Source source,
+      int offset, SearchEngine searchEngine) {
+    if (context != null) {
+      if (AnalysisEngine.isDartFileName(source.shortName)) {
+        return new DartCompletionManager(context, source, offset, searchEngine);
+      }
+    }
+    return new NoOpCompletionManager(source, offset);
+  }
 }
 
 /**
@@ -98,15 +102,19 @@ class CompletionResult {
  * Manages code completion for a given Dart file completion request.
  */
 class DartCompletionManager extends CompletionManager {
+  final AnalysisContext context;
   final Source source;
   final int offset;
   final SearchEngine searchEngine;
 
-  DartCompletionManager(this.source, this.offset, this.searchEngine);
+  DartCompletionManager(this.context, this.source, this.offset,
+      this.searchEngine);
 
   @override
   void compute() {
-    var computer = new TopLevelComputer(searchEngine);
+    LibraryElement library = context.computeLibraryElement(source);
+    CompilationUnit unit = context.resolveCompilationUnit(source, library);
+    TopLevelComputer computer = new TopLevelComputer(searchEngine, unit);
     computer.compute().then((List<CompletionSuggestion> suggestions) {
       controller.add(new CompletionResult(offset, 0, suggestions, true));
     });

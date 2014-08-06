@@ -12,23 +12,42 @@ import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
 import 'package:analysis_testing/abstract_single_unit.dart';
+import 'package:analysis_testing/mock_sdk.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 class AbstractCompletionTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
   CompletionComputer computer;
+  int completionOffset;
   List<CompletionSuggestion> suggestions;
 
-  void addTestUnit(String code) {
-    resolveTestUnit(code);
+  void addTestUnit(String content) {
+    expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
+    completionOffset = content.indexOf('^');
+    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
+    int nextOffset = content.indexOf('^', completionOffset + 1);
+    expect(nextOffset, equals(-1), reason: 'too many ^');
+    content = content.substring(0, completionOffset) +
+        content.substring(completionOffset + 1);
+    resolveTestUnit(content);
     index.indexUnit(context, testUnit);
   }
 
+  void addUnit(String file, String code) {
+    Source source = addSource(file, code);
+    CompilationUnit unit = resolveLibraryUnit(source);
+    assertNoErrorsInSource(source);
+    index.indexUnit(context, unit);
+  }
+
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
-      bool isDeprecated = false, bool isPotential = false]) {
-    var cs = suggestions.firstWhere((cs) => cs.completion == completion, orElse: () {
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT, bool isDeprecated
+      = false, bool isPotential = false]) {
+    var cs =
+        suggestions.firstWhere((cs) => cs.completion == completion, orElse: () {
       var completions = suggestions.map((s) => s.completion).toList();
       fail('expected "$completion" but found\n $completions');
     });
@@ -58,5 +77,6 @@ class AbstractCompletionTest extends AbstractSingleUnitTest {
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     verifyNoTestUnitErrors = false;
+    addUnit(MockSdk.LIB_CORE.path, MockSdk.LIB_CORE.content);
   }
 }

@@ -4,13 +4,14 @@
 
 library test.services.completion.suggestion;
 
+import 'dart:async';
+
 import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import 'completion_test_util.dart';
-import 'dart:async';
 
 main() {
   groupSep = ' | ';
@@ -23,19 +24,25 @@ class CompletionManagerTest extends AbstractCompletionTest {
 
   test_dart() {
     Source source = addSource('/does/not/exist.dart', '');
-    var manager = CompletionManager.create(source, 0, null);
+    var manager = CompletionManager.create(context, source, 0, null);
     expect(manager.runtimeType, DartCompletionManager);
   }
 
   test_html() {
     Source source = addSource('/does/not/exist.html', '');
-    var manager = CompletionManager.create(source, 0, null);
+    var manager = CompletionManager.create(context, source, 0, null);
+    expect(manager.runtimeType, NoOpCompletionManager);
+  }
+
+  test_null_context() {
+    Source source = addSource('/does/not/exist.dart', '');
+    var manager = CompletionManager.create(null, source, 0, null);
     expect(manager.runtimeType, NoOpCompletionManager);
   }
 
   test_other() {
     Source source = addSource('/does/not/exist.foo', '');
-    var manager = CompletionManager.create(source, 0, null);
+    var manager = CompletionManager.create(context, source, 0, null);
     expect(manager.runtimeType, NoOpCompletionManager);
   }
 }
@@ -63,7 +70,7 @@ class DartCompletionManagerTest extends AbstractCompletionTest {
 
   test_topLevel() {
     Source source = addSource('/does/not/exist.dart', '');
-    var manager = new DartCompletionManager(source, 0, searchEngine);
+    var manager = new DartCompletionManager(context, source, 0, searchEngine);
     bool anyResult;
     manager.results().forEach((_) {
       anyResult = true;

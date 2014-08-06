@@ -10,7 +10,6 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/constants.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -54,9 +53,9 @@ class CompletionDomainHandler implements RequestHandler {
     int offset = request.getRequiredParameter(OFFSET).asInt();
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
-    Source source = server.getSource(file);
     CompletionManager.create(
-        source,
+        server.getAnalysisContext(file),
+        server.getSource(file),
         offset,
         server.searchEngine).results().listen((CompletionResult result) {
       sendCompletionNotification(

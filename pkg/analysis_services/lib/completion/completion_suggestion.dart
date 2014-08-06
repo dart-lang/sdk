@@ -27,6 +27,8 @@ class CompletionRelevance {
     if (HIGH.name == name) return HIGH;
     throw new ArgumentError('Unknown CompletionRelevance: $name');
   }
+
+  toString() => 'CompletionRelevance.$name';
 }
 
 /**

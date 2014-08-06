@@ -66,6 +66,8 @@ abstract class List<E> extends Object {
 }
 class Map<K, V> extends Object {}
 
+external bool identical(Object a, Object b);
+
 void print(Object object) {}
 ''');
 

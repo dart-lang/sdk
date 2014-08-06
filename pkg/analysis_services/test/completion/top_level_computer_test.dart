@@ -19,17 +19,24 @@ main() {
 @ReflectiveTestCase()
 class TopLevelComputerTest extends AbstractCompletionTest {
 
-  test_class() {
-    addTestUnit('class B {boolean v;}');
-    return compute().then((_) {
-      assertHasResult(CompletionSuggestionKind.CLASS, 'B');
-      assertNoResult('v');
-    });
+  void addTestUnit(String content) {
+    super.addTestUnit(content);
+    computer = new TopLevelComputer(searchEngine, testUnit);
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    computer = new TopLevelComputer(searchEngine);
+  test_class_1() {
+    addUnit('/testA.dart', 'var T1; class A {bool x;}');
+    addUnit('/testB.dart', 'class B {bool y;}');
+    addTestUnit('import "/testA.dart"; class C {bool v;^}');
+    return compute().then((_) {
+      assertHasResult(CompletionSuggestionKind.CLASS, 'A');
+      assertHasResult(CompletionSuggestionKind.CLASS, 'B', CompletionRelevance.LOW);
+      assertHasResult(CompletionSuggestionKind.CLASS, 'C');
+      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
+      assertHasResult(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, 'T1');
+      assertNoResult('x');
+      assertNoResult('y');
+      assertNoResult('v');
+    });
   }
 }
