@@ -12,31 +12,26 @@ import 'dart:convert' show
 
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'dart2jslib.dart' show
-    Compiler,
-    CompilerTask,
-    CodeBuffer;
-import 'dart_types.dart' show DartType;
+import 'dart2jslib.dart' show Backend, CodeBuffer, Compiler, CompilerTask;
 import 'types/types.dart' show TypeMask;
-import 'util/util.dart' show modifiersToString, SpannableAssertionFailure;
 import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js/js.dart' as jsAst;
 import 'universe/universe.dart' show Selector;
 
-/// Maps elements to an id.  Supports lookups in
+/// Maps objects to an id.  Supports lookups in
 /// both directions.
-class ElementMapper {
-  Map<int, Element> _idToElement = {};
-  Map<Element, int> _elementToId = {};
+class IdMapper<T>{
+  Map<int, T> _idToElement = {};
+  Map<T, int> _elementToId = {};
   int _idCounter = 0;
   String name;
 
-  ElementMapper(this.name);
+  IdMapper(this.name);
 
-  Iterable<Element> get elements => _elementToId.keys;
+  Iterable<T> get elements => _elementToId.keys;
 
-  String add(Element e) {
+  String add(T e) {
     if (_elementToId.containsKey(e)) {
       return name + "/${_elementToId[e]}";
     }
@@ -48,13 +43,14 @@ class ElementMapper {
   }
 }
 
-class DividedElementMapper {
+class GroupedIdMapper {
   // Mappers for specific kinds of elements.
-  ElementMapper _library = new ElementMapper('library');
-  ElementMapper _typedef = new ElementMapper('typedef');
-  ElementMapper _field = new ElementMapper('field');
-  ElementMapper _class = new ElementMapper('class');
-  ElementMapper _function = new ElementMapper('function');
+  IdMapper<LibraryElement> _library = new IdMapper('library');
+  IdMapper<TypedefElement> _typedef = new IdMapper('typedef');
+  IdMapper<FieldElement> _field = new IdMapper('field');
+  IdMapper<ClassElement> _class = new IdMapper('class');
+  IdMapper<FunctionElement> _function = new IdMapper('function');
+  IdMapper<OutputUnit> _outputUnit = new IdMapper('outputUnit');
 
   Iterable<Element> get functions => _function.elements;
 
@@ -62,7 +58,7 @@ class DividedElementMapper {
   Map<String, dynamic> _toJson(ElementToJsonVisitor elementToJson) {
     Map<String, dynamic> json = {};
     var m = [_library, _typedef, _field, _class, _function];
-    for (ElementMapper mapper in m) {
+    for (IdMapper mapper in m) {
       Map<String, dynamic> innerMapper = {};
       mapper._idToElement.forEach((k, v) {
         // All these elements are already cached in the
@@ -79,7 +75,7 @@ class DividedElementMapper {
 }
 
 class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
-  DividedElementMapper mapper = new DividedElementMapper();
+  GroupedIdMapper mapper = new GroupedIdMapper();
   Compiler compiler;
 
   Map<Element, Map<String, dynamic>> jsonCache = {};
@@ -94,7 +90,16 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   ElementToJsonVisitor(Compiler compiler) {
     this.compiler = compiler;
 
-    programSize = compiler.assembledCode.length;
+    Backend backend = compiler.backend;
+    if (backend is JavaScriptBackend) {
+      // Add up the sizes of all output-buffers.
+      programSize = backend.emitter.outputBuffers.values.fold(0,
+          (a, b) => a + b.length);
+    } else {
+      programSize = compiler.assembledCode.length;
+    }
+
+
     compilationMoment = new DateTime.now();
     dart2jsVersion = compiler.hasBuildId ? compiler.buildId : null;
     compilationDuration = compiler.totalCompileTime.elapsed;
@@ -212,6 +217,9 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       }
     }
 
+    OutputUnit outputUnit =
+        compiler.deferredLoadTask.outputUnitForElement(element);
+
     return {
       'id': id,
       'kind': 'field',
@@ -220,7 +228,8 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       'name': element.name,
       'children': children,
       'size': size,
-      'code': code
+      'code': code,
+      'outputUnit': mapper._outputUnit.add(outputUnit)
     };
   }
 
@@ -242,13 +251,18 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       }
     });
 
+
+    OutputUnit outputUnit =
+        compiler.deferredLoadTask.outputUnitForElement(element);
+
     return {
       'name': element.name,
       'size': size,
       'kind': 'class',
       'modifiers': modifiers,
       'children': children,
-      'id': id
+      'id': id,
+      'outputUnit': mapper._outputUnit.add(outputUnit)
     };
   }
 
@@ -320,6 +334,9 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       return null;
     }
 
+    OutputUnit outputUnit =
+        compiler.deferredLoadTask.outputUnitForElement(element);
+
     return {
       'kind': kind,
       'name': name,
@@ -332,7 +349,8 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       'parameters': parameters,
       'sideEffects': sideEffects,
       'code': code,
-      'type': element.computeType(compiler).toString()
+      'type': element.type.toString(),
+      'outputUnit': mapper._outputUnit.add(outputUnit)
     };
   }
 }
@@ -521,10 +539,26 @@ class DumpInfoTask extends CompilerTask {
       }
     }
 
+    List<Map<String, dynamic>> outputUnits =
+        new List<Map<String, dynamic>>();
+
+    JavaScriptBackend backend = compiler.backend;
+
+    for (OutputUnit outputUnit in
+        infoCollector.mapper._outputUnit._elementToId.keys) {
+      String id = infoCollector.mapper._outputUnit.add(outputUnit);
+      outputUnits.add(<String, dynamic> {
+        'id': id,
+        'name': outputUnit.name,
+        'size': backend.emitter.outputBuffers[outputUnit].length,
+      });
+    }
+
     Map<String, dynamic> outJson = {
       'elements': infoCollector.toJson(),
       'holding': holding,
-      'dump_version': 1,
+      'outputUnits': outputUnits,
+      'dump_version': 2,
     };
 
     Duration toJsonDuration = new DateTime.now().difference(startToJsonTime);

@@ -624,7 +624,10 @@ be removed in a future version:
     all categories, use --categories=all.
 
   --dump-info
-    Generates an out.info.html file with information about the generated code.
+    Generates an out.info.json file with information about the generated code.
+    You can inspect the generated file with the viewer at:
+    http://dart-lang.github.io/dump-info-visualizer/build/web/viewer.html
+
 '''.trim());
 }
 
