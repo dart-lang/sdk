@@ -6,7 +6,7 @@ library pub.source.path;
 
 import 'dart:async';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 
 import '../exceptions.dart';
 import '../io.dart';
@@ -17,6 +17,21 @@ import '../utils.dart';
 
 /// A package [Source] that gets packages from a given local file path.
 class PathSource extends Source {
+  /// Returns a valid description for a reference to a package at [path].
+  static describePath(String path) {
+    return {
+      "path": path,
+      "relative": p.isRelative(path)
+    };
+  }
+
+  /// Given a valid path reference description, returns the file path it
+  /// describes.
+  ///
+  /// This returned path may be relative or absolute and it is up to the caller
+  /// to know how to interpret a relative path.
+  static String pathFromDescription(description) => description["path"];
+
   final name = 'path';
 
   Future<Pubspec> doDescribe(PackageId id) {
@@ -79,14 +94,14 @@ class PathSource extends Source {
 
     // Resolve the path relative to the containing file path, and remember
     // whether the original path was relative or absolute.
-    bool isRelative = path.isRelative(description);
-    if (path.isRelative(description)) {
+    var isRelative = p.isRelative(description);
+    if (p.isRelative(description)) {
       // Can't handle relative paths coming from pubspecs that are not on the
       // local file system.
       assert(containingPath != null);
 
-      description = path.normalize(
-          path.join(path.dirname(containingPath), description));
+      description = p.normalize(
+          p.join(p.dirname(containingPath), description));
     }
 
     return {
@@ -102,7 +117,7 @@ class PathSource extends Source {
   dynamic serializeDescription(String containingPath, description) {
     if (description["relative"]) {
       return {
-        "path": path.relative(description['path'], from: containingPath),
+        "path": p.relative(description['path'], from: containingPath),
         "relative": true
       };
     }
@@ -113,7 +128,7 @@ class PathSource extends Source {
   String formatDescription(String containingPath, description) {
     var sourcePath = description["path"];
     if (description["relative"]) {
-      sourcePath = path.relative(description['path'], from: containingPath);
+      sourcePath = p.relative(description['path'], from: containingPath);
     }
 
     return sourcePath;

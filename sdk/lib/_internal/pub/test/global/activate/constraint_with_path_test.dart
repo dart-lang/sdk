@@ -7,10 +7,10 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('fails if the version constraint cannot be parsed', () {
-    schedulePub(args: ["global", "activate", "foo", "1.0"],
+  integration('fails if a version is passed with the path source', () {
+    schedulePub(args: ["global", "activate", "-spath", "foo", "1.2.3"],
         error: """
-            Could not parse version "1.0". Unknown text at "1.0".
+            Unexpected argument "1.2.3".
 
             Usage: pub global activate <package...>
             -h, --help      Print usage information for this command.

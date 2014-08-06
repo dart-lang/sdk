@@ -210,7 +210,7 @@ class Entrypoint {
 
   /// Gets dependencies if the lockfile is out of date with respect to the
   /// pubspec.
-  Future _ensureLockFileIsUpToDate() {
+  Future ensureLockFileIsUpToDate() {
     return syncFuture(() {
       // If we don't have a current lock file, we definitely need to install.
       if (!_isLockFileUpToDate(lockFile)) {
@@ -249,7 +249,7 @@ class Entrypoint {
   /// Before loading, makes sure the lockfile and dependencies are installed
   /// and up to date.
   Future<PackageGraph> loadPackageGraph() {
-    return _ensureLockFileIsUpToDate().then((_) {
+    return ensureLockFileIsUpToDate().then((_) {
       return Future.wait(lockFile.packages.values.map((id) {
         var source = cache.sources[id.source];
         return source.getDirectory(id)
