@@ -80,7 +80,7 @@ class _HtmlInliner extends PolymerTransformer {
 
       // Write out the logs collected by our [WrappedLogger].
       if (options.injectBuildLogsInOutput && logger is WrappedLogger) {
-        return logger.writeOutput();
+        return (logger as WrappedLogger).writeOutput();
       }
     });
   }
