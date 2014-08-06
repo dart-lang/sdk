@@ -1099,8 +1099,11 @@ class ResolverTask extends CompilerTask {
           }
         }
         if (member.isField) {
-          if (!member.modifiers.isStatic &&
-              !member.modifiers.isFinal) {
+          if (member.modifiers.isConst && !member.modifiers.isStatic) {
+            compiler.reportError(
+                member, MessageKind.ILLEGAL_CONST_FIELD_MODIFIER);
+          }
+          if (!member.modifiers.isStatic && !member.modifiers.isFinal) {
             nonFinalInstanceFields.add(member);
           }
         }

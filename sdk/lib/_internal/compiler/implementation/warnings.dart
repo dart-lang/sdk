@@ -982,6 +982,16 @@ main() => new C();"""]);
   static const MessageKind ILLEGAL_FINAL_METHOD_MODIFIER = const MessageKind(
       "Cannot have final modifier on method.");
 
+  static const MessageKind ILLEGAL_CONST_FIELD_MODIFIER = const MessageKind(
+      "Cannot have const modifier on non-static field.",
+      howToFix: "Try adding a static modifier, or removing the const modifier.",
+      examples: const ["""
+class C {
+  const int a = 1;
+}
+
+main() => new C();"""]);
+
   static const MessageKind ILLEGAL_CONSTRUCTOR_MODIFIERS = const MessageKind(
       "Illegal constructor modifiers: '#{modifiers}'.");
 
