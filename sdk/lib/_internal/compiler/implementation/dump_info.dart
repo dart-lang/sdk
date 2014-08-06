@@ -248,6 +248,19 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       Map<String, dynamic> childJson = this.process(member);
       if (childJson != null) {
         children.add(childJson['id']);
+
+        // Closures are placed in the library namespace, but
+        // we want to attribute them to a function, and by
+        // extension, this class.  Process and add the sizes
+        // here.
+        if (member is MemberElement) {
+          for (Element closure in member.nestedClosures) {
+            Map<String, dynamic> child = this.process(closure);
+            if (child != null) {
+              size += child['size'];
+            }
+          }
+        }
       }
     });
 
@@ -320,8 +333,10 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       sideEffects = compiler.world.getSideEffectsOfElement(element).toString();
       code = emittedCode.toString();
     }
-    if (element is MethodElement) {
-      for (Element closure in element.nestedClosures) {
+
+    if (element is MemberElement) {
+      MemberElement member = element as MemberElement;
+      for (Element closure in member.nestedClosures) {
         Map<String, dynamic> child = this.process(closure);
         if (child != null) {
           children.add(child['id']);
