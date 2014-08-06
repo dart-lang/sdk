@@ -67,7 +67,6 @@ class FixProcessor {
   AstNode node;
   AstNode coveredNode;
 
-
   FixProcessor(this.searchEngine, this.source, this.file, this.unit, this.error)
       {
     unitElement = unit.element;
@@ -113,10 +112,6 @@ class FixProcessor {
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
       _addFix_createConstructorSuperExplicit();
     }
-//    if (identical(errorCode, CompileTimeErrorCode.URI_DOES_NOT_EXIST)) {
-//      _addFix_createPart();
-//      _addFix_addPackageDependency();
-//    }
     if (errorCode == HintCode.DIVISION_OPTIMIZATION) {
       _addFix_useEffectiveIntegerDivision();
     }
@@ -225,30 +220,6 @@ class FixProcessor {
     linkedPositionGroups.clear();
     exitPosition = null;
   }
-
-
-  void _addFix_addPackageDependency() {
-    // TODO(scheglov) implement
-//    if (node is SimpleStringLiteral && node.parent is NamespaceDirective) {
-//      SimpleStringLiteral uriLiteral = node as SimpleStringLiteral;
-//      String uriString = uriLiteral.value;
-//      // we need package: import
-//      if (!uriString.startsWith("package:")) {
-//        return;
-//      }
-//      // prepare package name
-//      String packageName = StringUtils.removeStart(uriString, "package:");
-//      packageName = StringUtils.substringBefore(packageName, "/");
-//      // add proposal
-//      _proposals.add(
-//          new AddDependencyCorrectionProposal(
-//              _unitFile,
-//              packageName,
-//              FixKind.ADD_PACKAGE_DEPENDENCY,
-//              [packageName]));
-//    }
-  }
-
 
   void _addFix_boolInsteadOfBoolean() {
     SourceRange range = rf.rangeError(error);
@@ -704,39 +675,6 @@ class FixProcessor {
     exitPosition = new Position(file, insertOffset);
     // add proposal
     _addFix(FixKind.CREATE_NO_SUCH_METHOD, []);
-  }
-
-
-  void _addFix_createPart() {
-    // TODO(scheglov) implement
-//    if (node is SimpleStringLiteral && node.parent is PartDirective) {
-//      SimpleStringLiteral uriLiteral = node as SimpleStringLiteral;
-//      String uriString = uriLiteral.value;
-//      // prepare referenced File
-//      JavaFile newFile;
-//      {
-//        Uri uri = parseUriWithException(uriString);
-//        if (uri.isAbsolute) {
-//          return;
-//        }
-//        newFile = new JavaFile.relative(_unitLibraryFolder, uriString);
-//      }
-//      if (!newFile.exists()) {
-//        // prepare new source
-//        String source;
-//        {
-//          String libraryName = _unitLibraryElement.displayName;
-//          source = "part of ${libraryName};${eol}${eol}";
-//        }
-//        // add proposal
-//        _proposals.add(
-//            new CreateFileCorrectionProposal(
-//                newFile,
-//                source,
-//                FixKind.CREATE_PART,
-//                [uriString]));
-//      }
-//    }
   }
 
   void _addFix_importLibrary(FixKind kind, String importPath) {

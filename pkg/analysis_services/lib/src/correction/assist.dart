@@ -83,7 +83,6 @@ class AssistProcessor {
     _addProposal_convertToIsNot_onNot();
     _addProposal_convertToIsNotEmpty();
     _addProposal_exchangeOperands();
-    _addProposal_extractClassIntoPart();
     _addProposal_importAddShow();
     _addProposal_invertIf();
     _addProposal_joinIfStatementInner();
@@ -505,51 +504,6 @@ class AssistProcessor {
     }
     // add proposal
     _addAssist(AssistKind.EXCHANGE_OPERANDS, []);
-  }
-
-  void _addProposal_extractClassIntoPart() {
-    // TODO(scheglov) implement
-//    // should be on the name
-//    if (node is! SimpleIdentifier) {
-//      return;
-//    }
-//    if (node.parent is! ClassDeclaration) {
-//      return;
-//    }
-//    ClassDeclaration classDeclaration = node.parent as ClassDeclaration;
-//    SourceRange linesRange =
-//        utils.getLinesRange2(rangeNode(classDeclaration));
-//    // prepare name
-//    String className = classDeclaration.name.name;
-//    String fileName = CorrectionUtils.getRecommentedFileNameForClass(className);
-//    // prepare new file
-//    JavaFile newFile = new JavaFile.relative(_unitLibraryFolder, fileName);
-//    if (newFile.exists()) {
-//      return;
-//    }
-//    // remove class from this unit
-//    SourceChange unitChange = new SourceChange(_source.shortName, _source);
-//    unitChange.addEdit(new Edit.range(linesRange, ""));
-//    // create new unit
-//    Change createFileChange;
-//    {
-//      String newContent = "part of ${_unitLibraryElement.displayName};";
-//      newContent += utils.endOfLine;
-//      newContent += utils.endOfLine;
-//      newContent += _getSource2(linesRange);
-//      createFileChange = new CreateFileChange(fileName, newFile, newContent);
-//    }
-//    // add 'part'
-//    SourceChange libraryChange =
-//        _getInsertPartDirectiveChange(_unitLibrarySource, fileName);
-//    // add proposal
-//    Change compositeChange =
-//        new CompositeChange("", [unitChange, createFileChange, libraryChange]);
-//    _proposals.add(
-//        new ChangeCorrectionProposal(
-//            compositeChange,
-//            AssistKind.EXTRACT_CLASS,
-//            [fileName]));
   }
 
   void _addProposal_importAddShow() {
