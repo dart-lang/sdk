@@ -513,7 +513,7 @@ class Response {
    * by a [request] referencing a context that does not exist.
    */
   Response.contextDoesNotExist(Request request)
-    : this(request.id, new RequestError(-1, 'Context does not exist'));
+    : this(request.id, new RequestError('NONEXISTENT_CONTEXT', 'Context does not exist'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -523,7 +523,7 @@ class Response {
    * [expectation] is a description of the type of data that was expected.
    */
   Response.invalidParameter(Request request, String path, String expectation)
-      : this(request.id, new RequestError(-2,
+      : this(request.id, new RequestError('INVALID_PARAMETER',
           "Expected parameter $path to $expectation"));
 
   /**
@@ -531,14 +531,14 @@ class Response {
    * by a malformed request.
    */
   Response.invalidRequestFormat()
-    : this('', new RequestError(-4, 'Invalid request'));
+    : this('', new RequestError('INVALID_REQUEST', 'Invalid request'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that does not have a required parameter.
    */
   Response.missingRequiredParameter(Request request, String parameterName)
-    : this(request.id, new RequestError(-5, 'Missing required parameter: $parameterName'));
+    : this(request.id, new RequestError('MISSING_PARAMETER', 'Missing required parameter: $parameterName'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -546,20 +546,20 @@ class Response {
    * unknown analysis option was provided.
    */
   Response.unknownAnalysisOption(Request request, String optionName)
-    : this(request.id, new RequestError(-6, 'Unknown analysis option: "$optionName"'));
+    : this(request.id, new RequestError('UNKNOWN_ANALYSIS_OPTION', 'Unknown analysis option: "$optionName"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that cannot be handled by any known handlers.
    */
   Response.unknownRequest(Request request)
-    : this(request.id, new RequestError(-7, 'Unknown request'));
+    : this(request.id, new RequestError('UNKNOWN_REQUEST', 'Unknown request'));
 
   Response.contextAlreadyExists(Request request)
-    : this(request.id, new RequestError(-8, 'Context already exists'));
+    : this(request.id, new RequestError('CONTENT_ALREADY_EXISTS', 'Context already exists'));
 
   Response.unsupportedFeature(String requestId, String message)
-    : this(requestId, new RequestError(-9, message));
+    : this(requestId, new RequestError('UNSUPPORTED_FEATURE', message));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -567,7 +567,7 @@ class Response {
    * analysis service name.
    */
   Response.unknownAnalysisService(Request request, String name)
-    : this(request.id, new RequestError(-10, 'Unknown analysis service: "$name"'));
+    : this(request.id, new RequestError('UNKNOWN_ANALYSIS_SERVICE', 'Unknown analysis service: "$name"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -575,7 +575,7 @@ class Response {
    * that are not being analyzed.
    */
   Response.unanalyzedPriorityFiles(Request request, String fileNames)
-    : this(request.id, new RequestError(-11, "Unanalyzed files cannot be a priority: '$fileNames'"));
+    : this(request.id, new RequestError('UNANALYZED_PRIORITY_FILES', "Unanalyzed files cannot be a priority: '$fileNames'"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -583,7 +583,7 @@ class Response {
    * option.
    */
   Response.unknownOptionName(Request request, String optionName)
-    : this(request.id, new RequestError(-12, 'Unknown analysis option: "$optionName"'));
+    : this(request.id, new RequestError('UNKNOWN_OPTION_NAME', 'Unknown analysis option: "$optionName"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -592,7 +592,7 @@ class Response {
   Response.getErrorsError(Request request, String message)
     : this(
         request.id,
-        new RequestError(-13, 'Error during `analysis.getErrors`: $message.'));
+        new RequestError('GET_ERRORS_ERROR', 'Error during `analysis.getErrors`: $message.'));
 
   /**
    * Initialize a newly created instance based upon the given JSON data
@@ -679,55 +679,50 @@ class RequestError {
    * An error code indicating a parse error. Invalid JSON was received by the
    * server. An error occurred on the server while parsing the JSON text.
    */
-  static const int CODE_PARSE_ERROR = -32700;
+  static const String CODE_PARSE_ERROR = 'PARSE_ERROR';
 
   /**
    * An error code indicating that the analysis server has already been
    * started (and hence won't accept new connections).
    */
-  static const int CODE_SERVER_ALREADY_STARTED = -32701;
+  static const String CODE_SERVER_ALREADY_STARTED = 'SERVER_ALREADY_STARTED';
 
   /**
    * An error code indicating an invalid request. The JSON sent is not a valid
    * [Request] object.
    */
-  static const int CODE_INVALID_REQUEST = -32600;
+  static const String CODE_INVALID_REQUEST = 'INVALID_REQUEST';
 
   /**
    * An error code indicating a method not found. The method does not exist or
    * is not currently available.
    */
-  static const int CODE_METHOD_NOT_FOUND = -32601;
+  static const String CODE_METHOD_NOT_FOUND = 'METHOD_NOT_FOUND';
 
   /**
    * An error code indicating one or more invalid parameters.
    */
-  static const int CODE_INVALID_PARAMS = -32602;
+  static const String CODE_INVALID_PARAMS = 'INVALID_PARAMS';
 
   /**
    * An error code indicating an internal error.
    */
-  static const int CODE_INTERNAL_ERROR = -32603;
+  static const String CODE_INTERNAL_ERROR = 'INTERNAL_ERROR';
 
   /**
    * An error code indicating a problem using the specified Dart SDK.
    */
-  static const int CODE_SDK_ERROR = -32603;
+  static const String CODE_SDK_ERROR = 'SDK_ERROR';
 
   /**
    * An error code indicating a problem during 'analysis.getErrors'.
    */
-  static const int CODE_ANALISYS_GET_ERRORS_ERROR = -32500;
-
-  /*
-   * In addition, codes -32000 to -32099 indicate a server error. They are
-   * reserved for implementation-defined server-errors.
-   */
+  static const String CODE_ANALISYS_GET_ERRORS_ERROR = 'ANALYSIS_GET_ERRORS_ERROR';
 
   /**
    * The code that uniquely identifies the error that occurred.
    */
-  final int code;
+  final String code;
 
   /**
    * A short description of the error.
@@ -786,7 +781,7 @@ class RequestError {
    */
   factory RequestError.fromJson(Map<String, Object> json) {
     try {
-      int code = json[RequestError.CODE];
+      String code = json[RequestError.CODE];
       String message = json[RequestError.MESSAGE];
       Map<String, Object> data = json[RequestError.DATA];
       RequestError requestError = new RequestError(code, message);

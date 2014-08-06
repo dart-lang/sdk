@@ -1069,14 +1069,14 @@ final Matcher isElementKind = isIn([
  * Error
  *
  * {
- *   "code": int
+ *   "code": String
  *   "message": String
  *   "data": optional object
  * }
  */
 final Matcher isError = new MatchesJsonObject(
   "Error", {
-    "code": isInt,
+    "code": isString,
     "message": isString
   }, optionalFields: {
     "data": isObject

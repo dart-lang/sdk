@@ -27,7 +27,7 @@ main() {
 
 @ReflectiveTestCase()
 class InvalidParameterResponseMatcher extends Matcher {
-  static const int ERROR_CODE = -2;
+  static const String ERROR_CODE = 'INVALID_PARAMETER';
 
   @override
   Description describe(Description description) => description.add(
@@ -396,11 +396,11 @@ class RequestDatumTest {
 @ReflectiveTestCase()
 class RequestErrorTest {
   void test_create() {
-    RequestError error = new RequestError(42, 'msg');
-    expect(error.code, 42);
+    RequestError error = new RequestError('ERROR_CODE', 'msg');
+    expect(error.code, 'ERROR_CODE');
     expect(error.message, "msg");
     expect(error.toJson(), equals({
-      RequestError.CODE: 42,
+      RequestError.CODE: 'ERROR_CODE',
       RequestError.MESSAGE: "msg"
     }));
   }
@@ -457,11 +457,11 @@ class RequestErrorTest {
   }
 
   void test_toJson() {
-    RequestError error = new RequestError(0, 'msg');
+    RequestError error = new RequestError('ERROR_CODE', 'msg');
     error.setData('answer', 42);
     error.setData('question', 'unknown');
     expect(error.toJson(), {
-      RequestError.CODE: 0,
+      RequestError.CODE: 'ERROR_CODE',
       RequestError.MESSAGE: 'msg',
       RequestError.DATA: {
         'answer': 42,
@@ -587,7 +587,7 @@ class ResponseTest {
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: {
-        'code': -1,
+        'code': 'NONEXISTENT_CONTEXT',
         'message': 'Context does not exist'
       }
     }));
@@ -600,7 +600,7 @@ class ResponseTest {
     expect(response.toJson(), equals({
       Response.ID: '',
       Response.ERROR: {
-        'code': -4,
+        'code': 'INVALID_REQUEST',
         'message': 'Invalid request'
       }
     }));
@@ -614,7 +614,7 @@ class ResponseTest {
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: {
-        'code': -5,
+        'code': 'MISSING_PARAMETER',
         'message': 'Missing required parameter: x'
       }
     }));
@@ -628,7 +628,7 @@ class ResponseTest {
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: {
-        'code': -11,
+        'code': 'UNANALYZED_PRIORITY_FILES',
         'message': "Unanalyzed files cannot be a priority: 'file list'"
       }
     }));
@@ -642,7 +642,7 @@ class ResponseTest {
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: {
-        'code': -6,
+        'code': 'UNKNOWN_ANALYSIS_OPTION',
         'message': 'Unknown analysis option: "x"'
       }
     }));
@@ -655,7 +655,7 @@ class ResponseTest {
     expect(response.toJson(), equals({
       Response.ID: '0',
       Response.ERROR: {
-        'code': -7,
+        'code': 'UNKNOWN_REQUEST',
         'message': 'Unknown request'
       }
     }));
@@ -673,7 +673,7 @@ class ResponseTest {
     expect(response.id, equals(''));
     expect(response.error, isNotNull);
     RequestError error = response.error;
-    expect(error.code, equals(-4));
+    expect(error.code, equals('INVALID_REQUEST'));
     expect(error.message, equals('Invalid request'));
   }
 
