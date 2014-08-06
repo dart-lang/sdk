@@ -64,7 +64,7 @@ fileapi_test/directoryReader: RuntimeError # Issue 20366
 fileapi_test/entry: RuntimeError # Issue 20366
 fileapi_test/fileEntry: RuntimeError # Issue 20366
 indexeddb_2_test: RuntimeError # Issue 20366
-html/indexeddb_5_test: RuntimeError # Issue 20366
+indexeddb_5_test: RuntimeError # Issue 20366
 xhr_test/xhr_requestBlob: RuntimeError # Issue 20366
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
