@@ -106,7 +106,6 @@ mirrors/typevariable_mirror_metadata_test: CompileTimeError # Issue 10905
 mirrors/type_variable_is_static_test: RuntimeError # Issue 6335
 mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
-mirrors/variable_is_const_test/01: MissingCompileTimeError # Issue 5519
 mirrors/raw_type_test/01: RuntimeError # http://dartbug.com/6490
 mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 
