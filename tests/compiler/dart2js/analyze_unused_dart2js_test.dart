@@ -14,13 +14,15 @@ import 'analyze_helper.dart';
 // Do not remove WHITE_LIST even if it's empty.  The error message for
 // unused members refers to WHITE_LIST by name.
 const Map<String, List<String>> WHITE_LIST = const {
-  // TODO(johnniwinther): Explicitly check that we use no helpers, both methods
-  // and classes, are used in production code.*/
   // Helper methods for debugging should never be called from production code:
   "implementation/helpers/": const [" is never "],
 
+  // Node.asLiteralBool is never used.
+  "implementation/tree/nodes.dart": const [
+      "The method 'asLiteralBool' is never called"],
+
   // Some things in dart_printer are not yet used
-  "implementation/dart_backend/backend_ast_nodes.dart" : const [" is never "],
+  "implementation/dart_backend/backend_ast_nodes.dart": const [" is never "],
 
   // dart2js uses only the encoding functions, the decoding functions are used
   // from the generated code.

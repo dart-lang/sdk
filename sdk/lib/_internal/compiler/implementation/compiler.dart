@@ -1650,10 +1650,6 @@ abstract class Compiler implements DiagnosticListener {
 
   void reportWarning(Spannable node, MessageKind messageKind,
                      [Map arguments = const {}]) {
-    // TODO(ahe): Don't suppress these warning when the type checker
-    // is more complete.
-    if (messageKind == MessageKind.MISSING_RETURN) return;
-    if (messageKind == MessageKind.MAYBE_MISSING_RETURN) return;
     reportDiagnosticInternal(
         node, messageKind, arguments, api.Diagnostic.WARNING);
   }

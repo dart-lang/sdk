@@ -146,15 +146,6 @@ class MessageKind {
   static const MessageKind THIS_IS_THE_METHOD = const MessageKind(
       "This is the method declaration.");
 
-  static const MessageKind UNREACHABLE_CODE = const MessageKind(
-      "Unreachable code.");
-
-  static const MessageKind MISSING_RETURN = const MessageKind(
-      "Missing return.");
-
-  static const MessageKind MAYBE_MISSING_RETURN = const MessageKind(
-      "Not all paths lead to a return or throw statement.");
-
   static const MessageKind CANNOT_RESOLVE = const MessageKind(
       "Cannot resolve '#{name}'.");
 

@@ -20,7 +20,6 @@ import "package:async_helper/async_helper.dart";
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String, List<String>> WHITE_LIST = const {
-  "js_mirrors.dart" : const ["Unreachable code."] // issue 18936
 };
 
 void main() {

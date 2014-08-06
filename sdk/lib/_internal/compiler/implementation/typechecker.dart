@@ -546,33 +546,34 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitDoWhile(DoWhile node) {
-    StatementType bodyType = analyze(node.body);
+    analyze(node.body);
     checkCondition(node.condition);
-    return bodyType.join(StatementType.NOT_RETURNING);
+    return const StatementType();
   }
 
   DartType visitExpressionStatement(ExpressionStatement node) {
     Expression expression = node.expression;
     analyze(expression);
-    return (expression.asThrow() != null)
-        ? StatementType.RETURNING
-        : StatementType.NOT_RETURNING;
+    return const StatementType();
   }
 
   /** Dart Programming Language Specification: 11.5.1 For Loop */
   DartType visitFor(For node) {
-    analyzeWithDefault(node.initializer, StatementType.NOT_RETURNING);
+    if (node.initializer != null) {
+      analyze(node.initializer);
+    }
     if (node.condition != null) {
       checkCondition(node.condition);
     }
-    analyzeWithDefault(node.update, StatementType.NOT_RETURNING);
-    StatementType bodyType = analyze(node.body);
-    return bodyType.join(StatementType.NOT_RETURNING);
+    if (node.update != null) {
+      analyze(node.update);
+    }
+    return analyze(node.body);
   }
 
   DartType visitFunctionDeclaration(FunctionDeclaration node) {
     analyze(node.function);
-    return StatementType.NOT_RETURNING;
+    return const StatementType();
   }
 
   DartType visitFunctionExpression(FunctionExpression node) {
@@ -605,17 +606,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
     DartType previous = expectedReturnType;
     expectedReturnType = returnType;
-    StatementType bodyType = analyze(node.body);
-    if (!returnType.isVoid && !returnType.treatAsDynamic
-        && bodyType != StatementType.RETURNING) {
-      MessageKind kind;
-      if (bodyType == StatementType.MAYBE_RETURNING) {
-        kind = MessageKind.MAYBE_MISSING_RETURN;
-      } else {
-        kind = MessageKind.MISSING_RETURN;
-      }
-      reportTypeWarning(node.name, kind);
-    }
+    analyze(node.body);
     expectedReturnType = previous;
     return type;
   }
@@ -642,12 +633,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     Statement thenPart = node.thenPart;
 
     checkCondition(node.condition);
-
-    StatementType thenType = analyzeInPromotedContext(condition, thenPart);
-
-    StatementType elseType = node.hasElsePart ? analyze(node.elsePart)
-                                              : StatementType.NOT_RETURNING;
-    return thenType.join(elseType);
+    analyzeInPromotedContext(condition, thenPart);
+    if (node.elsePart != null) {
+      analyze(node.elsePart);
+    }
+    return const StatementType();
   }
 
   void checkPrivateAccess(Node node, Element element, String name) {
@@ -1537,41 +1527,26 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitNodeList(NodeList node) {
-    DartType type = StatementType.NOT_RETURNING;
-    bool reportedDeadCode = false;
     for (Link<Node> link = node.nodes; !link.isEmpty; link = link.tail) {
-      DartType nextType =
-          analyze(link.head, inInitializer: analyzingInitializer);
-      if (type == StatementType.RETURNING) {
-        if (!reportedDeadCode) {
-          reportTypeWarning(link.head, MessageKind.UNREACHABLE_CODE);
-          reportedDeadCode = true;
-        }
-      } else if (type == StatementType.MAYBE_RETURNING){
-        if (nextType == StatementType.RETURNING) {
-          type = nextType;
-        }
-      } else {
-        type = nextType;
-      }
+      analyze(link.head, inInitializer: analyzingInitializer);
     }
-    return type;
+    return const StatementType();
   }
 
   DartType visitRedirectingFactoryBody(RedirectingFactoryBody node) {
     // TODO(lrn): Typecheck the body. It must refer to the constructor
     // of a subtype.
-    return StatementType.RETURNING;
+    return const StatementType();
   }
 
   DartType visitRethrow(Rethrow node) {
-    return StatementType.RETURNING;
+    return const StatementType();
   }
 
   /** Dart Programming Language Specification: 11.10 Return */
   DartType visitReturn(Return node) {
     if (identical(node.beginToken.stringValue, 'native')) {
-      return StatementType.RETURNING;
+      return const StatementType();
     }
 
     final expression = node.expression;
@@ -1601,7 +1576,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       reportTypeWarning(node, MessageKind.RETURN_NOTHING,
                         {'returnType': expectedReturnType});
     }
-    return StatementType.RETURNING;
+    return const StatementType();
   }
 
   DartType visitThrow(Throw node) {
@@ -1631,23 +1606,14 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         checkAssignable(initialization.assignmentOperator, initializer, type);
       }
     }
-    return StatementType.NOT_RETURNING;
+    return const StatementType();
   }
 
   DartType visitWhile(While node) {
     checkCondition(node.condition);
-    StatementType bodyType = analyze(node.body);
+    analyze(node.body);
     Expression cond = node.condition.asParenthesizedExpression().expression;
-    if (cond.asLiteralBool() != null && cond.asLiteralBool().value == true) {
-      // If the condition is a constant boolean expression denoting true,
-      // control-flow always enters the loop body.
-      // TODO(karlklose): this should be StatementType.RETURNING unless there
-      // is a break in the loop body that has the loop or a label outside the
-      // loop as a target.
-      return bodyType;
-    } else {
-      return bodyType.join(StatementType.NOT_RETURNING);
-    }
+    return const StatementType();
   }
 
   DartType visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -1682,21 +1648,21 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   visitEmptyStatement(EmptyStatement node) {
-    return StatementType.NOT_RETURNING;
+    return const StatementType();
   }
 
   visitBreakStatement(BreakStatement node) {
-    return StatementType.NOT_RETURNING;
+    return const StatementType();
   }
 
   visitContinueStatement(ContinueStatement node) {
-    return StatementType.NOT_RETURNING;
+    return const StatementType();
   }
 
   visitForIn(ForIn node) {
     analyze(node.expression);
-    StatementType bodyType = analyze(node.body);
-    return bodyType.join(StatementType.NOT_RETURNING);
+    analyze(node.body);
+    return const StatementType();
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -1748,7 +1714,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       analyze(switchCase);
     }
 
-    return StatementType.NOT_RETURNING;
+    return const StatementType();
   }
 
   visitSwitchCase(SwitchCase node) {
@@ -1764,7 +1730,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       analyze(catchBlock);
     }
     analyzeWithDefault(node.finallyBlock, null);
-    return StatementType.NOT_RETURNING;
+    return const StatementType();
   }
 
   visitCatchBlock(CatchBlock node) {

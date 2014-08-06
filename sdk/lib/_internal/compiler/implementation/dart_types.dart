@@ -14,7 +14,7 @@ import 'elements/modelx.dart'
          TypeDeclarationElementX,
          TypedefElementX;
 import 'elements/elements.dart';
-import 'helpers/helpers.dart';
+import 'helpers/helpers.dart';  // Included for debug helpers.
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show CURRENT_ELEMENT_SPANNABLE, equalElements;
 
@@ -231,48 +231,23 @@ class TypeVariableType extends DartType {
   String toString() => name;
 }
 
-/**
- * A statement type tracks whether a statement returns or may return.
- */
+/// Internal type representing the result of analyzing a statement.
 class StatementType extends DartType {
-  final String stringName;
-
   Element get element => null;
 
   TypeKind get kind => TypeKind.STATEMENT;
 
-  String get name => stringName;
+  String get name => 'statement';
 
-  const StatementType(this.stringName);
+  const StatementType();
 
-  static const RETURNING = const StatementType('<returning>');
-  static const NOT_RETURNING = const StatementType('<not returning>');
-  static const MAYBE_RETURNING = const StatementType('<maybe returning>');
-
-  /** Combine the information about two control-flow edges that are joined. */
-  StatementType join(StatementType other) {
-    return (identical(this, other)) ? this : MAYBE_RETURNING;
-  }
-
-  DartType subst(List<DartType> arguments, List<DartType> parameters) {
-    // Statement types are not substitutable.
-    return this;
-  }
+  DartType subst(List<DartType> arguments, List<DartType> parameters) => this;
 
   DartType unalias(Compiler compiler) => this;
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitStatementType(this, argument);
   }
-
-  int get hashCode => 17 * stringName.hashCode;
-
-  bool operator ==(other) {
-    if (other is !StatementType) return false;
-    return other.stringName == stringName;
-  }
-
-  String toString() => stringName;
 }
 
 class VoidType extends DartType {
@@ -1408,8 +1383,7 @@ class Types {
     }
     if (a.kind == TypeKind.STATEMENT) {
       if (b.kind == TypeKind.STATEMENT) {
-        return (a as StatementType).stringName.compareTo(
-               (b as StatementType).stringName);
+        return 0;
       } else {
         // [b] is a malformed type => a > b.
         return 1;
