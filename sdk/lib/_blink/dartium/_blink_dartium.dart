@@ -2169,6 +2169,8 @@ class BlinkFileReader {
 
   static $readyState_Getter(mthis) native "FileReader_readyState_Getter";
 
+  static $result_Getter(mthis) native "FileReader_result_Getter";
+
   static $abort_Callback(mthis) native "FileReader_abort_Callback_RESOLVER_STRING_0_";
 
   static $readAsArrayBuffer_Callback(mthis, blob) native "FileReader_readAsArrayBuffer_Callback_RESOLVER_STRING_1_Blob";
@@ -8131,10 +8133,10 @@ class BlinkURL {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return $_createObjectURL_1_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return $_createObjectURL_2_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return $_createObjectURL_3_Callback(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -8142,9 +8144,9 @@ class BlinkURL {
 
   static $_createObjectURL_1_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 
-  static $_createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
+  static $_createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
 
-  static $_createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
+  static $_createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
 
   static $createObjectUrlFromBlob_Callback(blob) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 

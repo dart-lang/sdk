@@ -13020,6 +13020,10 @@ class FileReader extends EventTarget {
   @DocsEditable()
   int get readyState => _blink.BlinkFileReader.$readyState_Getter(this);
 
+  @DomName('FileReader.result')
+  @DocsEditable()
+  Object get _result => _blink.BlinkFileReader.$result_Getter(this);
+
   @DomName('FileReader.abort')
   @DocsEditable()
   void abort() => _blink.BlinkFileReader.$abort_Callback(this);
