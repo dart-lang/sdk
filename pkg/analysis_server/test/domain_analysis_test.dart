@@ -41,7 +41,6 @@ main() {
     handler = new AnalysisDomainHandler(server);
   });
 
-  group('notification.errors', testNotificationErrors);
   group('updateContent', testUpdateContent);
   group('setSubscriptions', test_setSubscriptions);
 
@@ -143,41 +142,6 @@ main() {
         expect(options.analyzeAngular, equals(analyzeAngular));
         expect(options.enableDeferredLoading, equals(enableDeferredLoading));
       });
-    });
-  });
-}
-
-
-testNotificationErrors() {
-  AnalysisTestHelper helper;
-
-  setUp(() {
-    helper = new AnalysisTestHelper();
-  });
-
-  test('ParserError', () {
-    helper.createSingleFileProject('library lib');
-    return helper.waitForOperationsFinished().then((_) {
-      List<AnalysisError> errors = helper.getTestErrors();
-      expect(errors, hasLength(1));
-      AnalysisError error = errors[0];
-      expect(error.location.file, '/project/bin/test.dart');
-      expect(error.location.offset, isPositive);
-      expect(error.location.length, isNonNegative);
-      expect(error.severity, 'ERROR');
-      expect(error.type, 'SYNTACTIC_ERROR');
-      expect(error.message, isNotNull);
-    });
-  });
-
-  test('StaticWarning', () {
-    helper.createSingleFileProject(['main() {', '  print(unknown);', '}']);
-    return helper.waitForOperationsFinished().then((_) {
-      List<AnalysisError> errors = helper.getTestErrors();
-      expect(errors, hasLength(1));
-      AnalysisError error = errors[0];
-      expect(error.severity, 'WARNING');
-      expect(error.type, 'STATIC_WARNING');
     });
   });
 }
@@ -310,11 +274,11 @@ void test_setSubscriptions() {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('int V = 42;');
     return helper.waitForOperationsFinished().then((_) {
-      String noFile = '/no-such.file.dart';
-      helper.addAnalysisSubscriptionErrors(noFile);
+      String noFile = '/no-such-file.dart';
+      helper.addAnalysisSubscriptionHighlights(noFile);
       return helper.waitForOperationsFinished().then((_) {
-        var errors = helper.getErrors(noFile);
-        expect(errors, isEmpty);
+        var highlights = helper.getHighlights(noFile);
+        expect(highlights, isEmpty);
       });
     });
   });
@@ -394,8 +358,8 @@ main(A a) {
     return waitForTasksFinished().then((_) {
       // if 'package:pkgA/libA.dart' was resolved, then there are no errors
       expect(filesErrors[testFile], isEmpty);
-      // packages file also was resolved
-      expect(filesErrors[pkgFile], isEmpty);
+      // errors are not reported for packages
+      expect(filesErrors[pkgFile], isNull);
     });
   }
 }
@@ -457,10 +421,6 @@ class AnalysisTestHelper {
     Request request = new Request('0', ANALYSIS_SET_SUBSCRIPTIONS);
     request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
     handleSuccessfulRequest(request);
-  }
-
-  void addAnalysisSubscriptionErrors(String file) {
-    addAnalysisSubscription(AnalysisService.ERRORS, file);
   }
 
   void addAnalysisSubscriptionHighlights(String file) {

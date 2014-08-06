@@ -6,6 +6,7 @@ library test.analysis;
 import 'package:unittest/unittest.dart';
 
 import 'get_errors_test.dart' as get_errors_test;
+import 'notification_errors_test.dart' as notification_errors_test;
 
 /**
  * Utility for manually running all tests.
@@ -14,5 +15,6 @@ main() {
   groupSep = ' | ';
   group('search', () {
     get_errors_test.main();
+    notification_errors_test.main();
   });
 }

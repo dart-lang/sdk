@@ -158,8 +158,7 @@ class PerformAnalysisOperation extends ServerOperation {
           sendAnalysisNotificationOverrides(server, file, dartUnit);
         }
       }
-      // TODO(scheglov) use default subscriptions
-      if (!source.isInSystemLibrary) {
+      if (server.shouldSendErrorsNotificationFor(file)) {
         sendAnalysisNotificationErrors(
             server,
             file,

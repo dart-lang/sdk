@@ -241,6 +241,20 @@ abstract class ContextDirectoryManager {
   }
 
   /**
+   * Returns `true` if the given absolute [path] is in one of the current
+   * root folders and is not excluded.
+   */
+  bool isInAnalysisRoot(String path) {
+    // TODO(scheglov) check for excluded paths
+    for (Folder root in _currentDirectoryInfo.keys) {
+      if (path.startsWith(root.path)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Called when a new context needs to be created.
    */
   void addContext(Folder folder, Map<String, List<Folder>> packageMap);

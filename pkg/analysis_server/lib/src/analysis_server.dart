@@ -21,7 +21,6 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -371,6 +370,15 @@ class AnalysisServer {
   }
 
   /**
+   * Returns `true` if errors should be reported for [file] with the given
+   * absolute path.
+   */
+  bool shouldSendErrorsNotificationFor(String file) {
+    // TODO(scheglov) add support for the "--no-error-notification" flag.
+    return contextDirectoryManager.isInAnalysisRoot(file);
+  }
+
+  /**
    * Returns `true` if the given [AnalysisContext] is a priority one.
    */
   bool isPriorityContext(AnalysisContext context) {
@@ -492,14 +500,6 @@ class AnalysisServer {
         AnalysisContext context = getAnalysisContext(file);
         if (context == null) {
           continue;
-        }
-        // errors
-        if (service == AnalysisService.ERRORS) {
-          LineInfo lineInfo = context.getLineInfo(source);
-          if (lineInfo != null) {
-            List<AnalysisError> errors = context.getErrors(source).errors;
-            sendAnalysisNotificationErrors(this, file, lineInfo, errors);
-          }
         }
         // Dart unit notifications.
         if (AnalysisEngine.isDartFileName(file)) {
@@ -772,7 +772,6 @@ class AnalysisServer {
  * An enumeration of the services provided by the analysis domain.
  */
 class AnalysisService extends Enum2<AnalysisService> {
-  static const ERRORS = const AnalysisService('ERRORS', 0);
   static const HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
   static const NAVIGATION = const AnalysisService('NAVIGATION', 2);
   static const OCCURRENCES = const AnalysisService('OCCURRENCES', 3);
@@ -780,7 +779,7 @@ class AnalysisService extends Enum2<AnalysisService> {
   static const OVERRIDES = const AnalysisService('OVERRIDES', 5);
 
   static const List<AnalysisService> VALUES =
-      const [ERRORS, HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
+      const [HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
 
   const AnalysisService(String name, int ordinal) : super(name, ordinal);
 }
