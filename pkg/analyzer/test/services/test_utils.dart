@@ -178,9 +178,11 @@ class _TestSource implements Source {
 
   bool get isInSystemLibrary => _unsupported();
 
+  Uri get uri => _unsupported();
+
   Source resolve(String uri) => _unsupported();
 
-  Source resolveRelative(Uri uri) => _unsupported();
+  Uri resolveRelativeUri(Uri uri) => _unsupported();
 
   TimestampedData<String> get contents => _unsupported();
 }

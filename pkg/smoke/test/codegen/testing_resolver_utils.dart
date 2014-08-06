@@ -34,7 +34,7 @@ LibraryProvider initAnalyzer(Map<String, String> contents) {
   sdk.context.analysisOptions = options;
   var changes = new ChangeSet();
   var allSources = {};
-  contents.forEach((url, code) { 
+  contents.forEach((url, code) {
     var source = new _SimpleSource(url, code, allSources);
     allSources[url] = source;
     changes.addedSource(source);
@@ -62,11 +62,13 @@ class _SimpleUriResolver implements UriResolver {
 }
 
 class _SimpleSource extends Source {
+  final Uri uri;
   final String path;
   final String rawContents;
   final Map<String, Source> allSources;
 
-  _SimpleSource(this.path, this.rawContents, this.allSources);
+  _SimpleSource(this.path, this.rawContents, this.allSources)
+      : uri = Uri.parse('file:///path');
 
   operator ==(other) => other is _SimpleSource &&
       rawContents == other.rawContents;
@@ -89,6 +91,16 @@ class _SimpleSource extends Source {
   Source resolveRelative(Uri uri) {
     if (uri.path.startsWith('/')) return allSources['${uri.path}'];
     throw new UnimplementedError('relative URIs not supported: $uri');
+  }
+
+  // Since this is just for simple tests we just restricted this mock
+  // to root-relative imports. For more sophisticated stuff, you should be
+  // using the test helpers in `package:code_transformers`.
+  Uri resolveRelativeUri(Uri uri) {
+    if (!uri.path.startsWith('/')) {
+      throw new UnimplementedError('relative URIs not supported: $uri');
+    }
+    return uri;
   }
 
   void getContentsToReceiver(Source_ContentReceiver receiver) {

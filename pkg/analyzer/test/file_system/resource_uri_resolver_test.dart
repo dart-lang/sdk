@@ -23,22 +23,6 @@ main() {
       provider.newFolder('/folder');
     });
 
-    group('fromEncoding', () {
-      test('file', () {
-        var uri = new Uri(path: '/test.dart');
-        Source source = resolver.fromEncoding(UriKind.FILE_URI, uri);
-        expect(source, isNotNull);
-        expect(source.exists(), isTrue);
-        expect(source.fullName, '/test.dart');
-      });
-
-      test('not a UriKind.FILE_URI', () {
-        var uri = new Uri(path: '/test.dart');
-        Source source = resolver.fromEncoding(UriKind.DART_URI, uri);
-        expect(source, isNull);
-      });
-    });
-
     group('resolveAbsolute', () {
       test('file', () {
         var uri = new Uri(scheme: 'file', path: '/test.dart');

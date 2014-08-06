@@ -549,7 +549,7 @@ class AnalysisServer {
    */
   Source getSource(String path) {
     File file = contextDirectoryManager.resourceProvider.getResource(path);
-    return file.createSource(UriKind.FILE_URI);
+    return file.createSource();
   }
 
   /**

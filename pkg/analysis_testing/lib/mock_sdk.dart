@@ -12,9 +12,6 @@ import 'package:analyzer/src/generated/source.dart';
 
 
 class MockSdk implements DartSdk {
-  final resource.MemoryResourceProvider provider =
-      new resource.MemoryResourceProvider();
-
   static const _MockSdkLibrary LIB_CORE =
       const _MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
 library dart.core;
@@ -102,13 +99,15 @@ class HtmlElement {}
       LIB_MATH,
       LIB_HTML,];
 
+  final resource.MemoryResourceProvider provider =
+      new resource.MemoryResourceProvider();
+
   MockSdk() {
     LIBRARIES.forEach((_MockSdkLibrary library) {
       provider.newFile(library.path, library.content);
     });
   }
 
-  // Not used
   @override
   AnalysisContext get context => throw unimplemented;
 
@@ -123,17 +122,15 @@ class HtmlElement {}
   @override
   List<String> get uris => throw unimplemented;
 
-  // Not used.
   @override
-  Source fromEncoding(UriKind kind, Uri uri) {
+  Source fromFileUri(Uri uri) {
     resource.Resource file = provider.getResource(uri.path);
     if (file is resource.File) {
-      return file.createSource(kind);
+      return file.createSource(uri);
     }
     return null;
   }
 
-  // Not used.
   @override
   SdkLibrary getSdkLibrary(String dartUri) {
     // getSdkLibrary() is only used to determine whether a library is internal
@@ -142,7 +139,6 @@ class HtmlElement {}
     return null;
   }
 
-  // Not used.
   @override
   Source mapDartUri(String dartUri) {
     const Map<String, String> uriToPath = const {
@@ -155,7 +151,8 @@ class HtmlElement {}
     String path = uriToPath[dartUri];
     if (path != null) {
       resource.File file = provider.getResource(path);
-      return file.createSource(UriKind.DART_URI);
+      Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
+      return file.createSource(uri);
     }
 
     // If we reach here then we tried to use a dartUri that's not in the

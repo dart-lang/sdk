@@ -18,7 +18,7 @@ abstract class File extends Resource {
   /**
    * Create a new [Source] instance that serves this file.
    */
-  Source createSource(UriKind uriKind);
+  Source createSource([Uri uri]);
 }
 
 
@@ -115,24 +115,13 @@ class ResourceUriResolver extends UriResolver {
   ResourceUriResolver(this._provider);
 
   @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.FILE_URI) {
-      Resource resource = _provider.getResource(uri.path);
-      if (resource is File) {
-        return resource.createSource(kind);
-      }
-    }
-    return null;
-  }
-
-  @override
   Source resolveAbsolute(Uri uri) {
     if (!_isFileUri(uri)) {
       return null;
     }
     Resource resource = _provider.getResource(uri.path);
     if (resource is File) {
-      return resource.createSource(UriKind.FILE_URI);
+      return resource.createSource(uri);
     }
     return null;
   }

@@ -47,10 +47,13 @@ class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File file) : super(file);
 
   @override
-  Source createSource(UriKind uriKind) {
+  Source createSource([Uri uri]) {
     io.File file = _entry as io.File;
     JavaFile javaFile = new JavaFile(file.absolute.path);
-    return new FileBasedSource.con2(javaFile, uriKind);
+    if (uri == null) {
+      uri = javaFile.toURI();
+    }
+    return new FileBasedSource.con2(uri, javaFile);
   }
 }
 

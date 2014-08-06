@@ -174,7 +174,6 @@ class ElementCodec {
     int length = components.length;
     String firstComponent = components[0];
     String lastComponent = components[length - 1];
-    firstComponent = firstComponent.substring(1);
     lastComponent = _substringBeforeAt(lastComponent);
     int firstId = _stringCodec.encode(firstComponent);
     int lastId = _stringCodec.encode(lastComponent);

@@ -114,6 +114,10 @@ class DartSourceProxy implements UriAnnotatedSource {
     return wrap(_proxy.resolveRelative(relativeUri), uri);
   }
 
+  Uri resolveRelativeUri(Uri relativeUri) {
+    return _proxy.resolveRelativeUri(relativeUri);
+  }
+
   bool exists() => _proxy.exists();
 
   bool operator ==(Object other) =>
@@ -181,6 +185,11 @@ class MockDartSdk implements DartSdk {
     }
     return src;
   }
+
+  @override
+  Source fromFileUri(Uri uri) {
+    throw new UnsupportedError('MockDartSdk.fromFileUri');
+  }
 }
 
 class _MockSdkSource implements UriAnnotatedSource {
@@ -210,5 +219,8 @@ class _MockSdkSource implements UriAnnotatedSource {
   bool get isInSystemLibrary => true;
 
   Source resolveRelative(Uri relativeUri) =>
+      throw new UnsupportedError('not expecting relative urls in dart: mocks');
+
+  Uri resolveRelativeUri(Uri relativeUri) =>
       throw new UnsupportedError('not expecting relative urls in dart: mocks');
 }

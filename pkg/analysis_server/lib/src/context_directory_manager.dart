@@ -152,7 +152,7 @@ abstract class ContextDirectoryManager {
           File file = resource;
           if (_shouldFileBeAnalyzed(file)) {
             ChangeSet changeSet = new ChangeSet();
-            Source source = file.createSource(UriKind.FILE_URI);
+            Source source = file.createSource();
             changeSet.addedSource(source);
             applyChangesToContext(folder, changeSet);
             info.sources[event.path]= source;
@@ -212,7 +212,7 @@ abstract class ContextDirectoryManager {
     for (Resource child in children) {
       if (child is File) {
         if (_shouldFileBeAnalyzed(child)) {
-          Source source = child.createSource(UriKind.FILE_URI);
+          Source source = child.createSource();
           changeSet.addedSource(source);
           info.sources[child.path] = source;
         }

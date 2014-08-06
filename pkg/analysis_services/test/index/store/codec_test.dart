@@ -147,7 +147,7 @@ main() {
     }
     // check strings, "foo" as a single string, no "foo@17" or "bar@35"
     expect(stringCodec.nameToIndex, hasLength(4));
-    expect(stringCodec.nameToIndex, containsPair('f/test.dart', 0));
+    expect(stringCodec.nameToIndex, containsPair('file:///test.dart', 0));
     expect(stringCodec.nameToIndex, containsPair('main', 1));
     expect(stringCodec.nameToIndex, containsPair('foo', 2));
     expect(stringCodec.nameToIndex, containsPair('bar', 3));
@@ -176,7 +176,7 @@ main() {
     }
     // check strings, "foo" as a single string, no "foo@21" or "foo@47"
     expect(stringCodec.nameToIndex, hasLength(3));
-    expect(stringCodec.nameToIndex, containsPair('f/test.dart', 0));
+    expect(stringCodec.nameToIndex, containsPair('file:///test.dart', 0));
     expect(stringCodec.nameToIndex, containsPair('main', 1));
     expect(stringCodec.nameToIndex, containsPair('foo', 2));
   }
@@ -193,7 +193,7 @@ main() {
     expect(codec.decode(context, id), element);
     // check strings
     expect(stringCodec.nameToIndex, hasLength(3));
-    expect(stringCodec.nameToIndex, containsPair('f/test.dart', 0));
+    expect(stringCodec.nameToIndex, containsPair('file:///test.dart', 0));
     expect(stringCodec.nameToIndex, containsPair('main', 1));
     expect(stringCodec.nameToIndex, containsPair('foo', 2));
   }

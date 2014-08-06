@@ -10,7 +10,8 @@ library engine.source;
 import 'dart:collection';
 import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
-import 'engine.dart' show AnalysisContext, TimestampedData;
+import 'engine.dart';
+import 'java_engine.dart';
 
 /**
  * Instances of class `ContentCache` hold content used to override the default content of a
@@ -99,7 +100,7 @@ class DartUriResolver extends UriResolver {
   /**
    * The name of the `dart` scheme.
    */
-  static String _DART_SCHEME = "dart";
+  static String DART_SCHEME = "dart";
 
   /**
    * The prefix of a URI using the dart-ext scheme to reference a native code library.
@@ -112,7 +113,7 @@ class DartUriResolver extends UriResolver {
    * @param uri the URI being tested
    * @return `true` if the given URI is a `dart:` URI
    */
-  static bool isDartUri(Uri uri) => _DART_SCHEME == uri.scheme;
+  static bool isDartUri(Uri uri) => DART_SCHEME == uri.scheme;
 
   /**
    * Initialize a newly created resolver to resolve Dart URI's against the given platform within the
@@ -121,14 +122,6 @@ class DartUriResolver extends UriResolver {
    * @param sdk the Dart SDK against which URI's are to be resolved
    */
   DartUriResolver(this._sdk);
-
-  @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.DART_URI) {
-      return _sdk.fromEncoding(kind, uri);
-    }
-    return null;
-  }
 
   /**
    * Return the [DartSdk] against which URIs are to be resolved.
@@ -299,13 +292,16 @@ class NonExistingSource implements Source {
   String get shortName => _name;
 
   @override
+  Uri get uri => null;
+
+  @override
   int get hashCode => _name.hashCode;
 
   @override
   bool get isInSystemLibrary => false;
 
   @override
-  Source resolveRelative(Uri relativeUri) {
+  Uri resolveRelativeUri(Uri relativeUri) {
     throw new UnsupportedOperationException("${_name}does not exist.");
   }
 }
@@ -413,6 +409,13 @@ abstract class Source {
   String get shortName;
 
   /**
+   * Return the URI from which this source was originally derived.
+   *
+   * @return the URI from which this source was originally derived
+   */
+  Uri get uri;
+
+  /**
    * Return the kind of URI from which this source was originally derived. If this source was
    * created from an absolute URI, then the returned kind will reflect the scheme of the absolute
    * URI. If it was created from a relative URI, then the returned kind will be the same as the kind
@@ -439,9 +442,7 @@ abstract class Source {
   bool get isInSystemLibrary;
 
   /**
-   * Resolve the relative URI against the URI associated with this source object. Return a
-   * [Source] representing the URI to which it was resolved, or `null` if it
-   * could not be resolved.
+   * Resolve the relative URI against the URI associated with this source object.
    *
    * Note: This method is not intended for public use, it is only visible out of necessity. It is
    * only intended to be invoked by a [SourceFactory]. Source factories will
@@ -449,10 +450,11 @@ abstract class Source {
    * required to, and generally do not, verify the argument. The result of invoking this method with
    * an absolute URI is intentionally left unspecified.
    *
-   * @param relativeUri the relative URI to be resolved against the containing source
-   * @return a [Source] representing the URI to which given URI was resolved
+   * @param relativeUri the relative URI to be resolved against this source
+   * @return the URI to which given URI was resolved
+   * @throws AnalysisException if the relative URI could not be resolved
    */
-  Source resolveRelative(Uri relativeUri);
+  Uri resolveRelativeUri(Uri relativeUri);
 }
 
 /**
@@ -513,7 +515,26 @@ class SourceFactory {
       if (uri.isAbsolute) {
         return _internalResolveUri(null, uri);
       }
-    } on URISyntaxException catch (exception) {
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not resolve URI: ${absoluteUri}", exception);
+    }
+    return null;
+  }
+
+  /**
+   * Return a source object representing the given absolute URI, or `null` if the URI is not
+   * an absolute URI.
+   *
+   * @param absoluteUri the absolute URI to be resolved
+   * @return a source object representing the absolute URI
+   */
+  Source forUri2(Uri absoluteUri) {
+    if (absoluteUri.isAbsolute) {
+      try {
+        return _internalResolveUri(null, absoluteUri);
+      } on AnalysisException catch (exception, stackTrace) {
+        AnalysisEngine.instance.logger.logError2("Could not resolve URI: ${absoluteUri}", new CaughtException(exception, stackTrace));
+      }
     }
     return null;
   }
@@ -527,25 +548,11 @@ class SourceFactory {
    * @see Source#getEncoding()
    */
   Source fromEncoding(String encoding) {
-    if (encoding.length < 2) {
-      throw new IllegalArgumentException("Invalid encoding length");
+    Source source = forUri(encoding);
+    if (source == null) {
+      throw new IllegalArgumentException("Invalid source encoding: ${encoding}");
     }
-    UriKind kind = UriKind.fromEncoding(encoding.codeUnitAt(0));
-    if (kind == null) {
-      throw new IllegalArgumentException("Invalid source kind in encoding: ${kind}");
-    }
-    try {
-      Uri uri = parseUriWithException(encoding.substring(1));
-      for (UriResolver resolver in _resolvers) {
-        Source result = resolver.fromEncoding(kind, uri);
-        if (result != null) {
-          return result;
-        }
-      }
-      throw new IllegalArgumentException("No resolver for kind: ${kind}");
-    } catch (exception) {
-      throw new IllegalArgumentException("Invalid URI in encoding");
-    }
+    return source;
   }
 
   /**
@@ -590,7 +597,8 @@ class SourceFactory {
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(containingSource, parseUriWithException(containedUri));
-    } on URISyntaxException catch (exception) {
+    } catch (exception) {
+      AnalysisEngine.instance.logger.logError2("Could not resolve URI (${containedUri}) relative to source (${containingSource.fullName})", exception);
       return null;
     }
   }
@@ -624,25 +632,28 @@ class SourceFactory {
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
-   * `null` if either the contained URI is invalid or if it cannot be resolved against the
-   * source object's URI.
+   * `null` if the URI could not be resolved.
    *
    * @param containingSource the source containing the given URI
    * @param containedUri the (possibly relative) URI to be resolved against the containing source
    * @return the source representing the contained URI
+   * @throws AnalysisException if either the contained URI is invalid or if it cannot be resolved
+   *           against the source object's URI
    */
   Source _internalResolveUri(Source containingSource, Uri containedUri) {
-    if (containedUri.isAbsolute) {
-      for (UriResolver resolver in _resolvers) {
-        Source result = resolver.resolveAbsolute(containedUri);
-        if (result != null) {
-          return result;
-        }
+    if (!containedUri.isAbsolute) {
+      if (containingSource == null) {
+        throw new AnalysisException("Cannot resolve a relative URI without a containing source: ${containedUri}");
       }
-      return null;
-    } else {
-      return containingSource.resolveRelative(containedUri);
+      containedUri = containingSource.resolveRelativeUri(containedUri);
     }
+    for (UriResolver resolver in _resolvers) {
+      Source result = resolver.resolveAbsolute(containedUri);
+      if (result != null) {
+        return result;
+      }
+    }
+    return null;
   }
 }
 
@@ -887,20 +898,6 @@ class UriKind extends Enum<UriKind> {
  * absolute URI.
  */
 abstract class UriResolver {
-  /**
-   * If this resolver should be used for URI's of the given kind, resolve the given absolute URI.
-   * The URI does not need to have the scheme handled by this resolver if the kind matches. Return a
-   * [Source] representing the file to which it was resolved, whether or not the
-   * resulting source exists, or `null` if it could not be resolved because the URI is
-   * invalid.
-   *
-   * @param kind the kind of URI that was originally resolved in order to produce an encoding with
-   *          the given URI
-   * @param uri the URI to be resolved
-   * @return a [Source] representing the file to which given URI was resolved
-   */
-  Source fromEncoding(UriKind kind, Uri uri);
-
   /**
    * Resolve the given absolute URI. Return a [Source] representing the file to which
    * it was resolved, whether or not the resulting source exists, or `null` if it could not be

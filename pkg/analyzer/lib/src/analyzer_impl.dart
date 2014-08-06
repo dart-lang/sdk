@@ -8,8 +8,6 @@ import 'dart:async';
 
 import 'dart:io';
 
-import 'package:path/path.dart' as pathos;
-
 import 'generated/constant.dart';
 import 'generated/engine.dart';
 import 'generated/element.dart';
@@ -89,8 +87,8 @@ class AnalyzerImpl {
       throw new ArgumentError("sourcePath cannot be null");
     }
     JavaFile sourceFile = new JavaFile(sourcePath);
-    UriKind uriKind = getUriKind(sourceFile);
-    librarySource = new FileBasedSource.con2(sourceFile, uriKind);
+    Uri uri = getUri(sourceFile);
+    librarySource = new FileBasedSource.con2(uri, sourceFile);
 
     // prepare context
     prepareAnalysisContext(sourceFile, librarySource);
@@ -347,26 +345,21 @@ class AnalyzerImpl {
   }
 
   /**
-   * Returns the [UriKind] for the given input file. Usually {@link UriKind#FILE_URI}, but if
-   * the given file is located in the "lib" directory of the [sdk], then returns
-   * {@link UriKind#DART_URI}.
+   * Returns the [Uri] for the given input file.
+   *
+   * Usually it is a `file:` [Uri], but if [file] is located in the `lib`
+   * directory of the [sdk], then returns a `dart:` [Uri].
    */
-  static UriKind getUriKind(JavaFile file) {
+  static Uri getUri(JavaFile file) {
     // may be file in SDK
-    if (sdk is DirectoryBasedDartSdk) {
-      DirectoryBasedDartSdk directoryBasedSdk = sdk;
-      var libraryDirectory = directoryBasedSdk.libraryDirectory.getAbsolutePath();
-      var sdkLibPath = libraryDirectory + pathos.separator;
-      var filePath = file.getPath();
-      if (filePath.startsWith(sdkLibPath)) {
-        var internalPath = pathos.join(libraryDirectory, '_internal') + pathos.separator;
-        if (!filePath.startsWith(internalPath)) {
-          return UriKind.DART_URI;
-        }
+    {
+      Source source = sdk.fromFileUri(file.toURI());
+      if (source != null) {
+        return source.uri;
       }
     }
     // some generic file
-    return UriKind.FILE_URI;
+    return file.toURI();
   }
 }
 

@@ -16,12 +16,6 @@ import 'package:unittest/unittest.dart';
 main() {
   groupSep = ' | ';
   group('PackageMapUriResolverTest', () {
-    test('fromEncoding_nonPackage', () {
-      new _PackageMapUriResolverTest().test_fromEncoding_nonPackage();
-    });
-    test('fromEncoding_package', () {
-      new _PackageMapUriResolverTest().test_fromEncoding_package();
-    });
     test('isPackageUri', () {
       new _PackageMapUriResolverTest().test_isPackageUri();
     });
@@ -63,21 +57,6 @@ main() {
 class _PackageMapUriResolverTest {
   static HashMap EMPTY_MAP = new HashMap<String, List<Folder>>();
   MemoryResourceProvider provider = new MemoryResourceProvider();
-
-  void test_fromEncoding_nonPackage() {
-    UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
-    Uri uri = Uri.parse('file:/does/not/exist.dart');
-    Source result = resolver.fromEncoding(UriKind.DART_URI, uri);
-    expect(result, isNull);
-  }
-
-  void test_fromEncoding_package() {
-    UriResolver resolver = new PackageMapUriResolver(provider, EMPTY_MAP);
-    Uri uri = Uri.parse('package:/does/not/exist.dart');
-    Source result = resolver.fromEncoding(UriKind.PACKAGE_URI, uri);
-    expect(result, isNotNull);
-    expect(result.fullName, '/does/not/exist.dart');
-  }
 
   void test_isPackageUri() {
     Uri uri = Uri.parse('package:test/test.dart');

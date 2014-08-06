@@ -38,17 +38,6 @@ class PackageMapUriResolver extends UriResolver {
   PackageMapUriResolver(this.resourceProvider, this.packageMap);
 
   @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.PACKAGE_URI) {
-      Resource resource = resourceProvider.getResource(uri.path);
-      if (resource is File) {
-        return resource.createSource(kind);
-      }
-    }
-    return null;
-  }
-
-  @override
   Source resolveAbsolute(Uri uri) {
     if (!isPackageUri(uri)) {
       return null;
@@ -73,7 +62,7 @@ class PackageMapUriResolver extends UriResolver {
         if (packageDir.exists) {
           Resource result = packageDir.getChild(relPath);
           if (result is File && result.exists) {
-            return result.createSource(UriKind.PACKAGE_URI);
+            return result.createSource(uri);
           }
         }
       }

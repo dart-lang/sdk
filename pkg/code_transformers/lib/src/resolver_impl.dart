@@ -342,6 +342,8 @@ class _AssetBasedSource extends Source {
   /// Contents of the file.
   String get rawContents => _contents;
 
+  Uri get uri => Uri.parse('asset:${assetId.package}/${assetId.path}');
+
   /// Logger for the current transform.
   ///
   /// Only valid while the resolver is updating assets.
@@ -389,6 +391,18 @@ class _AssetBasedSource extends Source {
     return source;
   }
 
+  Uri resolveRelativeUri(Uri relativeUri) {
+    var id = _resolve(assetId, relativeUri.toString(), _logger, null);
+    if (id == null) return uri.resolveUri(relativeUri);
+
+    // The entire AST should have been parsed and loaded at this point.
+    var source = _resolver.sources[id];
+    if (source == null) {
+      _logger.error('Could not load asset $id');
+    }
+    return source.uri;
+  }
+
   /// For logging errors.
   SourceSpan _getSpan(AstNode node, [String contents]) =>
       _getSourceFile(contents).span(node.offset, node.end);
@@ -422,10 +436,17 @@ class _AssetUriResolver implements UriResolver {
   _AssetUriResolver(this._resolver);
 
   Source resolveAbsolute(Uri uri) {
-    var assetId = _resolve(null, uri.toString(), logger, null);
-    if (assetId == null) {
-      logger.error('Unable to resolve asset ID for "$uri"');
-      return null;
+    assert(uri.scheme != 'dart');
+    var assetId;
+    if (uri.scheme == 'asset') {
+      var parts = path.split(uri.path);
+      assetId = new AssetId(parts[0], path.joinAll(parts.skip(1)));
+    } else {
+      assetId = _resolve(null, uri.toString(), logger, null);
+      if (assetId == null) {
+        logger.error('Unable to resolve asset ID for "$uri"');
+        return null;
+      }
     }
     var source = _resolver.sources[assetId];
     // Analyzer expects that sources which are referenced but do not exist yet

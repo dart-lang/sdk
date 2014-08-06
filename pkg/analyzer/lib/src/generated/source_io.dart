@@ -13,6 +13,7 @@ import 'java_io.dart';
 import 'utilities_general.dart';
 import 'instrumentation.dart';
 import 'engine.dart';
+import 'java_engine.dart';
 export 'source.dart';
 
 /**
@@ -84,6 +85,11 @@ class DirectoryBasedSourceContainer implements SourceContainer {
  */
 class FileBasedSource implements Source {
   /**
+   * The URI from which this source was originally derived.
+   */
+  final Uri uri;
+
+  /**
    * The file represented by this source.
    */
   final JavaFile file;
@@ -94,25 +100,19 @@ class FileBasedSource implements Source {
   String _encoding;
 
   /**
-   * The kind of URI from which this source was originally derived.
-   */
-  final UriKind uriKind;
-
-  /**
-   * Initialize a newly created source object. The source object is assumed to not be in a system
-   * library.
+   * Initialize a newly created source object.
    *
    * @param file the file represented by this source
    */
-  FileBasedSource.con1(JavaFile file) : this.con2(file, UriKind.FILE_URI);
+  FileBasedSource.con1(JavaFile file) : this.con2(file.toURI(), file);
 
   /**
    * Initialize a newly created source object.
    *
    * @param file the file represented by this source
-   * @param flags `true` if this source is in one of the system libraries
+   * @param uri the URI from which this source was originally derived
    */
-  FileBasedSource.con2(this.file, this.uriKind);
+  FileBasedSource.con2(this.uri, this.file);
 
   @override
   bool operator ==(Object object) => object != null && object is FileBasedSource && file == object.file;
@@ -133,7 +133,7 @@ class FileBasedSource implements Source {
   @override
   String get encoding {
     if (_encoding == null) {
-      _encoding = "${new String.fromCharCode(uriKind.encoding)}${file.toURI().toString()}";
+      _encoding = uri.toString();
     }
     return _encoding;
   }
@@ -148,19 +148,45 @@ class FileBasedSource implements Source {
   String get shortName => file.getName();
 
   @override
+  UriKind get uriKind {
+    String scheme = uri.scheme;
+    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
+      return UriKind.PACKAGE_URI;
+    } else if (scheme == DartUriResolver.DART_SCHEME) {
+      return UriKind.DART_URI;
+    } else if (scheme == FileUriResolver.FILE_SCHEME) {
+      return UriKind.FILE_URI;
+    }
+    return UriKind.FILE_URI;
+  }
+
+  @override
   int get hashCode => file.hashCode;
 
   @override
-  bool get isInSystemLibrary => uriKind == UriKind.DART_URI;
+  bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
 
   @override
-  Source resolveRelative(Uri containedUri) {
+  Uri resolveRelativeUri(Uri containedUri) {
     try {
-      Uri resolvedUri = file.toURI().resolveUri(containedUri);
-      return new FileBasedSource.con2(new JavaFile.fromUri(resolvedUri), uriKind);
-    } catch (exception) {
+      Uri baseUri = uri;
+      bool isOpaque = uri.isAbsolute && !uri.path.startsWith('/');
+      if (isOpaque) {
+        String scheme = uri.scheme;
+        String part = uri.path;
+        if (scheme == DartUriResolver.DART_SCHEME && part.indexOf('/') < 0) {
+          part = "${part}/${part}.dart";
+        }
+        baseUri = parseUriWithException("${scheme}:/${part}");
+      }
+      Uri result = baseUri.resolveUri(containedUri);
+      if (isOpaque) {
+        result = parseUriWithException("${result.scheme}:${result.path.substring(1)}");
+      }
+      return result;
+    } catch (exception, stackTrace) {
+      throw new AnalysisException("Could not resolve URI (${containedUri}) relative to source (${uri})", new CaughtException(exception, stackTrace));
     }
-    return null;
   }
 
   @override
@@ -221,19 +247,11 @@ class FileUriResolver extends UriResolver {
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
 
   @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.FILE_URI) {
-      return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
-    }
-    return null;
-  }
-
-  @override
   Source resolveAbsolute(Uri uri) {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource.con1(new JavaFile.fromUri(uri));
+    return new FileBasedSource.con2(uri, new JavaFile.fromUri(uri));
   }
 }
 
@@ -328,14 +346,6 @@ class PackageUriResolver extends UriResolver {
   }
 
   @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.PACKAGE_URI) {
-      return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
-    }
-    return null;
-  }
-
-  @override
   Source resolveAbsolute(Uri uri) {
     if (!isPackageUri(uri)) {
       return null;
@@ -366,11 +376,13 @@ class PackageUriResolver extends UriResolver {
       JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path);
       if (resolvedFile.exists()) {
         JavaFile canonicalFile = getCanonicalFile(packagesDirectory, pkgName, relPath);
-        UriKind uriKind = _isSelfReference(packagesDirectory, canonicalFile) ? UriKind.FILE_URI : UriKind.PACKAGE_URI;
-        return new FileBasedSource.con2(canonicalFile, uriKind);
+        if (_isSelfReference(packagesDirectory, canonicalFile)) {
+          uri = canonicalFile.toURI();
+        }
+        return new FileBasedSource.con2(uri, canonicalFile);
       }
     }
-    return new FileBasedSource.con2(getCanonicalFile(_packagesDirectories[0], pkgName, relPath), UriKind.PACKAGE_URI);
+    return new FileBasedSource.con2(uri, getCanonicalFile(_packagesDirectories[0], pkgName, relPath));
   }
 
   @override
@@ -469,14 +481,6 @@ class RelativeFileUriResolver extends UriResolver {
   RelativeFileUriResolver(this._rootDirectory, this._relativeDirectories) : super();
 
   @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind == UriKind.FILE_URI) {
-      return new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
-    }
-    return null;
-  }
-
-  @override
   Source resolveAbsolute(Uri uri) {
     String rootPath = _rootDirectory.toURI().path;
     String uriPath = uri.path;
@@ -485,7 +489,7 @@ class RelativeFileUriResolver extends UriResolver {
       for (JavaFile dir in _relativeDirectories) {
         JavaFile file = new JavaFile.relative(dir, filePath);
         if (file.exists()) {
-          return new FileBasedSource.con2(file, UriKind.FILE_URI);
+          return new FileBasedSource.con2(uri, file);
         }
       }
     }

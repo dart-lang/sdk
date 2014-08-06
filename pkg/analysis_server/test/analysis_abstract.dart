@@ -15,7 +15,6 @@ import 'package:analysis_services/index/index.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -107,7 +106,7 @@ class AbstractAnalysisTest {
    */
   int findFileOffset(String path, String search) {
     File file = resourceProvider.getResource(path) as File;
-    String code = file.createSource(UriKind.FILE_URI).contents.data;
+    String code = file.createSource().contents.data;
     int offset = code.indexOf(search);
     expect(offset, isNot(-1), reason: '"$search" in\n$code');
     return offset;
