@@ -1509,13 +1509,6 @@ final Matcher isPosition = new MatchesJsonObject(
   });
 
 /**
- * RefactoringId
- *
- * String
- */
-final Matcher isRefactoringId = isString;
-
-/**
  * RefactoringKind
  *
  * enum {
