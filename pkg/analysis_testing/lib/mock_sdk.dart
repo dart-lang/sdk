@@ -9,11 +9,12 @@ import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart';
 
 
 class MockSdk implements DartSdk {
   static const _MockSdkLibrary LIB_CORE =
-      const _MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
+      const _MockSdkLibrary('core', '/lib/core/core.dart', '''
 library dart.core;
 
 class Object {
@@ -69,7 +70,7 @@ void print(Object object) {}
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC =
-      const _MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
+      const _MockSdkLibrary('async', '/lib/async/async.dart', '''
 library dart.async;
 class Future {
   static Future wait(List<Future> futures) => null;
@@ -79,7 +80,7 @@ class Stream<T> {}
 ''');
 
   static const _MockSdkLibrary LIB_MATH =
-      const _MockSdkLibrary('dart:math', '/lib/math/math.dart', '''
+      const _MockSdkLibrary('math', '/lib/math/math.dart', '''
 library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
@@ -88,7 +89,7 @@ num max(num a, num b) => 0;
 ''');
 
   static const _MockSdkLibrary LIB_HTML =
-      const _MockSdkLibrary('dart:html', '/lib/html/dartium/html_dartium.dart', '''
+      const _MockSdkLibrary('html', '/lib/html/dartium/html_dartium.dart', '''
 library dart.html;
 class HtmlElement {}
 ''');
@@ -124,9 +125,34 @@ class HtmlElement {}
 
   @override
   Source fromFileUri(Uri uri) {
-    resource.Resource file = provider.getResource(uri.path);
-    if (file is resource.File) {
-      return file.createSource(uri);
+    String filePath = uri.path;
+    String libPath = '/lib';
+    if (!filePath.startsWith("$libPath/")) {
+      return null;
+    }
+    for (SdkLibrary library in LIBRARIES) {
+      String libraryPath = library.path;
+      if (filePath.replaceAll('\\', '/') == libraryPath) {
+        String path = library.shortName;
+        try {
+          resource.File file = provider.getResource(uri.path);
+          Uri dartUri = new Uri(scheme: 'dart', path: library.shortName);
+          return file.createSource(dartUri);
+        } catch (exception) {
+          return null;
+        }
+      }
+      if (filePath.startsWith("$libraryPath/")) {
+        String pathInLibrary = filePath.substring(libraryPath.length + 1);
+        String path = '${library.shortName}/${pathInLibrary}';
+        try {
+          resource.File file = provider.getResource(uri.path);
+          Uri dartUri = new Uri(scheme: 'dart', path: path);
+          return file.createSource(dartUri);
+        } catch (exception) {
+          return null;
+        }
+      }
     }
     return null;
   }

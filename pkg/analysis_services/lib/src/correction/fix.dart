@@ -50,6 +50,7 @@ class FixProcessor {
   final CompilationUnit unit;
   final AnalysisError error;
   CompilationUnitElement unitElement;
+  Source unitSource;
   LibraryElement unitLibraryElement;
   String unitLibraryFile;
   String unitLibraryFolder;
@@ -70,6 +71,7 @@ class FixProcessor {
   FixProcessor(this.searchEngine, this.source, this.file, this.unit, this.error)
       {
     unitElement = unit.element;
+    unitSource = unitElement.source;
     unitLibraryElement = unitElement.library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
@@ -776,8 +778,9 @@ class FixProcessor {
       List<SdkLibrary> sdkLibraries = sdk.sdkLibraries;
       for (SdkLibrary sdkLibrary in sdkLibraries) {
         SourceFactory sdkSourceFactory = context.sourceFactory;
-        String libraryUri = sdkLibrary.shortName;
-        Source librarySource = sdkSourceFactory.resolveUri(null, libraryUri);
+        String libraryUri = 'dart:' + sdkLibrary.shortName;
+        Source librarySource =
+            sdkSourceFactory.resolveUri(unitSource, libraryUri);
         // prepare LibraryElement
         LibraryElement libraryElement =
             context.getLibraryElement(librarySource);

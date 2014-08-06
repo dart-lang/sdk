@@ -29,6 +29,7 @@ import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:path/path.dart';
 
 
 class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
@@ -536,9 +537,20 @@ class AnalysisServer {
    * Return `null` if there is no such context.
    */
   AnalysisContext getAnalysisContext(String path) {
+    // try to find a containing context
     for (Folder folder in folderMap.keys) {
       if (path.startsWith(folder.path)) {
         return folderMap[folder];
+      }
+    }
+    // check if there is a context that analyzed this source
+    {
+      Source source = getSource(path);
+      for (AnalysisContext context in folderMap.values) {
+        SourceKind kind = context.getKindOf(source);
+        if (kind != null) {
+          return context;
+        }
       }
     }
     return null;
@@ -548,6 +560,15 @@ class AnalysisServer {
    * Return the [Source] of the Dart file with the given [path].
    */
   Source getSource(String path) {
+    // try SDK
+    {
+      Uri uri = toUri(path);
+      Source sdkSource = defaultSdk.fromFileUri(uri);
+      if (sdkSource != null) {
+        return sdkSource;
+      }
+    }
+    // file-based source
     File file = contextDirectoryManager.resourceProvider.getResource(path);
     return file.createSource();
   }

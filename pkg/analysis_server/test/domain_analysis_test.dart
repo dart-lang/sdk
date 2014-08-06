@@ -282,6 +282,23 @@ void test_setSubscriptions() {
       });
     });
   });
+
+  test('after analysis, SDK file', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('''
+main() {
+  print(42);
+}
+''');
+    return helper.waitForOperationsFinished().then((_) {
+      String file = '/lib/core/core.dart';
+      helper.addAnalysisSubscriptionNavigation(file);
+      return helper.waitForOperationsFinished().then((_) {
+        var navigationRegions = helper.getNavigation(file);
+        expect(navigationRegions, isNot(isEmpty));
+      });
+    });
+  });
 }
 
 

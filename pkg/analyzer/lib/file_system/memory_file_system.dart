@@ -256,6 +256,9 @@ class _MemoryFileSource implements Source {
   Uri resolveRelativeUri(Uri relativeUri) {
     return uri.resolveUri(relativeUri);
   }
+
+  @override
+  String toString() => _file.toString();
 }
 
 
