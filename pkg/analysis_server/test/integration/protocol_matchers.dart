@@ -1,6 +1,10 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// This file has been automatically generated.  Please do not edit it manually.
+// To regenerate the file, use the script
+// "pkg/analysis_server/spec/generate_files".
 
 /**
  * Matchers for data types defined in the analysis server API
@@ -10,6 +14,7 @@ library test.integration.protocol.matchers;
 import 'package:unittest/unittest.dart';
 
 import 'integration_tests.dart';
+
 
 /**
  * server.getVersion params
@@ -236,28 +241,6 @@ final Matcher isAnalysisUpdateOptionsParams = new MatchesJsonObject(
 final Matcher isAnalysisUpdateOptionsResult = isNull;
 
 /**
- * analysis.updateSdks params
- *
- * {
- *   "added": List<FilePath>
- *   "removed": List<FilePath>
- *   "default": optional FilePath
- * }
- */
-final Matcher isAnalysisUpdateSdksParams = new MatchesJsonObject(
-  "analysis.updateSdks params", {
-    "added": isListOf(isFilePath),
-    "removed": isListOf(isFilePath)
-  }, optionalFields: {
-    "default": isFilePath
-  });
-
-/**
- * analysis.updateSdks result
- */
-final Matcher isAnalysisUpdateSdksResult = isNull;
-
-/**
  * analysis.errors params
  *
  * {
@@ -269,6 +252,18 @@ final Matcher isAnalysisErrorsParams = new MatchesJsonObject(
   "analysis.errors params", {
     "file": isFilePath,
     "errors": isListOf(isAnalysisError)
+  });
+
+/**
+ * analysis.flushResults params
+ *
+ * {
+ *   "files": List<FilePath>
+ * }
+ */
+final Matcher isAnalysisFlushResultsParams = new MatchesJsonObject(
+  "analysis.flushResults params", {
+    "files": isListOf(isFilePath)
   });
 
 /**
@@ -521,12 +516,12 @@ final Matcher isSearchGetTypeHierarchyParams = new MatchesJsonObject(
  * search.getTypeHierarchy result
  *
  * {
- *   "hierarchy": TypeHierarchyItem
+ *   "hierarchyItems": List<TypeHierarchyItem>
  * }
  */
 final Matcher isSearchGetTypeHierarchyResult = new MatchesJsonObject(
   "search.getTypeHierarchy result", {
-    "hierarchy": isTypeHierarchyItem
+    "hierarchyItems": isListOf(isTypeHierarchyItem)
   });
 
 /**
@@ -544,81 +539,6 @@ final Matcher isSearchResultsParams = new MatchesJsonObject(
     "results": isListOf(isSearchResult),
     "last": isBool
   });
-
-/**
- * edit.applyRefactoring params
- *
- * {
- *   "id": RefactoringId
- * }
- */
-final Matcher isEditApplyRefactoringParams = new MatchesJsonObject(
-  "edit.applyRefactoring params", {
-    "id": isRefactoringId
-  });
-
-/**
- * edit.applyRefactoring result
- *
- * {
- *   "status": List<RefactoringProblem>
- *   "change": SourceChange
- * }
- */
-final Matcher isEditApplyRefactoringResult = new MatchesJsonObject(
-  "edit.applyRefactoring result", {
-    "status": isListOf(isRefactoringProblem),
-    "change": isSourceChange
-  });
-
-/**
- * edit.createRefactoring params
- *
- * {
- *   "kindId": RefactoringKind
- *   "file": FilePath
- *   "offset": int
- *   "length": int
- * }
- */
-final Matcher isEditCreateRefactoringParams = new MatchesJsonObject(
-  "edit.createRefactoring params", {
-    "kindId": isRefactoringKind,
-    "file": isFilePath,
-    "offset": isInt,
-    "length": isInt
-  });
-
-/**
- * edit.createRefactoring result
- *
- * {
- *   "id": RefactoringId
- *   "status": List<RefactoringProblem>
- * }
- */
-final Matcher isEditCreateRefactoringResult = new MatchesJsonObject(
-  "edit.createRefactoring result", {
-    "id": isRefactoringId,
-    "status": isListOf(isRefactoringProblem)
-  });
-
-/**
- * edit.deleteRefactoring params
- *
- * {
- *   "id": RefactoringId
- * }
- */
-final Matcher isEditDeleteRefactoringParams = new MatchesJsonObject(
-  "edit.deleteRefactoring params", {
-    "id": isRefactoringId
-  });
-
-/**
- * edit.deleteRefactoring result
- */
-final Matcher isEditDeleteRefactoringResult = isNull;
 
 /**
  * edit.getAssists params
@@ -649,6 +569,34 @@ final Matcher isEditGetAssistsResult = new MatchesJsonObject(
   });
 
 /**
+ * edit.getAvailableRefactorings params
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isEditGetAvailableRefactoringsParams = new MatchesJsonObject(
+  "edit.getAvailableRefactorings params", {
+    "file": isFilePath,
+    "offset": isInt,
+    "length": isInt
+  });
+
+/**
+ * edit.getAvailableRefactorings result
+ *
+ * {
+ *   "kinds": List<RefactoringKind>
+ * }
+ */
+final Matcher isEditGetAvailableRefactoringsResult = new MatchesJsonObject(
+  "edit.getAvailableRefactorings result", {
+    "kinds": isListOf(isRefactoringKind)
+  });
+
+/**
  * edit.getFixes params
  *
  * {
@@ -675,55 +623,43 @@ final Matcher isEditGetFixesResult = new MatchesJsonObject(
   });
 
 /**
- * edit.getRefactorings params
+ * edit.getRefactoring params
  *
  * {
+ *   "kindId": RefactoringKind
  *   "file": FilePath
  *   "offset": int
  *   "length": int
+ *   "validateOnly": bool
+ *   "options": optional object
  * }
  */
-final Matcher isEditGetRefactoringsParams = new MatchesJsonObject(
-  "edit.getRefactorings params", {
+final Matcher isEditGetRefactoringParams = new MatchesJsonObject(
+  "edit.getRefactoring params", {
+    "kindId": isRefactoringKind,
     "file": isFilePath,
     "offset": isInt,
-    "length": isInt
+    "length": isInt,
+    "validateOnly": isBool
+  }, optionalFields: {
+    "options": isObject
   });
 
 /**
- * edit.getRefactorings result
- *
- * {
- *   "kinds": List<RefactoringKind>
- * }
- */
-final Matcher isEditGetRefactoringsResult = new MatchesJsonObject(
-  "edit.getRefactorings result", {
-    "kinds": isListOf(isRefactoringKind)
-  });
-
-/**
- * edit.setRefactoringOptions params
- *
- * {
- *   "id": RefactoringId
- * }
- */
-final Matcher isEditSetRefactoringOptionsParams = new MatchesJsonObject(
-  "edit.setRefactoringOptions params", {
-    "id": isRefactoringId
-  });
-
-/**
- * edit.setRefactoringOptions result
+ * edit.getRefactoring result
  *
  * {
  *   "status": List<RefactoringProblem>
+ *   "feedback": optional object
+ *   "change": optional SourceChange
  * }
  */
-final Matcher isEditSetRefactoringOptionsResult = new MatchesJsonObject(
-  "edit.setRefactoringOptions result", {
+final Matcher isEditGetRefactoringResult = new MatchesJsonObject(
+  "edit.getRefactoring result", {
     "status": isListOf(isRefactoringProblem)
+  }, optionalFields: {
+    "feedback": isObject,
+    "change": isSourceChange
   });
 
 /**
@@ -880,7 +816,6 @@ final Matcher isAnalysisOptions = new MatchesJsonObject(
  * AnalysisService
  *
  * enum {
- *   ERRORS
  *   FOLDING
  *   HIGHLIGHTS
  *   NAVIGATION
@@ -890,7 +825,6 @@ final Matcher isAnalysisOptions = new MatchesJsonObject(
  * }
  */
 final Matcher isAnalysisService = isIn([
-  "ERRORS",
   "FOLDING",
   "HIGHLIGHTS",
   "NAVIGATION",
@@ -995,6 +929,7 @@ final Matcher isCompletionSuggestion = new MatchesJsonObject(
  *   GETTER
  *   IMPORT
  *   LIBRARY_PREFIX
+ *   LOCAL_VARIABLE
  *   METHOD
  *   METHOD_NAME
  *   NAMED_ARGUMENT
@@ -1003,7 +938,6 @@ final Matcher isCompletionSuggestion = new MatchesJsonObject(
  *   SETTER
  *   TOP_LEVEL_VARIABLE
  *   TYPE_PARAMETER
- *   VARIABLE
  * }
  */
 final Matcher isCompletionSuggestionKind = isIn([
@@ -1017,6 +951,7 @@ final Matcher isCompletionSuggestionKind = isIn([
   "GETTER",
   "IMPORT",
   "LIBRARY_PREFIX",
+  "LOCAL_VARIABLE",
   "METHOD",
   "METHOD_NAME",
   "NAMED_ARGUMENT",
@@ -1024,8 +959,7 @@ final Matcher isCompletionSuggestionKind = isIn([
   "PARAMETER",
   "SETTER",
   "TOP_LEVEL_VARIABLE",
-  "TYPE_PARAMETER",
-  "VARIABLE"
+  "TYPE_PARAMETER"
 ]);
 
 /**
@@ -1071,7 +1005,7 @@ final Matcher isDebugService = isIn([
  * {
  *   "kind": ElementKind
  *   "name": String
- *   "location": Location
+ *   "location": optional Location
  *   "flags": int
  *   "parameters": optional String
  *   "returnType": optional String
@@ -1081,9 +1015,9 @@ final Matcher isElement = new MatchesJsonObject(
   "Element", {
     "kind": isElementKind,
     "name": isString,
-    "location": isLocation,
     "flags": isInt
   }, optionalFields: {
+    "location": isLocation,
     "parameters": isString,
     "returnType": isString
   });
@@ -1135,15 +1069,13 @@ final Matcher isElementKind = isIn([
  * Error
  *
  * {
- *   "code": String
+ *   "code": int
  *   "message": String
  *   "data": optional object
  * }
  */
 final Matcher isError = new MatchesJsonObject(
   "Error", {
-    // TODO(paulberry): the API spec says "code" should be a string, but the
-    // server is currently outputting integers.
     "code": isInt,
     "message": isString
   }, optionalFields: {
@@ -1398,6 +1330,53 @@ final Matcher isHoverInformation = new MatchesJsonObject(
   });
 
 /**
+ * LinkedEditGroup
+ *
+ * {
+ *   "positions": List<Position>
+ *   "length": int
+ *   "suggestions": List<LinkedEditSuggestion>
+ * }
+ */
+final Matcher isLinkedEditGroup = new MatchesJsonObject(
+  "LinkedEditGroup", {
+    "positions": isListOf(isPosition),
+    "length": isInt,
+    "suggestions": isListOf(isLinkedEditSuggestion)
+  });
+
+/**
+ * LinkedEditSuggestion
+ *
+ * {
+ *   "value": String
+ *   "kind": LinkedEditSuggestionKind
+ * }
+ */
+final Matcher isLinkedEditSuggestion = new MatchesJsonObject(
+  "LinkedEditSuggestion", {
+    "value": isString,
+    "kind": isLinkedEditSuggestionKind
+  });
+
+/**
+ * LinkedEditSuggestionKind
+ *
+ * enum {
+ *   METHOD
+ *   PARAMETER
+ *   TYPE
+ *   VARIABLE
+ * }
+ */
+final Matcher isLinkedEditSuggestionKind = isIn([
+  "METHOD",
+  "PARAMETER",
+  "TYPE",
+  "VARIABLE"
+]);
+
+/**
  * Location
  *
  * {
@@ -1513,6 +1492,20 @@ final Matcher isParameter = new MatchesJsonObject(
   "Parameter", {
     "type": isString,
     "name": isString
+  });
+
+/**
+ * Position
+ *
+ * {
+ *   "file": FilePath
+ *   "offset": int
+ * }
+ */
+final Matcher isPosition = new MatchesJsonObject(
+  "Position", {
+    "file": isFilePath,
+    "offset": isInt
   });
 
 /**
@@ -1641,12 +1634,17 @@ final Matcher isServerService = isIn([
  * {
  *   "message": String
  *   "edits": List<SourceFileEdit>
+ *   "linkedEditGroups": List<LinkedEditGroup>
+ *   "selection": optional Position
  * }
  */
 final Matcher isSourceChange = new MatchesJsonObject(
   "SourceChange", {
     "message": isString,
-    "edits": isListOf(isSourceFileEdit)
+    "edits": isListOf(isSourceFileEdit),
+    "linkedEditGroups": isListOf(isLinkedEditGroup)
+  }, optionalFields: {
+    "selection": isPosition
   });
 
 /**
@@ -1686,21 +1684,174 @@ final Matcher isSourceFileEdit = new MatchesJsonObject(
  *   "classElement": Element
  *   "displayName": optional String
  *   "memberElement": optional Element
- *   "superclass": optional TypeHierarchyItem
- *   "interfaces": List<TypeHierarchyItem>
- *   "mixins": List<TypeHierarchyItem>
- *   "subclasses": List<TypeHierarchyItem>
+ *   "superclass": optional int
+ *   "interfaces": List<int>
+ *   "mixins": List<int>
+ *   "subclasses": List<int>
  * }
  */
 final Matcher isTypeHierarchyItem = new MatchesJsonObject(
   "TypeHierarchyItem", {
     "classElement": isElement,
-    "interfaces": isListOf(isTypeHierarchyItem),
-    "mixins": isListOf(isTypeHierarchyItem),
-    "subclasses": isListOf(isTypeHierarchyItem)
+    "interfaces": isListOf(isInt),
+    "mixins": isListOf(isInt),
+    "subclasses": isListOf(isInt)
   }, optionalFields: {
     "displayName": isString,
     "memberElement": isElement,
-    "superclass": isTypeHierarchyItem
+    "superclass": isInt
+  });
+
+/**
+ * convertGetterToMethod feedback
+ */
+final Matcher isConvertGetterToMethodFeedback = isNull;
+
+/**
+ * convertGetterToMethod options
+ */
+final Matcher isConvertGetterToMethodOptions = isNull;
+
+/**
+ * convertMethodToGetter feedback
+ */
+final Matcher isConvertMethodToGetterFeedback = isNull;
+
+/**
+ * convertMethodToGetter options
+ */
+final Matcher isConvertMethodToGetterOptions = isNull;
+
+/**
+ * extractLocalVariable feedback
+ *
+ * {
+ *   "names": List<String>
+ *   "offsets": List<int>
+ *   "lengths": List<int>
+ * }
+ */
+final Matcher isExtractLocalVariableFeedback = new MatchesJsonObject(
+  "extractLocalVariable feedback", {
+    "names": isListOf(isString),
+    "offsets": isListOf(isInt),
+    "lengths": isListOf(isInt)
+  });
+
+/**
+ * extractLocalVariable options
+ *
+ * {
+ *   "name": String
+ *   "extractAll": bool
+ * }
+ */
+final Matcher isExtractLocalVariableOptions = new MatchesJsonObject(
+  "extractLocalVariable options", {
+    "name": isString,
+    "extractAll": isBool
+  });
+
+/**
+ * extractMethod feedback
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ *   "returnType": String
+ *   "names": List<String>
+ *   "canCreateGetter": bool
+ *   "parameters": List<Parameter>
+ *   "occurrences": int
+ *   "offsets": List<int>
+ *   "lengths": List<int>
+ * }
+ */
+final Matcher isExtractMethodFeedback = new MatchesJsonObject(
+  "extractMethod feedback", {
+    "offset": isInt,
+    "length": isInt,
+    "returnType": isString,
+    "names": isListOf(isString),
+    "canCreateGetter": isBool,
+    "parameters": isListOf(isParameter),
+    "occurrences": isInt,
+    "offsets": isListOf(isInt),
+    "lengths": isListOf(isInt)
+  });
+
+/**
+ * extractMethod options
+ *
+ * {
+ *   "returnType": String
+ *   "createGetter": bool
+ *   "name": String
+ *   "parameters": List<Parameter>
+ *   "extractAll": bool
+ * }
+ */
+final Matcher isExtractMethodOptions = new MatchesJsonObject(
+  "extractMethod options", {
+    "returnType": isString,
+    "createGetter": isBool,
+    "name": isString,
+    "parameters": isListOf(isParameter),
+    "extractAll": isBool
+  });
+
+/**
+ * inlineLocalVariable feedback
+ */
+final Matcher isInlineLocalVariableFeedback = isNull;
+
+/**
+ * inlineLocalVariable options
+ */
+final Matcher isInlineLocalVariableOptions = isNull;
+
+/**
+ * inlineMethod feedback
+ */
+final Matcher isInlineMethodFeedback = isNull;
+
+/**
+ * inlineMethod options
+ *
+ * {
+ *   "deleteSource": bool
+ *   "inlineAll": bool
+ * }
+ */
+final Matcher isInlineMethodOptions = new MatchesJsonObject(
+  "inlineMethod options", {
+    "deleteSource": isBool,
+    "inlineAll": isBool
+  });
+
+/**
+ * rename feedback
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isRenameFeedback = new MatchesJsonObject(
+  "rename feedback", {
+    "offset": isInt,
+    "length": isInt
+  });
+
+/**
+ * rename options
+ *
+ * {
+ *   "newName": String
+ * }
+ */
+final Matcher isRenameOptions = new MatchesJsonObject(
+  "rename options", {
+    "newName": isString
   });
 
