@@ -4,7 +4,7 @@
 
 library polymer.test.build.import_inliner_test;
 
-import 'dart:convert' show JSON;
+import 'dart:convert';
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/import_inliner.dart';
 import 'package:unittest/compact_vm_config.dart';
@@ -654,30 +654,47 @@ void importTests() {
           '<polymer-element>3</polymer-element></body></html>',
     });
 
-  testPhases("missing styles don't throw errors and are not inlined", phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<link rel="stylesheet" href="foo.css">'
-          '</head></html>',
-    }, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<link rel="stylesheet" href="foo.css">'
-          '</body></html>',
-    }, [
-      'warning: Failed to inline stylesheet: '
-          'Could not find asset a|web/foo.css. (web/test.html 0 27)',
-    ]);
+  testLogOutput(
+      (options) => new ImportInliner(options),
+      "missing styles don't throw errors and are not inlined", {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>'
+            '<link rel="stylesheet" href="foo.css">'
+            '</head></html>',
+      }, {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="foo.css">'
+            '</body></html>',
+      }, [
+        'warning: Failed to inline stylesheet: '
+            'Could not find asset a|web/foo.css. (web/test.html 0 27)',
+      ]);
 
-  testPhases("missing html imports throw errors", phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="foo.html">'
-          '</head></html>',
-    }, {}, [
-      'error: Failed to inline html import: '
-          'Could not find asset a|web/foo.html. (web/test.html 0 27)',
-    ]);
+  testLogOutput(
+      (options) => new ImportInliner(options),
+      "missing html imports throw errors", {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>'
+            '<link rel="import" href="foo.html">'
+            '</head></html>',
+      }, {
+        'a|web/test.html._buildLogs.1':
+          '[{'
+            '"level":"Error",'
+            '"message":"Failed to inline html import: '
+              'Could not find asset a|web/foo.html.",'
+            '"assetId":{"package":"a","path":"web/foo.html"},'
+            '"span":{'
+              '"location":"web/test.html:1:28",'
+              '"text":"${new HtmlEscape().convert(
+                '<link rel="import" href="foo.html">')}"'
+              '}'
+            '}]',
+      }, [
+        'error: Failed to inline html import: '
+            'Could not find asset a|web/foo.html. (web/test.html 0 27)',
+      ]);
 }
 
 void stylesheetTests() {
@@ -992,21 +1009,25 @@ void urlAttributeTests() {
           '</body></html>',
     });
 
-  testPhases('warnings are given about _* attributes', phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<img src="foo/{{bar}}">'
-          '<a _href="foo/bar">test</a>'
-          '</body></html>',
-  }, {}, [
-      'warning: When using bindings with the "src" attribute you may '
-          'experience errors in certain browsers. Please use the "_src" '
-          'attribute instead. For more information, see http://goo.gl/5av8cU '
-          '(web/test.html 0 40)',
-      'warning: The "_href" attribute is only supported when using bindings. '
-          'Please change to the "href" attribute. (web/test.html 0 63)',
 
-  ]);
+  testLogOutput(
+      (options) => new ImportInliner(options),
+      'warnings are given about _* attributes', {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<img src="foo/{{bar}}">'
+            '<a _href="foo/bar">test</a>'
+            '</body></html>',
+      }, {}, [
+          'warning: When using bindings with the "src" attribute you may '
+              'experience errors in certain browsers. Please use the "_src" '
+              'attribute instead. For more information, see '
+              'http://goo.gl/5av8cU (web/test.html 0 40)',
+          'warning: The "_href" attribute is only supported when using '
+              'bindings. Please change to the "href" attribute. '
+              '(web/test.html 0 63)',
+
+      ]);
 
   testPhases('arbitrary bindings can exist in paths', phases, {
       'a|web/test.html':

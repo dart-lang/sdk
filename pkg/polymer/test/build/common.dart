@@ -7,6 +7,7 @@ library polymer.test.build.common;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:polymer/src/build/common.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
 
@@ -128,7 +129,6 @@ class TestHelper implements PackageProvider {
 testPhases(String testName, List<List<Transformer>> phases,
     Map<String, String> inputFiles, Map<String, String> expectedFiles,
     [List<String> expectedMessages, bool solo = false]) {
-
   // Include mock versions of the polymer library that can be used to test
   // resolver-based code generation.
   POLYMER_MOCKS.forEach((file, contents) { inputFiles[file] = contents; });
@@ -143,6 +143,45 @@ solo_testPhases(String testName, List<List<Transformer>> phases,
     [List<String> expectedMessages]) =>
   testPhases(testName, phases, inputFiles, expectedFiles, expectedMessages,
       true);
+
+
+// Similar to testPhases, but tests all the cases around log behaviour in
+// different modes. Any expectedFiles with [LOG_EXTENSION] will be removed from
+// the expectation as appropriate, and any error logs will be changed to expect
+// warning logs as appropriate.
+testLogOutput(Function buildPhase, String testName,
+              Map<String, String> inputFiles, Map<String, String> expectedFiles,
+              [List<String> expectedMessages, bool solo = false]) {
+
+  final transformOptions = [
+      new TransformOptions(injectBuildLogsInOutput: false, releaseMode: false),
+      new TransformOptions(injectBuildLogsInOutput: false, releaseMode: true),
+      new TransformOptions(injectBuildLogsInOutput: true, releaseMode: false),
+      new TransformOptions(injectBuildLogsInOutput: true, releaseMode: true),
+  ];
+
+  for (var options in transformOptions) {
+    var phase = buildPhase(options);
+    var actualExpectedFiles = {};
+    expectedFiles.forEach((file, content) {
+      if (file.contains(LOG_EXTENSION)
+      && (!options.injectBuildLogsInOutput || options.releaseMode)) {
+        return;
+      }
+      actualExpectedFiles[file] = content;
+    });
+    var fullTestName = '$testName: '
+    'injectLogs=${options.injectBuildLogsInOutput} '
+    'releaseMode=${options.releaseMode}';
+    testPhases(
+        fullTestName, [[phase]], inputFiles,
+        actualExpectedFiles,
+        expectedMessages.map((m) =>
+            options.releaseMode ? m : m.replaceFirst('error:', 'warning:'))
+            .toList(),
+        solo);
+  }
+}
 
 /// Generate an expected ._data file, where all files are assumed to be in the
 /// same [package].

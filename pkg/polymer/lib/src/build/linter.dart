@@ -7,6 +7,7 @@
 library polymer.src.build.linter;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:barback/barback.dart';
 import 'package:code_transformers/assets.dart';
@@ -16,6 +17,7 @@ import 'package:source_span/source_span.dart';
 
 import 'common.dart';
 import 'utils.dart';
+import 'wrapped_logger.dart';
 
 /// A linter that checks for common Polymer errors and produces warnings to
 /// show on the editor or the command line. Leaves sources unchanged, but
@@ -34,11 +36,20 @@ class Linter extends Transformer with PolymerTransformer {
     var id = primary.id;
     transform.addOutput(primary); // this phase is analysis only
     seen.add(id);
+    bool isEntryPoint = options.isHtmlEntryPoint(id);
+
+    var logger = options.releaseMode ? transform.logger :
+        new WrappedLogger(transform, convertErrorsToWarnings: true);
+
     return readPrimaryAsHtml(transform).then((document) {
-      return _collectElements(document, id, transform, seen).then((elements) {
-        bool isEntrypoint = options.isHtmlEntryPoint(id);
-        new _LinterVisitor(id, transform.logger, elements, isEntrypoint)
-            .run(document);
+      return _collectElements(document, id, transform, logger, seen)
+          .then((elements) {
+        new _LinterVisitor(id, logger, elements, isEntryPoint).run(document);
+
+        // Write out the logs collected by our [WrappedLogger].
+        if (options.injectBuildLogsInOutput && logger is WrappedLogger) {
+          return logger.writeOutput();
+        }
       });
     });
   }
@@ -49,12 +60,14 @@ class Linter extends Transformer with PolymerTransformer {
   /// first.
   Future<Map<String, _ElementSummary>> _collectElements(
       Document document, AssetId sourceId, Transform transform,
-      Set<AssetId> seen, [Map<String, _ElementSummary> elements]) {
+      TransformLogger logger, Set<AssetId> seen,
+      [Map<String, _ElementSummary> elements]) {
     if (elements == null) elements = <String, _ElementSummary>{};
-    return _getImportedIds(document, sourceId, transform)
+    return _getImportedIds(document, sourceId, transform, logger)
         // Note: the import order is relevant, so we visit in that order.
         .then((ids) => Future.forEach(ids,
-              (id) => _readAndCollectElements(id, transform, seen, elements)))
+              (id) => _readAndCollectElements(
+                  id, transform, logger, seen, elements)))
         .then((_) {
           if (sourceId.package == 'polymer' &&
               sourceId.path == 'lib/src/js/polymer/polymer.html' &&
@@ -62,23 +75,24 @@ class Linter extends Transformer with PolymerTransformer {
             elements['polymer-element'] =
                 new _ElementSummary('polymer-element', null, null);
           }
-          return _addElements(document, transform.logger, elements);
+          return _addElements(document, logger, elements);
         })
         .then((_) => elements);
   }
 
   Future _readAndCollectElements(AssetId id, Transform transform,
-      Set<AssetId> seen, Map<String, _ElementSummary> elements) {
+      TransformLogger logger, Set<AssetId> seen,
+      Map<String, _ElementSummary> elements) {
     if (id == null || seen.contains(id)) return new Future.value(null);
     seen.add(id);
     return readAsHtml(id, transform, showWarnings: false).then(
-        (doc) => _collectElements(doc, id, transform, seen, elements));
+        (doc) => _collectElements(doc, id, transform, logger, seen, elements));
   }
 
   Future<List<AssetId>> _getImportedIds(
-      Document document, AssetId sourceId, Transform transform) {
+      Document document, AssetId sourceId, Transform transform,
+      TransformLogger logger) {
     var importIds = [];
-    var logger = transform.logger;
     for (var tag in document.querySelectorAll('link')) {
       if (tag.attributes['rel'] != 'import') continue;
       var href = tag.attributes['href'];
@@ -153,11 +167,11 @@ class _LinterVisitor extends TreeVisitor {
   bool _dartTagSeen = false;
   bool _polymerHtmlSeen = false;
   bool _polymerExperimentalHtmlSeen = false;
-  bool _isEntrypoint;
+  bool _isEntryPoint;
   Map<String, _ElementSummary> _elements;
 
   _LinterVisitor(
-      this._sourceId, this._logger, this._elements, this._isEntrypoint) {
+      this._sourceId, this._logger, this._elements, this._isEntryPoint) {
     // We normalize the map, so each element has a direct reference to any
     // element it extends from.
     for (var tag in _elements.values) {
@@ -183,7 +197,7 @@ class _LinterVisitor extends TreeVisitor {
   void run(Document doc) {
     visit(doc);
 
-    if (_isEntrypoint && !_dartTagSeen && !_polymerExperimentalHtmlSeen) {
+    if (_isEntryPoint && !_dartTagSeen && !_polymerExperimentalHtmlSeen) {
       _logger.warning(USE_INIT_DART, span: doc.body.sourceSpan);
     }
   }
@@ -281,7 +295,7 @@ class _LinterVisitor extends TreeVisitor {
 
     if (isDart) {
       if (_dartTagSeen) _logger.warning(ONLY_ONE_TAG, span: node.sourceSpan);
-      if (_isEntrypoint && _polymerExperimentalHtmlSeen) {
+      if (_isEntryPoint && _polymerExperimentalHtmlSeen) {
         _logger.warning(NO_DART_SCRIPT_AND_EXPERIMENTAL, span: node.sourceSpan);
       }
       _dartTagSeen = true;

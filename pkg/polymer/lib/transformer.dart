@@ -13,6 +13,7 @@ import 'src/build/build_filter.dart';
 import 'src/build/common.dart';
 import 'src/build/import_inliner.dart';
 import 'src/build/linter.dart';
+import 'src/build/build_log_combiner.dart';
 import 'src/build/polyfill_injector.dart';
 import 'src/build/script_compactor.dart';
 
@@ -41,13 +42,16 @@ TransformOptions _parseSettings(BarbackSettings settings) {
   bool jsOption = args['js'];
   bool csp = args['csp'] == true; // defaults to false
   bool lint = args['lint'] != false; // defaults to true
+  bool injectBuildLogs =
+      !releaseMode && args['inject_build_logs_in_output'] != false;
   return new TransformOptions(
       entryPoints: _readEntrypoints(args['entry_points']),
       inlineStylesheets: _readInlineStylesheets(args['inline_stylesheets']),
       directlyIncludeJS: jsOption == null ? releaseMode : jsOption,
       contentSecurityPolicy: csp,
       releaseMode: releaseMode,
-      lint: lint);
+      lint: lint,
+      injectBuildLogsInOutput: injectBuildLogs);
 }
 
 _readEntrypoints(value) {
@@ -119,7 +123,8 @@ List<List<Transformer>> createDeployPhases(
     [new ObservableTransformer()],
     [new ScriptCompactor(options, sdkDir: sdkDir)],
     [new PolyfillInjector(options)],
-    [new BuildFilter(options)]
+    [new BuildFilter(options)],
+    [new BuildLogCombiner(options)],
   ]);
 }
 

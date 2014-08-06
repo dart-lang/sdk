@@ -77,6 +77,10 @@ class TransformOptions {
   /// minified versions of the polyfills rather than the debug versions.
   final bool releaseMode;
 
+  /// This will make a physical element appear on the page showing build logs.
+  /// It will only appear when ![releaseMode] even if this is true.
+  final bool injectBuildLogsInOutput;
+
   /// True to run liner on all html files before starting other phases.
   // TODO(jmesserly): instead of this flag, we should only run linter on
   // reachable (entry point+imported) html if deploying. See dartbug.com/17199.
@@ -84,7 +88,8 @@ class TransformOptions {
 
   TransformOptions({entryPoints, this.inlineStylesheets,
       this.contentSecurityPolicy: false, this.directlyIncludeJS: true,
-      this.releaseMode: true, this.lint: true})
+      this.releaseMode: true, this.lint: true,
+      this.injectBuildLogsInOutput: false})
       : entryPoints = entryPoints == null ? null
           : entryPoints.map(systemToAssetPath).toList();
 
@@ -230,3 +235,5 @@ bool isCustomTagName(String name) {
 final ATTRIBUTES_REGEX = new RegExp(r'\s|,');
 
 const POLYMER_EXPERIMENTAL_HTML = 'packages/polymer/polymer_experimental.html';
+
+const String LOG_EXTENSION = '._buildLogs';

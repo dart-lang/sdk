@@ -170,6 +170,7 @@ polymer/test/attr_mustache_test: Skip #uses dart:html
 polymer/test/bind_test: Skip # uses dart:html
 polymer/test/bind_mdv_test: Skip # uses dart:html
 polymer/test/bind_properties_test: Skip # uses dart:html
+polymer/test/build/log_injector_test: Skip # uses dart:html
 polymer/test/computed_properties_test: Skip # uses dart:html
 polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/entered_view_test: Skip # uses dart:html
@@ -318,7 +319,14 @@ intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Use
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
-polymer/test/build/*: Fail, OK # Uses dart:io.
+polymer/test/build/all_phases_test: Fail, OK # Uses dart:io.
+polymer/test/build/polyfill_injector_test: Fail, OK # Uses dart:io.
+polymer/test/build/static_clean_test: Fail, OK # Uses dart:io.
+polymer/test/build/build_log_combiner_test: Fail, OK # Uses dart:io.
+polymer/test/build/script_compactor_test: Fail, OK # Uses dart:io.
+polymer/test/build/utils_test: Fail, OK # Uses dart:io.
+polymer/test/build/import_inliner_test: Fail, OK # Uses dart:io.
+polymer/test/build/linter_test: Fail, OK # Uses dart:io.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 shelf_web_socket/test/*: Fail, OK # Uses dart:io.
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.

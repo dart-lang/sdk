@@ -1,0 +1,59 @@
+/** Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+    for details. All rights reserved. Use of this source code is governed by a
+    BSD-style license that can be found in the LICENSE file. **/
+.build-logs {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+}
+.build-logs .log {
+  padding: 6px;
+  background: black;
+  color: white;
+  border: solid 1px #666;
+  margin-bottom: -1px;
+}
+.build-logs .fine {
+  color: green;
+}
+.build-logs .info {
+  color: yellow;
+}
+.build-logs .warning {
+  color: orange;
+}
+.build-logs .error {
+  color: red;
+}
+.build-logs .message {
+  font-size: 12px;
+}
+.build-logs .menu {
+  text-align: right;
+}
+.build-logs .menu div {
+  display: inline-block;
+  background: #666;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border: solid 1px black;
+  padding: 6px 10px;
+}
+.build-logs .menu div.active {
+  background: black;
+}
+.build-logs .menu div .num {
+  color: white;
+}
+.build-logs .content {
+  max-height: 500px;
+  max-width: 500px;
+  font-size: 10px;
+}
+.build-logs .content > div {
+  display: none;
+}
+.build-logs .content > div.active {
+  display: block;
+}

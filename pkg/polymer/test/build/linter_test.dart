@@ -4,6 +4,8 @@
 
 library polymer.test.linter_test;
 
+import 'dart:convert';
+
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/linter.dart';
 import 'package:unittest/unittest.dart';
@@ -645,14 +647,49 @@ void main() {
           </svg>
           '''.replaceAll('            ', ''),
     }, []);
+
+  group('output logs to file',  () {
+    final outputLogsPhases = [[new Linter(
+        new TransformOptions(injectBuildLogsInOutput: true,
+            releaseMode: false))]];
+
+    testPhases("logs are output to file", outputLogsPhases, {
+        'a|web/test.html': '<!DOCTYPE html><html>\n'
+          '<polymer-element name="x-a"></polymer-element>'
+          '<script type="application/dart" src="foo.dart">'
+          '</script>'
+          '<script src="packages/browser/dart.js"></script>'
+          '</html>',
+      }, {
+        'a|web/test.html._buildLogs.1':
+          '[{'
+            '"level":"Warning",'
+            '"message":${JSON.encode(usePolymerHtmlMessage(0))},'
+            '"span":{'
+              '"location":"web/test.html:2:1",'
+              '"text":'
+                '"${new HtmlEscape().convert('<polymer-element name="x-a">')}"'
+            '}'
+          '}]',
+    }, [
+        // Logs should still make it to barback too.
+        'warning: ${usePolymerHtmlMessage(0)} (web/test.html 1 0)',
+    ]);
+  });
 }
 
 _testLinter(String name, Map inputFiles, List outputMessages,
     [bool solo = false]) {
-  var linter = new Linter(new TransformOptions());
   var outputFiles = {};
   if (outputMessages.every((m) => m.startsWith('warning:'))) {
     inputFiles.forEach((k, v) => outputFiles[k] = v);
   }
-  testPhases(name, [[linter]], inputFiles, outputFiles, outputMessages, solo);
+  if (outputMessages.isEmpty) {
+    var linter = new Linter(new TransformOptions());
+    testPhases(name, [[linter]], inputFiles, outputFiles, outputMessages, solo);
+  } else {
+    testLogOutput(
+        (options) => new Linter(options), name, inputFiles, outputFiles,
+        outputMessages, solo);
+  }
 }

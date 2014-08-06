@@ -4,6 +4,8 @@
 
 library polymer.test.build.script_compactor_test;
 
+import 'dart:convert';
+
 import 'package:code_transformers/tests.dart' show testingDartSdkDirectory;
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/script_compactor.dart';
@@ -20,6 +22,7 @@ void main() {
   group('initializers', () => initializerTests(phases));
   group('experimental', () => initializerTestsExperimental(phases));
   group('codegen', () => codegenTests(phases));
+  group('log element injection', logElementInjectionTests);
 }
 
 initializerTests(phases) {
@@ -153,43 +156,61 @@ initializerTests(phases) {
           '''.replaceAll('\n          ', '\n'),
     });
 
-  testPhases('invalid const expression', phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>',
-      'a|web/test.html._data': expectedData(['web/a.dart']),
-      'a|web/a.dart':
-          'library a;\n'
-          'import "package:polymer/polymer.dart";\n'
-          '@CustomTag("\${x}-foo")\n' // invalid, x is not defined
-          'class XFoo extends PolymerElement {\n'
-          '}\n'
-          'main(){}',
-    }, {
-      'a|web/test.html_bootstrap.dart':
-          '''$MAIN_HEADER
-          import 'a.dart' as i0;
-          ${DEFAULT_IMPORTS.join('\n')}
-          import 'a.dart' as smoke_0;
-          import 'package:polymer/polymer.dart' as smoke_1;
 
-          void main() {
-            useGeneratedCode(new StaticConfiguration(
-                checkedMode: false,
-                parents: {
-                  smoke_0.XFoo: smoke_1.PolymerElement,
-                },
-                declarations: {
-                  smoke_0.XFoo: {},
-                }));
-            configureForDeployment([]);
-            i0.main();
-          }
-          '''.replaceAll('\n          ', '\n'),
+  testLogOutput(
+      (options) =>
+          new ScriptCompactor(options, sdkDir: testingDartSdkDirectory),
+      'invalid const expression logs', {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>',
+        'a|web/test.html._data': expectedData(['web/a.dart']),
+        'a|web/a.dart':
+            'library a;\n'
+            'import "package:polymer/polymer.dart";\n'
+            '@CustomTag("\${x}-foo")\n' // invalid, x is not defined
+            'class XFoo extends PolymerElement {\n'
+            '}\n'
+            'main(){}',
+      }, {}, [
+        'warning: The parameter to @CustomTag seems to be invalid. '
+        '(web/a.dart 2 11)',
+      ]);
 
-    }, [
-      'warning: The parameter to @CustomTag seems to be invalid. '
-      '(web/a.dart 2 11)',
-    ]);
+  testPhases(
+      'invalid const expression', phases, {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>',
+        'a|web/test.html._data': expectedData(['web/a.dart']),
+        'a|web/a.dart':
+            'library a;\n'
+            'import "package:polymer/polymer.dart";\n'
+            '@CustomTag("\${x}-foo")\n' // invalid, x is not defined
+            'class XFoo extends PolymerElement {\n'
+            '}\n'
+            'main(){}',
+      }, {
+        'a|web/test.html_bootstrap.dart':
+            '''$MAIN_HEADER
+            import 'a.dart' as i0;
+            ${DEFAULT_IMPORTS.join('\n')}
+            import 'a.dart' as smoke_0;
+            import 'package:polymer/polymer.dart' as smoke_1;
+
+            void main() {
+              useGeneratedCode(new StaticConfiguration(
+                  checkedMode: false,
+                  parents: {
+                    smoke_0.XFoo: smoke_1.PolymerElement,
+                  },
+                  declarations: {
+                    smoke_0.XFoo: {},
+                  }));
+              configureForDeployment([]);
+              i0.main();
+            }
+            '''.replaceAll('\n            ', '\n'),
+
+      });
 
   testPhases('no polymer import (no warning, but no crash either)', phases, {
       'a|web/test.html':
@@ -465,71 +486,107 @@ initializerTestsExperimental(phases) {
           '''.replaceAll('\n          ', '\n'),
     });
 
-  testPhases('invalid const expression', phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>',
-      'a|web/test.html._data': expectedData(['web/a.dart'], experimental: true),
-      'a|web/a.dart':
-          'library a;\n'
-          'import "package:polymer/polymer.dart";\n'
-          '@CustomTag("\${x}-foo")\n' // invalid, x is not defined
-          'class XFoo extends PolymerElement {\n'
-          '}\n'
-          'main(){}',
-    }, {
-      'a|web/test.html_bootstrap.dart':
-          '''$MAIN_HEADER
-          import 'a.dart' as i0;
-          ${DEFAULT_IMPORTS.join('\n')}
-          import 'a.dart' as smoke_0;
-          import 'package:polymer/polymer.dart' as smoke_1;
+  testLogOutput(
+      (options) =>
+          new ScriptCompactor(options, sdkDir: testingDartSdkDirectory),
+      'invalid const expression logs', {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>',
+        'a|web/test.html._data':
+            expectedData(['web/a.dart'], experimental: true),
+        'a|web/a.dart':
+            'library a;\n'
+            'import "package:polymer/polymer.dart";\n'
+            '@CustomTag("\${x}-foo")\n' // invalid, x is not defined
+            'class XFoo extends PolymerElement {\n'
+            '}\n'
+            'main(){}',
+      }, {}, [
+        'warning: The parameter to @CustomTag seems to be invalid. '
+        '(web/a.dart 2 11)',
+        'warning: $NO_INITIALIZERS_ERROR',
+      ]);
 
-          void main() {
-            useGeneratedCode(new StaticConfiguration(
-                checkedMode: false,
-                parents: {
-                  smoke_0.XFoo: smoke_1.PolymerElement,
-                },
-                declarations: {
-                  smoke_0.XFoo: {},
-                }));
-            startPolymer([]);
-          }
-          '''.replaceAll('\n          ', '\n'),
+  testPhases(
+      'invalid const expression', phases, {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>',
+        'a|web/test.html._data':
+            expectedData(['web/a.dart'], experimental: true),
+        'a|web/a.dart':
+            'library a;\n'
+            'import "package:polymer/polymer.dart";\n'
+            '@CustomTag("\${x}-foo")\n' // invalid, x is not defined
+            'class XFoo extends PolymerElement {\n'
+            '}\n'
+            'main(){}',
+      }, {
+        'a|web/test.html_bootstrap.dart':
+            '''$MAIN_HEADER
+            import 'a.dart' as i0;
+            ${DEFAULT_IMPORTS.join('\n')}
+            import 'a.dart' as smoke_0;
+            import 'package:polymer/polymer.dart' as smoke_1;
 
-    }, [
-      'warning: The parameter to @CustomTag seems to be invalid. '
-      '(web/a.dart 2 11)',
-      'warning: $NO_INITIALIZERS_ERROR',
-    ]);
+            void main() {
+              useGeneratedCode(new StaticConfiguration(
+                  checkedMode: false,
+                  parents: {
+                    smoke_0.XFoo: smoke_1.PolymerElement,
+                  },
+                  declarations: {
+                    smoke_0.XFoo: {},
+                  }));
+              startPolymer([]);
+            }
+            '''.replaceAll('\n            ', '\n'),
+      });
 
-  testPhases('no polymer import (no warning, but no crash either)', phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>',
-      'a|web/test.html._data': expectedData(['web/a.dart'], experimental: true),
-      'a|web/a.dart':
-          'library a;\n'
-          'import "package:polymer/polymer.broken.import.dart";\n'
-          '@CustomTag("x-foo")\n'
-          'class XFoo extends PolymerElement {\n'
-          '}\n'
-          'main(){}',
-    }, {
-      'a|web/test.html_bootstrap.dart':
-          '''$MAIN_HEADER
-          import 'a.dart' as i0;
-          ${DEFAULT_IMPORTS.join('\n')}
+  testLogOutput(
+      (options) =>
+          new ScriptCompactor(options, sdkDir: testingDartSdkDirectory),
+      'no polymer import logs', {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>',
+        'a|web/test.html._data': expectedData(['web/a.dart'], experimental: true),
+        'a|web/a.dart':
+            'library a;\n'
+            'import "package:polymer/polymer.broken.import.dart";\n'
+            '@CustomTag("x-foo")\n'
+            'class XFoo extends PolymerElement {\n'
+            '}\n'
+            'main(){}',
+      }, {}, [
+        'warning: $NO_INITIALIZERS_ERROR',
+      ]);
 
-          void main() {
-            useGeneratedCode(new StaticConfiguration(
-                checkedMode: false));
-            startPolymer([]);
-          }
-          '''.replaceAll('\n          ', '\n'),
+  testPhases(
+      'no polymer import', phases, {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>',
+        'a|web/test.html._data':
+            expectedData(['web/a.dart'], experimental: true),
+        'a|web/a.dart':
+            'library a;\n'
+            'import "package:polymer/polymer.broken.import.dart";\n'
+            '@CustomTag("x-foo")\n'
+            'class XFoo extends PolymerElement {\n'
+            '}\n'
+            'main(){}',
+      }, {
+        'a|web/test.html_bootstrap.dart':
+            '''$MAIN_HEADER
+            import 'a.dart' as i0;
+            ${DEFAULT_IMPORTS.join('\n')}
 
-    }, [
-      'warning: $NO_INITIALIZERS_ERROR',
-    ]);
+            void main() {
+              useGeneratedCode(new StaticConfiguration(
+                  checkedMode: false));
+              startPolymer([]);
+            }
+            '''.replaceAll('\n            ', '\n'),
+
+      });
 
   testPhases('several scripts', phases, {
       'a|web/test.html':
@@ -1093,3 +1150,44 @@ codegenTests(phases) {
     });
 }
 
+void logElementInjectionTests() {
+  final outputLogsPhases = [[new ScriptCompactor(
+      new TransformOptions(injectBuildLogsInOutput: true, releaseMode: false),
+      sdkDir: testingDartSdkDirectory)]];
+
+  testPhases('Injects logging element and styles', outputLogsPhases, {
+      'a|web/test.html': '<!DOCTYPE html><html><head>',
+      'a|web/test.html._data': expectedData(['web/a.dart']),
+      'a|web/a.dart':
+        'library a;\n'
+        'import "package:polymer/polymer.dart";\n'
+        'main(){}',
+    }, {
+      'a|web/test.html':
+        '<!DOCTYPE html><html><head>'
+        '<link rel="stylesheet" type="text/css" '
+          'href="packages/polymer/src/build/log_injector.css">'
+        '</head><body>'
+        '<script type="application/dart" '
+          'src="test.html_bootstrap.dart"></script>'
+        '</body></html>',
+      'a|web/test.html_bootstrap.dart':
+        '''$MAIN_HEADER
+          import 'a.dart' as i0;
+          import 'package:polymer/src/build/log_injector.dart';
+          ${DEFAULT_IMPORTS.join('\n')}
+
+          void main() {
+            useGeneratedCode(new StaticConfiguration(
+                checkedMode: false));
+            new LogInjector().injectLogsFromUrl();
+            configureForDeployment([]);
+            i0.main();
+          }
+          '''.replaceAll('\n          ', '\n'),
+      'a|web/a.dart':
+        'library a;\n'
+        'import "package:polymer/polymer.dart";\n'
+        'main(){}',
+    });
+}

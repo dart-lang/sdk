@@ -29,6 +29,7 @@ import 'package:polymer_expressions/visitor.dart' as pe;
 
 import 'import_inliner.dart' show ImportInliner; // just for docs.
 import 'common.dart';
+import 'wrapped_logger.dart';
 
 /// Combines Dart script tags into a single script tag, and creates a new Dart
 /// file that calls the main function of each of the original script tags.
@@ -142,9 +143,11 @@ class _ScriptCompactor extends PolymerTransformer {
 
   _SubExpressionVisitor expressionVisitor;
 
-  _ScriptCompactor(Transform transform, this.options, this.resolvers)
+  _ScriptCompactor(Transform transform, options, this.resolvers)
       : transform = transform,
-        logger = transform.logger,
+        options = options,
+        logger = options.releaseMode ? transform.logger :
+          new WrappedLogger(transform, convertErrorsToWarnings: true),
         docId = transform.primaryInput.id,
         bootstrapId = transform.primaryInput.id.addExtension('_bootstrap.dart');
 
@@ -152,7 +155,13 @@ class _ScriptCompactor extends PolymerTransformer {
       _loadDocument()
       .then(_loadEntryLibraries)
       .then(_processHtml)
-      .then(_emitNewEntrypoint);
+      .then(_emitNewEntrypoint)
+      .then((_) {
+        // Write out the logs collected by our [WrappedLogger].
+        if (options.injectBuildLogsInOutput && logger is WrappedLogger) {
+          return logger.writeOutput();
+        }
+      });
 
   /// Loads the primary input as an html document.
   Future _loadDocument() =>
@@ -427,6 +436,9 @@ class _ScriptCompactor extends PolymerTransformer {
       var url = assetUrlFor(id, bootstrapId, logger);
       if (url == null) continue;
       code.writeln("import '$url' as i$i;");
+      if (options.injectBuildLogsInOutput) {
+        code.writeln("import 'package:polymer/src/build/log_injector.dart';");
+      }
       prefixes[id] = 'i$i';
       i++;
     }
@@ -438,6 +450,11 @@ class _ScriptCompactor extends PolymerTransformer {
     code.write('  useGeneratedCode(');
     generator.writeStaticConfiguration(code);
     code.writeln(');');
+
+    if (options.injectBuildLogsInOutput) {
+      code.writeln('  new LogInjector().injectLogsFromUrl();');
+    }
+
     if (experimentalBootstrap) {
       code.write('  startPolymer([');
     } else {
@@ -459,6 +476,8 @@ class _ScriptCompactor extends PolymerTransformer {
     if (!experimentalBootstrap) {
       code.writeln('  i${entryLibraries.length - 1}.main();');
     }
+
+    // End of main().
     code.writeln('}');
     transform.addOutput(new Asset.fromString(bootstrapId, code.toString()));
 
@@ -466,7 +485,15 @@ class _ScriptCompactor extends PolymerTransformer {
     // Emit the bootstrap .dart file
     var srcUrl = path.url.basename(bootstrapId.path);
     document.body.nodes.add(parseFragment(
-          '<script type="application/dart" src="$srcUrl"></script>'));
+        '<script type="application/dart" src="$srcUrl"></script>'));
+
+    // Add the styles for the logger widget.
+    if (options.injectBuildLogsInOutput) {
+      document.head.append(parseFragment(
+          '<link rel="stylesheet" type="text/css"'
+              'href="packages/polymer/src/build/log_injector.css">'));
+    }
+
     transform.addOutput(new Asset.fromString(docId, document.outerHtml));
   }
 

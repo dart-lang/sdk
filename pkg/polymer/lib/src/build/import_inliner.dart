@@ -20,6 +20,7 @@ import 'package:source_maps/refactor.dart' show TextEditTransaction;
 import 'package:source_span/source_span.dart';
 
 import 'common.dart';
+import 'wrapped_logger.dart';
 
 // TODO(sigmund): move to web_components package (dartbug.com/18037).
 class _HtmlInliner extends PolymerTransformer {
@@ -36,9 +37,11 @@ class _HtmlInliner extends PolymerTransformer {
   /// unique-ish filenames.
   int inlineScriptCounter = 0;
 
-  _HtmlInliner(this.options, Transform transform)
-      : transform = transform,
-        logger = transform.logger,
+  _HtmlInliner(TransformOptions options, Transform transform)
+      : options = options,
+        transform = transform,
+        logger = options.releaseMode ? transform.logger :
+            new WrappedLogger(transform, convertErrorsToWarnings: true),
         docId = transform.primaryInput.id;
 
   Future apply() {
@@ -49,7 +52,8 @@ class _HtmlInliner extends PolymerTransformer {
 
     return readPrimaryAsHtml(transform).then((doc) {
       document = doc;
-      changed = new _UrlNormalizer(transform, docId).visit(document) || changed;
+      changed = new _UrlNormalizer(transform, docId, logger).visit(document)
+        || changed;
       
       experimentalBootstrap = document.querySelectorAll('link').any((link) =>
           link.attributes['rel'] == 'import' &&
@@ -73,6 +77,11 @@ class _HtmlInliner extends PolymerTransformer {
             'experimental_bootstrap': experimentalBootstrap,
             'script_ids': scriptIds,
           }, toEncodable: (id) => id.serialize())));
+
+      // Write out the logs collected by our [WrappedLogger].
+      if (options.injectBuildLogsInOutput && logger is WrappedLogger) {
+        return logger.writeOutput();
+      }
     });
   }
 
@@ -94,7 +103,7 @@ class _HtmlInliner extends PolymerTransformer {
 
       // Note: URL has already been normalized so use docId.
       var href = tag.attributes['href'];
-      var id = uriToAssetId(docId, href, transform.logger, tag.sourceSpan,
+      var id = uriToAssetId(docId, href, logger, tag.sourceSpan,
           errorOnAbsolute: rel != 'stylesheet');
 
       if (rel == 'import') {
@@ -146,12 +155,12 @@ class _HtmlInliner extends PolymerTransformer {
   /// html imports. Then inlines it into the main document.
   Future _inlineImport(AssetId id, Element link) {
     return readAsHtml(id, transform).catchError((error) {
-      transform.logger.error(
+      logger.error(
           "Failed to inline html import: $error", asset: id,
           span: link.sourceSpan);
     }).then((doc) {
       if (doc == null) return false;
-      new _UrlNormalizer(transform, id).visit(doc);
+      new _UrlNormalizer(transform, id, logger).visit(doc);
       return _visitImports(doc).then((_) {
         // _UrlNormalizer already ensures there is a library name.
         _extractScripts(doc, injectLibraryName: false);
@@ -170,12 +179,12 @@ class _HtmlInliner extends PolymerTransformer {
       // TODO(jakemac): Move this warning to the linter once we can make it run
       // always (see http://dartbug.com/17199). Then hide this error and replace
       // with a comment pointing to the linter error (so we don't double warn).
-      transform.logger.warning(
+      logger.warning(
           "Failed to inline stylesheet: $error", asset: id,
           span: link.sourceSpan);
     }).then((css) {
       if (css == null) return;
-      css = new _UrlNormalizer(transform, id).visitCss(css);
+      css = new _UrlNormalizer(transform, id, logger).visitCss(css);
       var styleElement = new Element.tag('style')..text = css;
       // Copy over the extra attributes from the link tag to the style tag.
       // This adds support for no-shim, shim-shadowdom, etc.
@@ -327,7 +336,9 @@ class _UrlNormalizer extends TreeVisitor {
   /// Whether or not the normalizer has changed something in the tree.
   bool changed = false;
 
-  _UrlNormalizer(transform, this.sourceId)
+  final TransformLogger logger;
+
+  _UrlNormalizer(transform, this.sourceId, this.logger)
       : transform = transform,
         topLevelPath =
           '../' * (transform.primaryInput.id.path.split('/').length - 2);
@@ -345,13 +356,13 @@ class _UrlNormalizer extends TreeVisitor {
       node.attributes.forEach((name, value) {
         if (_urlAttributes.contains(name)) {
           if (!name.startsWith('_') && value.contains(_BINDING_REGEX)) {
-            transform.logger.warning(
+            logger.warning(
                 'When using bindings with the "$name" attribute you may '
                 'experience errors in certain browsers. Please use the '
                 '"_$name" attribute instead. For more information, see '
                 'http://goo.gl/5av8cU', span: node.sourceSpan, asset: sourceId);
           } else if (name.startsWith('_') && !value.contains(_BINDING_REGEX)) {
-            transform.logger.warning(
+            logger.warning(
                 'The "$name" attribute is only supported when using bindings. '
                 'Please change to the "${name.substring(1)}" attribute.',
                 span: node.sourceSpan, asset: sourceId);
@@ -407,12 +418,12 @@ class _UrlNormalizer extends TreeVisitor {
         var uri = directive.uri.stringValue;
         var span = _getSpan(file, directive.uri);
 
-        var id = uriToAssetId(sourceId, uri, transform.logger, span,
+        var id = uriToAssetId(sourceId, uri, logger, span,
             errorOnAbsolute: false);
         if (id == null) continue;
 
         var primaryId = transform.primaryInput.id;
-        var newUri = assetUrlFor(id, primaryId, transform.logger);
+        var newUri = assetUrlFor(id, primaryId, logger);
         if (newUri != uri) {
           output.edit(span.start.offset, span.end.offset, "'$newUri'");
         }
@@ -456,7 +467,7 @@ class _UrlNormalizer extends TreeVisitor {
     if (uri.path.isEmpty) return href;  // Implies standalone ? or # in URI.
     if (path.isAbsolute(href)) return href;
 
-    var id = uriToAssetId(sourceId, hrefToParse, transform.logger, span);
+    var id = uriToAssetId(sourceId, hrefToParse, logger, span);
     if (id == null) return href;
     var primaryId = transform.primaryInput.id;
 
@@ -476,8 +487,7 @@ class _UrlNormalizer extends TreeVisitor {
 
     if (primaryId.package != id.package) {
       // Techincally we shouldn't get there
-      transform.logger.error("don't know how to include $id from $primaryId",
-          span: span);
+      logger.error("don't know how to include $id from $primaryId", span: span);
       return href;
     }
 

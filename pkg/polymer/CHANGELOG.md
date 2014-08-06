@@ -21,6 +21,12 @@ web_components, and template_binding) if they impact polymer.
             web/foo.css: true
             packages/foo/bar.css: true
 
+  * Added `inject_build_logs_in_output` option to pubspec for polymer
+    transformers. When set to `true`, this will inject a small element into your
+    entry point pages that will display all log messages from the polymer
+    transformers during the build step. This element is only injected when not 
+    running in release mode (ie: `pub serve` but not `pub build`).
+
 #### Pub version 0.12.0+7
   * Widen the constraint on `unittest`.
 
