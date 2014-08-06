@@ -24,6 +24,7 @@ void main(List<String> args) {
     element = options.rest[0];
     _validateElementName(element);
   } catch(e) {
+    print('${e}.\n');
     print('Usage:');
     print('  pub run polymer:new_element [-o output_dir] element-name');
     exitCode = 1;
@@ -95,7 +96,7 @@ String _findDirWithFile(String dir, String filename) {
 
 void _validateElementName(String element) {
   if (!element.contains('-') || element.toLowerCase() != element) {
-    throw new FormatException('Element name must be all lower case '
+    throw new FormatException('element-name must be all lower case '
         'and contain at least 1 hyphen');
   }
 }
