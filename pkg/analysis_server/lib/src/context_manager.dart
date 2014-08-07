@@ -7,51 +7,28 @@ library context.directory.manager;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:watcher/watcher.dart';
 
 /**
- * Information tracked by the [ContextDirectoryManager] for each context.
- */
-class _ContextDirectoryInfo {
-  /**
-   * Stream subscription we are using to watch the context's directory for
-   * changes.
-   */
-  StreamSubscription<WatchEvent> changeSubscription;
-
-  /**
-   * Map from full path to the [Source] object, for each source that has been
-   * added to the context.
-   */
-  Map<String, Source> sources = new HashMap<String, Source>();
-
-  /**
-   * Dependencies of the context's package map.  If any of these files changes,
-   * the package map needs to be recomputed.
-   */
-  Set<String> packageMapDependencies;
-}
-
-/**
  * Class that maintains a mapping from included/excluded paths to a set of
  * folders that should correspond to analysis contexts.
  */
-abstract class ContextDirectoryManager {
+abstract class ContextManager {
   /**
    * File name of pubspec files.
    */
   static const String PUBSPEC_NAME = 'pubspec.yaml';
 
   /**
-   * [_ContextDirectoryInfo] object for each included directory in the most
+   * [_ContextInfo] object for each included directory in the most
    * recent successful call to [setRoots].
    */
-  Map<Folder, _ContextDirectoryInfo> _currentDirectoryInfo =
-      new HashMap<Folder, _ContextDirectoryInfo>();
+  Map<Folder, _ContextInfo> _currentDirectoryInfo =
+      new HashMap<Folder, _ContextInfo>();
 
   /**
    * The [ResourceProvider] using which paths are converted into [Resource]s.
@@ -64,14 +41,44 @@ abstract class ContextDirectoryManager {
    */
   final PackageMapProvider packageMapProvider;
 
-  ContextDirectoryManager(this.resourceProvider, this.packageMapProvider);
+  ContextManager(this.resourceProvider, this.packageMapProvider);
+
+  /**
+   * Called when a new context needs to be created.
+   */
+  void addContext(Folder folder, Map<String, List<Folder>> packageMap);
+
+  /**
+   * Called when the set of files associated with a context have changed (or
+   * some of those files have been modified).  [changeSet] is the set of
+   * changes that need to be applied to the context.
+   */
+  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
+
+  /**
+   * Returns `true` if the given absolute [path] is in one of the current
+   * root folders and is not excluded.
+   */
+  bool isInAnalysisRoot(String path) {
+    // TODO(scheglov) check for excluded paths
+    for (Folder root in _currentDirectoryInfo.keys) {
+      if (root.contains(path)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Remove the context associated with the given [folder].
+   */
+  void removeContext(Folder folder);
 
   /**
    * Change the set of paths which should be used as starting points to
    * determine the context directories.
    */
-  void setRoots(List<String> includedPaths,
-                List<String> excludedPaths) {
+  void setRoots(List<String> includedPaths, List<String> excludedPaths) {
     // included
     Set<Folder> includedFolders = new HashSet<Folder>();
     for (int i = 0; i < includedPaths.length; i++) {
@@ -83,14 +90,13 @@ abstract class ContextDirectoryManager {
         // TODO(scheglov) implemented separate files analysis
         throw new UnimplementedError(
             '$path is not a folder. '
-            'Only support for folder analysis is implemented currently.');
+                'Only support for folder analysis is implemented currently.');
       }
     }
     // excluded
     // TODO(scheglov) remove when implemented
     if (excludedPaths.isNotEmpty) {
-      throw new UnimplementedError(
-          'Excluded paths are not supported yet');
+      throw new UnimplementedError('Excluded paths are not supported yet');
     }
     Set<Folder> excludedFolders = new HashSet<Folder>();
     // diff
@@ -108,16 +114,23 @@ abstract class ContextDirectoryManager {
   }
 
   /**
+   * Called when the package map for a context has changed.
+   */
+  void updateContextPackageMap(Folder contextFolder, Map<String,
+      List<Folder>> packageMap);
+
+  /**
    * Create a new context associated with the given folder.
    */
   void _createContext(Folder folder) {
-    _ContextDirectoryInfo info = new _ContextDirectoryInfo();
+    _ContextInfo info = new _ContextInfo();
     _currentDirectoryInfo[folder] = info;
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
     File pubspecFile = folder.getChild(PUBSPEC_NAME);
-    PackageMapInfo packageMapInfo = packageMapProvider.computePackageMap(folder);
+    PackageMapInfo packageMapInfo =
+        packageMapProvider.computePackageMap(folder);
     info.packageMapDependencies = packageMapInfo.dependencies;
     // TODO(paulberry): if any of the dependencies is outside of [folder],
     // we'll need to watch their parent folders as well.
@@ -136,7 +149,7 @@ abstract class ContextDirectoryManager {
     removeContext(folder);
   }
 
-  void _handleWatchEvent(Folder folder, _ContextDirectoryInfo info, WatchEvent event) {
+  void _handleWatchEvent(Folder folder, _ContextInfo info, WatchEvent event) {
     switch (event.type) {
       case ChangeType.ADD:
         if (_isInPackagesDir(event.path, folder)) {
@@ -155,7 +168,7 @@ abstract class ContextDirectoryManager {
             Source source = file.createSource();
             changeSet.addedSource(source);
             applyChangesToContext(folder, changeSet);
-            info.sources[event.path]= source;
+            info.sources[event.path] = source;
           }
         }
         break;
@@ -183,7 +196,8 @@ abstract class ContextDirectoryManager {
       // asynchronous API call, we'll want to suspend analysis for this context
       // while we're rerunning "pub list", since any analysis we complete while
       // "pub list" is in progress is just going to get thrown away anyhow.
-      PackageMapInfo packageMapInfo = packageMapProvider.computePackageMap(folder);
+      PackageMapInfo packageMapInfo =
+          packageMapProvider.computePackageMap(folder);
       info.packageMapDependencies = packageMapInfo.dependencies;
       updateContextPackageMap(folder, packageMapInfo.packageMap);
     }
@@ -194,7 +208,8 @@ abstract class ContextDirectoryManager {
    * directory.
    */
   bool _isInPackagesDir(String path, Folder folder) {
-    String relativePath = resourceProvider.pathContext.relative(path, from: folder.path);
+    String relativePath =
+        resourceProvider.pathContext.relative(path, from: folder.path);
     List<String> pathParts = resourceProvider.pathContext.split(relativePath);
     for (int i = 0; i < pathParts.length - 1; i++) {
       if (pathParts[i] == 'packages') {
@@ -207,7 +222,8 @@ abstract class ContextDirectoryManager {
   /**
    * Resursively adds all Dart and HTML files to the [changeSet].
    */
-  static void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextDirectoryInfo info) {
+  static void _addSourceFiles(ChangeSet changeSet, Folder folder,
+      _ContextInfo info) {
     List<Resource> children = folder.getChildren();
     for (Resource child in children) {
       if (child is File) {
@@ -228,8 +244,8 @@ abstract class ContextDirectoryManager {
   }
 
   static bool _shouldFileBeAnalyzed(File file) {
-    if (!(AnalysisEngine.isDartFileName(file.path)
-            || AnalysisEngine.isHtmlFileName(file.path))) {
+    if (!(AnalysisEngine.isDartFileName(file.path) ||
+        AnalysisEngine.isHtmlFileName(file.path))) {
       return false;
     }
     // Emacs creates dummy links to track the fact that a file is open for
@@ -239,41 +255,27 @@ abstract class ContextDirectoryManager {
     // causing the analyzer to thrash, just ignore links to non-existent files.
     return file.exists;
   }
+}
+
+/**
+ * Information tracked by the [ContextManager] for each context.
+ */
+class _ContextInfo {
+  /**
+   * Stream subscription we are using to watch the context's directory for
+   * changes.
+   */
+  StreamSubscription<WatchEvent> changeSubscription;
 
   /**
-   * Returns `true` if the given absolute [path] is in one of the current
-   * root folders and is not excluded.
+   * Map from full path to the [Source] object, for each source that has been
+   * added to the context.
    */
-  bool isInAnalysisRoot(String path) {
-    // TODO(scheglov) check for excluded paths
-    for (Folder root in _currentDirectoryInfo.keys) {
-      if (root.contains(path)) {
-        return true;
-      }
-    }
-    return false;
-  }
+  Map<String, Source> sources = new HashMap<String, Source>();
 
   /**
-   * Called when a new context needs to be created.
+   * Dependencies of the context's package map.
+   * If any of these files changes, the package map needs to be recomputed.
    */
-  void addContext(Folder folder, Map<String, List<Folder>> packageMap);
-
-  /**
-   * Called when the set of files associated with a context have changed (or
-   * some of those files have been modified).  [changeSet] is the set of
-   * changes that need to be applied to the context.
-   */
-  void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
-
-  /**
-   * Remove the context associated with the given [folder].
-   */
-  void removeContext(Folder folder);
-
-  /**
-   * Called when the package map for a context has changed.
-   */
-  void updateContextPackageMap(Folder contextFolder,
-                               Map<String, List<Folder>> packageMap);
+  Set<String> packageMapDependencies;
 }

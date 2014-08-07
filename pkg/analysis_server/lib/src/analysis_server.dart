@@ -11,7 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/context_directory_manager.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
@@ -29,10 +29,9 @@ import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:path/path.dart';
 
 
-class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
+class ServerContextManager extends ContextManager {
   final AnalysisServer analysisServer;
 
   /**
@@ -40,7 +39,7 @@ class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
    */
   AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
 
-  AnalysisServerContextDirectoryManager(
+  ServerContextManager(
       this.analysisServer, ResourceProvider resourceProvider,
       PackageMapProvider packageMapProvider)
       : super(resourceProvider, packageMapProvider);
@@ -120,10 +119,10 @@ class AnalysisServer {
   SearchEngine searchEngine;
 
   /**
-   * [ContextDirectoryManager] which handles the mapping from analysis roots
+   * [ContextManager] which handles the mapping from analysis roots
    * to context directories.
    */
-  AnalysisServerContextDirectoryManager contextDirectoryManager;
+  ServerContextManager contextDirectoryManager;
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
@@ -203,7 +202,7 @@ class AnalysisServer {
       {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
     operationQueue = new ServerOperationQueue(this);
-    contextDirectoryManager = new AnalysisServerContextDirectoryManager(
+    contextDirectoryManager = new ServerContextManager(
         this, resourceProvider, packageMapProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
