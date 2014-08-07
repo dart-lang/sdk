@@ -8,8 +8,6 @@ samples/pop_pop_win: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
 
-pkg/observatory: Skip # Issue 20306
-
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 pkg/browser: PubGetError

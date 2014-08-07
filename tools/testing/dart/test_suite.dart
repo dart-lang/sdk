@@ -400,6 +400,7 @@ abstract class TestSuite {
      *      pkg/PACKAGE_NAME
      *      pkg/third_party/PACKAGE_NAME
      *      third_party/pkg/PACKAGE_NAME
+     *      runtime/bin/vmservice/PACKAGE_NAME
      */
 
     // Directories containing "-" are not valid pub packages and we therefore
@@ -412,6 +413,8 @@ abstract class TestSuite {
       listDir(dartDir.append('pkg'), isValid),
       listDir(dartDir.append('pkg').append('third_party'), isValid),
       listDir(dartDir.append('third_party').append('pkg'), isValid),
+      listDir(dartDir.append('runtime').append('bin').append('vmservice'),
+              isValid),
     ];
     return Future.wait(futures).then((results) {
       var packageDirectories = {};
