@@ -2360,7 +2360,21 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void bufferByteData(int target, ByteBuffer data, int usage) => _blink.BlinkWebGLRenderingContext.$bufferByteData_Callback(this, target, data, usage);
 
-  void bufferData(int target, data_OR_size, int usage) => _blink.BlinkWebGLRenderingContext.$bufferData(this, target, data_OR_size, usage);
+  void bufferData(int target, data_OR_size, int usage) {
+    if ((usage is int || usage == null) && (data_OR_size is TypedData || data_OR_size == null) && (target is int || target == null)) {
+      _blink.BlinkWebGLRenderingContext.$_bufferData_1_Callback(this, target, data_OR_size, usage);
+      return;
+    }
+    if ((usage is int || usage == null) && (data_OR_size is ByteBuffer || data_OR_size == null) && (target is int || target == null)) {
+      _blink.BlinkWebGLRenderingContext.$_bufferData_2_Callback(this, target, data_OR_size, usage);
+      return;
+    }
+    if ((usage is int || usage == null) && (data_OR_size is int || data_OR_size == null) && (target is int || target == null)) {
+      _blink.BlinkWebGLRenderingContext.$_bufferData_3_Callback(this, target, data_OR_size, usage);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('WebGLRenderingContext.bufferDataTyped')
   @DocsEditable()
@@ -2370,7 +2384,17 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void bufferSubByteData(int target, int offset, ByteBuffer data) => _blink.BlinkWebGLRenderingContext.$bufferSubByteData_Callback(this, target, offset, data);
 
-  void bufferSubData(int target, int offset, data) => _blink.BlinkWebGLRenderingContext.$bufferSubData(this, target, offset, data);
+  void bufferSubData(int target, int offset, data) {
+    if ((data is TypedData || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
+      _blink.BlinkWebGLRenderingContext.$_bufferSubData_1_Callback(this, target, offset, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
+      _blink.BlinkWebGLRenderingContext.$_bufferSubData_2_Callback(this, target, offset, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('WebGLRenderingContext.bufferSubDataTyped')
   @DocsEditable()
@@ -2724,7 +2748,29 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) => _blink.BlinkWebGLRenderingContext.$stencilOpSeparate_Callback(this, face, fail, zfail, zpass);
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) => _blink.BlinkWebGLRenderingContext.$texImage2D(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
+    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (format is int || format == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null)) {
+      _blink.BlinkWebGLRenderingContext.$_texImage2D_1_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGLRenderingContext.$_texImage2D_2_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGLRenderingContext.$_texImage2D_3_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGLRenderingContext.$_texImage2D_4_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGLRenderingContext.$_texImage2D_5_Callback(this, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('WebGLRenderingContext.texImage2DCanvas')
   @DocsEditable()
@@ -2750,7 +2796,29 @@ class RenderingContext extends CanvasRenderingContext {
   @DocsEditable()
   void texParameteri(int target, int pname, int param) => _blink.BlinkWebGLRenderingContext.$texParameteri_Callback(this, target, pname, param);
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) => _blink.BlinkWebGLRenderingContext.$texSubImage2D(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
+    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null)) {
+      _blink.BlinkWebGLRenderingContext.$_texSubImage2D_1_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      _blink.BlinkWebGLRenderingContext.$_texSubImage2D_2_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      _blink.BlinkWebGLRenderingContext.$_texSubImage2D_3_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      _blink.BlinkWebGLRenderingContext.$_texSubImage2D_4_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
+      _blink.BlinkWebGLRenderingContext.$_texSubImage2D_5_Callback(this, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('WebGLRenderingContext.texSubImage2DCanvas')
   @DocsEditable()

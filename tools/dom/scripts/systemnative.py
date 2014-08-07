@@ -1250,19 +1250,26 @@ class DartiumBackend(HtmlDartGenerator):
         stmts_emitter, call_emitter, version, operation, argument_count):
       native_suffix = 'Callback'
       actuals = info.ParametersAsListOfVariables(argument_count)
+      actuals_s = ", ".join(actuals)
+      formals=actuals
       return_type = self.SecureOutputType(operation.type.id)
       native_suffix = 'Callback'
       is_custom = 'Custom' in operation.ext_attrs
       if self._dart_use_blink:
           base_name = '_%s_%s' % (operation.id, version)
-          overload_name = \
+          overload_base_name = \
               self.DeriveNativeName(base_name, native_suffix)
+          overload_name = \
+              self.DeriveQualifiedBlinkName(self._interface.id,
+                                            overload_base_name)
           static = True
           if not operation.is_static:
-            actuals = ['mthis'] + actuals
+            actuals = ['this'] + actuals
+            formals = ['mthis'] + formals
           actuals_s = ", ".join(actuals)
+          formals_s = ", ".join(formals)
           dart_declaration = '%s(%s)' % (
-            base_name, actuals_s)
+            base_name, formals_s)
           type_ids = [argument.type.id
                       for argument in operation.arguments[:argument_count]]
           resolver_string = \
@@ -1272,7 +1279,6 @@ class DartiumBackend(HtmlDartGenerator):
           base_name = '_%s_%s' % (operation.id, version)
           overload_name = base_name
           static = operation.is_static
-          actuals_s = ", ".join(actuals)
           dart_declaration = '%s%s %s(%s)' % (
             'static ' if static else '',
             return_type,
@@ -1284,7 +1290,7 @@ class DartiumBackend(HtmlDartGenerator):
         self._GenerateAutoSetupScope(base_name, native_suffix)
       cpp_callback_name = self._GenerateNativeBinding(
         base_name, (0 if static else 1) + argument_count,
-        dart_declaration, static, return_type, actuals,
+        dart_declaration, static, return_type, formals,
         native_suffix, is_custom, auto_scope_setup, emit_metadata=False,
         emit_to_native=self._dart_use_blink, resolver_string=resolver_string)
       if not is_custom:
@@ -1292,28 +1298,6 @@ class DartiumBackend(HtmlDartGenerator):
           operation.arguments[:argument_count], cpp_callback_name,
           auto_scope_setup)
 
-
-    if self._dart_use_blink:
-        name = self.DeriveNativeName(html_name)
-        qual_name = self.DeriveQualifiedBlinkName(self._interface.id,
-                                                  name)
-        actuals = info.ParametersAsListOfVariables()
-        formals = info.ParametersAsListOfVariables()
-        if not info.IsStatic():
-            formals = ['mthis'] + formals
-            actuals = ['this'] + actuals
-        actuals_s = ', '.join(actuals)
-        formals_s = ', '.join(formals)
-        self._members_emitter.Emit(
-        '\n'
-        '  $DECLARATION => $NATIVE_NAME($ACTUALS);\n',
-        DECLARATION=dart_declaration,
-        NATIVE_NAME=qual_name,
-        ACTUALS=actuals_s)
-
-        dart_declaration = \
-            '// Generated overload resolver\n' \
-            '  static %s(%s)' % (name, formals_s)
 
     self._GenerateDispatcherBody(
         info,

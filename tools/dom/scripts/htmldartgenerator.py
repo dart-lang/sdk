@@ -438,9 +438,7 @@ class HtmlDartGenerator(object):
     def IsOptional(signature_index, argument):
       return is_optional(operations[signature_index], argument)
 
-    emitter = \
-        self._native_class_emitter if self._dart_use_blink \
-        else self._members_emitter
+    emitter = self._members_emitter
 
     self._GenerateOverloadDispatcher(
         info,
@@ -549,7 +547,11 @@ class HtmlDartGenerator(object):
           version, signature_index, argument_count):
         name = emitter.Format('_create_$VERSION', VERSION=version)
         if self._dart_use_blink:
-            qualified_name = self.DeriveNativeName(name + 'constructorCallback')
+            base_name = \
+                self.DeriveNativeName(name + 'constructorCallback')
+            qualified_name = \
+              self.DeriveQualifiedBlinkName(self._interface.id,
+                                            base_name)
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',
@@ -575,29 +577,8 @@ class HtmlDartGenerator(object):
           METADATA=metadata,
           PARAMS=constructor_info.ParametersAsDeclaration(self._DartType))
 
-      if self._dart_use_blink:
-          overload_emitter = self._native_class_emitter
-          mname = constructor_full_name.replace(".", "_")
-          blink_name = "$mk" + mname
-          qual_name = self.DeriveQualifiedBlinkName(
-              self._interface.id, blink_name)
-          actuals_s = constructor_info.ParametersAsStringOfVariables()
-          self._members_emitter.Emit(
-            '\n'
-            '  $DECLARATION => $NATIVE_NAME($ACTUALS);\n',
-            DECLARATION=entry_declaration,
-            NATIVE_NAME=qual_name,
-            ACTUALS=actuals_s)
-          overload_declaration = emitter.Format(
-              '// Generated overload resolver\n'
-              '  static $CTOR($PARAMS)',
-              CTOR=blink_name,
-              PARAMS=actuals_s)
-
-
-      else:
-          overload_emitter = self._members_emitter
-          overload_declaration = entry_declaration
+      overload_emitter = self._members_emitter
+      overload_declaration = entry_declaration
 
       self._GenerateOverloadDispatcher(
           constructor_info,

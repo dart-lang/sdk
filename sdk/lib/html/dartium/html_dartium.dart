@@ -29,6 +29,7 @@ import 'dart:collection';
 import 'dart:_internal' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
+import 'dart:indexed_db' show indexed_dbBlinkMap;
 import 'dart:isolate';
 import 'dart:js' as js;
 import "dart:convert";
@@ -37,11 +38,14 @@ import 'dart:mirrors';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:web_gl' as gl;
+import 'dart:web_gl' show web_glBlinkMap;
 import 'dart:web_sql';
 import 'dart:svg' as svg;
+import 'dart:svg' show svgBlinkMap;
 import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
+import 'dart:web_audio' show web_audioBlinkMap;
 import 'dart:_blink' as _blink;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -489,6 +493,95 @@ final htmlBlinkMap = {
   // post Chrome 35.  We still generate the old mapping from 'Clipboard'.
   'DataTransfer': () => DataTransfer,
 };
+
+// TODO(leafp): We may want to move this elsewhere if html becomes
+// a package to avoid dartium depending on pkg:html.
+Type _getType(String key) {
+  var result;
+
+  // TODO(vsm): Add Cross Frame and JS types here as well.
+
+  // Check the html library.
+  result = _getHtmlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web gl library.
+  result = _getWebGlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the indexed db library.
+  result = _getIndexDbType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web audio library.
+  result = _getWebAudioType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web sql library.
+  result = _getWebSqlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the svg library.
+  result = _getSvgType(key);
+  if (result != null) {
+    return result;
+  }
+
+  return null;
+}
+
+Type _getHtmlType(String key) {
+  if (htmlBlinkMap.containsKey(key)) {
+    return htmlBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebGlType(String key) {
+  if (web_glBlinkMap.containsKey(key)) {
+    return web_glBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getIndexDbType(String key) {
+  if (indexed_dbBlinkMap.containsKey(key)) {
+    return indexed_dbBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebAudioType(String key) {
+  if (web_audioBlinkMap.containsKey(key)) {
+    return web_audioBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebSqlType(String key) {
+  if (web_sqlBlinkMap.containsKey(key)) {
+    return web_sqlBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getSvgType(String key) {
+  if (svgBlinkMap.containsKey(key)) {
+    return svgBlinkMap[key]();
+  }
+  return null;
+}
+
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -713,7 +806,18 @@ class Animation extends TimedItem {
 
   @DomName('Animation.Animation')
   @DocsEditable()
-  factory Animation(Element target, List<Map> keyframes, [timingInput]) => _blink.BlinkAnimation.$mkAnimation(target, keyframes, timingInput);
+  factory Animation(Element target, List<Map> keyframes, [timingInput]) {
+    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
+      return _blink.BlinkAnimation.$_create_1constructorCallback(target, keyframes, timingInput);
+    }
+    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
+      return _blink.BlinkAnimation.$_create_2constructorCallback(target, keyframes, timingInput);
+    }
+    if ((keyframes is List<Map> || keyframes == null) && (target is Element || target == null) && timingInput == null) {
+      return _blink.BlinkAnimation.$_create_3constructorCallback(target, keyframes);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1099,7 +1203,9 @@ class AudioElement extends MediaElement {
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable()
-  factory AudioElement([String src]) => _blink.BlinkHTMLAudioElement.$mkAudioElement(src);
+  factory AudioElement([String src]) {
+    return _blink.BlinkHTMLAudioElement.$_create_1constructorCallback(src);
+  }
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1274,7 +1380,18 @@ class Blob extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String get type => _blink.BlinkBlob.$type_Getter(this);
 
-  Blob slice([int start, int end, String contentType]) => _blink.BlinkBlob.$slice(this, start, end, contentType);
+  Blob slice([int start, int end, String contentType]) {
+    if (contentType != null) {
+      return _blink.BlinkBlob.$_slice_1_Callback(this, start, end, contentType);
+    }
+    if (end != null) {
+      return _blink.BlinkBlob.$_slice_2_Callback(this, start, end);
+    }
+    if (start != null) {
+      return _blink.BlinkBlob.$_slice_3_Callback(this, start);
+    }
+    return _blink.BlinkBlob.$_slice_4_Callback(this);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2145,7 +2262,14 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void clearRect(num x, num y, num width, num height) => _blink.BlinkCanvasRenderingContext2D.$clearRect_Callback(this, x, y, width, height);
 
-  void clip([String winding]) => _blink.BlinkCanvasRenderingContext2D.$clip(this, winding);
+  void clip([String winding]) {
+    if (winding != null) {
+      _blink.BlinkCanvasRenderingContext2D.$_clip_1_Callback(this, winding);
+      return;
+    }
+    _blink.BlinkCanvasRenderingContext2D.$_clip_2_Callback(this);
+    return;
+  }
 
   @DomName('CanvasRenderingContext2D.closePath')
   @DocsEditable()
@@ -2180,20 +2304,84 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental() // untriaged
   bool drawCustomFocusRing(Element element) => _blink.BlinkCanvasRenderingContext2D.$drawCustomFocusRing_Callback(this, element);
 
-  void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) => _blink.BlinkCanvasRenderingContext2D.$_drawImage(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+  void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_1_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_2_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_3_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_4_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_5_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_6_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_7_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_8_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_9_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_10_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_11_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_12_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('CanvasRenderingContext2D.ellipse')
   @DocsEditable()
   @Experimental() // untriaged
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) => _blink.BlinkCanvasRenderingContext2D.$ellipse_Callback(this, x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
 
-  void fill([String winding]) => _blink.BlinkCanvasRenderingContext2D.$fill(this, winding);
+  void fill([String winding]) {
+    if (winding != null) {
+      _blink.BlinkCanvasRenderingContext2D.$_fill_1_Callback(this, winding);
+      return;
+    }
+    _blink.BlinkCanvasRenderingContext2D.$_fill_2_Callback(this);
+    return;
+  }
 
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable()
   void fillRect(num x, num y, num width, num height) => _blink.BlinkCanvasRenderingContext2D.$fillRect_Callback(this, x, y, width, height);
 
-  void fillText(String text, num x, num y, [num maxWidth]) => _blink.BlinkCanvasRenderingContext2D.$fillText(this, text, x, y, maxWidth);
+  void fillText(String text, num x, num y, [num maxWidth]) {
+    if (maxWidth != null) {
+      _blink.BlinkCanvasRenderingContext2D.$_fillText_1_Callback(this, text, x, y, maxWidth);
+      return;
+    }
+    _blink.BlinkCanvasRenderingContext2D.$_fillText_2_Callback(this, text, x, y);
+    return;
+  }
 
   @DomName('CanvasRenderingContext2D.getContextAttributes')
   @DocsEditable()
@@ -2209,7 +2397,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   List<num> _getLineDash() => _blink.BlinkCanvasRenderingContext2D.$getLineDash_Callback(this);
 
-  bool isPointInPath(num x, num y, [String winding]) => _blink.BlinkCanvasRenderingContext2D.$isPointInPath(this, x, y, winding);
+  bool isPointInPath(num x, num y, [String winding]) {
+    if (winding != null) {
+      return _blink.BlinkCanvasRenderingContext2D.$_isPointInPath_1_Callback(this, x, y, winding);
+    }
+    return _blink.BlinkCanvasRenderingContext2D.$_isPointInPath_2_Callback(this, x, y);
+  }
 
   @DomName('CanvasRenderingContext2D.isPointInStroke')
   @DocsEditable()
@@ -2227,7 +2420,17 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void moveTo(num x, num y) => _blink.BlinkCanvasRenderingContext2D.$moveTo_Callback(this, x, y);
 
-  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) => _blink.BlinkCanvasRenderingContext2D.$putImageData(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
+    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_putImageData_1_Callback(this, imagedata, dx, dy);
+      return;
+    }
+    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_putImageData_2_Callback(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('CanvasRenderingContext2D.quadraticCurveTo')
   @DocsEditable()
@@ -2274,7 +2477,14 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void strokeRect(num x, num y, num width, num height) => _blink.BlinkCanvasRenderingContext2D.$strokeRect_Callback(this, x, y, width, height);
 
-  void strokeText(String text, num x, num y, [num maxWidth]) => _blink.BlinkCanvasRenderingContext2D.$strokeText(this, text, x, y, maxWidth);
+  void strokeText(String text, num x, num y, [num maxWidth]) {
+    if (maxWidth != null) {
+      _blink.BlinkCanvasRenderingContext2D.$_strokeText_1_Callback(this, text, x, y, maxWidth);
+      return;
+    }
+    _blink.BlinkCanvasRenderingContext2D.$_strokeText_2_Callback(this, text, x, y);
+    return;
+  }
 
   @DomName('CanvasRenderingContext2D.transform')
   @DocsEditable()
@@ -2641,7 +2851,9 @@ class Comment extends CharacterData {
 
   @DomName('Comment.Comment')
   @DocsEditable()
-  factory Comment([String data]) => _blink.BlinkComment.$mkComment(data);
+  factory Comment([String data]) {
+    return _blink.BlinkComment.$_create_1constructorCallback(data);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6683,13 +6895,23 @@ class CssStyleSheet extends StyleSheet {
   @Experimental() // non-standard
   List<CssRule> get rules => _blink.BlinkCSSStyleSheet.$rules_Getter(this);
 
-  int addRule(String selector, String style, [int index]) => _blink.BlinkCSSStyleSheet.$addRule(this, selector, style, index);
+  int addRule(String selector, String style, [int index]) {
+    if (index != null) {
+      return _blink.BlinkCSSStyleSheet.$_addRule_1_Callback(this, selector, style, index);
+    }
+    return _blink.BlinkCSSStyleSheet.$_addRule_2_Callback(this, selector, style);
+  }
 
   @DomName('CSSStyleSheet.deleteRule')
   @DocsEditable()
   void deleteRule(int index) => _blink.BlinkCSSStyleSheet.$deleteRule_Callback(this, index);
 
-  int insertRule(String rule, [int index]) => _blink.BlinkCSSStyleSheet.$insertRule(this, rule, index);
+  int insertRule(String rule, [int index]) {
+    if (index != null) {
+      return _blink.BlinkCSSStyleSheet.$_insertRule_1_Callback(this, rule, index);
+    }
+    return _blink.BlinkCSSStyleSheet.$_insertRule_2_Callback(this, rule);
+  }
 
   @DomName('CSSStyleSheet.removeRule')
   @DocsEditable()
@@ -6899,7 +7121,14 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DocsEditable()
   List<String> get types => _blink.BlinkClipboard.$types_Getter(this);
 
-  void clearData([String type]) => _blink.BlinkClipboard.$clearData(this, type);
+  void clearData([String type]) {
+    if (type != null) {
+      _blink.BlinkClipboard.$_clearData_1_Callback(this, type);
+      return;
+    }
+    _blink.BlinkClipboard.$_clearData_2_Callback(this);
+    return;
+  }
 
   /**
    * Gets the data for the specified type.
@@ -6998,7 +7227,15 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
   @Experimental() // untriaged
   DataTransferItem __getter__(int index) => _blink.BlinkDataTransferItemList.$__getter___Callback(this, index);
 
-  DataTransferItem add(data_OR_file, [String type]) => _blink.BlinkDataTransferItemList.$add(this, data_OR_file, type);
+  DataTransferItem add(data_OR_file, [String type]) {
+    if ((data_OR_file is File || data_OR_file == null) && type == null) {
+      return _blink.BlinkDataTransferItemList.$_add_1_Callback(this, data_OR_file);
+    }
+    if ((type is String || type == null) && (data_OR_file is String || data_OR_file == null)) {
+      return _blink.BlinkDataTransferItemList.$_add_2_Callback(this, data_OR_file, type);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('DataTransferItemList.addData')
   @DocsEditable()
@@ -7770,9 +8007,22 @@ class Document extends Node
   @DocsEditable()
   Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => _blink.BlinkDocument.$createElementNS_Callback(this, namespaceURI, qualifiedName, typeExtension);
 
-  Event _createEvent([String eventType]) => _blink.BlinkDocument.$_createEvent(this, eventType);
+  Event _createEvent([String eventType]) {
+    if (eventType != null) {
+      return _blink.BlinkDocument.$_createEvent_1_Callback(this, eventType);
+    }
+    return _blink.BlinkDocument.$_createEvent_2_Callback(this);
+  }
 
-  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) => _blink.BlinkDocument.$_createNodeIterator(this, root, whatToShow, filter);
+  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) {
+    if (filter != null) {
+      return _blink.BlinkDocument.$_createNodeIterator_1_Callback(this, root, whatToShow, filter);
+    }
+    if (whatToShow != null) {
+      return _blink.BlinkDocument.$_createNodeIterator_2_Callback(this, root, whatToShow);
+    }
+    return _blink.BlinkDocument.$_createNodeIterator_3_Callback(this, root);
+  }
 
   @DomName('Document.createRange')
   @DocsEditable()
@@ -7788,7 +8038,15 @@ class Document extends Node
   @Experimental()
   Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) => _blink.BlinkDocument.$createTouch_Callback(this, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
 
-  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) => _blink.BlinkDocument.$_createTreeWalker(this, root, whatToShow, filter);
+  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) {
+    if (filter != null) {
+      return _blink.BlinkDocument.$_createTreeWalker_1_Callback(this, root, whatToShow, filter);
+    }
+    if (whatToShow != null) {
+      return _blink.BlinkDocument.$_createTreeWalker_2_Callback(this, root, whatToShow);
+    }
+    return _blink.BlinkDocument.$_createTreeWalker_3_Callback(this, root);
+  }
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
@@ -7820,7 +8078,12 @@ class Document extends Node
   @DocsEditable()
   List<Node> getElementsByTagName(String localName) => _blink.BlinkDocument.$getElementsByTagName_Callback(this, localName);
 
-  Node importNode(Node node, [bool deep]) => _blink.BlinkDocument.$importNode(this, node, deep);
+  Node importNode(Node node, [bool deep]) {
+    if (deep != null) {
+      return _blink.BlinkDocument.$_importNode_1_Callback(this, node, deep);
+    }
+    return _blink.BlinkDocument.$_importNode_2_Callback(this, node);
+  }
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable()
@@ -8511,7 +8774,9 @@ class DomParser extends NativeFieldWrapperClass2 {
 
   @DomName('DOMParser.DOMParser')
   @DocsEditable()
-  factory DomParser() => _blink.BlinkDOMParser.$mkDomParser();
+  factory DomParser() {
+    return _blink.BlinkDOMParser.$_create_1constructorCallback();
+  }
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
@@ -8629,11 +8894,37 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
-  bool __delete__(index_OR_name) => _blink.BlinkDOMStringMap.$__delete__(this, index_OR_name);
+  bool __delete__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkDOMStringMap.$___delete___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkDOMStringMap.$___delete___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  String __getter__(index_OR_name) => _blink.BlinkDOMStringMap.$__getter__(this, index_OR_name);
+  String __getter__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkDOMStringMap.$___getter___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkDOMStringMap.$___getter___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  void __setter__(index_OR_name, String value) => _blink.BlinkDOMStringMap.$__setter__(this, index_OR_name, value);
+  void __setter__(index_OR_name, String value) {
+    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
+      _blink.BlinkDOMStringMap.$___setter___1_Callback(this, index_OR_name, value);
+      return;
+    }
+    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
+      _blink.BlinkDOMStringMap.$___setter___2_Callback(this, index_OR_name, value);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8665,7 +8956,12 @@ class DomTokenList extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String toString() => _blink.BlinkDOMTokenList.$toString_Callback(this);
 
-  bool toggle(String token, [bool force]) => _blink.BlinkDOMTokenList.$toggle(this, token, force);
+  bool toggle(String token, [bool force]) {
+    if (force != null) {
+      return _blink.BlinkDOMTokenList.$_toggle_1_Callback(this, token, force);
+    }
+    return _blink.BlinkDOMTokenList.$_toggle_2_Callback(this, token);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11320,7 +11616,18 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   String get tagName => _blink.BlinkElement.$tagName_Getter(this);
 
-  Animation animate(List<Map> keyframes, [timingInput]) => _blink.BlinkElement.$animate(this, keyframes, timingInput);
+  Animation animate(List<Map> keyframes, [timingInput]) {
+    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
+      return _blink.BlinkElement.$_animate_1_Callback(this, keyframes, timingInput);
+    }
+    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
+      return _blink.BlinkElement.$_animate_2_Callback(this, keyframes, timingInput);
+    }
+    if ((keyframes is List<Map> || keyframes == null) && timingInput == null) {
+      return _blink.BlinkElement.$_animate_3_Callback(this, keyframes);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('Element.blur')
   @DocsEditable()
@@ -11499,9 +11806,23 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   void scrollByPages(int pages) => _blink.BlinkElement.$scrollByPages_Callback(this, pages);
 
-  void _scrollIntoView([bool alignWithTop]) => _blink.BlinkElement.$_scrollIntoView(this, alignWithTop);
+  void _scrollIntoView([bool alignWithTop]) {
+    if (alignWithTop != null) {
+      _blink.BlinkElement.$_scrollIntoView_1_Callback(this, alignWithTop);
+      return;
+    }
+    _blink.BlinkElement.$_scrollIntoView_2_Callback(this);
+    return;
+  }
 
-  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) => _blink.BlinkElement.$_scrollIntoViewIfNeeded(this, centerIfNeeded);
+  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) {
+    if (centerIfNeeded != null) {
+      _blink.BlinkElement.$_scrollIntoViewIfNeeded_1_Callback(this, centerIfNeeded);
+      return;
+    }
+    _blink.BlinkElement.$_scrollIntoViewIfNeeded_2_Callback(this);
+    return;
+  }
 
   @DomName('Element.setAttribute')
   @DocsEditable()
@@ -12105,7 +12426,14 @@ class Entry extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String get name => _blink.BlinkEntry.$name_Getter(this);
 
-  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) => _blink.BlinkEntry.$_copyTo(this, parent, name, successCallback, errorCallback);
+  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+    if (name != null) {
+      _blink.BlinkEntry.$_copyTo_1_Callback(this, parent, name, successCallback, errorCallback);
+      return;
+    }
+    _blink.BlinkEntry.$_copyTo_2_Callback(this, parent);
+    return;
+  }
 
   Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
@@ -12139,7 +12467,14 @@ class Entry extends NativeFieldWrapperClass2 {
     return completer.future;
   }
 
-  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) => _blink.BlinkEntry.$_moveTo(this, parent, name, successCallback, errorCallback);
+  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+    if (name != null) {
+      _blink.BlinkEntry.$_moveTo_1_Callback(this, parent, name, successCallback, errorCallback);
+      return;
+    }
+    _blink.BlinkEntry.$_moveTo_2_Callback(this, parent);
+    return;
+  }
 
   Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
@@ -12455,7 +12790,9 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.EventSource')
   @DocsEditable()
-  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) => _blink.BlinkEventSource.$mkEventSource(url, eventSourceInit);
+  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
+    return _blink.BlinkEventSource.$_create_1constructorCallback(url, eventSourceInit);
+  }
 
   @DomName('EventSource.CLOSED')
   @DocsEditable()
@@ -12998,7 +13335,9 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.FileReader')
   @DocsEditable()
-  factory FileReader() => _blink.BlinkFileReader.$mkFileReader();
+  factory FileReader() {
+    return _blink.BlinkFileReader.$_create_1constructorCallback();
+  }
 
   @DomName('FileReader.DONE')
   @DocsEditable()
@@ -13036,7 +13375,14 @@ class FileReader extends EventTarget {
   @DocsEditable()
   void readAsDataUrl(Blob blob) => _blink.BlinkFileReader.$readAsDataURL_Callback(this, blob);
 
-  void readAsText(Blob blob, [String encoding]) => _blink.BlinkFileReader.$readAsText(this, blob, encoding);
+  void readAsText(Blob blob, [String encoding]) {
+    if (encoding != null) {
+      _blink.BlinkFileReader.$_readAsText_1_Callback(this, blob, encoding);
+      return;
+    }
+    _blink.BlinkFileReader.$_readAsText_2_Callback(this, blob);
+    return;
+  }
 
   /// Stream of `abort` events handled by this [FileReader].
   @DomName('FileReader.onabort')
@@ -13323,7 +13669,9 @@ class FontFace extends NativeFieldWrapperClass2 {
 
   @DomName('FontFace.FontFace')
   @DocsEditable()
-  factory FontFace(String family, String source, Map descriptors) => _blink.BlinkFontFace.$mkFontFace(family, source, descriptors);
+  factory FontFace(String family, String source, Map descriptors) {
+    return _blink.BlinkFontFace.$_create_1constructorCallback(family, source, descriptors);
+  }
 
   @DomName('FontFace.family')
   @DocsEditable()
@@ -13450,7 +13798,14 @@ class FontFaceSet extends EventTarget {
   @Experimental() // untriaged
   bool delete(FontFace fontFace) => _blink.BlinkFontFaceSet.$delete_Callback(this, fontFace);
 
-  void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) => _blink.BlinkFontFaceSet.$forEach(this, callback, thisArg);
+  void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) {
+    if (thisArg != null) {
+      _blink.BlinkFontFaceSet.$_forEach_1_Callback(this, callback, thisArg);
+      return;
+    }
+    _blink.BlinkFontFaceSet.$_forEach_2_Callback(this, callback);
+    return;
+  }
 
   @DomName('FontFaceSet.has')
   @DocsEditable()
@@ -16972,13 +17327,44 @@ class InputElement extends HtmlElement implements
   @DocsEditable()
   void setCustomValidity(String error) => _blink.BlinkHTMLInputElement.$setCustomValidity_Callback(this, error);
 
-  void setRangeText(String replacement, {int start, int end, String selectionMode}) => _blink.BlinkHTMLInputElement.$setRangeText(this, replacement, start, end, selectionMode);
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
+    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
+      _blink.BlinkHTMLInputElement.$_setRangeText_1_Callback(this, replacement);
+      return;
+    }
+    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
+      _blink.BlinkHTMLInputElement.$_setRangeText_2_Callback(this, replacement, start, end, selectionMode);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  void setSelectionRange(int start, int end, [String direction]) => _blink.BlinkHTMLInputElement.$setSelectionRange(this, start, end, direction);
+  void setSelectionRange(int start, int end, [String direction]) {
+    if (direction != null) {
+      _blink.BlinkHTMLInputElement.$_setSelectionRange_1_Callback(this, start, end, direction);
+      return;
+    }
+    _blink.BlinkHTMLInputElement.$_setSelectionRange_2_Callback(this, start, end);
+    return;
+  }
 
-  void stepDown([int n]) => _blink.BlinkHTMLInputElement.$stepDown(this, n);
+  void stepDown([int n]) {
+    if (n != null) {
+      _blink.BlinkHTMLInputElement.$_stepDown_1_Callback(this, n);
+      return;
+    }
+    _blink.BlinkHTMLInputElement.$_stepDown_2_Callback(this);
+    return;
+  }
 
-  void stepUp([int n]) => _blink.BlinkHTMLInputElement.$stepUp(this, n);
+  void stepUp([int n]) {
+    if (n != null) {
+      _blink.BlinkHTMLInputElement.$_stepUp_1_Callback(this, n);
+      return;
+    }
+    _blink.BlinkHTMLInputElement.$_stepUp_2_Callback(this);
+    return;
+  }
 
   /// Stream of `speechchange` events handled by this [InputElement].
   @DomName('HTMLInputElement.onwebkitSpeechChange')
@@ -18229,7 +18615,9 @@ class MediaController extends EventTarget {
 
   @DomName('MediaController.MediaController')
   @DocsEditable()
-  factory MediaController() => _blink.BlinkMediaController.$mkMediaController();
+  factory MediaController() {
+    return _blink.BlinkMediaController.$_create_1constructorCallback();
+  }
 
   @DomName('MediaController.buffered')
   @DocsEditable()
@@ -18818,7 +19206,15 @@ class MediaElement extends HtmlElement {
   @Experimental() // nonstandard
   int get videoDecodedByteCount => _blink.BlinkHTMLMediaElement.$webkitVideoDecodedByteCount_Getter(this);
 
-  TextTrack addTextTrack(String kind, [String label, String language]) => _blink.BlinkHTMLMediaElement.$addTextTrack(this, kind, label, language);
+  TextTrack addTextTrack(String kind, [String label, String language]) {
+    if (language != null) {
+      return _blink.BlinkHTMLMediaElement.$_addTextTrack_1_Callback(this, kind, label, language);
+    }
+    if (label != null) {
+      return _blink.BlinkHTMLMediaElement.$_addTextTrack_2_Callback(this, kind, label);
+    }
+    return _blink.BlinkHTMLMediaElement.$_addTextTrack_3_Callback(this, kind);
+  }
 
   @DomName('HTMLMediaElement.canPlayType')
   @DocsEditable()
@@ -18842,7 +19238,14 @@ class MediaElement extends HtmlElement {
   @Experimental() // untriaged
   void setMediaKeys(MediaKeys mediaKeys) => _blink.BlinkHTMLMediaElement.$setMediaKeys_Callback(this, mediaKeys);
 
-  void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) => _blink.BlinkHTMLMediaElement.$addKey(this, keySystem, key, initData, sessionId);
+  void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
+    if (initData != null) {
+      _blink.BlinkHTMLMediaElement.$_webkitAddKey_1_Callback(this, keySystem, key, initData, sessionId);
+      return;
+    }
+    _blink.BlinkHTMLMediaElement.$_webkitAddKey_2_Callback(this, keySystem, key);
+    return;
+  }
 
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   @DocsEditable()
@@ -18852,7 +19255,14 @@ class MediaElement extends HtmlElement {
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#extensions
   void cancelKeyRequest(String keySystem, String sessionId) => _blink.BlinkHTMLMediaElement.$webkitCancelKeyRequest_Callback(this, keySystem, sessionId);
 
-  void generateKeyRequest(String keySystem, [Uint8List initData]) => _blink.BlinkHTMLMediaElement.$generateKeyRequest(this, keySystem, initData);
+  void generateKeyRequest(String keySystem, [Uint8List initData]) {
+    if (initData != null) {
+      _blink.BlinkHTMLMediaElement.$_webkitGenerateKeyRequest_1_Callback(this, keySystem, initData);
+      return;
+    }
+    _blink.BlinkHTMLMediaElement.$_webkitGenerateKeyRequest_2_Callback(this, keySystem);
+    return;
+  }
 
   /// Stream of `canplay` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.oncanplay')
@@ -19227,7 +19637,9 @@ class MediaKeys extends NativeFieldWrapperClass2 {
 
   @DomName('MediaKeys.MediaKeys')
   @DocsEditable()
-  factory MediaKeys(String keySystem) => _blink.BlinkMediaKeys.$mkMediaKeys(keySystem);
+  factory MediaKeys(String keySystem) {
+    return _blink.BlinkMediaKeys.$_create_1constructorCallback(keySystem);
+  }
 
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
@@ -19317,7 +19729,9 @@ class MediaSource extends EventTarget {
 
   @DomName('MediaSource.MediaSource')
   @DocsEditable()
-  factory MediaSource() => _blink.BlinkMediaSource.$mkMediaSource();
+  factory MediaSource() {
+    return _blink.BlinkMediaSource.$_create_1constructorCallback();
+  }
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable()
@@ -19343,7 +19757,14 @@ class MediaSource extends EventTarget {
   @DocsEditable()
   SourceBuffer addSourceBuffer(String type) => _blink.BlinkMediaSource.$addSourceBuffer_Callback(this, type);
 
-  void endOfStream([String error]) => _blink.BlinkMediaSource.$endOfStream(this, error);
+  void endOfStream([String error]) {
+    if (error != null) {
+      _blink.BlinkMediaSource.$_endOfStream_1_Callback(this, error);
+      return;
+    }
+    _blink.BlinkMediaSource.$_endOfStream_2_Callback(this);
+    return;
+  }
 
   @DomName('MediaSource.isTypeSupported')
   @DocsEditable()
@@ -19399,7 +19820,18 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.MediaStream')
   @DocsEditable()
-  factory MediaStream([stream_OR_tracks]) => _blink.BlinkMediaStream.$mkMediaStream(stream_OR_tracks);
+  factory MediaStream([stream_OR_tracks]) {
+    if (stream_OR_tracks == null) {
+      return _blink.BlinkMediaStream.$_create_1constructorCallback();
+    }
+    if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
+      return _blink.BlinkMediaStream.$_create_2constructorCallback(stream_OR_tracks);
+    }
+    if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
+      return _blink.BlinkMediaStream.$_create_3constructorCallback(stream_OR_tracks);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('MediaStream.ended')
   @DocsEditable()
@@ -20127,7 +20559,14 @@ class MidiOutput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
 
-  void send(Uint8List data, [num timestamp]) => _blink.BlinkMIDIOutput.$send(this, data, timestamp);
+  void send(Uint8List data, [num timestamp]) {
+    if (timestamp != null) {
+      _blink.BlinkMIDIOutput.$_send_1_Callback(this, data, timestamp);
+      return;
+    }
+    _blink.BlinkMIDIOutput.$_send_2_Callback(this, data);
+    return;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21783,7 +22222,9 @@ class Notification extends EventTarget {
 
   @DomName('Notification.Notification')
   @DocsEditable()
-  static Notification _factoryNotification(String title, [Map options]) => _blink.BlinkNotification.$mkNotification(title, options);
+  static Notification _factoryNotification(String title, [Map options]) {
+    return _blink.BlinkNotification.$_create_1constructorCallback(title, options);
+  }
 
   @DomName('Notification.body')
   @DocsEditable()
@@ -22078,7 +22519,9 @@ class OptionElement extends HtmlElement {
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable()
-  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) => _blink.BlinkHTMLOptionElement.$mkOptionElement__(data, value, defaultSelected, selected);
+  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
+    return _blink.BlinkHTMLOptionElement.$_create_1constructorCallback(data, value, defaultSelected, selected);
+  }
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22402,7 +22845,18 @@ class Path extends NativeFieldWrapperClass2 {
 
   @DomName('Path.Path')
   @DocsEditable()
-  factory Path([path_OR_text]) => _blink.BlinkPath.$mkPath(path_OR_text);
+  factory Path([path_OR_text]) {
+    if (path_OR_text == null) {
+      return _blink.BlinkPath.$_create_1constructorCallback();
+    }
+    if ((path_OR_text is Path || path_OR_text == null)) {
+      return _blink.BlinkPath.$_create_2constructorCallback(path_OR_text);
+    }
+    if ((path_OR_text is String || path_OR_text == null)) {
+      return _blink.BlinkPath.$_create_3constructorCallback(path_OR_text);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('Path.arc')
   @DocsEditable()
@@ -23635,7 +24089,25 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable()
   void close() => _blink.BlinkRTCDataChannel.$close_Callback(this);
 
-  void send(data) => _blink.BlinkRTCDataChannel.$send(this, data);
+  void send(data) {
+    if ((data is TypedData || data == null)) {
+      _blink.BlinkRTCDataChannel.$_send_1_Callback(this, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null)) {
+      _blink.BlinkRTCDataChannel.$_send_2_Callback(this, data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      _blink.BlinkRTCDataChannel.$_send_3_Callback(this, data);
+      return;
+    }
+    if ((data is String || data == null)) {
+      _blink.BlinkRTCDataChannel.$_send_4_Callback(this, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('RTCDataChannel.sendBlob')
   @DocsEditable()
@@ -23739,7 +24211,18 @@ class RtcDtmfSender extends EventTarget {
   @DocsEditable()
   MediaStreamTrack get track => _blink.BlinkRTCDTMFSender.$track_Getter(this);
 
-  void insertDtmf(String tones, [int duration, int interToneGap]) => _blink.BlinkRTCDTMFSender.$insertDtmf(this, tones, duration, interToneGap);
+  void insertDtmf(String tones, [int duration, int interToneGap]) {
+    if (interToneGap != null) {
+      _blink.BlinkRTCDTMFSender.$_insertDTMF_1_Callback(this, tones, duration, interToneGap);
+      return;
+    }
+    if (duration != null) {
+      _blink.BlinkRTCDTMFSender.$_insertDTMF_2_Callback(this, tones, duration);
+      return;
+    }
+    _blink.BlinkRTCDTMFSender.$_insertDTMF_3_Callback(this, tones);
+    return;
+  }
 
   /// Stream of `tonechange` events handled by this [RtcDtmfSender].
   @DomName('RTCDTMFSender.ontonechange')
@@ -23785,7 +24268,9 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
 
   @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable()
-  factory RtcIceCandidate(Map dictionary) => _blink.BlinkRTCIceCandidate.$mkRtcIceCandidate(dictionary);
+  factory RtcIceCandidate(Map dictionary) {
+    return _blink.BlinkRTCIceCandidate.$_create_1constructorCallback(dictionary);
+  }
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
@@ -23933,7 +24418,9 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable()
-  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) => _blink.BlinkRTCPeerConnection.$mkRtcPeerConnection(rtcIceServers, mediaConstraints);
+  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+    return _blink.BlinkRTCPeerConnection.$_create_1constructorCallback(rtcIceServers, mediaConstraints);
+  }
 
   @DomName('RTCPeerConnection.iceConnectionState')
   @DocsEditable()
@@ -24085,7 +24572,9 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
 
   @DomName('RTCSessionDescription.RTCSessionDescription')
   @DocsEditable()
-  factory RtcSessionDescription([Map descriptionInitDict]) => _blink.BlinkRTCSessionDescription.$mkRtcSessionDescription(descriptionInitDict);
+  factory RtcSessionDescription([Map descriptionInitDict]) {
+    return _blink.BlinkRTCSessionDescription.$_create_1constructorCallback(descriptionInitDict);
+  }
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
@@ -24878,7 +25367,9 @@ class SharedWorker extends EventTarget implements AbstractWorker {
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable()
-  factory SharedWorker(String scriptURL, [String name]) => _blink.BlinkSharedWorker.$mkSharedWorker(scriptURL, name);
+  factory SharedWorker(String scriptURL, [String name]) {
+    return _blink.BlinkSharedWorker.$_create_1constructorCallback(scriptURL, name);
+  }
 
   @DomName('SharedWorker.port')
   @DocsEditable()
@@ -25003,7 +25494,14 @@ class SourceBuffer extends EventTarget {
   @Experimental() // untriaged
   void appendBuffer(ByteBuffer data) => _blink.BlinkSourceBuffer.$appendBuffer_Callback(this, data);
 
-  void appendStream(FileStream stream, [int maxSize]) => _blink.BlinkSourceBuffer.$appendStream(this, stream, maxSize);
+  void appendStream(FileStream stream, [int maxSize]) {
+    if (maxSize != null) {
+      _blink.BlinkSourceBuffer.$_appendStream_1_Callback(this, stream, maxSize);
+      return;
+    }
+    _blink.BlinkSourceBuffer.$_appendStream_2_Callback(this, stream);
+    return;
+  }
 
   @DomName('SourceBuffer.appendTypedData')
   @DocsEditable()
@@ -25210,7 +25708,9 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
 
   @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable()
-  factory SpeechGrammar() => _blink.BlinkSpeechGrammar.$mkSpeechGrammar();
+  factory SpeechGrammar() {
+    return _blink.BlinkSpeechGrammar.$_create_1constructorCallback();
+  }
 
   @DomName('SpeechGrammar.src')
   @DocsEditable()
@@ -25246,7 +25746,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable()
-  factory SpeechGrammarList() => _blink.BlinkSpeechGrammarList.$mkSpeechGrammarList();
+  factory SpeechGrammarList() {
+    return _blink.BlinkSpeechGrammarList.$_create_1constructorCallback();
+  }
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable()
@@ -25298,9 +25800,23 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(String string, [num weight]) => _blink.BlinkSpeechGrammarList.$addFromString(this, string, weight);
+  void addFromString(String string, [num weight]) {
+    if (weight != null) {
+      _blink.BlinkSpeechGrammarList.$_addFromString_1_Callback(this, string, weight);
+      return;
+    }
+    _blink.BlinkSpeechGrammarList.$_addFromString_2_Callback(this, string);
+    return;
+  }
 
-  void addFromUri(String src, [num weight]) => _blink.BlinkSpeechGrammarList.$addFromUri(this, src, weight);
+  void addFromUri(String src, [num weight]) {
+    if (weight != null) {
+      _blink.BlinkSpeechGrammarList.$_addFromUri_1_Callback(this, src, weight);
+      return;
+    }
+    _blink.BlinkSpeechGrammarList.$_addFromUri_2_Callback(this, src);
+    return;
+  }
 
   @DomName('SpeechGrammarList.item')
   @DocsEditable()
@@ -25467,7 +25983,9 @@ class SpeechRecognition extends EventTarget {
 
   @DomName('SpeechRecognition.SpeechRecognition')
   @DocsEditable()
-  factory SpeechRecognition() => _blink.BlinkSpeechRecognition.$mkSpeechRecognition();
+  factory SpeechRecognition() {
+    return _blink.BlinkSpeechRecognition.$_create_1constructorCallback();
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -25855,7 +26373,9 @@ class SpeechSynthesisUtterance extends EventTarget {
 
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
   @DocsEditable()
-  factory SpeechSynthesisUtterance([String text]) => _blink.BlinkSpeechSynthesisUtterance.$mkSpeechSynthesisUtterance(text);
+  factory SpeechSynthesisUtterance([String text]) {
+    return _blink.BlinkSpeechSynthesisUtterance.$_create_1constructorCallback(text);
+  }
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
@@ -26071,11 +26591,37 @@ class Storage extends NativeFieldWrapperClass2
   @DocsEditable()
   int get _length => _blink.BlinkStorage.$length_Getter(this);
 
-  bool __delete__(index_OR_name) => _blink.BlinkStorage.$__delete__(this, index_OR_name);
+  bool __delete__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkStorage.$___delete___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkStorage.$___delete___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  String __getter__(index_OR_name) => _blink.BlinkStorage.$__getter__(this, index_OR_name);
+  String __getter__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkStorage.$___getter___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkStorage.$___getter___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  void __setter__(index_OR_name, String value) => _blink.BlinkStorage.$__setter__(this, index_OR_name, value);
+  void __setter__(index_OR_name, String value) {
+    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
+      _blink.BlinkStorage.$___setter___1_Callback(this, index_OR_name, value);
+      return;
+    }
+    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
+      _blink.BlinkStorage.$___setter___2_Callback(this, index_OR_name, value);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('Storage.clear')
   @DocsEditable()
@@ -26960,9 +27506,26 @@ class TextAreaElement extends HtmlElement {
   @DocsEditable()
   void setCustomValidity(String error) => _blink.BlinkHTMLTextAreaElement.$setCustomValidity_Callback(this, error);
 
-  void setRangeText(String replacement, {int start, int end, String selectionMode}) => _blink.BlinkHTMLTextAreaElement.$setRangeText(this, replacement, start, end, selectionMode);
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
+    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
+      _blink.BlinkHTMLTextAreaElement.$_setRangeText_1_Callback(this, replacement);
+      return;
+    }
+    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
+      _blink.BlinkHTMLTextAreaElement.$_setRangeText_2_Callback(this, replacement, start, end, selectionMode);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  void setSelectionRange(int start, int end, [String direction]) => _blink.BlinkHTMLTextAreaElement.$setSelectionRange(this, start, end, direction);
+  void setSelectionRange(int start, int end, [String direction]) {
+    if (direction != null) {
+      _blink.BlinkHTMLTextAreaElement.$_setSelectionRange_1_Callback(this, start, end, direction);
+      return;
+    }
+    _blink.BlinkHTMLTextAreaElement.$_setSelectionRange_2_Callback(this, start, end);
+    return;
+  }
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -28167,7 +28730,18 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
-  static String createObjectUrl(blob_OR_source_OR_stream) => _blink.BlinkURL.$createObjectUrl(blob_OR_source_OR_stream);
+  static String createObjectUrl(blob_OR_source_OR_stream) {
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
+      return _blink.BlinkURL.$_createObjectURL_1_Callback(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+      return _blink.BlinkURL.$_createObjectURL_2_Callback(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+      return _blink.BlinkURL.$_createObjectURL_3_Callback(blob_OR_source_OR_stream);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('URL.createObjectUrlFromBlob')
   @DocsEditable()
@@ -28685,7 +29259,9 @@ class VttCue extends TextTrackCue {
 
   @DomName('VTTCue.VTTCue')
   @DocsEditable()
-  factory VttCue(num startTime, num endTime, String text) => _blink.BlinkVTTCue.$mkVttCue(startTime, endTime, text);
+  factory VttCue(num startTime, num endTime, String text) {
+    return _blink.BlinkVTTCue.$_create_1constructorCallback(startTime, endTime, text);
+  }
 
   @DomName('VTTCue.align')
   @DocsEditable()
@@ -28789,7 +29365,9 @@ class VttRegion extends NativeFieldWrapperClass2 {
 
   @DomName('VTTRegion.VTTRegion')
   @DocsEditable()
-  factory VttRegion() => _blink.BlinkVTTRegion.$mkVttRegion();
+  factory VttRegion() {
+    return _blink.BlinkVTTRegion.$_create_1constructorCallback();
+  }
 
   @DomName('VTTRegion.height')
   @DocsEditable()
@@ -29001,7 +29579,18 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.WebSocket')
   @DocsEditable()
-  factory WebSocket(String url, [protocol_OR_protocols]) => _blink.BlinkWebSocket.$mkWebSocket(url, protocol_OR_protocols);
+  factory WebSocket(String url, [protocol_OR_protocols]) {
+    if ((url is String || url == null) && protocol_OR_protocols == null) {
+      return _blink.BlinkWebSocket.$_create_1constructorCallback(url);
+    }
+    if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
+      return _blink.BlinkWebSocket.$_create_2constructorCallback(url, protocol_OR_protocols);
+    }
+    if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
+      return _blink.BlinkWebSocket.$_create_3constructorCallback(url, protocol_OR_protocols);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -29050,9 +29639,38 @@ class WebSocket extends EventTarget {
   @DocsEditable()
   String get url => _blink.BlinkWebSocket.$url_Getter(this);
 
-  void close([int code, String reason]) => _blink.BlinkWebSocket.$close(this, code, reason);
+  void close([int code, String reason]) {
+    if (reason != null) {
+      _blink.BlinkWebSocket.$_close_1_Callback(this, code, reason);
+      return;
+    }
+    if (code != null) {
+      _blink.BlinkWebSocket.$_close_2_Callback(this, code);
+      return;
+    }
+    _blink.BlinkWebSocket.$_close_3_Callback(this);
+    return;
+  }
 
-  void send(data) => _blink.BlinkWebSocket.$send(this, data);
+  void send(data) {
+    if ((data is TypedData || data == null)) {
+      _blink.BlinkWebSocket.$_send_1_Callback(this, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null)) {
+      _blink.BlinkWebSocket.$_send_2_Callback(this, data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      _blink.BlinkWebSocket.$_send_3_Callback(this, data);
+      return;
+    }
+    if ((data is String || data == null)) {
+      _blink.BlinkWebSocket.$_send_4_Callback(this, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('WebSocket.sendBlob')
   @DocsEditable()
@@ -30075,7 +30693,15 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   WindowBase get window => _blink.BlinkWindow.$window_Getter(this);
 
-  WindowBase __getter__(index_OR_name) => _blink.BlinkWindow.$__getter__(this, index_OR_name);
+  WindowBase __getter__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkWindow.$___getter___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkWindow.$___getter___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   /**
    * Displays a modal alert to the user.
@@ -30892,7 +31518,9 @@ class Worker extends EventTarget implements AbstractWorker {
 
   @DomName('Worker.Worker')
   @DocsEditable()
-  factory Worker(String scriptUrl) => _blink.BlinkWorker.$mkWorker(scriptUrl);
+  factory Worker(String scriptUrl) {
+    return _blink.BlinkWorker.$_create_1constructorCallback(scriptUrl);
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -31148,7 +31776,9 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
 
   @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable()
-  factory XPathEvaluator() => _blink.BlinkXPathEvaluator.$mkXPathEvaluator();
+  factory XPathEvaluator() {
+    return _blink.BlinkXPathEvaluator.$_create_1constructorCallback();
+  }
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable()
@@ -31327,7 +31957,9 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
 
   @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable()
-  factory XmlSerializer() => _blink.BlinkXMLSerializer.$mkXmlSerializer();
+  factory XmlSerializer() {
+    return _blink.BlinkXMLSerializer.$_create_1constructorCallback();
+  }
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable()
@@ -31353,7 +31985,9 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
 
   @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable()
-  factory XsltProcessor() => _blink.BlinkXSLTProcessor.$mkXsltProcessor();
+  factory XsltProcessor() {
+    return _blink.BlinkXSLTProcessor.$_create_1constructorCallback();
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -32037,7 +32671,9 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
 
   @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable()
-  factory _FileReaderSync() => _blink.BlinkFileReaderSync.$mk_FileReaderSync();
+  factory _FileReaderSync() {
+    return _blink.BlinkFileReaderSync.$_create_1constructorCallback();
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32772,7 +33408,9 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
 
   @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable()
-  factory _WebKitCSSMatrix([String cssValue]) => _blink.BlinkWebKitCSSMatrix.$mk_WebKitCSSMatrix(cssValue);
+  factory _WebKitCSSMatrix([String cssValue]) {
+    return _blink.BlinkWebKitCSSMatrix.$_create_1constructorCallback(cssValue);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32807,7 +33445,9 @@ abstract class _WebKitMediaSource extends EventTarget {
 
   @DomName('WebKitMediaSource.WebKitMediaSource')
   @DocsEditable()
-  factory _WebKitMediaSource() => _blink.BlinkWebKitMediaSource.$mk_WebKitMediaSource();
+  factory _WebKitMediaSource() {
+    return _blink.BlinkWebKitMediaSource.$_create_1constructorCallback();
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

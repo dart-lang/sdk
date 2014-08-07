@@ -4,26 +4,6 @@
  */
 library dart.dom._blink;
 
-import 'dart:async';
-import 'dart:collection';
-import 'dart:html';
-import 'dart:_internal' hide Symbol, deprecated;
-import 'dart:html_common';
-import 'dart:indexed_db';
-import 'dart:isolate';
-import "dart:convert";
-import 'dart:math';
-import 'dart:mirrors';
-import 'dart:nativewrappers';
-import 'dart:typed_data';
-import 'dart:web_gl' as gl;
-import 'dart:web_gl' show web_glBlinkMap;
-import 'dart:web_sql';
-import 'dart:svg' as svg;
-import 'dart:svg' show Matrix;
-import 'dart:svg' show SvgSvgElement;
-import 'dart:svg' show svgBlinkMap;
-import 'dart:web_audio' show AudioNode, AudioParam, web_audioBlinkMap;
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -31,12 +11,6 @@ import 'dart:web_audio' show AudioNode, AudioParam, web_audioBlinkMap;
 // DO NOT EDIT
 // Auto-generated dart:_blink library.
 
-// TODO(leafp) These are mostly copied over from dart:html.  When
-// we shift dart:blink generation over to dartium, this dependency 
-// should go away, or at least be reconsidered.
-// TODO(vsm): Remove this when we can do the proper checking in
-// native code for custom elements.
-// Not actually used, but imported since dart:html can generate these objects.
 
 
 
@@ -80,19 +54,6 @@ class BlinkAudioNode {
   static $numberOfInputs_Getter(mthis) native "AudioNode_numberOfInputs_Getter";
 
   static $numberOfOutputs_Getter(mthis) native "AudioNode_numberOfOutputs_Getter";
-
-  // Generated overload resolver
-  static $_connect(mthis, destination, output, input) {
-    if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
-      $_connect_1_Callback(mthis, destination, output, input);
-      return;
-    }
-    if ((output is int || output == null) && (destination is AudioParam || destination == null) && input == null) {
-      $_connect_2_Callback(mthis, destination, output);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $_connect_1_Callback(mthis, destination, output, input) native "AudioNode_connect_Callback_RESOLVER_STRING_3_AudioNode_unsigned long_unsigned long";
 
@@ -144,20 +105,6 @@ class BlinkTimedItem {
 }
 
 class BlinkAnimation {
-  // Generated overload resolver
-  static $mkAnimation(target, keyframes, timingInput) {
-    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return $_create_1constructorCallback(target, keyframes, timingInput);
-    }
-    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return $_create_2constructorCallback(target, keyframes, timingInput);
-    }
-    if ((keyframes is List<Map> || keyframes == null) && (target is Element || target == null) && timingInput == null) {
-      return $_create_3constructorCallback(target, keyframes);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_create_1constructorCallback(target, keyframes, timingInput) native "Animation_constructorCallback_RESOLVER_STRING_3_Element_sequence<Dictionary>_Dictionary";
 
   static $_create_2constructorCallback(target, keyframes, timingInput) native "Animation_constructorCallback_RESOLVER_STRING_3_Element_sequence<Dictionary>_double";
@@ -274,24 +221,6 @@ class BlinkAudioBufferSourceNode {
 
   static $noteOn_Callback(mthis, when) native "AudioBufferSourceNode_noteOn_Callback_RESOLVER_STRING_1_double";
 
-  // Generated overload resolver
-  static $start(mthis, when, grainOffset, grainDuration) {
-    if (grainDuration != null) {
-      $_start_1_Callback(mthis, when, grainOffset, grainDuration);
-      return;
-    }
-    if (grainOffset != null) {
-      $_start_2_Callback(mthis, when, grainOffset);
-      return;
-    }
-    if (when != null) {
-      $_start_3_Callback(mthis, when);
-      return;
-    }
-    $_start_4_Callback(mthis);
-    return;
-  }
-
   static $_start_1_Callback(mthis, when, grainOffset, grainDuration) native "AudioBufferSourceNode_start_Callback_RESOLVER_STRING_3_double_double_double";
 
   static $_start_2_Callback(mthis, when, grainOffset) native "AudioBufferSourceNode_start_Callback_RESOLVER_STRING_2_double_double";
@@ -300,27 +229,12 @@ class BlinkAudioBufferSourceNode {
 
   static $_start_4_Callback(mthis) native "AudioBufferSourceNode_start_Callback_RESOLVER_STRING_0_";
 
-  // Generated overload resolver
-  static $stop(mthis, when) {
-    if (when != null) {
-      $_stop_1_Callback(mthis, when);
-      return;
-    }
-    $_stop_2_Callback(mthis);
-    return;
-  }
-
   static $_stop_1_Callback(mthis, when) native "AudioBufferSourceNode_stop_Callback_RESOLVER_STRING_1_double";
 
   static $_stop_2_Callback(mthis) native "AudioBufferSourceNode_stop_Callback_RESOLVER_STRING_0_";
 }
 
 class BlinkAudioContext {
-  // Generated overload resolver
-  static $mkAudioContext() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "AudioContext_constructorCallback_RESOLVER_STRING_0_";
 
   static $currentTime_Getter(mthis) native "AudioContext_currentTime_Getter";
@@ -339,39 +253,15 @@ class BlinkAudioContext {
 
   static $createBufferSource_Callback(mthis) native "AudioContext_createBufferSource_Callback_RESOLVER_STRING_0_";
 
-  // Generated overload resolver
-  static $createChannelMerger(mthis, numberOfInputs) {
-    if (numberOfInputs != null) {
-      return $_createChannelMerger_1_Callback(mthis, numberOfInputs);
-    }
-    return $_createChannelMerger_2_Callback(mthis);
-  }
-
   static $_createChannelMerger_1_Callback(mthis, numberOfInputs) native "AudioContext_createChannelMerger_Callback_RESOLVER_STRING_1_unsigned long";
 
   static $_createChannelMerger_2_Callback(mthis) native "AudioContext_createChannelMerger_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $createChannelSplitter(mthis, numberOfOutputs) {
-    if (numberOfOutputs != null) {
-      return $_createChannelSplitter_1_Callback(mthis, numberOfOutputs);
-    }
-    return $_createChannelSplitter_2_Callback(mthis);
-  }
 
   static $_createChannelSplitter_1_Callback(mthis, numberOfOutputs) native "AudioContext_createChannelSplitter_Callback_RESOLVER_STRING_1_unsigned long";
 
   static $_createChannelSplitter_2_Callback(mthis) native "AudioContext_createChannelSplitter_Callback_RESOLVER_STRING_0_";
 
   static $createConvolver_Callback(mthis) native "AudioContext_createConvolver_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $createDelay(mthis, maxDelayTime) {
-    if (maxDelayTime != null) {
-      return $_createDelay_1_Callback(mthis, maxDelayTime);
-    }
-    return $_createDelay_2_Callback(mthis);
-  }
 
   static $_createDelay_1_Callback(mthis, maxDelayTime) native "AudioContext_createDelay_Callback_RESOLVER_STRING_1_double";
 
@@ -392,20 +282,6 @@ class BlinkAudioContext {
   static $createPanner_Callback(mthis) native "AudioContext_createPanner_Callback_RESOLVER_STRING_0_";
 
   static $createPeriodicWave_Callback(mthis, real, imag) native "AudioContext_createPeriodicWave_Callback_RESOLVER_STRING_2_Float32Array_Float32Array";
-
-  // Generated overload resolver
-  static $createScriptProcessor(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) {
-    if (numberOfOutputChannels != null) {
-      return $_createScriptProcessor_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels);
-    }
-    if (numberOfInputChannels != null) {
-      return $_createScriptProcessor_2_Callback(mthis, bufferSize, numberOfInputChannels);
-    }
-    if (bufferSize != null) {
-      return $_createScriptProcessor_3_Callback(mthis, bufferSize);
-    }
-    return $_createScriptProcessor_4_Callback(mthis);
-  }
 
   static $_createScriptProcessor_1_Callback(mthis, bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createScriptProcessor_Callback_RESOLVER_STRING_3_unsigned long_unsigned long_unsigned long";
 
@@ -544,20 +420,6 @@ class BlinkBlob {
   static $size_Getter(mthis) native "Blob_size_Getter";
 
   static $type_Getter(mthis) native "Blob_type_Getter";
-
-  // Generated overload resolver
-  static $slice(mthis, start, end, contentType) {
-    if (contentType != null) {
-      return $_slice_1_Callback(mthis, start, end, contentType);
-    }
-    if (end != null) {
-      return $_slice_2_Callback(mthis, start, end);
-    }
-    if (start != null) {
-      return $_slice_3_Callback(mthis, start);
-    }
-    return $_slice_4_Callback(mthis);
-  }
 
   static $_slice_1_Callback(mthis, start, end, contentType) native "Blob_slice_Callback_RESOLVER_STRING_3_long long_long long_DOMString";
 
@@ -757,27 +619,11 @@ class BlinkCSSStyleSheet {
 
   static $rules_Getter(mthis) native "CSSStyleSheet_rules_Getter";
 
-  // Generated overload resolver
-  static $addRule(mthis, selector, style, index) {
-    if (index != null) {
-      return $_addRule_1_Callback(mthis, selector, style, index);
-    }
-    return $_addRule_2_Callback(mthis, selector, style);
-  }
-
   static $_addRule_1_Callback(mthis, selector, style, index) native "CSSStyleSheet_addRule_Callback_RESOLVER_STRING_3_DOMString_DOMString_unsigned long";
 
   static $_addRule_2_Callback(mthis, selector, style) native "CSSStyleSheet_addRule_Callback_RESOLVER_STRING_2_DOMString_DOMString";
 
   static $deleteRule_Callback(mthis, index) native "CSSStyleSheet_deleteRule_Callback_RESOLVER_STRING_1_unsigned long";
-
-  // Generated overload resolver
-  static $insertRule(mthis, rule, index) {
-    if (index != null) {
-      return $_insertRule_1_Callback(mthis, rule, index);
-    }
-    return $_insertRule_2_Callback(mthis, rule);
-  }
 
   static $_insertRule_1_Callback(mthis, rule, index) native "CSSStyleSheet_insertRule_Callback_RESOLVER_STRING_2_DOMString_unsigned long";
 
@@ -909,16 +755,6 @@ class BlinkCanvasRenderingContext2D {
 
   static $clearRect_Callback(mthis, x, y, width, height) native "CanvasRenderingContext2D_clearRect_Callback_RESOLVER_STRING_4_float_float_float_float";
 
-  // Generated overload resolver
-  static $clip(mthis, winding) {
-    if (winding != null) {
-      $_clip_1_Callback(mthis, winding);
-      return;
-    }
-    $_clip_2_Callback(mthis);
-    return;
-  }
-
   static $_clip_1_Callback(mthis, winding) native "CanvasRenderingContext2D_clip_Callback_RESOLVER_STRING_1_DOMString";
 
   static $_clip_2_Callback(mthis) native "CanvasRenderingContext2D_clip_Callback_RESOLVER_STRING_0_";
@@ -938,59 +774,6 @@ class BlinkCanvasRenderingContext2D {
   static $createRadialGradient_Callback(mthis, x0, y0, r0, x1, y1, r1) native "CanvasRenderingContext2D_createRadialGradient_Callback_RESOLVER_STRING_6_float_float_float_float_float_float";
 
   static $drawCustomFocusRing_Callback(mthis, element) native "CanvasRenderingContext2D_drawCustomFocusRing_Callback_RESOLVER_STRING_1_Element";
-
-  // Generated overload resolver
-  static $_drawImage(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) {
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      $_drawImage_1_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      $_drawImage_2_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
-      $_drawImage_3_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      $_drawImage_4_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      $_drawImage_5_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
-      $_drawImage_6_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      $_drawImage_7_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      $_drawImage_8_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
-      $_drawImage_9_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
-      $_drawImage_10_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
-      return;
-    }
-    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
-      $_drawImage_11_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
-      return;
-    }
-    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
-      $_drawImage_12_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $_drawImage_1_Callback(mthis, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y) native "CanvasRenderingContext2D_drawImage_Callback_RESOLVER_STRING_3_HTMLImageElement_float_float";
 
@@ -1018,31 +801,11 @@ class BlinkCanvasRenderingContext2D {
 
   static $ellipse_Callback(mthis, x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise) native "CanvasRenderingContext2D_ellipse_Callback_RESOLVER_STRING_8_float_float_float_float_float_float_float_boolean";
 
-  // Generated overload resolver
-  static $fill(mthis, winding) {
-    if (winding != null) {
-      $_fill_1_Callback(mthis, winding);
-      return;
-    }
-    $_fill_2_Callback(mthis);
-    return;
-  }
-
   static $_fill_1_Callback(mthis, winding) native "CanvasRenderingContext2D_fill_Callback_RESOLVER_STRING_1_DOMString";
 
   static $_fill_2_Callback(mthis) native "CanvasRenderingContext2D_fill_Callback_RESOLVER_STRING_0_";
 
   static $fillRect_Callback(mthis, x, y, width, height) native "CanvasRenderingContext2D_fillRect_Callback_RESOLVER_STRING_4_float_float_float_float";
-
-  // Generated overload resolver
-  static $fillText(mthis, text, x, y, maxWidth) {
-    if (maxWidth != null) {
-      $_fillText_1_Callback(mthis, text, x, y, maxWidth);
-      return;
-    }
-    $_fillText_2_Callback(mthis, text, x, y);
-    return;
-  }
 
   static $_fillText_1_Callback(mthis, text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_Callback_RESOLVER_STRING_4_DOMString_float_float_float";
 
@@ -1053,14 +816,6 @@ class BlinkCanvasRenderingContext2D {
   static $getImageData_Callback(mthis, sx, sy, sw, sh) native "CanvasRenderingContext2D_getImageData_Callback_RESOLVER_STRING_4_float_float_float_float";
 
   static $getLineDash_Callback(mthis) native "CanvasRenderingContext2D_getLineDash_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $isPointInPath(mthis, x, y, winding) {
-    if (winding != null) {
-      return $_isPointInPath_1_Callback(mthis, x, y, winding);
-    }
-    return $_isPointInPath_2_Callback(mthis, x, y);
-  }
 
   static $_isPointInPath_1_Callback(mthis, x, y, winding) native "CanvasRenderingContext2D_isPointInPath_Callback_RESOLVER_STRING_3_float_float_DOMString";
 
@@ -1073,19 +828,6 @@ class BlinkCanvasRenderingContext2D {
   static $measureText_Callback(mthis, text) native "CanvasRenderingContext2D_measureText_Callback_RESOLVER_STRING_1_DOMString";
 
   static $moveTo_Callback(mthis, x, y) native "CanvasRenderingContext2D_moveTo_Callback_RESOLVER_STRING_2_float_float";
-
-  // Generated overload resolver
-  static $putImageData(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
-    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
-      $_putImageData_1_Callback(mthis, imagedata, dx, dy);
-      return;
-    }
-    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
-      $_putImageData_2_Callback(mthis, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $_putImageData_1_Callback(mthis, imagedata, dx, dy) native "CanvasRenderingContext2D_putImageData_Callback_RESOLVER_STRING_3_ImageData_float_float";
 
@@ -1112,16 +854,6 @@ class BlinkCanvasRenderingContext2D {
   static $stroke_Callback(mthis) native "CanvasRenderingContext2D_stroke_Callback_RESOLVER_STRING_0_";
 
   static $strokeRect_Callback(mthis, x, y, width, height) native "CanvasRenderingContext2D_strokeRect_Callback_RESOLVER_STRING_4_float_float_float_float";
-
-  // Generated overload resolver
-  static $strokeText(mthis, text, x, y, maxWidth) {
-    if (maxWidth != null) {
-      $_strokeText_1_Callback(mthis, text, x, y, maxWidth);
-      return;
-    }
-    $_strokeText_2_Callback(mthis, text, x, y);
-    return;
-  }
 
   static $_strokeText_1_Callback(mthis, text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_Callback_RESOLVER_STRING_4_DOMString_float_float_float";
 
@@ -1173,16 +905,6 @@ class BlinkClipboard {
 
   static $types_Getter(mthis) native "DataTransfer_types_Getter";
 
-  // Generated overload resolver
-  static $clearData(mthis, type) {
-    if (type != null) {
-      $_clearData_1_Callback(mthis, type);
-      return;
-    }
-    $_clearData_2_Callback(mthis);
-    return;
-  }
-
   static $_clearData_1_Callback(mthis, type) native "DataTransfer_clearData_Callback_RESOLVER_STRING_1_DOMString";
 
   static $_clearData_2_Callback(mthis) native "DataTransfer_clearData_Callback_RESOLVER_STRING_0_";
@@ -1203,11 +925,6 @@ class BlinkCloseEvent {
 }
 
 class BlinkComment {
-  // Generated overload resolver
-  static $mkComment(data) {
-    return $_create_1constructorCallback(data);
-  }
-
   static $_create_1constructorCallback(data) native "Comment_constructorCallback_RESOLVER_STRING_1_DOMString";
 }
 
@@ -1368,11 +1085,6 @@ class BlinkDOMImplementation {
 }
 
 class BlinkDOMParser {
-  // Generated overload resolver
-  static $mkDomParser() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "DOMParser_constructorCallback_RESOLVER_STRING_0_";
 
   static $parseFromString_Callback(mthis, str, contentType) native "DOMParser_parseFromString_Callback_RESOLVER_STRING_2_DOMString_DOMString";
@@ -1386,14 +1098,6 @@ class BlinkDOMTokenList {
   static $item_Callback(mthis, index) native "DOMTokenList_item_Callback_RESOLVER_STRING_1_unsigned long";
 
   static $toString_Callback(mthis) native "DOMTokenList_toString_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $toggle(mthis, token, force) {
-    if (force != null) {
-      return $_toggle_1_Callback(mthis, token, force);
-    }
-    return $_toggle_2_Callback(mthis, token);
-  }
 
   static $_toggle_1_Callback(mthis, token, force) native "DOMTokenList_toggle_Callback_RESOLVER_STRING_2_DOMString_boolean";
 
@@ -1419,48 +1123,13 @@ class BlinkDOMStringList {
 }
 
 class BlinkDOMStringMap {
-  // Generated overload resolver
-  static $__delete__(mthis, index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return $___delete___1_Callback(mthis, index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return $___delete___2_Callback(mthis, index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $___delete___1_Callback(mthis, index_OR_name) native "DOMStringMap___delete___Callback_RESOLVER_STRING_1_unsigned long";
 
   static $___delete___2_Callback(mthis, index_OR_name) native "DOMStringMap___delete___Callback_RESOLVER_STRING_1_DOMString";
 
-  // Generated overload resolver
-  static $__getter__(mthis, index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return $___getter___1_Callback(mthis, index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return $___getter___2_Callback(mthis, index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $___getter___1_Callback(mthis, index_OR_name) native "DOMStringMap___getter___Callback_RESOLVER_STRING_1_unsigned long";
 
   static $___getter___2_Callback(mthis, index_OR_name) native "DOMStringMap___getter___Callback_RESOLVER_STRING_1_DOMString";
-
-  // Generated overload resolver
-  static $__setter__(mthis, index_OR_name, value) {
-    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
-      $___setter___1_Callback(mthis, index_OR_name, value);
-      return;
-    }
-    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
-      $___setter___2_Callback(mthis, index_OR_name, value);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $___setter___1_Callback(mthis, index_OR_name, value) native "DOMStringMap___setter___Callback_RESOLVER_STRING_2_unsigned long_DOMString";
 
@@ -1483,17 +1152,6 @@ class BlinkDataTransferItemList {
   static $length_Getter(mthis) native "DataTransferItemList_length_Getter";
 
   static $__getter___Callback(mthis, index) native "DataTransferItemList___getter___Callback_RESOLVER_STRING_1_unsigned long";
-
-  // Generated overload resolver
-  static $add(mthis, data_OR_file, type) {
-    if ((data_OR_file is File || data_OR_file == null) && type == null) {
-      return $_add_1_Callback(mthis, data_OR_file);
-    }
-    if ((type is String || type == null) && (data_OR_file is String || data_OR_file == null)) {
-      return $_add_2_Callback(mthis, data_OR_file, type);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $_add_1_Callback(mthis, data_OR_file) native "DataTransferItemList_add_Callback_RESOLVER_STRING_1_File";
 
@@ -1649,16 +1307,6 @@ class BlinkEntry {
 
   static $name_Getter(mthis) native "Entry_name_Getter";
 
-  // Generated overload resolver
-  static $_copyTo(mthis, parent, name, successCallback, errorCallback) {
-    if (name != null) {
-      $_copyTo_1_Callback(mthis, parent, name, successCallback, errorCallback);
-      return;
-    }
-    $_copyTo_2_Callback(mthis, parent);
-    return;
-  }
-
   static $_copyTo_1_Callback(mthis, parent, name, successCallback, errorCallback) native "Entry_copyTo_Callback_RESOLVER_STRING_4_DirectoryEntry_DOMString_EntryCallback_ErrorCallback";
 
   static $_copyTo_2_Callback(mthis, parent) native "Entry_copyTo_Callback_RESOLVER_STRING_1_DirectoryEntry";
@@ -1666,16 +1314,6 @@ class BlinkEntry {
   static $getMetadata_Callback(mthis, successCallback, errorCallback) native "Entry_getMetadata_Callback_RESOLVER_STRING_2_MetadataCallback_ErrorCallback";
 
   static $getParent_Callback(mthis, successCallback, errorCallback) native "Entry_getParent_Callback_RESOLVER_STRING_2_EntryCallback_ErrorCallback";
-
-  // Generated overload resolver
-  static $_moveTo(mthis, parent, name, successCallback, errorCallback) {
-    if (name != null) {
-      $_moveTo_1_Callback(mthis, parent, name, successCallback, errorCallback);
-      return;
-    }
-    $_moveTo_2_Callback(mthis, parent);
-    return;
-  }
 
   static $_moveTo_1_Callback(mthis, parent, name, successCallback, errorCallback) native "Entry_moveTo_Callback_RESOLVER_STRING_4_DirectoryEntry_DOMString_EntryCallback_ErrorCallback";
 
@@ -1789,28 +1427,9 @@ class BlinkDocument {
 
   static $createElementNS_Callback(mthis, namespaceURI, qualifiedName, typeExtension) native "Document_createElementNS_Callback";
 
-  // Generated overload resolver
-  static $_createEvent(mthis, eventType) {
-    if (eventType != null) {
-      return $_createEvent_1_Callback(mthis, eventType);
-    }
-    return $_createEvent_2_Callback(mthis);
-  }
-
   static $_createEvent_1_Callback(mthis, eventType) native "Document_createEvent_Callback_RESOLVER_STRING_1_DOMString";
 
   static $_createEvent_2_Callback(mthis) native "Document_createEvent_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $_createNodeIterator(mthis, root, whatToShow, filter) {
-    if (filter != null) {
-      return $_createNodeIterator_1_Callback(mthis, root, whatToShow, filter);
-    }
-    if (whatToShow != null) {
-      return $_createNodeIterator_2_Callback(mthis, root, whatToShow);
-    }
-    return $_createNodeIterator_3_Callback(mthis, root);
-  }
 
   static $_createNodeIterator_1_Callback(mthis, root, whatToShow, filter) native "Document_createNodeIterator_Callback_RESOLVER_STRING_3_Node_unsigned long_NodeFilter";
 
@@ -1823,17 +1442,6 @@ class BlinkDocument {
   static $createTextNode_Callback(mthis, data) native "Document_createTextNode_Callback_RESOLVER_STRING_1_DOMString";
 
   static $createTouch_Callback(mthis, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native "Document_createTouch_Callback_RESOLVER_STRING_11_Window_EventTarget_long_long_long_long_long_long_long_float_float";
-
-  // Generated overload resolver
-  static $_createTreeWalker(mthis, root, whatToShow, filter) {
-    if (filter != null) {
-      return $_createTreeWalker_1_Callback(mthis, root, whatToShow, filter);
-    }
-    if (whatToShow != null) {
-      return $_createTreeWalker_2_Callback(mthis, root, whatToShow);
-    }
-    return $_createTreeWalker_3_Callback(mthis, root);
-  }
 
   static $_createTreeWalker_1_Callback(mthis, root, whatToShow, filter) native "Document_createTreeWalker_Callback_RESOLVER_STRING_3_Node_unsigned long_NodeFilter";
 
@@ -1854,14 +1462,6 @@ class BlinkDocument {
   static $getElementsByName_Callback(mthis, elementName) native "Document_getElementsByName_Callback_RESOLVER_STRING_1_DOMString";
 
   static $getElementsByTagName_Callback(mthis, localName) native "Document_getElementsByTagName_Callback_RESOLVER_STRING_1_DOMString";
-
-  // Generated overload resolver
-  static $importNode(mthis, node, deep) {
-    if (deep != null) {
-      return $_importNode_1_Callback(mthis, node, deep);
-    }
-    return $_importNode_2_Callback(mthis, node);
-  }
 
   static $_importNode_1_Callback(mthis, node, deep) native "Document_importNode_Callback_RESOLVER_STRING_2_Node_boolean";
 
@@ -1983,20 +1583,6 @@ class BlinkElement {
 
   static $tagName_Getter(mthis) native "Element_tagName_Getter";
 
-  // Generated overload resolver
-  static $animate(mthis, keyframes, timingInput) {
-    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
-      return $_animate_1_Callback(mthis, keyframes, timingInput);
-    }
-    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
-      return $_animate_2_Callback(mthis, keyframes, timingInput);
-    }
-    if ((keyframes is List<Map> || keyframes == null) && timingInput == null) {
-      return $_animate_3_Callback(mthis, keyframes);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_animate_1_Callback(mthis, keyframes, timingInput) native "Element_animate_Callback_RESOLVER_STRING_2_sequence<Dictionary>_Dictionary";
 
   static $_animate_2_Callback(mthis, keyframes, timingInput) native "Element_animate_Callback_RESOLVER_STRING_2_sequence<Dictionary>_double";
@@ -2047,29 +1633,9 @@ class BlinkElement {
 
   static $scrollByPages_Callback(mthis, pages) native "Element_scrollByPages_Callback_RESOLVER_STRING_1_long";
 
-  // Generated overload resolver
-  static $_scrollIntoView(mthis, alignWithTop) {
-    if (alignWithTop != null) {
-      $_scrollIntoView_1_Callback(mthis, alignWithTop);
-      return;
-    }
-    $_scrollIntoView_2_Callback(mthis);
-    return;
-  }
-
   static $_scrollIntoView_1_Callback(mthis, alignWithTop) native "Element_scrollIntoView_Callback_RESOLVER_STRING_1_boolean";
 
   static $_scrollIntoView_2_Callback(mthis) native "Element_scrollIntoView_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $_scrollIntoViewIfNeeded(mthis, centerIfNeeded) {
-    if (centerIfNeeded != null) {
-      $_scrollIntoViewIfNeeded_1_Callback(mthis, centerIfNeeded);
-      return;
-    }
-    $_scrollIntoViewIfNeeded_2_Callback(mthis);
-    return;
-  }
 
   static $_scrollIntoViewIfNeeded_1_Callback(mthis, centerIfNeeded) native "Element_scrollIntoViewIfNeeded_Callback_RESOLVER_STRING_1_boolean";
 
@@ -2111,11 +1677,6 @@ class BlinkErrorEvent {
 }
 
 class BlinkEventSource {
-  // Generated overload resolver
-  static $mkEventSource(url, eventSourceInit) {
-    return $_create_1constructorCallback(url, eventSourceInit);
-  }
-
   static $_create_1constructorCallback(url, eventSourceInit) native "EventSource_constructorCallback_RESOLVER_STRING_2_DOMString_Dictionary";
 
   static $readyState_Getter(mthis) native "EventSource_readyState_Getter";
@@ -2158,11 +1719,6 @@ class BlinkFileList {
 }
 
 class BlinkFileReader {
-  // Generated overload resolver
-  static $mkFileReader() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "FileReader_constructorCallback_RESOLVER_STRING_0_";
 
   static $error_Getter(mthis) native "FileReader_error_Getter";
@@ -2177,27 +1733,12 @@ class BlinkFileReader {
 
   static $readAsDataURL_Callback(mthis, blob) native "FileReader_readAsDataURL_Callback_RESOLVER_STRING_1_Blob";
 
-  // Generated overload resolver
-  static $readAsText(mthis, blob, encoding) {
-    if (encoding != null) {
-      $_readAsText_1_Callback(mthis, blob, encoding);
-      return;
-    }
-    $_readAsText_2_Callback(mthis, blob);
-    return;
-  }
-
   static $_readAsText_1_Callback(mthis, blob, encoding) native "FileReader_readAsText_Callback_RESOLVER_STRING_2_Blob_DOMString";
 
   static $_readAsText_2_Callback(mthis, blob) native "FileReader_readAsText_Callback_RESOLVER_STRING_1_Blob";
 }
 
 class BlinkFileReaderSync {
-  // Generated overload resolver
-  static $mk_FileReaderSync() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "FileReaderSync_constructorCallback_RESOLVER_STRING_0_";
 }
 
@@ -2226,11 +1767,6 @@ class BlinkFocusEvent {
 }
 
 class BlinkFontFace {
-  // Generated overload resolver
-  static $mkFontFace(family, source, descriptors) {
-    return $_create_1constructorCallback(family, source, descriptors);
-  }
-
   static $_create_1constructorCallback(family, source, descriptors) native "FontFace_constructorCallback_RESOLVER_STRING_3_DOMString_DOMString_Dictionary";
 
   static $family_Getter(mthis) native "FontFace_family_Getter";
@@ -2278,16 +1814,6 @@ class BlinkFontFaceSet {
   static $clear_Callback(mthis) native "FontFaceSet_clear_Callback_RESOLVER_STRING_0_";
 
   static $delete_Callback(mthis, fontFace) native "FontFaceSet_delete_Callback_RESOLVER_STRING_1_FontFace";
-
-  // Generated overload resolver
-  static $forEach(mthis, callback, thisArg) {
-    if (thisArg != null) {
-      $_forEach_1_Callback(mthis, callback, thisArg);
-      return;
-    }
-    $_forEach_2_Callback(mthis, callback);
-    return;
-  }
 
   static $_forEach_1_Callback(mthis, callback, thisArg) native "FontFaceSet_forEach_Callback_RESOLVER_STRING_2_FontFaceSetForEachCallback_ScriptValue";
 
@@ -2657,17 +2183,6 @@ class BlinkHTMLMediaElement {
 
   static $webkitVideoDecodedByteCount_Getter(mthis) native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
-  // Generated overload resolver
-  static $addTextTrack(mthis, kind, label, language) {
-    if (language != null) {
-      return $_addTextTrack_1_Callback(mthis, kind, label, language);
-    }
-    if (label != null) {
-      return $_addTextTrack_2_Callback(mthis, kind, label);
-    }
-    return $_addTextTrack_3_Callback(mthis, kind);
-  }
-
   static $_addTextTrack_1_Callback(mthis, kind, label, language) native "HTMLMediaElement_addTextTrack_Callback_RESOLVER_STRING_3_DOMString_DOMString_DOMString";
 
   static $_addTextTrack_2_Callback(mthis, kind, label) native "HTMLMediaElement_addTextTrack_Callback_RESOLVER_STRING_2_DOMString_DOMString";
@@ -2684,31 +2199,11 @@ class BlinkHTMLMediaElement {
 
   static $setMediaKeys_Callback(mthis, mediaKeys) native "HTMLMediaElement_setMediaKeys_Callback_RESOLVER_STRING_1_MediaKeys";
 
-  // Generated overload resolver
-  static $addKey(mthis, keySystem, key, initData, sessionId) {
-    if (initData != null) {
-      $_webkitAddKey_1_Callback(mthis, keySystem, key, initData, sessionId);
-      return;
-    }
-    $_webkitAddKey_2_Callback(mthis, keySystem, key);
-    return;
-  }
-
   static $_webkitAddKey_1_Callback(mthis, keySystem, key, initData, sessionId) native "HTMLMediaElement_webkitAddKey_Callback_RESOLVER_STRING_4_DOMString_Uint8Array_Uint8Array_DOMString";
 
   static $_webkitAddKey_2_Callback(mthis, keySystem, key) native "HTMLMediaElement_webkitAddKey_Callback_RESOLVER_STRING_2_DOMString_Uint8Array";
 
   static $webkitCancelKeyRequest_Callback(mthis, keySystem, sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback_RESOLVER_STRING_2_DOMString_DOMString";
-
-  // Generated overload resolver
-  static $generateKeyRequest(mthis, keySystem, initData) {
-    if (initData != null) {
-      $_webkitGenerateKeyRequest_1_Callback(mthis, keySystem, initData);
-      return;
-    }
-    $_webkitGenerateKeyRequest_2_Callback(mthis, keySystem);
-    return;
-  }
 
   static $_webkitGenerateKeyRequest_1_Callback(mthis, keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_Callback_RESOLVER_STRING_2_DOMString_Uint8Array";
 
@@ -2716,11 +2211,6 @@ class BlinkHTMLMediaElement {
 }
 
 class BlinkHTMLAudioElement {
-  // Generated overload resolver
-  static $mkAudioElement(src) {
-    return $_create_1constructorCallback(src);
-  }
-
   static $_create_1constructorCallback(src) native "HTMLAudioElement_constructorCallback_RESOLVER_STRING_1_DOMString";
 }
 
@@ -3237,60 +2727,17 @@ class BlinkHTMLInputElement {
 
   static $setCustomValidity_Callback(mthis, error) native "HTMLInputElement_setCustomValidity_Callback_RESOLVER_STRING_1_DOMString";
 
-  // Generated overload resolver
-  static $setRangeText(mthis, replacement, start, end, selectionMode) {
-    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
-      $_setRangeText_1_Callback(mthis, replacement);
-      return;
-    }
-    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
-      $_setRangeText_2_Callback(mthis, replacement, start, end, selectionMode);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_setRangeText_1_Callback(mthis, replacement) native "HTMLInputElement_setRangeText_Callback_RESOLVER_STRING_1_DOMString";
 
   static $_setRangeText_2_Callback(mthis, replacement, start, end, selectionMode) native "HTMLInputElement_setRangeText_Callback_RESOLVER_STRING_4_DOMString_unsigned long_unsigned long_DOMString";
-
-  // Generated overload resolver
-  static $setSelectionRange(mthis, start, end, direction) {
-    if (direction != null) {
-      $_setSelectionRange_1_Callback(mthis, start, end, direction);
-      return;
-    }
-    $_setSelectionRange_2_Callback(mthis, start, end);
-    return;
-  }
 
   static $_setSelectionRange_1_Callback(mthis, start, end, direction) native "HTMLInputElement_setSelectionRange_Callback_RESOLVER_STRING_3_long_long_DOMString";
 
   static $_setSelectionRange_2_Callback(mthis, start, end) native "HTMLInputElement_setSelectionRange_Callback_RESOLVER_STRING_2_long_long";
 
-  // Generated overload resolver
-  static $stepDown(mthis, n) {
-    if (n != null) {
-      $_stepDown_1_Callback(mthis, n);
-      return;
-    }
-    $_stepDown_2_Callback(mthis);
-    return;
-  }
-
   static $_stepDown_1_Callback(mthis, n) native "HTMLInputElement_stepDown_Callback_RESOLVER_STRING_1_long";
 
   static $_stepDown_2_Callback(mthis) native "HTMLInputElement_stepDown_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $stepUp(mthis, n) {
-    if (n != null) {
-      $_stepUp_1_Callback(mthis, n);
-      return;
-    }
-    $_stepUp_2_Callback(mthis);
-    return;
-  }
 
   static $_stepUp_1_Callback(mthis, n) native "HTMLInputElement_stepUp_Callback_RESOLVER_STRING_1_long";
 
@@ -3522,11 +2969,6 @@ class BlinkHTMLOptGroupElement {
 }
 
 class BlinkHTMLOptionElement {
-  // Generated overload resolver
-  static $mkOptionElement__(data, value, defaultSelected, selected) {
-    return $_create_1constructorCallback(data, value, defaultSelected, selected);
-  }
-
   static $_create_1constructorCallback(data, value, defaultSelected, selected) native "HTMLOptionElement_constructorCallback_RESOLVER_STRING_4_DOMString_DOMString_boolean_boolean";
 
   static $defaultSelected_Getter(mthis) native "HTMLOptionElement_defaultSelected_Getter";
@@ -3929,32 +3371,9 @@ class BlinkHTMLTextAreaElement {
 
   static $setCustomValidity_Callback(mthis, error) native "HTMLTextAreaElement_setCustomValidity_Callback_RESOLVER_STRING_1_DOMString";
 
-  // Generated overload resolver
-  static $setRangeText(mthis, replacement, start, end, selectionMode) {
-    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
-      $_setRangeText_1_Callback(mthis, replacement);
-      return;
-    }
-    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
-      $_setRangeText_2_Callback(mthis, replacement, start, end, selectionMode);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_setRangeText_1_Callback(mthis, replacement) native "HTMLTextAreaElement_setRangeText_Callback_RESOLVER_STRING_1_DOMString";
 
   static $_setRangeText_2_Callback(mthis, replacement, start, end, selectionMode) native "HTMLTextAreaElement_setRangeText_Callback_RESOLVER_STRING_4_DOMString_unsigned long_unsigned long_DOMString";
-
-  // Generated overload resolver
-  static $setSelectionRange(mthis, start, end, direction) {
-    if (direction != null) {
-      $_setSelectionRange_1_Callback(mthis, start, end, direction);
-      return;
-    }
-    $_setSelectionRange_2_Callback(mthis, start, end);
-    return;
-  }
 
   static $_setSelectionRange_1_Callback(mthis, start, end, direction) native "HTMLTextAreaElement_setSelectionRange_Callback_RESOLVER_STRING_3_long_long_DOMString";
 
@@ -4082,20 +3501,6 @@ class BlinkIDBDatabase {
 
   static $deleteObjectStore_Callback(mthis, name) native "IDBDatabase_deleteObjectStore_Callback_RESOLVER_STRING_1_DOMString";
 
-  // Generated overload resolver
-  static $transaction(mthis, storeName_OR_storeNames, mode) {
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
-      return $_transaction_1_Callback(mthis, storeName_OR_storeNames, mode);
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
-      return $_transaction_2_Callback(mthis, storeName_OR_storeNames, mode);
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
-      return $_transaction_3_Callback(mthis, storeName_OR_storeNames, mode);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_transaction_1_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback_RESOLVER_STRING_2_DOMStringList_DOMString";
 
   static $_transaction_2_Callback(mthis, storeName_OR_storeNames, mode) native "IDBDatabase_transaction_Callback_RESOLVER_STRING_2_sequence<DOMString>_DOMString";
@@ -4113,14 +3518,6 @@ class BlinkIDBFactory {
   static $cmp_Callback(mthis, first, second) native "IDBFactory_cmp_Callback_RESOLVER_STRING_2_ScriptValue_ScriptValue";
 
   static $deleteDatabase_Callback(mthis, name) native "IDBFactory_deleteDatabase_Callback_RESOLVER_STRING_1_DOMString";
-
-  // Generated overload resolver
-  static $_open(mthis, name, version) {
-    if (version != null) {
-      return $_open_1_Callback(mthis, name, version);
-    }
-    return $_open_2_Callback(mthis, name);
-  }
 
   static $_open_1_Callback(mthis, name, version) native "IDBFactory_open_Callback_RESOLVER_STRING_2_DOMString_unsigned long long";
 
@@ -4185,17 +3582,6 @@ class BlinkIDBObjectStore {
   static $clear_Callback(mthis) native "IDBObjectStore_clear_Callback_RESOLVER_STRING_0_";
 
   static $count_Callback(mthis, key) native "IDBObjectStore_count_Callback_RESOLVER_STRING_1_ScriptValue";
-
-  // Generated overload resolver
-  static $_createIndex(mthis, name, keyPath, options) {
-    if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return $_createIndex_1_Callback(mthis, name, keyPath, options);
-    }
-    if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return $_createIndex_2_Callback(mthis, name, keyPath, options);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $_createIndex_1_Callback(mthis, name, keyPath, options) native "IDBObjectStore_createIndex_Callback_RESOLVER_STRING_3_DOMString_sequence<DOMString>_Dictionary";
 
@@ -4411,27 +3797,12 @@ class BlinkMIDIMessageEvent {
 }
 
 class BlinkMIDIOutput {
-  // Generated overload resolver
-  static $send(mthis, data, timestamp) {
-    if (timestamp != null) {
-      $_send_1_Callback(mthis, data, timestamp);
-      return;
-    }
-    $_send_2_Callback(mthis, data);
-    return;
-  }
-
   static $_send_1_Callback(mthis, data, timestamp) native "MIDIOutput_send_Callback_RESOLVER_STRING_2_Uint8Array_double";
 
   static $_send_2_Callback(mthis, data) native "MIDIOutput_send_Callback_RESOLVER_STRING_1_Uint8Array";
 }
 
 class BlinkMediaController {
-  // Generated overload resolver
-  static $mkMediaController() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "MediaController_constructorCallback_RESOLVER_STRING_0_";
 
   static $buffered_Getter(mthis) native "MediaController_buffered_Getter";
@@ -4528,11 +3899,6 @@ class BlinkMediaKeySession {
 }
 
 class BlinkMediaKeys {
-  // Generated overload resolver
-  static $mkMediaKeys(keySystem) {
-    return $_create_1constructorCallback(keySystem);
-  }
-
   static $_create_1constructorCallback(keySystem) native "MediaKeys_constructorCallback_RESOLVER_STRING_1_DOMString";
 
   static $keySystem_Getter(mthis) native "MediaKeys_keySystem_Getter";
@@ -4561,11 +3927,6 @@ class BlinkMediaQueryList {
 }
 
 class BlinkMediaSource {
-  // Generated overload resolver
-  static $mkMediaSource() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "MediaSource_constructorCallback_RESOLVER_STRING_0_";
 
   static $activeSourceBuffers_Getter(mthis) native "MediaSource_activeSourceBuffers_Getter";
@@ -4580,16 +3941,6 @@ class BlinkMediaSource {
 
   static $addSourceBuffer_Callback(mthis, type) native "MediaSource_addSourceBuffer_Callback_RESOLVER_STRING_1_DOMString";
 
-  // Generated overload resolver
-  static $endOfStream(mthis, error) {
-    if (error != null) {
-      $_endOfStream_1_Callback(mthis, error);
-      return;
-    }
-    $_endOfStream_2_Callback(mthis);
-    return;
-  }
-
   static $_endOfStream_1_Callback(mthis, error) native "MediaSource_endOfStream_Callback_RESOLVER_STRING_1_DOMString";
 
   static $_endOfStream_2_Callback(mthis) native "MediaSource_endOfStream_Callback_RESOLVER_STRING_0_";
@@ -4600,20 +3951,6 @@ class BlinkMediaSource {
 }
 
 class BlinkMediaStream {
-  // Generated overload resolver
-  static $mkMediaStream(stream_OR_tracks) {
-    if (stream_OR_tracks == null) {
-      return $_create_1constructorCallback();
-    }
-    if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
-      return $_create_2constructorCallback(stream_OR_tracks);
-    }
-    if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
-      return $_create_3constructorCallback(stream_OR_tracks);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_create_1constructorCallback() native "MediaStream_constructorCallback_RESOLVER_STRING_0_";
 
   static $_create_2constructorCallback(stream_OR_tracks) native "MediaStream_constructorCallback_RESOLVER_STRING_1_MediaStream";
@@ -4938,11 +4275,6 @@ class BlinkNodeList {
 class BlinkNotation {}
 
 class BlinkNotification {
-  // Generated overload resolver
-  static $mkNotification(title, options) {
-    return $_create_1constructorCallback(title, options);
-  }
-
   static $_create_1constructorCallback(title, options) native "Notification_constructorCallback_RESOLVER_STRING_2_DOMString_Dictionary";
 
   static $body_Getter(mthis) native "Notification_body_Getter";
@@ -4993,11 +4325,6 @@ class BlinkOfflineAudioCompletionEvent {
 }
 
 class BlinkOfflineAudioContext {
-  // Generated overload resolver
-  static $mkOfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate) {
-    return $_create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate);
-  }
-
   static $_create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate) native "OfflineAudioContext_constructorCallback_RESOLVER_STRING_3_unsigned long_unsigned long_float";
 }
 
@@ -5016,29 +4343,9 @@ class BlinkOscillatorNode {
 
   static $setPeriodicWave_Callback(mthis, periodicWave) native "OscillatorNode_setPeriodicWave_Callback_RESOLVER_STRING_1_PeriodicWave";
 
-  // Generated overload resolver
-  static $start(mthis, when) {
-    if (when != null) {
-      $_start_1_Callback(mthis, when);
-      return;
-    }
-    $_start_2_Callback(mthis);
-    return;
-  }
-
   static $_start_1_Callback(mthis, when) native "OscillatorNode_start_Callback_RESOLVER_STRING_1_double";
 
   static $_start_2_Callback(mthis) native "OscillatorNode_start_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $stop(mthis, when) {
-    if (when != null) {
-      $_stop_1_Callback(mthis, when);
-      return;
-    }
-    $_stop_2_Callback(mthis);
-    return;
-  }
 
   static $_stop_1_Callback(mthis, when) native "OscillatorNode_stop_Callback_RESOLVER_STRING_1_double";
 
@@ -5100,20 +4407,6 @@ class BlinkPannerNode {
 }
 
 class BlinkPath {
-  // Generated overload resolver
-  static $mkPath(path_OR_text) {
-    if (path_OR_text == null) {
-      return $_create_1constructorCallback();
-    }
-    if ((path_OR_text is Path || path_OR_text == null)) {
-      return $_create_2constructorCallback(path_OR_text);
-    }
-    if ((path_OR_text is String || path_OR_text == null)) {
-      return $_create_3constructorCallback(path_OR_text);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_create_1constructorCallback() native "Path2D_constructorCallback_RESOLVER_STRING_0_";
 
   static $_create_2constructorCallback(path_OR_text) native "Path2D_constructorCallback_RESOLVER_STRING_1_Path2D";
@@ -5358,20 +4651,6 @@ class BlinkRTCDTMFSender {
 
   static $track_Getter(mthis) native "RTCDTMFSender_track_Getter";
 
-  // Generated overload resolver
-  static $insertDtmf(mthis, tones, duration, interToneGap) {
-    if (interToneGap != null) {
-      $_insertDTMF_1_Callback(mthis, tones, duration, interToneGap);
-      return;
-    }
-    if (duration != null) {
-      $_insertDTMF_2_Callback(mthis, tones, duration);
-      return;
-    }
-    $_insertDTMF_3_Callback(mthis, tones);
-    return;
-  }
-
   static $_insertDTMF_1_Callback(mthis, tones, duration, interToneGap) native "RTCDTMFSender_insertDTMF_Callback_RESOLVER_STRING_3_DOMString_long_long";
 
   static $_insertDTMF_2_Callback(mthis, tones, duration) native "RTCDTMFSender_insertDTMF_Callback_RESOLVER_STRING_2_DOMString_long";
@@ -5410,27 +4689,6 @@ class BlinkRTCDataChannel {
 
   static $close_Callback(mthis) native "RTCDataChannel_close_Callback_RESOLVER_STRING_0_";
 
-  // Generated overload resolver
-  static $send(mthis, data) {
-    if ((data is TypedData || data == null)) {
-      $_send_1_Callback(mthis, data);
-      return;
-    }
-    if ((data is ByteBuffer || data == null)) {
-      $_send_2_Callback(mthis, data);
-      return;
-    }
-    if ((data is Blob || data == null)) {
-      $_send_3_Callback(mthis, data);
-      return;
-    }
-    if ((data is String || data == null)) {
-      $_send_4_Callback(mthis, data);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_send_1_Callback(mthis, data) native "RTCDataChannel_send_Callback_RESOLVER_STRING_1_ArrayBufferView";
 
   static $_send_2_Callback(mthis, data) native "RTCDataChannel_send_Callback_RESOLVER_STRING_1_ArrayBuffer";
@@ -5453,11 +4711,6 @@ class BlinkRTCDataChannelEvent {
 }
 
 class BlinkRTCIceCandidate {
-  // Generated overload resolver
-  static $mkRtcIceCandidate(dictionary) {
-    return $_create_1constructorCallback(dictionary);
-  }
-
   static $_create_1constructorCallback(dictionary) native "RTCIceCandidate_constructorCallback_RESOLVER_STRING_1_Dictionary";
 
   static $candidate_Getter(mthis) native "RTCIceCandidate_candidate_Getter";
@@ -5472,11 +4725,6 @@ class BlinkRTCIceCandidateEvent {
 }
 
 class BlinkRTCPeerConnection {
-  // Generated overload resolver
-  static $mkRtcPeerConnection(rtcIceServers, mediaConstraints) {
-    return $_create_1constructorCallback(rtcIceServers, mediaConstraints);
-  }
-
   static $_create_1constructorCallback(rtcIceServers, mediaConstraints) native "RTCPeerConnection_constructorCallback_RESOLVER_STRING_2_Dictionary_Dictionary";
 
   static $iceConnectionState_Getter(mthis) native "RTCPeerConnection_iceConnectionState_Getter";
@@ -5521,11 +4769,6 @@ class BlinkRTCPeerConnection {
 }
 
 class BlinkRTCSessionDescription {
-  // Generated overload resolver
-  static $mkRtcSessionDescription(descriptionInitDict) {
-    return $_create_1constructorCallback(descriptionInitDict);
-  }
-
   static $_create_1constructorCallback(descriptionInitDict) native "RTCSessionDescription_constructorCallback_RESOLVER_STRING_1_Dictionary";
 
   static $sdp_Getter(mthis) native "RTCSessionDescription_sdp_Getter";
@@ -7510,11 +6753,6 @@ class BlinkShadowRoot {
 }
 
 class BlinkSharedWorker {
-  // Generated overload resolver
-  static $mkSharedWorker(scriptURL, name) {
-    return $_create_1constructorCallback(scriptURL, name);
-  }
-
   static $_create_1constructorCallback(scriptURL, name) native "SharedWorker_constructorCallback_RESOLVER_STRING_2_DOMString_DOMString";
 
   static $port_Getter(mthis) native "SharedWorker_port_Getter";
@@ -7551,16 +6789,6 @@ class BlinkSourceBuffer {
 
   static $appendBuffer_Callback(mthis, data) native "SourceBuffer_appendBuffer_Callback_RESOLVER_STRING_1_ArrayBuffer";
 
-  // Generated overload resolver
-  static $appendStream(mthis, stream, maxSize) {
-    if (maxSize != null) {
-      $_appendStream_1_Callback(mthis, stream, maxSize);
-      return;
-    }
-    $_appendStream_2_Callback(mthis, stream);
-    return;
-  }
-
   static $_appendStream_1_Callback(mthis, stream, maxSize) native "SourceBuffer_appendStream_Callback_RESOLVER_STRING_2_Stream_unsigned long long";
 
   static $_appendStream_2_Callback(mthis, stream) native "SourceBuffer_appendStream_Callback_RESOLVER_STRING_1_Stream";
@@ -7589,11 +6817,6 @@ class BlinkSourceInfo {
 }
 
 class BlinkSpeechGrammar {
-  // Generated overload resolver
-  static $mkSpeechGrammar() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "SpeechGrammar_constructorCallback_RESOLVER_STRING_0_";
 
   static $src_Getter(mthis) native "SpeechGrammar_src_Getter";
@@ -7606,40 +6829,15 @@ class BlinkSpeechGrammar {
 }
 
 class BlinkSpeechGrammarList {
-  // Generated overload resolver
-  static $mkSpeechGrammarList() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "SpeechGrammarList_constructorCallback_RESOLVER_STRING_0_";
 
   static $length_Getter(mthis) native "SpeechGrammarList_length_Getter";
 
   static $NativeIndexed_Getter(mthis, index) native "SpeechGrammarList_item_Callback_RESOLVER_STRING_1_unsigned long";
 
-  // Generated overload resolver
-  static $addFromString(mthis, string, weight) {
-    if (weight != null) {
-      $_addFromString_1_Callback(mthis, string, weight);
-      return;
-    }
-    $_addFromString_2_Callback(mthis, string);
-    return;
-  }
-
   static $_addFromString_1_Callback(mthis, string, weight) native "SpeechGrammarList_addFromString_Callback_RESOLVER_STRING_2_DOMString_float";
 
   static $_addFromString_2_Callback(mthis, string) native "SpeechGrammarList_addFromString_Callback_RESOLVER_STRING_1_DOMString";
-
-  // Generated overload resolver
-  static $addFromUri(mthis, src, weight) {
-    if (weight != null) {
-      $_addFromUri_1_Callback(mthis, src, weight);
-      return;
-    }
-    $_addFromUri_2_Callback(mthis, src);
-    return;
-  }
 
   static $_addFromUri_1_Callback(mthis, src, weight) native "SpeechGrammarList_addFromUri_Callback_RESOLVER_STRING_2_DOMString_float";
 
@@ -7661,11 +6859,6 @@ class BlinkSpeechInputResultList {
 }
 
 class BlinkSpeechRecognition {
-  // Generated overload resolver
-  static $mkSpeechRecognition() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "SpeechRecognition_constructorCallback_RESOLVER_STRING_0_";
 
   static $continuous_Getter(mthis) native "SpeechRecognition_continuous_Getter";
@@ -7760,11 +6953,6 @@ class BlinkSpeechSynthesisEvent {
 }
 
 class BlinkSpeechSynthesisUtterance {
-  // Generated overload resolver
-  static $mkSpeechSynthesisUtterance(text) {
-    return $_create_1constructorCallback(text);
-  }
-
   static $_create_1constructorCallback(text) native "SpeechSynthesisUtterance_constructorCallback_RESOLVER_STRING_1_DOMString";
 
   static $lang_Getter(mthis) native "SpeechSynthesisUtterance_lang_Getter";
@@ -7807,48 +6995,13 @@ class BlinkSpeechSynthesisVoice {
 class BlinkStorage {
   static $length_Getter(mthis) native "Storage_length_Getter";
 
-  // Generated overload resolver
-  static $__delete__(mthis, index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return $___delete___1_Callback(mthis, index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return $___delete___2_Callback(mthis, index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $___delete___1_Callback(mthis, index_OR_name) native "Storage___delete___Callback_RESOLVER_STRING_1_unsigned long";
 
   static $___delete___2_Callback(mthis, index_OR_name) native "Storage___delete___Callback_RESOLVER_STRING_1_DOMString";
 
-  // Generated overload resolver
-  static $__getter__(mthis, index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return $___getter___1_Callback(mthis, index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return $___getter___2_Callback(mthis, index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $___getter___1_Callback(mthis, index_OR_name) native "Storage___getter___Callback_RESOLVER_STRING_1_unsigned long";
 
   static $___getter___2_Callback(mthis, index_OR_name) native "Storage___getter___Callback_RESOLVER_STRING_1_DOMString";
-
-  // Generated overload resolver
-  static $__setter__(mthis, index_OR_name, value) {
-    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
-      $___setter___1_Callback(mthis, index_OR_name, value);
-      return;
-    }
-    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
-      $___setter___2_Callback(mthis, index_OR_name, value);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $___setter___1_Callback(mthis, index_OR_name, value) native "Storage___setter___Callback_RESOLVER_STRING_2_unsigned long_DOMString";
 
@@ -8128,25 +7281,11 @@ class BlinkTreeWalker {
 }
 
 class BlinkURL {
-  // Generated overload resolver
-  static $createObjectUrl(blob_OR_source_OR_stream) {
-    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
-      return $_createObjectURL_1_Callback(blob_OR_source_OR_stream);
-    }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
-      return $_createObjectURL_2_Callback(blob_OR_source_OR_stream);
-    }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
-      return $_createObjectURL_3_Callback(blob_OR_source_OR_stream);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_createObjectURL_1_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 
-  static $_createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
+  static $_createObjectURL_2_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
 
-  static $_createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaStream";
+  static $_createObjectURL_3_Callback(blob_OR_source_OR_stream) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_MediaSource";
 
   static $createObjectUrlFromBlob_Callback(blob) native "URL_createObjectURL_Callback_RESOLVER_STRING_1_Blob";
 
@@ -8222,11 +7361,6 @@ class BlinkURLUtilsReadOnly {
 }
 
 class BlinkVTTCue {
-  // Generated overload resolver
-  static $mkVttCue(startTime, endTime, text) {
-    return $_create_1constructorCallback(startTime, endTime, text);
-  }
-
   static $_create_1constructorCallback(startTime, endTime, text) native "VTTCue_constructorCallback_RESOLVER_STRING_3_double_double_DOMString";
 
   static $align_Getter(mthis) native "VTTCue_align_Getter";
@@ -8265,11 +7399,6 @@ class BlinkVTTCue {
 }
 
 class BlinkVTTRegion {
-  // Generated overload resolver
-  static $mkVttRegion() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "VTTRegion_constructorCallback_RESOLVER_STRING_0_";
 
   static $height_Getter(mthis) native "VTTRegion_height_Getter";
@@ -8462,23 +7591,6 @@ class BlinkWebGLRenderingContext {
 
   static $bufferByteData_Callback(mthis, target, data, usage) native "WebGLRenderingContext_bufferData_Callback_RESOLVER_STRING_3_unsigned long_ArrayBuffer_unsigned long";
 
-  // Generated overload resolver
-  static $bufferData(mthis, target, data_OR_size, usage) {
-    if ((usage is int || usage == null) && (data_OR_size is TypedData || data_OR_size == null) && (target is int || target == null)) {
-      $_bufferData_1_Callback(mthis, target, data_OR_size, usage);
-      return;
-    }
-    if ((usage is int || usage == null) && (data_OR_size is ByteBuffer || data_OR_size == null) && (target is int || target == null)) {
-      $_bufferData_2_Callback(mthis, target, data_OR_size, usage);
-      return;
-    }
-    if ((usage is int || usage == null) && (data_OR_size is int || data_OR_size == null) && (target is int || target == null)) {
-      $_bufferData_3_Callback(mthis, target, data_OR_size, usage);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_bufferData_1_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_Callback_RESOLVER_STRING_3_unsigned long_ArrayBufferView_unsigned long";
 
   static $_bufferData_2_Callback(mthis, target, data_OR_size, usage) native "WebGLRenderingContext_bufferData_Callback_RESOLVER_STRING_3_unsigned long_ArrayBuffer_unsigned long";
@@ -8488,19 +7600,6 @@ class BlinkWebGLRenderingContext {
   static $bufferDataTyped_Callback(mthis, target, data, usage) native "WebGLRenderingContext_bufferData_Callback_RESOLVER_STRING_3_unsigned long_ArrayBufferView_unsigned long";
 
   static $bufferSubByteData_Callback(mthis, target, offset, data) native "WebGLRenderingContext_bufferSubData_Callback_RESOLVER_STRING_3_unsigned long_long long_ArrayBuffer";
-
-  // Generated overload resolver
-  static $bufferSubData(mthis, target, offset, data) {
-    if ((data is TypedData || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
-      $_bufferSubData_1_Callback(mthis, target, offset, data);
-      return;
-    }
-    if ((data is ByteBuffer || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
-      $_bufferSubData_2_Callback(mthis, target, offset, data);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $_bufferSubData_1_Callback(mthis, target, offset, data) native "WebGLRenderingContext_bufferSubData_Callback_RESOLVER_STRING_3_unsigned long_long long_ArrayBufferView";
 
@@ -8682,31 +7781,6 @@ class BlinkWebGLRenderingContext {
 
   static $stencilOpSeparate_Callback(mthis, face, fail, zfail, zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback_RESOLVER_STRING_4_unsigned long_unsigned long_unsigned long_unsigned long";
 
-  // Generated overload resolver
-  static $texImage2D(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) {
-    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (format is int || format == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null)) {
-      $_texImage2D_1_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
-      return;
-    }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
-      $_texImage2D_2_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
-      $_texImage2D_3_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
-      $_texImage2D_4_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
-      $_texImage2D_5_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_texImage2D_1_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) native "WebGLRenderingContext_texImage2D_Callback_RESOLVER_STRING_9_unsigned long_long_unsigned long_long_long_long_unsigned long_unsigned long_ArrayBufferView";
 
   static $_texImage2D_2_Callback(mthis, target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video) native "WebGLRenderingContext_texImage2D_Callback_RESOLVER_STRING_6_unsigned long_long_unsigned long_unsigned long_unsigned long_ImageData";
@@ -8728,31 +7802,6 @@ class BlinkWebGLRenderingContext {
   static $texParameterf_Callback(mthis, target, pname, param) native "WebGLRenderingContext_texParameterf_Callback_RESOLVER_STRING_3_unsigned long_unsigned long_float";
 
   static $texParameteri_Callback(mthis, target, pname, param) native "WebGLRenderingContext_texParameteri_Callback_RESOLVER_STRING_3_unsigned long_unsigned long_long";
-
-  // Generated overload resolver
-  static $texSubImage2D(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) {
-    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null)) {
-      $_texSubImage2D_1_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
-      return;
-    }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
-      $_texSubImage2D_2_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
-      $_texSubImage2D_3_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
-      $_texSubImage2D_4_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
-      $_texSubImage2D_5_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $_texSubImage2D_1_Callback(mthis, target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) native "WebGLRenderingContext_texSubImage2D_Callback_RESOLVER_STRING_9_unsigned long_long_long_long_long_long_unsigned long_unsigned long_ArrayBufferView";
 
@@ -8864,22 +7913,12 @@ class BlinkWebKitCSSFilterRule {
 class BlinkWebKitCSSFilterValue {}
 
 class BlinkWebKitCSSMatrix {
-  // Generated overload resolver
-  static $mk_WebKitCSSMatrix(cssValue) {
-    return $_create_1constructorCallback(cssValue);
-  }
-
   static $_create_1constructorCallback(cssValue) native "WebKitCSSMatrix_constructorCallback_RESOLVER_STRING_1_DOMString";
 }
 
 class BlinkWebKitCSSTransformValue {}
 
 class BlinkWebKitMediaSource {
-  // Generated overload resolver
-  static $mk_WebKitMediaSource() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "WebKitMediaSource_constructorCallback_RESOLVER_STRING_0_";
 }
 
@@ -8904,20 +7943,6 @@ class BlinkWebKitSourceBufferList {
 }
 
 class BlinkWebSocket {
-  // Generated overload resolver
-  static $mkWebSocket(url, protocol_OR_protocols) {
-    if ((url is String || url == null) && protocol_OR_protocols == null) {
-      return $_create_1constructorCallback(url);
-    }
-    if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return $_create_2constructorCallback(url, protocol_OR_protocols);
-    }
-    if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return $_create_3constructorCallback(url, protocol_OR_protocols);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $_create_1constructorCallback(url) native "WebSocket_constructorCallback_RESOLVER_STRING_1_DOMString";
 
   static $_create_2constructorCallback(url, protocol_OR_protocols) native "WebSocket_constructorCallback_RESOLVER_STRING_2_DOMString_sequence<DOMString>";
@@ -8938,46 +7963,11 @@ class BlinkWebSocket {
 
   static $url_Getter(mthis) native "WebSocket_url_Getter";
 
-  // Generated overload resolver
-  static $close(mthis, code, reason) {
-    if (reason != null) {
-      $_close_1_Callback(mthis, code, reason);
-      return;
-    }
-    if (code != null) {
-      $_close_2_Callback(mthis, code);
-      return;
-    }
-    $_close_3_Callback(mthis);
-    return;
-  }
-
   static $_close_1_Callback(mthis, code, reason) native "WebSocket_close_Callback_RESOLVER_STRING_2_unsigned short_DOMString";
 
   static $_close_2_Callback(mthis, code) native "WebSocket_close_Callback_RESOLVER_STRING_1_unsigned short";
 
   static $_close_3_Callback(mthis) native "WebSocket_close_Callback_RESOLVER_STRING_0_";
-
-  // Generated overload resolver
-  static $send(mthis, data) {
-    if ((data is TypedData || data == null)) {
-      $_send_1_Callback(mthis, data);
-      return;
-    }
-    if ((data is ByteBuffer || data == null)) {
-      $_send_2_Callback(mthis, data);
-      return;
-    }
-    if ((data is Blob || data == null)) {
-      $_send_3_Callback(mthis, data);
-      return;
-    }
-    if ((data is String || data == null)) {
-      $_send_4_Callback(mthis, data);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
 
   static $_send_1_Callback(mthis, data) native "WebSocket_send_Callback_RESOLVER_STRING_1_ArrayBufferView";
 
@@ -9115,17 +8105,6 @@ class BlinkWindow {
 
   static $window_Getter(mthis) native "Window_window_Getter";
 
-  // Generated overload resolver
-  static $__getter__(mthis, index_OR_name) {
-    if ((index_OR_name is int || index_OR_name == null)) {
-      return $___getter___1_Callback(mthis, index_OR_name);
-    }
-    if ((index_OR_name is String || index_OR_name == null)) {
-      return $___getter___2_Callback(mthis, index_OR_name);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
   static $___getter___1_Callback(mthis, index_OR_name) native "Window___getter___Callback_RESOLVER_STRING_1_unsigned long";
 
   static $___getter___2_Callback(mthis, index_OR_name) native "Window___getter___Callback";
@@ -9200,11 +8179,6 @@ class BlinkWindow {
 }
 
 class BlinkWorker {
-  // Generated overload resolver
-  static $mkWorker(scriptUrl) {
-    return $_create_1constructorCallback(scriptUrl);
-  }
-
   static $_create_1constructorCallback(scriptUrl) native "Worker_constructorCallback_RESOLVER_STRING_1_DOMString";
 
   static $postMessage_Callback(mthis, message, messagePorts) native "Worker_postMessage_Callback";
@@ -9277,22 +8251,12 @@ class BlinkXMLHttpRequestProgressEvent {}
 class BlinkXMLHttpRequestUpload {}
 
 class BlinkXMLSerializer {
-  // Generated overload resolver
-  static $mkXmlSerializer() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "XMLSerializer_constructorCallback_RESOLVER_STRING_0_";
 
   static $serializeToString_Callback(mthis, node) native "XMLSerializer_serializeToString_Callback_RESOLVER_STRING_1_Node";
 }
 
 class BlinkXPathEvaluator {
-  // Generated overload resolver
-  static $mkXPathEvaluator() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "XPathEvaluator_constructorCallback_RESOLVER_STRING_0_";
 
   static $createExpression_Callback(mthis, expression, resolver) native "XPathEvaluator_createExpression_Callback_RESOLVER_STRING_2_DOMString_XPathNSResolver";
@@ -9331,11 +8295,6 @@ class BlinkXPathResult {
 }
 
 class BlinkXSLTProcessor {
-  // Generated overload resolver
-  static $mkXsltProcessor() {
-    return $_create_1constructorCallback();
-  }
-
   static $_create_1constructorCallback() native "XSLTProcessor_constructorCallback_RESOLVER_STRING_0_";
 
   static $clearParameters_Callback(mthis) native "XSLTProcessor_clearParameters_Callback_RESOLVER_STRING_0_";
@@ -9355,93 +8314,6 @@ class BlinkXSLTProcessor {
   static $transformToFragment_Callback(mthis, source, docVal) native "XSLTProcessor_transformToFragment_Callback_RESOLVER_STRING_2_Node_Document";
 }
 
-
-// TODO(vsm): This should be moved out of this library.  Into dart:html?
-Type _getType(String key) {
-  var result;
-
-  // TODO(vsm): Add Cross Frame and JS types here as well.
-
-  // Check the html library.
-  result = _getHtmlType(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the web gl library.
-  result = _getWebGlType(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the indexed db library.
-  result = _getIndexDbType(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the web audio library.
-  result = _getWebAudioType(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the web sql library.
-  result = _getWebSqlType(key);
-  if (result != null) {
-    return result;
-  }
-
-  // Check the svg library.
-  result = _getSvgType(key);
-  if (result != null) {
-    return result;
-  }
-
-  return null;
-}
-
-Type _getHtmlType(String key) {
-  if (htmlBlinkMap.containsKey(key)) {
-    return htmlBlinkMap[key]();
-  }
-  return null;
-}
-
-Type _getWebGlType(String key) {
-  if (web_glBlinkMap.containsKey(key)) {
-    return web_glBlinkMap[key]();
-  }
-  return null;
-}
-
-Type _getIndexDbType(String key) {
-  if (indexed_dbBlinkMap.containsKey(key)) {
-    return indexed_dbBlinkMap[key]();
-  }
-  return null;
-}
-
-Type _getWebAudioType(String key) {
-  if (web_audioBlinkMap.containsKey(key)) {
-    return web_audioBlinkMap[key]();
-  }
-  return null;
-}
-
-Type _getWebSqlType(String key) {
-  if (web_sqlBlinkMap.containsKey(key)) {
-    return web_sqlBlinkMap[key]();
-  }
-  return null;
-}
-
-Type _getSvgType(String key) {
-  if (svgBlinkMap.containsKey(key)) {
-    return svgBlinkMap[key]();
-  }
-  return null;
-}
 
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
