@@ -9,7 +9,7 @@ library sexpr_unstringifier;
 
 import 'package:compiler/implementation/dart2jslib.dart' as dart2js
   show Constant, IntConstant, NullConstant, StringConstant,
-       DoubleConstant, MessageKind;
+       DoubleConstant, TrueConstant, FalseConstant, MessageKind;
 import 'package:compiler/implementation/dart_types.dart' as dart_types
   show DartType;
 import 'package:compiler/implementation/elements/elements.dart'
@@ -525,11 +525,22 @@ class SExpressionUnstringifier {
     tokens.consumeStart(CONSTANT);
     String tag = tokens.read();
 
+    // NullConstant.
     if (tag == "null") {
       tokens.consumeEnd();
       return new Constant(null, new dart2js.NullConstant());
     }
 
+    // BoolConstant.
+    if (tag == "true") {
+      tokens.consumeEnd();
+      return new Constant(null, new dart2js.TrueConstant());
+    } else if (tag == "false") {
+      tokens.consumeEnd();
+      return new Constant(null, new dart2js.FalseConstant());
+    }
+
+    // StringConstant.
     if (tag == "StringConstant") {
       tokens.consumeStart();
       List<String> strings = <String>[];
