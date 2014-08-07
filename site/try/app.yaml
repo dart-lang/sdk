@@ -30,81 +30,97 @@ default_expiration: 1s
 handlers:
 - url: /packages/analyzer
   static_dir: packages/analyzer
+  secure: always
 
 - url: /packages/args
   static_dir: packages/args
+  secure: always
 
 - url: /packages/collection
   static_dir: packages/collection
+  secure: always
 
 - url: /packages/crypto
   static_dir: packages/crypto
+  secure: always
 
 - url: /packages/http
   static_dir: packages/http
+  secure: always
 
 - url: /packages/http_parser
   static_dir: packages/http_parser
+  secure: always
 
 - url: /packages/intl
   static_dir: packages/intl
+  secure: always
 
 - url: /packages/logging
   static_dir: packages/logging
+  secure: always
 
 - url: /packages/matcher
   static_dir: packages/matcher
+  secure: always
 
 - url: /packages/math
   static_dir: packages/math
+  secure: always
 
 - url: /packages/path
   static_dir: packages/path
+  secure: always
 
 - url: /packages/serialization
   static_dir: packages/serialization
+  secure: always
 
 - url: /packages/stack_trace
   static_dir: packages/stack_trace
+  secure: always
 
 - url: /packages/string_scanner
   static_dir: packages/string_scanner
+  secure: always
 
 - url: /packages/unittest
   static_dir: packages/unittest
+  secure: always
 
 - url: /packages/yaml
   static_dir: packages/yaml
+  secure: always
 
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico
-  secure: never
+  secure: always
 
 - url: /
   static_files: index.html
   upload: index.html
-  secure: never
+  secure: always
 
 - url: /nossl.appcache
   static_files: nossl.appcache
   upload: nossl.appcache
-  secure: never
+  secure: always
 
 - url: /(.*\.(html|js|png|css|dart|json))
   static_files: \1
   upload: (.*\.(html|js|png|css|dart|json))
-  secure: never
+  secure: always
 
 - url: /css/fonts/fontawesome-webfont.woff
   static_files: fontawesome-webfont.woff
   upload: fontawesome-webfont.woff
-  secure: never
+  secure: always
 
 - url: .*
   static_files: not_found.html
   upload: not_found.html
-  secure: never
+  secure: always
 
 libraries:
 - name: webapp2
