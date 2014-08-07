@@ -74,7 +74,7 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   bool contains(String path) {
-    return posix.isWithin(this.path, path);
+    return isWithin(this.path, path);
   }
 
   @override
