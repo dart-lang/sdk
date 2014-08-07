@@ -485,9 +485,4 @@ interface Screen {
     [Suppressed] readonly attribute AudioParam gain;
 };
 
-[Supplemental]
-interface CSSStyleDeclaration {
-    [Supplemental] boolean __propertyQuery__(DOMString name);
-};
-
 Element implements GlobalEventHandlers;

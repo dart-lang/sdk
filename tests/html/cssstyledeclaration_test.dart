@@ -150,11 +150,4 @@ main() {
     elements = document.queryAll('li');
     expect(elements.style.borderLeftWidth, equals('10px'));
   });
-
-  test('supports property', () {
-    expect(document.body.style.supportsProperty('bogus-property'), false);
-    expect(document.body.style.supportsProperty('background'), true);
-    expect(document.body.style.supportsProperty('borderBottomWidth'), true);
-    expect(document.body.style.supportsProperty('animation'), true);
-  });
 }
