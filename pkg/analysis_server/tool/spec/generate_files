@@ -10,6 +10,9 @@
 #
 # - ../../test/integration/protocol_matchers.dart: matchers to be used by
 #   integration tests.
+#
+# - ../../test/integration/integration_test_methods.dart: convenience methods
+#   to be used by integration tests.
 
 set -e
 
@@ -54,3 +57,4 @@ VM_OPTIONS+=("--package-root=${PKG_DIR}")
 cd "${SCRIPT_DIR}"
 "${DART}" "${VM_OPTIONS[@]}" "to_html.dart"
 "${DART}" "${VM_OPTIONS[@]}" "codegen_matchers.dart"
+"${DART}" "${VM_OPTIONS[@]}" "codegen_inttest_methods.dart"

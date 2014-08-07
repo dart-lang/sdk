@@ -6,7 +6,6 @@ library test.integration.completion.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -18,8 +17,7 @@ class CompletionDomainIntegrationTest extends
   fail_test_getSuggestions_string_var() {
     // See dartbug.com/20188
     String pathname = sourcePath('test.dart');
-    String text =
-        r'''
+    String text = r'''
 var test = '';
 main() {
   test.
@@ -29,10 +27,8 @@ main() {
     standardAnalysisRoot();
 
     return analysisFinished.then((_) {
-      return server.send(COMPLETION_GET_SUGGESTIONS, {
-        'file': pathname,
-        'offset': text.indexOf('test.') + 'test.'.length
-      }).then((result) {
+      return sendCompletionGetSuggestions(pathname, text.indexOf('test.') +
+          'test.'.length).then((result) {
         // Since the feature doesn't work yet, just pause for a second to
         // collect the output of the analysis server, and then stop the test.
         // TODO(paulberry): finish writing the integration test once the feature

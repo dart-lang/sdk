@@ -119,17 +119,15 @@ class HierarchicalApiVisitor extends ApiVisitor {
   }
 
   /**
-   * If [type] is a [TypeReference] which points to another [TypeReference],
-   * follow the chain until the last [TypeReference] is reached.
+   * If [type] is a [TypeReference] that is defined in the API, follow the
+   * chain until a non-[TypeReference] is found, if possible.
+   *
+   * If it is not possible (because the chain ends with a [TypeReference] that
+   * is not defined in the API), then that final [TypeReference] is returned.
    */
-  TypeReference resolveTypeReferenceChain(TypeReference type) {
-    while (api.types.containsKey(type.typeName)) {
-      TypeDecl referredType = api.types[type.typeName].type;
-      if (referredType is TypeReference) {
-        type = referredType;
-        continue;
-      }
-      break;
+  TypeDecl resolveTypeReferenceChain(TypeDecl type) {
+    while (type is TypeReference && api.types.containsKey(type.typeName)) {
+      type = api.types[(type as TypeReference).typeName].type;
     }
     return type;
   }

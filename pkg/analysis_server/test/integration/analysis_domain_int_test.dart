@@ -6,13 +6,11 @@ library test.integration.analysis.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_tests.dart';
-import 'protocol_matchers.dart';
 
 @ReflectiveTestCase()
 class AnalysisDomainIntegrationTest extends
@@ -46,11 +44,7 @@ main() {
         null, bool isLiteral: false, List<String> parameterRegexps:
         null, propagatedType: null}) {
       int offset = text.indexOf(target);
-      return server.send(ANALYSIS_GET_HOVER, {
-        'file': pathname,
-        'offset': offset
-      }).then((result) {
-        expect(result, isAnalysisGetHoverResult);
+      return sendAnalysisGetHover(pathname, offset).then((result) {
         expect(result['hovers'], hasLength(1));
         var info = result['hovers'][0];
         expect(info['offset'], equals(offset));
@@ -150,11 +144,8 @@ main() {
     // returns the latest results that are available at the time that the
     // request is made.  So wait for analysis to finish before testing anything.
     return analysisFinished.then((_) {
-      return server.send(ANALYSIS_GET_HOVER, {
-        'file': pathname,
-        'offset': text.indexOf('no code')
-      }).then((result) {
-        expect(result, isAnalysisGetHoverResult);
+      return sendAnalysisGetHover(pathname, text.indexOf('no code')).then(
+          (result) {
         expect(result['hovers'], hasLength(0));
       });
     });
@@ -177,10 +168,7 @@ main() {
     writeFile(pathname, text);
     standardAnalysisRoot();
     Future finishTest() {
-      return server.send(ANALYSIS_GET_ERRORS, {
-        'file': pathname
-      }).then((result) {
-        expect(result, isAnalysisGetErrorsResult);
+      return sendAnalysisGetErrors(pathname).then((result) {
         expect(result['errors'], equals(currentAnalysisErrors[pathname]));
       });
     }
@@ -219,29 +207,21 @@ main() {
         contentChange['oldLength'] = 0;
         contentChange['newLength'] = 1;
       }
-      return server.send(ANALYSIS_UPDATE_CONTENT, {
-        'files': {
-          pathname: contentChange
-        }
+      return sendAnalysisUpdateContent({
+        pathname: contentChange
       });
-    }).then((result) {
-      expect(result, isNull);
-      return analysisFinished;
-    }).then((_) {
+    }).then((result) => analysisFinished).then((_) {
       // There should be no errors now because the contents on disk have been
       // overriden with goodText.
       expect(currentAnalysisErrors[pathname], isEmpty);
-      return server.send(ANALYSIS_UPDATE_CONTENT, {
-        'files': {
-          pathname: {
-            'content': null
-          }
+      // TODO(paulberry): passing "checkTypes: false" to work around the fact
+      // that isContentChange doesn't permit 'content' to be null.
+      return sendAnalysisUpdateContent({
+        pathname: {
+          'content': null
         }
-      });
-    }).then((result) {
-      expect(result, isNull);
-      return analysisFinished;
-    }).then((_) {
+      }, checkTypes: false);
+    }).then((result) => analysisFinished).then((_) {
       // Now there should be errors again, because the contents on disk are no
       // longer overridden.
       expect(currentAnalysisErrors[pathname], isNot(isEmpty));

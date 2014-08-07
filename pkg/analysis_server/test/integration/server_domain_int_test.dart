@@ -17,16 +17,13 @@ import 'protocol_matchers.dart';
 class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
     {
   test_getVersion() {
-    return server.send(SERVER_GET_VERSION, null).then((response) {
-      expect(response, isServerGetVersionResult);
-    });
+    return sendServerGetVersion();
   }
 
   test_shutdown() {
-    return server.send(SERVER_SHUTDOWN, null).then((response) {
-      expect(response, isNull);
+    return sendServerShutdown().then((_) {
       return new Future.delayed(new Duration(seconds: 1)).then((_) {
-        server.send(SERVER_GET_VERSION, null).then((_) {
+        sendServerGetVersion().then((_) {
           fail('Server still alive after server.shutdown');
         });
         // Give the server time to respond before terminating the test.
@@ -47,8 +44,7 @@ class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
         analysisBegun.complete();
       }
     });
-    return server_setSubscriptions([]).then((response) {
-      expect(response, isNull);
+    return sendServerSetSubscriptions([]).then((_) {
       String pathname = sourcePath('test.dart');
       writeFile(pathname, '''
 main() {
@@ -59,7 +55,7 @@ main() {
       // received.
       return analysisBegun.future.then((_) {
         expect(statusReceived, isFalse);
-        return server_setSubscriptions(['STATUS']).then((_) {
+        return sendServerSetSubscriptions(['STATUS']).then((_) {
           // Tickle test.dart just in case analysis has already completed.
           writeFile(pathname, '''
 main() {
@@ -76,7 +72,7 @@ main() {
   test_setSubscriptions_invalidService() {
     // TODO(paulberry): verify that if an invalid service is specified, the
     // current subscriptions are unchanged.
-    return server_setSubscriptions(['bogus']).then((_) {
+    return sendServerSetSubscriptions(['bogus'], checkTypes: false).then((_) {
       fail('setSubscriptions should have produced an error');
     }, onError: (error) {
       // The expected error occurred.

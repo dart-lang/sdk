@@ -13,12 +13,13 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
+import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
 /**
  * Base class for analysis server integration tests.
  */
-abstract class AbstractAnalysisServerIntegrationTest {
+abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
   /**
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.
@@ -81,19 +82,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
    * analyze [sourceDirectory].
    */
   Future standardAnalysisRoot() {
-    return server.send(ANALYSIS_SET_ANALYSIS_ROOTS, {
-      'included': [sourceDirectory.path],
-      'excluded': []
-    });
-  }
-
-  /**
-   * Send the server a 'server.setSubscriptions' command.
-   */
-  Future server_setSubscriptions(List<String> subscriptions) {
-    return server.send(SERVER_SET_SUBSCRIPTIONS, {
-      'subscriptions': subscriptions
-    });
+    return sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
   }
 
   /**
@@ -178,7 +167,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
     Completer processExited = new Completer();
-    server.send(SERVER_SHUTDOWN, null);
+    sendServerShutdown();
     return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
       return server.kill();
     });
