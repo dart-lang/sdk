@@ -1,3 +1,13 @@
+## 1.3.0
+
+* Expose a top-level `context` field that provides access to a `Context` object
+  for the current system.
+
+## 1.2.3
+
+* Don't cache path Context based on cwd, as cwd involves a system-call to
+  compute.
+
 ## 1.2.2
 
 * Remove the documentation link from the pubspec so this is linked to

@@ -69,6 +69,8 @@ import '../util/util.dart' show
 import '../deferred_load.dart' show
     OutputUnit;
 
+import '../runtime_data.dart' as encoding;
+
 part 'class_builder.dart';
 part 'class_emitter.dart';
 part 'code_emitter_helper.dart';

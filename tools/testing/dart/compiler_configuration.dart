@@ -73,7 +73,9 @@ abstract class CompilerConfiguration {
       case 'dart2js':
         return new Dart2jsCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked,
-            isHostChecked: isHostChecked, useSdk: useSdk, isCsp: isCsp);
+            isHostChecked: isHostChecked, useSdk: useSdk, isCsp: isCsp,
+            extraDart2jsOptions:
+                TestUtils.getExtraOptions(configuration, 'dart2js_options'));
       case 'dart2dart':
         return new Dart2dartCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked,
@@ -222,13 +224,15 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 /// Configuration for dart2js compiler.
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   final bool isCsp;
+  final List<String> extraDart2jsOptions;
 
   Dart2jsCompilerConfiguration({
       bool isDebug,
       bool isChecked,
       bool isHostChecked,
       bool useSdk,
-      bool this.isCsp})
+      bool this.isCsp,
+      this.extraDart2jsOptions})
       : super(
           'dart2js',
           isDebug: isDebug, isChecked: isChecked,
@@ -254,7 +258,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
                 '$tempDir/out.js',
                 buildDir,
                 CommandBuilder.instance,
-                arguments,
+                []..addAll(arguments)..addAll(extraDart2jsOptions),
                 environmentOverrides)],
         '$tempDir/out.js',
         'application/javascript');

@@ -816,14 +816,8 @@ class _CustomZone extends _Zone {
 
 void _rootHandleUncaughtError(
     Zone self, ZoneDelegate parent, Zone zone, error, StackTrace stackTrace) {
-  _rootScheduleMicrotask(null, null, _ROOT_ZONE, () {
-    print("Uncaught Error: ${error}");
-    var trace = stackTrace;
-    if (trace == null && error is Error) trace = error.stackTrace;
-    if (trace != null) {
-      print("Stack Trace: \n$trace\n");
-    }
-    throw error;
+  _schedulePriorityAsyncCallback(() {
+    throw new _UncaughtAsyncError(error, stackTrace);
   });
 }
 

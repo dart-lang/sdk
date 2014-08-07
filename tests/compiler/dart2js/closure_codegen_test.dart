@@ -33,7 +33,7 @@ const String TEST_BAILOUT = r"""
 class A {
   var x;
   foo(_) { // make sure only g has no arguments
-    var f = function g() { return 499;  };
+    var f = () { return 499;  };
     return 499 + x + f();
   }
 }

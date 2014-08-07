@@ -366,14 +366,19 @@ class Unparser implements Visitor {
     visitIdentifier(node);
   }
 
+  visitRedirectingFactoryBody(RedirectingFactoryBody node) {
+    space();
+    write(node.beginToken.value);
+    space();
+    visit(node.constructorReference);
+    write(node.endToken.value);
+  }
+
   visitRethrow(Rethrow node) {
     write('rethrow;');
   }
 
   visitReturn(Return node) {
-    if (node.isRedirectingFactoryBody) {
-      write(' ');
-    }
     write(node.beginToken.value);
     if (node.hasExpression && node.beginToken.stringValue != '=>') {
       write(' ');

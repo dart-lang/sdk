@@ -32,13 +32,4 @@ class ErrorFixes implements HasToJson {
 
   @override
   String toString() => 'ErrorFixes(error=$error, fixes=$fixes)';
-
-  static ErrorFixes fromJson(Map<String, Object> json) {
-    AnalysisError error = AnalysisError.fromJson(json[ERROR]);
-    ErrorFixes errorFixes = new ErrorFixes(error);
-    errorFixes.fixes.addAll((json[FIXES] as List).map((json) {
-      return Change.fromJson(json);
-    }));
-    return errorFixes;
-  }
 }

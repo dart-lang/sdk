@@ -21,7 +21,6 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -30,6 +29,7 @@ import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:path/path.dart';
 
 
 class AnalysisServerContextDirectoryManager extends ContextDirectoryManager {
@@ -103,6 +103,11 @@ class AnalysisServer {
    * be sent.
    */
   final ServerCommunicationChannel channel;
+
+  /**
+   * The [ResourceProvider] using which paths are converted into [Resource]s.
+   */
+  final ResourceProvider resourceProvider;
 
   /**
    * The [Index] for this server.
@@ -193,7 +198,7 @@ class AnalysisServer {
    * exceptions to show up in unit tests, but it should be set to false when
    * running a full analysis server.
    */
-  AnalysisServer(this.channel, ResourceProvider resourceProvider,
+  AnalysisServer(this.channel, this.resourceProvider,
       PackageMapProvider packageMapProvider, this.index, this.defaultSdk,
       {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
@@ -371,6 +376,15 @@ class AnalysisServer {
   }
 
   /**
+   * Returns `true` if errors should be reported for [file] with the given
+   * absolute path.
+   */
+  bool shouldSendErrorsNotificationFor(String file) {
+    // TODO(scheglov) add support for the "--no-error-notification" flag.
+    return contextDirectoryManager.isInAnalysisRoot(file);
+  }
+
+  /**
    * Returns `true` if the given [AnalysisContext] is a priority one.
    */
   bool isPriorityContext(AnalysisContext context) {
@@ -493,14 +507,6 @@ class AnalysisServer {
         if (context == null) {
           continue;
         }
-        // errors
-        if (service == AnalysisService.ERRORS) {
-          LineInfo lineInfo = context.getLineInfo(source);
-          if (lineInfo != null) {
-            List<AnalysisError> errors = context.getErrors(source).errors;
-            sendAnalysisNotificationErrors(this, file, lineInfo, errors);
-          }
-        }
         // Dart unit notifications.
         if (AnalysisEngine.isDartFileName(file)) {
           CompilationUnit dartUnit = getResolvedCompilationUnitToResendNotification(file);
@@ -536,9 +542,20 @@ class AnalysisServer {
    * Return `null` if there is no such context.
    */
   AnalysisContext getAnalysisContext(String path) {
+    // try to find a containing context
     for (Folder folder in folderMap.keys) {
       if (path.startsWith(folder.path)) {
         return folderMap[folder];
+      }
+    }
+    // check if there is a context that analyzed this source
+    {
+      Source source = getSource(path);
+      for (AnalysisContext context in folderMap.values) {
+        SourceKind kind = context.getKindOf(source);
+        if (kind != null) {
+          return context;
+        }
       }
     }
     return null;
@@ -548,8 +565,17 @@ class AnalysisServer {
    * Return the [Source] of the Dart file with the given [path].
    */
   Source getSource(String path) {
-    File file = contextDirectoryManager.resourceProvider.getResource(path);
-    return file.createSource(UriKind.FILE_URI);
+    // try SDK
+    {
+      Uri uri = resourceProvider.pathContext.toUri(path);
+      Source sdkSource = defaultSdk.fromFileUri(uri);
+      if (sdkSource != null) {
+        return sdkSource;
+      }
+    }
+    // file-based source
+    File file = resourceProvider.getResource(path);
+    return file.createSource();
   }
 
   /**
@@ -772,7 +798,6 @@ class AnalysisServer {
  * An enumeration of the services provided by the analysis domain.
  */
 class AnalysisService extends Enum2<AnalysisService> {
-  static const ERRORS = const AnalysisService('ERRORS', 0);
   static const HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
   static const NAVIGATION = const AnalysisService('NAVIGATION', 2);
   static const OCCURRENCES = const AnalysisService('OCCURRENCES', 3);
@@ -780,7 +805,7 @@ class AnalysisService extends Enum2<AnalysisService> {
   static const OVERRIDES = const AnalysisService('OVERRIDES', 5);
 
   static const List<AnalysisService> VALUES =
-      const [ERRORS, HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
+      const [HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
 
   const AnalysisService(String name, int ordinal) : super(name, ordinal);
 }

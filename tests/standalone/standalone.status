@@ -123,6 +123,11 @@ io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
 io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
 io/file_read_special_device_test: Fail # dartbug.com/17440
 
+[ $arch == mips && $mode == debug ]
+io/web_socket_test: Skip # Times out. Issue 20352
+io/test_runner_test: Skip # Flakily times out in a subtest. Issue 201351
+full_coverage_test: Skip # Times out. Issue 20352
+
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assert_test: Fail # Issue 13719: Please triage this failure.
 

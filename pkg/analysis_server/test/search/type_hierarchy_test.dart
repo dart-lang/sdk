@@ -46,8 +46,8 @@ main() {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('main() {').then((json) {
-        expect(json, isNull);
+      return _getTypeHierarchy('main() {').then((jsons) {
+        expect(jsons, isEmpty);
       });
     });
   }
@@ -60,29 +60,30 @@ class B extends A {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('B extends A').then((json) {
-        expect(json, {
-          'classElement': {
-            'kind': 'CLASS',
-            'name': 'B',
-            'location': anything,
-            'flags': 0
-          },
-          'superclass': {
+      return _getTypeHierarchy('B extends A').then((jsons) {
+        expect(jsons, [{
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'B',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }, {
             'classElement': {
               'kind': 'CLASS',
               'name': 'A',
               'location': anything,
               'flags': 0
             },
+            'superclass': 0,
             'interfaces': [],
             'mixins': [],
-            'subclasses': []
-          },
-          'interfaces': [],
-          'mixins': [],
-          'subclasses': []
-        });
+            'subclasses': [1]
+          }]);
       });
     });
   }
@@ -95,8 +96,9 @@ class B extends A<int> {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('B extends').then((jsonB) {
-        var jsonA = jsonB[SUPERCLASS];
+      return _getTypeHierarchy('B extends').then((jsons) {
+        var jsonB = jsons[0];
+        var jsonA = jsons[jsonB[SUPERCLASS]];
         expect(jsonA[CLASS_ELEMENT][NAME], 'A');
         expect(jsonB[CLASS_ELEMENT][NAME], 'B');
         expect(jsonA[DISPLAY_NAME], 'A<int>');
@@ -113,15 +115,19 @@ class C extends B {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('A {}').then((json) {
-        expect(json, {
-          'classElement': {
-            'kind': 'CLASS',
-            'name': 'A',
-            'location': anything,
-            'flags': 0
-          },
-          'superclass': {
+      return _getTypeHierarchy('A {}').then((jsons) {
+        expect(jsons, [{
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'A',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': [2]
+          }, {
             'classElement': {
               'kind': 'CLASS',
               'name': 'Object',
@@ -131,31 +137,29 @@ class C extends B {
             'interfaces': [],
             'mixins': [],
             'subclasses': []
-          },
-          'interfaces': [],
-          'mixins': [],
-          'subclasses': [{
-              'classElement': {
-                'kind': 'CLASS',
-                'name': 'B',
-                'location': anything,
-                'flags': 0
-              },
-              'interfaces': [],
-              'mixins': [],
-              'subclasses': [{
-                  'classElement': {
-                    'kind': 'CLASS',
-                    'name': 'C',
-                    'location': anything,
-                    'flags': 0
-                  },
-                  'interfaces': [],
-                  'mixins': [],
-                  'subclasses': []
-                }]
-            }]
-        });
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'B',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 0,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': [3]
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'C',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 2,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }]);
       });
     });
   }
@@ -170,50 +174,51 @@ class C extends B {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('B extends').then((json) {
-        expect(json, {
-          'classElement': {
-            'kind': 'CLASS',
-            'name': 'B',
-            'location': anything,
-            'flags': 0
-          },
-          'superclass': {
+      return _getTypeHierarchy('B extends').then((jsons) {
+        expect(jsons, [{
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'B',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': [3]
+          }, {
             'classElement': {
               'kind': 'CLASS',
               'name': 'A',
               'location': anything,
               'flags': 0
             },
-            'superclass': {
-              'classElement': {
-                'kind': 'CLASS',
-                'name': 'Object',
-                'location': anything,
-                'flags': 0
-              },
-              'interfaces': [],
-              'mixins': [],
-              'subclasses': []
+            'superclass': 2,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'Object',
+              'location': anything,
+              'flags': 0
             },
             'interfaces': [],
             'mixins': [],
             'subclasses': []
-          },
-          'interfaces': [],
-          'mixins': [],
-          'subclasses': [{
-              'classElement': {
-                'kind': 'CLASS',
-                'name': 'C',
-                'location': anything,
-                'flags': 0
-              },
-              'interfaces': [],
-              'mixins': [],
-              'subclasses': []
-            }]
-        });
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'C',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 0,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }]);
       });
     });
   }
@@ -228,51 +233,51 @@ class C extends B {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('C extends').then((json) {
-        expect(json, {
-          'classElement': {
-            'kind': 'CLASS',
-            'name': 'C',
-            'location': anything,
-            'flags': 0
-          },
-          'superclass': {
+      return _getTypeHierarchy('C extends').then((jsons) {
+        expect(jsons, [{
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'C',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }, {
             'classElement': {
               'kind': 'CLASS',
               'name': 'B',
               'location': anything,
               'flags': 0
             },
-            'superclass': {
-              'classElement': {
-                'kind': 'CLASS',
-                'name': 'A',
-                'location': anything,
-                'flags': 0
-              },
-              'superclass': {
-                'classElement': {
-                  'kind': 'CLASS',
-                  'name': 'Object',
-                  'location': anything,
-                  'flags': 0
-                },
-                'interfaces': [],
-                'mixins': [],
-                'subclasses': []
-              },
-              'interfaces': [],
-              'mixins': [],
-              'subclasses': []
+            'superclass': 2,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'A',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 3,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'Object',
+              'location': anything,
+              'flags': 0
             },
             'interfaces': [],
             'mixins': [],
             'subclasses': []
-          },
-          'interfaces': [],
-          'mixins': [],
-          'subclasses': []
-        });
+          }]);
       });
     });
   }
@@ -287,15 +292,19 @@ class T implements MA, MB {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('T implements').then((json) {
-        expect(json, {
-          'classElement': {
-            'kind': 'CLASS',
-            'name': 'T',
-            'location': anything,
-            'flags': 0
-          },
-          'superclass': {
+      return _getTypeHierarchy('T implements').then((jsons) {
+        expect(jsons, [{
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'T',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [2, 3],
+            'mixins': [],
+            'subclasses': []
+          }, {
             'classElement': {
               'kind': 'CLASS',
               'name': 'Object',
@@ -305,31 +314,29 @@ class T implements MA, MB {
             'interfaces': [],
             'mixins': [],
             'subclasses': []
-          },
-          'interfaces': [{
-              'classElement': {
-                'kind': 'CLASS',
-                'name': 'MA',
-                'location': anything,
-                'flags': 0
-              },
-              'interfaces': [],
-              'mixins': [],
-              'subclasses': []
-            }, {
-              'classElement': {
-                'kind': 'CLASS',
-                'name': 'MB',
-                'location': anything,
-                'flags': 0
-              },
-              'interfaces': [],
-              'mixins': [],
-              'subclasses': []
-            }],
-          'mixins': [],
-          'subclasses': []
-        });
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'MA',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'MB',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }]);
       });
     });
   }
@@ -344,15 +351,19 @@ class T extends Object with MA, MB {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('T extends Object').then((json) {
-        expect(json, {
-          'classElement': {
-            'kind': 'CLASS',
-            'name': 'T',
-            'location': anything,
-            'flags': 0
-          },
-          'superclass': {
+      return _getTypeHierarchy('T extends Object').then((jsons) {
+        expect(jsons, [{
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'T',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [2, 3],
+            'subclasses': []
+          }, {
             'classElement': {
               'kind': 'CLASS',
               'name': 'Object',
@@ -362,31 +373,29 @@ class T extends Object with MA, MB {
             'interfaces': [],
             'mixins': [],
             'subclasses': []
-          },
-          'interfaces': [],
-          'mixins': [{
-              'classElement': {
-                'kind': 'CLASS',
-                'name': 'MA',
-                'location': anything,
-                'flags': 0
-              },
-              'interfaces': [],
-              'mixins': [],
-              'subclasses': []
-            }, {
-              'classElement': {
-                'kind': 'CLASS',
-                'name': 'MB',
-                'location': anything,
-                'flags': 0
-              },
-              'interfaces': [],
-              'mixins': [],
-              'subclasses': []
-            }],
-          'subclasses': []
-        });
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'MA',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }, {
+            'classElement': {
+              'kind': 'CLASS',
+              'name': 'MB',
+              'location': anything,
+              'flags': 0
+            },
+            'superclass': 1,
+            'interfaces': [],
+            'mixins': [],
+            'subclasses': []
+          }]);
       });
     });
   }
@@ -406,10 +415,11 @@ class D extends C {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('test => null; // in B').then((jsonB) {
-        var jsonA = jsonB[SUPERCLASS];
-        var jsonC = jsonB[SUBCLASSES][0];
-        var jsonD = jsonC[SUBCLASSES][0];
+      return _getTypeHierarchy('test => null; // in B').then((jsons) {
+        Map jsonB = jsons[0];
+        Map jsonA = jsons[jsonB[SUPERCLASS]];
+        Map jsonC = jsons[jsonB[SUBCLASSES][0]];
+        Map jsonD = jsons[jsonC[SUBCLASSES][0]];
         expect(jsonA[CLASS_ELEMENT][NAME], 'A');
         expect(jsonB[CLASS_ELEMENT][NAME], 'B');
         expect(jsonC[CLASS_ELEMENT][NAME], 'C');
@@ -443,10 +453,11 @@ class D extends C {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('test() {} // in B').then((jsonB) {
-        var jsonA = jsonB[SUPERCLASS];
-        var jsonC = jsonB[SUBCLASSES][0];
-        var jsonD = jsonC[SUBCLASSES][0];
+      return _getTypeHierarchy('test() {} // in B').then((jsons) {
+        var jsonB = jsons[0];
+        var jsonA = jsons[jsonB[SUPERCLASS]];
+        var jsonC = jsons[jsonB[SUBCLASSES][0]];
+        var jsonD = jsons[jsonC[SUBCLASSES][0]];
         expect(jsonA[CLASS_ELEMENT][NAME], 'A');
         expect(jsonB[CLASS_ELEMENT][NAME], 'B');
         expect(jsonC[CLASS_ELEMENT][NAME], 'C');
@@ -480,10 +491,11 @@ class D extends C {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('==(x) => null; // in B').then((jsonB) {
-        var jsonA = jsonB[SUPERCLASS];
-        var jsonC = jsonB[SUBCLASSES][0];
-        var jsonD = jsonC[SUBCLASSES][0];
+      return _getTypeHierarchy('==(x) => null; // in B').then((jsons) {
+        var jsonB = jsons[0];
+        var jsonA = jsons[jsonB[SUPERCLASS]];
+        var jsonC = jsons[jsonB[SUBCLASSES][0]];
+        var jsonD = jsons[jsonC[SUBCLASSES][0]];
         expect(jsonA[CLASS_ELEMENT][NAME], 'A');
         expect(jsonB[CLASS_ELEMENT][NAME], 'B');
         expect(jsonC[CLASS_ELEMENT][NAME], 'C');
@@ -517,10 +529,11 @@ class D extends C {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      return _getTypeHierarchy('test(x) {} // in B').then((jsonB) {
-        var jsonA = jsonB[SUPERCLASS];
-        var jsonC = jsonB[SUBCLASSES][0];
-        var jsonD = jsonC[SUBCLASSES][0];
+      return _getTypeHierarchy('test(x) {} // in B').then((jsons) {
+        var jsonB = jsons[0];
+        var jsonA = jsons[jsonB[SUPERCLASS]];
+        var jsonC = jsons[jsonB[SUBCLASSES][0]];
+        var jsonD = jsons[jsonC[SUBCLASSES][0]];
         expect(jsonA[CLASS_ELEMENT][NAME], 'A');
         expect(jsonB[CLASS_ELEMENT][NAME], 'B');
         expect(jsonC[CLASS_ELEMENT][NAME], 'C');
@@ -547,10 +560,10 @@ class D extends C {
     return request;
   }
 
-  Future<Map<String, Object>> _getTypeHierarchy(String search) {
+  Future<List<Map<String, Object>>> _getTypeHierarchy(String search) {
     Request request = _createGetTypeHierarchyRequest(search);
     return serverChannel.sendRequest(request).then((Response response) {
-      return response.getResult(HIERARCHY) as Map<String, Object>;
+      return response.getResult(HIERARCHY_ITEMS) as List<Map<String, Object>>;
     });
   }
 }

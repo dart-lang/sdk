@@ -415,7 +415,7 @@ Future testFor() {
 
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(10, map(visitor).length);
+    Expect.equals(9, map(visitor).length);
 
     VariableDefinitions initializer = tree.initializer;
     Node iNode = initializer.definitions.nodes.head;
@@ -427,46 +427,41 @@ Future testFor() {
     List<Node> nodes = map(visitor).keys.toList();
     List<Element> elements = map(visitor).values.toList();
 
-
-    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
-    //      ^^^
-    Expect.isTrue(nodes[0] is TypeAnnotation);
-
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //          ^^^^^
-    checkSendSet(iElement, nodes[1], elements[1]);
+    checkSendSet(iElement, nodes[0], elements[0]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                 ^
-    checkIdentifier(iElement, nodes[2], elements[2]);
+    checkIdentifier(iElement, nodes[1], elements[1]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                 ^
-    checkSend(iElement, nodes[3], elements[3]);
+    checkSend(iElement, nodes[2], elements[2]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                         ^
+    checkIdentifier(iElement, nodes[3], elements[3]);
+
+    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+    //                             ^
     checkIdentifier(iElement, nodes[4], elements[4]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                             ^
-    checkIdentifier(iElement, nodes[5], elements[5]);
-
-    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
-    //                             ^
-    checkSend(iElement, nodes[6], elements[6]);
+    checkSend(iElement, nodes[5], elements[5]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                         ^^^^^^^^^
-    checkSendSet(iElement, nodes[7], elements[7]);
+    checkSendSet(iElement, nodes[6], elements[6]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                                      ^
-    checkIdentifier(iElement, nodes[8], elements[8]);
+    checkIdentifier(iElement, nodes[7], elements[7]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                                      ^^^^^
-    checkSendSet(iElement, nodes[9], elements[9]);
+    checkSendSet(iElement, nodes[8], elements[8]);
   });
 }
 
@@ -493,7 +488,7 @@ Future testTypeAnnotation() {
     // Test that we get a warning when Foo is not defined.
     Map mapping = compiler.resolveStatement(statement).map;
 
-    Expect.equals(2, mapping.length); // Both Foo and bar have an element.
+    Expect.equals(1, mapping.length); // Only [bar] has an element.
     Expect.equals(1, compiler.warnings.length);
 
     Node warningNode = compiler.warnings[0].node;
@@ -509,7 +504,7 @@ Future testTypeAnnotation() {
     // Test that there is no warning after defining Foo.
     compiler.parseScript("class Foo {}");
     mapping = compiler.resolveStatement(statement).map;
-    Expect.equals(2, mapping.length);
+    Expect.equals(1, mapping.length);
     Expect.equals(0, compiler.warnings.length);
 
     // Test that 'var' does not create a warning.
@@ -534,7 +529,7 @@ Future testSuperclass() {
       compiler.parseScript("class Foo extends Bar {}");
       compiler.parseScript("class Bar {}");
       Map mapping = compiler.resolveStatement("Foo bar;").map;
-      Expect.equals(2, mapping.length);
+      Expect.equals(1, mapping.length);
 
       ClassElement fooElement = compiler.mainApp.find('Foo');
       ClassElement barElement = compiler.mainApp.find('Bar');
@@ -614,7 +609,7 @@ Future testFunctionExpression() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Map mapping = compiler.resolveStatement("int f() {}").map;
-    Expect.equals(3, mapping.length);
+    Expect.equals(1, mapping.length);
     Element element;
     Node node;
     mapping.forEach((Node n, Element e) {

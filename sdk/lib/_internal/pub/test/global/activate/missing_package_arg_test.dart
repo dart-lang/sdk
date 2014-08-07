@@ -12,11 +12,12 @@ main() {
         error: """
             No package to activate given.
 
-            Usage: pub global activate <package> [version]
-            -h, --help    Print usage information for this command.
+            Usage: pub global activate <package...>
+            -h, --help      Print usage information for this command.
+            -s, --source    The source used to find the package.
+                            [hosted (default), path]
 
-            Run "pub help" to see global options.
-            """,
+            Run "pub help" to see global options.""",
         exitCode: exit_codes.USAGE);
   });
 }

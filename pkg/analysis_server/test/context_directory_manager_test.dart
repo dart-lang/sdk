@@ -193,6 +193,22 @@ main() {
       });
     });
 
+    group('isInAnalysisRoot', () {
+      test('in root', () {
+        String projPath = '/project';
+        resourceProvider.newFolder(projPath);
+        manager.setRoots(<String>[projPath], <String>[]);
+        expect(manager.isInAnalysisRoot('/project/test.dart'), isTrue);
+      });
+
+      test('not in root', () {
+        String projPath = '/project';
+        resourceProvider.newFolder(projPath);
+        manager.setRoots(<String>[projPath], <String>[]);
+        expect(manager.isInAnalysisRoot('/test.dart'), isFalse);
+      });
+    });
+
     group('detect context modifications', () {
       String projPath;
 

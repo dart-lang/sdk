@@ -3784,16 +3784,10 @@ class ElementLocationImpl implements ElementLocation {
     if (otherComponents.length != length) {
       return false;
     }
-    for (int i = length - 1; i >= 2; i--) {
+    for (int i = 0; i < length; i++) {
       if (_components[i] != otherComponents[i]) {
         return false;
       }
-    }
-    if (length > 1 && !_equalSourceComponents(_components[1], otherComponents[1])) {
-      return false;
-    }
-    if (length > 0 && !_equalSourceComponents(_components[0], otherComponents[0])) {
-      return false;
     }
     return true;
   }
@@ -3819,13 +3813,7 @@ class ElementLocationImpl implements ElementLocation {
     int result = 1;
     for (int i = 0; i < _components.length; i++) {
       String component = _components[i];
-      int componentHash;
-      if (i <= 1) {
-        componentHash = _hashSourceComponent(component);
-      } else {
-        componentHash = component.hashCode;
-      }
-      result = 31 * result + componentHash;
+      result = 31 * result + component.hashCode;
     }
     return result;
   }
@@ -3879,45 +3867,6 @@ class ElementLocationImpl implements ElementLocation {
       }
       builder.appendChar(currentChar);
     }
-  }
-
-  /**
-   * Return `true` if the given components, when interpreted to be encoded sources with a
-   * leading source type indicator, are equal when the source type's are ignored.
-   *
-   * @param left the left component being compared
-   * @param right the right component being compared
-   * @return `true` if the given components are equal when the source type's are ignored
-   */
-  bool _equalSourceComponents(String left, String right) {
-    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
-    if (left == null) {
-      return right == null;
-    } else if (right == null) {
-      return false;
-    }
-    int leftLength = left.length;
-    int rightLength = right.length;
-    if (leftLength != rightLength) {
-      return false;
-    } else if (leftLength <= 1 || rightLength <= 1) {
-      return left == right;
-    }
-    return javaStringRegionMatches(left, 1, right, 1, leftLength - 1);
-  }
-
-  /**
-   * Return the hash code of the given encoded source component, ignoring the source type indicator.
-   *
-   * @param sourceComponent the component to compute a hash code
-   * @return the hash code of the given encoded source component
-   */
-  int _hashSourceComponent(String sourceComponent) {
-    // TODO(brianwilkerson) This method can go away when sources no longer have a URI kind.
-    if (sourceComponent.length <= 1) {
-      return sourceComponent.hashCode;
-    }
-    return sourceComponent.substring(1).hashCode;
   }
 }
 
@@ -10984,11 +10933,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     // Reflexivity: T is S.
     //
     if (this == s) {
-      return true;
-    }
-    // S is bottom.
-    //
-    if (s.isBottom) {
       return true;
     }
     // S is dynamic.

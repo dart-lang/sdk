@@ -1368,7 +1368,9 @@ $if DART2JS
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => JS("void", "#.scrollLeft = #", this, value.round());
+  void set scrollLeft(int value) {
+    JS("void", "#.scrollLeft = #", this, value.round());
+  }
 
   @DomName('Element.scrollTop')
   @DocsEditable()
@@ -1376,7 +1378,9 @@ $if DART2JS
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => JS("void", "#.scrollTop = #", this, value.round());
+  void set scrollTop(int value) {
+    JS("void", "#.scrollTop = #", this, value.round());
+  }
 
   @DomName('Element.scrollWidth')
   @DocsEditable()

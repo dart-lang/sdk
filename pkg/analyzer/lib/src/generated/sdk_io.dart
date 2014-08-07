@@ -230,7 +230,38 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   @override
-  Source fromEncoding(UriKind kind, Uri uri) => new FileBasedSource.con2(new JavaFile.fromUri(uri), kind);
+  Source fromFileUri(Uri uri) {
+    JavaFile file = new JavaFile.fromUri(uri);
+    String filePath = file.getAbsolutePath();
+    String libPath = libraryDirectory.getAbsolutePath();
+    if (!filePath.startsWith("${libPath}${JavaFile.separator}")) {
+      return null;
+    }
+    filePath = filePath.substring(libPath.length + 1);
+    for (SdkLibrary library in _libraryMap.sdkLibraries) {
+      String libraryPath = library.path;
+      if (filePath.replaceAll('\\', '/') == libraryPath) {
+        String path = library.shortName;
+        try {
+          return new FileBasedSource.con2(parseUriWithException(path), file);
+        } on URISyntaxException catch (exception) {
+          AnalysisEngine.instance.logger.logInformation2("Failed to create URI: ${path}", exception);
+          return null;
+        }
+      }
+      libraryPath = new JavaFile(libraryPath).getParent();
+      if (filePath.startsWith("${libraryPath}${JavaFile.separator}")) {
+        String path = "${library.shortName}/${filePath.substring(libraryPath.length + 1)}";
+        try {
+          return new FileBasedSource.con2(parseUriWithException(path), file);
+        } on URISyntaxException catch (exception) {
+          AnalysisEngine.instance.logger.logInformation2("Failed to create URI: ${path}", exception);
+          return null;
+        }
+      }
+    }
+    return null;
+  }
 
   @override
   AnalysisContext get context {
@@ -419,11 +450,30 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   @override
   Source mapDartUri(String dartUri) {
-    SdkLibrary library = getSdkLibrary(dartUri);
+    String libraryName;
+    String relativePath;
+    int index = dartUri.indexOf('/');
+    if (index >= 0) {
+      libraryName = dartUri.substring(0, index);
+      relativePath = dartUri.substring(index + 1);
+    } else {
+      libraryName = dartUri;
+      relativePath = "";
+    }
+    SdkLibrary library = getSdkLibrary(libraryName);
     if (library == null) {
       return null;
     }
-    return new FileBasedSource.con2(new JavaFile.relative(libraryDirectory, library.path), UriKind.DART_URI);
+    try {
+      JavaFile file = new JavaFile.relative(libraryDirectory, library.path);
+      if (!relativePath.isEmpty) {
+        file = file.getParentFile();
+        file = new JavaFile.relative(file, relativePath);
+      }
+      return new FileBasedSource.con2(parseUriWithException(dartUri), file);
+    } on URISyntaxException catch (exception) {
+      return null;
+    }
   }
 
   /**
@@ -531,7 +581,7 @@ class SdkLibrariesReader {
    * @param libraryFileContents the contents from the library file
    * @return the library map read from the given source
    */
-  LibraryMap readFromFile(JavaFile file, String libraryFileContents) => readFromSource(new FileBasedSource.con2(file, UriKind.FILE_URI), libraryFileContents);
+  LibraryMap readFromFile(JavaFile file, String libraryFileContents) => readFromSource(new FileBasedSource.con1(file), libraryFileContents);
 
   /**
    * Return the library map read from the given source.

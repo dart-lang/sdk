@@ -3,14 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:watcher/watcher.dart';
 
 import '../utils.dart';
 
-sharedTests() {
+void sharedTests() {
   test('does not notify for changes when there are no subscribers', () {
     // Note that this test doesn't rely as heavily on the test functions in
     // utils.dart because it needs to be very explicit about when the event

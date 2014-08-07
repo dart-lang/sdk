@@ -4,6 +4,36 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.1-dev
+  * Added the ability to override the stylesheet inlining behavior. There is now
+    an option exposed in the pubspec.yaml called `inline_stylesheets`. There are
+    two possible values, a boolean or a map. If only a boolean is supplied then
+    that will set the global default behavior. If a map is supplied, then the
+    keys should be file paths, and the value is a boolean. You can use the
+    special key 'default' to set the default value.
+
+    For example, the following would change the default to not inline any
+    styles, except for the foo.css file in your web folder and the bar.css file
+    under the foo packages lib directory:
+
+        inline_stylesheets:
+            default: false
+            web/foo.css: true
+            packages/foo/bar.css: true
+
+  * Added `inject_build_logs_in_output` option to pubspec for polymer
+    transformers. When set to `true`, this will inject a small element into your
+    entry point pages that will display all log messages from the polymer
+    transformers during the build step. This element is only injected when not 
+    running in release mode (ie: `pub serve` but not `pub build`).
+
+#### Pub version 0.12.0+7
+  * Widen the constraint on `unittest`.
+
+#### Pub version 0.12.0+6
+  * Widen the constraint on analyzer.
+  * Support for `_src` and similar attributes in polymer transformers.
+
 #### Pub version 0.12.0+5
   * Raise the lower bound on the source_maps constraint to exclude incompatible
     versions.

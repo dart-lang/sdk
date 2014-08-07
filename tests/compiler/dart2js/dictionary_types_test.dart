@@ -95,7 +95,7 @@ var SOURCES = const {
 
   main () {
     dict['goo'] = 42;
-    var closure = dictfun() => dict;
+    var closure = () => dict;
     notInt = closure()['boo'];
     alsoNotInt = dict['goo'];
     print("\$notInt and \$alsoNotInt.");
@@ -115,7 +115,7 @@ void main() {
     Expect.isTrue(getType('aString').containsOnlyString(compiler));
     Expect.equals(getType('doubleOrNull'), types.doubleType.nullable());
   }));
-  asyncTest(() => 
+  asyncTest(() =>
     compileAndTest("ValueType.dart", (types, getType, compiler) {
       Expect.equals(getType('knownDouble'), types.doubleType);
       Expect.equals(getType('intOrNull'), types.uint31Type.nullable());

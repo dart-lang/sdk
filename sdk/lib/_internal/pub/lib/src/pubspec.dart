@@ -209,6 +209,41 @@ class Pubspec {
   }
   PubspecEnvironment _environment;
 
+  /// The URL of the server that the package should default to being published
+  /// to, "none" if the package should not be published, or `null` if it should
+  /// be published to the default server.
+  ///
+  /// If this does return a URL string, it will be a valid parseable URL.
+  String get publishTo {
+    if (_parsedPublishTo) return _publishTo;
+
+    var publishTo = fields['publishTo'];
+    if (publishTo != null) {
+      var span = fields.nodes['publishTo'].span;
+
+      if (publishTo is! String) {
+        _error('"publishTo" field must be a string.', span);
+      }
+
+      // It must be "none" or a valid URL.
+      if (publishTo != "none") {
+        _wrapFormatException('"publishTo" field', span,
+            () => Uri.parse(publishTo));
+      }
+    }
+
+    _parsedPublishTo = true;
+    _publishTo = publishTo;
+    return _publishTo;
+  }
+  bool _parsedPublishTo = false;
+  String _publishTo;
+
+  /// Whether the package is private and cannot be published.
+  ///
+  /// This is specified in the pubspec by setting "publishTo" to "none".
+  bool get isPrivate => publishTo == "none";
+
   /// Whether or not the pubspec has no contents.
   bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty;
@@ -304,6 +339,7 @@ class Pubspec {
     _getError(() => this.devDependencies);
     _getError(() => this.transformers);
     _getError(() => this.environment);
+    _getError(() => this.publishTo);
     return errors;
   }
 

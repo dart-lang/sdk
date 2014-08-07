@@ -20,6 +20,7 @@ import 'package:source_maps/refactor.dart' show TextEditTransaction;
 import 'package:source_span/source_span.dart';
 
 import 'common.dart';
+import 'wrapped_logger.dart';
 
 // TODO(sigmund): move to web_components package (dartbug.com/18037).
 class _HtmlInliner extends PolymerTransformer {
@@ -36,9 +37,11 @@ class _HtmlInliner extends PolymerTransformer {
   /// unique-ish filenames.
   int inlineScriptCounter = 0;
 
-  _HtmlInliner(this.options, Transform transform)
-      : transform = transform,
-        logger = transform.logger,
+  _HtmlInliner(TransformOptions options, Transform transform)
+      : options = options,
+        transform = transform,
+        logger = options.releaseMode ? transform.logger :
+            new WrappedLogger(transform, convertErrorsToWarnings: true),
         docId = transform.primaryInput.id;
 
   Future apply() {
@@ -49,7 +52,8 @@ class _HtmlInliner extends PolymerTransformer {
 
     return readPrimaryAsHtml(transform).then((doc) {
       document = doc;
-      changed = new _UrlNormalizer(transform, docId).visit(document) || changed;
+      changed = new _UrlNormalizer(transform, docId, logger).visit(document)
+        || changed;
       
       experimentalBootstrap = document.querySelectorAll('link').any((link) =>
           link.attributes['rel'] == 'import' &&
@@ -73,6 +77,11 @@ class _HtmlInliner extends PolymerTransformer {
             'experimental_bootstrap': experimentalBootstrap,
             'script_ids': scriptIds,
           }, toEncodable: (id) => id.serialize())));
+
+      // Write out the logs collected by our [WrappedLogger].
+      if (options.injectBuildLogsInOutput && logger is WrappedLogger) {
+        return (logger as WrappedLogger).writeOutput();
+      }
     });
   }
 
@@ -94,7 +103,7 @@ class _HtmlInliner extends PolymerTransformer {
 
       // Note: URL has already been normalized so use docId.
       var href = tag.attributes['href'];
-      var id = uriToAssetId(docId, href, transform.logger, tag.sourceSpan,
+      var id = uriToAssetId(docId, href, logger, tag.sourceSpan,
           errorOnAbsolute: rel != 'stylesheet');
 
       if (rel == 'import') {
@@ -107,8 +116,9 @@ class _HtmlInliner extends PolymerTransformer {
 
       } else if (rel == 'stylesheet') {
         if (id == null) return null;
-        changed = true;
+        if (!options.shouldInlineStylesheet(id)) return null;
 
+        changed = true;
         return _inlineStylesheet(id, tag);
       }
     }).then((_) => changed);
@@ -145,12 +155,12 @@ class _HtmlInliner extends PolymerTransformer {
   /// html imports. Then inlines it into the main document.
   Future _inlineImport(AssetId id, Element link) {
     return readAsHtml(id, transform).catchError((error) {
-      transform.logger.error(
+      logger.error(
           "Failed to inline html import: $error", asset: id,
           span: link.sourceSpan);
     }).then((doc) {
       if (doc == null) return false;
-      new _UrlNormalizer(transform, id).visit(doc);
+      new _UrlNormalizer(transform, id, logger).visit(doc);
       return _visitImports(doc).then((_) {
         // _UrlNormalizer already ensures there is a library name.
         _extractScripts(doc, injectLibraryName: false);
@@ -169,12 +179,12 @@ class _HtmlInliner extends PolymerTransformer {
       // TODO(jakemac): Move this warning to the linter once we can make it run
       // always (see http://dartbug.com/17199). Then hide this error and replace
       // with a comment pointing to the linter error (so we don't double warn).
-      transform.logger.warning(
+      logger.warning(
           "Failed to inline stylesheet: $error", asset: id,
           span: link.sourceSpan);
     }).then((css) {
       if (css == null) return;
-      css = new _UrlNormalizer(transform, id).visitCss(css);
+      css = new _UrlNormalizer(transform, id, logger).visitCss(css);
       var styleElement = new Element.tag('style')..text = css;
       // Copy over the extra attributes from the link tag to the style tag.
       // This adds support for no-shim, shim-shadowdom, etc.
@@ -268,8 +278,8 @@ String _libraryNameFor(AssetId id, int suffix) {
       '${path.extension(id.path).substring(1)}';
   if (name.startsWith('lib/')) name = name.substring(4);
   name = name.split('/').map((part) {
-    part = part.replaceAll(INVALID_LIB_CHARS_REGEX, '_');
-    if (part.startsWith(NUM_REGEX)) part = '_${part}';
+    part = part.replaceAll(_INVALID_LIB_CHARS_REGEX, '_');
+    if (part.startsWith(_NUM_REGEX)) part = '_${part}';
     return part;
   }).join(".");
   return '${id.package}.${name}_$suffix';
@@ -326,7 +336,9 @@ class _UrlNormalizer extends TreeVisitor {
   /// Whether or not the normalizer has changed something in the tree.
   bool changed = false;
 
-  _UrlNormalizer(transform, this.sourceId)
+  final TransformLogger logger;
+
+  _UrlNormalizer(transform, this.sourceId, this.logger)
       : transform = transform,
         topLevelPath =
           '../' * (transform.primaryInput.id.path.split('/').length - 2);
@@ -343,7 +355,19 @@ class _UrlNormalizer extends TreeVisitor {
     if (!isCustomTagName(node.localName)) {
       node.attributes.forEach((name, value) {
         if (_urlAttributes.contains(name)) {
-          if (value != '' && !value.trim().startsWith(_BINDINGS)) {
+          if (!name.startsWith('_') && value.contains(_BINDING_REGEX)) {
+            logger.warning(
+                'When using bindings with the "$name" attribute you may '
+                'experience errors in certain browsers. Please use the '
+                '"_$name" attribute instead. For more information, see '
+                'http://goo.gl/5av8cU', span: node.sourceSpan, asset: sourceId);
+          } else if (name.startsWith('_') && !value.contains(_BINDING_REGEX)) {
+            logger.warning(
+                'The "$name" attribute is only supported when using bindings. '
+                'Please change to the "${name.substring(1)}" attribute.',
+                span: node.sourceSpan, asset: sourceId);
+          }
+          if (value != '' && !value.trim().startsWith(_BINDING_REGEX)) {
             node.attributes[name] = _newUrl(value, node.sourceSpan);
             changed = changed || value != node.attributes[name];
           }
@@ -366,7 +390,6 @@ class _UrlNormalizer extends TreeVisitor {
 
   static final _URL = new RegExp(r'url\(([^)]*)\)', multiLine: true);
   static final _QUOTE = new RegExp('["\']', multiLine: true);
-  static final _BINDINGS = new RegExp(r'({{)|(\[\[)');
 
   /// Visit the CSS text and replace any relative URLs so we can inline it.
   // Ported from:
@@ -395,12 +418,12 @@ class _UrlNormalizer extends TreeVisitor {
         var uri = directive.uri.stringValue;
         var span = _getSpan(file, directive.uri);
 
-        var id = uriToAssetId(sourceId, uri, transform.logger, span,
+        var id = uriToAssetId(sourceId, uri, logger, span,
             errorOnAbsolute: false);
         if (id == null) continue;
 
         var primaryId = transform.primaryInput.id;
-        var newUri = assetUrlFor(id, primaryId, transform.logger);
+        var newUri = assetUrlFor(id, primaryId, logger);
         if (newUri != uri) {
           output.edit(span.start.offset, span.end.offset, "'$newUri'");
         }
@@ -423,37 +446,53 @@ class _UrlNormalizer extends TreeVisitor {
   }
 
   String _newUrl(String href, SourceSpan span) {
-    // Uri.parse blows up on invalid characters (like {{). Encoding the uri
-    // allows it to be parsed, which does the correct thing in the general case.
-    // This uri not used to build the new uri, so it never needs to be decoded.
-    var uri = Uri.parse(Uri.encodeFull(href));
+    // Placeholder for everything past the start of the first binding.
+    const placeholder = '_';
+    // We only want to parse the part of the href leading up to the first
+    // binding, anything after that is not informative.
+    var hrefToParse;
+    var firstBinding = href.indexOf(_BINDING_REGEX);
+    if (firstBinding == -1) {
+      hrefToParse = href;
+    } else if (firstBinding == 0) {
+      return href;
+    } else {
+      hrefToParse = '${href.substring(0, firstBinding)}$placeholder';
+    }
+
+    var uri = Uri.parse(hrefToParse);
     if (uri.isAbsolute) return href;
     if (!uri.scheme.isEmpty) return href;
     if (!uri.host.isEmpty) return href;
     if (uri.path.isEmpty) return href;  // Implies standalone ? or # in URI.
     if (path.isAbsolute(href)) return href;
 
-    var id = uriToAssetId(sourceId, href, transform.logger, span);
+    var id = uriToAssetId(sourceId, hrefToParse, logger, span);
     if (id == null) return href;
     var primaryId = transform.primaryInput.id;
 
-    if (id.path.startsWith('lib/')) {
-      return '${topLevelPath}packages/${id.package}/${id.path.substring(4)}';
+    // Build the new path, placing back any suffixes that we stripped earlier.
+    var prefix = (firstBinding == -1) ? id.path
+        : id.path.substring(0, id.path.length - placeholder.length);
+    var suffix = (firstBinding == -1) ? '' : href.substring(firstBinding);
+    var newPath = '$prefix$suffix';
+
+    if (newPath.startsWith('lib/')) {
+      return '${topLevelPath}packages/${id.package}/${newPath.substring(4)}';
     }
 
-    if (id.path.startsWith('asset/')) {
-      return '${topLevelPath}assets/${id.package}/${id.path.substring(6)}';
+    if (newPath.startsWith('asset/')) {
+      return '${topLevelPath}assets/${id.package}/${newPath.substring(6)}';
     }
 
     if (primaryId.package != id.package) {
       // Techincally we shouldn't get there
-      transform.logger.error("don't know how to include $id from $primaryId",
-          span: span);
+      logger.error("don't know how to include $id from $primaryId", span: span);
       return href;
     }
 
     var builder = path.url;
-    return builder.relative(builder.join('/', id.path),
+    return builder.relative(builder.join('/', newPath),
         from: builder.join('/', builder.dirname(primaryId.path)));
   }
 }
@@ -463,18 +502,20 @@ class _UrlNormalizer extends TreeVisitor {
 ///
 /// Every one of these attributes is a URL in every context where it is used in
 /// the DOM. The comments show every DOM element where an attribute can be used.
+///
+/// The _* version of each attribute is also supported, see http://goo.gl/5av8cU
 const _urlAttributes = const [
-  'action',     // in form
-  'background', // in body
-  'cite',       // in blockquote, del, ins, q
-  'data',       // in object
-  'formaction', // in button, input
-  'href',       // in a, area, link, base, command
-  'icon',       // in command
-  'manifest',   // in html
-  'poster',     // in video
-  'src',        // in audio, embed, iframe, img, input, script, source, track,
-                //    video
+  'action', '_action',          // in form
+  'background', '_background',  // in body
+  'cite', '_cite',              // in blockquote, del, ins, q
+  'data', '_data',              // in object
+  'formaction', '_formaction',  // in button, input
+  'href', '_href',              // in a, area, link, base, command
+  'icon', '_icon',              // in command
+  'manifest', '_manifest',      // in html
+  'poster', '_poster',          // in video
+  'src', '_src',                // in audio, embed, iframe, img, input, script,
+                                //    source, track,video
 ];
 
 /// When inlining <link rel="stylesheet"> tags copy over all attributes to the
@@ -482,8 +523,9 @@ const _urlAttributes = const [
 const IGNORED_LINKED_STYLE_ATTRS =
     const ['charset', 'href', 'href-lang', 'rel', 'rev'];
 
-/// Global RegExp objects for validating generated library names.
-final INVALID_LIB_CHARS_REGEX = new RegExp('[^a-z0-9_]');
-final NUM_REGEX = new RegExp('[0-9]');
+/// Global RegExp objects.
+final _INVALID_LIB_CHARS_REGEX = new RegExp('[^a-z0-9_]');
+final _NUM_REGEX = new RegExp('[0-9]');
+final _BINDING_REGEX = new RegExp(r'(({{.*}})|(\[\[.*\]\]))');
 
 _getSpan(SourceFile file, AstNode node) => file.span(node.offset, node.end);

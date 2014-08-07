@@ -7,62 +7,50 @@
 
 patch class int {
 
-  static bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
-  }
-
   static bool is64Bit() => 1 << 32 is _Smi;
 
-  static int _tryParseSmi(String str) {
-    if (str.isEmpty) return null;
-    var ix = 0;
-    var endIx = str.length - 1;
-    // Find first and last non-whitespace.
-    while (ix <= endIx) {
-      if (!_isWhitespace(str.codeUnitAt(ix))) break;
-      ix++;
-    }
-    if (endIx < ix) {
-      return null;  // Empty.
-    }
-    while (endIx > ix) {
-      if (!_isWhitespace(str.codeUnitAt(endIx))) break;
-      endIx--;
-    }
-
-    var isNegative = false;
+  static int _tryParseSmi(String str, int first, int last) {
+    assert(first <= last);
+    var ix = first;
+    var sign = 1;
     var c = str.codeUnitAt(ix);
     // Check for leading '+' or '-'.
     if ((c == 0x2b) || (c == 0x2d)) {
       ix++;
-      isNegative = (c == 0x2d);
-      if (ix > endIx) {
+      sign = 0x2c - c;  // -1 for '-', +1 for '+'.
+      if (ix > last) {
         return null;  // Empty.
       }
     }
     int smiLimit = is64Bit() ? 18 : 9;
-    if ((endIx - ix) >= smiLimit) {
+    if ((last - ix) >= smiLimit) {
       return null;  // May not fit into a Smi.
     }
     var result = 0;
-    for (int i = ix; i <= endIx; i++) {
+    for (int i = ix; i <= last; i++) {
       var c = str.codeUnitAt(i) - 0x30;
       if ((c > 9) || (c < 0)) {
         return null;
       }
       result = result * 10 + c;
     }
-    return isNegative ? -result : result;
+    return sign * result;
+  }
+
+  static int _tryParseSmiWhitespace(String str) {
+    int first = str._firstNonWhitespace();
+    if (first < str.length) {
+      int last = str._lastNonWhitespace();
+      int res = _tryParseSmi(str, first, last);
+      if (res != null) return res;
+    }
+    return _native_parse(str);
   }
 
   static int _parse(String str) {
-    int res = _tryParseSmi(str);
-    if (res == null) {
-      res = _native_parse(str);
-    }
-    return res;
+    int res = _tryParseSmi(str, 0, str.length - 1);
+    if (res != null) return res;
+    return _tryParseSmiWhitespace(str);
   }
 
   static int _native_parse(String str) native "Integer_parse";
@@ -75,7 +63,8 @@ patch class int {
                                { int radix,
                                  int onError(String str) }) {
     if (radix == null) {
-      int result = _parse(source);
+      int result;
+      if (source.isNotEmpty) result = _parse(source);
       if (result == null) {
         if (onError == null) {
           throw new FormatException("", source);

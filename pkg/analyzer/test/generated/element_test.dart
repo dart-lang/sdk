@@ -1257,12 +1257,6 @@ class ElementLocationImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(first == second);
   }
 
-  void test_equals_equalWithDifferentUriKind() {
-    ElementLocationImpl first = new ElementLocationImpl.con2("fa;fb;c");
-    ElementLocationImpl second = new ElementLocationImpl.con2("pa;pb;c");
-    JUnitTestCase.assertTrue(first == second);
-  }
-
   void test_equals_notEqual_differentLengths() {
     ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
     ElementLocationImpl second = new ElementLocationImpl.con2("a;b;c;d");
@@ -1303,12 +1297,6 @@ class ElementLocationImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(first.hashCode == second.hashCode);
   }
 
-  void test_hashCode_equalWithDifferentUriKind() {
-    ElementLocationImpl first = new ElementLocationImpl.con2("fa;fb;c");
-    ElementLocationImpl second = new ElementLocationImpl.con2("pa;pb;c");
-    JUnitTestCase.assertTrue(first.hashCode == second.hashCode);
-  }
-
   static dartSuite() {
     _ut.group('ElementLocationImplTest', () {
       _ut.test('test_create_encoding', () {
@@ -1322,10 +1310,6 @@ class ElementLocationImplTest extends EngineTestCase {
       _ut.test('test_equals_equal', () {
         final __test = new ElementLocationImplTest();
         runJUnitTest(__test, __test.test_equals_equal);
-      });
-      _ut.test('test_equals_equalWithDifferentUriKind', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_equals_equalWithDifferentUriKind);
       });
       _ut.test('test_equals_notEqual_differentLengths', () {
         final __test = new ElementLocationImplTest();
@@ -1350,10 +1334,6 @@ class ElementLocationImplTest extends EngineTestCase {
       _ut.test('test_hashCode_equal', () {
         final __test = new ElementLocationImplTest();
         runJUnitTest(__test, __test.test_hashCode_equal);
-      });
-      _ut.test('test_hashCode_equalWithDifferentUriKind', () {
-        final __test = new ElementLocationImplTest();
-        runJUnitTest(__test, __test.test_hashCode_equalWithDifferentUriKind);
       });
     });
   }
@@ -4255,13 +4235,6 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertEquals(element, type.element);
   }
 
-  void test_isMoreSpecificThan_typeArguments_bottom() {
-    TypeParameterElementImpl element = new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
-    // E << bottom
-    JUnitTestCase.assertTrue(type.isMoreSpecificThan(BottomTypeImpl.instance));
-  }
-
   void test_isMoreSpecificThan_typeArguments_dynamic() {
     TypeParameterElementImpl element = new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
@@ -4359,10 +4332,6 @@ class TypeParameterTypeImplTest extends EngineTestCase {
       _ut.test('test_getElement', () {
         final __test = new TypeParameterTypeImplTest();
         runJUnitTest(__test, __test.test_getElement);
-      });
-      _ut.test('test_isMoreSpecificThan_typeArguments_bottom', () {
-        final __test = new TypeParameterTypeImplTest();
-        runJUnitTest(__test, __test.test_isMoreSpecificThan_typeArguments_bottom);
       });
       _ut.test('test_isMoreSpecificThan_typeArguments_dynamic', () {
         final __test = new TypeParameterTypeImplTest();

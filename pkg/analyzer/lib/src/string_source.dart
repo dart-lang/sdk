@@ -40,6 +40,10 @@ class StringSource implements Source {
 
   bool get isInSystemLibrary => false;
 
-  Source resolveRelative(Uri relativeUri) => throw new UnsupportedError(
+  @override
+  Uri get uri => throw new UnsupportedError(
+      "StringSource doesn't support uri.");
+
+  Uri resolveRelativeUri(Uri relativeUri) => throw new UnsupportedError(
       "StringSource doesn't support resolveRelative.");
 }

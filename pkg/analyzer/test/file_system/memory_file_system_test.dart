@@ -171,7 +171,7 @@ main() {
         provider.newFile(path, 'contents 1');
         Resource file = provider.getResource(path);
         expect(file, new isInstanceOf<File>());
-        Source source = (file as File).createSource(UriKind.FILE_URI);
+        Source source = (file as File).createSource();
         expect(source.contents.data, equals('contents 1'));
         provider.modifyFile(path, 'contents 2');
         expect(source.contents.data, equals('contents 2'));
@@ -303,6 +303,13 @@ main() {
         expect(folder == folder2, isFalse);
       });
 
+      test('contains', () {
+        expect(folder.contains('/foo/bar/aaa.txt'), isTrue);
+        expect(folder.contains('/foo/bar/aaa/bbb.txt'), isTrue);
+        expect(folder.contains('/baz.txt'), isFalse);
+        expect(folder.contains('/foo/bar'), isFalse);
+      });
+
       group('getChild', () {
         test('does not exist', () {
           File file = folder.getChild('file.txt');
@@ -373,21 +380,21 @@ main() {
       group('existent', () {
         setUp(() {
           File file = provider.newFile('/foo/test.dart', 'library test;');
-          source = file.createSource(UriKind.FILE_URI);
+          source = file.createSource();
         });
 
         group('==', () {
           group('true', () {
             test('self', () {
               File file = provider.newFile('/foo/test.dart', '');
-              Source source = file.createSource(UriKind.FILE_URI);
+              Source source = file.createSource();
               expect(source == source, isTrue);
             });
 
             test('same file', () {
               File file = provider.newFile('/foo/test.dart', '');
-              Source sourceA = file.createSource(UriKind.FILE_URI);
-              Source sourceB = file.createSource(UriKind.FILE_URI);
+              Source sourceA = file.createSource();
+              Source sourceB = file.createSource();
               expect(sourceA == sourceB, isTrue);
             });
           });
@@ -395,15 +402,15 @@ main() {
           group('false', () {
             test('not a memory Source', () {
               File file = provider.newFile('/foo/test.dart', '');
-              Source source = file.createSource(UriKind.FILE_URI);
+              Source source = file.createSource();
               expect(source == new Object(), isFalse);
             });
 
             test('different file', () {
               File fileA = provider.newFile('/foo/a.dart', '');
               File fileB = provider.newFile('/foo/b.dart', '');
-              Source sourceA = fileA.createSource(UriKind.FILE_URI);
-              Source sourceB = fileB.createSource(UriKind.FILE_URI);
+              Source sourceA = fileA.createSource();
+              Source sourceB = fileB.createSource();
               expect(sourceA == sourceB, isFalse);
             });
           });
@@ -415,7 +422,7 @@ main() {
         });
 
         test('encoding', () {
-          expect(source.encoding, 'f/foo/test.dart');
+          expect(source.encoding, 'file:///foo/test.dart');
         });
 
         test('exists', () {
@@ -435,15 +442,15 @@ main() {
         });
 
         test('resolveRelative', () {
-          var relative = source.resolveRelative(new Uri.file('bar/baz.dart'));
-          expect(relative.fullName, '/foo/bar/baz.dart');
+          Uri relative = source.resolveRelativeUri(new Uri.file('bar/baz.dart'));
+          expect(relative.path, '/foo/bar/baz.dart');
         });
       });
 
       group('non-existent', () {
         setUp(() {
           File file = provider.getResource('/foo/test.dart');
-          source = file.createSource(UriKind.FILE_URI);
+          source = file.createSource();
         });
 
         test('contents', () {
@@ -453,7 +460,7 @@ main() {
         });
 
         test('encoding', () {
-          expect(source.encoding, 'f/foo/test.dart');
+          expect(source.encoding, 'file:///foo/test.dart');
         });
 
         test('exists', () {
@@ -469,8 +476,8 @@ main() {
         });
 
         test('resolveRelative', () {
-          var relative = source.resolveRelative(new Uri.file('bar/baz.dart'));
-          expect(relative.fullName, '/foo/bar/baz.dart');
+          Uri relative = source.resolveRelativeUri(new Uri.file('bar/baz.dart'));
+          expect(relative.path, '/foo/bar/baz.dart');
         });
       });
     });

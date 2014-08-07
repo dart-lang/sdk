@@ -270,9 +270,11 @@ $if DART2JS
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
-  void set lineDashOffset(num value) => JS('void',
-      'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
-      '#.webkitLineDashOffset = #', this, this, value, this, value);
+  void set lineDashOffset(num value) {
+    JS('void',
+       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
+       '#.webkitLineDashOffset = #', this, this, value, this, value);
+  }
 $else
   // TODO(amouravski): Add Dartium native methods for drawImage once we figure
   // out how to not break native bindings.

@@ -7,6 +7,8 @@
 
 library services.src.correction.assist;
 
+import 'dart:collection';
+
 import 'package:analysis_services/correction/assist.dart';
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/search/hierarchy.dart';
@@ -14,6 +16,7 @@ import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/correction/name_suggestion.dart';
 import 'package:analysis_services/src/correction/source_buffer.dart';
 import 'package:analysis_services/src/correction/source_range.dart';
+import 'package:analysis_services/src/correction/statement_analyzer.dart';
 import 'package:analysis_services/src/correction/util.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -21,6 +24,10 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
+
+
+
+typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
 
 
 /**
@@ -39,9 +46,9 @@ class AssistProcessor {
   String unitLibraryFolder;
 
   final List<Edit> edits = <Edit>[];
-  final Map<String, LinkedPositionGroup> linkedPositionGroups = <String,
-      LinkedPositionGroup>{};
-  Position endPosition = null;
+  final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
+      LinkedEditGroup>{};
+  Position exitPosition = null;
   final List<Assist> assists = <Assist>[];
 
   int selectionEnd;
@@ -76,9 +83,9 @@ class AssistProcessor {
     _addProposal_convertToIsNot_onNot();
     _addProposal_convertToIsNotEmpty();
     _addProposal_exchangeOperands();
-    _addProposal_extractClassIntoPart();
     _addProposal_importAddShow();
     _addProposal_invertIf();
+    _addProposal_joinIfStatementInner();
     _addProposal_joinIfStatementOuter();
     _addProposal_joinVariableDeclaration_onAssignment();
     _addProposal_joinVariableDeclaration_onDeclaration();
@@ -128,15 +135,15 @@ class AssistProcessor {
     Change change = new Change(message);
     change.add(fileEdit);
     linkedPositionGroups.values.forEach(
-        (group) => change.addLinkedPositionGroup(group));
-    change.endPosition = endPosition;
+        (group) => change.addLinkedEditGroup(group));
+    change.selection = exitPosition;
     // add Assist
     Assist assist = new Assist(kind, change);
     assists.add(assist);
     // clear
     edits.clear();
     linkedPositionGroups.clear();
-    endPosition = null;
+    exitPosition = null;
   }
 
   /**
@@ -241,7 +248,7 @@ class AssistProcessor {
         if (i == 0) {
           builder.append(name);
         }
-        builder.addProposal(name);
+        builder.addSuggestion(LinkedEditSuggestionKind.VARIABLE, name);
       }
       builder.endPosition();
     }
@@ -263,7 +270,7 @@ class AssistProcessor {
     String prefix = utils.getNodePrefix(body.parent);
     // add change
     String indent = utils.getIndent(1);
-    String returnSource = 'return ' + _getSource(returnValue);
+    String returnSource = 'return ' + _getNodeText(returnValue);
     String newBodySource = "{$eol$prefix${indent}$returnSource;$eol$prefix}";
     _addReplaceEdit(rangeNode(body), newBodySource);
     // add proposal
@@ -295,7 +302,7 @@ class AssistProcessor {
       return;
     }
     // add change
-    String newBodySource = "=> ${_getSource(returnExpression)}";
+    String newBodySource = "=> ${_getNodeText(returnExpression)}";
     if (body.parent is! FunctionExpression ||
         body.parent.parent is FunctionDeclaration) {
       newBodySource += ";";
@@ -492,246 +499,197 @@ class AssistProcessor {
       // exchange parts of "wide" expression parts
       SourceRange leftRange = rangeStartEnd(binaryExpression, leftOperand);
       SourceRange rightRange = rangeStartEnd(rightOperand, binaryExpression);
-      _addReplaceEdit(leftRange, _getSource2(rightRange));
-      _addReplaceEdit(rightRange, _getSource2(leftRange));
+      _addReplaceEdit(leftRange, _getRangeText(rightRange));
+      _addReplaceEdit(rightRange, _getRangeText(leftRange));
     }
     // add proposal
     _addAssist(AssistKind.EXCHANGE_OPERANDS, []);
   }
 
-  void _addProposal_extractClassIntoPart() {
-    // TODO(scheglov) implement
-//    // should be on the name
-//    if (node is! SimpleIdentifier) {
-//      return;
-//    }
-//    if (node.parent is! ClassDeclaration) {
-//      return;
-//    }
-//    ClassDeclaration classDeclaration = node.parent as ClassDeclaration;
-//    SourceRange linesRange =
-//        utils.getLinesRange2(rangeNode(classDeclaration));
-//    // prepare name
-//    String className = classDeclaration.name.name;
-//    String fileName = CorrectionUtils.getRecommentedFileNameForClass(className);
-//    // prepare new file
-//    JavaFile newFile = new JavaFile.relative(_unitLibraryFolder, fileName);
-//    if (newFile.exists()) {
-//      return;
-//    }
-//    // remove class from this unit
-//    SourceChange unitChange = new SourceChange(_source.shortName, _source);
-//    unitChange.addEdit(new Edit.range(linesRange, ""));
-//    // create new unit
-//    Change createFileChange;
-//    {
-//      String newContent = "part of ${_unitLibraryElement.displayName};";
-//      newContent += utils.endOfLine;
-//      newContent += utils.endOfLine;
-//      newContent += _getSource2(linesRange);
-//      createFileChange = new CreateFileChange(fileName, newFile, newContent);
-//    }
-//    // add 'part'
-//    SourceChange libraryChange =
-//        _getInsertPartDirectiveChange(_unitLibrarySource, fileName);
-//    // add proposal
-//    Change compositeChange =
-//        new CompositeChange("", [unitChange, createFileChange, libraryChange]);
-//    _proposals.add(
-//        new ChangeCorrectionProposal(
-//            compositeChange,
-//            AssistKind.EXTRACT_CLASS,
-//            [fileName]));
-  }
-
   void _addProposal_importAddShow() {
-    // TODO(scheglov) implement
-//    // prepare ImportDirective
-//    ImportDirective importDirective =
-//        node.getAncestor((node) => node is ImportDirective);
-//    if (importDirective == null) {
-//      return;
-//    }
-//    // there should be no existing combinators
-//    if (!importDirective.combinators.isEmpty) {
-//      return;
-//    }
-//    // prepare whole import namespace
-//    ImportElement importElement = importDirective.element;
-//    Map<String, Element> namespace =
-//        getImportNamespace(importElement);
-//    // prepare names of referenced elements (from this import)
-//    Set<String> referencedNames = new Set();
-//    for (Element element in namespace.values) {
-//      List<SearchMatch> references =
-//          searchEngine.searchReferences(element, null, null);
-//      for (SearchMatch match in references) {
-//        LibraryElement library = match.element.library;
-//        if (unitLibraryElement == library) {
-//          referencedNames.add(element.displayName);
-//          break;
-//        }
-//      }
-//    }
-//    // ignore if unused
-//    if (referencedNames.isEmpty) {
-//      return;
-//    }
-//    // prepare change
-//    String sb = " show ${StringUtils.join(referencedNames, ", ")}";
-//    _addInsertEdit(importDirective.end - 1, sb.toString());
-//    // add proposal
-//    _addAssist(AssistKind.IMPORT_ADD_SHOW, []);
+    // prepare ImportDirective
+    ImportDirective importDirective =
+        node.getAncestor((node) => node is ImportDirective);
+    if (importDirective == null) {
+      _coverageMarker();
+      return;
+    }
+    // there should be no existing combinators
+    if (importDirective.combinators.isNotEmpty) {
+      _coverageMarker();
+      return;
+    }
+    // prepare whole import namespace
+    ImportElement importElement = importDirective.element;
+    Map<String, Element> namespace = getImportNamespace(importElement);
+    // prepare names of referenced elements (from this import)
+    SplayTreeSet<String> referencedNames = new SplayTreeSet<String>();
+    _SimpleIdentifierRecursiveAstVisitor visitor =
+        new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
+      Element element = node.staticElement;
+      if (namespace[node.name] == element) {
+        referencedNames.add(element.displayName);
+      }
+    });
+    unit.accept(visitor);
+    // ignore if unused
+    if (referencedNames.isEmpty) {
+      _coverageMarker();
+      return;
+    }
+    // prepare change
+    String showCombinator = " show ${StringUtils.join(referencedNames, ", ")}";
+    _addInsertEdit(importDirective.end - 1, showCombinator);
+    // add proposal
+    _addAssist(AssistKind.IMPORT_ADD_SHOW, []);
   }
 
   void _addProposal_invertIf() {
-    // TODO(scheglov) implement
-//    if (node is! IfStatement) {
-//      return;
-//    }
-//    IfStatement ifStatement = node as IfStatement;
-//    Expression condition = ifStatement.condition;
-//    // should have both "then" and "else"
-//    Statement thenStatement = ifStatement.thenStatement;
-//    Statement elseStatement = ifStatement.elseStatement;
-//    if (thenStatement == null || elseStatement == null) {
-//      return;
-//    }
-//    // prepare source
-//    String invertedCondition = utils.invertCondition(condition);
-//    String thenSource = _getSource(thenStatement);
-//    String elseSource = _getSource(elseStatement);
-//    // do replacements
-//    _addReplaceEdit(rangeNode(condition), invertedCondition);
-//    _addReplaceEdit(rangeNode(thenStatement), elseSource);
-//    _addReplaceEdit(rangeNode(elseStatement), thenSource);
-//    // add proposal
-//    _addAssist(AssistKind.INVERT_IF_STATEMENT, []);
+    if (node is! IfStatement) {
+      return;
+    }
+    IfStatement ifStatement = node as IfStatement;
+    Expression condition = ifStatement.condition;
+    // should have both "then" and "else"
+    Statement thenStatement = ifStatement.thenStatement;
+    Statement elseStatement = ifStatement.elseStatement;
+    if (thenStatement == null || elseStatement == null) {
+      return;
+    }
+    // prepare source
+    String invertedCondition = utils.invertCondition(condition);
+    String thenSource = _getNodeText(thenStatement);
+    String elseSource = _getNodeText(elseStatement);
+    // do replacements
+    _addReplaceEdit(rangeNode(condition), invertedCondition);
+    _addReplaceEdit(rangeNode(thenStatement), elseSource);
+    _addReplaceEdit(rangeNode(elseStatement), thenSource);
+    // add proposal
+    _addAssist(AssistKind.INVERT_IF_STATEMENT, []);
   }
 
   void _addProposal_joinIfStatementInner() {
-    // TODO(scheglov) implement
-//    // climb up condition to the (supposedly) "if" statement
-//    AstNode node = this.node;
-//    while (node is Expression) {
-//      node = node.parent;
-//    }
-//    // prepare target "if" statement
-//    if (node is! IfStatement) {
-//      return;
-//    }
-//    IfStatement targetIfStatement = node as IfStatement;
-//    if (targetIfStatement.elseStatement != null) {
-//      return;
-//    }
-//    // prepare inner "if" statement
-//    Statement targetThenStatement = targetIfStatement.thenStatement;
-//    Statement innerStatement =
-//        CorrectionUtils.getSingleStatement(targetThenStatement);
-//    if (innerStatement is! IfStatement) {
-//      return;
-//    }
-//    IfStatement innerIfStatement = innerStatement as IfStatement;
-//    if (innerIfStatement.elseStatement != null) {
-//      return;
-//    }
-//    // prepare environment
-//    String prefix = utils.getNodePrefix(targetIfStatement);
-//    // merge conditions
-//    String condition;
-//    {
-//      Expression targetCondition = targetIfStatement.condition;
-//      Expression innerCondition = innerIfStatement.condition;
-//      String targetConditionSource = _getSource(targetCondition);
-//      String innerConditionSource = _getSource(innerCondition);
-//      if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
-//        targetConditionSource = "(${targetConditionSource})";
-//      }
-//      if (_shouldWrapParenthesisBeforeAnd(innerCondition)) {
-//        innerConditionSource = "(${innerConditionSource})";
-//      }
-//      condition = "${targetConditionSource} && ${innerConditionSource}";
-//    }
-//    // replace target "if" statement
-//    {
-//      Statement innerThenStatement = innerIfStatement.thenStatement;
-//      List<Statement> innerThenStatements =
-//          CorrectionUtils.getStatements(innerThenStatement);
-//      SourceRange lineRanges = utils.getLinesRange(innerThenStatements);
-//      String oldSource = utils.getText3(lineRanges);
-//      String newSource = utils.getIndentSource2(oldSource, false);
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeNode(targetIfStatement),
-////          MessageFormat.format(
-////              "if ({0}) '{'{1}{2}{3}'}'",
-////              [condition, eol, newSource, prefix]));
-//    }
-//    // done
-//    _addAssist(AssistKind.JOIN_IF_WITH_INNER, []);
+    // climb up condition to the (supposedly) "if" statement
+    AstNode node = this.node;
+    while (node is Expression) {
+      node = node.parent;
+    }
+    // prepare target "if" statement
+    if (node is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement targetIfStatement = node as IfStatement;
+    if (targetIfStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare inner "if" statement
+    Statement targetThenStatement = targetIfStatement.thenStatement;
+    Statement innerStatement = getSingleStatement(targetThenStatement);
+    if (innerStatement is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement innerIfStatement = innerStatement as IfStatement;
+    if (innerIfStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(targetIfStatement);
+    // merge conditions
+    String condition;
+    {
+      Expression targetCondition = targetIfStatement.condition;
+      Expression innerCondition = innerIfStatement.condition;
+      String targetConditionSource = _getNodeText(targetCondition);
+      String innerConditionSource = _getNodeText(innerCondition);
+      if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
+        targetConditionSource = "(${targetConditionSource})";
+      }
+      if (_shouldWrapParenthesisBeforeAnd(innerCondition)) {
+        innerConditionSource = "(${innerConditionSource})";
+      }
+      condition = "${targetConditionSource} && ${innerConditionSource}";
+    }
+    // replace target "if" statement
+    {
+      Statement innerThenStatement = innerIfStatement.thenStatement;
+      List<Statement> innerThenStatements = getStatements(innerThenStatement);
+      SourceRange lineRanges =
+          utils.getLinesRangeStatements(innerThenStatements);
+      String oldSource = utils.getRangeText(lineRanges);
+      String newSource = utils.indentSourceLeftRight(oldSource, false);
+      _addReplaceEdit(
+          rangeNode(targetIfStatement),
+          "if ($condition) {${eol}${newSource}${prefix}}");
+    }
+    // done
+    _addAssist(AssistKind.JOIN_IF_WITH_INNER, []);
   }
 
   void _addProposal_joinIfStatementOuter() {
-    // TODO(scheglov) implement
-//    // climb up condition to the (supposedly) "if" statement
-//    AstNode node = this.node;
-//    while (node is Expression) {
-//      node = node.parent;
-//    }
-//    // prepare target "if" statement
-//    if (node is! IfStatement) {
-//      return;
-//    }
-//    IfStatement targetIfStatement = node as IfStatement;
-//    if (targetIfStatement.elseStatement != null) {
-//      return;
-//    }
-//    // prepare outer "if" statement
-//    AstNode parent = targetIfStatement.parent;
-//    if (parent is Block) {
-//      parent = parent.parent;
-//    }
-//    if (parent is! IfStatement) {
-//      return;
-//    }
-//    IfStatement outerIfStatement = parent as IfStatement;
-//    if (outerIfStatement.elseStatement != null) {
-//      return;
-//    }
-//    // prepare environment
-//    String prefix = utils.getNodePrefix(outerIfStatement);
-//    // merge conditions
-//    String condition;
-//    {
-//      Expression targetCondition = targetIfStatement.condition;
-//      Expression outerCondition = outerIfStatement.condition;
-//      String targetConditionSource = _getSource(targetCondition);
-//      String outerConditionSource = _getSource(outerCondition);
-//      if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
-//        targetConditionSource = "(${targetConditionSource})";
-//      }
-//      if (_shouldWrapParenthesisBeforeAnd(outerCondition)) {
-//        outerConditionSource = "(${outerConditionSource})";
-//      }
-//      condition = "${outerConditionSource} && ${targetConditionSource}";
-//    }
-//    // replace outer "if" statement
-//    {
-//      Statement targetThenStatement = targetIfStatement.thenStatement;
-//      List<Statement> targetThenStatements =
-//          CorrectionUtils.getStatements(targetThenStatement);
-//      SourceRange lineRanges = utils.getLinesRange(targetThenStatements);
-//      String oldSource = utils.getText3(lineRanges);
-//      String newSource = utils.getIndentSource2(oldSource, false);
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeNode(outerIfStatement),
-////          MessageFormat.format(
-////              "if ({0}) '{'{1}{2}{3}'}'",
-////              [condition, eol, newSource, prefix]));
-//    }
-//    // done
-//    _addAssist(AssistKind.JOIN_IF_WITH_OUTER, []);
+    // climb up condition to the (supposedly) "if" statement
+    AstNode node = this.node;
+    while (node is Expression) {
+      node = node.parent;
+    }
+    // prepare target "if" statement
+    if (node is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement targetIfStatement = node as IfStatement;
+    if (targetIfStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare outer "if" statement
+    AstNode parent = targetIfStatement.parent;
+    if (parent is Block) {
+      parent = parent.parent;
+    }
+    if (parent is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement outerIfStatement = parent as IfStatement;
+    if (outerIfStatement.elseStatement != null) {
+      _coverageMarker();
+      return;
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(outerIfStatement);
+    // merge conditions
+    String condition;
+    {
+      Expression targetCondition = targetIfStatement.condition;
+      Expression outerCondition = outerIfStatement.condition;
+      String targetConditionSource = _getNodeText(targetCondition);
+      String outerConditionSource = _getNodeText(outerCondition);
+      if (_shouldWrapParenthesisBeforeAnd(targetCondition)) {
+        targetConditionSource = "(${targetConditionSource})";
+      }
+      if (_shouldWrapParenthesisBeforeAnd(outerCondition)) {
+        outerConditionSource = "(${outerConditionSource})";
+      }
+      condition = "${outerConditionSource} && ${targetConditionSource}";
+    }
+    // replace outer "if" statement
+    {
+      Statement targetThenStatement = targetIfStatement.thenStatement;
+      List<Statement> targetThenStatements = getStatements(targetThenStatement);
+      SourceRange lineRanges =
+          utils.getLinesRangeStatements(targetThenStatements);
+      String oldSource = utils.getRangeText(lineRanges);
+      String newSource = utils.indentSourceLeftRight(oldSource, false);
+      _addReplaceEdit(
+          rangeNode(outerIfStatement),
+          "if ($condition) {${eol}${newSource}${prefix}}");
+    }
+    // done
+    _addAssist(AssistKind.JOIN_IF_WITH_OUTER, []);
   }
 
   void _addProposal_joinVariableDeclaration_onAssignment() {
@@ -977,9 +935,9 @@ class AssistProcessor {
     if (inVariable) {
       VariableDeclaration variable = conditional.parent as VariableDeclaration;
       _addRemoveEdit(rangeEndEnd(variable.name, conditional));
-      String conditionSrc = _getSource(conditional.condition);
-      String thenSrc = _getSource(conditional.thenExpression);
-      String elseSrc = _getSource(conditional.elseExpression);
+      String conditionSrc = _getNodeText(conditional.condition);
+      String thenSrc = _getNodeText(conditional.thenExpression);
+      String elseSrc = _getNodeText(conditional.elseExpression);
       String name = variable.name.name;
       String src = eol;
       src += prefix + 'if ($conditionSrc) {' + eol;
@@ -994,10 +952,10 @@ class AssistProcessor {
       AssignmentExpression assignment =
           conditional.parent as AssignmentExpression;
       Expression leftSide = assignment.leftHandSide;
-      String conditionSrc = _getSource(conditional.condition);
-      String thenSrc = _getSource(conditional.thenExpression);
-      String elseSrc = _getSource(conditional.elseExpression);
-      String name = _getSource(leftSide);
+      String conditionSrc = _getNodeText(conditional.condition);
+      String thenSrc = _getNodeText(conditional.thenExpression);
+      String elseSrc = _getNodeText(conditional.elseExpression);
+      String name = _getNodeText(leftSide);
       String src = '';
       src += 'if ($conditionSrc) {' + eol;
       src += prefix + indent + '$name = $thenSrc;' + eol;
@@ -1008,9 +966,9 @@ class AssistProcessor {
     }
     // return Conditional;
     if (inReturn) {
-      String conditionSrc = _getSource(conditional.condition);
-      String thenSrc = _getSource(conditional.thenExpression);
-      String elseSrc = _getSource(conditional.elseExpression);
+      String conditionSrc = _getNodeText(conditional.condition);
+      String thenSrc = _getNodeText(conditional.thenExpression);
+      String elseSrc = _getNodeText(conditional.elseExpression);
       String src = '';
       src += 'if ($conditionSrc) {' + eol;
       src += prefix + indent + 'return $thenSrc;' + eol;
@@ -1024,494 +982,487 @@ class AssistProcessor {
   }
 
   void _addProposal_replaceIfElseWithConditional() {
-    // TODO(scheglov) implement
-//    // should be "if"
-//    if (node is! IfStatement) {
-//      return;
-//    }
-//    IfStatement ifStatement = node as IfStatement;
-//    // single then/else statements
-//    Statement thenStatement =
-//        CorrectionUtils.getSingleStatement(ifStatement.thenStatement);
-//    Statement elseStatement =
-//        CorrectionUtils.getSingleStatement(ifStatement.elseStatement);
-//    if (thenStatement == null || elseStatement == null) {
-//      return;
-//    }
-//    // returns
-//    if (thenStatement is ReturnStatement || elseStatement is ReturnStatement) {
-//      ReturnStatement thenReturn = thenStatement as ReturnStatement;
-//      ReturnStatement elseReturn = elseStatement as ReturnStatement;
-//      // TODO(scheglov)
-////      _addReplaceEdit(
-////          rangeNode(ifStatement),
-////          MessageFormat.format(
-////              "return {0} ? {1} : {2};",
-////              [
-////                  _getSource(ifStatement.condition),
-////                  _getSource(thenReturn.expression),
-////                  _getSource(elseReturn.expression)]));
-//    }
-//    // assignments -> v = Conditional;
-//    if (thenStatement is ExpressionStatement &&
-//        elseStatement is ExpressionStatement) {
-//      Expression thenExpression = thenStatement.expression;
-//      Expression elseExpression = elseStatement.expression;
-//      if (thenExpression is AssignmentExpression &&
-//          elseExpression is AssignmentExpression) {
-//        AssignmentExpression thenAssignment = thenExpression;
-//        AssignmentExpression elseAssignment = elseExpression;
-//        String thenTarget = _getSource(thenAssignment.leftHandSide);
-//        String elseTarget = _getSource(elseAssignment.leftHandSide);
-//        if (thenAssignment.operator.type == TokenType.EQ &&
-//            elseAssignment.operator.type == TokenType.EQ &&
-//            StringUtils.equals(thenTarget, elseTarget)) {
-//          // TODO(scheglov)
-////          _addReplaceEdit(
-////              rangeNode(ifStatement),
-////              MessageFormat.format(
-////                  "{0} = {1} ? {2} : {3};",
-////                  [
-////                      thenTarget,
-////                      _getSource(ifStatement.condition),
-////                      _getSource(thenAssignment.rightHandSide),
-////                      _getSource(elseAssignment.rightHandSide)]));
-//        }
-//      }
-//    }
-//    // add proposal
-//    _addAssist(
-//        AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL,
-//        []);
+    // should be "if"
+    if (node is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement ifStatement = node as IfStatement;
+    // single then/else statements
+    Statement thenStatement = getSingleStatement(ifStatement.thenStatement);
+    Statement elseStatement = getSingleStatement(ifStatement.elseStatement);
+    if (thenStatement == null || elseStatement == null) {
+      _coverageMarker();
+      return;
+    }
+    // returns
+    if (thenStatement is ReturnStatement || elseStatement is ReturnStatement) {
+      ReturnStatement thenReturn = thenStatement as ReturnStatement;
+      ReturnStatement elseReturn = elseStatement as ReturnStatement;
+      String conditionSrc = _getNodeText(ifStatement.condition);
+      String theSrc = _getNodeText(thenReturn.expression);
+      String elseSrc = _getNodeText(elseReturn.expression);
+      _addReplaceEdit(
+          rangeNode(ifStatement),
+          'return $conditionSrc ? $theSrc : $elseSrc;');
+    }
+    // assignments -> v = Conditional;
+    if (thenStatement is ExpressionStatement &&
+        elseStatement is ExpressionStatement) {
+      Expression thenExpression = thenStatement.expression;
+      Expression elseExpression = elseStatement.expression;
+      if (thenExpression is AssignmentExpression &&
+          elseExpression is AssignmentExpression) {
+        AssignmentExpression thenAssignment = thenExpression;
+        AssignmentExpression elseAssignment = elseExpression;
+        String thenTarget = _getNodeText(thenAssignment.leftHandSide);
+        String elseTarget = _getNodeText(elseAssignment.leftHandSide);
+        if (thenAssignment.operator.type == TokenType.EQ &&
+            elseAssignment.operator.type == TokenType.EQ &&
+            StringUtils.equals(thenTarget, elseTarget)) {
+          String conditionSrc = _getNodeText(ifStatement.condition);
+          String theSrc = _getNodeText(thenAssignment.rightHandSide);
+          String elseSrc = _getNodeText(elseAssignment.rightHandSide);
+          _addReplaceEdit(
+              rangeNode(ifStatement),
+              '$thenTarget = $conditionSrc ? $theSrc : $elseSrc;');
+        }
+      }
+    }
+    // add proposal
+    _addAssist(AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL, []);
   }
 
   void _addProposal_splitAndCondition() {
-    // TODO(scheglov) implement
-//    // check that user invokes quick assist on binary expression
-//    if (node is! BinaryExpression) {
-//      return;
-//    }
-//    BinaryExpression binaryExpression = node as BinaryExpression;
-//    // prepare operator position
-//    int offset =
-//        _isOperatorSelected(binaryExpression, _selectionOffset, _selectionLength);
-//    if (offset == -1) {
-//      return;
-//    }
-//    // should be &&
-//    if (binaryExpression.operator.type != TokenType.AMPERSAND_AMPERSAND) {
-//      return;
-//    }
-//    // prepare "if"
-//    Statement statement = node.getAncestor((node) => node is Statement);
-//    if (statement is! IfStatement) {
-//      return;
-//    }
-//    IfStatement ifStatement = statement as IfStatement;
-//    // check that binary expression is part of first level && condition of "if"
-//    BinaryExpression condition = binaryExpression;
-//    while (condition.parent is BinaryExpression &&
-//        (condition.parent as BinaryExpression).operator.type ==
-//            TokenType.AMPERSAND_AMPERSAND) {
-//      condition = condition.parent as BinaryExpression;
-//    }
-//    if (!identical(ifStatement.condition, condition)) {
-//      return;
-//    }
-//    // prepare environment
-//    String prefix = utils.getNodePrefix(ifStatement);
-//    String indent = utils.getIndent(1);
-//    // prepare "rightCondition"
-//    String rightConditionSource;
-//    {
-//      SourceRange rightConditionRange =
-//          rangeStartEnd(binaryExpression.rightOperand, condition);
-//      rightConditionSource = _getSource2(rightConditionRange);
-//    }
-//    // remove "&& rightCondition"
-//    _addRemoveEdit(
-//        rangeEndEnd(binaryExpression.leftOperand, condition));
-//    // update "then" statement
-//    Statement thenStatement = ifStatement.thenStatement;
-//    Statement elseStatement = ifStatement.elseStatement;
-//    if (thenStatement is Block) {
-//      Block thenBlock = thenStatement;
-//      SourceRange thenBlockRange = rangeNode(thenBlock);
-//      // insert inner "if" with right part of "condition"
-//      {
-//        String source =
-//            "${eol}${prefix}${indent}if (${rightConditionSource}) {";
-//        int thenBlockInsideOffset = thenBlockRange.offset + 1;
-//        _addInsertEdit(thenBlockInsideOffset, source);
-//      }
-//      // insert closing "}" for inner "if"
-//      {
-//        int thenBlockEnd = thenBlockRange.end;
-//        String source = "${indent}}";
-//        // may be move "else" statements
-//        if (elseStatement != null) {
-//          List<Statement> elseStatements =
-//              CorrectionUtils.getStatements(elseStatement);
-//          SourceRange elseLinesRange = utils.getLinesRange(elseStatements);
-//          String elseIndentOld = "${prefix}${indent}";
-//          String elseIndentNew = "${elseIndentOld}${indent}";
-//          String newElseSource =
-//              utils.getIndentSource(elseLinesRange, elseIndentOld, elseIndentNew);
-//          // append "else" block
-//          source += " else {${eol}";
-//          source += newElseSource;
-//          source += "${prefix}${indent}}";
-//          // remove old "else" range
-//          _addRemoveEdit(
-//              rangeStartEnd(thenBlockEnd, elseStatement));
-//        }
-//        // insert before outer "then" block "}"
-//        source += "${eol}${prefix}";
-//        _addInsertEdit(thenBlockEnd - 1, source);
-//      }
-//    } else {
-//      // insert inner "if" with right part of "condition"
-//      {
-//        String source = "${eol}${prefix}${indent}if (${rightConditionSource})";
-//        _addInsertEdit(ifStatement.rightParenthesis.offset + 1, source);
-//      }
-//      // indent "else" statements to correspond inner "if"
-//      if (elseStatement != null) {
-//        SourceRange elseRange =
-//            rangeStartEnd(ifStatement.elseKeyword.offset, elseStatement);
-//        SourceRange elseLinesRange = utils.getLinesRange2(elseRange);
-//        String elseIndentOld = prefix;
-//        String elseIndentNew = "${elseIndentOld}${indent}";
-//        edits.add(
-//            utils.createIndentEdit(elseLinesRange, elseIndentOld, elseIndentNew));
-//      }
-//    }
-//    // indent "then" statements to correspond inner "if"
-//    {
-//      List<Statement> thenStatements =
-//          CorrectionUtils.getStatements(thenStatement);
-//      SourceRange linesRange = utils.getLinesRange(thenStatements);
-//      String thenIndentOld = "${prefix}${indent}";
-//      String thenIndentNew = "${thenIndentOld}${indent}";
-//      edits.add(
-//          utils.createIndentEdit(linesRange, thenIndentOld, thenIndentNew));
-//    }
-//    // add proposal
-//    _addAssist(AssistKind.SPLIT_AND_CONDITION, []);
+    // check that user invokes quick assist on binary expression
+    if (node is! BinaryExpression) {
+      _coverageMarker();
+      return;
+    }
+    BinaryExpression binaryExpression = node as BinaryExpression;
+    // prepare operator position
+    if (!_isOperatorSelected(
+        binaryExpression,
+        selectionOffset,
+        selectionLength)) {
+      _coverageMarker();
+      return;
+    }
+    // should be &&
+    if (binaryExpression.operator.type != TokenType.AMPERSAND_AMPERSAND) {
+      _coverageMarker();
+      return;
+    }
+    // prepare "if"
+    Statement statement = node.getAncestor((node) => node is Statement);
+    if (statement is! IfStatement) {
+      _coverageMarker();
+      return;
+    }
+    IfStatement ifStatement = statement as IfStatement;
+    // check that binary expression is part of first level && condition of "if"
+    BinaryExpression condition = binaryExpression;
+    while (condition.parent is BinaryExpression &&
+        (condition.parent as BinaryExpression).operator.type ==
+            TokenType.AMPERSAND_AMPERSAND) {
+      condition = condition.parent as BinaryExpression;
+    }
+    if (!identical(ifStatement.condition, condition)) {
+      _coverageMarker();
+      return;
+    }
+    // prepare environment
+    String prefix = utils.getNodePrefix(ifStatement);
+    String indent = utils.getIndent(1);
+    // prepare "rightCondition"
+    String rightConditionSource;
+    {
+      SourceRange rightConditionRange =
+          rangeStartEnd(binaryExpression.rightOperand, condition);
+      rightConditionSource = _getRangeText(rightConditionRange);
+    }
+    // remove "&& rightCondition"
+    _addRemoveEdit(rangeEndEnd(binaryExpression.leftOperand, condition));
+    // update "then" statement
+    Statement thenStatement = ifStatement.thenStatement;
+    Statement elseStatement = ifStatement.elseStatement;
+    if (thenStatement is Block) {
+      Block thenBlock = thenStatement;
+      SourceRange thenBlockRange = rangeNode(thenBlock);
+      // insert inner "if" with right part of "condition"
+      {
+        String source =
+            "${eol}${prefix}${indent}if (${rightConditionSource}) {";
+        int thenBlockInsideOffset = thenBlockRange.offset + 1;
+        _addInsertEdit(thenBlockInsideOffset, source);
+      }
+      // insert closing "}" for inner "if"
+      {
+        int thenBlockEnd = thenBlockRange.end;
+        String source = "${indent}}";
+        // may be move "else" statements
+        if (elseStatement != null) {
+          List<Statement> elseStatements = getStatements(elseStatement);
+          SourceRange elseLinesRange =
+              utils.getLinesRangeStatements(elseStatements);
+          String elseIndentOld = "${prefix}${indent}";
+          String elseIndentNew = "${elseIndentOld}${indent}";
+          String newElseSource =
+              utils.replaceSourceRangeIndent(elseLinesRange, elseIndentOld, elseIndentNew);
+          // append "else" block
+          source += " else {${eol}";
+          source += newElseSource;
+          source += "${prefix}${indent}}";
+          // remove old "else" range
+          _addRemoveEdit(rangeStartEnd(thenBlockEnd, elseStatement));
+        }
+        // insert before outer "then" block "}"
+        source += "${eol}${prefix}";
+        _addInsertEdit(thenBlockEnd - 1, source);
+      }
+    } else {
+      // insert inner "if" with right part of "condition"
+      {
+        String source = "${eol}${prefix}${indent}if (${rightConditionSource})";
+        _addInsertEdit(ifStatement.rightParenthesis.offset + 1, source);
+      }
+      // indent "else" statements to correspond inner "if"
+      if (elseStatement != null) {
+        SourceRange elseRange =
+            rangeStartEnd(ifStatement.elseKeyword.offset, elseStatement);
+        SourceRange elseLinesRange = utils.getLinesRange(elseRange);
+        String elseIndentOld = prefix;
+        String elseIndentNew = "${elseIndentOld}${indent}";
+        edits.add(
+            utils.createIndentEdit(elseLinesRange, elseIndentOld, elseIndentNew));
+      }
+    }
+    // indent "then" statements to correspond inner "if"
+    {
+      List<Statement> thenStatements = getStatements(thenStatement);
+      SourceRange linesRange = utils.getLinesRangeStatements(thenStatements);
+      String thenIndentOld = "${prefix}${indent}";
+      String thenIndentNew = "${thenIndentOld}${indent}";
+      edits.add(
+          utils.createIndentEdit(linesRange, thenIndentOld, thenIndentNew));
+    }
+    // add proposal
+    _addAssist(AssistKind.SPLIT_AND_CONDITION, []);
   }
 
   void _addProposal_splitVariableDeclaration() {
-    // TODO(scheglov) implement
-//    // prepare DartVariableStatement, should be part of Block
-//    VariableDeclarationStatement statement =
-//        node.getAncestor((node) => node is VariableDeclarationStatement);
-//    if (statement != null && statement.parent is Block) {
-//    } else {
-//      return;
-//    }
-//    // check that statement declares single variable
-//    List<VariableDeclaration> variables = statement.variables.variables;
-//    if (variables.length != 1) {
-//      return;
-//    }
-//    VariableDeclaration variable = variables[0];
-//    // remove initializer value
-//    _addRemoveEdit(
-//        rangeEndStart(variable.name, statement.semicolon));
-//    // TODO(scheglov)
-////    // add assignment statement
-////    String indent = _utils.getNodePrefix(statement);
-////    String assignSource =
-////        MessageFormat.format(
-////            "{0} = {1};",
-////            [variable.name.name, _getSource(variable.initializer)]);
-////    SourceRange assignRange = rangeEndLength(statement, 0);
-////    _addReplaceEdit(assignRange, "${eol}${indent}${assignSource}");
-////    // add proposal
-////    _addUnitCorrectionProposal(
-////        AssistKind.SPLIT_VARIABLE_DECLARATION,
-////        []);
+    // prepare DartVariableStatement, should be part of Block
+    VariableDeclarationStatement statement =
+        node.getAncestor((node) => node is VariableDeclarationStatement);
+    if (statement != null && statement.parent is Block) {
+    } else {
+      _coverageMarker();
+      return;
+    }
+    // check that statement declares single variable
+    List<VariableDeclaration> variables = statement.variables.variables;
+    if (variables.length != 1) {
+      _coverageMarker();
+      return;
+    }
+    VariableDeclaration variable = variables[0];
+    // prepare initializer
+    Expression initializer = variable.initializer;
+    if (initializer == null) {
+      _coverageMarker();
+      return;
+    }
+    // remove initializer value
+    _addRemoveEdit(rangeEndStart(variable.name, statement.semicolon));
+    // add assignment statement
+    String indent = utils.getNodePrefix(statement);
+    String name = variable.name.name;
+    String initSrc = _getNodeText(initializer);
+    SourceRange assignRange = rangeEndLength(statement, 0);
+    _addReplaceEdit(assignRange, eol + indent + name + ' = ' + initSrc + ';');
+    // add proposal
+    _addAssist(AssistKind.SPLIT_VARIABLE_DECLARATION, []);
   }
 
   void _addProposal_surroundWith() {
-    // TODO(scheglov) implement
-//    // prepare selected statements
-//    List<Statement> selectedStatements;
-//    {
-//      SourceRange selection =
-//          rangeStartLength(_selectionOffset, _selectionLength);
-//      StatementAnalyzer selectionAnalyzer =
-//          new StatementAnalyzer.con1(_unit, selection);
-//      _unit.accept(selectionAnalyzer);
-//      List<AstNode> selectedNodes = selectionAnalyzer.selectedNodes;
-//      // convert nodes to statements
-//      selectedStatements = [];
-//      for (AstNode selectedNode in selectedNodes) {
-//        if (selectedNode is Statement) {
-//          selectedStatements.add(selectedNode);
-//        }
-//      }
-//      // we want only statements
-//      if (selectedStatements.isEmpty ||
-//          selectedStatements.length != selectedNodes.length) {
-//        return;
-//      }
-//    }
-//    // prepare statement information
-//    Statement firstStatement = selectedStatements[0];
-//    Statement lastStatement = selectedStatements[selectedStatements.length - 1];
-//    SourceRange statementsRange = utils.getLinesRange(selectedStatements);
-//    // prepare environment
-//    String indentOld = utils.getNodePrefix(firstStatement);
-//    String indentNew = "${indentOld}${utils.getIndent(1)}";
-//    // "block"
-//    {
-//      _addInsertEdit(statementsRange.offset, "${indentOld}{${eol}");
-//      {
-//        Edit edit =
-//            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-//        edits.add(edit);
-//      }
-//      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-//      _proposalEndRange = rangeEndLength(lastStatement, 0);
-//      // add proposal
-//      _addAssist(AssistKind.SURROUND_WITH_BLOCK, []);
-//    }
-//    // "if"
-//    {
-//      {
-//        int offset = statementsRange.offset;
-//        SourceBuilder sb = new SourceBuilder.con1(offset);
-//        sb.append(indentOld);
-//        sb.append("if (");
-//        {
-//          sb.startPosition("CONDITION");
-//          sb.append("condition");
-//          sb.endPosition();
-//        }
-//        sb.append(") {");
-//        sb.append(eol);
-//        _insertBuilder(sb);
-//      }
-//      {
-//        Edit edit =
-//            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-//        edits.add(edit);
-//      }
-//      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-//      _proposalEndRange = rangeEndLength(lastStatement, 0);
-//      // add proposal
-//      _addAssist(AssistKind.SURROUND_WITH_IF, []);
-//    }
-//    // "while"
-//    {
-//      {
-//        int offset = statementsRange.offset;
-//        SourceBuilder sb = new SourceBuilder.con1(offset);
-//        sb.append(indentOld);
-//        sb.append("while (");
-//        {
-//          sb.startPosition("CONDITION");
-//          sb.append("condition");
-//          sb.endPosition();
-//        }
-//        sb.append(") {");
-//        sb.append(eol);
-//        _insertBuilder(sb);
-//      }
-//      {
-//        Edit edit =
-//            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-//        edits.add(edit);
-//      }
-//      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-//      _proposalEndRange = rangeEndLength(lastStatement, 0);
-//      // add proposal
-//      _addAssist(AssistKind.SURROUND_WITH_WHILE, []);
-//    }
-//    // "for-in"
-//    {
-//      {
-//        int offset = statementsRange.offset;
-//        SourceBuilder sb = new SourceBuilder.con1(offset);
-//        sb.append(indentOld);
-//        sb.append("for (var ");
-//        {
-//          sb.startPosition("NAME");
-//          sb.append("item");
-//          sb.endPosition();
-//        }
-//        sb.append(" in ");
-//        {
-//          sb.startPosition("ITERABLE");
-//          sb.append("iterable");
-//          sb.endPosition();
-//        }
-//        sb.append(") {");
-//        sb.append(eol);
-//        _insertBuilder(sb);
-//      }
-//      {
-//        Edit edit =
-//            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-//        edits.add(edit);
-//      }
-//      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-//      _proposalEndRange = rangeEndLength(lastStatement, 0);
-//      // add proposal
-//      _addAssist(AssistKind.SURROUND_WITH_FOR_IN, []);
-//    }
-//    // "for"
-//    {
-//      {
-//        int offset = statementsRange.offset;
-//        SourceBuilder sb = new SourceBuilder.con1(offset);
-//        sb.append(indentOld);
-//        sb.append("for (var ");
-//        {
-//          sb.startPosition("VAR");
-//          sb.append("v");
-//          sb.endPosition();
-//        }
-//        sb.append(" = ");
-//        {
-//          sb.startPosition("INIT");
-//          sb.append("init");
-//          sb.endPosition();
-//        }
-//        sb.append("; ");
-//        {
-//          sb.startPosition("CONDITION");
-//          sb.append("condition");
-//          sb.endPosition();
-//        }
-//        sb.append("; ");
-//        {
-//          sb.startPosition("INCREMENT");
-//          sb.append("increment");
-//          sb.endPosition();
-//        }
-//        sb.append(") {");
-//        sb.append(eol);
-//        _insertBuilder(sb);
-//      }
-//      {
-//        Edit edit =
-//            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-//        edits.add(edit);
-//      }
-//      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
-//      _proposalEndRange = rangeEndLength(lastStatement, 0);
-//      // add proposal
-//      _addAssist(AssistKind.SURROUND_WITH_FOR, []);
-//    }
-//    // "do-while"
-//    {
-//      _addInsertEdit(statementsRange.offset, "${indentOld}do {${eol}");
-//      {
-//        Edit edit =
-//            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-//        edits.add(edit);
-//      }
-//      {
-//        int offset = statementsRange.end;
-//        SourceBuilder sb = new SourceBuilder.con1(offset);
-//        sb.append(indentOld);
-//        sb.append("} while (");
-//        {
-//          sb.startPosition("CONDITION");
-//          sb.append("condition");
-//          sb.endPosition();
-//        }
-//        sb.append(");");
-//        sb.append(eol);
-//        _insertBuilder(sb);
-//      }
-//      _proposalEndRange = rangeEndLength(lastStatement, 0);
-//      // add proposal
-//      _addAssist(AssistKind.SURROUND_WITH_DO_WHILE, []);
-//    }
-//    // "try-catch"
-//    {
-//      _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
-//      {
-//        Edit edit =
-//            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-//        edits.add(edit);
-//      }
-//      {
-//        int offset = statementsRange.end;
-//        SourceBuilder sb = new SourceBuilder.con1(offset);
-//        sb.append(indentOld);
-//        sb.append("} on ");
-//        {
-//          sb.startPosition("EXCEPTION_TYPE");
-//          sb.append("Exception");
-//          sb.endPosition();
-//        }
-//        sb.append(" catch (");
-//        {
-//          sb.startPosition("EXCEPTION_VAR");
-//          sb.append("e");
-//          sb.endPosition();
-//        }
-//        sb.append(") {");
-//        sb.append(eol);
-//        //
-//        sb.append(indentNew);
-//        {
-//          sb.startPosition("CATCH");
-//          sb.append("// TODO");
-//          sb.endPosition();
-//          sb.setEndPosition();
-//        }
-//        sb.append(eol);
-//        //
-//        sb.append(indentOld);
-//        sb.append("}");
-//        sb.append(eol);
-//        //
-//        _insertBuilder(sb);
-//      }
-//      // add proposal
-//      _addAssist(AssistKind.SURROUND_WITH_TRY_CATCH, []);
-//    }
-//    // "try-finally"
-//    {
-//      _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
-//      {
-//        Edit edit =
-//            utils.createIndentEdit(statementsRange, indentOld, indentNew);
-//        edits.add(edit);
-//      }
-//      {
-//        int offset = statementsRange.end;
-//        SourceBuilder sb = new SourceBuilder.con1(offset);
-//        //
-//        sb.append(indentOld);
-//        sb.append("} finally {");
-//        sb.append(eol);
-//        //
-//        sb.append(indentNew);
-//        {
-//          sb.startPosition("FINALLY");
-//          sb.append("// TODO");
-//          sb.endPosition();
-//        }
-//        sb.setEndPosition();
-//        sb.append(eol);
-//        //
-//        sb.append(indentOld);
-//        sb.append("}");
-//        sb.append(eol);
-//        //
-//        _insertBuilder(sb);
-//      }
-//      // add proposal
-//      _addAssist(
-//          AssistKind.SURROUND_WITH_TRY_FINALLY,
-//          []);
-//    }
+    // prepare selected statements
+    List<Statement> selectedStatements;
+    {
+      SourceRange selection =
+          rangeStartLength(selectionOffset, selectionLength);
+      StatementAnalyzer selectionAnalyzer =
+          new StatementAnalyzer(unit, selection);
+      unit.accept(selectionAnalyzer);
+      List<AstNode> selectedNodes = selectionAnalyzer.selectedNodes;
+      // convert nodes to statements
+      selectedStatements = [];
+      for (AstNode selectedNode in selectedNodes) {
+        if (selectedNode is Statement) {
+          selectedStatements.add(selectedNode);
+        }
+      }
+      // we want only statements
+      if (selectedStatements.isEmpty ||
+          selectedStatements.length != selectedNodes.length) {
+        return;
+      }
+    }
+    // prepare statement information
+    Statement firstStatement = selectedStatements[0];
+    Statement lastStatement = selectedStatements[selectedStatements.length - 1];
+    SourceRange statementsRange =
+        utils.getLinesRangeStatements(selectedStatements);
+    // prepare environment
+    String indentOld = utils.getNodePrefix(firstStatement);
+    String indentNew = "${indentOld}${utils.getIndent(1)}";
+    // "block"
+    {
+      _addInsertEdit(statementsRange.offset, "${indentOld}{${eol}");
+      {
+        Edit edit =
+            utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        edits.add(edit);
+      }
+      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
+      exitPosition = _newPosition(lastStatement.end);
+      // add proposal
+      _addAssist(AssistKind.SURROUND_WITH_BLOCK, []);
+    }
+    // "if"
+    {
+      {
+        int offset = statementsRange.offset;
+        SourceBuilder sb = new SourceBuilder(file, offset);
+        sb.append(indentOld);
+        sb.append("if (");
+        {
+          sb.startPosition("CONDITION");
+          sb.append("condition");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        _insertBuilder(sb);
+      }
+      {
+        Edit edit =
+            utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        edits.add(edit);
+      }
+      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
+      exitPosition = _newPosition(lastStatement.end);
+      // add proposal
+      _addAssist(AssistKind.SURROUND_WITH_IF, []);
+    }
+    // "while"
+    {
+      {
+        int offset = statementsRange.offset;
+        SourceBuilder sb = new SourceBuilder(file, offset);
+        sb.append(indentOld);
+        sb.append("while (");
+        {
+          sb.startPosition("CONDITION");
+          sb.append("condition");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        _insertBuilder(sb);
+      }
+      {
+        Edit edit =
+            utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        edits.add(edit);
+      }
+      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
+      exitPosition = _newPosition(lastStatement.end);
+      // add proposal
+      _addAssist(AssistKind.SURROUND_WITH_WHILE, []);
+    }
+    // "for-in"
+    {
+      {
+        int offset = statementsRange.offset;
+        SourceBuilder sb = new SourceBuilder(file, offset);
+        sb.append(indentOld);
+        sb.append("for (var ");
+        {
+          sb.startPosition("NAME");
+          sb.append("item");
+          sb.endPosition();
+        }
+        sb.append(" in ");
+        {
+          sb.startPosition("ITERABLE");
+          sb.append("iterable");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        _insertBuilder(sb);
+      }
+      {
+        Edit edit =
+            utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        edits.add(edit);
+      }
+      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
+      exitPosition = _newPosition(lastStatement.end);
+      // add proposal
+      _addAssist(AssistKind.SURROUND_WITH_FOR_IN, []);
+    }
+    // "for"
+    {
+      {
+        int offset = statementsRange.offset;
+        SourceBuilder sb = new SourceBuilder(file, offset);
+        sb.append(indentOld);
+        sb.append("for (var ");
+        {
+          sb.startPosition("VAR");
+          sb.append("v");
+          sb.endPosition();
+        }
+        sb.append(" = ");
+        {
+          sb.startPosition("INIT");
+          sb.append("init");
+          sb.endPosition();
+        }
+        sb.append("; ");
+        {
+          sb.startPosition("CONDITION");
+          sb.append("condition");
+          sb.endPosition();
+        }
+        sb.append("; ");
+        {
+          sb.startPosition("INCREMENT");
+          sb.append("increment");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        _insertBuilder(sb);
+      }
+      {
+        Edit edit =
+            utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        edits.add(edit);
+      }
+      _addInsertEdit(statementsRange.end, "${indentOld}}${eol}");
+      exitPosition = _newPosition(lastStatement.end);
+      // add proposal
+      _addAssist(AssistKind.SURROUND_WITH_FOR, []);
+    }
+    // "do-while"
+    {
+      _addInsertEdit(statementsRange.offset, "${indentOld}do {${eol}");
+      {
+        Edit edit =
+            utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        edits.add(edit);
+      }
+      {
+        int offset = statementsRange.end;
+        SourceBuilder sb = new SourceBuilder(file, offset);
+        sb.append(indentOld);
+        sb.append("} while (");
+        {
+          sb.startPosition("CONDITION");
+          sb.append("condition");
+          sb.endPosition();
+        }
+        sb.append(");");
+        sb.append(eol);
+        _insertBuilder(sb);
+      }
+      exitPosition = _newPosition(lastStatement.end);
+      // add proposal
+      _addAssist(AssistKind.SURROUND_WITH_DO_WHILE, []);
+    }
+    // "try-catch"
+    {
+      _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
+      {
+        Edit edit =
+            utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        edits.add(edit);
+      }
+      {
+        int offset = statementsRange.end;
+        SourceBuilder sb = new SourceBuilder(file, offset);
+        sb.append(indentOld);
+        sb.append("} on ");
+        {
+          sb.startPosition("EXCEPTION_TYPE");
+          sb.append("Exception");
+          sb.endPosition();
+        }
+        sb.append(" catch (");
+        {
+          sb.startPosition("EXCEPTION_VAR");
+          sb.append("e");
+          sb.endPosition();
+        }
+        sb.append(") {");
+        sb.append(eol);
+        //
+        sb.append(indentNew);
+        {
+          sb.startPosition("CATCH");
+          sb.append("// TODO");
+          sb.endPosition();
+          sb.setExitOffset();
+        }
+        sb.append(eol);
+        //
+        sb.append(indentOld);
+        sb.append("}");
+        sb.append(eol);
+        //
+        _insertBuilder(sb);
+        exitPosition = _newPosition(sb.exitOffset);
+      }
+      // add proposal
+      _addAssist(AssistKind.SURROUND_WITH_TRY_CATCH, []);
+    }
+    // "try-finally"
+    {
+      _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
+      {
+        Edit edit =
+            utils.createIndentEdit(statementsRange, indentOld, indentNew);
+        edits.add(edit);
+      }
+      {
+        int offset = statementsRange.end;
+        SourceBuilder sb = new SourceBuilder(file, offset);
+        //
+        sb.append(indentOld);
+        sb.append("} finally {");
+        sb.append(eol);
+        //
+        sb.append(indentNew);
+        {
+          sb.startPosition("FINALLY");
+          sb.append("// TODO");
+          sb.endPosition();
+        }
+        sb.setExitOffset();
+        sb.append(eol);
+        //
+        sb.append(indentOld);
+        sb.append("}");
+        sb.append(eol);
+        //
+        _insertBuilder(sb);
+        exitPosition = _newPosition(sb.exitOffset);
+      }
+      // add proposal
+      _addAssist(AssistKind.SURROUND_WITH_TRY_FINALLY, []);
+    }
   }
 
   /**
@@ -1530,31 +1481,29 @@ class AssistProcessor {
   }
 
   /**
-   * Returns an existing or just added [LinkedPositionGroup] with [groupId].
+   * Returns an existing or just added [LinkedEditGroup] with [groupId].
    */
-  LinkedPositionGroup _getLinkedPosition(String groupId) {
-    LinkedPositionGroup group = linkedPositionGroups[groupId];
+  LinkedEditGroup _getLinkedPosition(String groupId) {
+    LinkedEditGroup group = linkedPositionGroups[groupId];
     if (group == null) {
-      group = new LinkedPositionGroup(groupId);
+      group = new LinkedEditGroup(groupId);
       linkedPositionGroups[groupId] = group;
     }
     return group;
   }
 
   /**
-   * Returns the text of the given range in the unit.
+   * Returns the text of the given node in the unit.
    */
-  String _getSource(AstNode node) {
-    // TODO(scheglov) rename
-    return utils.getText(node);
+  String _getNodeText(AstNode node) {
+    return utils.getNodeText(node);
   }
 
   /**
    * Returns the text of the given range in the unit.
    */
-  String _getSource2(SourceRange range) {
-    // TODO(scheglov) rename
-    return utils.getText3(range);
+  String _getRangeText(SourceRange range) {
+    return utils.getRangeText(range);
   }
 
   /**
@@ -1564,15 +1513,19 @@ class AssistProcessor {
     String text = builder.toString();
     _addInsertEdit(builder.offset, text);
     // add linked positions
-    builder.linkedPositionGroups.forEach((LinkedPositionGroup group) {
-      LinkedPositionGroup fixGroup = _getLinkedPosition(group.id);
+    builder.linkedPositionGroups.forEach((LinkedEditGroup group) {
+      LinkedEditGroup fixGroup = _getLinkedPosition(group.id);
       group.positions.forEach((Position position) {
-        fixGroup.addPosition(position);
+        fixGroup.addPosition(position, group.length);
       });
-      group.proposals.forEach((String proposal) {
-        fixGroup.addProposal(proposal);
+      group.suggestions.forEach((LinkedEditSuggestion suggestion) {
+        fixGroup.addSuggestion(suggestion);
       });
     });
+  }
+
+  Position _newPosition(int offset) {
+    return new Position(file, offset);
   }
 
   /**
@@ -1610,5 +1563,30 @@ class AssistProcessor {
     // invalid selection (part of node, etc)
     _coverageMarker();
     return false;
+  }
+
+  /**
+   * Checks if the given [Expression] should be wrapped with parenthesis when we
+   * want to use it as operand of a logical `and` expression.
+   */
+  static bool _shouldWrapParenthesisBeforeAnd(Expression expr) {
+    if (expr is BinaryExpression) {
+      BinaryExpression binary = expr;
+      int precedence = binary.operator.type.precedence;
+      return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
+    }
+    return false;
+  }
+}
+
+
+class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor {
+  final _SimpleIdentifierVisitor visitor;
+
+  _SimpleIdentifierRecursiveAstVisitor(this.visitor);
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    visitor(node);
   }
 }

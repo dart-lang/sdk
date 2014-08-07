@@ -132,14 +132,10 @@ class DartBackend extends Backend {
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
-    world.registerInvocation(
-        null, new Selector.call("toString", null, 0));
-    world.registerInvokedGetter(
-        null, new Selector.getter("hashCode", null));
-    world.registerInvocation(
-        null, new Selector.binaryOperator("=="));
-    world.registerInvocation(
-        null, new Selector.call("compareTo", null, 1));
+    world.registerInvocation(new Selector.call("toString", null, 0));
+    world.registerInvokedGetter(new Selector.getter("hashCode", null));
+    world.registerInvocation(new Selector.binaryOperator("=="));
+    world.registerInvocation(new Selector.call("compareTo", null, 1));
   }
 
   void codegen(CodegenWorkItem work) { }
@@ -231,14 +227,21 @@ class DartBackend extends Backend {
         return new ElementAst(element);
       } else {
         cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
+        // Transformations on the CPS IR.
         new cps_ir.RedundantPhiEliminator().rewrite(function);
+        compiler.tracer.traceCompilation(element.name, null, compiler);
         compiler.tracer.traceGraph("Redundant phi elimination", function);
+        // Do not rewrite the IR after variable allocation.  Allocation
+        // makes decisions based on an approximation of IR variable live
+        // ranges that can be invalidated by transforming the IR.
+        new cps_ir.RegisterAllocator().visit(function);
+
         tree_builder.Builder builder = new tree_builder.Builder(compiler);
         tree_ir.FunctionDefinition definition = builder.build(function);
         assert(definition != null);
-        compiler.tracer.traceCompilation(element.name, null, compiler);
         compiler.tracer.traceGraph('Tree builder', definition);
-        TreeElementMapping treeElements = new TreeElementMapping(element);
+
+        // Transformations on the Tree IR.
         new StatementRewriter().rewrite(definition);
         compiler.tracer.traceGraph('Statement rewriter', definition);
         new CopyPropagator().rewrite(definition);
@@ -249,6 +252,8 @@ class DartBackend extends Backend {
         compiler.tracer.traceGraph('Logical rewriter', definition);
         new backend_ast_emitter.UnshadowParameters().unshadow(definition);
         compiler.tracer.traceGraph('Unshadow parameters', definition);
+
+        TreeElementMapping treeElements = new TreeElementMapping(element);
         backend_ast.Node backendAst =
             backend_ast_emitter.emit(definition);
         Node frontend_ast = backend2frontend.emit(treeElements, backendAst);

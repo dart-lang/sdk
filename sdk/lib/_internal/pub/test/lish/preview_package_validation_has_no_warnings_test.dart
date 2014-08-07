@@ -16,7 +16,7 @@ main() {
 
   integration('preview package validation has no warnings', () {
     var pkg = packageMap("test_pkg", "1.0.0");
-    pkg["author"] = "Nathan Weizenbaum <nweiz@google.com>";
+    pkg["author"] = "Natalie Weizenbaum <nweiz@google.com>";
     d.dir(appPath, [d.pubspec(pkg)]).create();
 
     var server = new ScheduledServer();

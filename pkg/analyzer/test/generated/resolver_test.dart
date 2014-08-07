@@ -26692,6 +26692,91 @@ class TypePropagationTest extends ResolverTestCase {
         "}"]), null, typeProvider.dynamicType);
   }
 
+  void fail_mergePropagatedTypesAtJoinPoint_6() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // Labeled [break]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is tricky: the [break] jumps back above the [if], making
+    // it into a loop of sorts. The [if] type-propagation code assumes
+    // that [break] does not introduce a loop.
+    String code = EngineTestCase.createSource([
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  L: ",
+        "  if (c) {",
+        "  } else {",
+        "    x = '';",
+        "    c = true;",
+        "    break L;",
+        "  }",
+        "  x; // marker",
+        "}"]);
+    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
+    JUnitTestCase.assertTrue(typeProvider.intType.isSubtypeOf(t));
+    JUnitTestCase.assertTrue(typeProvider.stringType.isSubtypeOf(t));
+  }
+
+  void fail_mergePropagatedTypesAtJoinPoint_7() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // In general [continue]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is like example 6, but less tricky: the code in the branch that
+    // [continue]s is in effect after the [if].
+    String code = EngineTestCase.createSource([
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  var d = true;",
+        "  while (d) {",
+        "    if (c) {",
+        "      d = false;",
+        "    } else {",
+        "      x = '';",
+        "      c = true;",
+        "      continue;",
+        "    }",
+        "    x; // marker",
+        "  }",
+        "}"]);
+    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
+    JUnitTestCase.assertTrue(typeProvider.intType.isSubtypeOf(t));
+    JUnitTestCase.assertTrue(typeProvider.stringType.isSubtypeOf(t));
+  }
+
+  void fail_mergePropagatedTypesAtJoinPoint_8() {
+    // https://code.google.com/p/dart/issues/detail?id=19929
+    //
+    // In nested loops [breaks]s are unsafe for the purposes of [isAbruptTerminationStatement].
+    //
+    // This is a combination of 6 and 7: we use an unlabeled [break]
+    // like a continue for the outer loop / like a labeled [break] to
+    // jump just above the [if].
+    String code = EngineTestCase.createSource([
+        "f() {",
+        "  var x = 0;",
+        "  var c = false;",
+        "  var d = true;",
+        "  while (d) {",
+        "    while (d) {",
+        "      if (c) {",
+        "        d = false;",
+        "      } else {",
+        "        x = '';",
+        "        c = true;",
+        "        break;",
+        "      }",
+        "      x; // marker",
+        "    }",
+        "  }",
+        "}"]);
+    DartType t = _findMarkedIdentifier(code, "; // marker").propagatedType;
+    JUnitTestCase.assertTrue(typeProvider.intType.isSubtypeOf(t));
+    JUnitTestCase.assertTrue(typeProvider.stringType.isSubtypeOf(t));
+  }
+
   void fail_propagatedReturnType_functionExpression() {
     // TODO(scheglov) disabled because we don't resolve function expression
     String code = EngineTestCase.createSource(["main() {", "  var v = (() {return 42;})();", "}"]);
@@ -27625,13 +27710,7 @@ class TypePropagationTest extends ResolverTestCase {
    *          "v" has expected static and propagated type.
    */
   void _assertPropagatedReturnType(String code, DartType expectedStaticType, DartType expectedPropagatedType) {
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    //
-    SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "v = ", (node) => node is SimpleIdentifier);
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "v = ");
     JUnitTestCase.assertSame(expectedStaticType, identifier.staticType);
     JUnitTestCase.assertSame(expectedPropagatedType, identifier.propagatedType);
   }
@@ -27645,17 +27724,39 @@ class TypePropagationTest extends ResolverTestCase {
    * @throws Exception
    */
   void _assertTypeOfMarkedExpression(String code, DartType expectedStaticType, DartType expectedPropagatedType) {
-    Source source = addSource(code);
-    LibraryElement library = resolve(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = resolveCompilationUnit(source, library);
-    SimpleIdentifier identifier = EngineTestCase.findNode(unit, code, "; // marker", (node) => node is SimpleIdentifier);
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "; // marker");
     if (expectedStaticType != null) {
       JUnitTestCase.assertSame(expectedStaticType, identifier.staticType);
     }
     if (expectedPropagatedType != null) {
       JUnitTestCase.assertSame(expectedPropagatedType, identifier.propagatedType);
+    }
+  }
+
+  /**
+   * Return the `SimpleIdentifier` marked by `marker`. The source code must have no
+   * errors and be verifiable.
+   *
+   * @param code source code to analyze.
+   * @param marker marker identifying sought after expression in source code.
+   * @return expression marked by the marker.
+   * @throws Exception
+   */
+  SimpleIdentifier _findMarkedIdentifier(String code, String marker) {
+    try {
+      Source source = addSource(code);
+      LibraryElement library = resolve(source);
+      assertNoErrors(source);
+      verify([source]);
+      CompilationUnit unit = resolveCompilationUnit(source, library);
+      // Could generalize this further by making [SimpleIdentifier.class] a parameter.
+      return EngineTestCase.findNode(unit, code, marker, (node) => node is SimpleIdentifier);
+    } catch (exception) {
+      // Is there a better exception to throw here? The point is that an assertion failure
+      // here should be a failure, in both "test_*" and "fail_*" tests.
+      // However, an assertion failure is success for the purpose of "fail_*" tests, so
+      // without catching them here "fail_*" tests can succeed by failing for the wrong reason.
+      throw new JavaException("Unexexpected assertion failure: ${exception}");
     }
   }
 

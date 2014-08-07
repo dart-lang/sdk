@@ -36,7 +36,6 @@ main() {
                 testMethodInvocations,
                 testMethodInvocationsInClass,
                 testGetterSetterInvocation,
-                testControlFlow,
                 // testNewExpression,
                 testConditionalExpression,
                 testIfStatement,
@@ -656,48 +655,6 @@ Future testMethodInvocationsInClass(MockCompiler compiler) {
           [MessageKind.METHOD_NOT_FOUND, NOT_ASSIGNABLE]);
   });
 }
-
-/** Tests analysis of returns (not required by the specification). */
-Future testControlFlow(MockCompiler compiler) {
-  Future check(String code, [expectedWarnings]) {
-    return analyzeTopLevel(code, expectedWarnings);
-  }
-
-  return Future.wait([
-    check("void foo() { if (true) { return; } }"),
-    check("foo() { if (true) { return; } }"),
-    check("int foo() { if (true) { return 1; } }",
-          MessageKind.MAYBE_MISSING_RETURN),
-    check("""void bar() {
-               if (true) {
-                 if (true) { return; } else { return; }
-               } else { return; }
-             }"""),
-    check("void baz() { return; int i = 1; }",
-          MessageKind.UNREACHABLE_CODE),
-    check("""void qux() {
-               if (true) {
-                 return;
-               } else if (true) {
-                 if (true) {
-                   return;
-                 }
-                 throw 'hest';
-               }
-               throw 'fisk';
-             }"""),
-    check("int hest() {}", MessageKind.MISSING_RETURN),
-    check("""int fisk() {
-               if (true) {
-                 if (true) { return 1; } else {}
-               } else { return 1; }
-             }""", MessageKind.MAYBE_MISSING_RETURN),
-    check("int foo() { while(true) { return 1; } }"),
-    check("int foo() { while(true) { return 1; } return 2; }",
-          MessageKind.UNREACHABLE_CODE),
-  ]);
-}
-
 
 void testFunctionCall(MockCompiler compiler) {
   compiler.parseScript(CLASS_WITH_METHODS);

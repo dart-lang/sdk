@@ -56,7 +56,7 @@ class JavaFile {
   static final int separatorChar = Platform.pathSeparator.codeUnitAt(0);
   String _path;
   JavaFile(String path) {
-    _path = pathos.absolute(path);
+    _path = path;
   }
   JavaFile.relative(JavaFile base, String child) {
     if (child.isEmpty) {

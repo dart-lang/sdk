@@ -367,6 +367,8 @@ class InvokeContinuation extends Expression {
       : continuation = new Reference(cont),
         arguments = _referenceList(args),
         isRecursive = recursive {
+    assert(cont.parameters == null ||
+        cont.parameters.length == args.length);
     if (recursive) cont.isRecursive = true;
   }
 
@@ -855,7 +857,7 @@ class RedundantPhiEliminator extends RecursiveVisitor {
         // Reorganize parameters and arguments in case of deletions.
         cont.parameters[dst] = cont.parameters[src];
         for (InvokeContinuation invoke in invokes) {
-            invoke.arguments[dst] = invoke.arguments[src];
+          invoke.arguments[dst] = invoke.arguments[src];
         }
 
         dst++;

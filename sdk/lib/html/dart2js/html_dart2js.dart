@@ -1934,9 +1934,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
-  void set lineDashOffset(num value) => JS('void',
-      'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
-      '#.webkitLineDashOffset = #', this, this, value, this, value);
+  void set lineDashOffset(num value) {
+    JS('void',
+       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
+       '#.webkitLineDashOffset = #', this, this, value, this, value);
+  }
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -10309,7 +10311,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => JS("void", "#.scrollLeft = #", this, value.round());
+  void set scrollLeft(int value) {
+    JS("void", "#.scrollLeft = #", this, value.round());
+  }
 
   @DomName('Element.scrollTop')
   @DocsEditable()
@@ -10317,7 +10321,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => JS("void", "#.scrollTop = #", this, value.round());
+  void set scrollTop(int value) {
+    JS("void", "#.scrollTop = #", this, value.round());
+  }
 
   @DomName('Element.scrollWidth')
   @DocsEditable()

@@ -9,15 +9,18 @@ import 'dart:async';
 import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**
- * A computer for `completion.getSuggestions` request results.
+ * A computer for calculating class and top level variable
+ * `completion.getSuggestions` request results
  */
 class TopLevelComputer extends CompletionComputer {
   final SearchEngine searchEngine;
+  final CompilationUnit unit;
 
-  TopLevelComputer(this.searchEngine);
+  TopLevelComputer(this.searchEngine, this.unit);
 
   /**
    * Computes [CompletionSuggestion]s for the specified position in the source.
@@ -25,19 +28,38 @@ class TopLevelComputer extends CompletionComputer {
   Future<List<CompletionSuggestion>> compute() {
     var future = searchEngine.searchTopLevelDeclarations('');
     return future.then((List<SearchMatch> matches) {
-      return matches.map((SearchMatch match) {
-        Element element = match.element;
-        String completion = element.displayName;
-        return new CompletionSuggestion(
-            CompletionSuggestionKind.fromElementKind(element.kind),
-            CompletionRelevance.DEFAULT,
-            completion,
-            completion.length,
-            0,
-            element.isDeprecated,
-            false // isPotential
-            );
-      }).toList();
+
+      // Compute the set of visible libraries to determine relevance
+      var visibleLibraries = new Set<LibraryElement>();
+      var unitLibrary = unit.element.library;
+      visibleLibraries.add(unitLibrary);
+      visibleLibraries.addAll(unitLibrary.importedLibraries);
+
+      // Compute the set of possible classes and top level variables
+      var suggestions = new List<CompletionSuggestion>();
+      matches.forEach((SearchMatch match) {
+        if (match.kind == MatchKind.DECLARATION) {
+          Element element = match.element;
+          if (element.isPublic || element.library == unitLibrary) {
+            String completion = element.displayName;
+            var relevance = visibleLibraries.contains(element.library) ?
+                CompletionRelevance.DEFAULT :
+                CompletionRelevance.LOW;
+            suggestions.add(
+                new CompletionSuggestion(
+                    CompletionSuggestionKind.fromElementKind(element.kind),
+                    relevance,
+                    completion,
+                    completion.length,
+                    0,
+                    element.isDeprecated,
+                    false // isPotential
+            ));
+          }
+        }
+      });
+      return suggestions;
     });
   }
+
 }

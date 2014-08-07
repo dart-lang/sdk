@@ -19,8 +19,6 @@ class ResolutionRegistry extends Registry {
 
   bool get isForResolution => true;
 
-  Element get currentElement => mapping.currentElement;
-
   ResolutionEnqueuer get world => compiler.enqueuer.resolution;
 
   World get universe => compiler.world;
@@ -31,13 +29,18 @@ class ResolutionRegistry extends Registry {
   //  Node-to-Element mapping functionality.
   //////////////////////////////////////////////////////////////////////////////
 
+  /// Register [node] as the declaration of [element].
+  void defineFunction(FunctionExpression node, FunctionElement element) {
+    mapping[node] = element;
+  }
+
   /// Register [node] as a reference to [element].
   Element useElement(Node node, Element element) {
     if (element == null) return null;
     return mapping[node] = element;
   }
 
-  /// Register [node] as a declaration of [element].
+  /// Register [node] as the declaration of [element].
   void defineElement(Node node, Element element) {
     mapping[node] = element;
   }
@@ -45,6 +48,17 @@ class ResolutionRegistry extends Registry {
   /// Returns the [Element] defined by [node].
   Element getDefinition(Node node) {
     return mapping[node];
+  }
+
+  /// Sets the loop variable of the for-in [node] to be [element].
+  void setForInVariable(ForIn node, Element element) {
+    mapping[node] = element;
+  }
+
+  /// Sets the target constructor [node] to be [element].
+  void setRedirectingTargetConstructor(RedirectingFactoryBody node,
+                                       ConstructorElement element) {
+    useElement(node, element);
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -84,7 +98,6 @@ class ResolutionRegistry extends Registry {
   DartType useType(Node annotation, DartType type) {
     if (type != null) {
       mapping.setType(annotation, type);
-      useElement(annotation, type.element);
     }
     return type;
   }
@@ -223,7 +236,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerDynamicInvocation(Selector selector) {
-    world.registerDynamicInvocation(currentElement, selector);
+    world.registerDynamicInvocation(selector);
   }
 
   void registerSuperNoSuchMethod() {
@@ -255,11 +268,11 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerDynamicGetter(Selector selector) {
-    world.registerDynamicGetter(currentElement, selector);
+    world.registerDynamicGetter(selector);
   }
 
   void registerDynamicSetter(Selector selector) {
-    world.registerDynamicSetter(currentElement, selector);
+    world.registerDynamicSetter(selector);
   }
 
   void registerConstSymbol(String name) {

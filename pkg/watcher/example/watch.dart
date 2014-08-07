@@ -5,8 +5,6 @@
 /// Watches the given directory and prints each modification to it.
 library watch;
 
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
 import 'package:watcher/watcher.dart';
 

@@ -6858,28 +6858,26 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 RawString* Field::GetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
   // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
-  // to Symbols.
+  // to Class::Lookup*.
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
 
 RawString* Field::GetterSymbol(const String& field_name) {
-  const String& str = String::Handle(Field::GetterName(field_name));
-  return Symbols::New(str);
+  return Symbols::FromConcat(Symbols::GetterPrefix(), field_name);
 }
 
 
 RawString* Field::SetterName(const String& field_name) {
   CompilerStats::make_accessor_name++;
   // TODO(koda): Avoid most of these allocations by adding prefix-based lookup
-  // to Symbols.
+  // to Class::Lookup*.
   return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
 
 RawString* Field::SetterSymbol(const String& field_name) {
-  const String& str = String::Handle(Field::SetterName(field_name));
-  return Symbols::New(str);
+  return Symbols::FromConcat(Symbols::SetterPrefix(), field_name);
 }
 
 
@@ -16086,6 +16084,8 @@ class StringHasher : ValueObject {
   void Add(int32_t ch) {
     hash_ = CombineHashes(hash_, ch);
   }
+  void Add(const String& str, intptr_t begin_index, intptr_t len);
+
   // Return a non-zero hash of at most 'bits' bits.
   intptr_t Finalize(int bits) {
     ASSERT(1 <= bits && bits <= (kBitsPerWord - 1));
@@ -16099,22 +16099,43 @@ class StringHasher : ValueObject {
 };
 
 
-intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
+void StringHasher::Add(const String& str, intptr_t begin_index, intptr_t len) {
   ASSERT(begin_index >= 0);
   ASSERT(len >= 0);
   ASSERT((begin_index + len) <= str.Length());
-  StringHasher hasher;
   if (str.IsOneByteString()) {
     for (intptr_t i = 0; i < len; i++) {
-      hasher.Add(*OneByteString::CharAddr(str, i + begin_index));
+      Add(*OneByteString::CharAddr(str, i + begin_index));
     }
   } else {
-    CodePointIterator it(str, begin_index, len);
+    String::CodePointIterator it(str, begin_index, len);
     while (it.Next()) {
-      hasher.Add(it.Current());
+      Add(it.Current());
     }
   }
+}
+
+
+intptr_t String::Hash(const String& str, intptr_t begin_index, intptr_t len) {
+  StringHasher hasher;
+  hasher.Add(str, begin_index, len);
   return hasher.Finalize(String::kHashBits);
+}
+
+
+intptr_t String::HashConcat(const String& str1, const String& str2) {
+  intptr_t len1 = str1.Length();
+  // Since String::Hash works at the code point (rune) level, a surrogate pair
+  // that crosses the boundary between str1 and str2 must be composed.
+  if (str1.IsTwoByteString() && Utf16::IsLeadSurrogate(str1.CharAt(len1 - 1))) {
+    const String& temp = String::Handle(String::Concat(str1, str2));
+    return temp.Hash();
+  } else {
+    StringHasher hasher;
+    hasher.Add(str1, 0, len1);
+    hasher.Add(str2, 0, str2.Length());
+    return hasher.Finalize(String::kHashBits);
+  }
 }
 
 
@@ -16291,6 +16312,13 @@ bool String::Equals(const int32_t* utf32_array, intptr_t len) const {
   }
   // Strings are only true iff we reached the end in both streams.
   return (i == len) && !has_more;
+}
+
+
+bool String::EqualsConcat(const String& str1, const String& str2) const {
+  return (Length() == str1.Length() + str2.Length()) &&
+    str1.Equals(*this, 0, str1.Length()) &&
+    str2.Equals(*this, str1.Length(), str2.Length());
 }
 
 

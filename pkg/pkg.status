@@ -20,14 +20,13 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) ]
-third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 18931 (Disabled for Chrome 35 roll)
-polymer/example/component/news/test/news_index_test: Pass, RuntimeError # Issue 18931
+[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
+third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
+polymer/example/component/news/test/news_index_test: RuntimeError # Issue 18931
 intl/test/date_time_format_http_request_test: Pass, Timeout # Issue 19544
-polymer/e2e_test/experimental_boot/test/import_test: Skip # Issue 20307 (Timing out)
-polymer/e2e_test/experimental_boot/test/double_init_test: Skip # Issue 20307 (Timing out)
 
-[ $compiler == none && ($runtime == dartium) ]
+[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
 polymer/test/attr_mustache_test: Pass, RuntimeError # Issue 18931
 polymer/test/bind_test: Pass, RuntimeError # Issue 18931
@@ -60,6 +59,9 @@ polymer/test/instance_attrs_test: Skip # Issue 19496
 [ $compiler == none && $runtime == dartium && $system == windows ]
 polymer/test/property_observe_test: Pass, Timeout # Issue 19326
 
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+collection/test/unmodifiable_collection_test: Skip # Times out, Issue 20348
+
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
 analysis_server/test/domain_context_test: Skip  # Times out
@@ -83,6 +85,7 @@ docgen/test/*: Skip # Too slow
 polymer/test/build/all_phases_test: Skip # Slow
 polymer/test/build/script_compactor_test: Skip # Slow
 third_party/html5lib/test/tokenizer_test: Pass, Slow
+analysis_server/*: Skip # Timeout in some tests.
 
 [ $compiler == dart2js ]
 collection/test/equality_test/01: Fail # Issue 1533
@@ -111,18 +114,17 @@ scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
 json_rpc_2/test/server/server_test: Fail # Issue 19750
 shelf/test/log_middleware_test: Fail # Issue 19750
 
-[ $compiler == dart2js && $runtime == drt ]
-third_party/angular_tests/browser_test/core_dom/compiler: Fail # Issue 19329
-third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
-third_party/angular_tests/browser_test/core/templateurl: Fail # Issue 19329
-web_components/test/interop_test: Pass, Fail # Issue 19329
-web_components/test/interop2_test: Fail # Issue 19329
-
 [ $compiler == dart2js && $checked ]
 crypto/test/base64_test: Slow, Pass
 
 [ $checked && $runtime == drt ]
 polymer/test/event_handlers_test: Pass, RuntimeError # Issue 19190
+
+[ $compiler == dart2js && $runtime == drt ]
+third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
+
+[ $compiler == dart2js && $csp && $runtime == drt ]
+web_components/test/interop_test: Fail # Issue 19329
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 crypto/test/base64_test: Timeout # Issue 12486
@@ -168,6 +170,7 @@ polymer/test/attr_mustache_test: Skip #uses dart:html
 polymer/test/bind_test: Skip # uses dart:html
 polymer/test/bind_mdv_test: Skip # uses dart:html
 polymer/test/bind_properties_test: Skip # uses dart:html
+polymer/test/build/log_injector_test: Skip # uses dart:html
 polymer/test/computed_properties_test: Skip # uses dart:html
 polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/entered_view_test: Skip # uses dart:html
@@ -316,7 +319,14 @@ intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Use
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 path/test/io_test: Fail, OK # Uses dart:io.
-polymer/test/build/*: Fail, OK # Uses dart:io.
+polymer/test/build/all_phases_test: Fail, OK # Uses dart:io.
+polymer/test/build/polyfill_injector_test: Fail, OK # Uses dart:io.
+polymer/test/build/static_clean_test: Fail, OK # Uses dart:io.
+polymer/test/build/build_log_combiner_test: Fail, OK # Uses dart:io.
+polymer/test/build/script_compactor_test: Fail, OK # Uses dart:io.
+polymer/test/build/utils_test: Fail, OK # Uses dart:io.
+polymer/test/build/import_inliner_test: Fail, OK # Uses dart:io.
+polymer/test/build/linter_test: Fail, OK # Uses dart:io.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 shelf_web_socket/test/*: Fail, OK # Uses dart:io.
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
@@ -348,12 +358,6 @@ polymer/test/unbind_test: Pass, Fail # Issue 15259
 # not minified.
 matcher/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
-[ $arch == mips ]
-*: Skip  # Issue 13650
-
-[ $arch == arm ]
-*: Skip  # Issue 13624
-
 [ $arch == simarm && $checked ]
 watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 
@@ -364,7 +368,7 @@ watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
-[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
+[ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 serialization/test/no_library_test: Skip # Expected Failure
 serialization/test/serialization_test: Fail # 13921
 unittest/test/async_exception_test: RuntimeError # 13921
@@ -415,10 +419,6 @@ scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
 
 [ $browser || $runtime == vm ]
 unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.
-
-
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-source_maps/test/parser_test: Pass, Timeout # Issue 13719: Please triage this failure.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 third_party/angular_tests/vm_test: StaticWarning # Uses removed APIs. See issue 18733.

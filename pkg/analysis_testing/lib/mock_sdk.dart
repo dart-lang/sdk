@@ -9,16 +9,18 @@ import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart';
 
 
 class MockSdk implements DartSdk {
-  final resource.MemoryResourceProvider provider =
-      new resource.MemoryResourceProvider();
-
   static const _MockSdkLibrary LIB_CORE =
-      const _MockSdkLibrary('dart:core', '/lib/core/core.dart', '''
+      const _MockSdkLibrary('core', '/lib/core/core.dart', '''
 library dart.core;
-class Object {}
+
+class Object {
+  bool operator ==(other) => identical(this, other);
+}
+
 class Function {}
 class StackTrace {}
 class Symbol {}
@@ -62,11 +64,13 @@ abstract class List<E> extends Object {
 }
 class Map<K, V> extends Object {}
 
+external bool identical(Object a, Object b);
+
 void print(Object object) {}
 ''');
 
   static const _MockSdkLibrary LIB_ASYNC =
-      const _MockSdkLibrary('dart:async', '/lib/async/async.dart', '''
+      const _MockSdkLibrary('async', '/lib/async/async.dart', '''
 library dart.async;
 class Future {
   static Future wait(List<Future> futures) => null;
@@ -76,14 +80,16 @@ class Stream<T> {}
 ''');
 
   static const _MockSdkLibrary LIB_MATH =
-      const _MockSdkLibrary('dart:math', '/lib/math/math.dart', '''
+      const _MockSdkLibrary('math', '/lib/math/math.dart', '''
 library dart.math;
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
+num min(num a, num b) => 0;
+num max(num a, num b) => 0;
 ''');
 
   static const _MockSdkLibrary LIB_HTML =
-      const _MockSdkLibrary('dart:html', '/lib/html/dartium/html_dartium.dart', '''
+      const _MockSdkLibrary('html', '/lib/html/dartium/html_dartium.dart', '''
 library dart.html;
 class HtmlElement {}
 ''');
@@ -94,13 +100,15 @@ class HtmlElement {}
       LIB_MATH,
       LIB_HTML,];
 
+  final resource.MemoryResourceProvider provider =
+      new resource.MemoryResourceProvider();
+
   MockSdk() {
     LIBRARIES.forEach((_MockSdkLibrary library) {
       provider.newFile(library.path, library.content);
     });
   }
 
-  // Not used
   @override
   AnalysisContext get context => throw unimplemented;
 
@@ -115,17 +123,40 @@ class HtmlElement {}
   @override
   List<String> get uris => throw unimplemented;
 
-  // Not used.
   @override
-  Source fromEncoding(UriKind kind, Uri uri) {
-    resource.Resource file = provider.getResource(uri.path);
-    if (file is resource.File) {
-      return file.createSource(kind);
+  Source fromFileUri(Uri uri) {
+    String filePath = uri.path;
+    String libPath = '/lib';
+    if (!filePath.startsWith("$libPath/")) {
+      return null;
+    }
+    for (SdkLibrary library in LIBRARIES) {
+      String libraryPath = library.path;
+      if (filePath.replaceAll('\\', '/') == libraryPath) {
+        String path = library.shortName;
+        try {
+          resource.File file = provider.getResource(uri.path);
+          Uri dartUri = new Uri(scheme: 'dart', path: library.shortName);
+          return file.createSource(dartUri);
+        } catch (exception) {
+          return null;
+        }
+      }
+      if (filePath.startsWith("$libraryPath/")) {
+        String pathInLibrary = filePath.substring(libraryPath.length + 1);
+        String path = '${library.shortName}/${pathInLibrary}';
+        try {
+          resource.File file = provider.getResource(uri.path);
+          Uri dartUri = new Uri(scheme: 'dart', path: path);
+          return file.createSource(dartUri);
+        } catch (exception) {
+          return null;
+        }
+      }
     }
     return null;
   }
 
-  // Not used.
   @override
   SdkLibrary getSdkLibrary(String dartUri) {
     // getSdkLibrary() is only used to determine whether a library is internal
@@ -134,7 +165,6 @@ class HtmlElement {}
     return null;
   }
 
-  // Not used.
   @override
   Source mapDartUri(String dartUri) {
     const Map<String, String> uriToPath = const {
@@ -147,7 +177,8 @@ class HtmlElement {}
     String path = uriToPath[dartUri];
     if (path != null) {
       resource.File file = provider.getResource(path);
-      return file.createSource(UriKind.DART_URI);
+      Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
+      return file.createSource(uri);
     }
 
     // If we reach here then we tried to use a dartUri that's not in the

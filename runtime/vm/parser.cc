@@ -2379,7 +2379,9 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
         ASSERT(IsIdentifier());
         ConsumeToken();
         ExpectToken(Token::kASSIGN);
-        if (field.is_const()) {
+        if (current_class().is_const()) {
+          // If the class has a const contructor, the initializer
+          // expression must be a compile-time constant.
           init_expr = ParseConstExpr();
         } else {
           intptr_t expr_pos = TokenPos();

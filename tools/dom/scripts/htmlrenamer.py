@@ -253,6 +253,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.scrollHeight',
 
   'Event.initEvent',
+  'FileReader.result',
   'Geolocation.clearWatch',
   'Geolocation.getCurrentPosition',
   'Geolocation.watchPosition',

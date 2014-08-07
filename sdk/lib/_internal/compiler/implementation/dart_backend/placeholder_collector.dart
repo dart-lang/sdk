@@ -195,14 +195,16 @@ class PlaceholderCollector extends Visitor {
       ConstructorElement constructor = element;
       DartType type = element.enclosingClass.thisType.asRaw();
       makeConstructorPlaceholder(node.name, element, type);
-      Return bodyAsReturn = node.body.asReturn();
-      if (bodyAsReturn != null && bodyAsReturn.isRedirectingFactoryBody) {
+      RedirectingFactoryBody bodyAsRedirectingFactoryBody =
+          node.body.asRedirectingFactoryBody();
+      if (bodyAsRedirectingFactoryBody != null) {
         // Factory redirection.
         FunctionElement redirectTarget = constructor.immediateRedirectionTarget;
         assert(redirectTarget != null && redirectTarget != element);
         type = redirectTarget.enclosingClass.thisType.asRaw();
         makeConstructorPlaceholder(
-            bodyAsReturn.expression, redirectTarget, type);
+            bodyAsRedirectingFactoryBody.constructorReference,
+            redirectTarget, type);
       }
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
@@ -239,11 +241,7 @@ class PlaceholderCollector extends Visitor {
     } else if (element is VariableElement) {
       VariableDefinitions definitions = elementNode;
       Node definition = definitions.definitions.nodes.head;
-      final definitionElement = treeElements[elementNode];
-      // definitionElement == null if variable is actually unused.
-      if (definitionElement != null) {
-        collectFieldDeclarationPlaceholders(definitionElement, definition);
-      }
+      collectFieldDeclarationPlaceholders(element, definition);
       makeVarDeclarationTypePlaceholder(definitions);
     } else {
       assert(element is ClassElement || element is TypedefElement);
@@ -252,6 +250,9 @@ class PlaceholderCollector extends Visitor {
     compiler.withCurrentElement(element, () {
       elementNode.accept(this);
     });
+    if (element == backend.mirrorHelperSymbolsMap) {
+      backend.registerMirrorHelperElement(element, elementNode);
+    }
   }
 
   // TODO(karlklose): should we create placeholders for these?
@@ -484,10 +485,6 @@ class PlaceholderCollector extends Visitor {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
-    Element definitionElement = treeElements[node];
-    if (definitionElement == backend.mirrorHelperSymbolsMap) {
-      backend.registerMirrorHelperElement(definitionElement, node);
-    }
     // Collect only local placeholders.
     for (Node definition in node.definitions.nodes) {
       Element definitionElement = treeElements[definition];

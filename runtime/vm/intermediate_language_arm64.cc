@@ -10,6 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/flow_graph_range_analysis.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"

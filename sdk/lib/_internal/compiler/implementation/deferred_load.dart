@@ -763,9 +763,10 @@ class DeferredLoadTask extends CompilerTask {
     }
     if (splitProgram && backend is DartBackend) {
       // TODO(sigurdm): Implement deferred loading for dart2dart.
-      compiler.reportFatalError(
+      compiler.reportWarning(
           lastDeferred,
           MessageKind.DEFERRED_LIBRARY_DART_2_DART);
+      splitProgram = false;
     }
   }
 

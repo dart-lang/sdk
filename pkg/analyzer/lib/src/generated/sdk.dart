@@ -12,6 +12,7 @@ import 'source.dart' show ContentCache, Source, UriKind;
 import 'ast.dart';
 import 'engine.dart' show AnalysisContext;
 
+
 /**
  * Instances of the class `DartSdk` represent a Dart SDK installed in a specified location.
  */
@@ -37,14 +38,14 @@ abstract class DartSdk {
   static final String DEFAULT_VERSION = "0";
 
   /**
-   * Return the source representing the file with the given URI.
+   * Return a source representing the given file: URI if the file is in this SDK, or `null` if
+   * the file is not in this SDK.
    *
-   * @param kind the kind of URI that was originally resolved in order to produce an encoding with
-   *          the given URI
-   * @param uri the URI of the file to be returned
-   * @return the source representing the specified file
+   * @param uri the file URI for which a source is to be returned
+   * @return the source representing the given URI
+   * @throws
    */
-  Source fromEncoding(UriKind kind, Uri uri);
+  Source fromFileUri(Uri uri);
 
   /**
    * Return the [AnalysisContext] used for all of the sources in this [DartSdk].

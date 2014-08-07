@@ -418,7 +418,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               connectNext();
             } else {
               socket.port;  // Query the local port, for error messages.
-              // Set up timer for when we should retry the next address (if any).
+              // Set up timer for when we should retry the next address
+              // (if any).
               var duration = address.isLoopback ?
                   _RETRY_DURATION_LOOPBACK :
                   _RETRY_DURATION;

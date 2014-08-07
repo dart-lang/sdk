@@ -71,7 +71,7 @@ class PathSet {
         // the next level.
         var part = parts.removeFirst();
         var entry = dir[part];
-        if (entry.isEmpty) return new Set();
+        if (entry == null || entry.isEmpty) return new Set();
 
         partialPath = p.join(partialPath, part);
         var paths = recurse(entry, partialPath);

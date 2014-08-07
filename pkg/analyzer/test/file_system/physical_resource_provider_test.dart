@@ -134,7 +134,7 @@ main() {
 
         test('createSource', () {
           new io.File(path).writeAsStringSync('contents');
-          var source = file.createSource(UriKind.FILE_URI);
+          Source source = file.createSource();
           expect(source.uriKind, UriKind.FILE_URI);
           expect(source.exists(), isTrue);
           expect(source.contents.data, 'contents');
@@ -213,6 +213,13 @@ main() {
           new io.Directory(path2).createSync();
           Folder folder2 = PhysicalResourceProvider.INSTANCE.getResource(path2);
           expect(folder == folder2, isFalse);
+        });
+
+        test('contains', () {
+          expect(folder.contains(join(path, 'aaa.txt')), isTrue);
+          expect(folder.contains(join(path, 'aaa', 'bbb.txt')), isTrue);
+          expect(folder.contains(join(tempPath, 'baz.txt')), isFalse);
+          expect(folder.contains(path), isFalse);
         });
 
         group('getChild', () {

@@ -170,6 +170,30 @@ RawString* StringSlice::ToSymbol() const {
 }
 
 
+class ConcatString {
+ public:
+  ConcatString(const String& str1, const String& str2)
+      : str1_(str1), str2_(str2), hash_(String::HashConcat(str1, str2)) {}
+  RawString* ToSymbol() const;
+  bool Equals(const String& other) const {
+    return other.EqualsConcat(str1_, str2_);
+  }
+  intptr_t Hash() const { return hash_; }
+ private:
+  const String& str1_;
+  const String& str2_;
+  intptr_t hash_;
+};
+
+
+RawString* ConcatString::ToSymbol() const {
+  String& result = String::Handle(String::Concat(str1_, str2_, Heap::kOld));
+  result.SetCanonical();
+  result.SetHash(hash_);
+  return result.raw();
+}
+
+
 class SymbolTraits {
  public:
   static bool IsMatch(const Object& a, const Object& b) {
@@ -182,6 +206,9 @@ class SymbolTraits {
   static bool IsMatch(const StringSlice& slice, const Object& obj) {
     return slice.Equals(String::Cast(obj));
   }
+  static bool IsMatch(const ConcatString& concat, const Object& obj) {
+    return concat.Equals(String::Cast(obj));
+  }
   static uword Hash(const Object& key) {
     return String::Cast(key).Hash();
   }
@@ -192,12 +219,18 @@ class SymbolTraits {
   static uword Hash(const StringSlice& slice) {
     return slice.Hash();
   }
+  static uword Hash(const ConcatString& concat) {
+    return concat.Hash();
+  }
   template<typename CharType>
   static RawObject* NewKey(const CharArray<CharType>& array) {
     return array.ToSymbol();
   }
   static RawObject* NewKey(const StringSlice& slice) {
     return slice.ToSymbol();
+  }
+  static RawObject* NewKey(const ConcatString& concat) {
+    return concat.ToSymbol();
   }
 };
 typedef UnorderedHashSet<SymbolTraits> SymbolTable;
@@ -278,7 +311,12 @@ RawString* Symbols::FromUTF32(const int32_t* utf32_array, intptr_t len) {
 }
 
 
-// StringType can be StringSlice, Latin1Array, UTF16Array or UTF32Array.
+RawString* Symbols::FromConcat(const String& str1, const String& str2) {
+  return NewSymbol(ConcatString(str1, str2));
+}
+
+
+// StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
 template<typename StringType>
 RawString* Symbols::NewSymbol(const StringType& str) {
   Isolate* isolate = Isolate::Current();

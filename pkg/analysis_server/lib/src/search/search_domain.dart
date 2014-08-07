@@ -14,6 +14,7 @@ import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_services/constants.dart';
+import 'package:analysis_services/json.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -142,9 +143,9 @@ class SearchDomainHandler implements RequestHandler {
     Element element = elements.first;
     // prepare type hierarchy
     TypeHierarchyComputer computer = new TypeHierarchyComputer(searchEngine);
-    computer.compute(element).then((TypeHierarchyItem item) {
+    computer.compute(element).then((List<TypeHierarchyItem> items) {
       Response response = new Response(request.id);
-      response.setResult(HIERARCHY, item);
+      response.setResult(HIERARCHY_ITEMS, objectToJson(items));
       server.sendResponse(response);
     });
     // delay response

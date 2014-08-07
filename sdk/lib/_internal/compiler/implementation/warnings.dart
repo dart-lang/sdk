@@ -146,15 +146,6 @@ class MessageKind {
   static const MessageKind THIS_IS_THE_METHOD = const MessageKind(
       "This is the method declaration.");
 
-  static const MessageKind UNREACHABLE_CODE = const MessageKind(
-      "Unreachable code.");
-
-  static const MessageKind MISSING_RETURN = const MessageKind(
-      "Missing return.");
-
-  static const MessageKind MAYBE_MISSING_RETURN = const MessageKind(
-      "Not all paths lead to a return or throw statement.");
-
   static const MessageKind CANNOT_RESOLVE = const MessageKind(
       "Cannot resolve '#{name}'.");
 
@@ -991,6 +982,16 @@ main() => new C();"""]);
   static const MessageKind ILLEGAL_FINAL_METHOD_MODIFIER = const MessageKind(
       "Cannot have final modifier on method.");
 
+  static const MessageKind ILLEGAL_CONST_FIELD_MODIFIER = const MessageKind(
+      "Cannot have const modifier on non-static field.",
+      howToFix: "Try adding a static modifier, or removing the const modifier.",
+      examples: const ["""
+class C {
+  const int a = 1;
+}
+
+main() => new C();"""]);
+
   static const MessageKind ILLEGAL_CONSTRUCTOR_MODIFIERS = const MessageKind(
       "Illegal constructor modifiers: '#{modifiers}'.");
 
@@ -1175,7 +1176,8 @@ main() => A.A = 1;
 
   static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
       const MessageKind(
-          "Deferred loading is not supported by the dart backend yet.");
+          "Deferred loading is not supported by the dart backend yet."
+          "The output will not be split.");
 
   static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
       const MessageKind(
@@ -1476,6 +1478,11 @@ main() {}
           "'#{keyword}' is a reserved word and can't be used here.",
           howToFix: "Try using a different name.",
           examples: const ["do() {} main() {}"]);
+
+  static const MessageKind  NAMED_FUNCTION_EXPRESSION =
+      const MessageKind("Function expression '#{name}' cannot be named.",
+          howToFix: "Try removing the name.",
+          examples: const ["main() { var f = func() {}; }"]);
 
   static const MessageKind UNUSED_METHOD = const MessageKind(
       "The method '#{name}' is never called.",

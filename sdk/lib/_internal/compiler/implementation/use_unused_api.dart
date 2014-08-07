@@ -107,6 +107,7 @@ void useNode(tree.Node node) {
     ..asPart()
     ..asPartOf()
     ..asRethrow()
+    ..asReturn()
     ..asStatement()
     ..asStringInterpolation()
     ..asStringInterpolationPart()

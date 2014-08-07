@@ -19,23 +19,35 @@ class SourceBuilder {
   final int offset;
   final StringBuffer _buffer = new StringBuffer();
 
-  final List<LinkedPositionGroup> linkedPositionGroups = <LinkedPositionGroup>[
+  final List<LinkedEditGroup> linkedPositionGroups = <LinkedEditGroup>[
       ];
-  LinkedPositionGroup _currentLinkedPositionGroup;
+  LinkedEditGroup _currentLinkedPositionGroup;
   int _currentPositionStart;
+  int _exitOffset;
 
   SourceBuilder(this.file, this.offset);
 
   SourceBuilder.buffer() : file = null, offset = 0;
 
-  int get length => _buffer.length;
-
-  void addProposal(String proposal) {
-    _currentLinkedPositionGroup.addProposal(proposal);
+  /**
+   * Returns the exit offset, maybe `null` if not set.
+   */
+  int get exitOffset {
+    if (_exitOffset == null) {
+      return null;
+    }
+    return offset + _exitOffset;
   }
 
-  void addProposals(List<String> proposals) {
-    proposals.forEach((proposal) => addProposal(proposal));
+  int get length => _buffer.length;
+
+  void addSuggestion(LinkedEditSuggestionKind kind, String value) {
+    var suggestion = new LinkedEditSuggestion(kind, value);
+    _currentLinkedPositionGroup.addSuggestion(suggestion);
+  }
+
+  void addSuggestions(LinkedEditSuggestionKind kind, List<String> values) {
+    values.forEach((value) => addSuggestion(kind, value));
   }
 
   /**
@@ -56,18 +68,25 @@ class SourceBuilder {
   }
 
   /**
+   * Marks the current offset as an "exit" one.
+   */
+  void setExitOffset() {
+    _exitOffset = _buffer.length;
+  }
+
+  /**
    * Marks start of a new linked position for the group with the given ID.
    */
   void startPosition(String groupId) {
     assert(_currentLinkedPositionGroup == null);
-    for (LinkedPositionGroup position in linkedPositionGroups) {
+    for (LinkedEditGroup position in linkedPositionGroups) {
       if (position.id == groupId) {
         _currentLinkedPositionGroup = position;
         break;
       }
     }
     if (_currentLinkedPositionGroup == null) {
-      _currentLinkedPositionGroup = new LinkedPositionGroup(groupId);
+      _currentLinkedPositionGroup = new LinkedEditGroup(groupId);
       linkedPositionGroups.add(_currentLinkedPositionGroup);
     }
     _currentPositionStart = _buffer.length;
@@ -82,7 +101,8 @@ class SourceBuilder {
   void _addPosition() {
     int start = offset + _currentPositionStart;
     int end = offset + _buffer.length;
-    Position position = new Position(file, start, end - start);
-    _currentLinkedPositionGroup.addPosition(position);
+    int length = end - start;
+    Position position = new Position(file, start);
+    _currentLinkedPositionGroup.addPosition(position, length);
   }
 }

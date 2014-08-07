@@ -4,12 +4,11 @@
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:watcher/src/directory_watcher/linux.dart';
-import 'package:watcher/watcher.dart';
 
 import 'shared.dart';
 import '../utils.dart';
 
-main() {
+void main() {
   initConfig();
 
   watcherFactory = (dir) => new LinuxDirectoryWatcher(dir);

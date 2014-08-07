@@ -9,8 +9,10 @@ Buildbot steps for functional testing master and slaves
 """
 
 import os
+import os.path
 import re
 import shutil
+import subprocess
 import sys
 
 import bot
@@ -22,6 +24,9 @@ FT_BUILDER = r'ft-slave-(linux|mac)'
 FT_MASTER = r'ft-master'
 
 HOST_OS = utils.GuessOS()
+
+def IsWindows():
+  return HOST_OS == 'win32'
 
 def SrcConfig(name, is_buildbot):
   """Returns info for the current buildbot based on the name of the builder.
@@ -48,6 +53,19 @@ def Run(args):
   bot.RunProcess(args)
 
 def FTSlave(config):
+
+  # Run SWTBot tests
+  if len(sys.argv) > 0:
+    scriptdir = os.path.dirname(sys.argv[0])
+    builddir = os.path.join(scriptdir, '..', '..', 'editor', 'build')
+    testScript = os.path.join(builddir, 'testswteditor.py')
+    cmd = [sys.executable, testScript]
+    try:
+      subprocess.call(cmd, shell=IsWindows())
+    except:
+      pass
+
+  # Prepare to run EggPlant tests
   with bot.BuildStep('Fetching editor'):
     revision = int(os.environ['BUILDBOT_GOT_REVISION'])
     bot_name, _ = bot.GetBotName()
@@ -84,6 +102,7 @@ def FTMaster(config):
       os.makedirs(builddir)
       script_locations = os.path.join(bot_utils.DART_DIR, 'editor', 'ft')
       Run(['/home/chrome-bot/func-test/bot-run', builddir, script_locations])
+      #TODO Copy builddir to shared storage somewhere.
 
 def FTSteps(config):
   if config.builder_tag == 'master':

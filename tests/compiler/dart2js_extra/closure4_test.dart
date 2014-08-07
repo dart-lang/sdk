@@ -5,29 +5,32 @@
 import "package:expect/expect.dart";
 
 closure0() {
-  var f = fib(i) {
+  var fib;
+  fib = (i) {
     if (i < 2) return i;
     return fib(i - 1) + fib(i - 2);
   };
-  Expect.equals(5, f(5));
+  Expect.equals(5, fib(5));
 }
 
 closure1() {
   var decr1 = 0;
   var decr2 = 0;
-  var f = fib(i) {
+  var fib;
+  fib = (i) {
     if (i < 2) return i;
     return fib(i - decr1) + fib(i - decr2);
   };
   decr1++;
   decr2 += 2;
-  Expect.equals(5, f(5));
+  Expect.equals(5, fib(5));
 }
 
 closure2() {
-  var f = fun(doReturnClosure) {
+  var f;
+  f = (doReturnClosure) {
     if (doReturnClosure) {
-      return inner() => fun(false);
+      return () => f(false);
     } else {
       return 499;
     }

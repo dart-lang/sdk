@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 main() {
-  var f = fun({a: 3, b: 8}) {
+  var f = ({a: 3, b: 8}) {
     return a + b;
   };
   Expect.equals(11, f());

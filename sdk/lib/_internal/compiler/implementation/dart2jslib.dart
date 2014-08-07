@@ -48,7 +48,6 @@ import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'dump_info.dart';
 import 'tracer.dart' show Tracer;
 import 'cache_strategy.dart';
-import 'compilation_info.dart';
 
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
 export 'scanner/scannerlib.dart' show isUserDefinableOperator,

@@ -29,8 +29,11 @@ class CodeEmitterTask extends CompilerTask {
   final Namer namer;
   ConstantEmitter constantEmitter;
   NativeEmitter nativeEmitter;
+
+  // The full code that is written to each hunk part-file.
   Map<OutputUnit, CodeBuffer> outputBuffers = new Map<OutputUnit, CodeBuffer>();
   final CodeBuffer deferredConstants = new CodeBuffer();
+
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
@@ -55,6 +58,8 @@ class CodeEmitterTask extends CompilerTask {
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
 
+  List<TypedefElement> typedefsNeededForReflection;
+
   JavaScriptBackend get backend => compiler.backend;
   TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
 
@@ -63,9 +68,12 @@ class CodeEmitterTask extends CompilerTask {
   String get n => compiler.enableMinification ? "" : "\n";
   String get N => compiler.enableMinification ? "\n" : ";\n";
 
+  CodeBuffer getBuffer(OutputUnit outputUnit) {
+    return outputBuffers.putIfAbsent(outputUnit, () => new CodeBuffer());
+  }
+
   CodeBuffer get mainBuffer {
-    return outputBuffers.putIfAbsent(compiler.deferredLoadTask.mainOutputUnit,
-        () => new CodeBuffer());
+    return getBuffer(compiler.deferredLoadTask.mainOutputUnit);
   }
 
   /**
@@ -752,6 +760,8 @@ class CodeEmitterTask extends CompilerTask {
       ClassElement cls = element;
       if (cls.isUnnamedMixinApplication) return null;
       return cls.name;
+    } else if (element.isTypedef) {
+      return element.name;
     }
     throw compiler.internalError(element,
         'Do not know how to reflect on this $element.');
@@ -861,7 +871,7 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(elements)) {
       ClassBuilder builder = new ClassBuilder(element, namer);
       containerBuilder.addMember(element, builder);
-      getElementDecriptor(element).properties.addAll(builder.properties);
+      getElementDescriptor(element).properties.addAll(builder.properties);
     }
   }
 
@@ -1149,10 +1159,15 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
-  /**
-   * Compute all the classes that must be emitted.
-   */
-  void computeNeededClasses() {
+  /// Compute all the classes and typedefs that must be emitted.
+  void computeNeededDeclarations() {
+    // Compute needed typedefs.
+    typedefsNeededForReflection = Elements.sortedByPosition(
+        compiler.world.allTypedefs
+            .where(backend.isAccessibleByReflection)
+            .toList());
+
+    // Compute needed classes.
     instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses.where(computeClassFilter())
             .toSet();
@@ -1303,7 +1318,9 @@ class CodeEmitterTask extends CompilerTask {
     mainBuffer.add(N);
   }
 
-  void writeLibraryDescriptors(LibraryElement library) {
+  void writeLibraryDescriptors(
+      LibraryElement library,
+      Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers) {
     var uri = "";
     if (!compiler.enableMinification || backend.mustRetainUris) {
       uri = library.canonicalUri;
@@ -1311,30 +1328,28 @@ class CodeEmitterTask extends CompilerTask {
         uri = relativize(compiler.outputUri, library.canonicalUri, false);
       }
     }
+    Map<OutputUnit, ClassBuilder> descriptors = elementDescriptors[library];
     String libraryName =
         (!compiler.enableMinification || backend.mustRetainLibraryNames) ?
         library.getLibraryName() :
         "";
-    Map<OutputUnit, ClassBuilder> descriptors =
-        elementDescriptors[library];
 
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
-      ClassBuilder descriptor =
-          descriptors.putIfAbsent(outputUnit,
-                                  () => new ClassBuilder(library, namer));
-      if (descriptor.properties.isEmpty) continue;
-      bool isDeferred =
-          outputUnit != compiler.deferredLoadTask.mainOutputUnit;
+      if (!descriptors.containsKey(outputUnit)) continue;
+ 
+      ClassBuilder descriptor = descriptors[outputUnit];
+
       jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);
 
-      jsAst.ObjectInitializer initializers =
-          descriptor.toObjectInitializer();
-      CodeBuffer outputBuffer =
-          outputBuffers.putIfAbsent(outputUnit, () => new CodeBuffer());
-      int sizeBefore = outputBuffer.length;
+      jsAst.ObjectInitializer initializers = descriptor.toObjectInitializer();
+
+      CodeBuffer libraryDescriptorBuffer =
+          libraryDescriptorBuffers.putIfAbsent(outputUnit,
+              () => new CodeBuffer());
+
       compiler.dumpInfoTask.registerElementAst(library, metadata);
       compiler.dumpInfoTask.registerElementAst(library, initializers);
-      outputBuffers[outputUnit]
+      libraryDescriptorBuffer
           ..write('["$libraryName",$_')
           ..write('"${uri}",$_')
           ..write(metadata == null ? "" : jsAst.prettyPrint(metadata,
@@ -1348,11 +1363,34 @@ class CodeEmitterTask extends CompilerTask {
                                     monitor: compiler.dumpInfoTask))
           ..write(library == compiler.mainApp ? ',${n}1' : "")
           ..write('],$n');
-      int sizeAfter = outputBuffer.length;
     }
   }
 
-  String assembleProgram() {
+  void emitPrecompiledConstructor(String constructorName,
+                                  jsAst.Expression constructorAst) {
+    precompiledFunction.add(
+        new jsAst.FunctionDeclaration(
+            new jsAst.VariableDeclaration(constructorName), constructorAst));
+    precompiledFunction.add(
+   js.statement(r'''{
+          #.builtin$cls = #;
+          if (!"name" in #)
+              #.name = #;
+          $desc=$collectedClasses.#;
+          if ($desc instanceof Array) $desc = $desc[1];
+          #.prototype = $desc;
+        }''',
+        [   constructorName, js.string(constructorName),
+            constructorName,
+            constructorName, js.string(constructorName),
+            constructorName,
+            constructorName
+         ]));
+
+    precompiledConstructorNames.add(js('#', constructorName));
+  }
+
+  void assembleProgram() {
     measure(() {
       invalidateCaches();
 
@@ -1360,7 +1398,9 @@ class CodeEmitterTask extends CompilerTask {
       // 'is$' method.
       typeTestEmitter.computeRequiredTypeChecks();
 
-      computeNeededClasses();
+      computeNeededDeclarations();
+
+      OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
 
       mainBuffer.add(buildGeneratedBy());
       addComment(HOOKS_API_USAGE, mainBuffer);
@@ -1395,7 +1435,8 @@ class CodeEmitterTask extends CompilerTask {
       // Only output the classesCollector if we actually have any classes.
       if (!(nativeClasses.isEmpty &&
             compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty &&
-          outputClassLists.values.every((classList) => classList.isEmpty))) {
+          outputClassLists.values.every((classList) => classList.isEmpty) &&
+          typedefsNeededForReflection.isEmpty)) {
         // Shorten the code by using "$$" as temporary.
         classesCollector = r"$$";
         mainBuffer.add('var $classesCollector$_=$_{}$N$n');
@@ -1419,7 +1460,7 @@ class CodeEmitterTask extends CompilerTask {
       // Might create methodClosures.
       for (List<ClassElement> outputClassList in outputClassLists.values) {
         for (ClassElement element in outputClassList) {
-          generateClass(element, getElementDecriptor(element));
+          generateClass(element, getElementDescriptor(element));
         }
       }
 
@@ -1431,6 +1472,10 @@ class CodeEmitterTask extends CompilerTask {
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
 
+      // For each output unit, the library descriptors written to it.
+      Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers =
+          new Map<OutputUnit, CodeBuffer>();
+
       // TODO(sigurdm): Need to check this for each outputUnit.
       if (!elementDescriptors.isEmpty) {
         var oldClassesCollector = classesCollector;
@@ -1439,6 +1484,8 @@ class CodeEmitterTask extends CompilerTask {
           mainBuffer.write(';');
         }
 
+        // TODO(karlklose): document what kinds of fields this loop adds to the
+        // library class builder.
         for (Element element in elementDescriptors.keys) {
           // TODO(ahe): Should iterate over all libraries.  Otherwise, we will
           // not see libraries that only have fields.
@@ -1447,15 +1494,40 @@ class CodeEmitterTask extends CompilerTask {
             ClassBuilder builder = new ClassBuilder(library, namer);
             if (classEmitter.emitFields(
                     library, builder, null, emitStatics: true)) {
-              OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
               jsAst.ObjectInitializer initializer =
                 builder.toObjectInitializer();
               compiler.dumpInfoTask.registerElementAst(builder.element,
                                                        initializer);
-              getElementDescriptorForOutputUnit(library, mainUnit)
+              getElementDescriptorForOutputUnit(library, mainOutputUnit)
                   .properties.addAll(initializer.properties);
             }
           }
+        }
+
+        // Emit all required typedef declarations into the main output unit.
+        // TODO(karlklose): unify required classes and typedefs to declarations
+        // and have builders for each kind.
+        for (TypedefElement typedef in typedefsNeededForReflection) {
+          OutputUnit mainUnit = compiler.deferredLoadTask.mainOutputUnit;
+          LibraryElement library = typedef.library;
+          // TODO(karlklose): add a TypedefBuilder and move this code there.
+          DartType type = typedef.alias;
+          int typeIndex = metadataEmitter.reifyType(type);
+          String typeReference =
+              encoding.encodeTypedefFieldDescriptor(typeIndex);
+          jsAst.Property descriptor = new jsAst.Property(
+              js.string(namer.classDescriptorProperty),
+              js.string(typeReference));
+          jsAst.Node declaration = new jsAst.ObjectInitializer([descriptor]);
+          String mangledName = namer.getNameX(typedef);
+          String reflectionName = getReflectionName(typedef, mangledName);
+          getElementDescriptorForOutputUnit(library, mainUnit)
+              ..addProperty(mangledName, declaration)
+              ..addProperty("+$reflectionName", js.string(''));
+          // Also emit a trivial constructor for CSP mode.
+          String constructorName = mangledName;
+          jsAst.Expression constructorAst = js('function() {}');
+          emitPrecompiledConstructor(constructorName, constructorAst);
         }
 
         if (!mangledFieldNames.isEmpty) {
@@ -1494,14 +1566,6 @@ class CodeEmitterTask extends CompilerTask {
             mainBuffer.write(';');
           }
         }
-        mainBuffer
-            ..write('(')
-            ..write(
-                jsAst.prettyPrint(
-                    getReflectionDataParser(classesCollector, backend),
-                    compiler))
-            ..write(')')
-            ..write('([$n');
 
         List<Element> sortedElements =
             Elements.sortedByPosition(elementDescriptors.keys);
@@ -1518,21 +1582,30 @@ class CodeEmitterTask extends CompilerTask {
               compiler.reportInfo(
                   element, MessageKind.GENERIC, {'text': 'Pending statics.'}));
         }
+
         for (LibraryElement library in sortedElements.where((element) =>
             element.isLibrary)) {
-          writeLibraryDescriptors(library);
+          writeLibraryDescriptors(library, libraryDescriptorBuffers);
           elementDescriptors[library] = const {};
         }
         if (pendingStatics != null && !pendingStatics.isEmpty) {
           compiler.internalError(pendingStatics.first,
               'Pending statics (see above).');
         }
-        mainBuffer.write('])$N');
+        mainBuffer
+            ..write('(')
+            ..write(
+                jsAst.prettyPrint(
+                    getReflectionDataParser(classesCollector, backend),
+                    compiler))
+            ..write(')')
+            ..write('([$n')
+            ..add(libraryDescriptorBuffers[mainOutputUnit])
+            ..write('])$N');
 
         emitFinishClassesInvocationIfNecessary(mainBuffer);
         classesCollector = oldClassesCollector;
       }
-      OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
       typeTestEmitter.emitRuntimeTypeSupport(mainBuffer, mainOutputUnit);
       interceptorEmitter.emitGetInterceptorMethods(mainBuffer);
       interceptorEmitter.emitOneShotInterceptors(mainBuffer);
@@ -1653,14 +1726,17 @@ class CodeEmitterTask extends CompilerTask {
         sourceMapTags =
             generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri);
       }
+      mainBuffer.add(sourceMapTags);
+      assembledCode = mainBuffer.getText();
       compiler.outputProvider('', 'js')
           ..add(assembledCode)
-          ..add(sourceMapTags)
           ..close();
       compiler.assembledCode = assembledCode;
 
       if (!compiler.useContentSecurityPolicy) {
-        mainBuffer.write("""
+        CodeBuffer cspBuffer = new CodeBuffer();
+        cspBuffer.add(mainBuffer);
+        cspBuffer.write("""
 {
   var message =
       'Deprecation: Automatic generation of output for Content Security\\n' +
@@ -1675,23 +1751,22 @@ class CodeEmitterTask extends CompilerTask {
   }
 }\n""");
 
-        mainBuffer.write(
+        cspBuffer.write(
             jsAst.prettyPrint(
                 precompiledFunctionAst, compiler,
                 allowVariableMinification: false).getText());
 
         compiler.outputProvider('', 'precompiled.js')
-            ..add(mainBuffer.getText())
+            ..add(cspBuffer.getText())
             ..close();
       }
-      emitDeferredCode();
+      emitDeferredCode(libraryDescriptorBuffers);
 
       if (backend.requiresPreamble &&
           !backend.htmlLibraryIsLoaded) {
         compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
       }
     });
-    return compiler.assembledCode;
   }
 
   String generateSourceMapTag(Uri sourceMapUri, Uri fileUri) {
@@ -1714,7 +1789,7 @@ class CodeEmitterTask extends CompilerTask {
         () => new ClassBuilder(element, namer));
   }
 
-  ClassBuilder getElementDecriptor(Element element) {
+  ClassBuilder getElementDescriptor(Element element) {
     Element owner = element.library;
     if (!element.isTopLevel && !element.isNative) {
       // For static (not top level) elements, record their code in a buffer
@@ -1734,55 +1809,61 @@ class CodeEmitterTask extends CompilerTask {
         compiler.deferredLoadTask.outputUnitForElement(element));
   }
 
-  void emitDeferredCode() {
+  void emitDeferredCode(Map<OutputUnit, CodeBuffer> libraryDescriptorBuffers) {
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
       if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) continue;
-      CodeBuffer outputBuffer = outputBuffers.putIfAbsent(outputUnit,
-          () => new CodeBuffer());
+
+      CodeBuffer libraryDescriptorBuffer = libraryDescriptorBuffers[outputUnit];
+
+      CodeBuffer outputBuffer = new CodeBuffer();
 
       var oldClassesCollector = classesCollector;
       classesCollector = r"$$";
 
-      var buffer = new CodeBuffer()
-        ..write(buildGeneratedBy())
-        ..write('var old${namer.currentIsolate}$_='
-                '$_${namer.currentIsolate}$N'
-                // TODO(ahe): This defines a lot of properties on the
-                // Isolate.prototype object.  We know this will turn it into a
-                // slow object in V8, so instead we should do something similar
-                // to Isolate.$finishIsolateConstructor.
-                '${namer.currentIsolate}$_='
-                '$_${namer.isolateName}.prototype$N$n'
-                // The classesCollector object ($$).
-                '$classesCollector$_=$_{};$n')
-        ..write('(')
-        ..write(
-            jsAst.prettyPrint(
-                getReflectionDataParser(classesCollector, backend),
-                compiler, monitor: compiler.dumpInfoTask))
-        ..write(')')
-        ..write('([$n')
-        ..addBuffer(outputBuffer)
-        ..write('])$N');
+      outputBuffer
+        ..write(buildGeneratedBy());
+      if (libraryDescriptorBuffer != null) {
+        outputBuffer
+          ..write('var old${namer.currentIsolate}$_='
+                  '$_${namer.currentIsolate}$N'
+      // TODO(ahe): This defines a lot of properties on the
+      // Isolate.prototype object.  We know this will turn it into a
+      // slow object in V8, so instead we should do something similar
+      // to Isolate.$finishIsolateConstructor.
+                  '${namer.currentIsolate}$_='
+                  '$_${namer.isolateName}.prototype$N$n'
+                  // The classesCollector object ($$).
+                  '$classesCollector$_=$_{};$n')
+          ..write('(')
+          ..write(
+              jsAst.prettyPrint(
+                  getReflectionDataParser(classesCollector, backend),
+                  compiler, monitor: compiler.dumpInfoTask))
+          ..write(')')
+          ..write('([$n')
+          ..addBuffer(libraryDescriptorBuffer)
+          ..write('])$N');
 
-      if (outputClassLists.containsKey(outputUnit)) {
-        buffer.write(
-            '$finishClassesName($classesCollector,$_${namer.currentIsolate},'
-            '$_$isolatePropertiesName)$N');
-      }
+        if (outputClassLists.containsKey(outputUnit)) {
+          outputBuffer.write(
+              '$finishClassesName($classesCollector,$_${namer.currentIsolate},'
+              '$_$isolatePropertiesName)$N');
+        }
 
-      buffer.write(
+        outputBuffer.write(
           // Reset the classesCollector ($$).
           '$classesCollector$_=${_}null$N$n'
           '${namer.currentIsolate}$_=${_}old${namer.currentIsolate}$N');
+      }
 
       classesCollector = oldClassesCollector;
 
-      typeTestEmitter.emitRuntimeTypeSupport(buffer, outputUnit);
+      typeTestEmitter.emitRuntimeTypeSupport(outputBuffer, outputUnit);
 
-      emitCompileTimeConstants(buffer, outputUnit);
+      emitCompileTimeConstants(outputBuffer, outputUnit);
 
-      String code = buffer.getText();
+      String code = outputBuffer.getText();
+      outputBuffers[outputUnit] = outputBuffer;
       compiler.outputProvider(outputUnit.partFileName(compiler), 'part.js')
         ..add(code)
         ..close();

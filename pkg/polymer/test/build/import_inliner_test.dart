@@ -4,7 +4,7 @@
 
 library polymer.test.build.import_inliner_test;
 
-import 'dart:convert' show JSON;
+import 'dart:convert';
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/import_inliner.dart';
 import 'package:unittest/compact_vm_config.dart';
@@ -654,30 +654,47 @@ void importTests() {
           '<polymer-element>3</polymer-element></body></html>',
     });
 
-  testPhases("missing styles don't throw errors and are not inlined", phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<link rel="stylesheet" href="foo.css">'
-          '</head></html>',
-    }, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head></head><body>'
-          '<link rel="stylesheet" href="foo.css">'
-          '</body></html>',
-    }, [
-      'warning: Failed to inline stylesheet: '
-          'Could not find asset a|web/foo.css. (web/test.html 0 27)',
-    ]);
+  testLogOutput(
+      (options) => new ImportInliner(options),
+      "missing styles don't throw errors and are not inlined", {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>'
+            '<link rel="stylesheet" href="foo.css">'
+            '</head></html>',
+      }, {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="foo.css">'
+            '</body></html>',
+      }, [
+        'warning: Failed to inline stylesheet: '
+            'Could not find asset a|web/foo.css. (web/test.html 0 27)',
+      ]);
 
-  testPhases("missing html imports throw errors", phases, {
-      'a|web/test.html':
-          '<!DOCTYPE html><html><head>'
-          '<link rel="import" href="foo.html">'
-          '</head></html>',
-    }, {}, [
-      'error: Failed to inline html import: '
-          'Could not find asset a|web/foo.html. (web/test.html 0 27)',
-    ]);
+  testLogOutput(
+      (options) => new ImportInliner(options),
+      "missing html imports throw errors", {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head>'
+            '<link rel="import" href="foo.html">'
+            '</head></html>',
+      }, {
+        'a|web/test.html._buildLogs.1':
+          '[{'
+            '"level":"Error",'
+            '"message":"Failed to inline html import: '
+              'Could not find asset a|web/foo.html.",'
+            '"assetId":{"package":"a","path":"web/foo.html"},'
+            '"span":{'
+              '"location":"web/test.html:1:28",'
+              '"text":"${new HtmlEscape().convert(
+                '<link rel="import" href="foo.html">')}"'
+              '}'
+            '}]',
+      }, [
+        'error: Failed to inline html import: '
+            'Could not find asset a|web/foo.html. (web/test.html 0 27)',
+      ]);
 }
 
 void stylesheetTests() {
@@ -864,6 +881,57 @@ void stylesheetTests() {
        'a|web/bar.css':
            'h2 { font-size: 35px; }',
      });
+
+  testPhases(
+      'can configure default stylesheet inlining',
+      [[new ImportInliner(new TransformOptions(
+          inlineStylesheets: {'default': false}))]], {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="foo.css">'
+            '</body></html>',
+        'a|web/foo.css':
+            'h1 { font-size: 70px; }',
+      }, {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="foo.css">'
+            '</body></html>',
+      });
+
+  testPhases(
+      'can override default stylesheet inlining',
+      [[new ImportInliner(new TransformOptions(
+          inlineStylesheets: {
+              'default': false,
+              'web/foo.css': true,
+              'b|lib/baz.css': true,
+          }))]],
+      {
+          'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="bar.css">'
+            '<link rel="stylesheet" href="foo.css">'
+            '<link rel="stylesheet" href="packages/b/baz.css">'
+            '<link rel="stylesheet" href="packages/c/buz.css">'
+            '</body></html>',
+          'a|web/foo.css':
+            'h1 { font-size: 70px; }',
+          'a|web/bar.css':
+            'h1 { font-size: 35px; }',
+          'b|lib/baz.css':
+            'h1 { font-size: 20px; }',
+          'c|lib/buz.css':
+            'h1 { font-size: 10px; }',
+      }, {
+          'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<link rel="stylesheet" href="bar.css">'
+            '<style>h1 { font-size: 70px; }</style>'
+            '<style>h1 { font-size: 20px; }</style>'
+            '<link rel="stylesheet" href="packages/c/buz.css">'
+            '</body></html>',
+      });
 }
 
 void urlAttributeTests() {
@@ -898,7 +966,7 @@ void urlAttributeTests() {
       'a|web/foo/test.html':
           '<img src="{{bar}}">'
           '<img src="[[bar]]">',
-  }, {
+    }, {
       'a|web/test.html':
           '<!DOCTYPE html><html><head></head><body>'
           '<img src="{{bar}}">'
@@ -907,7 +975,7 @@ void urlAttributeTests() {
       'a|web/foo/test.html':
           '<img src="{{bar}}">'
           '<img src="[[bar]]">',
-  });
+    });
 
   testPhases('relative paths followed by bindings are normalized', phases, {
       'a|web/test.html':
@@ -922,6 +990,68 @@ void urlAttributeTests() {
           '<!DOCTYPE html><html><head></head><body>'
           '<img src="foo/baz/{{bar}}">'
           '<img src="foo/{{bar}}">'
+          '</body></html>',
+    });
+
+  testPhases('relative paths in _* attributes are normalized', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head>'
+          '<link rel="import" href="foo/test.html">'
+          '</head></html>',
+      'a|web/foo/test.html':
+          '<img _src="./{{bar}}">'
+          '<a _href="./{{bar}}">test</a>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img _src="foo/{{bar}}">'
+          '<a _href="foo/{{bar}}">test</a>'
+          '</body></html>',
+    });
+
+
+  testLogOutput(
+      (options) => new ImportInliner(options),
+      'warnings are given about _* attributes', {
+        'a|web/test.html':
+            '<!DOCTYPE html><html><head></head><body>'
+            '<img src="foo/{{bar}}">'
+            '<a _href="foo/bar">test</a>'
+            '</body></html>',
+      }, {}, [
+          'warning: When using bindings with the "src" attribute you may '
+              'experience errors in certain browsers. Please use the "_src" '
+              'attribute instead. For more information, see '
+              'http://goo.gl/5av8cU (web/test.html 0 40)',
+          'warning: The "_href" attribute is only supported when using '
+              'bindings. Please change to the "href" attribute. '
+              '(web/test.html 0 63)',
+
+      ]);
+
+  testPhases('arbitrary bindings can exist in paths', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="./{{(bar[2] + baz[\'foo\']) * 14 / foobar() - 0.5}}.jpg">'
+          '<img src="./[[bar[2]]].jpg">'
+          '</body></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="{{(bar[2] + baz[\'foo\']) * 14 / foobar() - 0.5}}.jpg">'
+          '<img src="[[bar[2]]].jpg">'
+          '</body></html>',
+    });
+
+  testPhases('multiple bindings can exist in paths', phases, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="./{{bar[0]}}/{{baz[1]}}.{{extension}}">'
+          '</body></html>',
+    }, {
+      'a|web/test.html':
+          '<!DOCTYPE html><html><head></head><body>'
+          '<img src="{{bar[0]}}/{{baz[1]}}.{{extension}}">'
           '</body></html>',
     });
 }

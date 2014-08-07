@@ -10,6 +10,8 @@ class World {
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
+  final Set<TypedefElement> allTypedefs = new Set<TypedefElement>();
+
   final Map<ClassElement, Set<MixinApplicationElement>> mixinUses =
       new Map<ClassElement, Set<MixinApplicationElement>>();
 

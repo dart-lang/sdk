@@ -4,11 +4,9 @@
 
 library test.edit.fix;
 
-import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/fix.dart' as services;
 import 'package:analysis_services/index/index.dart' hide Location;
 import 'package:analysis_services/index/local_memory_index.dart';
@@ -39,72 +37,6 @@ class ErrorFixesTest extends AbstractSingleUnitTest {
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     verifyNoTestUnitErrors = false;
-  }
-
-  void test_fromJson() {
-    var json = {
-      ERROR: {
-        SEVERITY: 'ERROR',
-        TYPE: 'SYNTACTIC_ERROR',
-        LOCATION: {
-          FILE: '/test.dart',
-          OFFSET: 19,
-          LENGTH: 1,
-          START_LINE: 2,
-          START_COLUMN: 11
-        },
-        MESSAGE: 'Expected to find \';\''
-      },
-      FIXES: [{
-          MESSAGE: 'Insert \';\'',
-          EDITS: [{
-              FILE: '/test.dart',
-              EDITS: [{
-                  OFFSET: 20,
-                  LENGTH: 0,
-                  REPLACEMENT: ';'
-                }]
-            }],
-          LINKED_POSITION_GROUPS: []
-        }]
-    };
-    ErrorFixes errorFixes = ErrorFixes.fromJson(json);
-    {
-      AnalysisError error = errorFixes.error;
-      expect(error.severity, 'ERROR');
-      expect(error.type, 'SYNTACTIC_ERROR');
-      expect(error.message, "Expected to find ';'");
-      {
-        Location location = error.location;
-        expect(location.file, testFile);
-        expect(location.offset, 19);
-        expect(location.length, 1);
-        expect(location.startLine, 2);
-        expect(location.startColumn, 11);
-      }
-    }
-    expect(errorFixes.fixes, hasLength(1));
-    {
-      Change change = errorFixes.fixes[0];
-      expect(change.message, "Insert ';'");
-      expect(change.edits, hasLength(1));
-      {
-        FileEdit fileEdit = change.edits[0];
-        expect(fileEdit.file, testFile);
-        expect(
-            fileEdit.edits.toString(),
-            "[Edit(offset=20, length=0, replacement=:>;<:)]");
-      }
-    }
-    expect(
-        errorFixes.toString(),
-        'ErrorFixes(error=AnalysisError('
-            'location=Location(file=/test.dart; offset=19; length=1; '
-            'startLine=2; startColumn=11) message=Expected to find \';\'; '
-            'severity=ERROR; type=SYNTACTIC_ERROR; correction=null, '
-            'fixes=[Change(message=Insert \';\', '
-            'edits=[FileEdit(file=/test.dart, edits=[Edit(offset=20, length=0, '
-            'replacement=:>;<:)])], linkedPositionGroups=[])])');
   }
 
   void test_fromService() {
@@ -145,7 +77,7 @@ main() {
                   REPLACEMENT: ';'
                 }]
             }],
-          LINKED_POSITION_GROUPS: []
+          LINKED_EDIT_GROUPS: []
         }]
     });
   }

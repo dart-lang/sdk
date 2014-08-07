@@ -8,7 +8,7 @@ import 'package:watcher/watcher.dart';
 import 'shared.dart';
 import '../utils.dart';
 
-main() {
+void main() {
   initConfig();
 
   // Use a short delay to make the tests run quickly.

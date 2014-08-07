@@ -160,7 +160,7 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   int get _timestamp => _provider._pathToTimestamp[path];
 
   @override
-  Source createSource(UriKind uriKind) {
+  Source createSource([Uri uri]) {
     throw new MemoryResourceException(path, "File '$path' could not be read");
   }
 }
@@ -184,8 +184,11 @@ class _MemoryFile extends _MemoryResource implements File {
   int get _timestamp => _provider._pathToTimestamp[path];
 
   @override
-  Source createSource(UriKind uriKind) {
-    return new _MemoryFileSource(this, uriKind);
+  Source createSource([Uri uri]) {
+    if (uri == null) {
+      uri = posix.toUri(path);
+    }
+    return new _MemoryFileSource(this, uri);
   }
 }
 
@@ -196,9 +199,9 @@ class _MemoryFile extends _MemoryResource implements File {
 class _MemoryFileSource implements Source {
   final _MemoryFile _file;
 
-  final UriKind uriKind;
+  final Uri uri;
 
-  _MemoryFileSource(this._file, this.uriKind);
+  _MemoryFileSource(this._file, this.uri);
 
   @override
   TimestampedData<String> get contents {
@@ -207,7 +210,7 @@ class _MemoryFileSource implements Source {
 
   @override
   String get encoding {
-    return '${new String.fromCharCode(uriKind.encoding)}${_file.path}';
+    return uri.toString();
   }
 
   @override
@@ -226,6 +229,19 @@ class _MemoryFileSource implements Source {
   String get shortName => _file.shortName;
 
   @override
+  UriKind get uriKind {
+    String scheme = uri.scheme;
+    if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
+      return UriKind.PACKAGE_URI;
+    } else if (scheme == DartUriResolver.DART_SCHEME) {
+      return UriKind.DART_URI;
+    } else if (scheme == FileUriResolver.FILE_SCHEME) {
+      return UriKind.FILE_URI;
+    }
+    return UriKind.FILE_URI;
+  }
+
+  @override
   bool operator ==(other) {
     if (other is _MemoryFileSource) {
       return other._file == _file;
@@ -237,14 +253,12 @@ class _MemoryFileSource implements Source {
   bool exists() => _file.exists;
 
   @override
-  Source resolveRelative(Uri relativeUri) {
-    String relativePath = posix.fromUri(relativeUri);
-    String folderPath = posix.dirname(_file.path);
-    String path = posix.join(folderPath, relativePath);
-    path = posix.normalize(path);
-    _MemoryFile file = new _MemoryFile(_file._provider, path);
-    return new _MemoryFileSource(file, uriKind);
+  Uri resolveRelativeUri(Uri relativeUri) {
+    return uri.resolveUri(relativeUri);
   }
+
+  @override
+  String toString() => _file.toString();
 }
 
 
@@ -276,6 +290,11 @@ class _MemoryFolder extends _MemoryResource implements Folder {
     String childPath = posix.join(path, relPath);
     childPath = posix.normalize(childPath);
     return childPath;
+  }
+
+  @override
+  bool contains(String path) {
+    return posix.isWithin(this.path, path);
   }
 
   @override

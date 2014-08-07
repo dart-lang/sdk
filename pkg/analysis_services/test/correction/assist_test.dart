@@ -14,6 +14,7 @@ import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
 import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
+import 'package:collection/collection.dart';
 import 'package:unittest/unittest.dart';
 
 
@@ -34,7 +35,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   Assist assist;
   Change change;
   String resultCode;
-  LinkedPositionGroup linkedPositionGroup;
+  LinkedEditGroup linkedPositionGroup;
 
   /**
    * Asserts that there is an [Assist] of the given [kind] at [offset] which
@@ -60,11 +61,12 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     assertHasAssist(kind, expected);
   }
 
-  void assertHasPositionGroup(String id, List<Position> expectedPositions) {
-    List<LinkedPositionGroup> linkedPositionGroups =
-        change.linkedPositionGroups;
-    for (LinkedPositionGroup group in linkedPositionGroups) {
+  void assertHasPositionGroup(String id, int expectedLength,
+      List<Position> expectedPositions) {
+    List<LinkedEditGroup> linkedPositionGroups = change.linkedEditGroups;
+    for (LinkedEditGroup group in linkedPositionGroups) {
       if (group.id == id) {
+        expect(group.length, expectedLength);
         expect(group.positions, unorderedEquals(expectedPositions));
         linkedPositionGroup = group;
         return;
@@ -96,8 +98,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
 
   Position expectedPosition(String search) {
     int offset = resultCode.indexOf(search);
-    int length = getLeadingIdentifierLength(search);
-    return new Position(testFile, offset, length);
+    return new Position(testFile, offset);
   }
 
   List<Position> expectedPositions(List<String> patterns) {
@@ -106,6 +107,13 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
       positions.add(expectedPosition(search));
     });
     return positions;
+  }
+
+  List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
+      List<String> values) {
+    return values.map((value) {
+      return new LinkedEditSuggestion(kind, value);
+    }).toList();
   }
 
   void setUp() {
@@ -305,10 +313,13 @@ main() {
 }
 List<int> readBytes() => <int>[];
 ''');
-    assertHasPositionGroup('NAME', expectedPositions(['readBytes = ']));
+    assertHasPositionGroup('NAME', 9, expectedPositions(['readBytes = ']));
     expect(
-        linkedPositionGroup.proposals,
-        unorderedEquals(['list', 'bytes2', 'readBytes']));
+        linkedPositionGroup.suggestions,
+        unorderedEquals(
+            expectedSuggestions(
+                LinkedEditSuggestionKind.VARIABLE,
+                ['list', 'bytes2', 'readBytes'])));
   }
 
   void test_assignToLocalVariable_alreadyAssignment() {
@@ -901,6 +912,513 @@ main() {
     assertNoAssistAt('1 + 2 + 3', AssistKind.EXCHANGE_OPERANDS);
   }
 
+  void test_importAddShow_BAD_hasShow() {
+    _indexTestUnit('''
+import 'dart:math' show PI;
+main() {
+  PI;
+}
+''');
+    assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
+  }
+
+  void test_importAddShow_BAD_unused() {
+    _indexTestUnit('''
+import 'dart:math';
+''');
+    assertNoAssistAt('import ', AssistKind.IMPORT_ADD_SHOW);
+  }
+
+  void test_importAddShow_OK_onDirective() {
+    _indexTestUnit('''
+import 'dart:math';
+main() {
+  PI;
+  E;
+  max(1, 2);
+}
+''');
+    assertHasAssistAt('import ', AssistKind.IMPORT_ADD_SHOW, '''
+import 'dart:math' show E, PI, max;
+main() {
+  PI;
+  E;
+  max(1, 2);
+}
+''');
+  }
+
+  void test_importAddShow_OK_onUri() {
+    _indexTestUnit('''
+import 'dart:math';
+main() {
+  PI;
+  E;
+  max(1, 2);
+}
+''');
+    assertHasAssistAt('art:math', AssistKind.IMPORT_ADD_SHOW, '''
+import 'dart:math' show E, PI, max;
+main() {
+  PI;
+  E;
+  max(1, 2);
+}
+''');
+  }
+
+  void test_invertIfStatement_blocks() {
+    _indexTestUnit('''
+main() {
+  if (true) {
+    0;
+  } else {
+    1;
+  }
+}
+''');
+    assertHasAssistAt('if (', AssistKind.INVERT_IF_STATEMENT, '''
+main() {
+  if (false) {
+    1;
+  } else {
+    0;
+  }
+}
+''');
+  }
+
+  void test_invertIfStatement_statements() {
+    _indexTestUnit('''
+main() {
+  if (true)
+    0;
+  else
+    1;
+}
+''');
+    assertHasAssistAt('if (', AssistKind.INVERT_IF_STATEMENT, '''
+main() {
+  if (false)
+    1;
+  else
+    0;
+}
+''');
+  }
+
+  void test_joinIfStatementInner_OK_conditionAndOr() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2 || 3 == 3) {
+      print(0);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER, '''
+main() {
+  if (1 == 1 && (2 == 2 || 3 == 3)) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementInner_OK_conditionInvocation() {
+    _indexTestUnit('''
+main() {
+  if (isCheck()) {
+    if (2 == 2) {
+      print(0);
+    }
+  }
+}
+bool isCheck() => false;
+''');
+    assertHasAssistAt('if (isCheck', AssistKind.JOIN_IF_WITH_INNER, '''
+main() {
+  if (isCheck() && 2 == 2) {
+    print(0);
+  }
+}
+bool isCheck() => false;
+''');
+  }
+
+  void test_joinIfStatementInner_OK_conditionOrAnd() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1 || 2 == 2) {
+    if (3 == 3) {
+      print(0);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER, '''
+main() {
+  if ((1 == 1 || 2 == 2) && 3 == 3) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementInner_OK_onCondition() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    }
+  }
+}
+''');
+    assertHasAssistAt('1 ==', AssistKind.JOIN_IF_WITH_INNER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementInner_OK_simpleConditions_block_block() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementInner_OK_simpleConditions_block_single() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2)
+      print(0);
+  }
+}
+''');
+    assertHasAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementInner_OK_simpleConditions_single_blockMulti() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(1);
+      print(2);
+      print(3);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(1);
+    print(2);
+    print(3);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementInner_OK_simpleConditions_single_blockOne() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1)
+    if (2 == 2) {
+      print(0);
+    }
+}
+''');
+    assertHasAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementInner_wrong_innerNotIf() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    print(0);
+  }
+}
+''');
+    assertNoAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  void test_joinIfStatementInner_wrong_innerWithElse() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    } else {
+      print(1);
+    }
+  }
+}
+''');
+    assertNoAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  void test_joinIfStatementInner_wrong_targetNotIf() {
+    _indexTestUnit('''
+main() {
+  print(0);
+}
+''');
+    assertNoAssistAt('print', AssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  void test_joinIfStatementInner_wrong_targetWithElse() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    }
+  } else {
+    print(1);
+  }
+}
+''');
+    assertNoAssistAt('if (1 ==', AssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  void test_joinIfStatementOuter_OK_conditionAndOr() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2 || 3 == 3) {
+      print(0);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (2 ==', AssistKind.JOIN_IF_WITH_OUTER, '''
+main() {
+  if (1 == 1 && (2 == 2 || 3 == 3)) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementOuter_OK_conditionInvocation() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (isCheck()) {
+      print(0);
+    }
+  }
+}
+bool isCheck() => false;
+''');
+    assertHasAssistAt('if (isCheck', AssistKind.JOIN_IF_WITH_OUTER, '''
+main() {
+  if (1 == 1 && isCheck()) {
+    print(0);
+  }
+}
+bool isCheck() => false;
+''');
+  }
+
+  void test_joinIfStatementOuter_OK_conditionOrAnd() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1 || 2 == 2) {
+    if (3 == 3) {
+      print(0);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (3 == 3', AssistKind.JOIN_IF_WITH_OUTER, '''
+main() {
+  if ((1 == 1 || 2 == 2) && 3 == 3) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementOuter_OK_onCondition() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (2 == 2', AssistKind.JOIN_IF_WITH_OUTER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementOuter_OK_simpleConditions_block_block() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (2 == 2', AssistKind.JOIN_IF_WITH_OUTER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementOuter_OK_simpleConditions_block_single() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2)
+      print(0);
+  }
+}
+''');
+    assertHasAssistAt('if (2 == 2', AssistKind.JOIN_IF_WITH_OUTER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementOuter_OK_simpleConditions_single_blockMulti() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(1);
+      print(2);
+      print(3);
+    }
+  }
+}
+''');
+    assertHasAssistAt('if (2 == 2', AssistKind.JOIN_IF_WITH_OUTER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(1);
+    print(2);
+    print(3);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementOuter_OK_simpleConditions_single_blockOne() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1)
+    if (2 == 2) {
+      print(0);
+    }
+}
+''');
+    assertHasAssistAt('if (2 == 2', AssistKind.JOIN_IF_WITH_OUTER, '''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+}
+''');
+  }
+
+  void test_joinIfStatementOuter_wrong_outerNotIf() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    print(0);
+  }
+}
+''');
+    assertNoAssistAt('if (1 == 1', AssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  void test_joinIfStatementOuter_wrong_outerWithElse() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    }
+  } else {
+    print(1);
+  }
+}
+''');
+    assertNoAssistAt('if (2 == 2', AssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  void test_joinIfStatementOuter_wrong_targetNotIf() {
+    _indexTestUnit('''
+main() {
+  print(0);
+}
+''');
+    assertNoAssistAt('print', AssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  void test_joinIfStatementOuter_wrong_targetWithElse() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    } else {
+      print(1);
+    }
+  }
+}
+''');
+    assertNoAssistAt('if (2 == 2', AssistKind.JOIN_IF_WITH_OUTER);
+  }
+
   void test_joinVariableDeclaration_onAssignment_OK() {
     _indexTestUnit('''
 main() {
@@ -1207,9 +1725,476 @@ main() {
 ''');
   }
 
+  void test_replaceConditionalWithIfElse_wrong_noEnclosingStatement() {
+    _indexTestUnit('''
+var v = true ? 111 : 222;
+''');
+    assertNoAssistAt('? 111', AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE);
+  }
+
+  void test_replaceIfElseWithConditional_OK_assignment() {
+    _indexTestUnit('''
+main() {
+  int vvv;
+  if (true) {
+    vvv = 111;
+  } else {
+    vvv = 222;
+  }
+}
+''');
+    assertHasAssistAt(
+        'if (true)',
+        AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL,
+        '''
+main() {
+  int vvv;
+  vvv = true ? 111 : 222;
+}
+''');
+  }
+
+  void test_replaceIfElseWithConditional_OK_return() {
+    _indexTestUnit('''
+main() {
+  if (true) {
+    return 111;
+  } else {
+    return 222;
+  }
+}
+''');
+    assertHasAssistAt(
+        'if (true)',
+        AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL,
+        '''
+main() {
+  return true ? 111 : 222;
+}
+''');
+  }
+
+  void test_replaceIfElseWithConditional_wrong_notIfStatement() {
+    _indexTestUnit('''
+main() {
+  print(0);
+}
+''');
+    assertNoAssistAt('print', AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
+  }
+
+  void test_replaceIfElseWithConditional_wrong_notSingleStatememt() {
+    _indexTestUnit('''
+main() {
+  int vvv;
+  if (true) {
+    print(0);
+    vvv = 111;
+  } else {
+    print(0);
+    vvv = 222;
+  }
+}
+''');
+    assertNoAssistAt('if (true)', AssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
+  }
+
+  void test_splitAndCondition_OK_innerAndExpression() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1 && 2 == 2 && 3 == 3) {
+    print(0);
+  }
+}
+''');
+    assertHasAssistAt('&& 2 == 2', AssistKind.SPLIT_AND_CONDITION, '''
+main() {
+  if (1 == 1) {
+    if (2 == 2 && 3 == 3) {
+      print(0);
+    }
+  }
+}
+''');
+  }
+
+  void test_splitAndCondition_OK_thenBlock() {
+    _indexTestUnit('''
+main() {
+  if (true && false) {
+    print(0);
+    if (3 == 3) {
+      print(1);
+    }
+  }
+}
+''');
+    assertHasAssistAt('&& false', AssistKind.SPLIT_AND_CONDITION, '''
+main() {
+  if (true) {
+    if (false) {
+      print(0);
+      if (3 == 3) {
+        print(1);
+      }
+    }
+  }
+}
+''');
+  }
+
+  void test_splitAndCondition_OK_thenBlock_elseBlock() {
+    _indexTestUnit('''
+main() {
+  if (true && false) {
+    print(0);
+  } else {
+    print(1);
+    if (2 == 2) {
+      print(2);
+    }
+  }
+}
+''');
+    assertHasAssistAt('&& false', AssistKind.SPLIT_AND_CONDITION, '''
+main() {
+  if (true) {
+    if (false) {
+      print(0);
+    } else {
+      print(1);
+      if (2 == 2) {
+        print(2);
+      }
+    }
+  }
+}
+''');
+  }
+
+  void test_splitAndCondition_OK_thenStatement() {
+    _indexTestUnit('''
+main() {
+  if (true && false)
+    print(0);
+}
+''');
+    assertHasAssistAt('&& false', AssistKind.SPLIT_AND_CONDITION, '''
+main() {
+  if (true)
+    if (false)
+      print(0);
+}
+''');
+  }
+
+  void test_splitAndCondition_OK_thenStatement_elseStatement() {
+    _indexTestUnit('''
+main() {
+  if (true && false)
+    print(0);
+  else
+    print(1);
+}
+''');
+    assertHasAssistAt('&& false', AssistKind.SPLIT_AND_CONDITION, '''
+main() {
+  if (true)
+    if (false)
+      print(0);
+    else
+      print(1);
+}
+''');
+  }
+
+  void test_splitAndCondition_wrong() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1 && 2 == 2) {
+    print(0);
+  }
+  print(3 == 3 && 4 == 4);
+}
+''');
+    // not binary expression
+    assertNoAssistAt('main() {', AssistKind.SPLIT_AND_CONDITION);
+    // selection is not empty and includes more than just operator
+    {
+      length = 5;
+      assertNoAssistAt('&& 2 == 2', AssistKind.SPLIT_AND_CONDITION);
+    }
+  }
+
+  void test_splitAndCondition_wrong_notAnd() {
+    _indexTestUnit('''
+main() {
+  if (1 == 1 || 2 == 2) {
+    print(0);
+  }
+}
+''');
+    assertNoAssistAt('|| 2', AssistKind.SPLIT_AND_CONDITION);
+  }
+
+  void test_splitAndCondition_wrong_notPartOfIf() {
+    _indexTestUnit('''
+main() {
+  print(1 == 1 && 2 == 2);
+}
+''');
+    assertNoAssistAt('&& 2', AssistKind.SPLIT_AND_CONDITION);
+  }
+
+  void test_splitAndCondition_wrong_notTopLevelAnd() {
+    _indexTestUnit('''
+main() {
+  if (true || (1 == 1 && 2 == 2)) {
+    print(0);
+  }
+  if (true && (3 == 3 && 4 == 4)) {
+    print(0);
+  }
+}
+''');
+    assertNoAssistAt('&& 2', AssistKind.SPLIT_AND_CONDITION);
+    assertNoAssistAt('&& 4', AssistKind.SPLIT_AND_CONDITION);
+  }
+
+  void test_splitVariableDeclaration_OK_onName() {
+    _indexTestUnit('''
+main() {
+  var v = 1;
+}
+''');
+    assertHasAssistAt('v =', AssistKind.SPLIT_VARIABLE_DECLARATION, '''
+main() {
+  var v;
+  v = 1;
+}
+''');
+  }
+
+  void test_splitVariableDeclaration_OK_onType() {
+    _indexTestUnit('''
+main() {
+  int v = 1;
+}
+''');
+    assertHasAssistAt('int ', AssistKind.SPLIT_VARIABLE_DECLARATION, '''
+main() {
+  int v;
+  v = 1;
+}
+''');
+  }
+
+  void test_splitVariableDeclaration_OK_onVar() {
+    _indexTestUnit('''
+main() {
+  var v = 1;
+}
+''');
+    assertHasAssistAt('var ', AssistKind.SPLIT_VARIABLE_DECLARATION, '''
+main() {
+  var v;
+  v = 1;
+}
+''');
+  }
+
+  void test_splitVariableDeclaration_wrong_notOneVariable() {
+    _indexTestUnit('''
+main() {
+  var v = 1, v2;
+}
+''');
+    assertNoAssistAt('v = 1', AssistKind.SPLIT_VARIABLE_DECLARATION);
+  }
+
+  void test_surroundWith_block() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_BLOCK, '''
+main() {
+// start
+  {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_doWhile() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_DO_WHILE, '''
+main() {
+// start
+  do {
+    print(0);
+    print(1);
+  } while (condition);
+// end
+}
+''');
+  }
+
+  void test_surroundWith_for() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_FOR, '''
+main() {
+// start
+  for (var v = init; condition; increment) {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_forIn() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_FOR_IN, '''
+main() {
+// start
+  for (var item in iterable) {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_if() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_IF, '''
+main() {
+// start
+  if (condition) {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_tryCatch() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_TRY_CATCH, '''
+main() {
+// start
+  try {
+    print(0);
+    print(1);
+  } on Exception catch (e) {
+    // TODO
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_tryFinally() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_TRY_FINALLY, '''
+main() {
+// start
+  try {
+    print(0);
+    print(1);
+  } finally {
+    // TODO
+  }
+// end
+}
+''');
+  }
+
+  void test_surroundWith_while() {
+    _indexTestUnit('''
+main() {
+// start
+  print(0);
+  print(1);
+// end
+}
+''');
+    _setStartEndSelection();
+    assertHasAssist(AssistKind.SURROUND_WITH_WHILE, '''
+main() {
+// start
+  while (condition) {
+    print(0);
+    print(1);
+  }
+// end
+}
+''');
+  }
+
   String _applyEdits(String code, List<Edit> edits) {
-    edits.sort((a, b) => b.offset - a.offset);
-    edits.forEach((Edit edit) {
+    mergeSort(edits, compare: (a, b) => a.offset - b.offset);
+    edits.reversed.forEach((Edit edit) {
       code = code.substring(0, edit.offset) +
           edit.replacement +
           code.substring(edit.end);
@@ -1233,8 +2218,8 @@ main() {
 
   void _assertHasLinkedPositions(String groupId, List<String> expectedStrings) {
     List<Position> expectedPositions = _findResultPositions(expectedStrings);
-    List<LinkedPositionGroup> groups = change.linkedPositionGroups;
-    for (LinkedPositionGroup group in groups) {
+    List<LinkedEditGroup> groups = change.linkedEditGroups;
+    for (LinkedEditGroup group in groups) {
       if (group.id == groupId) {
         List<Position> actualPositions = group.positions;
         expect(actualPositions, unorderedEquals(expectedPositions));
@@ -1245,10 +2230,10 @@ main() {
   }
 
   void _assertHasLinkedProposals(String groupId, List<String> expected) {
-    List<LinkedPositionGroup> groups = change.linkedPositionGroups;
-    for (LinkedPositionGroup group in groups) {
+    List<LinkedEditGroup> groups = change.linkedEditGroups;
+    for (LinkedEditGroup group in groups) {
       if (group.id == groupId) {
-        expect(group.proposals, expected);
+        expect(group.suggestions, expected);
         return;
       }
     }
@@ -1259,8 +2244,7 @@ main() {
     List<Position> positions = <Position>[];
     for (String search in searchStrings) {
       int offset = resultCode.indexOf(search);
-      int length = getLeadingIdentifierLength(search);
-      positions.add(new Position(testFile, offset, length));
+      positions.add(new Position(testFile, offset));
     }
     return positions;
   }
@@ -1268,5 +2252,10 @@ main() {
   void _indexTestUnit(String code) {
     resolveTestUnit(code);
     index.indexUnit(context, testUnit);
+  }
+
+  void _setStartEndSelection() {
+    offset = findOffset('// start\n') + '// start\n'.length;
+    length = findOffset('// end') - offset;
   }
 }

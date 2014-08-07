@@ -413,5 +413,36 @@ environment:
             (pubspec) => pubspec.environment);
       });
     });
+
+    group("publishTo", () {
+      test("defaults to null if omitted", () {
+        var pubspec = new Pubspec.parse('', sources);
+        expect(pubspec.publishTo, isNull);
+      });
+
+      test("throws if not a string", () {
+        expectPubspecException('publishTo: 123',
+            (pubspec) => pubspec.publishTo);
+      });
+
+      test("allows a URL", () {
+        var pubspec = new Pubspec.parse('''
+publishTo: http://example.com
+''', sources);
+        expect(pubspec.publishTo, equals("http://example.com"));
+      });
+
+      test("allows none", () {
+        var pubspec = new Pubspec.parse('''
+publishTo: none
+''', sources);
+        expect(pubspec.publishTo, equals("none"));
+      });
+
+      test("throws on other strings", () {
+        expectPubspecException('publishTo: http://bad.url:not-port',
+            (pubspec) => pubspec.publishTo);
+      });
+    });
   });
 }

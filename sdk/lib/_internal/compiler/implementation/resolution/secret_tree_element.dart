@@ -18,12 +18,35 @@
  */
 library secret_tree_element;
 
-/**
- * The superclass of all AST nodes.
- */
+import '../dart2jslib.dart' show invariant, Spannable;
+
+/// Interface for associating
 abstract class TreeElementMixin {
+  Object get _element;
+  void set _element(Object value);
+}
+
+/// Null implementation of [TreeElementMixin] which does not allow association
+/// of elements.
+///
+/// This class is the superclass of all AST nodes.
+abstract class NullTreeElementMixin implements TreeElementMixin, Spannable {
+
   // Deliberately using [Object] here to thwart code completion.
   // You're not really supposed to access this field anyways.
+  Object get _element => null;
+  set _element(_) {
+    assert(invariant(this, false,
+        message: "Elements cannot be associated with ${runtimeType}."));
+  }
+}
+
+/// Actual implementation of [TreeElementMixin] which stores the associated
+/// element in the private field [_element].
+///
+/// This class is mixed into the node classes that are actually associated with
+/// elements.
+abstract class StoredTreeElementMixin implements TreeElementMixin {
   Object _element;
 }
 
@@ -33,9 +56,7 @@ abstract class TreeElementMixin {
  *
  * Using [Object] as return type to thwart code completion.
  */
-Object getTreeElement(TreeElementMixin node) {
-  return node._element;
-}
+Object getTreeElement(TreeElementMixin node) => node._element;
 
 /**
  * Do not call this method directly.  Instead, use an instance of

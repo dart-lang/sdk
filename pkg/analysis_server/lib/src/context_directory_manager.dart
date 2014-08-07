@@ -152,7 +152,7 @@ abstract class ContextDirectoryManager {
           File file = resource;
           if (_shouldFileBeAnalyzed(file)) {
             ChangeSet changeSet = new ChangeSet();
-            Source source = file.createSource(UriKind.FILE_URI);
+            Source source = file.createSource();
             changeSet.addedSource(source);
             applyChangesToContext(folder, changeSet);
             info.sources[event.path]= source;
@@ -212,7 +212,7 @@ abstract class ContextDirectoryManager {
     for (Resource child in children) {
       if (child is File) {
         if (_shouldFileBeAnalyzed(child)) {
-          Source source = child.createSource(UriKind.FILE_URI);
+          Source source = child.createSource();
           changeSet.addedSource(source);
           info.sources[child.path] = source;
         }
@@ -238,6 +238,20 @@ abstract class ContextDirectoryManager {
     // non-existent file 'username@hostname.pid'.  To avoid these dummy links
     // causing the analyzer to thrash, just ignore links to non-existent files.
     return file.exists;
+  }
+
+  /**
+   * Returns `true` if the given absolute [path] is in one of the current
+   * root folders and is not excluded.
+   */
+  bool isInAnalysisRoot(String path) {
+    // TODO(scheglov) check for excluded paths
+    for (Folder root in _currentDirectoryInfo.keys) {
+      if (root.contains(path)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

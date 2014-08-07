@@ -50,8 +50,8 @@ cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 
 [ $arch == simmips || $arch == mips ]
-cc/Coverage_MainWithClass: Skip # Dart bug 16250
-cc/Service_ClassesCoverage: Skip # Dart bug 16250
+cc/Coverage_MainWithClass: Skip # Issue 16250
+cc/Service_ClassesCoverage: Skip # Issue 16250
 
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
@@ -67,18 +67,18 @@ dart/optimized_stacktrace_test: RuntimeError
 [ $compiler == dart2js ]
 # Methods can be missing in dart2js stack traces due to inlining.  Also when
 # minifying they can be renamed, which is issue 7953.
-dart/inline_stack_frame_test: RuntimeError
+dart/inline_stack_frame_test: RuntimeError # Issue 7953
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
 *: Skip
 
 [ $arch == mips ]
-cc/StaticNonNullSumCallCodegen: Crash, Pass # dartbug.com/17440
+cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
+cc/Sdc1Ldc1: Crash # Issue 20182
 
 [ $arch == mips && $mode == debug ]
-cc/JSON_JSONStream_Options: Crash # Issue 19328
-cc/FindCodeObject: Skip # Takes more than 8 minutes. dartbug.com/17440.
+cc/FindCodeObject: Skip # Takes more than 8 minutes. Issue 17440
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning

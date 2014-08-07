@@ -1571,7 +1571,7 @@ class NodeListener extends ElementListener {
 
   void endRedirectingFactoryBody(Token beginToken,
                                  Token endToken) {
-    pushNode(new Return(beginToken, endToken, popNode()));
+    pushNode(new RedirectingFactoryBody(beginToken, endToken, popNode()));
   }
 
   void endReturnStatement(bool hasExpression,

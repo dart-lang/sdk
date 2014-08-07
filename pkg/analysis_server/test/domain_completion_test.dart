@@ -17,6 +17,7 @@ import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
+import 'mocks.dart';
 
 main() {
   groupSep = ' | ';
@@ -27,6 +28,8 @@ main() {
 class CompletionTest extends AbstractAnalysisTest {
   String completionId;
   int completionOffset;
+  int replacementOffset;
+  int replacementLength;
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
 
@@ -79,7 +82,9 @@ class CompletionTest extends AbstractAnalysisTest {
       Response response = handleSuccessfulRequest(request);
       completionId = response.getResult(ID);
       assertValidId(completionId);
-      return waitForSuggestions();
+      return pumpEventQueue().then((_) {
+        expect(suggestionsDone, isTrue);
+      });
     });
   }
 
@@ -89,6 +94,8 @@ class CompletionTest extends AbstractAnalysisTest {
       assertValidId(id);
       if (id == completionId) {
         expect(suggestionsDone, isFalse);
+        replacementOffset = notification.getParameter(REPLACEMENT_OFFSET);
+        replacementLength = notification.getParameter(REPLACEMENT_LENGTH);
         suggestionsDone = notification.getParameter(LAST);
         expect(suggestionsDone, isNotNull);
         for (Map<String, Object> json in notification.getParameter(RESULTS)) {
@@ -106,11 +113,16 @@ class CompletionTest extends AbstractAnalysisTest {
     handler = new CompletionDomainHandler(server);
   }
 
-  Future waitForSuggestions() {
-    if (suggestionsDone) {
-      return new Future.value();
-    }
-    return new Future.delayed(Duration.ZERO, waitForSuggestions);
+  test_suggestions_html() {
+    testFile = '/project/web/test.html';
+    addTestFile('''
+      <html>^</html>
+    ''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      expect(suggestions, hasLength(0));
+    });
   }
 
   test_suggestions_importedType() {
@@ -119,6 +131,8 @@ class CompletionTest extends AbstractAnalysisTest {
       main() {^}
     ''');
     return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
       assertHasResult(CompletionSuggestionKind.CLASS, 'HtmlElement');
       assertNoResult('test');
@@ -128,10 +142,12 @@ class CompletionTest extends AbstractAnalysisTest {
   test_suggestions_topLevel() {
     addTestFile('''
       typedef foo();
-      var test^ = '';
-      main() {test.}
+      var test = '';
+      main() {tes^t}
     ''');
     return getSuggestions().then((_) {
+//      expect(replacementOffset, equals(completionOffset - 3));
+//      expect(replacementLength, equals(4));
       assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
       assertHasResult(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, 'test');
       assertNoResult('HtmlElement');

@@ -46,10 +46,9 @@ class AbstractContextTest {
   UriResolver resourceResolver;
   AnalysisContext context;
 
-
   Source addSource(String path, String content) {
     File file = provider.newFile(path, content);
-    Source source = file.createSource(UriKind.FILE_URI);
+    Source source = file.createSource();
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
     context.applyChanges(changeSet);

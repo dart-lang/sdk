@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
-import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
@@ -30,19 +29,19 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   Override override;
 
   /**
-   * Asserts that there is an overridden interface [Element] at the offset of
-   * [search] in [override].
+   * Asserts that there is an overridden interface [OverriddenMember] at the
+   * offset of [search] in [override].
    */
-  void assertHasInterfaceElement(String search) {
+  void assertHasInterfaceMember(String search) {
     int offset = findOffset(search);
-    for (Element element in override.interfaceElements) {
-      if (element.location.offset == offset) {
+    for (OverriddenMember member in override.interfaceMembers) {
+      if (member.element.location.offset == offset) {
         return;
       }
     }
     fail(
-        'Expect to find an overridden interface elements at $offset in '
-            '${override.interfaceElements.join('\n')}');
+        'Expect to find an overridden interface members at $offset in '
+            '${override.interfaceMembers.join('\n')}');
   }
 
   /**
@@ -60,27 +59,27 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   }
 
   /**
-   * Asserts that there is an overridden superclass [Element] at the offset of
-   * [search] in [override].
+   * Asserts that there is an overridden superclass [OverriddenMember] at the
+   * offset of [search] in [override].
    */
   void assertHasSuperElement(String search) {
     int offset = findOffset(search);
-    Element element = override.superclassElement;
-    expect(element.location.offset, offset);
+    OverriddenMember member = override.superclassMember;
+    expect(member.element.location.offset, offset);
   }
 
   /**
-   * Asserts that there are no overridden elements from interfaces.
+   * Asserts that there are no overridden members from interfaces.
    */
-  void assertNoInterfaceElements() {
-    expect(override.interfaceElements, isNull);
+  void assertNoInterfaceMembers() {
+    expect(override.interfaceMembers, isNull);
   }
 
   /**
-   * Asserts that there are no overridden elements from the superclass.
+   * Asserts that there are no overridden member from the superclass.
    */
-  void assertNoSuperElement() {
-    expect(override.superclassElement, isNull);
+  void assertNoSuperMember() {
+    expect(override.superclassMember, isNull);
   }
 
   /**
@@ -119,12 +118,9 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     if (notification.event == ANALYSIS_OVERRIDES) {
       String file = notification.getParameter(FILE);
       if (file == testFile) {
-        overridesList = <Override>[];
         List<Map<String, Object>> jsonList =
             notification.getParameter(OVERRIDES);
-        for (Map<String, Object> json in jsonList) {
-          overridesList.add(new Override.fromJson(json));
-        }
+        overridesList = jsonList.map(Override.fromJson).toList();
       }
     }
   }
@@ -146,8 +142,8 @@ class B implements A {
     return waitForTasksFinished().then((_) {
       return prepareOverrides().then((_) {
         assertHasOverride('m() {} // in B');
-        assertNoSuperElement();
-        assertHasInterfaceElement('m() {} // in A');
+        assertNoSuperMember();
+        assertHasInterfaceMember('m() {} // in A');
       });
     });
   }
@@ -166,9 +162,9 @@ class A implements IA, IB {
 ''');
     return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in A');
-      assertNoSuperElement();
-      assertHasInterfaceElement('m() {} // in IA');
-      assertHasInterfaceElement('m() {} // in IB');
+      assertNoSuperMember();
+      assertHasInterfaceMember('m() {} // in IA');
+      assertHasInterfaceMember('m() {} // in IB');
     });
   }
 
@@ -183,8 +179,8 @@ class B implements A {
 ''');
     return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in B');
-      assertNoSuperElement();
-      assertHasInterfaceElement('m() {} // in A');
+      assertNoSuperMember();
+      assertHasInterfaceMember('m() {} // in A');
     });
   }
 
@@ -201,8 +197,8 @@ class C implements B {
 ''');
     return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in C');
-      assertNoSuperElement();
-      assertHasInterfaceElement('m() {} // in A');
+      assertNoSuperMember();
+      assertHasInterfaceMember('m() {} // in A');
     });
   }
 
@@ -218,7 +214,7 @@ class B extends A {
     return prepareOverrides().then((_) {
       assertHasOverride('fff; // in B');
       assertHasSuperElement('fff; // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 
@@ -234,7 +230,7 @@ class B extends A {
     return prepareOverrides().then((_) {
       assertHasOverride('fff => 0; // in B');
       assertHasSuperElement('fff; // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 
@@ -250,7 +246,7 @@ class B extends A {
     return prepareOverrides().then((_) {
       assertHasOverride('fff() {} // in B');
       assertHasSuperElement('fff; // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 
@@ -266,7 +262,7 @@ class B extends A {
     return prepareOverrides().then((_) {
       assertHasOverride('fff(x) {} // in B');
       assertHasSuperElement('fff; // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 
@@ -283,7 +279,7 @@ class B extends A {
     return prepareOverrides().then((_) {
       assertHasOverride('fff; // in B');
       assertHasSuperElement('fff => 0; // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 
@@ -299,7 +295,7 @@ class B extends A {
     return prepareOverrides().then((_) {
       assertHasOverride('fff => 0; // in B');
       assertHasSuperElement('fff => 0; // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 
@@ -315,7 +311,7 @@ class B extends A {
     return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in B');
       assertHasSuperElement('m() {} // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 
@@ -333,7 +329,7 @@ class C extends B {
     return prepareOverrides().then((_) {
       assertHasOverride('m() {} // in C');
       assertHasSuperElement('m() {} // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 
@@ -349,7 +345,7 @@ class B extends A {
     return prepareOverrides().then((_) {
       assertHasOverride('fff(x) {} // in B');
       assertHasSuperElement('fff(x) {} // in A');
-      assertNoInterfaceElements();
+      assertNoInterfaceMembers();
     });
   }
 }

@@ -4,26 +4,51 @@
 
 library test.services.completion.suggestion;
 
+import 'dart:async';
+
 import 'package:analysis_services/completion/completion_computer.dart';
-import 'package:analysis_services/src/completion/top_level_computer.dart';
-import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CompletionComputerTest);
+  runReflectiveTests(CompletionManagerTest);
+  runReflectiveTests(DartCompletionManagerTest);
 }
 
 @ReflectiveTestCase()
-class CompletionComputerTest extends AbstractSingleUnitTest {
+class CompletionManagerTest extends AbstractCompletionTest {
 
-  test_topLevel() {
-    CompletionComputer.create(null).then((computers) {
-      assertContainsType(computers, TopLevelComputer);
-      expect(computers, hasLength(1));
-    });
+  test_dart() {
+    Source source = addSource('/does/not/exist.dart', '');
+    var manager = CompletionManager.create(context, source, 0, null);
+    expect(manager.runtimeType, DartCompletionManager);
   }
+
+  test_html() {
+    Source source = addSource('/does/not/exist.html', '');
+    var manager = CompletionManager.create(context, source, 0, null);
+    expect(manager.runtimeType, NoOpCompletionManager);
+  }
+
+  test_null_context() {
+    Source source = addSource('/does/not/exist.dart', '');
+    var manager = CompletionManager.create(null, source, 0, null);
+    expect(manager.runtimeType, NoOpCompletionManager);
+  }
+
+  test_other() {
+    Source source = addSource('/does/not/exist.foo', '');
+    var manager = CompletionManager.create(context, source, 0, null);
+    expect(manager.runtimeType, NoOpCompletionManager);
+  }
+}
+
+@ReflectiveTestCase()
+class DartCompletionManagerTest extends AbstractCompletionTest {
 
   /// Assert that the list contains exactly one of the given type
   void assertContainsType(List computers, Type type) {
@@ -41,5 +66,17 @@ class CompletionComputerTest extends AbstractSingleUnitTest {
       });
       fail(msg.toString());
     }
+  }
+
+  test_topLevel() {
+    Source source = addSource('/does/not/exist.dart', '');
+    var manager = new DartCompletionManager(context, source, 0, searchEngine);
+    bool anyResult;
+    manager.results().forEach((_) {
+      anyResult = true;
+    });
+    return new Future.delayed(Duration.ZERO, () {
+      expect(anyResult, isTrue);
+    });
   }
 }

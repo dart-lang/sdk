@@ -83,8 +83,9 @@ class TransformerIsolate {
         // TODO(nweiz): don't parse this as a string once issues 12617 and 12689
         // are fixed.
         var firstErrorLine = error.message.split('\n')[1];
-        var missingTransformer = idsToUrls.keys.firstWhere((id) =>
-                firstErrorLine.startsWith("Failure getting ${idsToUrls[id]}:"),
+        var missingTransformer = idsToUrls.keys.firstWhere(
+            (id) => firstErrorLine.startsWith(
+                "Uncaught Error: Failure getting ${idsToUrls[id]}:"),
             orElse: () => throw error);
         var packageUri = idToPackageUri(idsToAssetIds[missingTransformer]);
 

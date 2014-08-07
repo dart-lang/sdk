@@ -18,7 +18,7 @@ main() {
 
     // Activating it again re-resolves but maintains the version.
     schedulePub(args: ["global", "activate", "foo", ">1.0.0"], output: """
-Package foo is already active at version 1.2.3.
+Package foo is currently active at version 1.2.3.
 Resolving dependencies...
 Activated foo 1.2.3.""");
   });

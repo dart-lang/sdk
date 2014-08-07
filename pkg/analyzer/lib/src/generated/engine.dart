@@ -7095,7 +7095,7 @@ class AngularHtmlUnitResolver extends ht.RecursiveXmlVisitor<Object> {
           continue;
         }
         try {
-          Source templateSource = _source.resolveRelative(parseUriWithException(templateUri));
+          Source templateSource = _context.sourceFactory.forUri2(_source.resolveRelativeUri(parseUriWithException(templateUri)));
           if (!_context.exists(templateSource)) {
             templateSource = _context.sourceFactory.resolveUri(_source, "package:${templateUri}");
             if (!_context.exists(templateSource)) {
@@ -12659,7 +12659,7 @@ abstract class Logger {
    * @param message an explanation of why the error occurred or what it means
    * @param exception the exception being logged
    */
-  void logError2(String message, Exception exception);
+  void logError2(String message, exception);
 
   /**
    * Log the given informational message.
@@ -12687,7 +12687,7 @@ class Logger_NullLogger implements Logger {
   }
 
   @override
-  void logError2(String message, Exception exception) {
+  void logError2(String message, exception) {
   }
 
   @override
@@ -12695,7 +12695,7 @@ class Logger_NullLogger implements Logger {
   }
 
   @override
-  void logInformation2(String message, Exception exception) {
+  void logInformation2(String message, exception) {
   }
 }
 

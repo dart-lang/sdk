@@ -1430,7 +1430,7 @@ class SsaBuilder extends ResolvedVisitor {
     ast.FunctionExpression function = functionElement.node;
     assert(function != null);
     assert(!function.modifiers.isExternal);
-    assert(elements[function] != null);
+    assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
     String name = functionElement.name;
     // If [functionElement] is `operator==` we explicitely add a null check at
@@ -2895,7 +2895,8 @@ class SsaBuilder extends ResolvedVisitor {
   visitFunctionDeclaration(ast.FunctionDeclaration node) {
     assert(isReachable);
     visit(node.function);
-    LocalFunctionElement localFunction = elements[node];
+    LocalFunctionElement localFunction =
+        elements.getFunctionDefinition(node.function);
     localsHandler.updateLocal(localFunction, pop());
   }
 
@@ -4884,48 +4885,51 @@ class SsaBuilder extends ResolvedVisitor {
     closeAndGotoExit(new HThrow(exception, isRethrow: true));
   }
 
+  visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
+    ConstructorElement targetConstructor =
+        elements.getRedirectingTargetConstructor(node).implementation;
+    ConstructorElement redirectingConstructor = sourceElement.implementation;
+    List<HInstruction> inputs = <HInstruction>[];
+    FunctionSignature targetSignature = targetConstructor.functionSignature;
+    FunctionSignature redirectingSignature =
+        redirectingConstructor.functionSignature;
+    redirectingSignature.forEachRequiredParameter((ParameterElement element) {
+      inputs.add(localsHandler.readLocal(element));
+    });
+    List<Element> targetOptionals =
+        targetSignature.orderedOptionalParameters;
+    List<Element> redirectingOptionals =
+        redirectingSignature.orderedOptionalParameters;
+    int i = 0;
+    for (; i < redirectingOptionals.length; i++) {
+      ParameterElement parameter = redirectingOptionals[i];
+      inputs.add(localsHandler.readLocal(parameter));
+    }
+    for (; i < targetOptionals.length; i++) {
+      inputs.add(handleConstantForOptionalParameter(targetOptionals[i]));
+    }
+    ClassElement targetClass = targetConstructor.enclosingClass;
+    if (backend.classNeedsRti(targetClass)) {
+      ClassElement cls = redirectingConstructor.enclosingClass;
+      InterfaceType targetType =
+          redirectingConstructor.computeEffectiveTargetType(cls.thisType);
+      targetType = localsHandler.substInContext(targetType);
+      targetType.typeArguments.forEach((DartType argument) {
+        inputs.add(analyzeTypeArgument(argument));
+      });
+    }
+    pushInvokeStatic(node, targetConstructor, inputs);
+    HInstruction value = pop();
+    emitReturn(value, node);
+  }
+
   visitReturn(ast.Return node) {
     if (identical(node.beginToken.stringValue, 'native')) {
       native.handleSsaNative(this, node.expression);
       return;
     }
     HInstruction value;
-    if (node.isRedirectingFactoryBody) {
-      FunctionElement targetConstructor =
-          elements[node.expression].implementation;
-      ConstructorElement redirectingConstructor = sourceElement.implementation;
-      List<HInstruction> inputs = <HInstruction>[];
-      FunctionSignature targetSignature = targetConstructor.functionSignature;
-      FunctionSignature redirectingSignature =
-          redirectingConstructor.functionSignature;
-      redirectingSignature.forEachRequiredParameter((ParameterElement element) {
-        inputs.add(localsHandler.readLocal(element));
-      });
-      List<Element> targetOptionals =
-          targetSignature.orderedOptionalParameters;
-      List<Element> redirectingOptionals =
-          redirectingSignature.orderedOptionalParameters;
-      int i = 0;
-      for (; i < redirectingOptionals.length; i++) {
-        ParameterElement parameter = redirectingOptionals[i];
-        inputs.add(localsHandler.readLocal(parameter));
-      }
-      for (; i < targetOptionals.length; i++) {
-        inputs.add(handleConstantForOptionalParameter(targetOptionals[i]));
-      }
-      ClassElement targetClass = targetConstructor.enclosingClass;
-      if (backend.classNeedsRti(targetClass)) {
-        ClassElement cls = redirectingConstructor.enclosingClass;
-        InterfaceType targetType =
-            redirectingConstructor.computeEffectiveTargetType(cls.thisType);
-        targetType = localsHandler.substInContext(targetType);
-        targetType.typeArguments.forEach((DartType argument) {
-          inputs.add(analyzeTypeArgument(argument));
-        });
-      }
-      pushInvokeStatic(node, targetConstructor, inputs);
-      value = pop();
-    } else if (node.expression == null) {
+    if (node.expression == null) {
       value = graph.addConstantNull(compiler);
     } else {
       visit(node.expression);
@@ -5114,7 +5118,7 @@ class SsaBuilder extends ResolvedVisitor {
       pushInvokeDynamic(node, call, [iterator]);
 
       ast.Node identifier = node.declaredIdentifier;
-      Element variable = elements[identifier];
+      Element variable = elements.getForInVariable(node);
       Selector selector = elements.getSelector(identifier);
 
       HInstruction value = pop();
@@ -6028,6 +6032,11 @@ class InlineWeeder extends ast.Visitor {
     tooDifficult = true;
   }
 
+  void visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
+    if (!registerNode()) return;
+    tooDifficult = true;
+  }
+
   void visitRethrow(ast.Rethrow node) {
     if (!registerNode()) return;
     tooDifficult = true;
@@ -6036,8 +6045,7 @@ class InlineWeeder extends ast.Visitor {
   void visitReturn(ast.Return node) {
     if (!registerNode()) return;
     if (seenReturn
-        || identical(node.beginToken.stringValue, 'native')
-        || node.isRedirectingFactoryBody) {
+        || identical(node.beginToken.stringValue, 'native')) {
       tooDifficult = true;
       return;
     }

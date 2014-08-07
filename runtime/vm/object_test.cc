@@ -1336,6 +1336,22 @@ TEST_CASE(StringConcat) {
 }
 
 
+TEST_CASE(StringHashConcat) {
+  EXPECT_EQ(String::Handle(String::New("onebyte")).Hash(),
+            String::HashConcat(String::Handle(String::New("one")),
+                               String::Handle(String::New("byte"))));
+  uint16_t clef_utf16[] = { 0xD834, 0xDD1E };
+  const String& clef = String::Handle(String::FromUTF16(clef_utf16, 2));
+  int32_t clef_utf32[] = { 0x1D11E };
+  EXPECT(clef.Equals(clef_utf32, 1));
+  intptr_t hash32 = String::Hash(clef_utf32, 1);
+  EXPECT_EQ(hash32, clef.Hash());
+  EXPECT_EQ(hash32, String::HashConcat(
+      String::Handle(String::FromUTF16(clef_utf16, 1)),
+      String::Handle(String::FromUTF16(clef_utf16 + 1, 1))));
+}
+
+
 TEST_CASE(StringSubStringDifferentWidth) {
   // Create 1-byte substring from a 1-byte source string.
   const char* onechars =
