@@ -1,9 +1,9 @@
 name: http_base
 version: 0.0.2-dev
 author: Dart Team <misc@dartlang.org>
+description: A library with common interfaces for HTTP request objects, HTTP response objects, HTTP clients and HTTP request handlers.
 homepage: http://www.dartlang.org
-description: >
-  A library with common interfaces for HTTP request objects, HTTP response
-  objects, HTTP clients and HTTP request handlers.
 environment:
   sdk: '>=1.0.0 <2.0.0'
+dev_dependencies:
+  unittest: ">=0.11.0 <0.12.0"
