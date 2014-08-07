@@ -186,7 +186,7 @@ class _MemoryFile extends _MemoryResource implements File {
   @override
   Source createSource([Uri uri]) {
     if (uri == null) {
-      uri = toUri(path);
+      uri = posix.toUri(path);
     }
     return new _MemoryFileSource(this, uri);
   }

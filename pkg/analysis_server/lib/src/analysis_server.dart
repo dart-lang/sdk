@@ -105,6 +105,11 @@ class AnalysisServer {
   final ServerCommunicationChannel channel;
 
   /**
+   * The [ResourceProvider] using which paths are converted into [Resource]s.
+   */
+  final ResourceProvider resourceProvider;
+
+  /**
    * The [Index] for this server.
    */
   final Index index;
@@ -193,7 +198,7 @@ class AnalysisServer {
    * exceptions to show up in unit tests, but it should be set to false when
    * running a full analysis server.
    */
-  AnalysisServer(this.channel, ResourceProvider resourceProvider,
+  AnalysisServer(this.channel, this.resourceProvider,
       PackageMapProvider packageMapProvider, this.index, this.defaultSdk,
       {this.rethrowExceptions: true}) {
     searchEngine = createSearchEngine(index);
@@ -562,14 +567,14 @@ class AnalysisServer {
   Source getSource(String path) {
     // try SDK
     {
-      Uri uri = toUri(path);
+      Uri uri = resourceProvider.pathContext.toUri(path);
       Source sdkSource = defaultSdk.fromFileUri(uri);
       if (sdkSource != null) {
         return sdkSource;
       }
     }
     // file-based source
-    File file = contextDirectoryManager.resourceProvider.getResource(path);
+    File file = resourceProvider.getResource(path);
     return file.createSource();
   }
 
