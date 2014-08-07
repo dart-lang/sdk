@@ -19,7 +19,16 @@ class ThreadInterrupterWin : public AllStatic {
   static bool GrabRegisters(HANDLE handle, InterruptedThreadState* state) {
     CONTEXT context;
     memset(&context, 0, sizeof(context));
+#if defined(TARGET_ARCH_IA32)
+    // On IA32, CONTEXT_CONTROL includes Eip, Ebp, and Esp.
     context.ContextFlags = CONTEXT_CONTROL;
+#elif defined(TARGET_ARCH_X64)
+    // On X64, CONTEXT_CONTROL includes Rip and Rsp. Rbp is classified
+    // as an "integer" register.
+    context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
+#else
+    UNIMPLEMENTED();
+#endif
     if (GetThreadContext(handle, &context) != 0) {
 #if defined(TARGET_ARCH_IA32)
       state->pc = static_cast<uintptr_t>(context.Eip);
