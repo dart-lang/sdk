@@ -148,10 +148,7 @@ class Context {
   ///     context.rootPrefix('path/to/foo'); // -> ''
   ///     context.rootPrefix('http://dartlang.org/path/to/foo');
   ///       // -> 'http://dartlang.org'
-  String rootPrefix(String path) {
-    var root = _parse(path).root;
-    return root == null ? '' : root;
-  }
+  String rootPrefix(String path) => path.substring(0, style.rootLength(path));
 
   /// Returns `true` if [path] is an absolute path and `false` if it is a
   /// relative path.
@@ -165,7 +162,7 @@ class Context {
   /// relative to the root of the current URL. Since root-relative paths are
   /// still absolute in every other sense, [isAbsolute] will return true for
   /// them. They can be detected using [isRootRelative].
-  bool isAbsolute(String path) => _parse(path).isAbsolute;
+  bool isAbsolute(String path) => style.rootLength(path) > 0;
 
   /// Returns `true` if [path] is a relative path and `false` if it is absolute.
   /// On POSIX systems, absolute paths start with a `/` (forward slash). On
@@ -181,7 +178,7 @@ class Context {
   /// them. They can be detected using [isRootRelative].
   ///
   /// No POSIX and Windows paths are root-relative.
-  bool isRootRelative(String path) => _parse(path).isRootRelative;
+  bool isRootRelative(String path) => style.isRootRelative(path);
 
   /// Joins the given path parts into a single path. Example:
   ///

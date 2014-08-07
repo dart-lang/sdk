@@ -45,7 +45,7 @@ class ParsedPath {
 
     // Remove the root prefix, if any.
     var root = style.getRoot(path);
-    var isRootRelative = style.getRelativeRoot(path) != null;
+    var isRootRelative = style.isRootRelative(path);
     if (root != null) path = path.substring(root.length);
 
     // Split the parts on path separators.

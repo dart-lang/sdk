@@ -33,14 +33,25 @@ abstract class InternalStyle extends Style {
   /// "usr", an additional "/" is needed (making "file:///usr").
   bool needsSeparator(String path);
 
+  /// Returns the number of characters of the root part.
+  ///
+  /// Returns 0 if the path is relative.
+  ///
+  /// If the path is root-relative, the root length is 1.
+  int rootLength(String path);
+
   /// Gets the root prefix of [path] if path is absolute. If [path] is relative,
   /// returns `null`.
-  String getRoot(String path);
+  String getRoot(String path) {
+    var length = rootLength(path);
+    if (length > 0) return path.substring(0, length);
+    return isRootRelative(path) ? path[0] : null;
+  }
 
-  /// Gets the root prefix of [path] if it's root-relative.
+  /// Returns whether [path] is root-relative.
   ///
-  /// If [path] is relative or absolute and not root-relative, returns `null`.
-  String getRelativeRoot(String path);
+  /// If [path] is relative or absolute and not root-relative, returns `false`.
+  bool isRootRelative(String path);
 
   /// Returns the path represented by [uri] in this style.
   String pathFromUri(Uri uri);
