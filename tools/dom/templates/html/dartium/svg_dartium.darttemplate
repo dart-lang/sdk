@@ -9,16 +9,12 @@ import 'dart:_internal' hide deprecated;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
-$if DART_USE_BLINK
 import 'dart:_blink' as _blink;
-$endif
 
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
 
 $!GENERATED_DART_FILES
-$if DART_USE_BLINK
 // FIXME: Can we make this private?
 final svgBlinkMap = {
 $!TYPE_MAP
 };
-$endif

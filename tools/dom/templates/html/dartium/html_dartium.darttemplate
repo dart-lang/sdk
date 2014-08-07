@@ -56,9 +56,7 @@ import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
 import 'dart:web_audio' show web_audioBlinkMap;
-$if DART_USE_BLINK
 import 'dart:_blink' as _blink;
-$endif
 
 export 'dart:math' show Rectangle, Point;
 
@@ -91,11 +89,7 @@ part '$AUXILIARY_DIR/dartium_Platform.dart';
 part '$AUXILIARY_DIR/dartium_WrappedEvent.dart';
 part '$AUXILIARY_DIR/shared_html.dart';
 
-$if DART_USE_BLINK
 part '$AUXILIARY_DIR/html_native_DOMImplementation.dart';
-$else
-part '$AUXILIARY_DIR/native_DOMImplementation.dart';
-$endif
 
 Window _window;
 
@@ -144,7 +138,6 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   // TODO(17738): Plumb arguments and return value through.
   return _Utils.spawnDomUri(uri.toString());
 }
-$if DART_USE_BLINK
 // FIXME: Can we make this private?
 final htmlBlinkMap = {
   '_HistoryCrossFrame': () => _HistoryCrossFrame,
@@ -248,5 +241,3 @@ Type _getSvgType(String key) {
   }
   return null;
 }
-
-$endif

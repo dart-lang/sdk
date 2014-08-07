@@ -37,8 +37,6 @@ _custom_factories = [
 
 class HtmlDartGenerator(object):
   def __init__(self, interface, options, dart_use_blink):
-    # This goes away after the Chrome 35 roll (or whenever we commit to the
-    # dart:blink refactor)
     self._dart_use_blink = dart_use_blink
     self._database = options.database
     self._interface = interface
