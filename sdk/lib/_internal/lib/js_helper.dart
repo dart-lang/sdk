@@ -870,7 +870,7 @@ class Primitives {
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
         value > MAX_MILLISECONDS_SINCE_EPOCH) {
-      throw new ArgumentError();
+      return null;
     }
     if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
     return value;

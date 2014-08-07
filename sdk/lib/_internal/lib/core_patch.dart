@@ -159,6 +159,7 @@ class DateTime {
       : this.isUtc = checkNull(isUtc),
         millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
             year, month, day, hour, minute, second, millisecond, isUtc) {
+    if (millisecondsSinceEpoch == null) throw new ArgumentError();
     Primitives.lazyAsJsDate(this);
   }
 

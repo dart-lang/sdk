@@ -537,6 +537,8 @@ class DateTime implements Comparable {
                               int millisecond,
                               bool isUtc);
   external DateTime._now();
+  /// Returns the time as milliseconds since epoch, or null if the
+  /// values are out of range.
   external static int _brokenDownDateToMillisecondsSinceEpoch(
       int year, int month, int day, int hour, int minute, int second,
       int millisecond, bool isUtc);
