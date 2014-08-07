@@ -5,8 +5,8 @@
 library allocations_test;
 
 import 'test_helper.dart';
-import 'package:expect/expect.dart';
 import 'package:observatory/service_io.dart';
+import 'package:unittest/unittest.dart';
 
 import 'dart:io';
 
@@ -19,14 +19,13 @@ main() {
         .then((VM vm) => vm.isolates.first.load())
         .then((Isolate isolate) => isolate.rootLib.load())
         .then((Library lib) {
-          Expect.isTrue(lib.url.endsWith(script));
+          expect(lib.url.endsWith(script), isTrue);
           return lib.classes.first.load();
         })
         .then((Class fooClass) {
-          Expect.equals('Foo', fooClass.name);
-          Expect.equals(3,
-                        fooClass.newSpace.accumulated.instances +
-                        fooClass.oldSpace.accumulated.instances);
+          expect(fooClass.name, equals('Foo'));
+          expect(fooClass.newSpace.accumulated.instances +
+                 fooClass.oldSpace.accumulated.instances, equals(3));
           exit(0);
         });
   });
