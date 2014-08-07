@@ -573,8 +573,6 @@ class BlinkCSSStyleDeclaration {
 
   static $parentRule_Getter(mthis) native "CSSStyleDeclaration_parentRule_Getter";
 
-  static $__propertyQuery___Callback(mthis, name) native "CSSStyleDeclaration___propertyQuery___Callback_RESOLVER_STRING_1_DOMString";
-
   static $__setter___Callback(mthis, propertyName, propertyValue) native "CSSStyleDeclaration___setter___Callback";
 
   static $getPropertyPriority_Callback(mthis, propertyName) native "CSSStyleDeclaration_getPropertyPriority_Callback_RESOLVER_STRING_1_DOMString";

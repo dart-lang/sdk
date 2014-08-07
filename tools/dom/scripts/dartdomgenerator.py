@@ -5,7 +5,6 @@
 
 """This is the entry point to create Dart APIs from the IDL database."""
 
-import css_code_generator
 import dartgenerator
 import database
 import fremontcutbuilder
@@ -164,12 +163,6 @@ def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
                       copy_dart_script, output_dir, library_filename])
   subprocess.call([command], shell=True)
 
-def UpdateCssProperties():
-  """Regenerate the CssStyleDeclaration template file with the current CSS
-  properties."""
-  _logger.info('Updating Css Properties.')
-  css_code_generator.GenerateCssTemplateFile()
-
 def main():
   parser = optparse.OptionParser()
   parser.add_option('--parallel', dest='parallel',
@@ -217,7 +210,6 @@ def main():
   if 'htmldartium' in systems:
     dartium_output_dir = os.path.join(output_dir, 'dartium')
 
-  UpdateCssProperties()
   if options.rebuild:
     # Parse the IDL and create the database.
     database = fremontcutbuilder.main(options.parallel)

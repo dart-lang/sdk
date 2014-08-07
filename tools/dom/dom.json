@@ -606,9 +606,6 @@
       "__getter__": {
         "support_level": "untriaged"
       },
-      "__propertyQuery__": {
-        "support_level": "untriaged"
-      },
       "__setter__": {},
       "cssText": {},
       "getPropertyCSSValue": {
@@ -12171,9 +12168,6 @@
   },
   "Timing": {
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
       "__setter__": {
         "support_level": "untriaged"
       },
