@@ -91,7 +91,7 @@ class Reference {
 /// value is in scope in the body.
 /// During one-pass construction a LetVal with an empty body is used to
 /// represent one-level context 'let val x = V in []'.
-class LetPrim extends Expression {
+class LetPrim extends Expression implements InteriorNode {
   final Primitive primitive;
   Expression body = null;
 
@@ -111,9 +111,9 @@ class LetPrim extends Expression {
 /// continuation body.
 /// During one-pass construction a LetCont with an empty continuation body is
 /// used to represent the one-level context 'let cont k(v) = [] in E'.
-class LetCont extends Expression {
+class LetCont extends Expression implements InteriorNode {
   final Continuation continuation;
-  final Expression body;
+  Expression body;
 
   LetCont(this.continuation, this.body);
 
@@ -128,6 +128,18 @@ class LetCont extends Expression {
 abstract class Invoke {
   Selector get selector;
   List<Reference> get arguments;
+}
+
+/// Represents a node with a child node, which can be accessed through the
+/// `body` member. A typical usage is when removing a node from the CPS graph:
+///
+///     Node child          = node.body;
+///     InteriorNode parent = node.parent;
+///
+///     child.parent = parent;
+///     parent.body  = child;
+abstract class InteriorNode implements Node {
+  Expression body;
 }
 
 /// Invoke a static function or static field getter/setter.
@@ -303,7 +315,7 @@ class GetClosureVariable extends Primitive {
 ///
 /// Closure variables without a declaring [SetClosureVariable] are implicitly
 /// declared at the entry to the [variable]'s enclosing function.
-class SetClosureVariable extends Expression {
+class SetClosureVariable extends Expression implements InteriorNode {
   final Local variable;
   final Reference value;
   Expression body;
@@ -338,7 +350,7 @@ class SetClosureVariable extends Expression {
 ///
 ///   let rec [variable] = [definition] in [body]
 ///
-class DeclareFunction extends Expression {
+class DeclareFunction extends Expression implements InteriorNode {
   final Local variable;
   final FunctionDefinition definition;
   Expression body;
@@ -470,7 +482,7 @@ class Parameter extends Primitive {
 /// Continuations are normally bound by 'let cont'.  A continuation with no
 /// parameter (or body) is used to represent a function's return continuation.
 /// The return continuation is bound by the Function, not by 'let cont'.
-class Continuation extends Definition {
+class Continuation extends Definition implements InteriorNode {
   final List<Parameter> parameters;
   Expression body = null;
 
@@ -486,11 +498,11 @@ class Continuation extends Definition {
 
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter.
-class FunctionDefinition extends Node {
+class FunctionDefinition extends Node implements InteriorNode {
   final FunctionElement element;
   final Continuation returnContinuation;
   final List<Parameter> parameters;
-  final Expression body;
+  Expression body;
   final List<ConstDeclaration> localConstants;
 
   /// Values for optional parameters.
