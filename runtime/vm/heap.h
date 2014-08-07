@@ -324,8 +324,19 @@ class Heap {
   // GC on the heap is in progress.
   bool gc_in_progress_;
 
+  friend class GCEvent;
   friend class GCTestHelper;
   DISALLOW_COPY_AND_ASSIGN(Heap);
+};
+
+
+class GCEvent {
+ public:
+  explicit GCEvent(const Heap::GCStats& stats)
+      : stats_(stats) {}
+  void PrintJSON(JSONStream* js) const;
+ private:
+  const Heap::GCStats& stats_;
 };
 
 

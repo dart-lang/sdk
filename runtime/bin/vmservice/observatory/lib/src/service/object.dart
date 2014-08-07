@@ -270,8 +270,14 @@ abstract class VM extends ServiceObjectOwner {
       // Extract the owning isolate from the event itself.
       String owningIsolateId = map['isolate']['id'];
       _getIsolate(owningIsolateId).then((owningIsolate) {
-          var event = new ServiceObject._fromMap(owningIsolate, map);
-          events.add(event);
+          if (owningIsolate == null) {
+            // TODO(koda): Do we care about GC events in VM isolate?
+            Logger.root.severe(
+                'Ignoring event with unknown isolate id: $owningIsolateId');
+          } else {
+            var event = new ServiceObject._fromMap(owningIsolate, map);
+            events.add(event);
+          }
       });
   }
 

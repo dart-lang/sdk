@@ -2419,6 +2419,14 @@ void Service::SendEvent(intptr_t eventId, const String& eventMessage) {
 }
 
 
+void Service::HandleGCEvent(GCEvent* event) {
+  JSONStream js;
+  event->PrintJSON(&js);
+  const String& message = String::Handle(String::New(js.ToCString()));
+  SendEvent(kEventFamilyGC, message);
+}
+
+
 void Service::HandleDebuggerEvent(DebuggerEvent* event) {
   JSONStream js;
   event->PrintJSON(&js);

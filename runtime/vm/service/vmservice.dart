@@ -42,6 +42,8 @@ class VMService extends MessageRouter {
     switch(eventType) {
       case 'debug':
         return Constants.EVENT_FAMILY_DEBUG;
+      case 'gc':
+        return Constants.EVENT_FAMILY_GC;
       default:
         return -1;
     }

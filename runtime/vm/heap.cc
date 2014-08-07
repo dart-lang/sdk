@@ -14,6 +14,7 @@
 #include "vm/pages.h"
 #include "vm/raw_object.h"
 #include "vm/scavenger.h"
+#include "vm/service.h"
 #include "vm/stack_frame.h"
 #include "vm/tags.h"
 #include "vm/verifier.h"
@@ -503,6 +504,10 @@ void Heap::RecordAfterGC() {
   stats_.after_.old_ = old_space_->GetCurrentUsage();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
+  if (Service::NeedsGCEvents()) {
+    GCEvent event(stats_);
+    Service::HandleGCEvent(&event);
+  }
 }
 
 
@@ -557,6 +562,21 @@ void Heap::PrintStats() {
     stats_.data_[1],
     stats_.data_[2],
     stats_.data_[3]);
+}
+
+
+void GCEvent::PrintJSON(JSONStream* js) const {
+  Isolate* isolate = Isolate::Current();
+  {
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "ServiceEvent");
+    jsobj.AddPropertyF("id", "gc/%" Pd, stats_.num_);
+    jsobj.AddProperty("eventType", "GC");  // TODO(koda): "GarbageCollected"
+    jsobj.AddProperty("isolate", isolate);
+    jsobj.AddProperty("reason", Heap::GCReasonToString(stats_.reason_));
+    isolate->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
+    isolate->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
+  }
 }
 
 
