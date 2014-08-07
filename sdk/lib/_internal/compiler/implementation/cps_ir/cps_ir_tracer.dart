@@ -49,7 +49,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     cps_ir.Reference ref = definition.firstRef;
     while (ref != null) {
       ++count;
-      ref = ref.nextRef;
+      ref = ref.next;
     }
     return count;
   }

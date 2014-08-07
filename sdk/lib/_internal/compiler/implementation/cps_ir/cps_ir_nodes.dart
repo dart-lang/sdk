@@ -31,10 +31,10 @@ abstract class Definition extends Node {
   // The head of a linked-list of occurrences, in no particular order.
   Reference firstRef = null;
 
-  bool get hasAtMostOneUse => firstRef == null || firstRef.nextRef == null;
-  bool get hasExactlyOneUse => firstRef != null && firstRef.nextRef == null;
+  bool get hasAtMostOneUse  => firstRef == null || firstRef.next == null;
+  bool get hasExactlyOneUse => firstRef != null && firstRef.next == null;
   bool get hasAtLeastOneUse => firstRef != null;
-  bool get hasMultipleUses => !hasAtMostOneUse;
+  bool get hasMultipleUses  => !hasAtMostOneUse;
 
   void substituteFor(Definition other) {
     if (other.firstRef == null) return;
@@ -42,9 +42,10 @@ abstract class Definition extends Node {
     do {
       current.definition = this;
       previous = current;
-      current = current.nextRef;
+      current = current.next;
     } while (current != null);
-    previous.nextRef = firstRef;
+    previous.next = firstRef;
+    if (firstRef != null) firstRef.previous = previous;
     firstRef = other.firstRef;
   }
 }
@@ -76,14 +77,27 @@ abstract class Primitive extends Definition {
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
-/// their definition and are linked into a list of occurrences.
+/// their definition and are doubly-linked into a list of occurrences.
 class Reference {
   Definition definition;
-  Reference nextRef = null;
+  Reference previous = null;
+  Reference next = null;
 
   Reference(this.definition) {
-    nextRef = definition.firstRef;
+    next = definition.firstRef;
+    if (next != null) next.previous = this;
     definition.firstRef = this;
+  }
+
+  /// Unlinks this reference from the list of occurrences.
+  void unlink() {
+    if (previous == null) {
+      assert(definition.firstRef == this);
+      definition.firstRef = next;
+    } else {
+      previous.next = next;
+    }
+    if (next != null) next.previous = previous;
   }
 }
 

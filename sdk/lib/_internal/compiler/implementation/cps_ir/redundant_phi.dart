@@ -91,7 +91,7 @@ class RedundantPhiEliminator extends RecursiveVisitor {
       // Add continuations of about-to-be modified invokes to worklist since
       // we might introduce new optimization opportunities.
       for (Reference ref = oldDefinition.firstRef; ref != null;
-           ref = ref.nextRef) {
+           ref = ref.next) {
         Continuation thatCont = ref2cont[ref];
         // thatCont is null if ref does not belong to a continuation invocation.
         if (thatCont != null && thatCont != cont) {
@@ -102,8 +102,12 @@ class RedundantPhiEliminator extends RecursiveVisitor {
       // Replace individual parameters:
       // * In the continuation body, replace occurrence of param with value,
       // * and implicitly remove param from continuation signature and
-      //   invocations by not incrementing `dst`.
+      //   invocations by not incrementing `dst`. References of removed
+      //   arguments are unlinked to keep definition usages up to date.
       uniqueDefinition.substituteFor(oldDefinition);
+      for (InvokeContinuation invoke in invokes) {
+        invoke.arguments[src].unlink();
+      }
     }
 
     // Remove trailing items from parameter and argument lists.
