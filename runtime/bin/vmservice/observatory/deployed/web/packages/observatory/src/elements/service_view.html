@@ -19,4 +19,94 @@
        an observable property on the old element to an invalid type. -->
 </polymer-element>
 
+<polymer-element name="trace-view" extends="observatory-element">
+   <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <template if="{{ tracer != null }}">
+      <div class="memberList">
+        <template repeat="{{ event in tracer.events }}">
+          <div class="memberItem">
+            <div class="memberSmall">
+              {{ event.timeStamp }}
+            </div>
+            <div class="memberSmall">
+              {{ event.message }}
+              <template if="{{ event.map != null }}">
+                <br>
+                <map-viewer map="{{ event.map }}"></map-viewer>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+      <br>
+      <br>
+      <br>
+    </template>
+  </template>
+</polymer-element>
+
+<polymer-element name="map-viewer" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <template if="{{ map.length > 0 }}">
+      <curly-block callback="{{ expander() }}">
+        <template if="{{ expand }}">
+          <div class="memberList">
+            <template repeat="{{ key in map.keys }}">
+              <div class="memberItem">
+                <div class="memberSmall">{{ key }}</div>
+                <div class="memberSmall">:</div>
+                <div class="memberSmall">
+                  <template if="{{ isMap(map[key]) }}">
+                    <map-viewer map="{{ map[key] }}"></map-viewer>
+                  </template>
+                  <template if="{{ isList(map[key]) }}">
+                    <list-viewer list="{{ map[key] }}"></list-viewer>
+                  </template>
+                  <template if="{{ !isMap(map[key]) && !isList(map[key]) }}">
+                    {{ map[key] }}
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+      </curly-block>
+    </template>
+  </template>
+</polymer-element>
+
+<polymer-element name="list-viewer" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+
+    <template if="{{ list.length > 0 }}">
+      <curly-block callback="{{ expander() }}">
+        <template if="{{ expand }}">
+          <div class="memberList">
+            <template repeat="{{ element in list }}">
+              <div class="memberItem">
+                <div class="memberSmall">
+                  <template if="{{ isMap(element) }}">
+                    <map-viewer map="{{ element }}"></map-viewer>
+                  </template>
+                  <template if="{{ isList(element) }}">
+                    <list-viewer list="{{ element }}"></list-viewer>
+                  </template>
+                  <template if="{{ !isMap(element) && !isList(element) }}">
+                    {{ element }}
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+      </curly-block>
+    </template>
+  </template>
+</polymer-element>
+
 <script type="application/dart" src="service_view.dart"></script>

@@ -44,6 +44,13 @@ h1 {
   font: 400 14px 'Montserrat', sans-serif;
 }
 
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
 .monospace {
   font-family: consolas, courier, monospace;
   font-size: 1em;

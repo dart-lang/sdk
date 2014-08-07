@@ -7,6 +7,7 @@ library service_object_view_element;
 import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:observatory/service.dart';
+import 'package:observatory/tracer.dart';
 import 'package:observatory/elements.dart';
 import 'package:polymer/polymer.dart';
 import 'observatory_element.dart';
@@ -204,5 +205,59 @@ class ServiceObjectViewElement extends ObservatoryElement {
     }
     children.add(element);
     Logger.root.info('Viewing object of \'${type}\'');
+  }
+}
+
+@CustomTag('trace-view')
+class TraceViewElement extends ObservatoryElement {
+  @published Tracer tracer;
+  TraceViewElement.created() : super.created();
+}
+
+@CustomTag('map-viewer')
+class MapViewerElement extends ObservatoryElement {
+  @published Map map;
+  @published bool expand = false;
+  MapViewerElement.created() : super.created();
+
+  bool isMap(var m) {
+    return m is Map;
+  }
+
+  bool isList(var m) {
+    return m is List;
+  }
+
+  dynamic expander() {
+    return expandEvent;
+  }
+
+  void expandEvent(bool exp, var done) {
+    expand = exp;
+    done();
+  }
+}
+
+@CustomTag('list-viewer')
+class ListViewerElement extends ObservatoryElement {
+  @published List list;
+  @published bool expand = false;
+  ListViewerElement.created() : super.created();
+
+  bool isMap(var m) {
+    return m is Map;
+  }
+
+  bool isList(var m) {
+    return m is List;
+  }
+
+  dynamic expander() {
+    return expandEvent;
+  }
+
+  void expandEvent(bool exp, var done) {
+    expand = exp;
+    done();
   }
 }

@@ -9,7 +9,7 @@ if [ ! -d "build" ]; then
 fi
 
 if [ ! -d "deployed" ]; then
-  echo "Run this script from the client directory"
+  echo "Run this script from the observatory directory"
   exit
 fi
 

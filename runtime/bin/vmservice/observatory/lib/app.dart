@@ -13,6 +13,7 @@ import 'dart:math';
 import 'package:logging/logging.dart';
 import 'package:observatory/service_html.dart';
 import 'package:observatory/elements.dart';
+import 'package:observatory/tracer.dart';
 import 'package:polymer/polymer.dart';
 
 part 'src/app/application.dart';

@@ -416,6 +416,9 @@ abstract class VM extends ServiceObjectOwner {
   Future<ObservableMap> getAsMap(String id) {
     return getString(id).then((response) {
       var map = _parseJSON(response);
+      if (Tracer.current != null) {
+        Tracer.current.trace("Received response for ${id}", map:map);
+      }
       return _processMap(map);
     }).catchError((error) {
       // ServiceError, forward to VM's ServiceError stream.

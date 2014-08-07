@@ -10,5 +10,15 @@ import 'package:polymer/polymer.dart';
 @CustomTag('stack-frame')
 class StackFrameElement extends ObservatoryElement {
   @published ObservableMap frame;
+  @published bool expand = false;
   StackFrameElement.created() : super.created();
+
+  dynamic expander() {
+    return expandEvent;
+  }
+
+  void expandEvent(bool exp, var done) {
+    expand = exp;
+    done();
+  }
 }

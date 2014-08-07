@@ -34,8 +34,9 @@ class ObservatoryApplication extends Observable {
     _vm = vm;
   }
   final TargetManager targets;
-  @observable Isolate isolate;
   @reflectable final ObservatoryApplicationElement rootElement;
+
+  TraceViewElement _traceView = null;
 
   @reflectable ServiceObject lastErrorOrException;
   @observable ObservableList<ServiceEvent> notifications =
@@ -125,6 +126,20 @@ class ObservatoryApplication extends Observable {
     } else {
       argsMap = Uri.splitQueryString(args);
     }
+    if (argsMap['trace'] != null) {
+      var traceArg = argsMap['trace'];
+      if (traceArg == 'on') {
+        Tracer.start();
+      } else if (traceArg == 'off') {
+        Tracer.stop();
+      }
+    }
+    if (Tracer.current != null) {
+      Tracer.current.reset();
+    }
+    if (_traceView != null) {
+      _traceView.tracer = Tracer.current;
+    }
     for (var i = 0; i < _pageRegistry.length; i++) {
       var page = _pageRegistry[i];
       if (page.canVisit(url)) {
@@ -157,6 +172,12 @@ class ObservatoryApplication extends Observable {
     }
     // Add new page.
     rootElement.children.add(page.element);
+
+    // Add tracing support.
+    _traceView = new Element.tag('trace-view');
+    _traceView.tracer = Tracer.current;
+    rootElement.children.add(_traceView);
+
     // Remember page.
     currentPage = page;
   }

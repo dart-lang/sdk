@@ -51,8 +51,8 @@ abstract class LocationManager extends Observable {
     }
     var args;
     // Parse out arguments.
-    if (url.contains('#')) {
-      var chunks = url.split('#');
+    if (url.contains('---')) {
+      var chunks = url.split('---');
       url = chunks[0];
       if ((chunks.length > 1) && (chunks[1] != '')) {
         args = chunks[1];
