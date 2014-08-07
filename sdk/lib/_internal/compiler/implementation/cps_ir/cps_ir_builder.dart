@@ -160,7 +160,14 @@ class Environment {
   ir.Primitive operator [](int index) => index2value[index];
 
   void extend(Element element, ir.Primitive value) {
-    assert(!variable2index.containsKey(element));
+    // Assert that the name is not already in the environment.  `null` is used
+    // as the name of anonymous variables.  Because the variable2index map is
+    // shared, `null` can already occur.  This is safe because such variables
+    // are not looked up by name.
+    //
+    // TODO(kmillikin): This is still kind of fishy.  Refactor to not share
+    // name maps or else garbage collect unneeded names.
+    assert(element == null || !variable2index.containsKey(element));
     variable2index[element] = index2variable.length;
     index2variable.add(element);
     index2value.add(value);
