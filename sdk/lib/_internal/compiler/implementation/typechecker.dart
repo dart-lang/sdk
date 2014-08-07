@@ -1633,7 +1633,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
     DartType thenType = analyzeInPromotedContext(condition, thenExpression);
 
-    DartType elseType = analyzeNonVoid(node.elseExpression);
+    DartType elseType = analyze(node.elseExpression);
     return compiler.types.computeLeastUpperBound(thenType, elseType);
   }
 
