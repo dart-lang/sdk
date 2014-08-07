@@ -360,8 +360,8 @@
           'inputs': [
             '../tools/create_resources.py',
             # The following two files are used to trigger a rebuild.
-            'vmservice/client/deployed/web/index.html',
-            'vmservice/client/deployed/web/index.html_bootstrap.dart.js',
+            'vmservice/observatory/deployed/web/index.html',
+            'vmservice/observatory/deployed/web/index.html_bootstrap.dart.js',
             '<@(_sources)',
           ],
           'outputs': [
@@ -375,7 +375,7 @@
             '--inner_namespace', 'bin',
             '--table_name', 'service_bin',
             '--root_prefix', 'bin/',
-            '--client_root', 'bin/vmservice/client/deployed/',
+            '--client_root', 'bin/vmservice/observatory/deployed/',
             '<@(_sources)'
           ],
           'message': 'Generating ''<(resources_cc_file)'' file.'
