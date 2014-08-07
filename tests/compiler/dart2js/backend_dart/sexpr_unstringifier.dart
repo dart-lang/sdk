@@ -151,8 +151,14 @@ class SExpressionUnstringifier {
 
   /// Returns a new named dummy selector with a roughly appropriate kind.
   Selector dummySelector(String name, int argumentCount) {
-    SelectorKind kind = Elements.isOperatorName(name)
-        ? SelectorKind.OPERATOR : SelectorKind.CALL;
+    SelectorKind kind;
+    if (name == "[]") {
+      kind = SelectorKind.INDEX;
+    } else if (Elements.isOperatorName(name)) {
+      kind = SelectorKind.OPERATOR;
+    } else {
+      kind = SelectorKind.CALL;
+    }
     return new Selector(kind, name, null, argumentCount);
   }
 
