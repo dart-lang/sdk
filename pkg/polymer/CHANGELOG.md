@@ -21,11 +21,14 @@ web_components, and template_binding) if they impact polymer.
             web/foo.css: true
             packages/foo/bar.css: true
 
-  * Added `inject_build_logs_in_output` option to pubspec for polymer
-    transformers. When set to `true`, this will inject a small element into your
-    entry point pages that will display all log messages from the polymer
-    transformers during the build step. This element is only injected when not 
-    running in release mode (ie: `pub serve` but not `pub build`).
+  * When running in pub-serve, any warnings and errors detected by the
+    polymer transformers will be displayed in the lower-right corner of your
+    entrypoint page. You can opt-out by adding this option to your pubspec:
+
+        inject_build_logs_in_output: false
+    
+  * Bug fix for http://dartbug.com/20286. Bindings in url attributes will no
+    longer throw an error.
 
 #### Pub version 0.12.0+7
   * Widen the constraint on `unittest`.
