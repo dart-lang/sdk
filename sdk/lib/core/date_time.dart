@@ -239,7 +239,7 @@ class DateTime implements Comparable {
      * timezonemins_opt ::= <empty> | colon_opt digit{2}
      */
     final RegExp re = new RegExp(
-        r'^([+-]?\d{4,5})-?(\d\d)-?(\d\d)'  // The day part.
+        r'^([+-]?\d{4,6})-?(\d\d)-?(\d\d)'  // The day part.
         r'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)?' // The time part
         r'( ?[zZ]| ?([-+])(\d\d)(?::?(\d\d))?)?)?$'); // The timezone part
 
