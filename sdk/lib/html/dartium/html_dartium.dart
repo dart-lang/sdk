@@ -3639,19 +3639,11 @@ class CssRule extends NativeFieldWrapperClass2 {
     }
   }
 
-  String _camelCase(String hyphenated) {
-    bool firstWord = true;
-    return hyphenated.splitMapJoin('-', onMatch : (_) => '',
-        onNonMatch : (String word) {
-      if (word.length > 0) {
-        if (firstWord) {
-          firstWord = false;
-          return word;
-        }
-        return word[0].toUpperCase() + word.substring(1);
-      }
-      return '';
-    });
+  static String _camelCase(String hyphenated) {
+    // The "ms" prefix is always lowercased.
+    return hyphenated.replaceFirst(new RegExp('^-ms-'), 'ms-').replaceAllMapped(
+        new RegExp('-([a-z]+)', caseSensitive: false),
+        (match) => match[0][1].toUpperCase() + match[0].substring(2));
   }
 
   void _setPropertyHelper(String propertyName, String value, [String priority]) {
@@ -28718,10 +28710,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_1_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_2_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_3_Callback(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
