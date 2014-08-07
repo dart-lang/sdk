@@ -224,7 +224,7 @@ String _getBaseNameFromLocationInParent(Expression expression) {
   // value in named expression
   if (expression.parent is NamedExpression) {
     NamedExpression namedExpression = expression.parent as NamedExpression;
-    if (identical(namedExpression.expression, expression)) {
+    if (namedExpression.expression == expression) {
       return namedExpression.name.label.name;
     }
   }

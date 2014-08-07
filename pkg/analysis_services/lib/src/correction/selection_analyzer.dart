@@ -96,7 +96,7 @@ class SelectionAnalyzer extends GeneralizingAstVisitor<Object> {
    * Adds second or more selected [AstNode].
    */
   void handleNextSelectedNode(AstNode node) {
-    if (identical(firstSelectedNode.parent, node.parent)) {
+    if (firstSelectedNode.parent == node.parent) {
       _selectedNodes.add(node);
     }
   }

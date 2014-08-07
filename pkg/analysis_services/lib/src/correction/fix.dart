@@ -1616,7 +1616,7 @@ class FixProcessor {
     // int v = myFunction();
     if (parent is VariableDeclaration) {
       VariableDeclaration variableDeclaration = parent;
-      if (identical(variableDeclaration.initializer, invocation)) {
+      if (variableDeclaration.initializer == invocation) {
         VariableElement variableElement = variableDeclaration.element;
         if (variableElement != null) {
           return variableElement.type;
@@ -1626,7 +1626,7 @@ class FixProcessor {
     // v = myFunction();
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent;
-      if (identical(assignment.rightHandSide, invocation)) {
+      if (assignment.rightHandSide == invocation) {
         if (assignment.operator.type == TokenType.EQ) {
           // v = myFunction();
           Expression lhs = assignment.leftHandSide;
@@ -1650,7 +1650,7 @@ class FixProcessor {
       BinaryExpression binary = parent;
       MethodElement method = binary.bestElement;
       if (method != null) {
-        if (identical(binary.rightOperand, invocation)) {
+        if (binary.rightOperand == invocation) {
           List<ParameterElement> parameters = method.parameters;
           return parameters.length == 1 ? parameters[0].type : null;
         }
@@ -1666,28 +1666,28 @@ class FixProcessor {
       // assert( myFunction() );
       if (parent is AssertStatement) {
         AssertStatement statement = parent;
-        if (identical(statement.condition, invocation)) {
+        if (statement.condition == invocation) {
           return coreTypeBool;
         }
       }
       // if ( myFunction() ) {}
       if (parent is IfStatement) {
         IfStatement statement = parent;
-        if (identical(statement.condition, invocation)) {
+        if (statement.condition == invocation) {
           return coreTypeBool;
         }
       }
       // while ( myFunction() ) {}
       if (parent is WhileStatement) {
         WhileStatement statement = parent;
-        if (identical(statement.condition, invocation)) {
+        if (statement.condition == invocation) {
           return coreTypeBool;
         }
       }
       // do {} while ( myFunction() );
       if (parent is DoStatement) {
         DoStatement statement = parent;
-        if (identical(statement.condition, invocation)) {
+        if (statement.condition == invocation) {
           return coreTypeBool;
         }
       }

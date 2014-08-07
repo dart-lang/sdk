@@ -164,16 +164,16 @@ class StatementAnalyzer extends SelectionAnalyzer {
     super.visitTryStatement(node);
     AstNode firstSelectedNode = this.firstSelectedNode;
     if (firstSelectedNode != null) {
-      if (identical(firstSelectedNode, node.body) ||
-          identical(firstSelectedNode, node.finallyBlock)) {
+      if (firstSelectedNode == node.body ||
+          firstSelectedNode == node.finallyBlock) {
         invalidSelection(
             "Selection must either cover whole try statement or parts of try, catch, or finally block.");
       } else {
         List<CatchClause> catchClauses = node.catchClauses;
         for (CatchClause catchClause in catchClauses) {
-          if (identical(firstSelectedNode, catchClause) ||
-              identical(firstSelectedNode, catchClause.body) ||
-              identical(firstSelectedNode, catchClause.exceptionParameter)) {
+          if (firstSelectedNode == catchClause ||
+              firstSelectedNode == catchClause.body ||
+              firstSelectedNode == catchClause.exceptionParameter) {
             invalidSelection(
                 "Selection must either cover whole try statement or parts of try, catch, or finally block.");
           }

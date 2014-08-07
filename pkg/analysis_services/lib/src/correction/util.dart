@@ -150,13 +150,13 @@ Expression getQualifiedPropertyTarget(AstNode node) {
   AstNode parent = node.parent;
   if (parent is PrefixedIdentifier) {
     PrefixedIdentifier prefixed = parent;
-    if (identical(prefixed.identifier, node)) {
+    if (prefixed.identifier == node) {
       return parent.prefix;
     }
   }
   if (parent is PropertyAccess) {
     PropertyAccess access = parent;
-    if (identical(access.propertyName, node)) {
+    if (access.propertyName == node) {
       return access.realTarget;
     }
   }

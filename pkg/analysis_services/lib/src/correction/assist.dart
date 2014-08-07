@@ -696,7 +696,7 @@ class AssistProcessor {
     // check that node is LHS in assignment
     if (node is SimpleIdentifier &&
         node.parent is AssignmentExpression &&
-        identical((node.parent as AssignmentExpression).leftHandSide, node) &&
+        (node.parent as AssignmentExpression).leftHandSide == node &&
         node.parent.parent is ExpressionStatement) {
     } else {
       _coverageMarker();
@@ -718,7 +718,7 @@ class AssistProcessor {
     AstNode declNode = new NodeLocator.con1(declOffset).searchWithin(unit);
     if (declNode != null &&
         declNode.parent is VariableDeclaration &&
-        identical((declNode.parent as VariableDeclaration).name, declNode) &&
+        (declNode.parent as VariableDeclaration).name == declNode &&
         declNode.parent.parent is VariableDeclarationList &&
         declNode.parent.parent.parent is VariableDeclarationStatement) {
     } else {
@@ -1067,7 +1067,7 @@ class AssistProcessor {
             TokenType.AMPERSAND_AMPERSAND) {
       condition = condition.parent as BinaryExpression;
     }
-    if (!identical(ifStatement.condition, condition)) {
+    if (ifStatement.condition != condition) {
       _coverageMarker();
       return;
     }
