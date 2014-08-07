@@ -2206,6 +2206,13 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     // Resolve and finalize the signature type of this signature class.
     const Type& sig_type = Type::Handle(cls.SignatureType());
     FinalizeType(cls, sig_type, kCanonicalizeWellFormed);
+
+    // Add this class to the subclasses of the superclass (_FunctionImpl).
+    if (!super_type.IsNull()) {
+      ASSERT(!super_type.IsObjectType());
+      ASSERT(!super_class.IsNull());
+      super_class.AddDirectSubclass(cls);
+    }
     return;
   }
   // Finalize interface types (but not necessarily interface classes).

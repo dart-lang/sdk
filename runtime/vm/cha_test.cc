@@ -124,6 +124,11 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT(CHA::HasSubclasses(class_b_id));
   EXPECT(!CHA::HasSubclasses(class_c_id));
   EXPECT(!CHA::HasSubclasses(class_d_id));
+
+  class Class& function_impl_class =
+      Class::Handle(Type::Handle(Isolate::Current()->object_store()->
+          function_impl_type()).type_class());
+  EXPECT(CHA::HasSubclasses(function_impl_class.id()));
 }
 
 }  // namespace dart
