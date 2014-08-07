@@ -1,5 +1,5 @@
 name: unittest
-version: 0.11.0+3
+version: 0.11.0+4
 author: Dart Team <misc@dartlang.org>
 description: A library for writing dart unit tests.
 homepage: https://pub.dartlang.org/packages/unittest
