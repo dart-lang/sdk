@@ -313,7 +313,7 @@ class GSUtil(object):
     args += [remote_path]
     self.execute(args)
 
-def CalculateChecksum(filename):
+def CalculateMD5Checksum(filename):
   """Calculate the MD5 checksum for filename."""
 
   md5 = hashlib.md5()
@@ -326,13 +326,39 @@ def CalculateChecksum(filename):
 
   return md5.hexdigest()
 
-def CreateChecksumFile(filename, mangled_filename=None):
+def CalculateSha256Checksum(filename):
+  """Calculate the sha256 checksum for filename."""
+
+  sha = hashlib.sha256()
+
+  with open(filename, 'rb') as f:
+    data = f.read(65536)
+    while len(data) > 0:
+      sha.update(data)
+      data = f.read(65536)
+
+  return sha.hexdigest()
+
+def CreateMD5ChecksumFile(filename, mangled_filename=None):
   """Create and upload an MD5 checksum file for filename."""
   if not mangled_filename:
     mangled_filename = os.path.basename(filename)
 
-  checksum = CalculateChecksum(filename)
+  checksum = CalculateMD5Checksum(filename)
   checksum_filename = '%s.md5sum' % filename
+
+  with open(checksum_filename, 'w') as f:
+    f.write('%s *%s' % (checksum, mangled_filename))
+
+  return checksum_filename
+
+def CreateSha256ChecksumFile(filename, mangled_filename=None):
+  """Create and upload an sha256 checksum file for filename."""
+  if not mangled_filename:
+    mangled_filename = os.path.basename(filename)
+
+  checksum = CalculateSha256Checksum(filename)
+  checksum_filename = '%s.sha256sum' % filename
 
   with open(checksum_filename, 'w') as f:
     f.write('%s *%s' % (checksum, mangled_filename))

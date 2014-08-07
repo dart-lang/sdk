@@ -197,18 +197,21 @@ def OldUploadFile(source, target):
   return status
 
 
-def UploadFile(local_path, remote_path, create_md5sum=False):
+def UploadFile(local_path, remote_path, checksum_files=False):
   # Copy it to the new unified gs://dart-archive bucket
   gsutil = bot_utils.GSUtil()
   gsutil.upload(local_path, remote_path, public=True)
-  if create_md5sum:
+  if checksum_files:
     # 'local_path' may have a different filename than 'remote_path'. So we need
     # to make sure the *.md5sum file contains the correct name.
     assert '/' in remote_path and not remote_path.endswith('/')
     mangled_filename = remote_path[remote_path.rfind('/') + 1:]
-    local_md5sum = bot_utils.CreateChecksumFile(local_path, mangled_filename)
+    local_md5sum = bot_utils.CreateMD5ChecksumFile(local_path,
+                                                   mangled_filename)
     gsutil.upload(local_md5sum, remote_path + '.md5sum', public=True)
-
+    local_sha256 = bot_utils.CreateSha256ChecksumFile(local_path,
+                                                      mangled_filename)
+    gsutil.upload(local_sha256, remote_path + '.sha256sum', public=True)
 
 def ExecuteCommand(cmd):
   """Execute a command in a subprocess.
