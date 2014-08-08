@@ -6525,8 +6525,7 @@
         "support_level": "nonstandard"
       },
       "fromElement": {
-        "dart_action": "experimental",
-        "support_level": "nonstandard"
+        "support_level": "deprecated"
       },
       "initMouseEvent": {},
       "metaKey": {},
@@ -6543,8 +6542,7 @@
       "screenY": {},
       "shiftKey": {},
       "toElement": {
-        "dart_action": "experimental",
-        "support_level": "nonstandard"
+        "support_level": "deprecated"
       },
       "webkitMovementX": {
         "support_level": "experimental"

@@ -862,7 +862,7 @@ class HtmlRenamer(object):
     metadata_member = member
     if member_prefix == 'on:':
       metadata_member = 'on' + metadata_member.lower()
-    if self._metadata.IsDeprecated(interface, metadata_member):
+    if self._metadata.IsSuppressed(interface, metadata_member):
       return True
     return False
 

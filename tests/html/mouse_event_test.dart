@@ -13,5 +13,8 @@ main() {
   test('relatedTarget', () {
     var event = new MouseEvent('mouseout');
     expect(event.relatedTarget, isNull);
+
+    event = new MouseEvent('mouseout', relatedTarget: document.body);
+    expect(event.relatedTarget, document.body);
   });
 }

@@ -20792,9 +20792,16 @@ class MouseEvent extends UIEvent {
   @Unstable()
   DataTransfer get dataTransfer => _blink.BlinkMouseEvent.$dataTransfer_Getter(this);
 
+  /**
+   * The nonstandard way to access the element that the mouse comes
+   * from in the case of a `mouseover` event.
+   *
+   * This member is deprecated and not cross-browser compatible; use
+   * relatedTarget to get the same information in the standard way.
+   */
   @DomName('MouseEvent.fromElement')
   @DocsEditable()
-  @Experimental() // nonstandard
+  @deprecated
   Node get fromElement => _blink.BlinkMouseEvent.$fromElement_Getter(this);
 
   @DomName('MouseEvent.metaKey')
@@ -20827,9 +20834,16 @@ class MouseEvent extends UIEvent {
   @DocsEditable()
   bool get shiftKey => _blink.BlinkMouseEvent.$shiftKey_Getter(this);
 
+  /**
+   * The nonstandard way to access the element that the mouse goes
+   * to in the case of a `mouseout` event.
+   *
+   * This member is deprecated and not cross-browser compatible; use
+   * relatedTarget to get the same information in the standard way.
+   */
   @DomName('MouseEvent.toElement')
   @DocsEditable()
-  @Experimental() // nonstandard
+  @deprecated
   Node get toElement => _blink.BlinkMouseEvent.$toElement_Getter(this);
 
   @DomName('MouseEvent.webkitMovementX')

@@ -19154,9 +19154,16 @@ class MouseEvent extends UIEvent {
   @Unstable()
   final DataTransfer dataTransfer;
 
+  /**
+   * The nonstandard way to access the element that the mouse comes
+   * from in the case of a `mouseover` event.
+   *
+   * This member is deprecated and not cross-browser compatible; use
+   * relatedTarget to get the same information in the standard way.
+   */
   @DomName('MouseEvent.fromElement')
   @DocsEditable()
-  @Experimental() // nonstandard
+  @deprecated
   final Node fromElement;
 
   @DomName('MouseEvent.metaKey')
@@ -19187,9 +19194,16 @@ class MouseEvent extends UIEvent {
   @DocsEditable()
   final bool shiftKey;
 
+  /**
+   * The nonstandard way to access the element that the mouse goes
+   * to in the case of a `mouseout` event.
+   *
+   * This member is deprecated and not cross-browser compatible; use
+   * relatedTarget to get the same information in the standard way.
+   */
   @DomName('MouseEvent.toElement')
   @DocsEditable()
-  @Experimental() // nonstandard
+  @deprecated
   final Node toElement;
 
   @JSName('webkitMovementX')

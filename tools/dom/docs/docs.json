@@ -2411,6 +2411,28 @@
         ]
       }
     },
+    "MouseEvent": {
+      "members": {
+        "fromElement": [
+          "/**",
+          "   * The nonstandard way to access the element that the mouse comes",
+          "   * from in the case of a `mouseover` event.",
+          "   *",
+          "   * This member is deprecated and not cross-browser compatible; use",
+          "   * relatedTarget to get the same information in the standard way.",
+          "   */"
+        ],
+        "toElement": [
+          "/**",
+          "   * The nonstandard way to access the element that the mouse goes",
+          "   * to in the case of a `mouseout` event.",
+          "   *",
+          "   * This member is deprecated and not cross-browser compatible; use",
+          "   * relatedTarget to get the same information in the standard way.",
+          "   */"
+        ]
+      }
+    },
     "Node": {
       "members": {
         "appendChild": [

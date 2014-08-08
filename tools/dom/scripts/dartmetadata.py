@@ -647,10 +647,10 @@ class DartMetadata(object):
         annotations = ann2
     return annotations
 
-  def IsDeprecated(self, interface, member_name):
+  def IsSuppressed(self, interface, member_name):
     annotations = self._GetSupportLevelAnnotations(interface.id, member_name)
     return any(
-        annotation.startswith('@deprecated') for annotation in annotations)
+        annotation.startswith('@removed') for annotation in annotations)
 
   def _GetCommonAnnotations(self, interface, member_name=None,
       source_member_name=None):
@@ -801,8 +801,10 @@ class DartMetadata(object):
       elif dart_action == 'suppress':
         if comment:
           annotations.append('// %s' % comment)
-        annotations.append('@deprecated // %s' % support_level)
-        # TODO (blois): suppress generation of these APIs as a separate CL.
+        anAnnotation = 'deprecated'
+        if member_id:
+          anAnnotation = 'removed'
+        annotations.append('@%s // %s' % (anAnnotation, support_level))
         pass
       elif dart_action == 'stable':
         pass
