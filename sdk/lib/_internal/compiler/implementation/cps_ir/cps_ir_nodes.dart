@@ -493,8 +493,8 @@ class Parameter extends Primitive {
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
 
-/// Continuations are normally bound by 'let cont'.  A continuation with no
-/// parameter (or body) is used to represent a function's return continuation.
+/// Continuations are normally bound by 'let cont'.  A continuation with one
+/// parameter and no body is used to represent a function's return continuation.
 /// The return continuation is bound by the Function, not by 'let cont'.
 class Continuation extends Definition implements InteriorNode {
   final List<Parameter> parameters;
@@ -505,7 +505,7 @@ class Continuation extends Definition implements InteriorNode {
 
   Continuation(this.parameters);
 
-  Continuation.retrn() : parameters = null;
+  Continuation.retrn() : parameters = <Parameter>[new Parameter(null)];
 
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
