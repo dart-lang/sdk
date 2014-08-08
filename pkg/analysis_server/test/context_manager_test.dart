@@ -105,6 +105,48 @@ class ContextManagerTest {
     expect(manager.currentContextFilePaths[projPath], hasLength(0));
   }
 
+  void test_setRoots_addFolderWithPubspecFolders() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProjectA = '$root/sub/aaa';
+    String subProjectB = '$root/sub/sub2/bbb';
+    String subProjectA_file = '$subProjectA/bin/a.dart';
+    String subProjectB_file = '$subProjectB/bin/b.dart';
+    // create files
+    resourceProvider.newFile('$subProjectA/pubspec.yaml', 'pubspec');
+    resourceProvider.newFile('$subProjectB/pubspec.yaml', 'pubspec');
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subProjectA_file, 'library a;');
+    resourceProvider.newFile(subProjectB_file, 'library b;');
+    // configure package maps
+    packageMapProvider.packageMaps = {
+      subProjectA: {
+        'foo': [resourceProvider.newFolder('/package/foo')]
+      },
+      subProjectA: {
+        'bar': [resourceProvider.newFolder('/package/bar')]
+      },
+    };
+    // set roots
+    manager.setRoots(<String>[root], <String>[]);
+    manager.assertContextPaths([root, subProjectA, subProjectB]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProjectA, [subProjectA_file]);
+    manager.assertContextFiles(subProjectB, [subProjectB_file]);
+    // verify package maps
+    expect(
+        manager.currentContextPackageMaps[root],
+        equals(packageMapProvider.packageMaps[root]));
+    expect(
+        manager.currentContextPackageMaps[subProjectA],
+        equals(packageMapProvider.packageMaps[subProjectA]));
+    expect(
+        manager.currentContextPackageMaps[subProjectB],
+        equals(packageMapProvider.packageMaps[subProjectB]));
+  }
+
   void test_setRoots_addFolderWithoutPubspec() {
     packageMapProvider.packageMap = null;
     manager.setRoots(<String>[projPath], <String>[]);
@@ -137,6 +179,39 @@ class ContextManagerTest {
     manager.setRoots(<String>[], <String>[]);
     expect(manager.currentContextPaths, hasLength(0));
     expect(manager.currentContextFilePaths, hasLength(0));
+  }
+
+  void test_setRoots_removeFolderWithPubspecFolder() {
+    // prepare paths
+    String projectA = '/projectA';
+    String projectB = '/projectB';
+    String subProjectA = '$projectA/sub';
+    String subProjectB = '$projectB/sub';
+    String projectA_file = '$projectA/a.dart';
+    String projectB_file = '$projectB/a.dart';
+    String subProjectA_pubspec = '$subProjectA/pubspec.yaml';
+    String subProjectB_pubspec = '$subProjectB/pubspec.yaml';
+    String subProjectA_file = '$subProjectA/bin/sub_a.dart';
+    String subProjectB_file = '$subProjectB/bin/sub_b.dart';
+    // create files
+    resourceProvider.newFile(projectA_file, '// a');
+    resourceProvider.newFile(projectB_file, '// b');
+    resourceProvider.newFile(subProjectA_pubspec, 'pubspec');
+    resourceProvider.newFile(subProjectB_pubspec, 'pubspec');
+    resourceProvider.newFile(subProjectA_file, '// sub-a');
+    resourceProvider.newFile(subProjectB_file, '// sub-b');
+    // set roots
+    manager.setRoots(<String>[projectA, projectB], <String>[]);
+    manager.assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
+    manager.assertContextFiles(projectA, [projectA_file]);
+    manager.assertContextFiles(projectB, [projectB_file]);
+    manager.assertContextFiles(subProjectA, [subProjectA_file]);
+    manager.assertContextFiles(subProjectB, [subProjectB_file]);
+    // remove "projectB"
+    manager.setRoots(<String>[projectA], <String>[]);
+    manager.assertContextPaths([projectA, subProjectA]);
+    manager.assertContextFiles(projectA, [projectA_file]);
+    manager.assertContextFiles(subProjectA, [subProjectA_file]);
   }
 
   void test_setRoots_removeFolderWithoutPubspec() {
@@ -194,6 +269,30 @@ class ContextManagerTest {
     });
   }
 
+  test_watch_addPubspec() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub/aaa';
+    String subPubspec = '$subProject/pubspec.yaml';
+    String subFile = '$subProject/bin/a.dart';
+    // create files
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subFile, 'library a;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[]);
+    manager.assertContextPaths([root]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile, subFile]);
+    // add pubspec
+    resourceProvider.newFile(subPubspec, 'pubspec');
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root, subProject]);
+      manager.assertContextFiles(root, [rootFile]);
+      manager.assertContextFiles(subProject, [subFile]);
+    });
+  }
+
   test_watch_deleteFile() {
     String filePath = posix.join(projPath, 'foo.dart');
     // add root with a file
@@ -207,6 +306,31 @@ class ContextManagerTest {
     resourceProvider.deleteFile(filePath);
     return pumpEventQueue().then((_) {
       return expect(filePaths, hasLength(0));
+    });
+  }
+
+  test_watch_deletePubspec() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub/aaa';
+    String subPubspec = '$subProject/pubspec.yaml';
+    String subFile = '$subProject/bin/a.dart';
+    // create files
+    resourceProvider.newFile(subPubspec, 'pubspec');
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subFile, 'library a;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[]);
+    manager.assertContextPaths([root, subProject]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProject, [subFile]);
+    // delete the pubspec
+    resourceProvider.deleteFile(subPubspec);
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root]);
+      manager.assertContextFiles(root, [rootFile, subFile]);
     });
   }
 
@@ -330,6 +454,15 @@ class TestContextManager extends ContextManager {
       expect(filePaths, contains(source.fullName));
       filePaths[source.fullName] = now;
     }
+  }
+
+  void assertContextFiles(String contextPath, List<String> expectedFiles) {
+    var actualFiles = currentContextFilePaths[contextPath].keys;
+    expect(actualFiles, unorderedEquals(expectedFiles));
+  }
+
+  void assertContextPaths(List<String> expected) {
+    expect(currentContextPaths, unorderedEquals(expected));
   }
 
   @override

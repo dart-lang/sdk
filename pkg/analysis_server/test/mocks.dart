@@ -342,12 +342,20 @@ class MockPackageMapProvider implements PackageMapProvider {
   Map<String, List<resource.Folder>> packageMap = <String, List<resource.Folder>>{};
 
   /**
+   * Package maps that will be returned by the next call to [computePackageMap].
+   */
+  Map<String, Map<String, List<resource.Folder>>> packageMaps = null;
+
+  /**
    * Dependency list that will be returned by the next call to [computePackageMap].
    */
   Set<String> dependencies = new Set<String>();
 
   @override
   PackageMapInfo computePackageMap(resource.Folder folder) {
+    if (packageMaps != null) {
+      return new PackageMapInfo(packageMaps[folder.path], dependencies);
+    }
     return new PackageMapInfo(packageMap, dependencies);
   }
 }
