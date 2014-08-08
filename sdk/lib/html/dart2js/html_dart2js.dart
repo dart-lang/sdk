@@ -41,7 +41,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_isolate_helper' show IsolateNatives;
-import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
+import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2824,10 +2824,11 @@ class CssRule extends Interceptor {
   }
 
   static String _camelCase(String hyphenated) {
-    // The "ms" prefix is always lowercased.
-    return hyphenated.replaceFirst(new RegExp('^-ms-'), 'ms-').replaceAllMapped(
-        new RegExp('-([a-z]+)', caseSensitive: false),
-        (match) => match[0][1].toUpperCase() + match[0].substring(2));
+    var replacedMs = JS('String', r'#.replace(/^-ms-/, "ms-")', hyphenated);
+
+    var fToUpper = const JS_CONST(
+        r'function(_, letter) { return letter.toUpperCase(); }');
+    return JS('String', r'#.replace(/-([\da-z])/ig, #)', replacedMs, fToUpper);
   }
 
   void _setPropertyHelper(String propertyName, String value, [String priority]) {
