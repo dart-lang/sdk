@@ -15,6 +15,9 @@ convert/streamed_conversion_utf8_encode_test: Skip # http://dartbug.com/15498
 
 mirrors/mirrors_reader_test: Skip # Issue 16589
 
+[ $unchecked ]
+mirrors/redirecting_factory_different_type_test: SkipByDesign # Tests type checks.
+
 [ $csp ]
 async/deferred/deferred_in_isolate_test: RuntimeError # Issue 16898
 mirrors/deferred_mirrors_metadata_test: Fail # Issue 16898
