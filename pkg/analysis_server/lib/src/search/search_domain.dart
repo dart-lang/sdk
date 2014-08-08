@@ -137,15 +137,20 @@ class SearchDomainHandler implements RequestHandler {
     int offset = request.getRequiredParameter(OFFSET).asInt();
     // prepare Element
     List<Element> elements = server.getElementsAtOffset(file, offset);
+    Response response = new Response(request.id);
     if (elements.isEmpty) {
-      return new Response(request.id);
+      response.setEmptyResult();
+      return response;
     }
     Element element = elements.first;
     // prepare type hierarchy
     TypeHierarchyComputer computer = new TypeHierarchyComputer(searchEngine);
     computer.compute(element).then((List<TypeHierarchyItem> items) {
-      Response response = new Response(request.id);
-      response.setResult(HIERARCHY_ITEMS, objectToJson(items));
+      if (items != null) {
+        response.setResult(HIERARCHY_ITEMS, objectToJson(items));
+      } else {
+        response.setEmptyResult();
+      }
       server.sendResponse(response);
     });
     // delay response

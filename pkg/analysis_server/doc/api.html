@@ -1137,7 +1137,7 @@ dt {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
   "result": {
-    "<b>hierarchyItems</b>": List&lt;<a href="#type_TypeHierarchyItem">TypeHierarchyItem</a>&gt;
+    "<b>hierarchyItems</b>": <span style="color:#999999">optional</span> List&lt;<a href="#type_TypeHierarchyItem">TypeHierarchyItem</a>&gt;
   }
 }</pre></div>
         <p>
@@ -1157,7 +1157,7 @@ dt {
             <p>
               The offset of the name of the type within the file.
             </p>
-          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>hierarchyItems ( List&lt;<a href="#type_TypeHierarchyItem">TypeHierarchyItem</a>&gt; )</i></b></dt><dd>
+          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>hierarchyItems ( <span style="color:#999999">optional</span> List&lt;<a href="#type_TypeHierarchyItem">TypeHierarchyItem</a>&gt; )</i></b></dt><dd>
             
             <p>
               A list of the types in the requested hierarchy. The
@@ -1166,6 +1166,12 @@ dt {
               other elements of the list is unspecified, but
               correspond to the integers used to reference supertype
               and subtype items within the items.
+            </p>
+            <p>
+              This field will be absent if the code at the given file
+              and offset does not represent a type, or if the file has
+              not been sufficiently analyzed to allow a type hierarchy
+              to be produced.
             </p>
           </dd></dl></dd></dl><h3>Notifications</h3><dl><dt class="notification">search.results</dt><dd><div class="box"><pre>notification: {
   "event": "search.results"

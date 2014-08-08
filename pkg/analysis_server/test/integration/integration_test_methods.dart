@@ -593,13 +593,17 @@ abstract class InttestMixin {
    *
    * Returns
    *
-   * hierarchyItems ( List<TypeHierarchyItem> )
+   * hierarchyItems ( optional List<TypeHierarchyItem> )
    *
    *   A list of the types in the requested hierarchy. The first element of the
    *   list is the item representing the type for which the hierarchy was
    *   requested. The index of other elements of the list is unspecified, but
    *   correspond to the integers used to reference supertype and subtype items
    *   within the items.
+   *
+   *   This field will be absent if the code at the given file and offset does
+   *   not represent a type, or if the file has not been sufficiently analyzed
+   *   to allow a type hierarchy to be produced.
    */
   Future sendSearchGetTypeHierarchy(String file, int offset, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};

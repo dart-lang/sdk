@@ -516,11 +516,11 @@ final Matcher isSearchGetTypeHierarchyParams = new MatchesJsonObject(
  * search.getTypeHierarchy result
  *
  * {
- *   "hierarchyItems": List<TypeHierarchyItem>
+ *   "hierarchyItems": optional List<TypeHierarchyItem>
  * }
  */
 final Matcher isSearchGetTypeHierarchyResult = new MatchesJsonObject(
-  "search.getTypeHierarchy result", {
+  "search.getTypeHierarchy result", null, optionalFields: {
     "hierarchyItems": isListOf(isTypeHierarchyItem)
   });
 

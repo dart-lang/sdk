@@ -501,10 +501,10 @@ class Response {
   final RequestError error;
 
   /**
-   * A table mapping the names of result fields to their values. The table
-   * should be empty if there was an error.
+   * A table mapping the names of result fields to their values.  Should be
+   * null if there is no result to send.
    */
-  final Map<String, Object> result = new HashMap<String, Object>();
+  Map<String, Object> result;
 
   /**
    * Initialize a newly created instance to represent a response to a request
@@ -631,14 +631,24 @@ class Response {
    * Return the value of the result field with the given [name].
    */
   Object getResult(String name) {
-    return result[name];
+    return result == null ? null : result[name];
   }
 
   /**
    * Set the value of the result field with the given [name] to the given [value].
    */
   void setResult(String name, Object value) {
+    if (result == null) {
+      result = new HashMap<String, Object>();
+    }
     result[name] = _toJson(value);
+  }
+
+  /**
+   * Set the result to be an empty map.
+   */
+  void setEmptyResult() {
+    result = new HashMap<String, Object>();
   }
 
   /**
@@ -651,7 +661,7 @@ class Response {
     if (error != null) {
       jsonObject[ERROR] = error.toJson();
     }
-    if (!result.isEmpty) {
+    if (result != null) {
       jsonObject[RESULT] = result;
     }
     return jsonObject;
