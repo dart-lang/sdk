@@ -158,7 +158,7 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
 }
 
 class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {
-  _Latin1AllowInvalidDecoderSink(StringSink sink): super(sink);
+  _Latin1AllowInvalidDecoderSink(StringConversionSink sink): super(sink);
 
   void addSlice(List<int> source, int start, int end, bool isLast) {
     if (start < 0 || start > source.length) {

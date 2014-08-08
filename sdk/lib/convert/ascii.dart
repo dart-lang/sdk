@@ -203,16 +203,7 @@ abstract class _UnicodeSubsetDecoder extends Converter<List<int>, String> {
    * The converter works more efficiently if the given [sink] is a
    * [StringConversionSink].
    */
-  ByteConversionSink startChunkedConversion(Sink<String> sink) {
-    StringConversionSink stringSink;
-    if (sink is StringConversionSink) {
-      stringSink = sink;
-    } else {
-      stringSink = new StringConversionSink.from(sink);
-    }
-    // TODO(lrn): Use stringSink.asUtf16Sink() if it becomes available.
-    return new _Latin1DecoderSink(_allowInvalid, stringSink);
-  }
+  ByteConversionSink startChunkedConversion(Sink<String> sink);
 
   // Override the base-class's bind, to provide a better type.
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
