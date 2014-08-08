@@ -2768,13 +2768,7 @@ List extractMetadata(victim) {
            r'#.$reflectionInfo.splice(#.$metadataIndex)', victim, victim))
         .map((int i) => getMetadata(i)).toList();
   }
-  String source = JS('String', 'Function.prototype.toString.call(#)', victim);
-  int index = source.lastIndexOf(new RegExp('"[0-9,]*";?[ \n\r]*}'));
-  if (index == -1) return const [];
-  index++;
-  int endQuote = source.indexOf('"', index);
-  return source.substring(index, endQuote).split(',').map(int.parse).map(
-      (int i) => getMetadata(i)).toList();
+  return const [];
 }
 
 void parseCompactFieldSpecification(
