@@ -443,6 +443,7 @@ wheelevent_test: Fail # http://dartbug.com/12958
 [ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
 # Desktop operation systems do not support touch events on chrome 34 dartium.
 touchevent_test/supported: Fail
+mouse_event_test: Fail # Issue 20437
 
 [ $compiler == none && $runtime == dartium ]
 async_test: Timeout # Issue 13719: Please triage this failure.
