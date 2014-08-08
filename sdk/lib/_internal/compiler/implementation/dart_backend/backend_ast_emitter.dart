@@ -662,7 +662,35 @@ class ConstantEmitter extends ConstExpVisitor<Expression> {
   ConstantEmitter(this.parent);
 
   Expression visitPrimitive(PrimitiveConstExp exp) {
+    // Num constants may be negative, while literals must be non-negative:
+    // Literals are non-negative in the specification, and a negated literal
+    // parses as a call to unary `-`. The AST unparser assumes literals are
+    // non-negative and relies on this to avoid incorrectly generating `--`,
+    // the predecrement operator.
+    // Translate such constants into their positive value wrapped by
+    // the unary minus operator.
+    if (exp.constant is dart2js.NumConstant) {
+      dart2js.NumConstant numConstant = exp.constant;
+      if (numConstant.value.isNegative) {
+        return negatedLiteral(numConstant);
+      }
+    }
     return new Literal(exp.constant);
+  }
+
+  /// Given a negative num constant, returns the corresponding positive
+  /// literal wrapped by a unary minus operator.
+  Expression negatedLiteral(dart2js.NumConstant constant) {
+    assert(constant.value.isNegative);
+    dart2js.NumConstant positiveConstant;
+    if (constant.isInt) {
+      positiveConstant = new dart2js.IntConstant(-constant.value);
+    } else if (constant.isDouble) {
+      positiveConstant = new dart2js.DoubleConstant(-constant.value);
+    } else {
+      throw "Unexpected type of NumConstant: $constant";
+    }
+    return new UnaryOperator('-', new Literal(positiveConstant));
   }
 
   Expression visitList(ListConstExp exp) {
