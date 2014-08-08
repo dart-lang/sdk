@@ -60,7 +60,7 @@ class CodegenRegistry extends Registry {
 
   bool get isForResolution => false;
 
-  Element get currentElement => treeElements.currentElement;
+  Element get currentElement => treeElements.analyzedElement;
 
   // TODO(johnniwinther): Remove this getter when [Registry] creates a
   // dependency node.

@@ -5,16 +5,16 @@
 part of resolution;
 
 abstract class TreeElements {
-  Element get currentElement;
-  Setlet<Node> get superUses;
+  AnalyzableElement get analyzedElement;
+  Iterable<Node> get superUses;
 
   /// Iterables of the dependencies that this [TreeElement] records of
-  /// [currentElement].
+  /// [analyzedElement].
   Iterable<Element> get allElements;
   void forEachConstantNode(f(Node n, Constant c));
 
   /// A set of additional dependencies.  See [registerDependency] below.
-  Setlet<Element> get otherDependencies;
+  Iterable<Element> get otherDependencies;
 
   Element operator[](Node node);
 
@@ -57,7 +57,7 @@ abstract class TreeElements {
   /// Returns the type that the type literal [node] refers to.
   DartType getTypeLiteralType(Send node);
 
-  /// Register additional dependencies required by [currentElement].
+  /// Register additional dependencies required by [analyzedElement].
   /// For example, elements that are used by a backend.
   void registerDependency(Element element);
 
@@ -88,39 +88,35 @@ abstract class TreeElements {
 }
 
 class TreeElementMapping implements TreeElements {
-  final Element currentElement;
-  final Map<Spannable, Selector> selectors = new Map<Spannable, Selector>();
-  final Map<Node, DartType> types = new Map<Node, DartType>();
-  final Setlet<Node> superUses = new Setlet<Node>();
-  final Setlet<Element> otherDependencies = new Setlet<Element>();
-  final Map<Node, Constant> constants = new Map<Node, Constant>();
-  final Map<VariableElement, List<Node>> potentiallyMutated =
-      new Map<VariableElement, List<Node>>();
-  final Map<Node, Map<VariableElement, List<Node>>> potentiallyMutatedIn =
-      new Map<Node,  Map<VariableElement, List<Node>>>();
-  final Map<VariableElement, List<Node>> potentiallyMutatedInClosure =
-      new Map<VariableElement, List<Node>>();
-  final Map<Node, Map<VariableElement, List<Node>>> accessedByClosureIn =
-      new Map<Node, Map<VariableElement, List<Node>>>();
-  final Setlet<Element> elements = new Setlet<Element>();
-  final Setlet<Send> asserts = new Setlet<Send>();
+  final AnalyzableElement analyzedElement;
+  Map<Spannable, Selector> _selectors;
+  Map<Node, DartType> _types;
+  Setlet<Node> _superUses;
+  Setlet<Element> _otherDependencies;
+  Map<Node, Constant> _constants;
+  Map<VariableElement, List<Node>> _potentiallyMutated;
+  Map<Node, Map<VariableElement, List<Node>>> _potentiallyMutatedIn;
+  Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
+  Map<Node, Map<VariableElement, List<Node>>> _accessedByClosureIn;
+  Setlet<Element> _elements;
+  Setlet<Send> _asserts;
 
   /// Map from nodes to the targets they define.
-  Map<Node, JumpTarget> definedTargets;
+  Map<Node, JumpTarget> _definedTargets;
 
   /// Map from goto statements to their targets.
-  Map<GotoStatement, JumpTarget> usedTargets;
+  Map<GotoStatement, JumpTarget> _usedTargets;
 
   /// Map from labels to their label definition.
-  Map<Label, LabelDefinition> definedLabels;
+  Map<Label, LabelDefinition> _definedLabels;
 
   /// Map from labeled goto statements to the labels they target.
-  Map<GotoStatement, LabelDefinition> targetLabels;
+  Map<GotoStatement, LabelDefinition> _targetLabels;
 
-  final int hashCode = ++hashCodeCounter;
-  static int hashCodeCounter = 0;
+  final int hashCode = ++_hashCodeCounter;
+  static int _hashCodeCounter = 0;
 
-  TreeElementMapping(this.currentElement);
+  TreeElementMapping(this.analyzedElement);
 
   operator []=(Node node, Element element) {
     assert(invariant(node, () {
@@ -133,8 +129,8 @@ class TreeElementMapping implements TreeElements {
     // TODO(johnniwinther): Simplify this invariant to use only declarations in
     // [TreeElements].
     assert(invariant(node, () {
-      if (!element.isErroneous && currentElement != null && element.isPatch) {
-        return currentElement.implementationLibrary.isPatch;
+      if (!element.isErroneous && analyzedElement != null && element.isPatch) {
+        return analyzedElement.implementationLibrary.isPatch;
       }
       return true;
     }));
@@ -144,40 +140,68 @@ class TreeElementMapping implements TreeElements {
     //                  getTreeElement(node) == null,
     //                  message: '${getTreeElement(node)}; $element'));
 
-    elements.add(element);
+    if (_elements == null) {
+      _elements = new Setlet<Element>();
+    }
+    _elements.add(element);
     setTreeElement(node, element);
   }
 
   operator [](Node node) => getTreeElement(node);
 
   void setType(Node node, DartType type) {
-    types[node] = type;
+    if (_types == null) {
+      _types = new Maplet<Node, DartType>();
+    }
+    _types[node] = type;
   }
 
-  DartType getType(Node node) => types[node];
+  DartType getType(Node node) => _types != null ? _types[node] : null;
+
+  Iterable<Node> get superUses {
+    return _superUses != null ? _superUses : const <Node>[];
+  }
+
+  void addSuperUse(Node node) {
+    if (_superUses == null) {
+      _superUses = new Setlet<Node>();
+    }
+    _superUses.add(node);
+  }
+
+  Selector _getSelector(Spannable node) {
+    return _selectors != null ? _selectors[node] : null;
+  }
+
+  void _setSelector(Spannable node, Selector selector) {
+    if (_selectors == null) {
+      _selectors = new Maplet<Spannable, Selector>();
+    }
+    _selectors[node] = selector;
+  }
 
   void setSelector(Node node, Selector selector) {
-    selectors[node] = selector;
+    _setSelector(node, selector);
   }
 
-  Selector getSelector(Node node) {
-    return selectors[node];
-  }
+  Selector getSelector(Node node) => _getSelector(node);
+
+  int getSelectorCount() => _selectors == null ? 0 : _selectors.length;
 
   void setGetterSelectorInComplexSendSet(SendSet node, Selector selector) {
-    selectors[node.selector] = selector;
+    _setSelector(node.selector, selector);
   }
 
   Selector getGetterSelectorInComplexSendSet(SendSet node) {
-    return selectors[node.selector];
+    return _getSelector(node.selector);
   }
 
   void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector) {
-    selectors[node.assignmentOperator] = selector;
+    _setSelector(node.assignmentOperator, selector);
   }
 
   Selector getOperatorSelectorInComplexSendSet(SendSet node) {
-    return selectors[node.assignmentOperator];
+    return _getSelector(node.assignmentOperator);
   }
 
   // The following methods set selectors on the "for in" node. Since
@@ -185,27 +209,27 @@ class TreeElementMapping implements TreeElements {
   // and we arbitrarily choose which ones.
 
   void setIteratorSelector(ForIn node, Selector selector) {
-    selectors[node] = selector;
+    _setSelector(node, selector);
   }
 
   Selector getIteratorSelector(ForIn node) {
-    return selectors[node];
+    return _getSelector(node);
   }
 
   void setMoveNextSelector(ForIn node, Selector selector) {
-    selectors[node.forToken] = selector;
+    _setSelector(node.forToken, selector);
   }
 
   Selector getMoveNextSelector(ForIn node) {
-    return selectors[node.forToken];
+    return _getSelector(node.forToken);
   }
 
   void setCurrentSelector(ForIn node, Selector selector) {
-    selectors[node.inToken] = selector;
+    _setSelector(node.inToken, selector);
   }
 
   Selector getCurrentSelector(ForIn node) {
-    return selectors[node.inToken];
+    return _getSelector(node.inToken);
   }
 
   Element getForInVariable(ForIn node) {
@@ -213,11 +237,14 @@ class TreeElementMapping implements TreeElements {
   }
 
   void setConstant(Node node, Constant constant) {
-    constants[node] = constant;
+    if (_constants == null) {
+      _constants = new Maplet<Node, Constant>();
+    }
+    _constants[node] = constant;
   }
 
   Constant getConstant(Node node) {
-    return constants[node];
+    return _constants != null ? _constants[node] : null;
   }
 
   bool isTypeLiteral(Send node) {
@@ -230,21 +257,33 @@ class TreeElementMapping implements TreeElements {
 
   void registerDependency(Element element) {
     if (element == null) return;
-    otherDependencies.add(element.implementation);
+    if (_otherDependencies == null) {
+      _otherDependencies = new Setlet<Element>();
+    }
+    _otherDependencies.add(element.implementation);
+  }
+
+  Iterable<Element> get otherDependencies {
+    return _otherDependencies != null ? _otherDependencies : const <Element>[];
   }
 
   List<Node> getPotentialMutations(VariableElement element) {
-    List<Node> mutations = potentiallyMutated[element];
+    if (_potentiallyMutated == null) return const <Node>[];
+    List<Node> mutations = _potentiallyMutated[element];
     if (mutations == null) return const <Node>[];
     return mutations;
   }
 
   void registerPotentialMutation(VariableElement element, Node mutationNode) {
-    potentiallyMutated.putIfAbsent(element, () => <Node>[]).add(mutationNode);
+    if (_potentiallyMutated == null) {
+      _potentiallyMutated = new Maplet<VariableElement, List<Node>>();
+    }
+    _potentiallyMutated.putIfAbsent(element, () => <Node>[]).add(mutationNode);
   }
 
   List<Node> getPotentialMutationsIn(Node node, VariableElement element) {
-    Map<VariableElement, List<Node>> mutationsIn = potentiallyMutatedIn[node];
+    if (_potentiallyMutatedIn == null) return const <Node>[];
+    Map<VariableElement, List<Node>> mutationsIn = _potentiallyMutatedIn[node];
     if (mutationsIn == null) return const <Node>[];
     List<Node> mutations = mutationsIn[element];
     if (mutations == null) return const <Node>[];
@@ -253,26 +292,35 @@ class TreeElementMapping implements TreeElements {
 
   void registerPotentialMutationIn(Node contextNode, VariableElement element,
                                     Node mutationNode) {
+    if (_potentiallyMutatedIn == null) {
+      _potentiallyMutatedIn =
+          new Maplet<Node, Map<VariableElement, List<Node>>>();
+    }
     Map<VariableElement, List<Node>> mutationMap =
-      potentiallyMutatedIn.putIfAbsent(contextNode,
-          () => new Map<VariableElement, List<Node>>());
+        _potentiallyMutatedIn.putIfAbsent(contextNode,
+          () => new Maplet<VariableElement, List<Node>>());
     mutationMap.putIfAbsent(element, () => <Node>[]).add(mutationNode);
   }
 
   List<Node> getPotentialMutationsInClosure(VariableElement element) {
-    List<Node> mutations = potentiallyMutatedInClosure[element];
+    if (_potentiallyMutatedInClosure == null) return const <Node>[];
+    List<Node> mutations = _potentiallyMutatedInClosure[element];
     if (mutations == null) return const <Node>[];
     return mutations;
   }
 
   void registerPotentialMutationInClosure(VariableElement element,
-                                           Node mutationNode) {
-    potentiallyMutatedInClosure.putIfAbsent(
+                                          Node mutationNode) {
+    if (_potentiallyMutatedInClosure == null) {
+      _potentiallyMutatedInClosure = new Maplet<VariableElement, List<Node>>();
+    }
+    _potentiallyMutatedInClosure.putIfAbsent(
         element, () => <Node>[]).add(mutationNode);
   }
 
   List<Node> getAccessesByClosureIn(Node node, VariableElement element) {
-    Map<VariableElement, List<Node>> accessesIn = accessedByClosureIn[node];
+    if (_accessedByClosureIn == null) return const <Node>[];
+    Map<VariableElement, List<Node>> accessesIn = _accessedByClosureIn[node];
     if (accessesIn == null) return const <Node>[];
     List<Node> accesses = accessesIn[element];
     if (accesses == null) return const <Node>[];
@@ -281,24 +329,36 @@ class TreeElementMapping implements TreeElements {
 
   void setAccessedByClosureIn(Node contextNode, VariableElement element,
                               Node accessNode) {
+    if (_accessedByClosureIn == null) {
+      _accessedByClosureIn = new Map<Node, Map<VariableElement, List<Node>>>();
+    }
     Map<VariableElement, List<Node>> accessMap =
-        accessedByClosureIn.putIfAbsent(contextNode,
-          () => new Map<VariableElement, List<Node>>());
+        _accessedByClosureIn.putIfAbsent(contextNode,
+          () => new Maplet<VariableElement, List<Node>>());
     accessMap.putIfAbsent(element, () => <Node>[]).add(accessNode);
   }
 
-  String toString() => 'TreeElementMapping($currentElement)';
+  String toString() => 'TreeElementMapping($analyzedElement)';
 
-  Iterable<Element> get allElements => elements;
+  Iterable<Element> get allElements {
+    return _elements != null ? _elements : const <Element>[];
+  }
 
-  void forEachConstantNode(f(Node n, Constant c)) => constants.forEach(f);
+  void forEachConstantNode(f(Node n, Constant c)) {
+    if (_constants != null) {
+      _constants.forEach(f);
+    }
+  }
 
   void setAssert(Send node) {
-    asserts.add(node);
+    if (_asserts == null) {
+      _asserts = new Setlet<Send>();
+    }
+    _asserts.add(node);
   }
 
   bool isAssert(Send node) {
-    return asserts.contains(node);
+    return _asserts != null && _asserts.contains(node);
   }
 
   FunctionElement getFunctionDefinition(FunctionExpression node) {
@@ -311,71 +371,67 @@ class TreeElementMapping implements TreeElements {
   }
 
   void defineTarget(Node node, JumpTarget target) {
-    if (definedTargets == null) {
-      // TODO(johnniwinther): Use [Maplet] when available.
-      definedTargets = <Node, JumpTarget>{};
+    if (_definedTargets == null) {
+      _definedTargets = new Maplet<Node, JumpTarget>();
     }
-    definedTargets[node] = target;
+    _definedTargets[node] = target;
   }
 
   void undefineTarget(Node node) {
-    if (definedTargets != null) {
-      definedTargets.remove(node);
-      if (definedTargets.isEmpty) {
-        definedTargets = null;
+    if (_definedTargets != null) {
+      _definedTargets.remove(node);
+      if (_definedTargets.isEmpty) {
+        _definedTargets = null;
       }
     }
   }
 
   JumpTarget getTargetDefinition(Node node) {
-    return definedTargets != null ? definedTargets[node] : null;
+    return _definedTargets != null ? _definedTargets[node] : null;
   }
 
   void registerTargetOf(GotoStatement node, JumpTarget target) {
-    if (usedTargets == null) {
-      // TODO(johnniwinther): Use [Maplet] when available.
-      usedTargets = <GotoStatement, JumpTarget>{};
+    if (_usedTargets == null) {
+      _usedTargets = new Maplet<GotoStatement, JumpTarget>();
     }
-    usedTargets[node] = target;
+    _usedTargets[node] = target;
   }
 
   JumpTarget getTargetOf(GotoStatement node) {
-    return usedTargets != null ? usedTargets[node] : null;
+    return _usedTargets != null ? _usedTargets[node] : null;
   }
 
   void defineLabel(Label label, LabelDefinition target) {
-    if (definedLabels == null) {
-      // TODO(johnniwinther): Use [Maplet] when available.
-      definedLabels = <Label, LabelDefinition>{};
+    if (_definedLabels == null) {
+      _definedLabels = new Maplet<Label, LabelDefinition>();
     }
-    definedLabels[label] = target;
+    _definedLabels[label] = target;
   }
 
   void undefineLabel(Label label) {
-    if (definedLabels != null) {
-      definedLabels.remove(label);
-      if (definedLabels.isEmpty) {
-        definedLabels = null;
+    if (_definedLabels != null) {
+      _definedLabels.remove(label);
+      if (_definedLabels.isEmpty) {
+        _definedLabels = null;
       }
     }
   }
 
   LabelDefinition getLabelDefinition(Label label) {
-    return definedLabels != null ? definedLabels[label] : null;
+    return _definedLabels != null ? _definedLabels[label] : null;
   }
 
   void registerTargetLabel(GotoStatement node, LabelDefinition label) {
     assert(node.target != null);
-    if (targetLabels == null) {
-      // TODO(johnniwinther): Use [Maplet] when available.
-      targetLabels = <GotoStatement, LabelDefinition>{};
+    if (_targetLabels == null) {
+      _targetLabels = new Maplet<GotoStatement, LabelDefinition>();
     }
-    targetLabels[node] = label;
+    _targetLabels[node] = label;
   }
 
   LabelDefinition getTargetLabel(GotoStatement node) {
     assert(node.target != null);
-    return targetLabels != null ? targetLabels[node] : null;
+    return _targetLabels != null ? _targetLabels[node] : null;
   }
 }
 
@@ -1052,7 +1108,7 @@ class ResolverTask extends CompilerTask {
                            ClassElement mixin) {
     // TODO(johnniwinther): Avoid the use of [TreeElements] here.
     if (resolutionTree == null) return;
-    Setlet<Node> superUses = resolutionTree.superUses;
+    Iterable<Node> superUses = resolutionTree.superUses;
     if (superUses.isEmpty) return;
     compiler.reportError(mixinApplication,
                          MessageKind.ILLEGAL_MIXIN_WITH_SUPER,
@@ -1890,7 +1946,7 @@ class TypeResolver {
       AmbiguousElement ambiguous = element;
       type = reportFailureAndCreateType(
           ambiguous.messageKind, ambiguous.messageArguments);
-      ambiguous.diagnose(registry.mapping.currentElement, compiler);
+      ambiguous.diagnose(registry.mapping.analyzedElement, compiler);
     } else if (element.isErroneous) {
       ErroneousElement erroneousElement = element;
       type = reportFailureAndCreateType(

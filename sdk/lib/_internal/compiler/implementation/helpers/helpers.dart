@@ -17,6 +17,7 @@ part 'trace.dart';
 part 'expensive_map.dart';
 part 'expensive_set.dart';
 part 'stats.dart';
+part 'track_map.dart';
 
 /// Global flag to enable [debugPrint]. This should always be `true` by default
 /// and be set to `false` as a means to temporarily turn off all debugging

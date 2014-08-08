@@ -9,7 +9,7 @@ class TypeCheckerTask extends CompilerTask {
   String get name => "Type checker";
 
   void check(TreeElements elements) {
-    AstElement element = elements.currentElement;
+    AstElement element = elements.analyzedElement;
     compiler.withCurrentElement(element, () {
       measure(() {
         Node tree = element.node;
@@ -326,8 +326,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   TypeCheckerVisitor(this.compiler, TreeElements elements, this.types)
       : this.elements = elements,
-        currentClass = elements.currentElement != null
-            ? elements.currentElement.enclosingClass : null {
+        currentClass = elements.analyzedElement != null
+            ? elements.analyzedElement.enclosingClass : null {
     intType = compiler.intClass.computeType(compiler);
     doubleType = compiler.doubleClass.computeType(compiler);
     boolType = compiler.boolClass.computeType(compiler);
@@ -341,7 +341,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
   }
 
-  LibraryElement get currentLibrary => elements.currentElement.library;
+  LibraryElement get currentLibrary => elements.analyzedElement.library;
 
   reportTypeWarning(Spannable spannable, MessageKind kind,
                     [Map arguments = const {}]) {
@@ -396,7 +396,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (lastSeenNode != null) {
         compiler.internalError(lastSeenNode, error);
       } else {
-        compiler.internalError(elements.currentElement, error);
+        compiler.internalError(elements.analyzedElement, error);
       }
     } else {
       lastSeenNode = node;
@@ -1557,7 +1557,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     // immediately enclosing function.
     if (expression != null) {
       final expressionType = analyze(expression);
-      Element element = elements.currentElement;
+      Element element = elements.analyzedElement;
       if (element != null && element.isGenerativeConstructor) {
         // The resolver already emitted an error for this expression.
       } else if (isVoidFunction

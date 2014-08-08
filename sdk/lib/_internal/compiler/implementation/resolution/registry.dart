@@ -232,7 +232,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerSuperUse(Node node) {
-    mapping.superUses.add(node);
+    mapping.addSuperUse(node);
   }
 
   void registerDynamicInvocation(Selector selector) {

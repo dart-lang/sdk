@@ -8,6 +8,7 @@ import 'util_implementation.dart';
 import 'characters.dart';
 
 export 'setlet.dart';
+export 'maplet.dart';
 
 part 'link.dart';
 
