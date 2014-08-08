@@ -59,9 +59,6 @@ polymer/test/instance_attrs_test: Skip # Issue 19496
 [ $compiler == none && $runtime == dartium && $system == windows ]
 polymer/test/property_observe_test: Pass, Timeout # Issue 19326
 
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
-collection/test/unmodifiable_collection_test: Skip # Times out, Issue 20348
-
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
 analysis_server/test/domain_context_test: Skip  # Times out
