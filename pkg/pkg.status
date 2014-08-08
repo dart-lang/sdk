@@ -373,6 +373,7 @@ watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 serialization/test/no_library_test: Skip # Expected Failure
 serialization/test/serialization_test: Fail # 13921
 unittest/test/async_exception_test: RuntimeError # 13921
+unittest/test/async_exception_with_future_test: RuntimeError # 13921
 unittest/test/async_setup_teardown_test: RuntimeError # 13921
 unittest/test/completion_test: RuntimeError # 13921
 unittest/test/correct_callback_test: RuntimeError # 13921
