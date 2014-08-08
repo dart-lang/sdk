@@ -574,6 +574,8 @@ abstract class Visitor<T> {
   T visitIsTrue(IsTrue node) => visitCondition(node);
 }
 
+/// Recursively visits the entire CPS term, and calls abstract `process*`
+/// (i.e. `processLetPrim`) functions in pre-order.
 abstract class RecursiveVisitor extends Visitor {
   // Ensures that RecursiveVisitor contains overrides for all relevant nodes.
   // As a rule of thumb, nodes with structure to traverse should be overridden
@@ -583,63 +585,157 @@ abstract class RecursiveVisitor extends Visitor {
     throw "RecursiveVisitor is stale, add missing visit overrides";
   }
 
+  processReference(Reference ref) {}
+
+  processFunctionDefinition(FunctionDefinition node) {}
   visitFunctionDefinition(FunctionDefinition node) {
+    processFunctionDefinition(node);
+    node.parameters.forEach(visitParameter);
     visit(node.body);
   }
 
   // Expressions.
 
+  processLetPrim(LetPrim node) {}
   visitLetPrim(LetPrim node) {
+    processLetPrim(node);
     visit(node.primitive);
     visit(node.body);
   }
 
+  processLetCont(LetCont node) {}
   visitLetCont(LetCont node) {
-    visit(node.continuation.body);
+    processLetCont(node);
+    visit(node.continuation);
     visit(node.body);
   }
 
-  visitInvokeStatic(InvokeStatic node) => null;
-  visitInvokeContinuation(InvokeContinuation node) => null;
-  visitInvokeMethod(InvokeMethod node) => null;
-  visitInvokeSuperMethod(InvokeSuperMethod node) => null;
-  visitInvokeConstructor(InvokeConstructor node) => null;
-  visitConcatenateStrings(ConcatenateStrings node) => null;
+  processInvokeStatic(InvokeStatic node) {}
+  visitInvokeStatic(InvokeStatic node) {
+    processInvokeStatic(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
 
+  processInvokeContinuation(InvokeContinuation node) {}
+  visitInvokeContinuation(InvokeContinuation node) {
+    processInvokeContinuation(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+  processInvokeMethod(InvokeMethod node) {}
+  visitInvokeMethod(InvokeMethod node) {
+    processInvokeMethod(node);
+    processReference(node.receiver);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+  processInvokeSuperMethod(InvokeSuperMethod node) {}
+  visitInvokeSuperMethod(InvokeSuperMethod node) {
+    processInvokeSuperMethod(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+  processInvokeConstructor(InvokeConstructor node) {}
+  visitInvokeConstructor(InvokeConstructor node) {
+    processInvokeConstructor(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+  processConcatenateStrings(ConcatenateStrings node) {}
+  visitConcatenateStrings(ConcatenateStrings node) {
+    processConcatenateStrings(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+
+  processBranch(Branch node) {}
   visitBranch(Branch node) {
+    processBranch(node);
+    processReference(node.trueContinuation);
+    processReference(node.falseContinuation);
     visit(node.condition);
   }
 
-  visitTypeOperator(TypeOperator node) => null;
+  processTypeOperator(TypeOperator node) {}
+  visitTypeOperator(TypeOperator node) {
+    processTypeOperator(node);
+    processReference(node.continuation);
+    processReference(node.receiver);
+  }
 
+  processSetClosureVariable(SetClosureVariable node) {}
   visitSetClosureVariable(SetClosureVariable node) {
+    processSetClosureVariable(node);
+    processReference(node.value);
     visit(node.body);
   }
 
+  processDeclareFunction(DeclareFunction node) {}
   visitDeclareFunction(DeclareFunction node) {
+    processDeclareFunction(node);
     visit(node.definition);
     visit(node.body);
   }
 
   // Definitions.
 
-  visitLiteralList(LiteralList node) => null;
-  visitLiteralMap(LiteralMap node) => null;
-  visitConstant(Constant node) => null;
-  visitThis(This node) => null;
-  visitReifyTypeVar(ReifyTypeVar node) => null;
+  processLiteralList(LiteralList node) {}
+  visitLiteralList(LiteralList node) {
+    processLiteralList(node);
+    node.values.forEach(processReference);
+  }
 
+  processLiteralMap(LiteralMap node) {}
+  visitLiteralMap(LiteralMap node) {
+    processLiteralMap(node);
+    for (int i = 0; i < node.keys.length; i++) {
+      processReference(node.keys[i]);
+      processReference(node.values[i]);
+    }
+  }
+
+  processConstant(Constant node) {}
+  visitConstant(Constant node) => processConstant(node);
+
+  processThis(This node) {}
+  visitThis(This node) => processThis(node);
+
+  processReifyTypeVar(ReifyTypeVar node) {}
+  visitReifyTypeVar(ReifyTypeVar node) => processReifyTypeVar(node);
+
+  processCreateFunction(CreateFunction node) {}
   visitCreateFunction(CreateFunction node) {
+    processCreateFunction(node);
     visit(node.definition);
   }
 
-  visitGetClosureVariable(GetClosureVariable node) => null;
-  visitParameter(Parameter node) => null;
-  visitContinuation(Continuation node) => null;
+  processGetClosureVariable(GetClosureVariable node) {}
+  visitGetClosureVariable(GetClosureVariable node) =>
+      processGetClosureVariable(node);
+
+  processParameter(Parameter node) {}
+  visitParameter(Parameter node) => processParameter(node);
+
+  processContinuation(Continuation node) {}
+  visitContinuation(Continuation node) {
+    processContinuation(node);
+    node.parameters.forEach(visitParameter);
+    visit(node.body);
+  }
 
   // Conditions.
 
-  visitIsTrue(IsTrue node) => null;
+  processIsTrue(IsTrue node) {}
+  visitIsTrue(IsTrue node) {
+    processIsTrue(node);
+    processReference(node.value);
+  }
 }
 
 /// Keeps track of currently unused register indices.
