@@ -174,7 +174,7 @@ def Upload(module, zip_file, info, archive_latest=False):
                                                   sys.platform,
                                                   info.arch,
                                                   info.mode.lower())
-  UploadFile(zip_file, remote_path, create_md5sum=True)
+  UploadFile(zip_file, remote_path, checksum_files=True)
 
   print '@@@STEP_LINK@download@' + remote_path + '@@@'
 
