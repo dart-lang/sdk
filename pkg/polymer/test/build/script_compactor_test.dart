@@ -1180,7 +1180,7 @@ void logElementInjectionTests() {
           void main() {
             useGeneratedCode(new StaticConfiguration(
                 checkedMode: false));
-            new LogInjector().injectLogsFromUrl();
+            new LogInjector().injectLogsFromUrl('test.html._buildLogs');
             configureForDeployment([]);
             i0.main();
           }

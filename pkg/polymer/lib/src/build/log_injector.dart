@@ -18,10 +18,8 @@ class LogInjector {
   Element selectedContent;
 
   // Gets the logs from a url and inject them into the dom.
-  Future injectLogsFromUrl([String url]) {
-    if (url == null) url = '${Uri.base.path}._buildLogs';
-    return HttpRequest.getString(url).then((data) => injectLogs(data));
-  }
+  Future injectLogsFromUrl(String url) =>
+      HttpRequest.getString(url).then((data) => injectLogs(data));
 
   // Builds the html for the logs element given some logs, and injects that
   // into the dom. Currently, we do not  use Polymer just to ensure that the
@@ -86,29 +84,48 @@ class LogInjector {
       for (var log in logs) {
         var logHtml = new StringBuffer();
         logHtml.write('<div class="log">');
-        logHtml.write(
-            '<div class="message $levelClassName">${log['message']}</div>');
+        var message = log['message'].replaceAllMapped(_urlRegex,
+            (m) => '<a href="${m.group(0)}" target="blank">${m.group(0)}</a>');
+        logHtml.write('<div class="message $levelClassName">$message</div>');
         var assetId = log['assetId'];
+        var span = log['span'];
+        bool hasLocation = assetId != null || span != null;
+        if (hasLocation) logHtml.write('<div class="location">');
         if (assetId != null) {
           logHtml.write(
-              '<div class="asset">'
-              '  <span class="package">${assetId['package']}</span>:'
-              '  <span class="path">${assetId['path']}</span>''</div>');
+              '  <span class="package">${assetId['package']}</span>:');
+          if (span == null) {
+            logHtml.write('  <span class="location">${assetId['path']}</span>');
+          }
         }
-        var span = log['span'];
         if (span != null) {
           logHtml.write(
-              '<div class="span">'
-              '  <div class="location">${span['location']}</div>'
-              '  <code class="text">${span['text']}</code>''</div>');
+              '  <span class="location">${span['location']}</span></div>'
+              '  <span class="text">${span['text']}</span>''</div>');
+        } else if (hasLocation) {
+          logHtml.write('</div>');
         }
         logHtml.write('</div>');
 
-        contentItem.append(new Element.html(logHtml.toString()));
+        var logElement = new Element.html(logHtml.toString(),
+            validator: new NodeValidatorBuilder.common()
+              ..allowNavigation(new _OpenUriPolicy()));
+        contentItem.append(logElement);
+        var messageElement = logElement.querySelector('.message');
+        messageElement.onClick.listen((e) {
+          if (e.target == messageElement) {
+            messageElement.classes.toggle('expanded');
+          }
+        });
       };
     });
 
     document.body.append(wrapperDiv);
   }
 
+}
+
+final _urlRegex = new RegExp('http://[^ ]*');
+class _OpenUriPolicy implements UriPolicy {
+  bool allowsUri(String uri) => true;
 }

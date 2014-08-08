@@ -5,13 +5,15 @@
   position: fixed;
   bottom: 0;
   right: 0;
+  max-width: 50%;
+  z-index: 10000;
 }
 .build-logs .log {
-  padding: 6px;
+  padding: 0.6em;
   background: black;
   color: white;
   border: solid 1px #666;
-  margin-bottom: -1px;
+  border-bottom: 0px;
 }
 .build-logs .fine {
   color: green;
@@ -26,7 +28,17 @@
   color: red;
 }
 .build-logs .message {
-  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+  cursor: pointer;
+}
+.build-logs .message.expanded {
+  white-space: normal;
+}
+.build-logs .message a {
+  color: #CCF;
+  text-decoration: bold;
 }
 .build-logs .menu {
   text-align: right;
@@ -34,11 +46,10 @@
 .build-logs .menu div {
   display: inline-block;
   background: #666;
-  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   border: solid 1px black;
-  padding: 6px 10px;
+  padding: 0.6em 1em;
 }
 .build-logs .menu div.active {
   background: black;
@@ -48,12 +59,19 @@
 }
 .build-logs .content {
   max-height: 500px;
-  max-width: 500px;
-  font-size: 10px;
+  font-size: 1em;
+  overflow-y: auto;
 }
 .build-logs .content > div {
   display: none;
 }
 .build-logs .content > div.active {
   display: block;
+}
+
+.build-logs .content span.text {
+  padding: 0.4em 0.2em 0.2em 2em;
+  white-space: pre;
+  display: block;
+  font-family: monospace;
 }
