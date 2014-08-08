@@ -105,14 +105,14 @@ class Latin1Decoder extends _UnicodeSubsetDecoder {
       stringSink = new StringConversionSink.from(sink);
     }
     // TODO(lrn): Use stringSink.asUtf16Sink() if it becomes available.
-    return new _Latin1DecoderSink(_allowInvalid, stringSink);
+    if (!_allowInvalid) return new _Latin1DecoderSink(stringSink);
+    return new _Latin1AllowInvalidDecoderSink(stringSink);
   }
 }
 
 class _Latin1DecoderSink extends ByteConversionSinkBase {
-  final bool _allowInvalid;
   StringConversionSink _sink;
-  _Latin1DecoderSink(this._allowInvalid, this._sink);
+  _Latin1DecoderSink(this._sink);
 
   void close() {
     _sink.close();
@@ -143,15 +143,37 @@ class _Latin1DecoderSink extends ByteConversionSinkBase {
       throw new RangeError.range(end, start, source.length);
     }
     for (int i = start; i < end; i++) {
-      if ((source[i] & ~_LATIN1_MASK) != 0) {
-        if (_allowInvalid) {
-          if (i > start) _addSliceToSink(source, start, i, false);
-          // Add UTF-8 encoding of U+FFFD.
-          _addSliceToSink(const[0xFFFD], 0, 1, false);
-          start = i + 1;
-        } else {
-          throw new FormatException("Source contains non-Latin-1 characters.");
-        }
+      int char = source[i];
+      if (char > _LATIN1_MASK || char < 0) {
+        throw new FormatException("Source contains non-Latin-1 characters.");
+      }
+    }
+    if (start < end) {
+      _addSliceToSink(source, start, end, isLast);
+    }
+    if (isLast) {
+      close();
+    }
+  }
+}
+
+class _Latin1AllowInvalidDecoderSink extends _Latin1DecoderSink {
+  _Latin1AllowInvalidDecoderSink(StringSink sink): super(sink);
+
+  void addSlice(List<int> source, int start, int end, bool isLast) {
+    if (start < 0 || start > source.length) {
+      throw new RangeError.range(start, 0, source.length);
+    }
+    if (end < start || end > source.length) {
+      throw new RangeError.range(end, start, source.length);
+    }
+    for (int i = start; i < end; i++) {
+      int char = source[i];
+      if (char > _LATIN1_MASK || char < 0) {
+        if (i > start) _addSliceToSink(source, start, i, false);
+        // Add UTF-8 encoding of U+FFFD.
+        _addSliceToSink(const[0xFFFD], 0, 1, false);
+        start = i + 1;
       }
     }
     if (start < end) {
