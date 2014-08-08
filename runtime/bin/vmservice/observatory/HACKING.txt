@@ -34,6 +34,6 @@ In a non-Dart enabled browser navigate to localhost:8181 and ensure
 that your feature works after being compiled to JavaScript.
 
 8. Ensure the vm, standalone, and observatory unit tests still pass:
-python tools/test.py --mode=debug --arch=ia32 --compiler=none --runtime=vm vm/cc standalone/vmservice pkg/observatory
+python tools/test.py --mode=debug --arch=ia32 --compiler=none --runtime=vm vm/cc standalone/vmservice vmservice
 
 9. Commit your change
