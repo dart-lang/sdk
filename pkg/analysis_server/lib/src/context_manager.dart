@@ -22,6 +22,12 @@ const String PUBSPEC_NAME = 'pubspec.yaml';
 
 
 /**
+ * The name of `packages` folders.
+ */
+const String PACKAGES_NAME = 'packages';
+
+
+/**
  * Class that maintains a mapping from included/excluded paths to a set of
  * folders that should correspond to analysis contexts.
  */
@@ -192,9 +198,7 @@ abstract class ContextManager {
           info.sources[path] = source;
         }
       } else if (child is Folder) {
-        if (child.shortName == 'packages') {
-          // TODO(paulberry): perhaps we should only skip packages dirs if
-          // there is a pubspec.yaml?
+        if (child.shortName == PACKAGES_NAME) {
           continue;
         }
         _addPreviouslyExcludedSources(info, changeSet, child, oldExcludedPaths);
@@ -224,9 +228,7 @@ abstract class ContextManager {
           info.sources[path] = source;
         }
       } else if (child is Folder) {
-        if (child.shortName == 'packages') {
-          // TODO(paulberry): perhaps we should only skip packages dirs if
-          // there is a pubspec.yaml?
+        if (child.shortName == PACKAGES_NAME) {
           continue;
         }
         _addSourceFiles(changeSet, child, info);
@@ -361,9 +363,7 @@ abstract class ContextManager {
     switch (event.type) {
       case ChangeType.ADD:
         if (_isInPackagesDir(path, folder)) {
-          // TODO(paulberry): perhaps we should only skip packages dirs if
-          // there is a pubspec.yaml?
-          break;
+          return;
         }
         Resource resource = resourceProvider.getResource(path);
         // pubspec was added in a sub-folder, extract a new context
@@ -447,12 +447,7 @@ abstract class ContextManager {
   bool _isInPackagesDir(String path, Folder folder) {
     String relativePath = pathContext.relative(path, from: folder.path);
     List<String> pathParts = pathContext.split(relativePath);
-    for (int i = 0; i < pathParts.length - 1; i++) {
-      if (pathParts[i] == 'packages') {
-        return true;
-      }
-    }
-    return false;
+    return pathParts.contains(PACKAGES_NAME);
   }
 
   /**
