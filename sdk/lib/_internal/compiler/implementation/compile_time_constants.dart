@@ -359,8 +359,8 @@ class CompileTimeConstantEvaluator extends Visitor {
         new DartString.literal(node.slowNameString))];
     }
     return makeConstructedConstant(
-        node, type, compiler.symbolConstructor, createArguments,
-        isLiteralSymbol: true);
+        compiler, handler, node, type, compiler.symbolConstructor,
+        createArguments, isLiteralSymbol: true);
   }
 
   Constant makeTypeConstant(DartType elementType) {
@@ -624,14 +624,19 @@ class CompileTimeConstantEvaluator extends Visitor {
       }
     } else {
       return makeConstructedConstant(
-          node, type, constructor, evaluateArguments);
+          compiler, handler, node, type, constructor, evaluateArguments);
     }
   }
 
-  Constant makeConstructedConstant(
-      Spannable node, InterfaceType type, ConstructorElement constructor,
+  static Constant makeConstructedConstant(
+      Compiler compiler,
+      ConstantCompilerBase handler,
+      Spannable node,
+      InterfaceType type,
+      ConstructorElement constructor,
       List<Constant> getArguments(ConstructorElement constructor),
       {bool isLiteralSymbol: false}) {
+
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
     compiler.resolver.resolveRedirectionChain(constructor, node);

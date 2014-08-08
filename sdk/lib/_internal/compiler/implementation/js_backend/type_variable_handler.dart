@@ -40,79 +40,77 @@ class TypeVariableHandler {
   Compiler get compiler => backend.compiler;
 
   void registerClassWithTypeVariables(ClassElement cls) {
-    if (!backend.isTreeShakingDisabled || typeVariableConstructor == null) {
+    if (typeVariableClasses != null) {
       typeVariableClasses.add(cls);
-    } else {
-      processTypeVariablesOf(cls);
     }
   }
 
   void processTypeVariablesOf(ClassElement cls) {
-      //TODO(zarah): Running through all the members is suboptimal. Change this
-      // as part of marking elements for reflection.
-      bool hasMemberNeededForReflection(ClassElement cls) {
-        bool result = false;
-        cls.implementation.forEachMember((ClassElement cls, Element member) {
-          result = result || backend.referencedFromMirrorSystem(member);
-        });
-        return result;
-      }
+    //TODO(zarah): Running through all the members is suboptimal. Change this
+    // as part of marking elements for reflection.
+    bool hasMemberNeededForReflection(ClassElement cls) {
+      bool result = false;
+      cls.implementation.forEachMember((ClassElement cls, Element member) {
+        result = result || backend.referencedFromMirrorSystem(member);
+      });
+      return result;
+    }
 
-      if (!backend.referencedFromMirrorSystem(cls) &&
-          !hasMemberNeededForReflection(cls)) {
-        return;
-      }
+    if (!backend.referencedFromMirrorSystem(cls) &&
+        !hasMemberNeededForReflection(cls)) {
+      return;
+    }
 
-      InterfaceType typeVariableType = typeVariableClass.thisType;
-      List<int> constants = <int>[];
-      evaluator = new CompileTimeConstantEvaluator(
-          backend.constants,
-          compiler.globalDependencies.mapping,
-          compiler);
+    InterfaceType typeVariableType = typeVariableClass.thisType;
+    List<int> constants = <int>[];
 
-      for (TypeVariableType currentTypeVariable in cls.typeVariables) {
-        List<Constant> createArguments(FunctionElement constructor) {
-        if (constructor != typeVariableConstructor) {
-            compiler.internalError(currentTypeVariable.element,
-                'Unexpected constructor $constructor');
-          }
-          Constant name = backend.constantSystem.createString(
-              new DartString.literal(currentTypeVariable.name));
-          Constant bound = backend.constantSystem.createInt(
-              emitter.reifyType(currentTypeVariable.element.bound));
-          Constant type = backend.constants.createTypeConstant(cls);
-          return [type, name, bound];
+    for (TypeVariableType currentTypeVariable in cls.typeVariables) {
+      List<Constant> createArguments(FunctionElement constructor) {
+      if (constructor != typeVariableConstructor) {
+          compiler.internalError(currentTypeVariable.element,
+              'Unexpected constructor $constructor');
         }
-
-        Constant c = evaluator.makeConstructedConstant(
-            currentTypeVariable.element, typeVariableType,
-            typeVariableConstructor, createArguments);
-        backend.registerCompileTimeConstant(c, compiler.globalDependencies);
-        backend.constants.addCompileTimeConstantForEmission(c);
-        constants.add(
-            reifyTypeVariableConstant(c, currentTypeVariable.element));
+        Constant name = backend.constantSystem.createString(
+            new DartString.literal(currentTypeVariable.name));
+        Constant bound = backend.constantSystem.createInt(
+            emitter.reifyType(currentTypeVariable.element.bound));
+        Constant type = backend.constants.createTypeConstant(cls);
+        return [type, name, bound];
       }
-      typeVariables[cls] = constants;
+
+      Constant c = CompileTimeConstantEvaluator.makeConstructedConstant(
+          compiler, backend.constants,
+          currentTypeVariable.element, typeVariableType,
+          typeVariableConstructor, createArguments);
+      backend.registerCompileTimeConstant(c, compiler.globalDependencies);
+      backend.constants.addCompileTimeConstantForEmission(c);
+      constants.add(
+          reifyTypeVariableConstant(c, currentTypeVariable.element));
+    }
+    typeVariables[cls] = constants;
   }
 
   void onTreeShakingDisabled(Enqueuer enqueuer) {
-    if (!enqueuer.isResolutionQueue || typeVariableClasses == null) return;
-    backend.enqueueClass(
-          enqueuer, typeVariableClass, compiler.globalDependencies);
-    typeVariableClass.ensureResolved(compiler);
-    Link constructors = typeVariableClass.constructors;
-    if (constructors.isEmpty && constructors.tail.isEmpty) {
-      compiler.internalError(typeVariableClass,
-          "Class '$typeVariableClass' should only have one constructor");
+    if (enqueuer.isResolutionQueue) {
+      backend.enqueueClass(
+            enqueuer, typeVariableClass, compiler.globalDependencies);
+      typeVariableClass.ensureResolved(compiler);
+      Link constructors = typeVariableClass.constructors;
+      if (constructors.isEmpty && constructors.tail.isEmpty) {
+        compiler.internalError(typeVariableClass,
+            "Class '$typeVariableClass' should only have one constructor");
+      }
+      typeVariableConstructor = typeVariableClass.constructors.head;
+      backend.enqueueInResolution(typeVariableConstructor,
+          compiler.globalDependencies);
+      enqueuer.registerInstantiatedType(typeVariableClass.rawType,
+          compiler.globalDependencies);
+      enqueuer.registerStaticUse(backend.getCreateRuntimeType());
+    } else if (typeVariableClasses != null) {
+      List<ClassElement> worklist = typeVariableClasses;
+      typeVariableClasses = null;
+      worklist.forEach((cls) => processTypeVariablesOf(cls));
     }
-    typeVariableConstructor = typeVariableClass.constructors.head;
-    backend.enqueueInResolution(typeVariableConstructor,
-        compiler.globalDependencies);
-    enqueuer.registerInstantiatedType(typeVariableClass.rawType,
-        compiler.globalDependencies);
-    List<ClassElement> worklist = typeVariableClasses;
-    typeVariableClasses = null;
-    worklist.forEach((cls) => processTypeVariablesOf(cls));
   }
 
   /**

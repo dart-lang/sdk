@@ -653,42 +653,40 @@ class JavaScriptBackend extends Backend {
 
     if (constant.isFunction) {
       FunctionConstant function = constant;
-      compiler.enqueuer.codegen.registerGetOfStaticFunction(function.element);
+      registry.registerGetOfStaticFunction(function.element);
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstant interceptor = constant;
       registerInstantiatedConstantType(interceptor.dispatchedType, registry);
     } else if (constant.isType) {
       enqueueInResolution(getCreateRuntimeType(), registry);
-      compiler.enqueuer.codegen.registerInstantiatedClass(
-          typeImplementation, registry);
+      registry.registerInstantiation(typeImplementation.rawType);
     }
   }
 
   void registerInstantiatedConstantType(DartType type, Registry registry) {
-    Enqueuer enqueuer = compiler.enqueuer.codegen;
     DartType instantiatedType =
         type.isFunctionType ? compiler.functionClass.rawType : type;
     if (type is InterfaceType) {
-      enqueuer.registerInstantiatedType(instantiatedType, registry);
+      registry.registerInstantiation(instantiatedType);
       if (!type.treatAsRaw && classNeedsRti(type.element)) {
-        enqueuer.registerStaticUse(getSetRuntimeTypeInfo());
+        registry.registerStaticInvocation(getSetRuntimeTypeInfo());
       }
       if (type.element == typeImplementation) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
-        enqueuer.registerStaticUse(getCreateRuntimeType());
+        registry.registerStaticInvocation(getCreateRuntimeType());
       }
     }
   }
 
-  void registerMetadataConstant(Constant constant, Registry registry) {
-    if (mustRetainMetadata) {
-      registerCompileTimeConstant(constant, registry);
-    } else {
-      metadataConstants.add(new Dependency(constant, registry));
-    }
+  void registerMetadataConstant(Constant constant,
+                                Element annotatedElement,
+                                Registry registry) {
+    assert(registry.isForResolution);
+    registerCompileTimeConstant(constant, registry);
+    metadataConstants.add(new Dependency(constant, annotatedElement));
   }
 
   void registerInstantiatedClass(ClassElement cls,
@@ -2035,11 +2033,15 @@ class JavaScriptBackend extends Backend {
       compiler.log('Retaining metadata.');
 
       compiler.libraryLoader.libraries.forEach(retainMetadataOf);
-      for (Dependency dependency in metadataConstants) {
-        registerCompileTimeConstant(
-            dependency.constant, dependency.registry);
+      if (!enqueuer.isResolutionQueue) {
+        for (Dependency dependency in metadataConstants) {
+          registerCompileTimeConstant(
+              dependency.constant,
+              new CodegenRegistry(compiler,
+                  dependency.annotatedElement.analyzableElement.treeElements));
+        }
+        metadataConstants.clear();
       }
-      metadataConstants.clear();
     }
     return true;
   }
@@ -2124,7 +2126,9 @@ class JavaScriptionResolutionCallbacks extends ResolutionCallbacks {
   }
 
   void registerBackendInstantiation(ClassElement element, Registry registry) {
-    registry.registerInstantiation(backend.registerBackendUse(element));
+    backend.registerBackendUse(element);
+    element.ensureResolved(backend.compiler);
+    registry.registerInstantiation(element.rawType);
   }
 
   void onAssert(Send node, Registry registry) {
@@ -2312,8 +2316,7 @@ class JavaScriptionResolutionCallbacks extends ResolutionCallbacks {
 /// Records that [constant] is used by the element behind [registry].
 class Dependency {
   final Constant constant;
-  // TODO(johnniwinther): Change to [Element] when dependency nodes are added.
-  final Registry registry;
+  final Element annotatedElement;
 
-  const Dependency(this.constant, this.registry);
+  const Dependency(this.constant, this.annotatedElement);
 }

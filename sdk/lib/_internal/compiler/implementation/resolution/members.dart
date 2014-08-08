@@ -1350,7 +1350,7 @@ class ResolverTask extends CompilerTask {
       // and the annotated element instead. This will allow the backend to
       // retrieve the backend constant and only register metadata on the
       // elements for which it is needed. (Issue 17732).
-      registry.registerMetadataConstant(annotation.value);
+      registry.registerMetadataConstant(annotation.value, annotatedElement);
       annotation.resolutionState = STATE_DONE;
     }));
   }

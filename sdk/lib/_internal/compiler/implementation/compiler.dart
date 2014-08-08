@@ -25,7 +25,7 @@ abstract class WorkItem {
    * Invariant: [element] must be a declaration element.
    */
   final AstElement element;
-  TreeElements resolutionTree;
+  TreeElements get resolutionTree;
 
   WorkItem(this.element, this.compilationContext) {
     assert(invariant(element, element.isDeclaration));
@@ -36,6 +36,8 @@ abstract class WorkItem {
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
+  TreeElements resolutionTree;
+
   ResolutionWorkItem(AstElement element,
                      ItemCompilationContext compilationContext)
       : super(element, compilationContext);
@@ -157,26 +159,31 @@ class CodegenRegistry extends Registry {
     backend.customElementsAnalysis.registerTypeConstant(element, world);
   }
 
-  void registerStaticInvocation(Element element) =>
-      throw new UnsupportedError('registerStaticInvocation not supported');
+  void registerStaticInvocation(Element element) {
+    world.registerStaticUse(element);
+  }
 
-  void registerInstantiation(ClassElement element) =>
-      throw new UnsupportedError('registerStaticInvocation not supported');
+  void registerInstantiation(InterfaceType type) {
+    world.registerInstantiatedType(type, this);
+  }
 }
 
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
   Registry registry;
+  final TreeElements resolutionTree;
 
   CodegenWorkItem(AstElement element,
                   ItemCompilationContext compilationContext)
-      : super(element, compilationContext);
+      : this.resolutionTree = element.resolvedAst.elements,
+        super(element, compilationContext) {
+    assert(invariant(element, resolutionTree != null,
+        message: 'Resolution tree is null for $element in codegen work item'));
+  }
 
   void run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return;
-    resolutionTree = element.resolvedAst.elements;
-    assert(invariant(element, resolutionTree != null,
-        message: 'Resolution tree is null for $element in codegen work item'));
+
     registry = new CodegenRegistry(compiler, resolutionTree);
     compiler.codegen(this, world);
   }
@@ -203,7 +210,9 @@ abstract class Registry {
 
   void registerStaticInvocation(Element element);
 
-  void registerInstantiation(ClassElement element);
+  void registerInstantiation(InterfaceType type);
+
+  void registerGetOfStaticFunction(FunctionElement element);
 }
 
 abstract class Backend {
@@ -263,8 +272,11 @@ abstract class Backend {
   /// Called during codegen when [constant] has been used.
   void registerCompileTimeConstant(Constant constant, Registry registry) {}
 
-  /// Called during post-processing when [constant] has been evaluated.
-  void registerMetadataConstant(Constant constant, Registry registry) {}
+  /// Called during resolution when a metadata [constant] for [annotatedElement]
+  /// has been evaluated.
+  void registerMetadataConstant(Constant constant,
+                                Element annotatedElement,
+                                Registry registry) {}
 
   /// Called during resolution to notify to the backend that a class is
   /// being instantiated.
@@ -607,9 +619,7 @@ abstract class Compiler implements DiagnosticListener {
    * We should get rid of this and ensure that all dependencies are
    * associated with a particular element.
    */
-  // TODO(johnniwinther): This should not be a [ResolutionRegistry].
-  final ResolutionRegistry globalDependencies =
-      new ResolutionRegistry.internal(null, new TreeElementMapping(null));
+  Registry globalDependencies;
 
   /**
    * Dependencies that are only included due to mirrors.
@@ -938,6 +948,11 @@ abstract class Compiler implements DiagnosticListener {
     world = new World(this);
     types = new Types(this);
     tracer = new Tracer(this.outputProvider);
+
+    // TODO(johnniwinther): Separate the dependency tracking from the enqueueing
+    // for global dependencies.
+    globalDependencies =
+        new CodegenRegistry(this, new TreeElementMapping(null));
 
     closureMapping.ClosureNamer closureNamer;
     if (emitJavaScript) {
