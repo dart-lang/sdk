@@ -250,6 +250,7 @@ third_party/angular_tests/vm_test: Fail # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
+analysis_server/test/integration/search_domain_int_test: Fail # Issue 20436
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
