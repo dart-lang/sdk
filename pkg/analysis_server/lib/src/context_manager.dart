@@ -88,6 +88,7 @@ abstract class ContextManager {
    * determine the context directories.
    */
   void setRoots(List<String> includedPaths, List<String> excludedPaths) {
+    List<Folder> contextFolders = _contexts.keys.toList();
     // included
     Set<Folder> includedFolders = new HashSet<Folder>();
     for (int i = 0; i < includedPaths.length; i++) {
@@ -108,33 +109,23 @@ abstract class ContextManager {
       throw new UnimplementedError('Excluded paths are not supported yet');
     }
     Set<Folder> excludedFolders = new HashSet<Folder>();
-    // diff
-    Set<Folder> currentFolders = _contexts.keys.toSet();
-    Set<Folder> newFolders = new HashSet<Folder>();
-    Set<Folder> oldFolders = new HashSet<Folder>();
-    for (Folder currentFolder in currentFolders) {
+    // destroy old contexts
+    for (Folder contextFolder in contextFolders) {
       bool isIncluded = includedFolders.any((folder) {
-        return folder.contains(currentFolder.path);
+        return folder.contains(contextFolder.path);
       });
       if (!isIncluded) {
-        oldFolders.add(currentFolder);
+        _destroyContext(contextFolder);
       }
     }
+    // create new contexts
     for (Folder includedFolder in includedFolders) {
-      bool wasIncluded = currentFolders.any((folder) {
+      bool wasIncluded = contextFolders.any((folder) {
         return folder.contains(includedFolder.path);
       });
       if (!wasIncluded) {
-        newFolders.add(includedFolder);
+        _createContexts(includedFolder, false);
       }
-    }
-    // destroy old contexts
-    for (Folder folder in oldFolders) {
-      _destroyContext(folder);
-    }
-    // create new contexts
-    for (Folder folder in newFolders) {
-      _createContexts(folder, false);
     }
   }
 
@@ -183,6 +174,9 @@ abstract class ContextManager {
    *
    * If [folder] itself contains a 'pubspec.yaml' file, subfolders are ignored.
    *
+   * If [withPubspecOnly] is `true`, a context will be created only if there
+   * is a 'pubspec.yaml' file in [folder].
+   *
    * Returns create pubspec-based contexts.
    */
   List<_ContextInfo> _createContexts(Folder folder, bool withPubspecOnly) {
@@ -228,16 +222,16 @@ abstract class ContextManager {
     _ContextInfo newInfo = _createContext(newFolder, []);
     newInfo.parent = oldInfo;
     // prepare sources to extract
-    Map<String, Source> extractSources = new HashMap<String, Source>();
+    Map<String, Source> extractedSources = new HashMap<String, Source>();
     oldInfo.sources.forEach((path, source) {
       if (newFolder.contains(path)) {
-        extractSources[path] = source;
+        extractedSources[path] = source;
       }
     });
     // update new context
     {
       ChangeSet changeSet = new ChangeSet();
-      extractSources.forEach((path, source) {
+      extractedSources.forEach((path, source) {
         newInfo.sources[path] = source;
         changeSet.addedSource(source);
       });
@@ -246,7 +240,7 @@ abstract class ContextManager {
     // update old context
     {
       ChangeSet changeSet = new ChangeSet();
-      extractSources.forEach((path, source) {
+      extractedSources.forEach((path, source) {
         oldInfo.sources.remove(path);
         changeSet.removedSource(source);
       });
@@ -357,7 +351,10 @@ abstract class ContextManager {
     if (parentInfo != null) {
       parentInfo.children.remove(info);
       ChangeSet changeSet = new ChangeSet();
-      _addSourceFiles(changeSet, info.folder, parentInfo);
+      info.sources.forEach((path, source) {
+        parentInfo.sources[path] = source;
+        changeSet.addedSource(source);
+      });
       applyChangesToContext(parentInfo.folder, changeSet);
     }
   }
