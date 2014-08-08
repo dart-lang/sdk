@@ -4,7 +4,28 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
-#### Pub version 0.12.1-dev
+#### Pub version 0.12.1
+  * **New**: When running in pub-serve, any warnings and errors detected by the
+    polymer transformers will be displayed in the lower-right corner of your
+    entrypoint page. You can opt-out by adding this option to your pubspec:
+
+        transformers:
+        - polymer:
+            ...
+            inject_build_logs_in_output: false
+
+  * **New**: there are now two template generators in the polymer package! On
+    any project that depends on polymer, you can create template files for a new
+    custom element by invoking:
+
+        pub run polymer:new_element element-name [-o output_dir]
+
+    And, if you invoke:
+
+        pub run polymer:new_entry web/index.html
+
+    we will create a new entry-point file and add it to your pubspec for you.
+
   * Added the ability to override the stylesheet inlining behavior. There is now
     an option exposed in the pubspec.yaml called `inline_stylesheets`. There are
     two possible values, a boolean or a map. If only a boolean is supplied then
@@ -24,29 +45,10 @@ web_components, and template_binding) if they impact polymer.
                 web/foo.css: true
                 packages/foo/bar.css: true
 
-  * When running in pub-serve, any warnings and errors detected by the
-    polymer transformers will be displayed in the lower-right corner of your
-    entrypoint page. You can opt-out by adding this option to your pubspec:
-
-        transformers:
-        - polymer:
-            ...
-            inject_build_logs_in_output: false
     
   * Bug fix for http://dartbug.com/20286. Bindings in url attributes will no
     longer throw an error.
 
-  * **New**: there are now two template generators in the polymer package! On
-    any project that depends on polymer, you can create template files for a new
-    custom element by invoking:
-
-        pub run polymer:new_element element-name [-o output_dir]
-
-    And, if you invoke:
-
-        pub run polymer:new_entry web/index.html
-
-    we will create a new entry-point file and add it to your pubspec for you.
 
 #### Pub version 0.12.0+7
   * Widen the constraint on `unittest`.
