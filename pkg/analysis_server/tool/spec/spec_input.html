@@ -482,11 +482,16 @@
           <field name="files">
             <map>
               <key><ref>FilePath</ref></key>
-              <value><ref>ContentChange</ref></value>
+              <value><ref>object</ref></value>
             </map>
             <p>
-              A table mapping the files whose content has changed to
-              a description of the content.
+              A table mapping the files whose content has changed to a
+              description of the content change.  Each value should be
+              one of the following types: <a
+              href="#type_AddContentOverlay">AddContentOverlay</a>, <a
+              href="#type_ChangeContentOverlay">ChangeContentOverlay</a>,
+              or <a
+              href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
             </p>
           </field>
         </params>
@@ -1399,6 +1404,27 @@
         This section contains descriptions of the data types referenced
         in the API’s of the various domains.
       </p>
+      <type name="AddContentOverlay">
+        <p>
+          A directive to begin overlaying the contents of a file.  The
+          supplied content will be used for analysis in place of the
+          file contents in the filesystem.
+        </p>
+        <p>
+          If this directive is used on a file that already has a file
+          content overlay, the old overlay is discarded and replaced
+          with the new one.
+        </p>
+        <object>
+          <field name="type" value="add"><ref>String</ref></field>
+          <field name="content">
+            <ref>String</ref>
+            <p>
+              The new content of the file.
+            </p>
+          </field>
+        </object>
+      </type>
       <type name="AnalysisError">
         <p>
           An indication of an error, warning, or hint that was produced
@@ -1531,6 +1557,43 @@
             <p>
               The name of the current target of analysis. This field is
               omitted if analyzing is false.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="ChangeContentOverlay">
+        <p>
+          A directive to modify an existing file content overlay.  A
+          range of text is deleted from the old file content overlay
+          and replaced with new text.
+        </p>
+        <p>
+          It is an error to use this directive is used on a file that
+          does not yet have a file content overlay (or that has had
+          its overlay removed via <a
+          href="#type_RemoveContentOverlay">RemoveContentOverlay</a>).
+        </p>
+        <object>
+          <field name="type" value="change"><ref>String</ref></field>
+          <field name="offset">
+            <ref>int</ref>
+            <p>
+              The offset of the text to be remove from the file
+              content overlay.
+            </p>
+          </field>
+          <field name="length">
+            <ref>int</ref>
+            <p>
+              The length of the text to be removed from the file
+              content overlay, or 0 if no text should be removed.
+            </p>
+          </field>
+          <field name="replacement">
+            <ref>String</ref>
+            <p>
+              The new text which should be inserted in place of the
+              removed text.
             </p>
           </field>
         </object>
@@ -1716,41 +1779,6 @@
           <value><code>TOP_LEVEL_VARIABLE</code></value>
           <value><code>TYPE_PARAMETER</code></value>
         </enum>
-      </type>
-      <type name="ContentChange">
-        <p>
-          A description of the change to the content of a file. The
-          optional fields are omitted if there is no single range of
-          characters that was modified. If any of the optional fields
-          are provided then all of the optional fields must be provided.
-        </p>
-        <object>
-          <field name="content">
-            <ref>String</ref>
-            <p>
-              The new content of the file, or null if the content of the
-              file should be read from disk.
-            </p>
-          </field>
-          <field name="offset" optional="true">
-            <ref>int</ref>
-            <p>
-              The offset of the region that was modified.
-            </p>
-          </field>
-          <field name="oldLength" optional="true">
-            <ref>int</ref>
-            <p>
-              The length of the region that was removed.
-            </p>
-          </field>
-          <field name="newLength" optional="true">
-            <ref>int</ref>
-            <p>
-              The length of the region that was added.
-            </p>
-          </field>
-        </object>
       </type>
       <type name="DebugContextId">
         <ref>String</ref>
@@ -2496,6 +2524,20 @@
           <value><code>ERROR</code></value>
           <value><code>FATAL</code></value>
         </enum>
+      </type>
+      <type name="RemoveContentOverlay">
+        <p>
+          A directive to remove an existing file content overlay.
+          After processing this directive, the file contents will once
+          again be read from the file system.
+        </p>
+        <p>
+          If this directive is used on a file that doesn't currently
+          have a content overlay, it has no effect.
+        </p>
+        <object>
+          <field name="type" value="remove"><ref>String</ref></field>
+        </object>
       </type>
       <type name="SearchId">
         <ref>String</ref>

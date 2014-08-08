@@ -210,12 +210,12 @@ final Matcher isAnalysisSetSubscriptionsResult = isNull;
  * analysis.updateContent params
  *
  * {
- *   "files": Map<FilePath, ContentChange>
+ *   "files": Map<FilePath, object>
  * }
  */
 final Matcher isAnalysisUpdateContentParams = new MatchesJsonObject(
   "analysis.updateContent params", {
-    "files": isMapOf(isFilePath, isContentChange)
+    "files": isMapOf(isFilePath, isObject)
   });
 
 /**
@@ -768,6 +768,20 @@ final Matcher isDebugLaunchDataParams = new MatchesJsonObject(
   });
 
 /**
+ * AddContentOverlay
+ *
+ * {
+ *   "type": "add"
+ *   "content": String
+ * }
+ */
+final Matcher isAddContentOverlay = new MatchesJsonObject(
+  "AddContentOverlay", {
+    "type": equals("add"),
+    "content": isString
+  });
+
+/**
  * AnalysisError
  *
  * {
@@ -846,6 +860,24 @@ final Matcher isAnalysisStatus = new MatchesJsonObject(
     "analyzing": isBool
   }, optionalFields: {
     "analysisTarget": isString
+  });
+
+/**
+ * ChangeContentOverlay
+ *
+ * {
+ *   "type": "change"
+ *   "offset": int
+ *   "length": int
+ *   "replacement": String
+ * }
+ */
+final Matcher isChangeContentOverlay = new MatchesJsonObject(
+  "ChangeContentOverlay", {
+    "type": equals("change"),
+    "offset": isInt,
+    "length": isInt,
+    "replacement": isString
   });
 
 /**
@@ -961,25 +993,6 @@ final Matcher isCompletionSuggestionKind = isIn([
   "TOP_LEVEL_VARIABLE",
   "TYPE_PARAMETER"
 ]);
-
-/**
- * ContentChange
- *
- * {
- *   "content": String
- *   "offset": optional int
- *   "oldLength": optional int
- *   "newLength": optional int
- * }
- */
-final Matcher isContentChange = new MatchesJsonObject(
-  "ContentChange", {
-    "content": isString
-  }, optionalFields: {
-    "offset": isInt,
-    "oldLength": isInt,
-    "newLength": isInt
-  });
 
 /**
  * DebugContextId
@@ -1563,6 +1576,18 @@ final Matcher isRefactoringProblemSeverity = isIn([
   "ERROR",
   "FATAL"
 ]);
+
+/**
+ * RemoveContentOverlay
+ *
+ * {
+ *   "type": "remove"
+ * }
+ */
+final Matcher isRemoveContentOverlay = new MatchesJsonObject(
+  "RemoveContentOverlay", {
+    "type": equals("remove")
+  });
 
 /**
  * SearchId

@@ -481,10 +481,17 @@ class AnalysisServer {
       if (analysisContext != null) {
         Source source = getSource(file);
         if (change.offset == null) {
-          analysisContext.setContents(source, change.content);
+          analysisContext.setContents(source, change.contentOrReplacement);
         } else {
-          analysisContext.setChangedContents(source, change.content,
-              change.offset, change.oldLength, change.newLength);
+          // TODO(paulberry): an error should be generated if source is not
+          // currently in the content cache.
+          TimestampedData<String> oldContents = analysisContext.getContents(
+              source);
+          int offsetEnd = change.offset + change.length;
+          String newContents = oldContents.data.substring(0, change.offset) +
+              change.contentOrReplacement + oldContents.data.substring(offsetEnd);
+          analysisContext.setChangedContents(source, newContents, change.offset,
+              change.length, change.contentOrReplacement.length);
         }
         schedulePerformAnalysisOperation(analysisContext);
       }

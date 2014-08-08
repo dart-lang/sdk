@@ -561,7 +561,7 @@ dt {
   "id": String
   "method": "analysis.updateContent"
   "params": {
-    "<b>files</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_ContentChange">ContentChange</a>&gt;
+    "<b>files</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, object&gt;
   }
 }</pre><br><pre>response: {
   "id": String
@@ -578,11 +578,13 @@ dt {
           filesystem.
         </p>
         
-      <h4>Parameters</h4><dl><dt class="field"><b><i>files ( Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_ContentChange">ContentChange</a>&gt; )</i></b></dt><dd>
+      <h4>Parameters</h4><dl><dt class="field"><b><i>files ( Map&lt;<a href="#type_FilePath">FilePath</a>, object&gt; )</i></b></dt><dd>
             
             <p>
-              A table mapping the files whose content has changed to
-              a description of the content.
+              A table mapping the files whose content has changed to a
+              description of the content change.  Each value should be
+              one of the following types: <a href="#type_AddContentOverlay">AddContentOverlay</a>, <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a>,
+              or <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
             </p>
           </dd></dl></dd><dt class="request">analysis.updateOptions</dt><dd><div class="box"><pre>request: {
   "id": String
@@ -1668,7 +1670,26 @@ dt {
       
       
       
-    <dl><dt class="typeDefinition"><a name="type_AnalysisError">AnalysisError: object</a></dt><dd>
+      
+      
+    <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
+        <p>
+          A directive to begin overlaying the contents of a file.  The
+          supplied content will be used for analysis in place of the
+          file contents in the filesystem.
+        </p>
+        <p>
+          If this directive is used on a file that already has a file
+          content overlay, the old overlay is discarded and replaced
+          with the new one.
+        </p>
+        
+      <dl><dt class="field"><b><i>type = "add"</i></b></dt><dd></dd><dt class="field"><b><i>content ( String )</i></b></dt><dd>
+            
+            <p>
+              The new content of the file.
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisError">AnalysisError: object</a></dt><dd>
         <p>
           An indication of an error, warning, or hint that was produced
           by the analysis.
@@ -1775,6 +1796,36 @@ dt {
             <p>
               The name of the current target of analysis. This field is
               omitted if analyzing is false.
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_ChangeContentOverlay">ChangeContentOverlay: object</a></dt><dd>
+        <p>
+          A directive to modify an existing file content overlay.  A
+          range of text is deleted from the old file content overlay
+          and replaced with new text.
+        </p>
+        <p>
+          It is an error to use this directive is used on a file that
+          does not yet have a file content overlay (or that has had
+          its overlay removed via <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>).
+        </p>
+        
+      <dl><dt class="field"><b><i>type = "change"</i></b></dt><dd></dd><dt class="field"><b><i>offset ( int )</i></b></dt><dd>
+            
+            <p>
+              The offset of the text to be remove from the file
+              content overlay.
+            </p>
+          </dd><dt class="field"><b><i>length ( int )</i></b></dt><dd>
+            
+            <p>
+              The length of the text to be removed from the file
+              content overlay, or 0 if no text should be removed.
+            </p>
+          </dd><dt class="field"><b><i>replacement ( String )</i></b></dt><dd>
+            
+            <p>
+              The new text which should be inserted in place of the
+              removed text.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionId">CompletionId: String</a></dt><dd>
         
@@ -1912,36 +1963,7 @@ dt {
           in a completion suggestion.
         </p>
         
-      <dl><dt class="value">ARGUMENT_LIST</dt><dt class="value">CLASS</dt><dt class="value">CLASS_ALIAS</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">IMPORT</dt><dt class="value">LIBRARY_PREFIX</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">METHOD_NAME</dt><dt class="value">NAMED_ARGUMENT</dt><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_ContentChange">ContentChange: object</a></dt><dd>
-        <p>
-          A description of the change to the content of a file. The
-          optional fields are omitted if there is no single range of
-          characters that was modified. If any of the optional fields
-          are provided then all of the optional fields must be provided.
-        </p>
-        
-      <dl><dt class="field"><b><i>content ( String )</i></b></dt><dd>
-            
-            <p>
-              The new content of the file, or null if the content of the
-              file should be read from disk.
-            </p>
-          </dd><dt class="field"><b><i>offset ( <span style="color:#999999">optional</span> int )</i></b></dt><dd>
-            
-            <p>
-              The offset of the region that was modified.
-            </p>
-          </dd><dt class="field"><b><i>oldLength ( <span style="color:#999999">optional</span> int )</i></b></dt><dd>
-            
-            <p>
-              The length of the region that was removed.
-            </p>
-          </dd><dt class="field"><b><i>newLength ( <span style="color:#999999">optional</span> int )</i></b></dt><dd>
-            
-            <p>
-              The length of the region that was added.
-            </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_DebugContextId">DebugContextId: String</a></dt><dd>
+      <dl><dt class="value">ARGUMENT_LIST</dt><dt class="value">CLASS</dt><dt class="value">CLASS_ALIAS</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">IMPORT</dt><dt class="value">LIBRARY_PREFIX</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">METHOD_NAME</dt><dt class="value">NAMED_ARGUMENT</dt><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_DebugContextId">DebugContextId: String</a></dt><dd>
         
         <p>
           The identifier for a debug context.
@@ -2481,7 +2503,18 @@ dt {
           returned by the refactoring requests.
         </p>
         
-      <dl><dt class="value">INFO</dt><dt class="value">WARNING</dt><dt class="value">ERROR</dt><dt class="value">FATAL</dt></dl></dd><dt class="typeDefinition"><a name="type_SearchId">SearchId: String</a></dt><dd>
+      <dl><dt class="value">INFO</dt><dt class="value">WARNING</dt><dt class="value">ERROR</dt><dt class="value">FATAL</dt></dl></dd><dt class="typeDefinition"><a name="type_RemoveContentOverlay">RemoveContentOverlay: object</a></dt><dd>
+        <p>
+          A directive to remove an existing file content overlay.
+          After processing this directive, the file contents will once
+          again be read from the file system.
+        </p>
+        <p>
+          If this directive is used on a file that doesn't currently
+          have a content overlay, it has no effect.
+        </p>
+        
+      <dl><dt class="field"><b><i>type = "remove"</i></b></dt><dd></dd></dl></dd><dt class="typeDefinition"><a name="type_SearchId">SearchId: String</a></dt><dd>
         
         <p>
           An identifier used to associate search results with a search

@@ -486,7 +486,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
         i(() {
           write(typeObjectField.name);
           if (typeObjectField.value != null) {
-            write(' = ${typeObjectField.value}');
+            write(' = ${JSON.encode(typeObjectField.value)}');
           } else {
             write(' ( ');
             if (typeObjectField.optional) {

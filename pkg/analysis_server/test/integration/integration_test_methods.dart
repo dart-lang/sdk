@@ -334,10 +334,11 @@ abstract class InttestMixin {
    *
    * Parameters
    *
-   * files ( Map<FilePath, ContentChange> )
+   * files ( Map<FilePath, object> )
    *
    *   A table mapping the files whose content has changed to a description of
-   *   the content.
+   *   the content change. Each value should be one of the following types:
+   *   AddContentOverlay, ChangeContentOverlay, or RemoveContentOverlay.
    */
   Future sendAnalysisUpdateContent(Map<String, Map<String, dynamic>> files, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};

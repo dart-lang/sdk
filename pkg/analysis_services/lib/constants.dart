@@ -7,7 +7,9 @@ library services.constants;
 //
 // Property names
 //
+const String ADD = 'add';
 const String ADDED = 'added';
+const String CHANGE = 'change';
 const String CHILDREN = 'children';
 const String CLASS_ELEMENT = 'classElement';
 const String CLASS_NAME = 'className';
@@ -51,11 +53,9 @@ const String MEMBER_ELEMENT = 'memberElement';
 const String MESSAGE = 'message';
 const String MIXINS = 'mixins';
 const String NAME = 'name';
-const String NEW_LENGTH = 'newLength';
 const String OCCURRENCES = 'occurrences';
 const String OFFSET = 'offset';
 const String OFFSETS = 'offsets';
-const String OLD_LENGTH = 'oldLength';
 const String OPTIONS = 'options';
 const String OUTLINE = 'outline';
 const String OVERRIDES = 'overrides';
@@ -68,8 +68,9 @@ const String PROPAGATED_TYPE = 'propagatedType';
 const String REFACTORINGS = 'refactorings';
 const String REGIONS = 'regions';
 const String RELEVANCE = 'relevance';
+const String REMOVE = 'remove';
 const String REMOVED = 'removed';
-const String REPLACEMENT = 'relacement';
+const String REPLACEMENT = 'replacement';
 const String REPLACEMENT_OFFSET = 'replacementOffset';
 const String REPLACEMENT_LENGTH = 'replacementLength';
 const String RETURN_TYPE = 'returnType';

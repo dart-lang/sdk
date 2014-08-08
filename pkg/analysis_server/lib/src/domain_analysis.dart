@@ -171,18 +171,30 @@ class AnalysisDomainHandler implements RequestHandler {
   Response updateContent(Request request) {
     var changes = new HashMap<String, ContentChange>();
     RequestDatum filesDatum = request.getRequiredParameter(FILES);
-    filesDatum.forEachMap((file, changeDatum) {
-      var change = new ContentChange();
-      change.content = changeDatum[CONTENT].isNull ?
-          null :
-          changeDatum[CONTENT].asString();
-      if (changeDatum.hasKey(OFFSET)) {
-        change.offset = changeDatum[OFFSET].asInt();
-        change.oldLength = changeDatum[OLD_LENGTH].asInt();
-        change.newLength = changeDatum[NEW_LENGTH].asInt();
+    Response errorResponse;
+    for (String file in filesDatum.keys) {
+      RequestDatum changeDatum = filesDatum[file];
+      ContentChange change = new ContentChange();
+      switch (changeDatum[TYPE].asString()) {
+        case 'add':
+          change.contentOrReplacement = changeDatum[CONTENT].asString();
+          break;
+        case 'change':
+          change.offset = changeDatum[OFFSET].asInt();
+          change.length = changeDatum[LENGTH].asInt();
+          change.contentOrReplacement = changeDatum[REPLACEMENT].asString();
+          break;
+        case 'remove':
+          break;
+        default:
+          return new Response.invalidParameter(request,
+              changeDatum[TYPE].path, 'be one of "add", "change", or "remove"');
       }
       changes[file] = change;
-    });
+    }
+    if (errorResponse != null) {
+      return errorResponse;
+    }
     server.updateContent(changes);
     return new Response(request.id);
   }
@@ -247,8 +259,15 @@ class AnalysisDomainHandler implements RequestHandler {
  * A description of the change to the content of a file.
  */
 class ContentChange {
-  String content;
+  /**
+   * If [offset] and [length] are null, the full content of the file (or null
+   * if the file should be read from the filesystem).
+   *
+   * If [offset] and [length] are non-null, the replacement text which should
+   * take the place of the [length] characters of the file starting at [offset].
+   */
+  String contentOrReplacement;
+
   int offset;
-  int oldLength;
-  int newLength;
+  int length;
 }

@@ -229,6 +229,11 @@ class RequestDatum {
   }
 
   /**
+   * Validate that the datum is a Map, and return an iterable for its keys.
+   */
+  Iterable<String> get keys => _asMap().keys;
+
+  /**
    * Validate that the datum is a Map whose keys are strings, and call [f] on
    * each key/value pair in the map.
    */

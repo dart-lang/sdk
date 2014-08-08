@@ -54,22 +54,22 @@ class ChangeTest {
           'edits': [{
               'offset': 1,
               'length': 2,
-              'relacement': 'aaa'
+              'replacement': 'aaa'
             }, {
               'offset': 10,
               'length': 20,
-              'relacement': 'bbb'
+              'replacement': 'bbb'
             }]
         }, {
           'file': '/b.dart',
           'edits': [{
               'offset': 21,
               'length': 22,
-              'relacement': 'xxx'
+              'replacement': 'xxx'
             }, {
               'offset': 210,
               'length': 220,
-              'relacement': 'yyy'
+              'replacement': 'yyy'
             }]
         }],
       'linkedEditGroups': [{

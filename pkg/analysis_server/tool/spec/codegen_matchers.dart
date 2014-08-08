@@ -170,7 +170,11 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
           writeln(',');
         }
         write('${JSON.encode(field.name)}: ');
-        visitTypeDecl(field.type);
+        if (field.value != null) {
+          write('equals(${JSON.encode(field.value)})');
+        } else {
+          visitTypeDecl(field.type);
+        }
         commaNeeded = true;
       }
       writeln();

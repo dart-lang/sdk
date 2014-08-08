@@ -199,17 +199,35 @@ main() {
     return analysisFinished.then((_) {
       // The contents on disk (badText) are missing a semicolon.
       expect(currentAnalysisErrors[pathname], isNot(isEmpty));
-      var contentChange = {
-        'content': goodText
-      };
+
       if (includeOffsetAndLengths) {
-        contentChange['offset'] = goodText.indexOf(';');
-        contentChange['oldLength'] = 0;
-        contentChange['newLength'] = 1;
+        // Before we send a ChangeContentOverlay directive we need to send an
+        // AddContentOverlay directive.  So send that with badText.
+        return sendAnalysisUpdateContent({
+          pathname: {
+            'type': 'add',
+            'content': badText
+          }
+        }).then((_) => analysisFinished);
       }
-      return sendAnalysisUpdateContent({
-        pathname: contentChange
-      });
+    }).then((_) {
+      if (includeOffsetAndLengths) {
+        return sendAnalysisUpdateContent({
+          pathname: {
+            'type': 'change',
+            'offset': goodText.indexOf(';'),
+            'length': 0,
+            'replacement': ';'
+          }
+        });
+      } else {
+        return sendAnalysisUpdateContent({
+          pathname: {
+            'type': 'add',
+            'content': goodText
+          }
+        });
+      }
     }).then((result) => analysisFinished).then((_) {
       // There should be no errors now because the contents on disk have been
       // overriden with goodText.
@@ -218,9 +236,9 @@ main() {
       // that isContentChange doesn't permit 'content' to be null.
       return sendAnalysisUpdateContent({
         pathname: {
-          'content': null
+          'type': 'remove'
         }
-      }, checkTypes: false);
+      });
     }).then((result) => analysisFinished).then((_) {
       // Now there should be errors again, because the contents on disk are no
       // longer overridden.

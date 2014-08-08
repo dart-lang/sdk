@@ -148,6 +148,21 @@ main() {
 
 
 testUpdateContent() {
+  test('bad type', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('// empty');
+    return helper.waitForOperationsFinished().then((_) {
+      Request request = new Request('0', ANALYSIS_UPDATE_CONTENT);
+      request.setParameter('files', {
+        helper.testFile: {
+          TYPE: 'foo',
+        }
+      });
+      Response response = helper.handler.handleRequest(request);
+      expect(response, isResponseFailure('0'));
+    });
+  });
+
   test('full content', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
@@ -157,6 +172,7 @@ testUpdateContent() {
       expect(errors, isEmpty);
       // update code
       helper.sendContentChange({
+        TYPE: ADD,
         CONTENT: 'library lib'
       });
       // wait, there is an error
@@ -169,17 +185,23 @@ testUpdateContent() {
 
   test('incremental', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
-    helper.createSingleFileProject('library A;');
+    String initialContent = 'library A;';
+    helper.createSingleFileProject(initialContent);
     return helper.waitForOperationsFinished().then((_) {
       // no errors initially
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
+      // Add the file to the cache
+      helper.sendContentChange({
+        TYPE: ADD,
+        CONTENT: initialContent
+      });
       // update code
       helper.sendContentChange({
-        CONTENT: 'library lib',
+        TYPE: CHANGE,
+        REPLACEMENT: 'lib',
         OFFSET: 'library '.length,
-        OLD_LENGTH: 'A;'.length,
-        NEW_LENGTH: 'lib'.length,
+        LENGTH: 'A;'.length,
       });
       // wait, there is an error
       return helper.waitForOperationsFinished().then((_) {
@@ -212,6 +234,7 @@ testUpdateContent() {
     return helper.waitForOperationsFinished().then((_) {
       // update code
       helper.sendContentChange({
+        TYPE: ADD,
         CONTENT: 'library B;'
       });
       // There should be no errors
@@ -225,7 +248,7 @@ testUpdateContent() {
           // Send a content change with a null content param--file should be
           // reread from disk.
           helper.sendContentChange({
-            CONTENT: null
+            TYPE: REMOVE
           });
           // There should be errors now.
           return helper.waitForOperationsFinished().then((_) {
