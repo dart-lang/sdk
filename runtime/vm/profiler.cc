@@ -2086,6 +2086,11 @@ void Profiler::RecordSampleInterruptCallback(
                                           state.sp);
       stackWalker.walk();
     } else {
+#if defined(TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64)
+      // ProfilerNativeStackWalker is known to cause crashes on Win64.
+      // BUG=20423.
+      sample->set_ignore_sample(true);
+#else
       // Fall back to an extremely conservative stack walker.
       ProfilerNativeStackWalker stackWalker(sample,
                                             stack_lower,
@@ -2094,6 +2099,7 @@ void Profiler::RecordSampleInterruptCallback(
                                             state.fp,
                                             state.sp);
       stackWalker.walk();
+#endif
     }
   }
 }
