@@ -173,6 +173,12 @@ main() {
           expect(file == file2, isFalse);
         });
 
+        test('isOrContains', () {
+          File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+          expect(file.isOrContains(path), isTrue);
+          expect(file.isOrContains('foo'), isFalse);
+        });
+
         test('shortName', () {
           expect(file.shortName, 'file.txt');
         });
@@ -220,6 +226,13 @@ main() {
           expect(folder.contains(join(path, 'aaa', 'bbb.txt')), isTrue);
           expect(folder.contains(join(tempPath, 'baz.txt')), isFalse);
           expect(folder.contains(path), isFalse);
+        });
+
+        test('isOrContains', () {
+          expect(folder.isOrContains(path), isTrue);
+          expect(folder.isOrContains(join(path, 'aaa.txt')), isTrue);
+          expect(folder.isOrContains(join(path, 'aaa', 'bbb.txt')), isTrue);
+          expect(folder.isOrContains(join(tempPath, 'baz.txt')), isFalse);
         });
 
         group('getChild', () {

@@ -36,8 +36,12 @@ main() {
   setUp(() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null, new MockSdk());
+    server = new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
+        new MockSdk());
     handler = new AnalysisDomainHandler(server);
   });
 
@@ -54,11 +58,26 @@ main() {
         request.setParameter(EXCLUDED, []);
       });
 
-      test('excluded', () {
-        request.setParameter(EXCLUDED, ['foo']);
-        // TODO(scheglov) implement
-        var response = handler.handleRequest(request);
-        expect(response, isResponseFailure('0'));
+      group('excluded', () {
+        test('excluded folder', () {
+          String project = '/project';
+          String fileA = '/project/aaa/a.dart';
+          String fileB = '/project/bbb/b.dart';
+          resourceProvider.newFolder(project);
+          resourceProvider.newFile(fileA, '// a');
+          resourceProvider.newFile(fileB, '// b');
+          request.setParameter(INCLUDED, [project]);
+          request.setParameter(EXCLUDED, ['/project/bbb']);
+          var response = handler.handleRequest(request);
+          var serverRef = server;
+          expect(response, isResponseSuccess('0'));
+          // unit "a" is resolved eventually
+          // unit "b" is not resolved
+          return waitForServerOperationsPerformed(server).then((_) {
+            expect(serverRef.test_getResolvedCompilationUnit(fileA), isNotNull);
+            expect(serverRef.test_getResolvedCompilationUnit(fileB), isNull);
+          });
+        });
       });
 
       group('included', () {
@@ -72,8 +91,8 @@ main() {
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
           return waitForServerOperationsPerformed(server).then((_) {
-            var unit = serverRef.test_getResolvedCompilationUnit(
-                '/project/bin/test.dart');
+            var unit =
+                serverRef.test_getResolvedCompilationUnit('/project/bin/test.dart');
             expect(unit, isNotNull);
           });
         });
@@ -386,8 +405,8 @@ f(A a) {
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] = [resourceProvider.getResource(
-        '/packages/pkgA')];
+    packageMapProvider.packageMap['pkgA'] = [
+        resourceProvider.getResource('/packages/pkgA')];
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
@@ -426,8 +445,12 @@ class AnalysisTestHelper {
   AnalysisTestHelper() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null, new MockSdk());
+    server = new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
+        new MockSdk());
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream =

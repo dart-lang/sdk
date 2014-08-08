@@ -86,6 +86,12 @@ abstract class Resource {
    * denote this resource.
    */
   String get shortName;
+
+  /**
+   * Return `true` if absolute [path] references this resource or a resource in
+   * this folder.
+   */
+  bool isOrContains(String path);
 }
 
 

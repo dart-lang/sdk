@@ -43,6 +43,11 @@ abstract class ContextManager {
   pathos.Context pathContext;
 
   /**
+   * A list of excluded paths - folders and files.
+   */
+  List<String> excludedPaths = <String>[];
+
+  /**
    * Provider which is used to determine the mapping from package name to
    * package folder.
    */
@@ -69,12 +74,17 @@ abstract class ContextManager {
    * root folders and is not excluded.
    */
   bool isInAnalysisRoot(String path) {
-    // TODO(scheglov) check for excluded paths
+    // check if excluded
+    if (_isExcluded(path)) {
+      return false;
+    }
+    // check if in of the roots
     for (Folder root in _contexts.keys) {
       if (root.contains(path)) {
         return true;
       }
     }
+    // no
     return false;
   }
 
@@ -104,15 +114,12 @@ abstract class ContextManager {
       }
     }
     // excluded
-    // TODO(scheglov) remove when implemented
-    if (excludedPaths.isNotEmpty) {
-      throw new UnimplementedError('Excluded paths are not supported yet');
-    }
-    Set<Folder> excludedFolders = new HashSet<Folder>();
+    List<String> oldExcludedPaths = this.excludedPaths;
+    this.excludedPaths = excludedPaths;
     // destroy old contexts
     for (Folder contextFolder in contextFolders) {
       bool isIncluded = includedFolders.any((folder) {
-        return folder.contains(contextFolder.path);
+        return folder.isOrContains(contextFolder.path);
       });
       if (!isIncluded) {
         _destroyContext(contextFolder);
@@ -121,12 +128,36 @@ abstract class ContextManager {
     // create new contexts
     for (Folder includedFolder in includedFolders) {
       bool wasIncluded = contextFolders.any((folder) {
-        return folder.contains(includedFolder.path);
+        return folder.isOrContains(includedFolder.path);
       });
       if (!wasIncluded) {
         _createContexts(includedFolder, false);
       }
     }
+    // remove newly excluded sources
+    _contexts.forEach((folder, info) {
+      // prepare excluded sources
+      Map<String, Source> excludedSources = new HashMap<String, Source>();
+      info.sources.forEach((String path, Source source) {
+        if (_isExcludedBy(excludedPaths, path) &&
+            !_isExcludedBy(oldExcludedPaths, path)) {
+          excludedSources[path] = source;
+        }
+      });
+      // apply exclusion
+      ChangeSet changeSet = new ChangeSet();
+      excludedSources.forEach((String path, Source source) {
+        info.sources.remove(path);
+        changeSet.removedSource(source);
+      });
+      applyChangesToContext(folder, changeSet);
+    });
+    // add previously excluded sources
+    _contexts.forEach((folder, info) {
+      ChangeSet changeSet = new ChangeSet();
+      _addPreviouslyExcludedSources(info, changeSet, folder, oldExcludedPaths);
+      applyChangesToContext(folder, changeSet);
+    });
   }
 
   /**
@@ -134,6 +165,74 @@ abstract class ContextManager {
    */
   void updateContextPackageMap(Folder contextFolder, Map<String,
       List<Folder>> packageMap);
+
+  /**
+   * Resursively adds all Dart and HTML files to the [changeSet].
+   */
+  void _addPreviouslyExcludedSources(_ContextInfo info, ChangeSet changeSet,
+      Folder folder, List<String> oldExcludedPaths) {
+    if (info.excludesResource(folder)) {
+      return;
+    }
+    List<Resource> children = folder.getChildren();
+    for (Resource child in children) {
+      String path = child.path;
+      // ignore if wasn't previously excluded
+      bool wasExcluded =
+          _isExcludedBy(oldExcludedPaths, path) &&
+          !_isExcludedBy(excludedPaths, path);
+      if (!wasExcluded) {
+        continue;
+      }
+      // add files, recurse into folders
+      if (child is File) {
+        if (_shouldFileBeAnalyzed(child)) {
+          Source source = child.createSource();
+          changeSet.addedSource(source);
+          info.sources[path] = source;
+        }
+      } else if (child is Folder) {
+        if (child.shortName == 'packages') {
+          // TODO(paulberry): perhaps we should only skip packages dirs if
+          // there is a pubspec.yaml?
+          continue;
+        }
+        _addPreviouslyExcludedSources(info, changeSet, child, oldExcludedPaths);
+      }
+    }
+  }
+
+  /**
+   * Resursively adds all Dart and HTML files to the [changeSet].
+   */
+  void _addSourceFiles(ChangeSet changeSet, Folder folder, _ContextInfo info) {
+    if (info.excludesResource(folder)) {
+      return;
+    }
+    List<Resource> children = folder.getChildren();
+    for (Resource child in children) {
+      String path = child.path;
+      // ignore excluded files or folders
+      if (_isExcluded(path)) {
+        continue;
+      }
+      // add files, recurse into folders
+      if (child is File) {
+        if (_shouldFileBeAnalyzed(child)) {
+          Source source = child.createSource();
+          changeSet.addedSource(source);
+          info.sources[path] = source;
+        }
+      } else if (child is Folder) {
+        if (child.shortName == 'packages') {
+          // TODO(paulberry): perhaps we should only skip packages dirs if
+          // there is a pubspec.yaml?
+          continue;
+        }
+        _addSourceFiles(changeSet, child, info);
+      }
+    }
+  }
 
   /**
    * Create a new empty context associated with [folder].
@@ -250,7 +349,11 @@ abstract class ContextManager {
 
   void _handleWatchEvent(Folder folder, _ContextInfo info, WatchEvent event) {
     String path = event.path;
-    // maybe excluded, so other context will handle it
+    // maybe excluded globally
+    if (_isExcluded(path)) {
+      return;
+    }
+    // maybe excluded from the context, so other context will handle it
     if (info.excludes(path)) {
       return;
     }
@@ -319,6 +422,25 @@ abstract class ContextManager {
   }
 
   /**
+   * Returns `true` if the given [path] is excluded by [excludedPaths].
+   */
+  bool _isExcluded(String path) {
+    return _isExcludedBy(excludedPaths, path);
+  }
+
+  /**
+   * Returns `true` if the given [path] is excluded by [excludedPaths].
+   */
+  bool _isExcludedBy(List<String> excludedPaths, String path) {
+    return excludedPaths.any((excludedPath) {
+      if (pathContext.isWithin(excludedPath, path)) {
+        return true;
+      }
+      return path == excludedPath;
+    });
+  }
+
+  /**
    * Determine if the path from [folder] to [path] contains a 'packages'
    * directory.
    */
@@ -356,33 +478,6 @@ abstract class ContextManager {
         changeSet.addedSource(source);
       });
       applyChangesToContext(parentInfo.folder, changeSet);
-    }
-  }
-
-  /**
-   * Resursively adds all Dart and HTML files to the [changeSet].
-   */
-  static void _addSourceFiles(ChangeSet changeSet, Folder folder,
-      _ContextInfo info) {
-    if (info.excludesResource(folder)) {
-      return;
-    }
-    List<Resource> children = folder.getChildren();
-    for (Resource child in children) {
-      if (child is File) {
-        if (_shouldFileBeAnalyzed(child)) {
-          Source source = child.createSource();
-          changeSet.addedSource(source);
-          info.sources[child.path] = source;
-        }
-      } else if (child is Folder) {
-        if (child.shortName == 'packages') {
-          // TODO(paulberry): perhaps we should only skip packages dirs if
-          // there is a pubspec.yaml?
-          continue;
-        }
-        _addSourceFiles(changeSet, child, info);
-      }
     }
   }
 

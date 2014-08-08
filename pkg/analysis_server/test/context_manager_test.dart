@@ -56,6 +56,18 @@ class ContextManagerTest {
     });
   }
 
+  void test_isInAnalysisRoot_excluded() {
+    // prepare paths
+    String project = '/project';
+    String excludedFolder = '$project/excluded';
+    // set roots
+    resourceProvider.newFolder(project);
+    resourceProvider.newFolder(excludedFolder);
+    manager.setRoots(<String>[project], <String>[excludedFolder]);
+    // verify
+    expect(manager.isInAnalysisRoot('$excludedFolder/test.dart'), isFalse);
+  }
+
   void test_isInAnalysisRoot_inRoot() {
     manager.setRoots(<String>[projPath], <String>[]);
     expect(manager.isInAnalysisRoot('$projPath/test.dart'), isTrue);
@@ -154,6 +166,112 @@ class ContextManagerTest {
     expect(manager.currentContextPaths, hasLength(1));
     expect(manager.currentContextPaths, contains(projPath));
     expect(manager.currentContextFilePaths[projPath], hasLength(0));
+  }
+
+  void test_setRoots_exclude_newRoot_withExcludedFile() {
+    // prepare paths
+    String project = '/project';
+    String file1 = '$project/file1.dart';
+    String file2 = '$project/file2.dart';
+    // create files
+    resourceProvider.newFile(file1, '// 1');
+    resourceProvider.newFile(file2, '// 2');
+    // set roots
+    manager.setRoots(<String>[project], <String>[file1]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [file2]);
+  }
+
+  void test_setRoots_exclude_newRoot_withExcludedFolder() {
+    // prepare paths
+    String project = '/project';
+    String folderA = '$project/aaa';
+    String folderB = '$project/bbb';
+    String fileA = '$folderA/a.dart';
+    String fileB = '$folderB/b.dart';
+    // create files
+    resourceProvider.newFile(fileA, 'library a;');
+    resourceProvider.newFile(fileB, 'library b;');
+    // set roots
+    manager.setRoots(<String>[project], <String>[folderB]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [fileA]);
+  }
+
+  void test_setRoots_exclude_sameRoot_addExcludedFile() {
+    // prepare paths
+    String project = '/project';
+    String file1 = '$project/file1.dart';
+    String file2 = '$project/file2.dart';
+    // create files
+    resourceProvider.newFile(file1, '// 1');
+    resourceProvider.newFile(file2, '// 2');
+    // set roots
+    manager.setRoots(<String>[project], <String>[]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [file1, file2]);
+    // exclude "2"
+    manager.setRoots(<String>[project], <String>[file2]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [file1]);
+  }
+
+  void test_setRoots_exclude_sameRoot_addExcludedFolder() {
+    // prepare paths
+    String project = '/project';
+    String folderA = '$project/aaa';
+    String folderB = '$project/bbb';
+    String fileA = '$folderA/a.dart';
+    String fileB = '$folderB/b.dart';
+    // create files
+    resourceProvider.newFile(fileA, 'library a;');
+    resourceProvider.newFile(fileB, 'library b;');
+    // initially both "aaa/a" and "bbb/b" are included
+    manager.setRoots(<String>[project], <String>[]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [fileA, fileB]);
+    // exclude "bbb/"
+    manager.setRoots(<String>[project], <String>[folderB]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [fileA]);
+  }
+
+  void test_setRoots_exclude_sameRoot_removeExcludedFile() {
+    // prepare paths
+    String project = '/project';
+    String file1 = '$project/file1.dart';
+    String file2 = '$project/file2.dart';
+    // create files
+    resourceProvider.newFile(file1, '// 1');
+    resourceProvider.newFile(file2, '// 2');
+    // set roots
+    manager.setRoots(<String>[project], <String>[file2]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [file1]);
+    // stop excluding "2"
+    manager.setRoots(<String>[project], <String>[]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [file1, file2]);
+  }
+
+  void test_setRoots_exclude_sameRoot_removeExcludedFolder() {
+    // prepare paths
+    String project = '/project';
+    String folderA = '$project/aaa';
+    String folderB = '$project/bbb';
+    String fileA = '$folderA/a.dart';
+    String fileB = '$folderB/b.dart';
+    // create files
+    resourceProvider.newFile(fileA, 'library a;');
+    resourceProvider.newFile(fileB, 'library b;');
+    // exclude "bbb/"
+    manager.setRoots(<String>[project], <String>[folderB]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [fileA]);
+    // stop excluding "bbb/"
+    manager.setRoots(<String>[project], <String>[]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [fileA, fileB]);
   }
 
   void test_setRoots_ignoreSubContext_ofSubContext() {
@@ -286,6 +404,27 @@ class ContextManagerTest {
     return pumpEventQueue().then((_) {
       expect(filePaths, hasLength(1));
       expect(filePaths, contains(filePath));
+    });
+  }
+
+  test_watch_addFile_excluded() {
+    // prepare paths
+    String project = '/project';
+    String folderA = '$project/aaa';
+    String folderB = '$project/bbb';
+    String fileA = '$folderA/a.dart';
+    String fileB = '$folderB/b.dart';
+    // create files
+    resourceProvider.newFile(fileA, 'library a;');
+    // set roots
+    manager.setRoots(<String>[project], <String>[folderB]);
+    manager.assertContextPaths([project]);
+    manager.assertContextFiles(project, [fileA]);
+    // add a file, ignored as excluded
+    resourceProvider.newFile(fileB, 'library b;');
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([project]);
+      manager.assertContextFiles(project, [fileA]);
     });
   }
 
