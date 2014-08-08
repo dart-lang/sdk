@@ -263,8 +263,8 @@ abstract class ContextManager {
           break;
         }
         Resource resource = resourceProvider.getResource(path);
-        // pubspec was added, extract a new context
-        if (_isPubspec(path)) {
+        // pubspec was added in a sub-folder, extract a new context
+        if (_isPubspec(path) && info.isRoot && !info.isPubspec(path)) {
           _extractContext(info, resource);
           return;
         }
@@ -284,7 +284,7 @@ abstract class ContextManager {
         break;
       case ChangeType.REMOVE:
         // pubspec was removed, merge the context into its parent
-        if (info.isPubspec(path)) {
+        if (info.isPubspec(path) && !info.isRoot) {
           _mergeContext(info);
           return;
         }
@@ -448,6 +448,11 @@ class _ContextInfo {
       child.parent = this;
     }
   }
+
+  /**
+   * Returns `true` if this context is root folder based.
+   */
+  bool get isRoot => parent == null;
 
   /**
    * Returns `true` if [path] is excluded, as it is in one of the children.

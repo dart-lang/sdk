@@ -156,6 +156,26 @@ class ContextManagerTest {
     expect(manager.currentContextFilePaths[projPath], hasLength(0));
   }
 
+  void test_setRoots_ignoreSubContext_ofSubContext() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub';
+    String subPubspec = '$subProject/pubspec.yaml';
+    String subFile = '$subProject/bin/sub.dart';
+    String subSubPubspec = '$subProject/subsub/pubspec.yaml';
+    // create files
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subPubspec, 'pubspec');
+    resourceProvider.newFile(subFile, 'library sub;');
+    resourceProvider.newFile(subSubPubspec, 'pubspec');
+    // set roots
+    manager.setRoots(<String>[root], <String>[]);
+    manager.assertContextPaths([root, subProject]);
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProject, [subFile]);
+  }
+
   void test_setRoots_newlyAddedFoldersGetProperPackageMap() {
     String packagePath = '/package/foo';
     Folder packageFolder = resourceProvider.newFolder(packagePath);
@@ -269,7 +289,27 @@ class ContextManagerTest {
     });
   }
 
-  test_watch_addPubspec() {
+  test_watch_addPubspec_toRoot() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String rootPubspec = '$root/pubspec.yaml';
+    // create files
+    resourceProvider.newFile(rootFile, 'library root;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[]);
+    manager.assertContextPaths([root]);
+    // verify files
+    manager.assertContextFiles(root, [rootFile]);
+    // add pubspec - still just one root
+    resourceProvider.newFile(rootPubspec, 'pubspec');
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root]);
+      manager.assertContextFiles(root, [rootFile]);
+    });
+  }
+
+  test_watch_addPubspec_toSubFolder() {
     // prepare paths
     String root = '/root';
     String rootFile = '$root/root.dart';
@@ -293,6 +333,32 @@ class ContextManagerTest {
     });
   }
 
+  test_watch_addPubspec_toSubFolder_ofSubFolder() {
+    // prepare paths
+    String root = '/root';
+    String rootFile = '$root/root.dart';
+    String subProject = '$root/sub';
+    String subPubspec = '$subProject/pubspec.yaml';
+    String subFile = '$subProject/bin/sub.dart';
+    String subSubPubspec = '$subProject/subsub/pubspec.yaml';
+    // create files
+    resourceProvider.newFile(rootFile, 'library root;');
+    resourceProvider.newFile(subPubspec, 'pubspec');
+    resourceProvider.newFile(subFile, 'library sub;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[]);
+    manager.assertContextPaths([root, subProject]);
+    manager.assertContextFiles(root, [rootFile]);
+    manager.assertContextFiles(subProject, [subFile]);
+    // add pubspec - ignore, because is already in a pubspec-based context
+    resourceProvider.newFile(subSubPubspec, 'pubspec');
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root, subProject]);
+      manager.assertContextFiles(root, [rootFile]);
+      manager.assertContextFiles(subProject, [subFile]);
+    });
+  }
+
   test_watch_deleteFile() {
     String filePath = posix.join(projPath, 'foo.dart');
     // add root with a file
@@ -309,7 +375,27 @@ class ContextManagerTest {
     });
   }
 
-  test_watch_deletePubspec() {
+  test_watch_deletePubspec_fromRoot() {
+    // prepare paths
+    String root = '/root';
+    String rootPubspec = '$root/pubspec.yaml';
+    String rootFile = '$root/root.dart';
+    // create files
+    resourceProvider.newFile(rootPubspec, 'pubspec');
+    resourceProvider.newFile(rootFile, 'library root;');
+    // set roots
+    manager.setRoots(<String>[root], <String>[]);
+    manager.assertContextPaths([root]);
+    manager.assertContextFiles(root, [rootFile]);
+    // delete the pubspec
+    resourceProvider.deleteFile(rootPubspec);
+    return pumpEventQueue().then((_) {
+      manager.assertContextPaths([root]);
+      manager.assertContextFiles(root, [rootFile]);
+    });
+  }
+
+  test_watch_deletePubspec_fromSubFolder() {
     // prepare paths
     String root = '/root';
     String rootFile = '$root/root.dart';
