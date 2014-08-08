@@ -1679,7 +1679,8 @@ static void SetPCMarkerIfSafe(Sample* sample) {
 #if defined(TARGET_OS_WINDOWS)
     // If the fp is at the beginning of a page, it may be unsafe to access
     // the pc marker, because we are reading it from a different thread on
-    // Windows. The next page may be a guard page.
+    // Windows. The marker is below fp and the previous page may be a guard
+    // page.
     const intptr_t kPageMask = VirtualMemory::PageSize() - 1;
     if ((sample->fp() & kPageMask) == 0) {
       return;
@@ -2047,7 +2048,11 @@ void Profiler::RecordSampleInterruptCallback(
   sample->set_user_tag(isolate->user_tag());
   sample->set_sp(state.sp);
   sample->set_fp(state.fp);
+#if !(defined(TARGET_OS_WINDOWS) && defined(TARGET_ARCH_X64))
+  // It is never safe to read other thread's stack unless on Win64
+  // other thread is inside Dart code.
   SetPCMarkerIfSafe(sample);
+#endif
 
   // Walk the call stack.
   if (FLAG_profile_vm) {
