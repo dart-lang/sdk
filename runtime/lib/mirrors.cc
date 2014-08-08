@@ -1226,9 +1226,15 @@ DEFINE_NATIVE_ENTRY(Mirrors_evalInLibraryWithPrivateKey, 2) {
     }
   }
   ASSERT(!ctxt_library.IsNull());
-  return ctxt_library.Evaluate(expression,
-                               Array::empty_array(),
-                               Array::empty_array());
+  const Object& result =
+     Object::Handle(ctxt_library.Evaluate(expression,
+                                          Array::empty_array(),
+                                          Array::empty_array()));
+  if (result.IsError()) {
+    Exceptions::PropagateError(Error::Cast(result));
+    UNREACHABLE();
+  }
+  return result.raw();
 }
 
 DEFINE_NATIVE_ENTRY(TypedefMirror_declaration, 1) {
