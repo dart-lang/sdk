@@ -139,6 +139,15 @@ class SExpressionUnstringifier {
   final Map<String, Definition> name2variable =
       <String, Definition>{ "return": new Continuation.retrn() };
 
+  // Operator names used for canonicalization. In theory, we could simply use
+  // Elements.isOperatorName() on the parsed tokens; however, comparisons are
+  // done using identical() for performance reasons, which are reliable only for
+  // compile-time literal strings.
+  static Set<String> OPERATORS = new Set<String>.from(
+      [ '~', '==', '[]', '*', '/', '%', '~/', '+', '<<', 'unary-'
+      , '>>', '>=', '>', '<=', '<', '&', '^', '|', '[]=', '-'
+      ]);
+
   // The tokens currently being parsed.
   Tokens tokens;
 
@@ -171,7 +180,18 @@ class SExpressionUnstringifier {
            .replaceAll(")", " ) ")
            .replaceAll(new RegExp(r"[ \t\n]+"), " ")
            .trim()
-           .split(" "));
+           .split(" ")
+           .map(canonicalizeOperators)
+           .toList());
+
+  /// Canonicalizes strings containing operator names.
+  String canonicalizeOperators(String token) {
+    String opname = OPERATORS.lookup(token);
+    if (opname != null) {
+      return opname;
+    }
+    return token;
+  }
 
   Expression parseExpression() {
     assert(tokens.current == "(");
