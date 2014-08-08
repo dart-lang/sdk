@@ -3,5 +3,4 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $browser ]
-observatory/test/allocations_test: Skip # Uses dart:io
-observatory/test/gc_test: Skip # Uses dart:io
+observatory/test/*: Skip # Uses dart:io
