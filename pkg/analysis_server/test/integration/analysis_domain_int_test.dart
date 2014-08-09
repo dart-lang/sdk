@@ -37,7 +37,7 @@ main() {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisRoot();
+    standardAnalysisSetup();
 
     testHover(String target, int length, List<String> descriptionRegexps, String
         kind, List<String> staticTypeRegexps, {bool isCore: false, String docRegexp:
@@ -138,7 +138,7 @@ main() {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisRoot();
+    standardAnalysisSetup();
 
     // Note: analysis.getHover doesn't wait for analysis to complete--it simply
     // returns the latest results that are available at the time that the
@@ -166,7 +166,7 @@ main() {
   var x // parse error: missing ';'
 }''';
     writeFile(pathname, text);
-    standardAnalysisRoot();
+    standardAnalysisSetup();
     Future finishTest() {
       return sendAnalysisGetErrors(pathname).then((result) {
         expect(result['errors'], equals(currentAnalysisErrors[pathname]));
@@ -195,7 +195,7 @@ main() {
 }''';
     String badText = goodText.replaceAll(';', '');
     writeFile(pathname, badText);
-    standardAnalysisRoot();
+    standardAnalysisSetup();
     return analysisFinished.then((_) {
       // The contents on disk (badText) are missing a semicolon.
       expect(currentAnalysisErrors[pathname], isNot(isEmpty));
@@ -232,8 +232,6 @@ main() {
       // There should be no errors now because the contents on disk have been
       // overriden with goodText.
       expect(currentAnalysisErrors[pathname], isEmpty);
-      // TODO(paulberry): passing "checkTypes: false" to work around the fact
-      // that isContentChange doesn't permit 'content' to be null.
       return sendAnalysisUpdateContent({
         pathname: {
           'type': 'remove'

@@ -431,6 +431,10 @@ class AnalysisServer {
    * being performed or `null` if analysis is complete.
    */
   void sendStatusNotification(ServerOperation operation) {
+    // Only send status when subscribed.
+    if (!serverServices.contains(ServerService.STATUS)) {
+      return;
+    }
     // Only send status when it changes
     bool isAnalyzing = operation != null;
     if (statusAnalyzing == isAnalyzing) {

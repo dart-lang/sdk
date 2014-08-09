@@ -32,8 +32,7 @@ class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
     });
   }
 
-  fail_test_setSubscriptions() {
-    // TODO(paulberry): fix the server so that it passes this test.
+  test_setSubscriptions() {
     bool statusReceived = false;
     Completer analysisBegun = new Completer();
     server.onNotification(SERVER_STATUS).listen((_) {
@@ -50,7 +49,7 @@ class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
 main() {
   var x;
 }''');
-      standardAnalysisRoot();
+      standardAnalysisSetup(subscribeStatus: false);
       // Analysis should begin, but no server.status notification should be
       // received.
       return analysisBegun.future.then((_) {
@@ -89,9 +88,6 @@ main() {
   }
 
   test_status() {
-    // TODO(paulberry): spec says that server.status is not subscribed to by
-    // default, but currently it's behaving as though it is.
-
     // After we kick off analysis, we should get one server.status message with
     // analyzing=true, and another server.status message after that with
     // analyzing=false.
@@ -113,7 +109,7 @@ main() {
 main() {
   var x;
 }''');
-    standardAnalysisRoot();
+    standardAnalysisSetup();
     expect(analysisBegun.isCompleted, isFalse);
     expect(analysisFinished.isCompleted, isFalse);
     return analysisBegun.future.then((_) {

@@ -24,7 +24,7 @@ main() {
 }
 ''';
     writeFile(pathname, text);
-    standardAnalysisRoot();
+    standardAnalysisSetup();
 
     return analysisFinished.then((_) {
       return sendCompletionGetSuggestions(pathname, text.indexOf('test.') +

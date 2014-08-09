@@ -56,6 +56,11 @@ abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
   var serverConnectedParams;
 
   /**
+   * True if we are currently subscribed to [SERVER_STATUS] updates.
+   */
+  bool _subscribedToServerStatus = false;
+
+  /**
    * Write a source file with the given absolute [pathname] and [contents].
    *
    * If the file didn't previously exist, it is created.  If it did, it is
@@ -79,10 +84,17 @@ abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
 
   /**
    * Send the server an 'analysis.setAnalysisRoots' command directing it to
-   * analyze [sourceDirectory].
+   * analyze [sourceDirectory].  If [subscribeStatus] is true (the default),
+   * then also enable [SERVER_STATUS] notifications so that [analysisFinished]
+   * can be used.
    */
-  Future standardAnalysisRoot() {
-    return sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
+  Future standardAnalysisSetup({bool subscribeStatus: true}) {
+    List<Future> futures = <Future>[];
+    if (subscribeStatus) {
+      futures.add(sendServerSetSubscriptions(['STATUS']));
+    }
+    futures.add(sendAnalysisSetAnalysisRoots([sourceDirectory.path], []));
+    return Future.wait(futures);
   }
 
   /**
@@ -97,6 +109,9 @@ abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
   Future get analysisFinished {
     Completer completer = new Completer();
     StreamSubscription subscription;
+    // This will only work if the caller has already subscribed to
+    // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
+    expect(_subscribedToServerStatus, isTrue);
     subscription = server.onNotification(SERVER_STATUS).listen((params) {
       bool analysisComplete = false;
       try {
@@ -120,6 +135,14 @@ abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
    */
   void debugStdio() {
     server.debugStdio();
+  }
+
+  @override
+  Future sendServerSetSubscriptions(List<String> subscriptions, {bool
+      checkTypes: true}) {
+    _subscribedToServerStatus = subscriptions.contains('STATUS');
+    return super.sendServerSetSubscriptions(subscriptions, checkTypes:
+        checkTypes);
   }
 
   /**

@@ -34,6 +34,7 @@ main() {
       context.when(callsTo("performAnalysisTask"))
         ..thenReturn(firstResult, 3)
         ..thenReturn(lastResult);
+      helper.server.serverServices.add(ServerService.STATUS);
       helper.server.schedulePerformAnalysisOperation(context);
       // Pump the event queue to make sure the server has finished any
       // analysis.

@@ -20,7 +20,7 @@ class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest
 main() {
   var x // parse error: missing ';'
 }''');
-    standardAnalysisRoot();
+    standardAnalysisSetup();
     return analysisFinished.then((_) {
       expect(currentAnalysisErrors[pathname], isList);
       List errors = currentAnalysisErrors[pathname];
