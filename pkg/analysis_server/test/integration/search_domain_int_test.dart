@@ -60,7 +60,29 @@ class HierarchyResults {
 @ReflectiveTestCase()
 class SearchDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
     {
-  test_getTypeHierarchy_classElement() {
+  /**
+   * Pathname of the main file to run tests in.
+   */
+  String pathname;
+
+  test_getTypeHierarchy() {
+    pathname = sourcePath('test.dart');
+    // Write a dummy file which will be overridden by tests using
+    // [sendAnalysisUpdateContent].
+    writeFile(pathname, '// dummy');
+    standardAnalysisRoot();
+
+    // Run all the getTypeHierarchy tests at once so that the server can take
+    // advantage of incremental analysis and the test doesn't time out.
+    List tests = [getTypeHierarchy_classElement, getTypeHierarchy_displayName,
+        getTypeHierarchy_memberElement, getTypeHierarchy_superclass,
+        getTypeHierarchy_interfaces, getTypeHierarchy_mixins,
+        getTypeHierarchy_subclasses, getTypeHierarchy_badTarget,
+        getTypeHierarchy_functionTarget];
+    return Future.forEach(tests, (test) => test());
+  }
+
+  Future getTypeHierarchy_classElement() {
     String text =
         r'''
 class Base {}
@@ -88,8 +110,9 @@ class Derived extends Pivot {}
     });
   }
 
-  test_getTypeHierarchy_displayName() {
-    String text = r'''
+  Future getTypeHierarchy_displayName() {
+    String text =
+        r'''
 class Base<T> {}
 class Pivot /* target */ extends Base<int> {}
 ''';
@@ -101,7 +124,7 @@ class Pivot /* target */ extends Base<int> {}
     });
   }
 
-  test_getTypeHierarchy_memberElement() {
+  Future getTypeHierarchy_memberElement() {
     String text =
         r'''
 class Base1 {
@@ -129,7 +152,7 @@ class Derived2 extends Derived1 {
     });
   }
 
-  test_getTypeHierarchy_superclass() {
+  Future getTypeHierarchy_superclass() {
     String text =
         r'''
 class Base1 {}
@@ -148,7 +171,7 @@ class Pivot /* target */ extends Base2 {}
     });
   }
 
-  test_getTypeHierarchy_interfaces() {
+  Future getTypeHierarchy_interfaces() {
     String text =
         r'''
 class Interface1 {}
@@ -168,7 +191,7 @@ class Pivot /* target */ implements Interface1, Interface2 {}
     });
   }
 
-  test_getTypeHierarchy_mixins() {
+  Future getTypeHierarchy_mixins() {
     String text =
         r'''
 class Base {}
@@ -188,7 +211,7 @@ class Pivot /* target */ extends Base with Mixin1, Mixin2 {}
     });
   }
 
-  test_getTypeHierarchy_subclasses() {
+  Future getTypeHierarchy_subclasses() {
     String text =
         r'''
 class Base {}
@@ -213,7 +236,7 @@ class Sub2a extends Sub2 {}
     });
   }
 
-  test_getTypeHierarchy_badTarget() {
+  Future getTypeHierarchy_badTarget() {
     String text =
         r'''
 main() {
@@ -227,9 +250,8 @@ main() {
     });
   }
 
-  test_getTypeHierarchy_functionTarget() {
-    String text =
-        r'''
+  Future getTypeHierarchy_functionTarget() {
+    String text = r'''
 main /* target */ () {
 }
 ''';
@@ -239,10 +261,13 @@ main /* target */ () {
   }
 
   Future<HierarchyResults> typeHierarchyTest(String text) {
-    String pathname = sourcePath('test.dart');
     int offset = text.indexOf(' /* target */') - 1;
-    writeFile(pathname, text);
-    standardAnalysisRoot();
+    sendAnalysisUpdateContent({
+      pathname: {
+        'type': 'add',
+        'content': text
+      }
+    });
     return analysisFinished.then((_) => sendSearchGetTypeHierarchy(pathname,
         offset)).then((result) {
       if (result.isEmpty) {
