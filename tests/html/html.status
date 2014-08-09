@@ -12,6 +12,7 @@ indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 xhr_test/xhr: RuntimeError # Issue 18049
 form_data_test/functional: Skip # Issue 19726
 indexeddb_4_test: Skip # Issue 19726
+mouse_event_test: Fail # Issue 20437
 
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
@@ -443,7 +444,6 @@ wheelevent_test: Fail # http://dartbug.com/12958
 [ $runtime == dartium && ($system == macos || $system == windows || $system == linux)]
 # Desktop operation systems do not support touch events on chrome 34 dartium.
 touchevent_test/supported: Fail
-mouse_event_test: Fail # Issue 20437
 
 [ $compiler == none && $runtime == dartium ]
 async_test: Timeout # Issue 13719: Please triage this failure.
