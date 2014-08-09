@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.computer.toplevel;
+library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
@@ -17,15 +17,17 @@ import 'package:analyzer/src/generated/element.dart';
  * `completion.getSuggestions` request results
  */
 class TopLevelComputer extends CompletionComputer {
-  final SearchEngine searchEngine;
-  final CompilationUnit unit;
 
-  TopLevelComputer(this.searchEngine, this.unit);
+  @override
+  bool computeFast(CompilationUnit unit,
+      List<CompletionSuggestion> suggestions) {
+    // TODO: implement computeFast
+    return false;
+  }
 
-  /**
-   * Computes [CompletionSuggestion]s for the specified position in the source.
-   */
-  Future<List<CompletionSuggestion>> compute() {
+  @override
+  Future<bool> computeFull(CompilationUnit unit,
+      List<CompletionSuggestion> suggestions) {
     var future = searchEngine.searchTopLevelDeclarations('');
     return future.then((List<SearchMatch> matches) {
 
@@ -36,7 +38,6 @@ class TopLevelComputer extends CompletionComputer {
       visibleLibraries.addAll(unitLibrary.importedLibraries);
 
       // Compute the set of possible classes and top level variables
-      var suggestions = new List<CompletionSuggestion>();
       matches.forEach((SearchMatch match) {
         if (match.kind == MatchKind.DECLARATION) {
           Element element = match.element;
@@ -58,8 +59,7 @@ class TopLevelComputer extends CompletionComputer {
           }
         }
       });
-      return suggestions;
+      return true;
     });
   }
-
 }

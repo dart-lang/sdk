@@ -21,25 +21,24 @@ class TopLevelComputerTest extends AbstractCompletionTest {
 
   void addTestUnit(String content) {
     super.addTestUnit(content);
-    computer = new TopLevelComputer(searchEngine, testUnit);
+    computer = new TopLevelComputer();
   }
 
   test_class_1() {
     addUnit('/testA.dart', 'var T1; class A {bool x;} var _T2; class _D { }');
     addUnit('/testB.dart', 'class B {bool y;}');
     addTestUnit('import "/testA.dart"; class C {bool v;^} class _E { }');
-    return compute().then((_) {
-      assertHasResult(CompletionSuggestionKind.CLASS, 'A');
-      assertHasResult(
-          CompletionSuggestionKind.CLASS,
-          'B',
-          CompletionRelevance.LOW);
-      assertHasResult(CompletionSuggestionKind.CLASS, 'C');
+    return computeFull().then((_) {
+      assertClassResult('A');
+      assertClassResult('B', CompletionRelevance.LOW);
+      assertClassResult('C');
       assertNoResult('_D');
-      assertHasResult(CompletionSuggestionKind.CLASS, '_E');
-      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
-      assertHasResult(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, 'T1');
+      assertClassResult('_E');
+      assertClassResult('Object');
+
+      assertTopLevelVarResult('T1');
       assertNoResult('_T2');
+
       assertNoResult('x');
       assertNoResult('y');
       assertNoResult('v');

@@ -20,9 +20,19 @@ import 'package:unittest/unittest.dart';
 class AbstractCompletionTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
-  CompletionComputer computer;
+  CompletionComputer _computer;
   int completionOffset;
   List<CompletionSuggestion> suggestions;
+
+  get computer => _computer;
+
+  set computer(CompletionComputer computer) {
+    _computer = computer
+        ..context = context
+        ..searchEngine = searchEngine
+        ..source = testSource
+        ..offset = completionOffset;
+  }
 
   void addTestUnit(String content) {
     expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
@@ -41,6 +51,11 @@ class AbstractCompletionTest extends AbstractSingleUnitTest {
     CompilationUnit unit = resolveLibraryUnit(source);
     assertNoErrorsInSource(source);
     index.indexUnit(context, unit);
+  }
+
+  void assertClassResult(String className, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertHasResult(CompletionSuggestionKind.CLASS, className, relevance);
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
@@ -65,10 +80,22 @@ class AbstractCompletionTest extends AbstractSingleUnitTest {
     }
   }
 
-  Future compute() {
-    return computer.compute().then((List<CompletionSuggestion> results) {
-      this.suggestions = results;
-    });
+  void assertTopLevelVarResult(String varName, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertHasResult(
+        CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
+        varName,
+        relevance);
+  }
+
+  bool computeFast() {
+    if (suggestions == null) suggestions = [];
+    return computer.computeFast(testUnit, suggestions);
+  }
+
+  Future<bool> computeFull() {
+    if (suggestions == null) suggestions = [];
+    return computer.computeFull(testUnit, suggestions);
   }
 
   @override
