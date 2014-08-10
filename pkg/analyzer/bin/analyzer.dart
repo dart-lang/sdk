@@ -7,6 +7,7 @@
 /** The entry point for the analyzer. */
 library analyzer;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
