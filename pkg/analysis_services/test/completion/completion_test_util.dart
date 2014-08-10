@@ -11,30 +11,31 @@ import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
-import 'package:analysis_testing/abstract_single_unit.dart';
+import 'package:analysis_testing/abstract_context.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
-class AbstractCompletionTest extends AbstractSingleUnitTest {
+class AbstractCompletionTest extends AbstractContextTest {
   Index index;
   SearchEngineImpl searchEngine;
-  CompletionComputer _computer;
+  CompletionComputer computer;
+  String testFile = '/completionTest.dart';
+  Source testSource;
   int completionOffset;
   List<CompletionSuggestion> suggestions;
+  bool _computeFastCalled = false;
 
-  get computer => _computer;
-
-  set computer(CompletionComputer computer) {
-    _computer = computer
-        ..context = context
-        ..searchEngine = searchEngine
-        ..source = testSource
-        ..offset = completionOffset;
+  void addResolvedUnit(String file, String code) {
+    Source source = addSource(file, code);
+    CompilationUnit unit = resolveLibraryUnit(source);
+    index.indexUnit(context, unit);
   }
 
-  void addTestUnit(String content) {
+  void addTestSource(String content) {
     expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
     completionOffset = content.indexOf('^');
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
@@ -42,23 +43,20 @@ class AbstractCompletionTest extends AbstractSingleUnitTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
-    resolveTestUnit(content);
-    index.indexUnit(context, testUnit);
+    testSource = addSource(testFile, content);
   }
 
-  void addUnit(String file, String code) {
-    Source source = addSource(file, code);
-    CompilationUnit unit = resolveLibraryUnit(source);
-    assertNoErrorsInSource(source);
-    index.indexUnit(context, unit);
-  }
-
-  void assertClassResult(String className, [CompletionRelevance relevance =
+  void assertSuggestClass(String className, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
-    assertHasResult(CompletionSuggestionKind.CLASS, className, relevance);
+    assertSuggest(CompletionSuggestionKind.CLASS, className, relevance);
   }
 
-  void assertHasResult(CompletionSuggestionKind kind, String completion,
+  void assertSuggestFunction(String completion, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.FUNCTION, completion, relevance);
+  }
+
+  void assertSuggest(CompletionSuggestionKind kind, String completion,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT, bool isDeprecated
       = false, bool isPotential = false]) {
     var cs =
@@ -74,28 +72,51 @@ class AbstractCompletionTest extends AbstractSingleUnitTest {
     expect(cs.isPotential, equals(isPotential));
   }
 
-  void assertNoResult(String completion) {
+  void assertNotSuggested(String completion) {
     if (suggestions.any((cs) => cs.completion == completion)) {
       fail('did not expect completion: $completion');
     }
   }
 
-  void assertTopLevelVarResult(String varName, [CompletionRelevance relevance =
+  void assertSuggestTopLevelVar(String varName, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
-    assertHasResult(
+    assertSuggest(
         CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
         varName,
         relevance);
   }
 
   bool computeFast() {
-    if (suggestions == null) suggestions = [];
-    return computer.computeFast(testUnit, suggestions);
+    _computeFastCalled = true;
+    computer
+        ..context = context
+        ..searchEngine = searchEngine
+        ..source = testSource
+        ..offset = completionOffset;
+    suggestions = [];
+    CompilationUnit unit = context.parseCompilationUnit(testSource);
+    return computer.computeFast(unit, suggestions);
   }
 
   Future<bool> computeFull() {
-    if (suggestions == null) suggestions = [];
-    return computer.computeFull(testUnit, suggestions);
+    if (!_computeFastCalled) {
+      expect(computeFast(), isFalse);
+    }
+    var result = context.performAnalysisTask();
+    while (result.hasMoreWork) {
+      result.changeNotices.forEach((ChangeNotice notice) {
+        CompilationUnit unit = notice.compilationUnit;
+        if (unit != null) {
+          index.indexUnit(context, unit);
+        }
+      });
+      result = context.performAnalysisTask();
+    }
+    LibraryElement library = context.getLibraryElement(testSource);
+    expect(library, isNotNull);
+    var unit = context.getResolvedCompilationUnit(testSource, library);
+    expect(unit, isNotNull);
+    return computer.computeFull(unit, suggestions);
   }
 
   @override
@@ -103,7 +124,6 @@ class AbstractCompletionTest extends AbstractSingleUnitTest {
     super.setUp();
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
-    verifyNoTestUnitErrors = false;
-    addUnit(MockSdk.LIB_CORE.path, MockSdk.LIB_CORE.content);
+    addResolvedUnit(MockSdk.LIB_CORE.path, MockSdk.LIB_CORE.content);
   }
 }

@@ -19,29 +19,63 @@ main() {
 @ReflectiveTestCase()
 class TopLevelComputerTest extends AbstractCompletionTest {
 
-  void addTestUnit(String content) {
-    super.addTestUnit(content);
+  @override
+  void setUp() {
+    super.setUp();
     computer = new TopLevelComputer();
   }
 
-  test_class_1() {
-    addUnit('/testA.dart', 'var T1; class A {bool x;} var _T2; class _D { }');
-    addUnit('/testB.dart', 'class B {bool y;}');
-    addTestUnit('import "/testA.dart"; class C {bool v;^} class _E { }');
+  test_class() {
+    addSource('/testA.dart', 'class A {int x;} class _B { }');
+    addTestSource('import "/testA.dart"; class C {foo(){^}}');
     return computeFull().then((_) {
-      assertClassResult('A');
-      assertClassResult('B', CompletionRelevance.LOW);
-      assertClassResult('C');
-      assertNoResult('_D');
-      assertClassResult('_E');
-      assertClassResult('Object');
+      assertSuggestClass('A');
+      assertNotSuggested('x');
+      assertNotSuggested('_B');
+    });
+  }
 
-      assertTopLevelVarResult('T1');
-      assertNoResult('_T2');
+  test_class_notImported() {
+    addSource('/testA.dart', 'class A {int x;} class _B { }');
+    addTestSource('class C {foo(){^}}');
+    return computeFull().then((_) {
+      assertSuggestClass('A', CompletionRelevance.LOW);
+      assertNotSuggested('x');
+      assertNotSuggested('_B');
+    });
+  }
 
-      assertNoResult('x');
-      assertNoResult('y');
-      assertNoResult('v');
+  test_dartCore() {
+    addTestSource('class C {foo(){^}}');
+    return computeFull().then((_) {
+      assertSuggestClass('Object');
+      assertNotSuggested('HtmlElement');
+    });
+  }
+
+  test_dartHtml() {
+    addTestSource('import "dart:html"; class C {foo(){^}}');
+    return computeFull().then((_) {
+      assertSuggestClass('Object');
+      assertSuggestClass('HtmlElement');
+    });
+  }
+
+  test_topLevelVar() {
+    addSource('/testA.dart', 'var T1; var _T2;');
+    addTestSource('import "/testA.dart"; class C {foo(){^}}');
+    return computeFull().then((_) {
+      assertSuggestTopLevelVar('T1');
+      assertNotSuggested('_T2');
+    });
+  }
+
+  test_topLevelVar_notImported() {
+    addSource('/testA.dart', 'var T1; var _T2;');
+    addTestSource('class C {foo(){^}}');
+    return computeFull().then((_) {
+      assertSuggestTopLevelVar('T1', CompletionRelevance.LOW);
+      assertNotSuggested('_T2');
     });
   }
 }
