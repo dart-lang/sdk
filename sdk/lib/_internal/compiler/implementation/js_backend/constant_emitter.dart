@@ -326,9 +326,9 @@ class ConstantLiteralEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitInterceptor(InterceptorConstant constant) {
-    return new jsAst.PropertyAccess.field(
+    return new jsAst.New(
         getJsConstructor(constant.dispatchedType.element),
-        'prototype');
+        const []);
   }
 
   jsAst.Expression visitDummy(DummyConstant constant) {
