@@ -7,3 +7,10 @@ library dart2js.optimizers;
 import 'cps_ir_nodes.dart';
 
 part 'redundant_phi.dart';
+part 'shrinking_reductions.dart';
+
+/// An optimization pass over the CPS IR.
+abstract class Pass {
+  /// Applies optimizations to root, rewriting it in the process.
+  void rewrite(FunctionDefinition root);
+}

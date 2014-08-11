@@ -12,7 +12,7 @@ part of dart2js.optimizers;
 /// (except for feedback). Redundant parameters are removed from the
 /// continuation signature, all invocations, and replaced within the
 /// continuation body.
-class RedundantPhiEliminator extends RecursiveVisitor {
+class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
   final Map<Continuation, List<InvokeContinuation>> cont2invokes =
       <Continuation, List<InvokeContinuation>>{};
   // For each reference r used in a continuation invocation i, stores the

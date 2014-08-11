@@ -18,6 +18,9 @@ abstract class Node {
   static int hashCount = 0;
   final int hashCode = hashCount = (hashCount + 1) & 0x3fffffff;
 
+  /// A pointer to the parent node. Is null until set by optimization passes.
+  Node parent;
+
   accept(Visitor visitor);
 }
 
@@ -82,6 +85,9 @@ class Reference {
   Definition definition;
   Reference previous = null;
   Reference next = null;
+
+  /// A pointer to the parent node. Is null until set by optimization passes.
+  Node parent;
 
   Reference(this.definition) {
     next = definition.firstRef;
