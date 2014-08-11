@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_services/src/completion/local_computer.dart';
 
 /**
  * Manages code completion for a given Dart file completion request.
@@ -75,7 +76,7 @@ class DartCompletionManager extends CompletionManager {
    */
   void initComputers() {
     if (computers == null) {
-      computers = [new TopLevelComputer()];
+      computers = [new LocalComputer(), new TopLevelComputer()];
     }
     computers.forEach((CompletionComputer c) {
       c.context = context;

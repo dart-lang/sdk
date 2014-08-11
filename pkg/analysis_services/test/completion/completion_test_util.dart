@@ -46,14 +46,10 @@ class AbstractCompletionTest extends AbstractContextTest {
     testSource = addSource(testFile, content);
   }
 
-  void assertSuggestClass(String className, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.CLASS, className, relevance);
-  }
-
-  void assertSuggestFunction(String completion, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.FUNCTION, completion, relevance);
+  void assertNotSuggested(String completion) {
+    if (suggestions.any((cs) => cs.completion == completion)) {
+      fail('did not expect completion: $completion');
+    }
   }
 
   void assertSuggest(CompletionSuggestionKind kind, String completion,
@@ -72,18 +68,50 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(cs.isPotential, equals(isPotential));
   }
 
-  void assertNotSuggested(String completion) {
-    if (suggestions.any((cs) => cs.completion == completion)) {
-      fail('did not expect completion: $completion');
-    }
+  void assertSuggestClass(String className, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.CLASS, className, relevance);
   }
 
-  void assertSuggestTopLevelVar(String varName, [CompletionRelevance relevance =
+  void assertSuggestField(String completion, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.FIELD, completion, relevance);
+  }
+
+  void assertSuggestFunction(String completion, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.FUNCTION, completion, relevance);
+  }
+
+  void assertSuggestLibraryPrefix(String completion,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    assertSuggest(
+        CompletionSuggestionKind.LIBRARY_PREFIX,
+        completion,
+        relevance);
+  }
+
+  void assertSuggestMethodName(String completion, [CompletionRelevance relevance
+      = CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.METHOD_NAME, completion, relevance);
+  }
+
+  void assertSuggestParameter(String completion, [CompletionRelevance relevance
+      = CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.PARAMETER, completion, relevance);
+  }
+
+  void assertSuggestTopLevelVar(String completion,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     assertSuggest(
         CompletionSuggestionKind.TOP_LEVEL_VARIABLE,
-        varName,
+        completion,
         relevance);
+  }
+
+  void assertSuggestVariable(String completion, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.VARIABLE, completion, relevance);
   }
 
   bool computeFast() {

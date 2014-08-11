@@ -113,7 +113,7 @@ class CompletionTest extends AbstractAnalysisTest {
     handler = new CompletionDomainHandler(server);
   }
 
-  test_suggestions_html() {
+  test_html() {
     testFile = '/project/web/test.html';
     addTestFile('''
       <html>^</html>
@@ -125,7 +125,7 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
-  test_suggestions_importedType() {
+  test_imports() {
     addTestFile('''
       import 'dart:html';
       main() {^}
@@ -139,7 +139,19 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
-  test_suggestions_topLevel() {
+  test_locals() {
+    addTestFile('class A {var a; x() {var b;^}}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.CLASS, 'A');
+      assertHasResult(CompletionSuggestionKind.FIELD, 'a');
+      assertHasResult(CompletionSuggestionKind.VARIABLE, 'b');
+      assertHasResult(CompletionSuggestionKind.METHOD_NAME, 'x');
+    });
+  }
+
+  test_topLevel() {
     addTestFile('''
       typedef foo();
       var test = '';
