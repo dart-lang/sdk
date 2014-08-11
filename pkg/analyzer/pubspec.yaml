@@ -1,5 +1,5 @@
 name: analyzer
-version: 0.22.0
+version: 0.22.0+1
 author: Dart Team <misc@dartlang.org>
 description: Static analyzer for Dart.
 homepage: http://www.dartlang.org

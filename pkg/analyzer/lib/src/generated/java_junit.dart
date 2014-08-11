@@ -25,6 +25,9 @@ class JUnitTestCase {
   static void assertNull(x) {
     expect(x, isNull);
   }
+  static void assertNullMsg(String msg, x) {
+    expect(x, isNullMsg(msg));
+  }
   static void assertNotNull(x) {
     expect(x, isNotNull);
   }
@@ -110,6 +113,18 @@ class _IsFalseWithMessage extends Matcher {
   const _IsFalseWithMessage(this.msg);
   bool matches(item, Map matchState) {
     return item == false;
+  }
+  Description describe(Description mismatchDescription) {
+    return mismatchDescription.replace(msg);
+  }
+}
+
+Matcher isNullMsg(String msg) => new _IsNullWithMessage(msg);
+class _IsNullWithMessage extends Matcher {
+  final String msg;
+  const _IsNullWithMessage(this.msg);
+  bool matches(item, Map matchState) {
+    return item == null;
   }
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);

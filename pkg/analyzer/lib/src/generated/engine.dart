@@ -1037,14 +1037,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           DartEntryImpl dartCopy = dartEntry.writableCopy;
           dartCopy.invalidateAllResolutionInformation(false);
           _cache.put(source, dartCopy);
-          SourcePriority priority = SourcePriority.UNKNOWN;
-          SourceKind kind = dartCopy.kind;
-          if (kind == SourceKind.LIBRARY) {
-            priority = SourcePriority.LIBRARY;
-          } else if (kind == SourceKind.PART) {
-            priority = SourcePriority.NORMAL_PART;
-          }
-          _workManager.add(source, priority);
+          _workManager.add(source, _computePriority(dartCopy));
         } else if (entry is HtmlEntry) {
           HtmlEntry htmlEntry = entry;
           HtmlEntryImpl htmlCopy = htmlEntry.writableCopy;
@@ -2544,6 +2537,23 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Compute the priority that should be used when the source associated with the given entry is
+   * added to the work manager.
+   *
+   * @param dartEntry the entry associated with the source
+   * @return the priority that was computed
+   */
+  SourcePriority _computePriority(DartEntry dartEntry) {
+    SourceKind kind = dartEntry.kind;
+    if (kind == SourceKind.LIBRARY) {
+      return SourcePriority.LIBRARY;
+    } else if (kind == SourceKind.PART) {
+      return SourcePriority.NORMAL_PART;
+    }
+    return SourcePriority.UNKNOWN;
+  }
+
+  /**
    * Given the encoded form of a source, use the source factory to reconstitute the original source.
    *
    * @param encoding the encoded form of a source
@@ -3254,25 +3264,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     //
     List<Source> sourcesToRemove = new List<Source>();
     WorkManager_WorkIterator sources = _workManager.iterator();
-    while (sources.hasNext) {
-      Source source = sources.next();
-      AnalysisContextImpl_TaskData taskData = _getNextAnalysisTaskForSource(source, _cache.get(source), false, hintsEnabled);
-      AnalysisTask task = taskData.task;
-      if (task != null) {
-        int count = sourcesToRemove.length;
-        for (int i = 0; i < count; i++) {
-          _workManager.remove(sourcesToRemove[i]);
+    try {
+      while (sources.hasNext) {
+        Source source = sources.next();
+        AnalysisContextImpl_TaskData taskData = _getNextAnalysisTaskForSource(source, _cache.get(source), false, hintsEnabled);
+        AnalysisTask task = taskData.task;
+        if (task != null) {
+          return task;
+        } else if (taskData.isBlocked) {
+          hasBlockedTask = true;
+        } else {
+          sourcesToRemove.add(source);
         }
-        return task;
-      } else if (taskData.isBlocked) {
-        hasBlockedTask = true;
-      } else {
-        sourcesToRemove.add(source);
       }
-    }
-    int count = sourcesToRemove.length;
-    for (int i = 0; i < count; i++) {
-      _workManager.remove(sourcesToRemove[i]);
+    } finally {
+      int count = sourcesToRemove.length;
+      for (int i = 0; i < count; i++) {
+        _workManager.remove(sourcesToRemove[i]);
+      }
     }
     //      //
     //      // Look for a non-priority source that needs to be analyzed and was missed by the loop above.
@@ -3308,13 +3317,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisContextImpl_TaskData _getNextAnalysisTaskForSource(Source source, SourceEntry sourceEntry, bool isPriority, bool hintsEnabled) {
     // Refuse to generate tasks for html based files that are above 1500 KB
-//    if (sourceEntry is HtmlEntryImpl && source is FileBasedSource) {
-//      // TODO (jwren) we still need to report an error of some kind back to the client.
-//      JavaFile file = (source as FileBasedSource).file;
-//      if (file.length() > (1500 * 1024)) {
-//        return new AnalysisContextImpl_TaskData(null, false);
-//      }
-//    }
+    if (_isTooBigHtmlSourceEntry(source, sourceEntry)) {
+      // TODO (jwren) we still need to report an error of some kind back to the client.
+      return new AnalysisContextImpl_TaskData(null, false);
+    }
     if (sourceEntry == null) {
       return new AnalysisContextImpl_TaskData(null, false);
     }
@@ -3681,8 +3687,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    *
    * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    *
-   * @param invalidateUris true if the cached results of converting URIs to source files should also
-   *          be invalidated.
+   * @param invalidateUris `true` if the cached results of converting URIs to source files
+   *          should also be invalidated.
    */
   void _invalidateAllLocalResolutionInformation(bool invalidateUris) {
     HashMap<Source, List<Source>> oldPartMap = new HashMap<Source, List<Source>>();
@@ -3694,13 +3700,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         HtmlEntryImpl htmlCopy = sourceEntry.writableCopy;
         htmlCopy.invalidateAllResolutionInformation(invalidateUris);
         iterator.value = htmlCopy;
+        _workManager.add(source, SourcePriority.HTML);
       } else if (sourceEntry is DartEntry) {
         DartEntry dartEntry = sourceEntry;
         oldPartMap[source] = dartEntry.getValue(DartEntry.INCLUDED_PARTS);
         DartEntryImpl dartCopy = dartEntry.writableCopy;
         dartCopy.invalidateAllResolutionInformation(invalidateUris);
         iterator.value = dartCopy;
-        _workManager.add(source, SourcePriority.UNKNOWN);
+        _workManager.add(source, _computePriority(dartCopy));
       }
     }
     _removeFromPartsUsingMap(oldPartMap);
@@ -3828,6 +3835,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return false;
   }
+
+  bool _isTooBigHtmlSourceEntry(Source source, SourceEntry sourceEntry) => false;
 
   /**
    * Log the given debugging information.
@@ -4932,7 +4941,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValue(DartEntry.TOKEN_STREAM, task.tokenStream);
         dartCopy.setValue(DartEntry.SCAN_ERRORS, task.errors);
         _cache.storedAst(source);
-        _workManager.add(source, SourcePriority.NORMAL_PART);
         ChangeNoticeImpl notice = _getNotice(source);
         notice.setErrors(dartEntry.allErrors, lineInfo);
       } else {
@@ -5066,8 +5074,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (sourceEntry is HtmlEntry) {
       _workManager.add(source, SourcePriority.HTML);
-    } else {
-      _workManager.add(source, SourcePriority.UNKNOWN);
+    } else if (sourceEntry is DartEntry) {
+      _workManager.add(source, _computePriority(sourceEntry as DartEntry));
     }
     return sourceEntry is DartEntry;
   }
@@ -5595,9 +5603,6 @@ class AnalysisContextImpl_CycleBuilder {
    * @return the library object that was created
    */
   ResolvableLibrary _createLibraryOrNull(Source librarySource) {
-    if (!AnalysisContextImpl_this.exists(librarySource)) {
-      return null;
-    }
     ResolvableLibrary library = new ResolvableLibrary(librarySource);
     SourceEntry sourceEntry = AnalysisContextImpl_this._cache.get(librarySource);
     if (sourceEntry is DartEntry) {
@@ -12659,7 +12664,7 @@ abstract class Logger {
    * @param message an explanation of why the error occurred or what it means
    * @param exception the exception being logged
    */
-  void logError2(String message, exception);
+  void logError2(String message, Exception exception);
 
   /**
    * Log the given informational message.
@@ -12687,7 +12692,7 @@ class Logger_NullLogger implements Logger {
   }
 
   @override
-  void logError2(String message, exception) {
+  void logError2(String message, Exception exception) {
   }
 
   @override
@@ -12695,7 +12700,7 @@ class Logger_NullLogger implements Logger {
   }
 
   @override
-  void logInformation2(String message, exception) {
+  void logInformation2(String message, Exception exception) {
   }
 }
 
@@ -15439,7 +15444,7 @@ abstract class SourceEntryImpl implements SourceEntry {
       InstrumentationBuilder builder = Instrumentation.builder2("SourceEntryImpl-checkContentState");
       builder.data3("message", "contentState changing from ${_contentState} to ${newState}");
       //builder.data("source", source.getFullName());
-      builder.record(new AnalysisException());
+      builder.record(new CaughtException(new AnalysisException(), null));
       builder.log();
     }
     return newState;
