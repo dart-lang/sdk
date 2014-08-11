@@ -120,7 +120,7 @@ class AbstractCompletionTest extends AbstractContextTest {
 
   void assertSuggestVariable(String completion, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.VARIABLE, completion, relevance);
+    assertSuggest(CompletionSuggestionKind.LOCAL_VARIABLE, completion, relevance);
   }
 
   bool computeFast() {

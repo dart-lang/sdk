@@ -44,6 +44,8 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     return computeFull().then((_) {
       // do not suggest types imported with prefix
       assertNotSuggested('A');
+      // do not suggest prefix as it is suggested by LocalComputer
+      assertNotSuggested('foo');
     });
   }
 

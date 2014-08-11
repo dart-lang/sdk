@@ -161,7 +161,7 @@ class CompletionEngine {
     VariableDeclarationList varList = varDecl.parent as VariableDeclarationList;
     TypeName type = varList.type;
     if (identifier.length > 0) {
-      _pName3(identifier.name, CompletionSuggestionKind.VARIABLE);
+      _pName3(identifier.name, CompletionSuggestionKind.LOCAL_VARIABLE);
     }
     if (type == null) {
       if (varList.keyword == null) {
@@ -1021,7 +1021,7 @@ class CompletionEngine {
   }
 
   void _pDynamic() {
-    _pWord(_C_DYNAMIC, CompletionSuggestionKind.VARIABLE);
+    _pWord(_C_DYNAMIC, CompletionSuggestionKind.LOCAL_VARIABLE);
   }
 
   void _pExecutable(Element element, FunctionType functionType, SimpleIdentifier identifier, bool isPotentialMatch) {
@@ -1088,7 +1088,7 @@ class CompletionEngine {
   }
 
   void _pFalse() {
-    _pWord(_C_FALSE, CompletionSuggestionKind.VARIABLE);
+    _pWord(_C_FALSE, CompletionSuggestionKind.LOCAL_VARIABLE);
   }
 
   void _pField(FieldElement element, SimpleIdentifier identifier, ClassElement classElement) {
@@ -1177,7 +1177,7 @@ class CompletionEngine {
   }
 
   void _pNull() {
-    _pWord(_C_NULL, CompletionSuggestionKind.VARIABLE);
+    _pWord(_C_NULL, CompletionSuggestionKind.LOCAL_VARIABLE);
   }
 
   void _pParamName(String name) {
@@ -1217,7 +1217,7 @@ class CompletionEngine {
       } else if (element.kind == ElementKind.TYPE_PARAMETER) {
         kind = CompletionSuggestionKind.TYPE_PARAMETER;
       } else if (element.kind == ElementKind.LOCAL_VARIABLE || element.kind == ElementKind.TOP_LEVEL_VARIABLE) {
-        kind = CompletionSuggestionKind.VARIABLE;
+        kind = CompletionSuggestionKind.LOCAL_VARIABLE;
       } else {
         throw new IllegalArgumentException();
       }
@@ -1279,15 +1279,15 @@ class CompletionEngine {
   }
 
   void _pTrue() {
-    _pWord(_C_TRUE, CompletionSuggestionKind.VARIABLE);
+    _pWord(_C_TRUE, CompletionSuggestionKind.LOCAL_VARIABLE);
   }
 
   void _pVar() {
-    _pWord(_C_VAR, CompletionSuggestionKind.VARIABLE);
+    _pWord(_C_VAR, CompletionSuggestionKind.LOCAL_VARIABLE);
   }
 
   void _pVoid() {
-    _pWord(_C_VOID, CompletionSuggestionKind.VARIABLE);
+    _pWord(_C_VOID, CompletionSuggestionKind.LOCAL_VARIABLE);
   }
 
   void _pWord(String word, CompletionSuggestionKind kind) {

@@ -87,7 +87,9 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
         } else if (stmt is VariableDeclarationStatement) {
           stmt.variables.variables.forEach((VariableDeclaration varDecl) {
             if (varDecl.end < offset) {
-              addSuggestion(varDecl.name, CompletionSuggestionKind.VARIABLE);
+              addSuggestion(
+                  varDecl.name,
+                  CompletionSuggestionKind.LOCAL_VARIABLE);
             }
           });
         }
@@ -143,12 +145,12 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   visitForEachStatement(ForEachStatement node) {
-    addSuggestion(node.identifier, CompletionSuggestionKind.VARIABLE);
+    addSuggestion(node.identifier, CompletionSuggestionKind.LOCAL_VARIABLE);
     visitNode(node);
   }
 
   visitForStatement(ForStatement node) {
-    addSuggestions(node.variables, CompletionSuggestionKind.VARIABLE);
+    addSuggestions(node.variables, CompletionSuggestionKind.LOCAL_VARIABLE);
     visitNode(node);
   }
 
