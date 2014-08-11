@@ -55,11 +55,20 @@ class AbstractCompletionTest extends AbstractContextTest {
   void assertSuggest(CompletionSuggestionKind kind, String completion,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT, bool isDeprecated
       = false, bool isPotential = false]) {
-    var cs =
-        suggestions.firstWhere((cs) => cs.completion == completion, orElse: () {
+    var cs;
+    suggestions.forEach((s) {
+      if (s.completion == completion) {
+        if (cs == null) {
+          cs = s;
+        } else {
+          fail('expected exactly one $completion but found > 1');
+        }
+      }
+    });
+    if (cs == null) {
       var completions = suggestions.map((s) => s.completion).toList();
       fail('expected "$completion" but found\n $completions');
-    });
+    }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
     expect(cs.selectionOffset, equals(completion.length));

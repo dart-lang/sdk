@@ -153,7 +153,8 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
-    addSuggestion(node.name, CompletionSuggestionKind.FUNCTION);
+    // This is added by the compilation unit containing it
+    //addSuggestion(node.name, CompletionSuggestionKind.FUNCTION);
     visitNode(node);
   }
 

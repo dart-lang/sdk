@@ -72,10 +72,11 @@ class LocalComputerTest extends AbstractCompletionTest {
   }
 
   test_function() {
-    addTestSource('main(args) {^}');
+    addTestSource('main(args) {x.then((b) {^});}');
     expect(computeFast(), isTrue);
     assertSuggestFunction('main');
     assertSuggestParameter('args');
+    assertSuggestParameter('b');
   }
 
   test_members() {
