@@ -15,7 +15,6 @@ import '../tracer.dart';
 const bool IR_TRACE_LET_CONT = false;
 
 class IRTracer extends TracerUtil implements cps_ir.Visitor {
-  int indent = 0;
   EventSink<String> output;
 
   IRTracer(this.output);

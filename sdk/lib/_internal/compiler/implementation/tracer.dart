@@ -12,6 +12,7 @@ import 'cps_ir/cps_ir_nodes.dart' as cps_ir;
 import 'cps_ir/cps_ir_tracer.dart' show IRTracer;
 import 'dart_backend/tree_ir_nodes.dart' as tree_ir;
 import 'dart_backend/tree_ir_tracer.dart' show TreeTracer;
+import 'util/util.dart' show Indentation;
 import 'dart2jslib.dart';
 
 /**
@@ -74,15 +75,12 @@ class Tracer extends TracerUtil {
 
 
 abstract class TracerUtil {
-  int indent = 0;
   EventSink<String> get output;
-
+  final Indentation _ind = new Indentation();
 
   void tag(String tagName, Function f) {
     println("begin_$tagName");
-    indent++;
-    f();
-    indent--;
+    _ind.indentBlock(f);
     println("end_$tagName");
   }
 
@@ -117,8 +115,6 @@ abstract class TracerUtil {
   }
 
   void addIndent() {
-    for (int i = 0; i < indent; i++) {
-      add("  ");
-    }
+    add(_ind.indentation);
   }
 }

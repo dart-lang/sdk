@@ -4,30 +4,11 @@
 
 library dart2js.ir_nodes_sexpr;
 
+import '../util/util.dart';
 import 'cps_ir_nodes.dart';
 
-/// Mixin utility class implementing string basic indentation.
-abstract class IndentationMixin {
-  /// The current indentation. Example usage:
-  ///     print("${__}Indented string");
-  String __ = "";
-
-  /// The indentation unit, defaulting to two spaces. May be overwritten.
-  String _indentUnit = "  ";
-
-  /// Calls [f] with one more indentation level, restoring indentation context
-  /// upon return of [f] and returning its result.
-  dynamic _indent(Function f) {
-    String prevIndent = __;
-    __ += _indentUnit;
-    var result = f();
-    __ = prevIndent;
-    return result;
-  }
-}
-
 /// Generate a Lisp-like S-expression representation of an IR node as a string.
-class SExpressionStringifier extends Visitor<String> with IndentationMixin {
+class SExpressionStringifier extends Visitor<String> with Indentation {
   final Map<Definition, String> names = <Definition, String>{};
 
   int _valueCounter = 0;
@@ -46,8 +27,8 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
           return name;
         })
         .join(' ');
-    String body = _indent(() => visit(node.body));
-    return '$__(FunctionDefinition $name ($parameters return)\n' +
+    String body = indentBlock(() => visit(node.body));
+    return '$indentation(FunctionDefinition $name ($parameters return)\n' +
                  '$body)';
   }
 
@@ -56,7 +37,7 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
     names[node.primitive] = name;
     String value = visit(node.primitive);
     String body = visit(node.body);
-    return '$__(LetPrim $name $value)\n$body';
+    return '$indentation(LetPrim $name $value)\n$body';
   }
 
   String visitLetCont(LetCont node) {
@@ -69,10 +50,10 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
           return ' $name';
         })
        .join('');
-    String contBody = _indent(() => visit(node.continuation.body));
+    String contBody = indentBlock(() => visit(node.continuation.body));
     String body = visit(node.body);
     String op = node.continuation.isRecursive ? 'LetCont*' : 'LetCont';
-    return '$__($op ($cont$parameters)\n' +
+    return '$indentation($op ($cont$parameters)\n' +
                '$contBody)\n' +
            '$body';
   }
@@ -94,7 +75,7 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
     String name = node.target.name;
     String cont = names[node.continuation.definition];
     String args = formatArguments(node);
-    return '$__(InvokeStatic $name $args $cont)';
+    return '$indentation(InvokeStatic $name $args $cont)';
   }
 
   String visitInvokeMethod(InvokeMethod node) {
@@ -102,14 +83,14 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
     String rcv = names[node.receiver.definition];
     String cont = names[node.continuation.definition];
     String args = formatArguments(node);
-    return '$__(InvokeMethod $rcv $name $args $cont)';
+    return '$indentation(InvokeMethod $rcv $name $args $cont)';
   }
 
   String visitInvokeSuperMethod(InvokeSuperMethod node) {
     String name = node.selector.name;
     String cont = names[node.continuation.definition];
     String args = formatArguments(node);
-    return '$__(InvokeSuperMethod $name $args $cont)';
+    return '$indentation(InvokeSuperMethod $name $args $cont)';
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {
@@ -121,13 +102,13 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
     }
     String cont = names[node.continuation.definition];
     String args = formatArguments(node);
-    return '$__(InvokeConstructor $callName $args $cont)';
+    return '$indentation(InvokeConstructor $callName $args $cont)';
   }
 
   String visitConcatenateStrings(ConcatenateStrings node) {
     String cont = names[node.continuation.definition];
     String args = node.arguments.map((v) => names[v.definition]).join(' ');
-    return '$__(ConcatenateStrings $args $cont)';
+    return '$indentation(ConcatenateStrings $args $cont)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
@@ -135,14 +116,14 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
     String args = node.arguments.map((v) => names[v.definition]).join(' ');
     String op =
         node.isRecursive ? 'InvokeContinuation*' : 'InvokeContinuation';
-    return '$__($op $cont $args)';
+    return '$indentation($op $cont $args)';
   }
 
   String visitBranch(Branch node) {
     String condition = visit(node.condition);
     String trueCont = names[node.trueContinuation.definition];
     String falseCont = names[node.falseContinuation.definition];
-    return '$__(Branch $condition $trueCont $falseCont)';
+    return '$indentation(Branch $condition $trueCont $falseCont)';
   }
 
   String visitConstant(Constant node) {
@@ -154,11 +135,11 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
   }
 
   String visitReifyTypeVar(ReifyTypeVar node) {
-    return '$__(ReifyTypeVar ${node.typeVariable.name})';
+    return '$indentation(ReifyTypeVar ${node.typeVariable.name})';
   }
 
   String visitCreateFunction(CreateFunction node) {
-    String function = _indent(() => visit(node.definition));
+    String function = indentBlock(() => visit(node.definition));
     return '(CreateFunction\n$function)';
   }
 
@@ -178,15 +159,16 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
 
   String visitSetClosureVariable(SetClosureVariable node) {
     String value = names[node.value.definition];
-    String body = _indent(() => visit(node.body));
-    return '$__(SetClosureVariable ${node.variable.name} $value\n' +
+    String body = indentBlock(() => visit(node.body));
+    return '$indentation(SetClosureVariable ${node.variable.name} $value\n' +
                 '$body)';
   }
 
   String visitTypeOperator(TypeOperator node) {
     String receiver = names[node.receiver.definition];
     String cont = names[node.continuation.definition];
-    return '$__(TypeOperator ${node.operator} $receiver ${node.type} $cont)';
+    return '$indentation(TypeOperator ${node.operator} $receiver ' +
+                        '${node.type} $cont)';
   }
 
   String visitLiteralList(LiteralList node) {
@@ -201,9 +183,9 @@ class SExpressionStringifier extends Visitor<String> with IndentationMixin {
   }
 
   String visitDeclareFunction(DeclareFunction node) {
-    String function = _indent(() => visit(node.definition));
-    String body = _indent(() => visit(node.body));
-    return '$__(DeclareFunction ${node.variable.name} =\n' +
+    String function = indentBlock(() => visit(node.definition));
+    String body = indentBlock(() => visit(node.body));
+    return '$indentation(DeclareFunction ${node.variable.name} =\n' +
                 '$function in\n' +
                 '$body)';
   }
