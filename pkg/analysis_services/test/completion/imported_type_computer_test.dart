@@ -5,7 +5,7 @@
 library test.services.completion.toplevel;
 
 import 'package:analysis_services/completion/completion_suggestion.dart';
-import 'package:analysis_services/src/completion/top_level_computer.dart';
+import 'package:analysis_services/src/completion/imported_type_computer.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -13,16 +13,16 @@ import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(TopLevelComputerTest);
+  runReflectiveTests(ImportedTypeComputerTest);
 }
 
 @ReflectiveTestCase()
-class TopLevelComputerTest extends AbstractCompletionTest {
+class ImportedTypeComputerTest extends AbstractCompletionTest {
 
   @override
   void setUp() {
     super.setUp();
-    computer = new TopLevelComputer();
+    computer = new ImportedTypeComputer();
   }
 
   test_class() {
@@ -32,6 +32,18 @@ class TopLevelComputerTest extends AbstractCompletionTest {
       assertSuggestClass('A');
       assertNotSuggested('x');
       assertNotSuggested('_B');
+      // Should not suggest compilation unit elements
+      // which are returned by the LocalComputer
+      assertNotSuggested('C');
+    });
+  }
+
+  test_class_importedWithPrefix() {
+    addSource('/testA.dart', 'class A { }');
+    addTestSource('import "/testA.dart" as foo; class C {foo(){^}}');
+    return computeFull().then((_) {
+      // do not suggest types imported with prefix
+      assertNotSuggested('A');
     });
   }
 

@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/search/search_engine.dart';
-import 'package:analysis_services/src/completion/top_level_computer.dart';
+import 'package:analysis_services/src/completion/imported_type_computer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -76,7 +76,7 @@ class DartCompletionManager extends CompletionManager {
    */
   void initComputers() {
     if (computers == null) {
-      computers = [new LocalComputer(), new TopLevelComputer()];
+      computers = [new LocalComputer(), new ImportedTypeComputer()];
     }
     computers.forEach((CompletionComputer c) {
       c.context = context;

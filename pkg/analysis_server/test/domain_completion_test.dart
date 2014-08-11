@@ -139,6 +139,21 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_imports_prefixed() {
+    addTestFile('''
+      import 'dart:html' as foo;
+      main() {^}
+    ''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
+      assertHasResult(CompletionSuggestionKind.LIBRARY_PREFIX, 'foo');
+      assertNoResult('HtmlElement');
+      assertNoResult('test');
+    });
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}}');
     return getSuggestions().then((_) {
