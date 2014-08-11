@@ -27,7 +27,3 @@ samples/third_party/angular_todo: Fail # Issue 16356
 
 [ $system == windows ]
 samples/third_party/todomvc_performance: Fail # Issue 18086
-
-[ $use_public_packages && $builder_tag == russian && $system == windows]
-pkg/code_transformers: Fail # Issue 20386
-pkg/polymer_expressions: Fail # Issue 20386
