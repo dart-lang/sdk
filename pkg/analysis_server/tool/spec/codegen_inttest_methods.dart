@@ -25,6 +25,17 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
    */
   final ToHtmlVisitor toHtmlVisitor;
 
+  /**
+   * Code snippets concatenated to initialize all of the class fields.
+   */
+  List<String> fieldInitializationCode = <String>[];
+
+  /**
+   * Code snippets concatenated to produce the contents of the switch statement
+   * for dispatching notifications.
+   */
+  List<String> notificationSwitchContents = <String>[];
+
   CodegenInttestMethodsVisitor(Api api)
       : super(api),
         toHtmlVisitor = new ToHtmlVisitor(api);
@@ -52,8 +63,68 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
     indent(() {
       writeln('Server get server;');
       super.visitApi();
+      writeln();
+      docComment(toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.writeln('Initialize the fields in InttestMixin, and');
+        toHtmlVisitor.writeln('ensure that notifications will be handled.');
+      }), false);
+      writeln('void initializeInttestMixin() {');
+      indent(() {
+        write(fieldInitializationCode.join());
+      });
+      writeln('}');
+      writeln();
+      docComment(toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.writeln('Dispatch the notification named [event], and');
+        toHtmlVisitor.writeln('containing parameters [params], to the');
+        toHtmlVisitor.writeln('appropriate stream.');
+      }), false);
+      writeln('void dispatchNotification(String event, params) {');
+      indent(() {
+        writeln('switch (event) {');
+        indent(() {
+          write(notificationSwitchContents.join());
+          writeln('default:');
+          indent(() {
+            writeln("fail('Unexpected notification: \$event');");
+            writeln('break;');
+          });
+        });
+        writeln('}');
+      });
+      writeln('}');
     });
     writeln('}');
+  }
+
+  @override
+  visitNotification(Notification notification) {
+    String streamName = camelJoin(['on', notification.domainName, notification.event]);
+    writeln();
+    docComment(toHtmlVisitor.collectHtml(() {
+      toHtmlVisitor.translateHtml(notification.html);
+      toHtmlVisitor.describePayload(notification.params, 'Parameters');
+    }), false);
+    writeln('Stream $streamName;');
+    writeln();
+    docComment(toHtmlVisitor.collectHtml(() {
+      toHtmlVisitor.write('Stream controller for [$streamName].');
+    }), false);
+    writeln('StreamController _$streamName;');
+    fieldInitializationCode.add(collectCode(() {
+      writeln('_$streamName = new StreamController(sync: true);');
+      writeln('$streamName = _$streamName.stream.asBroadcastStream();');
+    }));
+    notificationSwitchContents.add(collectCode(() {
+      writeln('case ${JSON.encode(notification.longEvent)}:');
+      indent(() {
+        String paramsValidator = camelJoin(['is', notification.domainName,
+            notification.event, 'params']);
+        writeln('expect(params, $paramsValidator);');
+        writeln('_$streamName.add(params);');
+        writeln('break;');
+      });
+    }));
   }
 
   @override

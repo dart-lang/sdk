@@ -60,6 +60,10 @@ abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
    */
   bool _subscribedToServerStatus = false;
 
+  AbstractAnalysisServerIntegrationTest() {
+    initializeInttestMixin();
+  }
+
   /**
    * Write a source file with the given absolute [pathname] and [contents].
    *
@@ -112,7 +116,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
     expect(_subscribedToServerStatus, isTrue);
-    subscription = server.onNotification(SERVER_STATUS).listen((params) {
+    subscription = onServerStatus.listen((params) {
       bool analysisComplete = false;
       try {
         analysisComplete = !params['analysis']['analyzing'];
@@ -152,17 +156,15 @@ abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
   Future setUp() {
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
 
-    server.onNotification(ANALYSIS_ERRORS).listen((params) {
-      expect(params, isMap);
-      expect(params['file'], isString);
+    onAnalysisErrors.listen((params) {
       currentAnalysisErrors[params['file']] = params['errors'];
     });
     Completer serverConnected = new Completer();
-    server.onNotification(SERVER_CONNECTED).listen((_) {
+    onServerConnected.listen((_) {
       expect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return server.start().then((params) {
+    return server.start(dispatchNotification).then((params) {
       serverConnectedParams = params;
       server.exitCode.then((_) {
         skipShutdown = true;
@@ -492,6 +494,11 @@ Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) => new _MapOf(
     keyMatcher, valueMatcher);
 
 /**
+ * Type of callbacks used to process notifications.
+ */
+typedef void NotificationProcessor(String event, params);
+
+/**
  * Instances of the class [Server] manage a connection to a server process, and
  * facilitate communication to and from the server.
  */
@@ -515,18 +522,9 @@ class Server {
   int _nextId = 0;
 
   /**
-   * [StreamController]s to which notifications should be sent, organized by
-   * event type.
+   * [StreamController] to which notifications will be sent.
    */
-  final HashMap<String, StreamController> _notificationControllers =
-      new HashMap<String, StreamController>();
-
-  /**
-   * [Stream]s associated with the controllers in [_notificationControllers],
-   * but converted to broadcast streams.
-   */
-  final HashMap<String, Stream> _notificationStreams = new HashMap<String,
-      Stream>();
+  final StreamController _notifications = new StreamController();
 
   /**
    * Messages which have been exchanged with the server; we buffer these
@@ -552,26 +550,11 @@ class Server {
   Stopwatch _time = new Stopwatch();
 
   /**
-   * Get a stream which will receive notifications of the given event type.
-   * The values delivered to the stream will be the contents of the 'params'
-   * field of the notification message.
-   */
-  Stream onNotification(String event) {
-    Stream notificationStream = _notificationStreams[event];
-    if (notificationStream == null) {
-      StreamController notificationController = new StreamController();
-      _notificationControllers[event] = notificationController;
-      notificationStream = notificationController.stream.asBroadcastStream();
-      _notificationStreams[event] = notificationStream;
-    }
-    return notificationStream;
-  }
-
-  /**
    * Start the server.  If [debugServer] is true, the server will be started
    * with "--debug", allowing a debugger to be attached.
    */
-  Future start({bool debugServer: false}) {
+  Future start(NotificationProcessor notificationProcessor, {bool debugServer:
+      false}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
@@ -632,12 +615,7 @@ class Server {
           // params.
           expect(messageAsMap, contains('event'));
           expect(messageAsMap['event'], isString);
-          String event = messageAsMap['event'];
-          StreamController notificationController =
-              _notificationControllers[event];
-          if (notificationController != null) {
-            notificationController.add(messageAsMap['params']);
-          }
+          notificationProcessor(messageAsMap['event'], messageAsMap['params']);
           // Check that the message is well-formed.  We do this after calling
           // notificationController.add() so that we don't stall the test in the
           // event of an error.

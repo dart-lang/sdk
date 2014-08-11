@@ -6,12 +6,10 @@ library test.integration.server.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_tests.dart';
-import 'protocol_matchers.dart';
 
 @ReflectiveTestCase()
 class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
@@ -35,10 +33,10 @@ class ServerDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
   test_setSubscriptions() {
     bool statusReceived = false;
     Completer analysisBegun = new Completer();
-    server.onNotification(SERVER_STATUS).listen((_) {
+    onServerStatus.listen((_) {
       statusReceived = true;
     });
-    server.onNotification(ANALYSIS_ERRORS).listen((_) {
+    onAnalysisErrors.listen((_) {
       if (!analysisBegun.isCompleted) {
         analysisBegun.complete();
       }
@@ -93,8 +91,7 @@ main() {
     // analyzing=false.
     Completer analysisBegun = new Completer();
     Completer analysisFinished = new Completer();
-    server.onNotification(SERVER_STATUS).listen((params) {
-      expect(params, isServerStatusParams);
+    onServerStatus.listen((params) {
       if (params['analysis'] != null) {
         if (params['analysis']['analyzing']) {
           expect(analysisBegun.isCompleted, isFalse);

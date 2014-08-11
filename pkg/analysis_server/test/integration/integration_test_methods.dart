@@ -91,6 +91,74 @@ abstract class InttestMixin {
   }
 
   /**
+   * Reports that the server is running. This notification is issued once after
+   * the server has started running but before any requests are processed to
+   * let the client know that it started correctly.
+   *
+   * It is not possible to subscribe to or unsubscribe from this notification.
+   */
+  Stream onServerConnected;
+
+  /**
+   * Stream controller for [onServerConnected].
+   */
+  StreamController _onServerConnected;
+
+  /**
+   * Reports that an unexpected error has occurred while executing the server.
+   * This notification is not used for problems with specific requests (which
+   * are returned as part of the response) but is used for exceptions that
+   * occur while performing other tasks, such as analysis or preparing
+   * notifications.
+   *
+   * It is not possible to subscribe to or unsubscribe from this notification.
+   *
+   * Parameters
+   *
+   * fatal ( bool )
+   *
+   *   True if the error is a fatal error, meaning that the server will
+   *   shutdown automatically after sending this notification.
+   *
+   * message ( String )
+   *
+   *   The error message indicating what kind of error was encountered.
+   *
+   * stackTrace ( String )
+   *
+   *   The stack trace associated with the generation of the error, used for
+   *   debugging the server.
+   */
+  Stream onServerError;
+
+  /**
+   * Stream controller for [onServerError].
+   */
+  StreamController _onServerError;
+
+  /**
+   * Reports the current status of the server. Parameters are omitted if there
+   * has been no change in the status represented by that parameter.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "STATUS" in the list of services passed in a
+   * server.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * analysis ( optional AnalysisStatus )
+   *
+   *   The current status of analysis, including whether analysis is being
+   *   performed and if so what is being analyzed.
+   */
+  Stream onServerStatus;
+
+  /**
+   * Stream controller for [onServerStatus].
+   */
+  StreamController _onServerStatus;
+
+  /**
    * Return the errors associated with the given file. If the errors for the
    * given file have not yet been computed, or the most recently computed
    * errors for the given file are out of date, then the response for this
@@ -384,6 +452,217 @@ abstract class InttestMixin {
   }
 
   /**
+   * Reports the errors associated with a given file. The set of errors
+   * included in the notification is always a complete list that supersedes any
+   * previously reported errors.
+   *
+   * It is only possible to unsubscribe from this notification by using the
+   * command-line flag --no-error-notification.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file containing the errors.
+   *
+   * errors ( List<AnalysisError> )
+   *
+   *   The errors contained in the file.
+   */
+  Stream onAnalysisErrors;
+
+  /**
+   * Stream controller for [onAnalysisErrors].
+   */
+  StreamController _onAnalysisErrors;
+
+  /**
+   * Reports that any analysis results that were previously associated with the
+   * given files should be considered to be invalid because those files are no
+   * longer being analyzed, either because the analysis root that contained it
+   * is no longer being analyzed or because the file no longer exists.
+   *
+   * If a file is included in this notification and at some later time a
+   * notification with results for the file is received, clients should assume
+   * that the file is once again being analyzed and the information should be
+   * processed.
+   *
+   * It is not possible to subscribe to or unsubscribe from this notification.
+   *
+   * Parameters
+   *
+   * files ( List<FilePath> )
+   *
+   *   The files that are no longer being analyzed.
+   */
+  Stream onAnalysisFlushResults;
+
+  /**
+   * Stream controller for [onAnalysisFlushResults].
+   */
+  StreamController _onAnalysisFlushResults;
+
+  /**
+   * Reports the folding regions associated with a given file. Folding regions
+   * can be nested, but will not be overlapping. Nesting occurs when a foldable
+   * element, such as a method, is nested inside another foldable element such
+   * as a class.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "FOLDING" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file containing the folding regions.
+   *
+   * regions ( List<FoldingRegion> )
+   *
+   *   The folding regions contained in the file.
+   */
+  Stream onAnalysisFolding;
+
+  /**
+   * Stream controller for [onAnalysisFolding].
+   */
+  StreamController _onAnalysisFolding;
+
+  /**
+   * Reports the highlight regions associated with a given file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "HIGHLIGHTS" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file containing the highlight regions.
+   *
+   * regions ( List<HighlightRegion> )
+   *
+   *   The highlight regions contained in the file. Each highlight region
+   *   represents a particular syntactic or semantic meaning associated with
+   *   some range. Note that the highlight regions that are returned can
+   *   overlap other highlight regions if there is more than one meaning
+   *   associated with a particular region.
+   */
+  Stream onAnalysisHighlights;
+
+  /**
+   * Stream controller for [onAnalysisHighlights].
+   */
+  StreamController _onAnalysisHighlights;
+
+  /**
+   * Reports the navigation targets associated with a given file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "NAVIGATION" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file containing the navigation regions.
+   *
+   * regions ( List<NavigationRegion> )
+   *
+   *   The navigation regions contained in the file. Each navigation region
+   *   represents a list of targets associated with some range. The lists will
+   *   usually contain a single target, but can contain more in the case of a
+   *   part that is included in multiple libraries or in Dart code that is
+   *   compiled against multiple versions of a package. Note that the
+   *   navigation regions that are returned do not overlap other navigation
+   *   regions.
+   */
+  Stream onAnalysisNavigation;
+
+  /**
+   * Stream controller for [onAnalysisNavigation].
+   */
+  StreamController _onAnalysisNavigation;
+
+  /**
+   * Reports the occurrences of references to elements within a single file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "OCCURRENCES" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file in which the references occur.
+   *
+   * occurrences ( List<Occurrences> )
+   *
+   *   The occurrences of references to elements within the file.
+   */
+  Stream onAnalysisOccurrences;
+
+  /**
+   * Stream controller for [onAnalysisOccurrences].
+   */
+  StreamController _onAnalysisOccurrences;
+
+  /**
+   * Reports the outline associated with a single file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "OUTLINE" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file with which the outline is associated.
+   *
+   * outline ( Outline )
+   *
+   *   The outline associated with the file.
+   */
+  Stream onAnalysisOutline;
+
+  /**
+   * Stream controller for [onAnalysisOutline].
+   */
+  StreamController _onAnalysisOutline;
+
+  /**
+   * Reports the overridding members in a file. This notification currently
+   * includes only members that override a member from a superclass. In
+   * particular, it does not include members that override members from
+   * interfaces.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "OVERRIDES" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file with which the overrides are associated.
+   *
+   * overrides ( List<Override> )
+   *
+   *   The overrides associated with the file.
+   */
+  Stream onAnalysisOverrides;
+
+  /**
+   * Stream controller for [onAnalysisOverrides].
+   */
+  StreamController _onAnalysisOverrides;
+
+  /**
    * Request that completion suggestions for the given offset in the given file
    * be returned.
    *
@@ -418,6 +697,47 @@ abstract class InttestMixin {
       return result;
     });
   }
+
+  /**
+   * Reports the completion suggestions that should be presented to the user.
+   * The set of suggestions included in the notification is always a complete
+   * list that supersedes any previously reported suggestions.
+   *
+   * Parameters
+   *
+   * id ( CompletionId )
+   *
+   *   The id associated with the completion.
+   *
+   * replacementOffset ( int )
+   *
+   *   The offset of the start of the text to be replaced. This will be
+   *   different than the offset used to request the completion suggestions if
+   *   there was a portion of an identifier before the original offset. In
+   *   particular, the replacementOffset will be the offset of the beginning of
+   *   said identifier.
+   *
+   * replacementLength ( int )
+   *
+   *   The length of the text to be replaced if the remainder of the identifier
+   *   containing the cursor is to be replaced when the suggestion is applied
+   *   (that is, the number of characters in the existing identifier).
+   *
+   * results ( List<CompletionSuggestion> )
+   *
+   *   The completion suggestions being reported.
+   *
+   * last ( bool )
+   *
+   *   True if this is that last set of results that will be returned for the
+   *   indicated completion.
+   */
+  Stream onCompletionResults;
+
+  /**
+   * Stream controller for [onCompletionResults].
+   */
+  StreamController _onCompletionResults;
 
   /**
    * Perform a search for references to the element defined or referenced at
@@ -620,6 +940,34 @@ abstract class InttestMixin {
       return result;
     });
   }
+
+  /**
+   * Reports some or all of the results of performing a requested search.
+   * Unlike other notifications, this notification contains search results that
+   * should be added to any previously received search results associated with
+   * the same search id.
+   *
+   * Parameters
+   *
+   * id ( SearchId )
+   *
+   *   The id associated with the search.
+   *
+   * results ( List<SearchResult> )
+   *
+   *   The search results being reported.
+   *
+   * last ( bool )
+   *
+   *   True if this is that last set of results that will be returned for the
+   *   indicated search.
+   */
+  Stream onSearchResults;
+
+  /**
+   * Stream controller for [onSearchResults].
+   */
+  StreamController _onSearchResults;
 
   /**
    * Return the set of assists that are available at the given location. An
@@ -963,5 +1311,140 @@ abstract class InttestMixin {
       }
       return result;
     });
+  }
+
+  /**
+   * Reports information needed to allow applications within the given context
+   * to be launched.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "LAUNCH_DATA" in the list of services passed in a
+   * debug.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * executables ( List<ExecutableFile> )
+   *
+   *   A list of the files that are executable in the given context. This list
+   *   replaces any previous list provided for the given context.
+   *
+   * dartToHtml ( Map<FilePath, List<FilePath>> )
+   *
+   *   A mapping from the paths of Dart files that are referenced by HTML files
+   *   to a list of the HTML files that reference the Dart files.
+   *
+   * htmlToDart ( Map<FilePath, List<FilePath>> )
+   *
+   *   A mapping from the paths of HTML files that reference Dart files to a
+   *   list of the Dart files they reference.
+   */
+  Stream onDebugLaunchData;
+
+  /**
+   * Stream controller for [onDebugLaunchData].
+   */
+  StreamController _onDebugLaunchData;
+
+  /**
+   * Initialize the fields in InttestMixin, and ensure that notifications will
+   * be handled.
+   */
+  void initializeInttestMixin() {
+    _onServerConnected = new StreamController(sync: true);
+    onServerConnected = _onServerConnected.stream.asBroadcastStream();
+    _onServerError = new StreamController(sync: true);
+    onServerError = _onServerError.stream.asBroadcastStream();
+    _onServerStatus = new StreamController(sync: true);
+    onServerStatus = _onServerStatus.stream.asBroadcastStream();
+    _onAnalysisErrors = new StreamController(sync: true);
+    onAnalysisErrors = _onAnalysisErrors.stream.asBroadcastStream();
+    _onAnalysisFlushResults = new StreamController(sync: true);
+    onAnalysisFlushResults = _onAnalysisFlushResults.stream.asBroadcastStream();
+    _onAnalysisFolding = new StreamController(sync: true);
+    onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
+    _onAnalysisHighlights = new StreamController(sync: true);
+    onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
+    _onAnalysisNavigation = new StreamController(sync: true);
+    onAnalysisNavigation = _onAnalysisNavigation.stream.asBroadcastStream();
+    _onAnalysisOccurrences = new StreamController(sync: true);
+    onAnalysisOccurrences = _onAnalysisOccurrences.stream.asBroadcastStream();
+    _onAnalysisOutline = new StreamController(sync: true);
+    onAnalysisOutline = _onAnalysisOutline.stream.asBroadcastStream();
+    _onAnalysisOverrides = new StreamController(sync: true);
+    onAnalysisOverrides = _onAnalysisOverrides.stream.asBroadcastStream();
+    _onCompletionResults = new StreamController(sync: true);
+    onCompletionResults = _onCompletionResults.stream.asBroadcastStream();
+    _onSearchResults = new StreamController(sync: true);
+    onSearchResults = _onSearchResults.stream.asBroadcastStream();
+    _onDebugLaunchData = new StreamController(sync: true);
+    onDebugLaunchData = _onDebugLaunchData.stream.asBroadcastStream();
+  }
+
+  /**
+   * Dispatch the notification named [event], and containing parameters
+   * [params], to the appropriate stream.
+   */
+  void dispatchNotification(String event, params) {
+    switch (event) {
+      case "server.connected":
+        expect(params, isServerConnectedParams);
+        _onServerConnected.add(params);
+        break;
+      case "server.error":
+        expect(params, isServerErrorParams);
+        _onServerError.add(params);
+        break;
+      case "server.status":
+        expect(params, isServerStatusParams);
+        _onServerStatus.add(params);
+        break;
+      case "analysis.errors":
+        expect(params, isAnalysisErrorsParams);
+        _onAnalysisErrors.add(params);
+        break;
+      case "analysis.flushResults":
+        expect(params, isAnalysisFlushResultsParams);
+        _onAnalysisFlushResults.add(params);
+        break;
+      case "analysis.folding":
+        expect(params, isAnalysisFoldingParams);
+        _onAnalysisFolding.add(params);
+        break;
+      case "analysis.highlights":
+        expect(params, isAnalysisHighlightsParams);
+        _onAnalysisHighlights.add(params);
+        break;
+      case "analysis.navigation":
+        expect(params, isAnalysisNavigationParams);
+        _onAnalysisNavigation.add(params);
+        break;
+      case "analysis.occurrences":
+        expect(params, isAnalysisOccurrencesParams);
+        _onAnalysisOccurrences.add(params);
+        break;
+      case "analysis.outline":
+        expect(params, isAnalysisOutlineParams);
+        _onAnalysisOutline.add(params);
+        break;
+      case "analysis.overrides":
+        expect(params, isAnalysisOverridesParams);
+        _onAnalysisOverrides.add(params);
+        break;
+      case "completion.results":
+        expect(params, isCompletionResultsParams);
+        _onCompletionResults.add(params);
+        break;
+      case "search.results":
+        expect(params, isSearchResultsParams);
+        _onSearchResults.add(params);
+        break;
+      case "debug.launchData":
+        expect(params, isDebugLaunchDataParams);
+        _onDebugLaunchData.add(params);
+        break;
+      default:
+        fail('Unexpected notification: $event');
+        break;
+    }
   }
 }
