@@ -1967,7 +1967,7 @@ class TestUtils {
           }  
         });
     } else {
-      var dir = new io.Directory(path);
+      var dir = new Directory(path);
       return dir.delete(recursive: true);
     }
   }
