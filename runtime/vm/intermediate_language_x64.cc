@@ -1936,15 +1936,17 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // RCX: new object end address.
   // RDI: iterator which initially points to the start of the variable
   // data area to be initialized.
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ cmpq(RDI, RCX);
-  __ j(ABOVE_EQUAL, done, Assembler::kNearJump);
-  __ movq(Address(RDI, 0), R12);
-  __ addq(RDI, Immediate(kWordSize));
-  __ jmp(&init_loop, Assembler::kNearJump);
+  if (num_elements > 0) {
+    __ LoadObject(R12, Object::null_object(), PP);
+    __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
+    Label init_loop;
+    __ Bind(&init_loop);
+    __ movq(Address(RDI, 0), R12);
+    __ addq(RDI, Immediate(kWordSize));
+    __ cmpq(RDI, RCX);
+    __ j(BELOW, &init_loop, Assembler::kNearJump);
+  }
+  __ jmp(done, Assembler::kNearJump);
 }
 
 
