@@ -7,6 +7,7 @@
 
 library services.src.correction.statement_analyzer;
 
+import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/src/correction/selection_analyzer.dart';
 import 'package:analysis_services/src/correction/source_range.dart';
 import 'package:analysis_services/src/correction/util.dart';
@@ -33,23 +34,6 @@ List<Token> _getTokens(String text) {
   } catch (e) {
     return new List<Token>(0);
   }
-}
-
-/**
- * TODO(scheglov) port the real class
- */
-class RefactoringStatus {
-  bool get hasFatalError => false;
-
-  void addFatalError(String message, RefactoringStatusContext context) {
-  }
-}
-
-/**
- * TODO(scheglov) port the real class
- */
-class RefactoringStatusContext {
-  RefactoringStatusContext.forUnit(CompilationUnit unit, SourceRange range);
 }
 
 

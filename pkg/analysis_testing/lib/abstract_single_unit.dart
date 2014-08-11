@@ -32,6 +32,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findChildElement(testUnitElement, name, kind);
   }
 
+  /**
+   * Returns the [SimpleIdentifier] at the given search pattern.
+   */
+  SimpleIdentifier findIdentifier(String search) {
+    return findNodeAtString(search, (node) => node is SimpleIdentifier);
+  }
+
   AstNode findNodeAtOffset(int offset, [Predicate<AstNode> predicate]) {
     AstNode result = new NodeLocator.con1(offset).searchWithin(testUnit);
     if (result != null && predicate != null) {
