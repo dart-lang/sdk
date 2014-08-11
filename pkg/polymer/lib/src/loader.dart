@@ -29,6 +29,7 @@ class InitMethodAnnotation {
 ///   invoke the initialization method on it (top-level functions annotated with
 ///   [initMethod]).
 Zone initPolymer() {
+  _initializeLogging();
   if (loader.deployMode) {
     startPolymer(loader.initializers, loader.deployMode);
     return Zone.current;
@@ -146,3 +147,28 @@ JsObject _polymerElementProto = () {
   if (proto is Node) proto = new JsObject.fromBrowserObject(proto);
   return proto;
 }();
+
+// Add support for the polymer js style of enabling logging. The global logging
+// level is respected for specified loggers (see http://goo.gl/btfDe1). All
+// other loggers will be set to [Level.OFF]. Logs will also be printed to the
+// console automatically if any are supplied.
+void _initializeLogging() {
+  hierarchicalLoggingEnabled = true;
+  var logFlags = js.context['logFlags'];
+  var loggers =
+      [_observeLog, _eventsLog, _unbindLog, _bindLog, _watchLog, _readyLog];
+  var polymerLogger = new Logger('polymer');
+
+  // If no loggers specified then disable globally and return.
+  if (!loggers.any((logger) => logFlags[logger.name] == true)) {
+    polymerLogger.level = Level.OFF;
+    return;
+  }
+
+  // Disable the loggers that were not specified.
+  loggers.where((logger) => logFlags[logger.name] != true)
+      .forEach((logger) {logger.level = Level.OFF;});
+
+  // Listen to the polymer logs and print them to the console.
+  polymerLogger.onRecord.listen((rec) {print(rec);});
+}

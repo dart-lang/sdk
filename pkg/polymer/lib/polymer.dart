@@ -62,7 +62,7 @@ import 'dart:js' hide context;
     override: const ['smoke.mirrors'])
 import 'dart:mirrors' show MirrorsUsed;    // ** see important note above
 
-import 'package:logging/logging.dart' show Logger, Level;
+import 'package:logging/logging.dart';
 import 'package:observe/observe.dart';
 import 'package:observe/src/dirty_check.dart' show dirtyCheckZone;
 import 'package:polymer_expressions/polymer_expressions.dart'
