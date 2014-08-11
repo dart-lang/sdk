@@ -418,7 +418,7 @@ class CleanDirectoryCopyCommand extends ScriptCommand {
     return destination.exists().then((bool exists) {
       var cleanDirectoryFuture;
       if (exists) {
-        cleanDirectoryFuture = destination.delete(recursive: true);
+        cleanDirectoryFuture = TestUtils.deleteDirectory(_destinationDirectory);
       } else {
         cleanDirectoryFuture = new Future.value(null);
       }

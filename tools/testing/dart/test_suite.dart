@@ -1951,6 +1951,27 @@ class TestUtils {
     });
   }
 
+  static Future deleteDirectory(String path) {
+    // We are seeing issues with long path names on windows when
+    // deleting them. Use the system tools to delete our long paths.
+    // See issue 16264.
+    if (Platform.operatingSystem == 'windows') {
+      var native_path = new Path(path).toNativePath();
+      // Running this in a shell sucks, but rmdir is not part of the standard
+      // path.
+      return Process.run('rmdir', ['/s', '/q', native_path], runInShell: true)
+        .then((ProcessResult result) {
+          if (result.exitCode != 0) {
+            throw new Exception('Can\'t delete path $native_path. '
+                                'This path might be too long');
+          }  
+        });
+    } else {
+      var dir = new io.Directory(path);
+      return dir.delete(recursive: true);
+    }
+  }
+
   static Path debugLogfile() {
     return new Path(".debug.log");
   }
