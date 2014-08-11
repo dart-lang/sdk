@@ -436,8 +436,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     String callSelectorString = 'null';
     if (member.isFunction) {
-      Selector callSelector =
-          new Selector.fromElement(member, compiler).toCallSelector();
+      Selector callSelector = new Selector.fromElement(member).toCallSelector();
       callSelectorString = '"${namer.invocationName(callSelector)}"';
     }
 

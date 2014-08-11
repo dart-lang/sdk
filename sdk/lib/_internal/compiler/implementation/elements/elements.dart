@@ -21,6 +21,7 @@ import '../dart2jslib.dart' show InterfaceType,
                                  Selector,
                                  Constant,
                                  Compiler,
+                                 Backend,
                                  isPrivateName;
 
 import '../dart_types.dart';
@@ -401,7 +402,7 @@ abstract class Element implements Entity {
   String get fixedBackendName;
 
   bool get isAbstract;
-  bool isForeign(Compiler compiler);
+  bool isForeign(Backend backend);
 
   void addMetadata(MetadataAnnotation annotation);
   void setNative(String name);
@@ -1110,6 +1111,7 @@ abstract class FunctionElement extends Element
   /// Trying to access a function signature that has not been computed in
   /// resolution is an error and calling [computeSignature] covers that error.
   /// This method will go away!
+  // TODO(johnniwinther): Rename to `ensureFunctionSignature`.
   @deprecated FunctionSignature computeSignature(Compiler compiler);
 }
 
@@ -1298,8 +1300,8 @@ abstract class ClassElement extends TypeDeclarationElement
   void reverseBackendMembers();
 
   Element lookupMember(String memberName);
-  Element lookupSelector(Selector selector, Compiler compiler);
-  Element lookupSuperSelector(Selector selector, Compiler compiler);
+  Element lookupSelector(Selector selector);
+  Element lookupSuperSelector(Selector selector);
 
   Element lookupLocalMember(String memberName);
   Element lookupBackendMember(String memberName);

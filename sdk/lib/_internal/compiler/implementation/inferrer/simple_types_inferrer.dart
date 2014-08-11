@@ -978,7 +978,7 @@ class SimpleTypeInferrerVisitor<T>
         analyzeSuperConstructorCall(element, arguments);
       }
     }
-    if (element.isForeign(compiler)) {
+    if (element.isForeign(compiler.backend)) {
       return handleForeignSend(node);
     }
     Selector selector = elements.getSelector(node);

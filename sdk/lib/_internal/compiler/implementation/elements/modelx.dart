@@ -24,6 +24,7 @@ import '../dart2jslib.dart' show invariant,
                                  Selector,
                                  Constant,
                                  Compiler,
+                                 Backend,
                                  isPrivateName;
 
 import '../dart_types.dart';
@@ -245,7 +246,7 @@ abstract class ElementX extends Element {
   FunctionElement asFunctionElement() => null;
 
   bool get isAbstract => modifiers.isAbstract;
-  bool isForeign(Compiler compiler) => compiler.backend.isForeign(this);
+  bool isForeign(Backend backend) => backend.isForeign(this);
 
   void diagnose(Element context, DiagnosticListener listener) {}
 
@@ -1530,7 +1531,7 @@ abstract class BaseFunctionElementX
   FunctionSignature computeSignature(Compiler compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
     compiler.withCurrentElement(this, () {
-      functionSignatureCache = compiler.resolveSignature(this);
+      functionSignatureCache = compiler.resolver.resolveSignature(this);
     });
     return functionSignatureCache;
   }
@@ -1683,7 +1684,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
 
   bool get isClassMember => false;
 
-  bool isForeign(Compiler compiler) => true;
+  bool isForeign(Backend backend) => true;
 
   bool get isSynthesized => true;
 
@@ -2036,16 +2037,15 @@ abstract class BaseClassElementX extends ElementX
    * When called on the implementation element both members declared in the
    * origin and the patch class are returned.
    */
-  Element lookupSelector(Selector selector, Compiler compiler) {
-    return internalLookupSelector(selector, compiler, false);
+  Element lookupSelector(Selector selector) {
+    return internalLookupSelector(selector, false);
   }
 
-  Element lookupSuperSelector(Selector selector, Compiler compiler) {
-    return internalLookupSelector(selector, compiler, true);
+  Element lookupSuperSelector(Selector selector) {
+    return internalLookupSelector(selector, true);
   }
 
   Element internalLookupSelector(Selector selector,
-                                 Compiler compiler,
                                  bool isSuperLookup) {
     String name = selector.name;
     bool isPrivate = isPrivateName(name);

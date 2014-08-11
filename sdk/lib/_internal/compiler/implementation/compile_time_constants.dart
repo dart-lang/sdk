@@ -509,6 +509,7 @@ class CompileTimeConstantEvaluator extends Visitor {
 
     Function compileArgument = evaluateConstant;
     Function compileConstant = handler.compileConstant;
+    target.computeSignature(compiler);
     bool succeeded = selector.addArgumentsToList(arguments,
                                                  compiledArguments,
                                                  target,

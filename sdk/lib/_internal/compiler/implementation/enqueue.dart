@@ -165,43 +165,49 @@ abstract class Enqueuer {
         return;
       }
     } else if (member.kind == ElementKind.FUNCTION) {
-      if (member.name == Compiler.NO_SUCH_METHOD) {
-        enableNoSuchMethod(member);
+      FunctionElement function = member;
+      function.computeSignature(compiler);
+      if (function.name == Compiler.NO_SUCH_METHOD) {
+        enableNoSuchMethod(function);
       }
-      if (member.name == Compiler.CALL_OPERATOR_NAME &&
+      if (function.name == Compiler.CALL_OPERATOR_NAME &&
           !cls.typeVariables.isEmpty) {
-        registerGenericCallMethod(member, compiler.globalDependencies);
+        registerGenericCallMethod(function, compiler.globalDependencies);
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
-      if (universe.hasInvokedGetter(member, compiler)) {
-        registerClosurizedMember(member, compiler.globalDependencies);
-        addToWorkList(member);
+      if (universe.hasInvokedGetter(function, compiler)) {
+        registerClosurizedMember(function, compiler.globalDependencies);
+        addToWorkList(function);
         return;
       }
       // Store the member in [instanceFunctionsByName] to catch
       // getters on the function.
       Link<Element> members = instanceFunctionsByName.putIfAbsent(
           memberName, () => const Link<Element>());
-      instanceFunctionsByName[memberName] = members.prepend(member);
-      if (universe.hasInvocation(member, compiler)) {
-        addToWorkList(member);
+      instanceFunctionsByName[memberName] = members.prepend(function);
+      if (universe.hasInvocation(function, compiler)) {
+        addToWorkList(function);
         return;
       }
     } else if (member.kind == ElementKind.GETTER) {
-      if (universe.hasInvokedGetter(member, compiler)) {
-        addToWorkList(member);
+      FunctionElement getter = member;
+      getter.computeSignature(compiler);
+      if (universe.hasInvokedGetter(getter, compiler)) {
+        addToWorkList(getter);
         return;
       }
       // We don't know what selectors the returned closure accepts. If
       // the set contains any selector we have to assume that it matches.
-      if (universe.hasInvocation(member, compiler)) {
-        addToWorkList(member);
+      if (universe.hasInvocation(getter, compiler)) {
+        addToWorkList(getter);
         return;
       }
     } else if (member.kind == ElementKind.SETTER) {
-      if (universe.hasInvokedSetter(member, compiler)) {
-        addToWorkList(member);
+      FunctionElement setter = member;
+      setter.computeSignature(compiler);
+      if (universe.hasInvokedSetter(setter, compiler)) {
+        addToWorkList(setter);
         return;
       }
     }
@@ -326,7 +332,7 @@ abstract class Enqueuer {
         // We need to enqueue all members matching this one in subclasses, as
         // well.
         // TODO(herhut): Use TypedSelector.subtype for enqueueing
-        Selector selector = new Selector.fromElement(element, compiler);
+        Selector selector = new Selector.fromElement(element);
         registerSelectorUse(selector);
         if (element.isField) {
           Selector selector =
@@ -828,7 +834,7 @@ class CodegenEnqueuer extends Enqueuer {
       newlyEnqueuedElements.add(element);
     }
     // Don't generate code for foreign elements.
-    if (element.isForeign(compiler)) return false;
+    if (element.isForeign(compiler.backend)) return false;
 
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.

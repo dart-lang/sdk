@@ -43,7 +43,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
   void analyzeCall(CallSiteTypeInformation info) {
     Selector selector = info.selector;
     tracedElements.forEach((FunctionElement functionElement) {
-      if (!selector.signatureApplies(functionElement, compiler)) return;
+      if (!selector.signatureApplies(functionElement)) return;
       inferrer.updateParameterAssignments(info, functionElement, info.arguments,
           selector, remove: false, addToQueue: false);
     });
@@ -61,7 +61,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     Element called = info.calledElement;
-    if (called.isForeign(compiler)) {
+    if (called.isForeign(compiler.backend)) {
       String name = called.name;
       if (name == 'JS' || name == 'DART_CLOSURE_TO_JS') {
         bailout('Used in JS ${info.call}');

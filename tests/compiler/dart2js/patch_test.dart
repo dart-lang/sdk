@@ -780,7 +780,8 @@ testPatchAndSelector() {
     // typed selector.
     var selector = new Selector.call('method', compiler.coreLibrary, 0);
     var typedSelector = new TypedSelector.exact(cls, selector, compiler);
-    Element method = cls.implementation.lookupLocalMember('method');
+    FunctionElement method = cls.implementation.lookupLocalMember('method');
+    method.computeSignature(compiler);
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
 
@@ -789,6 +790,7 @@ testPatchAndSelector() {
     selector = new Selector.call('clear', compiler.coreLibrary, 0);
     typedSelector = new TypedSelector.exact(cls, selector, compiler);
     method = cls.lookupLocalMember('clear');
+    method.computeSignature(compiler);
     Expect.isTrue(selector.applies(method, compiler));
     Expect.isTrue(typedSelector.applies(method, compiler));
 
