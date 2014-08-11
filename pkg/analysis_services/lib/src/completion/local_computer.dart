@@ -85,7 +85,11 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
 //            addSuggestion(label.label, CompletionSuggestionKind.LABEL);
           });
         } else if (stmt is VariableDeclarationStatement) {
-          addSuggestions(stmt.variables, CompletionSuggestionKind.VARIABLE);
+          stmt.variables.variables.forEach((VariableDeclaration varDecl) {
+            if (varDecl.end < offset) {
+              addSuggestion(varDecl.name, CompletionSuggestionKind.VARIABLE);
+            }
+          });
         }
       }
     });

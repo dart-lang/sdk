@@ -25,10 +25,11 @@ class LocalComputerTest extends AbstractCompletionTest {
   }
 
   test_block() {
-    addTestSource('class A {a() {var f; ^ var g;}}');
+    addTestSource('class A {a() {var f; {var x;} ^ var g;}}');
     expect(computeFast(), isTrue);
     assertSuggestVariable('f');
     assertNotSuggested('g');
+    assertNotSuggested('x');
   }
 
   test_catch() {
@@ -100,4 +101,12 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestParameter('x');
     assertSuggestParameter('y');
   }
+
+  test_variableDeclaration() {
+    addTestSource('main() {int a = 1, b = 2 + ^;}');
+    expect(computeFast(), isTrue);
+    assertSuggestVariable('a');
+    assertNotSuggested('b');
+  }
 }
+
