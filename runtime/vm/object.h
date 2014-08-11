@@ -949,6 +949,7 @@ class Class : public Object {
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
 
+  // TODO(koda): Avoid VM service indexing into this array; unite w/ hash table.
   RawArray* functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
@@ -1210,6 +1211,9 @@ class Class : public Object {
                                           RawFunction::Kind kind) const;
 
   void CalculateFieldOffsets() const;
+
+  // functions_hash_table is in use iff there are at least this many functions.
+  static const intptr_t kFunctionLookupHashTreshold = 16;
 
   // Initial value for the cached number of type arguments.
   static const intptr_t kUnknownNumTypeArguments = -1;
