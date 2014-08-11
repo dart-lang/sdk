@@ -752,7 +752,11 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         }
       }
     }
-    if (!interface.element.isProxy) {
+    // We didn't find a member with the correct name.  If this lookup is for a
+    // super or redirecting initializer, the resolver has already emitted an
+    // error message.  If the target is a proxy, no warning needs to be emitted.
+    // Otherwise, try to emit the most precise warning.
+    if (!interface.element.isProxy && !analyzingInitializer) {
       bool foundPrivateMember = false;
       if (memberName.isPrivate) {
         void findPrivateMember(MemberSignature member) {

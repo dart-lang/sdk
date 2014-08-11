@@ -1762,13 +1762,21 @@ class SsaBuilder extends ResolvedVisitor {
       }
 
       Element target = constructor.definingConstructor.implementation;
-      Selector.addForwardingElementArgumentsToList(
+      bool match = Selector.addForwardingElementArgumentsToList(
           constructor,
           arguments,
           target,
           compileArgument,
           handleConstantForOptionalParameter,
           compiler.world);
+      if (!match) {
+        // If this fails, the selector we constructed for the call to a
+        // forwarding constructor in a mixin application did not match the
+        // constructor (which, for example, may happen when the libraries are
+        // not compatible for private names, see issue 20394).
+        compiler.internalError(constructor,
+                               'forwarding constructor call does not match');
+      }
       inlineSuperOrRedirect(
           target,
           arguments,

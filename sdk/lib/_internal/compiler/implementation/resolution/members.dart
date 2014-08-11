@@ -4387,6 +4387,14 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       if (!member.isGenerativeConstructor) return;
       FunctionElement forwarder =
           createForwardingConstructor(member, mixinApplication);
+      if (isPrivateName(member.name) &&
+          mixinApplication.library != superclass.library) {
+        // Do not create a forwarder to the super constructor, because the mixin
+        // application is in a different library than the constructor in the
+        // super class and it is not possible to call that constructor from the
+        // library using the mixin application.
+        return;
+      }
       mixinApplication.addConstructor(forwarder);
     });
     calculateAllSupertypes(mixinApplication);
