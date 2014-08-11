@@ -130,7 +130,7 @@ class ResourceUriResolver extends UriResolver {
     if (!_isFileUri(uri)) {
       return null;
     }
-    Resource resource = _provider.getResource(uri.path);
+    Resource resource = _provider.getResource(fromUri(uri));
     if (resource is File) {
       return resource.createSource(uri);
     }
