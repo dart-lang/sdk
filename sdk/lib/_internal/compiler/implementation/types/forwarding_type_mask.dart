@@ -88,12 +88,12 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.intersection(other, compiler);
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
-    return forwardTo.needsNoSuchMethodHandling(selector, compiler);
+  bool needsNoSuchMethodHandling(Selector selector, World world) {
+    return forwardTo.needsNoSuchMethodHandling(selector, world);
   }
 
-  bool canHit(Element element, Selector selector, Compiler compiler) {
-    return forwardTo.canHit(element, selector, compiler);
+  bool canHit(Element element, Selector selector, World world) {
+    return forwardTo.canHit(element, selector, world);
   }
 
   Element locateSingleElement(Selector selector, Compiler compiler) {

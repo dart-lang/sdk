@@ -426,12 +426,11 @@ class FlatTypeMask implements TypeMask {
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(Element element, Selector selector, Compiler compiler) {
+  bool canHit(Element element, Selector selector, World world) {
     assert(element.name == selector.name);
     if (isEmpty) {
       if (!isNullable) return false;
-      return hasElementIn(
-          compiler.backend.nullImplementation, selector, element);
+      return hasElementIn(world.nullImplementation, selector, element);
     }
 
     // TODO(kasperl): Can't we just avoid creating typed selectors
@@ -444,31 +443,31 @@ class FlatTypeMask implements TypeMask {
     }
 
     ClassElement other = element.enclosingClass;
-    if (compiler.backend.isNullImplementation(other)) {
+    if (other == world.nullImplementation) {
       return isNullable;
     } else if (isExact) {
       return hasElementIn(self, selector, element);
     } else if (isSubclass) {
-      assert(compiler.phase > Compiler.PHASE_RESOLVING);
+      assert(world.isClosed);
       return hasElementIn(self, selector, element)
           || other.isSubclassOf(self)
-          || compiler.world.hasAnySubclassThatMixes(self, other);
+          || world.hasAnySubclassThatMixes(self, other);
     } else {
       assert(isSubtype);
-      assert(compiler.phase > Compiler.PHASE_RESOLVING);
+      assert(world.isClosed);
       bool result = hasElementIn(self, selector, element)
           || other.implementsInterface(self)
-          || compiler.world.hasAnySubclassThatImplements(other, base)
-          || compiler.world.hasAnySubclassOfMixinUseThatImplements(other, base);
+          || world.hasAnySubclassThatImplements(other, base)
+          || world.hasAnySubclassOfMixinUseThatImplements(other, base);
       if (result) return true;
       // If the class is used as a mixin, we have to check if the element
       // can be hit from any of the mixin applications.
-      Iterable<ClassElement> mixinUses = compiler.world.mixinUses[self];
+      Iterable<ClassElement> mixinUses = world.mixinUses[self];
       if (mixinUses == null) return false;
       return mixinUses.any((mixinApplication) =>
            hasElementIn(mixinApplication, selector, element)
         || other.isSubclassOf(mixinApplication)
-        || compiler.world.hasAnySubclassThatMixes(mixinApplication, other));
+        || world.hasAnySubclassThatMixes(mixinApplication, other));
     }
   }
 
@@ -478,18 +477,18 @@ class FlatTypeMask implements TypeMask {
    */
   static bool hasConcreteMatch(ClassElement cls,
                                Selector selector,
-                               Compiler compiler) {
+                               World world) {
     Element element = findMatchIn(cls, selector);
     if (element == null) return false;
 
     if (element.isAbstract) {
       ClassElement enclosingClass = element.enclosingClass;
-      return hasConcreteMatch(enclosingClass.superclass, selector, compiler);
+      return hasConcreteMatch(enclosingClass.superclass, selector, world);
     }
-    return selector.appliesUntyped(element, compiler);
+    return selector.appliesUntyped(element, world);
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
+  bool needsNoSuchMethodHandling(Selector selector, World world) {
     // A call on an empty type mask is either dead code, or a call on
     // `null`.
     if (isEmpty) return false;
@@ -537,16 +536,16 @@ class FlatTypeMask implements TypeMask {
     // handler because we may have to call B.noSuchMethod since B
     // does not implement bar.
 
-    bool hasMatch = hasConcreteMatch(base, selector, compiler);
+    bool hasMatch = hasConcreteMatch(base, selector, world);
     if (isExact) return !hasMatch;
     if (!base.isAbstract && !hasMatch) return true;
 
     Set<ClassElement> subtypesToCheck;
     if (isSubtype) {
-      subtypesToCheck = compiler.world.subtypesOf(base);
+      subtypesToCheck = world.subtypesOf(base);
     } else {
       assert(isSubclass);
-      subtypesToCheck = compiler.world.subclassesOf(base);
+      subtypesToCheck = world.subclassesOf(base);
     }
 
     return subtypesToCheck != null
@@ -556,7 +555,7 @@ class FlatTypeMask implements TypeMask {
               // therefore there is no instance that will require
               // [noSuchMethod] handling.
               return !cls.isAbstract
-                  && !hasConcreteMatch(cls, selector, compiler);
+                  && !hasConcreteMatch(cls, selector, world);
            });
   }
 

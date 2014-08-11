@@ -364,7 +364,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     // kinds of [TypeInformation] have the empty type at this point of
     // analysis.
     return info.isConcrete
-        ? new TypedSelector(info.type, selector, compiler)
+        ? new TypedSelector(info.type, selector, compiler.world)
         : selector;
   }
 

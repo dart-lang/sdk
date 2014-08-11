@@ -217,7 +217,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     Set<Selector> untypedSelectors = new Set<Selector>();
     if (selectors != null) {
       for (Selector selector in selectors) {
-        if (!selector.appliesUnnamed(member, compiler)) continue;
+        if (!selector.appliesUnnamed(member, compiler.world)) continue;
         if (untypedSelectors.add(selector.asUntyped)) {
           // TODO(ahe): Is the last argument to [addParameterStub] needed?
           addParameterStub(member, selector, defineStub, new Set<String>());
@@ -232,7 +232,7 @@ class ContainerBuilder extends CodeEmitterHelper {
           selector = new Selector.call(
               member.name, member.library,
               selector.argumentCount, selector.namedArguments);
-          if (!selector.appliesUnnamed(member, compiler)) continue;
+          if (!selector.appliesUnnamed(member, compiler.world)) continue;
           if (untypedSelectors.add(selector)) {
             // TODO(ahe): Is the last argument to [addParameterStub] needed?
             addParameterStub(member, selector, defineStub, new Set<String>());
@@ -280,7 +280,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     // stubs.
     Set<Selector> generatedSelectors = new Set<Selector>();
     for (Selector selector in selectors) {
-      if (selector.applies(member, compiler)) {
+      if (selector.applies(member, compiler.world)) {
         selector = selector.asUntyped;
         if (generatedSelectors.contains(selector)) continue;
         generatedSelectors.add(selector);
@@ -369,7 +369,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       } else {
         // Careful with operators.
         canTearOff =
-            compiler.codegenWorld.hasInvokedGetter(member, compiler) ||
+            compiler.codegenWorld.hasInvokedGetter(member, compiler.world) ||
             (canBeReflected && !member.isOperator);
         assert(!needsSuperGetter(member) || canTearOff);
         tearOffName = namer.getterName(member);
