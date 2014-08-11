@@ -126,7 +126,7 @@ def GetBuildInfo(builder_name, is_buildbot):
     if dart2js_pattern.group(14) == 'batch':
       batch = True
     # This is temporary, slowly enabling this.
-    if system == 'linux':
+    if system == 'linux' or system.startswith('mac'):
       batch = True
     shard_index = dart2js_pattern.group(15)
     total_shards = dart2js_pattern.group(16)
