@@ -311,6 +311,32 @@ abstract class _RecursiveMatcher extends Matcher {
 }
 
 /**
+ * Matcher that matches a String drawn from a limited set.
+ */
+class MatchesEnum extends Matcher {
+  /**
+   * Short description of the expected type.
+   */
+  final String description;
+
+  /**
+   * The set of enum values that are allowed.
+   */
+  final List<String> allowedValues;
+
+  const MatchesEnum(this.description, this.allowedValues);
+
+  @override
+  bool matches(item, Map matchState) {
+    return allowedValues.contains(item);
+  }
+
+  @override
+  Description describe(Description description) => description.add(
+      this.description);
+}
+
+/**
  * Matcher that matches a JSON object, with a given set of required and
  * optional fields, and their associated types (expressed as [Matcher]s).
  */

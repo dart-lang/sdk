@@ -103,7 +103,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   visitTypeEnum(TypeEnum typeEnum) {
-    writeln('isIn([');
+    writeln('new MatchesEnum(${JSON.encode(context)}, [');
     indent(() {
       bool commaNeeded = false;
       for (TypeEnumValue value in typeEnum.values) {
