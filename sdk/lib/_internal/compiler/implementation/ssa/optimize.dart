@@ -265,13 +265,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
     Selector selector = node.selector;
     HInstruction input = node.inputs[1];
 
-    World world = compiler.world;
     if (selector.isCall || selector.isOperator) {
       Element target;
       if (input.isExtendableArray(compiler)) {
-        if (selector.applies(backend.jsArrayRemoveLast, world)) {
+        if (selector.applies(backend.jsArrayRemoveLast, compiler)) {
           target = backend.jsArrayRemoveLast;
-        } else if (selector.applies(backend.jsArrayAdd, world)) {
+        } else if (selector.applies(backend.jsArrayAdd, compiler)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
           if (!compiler.enableTypeAssertions) {
@@ -279,12 +278,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
           }
         }
       } else if (input.isStringOrNull(compiler)) {
-        if (selector.applies(backend.jsStringSplit, world)) {
+        if (selector.applies(backend.jsStringSplit, compiler)) {
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)) {
             target = backend.jsStringSplit;
           }
-        } else if (selector.applies(backend.jsStringOperatorAdd, world)) {
+        } else if (selector.applies(backend.jsStringOperatorAdd, compiler)) {
           // `operator+` is turned into a JavaScript '+' so we need to
           // make sure the receiver and the argument are not null.
           // TODO(sra): Do this via [node.specializer].
@@ -294,7 +293,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             return new HStringConcat(input, argument, null,
                                      node.instructionType);
           }
-        } else if (selector.applies(backend.jsStringToString, world)
+        } else if (selector.applies(backend.jsStringToString, compiler)
                    && !input.canBeNull()) {
           return input;
         }
@@ -314,7 +313,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.asUntyped.applies(backend.jsIndexableLength, world)) {
+      if (selector.asUntyped.applies(backend.jsIndexableLength, compiler)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -330,8 +329,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     TypeMask receiverType = node.getDartReceiver(compiler).instructionType;
-    Selector selector =
-        new TypedSelector(receiverType, node.selector, compiler.world);
+    Selector selector = new TypedSelector(receiverType, node.selector,
+        compiler);
     Element element = compiler.world.locateSingleElement(selector);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null
@@ -679,7 +678,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
                                                     Selector selector) {
     TypeMask receiverType = receiver.instructionType;
     return compiler.world.locateSingleField(
-        new TypedSelector(receiverType, selector, compiler.world));
+        new TypedSelector(receiverType, selector, compiler));
   }
 
   HInstruction visitFieldGet(HFieldGet node) {

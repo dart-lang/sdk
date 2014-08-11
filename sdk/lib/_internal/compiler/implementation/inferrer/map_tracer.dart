@@ -61,7 +61,7 @@ class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     Element called = info.calledElement;
-    if (called.isForeign(compiler.backend) && called.name == 'JS') {
+    if (called.isForeign(compiler) && called.name == 'JS') {
       bailout('Used in JS ${info.call}');
     }
   }

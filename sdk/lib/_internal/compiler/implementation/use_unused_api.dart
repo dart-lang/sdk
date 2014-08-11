@@ -197,9 +197,9 @@ usedByTests() {
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(compiler).copy(compiler);
-  new universe.TypedSelector.subclass(null, null, compiler.world);
-  new universe.TypedSelector.subtype(null, null, compiler.world);
-  new universe.TypedSelector.exact(null, null, compiler.world);
+  new universe.TypedSelector.subclass(null, null, compiler);
+  new universe.TypedSelector.subtype(null, null, compiler);
+  new universe.TypedSelector.exact(null, null, compiler);
   sourceFileProvider.readStringFromUri(null);
 }
 

@@ -337,7 +337,7 @@ class ConstantLiteralEmitter implements ConstantVisitor<jsAst.Expression> {
 
   jsAst.Expression visitConstructed(ConstructedConstant constant) {
     Element element = constant.type.element;
-    if (element.isForeign(backend)
+    if (element.isForeign(compiler)
         && element.name == 'JS_CONST') {
       StringConstant str = constant.fields[0];
       String value = str.value.slowToString();

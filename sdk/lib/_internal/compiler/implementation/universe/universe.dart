@@ -80,24 +80,24 @@ class Universe {
 
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
-                           World world) {
+                           Compiler compiler) {
     if (selectors == null) return false;
     for (Selector selector in selectors) {
-      if (selector.appliesUnnamed(member, world)) return true;
+      if (selector.appliesUnnamed(member, compiler)) return true;
     }
     return false;
   }
 
-  bool hasInvocation(Element member, World world) {
-    return hasMatchingSelector(invokedNames[member.name], member, world);
+  bool hasInvocation(Element member, Compiler compiler) {
+    return hasMatchingSelector(invokedNames[member.name], member, compiler);
   }
 
-  bool hasInvokedGetter(Element member, World world) {
-    return hasMatchingSelector(invokedGetters[member.name], member, world);
+  bool hasInvokedGetter(Element member, Compiler compiler) {
+    return hasMatchingSelector(invokedGetters[member.name], member, compiler);
   }
 
-  bool hasInvokedSetter(Element member, World world) {
-    return hasMatchingSelector(invokedSetters[member.name], member, world);
+  bool hasInvokedSetter(Element member, Compiler compiler) {
+    return hasMatchingSelector(invokedSetters[member.name], member, compiler);
   }
 
   DartType registerIsCheck(DartType type, Compiler compiler) {
@@ -191,7 +191,7 @@ class Selector {
     return result;
   }
 
-  factory Selector.fromElement(Element element) {
+  factory Selector.fromElement(Element element, Compiler compiler) {
     String name = element.name;
     if (element.isFunction) {
       if (name == '[]') {
@@ -200,7 +200,7 @@ class Selector {
         return new Selector.indexSet();
       }
       FunctionSignature signature =
-          element.asFunctionElement().functionSignature;
+          element.asFunctionElement().computeSignature(compiler);
       int arity = signature.parameterCount;
       List<String> namedArguments = null;
       if (signature.optionalParametersAreNamed) {
@@ -323,16 +323,16 @@ class Selector {
     return kind;
   }
 
-  bool appliesUnnamed(Element element, World world) {
-    assert(sameNameHack(element, world));
-    return appliesUntyped(element, world);
+  bool appliesUnnamed(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
+    return appliesUntyped(element, compiler);
   }
 
-  bool appliesUntyped(Element element, World world) {
-    assert(sameNameHack(element, world));
+  bool appliesUntyped(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
     if (Elements.isUnresolved(element)) return false;
     if (isPrivateName(name) && library != element.library) return false;
-    if (world.isForeign(element)) return true;
+    if (element.isForeign(compiler)) return true;
     if (element.isSetter) return isSetter;
     if (element.isGetter) return isGetter || isCall;
     if (element.isField) {
@@ -342,11 +342,11 @@ class Selector {
     }
     if (isGetter) return true;
     if (isSetter) return false;
-    return signatureApplies(element);
+    return signatureApplies(element, compiler);
   }
 
-  bool signatureApplies(FunctionElement function) {
-    FunctionSignature parameters = function.functionSignature;
+  bool signatureApplies(FunctionElement function, Compiler compiler) {
+    FunctionSignature parameters = function.computeSignature(compiler);
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
@@ -378,16 +378,16 @@ class Selector {
     }
   }
 
-  bool sameNameHack(Element element, World world) {
+  bool sameNameHack(Element element, Compiler compiler) {
     // TODO(ngeoffray): Remove workaround checks.
     return element.isConstructor ||
            name == element.name ||
-           name == 'assert' && world.isAssertMethod(element);
+           name == 'assert' && compiler.backend.isAssertMethod(element);
   }
 
-  bool applies(Element element, World world) {
-    if (!sameNameHack(element, world)) return false;
-    return appliesUnnamed(element, world);
+  bool applies(Element element, Compiler compiler) {
+    if (!sameNameHack(element, compiler)) return false;
+    return appliesUnnamed(element, compiler);
   }
 
   /**
@@ -409,9 +409,9 @@ class Selector {
                           FunctionElement element,
                           compileArgument(Node argument),
                           compileConstant(Element element),
-                          World world) {
+                          Compiler compiler) {
     assert(invariant(element, element.isImplementation));
-    if (!this.applies(element, world)) return false;
+    if (!this.applies(element, compiler)) return false;
 
     FunctionSignature parameters = element.functionSignature;
     parameters.forEachRequiredParameter((element) {
@@ -469,7 +469,7 @@ class Selector {
       FunctionElement callee,
       compileArgument(Element element),
       compileConstant(Element element),
-      World world) {
+      Compiler compiler) {
 
     FunctionSignature signature = caller.functionSignature;
     Map mapping = new Map();
@@ -521,7 +521,7 @@ class Selector {
                                        callee,
                                        internalCompileArgument,
                                        compileConstant,
-                                       world);
+                                       compiler);
   }
 
   static bool sameNames(List<String> first, List<String> second) {
@@ -614,8 +614,7 @@ class Selector {
   }
 
   Selector extendIfReachesAll(Compiler compiler) {
-    return new TypedSelector(
-        compiler.typesTask.dynamicType, this, compiler.world);
+    return new TypedSelector(compiler.typesTask.dynamicType, this, compiler);
   }
 
   Selector toCallSelector() => new Selector.callClosureFrom(this);
@@ -641,9 +640,9 @@ class TypedSelector extends Selector {
   static Map<Selector, Map<TypeMask, TypedSelector>> canonicalizedValues =
       new Map<Selector, Map<TypeMask, TypedSelector>>();
 
-  factory TypedSelector(TypeMask mask, Selector selector, World world) {
+  factory TypedSelector(TypeMask mask, Selector selector, Compiler compiler) {
     // TODO(johnniwinther): Allow more TypeSelector kinds during resoluton.
-    assert(world.isClosed || mask.isExact);
+    assert(compiler.phase > Compiler.PHASE_RESOLVING || mask.isExact);
     if (selector.mask == mask) return selector;
     Selector untyped = selector.asUntyped;
     Map<TypeMask, TypedSelector> map = canonicalizedValues.putIfAbsent(untyped,
@@ -656,20 +655,20 @@ class TypedSelector extends Selector {
     return result;
   }
 
-  factory TypedSelector.exact(
-      ClassElement base, Selector selector, World world)
-          => new TypedSelector(new TypeMask.exact(base), selector, world);
+  factory TypedSelector.exact(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.exact(base), selector, compiler);
 
-  factory TypedSelector.subclass(
-      ClassElement base, Selector selector, World world)
-          => new TypedSelector(new TypeMask.subclass(base), selector, world);
+  factory TypedSelector.subclass(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.subclass(base), selector, compiler);
 
-  factory TypedSelector.subtype(
-      ClassElement base, Selector selector, World world)
-          => new TypedSelector(new TypeMask.subtype(base), selector, world);
+  factory TypedSelector.subtype(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.subtype(base), selector, compiler);
 
-  bool appliesUnnamed(Element element, World world) {
-    assert(sameNameHack(element, world));
+  bool appliesUnnamed(Element element, Compiler compiler) {
+    assert(sameNameHack(element, compiler));
     // [TypedSelector] are only used after resolution.
     if (!element.isClassMember) return false;
 
@@ -679,19 +678,18 @@ class TypedSelector extends Selector {
     //   bar() => foo(); // The call to 'foo' is a typed selector.
     // }
     if (element.enclosingClass.isClosure) {
-      return appliesUntyped(element, world);
+      return appliesUntyped(element, compiler);
     }
 
-    if (!mask.canHit(element, this, world)) return false;
-    return appliesUntyped(element, world);
+    if (!mask.canHit(element, this, compiler)) return false;
+    return appliesUntyped(element, compiler);
   }
 
   Selector extendIfReachesAll(Compiler compiler) {
     bool canReachAll = compiler.enabledInvokeOn
-        && mask.needsNoSuchMethodHandling(this, compiler.world);
+        && mask.needsNoSuchMethodHandling(this, compiler);
     return canReachAll
-        ? new TypedSelector(
-            compiler.typesTask.dynamicType, this, compiler.world)
+        ? new TypedSelector(compiler.typesTask.dynamicType, this, compiler)
         : this;
   }
 }

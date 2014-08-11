@@ -1438,6 +1438,8 @@ abstract class Compiler implements DiagnosticListener {
     assert(mainFunction != null);
     phase = PHASE_DONE_RESOLVING;
 
+    // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
+    // should know this.
     world.populate();
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.populate].)
@@ -1639,6 +1641,11 @@ abstract class Compiler implements DiagnosticListener {
       progress.reset();
     }
     backend.codegen(work);
+  }
+
+  FunctionSignature resolveSignature(FunctionElement element) {
+    return withCurrentElement(element,
+                              () => resolver.resolveSignature(element));
   }
 
   void reportError(Spannable node,

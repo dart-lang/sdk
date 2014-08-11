@@ -394,8 +394,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
         return false;
       } else if (function.isInstanceMember) {
         if (!function.enclosingClass.isClosure) {
-          return compiler.codegenWorld.hasInvokedGetter(
-              function, compiler.world);
+          return compiler.codegenWorld.hasInvokedGetter(function, compiler);
         }
       }
       return false;

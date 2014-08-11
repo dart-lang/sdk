@@ -763,9 +763,7 @@ testPatchAndSelector() {
         int method() => 0;
         @patch void clear() {}
       }
-      """).then((Compiler compiler) {
-    World world = compiler.world;
-
+      """).then((compiler) {
     ClassElement cls = ensure(compiler, "A", compiler.coreLibrary.find,
                               expectIsPatched: true);
     cls.ensureResolved(compiler);
@@ -780,29 +778,27 @@ testPatchAndSelector() {
 
     // Check that a method just in the patch class is a target for a
     // typed selector.
-    Selector selector = new Selector.call('method', compiler.coreLibrary, 0);
-    TypedSelector typedSelector = new TypedSelector.exact(cls, selector, world);
-    FunctionElement method = cls.implementation.lookupLocalMember('method');
-    method.computeSignature(compiler);
-    Expect.isTrue(selector.applies(method, world));
-    Expect.isTrue(typedSelector.applies(method, world));
+    var selector = new Selector.call('method', compiler.coreLibrary, 0);
+    var typedSelector = new TypedSelector.exact(cls, selector, compiler);
+    Element method = cls.implementation.lookupLocalMember('method');
+    Expect.isTrue(selector.applies(method, compiler));
+    Expect.isTrue(typedSelector.applies(method, compiler));
 
     // Check that the declaration method in the declaration class is a target
     // for a typed selector.
     selector = new Selector.call('clear', compiler.coreLibrary, 0);
-    typedSelector = new TypedSelector.exact(cls, selector, world);
+    typedSelector = new TypedSelector.exact(cls, selector, compiler);
     method = cls.lookupLocalMember('clear');
-    method.computeSignature(compiler);
-    Expect.isTrue(selector.applies(method, world));
-    Expect.isTrue(typedSelector.applies(method, world));
+    Expect.isTrue(selector.applies(method, compiler));
+    Expect.isTrue(typedSelector.applies(method, compiler));
 
     // Check that the declaration method in the declaration class is a target
     // for a typed selector on a subclass.
     cls = ensure(compiler, "B", compiler.coreLibrary.find);
     cls.ensureResolved(compiler);
-    typedSelector = new TypedSelector.exact(cls, selector, world);
-    Expect.isTrue(selector.applies(method, world));
-    Expect.isTrue(typedSelector.applies(method, world));
+    typedSelector = new TypedSelector.exact(cls, selector, compiler);
+    Expect.isTrue(selector.applies(method, compiler));
+    Expect.isTrue(typedSelector.applies(method, compiler));
   }));
 }
 

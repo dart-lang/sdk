@@ -119,7 +119,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 
   Selector newTypedSelector(TypeMask receiver, Selector selector) {
-    return new TypedSelector(receiver, selector, compiler.world);
+    return new TypedSelector(receiver, selector, compiler);
   }
 
   TypeMask addPhiInput(Local variable,
@@ -928,7 +928,7 @@ class SimpleTypeInferrerVisitor<T>
     // are calling does not expose this.
     isThisExposed = true;
     if (Elements.isUnresolved(element)
-        || !selector.applies(element, compiler.world)) {
+        || !selector.applies(element, compiler)) {
       // Ensure we create a node, to make explicit the call to the
       // `noSuchMethod` handler.
       return handleDynamicSend(node, selector, superType, arguments);
@@ -978,14 +978,14 @@ class SimpleTypeInferrerVisitor<T>
         analyzeSuperConstructorCall(element, arguments);
       }
     }
-    if (element.isForeign(compiler.backend)) {
+    if (element.isForeign(compiler)) {
       return handleForeignSend(node);
     }
     Selector selector = elements.getSelector(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn't break anything
-    if (!selector.applies(element, compiler.world)) return types.dynamicType;
+    if (!selector.applies(element, compiler)) return types.dynamicType;
 
     T returnType = handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {

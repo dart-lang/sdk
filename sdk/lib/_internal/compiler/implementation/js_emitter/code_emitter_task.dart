@@ -1207,7 +1207,7 @@ class CodeEmitterTask extends CompilerTask {
         if (!element.isNative) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
         if (member == null) continue;
-        if (noSuchMethodSelector.applies(member, compiler.world)) {
+        if (noSuchMethodSelector.applies(member, compiler)) {
           nativeEmitter.handleNoSuchMethod = true;
           break;
         }
@@ -1336,7 +1336,7 @@ class CodeEmitterTask extends CompilerTask {
 
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
       if (!descriptors.containsKey(outputUnit)) continue;
-
+ 
       ClassBuilder descriptor = descriptors[outputUnit];
 
       jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);

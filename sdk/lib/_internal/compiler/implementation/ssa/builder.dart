@@ -1118,7 +1118,7 @@ class SsaBuilder extends ResolvedVisitor {
       Selector selector,
       FunctionElement function,
       List<HInstruction> providedArguments) {
-    assert(selector.applies(function, compiler.world));
+    assert(selector.applies(function, compiler));
     FunctionSignature signature = function.functionSignature;
     List<HInstruction> compiledArguments = new List<HInstruction>(
         signature.parameterCount + 1); // Plus one for receiver.
@@ -1205,7 +1205,7 @@ class SsaBuilder extends ResolvedVisitor {
       assert(selector != null
              || Elements.isStaticOrTopLevel(element)
              || element.isGenerativeConstructorBody);
-      if (selector != null && !selector.applies(function, compiler.world)) {
+      if (selector != null && !selector.applies(function, compiler)) {
         return false;
       }
 
@@ -1768,7 +1768,7 @@ class SsaBuilder extends ResolvedVisitor {
           target,
           compileArgument,
           handleConstantForOptionalParameter,
-          compiler.world);
+          compiler);
       if (!match) {
         // If this fails, the selector we constructed for the call to a
         // forwarding constructor in a mixin application did not match the
@@ -1848,7 +1848,7 @@ class SsaBuilder extends ResolvedVisitor {
                                     target.implementation,
                                     null,
                                     handleConstantForOptionalParameter,
-                                    compiler.world);
+                                    compiler);
         inlineSuperOrRedirect(target,
                               arguments,
                               constructors,
@@ -3052,7 +3052,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   void generateGetter(ast.Send send, Element element) {
-    if (element != null && element.isForeign(backend)) {
+    if (element != null && element.isForeign(compiler)) {
       visitForeignGetter(send);
     } else if (Elements.isStaticOrTopLevelField(element)) {
       Constant value;
@@ -3391,7 +3391,7 @@ class SsaBuilder extends ResolvedVisitor {
                                        element,
                                        compileArgument,
                                        handleConstantForOptionalParameter,
-                                       compiler.world);
+                                       compiler);
   }
 
   void addGenericSendArgumentsToList(Link<ast.Node> link, List<HInstruction> list) {
@@ -3855,7 +3855,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (node.isPropertyAccess) {
       push(buildInvokeSuper(selector, element, inputs));
     } else if (element.isFunction || element.isGenerativeConstructor) {
-      if (selector.applies(element, compiler.world)) {
+      if (selector.applies(element, compiler)) {
         // TODO(5347): Try to avoid the need for calling [implementation] before
         // calling [addStaticSendArgumentsToList].
         FunctionElement function = element.implementation;
@@ -4312,7 +4312,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (elements.isAssert(node)) {
       element = backend.assertMethod;
     }
-    if (element.isForeign(backend) && element.isFunction) {
+    if (element.isForeign(compiler) && element.isFunction) {
       visitForeignSend(node);
       return;
     }
@@ -4730,7 +4730,7 @@ class SsaBuilder extends ResolvedVisitor {
       }
       Selector setterSelector = elements.getSelector(node);
       if (Elements.isUnresolved(element)
-          || !setterSelector.applies(element, compiler.world)) {
+          || !setterSelector.applies(element, compiler)) {
         generateSuperNoSuchMethodSend(
             node, setterSelector, setterInputs);
         pop();
@@ -5935,7 +5935,7 @@ class StringBuilderVisitor extends ast.Visitor {
     // directly.
     Selector selector =
         new TypedSelector(expression.instructionType,
-            new Selector.call('toString', null, 0), compiler.world);
+            new Selector.call('toString', null, 0), compiler);
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     if (type.containsOnlyString(compiler)) {
       builder.pushInvokeDynamic(node, selector, <HInstruction>[expression]);

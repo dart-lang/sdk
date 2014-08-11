@@ -245,13 +245,13 @@ class UnionTypeMask implements TypeMask {
 
   ClassElement singleClass(Compiler compiler) => null;
 
-  bool needsNoSuchMethodHandling(Selector selector, World world) {
+  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
     return disjointMasks.any(
-        (e) => e.needsNoSuchMethodHandling(selector, world));
+        (e) => e.needsNoSuchMethodHandling(selector, compiler));
   }
 
-  bool canHit(Element element, Selector selector, World world) {
-    return disjointMasks.any((e) => e.canHit(element, selector, world));
+  bool canHit(Element element, Selector selector, Compiler compiler) {
+    return disjointMasks.any((e) => e.canHit(element, selector, compiler));
   }
 
   Element locateSingleElement(Selector selector, Compiler compiler) {

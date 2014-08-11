@@ -556,7 +556,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (selector.mask != receiverType) {
       return receiverType == inferrer.compiler.typesTask.dynamicType
           ? selector.asUntyped
-          : new TypedSelector(receiverType, selector, inferrer.compiler.world);
+          : new TypedSelector(receiverType, selector, inferrer.compiler);
     } else {
       return selector;
     }

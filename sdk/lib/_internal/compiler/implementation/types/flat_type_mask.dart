@@ -405,20 +405,22 @@ class FlatTypeMask implements TypeMask {
    */
   static bool hasElementIn(ClassElement cls,
                            Selector selector,
-                           Element element) {
+                           Element element,
+                           Compiler compiler) {
     // Use [:implementation:] of [element]
     // because our function set only stores declarations.
-    Element result = findMatchIn(cls, selector);
+    Element result = findMatchIn(cls, selector, compiler);
     return result == null
         ? false
         : result.implementation == element.implementation;
   }
 
   static Element findMatchIn(ClassElement cls,
-                             Selector selector) {
+                             Selector selector,
+                             Compiler compiler) {
     // Use the [:implementation] of [cls] in case the found [element]
     // is in the patch class.
-    return cls.implementation.lookupSelector(selector);
+    return cls.implementation.lookupSelector(selector, compiler);
   }
 
   /**
@@ -426,11 +428,12 @@ class FlatTypeMask implements TypeMask {
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(Element element, Selector selector, World world) {
+  bool canHit(Element element, Selector selector, Compiler compiler) {
     assert(element.name == selector.name);
     if (isEmpty) {
       if (!isNullable) return false;
-      return hasElementIn(world.nullImplementation, selector, element);
+      return hasElementIn(
+          compiler.backend.nullImplementation, selector, element, compiler);
     }
 
     // TODO(kasperl): Can't we just avoid creating typed selectors
@@ -443,31 +446,31 @@ class FlatTypeMask implements TypeMask {
     }
 
     ClassElement other = element.enclosingClass;
-    if (other == world.nullImplementation) {
+    if (compiler.backend.isNullImplementation(other)) {
       return isNullable;
     } else if (isExact) {
-      return hasElementIn(self, selector, element);
+      return hasElementIn(self, selector, element, compiler);
     } else if (isSubclass) {
-      assert(world.isClosed);
-      return hasElementIn(self, selector, element)
+      assert(compiler.phase > Compiler.PHASE_RESOLVING);
+      return hasElementIn(self, selector, element, compiler)
           || other.isSubclassOf(self)
-          || world.hasAnySubclassThatMixes(self, other);
+          || compiler.world.hasAnySubclassThatMixes(self, other);
     } else {
       assert(isSubtype);
-      assert(world.isClosed);
-      bool result = hasElementIn(self, selector, element)
+      assert(compiler.phase > Compiler.PHASE_RESOLVING);
+      bool result = hasElementIn(self, selector, element, compiler)
           || other.implementsInterface(self)
-          || world.hasAnySubclassThatImplements(other, base)
-          || world.hasAnySubclassOfMixinUseThatImplements(other, base);
+          || compiler.world.hasAnySubclassThatImplements(other, base)
+          || compiler.world.hasAnySubclassOfMixinUseThatImplements(other, base);
       if (result) return true;
       // If the class is used as a mixin, we have to check if the element
       // can be hit from any of the mixin applications.
-      Iterable<ClassElement> mixinUses = world.mixinUses[self];
+      Iterable<ClassElement> mixinUses = compiler.world.mixinUses[self];
       if (mixinUses == null) return false;
       return mixinUses.any((mixinApplication) =>
-           hasElementIn(mixinApplication, selector, element)
+           hasElementIn(mixinApplication, selector, element, compiler)
         || other.isSubclassOf(mixinApplication)
-        || world.hasAnySubclassThatMixes(mixinApplication, other));
+        || compiler.world.hasAnySubclassThatMixes(mixinApplication, other));
     }
   }
 
@@ -477,18 +480,18 @@ class FlatTypeMask implements TypeMask {
    */
   static bool hasConcreteMatch(ClassElement cls,
                                Selector selector,
-                               World world) {
-    Element element = findMatchIn(cls, selector);
+                               Compiler compiler) {
+    Element element = findMatchIn(cls, selector, compiler);
     if (element == null) return false;
 
     if (element.isAbstract) {
       ClassElement enclosingClass = element.enclosingClass;
-      return hasConcreteMatch(enclosingClass.superclass, selector, world);
+      return hasConcreteMatch(enclosingClass.superclass, selector, compiler);
     }
-    return selector.appliesUntyped(element, world);
+    return selector.appliesUntyped(element, compiler);
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, World world) {
+  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
     // A call on an empty type mask is either dead code, or a call on
     // `null`.
     if (isEmpty) return false;
@@ -536,16 +539,16 @@ class FlatTypeMask implements TypeMask {
     // handler because we may have to call B.noSuchMethod since B
     // does not implement bar.
 
-    bool hasMatch = hasConcreteMatch(base, selector, world);
+    bool hasMatch = hasConcreteMatch(base, selector, compiler);
     if (isExact) return !hasMatch;
     if (!base.isAbstract && !hasMatch) return true;
 
     Set<ClassElement> subtypesToCheck;
     if (isSubtype) {
-      subtypesToCheck = world.subtypesOf(base);
+      subtypesToCheck = compiler.world.subtypesOf(base);
     } else {
       assert(isSubclass);
-      subtypesToCheck = world.subclassesOf(base);
+      subtypesToCheck = compiler.world.subclassesOf(base);
     }
 
     return subtypesToCheck != null
@@ -555,7 +558,7 @@ class FlatTypeMask implements TypeMask {
               // therefore there is no instance that will require
               // [noSuchMethod] handling.
               return !cls.isAbstract
-                  && !hasConcreteMatch(cls, selector, world);
+                  && !hasConcreteMatch(cls, selector, compiler);
            });
   }
 
