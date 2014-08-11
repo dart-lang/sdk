@@ -133,7 +133,7 @@ class AssistProcessor {
     // prepare Change
     String message = JavaString.format(kind.message, args);
     Change change = new Change(message);
-    change.add(fileEdit);
+    change.addFileEdit(fileEdit);
     linkedPositionGroups.values.forEach(
         (group) => change.addLinkedEditGroup(group));
     change.selection = exitPosition;

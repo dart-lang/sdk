@@ -10,6 +10,7 @@ library test.services.correction.change;
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_testing/reflective_tests.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 
@@ -26,12 +27,40 @@ main() {
 
 @ReflectiveTestCase()
 class ChangeTest {
+  void test_getFileEdit_empty() {
+    Change change = new Change('msg');
+    expect(change.getFileEdit('/some.dart'), isNull);
+  }
+
+  void test_addEdit() {
+    Change change = new Change('msg');
+    Edit edit1 = new Edit(1, 2, 'a');
+    Edit edit2 = new Edit(1, 2, 'b');
+    expect(change.fileEdits, hasLength(0));
+    change.addEdit('/a.dart', edit1);
+    expect(change.fileEdits, hasLength(1));
+    change.addEdit('/a.dart', edit2);
+    expect(change.fileEdits, hasLength(1));
+    {
+      FileEdit fileEdit = change.getFileEdit('/a.dart');
+      expect(fileEdit, isNotNull);
+      expect(fileEdit.edits, unorderedEquals([edit1, edit2]));
+    }
+  }
+
+  void test_getFileEdit() {
+    Change change = new Change('msg');
+    FileEdit fileEdit = new FileEdit('/a.dart');
+    change.addFileEdit(fileEdit);
+    expect(change.getFileEdit('/a.dart'), fileEdit);
+  }
+
   void test_toJson() {
     Change change = new Change('msg');
-    change.add(new FileEdit('/a.dart')
+    change.addFileEdit(new FileEdit('/a.dart')
         ..add(new Edit(1, 2, 'aaa'))
         ..add(new Edit(10, 20, 'bbb')));
-    change.add(new FileEdit('/b.dart')
+    change.addFileEdit(new FileEdit('/b.dart')
         ..add(new Edit(21, 22, 'xxx'))
         ..add(new Edit(210, 220, 'yyy')));
     {
@@ -47,6 +76,7 @@ class ChangeTest {
     change.addLinkedEditGroup(new LinkedEditGroup('id-b')
         ..addPosition(new Position('/gb.dart', 10), 5)
         ..addPosition(new Position('/gb.dart', 100), 5));
+    change.selection = new Position('/selection.dart', 42);
     var expectedJson = {
       'message': 'msg',
       'edits': [{
@@ -100,7 +130,11 @@ class ChangeTest {
               'offset': 100
             }],
           'suggestions': []
-        }]
+        }],
+      'selection': {
+        'file': '/selection.dart',
+        'offset': 42
+      }
     };
     expect(change.toJson(), expectedJson);
     // some toString()
@@ -116,23 +150,6 @@ class EditTest {
     expect(edit.end, 3);
   }
 
-  void test_new() {
-    Edit edit = new Edit(1, 2, 'foo');
-    expect(edit.offset, 1);
-    expect(edit.length, 2);
-    expect(edit.replacement, 'foo');
-    expect(edit.toString(), 'Edit(offset=1, length=2, replacement=:>foo<:)');
-  }
-
-  void test_toJson() {
-    Edit edit = new Edit(1, 2, 'foo');
-    var expectedJson = {
-      OFFSET: 1,
-      LENGTH: 2,
-      REPLACEMENT: 'foo'
-    };
-    expect(edit.toJson(), expectedJson);
-  }
   void test_eqEq() {
     Edit a = new Edit(1, 2, 'aaa');
     Edit a2 = new Edit(1, 2, 'aaa');
@@ -142,6 +159,31 @@ class EditTest {
     expect(a == this, isFalse);
     expect(a == new Edit(1, 2, 'bbb'), isFalse);
     expect(a == new Edit(10, 2, 'aaa'), isFalse);
+  }
+
+  void test_new() {
+    Edit edit = new Edit(1, 2, 'foo');
+    expect(edit.offset, 1);
+    expect(edit.length, 2);
+    expect(edit.replacement, 'foo');
+    expect(edit.toString(), 'Edit(offset=1, length=2, replacement=:>foo<:)');
+  }
+
+  void test_new_range() {
+    SourceRange range = new SourceRange(1, 2);
+    Edit edit = new Edit.range(range, 'foo');
+    expect(edit.offset, 1);
+    expect(edit.length, 2);
+    expect(edit.replacement, 'foo');
+  }
+  void test_toJson() {
+    Edit edit = new Edit(1, 2, 'foo');
+    var expectedJson = {
+      OFFSET: 1,
+      LENGTH: 2,
+      REPLACEMENT: 'foo'
+    };
+    expect(edit.toJson(), expectedJson);
   }
 
 }
@@ -177,22 +219,6 @@ class FileEditTest {
         },]
     };
     expect(fileEdit.toJson(), expectedJson);
-  }
-}
-
-
-@ReflectiveTestCase()
-class LinkedEditSuggestionTest {
-  void test_eqEq() {
-    var a = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'a');
-    var a2 = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'a');
-    var b = new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'a');
-    var c = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'c');
-    expect(a == a, isTrue);
-    expect(a == a2, isTrue);
-    expect(a == this, isFalse);
-    expect(a == b, isFalse);
-    expect(a == c, isFalse);
   }
 }
 
@@ -236,6 +262,22 @@ class LinkedEditGroupTest {
           'value': 'BB'
         }]
     });
+  }
+}
+
+
+@ReflectiveTestCase()
+class LinkedEditSuggestionTest {
+  void test_eqEq() {
+    var a = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'a');
+    var a2 = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'a');
+    var b = new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'a');
+    var c = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'c');
+    expect(a == a, isTrue);
+    expect(a == a2, isTrue);
+    expect(a == this, isFalse);
+    expect(a == b, isFalse);
+    expect(a == c, isFalse);
   }
 }
 

@@ -45,9 +45,9 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     assist = _assertHasAssist(kind);
     change = assist.change;
     // apply to "file"
-    List<FileEdit> fileEdits = change.edits;
+    List<FileEdit> fileEdits = change.fileEdits;
     expect(fileEdits, hasLength(1));
-    resultCode = _applyEdits(testCode, change.edits[0].edits);
+    resultCode = _applyEdits(testCode, change.fileEdits[0].edits);
     // verify
     expect(resultCode, expected);
   }
