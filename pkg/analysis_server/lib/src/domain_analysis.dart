@@ -12,7 +12,6 @@ import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -28,16 +27,9 @@ class AnalysisDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
-   * The [SearchEngine] for this server.
-   */
-  SearchEngine searchEngine;
-
-  /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  AnalysisDomainHandler(this.server) {
-    searchEngine = server.searchEngine;
-  }
+  AnalysisDomainHandler(this.server);
 
   /**
    * Implement the `analysis.getErrors` request.
@@ -171,29 +163,27 @@ class AnalysisDomainHandler implements RequestHandler {
   Response updateContent(Request request) {
     var changes = new HashMap<String, ContentChange>();
     RequestDatum filesDatum = request.getRequiredParameter(FILES);
-    Response errorResponse;
     for (String file in filesDatum.keys) {
       RequestDatum changeDatum = filesDatum[file];
       ContentChange change = new ContentChange();
       switch (changeDatum[TYPE].asString()) {
-        case 'add':
+        case ADD:
           change.contentOrReplacement = changeDatum[CONTENT].asString();
           break;
-        case 'change':
+        case CHANGE:
           change.offset = changeDatum[OFFSET].asInt();
           change.length = changeDatum[LENGTH].asInt();
           change.contentOrReplacement = changeDatum[REPLACEMENT].asString();
           break;
-        case 'remove':
+        case REMOVE:
           break;
         default:
-          return new Response.invalidParameter(request,
-              changeDatum[TYPE].path, 'be one of "add", "change", or "remove"');
+          return new Response.invalidParameter(
+              request,
+              changeDatum[TYPE].path,
+              'be one of "add", "change", or "remove"');
       }
       changes[file] = change;
-    }
-    if (errorResponse != null) {
-      return errorResponse;
     }
     server.updateContent(changes);
     return new Response(request.id);
