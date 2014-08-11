@@ -7,8 +7,8 @@ library test.integration.analysis.error;
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
-import 'integration_tests.dart';
-import 'protocol_matchers.dart';
+import '../integration_tests.dart';
+import '../protocol_matchers.dart';
 
 @ReflectiveTestCase()
 class AnalysisErrorIntegrationTest extends AbstractAnalysisServerIntegrationTest

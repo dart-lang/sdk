@@ -550,6 +550,21 @@ class Server {
   Stopwatch _time = new Stopwatch();
 
   /**
+   * Find the root directory of the analysis_server package by proceeding
+   * upward to the 'test' dir, and then going up one more directory.
+   */
+  String findRoot(String pathname) {
+    while (basename(pathname) != 'test') {
+      String parent = dirname(pathname);
+      if (parent.length >= pathname.length) {
+        throw new Exception("Can't find root directory");
+      }
+      pathname = parent;
+    }
+    return dirname(pathname);
+  }
+
+  /**
    * Start the server.  If [debugServer] is true, the server will be started
    * with "--debug", allowing a debugger to be attached.
    */
@@ -562,10 +577,9 @@ class Server {
     // TODO(paulberry): move the logic for finding the script, the dart
     // executable, and the package root into a shell script.
     String dartBinary = Platform.executable;
-    String scriptDir = dirname(Platform.script.toFilePath(windows:
+    String rootDir = findRoot(Platform.script.toFilePath(windows:
         Platform.isWindows));
-    String serverPath = normalize(join(scriptDir, '..', '..', 'bin',
-        'server.dart'));
+    String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     List<String> arguments = [];
     if (debugServer) {
       arguments.add('--debug');
