@@ -7,8 +7,9 @@ library test.integration.all;
 import 'package:unittest/unittest.dart';
 
 import 'analysis/test_all.dart' as analysis_test_all;
-import 'completion_domain_int_test.dart' as completion_domain_int_test;
-import 'server_domain_int_test.dart' as server_domain_int_test;
+import 'completion/test_all.dart' as completion_test_all;
+import 'search/test_all.dart' as search_test_all;
+import 'server/test_all.dart' as server_test_all;
 
 /**
  * Utility for manually running all integration tests.
@@ -17,7 +18,8 @@ main() {
   groupSep = ' | ';
   group('analysis_server_integration', () {
     analysis_test_all.main();
-    completion_domain_int_test.main();
-    server_domain_int_test.main();
+    completion_test_all.main();
+    search_test_all.main();
+    server_test_all.main();
   });
 }

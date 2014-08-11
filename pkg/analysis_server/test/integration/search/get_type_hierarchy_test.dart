@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
-import 'integration_tests.dart';
+import '../integration_tests.dart';
 
 /**
  * Results of a getTypeHierarchy request, processed for easier testing.
@@ -58,7 +58,7 @@ class HierarchyResults {
 }
 
 @ReflectiveTestCase()
-class SearchDomainIntegrationTest extends AbstractAnalysisServerIntegrationTest
+class Test extends AbstractAnalysisServerIntegrationTest
     {
   /**
    * Pathname of the main file to run tests in.
@@ -280,5 +280,5 @@ main /* target */ () {
 }
 
 main() {
-  runReflectiveTests(SearchDomainIntegrationTest);
+  runReflectiveTests(Test);
 }

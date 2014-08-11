@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.integration.completion.domain;
+library test.integration.completion.get.suggestions;
 
 import 'dart:async';
 
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
-import 'integration_tests.dart';
+import '../integration_tests.dart';
 
 @ReflectiveTestCase()
-class CompletionDomainIntegrationTest extends
-    AbstractAnalysisServerIntegrationTest {
+class Test extends AbstractAnalysisServerIntegrationTest {
   fail_test_getSuggestions_string_var() {
     // See dartbug.com/20188
     String pathname = sourcePath('test.dart');
@@ -48,5 +47,5 @@ main() {
 }
 
 main() {
-  runReflectiveTests(CompletionDomainIntegrationTest);
+  runReflectiveTests(Test);
 }
