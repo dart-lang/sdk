@@ -16,6 +16,11 @@
       }
     },
     "ApplicationCache": {
+      "comment": [
+        "/**",
+        " * ApplicationCache is accessed via [Window.applicationCache].",
+        " */"
+      ],
       "members": {
         "cachedEvent": [
           "/**",

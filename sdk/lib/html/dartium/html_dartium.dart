@@ -852,6 +852,9 @@ class AnimationEvent extends Event {
 
 
 @DocsEditable()
+/**
+ * ApplicationCache is accessed via [Window.applicationCache].
+ */
 @DomName('ApplicationCache')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
