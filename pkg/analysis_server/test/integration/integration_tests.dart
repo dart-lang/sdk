@@ -19,7 +19,8 @@ import 'protocol_matchers.dart';
 /**
  * Base class for analysis server integration tests.
  */
-abstract class AbstractAnalysisServerIntegrationTest extends InttestMixin {
+abstract class AbstractAnalysisServerIntegrationTest extends
+    IntegrationTestMixin {
   /**
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.

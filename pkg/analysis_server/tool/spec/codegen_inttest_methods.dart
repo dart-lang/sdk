@@ -59,7 +59,7 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
     writeln('/**');
     writeln(' * Convenience methods for running integration tests');
     writeln(' */');
-    writeln('abstract class InttestMixin {');
+    writeln('abstract class IntegrationTestMixin {');
     indent(() {
       writeln('Server get server;');
       super.visitApi();

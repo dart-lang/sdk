@@ -22,7 +22,7 @@ import 'protocol_matchers.dart';
 /**
  * Convenience methods for running integration tests
  */
-abstract class InttestMixin {
+abstract class IntegrationTestMixin {
   Server get server;
 
   /**
