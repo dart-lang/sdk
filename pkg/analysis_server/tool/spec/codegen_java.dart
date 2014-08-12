@@ -28,6 +28,16 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   };
 
   /**
+   * Type references in the spec that are named something else in Java.
+   */
+  static const Map<String, String> _typeRenames = const {
+    'bool': 'boolean',
+    'FilePath': 'String',
+    'DebugContextId': 'String',
+    'object': 'Object',
+  };
+
+  /**
    * Visitor used to produce doc comments.
    */
   final ToHtmlVisitor toHtmlVisitor;
@@ -82,18 +92,11 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   String javaType(TypeDecl type) {
     if (type is TypeReference) {
       TypeReference resolvedType = resolveTypeReferenceChain(type);
-      switch (resolvedType.typeName) {
-        // TODO(jwren) make this into a type type renames map, like _variableRenames
-        case 'bool':
-          return 'boolean';
-        case 'FilePath':
-          return 'String';
-        case 'DebugContextId':
-          return 'String';
-        case 'object':
-          return 'Object';
-        default:
-          return resolvedType.typeName;
+      String typeName = resolvedType.typeName;
+      if (_typeRenames.containsKey(typeName)) {
+        return _typeRenames[typeName];
+      } else {
+        return typeName;
       }
     } else if (type is TypeList) {
       return 'List<${javaType(type.itemType)}>';
