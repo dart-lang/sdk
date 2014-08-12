@@ -27,13 +27,15 @@ class PoiTest {
 }
 
 void main() {
-  int position = 710;
+  int position = 695;
   List tests = [
       // The file empty_main.dart is a regression test for crash in
       // resolveMetadataAnnotation in dart2js.
       new PoiTest(Platform.script.resolve('data/empty_main.dart'), 225),
       new PoiTest(Platform.script, position),
   ];
+
+  poi.enableDartMind = false;
 
   asyncTest(() => Future.forEach(tests, (PoiTest test) => test.run()));
 }

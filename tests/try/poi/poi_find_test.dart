@@ -27,13 +27,47 @@ import 'package:compiler/implementation/source_file_provider.dart' show
 Future testPoi() {
   Uri script = Platform.script.resolve('data/empty_main.dart');
   FormattingDiagnosticHandler handler = new FormattingDiagnosticHandler();
-  handler.verbose = true;
+  handler.verbose = false;
 
   Future future = poi.runPoi(script, 225, handler.provider, handler);
   return future.then((Element element) {
     Uri foundScript = element.compilationUnit.script.resourceUri;
     Expect.stringEquals('$script', '$foundScript');
     Expect.stringEquals('main', element.name);
+
+    String source = handler.provider.sourceFiles['$script'].slowText();
+    final int position = source.indexOf('main()');
+    Expect.isTrue(position > 0, '$position > 0');
+
+    var token;
+
+    // When the cursor is at the same character offset as "main()", it
+    // corresponds to having the cursor just before "main()". So we find the
+    // "void" token.
+    token = poi.findToken(element, position);
+    Expect.isNotNull(token, 'token');
+    Expect.stringEquals('void', token.value);
+
+    // Cursor at position + 1 corresponds to having the cursor just after "m"
+    // in "main()". So we find the "main" token.
+    token = poi.findToken(element, position + 1);
+    Expect.isNotNull(token, 'token');
+    Expect.equals(position, token.charOffset);
+    Expect.stringEquals('main', token.value);
+
+    // This corresponds to the cursor after "main", but before "()" in
+    // "main()". So we find the "main" token.
+    token = poi.findToken(element, position + 4);
+    Expect.isNotNull(token, 'token');
+    Expect.equals(position, token.charOffset);
+    Expect.stringEquals('main', token.value);
+
+    // This corresponds to the cursor after "(" in "main()". So we find the "("
+    // token.
+    token = poi.findToken(element, position + 5);
+    Expect.isNotNull(token, 'token');
+    Expect.equals(position + 4, token.charOffset, '$token');
+    Expect.stringEquals('(', token.value);
   });
 }
 

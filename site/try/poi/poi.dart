@@ -5,10 +5,22 @@
 library trydart.poi;
 
 import 'dart:async' show
-    Future;
+    Completer,
+    Future,
+    Stream;
 
 import 'dart:io' show
-    Platform;
+    HttpClient,
+    HttpClientRequest,
+    HttpClientResponse,
+    Platform,
+    stdout;
+
+import 'dart:io' as io;
+
+import 'dart:convert' show
+    LineSplitter,
+    UTF8;
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
     reuseCompiler;
@@ -36,32 +48,175 @@ import 'package:compiler/implementation/elements/elements.dart' show
     ScopeContainerElement;
 
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
+    EOF_TOKEN,
+    IDENTIFIER_TOKEN,
+    KEYWORD_TOKEN,
     PartialClassElement,
-    PartialElement;
+    PartialElement,
+    Token;
 
 import 'package:compiler/implementation/util/uri_extras.dart' show
     relativize;
 
-main(List<String> arguments) {
-  Uri script = Uri.base.resolve(arguments.first);
-  int position = int.parse(arguments[1]);
+/// Controls if this program should be querying Dart Mind. Used by tests.
+bool enableDartMind = true;
 
+/// Iterator over lines from standard input (or the argument array).
+Iterator<String> stdin;
+
+/// Iterator for reading lines from [io.stdin].
+class StdinIterator implements Iterator<String> {
+  String current;
+
+  bool moveNext() {
+    current = io.stdin.readLineSync();
+    return true;
+  }
+}
+
+main(List<String> arguments) {
   FormattingDiagnosticHandler handler = new FormattingDiagnosticHandler();
   handler
-      ..verbose = true
+      ..verbose = false
       ..enableColors = true;
   api.CompilerInputProvider inputProvider = handler.provider;
+
+  if (arguments.length == 0) {
+    stdin = new StdinIterator();
+  } else {
+    stdin = arguments.where((String line) {
+      print(line); // Simulates user input in terminal.
+      return true;
+    }).iterator;
+  }
+
+  return prompt('Dart file: ').then((String fileName) {
+    return prompt('Position: ').then((String position) {
+      return parseUserInput(fileName, position, inputProvider, handler);
+    });
+  });
+}
+
+Future<String> prompt(message) {
+  stdout.write(message);
+  return stdout.flush().then((_) {
+    stdin.moveNext();
+    return stdin.current;
+  });
+}
+
+Future queryDartMind(String prefix, String info) {
+  // TODO(lukechurch): Use [info] for something.
+  if (!enableDartMind) return new Future.value("[]");
+  String encodedArg0 = Uri.encodeComponent('"$prefix"');
+  String mindQuery =
+      'http://dart-mind.appspot.com/rpc'
+      '?action=GetExportingPubCompletions'
+      '&arg0=$encodedArg0';
+  Uri uri = Uri.parse(mindQuery);
+
+  HttpClient client = new HttpClient();
+  return client.getUrl(uri).then((HttpClientRequest request) {
+    return request.close();
+  }).then((HttpClientResponse response) {
+    Completer<String> completer = new Completer<String>();
+    response.transform(UTF8.decoder).listen((contents) {
+      completer.complete(contents);
+    });
+    return completer.future;
+  });
+}
+
+Future parseUserInput(
+    String fileName,
+    String positionString,
+    api.CompilerInputProvider inputProvider,
+    api.DiagnosticHandler handler) {
+  Future repeat() {
+    return prompt('Position: ').then((String positionString) {
+      return parseUserInput(fileName, positionString, inputProvider, handler);
+    });
+  }
+
+  Uri script = Uri.base.resolveUri(new Uri.file(fileName));
+  if (positionString == null) return null;
+  int position = int.parse(
+      positionString, onError: (_) => print('Please enter an integer.'));
+  if (position == null) return repeat();
 
   inputProvider(script);
   handler(
       script, position, position + 1,
-      'Point of interest.', api.Diagnostic.HINT);
+      'Point of interest. Cursor is immediately before highlighted character.',
+      api.Diagnostic.HINT);
+
+  Stopwatch sw = new Stopwatch()..start();
 
   Future future = runPoi(script, position, inputProvider, handler);
   return future.then((Element element) {
-    print(scopeInformation(element, position));
+    print('Resolving took ${sw.elapsedMicroseconds}us.');
+    sw.reset();
+    String info = scopeInformation(element, position);
+    print(info);
+    print('Scope information took ${sw.elapsedMicroseconds}us.');
+    sw.reset();
+    Token token = findToken(element, position);
+    String prefix;
+    if (token != null) {
+      if (token.charOffset + token.charCount <= position) {
+        // After the token; in whitespace, or in the beginning of another token.
+        prefix = "";
+      } else if (token.kind == IDENTIFIER_TOKEN ||
+                 token.kind == KEYWORD_TOKEN) {
+        prefix = token.value.substring(0, position - token.charOffset);
+      }
+    }
+    print('Find token took ${sw.elapsedMicroseconds}us.');
+    sw.reset();
+    if (prefix != null) {
+      return queryDartMind(prefix, info).then((String dartMindSuggestion) {
+        sw.stop();
+        print('Dart Mind ($prefix): $dartMindSuggestion.');
+        print('Dart Mind took ${sw.elapsedMicroseconds}us.');
+        return repeat();
+      });
+    } else {
+      print("Didn't talk to Dart Mind, no identifier at POI ($token).");
+      return repeat();
+    }
   });
 }
+
+/// Find the token corresponding to [position] in [element].  The method only
+/// works for instances of [PartialElement] or [LibraryElement].  Support for
+/// [LibraryElement] is currently limited, and works only for named libraries.
+Token findToken(Element element, int position) {
+  Token beginToken;
+  if (element is PartialElement) {
+    beginToken = element.beginToken;
+  } else if (element is PartialClassElement) {
+    beginToken = element.beginToken;
+  } else if (element.isLibrary) {
+    // TODO(ahe): Generalize support for library elements (and update above
+    // documentation).
+    LibraryElement lib = element;
+    var tag = lib.libraryTag;
+    if (tag != null) {
+      beginToken = tag.libraryKeyword;
+    }
+  } else {
+    beginToken = element.position;
+  }
+  if (beginToken == null) return null;
+  for (Token token = beginToken; token.kind != EOF_TOKEN; token = token.next) {
+    if (token.charOffset < position && position <= token.next.charOffset) {
+      return token;
+    }
+  }
+  return null;
+}
+
+Compiler cachedCompiler;
 
 Future<Element> runPoi(
     Uri script, int position,
@@ -78,9 +233,10 @@ Future<Element> runPoi(
       '--no-source-maps',
       '--verbose',
       '--categories=Client,Server',
+      '--incremental-support',
+      '--disable-type-inference',
   ];
 
-  Compiler cachedCompiler = null;
   cachedCompiler = reuseCompiler(
       diagnosticHandler: handler,
       inputProvider: inputProvider,
