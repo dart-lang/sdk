@@ -15,6 +15,7 @@ import 'package:analysis_services/refactoring/refactoring.dart';
 import 'package:analysis_services/search/hierarchy.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/correction/util.dart';
+import 'package:analysis_services/src/refactoring/naming_conventions.dart';
 import 'package:analysis_services/src/refactoring/rename.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -54,6 +55,24 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       _analyzePossibleConflicts_inLibrary(result, unitSource, librarySource);
     }
     return new Future.value(result);
+  }
+
+  @override
+  RefactoringStatus checkNewName() {
+    RefactoringStatus result = super.checkNewName();
+    if (element is LocalVariableElement) {
+      LocalVariableElement variableElement = element;
+      if (variableElement.isConst) {
+        result.addStatus(validateConstantName(newName));
+      } else {
+        result.addStatus(validateVariableName(newName));
+      }
+    } else if (element is ParameterElement) {
+      result.addStatus(validateParameterName(newName));
+    } else if (element is FunctionElement) {
+      result.addStatus(validateFunctionName(newName));
+    }
+    return result;
   }
 
   @override

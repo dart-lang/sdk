@@ -14,7 +14,6 @@ import 'package:unittest/unittest.dart';
 import 'abstract_rename.dart';
 
 
-
 main() {
   groupSep = ' | ';
   runReflectiveTests(RenameLocalTest);
@@ -112,7 +111,7 @@ main() {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    return assertRefactoringStatusOK();
+    return assertRefactoringConditionsOK();
   }
 
   test_checkFinalConditions_hasLocalVariable_otherFunction() {
@@ -127,7 +126,7 @@ main2() {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    return assertRefactoringStatusOK();
+    return assertRefactoringConditionsOK();
   }
 
   test_checkFinalConditions_shadows_classMember() {
@@ -166,7 +165,7 @@ class A {
     createRenameRefactoringAtString('test = 0');
     // check status
     refactoring.newName = 'newName';
-    return assertRefactoringStatusOK();
+    return assertRefactoringConditionsOK();
   }
 
   test_checkFinalConditions_shadows_topLevelFunction() {
@@ -186,6 +185,95 @@ main() {
           RefactoringStatusSeverity.ERROR,
           expectedContextSearch: 'newName(); // ref');
     });
+  }
+
+  test_checkNewName_FunctionElement() {
+    indexTestUnit('''
+main() {
+  int test() {}
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(),
+        RefactoringStatusSeverity.ERROR,
+        expectedMessage: "Function name must not be null.");
+    // OK
+    refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  test_checkNewName_LocalVariableElement() {
+    indexTestUnit('''
+main() {
+  int test = 0;
+}
+''');
+    createRenameRefactoringAtString('test = 0;');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(),
+        RefactoringStatusSeverity.ERROR,
+        expectedMessage: "Variable name must not be null.");
+    // empty
+    refactoring.newName = '';
+    assertRefactoringStatus(
+        refactoring.checkNewName(),
+        RefactoringStatusSeverity.ERROR,
+        expectedMessage: "Variable name must not be empty.");
+    // OK
+    refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  test_checkNewName_LocalVariableElement_const() {
+    indexTestUnit('''
+main() {
+  const int TEST = 0;
+}
+''');
+    createRenameRefactoringAtString('TEST = 0;');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(),
+        RefactoringStatusSeverity.ERROR,
+        expectedMessage: "Constant name must not be null.");
+    // empty
+    refactoring.newName = '';
+    assertRefactoringStatus(
+        refactoring.checkNewName(),
+        RefactoringStatusSeverity.ERROR,
+        expectedMessage: "Constant name must not be empty.");
+    // same
+    refactoring.newName = 'TEST';
+    assertRefactoringStatus(
+        refactoring.checkNewName(),
+        RefactoringStatusSeverity.FATAL,
+        expectedMessage: "The new name must be different than the current name.");
+    // OK
+    refactoring.newName = 'NEW_NAME';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  test_checkNewName_ParameterElement() {
+    indexTestUnit('''
+main(test) {
+}
+''');
+    createRenameRefactoringAtString('test) {');
+    // null
+    refactoring.newName = null;
+    assertRefactoringStatus(
+        refactoring.checkNewName(),
+        RefactoringStatusSeverity.ERROR,
+        expectedMessage: "Parameter name must not be null.");
+    // OK
+    refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
   test_createChange_localFunction() {

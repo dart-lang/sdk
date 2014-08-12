@@ -6,12 +6,14 @@ library test.services.refactoring;
 
 import 'package:unittest/unittest.dart';
 
+import 'naming_conventions_test.dart' as naming_conventions_test;
 import 'rename_local_test.dart' as rename_local_test;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
   group('refactoring', () {
+    naming_conventions_test.main();
     rename_local_test.main();
   });
 }

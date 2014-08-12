@@ -30,6 +30,23 @@ class StringsTest {
     expect(capitalize('ABC'), 'ABC');
   }
 
+  void test_compareStrings() {
+    expect(compareStrings(null, null), 0);
+    expect(compareStrings(null, 'b'), 1);
+    expect(compareStrings('a', null), -1);
+    expect(compareStrings('a', 'b'), -1);
+    expect(compareStrings('b', 'a'), 1);
+  }
+
+  void test_isBlank() {
+    expect(isBlank(null), isTrue);
+    expect(isBlank(''), isTrue);
+    expect(isBlank(' '), isTrue);
+    expect(isBlank('\t'), isTrue);
+    expect(isBlank('  '), isTrue);
+    expect(isBlank('X'), isFalse);
+  }
+
   void test_isDigit() {
     for (int c in '0123456789'.codeUnits) {
       expect(isDigit(c), isTrue);
@@ -54,6 +71,31 @@ class StringsTest {
     }
     expect(isLetter(' '.codeUnitAt(0)), isFalse);
     expect(isLetter('0'.codeUnitAt(0)), isFalse);
+  }
+
+  void test_isLetterOrDigit() {
+    for (int c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(isLetterOrDigit(c), isTrue);
+    }
+    for (int c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(isLetterOrDigit(c), isTrue);
+    }
+    for (int c in '0123456789'.codeUnits) {
+      expect(isLetterOrDigit(c), isTrue);
+    }
+    expect(isLetterOrDigit(' '.codeUnitAt(0)), isFalse);
+    expect(isLetterOrDigit('.'.codeUnitAt(0)), isFalse);
+  }
+
+  void test_isLowerCase() {
+    for (int c in 'abcdefghijklmnopqrstuvwxyz'.codeUnits) {
+      expect(isLowerCase(c), isTrue);
+    }
+    for (int c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.codeUnits) {
+      expect(isLowerCase(c), isFalse);
+    }
+    expect(isLowerCase(' '.codeUnitAt(0)), isFalse);
+    expect(isLowerCase('0'.codeUnitAt(0)), isFalse);
   }
 
   void test_isSpace() {

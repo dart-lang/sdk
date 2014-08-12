@@ -8,11 +8,53 @@
 library services.src.correction.strings;
 
 
+/**
+ * "$"
+ */
+const int CHAR_DOLLAR = 0x24;
+
+/**
+ * "."
+ */
+const int CHAR_DOT = 0x2E;
+
+/**
+ * "_"
+ */
+const int CHAR_UNDERSCORE = 0x5F;
+
+
 String capitalize(String str) {
   if (isEmpty(str)) {
     return str;
   }
   return str.substring(0, 1).toUpperCase() + str.substring(1);
+}
+
+int compareStrings(String a, String b) {
+  if (a == b) {
+    return 0;
+  }
+  if (a == null) {
+    return 1;
+  }
+  if (b == null) {
+    return -1;
+  }
+  return a.compareTo(b);
+}
+
+/**
+ * Checks if [str] is `null`, empty or is whitespace.
+ */
+bool isBlank(String str) {
+  if (str == null) {
+    return true;
+  }
+  if (str.isEmpty) {
+    return true;
+  }
+  return str.codeUnits.every(isSpace);
 }
 
 bool isDigit(int c) {
@@ -25,6 +67,10 @@ bool isEmpty(String str) {
 
 bool isLetter(int c) {
   return (c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A);
+}
+
+bool isLetterOrDigit(int c) {
+  return isLetter(c) || isDigit(c);
 }
 
 bool isLowerCase(int c) {
@@ -56,19 +102,6 @@ String removeStart(String str, String remove) {
     return str.substring(remove.length);
   }
   return str;
-}
-
-int compareStrings(String a, String b) {
-  if (a == b) {
-    return 0;
-  }
-  if (a == null) {
-    return 1;
-  }
-  if (b == null) {
-    return -1;
-  }
-  return a.compareTo(b);
 }
 
 String repeat(String s, int n) {
