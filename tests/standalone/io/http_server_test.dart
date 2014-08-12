@@ -9,6 +9,91 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
+void testDefaultResponseHeaders() {
+  checkDefaultHeaders(headers) {
+    Expect.listEquals(headers[HttpHeaders.CONTENT_TYPE],
+                      ['text/plain; charset=utf-8']);
+    Expect.listEquals(headers['X-Frame-Options'],
+                      ['SAMEORIGIN']);
+    Expect.listEquals(headers['X-Content-Type-Options'],
+                      ['nosniff']);
+    Expect.listEquals(headers['X-XSS-Protection'],
+                      ['1; mode=block']);
+  }
+
+  checkDefaultHeadersClear(headers) {
+    Expect.isNull(headers[HttpHeaders.CONTENT_TYPE]);
+    Expect.isNull(headers['X-Frame-Options']);
+    Expect.isNull(headers['X-Content-Type-Options']);
+    Expect.isNull(headers['X-XSS-Protection']);
+  }
+
+  checkDefaultHeadersClearAB(headers) {
+    Expect.isNull(headers[HttpHeaders.CONTENT_TYPE]);
+    Expect.isNull(headers['X-Frame-Options']);
+    Expect.isNull(headers['X-Content-Type-Options']);
+    Expect.isNull(headers['X-XSS-Protection']);
+    Expect.listEquals(headers['a'], ['b']);
+  }
+
+  test(bool clearHeaders, Map defaultHeaders, Function checker) {
+    HttpServer.bind("127.0.0.1", 0).then((server) {
+      if (clearHeaders) server.defaultResponseHeaders.clear();
+      if (defaultHeaders != null) {
+        defaultHeaders.forEach(
+            (name, value) => server.defaultResponseHeaders.add(name, value));
+      }
+      checker(server.defaultResponseHeaders);
+      server.listen((request) {
+        request.response.close();
+      });
+
+      HttpClient client = new HttpClient();
+      client.get("127.0.0.1", server.port, "/")
+          .then((request) => request.close())
+          .then((response) {
+            checker(response.headers);
+            server.close();
+            client.close();
+          });
+    });
+  }
+
+  test(false, null, checkDefaultHeaders);
+  test(true, null, checkDefaultHeadersClear);
+  test(true, {'a': 'b'}, checkDefaultHeadersClearAB);
+}
+
+void testDefaultResponseHeadersContentType() {
+  test(bool clearHeaders, String requestBody, List<int> responseBody) {
+    HttpServer.bind("127.0.0.1", 0).then((server) {
+      if (clearHeaders) server.defaultResponseHeaders.clear();
+      server.listen((request) {
+        request.response.write(requestBody);
+        request.response.close();
+      });
+
+      HttpClient client = new HttpClient();
+      client.get("127.0.0.1", server.port, "/")
+          .then((request) => request.close())
+          .then((response) {
+              response
+                  .fold([], (a, b) => a..addAll(b))
+                  .then((body) {
+                    Expect.listEquals(body, responseBody);
+                  })
+                  .whenComplete(() {
+                    server.close();
+                    client.close();
+                  });
+          });
+    });
+  }
+
+  test(false, 'æøå', [195, 166, 195, 184, 195, 165]);
+  test(true, 'æøå', [230, 248, 229]);
+}
+
 void testListenOn() {
   ServerSocket socket;
   HttpServer server;
@@ -137,6 +222,8 @@ void testHttpServerClientClose() {
 
 
 void main() {
+  testDefaultResponseHeaders();
+  testDefaultResponseHeadersContentType();
   testListenOn();
   testHttpServerZone();
   testHttpServerZoneError();

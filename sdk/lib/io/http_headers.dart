@@ -20,11 +20,21 @@ class _HttpHeaders implements HttpHeaders {
   final int _defaultPortForScheme;
 
   _HttpHeaders(this.protocolVersion,
-               {int defaultPortForScheme: HttpClient.DEFAULT_HTTP_PORT})
+               {int defaultPortForScheme: HttpClient.DEFAULT_HTTP_PORT,
+                _HttpHeaders initialHeaders})
       : _headers = new HashMap<String, List<String>>(),
         _defaultPortForScheme = defaultPortForScheme {
+    if (initialHeaders != null) {
+      initialHeaders._headers.forEach((name, value) => _headers[name] = value);
+      _contentLength = initialHeaders._contentLength;
+      _persistentConnection = initialHeaders._persistentConnection;
+      _chunkedTransferEncoding = initialHeaders._chunkedTransferEncoding;
+      _host = initialHeaders._host;
+      _port = initialHeaders._port;
+    }
     if (protocolVersion == "1.0") {
       _persistentConnection = false;
+      _chunkedTransferEncoding = false;
     }
   }
 
@@ -256,6 +266,16 @@ class _HttpHeaders implements HttpHeaders {
   void set contentType(ContentType contentType) {
     _checkMutable();
     _set(HttpHeaders.CONTENT_TYPE, contentType.toString());
+  }
+
+  void clear() {
+    _checkMutable();
+    _headers.clear();
+    _contentLength = -1;
+    _persistentConnection = true;
+    _chunkedTransferEncoding = false;
+    _host = null;
+    _port = null;
   }
 
   // [name] must be a lower-case version of the name.
@@ -807,6 +827,8 @@ class _Cookie implements Cookie {
   bool secure = false;
 
   _Cookie([this.name, this.value]) {
+    // Default value of httponly is true.
+    httpOnly = true;
     _validate();
   }
 

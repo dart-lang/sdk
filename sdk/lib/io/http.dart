@@ -164,6 +164,21 @@ abstract class HttpServer implements Stream<HttpRequest> {
   String serverHeader;
 
   /**
+   * Default set of headers added to all response objects.
+   *
+   * By default the following headers are in this set:
+   *
+   *    Content-Type: text/plain; charset=utf-8
+   *    X-Frame-Options: SAMEORIGIN
+   *    X-Content-Type-Options: nosniff
+   *    X-XSS-Protection: 1; mode=block
+   *
+   * If the `Server` header is added here and the `serverHeader` is set as
+   * well then the value of `serverHeader` takes precedence.
+   */
+  HttpHeaders get defaultResponseHeaders;
+
+  /**
    * Get or set the timeout used for idle keep-alive connections. If no further
    * request is seen within [idleTimeout] after the previous request was
    * completed, the connection is dropped.
@@ -580,6 +595,13 @@ abstract class HttpHeaders {
    * 'set-cookie' header has folding disabled by default.
    */
   void noFolding(String name);
+
+  /**
+   * Remove all headers. Some headers have system supplied values and
+   * for these the system supplied values will still be added to the
+   * collection of values for the header.
+   */
+  void clear();
 }
 
 
@@ -813,6 +835,8 @@ abstract class Cookie {
 
   /**
    * Creates a new cookie optionally setting the name and value.
+   *
+   * By default the value of `httpOnly` will be set to `true`.
    */
   factory Cookie([String name, String value]) => new _Cookie(name, value);
 

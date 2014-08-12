@@ -42,6 +42,7 @@ void testCookies() {
             var cookiesMap = {};
             response.cookies.forEach((c) => cookiesMap[c.name] = c.value);
             Expect.mapEquals(cookies[i], cookiesMap);
+            response.cookies.forEach((c) => Expect.isTrue(c.httpOnly));
             response.listen(
                 (d) {},
                 onDone: () {

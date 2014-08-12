@@ -16,6 +16,7 @@ void testServerRequest(void handler(server, request),
                        {int bytes,
                         bool closeClient}) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
+    server.defaultResponseHeaders.clear();
     server.listen((request) {
       handler(server, request);
     });
