@@ -20,13 +20,13 @@ class B {
 
 class C implements Pattern {
   matchAsPrefix(String s, [int start = 0]) => null;
-  allMatches(String s) => null;
+  allMatches(String s, [int start = 0]) => null;
 }
 
 class D implements Pattern, Comparable {
   int compareTo(o) => 0;
   matchAsPrefix(String s, [int start = 0]) => null;
-  allMatches(String s) => null;
+  allMatches(String s, [int start = 0]) => null;
 }
 
 main() {
