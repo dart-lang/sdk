@@ -39,9 +39,9 @@ Future testPoi() {
     Expect.stringEquals('$script', '$foundScript');
     Expect.stringEquals('fisk', element.name);
 
+    String scope = poi.scopeInformation(element, position);
     Expect.stringEquals(
-        JSON.encode(expected),
-        JSON.encode(JSON.decode(poi.scopeInformation(element, position))));
+        JSON.encode(expected), JSON.encode(JSON.decode(scope)), scope);
   });
 }
 
@@ -52,21 +52,25 @@ void main() {
 final expected = {
   "name": "fisk",
   "kind": "function",
+  "type": "() -> dynamic",
   "enclosing": {
     "name": "Foo",
     "kind": "class",
     "members": [
       {
         "name": "fisk",
-        "kind": "function"
+        "kind": "function",
+        "type": "() -> dynamic"
       },
       {
         "name": "hest",
-        "kind": "function"
+        "kind": "function",
+        "type": "() -> dynamic"
       },
       {
         "name": "",
-        "kind": "generative_constructor"
+        "kind": "generative_constructor",
+        "type": "() -> Foo"
       }
     ],
     "enclosing": {
@@ -75,7 +79,8 @@ final expected = {
       "members": [
         {
           "name": "main",
-          "kind": "function"
+          "kind": "function",
+          "type": "() -> dynamic"
         },
         {
           "name": "Foo",

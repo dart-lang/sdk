@@ -44,8 +44,12 @@ import 'package:compiler/implementation/elements/elements.dart' show
     ClassElement,
     CompilationUnitElement,
     Element,
+    ElementCategory,
     LibraryElement,
     ScopeContainerElement;
+
+import 'package:compiler/implementation/dart_types.dart' show
+    DartType;
 
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
     EOF_TOKEN,
@@ -372,6 +376,13 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
       {bool omitEnclosing: true,
        void serializeMembers(),
        String name}) {
+    DartType type;
+    int category = element.kind.category;
+    if (category == ElementCategory.FUNCTION ||
+        category == ElementCategory.VARIABLE ||
+        element.isConstructor) {
+      type = element.computeType(cachedCompiler);
+    }
     if (name == null) {
       name = element.name;
     }
@@ -385,7 +396,13 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
         ..write('"kind": "')
         ..write(element.kind)
         ..write('"');
-    // TODO(ahe): Add a type/signature field.
+    if (type != null) {
+      buffer.write(',\n');
+      indented
+          ..write('"type": "')
+          ..write(type)
+          ..write('"');
+    }
     if (serializeMembers != null) {
       buffer.write(',\n');
       indented.write('"members": [');
