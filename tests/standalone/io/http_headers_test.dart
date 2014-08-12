@@ -186,6 +186,52 @@ void testHost() {
   Expect.equals(1234, headers.port);
 }
 
+void testTransferEncoding() {
+  expectChunked(headers) {
+    Expect.listEquals(headers['transfer-encoding'], ['chunked']);
+    Expect.isTrue(headers.chunkedTransferEncoding);
+  }
+
+  expectNonChunked(headers) {
+    Expect.isNull(headers['transfer-encoding']);
+    Expect.isFalse(headers.chunkedTransferEncoding);
+  }
+
+  _HttpHeaders headers;
+
+  headers = new _HttpHeaders("1.1");
+  headers.chunkedTransferEncoding = true;
+  expectChunked(headers);
+  headers.set('transfer-encoding', ['chunked']);
+  expectChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.set('transfer-encoding', ['chunked']);
+  expectChunked(headers);
+  headers.chunkedTransferEncoding = true;
+  expectChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.chunkedTransferEncoding = true;
+  headers.chunkedTransferEncoding = false;
+  expectNonChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.chunkedTransferEncoding = true;
+  headers.remove('transfer-encoding', 'chunked');
+  expectNonChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.set('transfer-encoding', ['chunked']);
+  headers.chunkedTransferEncoding = false;
+  expectNonChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.set('transfer-encoding', ['chunked']);
+  headers.remove('transfer-encoding', 'chunked');
+  expectNonChunked(headers);
+}
+
 void testEnumeration() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
   Expect.isNull(headers[HttpHeaders.PRAGMA]);
@@ -505,6 +551,7 @@ main() {
   testExpires();
   testIfModifiedSince();
   testHost();
+  testTransferEncoding();
   testEnumeration();
   testHeaderValue();
   testContentType();

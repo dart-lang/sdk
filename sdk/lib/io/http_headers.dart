@@ -60,6 +60,9 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     name = _validateField(name);
     _headers.remove(name);
+    if (name == HttpHeaders.TRANSFER_ENCODING) {
+      _chunkedTransferEncoding = false;
+    }
     _addAll(name, value);
   }
 
@@ -74,6 +77,9 @@ class _HttpHeaders implements HttpHeaders {
         values.removeRange(index, index + 1);
       }
       if (values.length == 0) _headers.remove(name);
+    }
+    if (name == HttpHeaders.TRANSFER_ENCODING && value == "chunked") {
+      _chunkedTransferEncoding = false;
     }
   }
 
