@@ -20,9 +20,13 @@ class JSString extends Interceptor implements String, JSIndexable {
     return JS('JSUInt31', r'#.charCodeAt(#)', this, index);
   }
 
-  Iterable<Match> allMatches(String str) {
-    checkString(str);
-    return allMatchesInStringUnchecked(this, str);
+  Iterable<Match> allMatches(String string, [int start = 0]) {
+    checkString(string);
+    checkInt(start);
+    if (0 > start || start > string.length) {
+      throw new RangeError.range(start, 0, string.length);
+    }
+    return allMatchesInStringUnchecked(this, string, start);
   }
 
   Match matchAsPrefix(String string, [int start = 0]) {

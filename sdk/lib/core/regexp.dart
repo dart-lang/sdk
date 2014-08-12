@@ -135,8 +135,10 @@ abstract class RegExp implements Pattern {
 
   /**
    * Returns an iterable of the matches of the regular expression on [input].
+   *
+   * If [start] is provided, only start looking for matches at `start`.
    */
-  Iterable<Match> allMatches(String input);
+  Iterable<Match> allMatches(String input, [int start = 0]);
 
   /**
    * Returns whether the regular expression has a match in the string [input].

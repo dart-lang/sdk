@@ -8,8 +8,14 @@ part of dart.core;
  * An interface for basic searches within strings.
  */
 abstract class Pattern {
+  // NOTE: When using "start" index from the language library, call
+  // without an argument if start is zero. This allows backwards compatiblity
+  // with implementations of the older interface that didn't have the start
+  // index argument.
   /**
    * Match this pattern against the string repeatedly.
+   *
+   * If [start] is provided, matching will start at that index.
    *
    * The iterable will contain all the non-overlapping matches of the
    * pattern on the string, ordered by start index.
@@ -21,7 +27,7 @@ abstract class Pattern {
    * If the pattern matches the empty string at some point, the next
    * match is found by starting at the previous match's end plus one.
    */
-  Iterable<Match> allMatches(String str);
+  Iterable<Match> allMatches(String string, [int start = 0]);
 
   /**
    * Match this pattern against the start of string.

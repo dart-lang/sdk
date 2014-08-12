@@ -85,28 +85,32 @@ class JSSyntaxRegExp implements RegExp {
         "Illegal RegExp pattern: $source, $errorMessage");
   }
 
-  Match firstMatch(String str) {
+  Match firstMatch(String string) {
     List<String> m = JS('JSExtendableArray|Null',
                         r'#.exec(#)',
                         _nativeRegExp,
-                        checkString(str));
+                        checkString(string));
     if (m == null) return null;
     return new _MatchImplementation(this, m);
   }
 
-  bool hasMatch(String str) {
-    return JS('bool', r'#.test(#)', _nativeRegExp, checkString(str));
+  bool hasMatch(String string) {
+    return JS('bool', r'#.test(#)', _nativeRegExp, checkString(string));
   }
 
-  String stringMatch(String str) {
-    var match = firstMatch(str);
+  String stringMatch(String string) {
+    var match = firstMatch(string);
     if (match != null) return match.group(0);
     return null;
   }
 
-  Iterable<Match> allMatches(String str) {
-    checkString(str);
-    return new _AllMatchesIterable(this, str);
+  Iterable<Match> allMatches(String string, [int start = 0]) {
+    checkString(string);
+    checkInt(start);
+    if (start < 0 || start > string.length) {
+      throw new RangeError.range(start, 0, string.length);
+    }
+    return new _AllMatchesIterable(this, string, start);
   }
 
   Match _execGlobal(String string, int start) {
@@ -171,36 +175,40 @@ class _MatchImplementation implements Match {
 class _AllMatchesIterable extends IterableBase<Match> {
   final JSSyntaxRegExp _re;
   final String _string;
+  final int _start;
 
-  const _AllMatchesIterable(this._re, this._string);
+  _AllMatchesIterable(this._re, this._string, this._start);
 
-  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _string);
+  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _string, _start);
 }
 
 class _AllMatchesIterator implements Iterator<Match> {
   final JSSyntaxRegExp _regExp;
   String _string;
+  int _nextIndex;
   Match _current;
 
-  _AllMatchesIterator(this._regExp, this._string);
+  _AllMatchesIterator(this._regExp, this._string, this._nextIndex);
 
   Match get current => _current;
 
   bool moveNext() {
     if (_string == null) return false;
-    int index = 0;
-    if (_current != null) {
-      index = _current.end;
-      if (_current.start == index) {
-        index++;
+    if (_nextIndex <= _string.length) {
+      var match = _regExp._execGlobal(_string, _nextIndex);
+      if (match != null) {
+        _current = match;
+        int nextIndex = match.end;
+        if (match.start == nextIndex) {
+          nextIndex++;
+        }
+        _nextIndex = nextIndex;
+        return true;
       }
     }
-    _current = _regExp._execGlobal(_string, index);
-    if (_current == null) {
-      _string = null;  // Marks iteration as ended.
-      return false;
-    }
-    return true;
+    _current = null;
+    _string = null;  // Marks iteration as ended.
+    return false;
   }
 }
 
