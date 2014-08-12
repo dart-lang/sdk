@@ -379,10 +379,6 @@ Future compile(List<String> argv) {
     if (analyzeOnly) return;
     if (code == null) {
       fail('Compilation failed.');
-      // fail normally means exiting, but in batch mode we simply set the
-      // exitcode used later on. We should not try to write out the deps file
-      // if we end up here.
-      return;
     }
     writeString(Uri.parse('$out.deps'),
                 getDepsOutput(inputProvider.sourceFiles));
@@ -696,13 +692,18 @@ Future internalMain(List<String> arguments) {
   }
 }
 
+const _EXIT_SIGNAL = const Object();
+
 void batchMain(List<String> batchArguments) {
   int exitCode;
 
   exitFunc = (errorCode) {
-    // Crash shadows any other error code.
-    if (exitCode == 253) return;
-    exitCode = errorCode;
+    // Since we only throw another part of the compiler might intercept our
+    // exception and try to exit with a different code.
+    if (exitCode == 0) {
+      exitCode = errorCode;
+    }
+    throw _EXIT_SIGNAL;
   };
 
   runJob() {
@@ -716,7 +717,9 @@ void batchMain(List<String> batchArguments) {
       return internalMain(args);
     })
     .catchError((exception, trace) {
-      exitCode = 253;
+      if (!identical(exception, _EXIT_SIGNAL)) {
+        exitCode = 253;
+      }
     })
     .whenComplete(() {
       // The testing framework waits for a status line on stdout and stderr
