@@ -31,7 +31,8 @@ Future testPoi() {
   Uri script = Platform.script.resolve('data/interesting.dart');
   FormattingDiagnosticHandler handler = new FormattingDiagnosticHandler();
 
-  int position = 241;
+  int position = 263;
+
   Future future = poi.runPoi(script, position, handler.provider, handler);
   return future.then((Element element) {
     Uri foundScript = element.compilationUnit.script.resourceUri;
@@ -69,7 +70,7 @@ final expected = {
       }
     ],
     "enclosing": {
-      "name": "tests/try/poi/data/interesting.dart",
+      "name": "interesting",
       "kind": "library",
       "members": [
         {

@@ -55,9 +55,6 @@ import 'package:compiler/implementation/scanner/scannerlib.dart' show
     PartialElement,
     Token;
 
-import 'package:compiler/implementation/util/uri_extras.dart' show
-    relativize;
-
 /// Controls if this program should be querying Dart Mind. Used by tests.
 bool enableDartMind = true;
 
@@ -335,7 +332,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     bool isFirst = true;
     serialize(
         e, omitEnclosing: true,
-        name: relativize(Uri.base, e.canonicalUri, false),
+        name: e.getLibraryName(),
         serializeMembers: () {
           // TODO(ahe): Include imported elements in libraries.
           e.forEachLocalMember((Element member) {
