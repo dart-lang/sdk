@@ -2642,6 +2642,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         return new ElementResult(warnAndCreateErroneousElement(
             node, name, kind,
             {'className': receiverClass.name, 'memberName': name}));
+      } else if (isPrivateName(name) &&
+                 target.library != enclosingElement.library) {
+        registry.registerThrowNoSuchMethod();
+        return new ElementResult(warnAndCreateErroneousElement(
+            node, name, MessageKind.PRIVATE_ACCESS,
+            {'libraryName': target.library.getLibraryOrScriptName(),
+             'name': name}));
       }
     } else if (resolvedReceiver.element.isPrefix) {
       PrefixElement prefix = resolvedReceiver.element;
