@@ -43,6 +43,7 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
   @override
   visitApi() {
     outputHeader();
+    writeln();
     writeln('/**');
     writeln(' * Convenience methods for running integration tests');
     writeln(' */');
@@ -67,7 +68,7 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
       docComment(toHtmlVisitor.collectHtml(() {
         toHtmlVisitor.writeln('Initialize the fields in InttestMixin, and');
         toHtmlVisitor.writeln('ensure that notifications will be handled.');
-      }), false);
+      }));
       writeln('void initializeInttestMixin() {');
       indent(() {
         write(fieldInitializationCode.join());
@@ -78,7 +79,7 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
         toHtmlVisitor.writeln('Dispatch the notification named [event], and');
         toHtmlVisitor.writeln('containing parameters [params], to the');
         toHtmlVisitor.writeln('appropriate stream.');
-      }), false);
+      }));
       writeln('void dispatchNotification(String event, params) {');
       indent(() {
         writeln('switch (event) {');
@@ -104,12 +105,12 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(notification.html);
       toHtmlVisitor.describePayload(notification.params, 'Parameters');
-    }), false);
+    }));
     writeln('Stream $streamName;');
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.write('Stream controller for [$streamName].');
-    }), false);
+    }));
     writeln('StreamController _$streamName;');
     fieldInitializationCode.add(collectCode(() {
       writeln('_$streamName = new StreamController(sync: true);');
@@ -148,7 +149,7 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
       toHtmlVisitor.translateHtml(request.html);
       toHtmlVisitor.describePayload(request.params, 'Parameters');
       toHtmlVisitor.describePayload(request.result, 'Returns');
-    }), false);
+    }));
     writeln('Future $methodName(${args.join(', ')}) {');
     indent(() {
       String paramsValidator = camelJoin(['is', request.domainName,

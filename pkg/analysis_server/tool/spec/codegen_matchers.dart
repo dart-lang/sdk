@@ -51,7 +51,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (type != null) {
         toHtmlVisitor.showType(null, type);
       }
-    }), false);
+    }));
     write('final Matcher ${camelJoin(nameParts)} = ');
     if (type == null) {
       write('isNull');
@@ -65,6 +65,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   @override
   visitApi() {
     outputHeader();
+    writeln();
     writeln('/**');
     writeln(' * Matchers for data types defined in the analysis server API');
     writeln(' */');

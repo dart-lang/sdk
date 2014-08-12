@@ -106,17 +106,37 @@ class CodeGenerator {
    * If [javadocStyle] is true, then the output is compatable with Javadoc,
    * which understands certain HTML constructs.
    */
-  void docComment(List<dom.Node> docs, bool javadocStyle) {
+  void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle: false}) {
     writeln('/**');
     indentBy(' * ', () {
-      write(nodesToText(docs, 79 - _state.indent.length, javadocStyle));
+      write(nodesToText(docs, width - _state.indent.length, javadocStyle));
     });
     writeln(' */');
   }
 
-  void outputHeader() {
-    String header =
-        '''
+  void outputHeader({bool javaStyle: false}) {
+    String header;
+    if(javaStyle) {
+      header = '''
+/*
+ * Copyright (c) 2014, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ * 
+ * This file has been automatically generated.  Please do not edit it manually.
+ * To regenerate the file, use the script "pkg/analysis_server/spec/generate_files".
+ */''';
+    }
+    else {
+      header = '''
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -125,8 +145,8 @@ class CodeGenerator {
 // To regenerate the file, use the script
 // "pkg/analysis_server/spec/generate_files".
 ''';
+    }
     writeln(header.trim());
-    writeln();
   }
 }
 

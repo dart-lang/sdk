@@ -1,0 +1,90 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/**
+ * Code generation for the file "AnalysisServer.java".
+ */
+library server.generator.java;
+
+import 'api.dart';
+import 'codegen_java.dart';
+import 'codegen_tools.dart';
+import 'from_html.dart';
+
+class CodegenAnalysisServer extends CodegenJavaVisitor {
+  CodegenAnalysisServer(Api api) : super(api);
+
+  @override
+  void visitApi() {
+    outputHeader(javaStyle: true);
+    writeln('package com.google.dart.server;');
+    writeln();
+    writeln('import java.util.List;');
+    writeln('import java.util.Map;');
+    writeln();
+    writeln('''/**
+ * The interface {@code AnalysisServer} defines the behavior of objects that interface to an
+ * analysis server.
+ * 
+ * @coverage dart.server
+ */''');
+    makeClass('public interface AnalysisServer2', () {
+      publicMethod('addAnalysisServerListener', () {
+        writeln('''/**
+ * Add the given listener to the list of listeners that will receive notification when new
+ * analysis results become available.
+ * 
+ * @param listener the listener to be added
+ */''');
+        writeln('public void addAnalysisServerListener(AnalysisServerListener listener);');
+        writeln('''/**
+ * Start the analysis server.
+ * 
+ * @param millisToRestart the number of milliseconds to wait for an unresponsive server before
+ *          restarting it, or zero if the server should not be restarted.
+ */''');
+        writeln('public void start(long millisToRestart) throws Exception;');
+      });
+      super.visitApi();
+    });
+  }
+
+  @override
+  void visitRequest(Request request) {
+    String methodName = '${request.domainName}_${request.method}';
+    publicMethod(methodName, () {
+      docComment(toHtmlVisitor.collectHtml(() {
+        toHtmlVisitor.write('{@code ${request.longMethod }}');
+        toHtmlVisitor.translateHtml(request.html);
+        toHtmlVisitor.javadocParams(request.params);
+      }), width: 99, javadocStyle: true);
+      write('// public void $methodName(');
+      List<String> arguments = [];
+      if (request.params != null) {
+        for (TypeObjectField field in request.params.fields) {
+          arguments.add('${javaType(field.type)} ${javaName(field.name)}');
+        }
+      }
+      if (request.result != null) {
+        arguments.add('${consumerName(request)} consumer');
+      }
+      write(arguments.join(', '));
+      writeln(');');
+    });
+  }
+
+  /**
+   * Get the name of the consumer class for responses to this request.
+   */
+  String consumerName(Request request) {
+    return camelJoin([request.method, 'consumer'], capitalize: true);
+  }
+}
+
+/**
+ * Translate spec_input.html into AnalysisServer.java.
+ */
+main() {
+  createJavaCode('../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer2.java', new CodegenAnalysisServer(readApi()));
+}
