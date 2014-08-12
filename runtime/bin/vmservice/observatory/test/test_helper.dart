@@ -7,25 +7,24 @@ library test_helper;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:unittest/unittest.dart';
+import 'package:observatory/service_io.dart';
 
-class TestLauncher {
-  final String script;
+// This invocation should set up the state being tested.
+const String _TESTEE_MODE_FLAG = "--testee-mode";
+
+class _TestLauncher {
   Process process;
+  final List<String> args;
 
-  TestLauncher(this.script);
-
-  String get scriptPath {
-    var dartScript = Platform.script.toFilePath();
-    var splitPoint = dartScript.lastIndexOf(Platform.pathSeparator);
-    var scriptDirectory = dartScript.substring(0, splitPoint);
-    return scriptDirectory + Platform.pathSeparator + script;
-  }
+  _TestLauncher() : args = ['--enable-vm-service:0',
+                            Platform.script.toFilePath(),
+                            _TESTEE_MODE_FLAG] {}
 
   Future<int> launch() {
     String dartExecutable = Platform.executable;
-    print('** Launching $scriptPath');
-    return Process.start(dartExecutable,
-                         ['--enable-vm-service:0', scriptPath]).then((p) {
+    print('** Launching $args');
+    return Process.start(dartExecutable, args).then((p) {
 
       Completer completer = new Completer();
       process = p;
@@ -55,8 +54,8 @@ class TestLauncher {
                     .transform(new LineSplitter()).listen((line) {
         print(line);
       });
-      process.exitCode.then((code) {
-        //Expect.equals(0, code, 'Launched dart executable exited with error.');
+      process.exitCode.then((exitCode) {
+        expect(exitCode, equals(0));
       });
       return completer.future;
     });
@@ -68,3 +67,35 @@ class TestLauncher {
   }
 }
 
+typedef Future IsolateTest(Isolate isolate);
+
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invokation of the script.
+void runIsolateTests(List<String> mainArgs,
+                     List<IsolateTest> tests,
+                     {void testeeBefore(),
+                      void testeeConcurrent()}) {
+  if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
+    if (testeeBefore != null) {
+      testeeBefore();
+    }
+    print(''); // Print blank line to signal that we are ready.
+    if (testeeConcurrent != null) {
+      testeeConcurrent();
+    }
+    // Wait until signaled from spawning test.
+    stdin.first.then((_) => exit(0));
+  } else {
+    var process = new _TestLauncher();
+    process.launch().then((port) {
+      String addr = 'ws://localhost:$port/ws';
+      new WebSocketVM(new WebSocketVMTarget(addr)).get('vm')
+          .then((VM vm) => vm.isolates.first.load())
+          .then((Isolate isolate) =>
+              Future.forEach(tests, (test) => test(isolate)))
+          .then((_) => exit(0));
+    });
+  }
+}
