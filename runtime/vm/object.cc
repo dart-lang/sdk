@@ -8443,7 +8443,7 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("type", JSONType(ref));
   const String& name = String::Handle(url());
   ASSERT(!name.IsNull());
-  const String& encoded_url = String::Handle(String::EncodeURI(name));
+  const String& encoded_url = String::Handle(String::EncodeIRI(name));
   ASSERT(!encoded_url.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
   intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
@@ -16704,36 +16704,34 @@ static int32_t MergeHexCharacters(int32_t c1, int32_t c2) {
 }
 
 
-RawString* String::EncodeURI(const String& str) {
-  // URI encoding is only specified for one byte strings.
-  ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
+RawString* String::EncodeIRI(const String& str) {
+  const intptr_t len = Utf8::Length(str);
+  Zone* zone = Isolate::Current()->current_zone();
+  uint8_t* utf8 = zone->Alloc<uint8_t>(len);
+  str.ToUTF8(utf8, len);
   intptr_t num_escapes = 0;
-  intptr_t len = str.Length();
-  {
-    CodePointIterator cpi(str);
-    while (cpi.Next()) {
-      int32_t code_point = cpi.Current();
-      if (!IsURISafeCharacter(code_point)) {
-        num_escapes += 2;
-      }
+  for (int i = 0; i < len; ++i) {
+    uint8_t byte = utf8[i];
+    if (!IsURISafeCharacter(byte)) {
+      num_escapes += 2;
     }
   }
   const String& dststr = String::Handle(
       OneByteString::New(len + num_escapes, Heap::kNew));
   {
     intptr_t index = 0;
-    CodePointIterator cpi(str);
-    while (cpi.Next()) {
-      int32_t code_point = cpi.Current();
-      if (!IsURISafeCharacter(code_point)) {
+    for (int i = 0; i < len; ++i) {
+      uint8_t byte = utf8[i];
+      if (!IsURISafeCharacter(byte)) {
         OneByteString::SetCharAt(dststr, index, '%');
         OneByteString::SetCharAt(dststr, index + 1,
-                                 GetHexCharacter(code_point >> 4));
+                                 GetHexCharacter(byte >> 4));
         OneByteString::SetCharAt(dststr, index + 2,
-                                 GetHexCharacter(code_point & 0xF));
+                                 GetHexCharacter(byte & 0xF));
         index += 3;
       } else {
-        OneByteString::SetCharAt(dststr, index, code_point);
+        ASSERT(byte <= 127);
+        OneByteString::SetCharAt(dststr, index, byte);
         index += 1;
       }
     }
@@ -16742,9 +16740,7 @@ RawString* String::EncodeURI(const String& str) {
 }
 
 
-RawString* String::DecodeURI(const String& str) {
-  // URI encoding is only specified for one byte strings.
-  ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
+RawString* String::DecodeIRI(const String& str) {
   CodePointIterator cpi(str);
   intptr_t num_escapes = 0;
   intptr_t len = str.Length();
@@ -16755,14 +16751,14 @@ RawString* String::DecodeURI(const String& str) {
       if (IsPercent(code_point)) {
         // Verify that the two characters following the % are hex digits.
         if (!cpi.Next()) {
-          return str.raw();
+          return String::null();
         }
         int32_t code_point = cpi.Current();
         if (!IsHexCharacter(code_point)) {
-          return str.raw();
+          return String::null();
         }
         if (!cpi.Next()) {
-          return str.raw();
+          return String::null();
         }
         code_point = cpi.Current();
         if (!IsHexCharacter(code_point)) {
@@ -16772,13 +16768,15 @@ RawString* String::DecodeURI(const String& str) {
       }
     }
   }
-  ASSERT(len - num_escapes > 0);
-  const String& dststr = String::Handle(
-      OneByteString::New(len - num_escapes, Heap::kNew));
+  intptr_t utf8_len = len - num_escapes;
+  ASSERT(utf8_len >= 0);
+  Zone* zone = Isolate::Current()->current_zone();
+  uint8_t* utf8 = zone->Alloc<uint8_t>(utf8_len);
   {
     intptr_t index = 0;
     CodePointIterator cpi(str);
     while (cpi.Next()) {
+      ASSERT(index < utf8_len);
       int32_t code_point = cpi.Current();
       if (IsPercent(code_point)) {
         cpi.Next();
@@ -16786,14 +16784,16 @@ RawString* String::DecodeURI(const String& str) {
         cpi.Next();
         int32_t ch2 = cpi.Current();
         int32_t merged = MergeHexCharacters(ch1, ch2);
-        OneByteString::SetCharAt(dststr, index, merged);
+        ASSERT(merged >= 0 && merged < 256);
+        utf8[index] = static_cast<uint8_t>(merged);
       } else {
-        OneByteString::SetCharAt(dststr, index, code_point);
+        ASSERT(code_point >= 0 && code_point < 256);
+        utf8[index] = static_cast<uint8_t>(code_point);
       }
       index++;
     }
   }
-  return dststr.raw();
+  return FromUTF8(utf8, utf8_len);
 }
 
 

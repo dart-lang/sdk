@@ -1457,7 +1457,7 @@ static bool HandleLibrariesScripts(Isolate* isolate,
   const String& id = String::Handle(String::New(js->GetArgument(3)));
   ASSERT(!id.IsNull());
   // The id is the url of the script % encoded, decode it.
-  const String& requested_url = String::Handle(String::DecodeURI(id));
+  const String& requested_url = String::Handle(String::DecodeIRI(id));
   Script& script = Script::Handle();
   String& script_url = String::Handle();
   const Array& loaded_scripts = Array::Handle(lib.LoadedScripts());

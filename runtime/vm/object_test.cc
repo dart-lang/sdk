@@ -401,7 +401,7 @@ TEST_CASE(StringCompareTo) {
 }
 
 
-TEST_CASE(StringEncodeURI) {
+TEST_CASE(StringEncodeIRI) {
   const char* kInput =
       "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
   const char* kOutput =
@@ -409,12 +409,12 @@ TEST_CASE(StringEncodeURI) {
       "dart-repo%2Fdart%2Ftest.dart";
   const String& input = String::Handle(String::New(kInput));
   const String& output = String::Handle(String::New(kOutput));
-  const String& encoded = String::Handle(String::EncodeURI(input));
+  const String& encoded = String::Handle(String::EncodeIRI(input));
   EXPECT(output.Equals(encoded));
 }
 
 
-TEST_CASE(StringDecodeURI) {
+TEST_CASE(StringDecodeIRI) {
   const char* kOutput =
       "file:///usr/local/johnmccutchan/workspace/dart-repo/dart/test.dart";
   const char* kInput =
@@ -422,8 +422,34 @@ TEST_CASE(StringDecodeURI) {
       "dart-repo%2Fdart%2Ftest.dart";
   const String& input = String::Handle(String::New(kInput));
   const String& output = String::Handle(String::New(kOutput));
-  const String& decoded = String::Handle(String::DecodeURI(input));
+  const String& decoded = String::Handle(String::DecodeIRI(input));
   EXPECT(output.Equals(decoded));
+}
+
+
+TEST_CASE(StringDecodeIRIInvalid) {
+  String& input = String::Handle();
+  input = String::New("file%");
+  EXPECT(String::DecodeIRI(input) == String::null());
+  input = String::New("file%3");
+  EXPECT(String::DecodeIRI(input) == String::null());
+  input = String::New("file%3g");
+  EXPECT(String::DecodeIRI(input) == String::null());
+}
+
+
+TEST_CASE(StringIRITwoByte) {
+  const intptr_t kInputLen = 3;
+  const uint16_t kInput[kInputLen] = { 'x', '/', 256 };
+  const String& input = String::Handle(String::FromUTF16(kInput, kInputLen));
+  const intptr_t kOutputLen = 10;
+  const uint16_t kOutput[kOutputLen] =
+      { 'x', '%', '2', 'F', '%', 'C', '4', '%', '8', '0' };
+  const String& output = String::Handle(String::FromUTF16(kOutput, kOutputLen));
+  const String& encoded = String::Handle(String::EncodeIRI(input));
+  EXPECT(output.Equals(encoded));
+  const String& decoded = String::Handle(String::DecodeIRI(output));
+  EXPECT(input.Equals(decoded));
 }
 
 

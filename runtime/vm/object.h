@@ -5551,8 +5551,11 @@ class String : public Instance {
                    intptr_t len);
 
   static RawString* EscapeSpecialCharacters(const String& str);
-  static RawString* EncodeURI(const String& str);
-  static RawString* DecodeURI(const String& str);
+  // Encodes 'str' for use in an Internationalized Resource Identifier (IRI),
+  // a generalization of URI (percent-encoding). See RFC 3987.
+  static RawString* EncodeIRI(const String& str);
+  // Returns null if 'str' is not a valid encoding.
+  static RawString* DecodeIRI(const String& str);
   static RawString* Concat(const String& str1,
                            const String& str2,
                            Heap::Space space = Heap::kNew);
@@ -5905,8 +5908,8 @@ class ExternalOneByteString : public AllStatic {
   }
 
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
-  static RawOneByteString* EncodeURI(const String& str);
-  static RawOneByteString* DecodeURI(const String& str);
+  static RawOneByteString* EncodeIRI(const String& str);
+  static RawOneByteString* DecodeIRI(const String& str);
 
   static const ClassId kClassId = kExternalOneByteStringCid;
 
