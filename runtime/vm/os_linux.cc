@@ -24,6 +24,7 @@
 #include "vm/dart.h"
 #include "vm/debuginfo.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
 #include "vm/thread.h"
 #include "vm/vtune.h"
 #include "vm/zone.h"
