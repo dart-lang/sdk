@@ -236,6 +236,13 @@ bool _isEtaCont(LetCont node) {
   }
 
   InvokeContinuation invoke = cont.body;
+  Continuation invokedCont = invoke.continuation.definition;
+
+  // Do not eta-reduce return join-points since the resulting code is worse
+  // in the common case (i.e. returns are moved inside `if` branches).
+  if (invokedCont.isReturnContinuation) {
+    return false;
+  }
 
   // Translation to direct style generates different statements for recursive
   // and non-recursive invokes. It should be possible to apply eta-cont, but

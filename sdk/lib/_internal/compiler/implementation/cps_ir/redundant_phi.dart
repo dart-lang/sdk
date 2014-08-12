@@ -31,7 +31,7 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
       Continuation cont = workSet.first;
       workSet.remove(cont);
 
-      if (cont.body == null) {
+      if (cont.isReturnContinuation) {
         continue; // Skip function return continuations.
       }
 

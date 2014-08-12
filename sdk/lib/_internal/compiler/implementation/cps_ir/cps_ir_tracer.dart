@@ -204,7 +204,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   String formatReference(cps_ir.Reference ref) {
     cps_ir.Definition target = ref.definition;
-    if (target is cps_ir.Continuation && target.body == null) {
+    if (target is cps_ir.Continuation && target.isReturnContinuation) {
       return "return"; // Do not generate a name for the return continuation
     } else {
       return names.name(ref.definition);
@@ -339,7 +339,7 @@ class BlockCollector extends cps_ir.Visitor {
 
   void addEdgeToContinuation(cps_ir.Reference continuation) {
     cps_ir.Definition target = continuation.definition;
-    if (target is cps_ir.Continuation && target.body != null) {
+    if (target is cps_ir.Continuation && !target.isReturnContinuation) {
       current_block.addEdgeTo(getBlock(target));
     }
   }
@@ -374,11 +374,11 @@ class BlockCollector extends cps_ir.Visitor {
 
   visitBranch(cps_ir.Branch exp) {
     cps_ir.Continuation trueTarget = exp.trueContinuation.definition;
-    if (trueTarget.body != null) {
+    if (!trueTarget.isReturnContinuation) {
       current_block.addEdgeTo(getBlock(trueTarget));
     }
     cps_ir.Continuation falseTarget = exp.falseContinuation.definition;
-    if (falseTarget.body != null) {
+    if (!falseTarget.isReturnContinuation) {
       current_block.addEdgeTo(getBlock(falseTarget));
     }
   }

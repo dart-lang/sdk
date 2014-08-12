@@ -509,6 +509,8 @@ class Continuation extends Definition implements InteriorNode {
   // A continuation is recursive if it has any recursive invocations.
   bool isRecursive = false;
 
+  bool get isReturnContinuation => body == null;
+
   Continuation(this.parameters);
 
   Continuation.retrn() : parameters = <Parameter>[new Parameter(null)];
