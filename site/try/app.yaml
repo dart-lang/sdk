@@ -102,9 +102,39 @@ handlers:
   upload: index.html
   secure: always
 
+# The nossl file below help work around bugs/features in interaction between
+# AppEngine and AppCache. When a return user goes to http://try.dartlang.org/
+# (no SSL), AppCache will serve index.html from cache, try to fetch the old
+# manifest (nossl.appcache) and the files listed in the manifest. In additation
+# the files listed in the manifest, it will also fetch index.html, as it is the
+# master. However, we want index.html to be redirected to the SSL version, and
+# AppCache sees this redirection as a network error. When an error occurs,
+# AppCache will keep serving the old page. So we configure nossl.appcache to
+# provide fallbacks for index.html and leap.dart.js. The fallback for
+# leap.dart.js is nossl.js which will take care of redirecting to
+# https://try.dartlang.org/ (with SSL) using JavaScript.  Unfortunately, Chrome
+# seems to keep the old version of index.html cached indefinitely. The only way
+# to avoid that appears to serve up a different index.html depending on if it
+# is a secure connection or not. This would require a Python script, and
+# something we may consider implementing in the future.
 - url: /nossl.appcache
   static_files: nossl.appcache
   upload: nossl.appcache
+  secure: optional
+
+- url: /nossl.js
+  static_files: nossl.js
+  upload: nossl.js
+  secure: optional
+
+- url: /nossl.html
+  static_files: nossl.html
+  upload: nossl.html
+  secure: optional
+
+- url: /ssl.appcache
+  static_files: ssl.appcache
+  upload: ssl.appcache
   secure: always
 
 - url: /(.*\.(html|js|png|css|dart|json))
@@ -115,11 +145,6 @@ handlers:
 - url: /css/fonts/fontawesome-webfont.woff
   static_files: fontawesome-webfont.woff
   upload: fontawesome-webfont.woff
-  secure: always
-
-- url: .*
-  static_files: not_found.html
-  upload: not_found.html
   secure: always
 
 libraries:

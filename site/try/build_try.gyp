@@ -150,7 +150,8 @@
           'inputs': [
             'add_time_stamp.py',
             'nossl.appcache',
-            '<@(try_dart_static_files)',
+            'nossl.js',
+            'nossl.html',
             'build_try.gyp', # If the list of files changed.
           ],
           'outputs': [
@@ -163,6 +164,27 @@
             'add_time_stamp.py',
             'nossl.appcache',
             '<(SHARED_INTERMEDIATE_DIR)/nossl.appcache',
+          ],
+        },
+        {
+          'action_name': 'ssl_appcache',
+          'message': 'Creating ssl.appcache',
+          'inputs': [
+            'add_time_stamp.py',
+            'ssl.appcache',
+            '<@(try_dart_static_files)',
+            'build_try.gyp', # If the list of files changed.
+          ],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/ssl.appcache',
+          ],
+          # Try Dart! uses AppCache. Cached files are only validated when the
+          # manifest changes (not its timestamp, but its actual contents).
+          'action': [
+            'python',
+            'add_time_stamp.py',
+            'ssl.appcache',
+            '<(SHARED_INTERMEDIATE_DIR)/ssl.appcache',
           ],
         },
         {
@@ -193,6 +215,9 @@
             'app.yaml',
             '<@(try_dart_static_files)',
             '<(SHARED_INTERMEDIATE_DIR)/nossl.appcache',
+            '<(SHARED_INTERMEDIATE_DIR)/ssl.appcache',
+            'nossl.js',
+            'nossl.html',
           ],
         },
       ],
