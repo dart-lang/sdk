@@ -38167,6 +38167,8 @@ class _Utils {
 
   static Map createMap() => {};
 
+  static parseJson(String jsonSource) => const JsonDecoder().convert(jsonSource);
+
   static makeUnimplementedError(String fileName, int lineNo) {
     return new UnsupportedError('[info: $fileName:$lineNo]');
   }
