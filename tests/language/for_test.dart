@@ -45,6 +45,13 @@ class Helper {
     }
     status = 1;
   }
+
+  static int f6() {
+    // Verify that side effects in the condition are visible after the loop.
+    int i = 0;
+    for (; ++i < 3; ) {}
+    return i;
+  }
 }
 
 class ForTest {
@@ -67,6 +74,8 @@ class ForTest {
 
     Helper.f5();
     Expect.equals(1, Helper.status);
+
+    Expect.equals(3, Helper.f6());
   }
 }
 

@@ -27,6 +27,13 @@ class Helper {
     }
     return i;
   }
+
+  static int f4() {
+    // Verify that side effects in the condition are visible after the loop.
+    int i = 0;
+    while (++i < 3) {}
+    return i;
+  }
 }
 
 class WhileTest {
@@ -40,6 +47,7 @@ class WhileTest {
     Expect.equals(0, Helper.f3(0));
     Expect.equals(1, Helper.f3(1));
     Expect.equals(2, Helper.f3(2));
+    Expect.equals(3, Helper.f4());
   }
 }
 

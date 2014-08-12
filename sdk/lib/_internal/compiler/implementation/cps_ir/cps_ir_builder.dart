@@ -546,10 +546,6 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       context.add(new ir.InvokeContinuation(join, args, recursive: true));
       context.current = null;
     }
-    assert(environment.index2value.length <= join.parameters.length);
-    for (int i = 0; i < environment.index2value.length; ++i) {
-      environment.index2value[i] = join.parameters[i];
-    }
   }
 
   ir.Primitive visitFor(ast.For node) {
@@ -571,9 +567,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     //
     // [[initializer]];
     // let cont loop(x, ...) =
+    //     let prim cond = [[condition]] in
     //     let cont exit() = [[successor]] in
     //     let cont body() = [[body]]; [[update]]; loop(v, ...) in
-    //     let prim cond = [[condition]] in
     //     branch cond (body, exit) in
     // loop(v, ...)
 
@@ -600,28 +596,25 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // continuation if control flow reaches the end of the body (update).
     ir.Continuation bodyContinuation = new ir.Continuation([]);
     ir.Continuation exitContinuation = new ir.Continuation([]);
-    condBuilder.add(new ir.Branch(new ir.IsTrue(condition),
-                                  bodyContinuation,
-                                  exitContinuation));
+    condBuilder.add(
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              bodyContinuation,
+                              exitContinuation))));
     List<ir.Parameter> parameters = condBuilder.parameters;
     ir.Continuation loopContinuation = new ir.Continuation(parameters);
-    // Copy the environment here because invokeJoin will update it for the
-    // join-point continuation.
-    List<ir.Primitive> entryArguments =
-        new List<ir.Primitive>.from(environment.index2value);
     if (bodyBuilder.isOpen) {
       invokeRecursiveJoin(loopContinuation, [bodyBuilder]);
     }
     bodyContinuation.body = bodyBuilder.root;
 
-    ir.Expression resultContext =
-        new ir.LetCont(exitContinuation,
-            new ir.LetCont(bodyContinuation,
-                condBuilder.root));
-    loopContinuation.body = resultContext;
+    loopContinuation.body = condBuilder.root;
     add(new ir.LetCont(loopContinuation,
-            new ir.InvokeContinuation(loopContinuation, entryArguments)));
-    current = resultContext;
+            new ir.InvokeContinuation(loopContinuation,
+                                      environment.index2value)));
+    current = condBuilder.current;
+    environment = condBuilder.environment;
     return null;
   }
 
@@ -692,9 +685,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // The CPS translation of [[while (condition) body; successor]] is:
     //
     // let cont loop(x, ...) =
+    //     let prim cond = [[condition]] in
     //     let cont exit() = [[successor]] in
     //     let cont body() = [[body]]; continue(v, ...) in
-    //     let prim cond = [[condition]] in
     //     branch cond (body, exit) in
     // loop(v, ...)
 
@@ -709,28 +702,25 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // continuation if control flow reaches the end of the body.
     ir.Continuation bodyContinuation = new ir.Continuation([]);
     ir.Continuation exitContinuation = new ir.Continuation([]);
-    condBuilder.add(new ir.Branch(new ir.IsTrue(condition),
-                                  bodyContinuation,
-                                  exitContinuation));
+    condBuilder.add(
+        new ir.LetCont(exitContinuation,
+            new ir.LetCont(bodyContinuation,
+                new ir.Branch(new ir.IsTrue(condition),
+                              bodyContinuation,
+                              exitContinuation))));
     List<ir.Parameter> parameters = condBuilder.parameters;
     ir.Continuation loopContinuation = new ir.Continuation(parameters);
-    // Copy the environment here because invokeJoin will update it for the
-    // join-point continuation.
-    List<ir.Primitive> entryArguments =
-        new List<ir.Primitive>.from(environment.index2value);
     if (bodyBuilder.isOpen) {
       invokeRecursiveJoin(loopContinuation, [bodyBuilder]);
     }
     bodyContinuation.body = bodyBuilder.root;
 
-    ir.Expression resultContext =
-        new ir.LetCont(exitContinuation,
-            new ir.LetCont(bodyContinuation,
-                condBuilder.root));
-    loopContinuation.body = resultContext;
+    loopContinuation.body = condBuilder.root;
     add(new ir.LetCont(loopContinuation,
-            new ir.InvokeContinuation(loopContinuation, entryArguments)));
-    current = resultContext;
+            new ir.InvokeContinuation(loopContinuation,
+                                      environment.index2value)));
+    current = condBuilder.current;
+    environment = condBuilder.environment;
     return null;
   }
 
