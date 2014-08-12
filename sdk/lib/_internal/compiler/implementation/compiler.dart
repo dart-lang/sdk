@@ -1655,6 +1655,26 @@ abstract class Compiler implements DiagnosticListener {
         node, messageKind, arguments, api.Diagnostic.ERROR);
   }
 
+  /**
+   * Reports an error and then aborts the compiler. Avoid using this method.
+   *
+   * In order to support incremental compilation, it is preferable to use
+   * [reportError]. However, care must be taken to leave the compiler in a
+   * consistent state, for example, by creating synthetic erroneous objects.
+   *
+   * If there's absolutely no way to leave the compiler in a consistent state,
+   * calling this method is preferred as it will set [compilerWasCancelled] to
+   * true which alerts the incremental compiler to discard all state and start
+   * a new compiler. Throwing an exception is also better, as this will set
+   * [hasCrashed] which the incremental compiler also listens too (but don't
+   * throw exceptions, it creates a really bad user experience).
+   *
+   * In any case, calling this method is a last resort, as it essentially
+   * breaks the user experience of the incremental compiler. The purpose of the
+   * incremental compiler is to improve developer productivity. Developers
+   * frequently make mistakes, so syntax errors and spelling errors are
+   * considered normal to the incremental compiler.
+   */
   void reportFatalError(Spannable node, MessageKind messageKind,
                         [Map arguments = const {}]) {
     reportError(node, messageKind, arguments);
