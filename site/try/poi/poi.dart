@@ -158,9 +158,10 @@ Future parseUserInput(
     print('Resolving took ${sw.elapsedMicroseconds}us.');
     sw.reset();
     String info = scopeInformation(element, position);
+    sw.stop();
     print(info);
     print('Scope information took ${sw.elapsedMicroseconds}us.');
-    sw.reset();
+    sw..reset()..start();
     Token token = findToken(element, position);
     String prefix;
     if (token != null) {
@@ -401,14 +402,15 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
        bool omitEnclosing: false,
        bool includeSuper: false}) {
     bool isFirst = true;
-    String name = e.name;
     var serializeEnclosing;
+    String kind;
     if (isStatic) {
+      kind = 'class side';
       serializeEnclosing = () {
         serializeClassSide(e, isStatic: false, omitEnclosing: omitEnclosing);
       };
     } else {
-      name = "this($name)";
+      kind = 'instance side';
     }
     if (includeSuper) {
       assert(!omitEnclosing && !isStatic);
@@ -425,10 +427,16 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     }
     serialize(
         e, omitEnclosing: omitEnclosing, serializeEnclosing: serializeEnclosing,
-        name: name, serializeMembers: () {
+        kind: kind, serializeMembers: () {
       e.forEachLocalMember((Element member) {
         // Filter out members that don't belong to this "side".
-        if (member.isStatic != isStatic) return;
+        if (member.isConstructor) {
+          // In dart2js, some constructors aren't static, but that isn't
+          // convenient here.
+          if (!isStatic) return;
+        } else if (member.isStatic != isStatic) {
+          return;
+        }
         if (!isFirst) {
           buffer.write(',');
         }
@@ -464,6 +472,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
       {bool omitEnclosing: true,
        void serializeMembers(),
        void serializeEnclosing(),
+       String kind,
        String name}) {
     DartType type;
     int category = element.kind.category;
@@ -475,6 +484,9 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     if (name == null) {
       name = element.name;
     }
+    if (kind == null) {
+      kind = '${element.kind}';
+    }
     buffer.write('{\n');
     indentationLevel++;
     if (name != '') {
@@ -485,7 +497,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     }
     indented
         ..write('"kind": "')
-        ..write(element.kind)
+        ..write(kind)
         ..write('"');
     if (type != null) {
       buffer.write(',\n');

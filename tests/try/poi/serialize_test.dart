@@ -74,12 +74,16 @@ final expectedInteresting = {
   "type": "() -> dynamic",
   "enclosing": {
     "name": "Foo",
-    "kind": "class",
+    "kind": "class side",
     "members": [
+      {
+        "kind": "generative_constructor",
+        "type": "() -> Foo"
+      }
     ],
     "enclosing": {
-      "name": "this(Foo)",
-      "kind": "class",
+      "name": "Foo",
+      "kind": "instance side",
       "members": [
         {
           "name": "fisk",
@@ -91,10 +95,6 @@ final expectedInteresting = {
           "kind": "function",
           "type": "() -> dynamic"
         },
-        {
-          "kind": "generative_constructor",
-          "type": "() -> Foo"
-        }
       ],
       "enclosing": {
         "name": "interesting",
@@ -126,7 +126,7 @@ final expectedSubclass = {
   "type": "() -> dynamic",
   "enclosing": {
     "name": "C",
-    "kind": "class",
+    "kind": "class side",
     "members": [
       {
         "name": "staticMethod1",
@@ -137,11 +137,15 @@ final expectedSubclass = {
         "name": "staticMethod2",
         "kind": "function",
         "type": "() -> dynamic"
+      },
+      {
+        "kind": "generative_constructor",
+        "type": "() -> C"
       }
     ],
     "enclosing": {
-      "name": "this(C)",
-      "kind": "class",
+      "name": "C",
+      "kind": "instance side",
       "members": [
         {
           "name": "instanceMethod1",
@@ -152,10 +156,6 @@ final expectedSubclass = {
           "name": "instanceMethod2",
           "kind": "function",
           "type": "() -> dynamic"
-        },
-        {
-          "kind": "generative_constructor",
-          "type": "() -> C"
         }
       ],
       "enclosing": {
@@ -194,8 +194,8 @@ final expectedSubclass = {
             },
           ]..addAll(coreImports),
           "enclosing": {
-            "name": "this(S)",
-            "kind": "class",
+            "name": "S",
+            "kind": "instance side",
             "members": [
               {
                 "name": "superMethod1",
@@ -207,14 +207,10 @@ final expectedSubclass = {
                 "kind": "function",
                 "type": "() -> dynamic"
               },
-              {
-                "kind": "generative_constructor",
-                "type": "() -> S"
-              }
             ],
             "enclosing": {
-              "name": "this(P)",
-              "kind": "class",
+              "name": "P",
+              "kind": "instance side",
               "members": [
                 {
                   "name": "pMethod1",
@@ -236,10 +232,6 @@ final expectedSubclass = {
                   "kind": "function",
                   "type": "() -> dynamic"
                 },
-                {
-                  "kind": "generative_constructor",
-                  "type": "() -> P"
-                }
               ],
               "enclosing": object,
             }
@@ -500,13 +492,9 @@ final coreImports = [
 ];
 
 final object = {
-  "name": "this(Object)",
-  "kind": "class",
+  "name": "Object",
+  "kind": "instance side",
   "members": [
-    {
-      "kind": "generative_constructor",
-      "type": "() -> dynamic"
-    },
     {
       "name": "==",
       "kind": "function",
