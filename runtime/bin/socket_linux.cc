@@ -18,8 +18,8 @@
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/socket.h"
+#include "bin/thread.h"
 #include "platform/signal_blocker.h"
-#include "vm/thread.h"
 
 
 namespace dart {
