@@ -16762,7 +16762,7 @@ RawString* String::DecodeIRI(const String& str) {
         }
         code_point = cpi.Current();
         if (!IsHexCharacter(code_point)) {
-          return str.raw();
+          return String::null();
         }
         num_escapes += 2;
       }

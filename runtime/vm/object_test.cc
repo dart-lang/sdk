@@ -430,11 +430,15 @@ TEST_CASE(StringDecodeIRI) {
 TEST_CASE(StringDecodeIRIInvalid) {
   String& input = String::Handle();
   input = String::New("file%");
-  EXPECT(String::DecodeIRI(input) == String::null());
+  String& decoded = String::Handle();
+  decoded = String::DecodeIRI(input);
+  EXPECT(decoded.IsNull());
   input = String::New("file%3");
-  EXPECT(String::DecodeIRI(input) == String::null());
+  decoded = String::DecodeIRI(input);
+  EXPECT(decoded.IsNull());
   input = String::New("file%3g");
-  EXPECT(String::DecodeIRI(input) == String::null());
+  decoded = String::DecodeIRI(input);
+  EXPECT(decoded.IsNull());
 }
 
 
