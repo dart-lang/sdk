@@ -314,15 +314,21 @@ class ScriptOnlyFilter implements QueueFilter {
   }
 }
 
+/**
+ * Serializes scope information about an element. This is accomplished by
+ * calling the [serialize] method on each element. Some elements need special
+ * treatment, as their enclosing scope must also be serialized.
+ */
 class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
   // TODO(ahe): Include function parameters and local variables.
 
-  final Element element;
+  final Element currentElement;
   final int position;
   final StringBuffer buffer = new StringBuffer();
   int indentationLevel = 0;
+  ClassElement currentClass;
 
-  ScopeInformationVisitor(this.element, this.position);
+  ScopeInformationVisitor(this.currentElement, this.position);
 
   String get indentation => '  ' * indentationLevel;
 
@@ -334,27 +340,109 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
 
   void visitLibraryElement(LibraryElement e) {
     bool isFirst = true;
+    forEach(Element member) {
+      if (!isFirst) {
+        buffer.write(',');
+      }
+      buffer.write('\n');
+      indented;
+      serialize(member);
+      isFirst = false;
+    }
     serialize(
-        e, omitEnclosing: true,
+        e,
+        // TODO(ahe): We omit the import scope if there is no current
+        // class. That's wrong.
+        omitEnclosing: currentClass == null,
         name: e.getLibraryName(),
+        serializeEnclosing: () {
+          // The enclosing scope of a library is a scope which contains all the
+          // imported names.
+          isFirst = true;
+          buffer.write('{\n');
+          indentationLevel++;
+          indented.write('"kind": "imports",\n');
+          indented.write('"members": [');
+          indentationLevel++;
+          e.importScope.importScope.values.forEach(forEach);
+          indentationLevel--;
+          buffer.write('\n');
+          indented.write('],\n');
+          // The enclosing scope of the imported names scope is the superclass
+          // scope of the current class.
+          indented.write('"enclosing": ');
+          serializeClassSide(
+              currentClass.superclass, isStatic: false, includeSuper: true);
+          buffer.write('\n');
+          indentationLevel--;
+          indented.write('}');
+        },
         serializeMembers: () {
-          // TODO(ahe): Include imported elements in libraries.
-          e.forEachLocalMember((Element member) {
-            if (!isFirst) {
-              buffer.write(',');
-            }
-            buffer.write('\n');
-            indented;
-            serialize(member);
-            isFirst = false;
-          });
+          isFirst = true;
+          e.localScope.values.forEach(forEach);
         });
+  }
+
+  void visitClassElement(ClassElement e) {
+    currentClass = e;
+    serializeClassSide(e, isStatic: true);
+  }
+
+  /// Serializes one of the "sides" a class. The sides of a class are "instance
+  /// side" and "class side". These terms are from Smalltalk. The instance side
+  /// is all the local instance members of the class (the members of the
+  /// mixin), and the class side is the equivalent for static members and
+  /// constructors.
+  /// The scope chain is ordered so that the "class side" is searched before
+  /// the "instance side".
+  void serializeClassSide(
+      ClassElement e,
+      {bool isStatic: false,
+       bool omitEnclosing: false,
+       bool includeSuper: false}) {
+    bool isFirst = true;
+    String name = e.name;
+    var serializeEnclosing;
+    if (isStatic) {
+      serializeEnclosing = () {
+        serializeClassSide(e, isStatic: false, omitEnclosing: omitEnclosing);
+      };
+    } else {
+      name = "this($name)";
+    }
+    if (includeSuper) {
+      assert(!omitEnclosing && !isStatic);
+      if (e.superclass == null) {
+        omitEnclosing = true;
+      } else {
+        // Members of the superclass are represented as a separate scope.
+        serializeEnclosing = () {
+          serializeClassSide(
+              e.superclass, isStatic: false, omitEnclosing: false,
+              includeSuper: true);
+        };
+      }
+    }
+    serialize(
+        e, omitEnclosing: omitEnclosing, serializeEnclosing: serializeEnclosing,
+        name: name, serializeMembers: () {
+      e.forEachLocalMember((Element member) {
+        // Filter out members that don't belong to this "side".
+        if (member.isStatic != isStatic) return;
+        if (!isFirst) {
+          buffer.write(',');
+        }
+        buffer.write('\n');
+        indented;
+        serialize(member);
+        isFirst = false;
+      });
+    });
   }
 
   void visitScopeContainerElement(ScopeContainerElement e) {
     bool isFirst = true;
     serialize(e, omitEnclosing: false, serializeMembers: () {
-      // TODO(ahe): Include inherited members in classes.
       e.forEachLocalMember((Element member) {
         if (!isFirst) {
           buffer.write(',');
@@ -375,6 +463,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
       Element element,
       {bool omitEnclosing: true,
        void serializeMembers(),
+       void serializeEnclosing(),
        String name}) {
     DartType type;
     int category = element.kind.category;
@@ -388,10 +477,12 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     }
     buffer.write('{\n');
     indentationLevel++;
-    indented
-        ..write('"name": "')
-        ..write(name)
-        ..write('",\n');
+    if (name != '') {
+      indented
+          ..write('"name": "')
+          ..write(name)
+          ..write('",\n');
+    }
     indented
         ..write('"kind": "')
         ..write(element.kind)
@@ -415,7 +506,11 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     if (!omitEnclosing) {
       buffer.write(',\n');
       indented.write('"enclosing": ');
-      element.enclosingElement.accept(this);
+      if (serializeEnclosing != null) {
+        serializeEnclosing();
+      } else {
+        element.enclosingElement.accept(this);
+      }
     }
     indentationLevel--;
     buffer.write('\n');
