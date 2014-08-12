@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/refactoring/rename_library.dart';
 import 'package:analysis_services/src/refactoring/rename_local.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -65,6 +66,9 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(SearchEngine searchEngine, Element element) {
+    if (element is LibraryElement) {
+      return new RenameLibraryRefactoringImpl(searchEngine, element);
+    }
     if (element is LocalElement) {
       return new RenameLocalRefactoringImpl(searchEngine, element);
     }

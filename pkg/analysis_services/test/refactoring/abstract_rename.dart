@@ -70,7 +70,7 @@ class RenameRefactoringTest extends RefactoringTest {
   }
 
   /**
-   * Creates a new [RenameRefactoring] in [refactoringC] for the [Element] of
+   * Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
    * the [SimpleIdentifier] at the given [search] pattern.
    */
   void createRenameRefactoringAtString(String search) {
@@ -80,8 +80,16 @@ class RenameRefactoringTest extends RefactoringTest {
 //    if (element instanceof PrefixElement) {
 //      element = IndexContributor.getImportElement(identifier);
 //    }
+    createRenameRefactoringForElement(element);
+  }
+
+  /**
+   * Creates a new [RenameRefactoring] in [refactoring] for [element].
+   * Fails if no [RenameRefactoring] can be created.
+   */
+  void createRenameRefactoringForElement(Element element) {
     refactoring = new RenameRefactoring(searchEngine, element);
-    expect(refactoring, isNotNull);
+    expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }
 
 //  /**
