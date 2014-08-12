@@ -49,6 +49,7 @@ class AbstractAnalysisTest {
   Map<String, List<String>> analysisSubscriptions = {};
 
   String projectPath = '/project';
+  String testFolder = '/project/bin/';
   String testFile = '/project/bin/test.dart';
   String testCode;
 
