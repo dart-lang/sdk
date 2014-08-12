@@ -23,8 +23,11 @@ class _TestLauncher {
 
   Future<int> launch() {
     String dartExecutable = Platform.executable;
-    print('** Launching $args');
-    return Process.start(dartExecutable, args).then((p) {
+    var fullArgs = [];
+    fullArgs.addAll(Platform.executableArguments);
+    fullArgs.addAll(args);
+    print('** Launching $fullArgs');
+    return Process.start(dartExecutable, fullArgs).then((p) {
 
       Completer completer = new Completer();
       process = p;
