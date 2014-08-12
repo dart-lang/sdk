@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_THREAD_LINUX_H_
-#define PLATFORM_THREAD_LINUX_H_
+#ifndef VM_THREAD_ANDROID_H_
+#define VM_THREAD_ANDROID_H_
 
-#if !defined(PLATFORM_THREAD_H_)
-#error Do not include thread_linux.h directly; use thread.h instead.
+#if !defined(VM_THREAD_H_)
+#error Do not include thread_android.h directly; use thread.h instead.
 #endif
 
 #include <pthread.h>
@@ -72,4 +72,4 @@ class MonitorData {
 
 }  // namespace dart
 
-#endif  // PLATFORM_THREAD_LINUX_H_
+#endif  // VM_THREAD_ANDROID_H_

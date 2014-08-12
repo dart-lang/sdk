@@ -8,7 +8,6 @@
 #include "bin/stdio.h"
 
 #include "platform/globals.h"
-#include "platform/thread.h"
 #include "platform/utils.h"
 
 #include "include/dart_api.h"

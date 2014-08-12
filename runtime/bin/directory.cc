@@ -5,7 +5,6 @@
 #include "bin/directory.h"
 
 #include "bin/dartutils.h"
-#include "bin/thread.h"
 #include "include/dart_api.h"
 #include "platform/assert.h"
 

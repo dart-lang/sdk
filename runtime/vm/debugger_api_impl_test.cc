@@ -6,7 +6,7 @@
 #include "include/dart_mirrors_api.h"
 #include "platform/assert.h"
 #include "vm/dart_api_impl.h"
-#include "vm/thread.h"
+#include "vm/lockers.h"
 #include "vm/unit_test.h"
 
 namespace dart {

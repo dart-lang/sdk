@@ -3,26 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS)
+#if defined(TARGET_OS_ANDROID)
 
 #include "platform/thread.h"
 
-#include <sys/errno.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
-#include <sys/sysctl.h>  // NOLINT
-#include <mach/mach_init.h>  // NOLINT
-#include <mach/mach_host.h>  // NOLINT
-#include <mach/mach_port.h>  // NOLINT
-#include <mach/mach_traps.h>  // NOLINT
-#include <mach/task_info.h>  // NOLINT
-#include <mach/thread_info.h>  // NOLINT
-#include <mach/thread_act.h>  // NOLINT
+#include <errno.h>  // NOLINT
+#include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
 
 namespace dart {
 
-#define VALIDATE_PTHREAD_RESULT(result)         \
+#define VALIDATE_PTHREAD_RESULT(result) \
   if (result != 0) { \
     const int kBufferSize = 1024; \
     char error_message[kBufferSize]; \
@@ -45,6 +37,21 @@ namespace dart {
 #define RETURN_ON_PTHREAD_FAILURE(result) \
   if (result != 0) return result;
 #endif
+
+
+static void ComputeTimeSpecMicros(struct timespec* ts, int64_t micros) {
+  struct timeval tv;
+  int64_t secs = micros / kMicrosecondsPerSecond;
+  int64_t remaining_micros = (micros - (secs * kMicrosecondsPerSecond));
+  int result = gettimeofday(&tv, NULL);
+  ASSERT(result == 0);
+  ts->tv_sec = tv.tv_sec + secs;
+  ts->tv_nsec = (tv.tv_usec + remaining_micros) * kNanosecondsPerMicrosecond;
+  if (ts->tv_nsec >= kNanosecondsPerSecond) {
+    ts->tv_sec += 1;
+    ts->tv_nsec -= kNanosecondsPerSecond;
+  }
+}
 
 
 class ThreadStartData {
@@ -106,7 +113,7 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 
 
 ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
-ThreadId Thread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
+ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -138,7 +145,7 @@ intptr_t Thread::GetMaxStackSize() {
 
 
 ThreadId Thread::GetCurrentThreadId() {
-  return pthread_self();
+  return gettid();
 }
 
 
@@ -149,36 +156,23 @@ bool Thread::Join(ThreadId id) {
 
 intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
-  return reinterpret_cast<intptr_t>(id);
+  return static_cast<intptr_t>(id);
 }
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return pthread_equal(a, b) != 0;
+  return a == b;
 }
 
 
 void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
   ASSERT(thread_id == GetCurrentThreadId());
   ASSERT(cpu_usage != NULL);
-  // TODO(johnmccutchan): Enable this after fixing issue with macos directory
-  // watcher.
-  const bool get_cpu_usage = false;
-  if (get_cpu_usage) {
-    mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-    thread_basic_info_data_t info_data;
-    thread_basic_info_t info = &info_data;
-    mach_port_t thread_port = mach_thread_self();
-    kern_return_t r = thread_info(thread_port, THREAD_BASIC_INFO,
-                                  (thread_info_t)info, &count);
-    mach_port_deallocate(mach_task_self(), thread_port);
-    if (r == KERN_SUCCESS) {
-      *cpu_usage = (info->user_time.seconds * kMicrosecondsPerSecond) +
-                   info->user_time.microseconds;
-      return;
-    }
-  }
-  *cpu_usage = 0;
+  struct timespec ts;
+  int r = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+  ASSERT(r == 0);
+  *cpu_usage = (ts.tv_sec * kNanosecondsPerSecond + ts.tv_nsec) /
+               kNanosecondsPerMicrosecond;
 }
 
 
@@ -220,7 +214,7 @@ void Mutex::Lock() {
 bool Mutex::TryLock() {
   int result = pthread_mutex_trylock(data_.mutex());
   // Return false if the lock is busy and locking failed.
-  if ((result == EBUSY) || (result == EDEADLK)) {
+  if (result == EBUSY) {
     return false;
   }
   ASSERT(result == 0);  // Verify no other errors.
@@ -239,22 +233,29 @@ void Mutex::Unlock() {
 
 
 Monitor::Monitor() {
-  pthread_mutexattr_t attr;
-  int result = pthread_mutexattr_init(&attr);
+  pthread_mutexattr_t mutex_attr;
+  int result = pthread_mutexattr_init(&mutex_attr);
   VALIDATE_PTHREAD_RESULT(result);
 
 #if defined(DEBUG)
-  result = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
+  result = pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ERRORCHECK);
   VALIDATE_PTHREAD_RESULT(result);
 #endif  // defined(DEBUG)
 
-  result = pthread_mutex_init(data_.mutex(), &attr);
+  result = pthread_mutex_init(data_.mutex(), &mutex_attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  result = pthread_mutexattr_destroy(&attr);
+  result = pthread_mutexattr_destroy(&mutex_attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  result = pthread_cond_init(data_.cond(), NULL);
+  pthread_condattr_t cond_attr;
+  result = pthread_condattr_init(&cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_cond_init(data_.cond(), &cond_attr);
+  VALIDATE_PTHREAD_RESULT(result);
+
+  result = pthread_condattr_destroy(&cond_attr);
   VALIDATE_PTHREAD_RESULT(result);
 }
 
@@ -296,18 +297,8 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
     VALIDATE_PTHREAD_RESULT(result);
   } else {
     struct timespec ts;
-    int64_t secs = micros / kMicrosecondsPerSecond;
-    if (secs > kMaxInt32) {
-      // Avoid truncation of overly large timeout values.
-      secs = kMaxInt32;
-    }
-    int64_t nanos =
-        (micros - (secs * kMicrosecondsPerSecond)) * kNanosecondsPerMicrosecond;
-    ts.tv_sec = static_cast<int32_t>(secs);
-    ts.tv_nsec = static_cast<long>(nanos);  // NOLINT (long used in timespec).
-    int result = pthread_cond_timedwait_relative_np(data_.cond(),
-                                                    data_.mutex(),
-                                                    &ts);
+    ComputeTimeSpecMicros(&ts, micros);
+    int result = pthread_cond_timedwait(data_.cond(), data_.mutex(), &ts);
     ASSERT((result == 0) || (result == ETIMEDOUT));
     if (result == ETIMEDOUT) {
       retval = kTimedOut;
@@ -332,4 +323,4 @@ void Monitor::NotifyAll() {
 
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // defined(TARGET_OS_ANDROID)

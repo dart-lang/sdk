@@ -5,12 +5,10 @@
 #ifndef BIN_SOCKET_H_
 #define BIN_SOCKET_H_
 
-#include "bin/builtin.h"
-#include "bin/utils.h"
-#include "bin/dartutils.h"
-
 #include "platform/globals.h"
-#include "platform/thread.h"
+
+#include "bin/builtin.h"
+#include "bin/dartutils.h"
 // Declare the OS-specific types ahead of defining the generic class.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/socket_android.h"
@@ -23,6 +21,8 @@
 #else
 #error Unknown target os.
 #endif
+#include "bin/thread.h"
+#include "bin/utils.h"
 
 
 namespace dart {

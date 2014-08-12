@@ -4,13 +4,12 @@
 
 #include "bin/io_buffer.h"
 #include "bin/isolate_data.h"
-#include "bin/socket.h"
 #include "bin/dartutils.h"
+#include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 
 #include "platform/globals.h"
-#include "platform/thread.h"
 #include "platform/utils.h"
 
 #include "include/dart_api.h"

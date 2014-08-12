@@ -5,7 +5,8 @@
 #ifndef VM_MESSAGE_H_
 #define VM_MESSAGE_H_
 
-#include "vm/thread.h"
+#include "platform/assert.h"
+#include "vm/globals.h"
 
 // Duplicated from dart_api.h to avoid including the whole header.
 typedef int64_t Dart_Port;

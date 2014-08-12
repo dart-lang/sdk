@@ -5,6 +5,7 @@
 #ifndef VM_MESSAGE_HANDLER_H_
 #define VM_MESSAGE_HANDLER_H_
 
+#include "vm/isolate.h"
 #include "vm/message.h"
 #include "vm/thread.h"
 #include "vm/thread_pool.h"

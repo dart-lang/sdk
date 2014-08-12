@@ -21,7 +21,7 @@
 #include "bin/fdutils.h"
 #include "bin/log.h"
 #include "bin/socket.h"
-#include "platform/thread.h"
+#include "bin/thread.h"
 #include "platform/utils.h"
 
 

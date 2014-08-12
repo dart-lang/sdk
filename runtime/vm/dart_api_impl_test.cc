@@ -13,7 +13,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
-#include "vm/thread.h"
+#include "vm/lockers.h"
 #include "vm/unit_test.h"
 #include "vm/verifier.h"
 

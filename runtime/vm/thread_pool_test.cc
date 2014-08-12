@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/os.h"
-#include "vm/thread.h"
+#include "vm/lockers.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
 

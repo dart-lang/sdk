@@ -6,13 +6,13 @@
 #define BIN_DBG_MESSAGE_H_
 
 #include "bin/builtin.h"
+#include "bin/thread.h"
 #include "bin/utils.h"
 
 #include "include/dart_debugger_api.h"
 
 #include "platform/globals.h"
 #include "platform/json.h"
-#include "platform/thread.h"
 
 
 namespace dart {

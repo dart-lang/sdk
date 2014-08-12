@@ -9,6 +9,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/lockers.h"
 #include "vm/longjump.h"
 #include "vm/message_handler.h"
 #include "vm/object.h"
@@ -17,7 +18,6 @@
 #include "vm/resolver.h"
 #include "vm/snapshot.h"
 #include "vm/symbols.h"
-#include "vm/thread.h"
 
 namespace dart {
 

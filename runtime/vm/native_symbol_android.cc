@@ -6,7 +6,6 @@
 #if defined(TARGET_OS_ANDROID)
 
 #include "vm/native_symbol.h"
-#include "vm/thread.h"
 
 #include <dlfcn.h>  // NOLINT
 

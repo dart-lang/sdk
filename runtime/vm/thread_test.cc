@@ -4,9 +4,9 @@
 
 #include "platform/assert.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
 #include "vm/unit_test.h"
 #include "vm/profiler.h"
-#include "vm/thread.h"
 
 namespace dart {
 

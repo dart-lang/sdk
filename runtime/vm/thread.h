@@ -5,72 +5,95 @@
 #ifndef VM_THREAD_H_
 #define VM_THREAD_H_
 
-#include "platform/assert.h"
-#include "platform/thread.h"
-#include "vm/allocation.h"
-#include "vm/globals.h"
-#include "vm/isolate.h"
+#include "platform/globals.h"
+
+// Declare the OS-specific types ahead of defining the generic classes.
+#if defined(TARGET_OS_ANDROID)
+#include "vm/thread_android.h"
+#elif defined(TARGET_OS_LINUX)
+#include "vm/thread_linux.h"
+#elif defined(TARGET_OS_MACOS)
+#include "vm/thread_macos.h"
+#elif defined(TARGET_OS_WINDOWS)
+#include "vm/thread_win.h"
+#else
+#error Unknown target os.
+#endif
 
 namespace dart {
 
-class MutexLocker : public StackResource {
+class Thread {
  public:
-  explicit MutexLocker(Mutex* mutex) :
-    StackResource(Isolate::Current()),
-    mutex_(mutex) {
-    ASSERT(mutex != NULL);
-    // TODO(iposva): Consider adding a no GC scope here.
-    mutex_->Lock();
+  static ThreadLocalKey kUnsetThreadLocalKey;
+  static ThreadId kInvalidThreadId;
+
+  typedef void (*ThreadStartFunction) (uword parameter);
+
+  // Start a thread running the specified function. Returns 0 if the
+  // thread started successfuly and a system specific error code if
+  // the thread failed to start.
+  static int Start(ThreadStartFunction function, uword parameters);
+
+  static ThreadLocalKey CreateThreadLocal();
+  static void DeleteThreadLocal(ThreadLocalKey key);
+  static uword GetThreadLocal(ThreadLocalKey key) {
+    return ThreadInlineImpl::GetThreadLocal(key);
   }
-
-  virtual ~MutexLocker() {
-    mutex_->Unlock();
-    // TODO(iposva): Consider decrementing the no GC scope here.
-  }
-
- private:
-  Mutex* const mutex_;
-
-  DISALLOW_COPY_AND_ASSIGN(MutexLocker);
+  static void SetThreadLocal(ThreadLocalKey key, uword value);
+  static intptr_t GetMaxStackSize();
+  static ThreadId GetCurrentThreadId();
+  static bool Join(ThreadId id);
+  static intptr_t ThreadIdToIntPtr(ThreadId id);
+  static bool Compare(ThreadId a, ThreadId b);
+  static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
 };
 
 
-class MonitorLocker : public StackResource {
+class Mutex {
  public:
-  explicit MonitorLocker(Monitor* monitor)
-      : StackResource(Isolate::Current()),
-        monitor_(monitor) {
-    ASSERT(monitor != NULL);
-    // TODO(iposva): Consider adding a no GC scope here.
-    monitor_->Enter();
-  }
+  Mutex();
+  ~Mutex();
 
-  virtual ~MonitorLocker() {
-    monitor_->Exit();
-    // TODO(iposva): Consider decrementing the no GC scope here.
-  }
-
-  Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout) {
-    return monitor_->Wait(millis);
-  }
-
-  Monitor::WaitResult WaitMicros(int64_t micros = dart::Monitor::kNoTimeout) {
-    return monitor_->WaitMicros(micros);
-  }
-
-  void Notify() {
-    monitor_->Notify();
-  }
-
-  void NotifyAll() {
-    monitor_->NotifyAll();
-  }
+  void Lock();
+  bool TryLock();
+  void Unlock();
 
  private:
-  Monitor* const monitor_;
+  MutexData data_;
 
-  DISALLOW_COPY_AND_ASSIGN(MonitorLocker);
+  DISALLOW_COPY_AND_ASSIGN(Mutex);
 };
+
+
+class Monitor {
+ public:
+  enum WaitResult {
+    kNotified,
+    kTimedOut
+  };
+
+  static const int64_t kNoTimeout = 0;
+
+  Monitor();
+  ~Monitor();
+
+  void Enter();
+  void Exit();
+
+  // Wait for notification or timeout.
+  WaitResult Wait(int64_t millis);
+  WaitResult WaitMicros(int64_t micros);
+
+  // Notify waiting threads.
+  void Notify();
+  void NotifyAll();
+
+ private:
+  MonitorData data_;  // OS-specific data.
+
+  DISALLOW_COPY_AND_ASSIGN(Monitor);
+};
+
 
 }  // namespace dart
 

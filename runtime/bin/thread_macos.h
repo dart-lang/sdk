@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_THREAD_MACOS_H_
-#define PLATFORM_THREAD_MACOS_H_
+#ifndef BIN_THREAD_MACOS_H_
+#define BIN_THREAD_MACOS_H_
 
-#if !defined(PLATFORM_THREAD_H_)
+#if !defined(BIN_THREAD_H_)
 #error Do not include thread_macos.h directly; use thread.h instead.
 #endif
 
@@ -72,4 +72,4 @@ class MonitorData {
 
 }  // namespace dart
 
-#endif  // PLATFORM_THREAD_MACOS_H_
+#endif  // BIN_THREAD_MACOS_H_

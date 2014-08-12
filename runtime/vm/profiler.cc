@@ -9,6 +9,7 @@
 #include "vm/code_patcher.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
+#include "vm/lockers.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/os.h"

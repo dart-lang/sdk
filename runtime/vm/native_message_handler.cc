@@ -8,7 +8,6 @@
 #include "vm/isolate.h"
 #include "vm/message.h"
 #include "vm/snapshot.h"
-#include "vm/thread.h"
 
 namespace dart {
 

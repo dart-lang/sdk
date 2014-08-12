@@ -12,7 +12,7 @@
 
 #include "platform/globals.h"
 #include "platform/json.h"
-#include "platform/thread.h"
+#include "bin/thread.h"
 // Declare the OS-specific types ahead of defining the generic class.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/dbg_connection_android.h"

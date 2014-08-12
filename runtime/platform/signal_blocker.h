@@ -13,8 +13,6 @@
 
 #include <signal.h>  // NOLINT
 
-#include "platform/thread.h"
-
 namespace dart {
 
 class ThreadSignalBlocker {

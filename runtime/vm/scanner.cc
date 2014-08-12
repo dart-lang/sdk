@@ -10,7 +10,6 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
-#include "vm/thread.h"
 #include "vm/token.h"
 #include "vm/unicode.h"
 

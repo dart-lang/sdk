@@ -18,7 +18,6 @@
 #include "bin/log.h"
 #include "bin/socket.h"
 #include "platform/signal_blocker.h"
-#include "platform/thread.h"
 #include "platform/utils.h"
 
 

@@ -7,7 +7,6 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
-#include "platform/thread.h"
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/counters.h"
@@ -16,6 +15,7 @@
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
+#include "vm/thread.h"
 #include "vm/trace_buffer.h"
 #include "vm/timer.h"
 

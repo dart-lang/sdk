@@ -9,7 +9,6 @@
 #include "vm/code_observers.h"
 #include "vm/globals.h"
 #include "vm/tags.h"
-#include "vm/thread.h"
 #include "vm/thread_interrupter.h"
 
 namespace dart {

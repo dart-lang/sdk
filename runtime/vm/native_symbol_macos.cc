@@ -6,7 +6,6 @@
 #if defined(TARGET_OS_MACOS)
 
 #include "vm/native_symbol.h"
-#include "vm/thread.h"
 
 #include <cxxabi.h>  // NOLINT
 #include <dlfcn.h>  // NOLINT

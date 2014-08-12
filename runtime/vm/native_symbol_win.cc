@@ -5,6 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "vm/lockers.h"
 #include "vm/native_symbol.h"
 #include "vm/thread.h"
 

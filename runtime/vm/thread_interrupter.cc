@@ -2,8 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/simulator.h"
 #include "vm/thread_interrupter.h"
+
+#include "vm/flags.h"
+#include "vm/lockers.h"
+#include "vm/os.h"
+#include "vm/simulator.h"
 
 namespace dart {
 
