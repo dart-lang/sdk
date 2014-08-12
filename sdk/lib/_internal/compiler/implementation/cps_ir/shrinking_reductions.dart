@@ -192,49 +192,6 @@ bool _isEtaCont(LetCont node) {
     return false;
   }
 
-  // Special case for continuations passed into one of { InvokeConstructor,
-  // InvokeMethod, InvokeStatic, ConcatenateStrings, TypeOperator,
-  // InvokeSuperMethod }, since their direct-style translation require a
-  // continuation that is used exactly once.
-  // TODO(kmillikin): Modify direct-style translation to handle multiply-used
-  // continuations for Invoke
-  // (see [[tree_ir_builder.Builder.continueWithExpression]]), and subsequently
-  // mark the following forms as eta-cont:
-  //    let cont k(v) = k'(v) in ... InvokeMethod(v, f, args, k).
-  if (cont.hasExactlyOneUse) {
-    if (cont.firstRef.parent is InvokeConstructor) {
-      InvokeConstructor parent = cont.firstRef.parent;
-      if (parent.continuation == cont.firstRef) {
-        return false;
-      }
-    } else if (cont.firstRef.parent is InvokeMethod) {
-      InvokeMethod parent = cont.firstRef.parent;
-      if (parent.continuation == cont.firstRef) {
-        return false;
-      }
-    } else if (cont.firstRef.parent is InvokeStatic) {
-      InvokeStatic parent = cont.firstRef.parent;
-      if (parent.continuation == cont.firstRef) {
-        return false;
-      }
-    } else if (cont.firstRef.parent is ConcatenateStrings) {
-      ConcatenateStrings parent = cont.firstRef.parent;
-      if (parent.continuation == cont.firstRef) {
-        return false;
-      }
-    } else if (cont.firstRef.parent is TypeOperator) {
-      TypeOperator parent = cont.firstRef.parent;
-      if (parent.continuation == cont.firstRef) {
-        return false;
-      }
-    } else if (cont.firstRef.parent is InvokeSuperMethod) {
-      InvokeSuperMethod parent = cont.firstRef.parent;
-      if (parent.continuation == cont.firstRef) {
-        return false;
-      }
-    }
-  }
-
   InvokeContinuation invoke = cont.body;
   Continuation invokedCont = invoke.continuation.definition;
 
@@ -261,11 +218,11 @@ bool _isEtaCont(LetCont node) {
   for (int i = 0; i < cont.parameters.length; i++) {
     if (invoke.arguments[i].definition != cont.parameters[i]) {
       return false;
-      }
     }
-
-    return true;
   }
+
+  return true;
+}
 
 /// Traverses a term and adds any found redexes to the worklist.
 class _RedexVisitor extends RecursiveVisitor {

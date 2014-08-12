@@ -316,10 +316,11 @@ class Builder extends cps_ir.Visitor<Node> {
     if (cont == returnContinuation) {
       return new Return(expression);
     } else {
-      assert(cont.hasExactlyOneUse);
       assert(cont.parameters.length == 1);
+      Function nextBuilder = cont.hasExactlyOneUse ?
+          () => visit(cont.body) : () => new Break(labels[cont]);
       return buildContinuationAssignment(cont.parameters.single, expression,
-          () => visit(cont.body));
+          nextBuilder);
     }
   }
 
