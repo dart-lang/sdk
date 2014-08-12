@@ -119,6 +119,19 @@ class _TextFormatter extends CodeGenerator {
           addAll(node.nodes);
           lineBreak(true);
           break;
+        case 'div':
+          lineBreak(false);
+          if (node.classes.contains('hangingIndent')) {
+            resolveVerticalSpace();
+            indentSpecial('', '        ', () {
+              addAll(node.nodes);
+              lineBreak(false);
+            });
+          } else {
+            addAll(node.nodes);
+            lineBreak(false);
+          }
+          break;
         case 'ul':
           lineBreak(false);
           addAll(node.nodes);

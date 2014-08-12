@@ -38,6 +38,10 @@ dt {
   margin-top: 1em;
   margin-bottom: 1em;
 }
+div.hangingIndent {
+  padding-left: 3em;
+  text-indent: -3em;
+}
 '''.trim();
 
 /**
@@ -76,6 +80,9 @@ abstract class HtmlMixin {
   void h2(void callback()) => element('h2', {}, callback);
   void h3(void callback()) => element('h3', {}, callback);
   void h4(void callback()) => element('h4', {}, callback);
+  void hangingIndent(void callback()) => element('div', {
+    'class': 'hangingIndent'
+  }, callback);
   void head(void callback()) => element('head', {}, callback);
   void html(void callback()) => element('html', {}, callback);
   void i(void callback()) => element('i', {}, callback);
@@ -402,9 +409,10 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
   void javadocParams(TypeObject typeObject) {
     if (typeObject != null) {
       for (TypeObjectField field in typeObject.fields) {
-        write('@param ${field.name} ');
-        translateHtml(field.html, squashParagraphs: true);
-        br();
+        hangingIndent(() {
+          write('@param ${field.name} ');
+          translateHtml(field.html, squashParagraphs: true);
+        });
       }
     }
   }
