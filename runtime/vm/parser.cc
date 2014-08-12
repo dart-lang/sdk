@@ -1086,8 +1086,7 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
 
     // Generate code returning the field value.
     ReturnNode* return_node =
-        new ReturnNode(ident_pos,
-                       new LoadStaticFieldNode(ident_pos, field));
+        new ReturnNode(ident_pos, new LoadStaticFieldNode(ident_pos, field));
     current_block_->statements->Add(return_node);
   }
   return CloseBlock();
@@ -1233,8 +1232,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   LoadInstanceFieldNode* load_field =
       new LoadInstanceFieldNode(ident_pos, load_receiver, field);
 
-  ReturnNode* return_node =
-      new ReturnNode(Scanner::kNoSourcePos, load_field);
+  ReturnNode* return_node = new ReturnNode(Scanner::kNoSourcePos, load_field);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
@@ -3117,7 +3115,8 @@ void Parser::AddEqualityNullCheck() {
                          Token::kEQ_STRICT,
                          LoadReceiver(Scanner::kNoSourcePos),
                          null_operand);
-  SequenceNode* arg_is_null = new SequenceNode(Scanner::kNoSourcePos, NULL);
+  SequenceNode* arg_is_null = new SequenceNode(Scanner::kNoSourcePos,
+                                               current_block_->scope);
   arg_is_null->Add(new ReturnNode(Scanner::kNoSourcePos, result));
   IfNode* if_arg_null = new IfNode(Scanner::kNoSourcePos,
                                    check_arg,
@@ -5658,40 +5657,8 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
 
 void Parser::CloseAsyncClosure(SequenceNode* body) {
-  ASSERT(body != NULL);
-  // Replace an optional ReturnNode with the appropriate completer calls.
-  intptr_t last_index = body->length() - 1;
-  AstNode* last = NULL;
-  if (last_index >= 0) {
-    // Non-empty async closure.
-    last = body->NodeAt(last_index);
-  }
-  ArgumentListNode* args = new (I) ArgumentListNode(Scanner::kNoSourcePos);
-  LocalVariable* completer = body->scope()->LookupVariable(
-      Symbols::AsyncCompleter(), false);
-  ASSERT(completer != NULL);
-  if (last != NULL && last->IsReturnNode()) {
-    // Replace
-    //   return <expr>;
-    // with
-    //   completer.complete(<expr>);
-    args->Add(body->NodeAt(last_index)->AsReturnNode()->value());
-    body->ReplaceNodeAt(last_index,
-        new (I) InstanceCallNode(
-          Scanner::kNoSourcePos,
-          new (I) LoadLocalNode(Scanner::kNoSourcePos, completer),
-          Symbols::CompleterComplete(),
-          args));
-  } else {
-    // Add to AST:
-    //   completer.complete();
-    body->Add(
-        new (I) InstanceCallNode(
-          Scanner::kNoSourcePos,
-          new (I) LoadLocalNode(Scanner::kNoSourcePos, completer),
-          Symbols::CompleterComplete(),
-          args));
-  }
+  // We need a temporary expression to store intermediate return values.
+  parsed_function()->EnsureExpressionTemp();
 }
 
 
@@ -5800,7 +5767,8 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
   bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
   current_block_->statements->Add(new(I) ReturnNode(
-      TokenPos(), new(I) NativeBodyNode(
+      TokenPos(),
+      new(I) NativeBodyNode(
           TokenPos(),
           Function::ZoneHandle(I, func.raw()),
           native_name,
