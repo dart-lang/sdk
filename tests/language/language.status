@@ -83,6 +83,9 @@ class_keyword_test/02: MissingCompileTimeError # Issue 13627
 
 unicode_bom_test: Fail # Issue 16067
 
+[ ($compiler == none || $compiler == dart2dart) && $mode == debug ]
+issue20476_test: Crash # Issue 20476
+
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006
 
