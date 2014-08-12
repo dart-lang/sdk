@@ -29,7 +29,10 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
  * 
  * @coverage dart.server
  */''');
-    makeClass('public interface AnalysisServer2', () {
+    makeClass('public interface AnalysisServer', () {
+      //
+      // addAnalysisServerListener(..)
+      //
       publicMethod('addAnalysisServerListener', () {
         writeln('''/**
  * Add the given listener to the list of listeners that will receive notification when new
@@ -38,6 +41,25 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
  * @param listener the listener to be added
  */''');
         writeln('public void addAnalysisServerListener(AnalysisServerListener listener);');
+      });
+
+      //
+      // removeAnalysisServerListener(..)
+      //
+      publicMethod('removeAnalysisServerListener', () {
+        writeln('''/**
+ * Remove the given listener from the list of listeners that will receive notification when new
+   * analysis results become available.
+ * 
+ * @param listener the listener to be removed
+ */''');
+        writeln('public void removeAnalysisServerListener(AnalysisServerListener listener);');
+      });
+
+      //
+      // start(..)
+      //
+      publicMethod('start', () {
         writeln('''/**
  * Start the analysis server.
  * 
@@ -59,7 +81,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
         toHtmlVisitor.translateHtml(request.html);
         toHtmlVisitor.javadocParams(request.params);
       }), width: 99, javadocStyle: true);
-      write('// public void $methodName(');
+      write('public void $methodName(');
       List<String> arguments = [];
       if (request.params != null) {
         for (TypeObjectField field in request.params.fields) {
@@ -86,5 +108,5 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
  * Translate spec_input.html into AnalysisServer.java.
  */
 main() {
-  createJavaCode('../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer2.java', new CodegenAnalysisServer(readApi()));
+  createJavaCode('../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer.java', new CodegenAnalysisServer(readApi()));
 }
