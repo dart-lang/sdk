@@ -45,7 +45,8 @@ class DartCompletionManager extends CompletionManager {
    */
   void computeFast() {
     CompilationUnit unit = context.parseCompilationUnit(source);
-    computers.removeWhere((c) => c.computeFast(unit, suggestions));
+    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+    computers.removeWhere((c) => c.computeFast(unit, node, suggestions));
     sendResults(computers.isEmpty);
   }
 
@@ -59,9 +60,10 @@ class DartCompletionManager extends CompletionManager {
         sendResults(true);
         return;
       }
+      AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
       int count = computers.length;
       computers.forEach((c) {
-        c.computeFull(unit, suggestions).then((bool changed) {
+        c.computeFull(unit, node, suggestions).then((bool changed) {
           var last = --count == 0;
           if (changed || last) {
             sendResults(last);

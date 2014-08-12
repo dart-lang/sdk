@@ -23,20 +23,24 @@ abstract class CompletionComputer {
   SearchEngine searchEngine;
 
   /**
-   * Computes the initial set of [CompletionSuggestion]s based on information
-   * already cached in the analysis context. This method should execute
-   * quickly and not block waiting for any analysis.
+   * Computes the initial set of [CompletionSuggestion]s based on
+   * the compilation [unit], the AST [node] in which the completion occurred,
+   * and information already cached in the analysis context.
+   * The supplied [unit] and [node] may not be resolved.
+   * This method should execute quickly and not block waiting for any analysis.
    * Returns `true` if the computer's work is complete
    * or `false` if [computeFull] should be called to complete the work.
    */
-  bool computeFast(CompilationUnit unit,
+  bool computeFast(CompilationUnit unit, AstNode node,
       List<CompletionSuggestion> suggestions);
 
   /**
-   * Computes [CompletionSuggestion]s for the specified position in the source.
+   * Computes the complete set of [CompletionSuggestion]s based on
+   * the resolved compilation [unit] and the resolved AST [node] in which the
+   * completion occurred.
    * Returns `true` if the receiver modified the list of suggestions.
    */
-  Future<bool> computeFull(CompilationUnit unit,
+  Future<bool> computeFull(CompilationUnit unit, AstNode node,
       List<CompletionSuggestion> suggestions);
 }
 

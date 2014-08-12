@@ -132,7 +132,8 @@ class AbstractCompletionTest extends AbstractContextTest {
         ..offset = completionOffset;
     suggestions = [];
     CompilationUnit unit = context.parseCompilationUnit(testSource);
-    return computer.computeFast(unit, suggestions);
+    AstNode node = new NodeLocator.con1(completionOffset).searchWithin(unit);
+    return computer.computeFast(unit, node, suggestions);
   }
 
   Future<bool> computeFull() {
@@ -153,7 +154,8 @@ class AbstractCompletionTest extends AbstractContextTest {
     expect(library, isNotNull);
     var unit = context.getResolvedCompilationUnit(testSource, library);
     expect(unit, isNotNull);
-    return computer.computeFull(unit, suggestions);
+    AstNode node = new NodeLocator.con1(completionOffset).searchWithin(unit);
+    return computer.computeFull(unit, node, suggestions);
   }
 
   @override

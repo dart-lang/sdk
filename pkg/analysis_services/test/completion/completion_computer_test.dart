@@ -200,7 +200,7 @@ class MockCompletionComputer extends CompletionComputer {
   }
 
   @override
-  bool computeFast(CompilationUnit unit,
+  bool computeFast(CompilationUnit unit, AstNode node,
       List<CompletionSuggestion> suggestions) {
     fastCount++;
     if (fastSuggestion != null) {
@@ -210,7 +210,7 @@ class MockCompletionComputer extends CompletionComputer {
   }
 
   @override
-  Future<bool> computeFull(CompilationUnit unit,
+  Future<bool> computeFull(CompilationUnit unit, AstNode node,
       List<CompletionSuggestion> suggestions) {
     fullCount++;
     if (fullSuggestion != null) {

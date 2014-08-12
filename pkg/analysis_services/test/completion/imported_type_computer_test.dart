@@ -38,6 +38,50 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
+  test_class_importHide() {
+    addSource('/testA.dart', 'class A { } class B { }');
+    addTestSource('import "/testA.dart" hide ^; class C {}');
+    return computeFull().then((_) {
+      assertSuggestClass('A');
+      assertSuggestClass('B');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_class_importShow() {
+    addSource('/testA.dart', 'class A { } class B { }');
+    addTestSource('import "/testA.dart" show ^; class C {}');
+    return computeFull().then((_) {
+      // only suggest elements listed in show combinator
+      assertSuggestClass('A');
+      assertSuggestClass('B');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_class_importShowWithPart() {
+    addSource('/testB.dart', 'part of libA;  class B { }');
+    addSource('/testA.dart', 'part "/testB.dart"; class A { }');
+    addTestSource('import "/testA.dart" show ^; class C {}');
+    return computeFull().then((_) {
+      // only suggest elements listed in show combinator
+      assertSuggestClass('A');
+      assertSuggestClass('B');
+      assertNotSuggested('Object');
+    });
+  }
+
+  test_class_importedWithHide() {
+    addSource('/testA.dart', 'class A { } class B { }');
+    addTestSource('import "/testA.dart" hide B; class C {foo(){^}}');
+    return computeFull().then((_) {
+      // exclude elements listed in hide combinator
+      assertSuggestClass('A');
+      assertNotSuggested('B');
+      assertSuggestClass('Object');
+    });
+  }
+
   test_class_importedWithPrefix() {
     addSource('/testA.dart', 'class A { }');
     addTestSource('import "/testA.dart" as foo; class C {foo(){^}}');
@@ -46,6 +90,17 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
       assertNotSuggested('A');
       // do not suggest prefix as it is suggested by LocalComputer
       assertNotSuggested('foo');
+    });
+  }
+
+  test_class_importedWithShow() {
+    addSource('/testA.dart', 'class A { } class B { }');
+    addTestSource('import "/testA.dart" show A; class C {foo(){^}}');
+    return computeFull().then((_) {
+      // only suggest elements listed in show combinator
+      assertSuggestClass('A');
+      assertNotSuggested('B');
+      assertSuggestClass('Object');
     });
   }
 

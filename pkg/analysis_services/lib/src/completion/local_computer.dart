@@ -17,12 +17,11 @@ import 'package:analyzer/src/generated/ast.dart';
 class LocalComputer extends CompletionComputer {
 
   @override
-  bool computeFast(CompilationUnit unit,
+  bool computeFast(CompilationUnit unit, AstNode node,
       List<CompletionSuggestion> suggestions) {
 
     // Find the specific child [AstNode] that contains the completion offset
     // and collect suggestions starting with that node
-    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
     if (node != null) {
       node.accept(new _LocalVisitor(offset, suggestions));
     }
@@ -35,7 +34,7 @@ class LocalComputer extends CompletionComputer {
   }
 
   @override
-  Future<bool> computeFull(CompilationUnit unit,
+  Future<bool> computeFull(CompilationUnit unit, AstNode node,
       List<CompletionSuggestion> suggestions) {
     // TODO: implement computeFull
     // include results from part files that are included in the library
