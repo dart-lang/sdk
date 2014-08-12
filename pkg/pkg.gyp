@@ -43,6 +43,9 @@
       'actions': [
         {
           'action_name': 'remove_html_imports',
+          'dependencies': [
+            'pkg_files.gyp:http_files_stamp',
+          ],
           'inputs': [
             '../tools/remove_html_imports.py',
             '<(SHARED_INTERMEDIATE_DIR)/http_files.stamp',
