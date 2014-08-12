@@ -379,6 +379,10 @@ Future compile(List<String> argv) {
     if (analyzeOnly) return;
     if (code == null) {
       fail('Compilation failed.');
+      // fail normally means exiting, but in batch mode we simply set the
+      // exitcode used later on. We should not try to write out the deps file
+      // if we end up here.
+      return;
     }
     writeString(Uri.parse('$out.deps'),
                 getDepsOutput(inputProvider.sourceFiles));
