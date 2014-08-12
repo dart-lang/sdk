@@ -5,7 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
-#include "platform/thread.h"
+#include "vm/thread.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT

@@ -5,7 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_ANDROID)
 
-#include "platform/thread.h"
+#include "bin/thread.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/time.h>  // NOLINT

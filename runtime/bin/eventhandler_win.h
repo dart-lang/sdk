@@ -14,7 +14,7 @@
 #include <mswsock.h>
 
 #include "bin/builtin.h"
-#include "platform/thread.h"
+#include "bin/thread.h"
 
 
 namespace dart {

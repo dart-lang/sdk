@@ -5,7 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
-#include "platform/thread.h"
+#include "vm/thread.h"
 
 #include <process.h>  // NOLINT
 

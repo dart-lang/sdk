@@ -6,7 +6,6 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include "vm/os.h"
-#include "vm/vtune.h"
 
 #include <malloc.h>  // NOLINT
 #include <process.h>  // NOLINT
@@ -14,7 +13,8 @@
 
 #include "platform/utils.h"
 #include "platform/assert.h"
-#include "platform/thread.h"
+#include "vm/thread.h"
+#include "vm/vtune.h"
 
 namespace dart {
 
