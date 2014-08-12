@@ -60,6 +60,27 @@ String getDefaultValueCode(DartType type) {
 
 
 /**
+ * Return the name of the [Element] kind.
+ */
+String getElementKindName(Element element) {
+  return element.kind.displayName;
+}
+
+
+/**
+ * Returns the name to display in the UI for the given [Element].
+ */
+String getElementQualifiedName(Element element) {
+  ElementKind kind = element.kind;
+  if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
+    return '${element.enclosingElement.displayName}.${element.displayName}';
+  } else {
+    return element.displayName;
+  }
+}
+
+
+/**
  * @return the [ExecutableElement] of the enclosing executable [AstNode].
  */
 ExecutableElement getEnclosingExecutableElement(AstNode node) {
@@ -77,7 +98,6 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
   }
   return null;
 }
-
 
 /**
  * Returns a namespace of the given [ExportElement].
@@ -107,7 +127,6 @@ Element getExportedElement(LibraryElement library, String name) {
   }
   return getExportNamespaceForLibrary(library)[name];
 }
-
 
 /**
  * Returns [getExpressionPrecedence] for the parent of [node],
@@ -142,6 +161,7 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
   return namespace.definedNames;
 }
 
+
 /**
  * If given [AstNode] is name of qualified property extraction, returns target from which
  * this property is extracted. Otherwise `null`.
@@ -162,6 +182,7 @@ Expression getQualifiedPropertyTarget(AstNode node) {
   }
   return null;
 }
+
 
 /**
  * Returns the given [Statement] if not a [Block], or the first child

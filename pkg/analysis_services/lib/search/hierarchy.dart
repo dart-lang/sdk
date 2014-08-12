@@ -199,6 +199,20 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
 }
 
 
+/**
+ * If the given [element] is a synthetic [PropertyAccessorElement] returns
+ * its variable, otherwise returns [element].
+ */
+Element getSyntheticAccessorVariable(Element element) {
+  if (element is PropertyAccessorElement) {
+    if (element.isSynthetic) {
+      return element.variable;
+    }
+  }
+  return element;
+}
+
+
 typedef void _ElementProcessor(Element element);
 
 /**

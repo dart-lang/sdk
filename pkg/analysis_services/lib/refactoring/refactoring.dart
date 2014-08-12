@@ -4,6 +4,8 @@
 
 library services.refactoring;
 
+import 'dart:async';
+
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/search/search_engine.dart';
@@ -24,26 +26,26 @@ abstract class Refactoring {
    * Checks all conditions - [checkInitialConditions] and
    * [checkFinalConditions] to decide if refactoring can be performed.
    */
-  RefactoringStatus checkAllConditions();
+  Future<RefactoringStatus> checkAllConditions();
 
   /**
    * Validates environment to check if this refactoring can be performed.
    *
    * This check may be slow, because many refactorings use search engine.
    */
-  RefactoringStatus checkFinalConditions();
+  Future<RefactoringStatus> checkFinalConditions();
 
   /**
    * Validates arguments to check if this refactoring can be performed.
    *
    * This check should be quick because it is used often as arguments change.
    */
-  RefactoringStatus checkInitialConditions();
+  Future<RefactoringStatus> checkInitialConditions();
 
   /**
    * Returns the [Change] to apply to perform this refactoring.
    */
-  Change createChange();
+  Future<Change> createChange();
 
   /**
    * Returs `true` if the [Change] created by refactoring may be unsafe,

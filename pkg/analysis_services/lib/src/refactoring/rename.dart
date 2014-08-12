@@ -7,11 +7,14 @@
 
 library services.src.refactoring.rename;
 
+import 'dart:async';
+import 'dart:collection';
+
+import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/refactoring/refactoring.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/correction/source_range.dart';
-import 'package:analysis_services/src/generated/change.dart';
 import 'package:analysis_services/src/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,6 +26,37 @@ import 'package:analyzer/src/generated/source.dart';
  */
 Edit createReferenceEdit(SourceReference reference, String newText) {
   return new Edit.range(reference.range, newText);
+}
+
+
+/**
+ * Returns the file containing declaration of the given [Element].
+ */
+String getElementFile(Element element) {
+  return element.source.fullName;
+}
+
+
+/**
+ * When a [Source] (a file) is used in more than one context, [SearchEngine]
+ * will return separate [SearchMatch]s for each context. But in rename
+ * refactorings we want to update each [Source] only once.
+ */
+List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
+  var uniqueReferences = new HashMap<SourceReference, SourceReference>();
+  for (SearchMatch match in matches) {
+    Element element = match.element;
+    MatchKind kind = match.kind;
+    String file = getElementFile(element);
+    SourceRange range = match.sourceRange;
+    SourceReference newReference = new SourceReference(kind, file, range);
+    SourceReference oldReference = uniqueReferences[newReference];
+    if (oldReference == null) {
+      uniqueReferences[newReference] = newReference;
+      oldReference = newReference;
+    }
+  }
+  return uniqueReferences.keys.toList();
 }
 
 
@@ -47,21 +81,6 @@ bool haveIntersectingRanges(LocalElement localElement, Element element) {
 
 
 /**
- * Checks if the given [Element] is in the given [AnalysisContext].
- */
-bool isInContext(Element element, AnalysisContext context) {
-  AnalysisContext elementContext = element.context;
-  if (elementContext == context) {
-    return true;
-  }
-  if (context is InstrumentedAnalysisContextImpl) {
-    return elementContext == context.basis;
-  }
-  return false;
-}
-
-
-/**
  * Checks if [element] is defined in the library containing [source].
  */
 bool isDefinedInLibrary(Element element, AnalysisContext context, Source source)
@@ -78,20 +97,17 @@ bool isDefinedInLibrary(Element element, AnalysisContext context, Source source)
 
 
 /**
- * Checks if [element] is visible in the library containing [source].
+ * Checks if the given [Element] is in the given [AnalysisContext].
  */
-bool isVisibleInLibrary(Element element, AnalysisContext context, Source source)
-    {
-  // should be the same AnalysisContext
-  if (!isInContext(element, context)) {
-    return false;
-  }
-  // public elements are always visible
-  if (element.isPublic) {
+bool isInContext(Element element, AnalysisContext context) {
+  AnalysisContext elementContext = element.context;
+  if (elementContext == context) {
     return true;
   }
-  // private elements are visible only in their library
-  return isDefinedInLibrary(element, context, source);
+  if (context is InstrumentedAnalysisContextImpl) {
+    return elementContext == context.basis;
+  }
+  return false;
 }
 
 
@@ -113,6 +129,25 @@ bool isReferenceInLocalRange(LocalElement localElement, SearchMatch reference) {
 
 
 /**
+ * Checks if [element] is visible in the library containing [source].
+ */
+bool isVisibleInLibrary(Element element, AnalysisContext context, Source source)
+    {
+  // should be the same AnalysisContext
+  if (!isInContext(element, context)) {
+    return false;
+  }
+  // public elements are always visible
+  if (element.isPublic) {
+    return true;
+  }
+  // private elements are visible only in their library
+  return isDefinedInLibrary(element, context, source);
+}
+
+
+
+/**
  * An abstract implementation of [RenameRefactoring].
  */
 abstract class RenameRefactoringImpl extends RefactoringImpl implements
@@ -131,24 +166,26 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
         oldName = _getDisplayName(element);
 
   /**
-   * Adds the "Update declaration" [Edit] to [sourceChange].
+   * Adds the "Update declaration" [Edit] to [change].
    */
-  void addDeclarationEdit(SourceChange sourceChange, Element element) {
+  void addDeclarationEdit(Change change, Element element) {
+    String file = getElementFile(element);
     Edit edit = new Edit.range(rangeElementName(element), newName);
-    sourceChange.addEdit(edit, "Update declaration");
+    change.addEdit(file, edit);
   }
 
   /**
-   * Adds an "Update reference" [Edit] to [sourceChange].
+   * Adds an "Update reference" [Edit] to [change].
    */
-  void addReferenceEdit(SourceChange sourceChange, SourceReference reference) {
+  void addReferenceEdit(Change change, SourceReference reference) {
     Edit edit = createReferenceEdit(reference, newName);
-    sourceChange.addEdit(edit, "Update reference");
+    change.addEdit(reference.file, edit);
   }
 
   @override
-  RefactoringStatus checkInitialConditions() {
-    return new RefactoringStatus();
+  Future<RefactoringStatus> checkInitialConditions() {
+    var result = new RefactoringStatus();
+    return new Future.value(result);
   }
 
   @override
@@ -159,6 +196,11 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
           "The new name must be different than the current name.");
     }
     return result;
+  }
+
+  @override
+  bool requiresPreview() {
+    return false;
   }
 
   static String _getDisplayName(Element element) {
@@ -178,30 +220,29 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
  */
 class SourceReference {
   final MatchKind kind;
-  final Source source;
+  final String file;
   final SourceRange range;
 
-  SourceReference(this.kind, this.source, this.range);
+  SourceReference(this.kind, this.file, this.range);
 
   @override
   int get hashCode {
-    int hash = source.hashCode;
+    int hash = file.hashCode;
     hash = ((hash << 16) & 0xFFFFFFFF) + range.hashCode;
     return hash;
   }
 
   @override
-  bool operator ==(Object obj) {
-    if (identical(obj, this)) {
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
       return true;
     }
-    if (obj is! SourceReference) {
-      return false;
+    if (other is SourceReference) {
+      return other.file == file && other.range == range;
     }
-    SourceReference other = obj as SourceReference;
-    return other.source == source && other.range == range;
+    return false;
   }
 
   @override
-  String toString() => '${source}@${range}';
+  String toString() => '${file}@${range}';
 }

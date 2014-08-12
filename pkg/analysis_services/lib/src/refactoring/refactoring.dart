@@ -7,21 +7,28 @@
 
 library services.src.refactoring;
 
+import 'dart:async';
+
 import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/refactoring/refactoring.dart';
 
 
 /**
- * Abstract implementation of {@link Refactoring}.
+ * Abstract implementation of [Refactoring].
  */
 abstract class RefactoringImpl implements Refactoring {
   @override
-  RefactoringStatus checkAllConditions() {
+  Future<RefactoringStatus> checkAllConditions() {
     RefactoringStatus result = new RefactoringStatus();
-    result.addStatus(checkInitialConditions());
-    if (!result.hasFatalError) {
-      result.addStatus(checkFinalConditions());
-    }
-    return result;
+    return checkInitialConditions().then((status) {
+      result.addStatus(status);
+      if (result.hasFatalError) {
+        return result;
+      }
+      return checkFinalConditions().then((status) {
+        result.addStatus(status);
+        return result;
+      });
+    });
   }
 }

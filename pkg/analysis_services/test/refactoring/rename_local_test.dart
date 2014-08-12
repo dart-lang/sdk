@@ -7,21 +7,11 @@
 
 library test.services.refactoring.rename_local;
 
-import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/status.dart';
-import 'package:analysis_services/index/index.dart';
-import 'package:analysis_services/index/local_memory_index.dart';
-import 'package:analysis_services/refactoring/refactoring.dart';
-import 'package:analysis_services/search/search_engine.dart';
-import 'package:analysis_services/src/correction/source_range.dart';
-import 'package:analysis_services/src/search/search_engine.dart';
-import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
+
+import 'abstract_rename.dart';
 
 
 
@@ -33,7 +23,234 @@ main() {
 
 @ReflectiveTestCase()
 class RenameLocalTest extends RenameRefactoringTest {
-  void test_createChange_localVariable() {
+  test_checkFinalConditions_hasLocalFunction_after() {
+    indexTestUnit('''
+main() {
+  int test = 0;
+  newName() => 1;
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: "Duplicate function 'newName'.",
+          expectedContextSearch: 'newName() => 1');
+    });
+  }
+
+  test_checkFinalConditions_hasLocalFunction_before() {
+    indexTestUnit('''
+main() {
+  newName() => 1;
+  int test = 0;
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: "Duplicate function 'newName'.");
+    });
+  }
+
+  test_checkFinalConditions_hasLocalVariable_after() {
+    indexTestUnit('''
+main() {
+  int test = 0;
+  var newName = 1;
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: "Duplicate local variable 'newName'.",
+          expectedContextSearch: 'newName = 1;');
+    });
+  }
+
+  test_checkFinalConditions_hasLocalVariable_before() {
+    indexTestUnit('''
+main() {
+  var newName = 1;
+  int test = 0;
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: "Duplicate local variable 'newName'.",
+          expectedContextSearch: 'newName = 1;');
+    });
+  }
+
+  test_checkFinalConditions_hasLocalVariable_otherBlock() {
+    indexTestUnit('''
+main() {
+  {
+    var newName = 1;
+  }
+  {
+    int test = 0;
+  }
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringStatusOK();
+  }
+
+  test_checkFinalConditions_hasLocalVariable_otherFunction() {
+    indexTestUnit('''
+main() {
+  int test = 0;
+}
+main2() {
+  var newName = 1;
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringStatusOK();
+  }
+
+  test_checkFinalConditions_shadows_classMember() {
+    indexTestUnit('''
+class A {
+  var newName = 1;
+  main() {
+    var test = 0;
+    print(newName);
+  }
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: 'Usage of field "A.newName" declared in "test.dart" '
+              'will be shadowed by renamed local variable.',
+          expectedContextSearch: 'newName);');
+    });
+  }
+
+  test_checkFinalConditions_shadows_classMemberOK_qualifiedReference() {
+    indexTestUnit('''
+class A {
+  var newName = 1;
+  main() {
+    var test = 0;
+    print(this.newName);
+  }
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return assertRefactoringStatusOK();
+  }
+
+  test_checkFinalConditions_shadows_topLevelFunction() {
+    indexTestUnit('''
+newName() {}
+main() {
+  var test = 0;
+  newName(); // ref
+}
+''');
+    createRenameRefactoringAtString('test = 0');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedContextSearch: 'newName(); // ref');
+    });
+  }
+
+  test_createChange_localFunction() {
+    indexTestUnit('''
+main() {
+  int test() => 0;
+  print(test);
+  print(test());
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() => 0');
+    expect(refactoring.refactoringName, 'Rename Local Function');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRename('''
+main() {
+  int newName() => 0;
+  print(newName);
+  print(newName());
+}
+''');
+  }
+
+  test_createChange_localFunction_sameNameDifferenceScopes() {
+    indexTestUnit('''
+main() {
+  {
+    int test() => 0;
+    print(test);
+  }
+  {
+    int test() => 1;
+    print(test);
+  }
+  {
+    int test() => 2;
+    print(test);
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() => 1');
+    expect(refactoring.refactoringName, 'Rename Local Function');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRename('''
+main() {
+  {
+    int test() => 0;
+    print(test);
+  }
+  {
+    int newName() => 1;
+    print(newName);
+  }
+  {
+    int test() => 2;
+    print(test);
+  }
+}
+''');
+  }
+
+  test_createChange_localVariable() {
     indexTestUnit('''
 main() {
   int test = 0;
@@ -44,58 +261,127 @@ main() {
 ''');
     // configure refactoring
     createRenameRefactoringAtString('test = 0');
-    print(refactoring.refactoringName);
     expect(refactoring.refactoringName, 'Rename Local Variable');
     refactoring.newName = 'newName';
     // validate change
-    // TODO(scheglov)
-//    assertSuccessfulRename(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int newName = 0;",
-//        "  newName = 1;",
-//        "  newName += 2;",
-//        "  print(newName);",
-//        "}");
+    return assertSuccessfulRename('''
+main() {
+  int newName = 0;
+  newName = 1;
+  newName += 2;
+  print(newName);
+}
+''');
+  }
+
+  test_createChange_localVariable_sameNameDifferenceScopes() {
+    indexTestUnit('''
+main() {
+  {
+    int test = 0;
+    print(test);
+  }
+  {
+    int test = 1;
+    print(test);
+  }
+  {
+    int test = 2;
+    print(test);
   }
 }
-
-
-/**
- * The base class for all [RenameRefactoring] tests.
- *
- * TODO(scheglov) extract
- */
-class RenameRefactoringTest extends AbstractSingleUnitTest {
-  Index index;
-  SearchEngineImpl searchEngine;
-
-  RenameRefactoring refactoring;
-  Change refactoringChange;
-
-  /**
-   * Creates a new [RenameRefactoring] in [refactoringC] for the [Element] of
-   * the [SimpleIdentifier] at the given [search] pattern.
-   */
-  void createRenameRefactoringAtString(String search) {
-    SimpleIdentifier identifier = findIdentifier(search);
-    Element element = identifier.bestElement;
-    // TODO(scheglov) uncomment later
-//    if (element instanceof PrefixElement) {
-//      element = IndexContributor.getImportElement(identifier);
-//    }
-    refactoring = new RenameRefactoring(searchEngine, element);
-    expect(refactoring, isNotNull);
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test = 1');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRename('''
+main() {
+  {
+    int test = 0;
+    print(test);
+  }
+  {
+    int newName = 1;
+    print(newName);
+  }
+  {
+    int test = 2;
+    print(test);
+  }
+}
+''');
   }
 
-  void indexTestUnit(String code) {
-    resolveTestUnit(code);
-    index.indexUnit(context, testUnit);
+  test_createChange_parameter() {
+    indexTestUnit('''
+myFunction({int test}) {
+  test = 1;
+  test += 2;
+  print(test);
+}
+main() {
+  myFunction(test: 2);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test}) {');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRename('''
+myFunction({int newName}) {
+  newName = 1;
+  newName += 2;
+  print(newName);
+}
+main() {
+  myFunction(newName: 2);
+}
+''');
   }
 
-  void setUp() {
-    super.setUp();
-    index = createLocalMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
+  test_createChange_parameter_namedInOtherFile() {
+    indexTestUnit('''
+class A {
+  A({test});
+}
+''');
+    indexUnit('/test2.dart', '''
+import 'test.dart';
+main() {
+  new A(test: 2);
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test});');
+    expect(refactoring.refactoringName, 'Rename Parameter');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRename('''
+class A {
+  A({newName});
+}
+''').then((_) {
+      assertFileChangeResult('/test2.dart', '''
+import 'test.dart';
+main() {
+  new A(newName: 2);
+}
+''');
+    });
+  }
+
+  test_oldName() {
+    indexTestUnit('''
+main() {
+  int test = 0;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test = 0');
+    // old name
+    expect(refactoring.oldName, 'test');
   }
 }
