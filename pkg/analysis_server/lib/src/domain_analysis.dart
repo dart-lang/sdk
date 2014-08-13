@@ -12,6 +12,7 @@ import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
+import 'package:analysis_services/correction/change.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -166,14 +167,18 @@ class AnalysisDomainHandler implements RequestHandler {
     for (String file in filesDatum.keys) {
       RequestDatum changeDatum = filesDatum[file];
       ContentChange change = new ContentChange();
-      switch (changeDatum[TYPE].asString()) {
+      change.type = changeDatum[TYPE].asString();
+      switch (change.type) {
         case ADD:
-          change.contentOrReplacement = changeDatum[CONTENT].asString();
+          change.content = changeDatum[CONTENT].asString();
           break;
         case CHANGE:
-          change.offset = changeDatum[OFFSET].asInt();
-          change.length = changeDatum[LENGTH].asInt();
-          change.contentOrReplacement = changeDatum[REPLACEMENT].asString();
+          change.changes = changeDatum[EDITS].asList((RequestDatum item) {
+            int offset = item[OFFSET].asInt();
+            int length = item[LENGTH].asInt();
+            String replacement = item[REPLACEMENT].asString();
+            return new Edit(offset, length, replacement);
+          });
           break;
         case REMOVE:
           break;
@@ -250,14 +255,14 @@ class AnalysisDomainHandler implements RequestHandler {
  */
 class ContentChange {
   /**
-   * If [offset] and [length] are null, the full content of the file (or null
-   * if the file should be read from the filesystem).
-   *
-   * If [offset] and [length] are non-null, the replacement text which should
-   * take the place of the [length] characters of the file starting at [offset].
+   * Type of content change.  'add' means that [content] contains the full
+   * content of the file, and [changes] should be null.  'change' means that
+   * [changes] contains changes to be applied to the file, and [content] should
+   * be null.  'remove' means that the file should be read from the filesystem,
+   * and both [content] and [changes] should be null.
    */
-  String contentOrReplacement;
+  String type;
 
-  int offset;
-  int length;
+  String content;
+  List<Edit> changes;
 }

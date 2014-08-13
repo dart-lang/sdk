@@ -218,9 +218,11 @@ testUpdateContent() {
       // update code
       helper.sendContentChange({
         TYPE: CHANGE,
-        REPLACEMENT: 'lib',
-        OFFSET: 'library '.length,
-        LENGTH: 'A;'.length,
+        EDITS: [{
+            REPLACEMENT: 'lib',
+            OFFSET: 'library '.length,
+            LENGTH: 'A;'.length
+          }]
       });
       // wait, there is an error
       return helper.waitForOperationsFinished().then((_) {

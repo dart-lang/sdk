@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analysis_services/constants.dart';
+import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -484,18 +485,23 @@ class AnalysisServer {
       // and user modifies a file in package B).
       if (analysisContext != null) {
         Source source = getSource(file);
-        if (change.offset == null) {
-          analysisContext.setContents(source, change.contentOrReplacement);
-        } else {
-          // TODO(paulberry): an error should be generated if source is not
-          // currently in the content cache.
-          TimestampedData<String> oldContents = analysisContext.getContents(
-              source);
-          int offsetEnd = change.offset + change.length;
-          String newContents = oldContents.data.substring(0, change.offset) +
-              change.contentOrReplacement + oldContents.data.substring(offsetEnd);
-          analysisContext.setChangedContents(source, newContents, change.offset,
-              change.length, change.contentOrReplacement.length);
+        switch (change.type) {
+          case ADD:
+            analysisContext.setContents(source, change.content);
+            break;
+          case CHANGE:
+            // TODO(paulberry): an error should be generated if source is not
+            // currently in the content cache.
+            TimestampedData<String> oldContents = analysisContext.getContents(
+                source);
+            String newContents = Edit.applySequence(oldContents.data, change.changes);
+            // TODO(paulberry): to aid in incremental processing it would be
+            // better to use setChangedContents.
+            analysisContext.setContents(source, newContents);
+            break;
+          case REMOVE:
+            analysisContext.setContents(source, null);
+            break;
         }
         schedulePerformAnalysisOperation(analysisContext);
       }

@@ -11,7 +11,6 @@ import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
 import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
-import 'package:collection/collection.dart';
 import 'package:unittest/unittest.dart';
 
 
@@ -44,7 +43,9 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     // apply to "file"
     List<FileEdit> fileEdits = change.fileEdits;
     expect(fileEdits, hasLength(1));
-    resultCode = _applyEdits(testCode, change.fileEdits[0].edits);
+    // TODO(paulberry): should the code under test be responsible for sorting
+    // the edits?
+    resultCode = Edit.applySorted(testCode, change.fileEdits[0].edits);
     // verify
     expect(resultCode, expected);
   }
@@ -2187,16 +2188,6 @@ main() {
 // end
 }
 ''');
-  }
-
-  String _applyEdits(String code, List<Edit> edits) {
-    mergeSort(edits, compare: (a, b) => a.offset - b.offset);
-    edits.reversed.forEach((Edit edit) {
-      code = code.substring(0, edit.offset) +
-          edit.replacement +
-          code.substring(edit.end);
-    });
-    return code;
   }
 
   /**

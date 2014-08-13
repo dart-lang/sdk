@@ -12,7 +12,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:collection/collection.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_refactoring.dart';
@@ -36,7 +35,7 @@ class RenameRefactoringTest extends RefactoringTest {
     File file = provider.getResource(path);
     Source source = file.createSource();
     String ini = context.getContents(source).data;
-    String actualCode = _applyEdits(ini, fileEdit.edits);
+    String actualCode = Edit.applySequence(ini, fileEdit.edits);
     expect(actualCode, expectedCode);
   }
 
@@ -62,7 +61,9 @@ class RenameRefactoringTest extends RefactoringTest {
     FileEdit fileEdit = refactoringChange.getFileEdit(testFile);
     expect(fileEdit, isNotNull);
     // validate resulting code
-    String actualCode = _applyEdits(testCode, fileEdit.edits);
+    // TODO(paulberry): should the code under test be responsible for sorting
+    // the edits?
+    String actualCode = Edit.applySorted(testCode, fileEdit.edits);
     expect(actualCode, expectedCode);
   }
 
@@ -109,15 +110,4 @@ class RenameRefactoringTest extends RefactoringTest {
 ////    AnalysisContext context = getAnalysisContext();
 ////    assertChangeResult(context, compositeChange, source, expected);
 //  }
-
-  String _applyEdits(String code, List<Edit> edits) {
-    // TODO(scheglov) extract and reuse in assists and fixes tests
-    mergeSort(edits, compare: (a, b) => a.offset - b.offset);
-    edits.reversed.forEach((Edit edit) {
-      code = code.substring(0, edit.offset) +
-          edit.replacement +
-          code.substring(edit.end);
-    });
-    return code;
-  }
 }

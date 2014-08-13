@@ -41,7 +41,9 @@ class FixProcessorTest extends AbstractSingleUnitTest {
     // apply to "file"
     List<FileEdit> fileEdits = change.fileEdits;
     expect(fileEdits, hasLength(1));
-    resultCode = _applyEdits(testCode, change.fileEdits[0].edits);
+    // TODO(paulberry): should the code under test be responsible for sorting
+    // the edits?
+    resultCode = Edit.applySorted(testCode, change.fileEdits[0].edits);
     // verify
     expect(resultCode, expected);
   }
@@ -1797,16 +1799,6 @@ main() {
   print(a ~/ b);
 }
 ''');
-  }
-
-  String _applyEdits(String code, List<Edit> edits) {
-    edits.sort((a, b) => b.offset - a.offset);
-    edits.forEach((Edit edit) {
-      code = code.substring(0, edit.offset) +
-          edit.replacement +
-          code.substring(edit.end);
-    });
-    return code;
   }
 
   /**

@@ -7,6 +7,7 @@ library services.correction.change;
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/json.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:collection/collection.dart';
 
 
 /**
@@ -87,9 +88,8 @@ class Change implements HasToJson {
   }
 
   @override
-  String toString() =>
-      'Change(message=$message, edits=$fileEdits, '
-          'linkedEditGroups=$linkedEditGroups, selection=$selection)';
+  String toString() => 'Change(message=$message, edits=$fileEdits, '
+      'linkedEditGroups=$linkedEditGroups, selection=$selection)';
 }
 
 
@@ -114,10 +114,8 @@ class Edit implements HasToJson {
 
   Edit(this.offset, this.length, this.replacement);
 
-  Edit.range(SourceRange range, String replacement) : this(
-      range.offset,
-      range.length,
-      replacement);
+  Edit.range(SourceRange range, String replacement) : this(range.offset,
+      range.length, replacement);
 
   /**
    * The offset of a character immediately after the region to be modified. 
@@ -126,8 +124,7 @@ class Edit implements HasToJson {
 
   bool operator ==(other) {
     if (other is Edit) {
-      return other.offset == offset &&
-          other.length == length &&
+      return other.offset == offset && other.length == length &&
           other.replacement == replacement;
     }
     return false;
@@ -145,6 +142,33 @@ class Edit implements HasToJson {
   @override
   String toString() =>
       "Edit(offset=$offset, length=$length, replacement=:>$replacement<:)";
+
+  /**
+   * Get the result of applying the edit to the given [code].
+   */
+  String apply(String code) => code.substring(0, offset) + replacement +
+      code.substring(end);
+
+  /**
+   * Get the result of applying a set of [edits] to the given [code].  Edits
+   * are applied in the order they appear in [edits].
+   */
+  static String applySequence(String code, Iterable<Edit> edits) {
+    edits.forEach((Edit edit) {
+      code = edit.apply(code);
+    });
+    return code;
+  }
+
+  /**
+   * Get the result of applying a set of [edits] to the given [code].  Edits
+   * are applied in the order of decreasing offset.
+   */
+  static String applySorted(String code, Iterable<Edit> edits) {
+    List<Edit> sortedEdits = edits.toList();
+    mergeSort(sortedEdits, compare: (a, b) => a.offset - b.offset);
+    return Edit.applySequence(code, sortedEdits.reversed);
+  }
 }
 
 
@@ -217,9 +241,8 @@ class LinkedEditGroup implements HasToJson {
   }
 
   @override
-  String toString() =>
-      'LinkedEditGroup(id=$id, length=$length, '
-          'positions=$positions, suggestions=$suggestions)';
+  String toString() => 'LinkedEditGroup(id=$id, length=$length, '
+      'positions=$positions, suggestions=$suggestions)';
 }
 
 

@@ -35,9 +35,11 @@ main() {
       return sendAnalysisUpdateContent({
         pathname: {
           'type': 'change',
-          'offset': goodText.indexOf(';'),
-          'length': 1,
-          'replacement': ''
+          'edits': [{
+              'offset': goodText.indexOf(';'),
+              'length': 1,
+              'replacement': ''
+            }]
         }
       });
     }).then((result) => analysisFinished).then((_) {
@@ -46,9 +48,11 @@ main() {
       return sendAnalysisUpdateContent({
         pathname: {
           'type': 'change',
-          'offset': goodText.indexOf(';'),
-          'length': 0,
-          'replacement': ';'
+          'edits': [{
+              'offset': goodText.indexOf(';'),
+              'length': 0,
+              'replacement': ';'
+            }]
         }
       });
     }).then((result) => analysisFinished).then((_) {
