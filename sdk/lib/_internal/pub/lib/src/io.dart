@@ -17,6 +17,7 @@ import 'package:http_multi_server/http_multi_server.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'exit_codes.dart' as exit_codes;
+import 'exceptions.dart';
 import 'error_group.dart';
 import 'log.dart' as log;
 import 'sdk.dart' as sdk;
