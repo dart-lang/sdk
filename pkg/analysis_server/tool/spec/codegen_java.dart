@@ -7,10 +7,9 @@
  */
 library CodegenJava;
 
-import 'dart:io';
-
 import 'api.dart';
 import 'codegen_tools.dart';
+import 'from_html.dart';
 import 'to_html.dart';
 
 /**
@@ -152,10 +151,12 @@ class _CodegenJavaState {
 }
 
 /**
- * Use [visitor] to create Java code and output it to [path].
+ * Create a [GeneratedFile] that creates Java code and outputs it to [path].
+ * [path] uses Posix-style path separators regardless of the OS.
  */
-void createJavaCode(String path, CodegenJavaVisitor visitor) {
-  String code = visitor.collectCode(visitor.visitApi);
-  File outputFile = new File(path);
-  outputFile.writeAsStringSync(code);
+GeneratedFile javaGeneratedFile(String path, CodegenJavaVisitor createVisitor(Api api)) {
+  return new GeneratedFile(path, () {
+    CodegenJavaVisitor visitor = createVisitor(readApi());
+    return visitor.collectCode(visitor.visitApi);
+  });
 }

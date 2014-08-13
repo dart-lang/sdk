@@ -10,7 +10,6 @@
 library to.html;
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:html5lib/dom.dart' as dom;
 
@@ -556,15 +555,18 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
   }
 }
 
-/**
- * Translate spec_input.html into api.html.
- */
-main() {
+final GeneratedFile target = new GeneratedFile('../../doc/api.html', () {
   ToHtmlVisitor visitor = new ToHtmlVisitor(readApi());
   dom.Document document = new dom.Document();
   for (dom.Node node in visitor.collectHtml(visitor.visitApi)) {
     document.append(node);
   }
-  File outputFile = new File('../../doc/api.html');
-  outputFile.writeAsStringSync(document.outerHtml);
+  return document.outerHtml;
+});
+
+/**
+ * Translate spec_input.html into api.html.
+ */
+main() {
+  target.generate();
 }

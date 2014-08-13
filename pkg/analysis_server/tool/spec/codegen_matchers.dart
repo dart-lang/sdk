@@ -8,7 +8,6 @@
 library codegen.matchers;
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'api.dart';
 import 'codegen_tools.dart';
@@ -189,12 +188,15 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 }
 
+final GeneratedFile target = new GeneratedFile(
+    '../../test/integration/protocol_matchers.dart', () {
+  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi());
+  return visitor.collectCode(visitor.visitApi);
+});
+
 /**
  * Translate spec_input.html into protocol_matchers.dart.
  */
 main() {
-  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi());
-  String code = visitor.collectCode(visitor.visitApi);
-  File outputFile = new File('../../test/integration/protocol_matchers.dart');
-  outputFile.writeAsStringSync(code);
+  target.generate();
 }

@@ -10,7 +10,6 @@ library server.generator.java;
 import 'api.dart';
 import 'codegen_java.dart';
 import 'codegen_tools.dart';
-import 'from_html.dart';
 
 class CodegenAnalysisServer extends CodegenJavaVisitor {
   CodegenAnalysisServer(Api api) : super(api);
@@ -23,49 +22,59 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
     writeln('import java.util.List;');
     writeln('import java.util.Map;');
     writeln();
-    writeln('''/**
+    writeln(
+        '''/**
  * The interface {@code AnalysisServer} defines the behavior of objects that interface to an
  * analysis server.
  * 
  * @coverage dart.server
- */''');
+ */'''
+        );
     makeClass('public interface AnalysisServer', () {
       //
       // addAnalysisServerListener(..)
       //
       publicMethod('addAnalysisServerListener', () {
-        writeln('''/**
+        writeln(
+            '''/**
  * Add the given listener to the list of listeners that will receive notification when new
  * analysis results become available.
  * 
  * @param listener the listener to be added
- */''');
-        writeln('public void addAnalysisServerListener(AnalysisServerListener listener);');
+ */'''
+            );
+        writeln(
+            'public void addAnalysisServerListener(AnalysisServerListener listener);');
       });
 
       //
       // removeAnalysisServerListener(..)
       //
       publicMethod('removeAnalysisServerListener', () {
-        writeln('''/**
+        writeln(
+            '''/**
  * Remove the given listener from the list of listeners that will receive notification when new
    * analysis results become available.
  * 
  * @param listener the listener to be removed
- */''');
-        writeln('public void removeAnalysisServerListener(AnalysisServerListener listener);');
+ */'''
+            );
+        writeln(
+            'public void removeAnalysisServerListener(AnalysisServerListener listener);');
       });
 
       //
       // start(..)
       //
       publicMethod('start', () {
-        writeln('''/**
+        writeln(
+            '''/**
  * Start the analysis server.
  * 
  * @param millisToRestart the number of milliseconds to wait for an unresponsive server before
  *          restarting it, or zero if the server should not be restarted.
- */''');
+ */'''
+            );
         writeln('public void start(long millisToRestart) throws Exception;');
       });
       super.visitApi();
@@ -104,9 +113,13 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
   }
 }
 
+final GeneratedFile target = javaGeneratedFile(
+    '../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer.java',
+    (Api api) => new CodegenAnalysisServer(api));
+
 /**
  * Translate spec_input.html into AnalysisServer.java.
  */
 main() {
-  createJavaCode('../../../../editor/tools/plugins/com.google.dart.server/src/com/google/dart/server/AnalysisServer.java', new CodegenAnalysisServer(readApi()));
+  target.generate();
 }

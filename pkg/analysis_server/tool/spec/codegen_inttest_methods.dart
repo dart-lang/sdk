@@ -8,7 +8,6 @@
 library codegenInttestMethods;
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'api.dart';
 import 'codegen_tools.dart';
@@ -100,7 +99,8 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
 
   @override
   visitNotification(Notification notification) {
-    String streamName = camelJoin(['on', notification.domainName, notification.event]);
+    String streamName = camelJoin(['on', notification.domainName,
+        notification.event]);
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(notification.html);
@@ -239,14 +239,16 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
   }
 }
 
+final GeneratedFile target = new GeneratedFile(
+    '../../test/integration/integration_test_methods.dart', () {
+  CodegenInttestMethodsVisitor visitor = new CodegenInttestMethodsVisitor(
+      readApi());
+  return visitor.collectCode(visitor.visitApi);
+});
+
 /**
  * Translate spec_input.html into protocol_matchers.dart.
  */
 main() {
-  CodegenInttestMethodsVisitor visitor = new CodegenInttestMethodsVisitor(
-      readApi());
-  String code = visitor.collectCode(visitor.visitApi);
-  File outputFile = new File(
-      '../../test/integration/integration_test_methods.dart');
-  outputFile.writeAsStringSync(code);
+  target.generate();
 }

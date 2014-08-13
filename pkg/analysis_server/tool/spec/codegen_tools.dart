@@ -7,7 +7,10 @@
  */
 library codegen.tools;
 
+import 'dart:io';
+
 import 'package:html5lib/dom.dart' as dom;
+import 'package:path/path.dart';
 
 import 'text_formatter.dart';
 import 'html_tools.dart';
@@ -288,5 +291,60 @@ class _HtmlCodeGeneratorState {
       buffer.add(new dom.Text(lines.join('\n$indent')));
       indentNeeded = false;
     }
+  }
+}
+
+/**
+ * Type of functions used to compute the contents of generated files.
+ */
+typedef String ContentsComputer();
+
+/**
+ * Class representing a single output file (either generated code or generated
+ * HTML).
+ */
+class GeneratedFile {
+  /**
+   * The output file to which generated output should be written, relative to
+   * the "tool/spec" directory.  This filename uses the posix path separator
+   * ('/') regardless of the OS.
+   */
+  final String outputPath;
+
+  /**
+   * Callback function which computes the file.
+   */
+  final ContentsComputer computeContents;
+
+  GeneratedFile(this.outputPath, this.computeContents);
+
+  /**
+   * Get a File object representing the output file.
+   */
+  File get outputFile => new File(joinAll(posix.split(outputPath)));
+
+  /**
+   * Check whether the file has the correct contents, and return true if it
+   * does.
+   */
+  bool check() {
+    String expectedContents = computeContents();
+    try {
+      return expectedContents == outputFile.readAsStringSync();
+    } catch(e) {
+      // There was a problem reading the file (most likely because it didn't
+      // exist).  Treat that the same as if the file doesn't have the expected
+      // contents.
+      return false;
+    }
+  }
+
+  /**
+   * Replace the file with the correct contents.  [spec] is the "tool/spec"
+   * directory.  If [spec] is unspecified, it is assumed to be the directory
+   * containing Platform.executable.
+   */
+  void generate() {
+    outputFile.writeAsStringSync(computeContents());
   }
 }
