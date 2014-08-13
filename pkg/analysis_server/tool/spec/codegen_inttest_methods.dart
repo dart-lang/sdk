@@ -233,6 +233,8 @@ class CodegenInttestMethodsVisitor extends HierarchicalApiVisitor with
         default:
           throw new Exception(type.typeName);
       }
+    } else if (type is TypeUnion) {
+      return 'Object';
     } else {
       throw new Exception('Unexpected kind of TypeDecl');
     }

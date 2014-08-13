@@ -17,6 +17,7 @@ import 'package:html5lib/dom.dart' as dom;
  */
 abstract class ApiVisitor<T> {
   T visitTypeReference(TypeReference typeReference);
+  T visitTypeUnion(TypeUnion typeUnion);
   T visitTypeObject(TypeObject typeObject);
   T visitTypeList(TypeList typeList);
   T visitTypeMap(TypeMap typeMap);
@@ -116,6 +117,11 @@ class HierarchicalApiVisitor extends ApiVisitor {
 
   @override
   void visitTypeReference(TypeReference typeReference) {
+  }
+
+  @override
+  void visitTypeUnion(TypeUnion typeUnion) {
+    typeUnion.choices.forEach(visitTypeDecl);
   }
 
   /**
@@ -363,6 +369,17 @@ class TypeReference extends TypeDecl {
   }
 
   accept(ApiVisitor visitor) => visitor.visitTypeReference(this);
+}
+
+/**
+ * Type which represents a union among multiple choices.
+ */
+class TypeUnion extends TypeDecl {
+  final List<TypeDecl> choices;
+
+  TypeUnion(this.choices, dom.Element html) : super(html);
+
+  accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
 }
 
 /**

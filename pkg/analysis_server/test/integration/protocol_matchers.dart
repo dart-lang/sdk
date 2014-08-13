@@ -210,12 +210,12 @@ final Matcher isAnalysisSetSubscriptionsResult = isNull;
  * analysis.updateContent params
  *
  * {
- *   "files": Map<FilePath, object>
+ *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
  * }
  */
 final Matcher isAnalysisUpdateContentParams = new MatchesJsonObject(
   "analysis.updateContent params", {
-    "files": isMapOf(isFilePath, isObject)
+    "files": isMapOf(isFilePath, isOneOf([isAddContentOverlay, isChangeContentOverlay, isRemoveContentOverlay]))
   });
 
 /**

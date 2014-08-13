@@ -402,13 +402,13 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * files ( Map<FilePath, object> )
+   * files ( Map<FilePath, AddContentOverlay | ChangeContentOverlay |
+   * RemoveContentOverlay> )
    *
    *   A table mapping the files whose content has changed to a description of
-   *   the content change. Each value should be one of the following types:
-   *   AddContentOverlay, ChangeContentOverlay, or RemoveContentOverlay.
+   *   the content change.
    */
-  Future sendAnalysisUpdateContent(Map<String, Map<String, dynamic>> files, {bool checkTypes: true}) {
+  Future sendAnalysisUpdateContent(Map<String, Object> files, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};
     params["files"] = files;
     if (checkTypes) {

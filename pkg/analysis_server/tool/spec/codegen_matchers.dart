@@ -186,6 +186,20 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void visitTypeReference(TypeReference typeReference) {
     write(camelJoin(['is', typeReference.typeName]));
   }
+
+  @override
+  void visitTypeUnion(TypeUnion typeUnion) {
+    bool commaNeeded = false;
+    write('isOneOf([');
+    for (TypeDecl choice in typeUnion.choices) {
+      if (commaNeeded) {
+        write(', ');
+      }
+      visitTypeDecl(choice);
+      commaNeeded = true;
+    }
+    write('])');
+  }
 }
 
 final GeneratedFile target = new GeneratedFile(

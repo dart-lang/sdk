@@ -585,7 +585,7 @@ dt.typeDefinition {
   "id": String
   "method": "analysis.updateContent"
   "params": {
-    "<b>files</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, object&gt;
+    "<b>files</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_AddContentOverlay">AddContentOverlay</a> | <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a> | <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>&gt;
   }
 }</pre><br><pre>response: {
   "id": String
@@ -602,13 +602,11 @@ dt.typeDefinition {
           filesystem.
         </p>
         
-      <h4>Parameters</h4><dl><dt class="field"><b><i>files ( Map&lt;<a href="#type_FilePath">FilePath</a>, object&gt; )</i></b></dt><dd>
+      <h4>Parameters</h4><dl><dt class="field"><b><i>files ( Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_AddContentOverlay">AddContentOverlay</a> | <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a> | <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>&gt; )</i></b></dt><dd>
             
             <p>
               A table mapping the files whose content has changed to a
-              description of the content change.  Each value should be
-              one of the following types: <a href="#type_AddContentOverlay">AddContentOverlay</a>, <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a>,
-              or <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
+              description of the content change.
             </p>
           </dd></dl></dd><dt class="request">analysis.updateOptions</dt><dd><div class="box"><pre>request: {
   "id": String

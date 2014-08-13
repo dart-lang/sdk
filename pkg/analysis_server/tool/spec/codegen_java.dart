@@ -101,6 +101,8 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
       return 'List<${javaType(type.itemType)}>';
     } else if (type is TypeMap) {
       return 'Map<${javaType(type.keyType)}, ${javaType(type.valueType)}>';
+    } else if (type is TypeUnion) {
+      return 'Object';
     } else {
       throw new Exception("Can't make type buildable");
     }

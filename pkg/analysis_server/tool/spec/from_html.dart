@@ -51,7 +51,7 @@ void checkAttributes(dom.Element element, List<String>
 const List<String> specialElements = const ['domain', 'feedback',
     'object', 'refactorings', 'refactoring', 'type', 'types', 'request',
     'notification', 'params', 'result', 'field', 'list', 'map', 'enum', 'key',
-    'value', 'options', 'ref', 'code', 'version'];
+    'value', 'options', 'ref', 'code', 'version', 'union'];
 
 typedef void ElementProcessor(dom.Element element);
 typedef void TextProcessor(dom.Text text);
@@ -303,10 +303,21 @@ Notification notificationFromHtml(dom.Element html) {
   });
   return new Notification(domainName, event, params, html);
 }
+/**
+ * Create a single of [TypeDecl] corresponding to the type defined inside the
+ * given HTML element.
+ */
+TypeDecl processContentsAsType(dom.Element html) {
+  List<TypeDecl> types = processContentsAsTypes(html);
+  if (types.length != 1) {
+    throw new Exception('Exactly one type must be specified');
+  }
+  return types[0];
+}
 
 /**
- * Create a [TypeDecl] from an HTML description.  The following forms are
- * supported.
+ * Create a list of [TypeDecl]s corresponding to the types defined inside the
+ * given HTML element.  The following forms are supported.
  *
  * To refer to a type declared elsewhere (or a built-in type):
  *
@@ -327,8 +338,13 @@ Notification notificationFromHtml(dom.Element html) {
  *   <enum>
  *     <value>...</value> <!-- zero or more -->
  *   </enum>
+ *
+ * For a union type:
+ *   <union>
+ *     TYPE <!-- zero or more -->
+ *   </union>
  */
-TypeDecl processContentsAsType(dom.Element html) {
+List<TypeDecl> processContentsAsTypes(dom.Element html) {
   List<TypeDecl> types = <TypeDecl>[];
   recurse(html, {
     'object': (dom.Element child) {
@@ -370,12 +386,13 @@ TypeDecl processContentsAsType(dom.Element html) {
     'ref': (dom.Element child) {
       checkAttributes(child, []);
       types.add(new TypeReference(innerText(child), child));
+    },
+    'union': (dom.Element child) {
+      checkAttributes(child, []);
+      types.add(new TypeUnion(processContentsAsTypes(child), child));
     }
   });
-  if (types.length != 1) {
-    throw new Exception('Exactly one type must be specified');
-  }
-  return types[0];
+  return types;
 }
 
 /**

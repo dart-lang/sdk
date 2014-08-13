@@ -221,6 +221,18 @@ class TypeVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlCodeGenerat
       write(displayName);
     }
   }
+
+  @override
+  void visitTypeUnion(TypeUnion typeUnion) {
+    bool verticalBarNeeded = false;
+    for (TypeDecl choice in typeUnion.choices) {
+      if (verticalBarNeeded) {
+        write(' | ');
+      }
+      visitTypeDecl(choice);
+      verticalBarNeeded = true;
+    }
+  }
 }
 
 /**

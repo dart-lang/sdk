@@ -456,6 +456,50 @@ class _ListOf extends Matcher {
 Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
 
 /**
+ * Matcher that matches a union of different types, each of which is described
+ * by a matcher.
+ */
+class _OneOf extends Matcher {
+  /**
+   * Matchers for the individual choices.
+   */
+  final List<Matcher> choiceMatchers;
+
+  _OneOf(this.choiceMatchers);
+
+  @override
+  bool matches(item, Map matchState) {
+    for (Matcher choiceMatcher in choiceMatchers) {
+      Map subState = {};
+      if (choiceMatcher.matches(item, subState)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  Description describe(Description description) {
+    for (int i = 0; i < choiceMatchers.length; i++) {
+      if (i != 0) {
+        if (choiceMatchers.length == 2) {
+          description = description.add(' or ');
+        } else {
+          description = description.add(', ');
+          if (i == choiceMatchers.length - 1) {
+            description = description.add('or ');
+          }
+        }
+      }
+      description = description.addDescriptionOf(choiceMatchers[i]);
+    }
+    return description;
+  }
+}
+
+Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
+
+/**
  * Matcher that matches a map of objects, where each key/value pair in the
  * map satisies the given key and value matchers.
  */

@@ -482,16 +482,17 @@
           <field name="files">
             <map>
               <key><ref>FilePath</ref></key>
-              <value><ref>object</ref></value>
+              <value>
+                <union>
+                  <ref>AddContentOverlay</ref>
+                  <ref>ChangeContentOverlay</ref>
+                  <ref>RemoveContentOverlay</ref>
+                </union>
+              </value>
             </map>
             <p>
               A table mapping the files whose content has changed to a
-              description of the content change.  Each value should be
-              one of the following types: <a
-              href="#type_AddContentOverlay">AddContentOverlay</a>, <a
-              href="#type_ChangeContentOverlay">ChangeContentOverlay</a>,
-              or <a
-              href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
+              description of the content change.
             </p>
           </field>
         </params>
