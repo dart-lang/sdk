@@ -1480,22 +1480,7 @@
           performed. If the value of a field is omitted the value of the
           option will not be changed.
         </p>
-        <p>
-          NOTE: These options need to change.
-        </p>
         <object>
-          <field name="analyzeAngular" optional="true">
-            <ref>bool</ref>
-            <p>
-              True if the client wants Angular code to be analyzed.
-            </p>
-          </field>
-          <field name="analyzePolymer" optional="true">
-            <ref>bool</ref>
-            <p>
-              True if the client wants Polymer code to be analyzed.
-            </p>
-          </field>
           <field name="enableAsync" optional="true">
             <ref>bool</ref>
             <p>
@@ -1521,16 +1506,14 @@
             <ref>bool</ref>
             <p>
               True if hints that are specific to dart2js should be
-              generated. This option is ignored if either provideErrors
-              or generateHints is false.
+              generated. This option is ignored if generateHints is false.
             </p>
           </field>
           <field name="generateHints" optional="true">
             <ref>bool</ref>
             <p>
               True is hints should be generated as part of generating
-              errors and warnings. This option is ignored if
-              provideErrors is false.
+              errors and warnings.
             </p>
           </field>
         </object>
@@ -1569,37 +1552,26 @@
       </type>
       <type name="ChangeContentOverlay">
         <p>
-          A directive to modify an existing file content overlay.  A
-          range of text is deleted from the old file content overlay
-          and replaced with new text.
+          A directive to modify an existing file content overlay. One or more
+          ranges of text are deleted from the old file content overlay and
+          replaced with new text.
         </p>
         <p>
-          It is an error to use this directive is used on a file that
-          does not yet have a file content overlay (or that has had
-          its overlay removed via <a
-          href="#type_RemoveContentOverlay">RemoveContentOverlay</a>).
+        The edits are applied in the order in which they occur in the list.
+        This means that the offset of each edit must be correct under the
+        assumption that all previous edits have been applied.
+        </p>
+        <p>
+          It is an error to use this overlay on a file that does not yet have
+          a file content overlay or that has had its overlay removed via
+          <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
         </p>
         <object>
           <field name="type" value="change"><ref>String</ref></field>
-          <field name="offset">
-            <ref>int</ref>
+          <field name="edits">
+            <list><ref>SourceEdit</ref></list>
             <p>
-              The offset of the text to be remove from the file
-              content overlay.
-            </p>
-          </field>
-          <field name="length">
-            <ref>int</ref>
-            <p>
-              The length of the text to be removed from the file
-              content overlay, or 0 if no text should be removed.
-            </p>
-          </field>
-          <field name="replacement">
-            <ref>String</ref>
-            <p>
-              The new text which should be inserted in place of the
-              removed text.
+              The edits to be applied to the file.
             </p>
           </field>
         </object>

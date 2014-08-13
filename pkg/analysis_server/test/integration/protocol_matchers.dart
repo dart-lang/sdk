@@ -806,8 +806,6 @@ final Matcher isAnalysisError = new MatchesJsonObject(
  * AnalysisOptions
  *
  * {
- *   "analyzeAngular": optional bool
- *   "analyzePolymer": optional bool
  *   "enableAsync": optional bool
  *   "enableDeferredLoading": optional bool
  *   "enableEnums": optional bool
@@ -817,8 +815,6 @@ final Matcher isAnalysisError = new MatchesJsonObject(
  */
 final Matcher isAnalysisOptions = new MatchesJsonObject(
   "AnalysisOptions", null, optionalFields: {
-    "analyzeAngular": isBool,
-    "analyzePolymer": isBool,
     "enableAsync": isBool,
     "enableDeferredLoading": isBool,
     "enableEnums": isBool,
@@ -867,17 +863,13 @@ final Matcher isAnalysisStatus = new MatchesJsonObject(
  *
  * {
  *   "type": "change"
- *   "offset": int
- *   "length": int
- *   "replacement": String
+ *   "edits": List<SourceEdit>
  * }
  */
 final Matcher isChangeContentOverlay = new MatchesJsonObject(
   "ChangeContentOverlay", {
     "type": equals("change"),
-    "offset": isInt,
-    "length": isInt,
-    "replacement": isString
+    "edits": isListOf(isSourceEdit)
   });
 
 /**

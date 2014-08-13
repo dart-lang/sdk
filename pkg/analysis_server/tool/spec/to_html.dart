@@ -23,8 +23,16 @@ import 'html_tools.dart';
  * Embedded stylesheet
  */
 final String stylesheet = '''
+body {
+  font-family: sans-serif, serif;
+  padding-left: 5%;
+  padding-right: 5%;
+}
 h1 {
   text-align: center;
+}
+h2.domain {
+  border-bottom: 3px solid rgb(160, 160, 160);
 }
 pre {
   margin: 0px;
@@ -34,13 +42,25 @@ div.box {
   background-color: rgb(207, 226, 243);
   padding: 0.5em;
 }
+div.hangingIndent {
+  padding-left: 3em;
+  text-indent: -3em;
+}
 dt {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-div.hangingIndent {
-  padding-left: 3em;
-  text-indent: -3em;
+dt.notification {
+  font-weight: bold;
+}
+dt.refactoring {
+  font-weight: bold;
+}
+dt.request {
+  font-weight: bold;
+}
+dt.typeDefinition {
+  font-weight: bold;
 }
 '''.trim();
 
@@ -77,7 +97,14 @@ abstract class HtmlMixin {
     'style': 'color:#999999'
   }, callback);
   void h1(void callback()) => element('h1', {}, callback);
-  void h2(void callback()) => element('h2', {}, callback);
+  void h2(String cls, void callback()) {
+    if (cls == null) {
+      return element('h2', {}, callback);
+    }
+    return element('h2', {
+      'class': cls
+    }, callback);
+  }
   void h3(void callback()) => element('h3', {}, callback);
   void h4(void callback()) => element('h4', {}, callback);
   void hangingIndent(void callback()) => element('div', {
@@ -270,7 +297,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
 
   @override
   void visitDomain(Domain domain) {
-    h2(() {
+    h2('domain', () {
       anchor('domain_${domain.name}', () {
         write('Domain: ${domain.name}');
       });

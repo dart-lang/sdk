@@ -1,8 +1,16 @@
 <html><head>
     <meta charset="UTF-8">
     <title>Analysis Server API Specification</title>
-  <style>h1 {
+  <style>body {
+  font-family: sans-serif, serif;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+h1 {
   text-align: center;
+}
+h2.domain {
+  border-bottom: 3px solid rgb(160, 160, 160);
 }
 pre {
   margin: 0px;
@@ -12,13 +20,25 @@ div.box {
   background-color: rgb(207, 226, 243);
   padding: 0.5em;
 }
+div.hangingIndent {
+  padding-left: 3em;
+  text-indent: -3em;
+}
 dt {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-div.hangingIndent {
-  padding-left: 3em;
-  text-indent: -3em;
+dt.notification {
+  font-weight: bold;
+}
+dt.refactoring {
+  font-weight: bold;
+}
+dt.request {
+  font-weight: bold;
+}
+dt.typeDefinition {
+  font-weight: bold;
 }
 </style></head>
   <body>
@@ -153,7 +173,7 @@ div.hangingIndent {
       flag is not specified then notifications will be sent for all
       errors produced for all files in the actual analysis roots.
     </p>
-    <h2><a name="domain_server">Domain: server</a></h2>
+    <h2 class="domain"><a name="domain_server">Domain: server</a></h2>
       <p>
         The server domain contains API’s related to the execution of
         the server.
@@ -296,7 +316,7 @@ div.hangingIndent {
               analyzed.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_analysis">Domain: analysis</a></h2>
+    <h2 class="domain"><a name="domain_analysis">Domain: analysis</a></h2>
       <p>
         The analysis domain contains API’s related to the analysis of
         files.
@@ -855,7 +875,7 @@ div.hangingIndent {
               The overrides associated with the file.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_completion">Domain: completion</a></h2>
+    <h2 class="domain"><a name="domain_completion">Domain: completion</a></h2>
       <p>
         The code completion domain contains commands related to
         getting code completion suggestions.
@@ -952,7 +972,7 @@ div.hangingIndent {
               returned for the indicated completion.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_search">Domain: search</a></h2>
+    <h2 class="domain"><a name="domain_search">Domain: search</a></h2>
       <p>
         The search domain contains commands related to searches that
         can be performed against the code base.
@@ -1210,7 +1230,7 @@ div.hangingIndent {
               returned for the indicated search.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_edit">Domain: edit</a></h2>
+    <h2 class="domain"><a name="domain_edit">Domain: edit</a></h2>
       <p>
         The edit domain contains commands related to edits that can be
         applied to the code.
@@ -1444,7 +1464,7 @@ div.hangingIndent {
               was requested.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_debug">Domain: debug</a></h2>
+    <h2 class="domain"><a name="domain_debug">Domain: debug</a></h2>
       <p>
         The debugging domain contains commands related to providing a
         debugging experience.
@@ -1741,21 +1761,8 @@ div.hangingIndent {
           performed. If the value of a field is omitted the value of the
           option will not be changed.
         </p>
-        <p>
-          NOTE: These options need to change.
-        </p>
         
-      <dl><dt class="field"><b><i>analyzeAngular ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
-            
-            <p>
-              True if the client wants Angular code to be analyzed.
-            </p>
-          </dd><dt class="field"><b><i>analyzePolymer ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
-            
-            <p>
-              True if the client wants Polymer code to be analyzed.
-            </p>
-          </dd><dt class="field"><b><i>enableAsync ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
+      <dl><dt class="field"><b><i>enableAsync ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
             <p>
               True if the client wants to enable support for the
@@ -1777,15 +1784,13 @@ div.hangingIndent {
             
             <p>
               True if hints that are specific to dart2js should be
-              generated. This option is ignored if either provideErrors
-              or generateHints is false.
+              generated. This option is ignored if generateHints is false.
             </p>
           </dd><dt class="field"><b><i>generateHints ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
             <p>
               True is hints should be generated as part of generating
-              errors and warnings. This option is ignored if
-              provideErrors is false.
+              errors and warnings.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisService">AnalysisService: String</a></dt><dd>
         <p>
@@ -1809,33 +1814,25 @@ div.hangingIndent {
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_ChangeContentOverlay">ChangeContentOverlay: object</a></dt><dd>
         <p>
-          A directive to modify an existing file content overlay.  A
-          range of text is deleted from the old file content overlay
-          and replaced with new text.
+          A directive to modify an existing file content overlay. One or more
+          ranges of text are deleted from the old file content overlay and
+          replaced with new text.
         </p>
         <p>
-          It is an error to use this directive is used on a file that
-          does not yet have a file content overlay (or that has had
-          its overlay removed via <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>).
+        The edits are applied in the order in which they occur in the list.
+        This means that the offset of each edit must be correct under the
+        assumption that all previous edits have been applied.
+        </p>
+        <p>
+          It is an error to use this overlay on a file that does not yet have
+          a file content overlay or that has had its overlay removed via
+          <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
         </p>
         
-      <dl><dt class="field"><b><i>type = "change"</i></b></dt><dd></dd><dt class="field"><b><i>offset ( int )</i></b></dt><dd>
+      <dl><dt class="field"><b><i>type = "change"</i></b></dt><dd></dd><dt class="field"><b><i>edits ( List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt; )</i></b></dt><dd>
             
             <p>
-              The offset of the text to be remove from the file
-              content overlay.
-            </p>
-          </dd><dt class="field"><b><i>length ( int )</i></b></dt><dd>
-            
-            <p>
-              The length of the text to be removed from the file
-              content overlay, or 0 if no text should be removed.
-            </p>
-          </dd><dt class="field"><b><i>replacement ( String )</i></b></dt><dd>
-            
-            <p>
-              The new text which should be inserted in place of the
-              removed text.
+              The edits to be applied to the file.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionId">CompletionId: String</a></dt><dd>
         
