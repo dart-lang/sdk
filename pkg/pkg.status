@@ -19,6 +19,8 @@ scheduled_test/test/scheduled_server_test: Pass, Fail # 13524
 scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 scheduled_test/test/scheduled_stream/stream_matcher_test: Pass, Slow
 polymer/test/build/script_compactor_test: Pass, Slow
+
+[ $compiler != dartanalyzer && $compiler != dart2analyzer ]
 analysis_server/test/integration/analysis/update_content_test: Fail # Issue 20495
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
