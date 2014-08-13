@@ -63,27 +63,24 @@ class GlobalPackages {
   /// Finds the latest version of the hosted package with [name] that matches
   /// [constraint] and makes it the active global version.
   Future activateHosted(String name, VersionConstraint constraint) {
-    // See if we already have it activated.
-    var lockFile = _describeActive(name);
-    var currentVersion;
-    if (lockFile != null) {
-      var id = lockFile.packages[name];
+    _describeActive(name);
 
-      // Try to preserve the current version if we've already activated the
-      // hosted package.
-      if (id.source == "hosted") currentVersion = id.version;
+    var source = cache.sources["hosted"];
+    return source.getVersions(name, name).then((versions) {
+      versions = versions.where(constraint.allows).toList();
 
-      // Pull the root package out of the lock file so the solver doesn't see
-      // it.
-      lockFile.packages.remove(name);
-    } else {
-      lockFile = new LockFile.empty();
-    }
+      if (versions.isEmpty) {
+        // TODO(rnystrom): Show most recent unmatching version?
+        dataError("Package ${log.bold(name)} has no versions that match "
+            "$constraint.");
+      }
 
-    return _selectVersion(name, currentVersion, constraint).then((version) {
+      // Pick the best matching version.
+      versions.sort(Version.prioritize);
+
       // Make sure it's in the cache.
-      var id = new PackageId(name, "hosted", version, name);
-      return _installInCache(id, lockFile);
+      var id = new PackageId(name, "hosted", versions.last, name);
+      return _installInCache(id);
     });
   }
 
@@ -106,9 +103,8 @@ class GlobalPackages {
     });
   }
 
-  /// Installs the package [id] with [lockFile] into the system cache along
-  /// with its dependencies.
-  Future _installInCache(PackageId id, LockFile lockFile) {
+  /// Installs the package [id] and its dependencies into the system cache.
+  Future _installInCache(PackageId id) {
     var source = cache.sources[id.source];
 
     // Put the main package in the cache.
@@ -123,8 +119,7 @@ class GlobalPackages {
         id = id_;
 
         // Resolve it and download its dependencies.
-        return resolveVersions(SolveType.GET, cache.sources, package,
-            lockFile: lockFile);
+        return resolveVersions(SolveType.GET, cache.sources, package);
       });
     }).then((result) {
       if (!result.succeeded) throw result.error;
@@ -172,11 +167,8 @@ class GlobalPackages {
     // user can run.
   }
 
-  /// Gets the lock file for the currently active package with [name].
-  ///
-  /// Displays a message to the user about the current package, if any. Returns
-  /// the [LockFile] for the active package or `null` otherwise.
-  LockFile _describeActive(String package) {
+  /// Shows the user the currently active package with [name], if any.
+  void _describeActive(String package) {
     try {
       var lockFile = new LockFile.load(_getLockFilePath(package),
           cache.sources);
@@ -190,8 +182,6 @@ class GlobalPackages {
         log.message("Package ${log.bold(package)} is currently active at "
             "version ${log.bold(id.version)}.");
       }
-
-      return lockFile;
     } on IOException catch (error) {
       // If we couldn't read the lock file, it's not activated.
       return null;
@@ -258,35 +248,6 @@ class GlobalPackages {
       assert(id.source == "path");
       return new Entrypoint(PathSource.pathFromDescription(id.description),
           cache);
-    });
-  }
-
-  /// Picks the best hosted version of [package] to activate that meets
-  /// [constraint].
-  ///
-  /// If [version] is not `null`, this tries to maintain that version if
-  /// possible.
-  Future<Version> _selectVersion(String package, Version version,
-      VersionConstraint constraint) {
-    // If we already have a valid active version, just use it.
-    if (version != null && constraint.allows(version)) {
-      return new Future.value(version);
-    }
-
-    // Otherwise, select the best version the matches the constraint.
-    var source = cache.sources["hosted"];
-    return source.getVersions(package, package).then((versions) {
-      versions = versions.where(constraint.allows).toList();
-
-      if (versions.isEmpty) {
-        // TODO(rnystrom): Show most recent unmatching version?
-        dataError("Package ${log.bold(package)} has no versions that match "
-            "$constraint.");
-      }
-
-      // Pick the best matching version.
-      versions.sort(Version.prioritize);
-      return versions.last;
     });
   }
 
