@@ -5526,7 +5526,8 @@ void Function::set_is_external(bool value) const {
 
 void Function::set_is_async_closure(bool value) const {
   set_kind_tag(AsyncClosureBit::update(value, raw_ptr()->kind_tag_));
-  set_is_optimizable(false);
+  // Prohibit inlining as the closure is used for implementing a continuation.
+  set_is_inlinable(false);
 }
 
 

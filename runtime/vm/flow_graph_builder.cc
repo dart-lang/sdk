@@ -1063,11 +1063,11 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     LocalVariable* rcv_var = node->scope()->LookupVariable(
         Symbols::AsyncCompleter(), false);
     ASSERT(rcv_var != NULL && rcv_var->is_captured());
-    Value* rcv_value = Bind(BuildLoadLocal(*rcv_var));
-    Value* returned_value = Bind(BuildLoadExprTemp());
     ZoneGrowableArray<PushArgumentInstr*>* arguments =
         new(I) ZoneGrowableArray<PushArgumentInstr*>(2);
+    Value* rcv_value = Bind(BuildLoadLocal(*rcv_var));
     arguments->Add(PushArgument(rcv_value));
+    Value* returned_value = Bind(BuildLoadExprTemp());
     arguments->Add(PushArgument(returned_value));
     InstanceCallInstr* call = new(I) InstanceCallInstr(
         Scanner::kNoSourcePos,
