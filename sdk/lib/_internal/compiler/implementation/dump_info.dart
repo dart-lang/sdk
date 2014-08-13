@@ -192,9 +192,9 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     List<String> children = [];
     StringBuffer emittedCode = compiler.dumpInfoTask.codeOf(element);
 
-    // If a field has an empty inferred type it is never used.
     TypeMask inferredType =
-      compiler.typesTask.getGuaranteedTypeOfElement(element);
+        compiler.typesTask.getGuaranteedTypeOfElement(element);
+    // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty || element.isConst) {
       return null;
     }

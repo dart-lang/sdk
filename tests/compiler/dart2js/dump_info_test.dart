@@ -42,18 +42,45 @@ main() {
 }
 """;
 
+const String TEST_TWO = r"""
 main() {
-  var compiler = compilerFor({'main.dart': TEST_ONE}, options: ["--dump-info"]);
-  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
-    var dumpTask = compiler.dumpInfoTask;
-    dumpTask.collectInfo();
-    var info = dumpTask.infoCollector;
+  print(bar);
+  print(bar());
+  print(new X().foo);
+  print(new X().foo());
+}
 
-    StringBuffer sb = new StringBuffer();
-    dumpTask.dumpInfoJson(sb);
-    String json = sb.toString();
-    Map<String, dynamic> map = JSON.decode(json);
-    Expect.isTrue(map.isNotEmpty);
+bar() => [() => [() => [() => [() => [() => [() => [() => [() => [() => [() =>
+[() => []]]]]]]]]]]];
+
+class X {
+  foo() => [() => [() => [() => [() => [() => [() => [() => [() => [() =>
+[() => []]]]]]]]]]];
+}
+""";
+
+typedef void JsonTaking(Map<String, dynamic> json);
+
+void jsonTest(String program, JsonTaking testFn) {
+  var compiler = compilerFor({'main.dart': program}, options: ['--dump-info']);
+  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then(
+    (_) {
+      Expect.isFalse(compiler.compilationFailed);
+      var dumpTask = compiler.dumpInfoTask;
+      dumpTask.collectInfo();
+      var info = dumpTask.infoCollector;
+
+      StringBuffer sb = new StringBuffer();
+      dumpTask.dumpInfoJson(sb);
+      String json = sb.toString();
+      Map<String, dynamic> map = JSON.decode(json);
+
+      testFn(map);
+    }));
+}
+
+main() {
+  jsonTest(TEST_ONE, (map) {
     Expect.isTrue(map['elements'].isNotEmpty);
     Expect.isTrue(map['elements']['function'].isNotEmpty);
     Expect.isTrue(map['elements']['library'].isNotEmpty);
@@ -67,5 +94,15 @@ main() {
     Expect.isTrue(map['elements']['function'].values.any((fun) {
       return fun['name'] == 'f';
     }));
-  }));
+  });
+
+  jsonTest(TEST_TWO, (map) {
+    var functions = map['elements']['function'].values;
+    Expect.isTrue(functions.any((fn) {
+      return fn['name'] == 'bar' && fn['children'].length == 11;
+    }));
+    Expect.isTrue(functions.any((fn) {
+      return fn['name'] == 'foo' && fn['children'].length == 10;
+    }));
+  });
 }
