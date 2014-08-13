@@ -69,7 +69,7 @@ class AssistKind {
   static const EXCHANGE_OPERANDS =
       const AssistKind('EXCHANGE_OPERANDS', 30, "Exchange operands");
   static const EXTRACT_CLASS =
-      const AssistKind('EXTRACT_CLASS', 30, "Extract class into file '%s'");
+      const AssistKind('EXTRACT_CLASS', 30, "Extract class into file '{0}'");
   static const IMPORT_ADD_SHOW =
       const AssistKind('IMPORT_ADD_SHOW', 30, "Add explicit 'show' combinator");
   static const INVERT_IF_STATEMENT =

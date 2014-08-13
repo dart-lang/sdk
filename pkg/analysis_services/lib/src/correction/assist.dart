@@ -128,7 +128,7 @@ class AssistProcessor {
     FileEdit fileEdit = new FileEdit(file);
     edits.forEach((edit) => fileEdit.add(edit));
     // prepare Change
-    String message = JavaString.format(kind.message, args);
+    String message = formatList(kind.message, args);
     Change change = new Change(message);
     change.addFileEdit(fileEdit);
     linkedPositionGroups.values.forEach(

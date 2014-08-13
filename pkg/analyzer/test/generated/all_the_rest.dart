@@ -13366,7 +13366,6 @@
 //   static Test suite() {
 //     TestSuite suite = new ExtendedTestSuite("Tests in ${TestAll.getPackage().getName()}");
 //     suite.addTestSuite(AnalysisTaskTest);
-//     suite.addTestSuite(BuildDartElementModelTaskTest);
 //     suite.addTestSuite(GenerateDartErrorsTaskTest);
 //     suite.addTestSuite(GenerateDartHintsTaskTest);
 //     suite.addTestSuite(GetContentTaskTest);

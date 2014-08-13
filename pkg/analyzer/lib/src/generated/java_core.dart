@@ -132,21 +132,6 @@ class CharBuffer extends CharSequence {
 }
 
 class JavaString {
-  static String format(String fmt, List args) {
-    var index = 0;
-    return fmt.replaceAllMapped(new RegExp(r'%(.)'), (match) {
-      switch (match.group(1)) {
-        case '%': return '%';
-        case 'd':
-        case 's':
-          if (index >= args.length) {
-            throw new MissingFormatArgumentException(match.group(0));
-          }
-          return args[index++].toString();
-        default: return match.group(1);
-      }
-    });
-  }
   static int indexOf(String target, String str, int fromIndex) {
     if (fromIndex > target.length) return -1;
     if (fromIndex < 0) fromIndex = 0;
@@ -522,4 +507,32 @@ class JavaPatternMatcher {
   String group(int i) => _match[i];
   int start() => _match.start;
   int end() => _match.end;
+}
+
+/**
+ * Inserts the given arguments into [pattern].
+ *
+ *     format('Hello, {0}!', 'John') = 'Hello, John!'
+ *     format('{0} are you {1}ing?', 'How', 'do') = 'How are you doing?'
+ *     format('{0} are you {1}ing?', 'What', 'read') = 'What are you reading?'
+ */
+String format(String pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7])
+    {
+  return formatList(pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]);
+}
+
+/**
+ * Inserts the given [args] into [pattern].
+ *
+ *     format('Hello, {0}!', ['John']) = 'Hello, John!'
+ *     format('{0} are you {1}ing?', ['How', 'do']) = 'How are you doing?'
+ *     format('{0} are you {1}ing?', ['What', 'read']) = 'What are you reading?'
+ */
+String formatList(String pattern, List args) {
+  return pattern.replaceAllMapped(new RegExp(r'\{(\d+)\}'), (match) {
+    String indexStr = match.group(1);
+    int index = int.parse(indexStr);
+    var arg = args[index];
+    return arg != null ? arg.toString() : null;
+  });
 }

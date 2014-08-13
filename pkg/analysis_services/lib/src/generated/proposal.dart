@@ -238,7 +238,7 @@ class CorrectionProposal {
   String _name;
 
   CorrectionProposal(this.kind, List<Object> arguments) {
-    this._name = JavaString.format(kind.message, arguments);
+    this._name = formatList(kind.message, arguments);
   }
 
   /**

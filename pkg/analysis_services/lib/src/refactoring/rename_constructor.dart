@@ -11,11 +11,11 @@ import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/refactoring/refactoring.dart';
 import 'package:analysis_services/search/hierarchy.dart';
 import 'package:analysis_services/search/search_engine.dart';
-import 'package:analysis_services/src/correction/strings.dart';
 import 'package:analysis_services/src/correction/util.dart';
 import 'package:analysis_services/src/refactoring/naming_conventions.dart';
 import 'package:analysis_services/src/refactoring/rename.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 
 
 /**

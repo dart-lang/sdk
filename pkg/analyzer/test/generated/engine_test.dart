@@ -2027,156 +2027,6 @@
 //     throw new AnalysisException("Forced exception");
 //   }
 // }
-// class BuildDartElementModelTaskTest extends EngineTestCase {
-//   void test_accept() {
-//     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-//     BuildDartElementModelTask task = new BuildDartElementModelTask(context, null, new List<ResolvableLibrary>());
-//     JUnitTestCase.assertTrue(task.accept(new TestTaskVisitor_BuildDartElementModelTaskTest_test_accept()));
-//   }
-//   void test_getErrors() {
-//     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-//     BuildDartElementModelTask task = new BuildDartElementModelTask(context, null, new List<ResolvableLibrary>());
-//     EngineTestCase.assertLength(0, task.errorListener.errors);
-//   }
-//   void test_getLibrariesInCycle() {
-//     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-//     List<ResolvableLibrary> librariesInCycle = new List<ResolvableLibrary>();
-//     BuildDartElementModelTask task = new BuildDartElementModelTask(context, null, librariesInCycle);
-//     JUnitTestCase.assertSame(librariesInCycle, task.librariesInCycle);
-//   }
-//   void test_perform_multiple() {
-//     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-//     ResolvableLibrary lib3 = _createLibrary(<ResolvableCompilationUnit> [_createUnit(context, "/lib3.dart", EngineTestCase.createSource([
-//         "library lib3;",
-//         "import 'lib1.dart';",
-//         "class C { A a; }"]))], null);
-//     ResolvableLibrary lib2 = _createLibrary(<ResolvableCompilationUnit> [_createUnit(context, "/lib2.dart", EngineTestCase.createSource([
-//         "library lib2;",
-//         "import 'lib3.dart';",
-//         "class B { C c; }"]))], <ResolvableLibrary> [_createCoreLibrary(context), lib3]);
-//     ResolvableLibrary lib1 = _createLibrary(<ResolvableCompilationUnit> [_createUnit(context, "/lib1.dart", EngineTestCase.createSource([
-//         "library lib1;",
-//         "import 'lib2.dart';",
-//         "class A { B b; }"]))], <ResolvableLibrary> [_createCoreLibrary(context), lib2]);
-//     lib3.importedLibraries = <ResolvableLibrary> [_createCoreLibrary(context), lib1];
-//     List<ResolvableLibrary> librariesInCycle = new List<ResolvableLibrary>();
-//     librariesInCycle.add(lib1);
-//     librariesInCycle.add(lib2);
-//     librariesInCycle.add(lib3);
-//     BuildDartElementModelTask task = new BuildDartElementModelTask(context, null, librariesInCycle);
-//     task.perform(new TestTaskVisitor_BuildDartElementModelTaskTest_test_perform_multiple());
-//   }
-//   void test_perform_single_noParts() {
-//     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-//     ResolvableLibrary lib1 = _createLibrary(<ResolvableCompilationUnit> [_createUnit(context, "/lib1.dart", EngineTestCase.createSource(["library lib1;", "class A {}", "class B extends A {}"]))], <ResolvableLibrary> [_createCoreLibrary(context)]);
-//     List<ResolvableLibrary> librariesInCycle = new List<ResolvableLibrary>();
-//     librariesInCycle.add(lib1);
-//     BuildDartElementModelTask task = new BuildDartElementModelTask(context, null, librariesInCycle);
-//     task.perform(new TestTaskVisitor_BuildDartElementModelTaskTest_test_perform_single_noParts());
-//   }
-//   void test_perform_single_parts() {
-//     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-//     ResolvableLibrary lib1 = _createLibrary(<ResolvableCompilationUnit> [
-//         _createUnit(context, "/lib1.dart", EngineTestCase.createSource([
-//         "library lib1;",
-//         "part 'part1-1.dart';",
-//         "part 'part1-2.dart';",
-//         "class A {}",
-//         "class B extends A {}"])),
-//         _createUnit(context, "/part1-1.dart", EngineTestCase.createSource(["part of lib1;", "class C extends B {}"])),
-//         _createUnit(context, "/part1-2.dart", EngineTestCase.createSource(["part of lib1;", "class D implements A {}"]))], <ResolvableLibrary> [_createCoreLibrary(context)]);
-//     List<ResolvableLibrary> librariesInCycle = new List<ResolvableLibrary>();
-//     librariesInCycle.add(lib1);
-//     BuildDartElementModelTask task = new BuildDartElementModelTask(context, null, librariesInCycle);
-//     task.perform(new TestTaskVisitor_BuildDartElementModelTaskTest_test_perform_single_parts());
-//   }
-//   /**
-//    * Create a resolvable library representing the core library.
-//    *
-//    * @param context the context used to build the library
-//    * @return the resolvable library representing the core library
-//    * @throws AnalysisException if the core library has not been resolved
-//    */
-//   ResolvableLibrary _createCoreLibrary(AnalysisContextImpl context) {
-//     Source coreSource = context.sourceFactory.forUri(DartSdk.DART_CORE);
-//     ResolvableLibrary coreLibrary = new ResolvableLibrary(coreSource);
-//     coreLibrary.libraryElement = context.computeLibraryElement(coreSource) as LibraryElementImpl;
-//     return coreLibrary;
-//   }
-//   /**
-//    * Create a resolvable library with the given compilation units and imports.
-//    *
-//    * @param units the compilation units in the library, with the defining compilation unit first
-//    * @param imports the libraries imported by the library (including the core library)
-//    * @return the resolvable library that was created
-//    */
-//   ResolvableLibrary _createLibrary(List<ResolvableCompilationUnit> units, List<ResolvableLibrary> imports) {
-//     ResolvableLibrary library = new ResolvableLibrary(units[0].source);
-//     library.importedLibraries = imports;
-//     library.resolvableCompilationUnits = units;
-//     return library;
-//   }
-//   /**
-//    * Return a resolvable compilation unit representing the file with the given name and contents.
-//    *
-//    * @param fileName the name of the file being represented
-//    * @param contents the contents of the file being represented
-//    * @return a resolvable compilation unit representing the file
-//    */
-//   ResolvableCompilationUnit _createUnit(AnalysisContextImpl context, String fileName, String contents) {
-//     Source source = new FileBasedSource.con1(FileUtilities2.createFile(fileName));
-//     context.setContents(source, contents);
-//     return new ResolvableCompilationUnit.con2(source.modificationStamp, _parse(context, source, contents), source);
-//   }
-//   /**
-//    * Return the result of parsing the given source.
-//    *
-//    * @param source the source being parsed
-//    * @param contents the contents of the source
-//    * @return the result of parsing the given source
-//    */
-//   CompilationUnit _parse(AnalysisContextImpl context, Source source, String contents) {
-//     GatheringErrorListener errorListener = new GatheringErrorListener();
-//     Scanner scanner = new Scanner(source, new CharSequenceReader(contents), errorListener);
-//     Parser parser = new Parser(source, errorListener);
-//     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
-//     for (Directive directive in unit.directives) {
-//       if (directive is UriBasedDirective) {
-//         UriBasedDirective uriDirective = directive as UriBasedDirective;
-//         ParseDartTask.resolveDirective(context, source, uriDirective, errorListener);
-//       }
-//     }
-//     return unit;
-//   }
-//   static dartSuite() {
-//     _ut.group('BuildDartElementModelTaskTest', () {
-//       _ut.test('test_accept', () {
-//         final __test = new BuildDartElementModelTaskTest();
-//         runJUnitTest(__test, __test.test_accept);
-//       });
-//       _ut.test('test_getErrors', () {
-//         final __test = new BuildDartElementModelTaskTest();
-//         runJUnitTest(__test, __test.test_getErrors);
-//       });
-//       _ut.test('test_getLibrariesInCycle', () {
-//         final __test = new BuildDartElementModelTaskTest();
-//         runJUnitTest(__test, __test.test_getLibrariesInCycle);
-//       });
-//       _ut.test('test_perform_multiple', () {
-//         final __test = new BuildDartElementModelTaskTest();
-//         runJUnitTest(__test, __test.test_perform_multiple);
-//       });
-//       _ut.test('test_perform_single_noParts', () {
-//         final __test = new BuildDartElementModelTaskTest();
-//         runJUnitTest(__test, __test.test_perform_single_noParts);
-//       });
-//       _ut.test('test_perform_single_parts', () {
-//         final __test = new BuildDartElementModelTaskTest();
-//         runJUnitTest(__test, __test.test_perform_single_parts);
-//       });
-//     });
-//   }
-// }
 // class CacheRetentionPolicy_AnalysisCacheTest_test_setMaxCacheSize implements CacheRetentionPolicy {
 //   @override
 //   RetentionPriority getAstPriority(Source source, SourceEntry sourceEntry) => RetentionPriority.LOW;
@@ -2203,8 +2053,6 @@
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
-//     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource));
-//     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, librarySource));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.HINTS, librarySource));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource));
@@ -2216,11 +2064,10 @@
 //     EngineTestCase.assertLength(0, entry.allErrors);
 //     entry.setValue(DartEntry.SCAN_ERRORS, <AnalysisError> [new AnalysisError.con1(source, ScannerErrorCode.UNTERMINATED_STRING_LITERAL, [])]);
 //     entry.setValue(DartEntry.PARSE_ERRORS, <AnalysisError> [new AnalysisError.con1(source, ParserErrorCode.ABSTRACT_CLASS_MEMBER, [])]);
-//     entry.setValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source, <AnalysisError> [new AnalysisError.con1(source, CompileTimeErrorCode.MIXIN_OF_NON_CLASS, [])]);
 //     entry.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, source, <AnalysisError> [new AnalysisError.con1(source, CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION, [])]);
 //     entry.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, source, <AnalysisError> [new AnalysisError.con1(source, StaticWarningCode.CASE_BLOCK_NOT_TERMINATED, [])]);
 //     entry.setValueInLibrary(DartEntry.HINTS, source, <AnalysisError> [new AnalysisError.con1(source, HintCode.DEAD_CODE, [])]);
-//     EngineTestCase.assertLength(6, entry.allErrors);
+//     EngineTestCase.assertLength(5, entry.allErrors);
 //   }
 //   void test_getResolvableCompilationUnit_none() {
 //     DartEntryImpl entry = new DartEntryImpl();
@@ -2297,14 +2144,6 @@
 //     JUnitTestCase.assertEquals(partUri, resultPartDirective.uriContent);
 //     JUnitTestCase.assertSame(partSource, resultPartDirective.source);
 //   }
-//   void test_getState_invalid_buildElementErrors() {
-//     DartEntryImpl entry = new DartEntryImpl();
-//     try {
-//       entry.getState(DartEntry.BUILD_ELEMENT_ERRORS);
-//       JUnitTestCase.fail("Expected IllegalArgumentException for BUILD_ELEMENT_ERRORS");
-//     } on IllegalArgumentException catch (exception) {
-//     }
-//   }
 //   void test_getState_invalid_resolutionErrors() {
 //     DartEntryImpl entry = new DartEntryImpl();
 //     try {
@@ -2341,14 +2180,6 @@
 //     entry.removeContainingLibrary(testSource);
 //     value = entry.getValue(DartEntry.CONTAINING_LIBRARIES);
 //     EngineTestCase.assertLength(0, value);
-//   }
-//   void test_getValue_invalid_buildElementErrors() {
-//     DartEntryImpl entry = new DartEntryImpl();
-//     try {
-//       entry.getValue(DartEntry.BUILD_ELEMENT_ERRORS);
-//       JUnitTestCase.fail("Expected IllegalArgumentException for BUILD_ELEMENT_ERRORS");
-//     } on IllegalArgumentException catch (exception) {
-//     }
 //   }
 //   void test_getValue_invalid_resolutionErrors() {
 //     DartEntryImpl entry = new DartEntryImpl();
@@ -2409,7 +2240,6 @@
 //     JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.PARSED_UNIT));
 //     JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE));
 //     JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.SOURCE_KIND));
-//     JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.BUILD_ELEMENT_ERRORS));
 //     JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
 //     JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
 //     JUnitTestCase.assertFalse(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
@@ -2428,7 +2258,6 @@
 //     JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.PARSED_UNIT));
 //     JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.PUBLIC_NAMESPACE));
 //     JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.SOURCE_KIND));
-//     JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.BUILD_ELEMENT_ERRORS));
 //     JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.RESOLUTION_ERRORS));
 //     JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.RESOLVED_UNIT));
 //     JUnitTestCase.assertTrue(entry.hasInvalidData(DartEntry.VERIFICATION_ERRORS));
@@ -2525,8 +2354,6 @@
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
-//     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
@@ -2571,8 +2398,6 @@
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
-//     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
@@ -2643,10 +2468,6 @@
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
-//     // The following lines are commented out because we don't currently have any way of setting the
-//     // state for data associated with a library we don't know anything about.
-//     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
@@ -2698,8 +2519,6 @@
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SCAN_ERRORS));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.SOURCE_KIND));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getState(DartEntry.TOKEN_STREAM));
-//     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, source));
-//     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.BUILT_UNIT, source));
 //     JUnitTestCase.assertSame(CacheState.ERROR, entry.getStateInLibrary(DartEntry.HINTS, source));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLUTION_ERRORS, source));
 //     JUnitTestCase.assertSame(CacheState.INVALID, entry.getStateInLibrary(DartEntry.RESOLVED_UNIT, source));
@@ -2760,9 +2579,6 @@
 //     entry2.removeResolution(libSrc2);
 //     EngineTestCase.assertExactElementsInArray(entry2.allErrors, []);
 //   }
-//   void test_setState_buildElementErrors() {
-//     state3 = DartEntry.BUILD_ELEMENT_ERRORS;
-//   }
 //   void test_setState_element() {
 //     state2 = DartEntry.ELEMENT;
 //   }
@@ -2777,14 +2593,6 @@
 //   }
 //   void test_setState_includedParts() {
 //     state2 = DartEntry.INCLUDED_PARTS;
-//   }
-//   void test_setState_invalid_buildElementErrors() {
-//     DartEntryImpl entry = new DartEntryImpl();
-//     try {
-//       entry.setState(DartEntry.BUILD_ELEMENT_ERRORS, CacheState.FLUSHED);
-//       JUnitTestCase.fail("Expected IllegalArgumentException for BUILD_ELEMENT_ERRORS");
-//     } on IllegalArgumentException catch (exception) {
-//     }
 //   }
 //   void test_setState_invalid_element() {
 //     DartEntryImpl entry = new DartEntryImpl();
@@ -2853,9 +2661,6 @@
 //   }
 //   void test_setState_verificationErrors() {
 //     state3 = DartEntry.VERIFICATION_ERRORS;
-//   }
-//   void test_setValue_buildElementErrors() {
-//     _setValue3(DartEntry.BUILD_ELEMENT_ERRORS, <AnalysisError> [new AnalysisError.con1(null, CompileTimeErrorCode.MIXIN_OF_NON_CLASS, [])]);
 //   }
 //   void test_setValue_element() {
 //     _setValue2(DartEntry.ELEMENT, new LibraryElementImpl.forNode(null, AstFactory.libraryIdentifier2(["lib"])));
@@ -2992,10 +2797,6 @@
 //         final __test = new DartEntryImplTest();
 //         runJUnitTest(__test, __test.test_getStateInLibrary_invalid_element);
 //       });
-//       _ut.test('test_getState_invalid_buildElementErrors', () {
-//         final __test = new DartEntryImplTest();
-//         runJUnitTest(__test, __test.test_getState_invalid_buildElementErrors);
-//       });
 //       _ut.test('test_getState_invalid_resolutionErrors', () {
 //         final __test = new DartEntryImplTest();
 //         runJUnitTest(__test, __test.test_getState_invalid_resolutionErrors);
@@ -3015,10 +2816,6 @@
 //       _ut.test('test_getValue_containingLibraries', () {
 //         final __test = new DartEntryImplTest();
 //         runJUnitTest(__test, __test.test_getValue_containingLibraries);
-//       });
-//       _ut.test('test_getValue_invalid_buildElementErrors', () {
-//         final __test = new DartEntryImplTest();
-//         runJUnitTest(__test, __test.test_getValue_invalid_buildElementErrors);
 //       });
 //       _ut.test('test_getValue_invalid_resolutionErrors', () {
 //         final __test = new DartEntryImplTest();
@@ -3120,10 +2917,6 @@
 //         final __test = new DartEntryImplTest();
 //         runJUnitTest(__test, __test.test_resolutionState);
 //       });
-//       _ut.test('test_setState_buildElementErrors', () {
-//         final __test = new DartEntryImplTest();
-//         runJUnitTest(__test, __test.test_setState_buildElementErrors);
-//       });
 //       _ut.test('test_setState_element', () {
 //         final __test = new DartEntryImplTest();
 //         runJUnitTest(__test, __test.test_setState_element);
@@ -3143,10 +2936,6 @@
 //       _ut.test('test_setState_includedParts', () {
 //         final __test = new DartEntryImplTest();
 //         runJUnitTest(__test, __test.test_setState_includedParts);
-//       });
-//       _ut.test('test_setState_invalid_buildElementErrors', () {
-//         final __test = new DartEntryImplTest();
-//         runJUnitTest(__test, __test.test_setState_invalid_buildElementErrors);
 //       });
 //       _ut.test('test_setState_invalid_element', () {
 //         final __test = new DartEntryImplTest();
@@ -3211,10 +3000,6 @@
 //       _ut.test('test_setState_verificationErrors', () {
 //         final __test = new DartEntryImplTest();
 //         runJUnitTest(__test, __test.test_setState_verificationErrors);
-//       });
-//       _ut.test('test_setValue_buildElementErrors', () {
-//         final __test = new DartEntryImplTest();
-//         runJUnitTest(__test, __test.test_setValue_buildElementErrors);
 //       });
 //       _ut.test('test_setValue_element', () {
 //         final __test = new DartEntryImplTest();
@@ -6369,11 +6154,6 @@
 //  */
 // class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
 //   @override
-//   E visitBuildDartElementModelTask(BuildDartElementModelTask task) {
-//     JUnitTestCase.fail("Unexpectedly invoked visitBuildDartElementModelTask");
-//     return null;
-//   }
-//   @override
 //   E visitGenerateDartErrorsTask(GenerateDartErrorsTask task) {
 //     JUnitTestCase.fail("Unexpectedly invoked visitGenerateDartErrorsTask");
 //     return null;
@@ -6446,88 +6226,6 @@
 //   @override
 //   E visitScanDartTask(ScanDartTask task) {
 //     JUnitTestCase.fail("Unexpectedly invoked visitScanDartTask");
-//     return null;
-//   }
-// }
-// class TestTaskVisitor_BuildDartElementModelTaskTest_test_accept extends TestTaskVisitor<Boolean> {
-//   @override
-//   bool visitBuildDartElementModelTask(BuildDartElementModelTask task) => true;
-// }
-// class TestTaskVisitor_BuildDartElementModelTaskTest_test_perform_multiple extends TestTaskVisitor<Object> {
-//   @override
-//   Object visitBuildDartElementModelTask(BuildDartElementModelTask task) {
-//     CaughtException exception = task.exception;
-//     if (exception != null) {
-//       throw exception;
-//     }
-//     EngineTestCase.assertLength(0, task.errorListener.errors);
-//     List<ResolvableLibrary> librariesInCycle = task.librariesInCycle;
-//     EngineTestCase.assertSizeOfList(3, librariesInCycle);
-//     for (int i = 0; i < 3; i++) {
-//       ResolvableLibrary library = librariesInCycle[i];
-//       LibraryElementImpl libraryElement = library.libraryElement;
-//       JUnitTestCase.assertNotNull(libraryElement);
-//       CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-//       JUnitTestCase.assertNotNull(unitElement);
-//       List<ClassElement> types = unitElement.types;
-//       EngineTestCase.assertLength(1, types);
-//     }
-//     return null;
-//   }
-// }
-// class TestTaskVisitor_BuildDartElementModelTaskTest_test_perform_single_noParts extends TestTaskVisitor<Object> {
-//   @override
-//   Object visitBuildDartElementModelTask(BuildDartElementModelTask task) {
-//     CaughtException exception = task.exception;
-//     if (exception != null) {
-//       throw exception;
-//     }
-//     EngineTestCase.assertLength(0, task.errorListener.errors);
-//     List<ResolvableLibrary> librariesInCycle = task.librariesInCycle;
-//     EngineTestCase.assertSizeOfList(1, librariesInCycle);
-//     ResolvableLibrary library = librariesInCycle[0];
-//     LibraryElementImpl libraryElement = library.libraryElement;
-//     JUnitTestCase.assertNotNull(libraryElement);
-//     CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
-//     JUnitTestCase.assertNotNull(unitElement);
-//     List<ClassElement> types = unitElement.types;
-//     EngineTestCase.assertLength(2, types);
-//     InterfaceType supertype = types[1].supertype;
-//     JUnitTestCase.assertNotNull(supertype);
-//     JUnitTestCase.assertSame(types[0], supertype.element);
-//     return null;
-//   }
-// }
-// class TestTaskVisitor_BuildDartElementModelTaskTest_test_perform_single_parts extends TestTaskVisitor<Object> {
-//   @override
-//   Object visitBuildDartElementModelTask(BuildDartElementModelTask task) {
-//     CaughtException exception = task.exception;
-//     if (exception != null) {
-//       throw exception;
-//     }
-//     EngineTestCase.assertLength(0, task.errorListener.errors);
-//     List<ResolvableLibrary> librariesInCycle = task.librariesInCycle;
-//     EngineTestCase.assertSizeOfList(1, librariesInCycle);
-//     ResolvableLibrary library = librariesInCycle[0];
-//     LibraryElementImpl libraryElement = library.libraryElement;
-//     JUnitTestCase.assertNotNull(libraryElement);
-//     CompilationUnitElement definingUnit = libraryElement.definingCompilationUnit;
-//     JUnitTestCase.assertNotNull(definingUnit);
-//     List<ClassElement> definingTypes = definingUnit.types;
-//     EngineTestCase.assertLength(2, definingTypes);
-//     List<CompilationUnitElement> parts = libraryElement.parts;
-//     JUnitTestCase.assertNotNull(parts);
-//     EngineTestCase.assertLength(2, parts);
-//     List<ClassElement> types = parts[0].types;
-//     EngineTestCase.assertLength(1, types);
-//     InterfaceType supertype = types[0].supertype;
-//     JUnitTestCase.assertNotNull(supertype);
-//     JUnitTestCase.assertSame(definingTypes[1], supertype.element);
-//     types = parts[1].types;
-//     EngineTestCase.assertLength(1, types);
-//     InterfaceType implementedType = types[0].interfaces[0];
-//     JUnitTestCase.assertNotNull(implementedType);
-//     JUnitTestCase.assertSame(definingTypes[0], implementedType.element);
 //     return null;
 //   }
 // }
@@ -7046,7 +6744,6 @@
 //   InstrumentedAnalysisContextImplTest.dartSuite();
 //   WorkManagerTest.dartSuite();
 //   AnalysisTaskTest.dartSuite();
-//   BuildDartElementModelTaskTest.dartSuite();
 //   GenerateDartErrorsTaskTest.dartSuite();
 //   GenerateDartHintsTaskTest.dartSuite();
 //   GetContentTaskTest.dartSuite();

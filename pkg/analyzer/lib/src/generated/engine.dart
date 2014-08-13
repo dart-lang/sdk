@@ -1743,7 +1743,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         dartCopy.setValue(DartEntry.SCAN_ERRORS, AnalysisError.NO_ERRORS);
         dartCopy.setValue(DartEntry.PARSE_ERRORS, AnalysisError.NO_ERRORS);
         dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
-        dartCopy.setValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource, AnalysisError.NO_ERRORS);
         dartCopy.setValueInLibrary(DartEntry.RESOLUTION_ERRORS, librarySource, AnalysisError.NO_ERRORS);
         dartCopy.setStateInLibrary(DartEntry.RESOLVED_UNIT, librarySource, CacheState.FLUSHED);
         dartCopy.setValueInLibrary(DartEntry.VERIFICATION_ERRORS, librarySource, AnalysisError.NO_ERRORS);
@@ -2591,35 +2590,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return false;
-  }
-
-  /**
-   * Create a [BuildDartElementModelTask] for the given source, marking the built unit as
-   * being in-process.
-   *
-   * @param source the source for the library whose element model is to be built
-   * @param dartEntry the entry for the source
-   * @return task data representing the created task
-   */
-  AnalysisContextImpl_TaskData _createBuildDartElementModelTask(Source source, DartEntry dartEntry) {
-    try {
-      AnalysisContextImpl_CycleBuilder builder = new AnalysisContextImpl_CycleBuilder(this);
-      builder.computeCycleContaining(source);
-      AnalysisContextImpl_TaskData taskData = builder.taskData;
-      if (taskData != null) {
-        return taskData;
-      }
-      DartEntryImpl dartCopy = dartEntry.writableCopy;
-      dartCopy.setStateInLibrary(DartEntry.BUILT_UNIT, source, CacheState.IN_PROCESS);
-      _cache.put(source, dartCopy);
-      return new AnalysisContextImpl_TaskData(new BuildDartElementModelTask(this, source, builder.librariesInCycle), false);
-    } on AnalysisException catch (exception, stackTrace) {
-      DartEntryImpl dartCopy = dartEntry.writableCopy;
-      dartCopy.recordBuildElementErrorInLibrary(source, new CaughtException(exception, stackTrace));
-      _cache.put(source, dartCopy);
-      AnalysisEngine.instance.logger.logError2("Internal error trying to compute the next analysis task", new CaughtException(exception, stackTrace));
-    }
-    return new AnalysisContextImpl_TaskData(null, false);
   }
 
   /**
@@ -3908,103 +3878,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Record the results produced by performing a [BuildDartElementModelTask]. If the results
-   * were computed from data that is now out-of-date, then the results will not be recorded.
-   *
-   * @param task the task that was performed
-   * @return an entry containing the recorded results
-   * @throws AnalysisException if the results could not be recorded
-   */
-  DartEntry _recordBuildDartElementModelTask(BuildDartElementModelTask task) {
-    Source targetLibrary = task.targetLibrary;
-    List<ResolvableLibrary> builtLibraries = task.librariesInCycle;
-    CaughtException thrownException = task.exception;
-    DartEntry targetEntry = null;
-    if (_allModificationTimesMatch(builtLibraries)) {
-      Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
-      RecordingErrorListener errorListener = task.errorListener;
-      for (ResolvableLibrary library in builtLibraries) {
-        Source librarySource = library.librarySource;
-        for (Source source in library.compilationUnitSources) {
-          CompilationUnit unit = library.getAST(source);
-          List<AnalysisError> errors = errorListener.getErrorsForSource(source);
-          LineInfo lineInfo = getLineInfo(source);
-          DartEntryImpl dartCopy = _cache.get(source).writableCopy as DartEntryImpl;
-          if (thrownException == null) {
-            dartCopy.setValueInLibrary(DartEntry.BUILD_ELEMENT_ERRORS, librarySource, errors);
-            dartCopy.setValueInLibrary(DartEntry.BUILT_UNIT, librarySource, unit);
-            if (source == librarySource) {
-              LibraryElementImpl libraryElement = library.libraryElement;
-              dartCopy.setValue(DartEntry.ELEMENT, libraryElement);
-              dartCopy.setValue(DartEntry.IS_LAUNCHABLE, libraryElement.entryPoint != null);
-              dartCopy.setValue(DartEntry.IS_CLIENT, _isClient(libraryElement, htmlSource, new HashSet<LibraryElement>()));
-            }
-          } else {
-            dartCopy.recordBuildElementErrorInLibrary(librarySource, thrownException);
-            _cache.remove(source);
-          }
-          _cache.put(source, dartCopy);
-          if (source != librarySource) {
-            _workManager.add(librarySource, SourcePriority.PRIORITY_PART);
-          }
-          if (source == targetLibrary) {
-            targetEntry = dartCopy;
-          }
-          ChangeNoticeImpl notice = _getNotice(source);
-          notice.compilationUnit = unit;
-          notice.setErrors(dartCopy.allErrors, lineInfo);
-        }
-      }
-    } else {
-      PrintStringWriter writer = new PrintStringWriter();
-      writer.println("Build element model results discarded for");
-      for (ResolvableLibrary library in builtLibraries) {
-        Source librarySource = library.librarySource;
-        for (Source source in library.compilationUnitSources) {
-          DartEntry dartEntry = _getReadableDartEntry(source);
-          if (dartEntry != null) {
-            int resultTime = library.getModificationTime(source);
-            writer.println("  ${_debuggingString(source)}; sourceTime = ${getModificationStamp(source)}, resultTime = ${resultTime}, cacheTime = ${dartEntry.modificationTime}");
-            DartEntryImpl dartCopy = dartEntry.writableCopy;
-            if (thrownException == null || resultTime >= 0) {
-              //
-              // The analysis was performed on out-of-date sources. Mark the cache so that the
-              // sources will be re-analyzed using the up-to-date sources.
-              //
-              dartCopy.recordBuildElementNotInProcess();
-            } else {
-              //
-              // We could not determine whether the sources were up-to-date or out-of-date. Mark
-              // the cache so that we won't attempt to re-analyze the sources until there's a
-              // good chance that we'll be able to do so without error.
-              //
-              dartCopy.recordBuildElementErrorInLibrary(librarySource, thrownException);
-              _cache.remove(source);
-            }
-            _cache.put(source, dartCopy);
-            if (source == targetLibrary) {
-              targetEntry = dartCopy;
-            }
-          } else {
-            writer.println("  ${_debuggingString(source)}; sourceTime = ${getModificationStamp(source)}, no entry");
-          }
-        }
-      }
-      _logInformation(writer.toString());
-    }
-    if (thrownException != null) {
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    if (targetEntry == null) {
-      targetEntry = _getReadableDartEntry(targetLibrary);
-      if (targetEntry == null) {
-        throw new AnalysisException("A Dart file became a non-Dart file: ${targetLibrary.fullName}");
-      }
-    }
-    return targetEntry;
-  }
-
-  /**
    * Given a cache entry and a library element, record the library element and other information
    * gleaned from the element in the cache entry.
    *
@@ -5240,9 +5113,6 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder implements AnalysisTaskVisi
   AnalysisContextImpl_AnalysisTaskResultRecorder(this.AnalysisContextImpl_this);
 
   @override
-  DartEntry visitBuildDartElementModelTask(BuildDartElementModelTask task) => AnalysisContextImpl_this._recordBuildDartElementModelTask(task);
-
-  @override
   DartEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task) => AnalysisContextImpl_this._recordGenerateDartErrorsTask(task);
 
   @override
@@ -5712,7 +5582,12 @@ class AnalysisContextImpl_CycleBuilder {
     if (libraryEntry == null) {
       throw new AnalysisException("Cannot find entry for ${librarySource.fullName}");
     } else if (libraryEntry.getState(DartEntry.PARSED_UNIT) == CacheState.ERROR) {
-      throw new AnalysisException("Cannot compute parsed unit for ${librarySource.fullName}");
+      String message = "Cannot compute parsed unit for ${librarySource.fullName}";
+      CaughtException exception = libraryEntry.exception;
+      if (exception == null) {
+        throw new AnalysisException(message);
+      }
+      throw new AnalysisException(message, new CaughtException(exception, null));
     }
     _ensureResolvableCompilationUnit(librarySource, libraryEntry);
     pairs.add(new CycleBuilder_SourceEntryPair(librarySource, libraryEntry));
@@ -6663,15 +6538,6 @@ abstract class AnalysisTask {
  * dispatch to an appropriate method.
  */
 abstract class AnalysisTaskVisitor<E> {
-  /**
-   * Visit a [BuildDartElementModelTask].
-   *
-   * @param task the task to be visited
-   * @return the result of visiting the task
-   * @throws AnalysisException if the visitor throws an exception for some reason
-   */
-  E visitBuildDartElementModelTask(BuildDartElementModelTask task);
-
   /**
    * Visit a [GenerateDartErrorsTask].
    *
@@ -7727,322 +7593,6 @@ abstract class AngularXmlExpression extends ht.XmlExpression {
 }
 
 /**
- * Instances of the class `BuildDartElementModelTask` build the element models for all of the
- * libraries in a cycle.
- */
-class BuildDartElementModelTask extends AnalysisTask {
-  /**
-   * The library for which an element model was originally requested.
-   */
-  final Source targetLibrary;
-
-  /**
-   * The libraries that are part of the cycle to be resolved.
-   */
-  final List<ResolvableLibrary> librariesInCycle;
-
-  /**
-   * The listener to which analysis errors will be reported.
-   */
-  RecordingErrorListener _errorListener;
-
-  /**
-   * A source object representing the core library (dart:core).
-   */
-  Source _coreLibrarySource;
-
-  /**
-   * The object representing the core library.
-   */
-  ResolvableLibrary _coreLibrary;
-
-  /**
-   * A table mapping library sources to the information being maintained for those libraries.
-   */
-  HashMap<Source, ResolvableLibrary> _libraryMap = new HashMap<Source, ResolvableLibrary>();
-
-  /**
-   * Initialize a newly created task to perform analysis within the given context.
-   *
-   * @param context the context in which the task is to be performed
-   * @param targetLibrary the library for which an element model was originally requested
-   * @param librariesInCycle the libraries that are part of the cycle to be resolved
-   */
-  BuildDartElementModelTask(InternalAnalysisContext context, this.targetLibrary, this.librariesInCycle) : super(context) {
-    this._errorListener = new RecordingErrorListener();
-    _coreLibrarySource = context.sourceFactory.forUri(DartSdk.DART_CORE);
-  }
-
-  @override
-  accept(AnalysisTaskVisitor visitor) => visitor.visitBuildDartElementModelTask(this);
-
-  /**
-   * Return the listener to which analysis errors were (or will be) reported.
-   *
-   * @return the listener to which analysis errors were reported
-   */
-  RecordingErrorListener get errorListener => _errorListener;
-
-  @override
-  String get taskDescription {
-    Source librarySource = librariesInCycle[0].librarySource;
-    if (librarySource == null) {
-      return "build an element model for unknown library";
-    }
-    return "build an element model for ${librarySource.fullName}";
-  }
-
-  @override
-  void internalPerform() {
-    InstrumentationBuilder instrumentation = Instrumentation.builder2("dart.engine.BuildDartElementModel.internalPerform");
-    try {
-      //
-      // Build the map of libraries that are known.
-      //
-      _libraryMap = _buildLibraryMap();
-      _coreLibrary = _libraryMap[_coreLibrarySource];
-      LibraryElement coreElement = _coreLibrary.libraryElement;
-      if (coreElement == null) {
-        throw new AnalysisException("Could not resolve dart:core");
-      }
-      instrumentation.metric3("buildLibraryMap", "complete");
-      //
-      // Build the element models representing the libraries being resolved. This is done in three
-      // steps.
-      //
-      // 1. Build the basic element models without making any connections between elements other than
-      //    the basic parent/child relationships. This includes building the elements representing the
-      //    libraries.
-      //
-      _buildElementModels();
-      instrumentation.metric3("buildElementModels", "complete");
-      //
-      // 2. Build the elements for the import and export directives. This requires that we have the
-      //    elements built for the referenced libraries, but because of the possibility of circular
-      //    references needs to happen after all of the library elements have been created.
-      //
-      _buildDirectiveModels();
-      instrumentation.metric3("buildDirectiveModels", "complete");
-      //
-      // 3. Build the rest of the type model by connecting superclasses, mixins, and interfaces. This
-      //    requires that we be able to compute the names visible in the libraries being resolved,
-      //    which in turn requires that we have resolved the import directives.
-      //
-      _buildTypeHierarchies(new TypeProviderImpl(coreElement));
-      instrumentation.metric3("buildTypeHierarchies", "complete");
-      instrumentation.metric2("librariesInCycles", librariesInCycle.length);
-      for (ResolvableLibrary lib in librariesInCycle) {
-        instrumentation.metric2("librariesInCycles-CompilationUnitSources-Size", lib.compilationUnitSources.length);
-      }
-    } finally {
-      instrumentation.log();
-    }
-  }
-
-  /**
-   * Build the element model representing the combinators declared by the given directive.
-   *
-   * @param directive the directive that declares the combinators
-   * @return an array containing the import combinators that were built
-   */
-  List<NamespaceCombinator> _buildCombinators(NamespaceDirective directive) {
-    List<NamespaceCombinator> combinators = new List<NamespaceCombinator>();
-    for (Combinator combinator in directive.combinators) {
-      if (combinator is HideCombinator) {
-        HideElementCombinatorImpl hide = new HideElementCombinatorImpl();
-        hide.hiddenNames = _getIdentifiers(combinator.hiddenNames);
-        combinators.add(hide);
-      } else {
-        ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
-        show.offset = combinator.offset;
-        show.end = combinator.end;
-        show.shownNames = _getIdentifiers((combinator as ShowCombinator).shownNames);
-        combinators.add(show);
-      }
-    }
-    return new List.from(combinators);
-  }
-
-  /**
-   * Every library now has a corresponding [LibraryElement], so it is now possible to resolve
-   * the import and export directives.
-   *
-   * @throws AnalysisException if the defining compilation unit for any of the libraries could not
-   *           be accessed
-   */
-  void _buildDirectiveModels() {
-    AnalysisContext analysisContext = context;
-    for (ResolvableLibrary library in librariesInCycle) {
-      HashMap<String, PrefixElementImpl> nameToPrefixMap = new HashMap<String, PrefixElementImpl>();
-      List<ImportElement> imports = new List<ImportElement>();
-      List<ExportElement> exports = new List<ExportElement>();
-      for (Directive directive in library.definingCompilationUnit.directives) {
-        if (directive is ImportDirective) {
-          ImportDirective importDirective = directive;
-          String uriContent = importDirective.uriContent;
-          if (DartUriResolver.isDartExtUri(uriContent)) {
-            library.libraryElement.hasExtUri = true;
-          }
-          Source importedSource = importDirective.source;
-          if (importedSource != null && analysisContext.exists(importedSource)) {
-            // The imported source will be null if the URI in the import directive was invalid.
-            ResolvableLibrary importedLibrary = _libraryMap[importedSource];
-            if (importedLibrary != null) {
-              ImportElementImpl importElement = new ImportElementImpl(directive.offset);
-              StringLiteral uriLiteral = importDirective.uri;
-              if (uriLiteral != null) {
-                importElement.uriOffset = uriLiteral.offset;
-                importElement.uriEnd = uriLiteral.end;
-              }
-              importElement.uri = uriContent;
-              importElement.combinators = _buildCombinators(importDirective);
-              LibraryElement importedLibraryElement = importedLibrary.libraryElement;
-              if (importedLibraryElement != null) {
-                importElement.importedLibrary = importedLibraryElement;
-              }
-              SimpleIdentifier prefixNode = directive.prefix;
-              if (prefixNode != null) {
-                importElement.prefixOffset = prefixNode.offset;
-                String prefixName = prefixNode.name;
-                PrefixElementImpl prefix = nameToPrefixMap[prefixName];
-                if (prefix == null) {
-                  prefix = new PrefixElementImpl.forNode(prefixNode);
-                  nameToPrefixMap[prefixName] = prefix;
-                }
-                importElement.prefix = prefix;
-                prefixNode.staticElement = prefix;
-              }
-              directive.element = importElement;
-              imports.add(importElement);
-              if (analysisContext.computeKindOf(importedSource) != SourceKind.LIBRARY) {
-                ErrorCode errorCode = (importElement.isDeferred ? StaticWarningCode.IMPORT_OF_NON_LIBRARY : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, errorCode, [uriLiteral.toSource()]));
-              }
-            }
-          }
-        } else if (directive is ExportDirective) {
-          ExportDirective exportDirective = directive;
-          Source exportedSource = exportDirective.source;
-          if (exportedSource != null && analysisContext.exists(exportedSource)) {
-            // The exported source will be null if the URI in the export directive was invalid.
-            ResolvableLibrary exportedLibrary = _libraryMap[exportedSource];
-            if (exportedLibrary != null) {
-              ExportElementImpl exportElement = new ExportElementImpl();
-              StringLiteral uriLiteral = exportDirective.uri;
-              if (uriLiteral != null) {
-                exportElement.uriOffset = uriLiteral.offset;
-                exportElement.uriEnd = uriLiteral.end;
-              }
-              exportElement.uri = exportDirective.uriContent;
-              exportElement.combinators = _buildCombinators(exportDirective);
-              LibraryElement exportedLibraryElement = exportedLibrary.libraryElement;
-              if (exportedLibraryElement != null) {
-                exportElement.exportedLibrary = exportedLibraryElement;
-              }
-              directive.element = exportElement;
-              exports.add(exportElement);
-              if (analysisContext.computeKindOf(exportedSource) != SourceKind.LIBRARY) {
-                _errorListener.onError(new AnalysisError.con2(library.librarySource, uriLiteral.offset, uriLiteral.length, CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY, [uriLiteral.toSource()]));
-              }
-            }
-          }
-        }
-      }
-      Source librarySource = library.librarySource;
-      if (!library.explicitlyImportsCore && _coreLibrarySource != librarySource) {
-        ImportElementImpl importElement = new ImportElementImpl(-1);
-        importElement.importedLibrary = _coreLibrary.libraryElement;
-        importElement.synthetic = true;
-        imports.add(importElement);
-      }
-      LibraryElementImpl libraryElement = library.libraryElement;
-      libraryElement.imports = new List.from(imports);
-      libraryElement.exports = new List.from(exports);
-      if (libraryElement.entryPoint == null) {
-        Namespace namespace = new NamespaceBuilder().createExportNamespaceForLibrary(libraryElement);
-        Element element = namespace.get(LibraryElementBuilder.ENTRY_POINT_NAME);
-        if (element is FunctionElement) {
-          libraryElement.entryPoint = element;
-        }
-      }
-    }
-  }
-
-  /**
-   * Build element models for all of the libraries in the current cycle.
-   *
-   * @throws AnalysisException if any of the element models cannot be built
-   */
-  void _buildElementModels() {
-    for (ResolvableLibrary library in librariesInCycle) {
-      LibraryElementBuilder builder = new LibraryElementBuilder(context, _errorListener);
-      LibraryElementImpl libraryElement = builder.buildLibrary2(library);
-      library.libraryElement = libraryElement;
-    }
-  }
-
-  /**
-   * Build a table mapping library sources to the resolvable libraries representing those libraries.
-   *
-   * @return the map that was built
-   */
-  HashMap<Source, ResolvableLibrary> _buildLibraryMap() {
-    HashMap<Source, ResolvableLibrary> libraryMap = new HashMap<Source, ResolvableLibrary>();
-    int libraryCount = librariesInCycle.length;
-    for (int i = 0; i < libraryCount; i++) {
-      ResolvableLibrary library = librariesInCycle[i];
-      library.errorListener = _errorListener;
-      libraryMap[library.librarySource] = library;
-      List<ResolvableLibrary> dependencies = library.importsAndExports;
-      int dependencyCount = dependencies.length;
-      for (int j = 0; j < dependencyCount; j++) {
-        ResolvableLibrary dependency = dependencies[j];
-        //dependency.setErrorListener(errorListener);
-        libraryMap[dependency.librarySource] = dependency;
-      }
-    }
-    return libraryMap;
-  }
-
-  /**
-   * Resolve the type hierarchy across all of the types declared in the libraries in the current
-   * cycle.
-   *
-   * @throws AnalysisException if any of the type hierarchies could not be resolved
-   */
-  void _buildTypeHierarchies(TypeProvider typeProvider) {
-    TimeCounter_TimeCounterHandle timeCounter = PerformanceStatistics.resolve.start();
-    try {
-      for (ResolvableLibrary library in librariesInCycle) {
-        for (ResolvableCompilationUnit unit in library.resolvableCompilationUnits) {
-          Source source = unit.source;
-          CompilationUnit ast = unit.compilationUnit;
-          TypeResolverVisitor visitor = new TypeResolverVisitor.con4(library, source, typeProvider);
-          ast.accept(visitor);
-        }
-      }
-    } finally {
-      timeCounter.stop();
-    }
-  }
-
-  /**
-   * Return an array containing the lexical identifiers associated with the nodes in the given list.
-   *
-   * @param names the AST nodes representing the identifiers
-   * @return the lexical identifiers associated with the nodes in the list
-   */
-  List<String> _getIdentifiers(NodeList<SimpleIdentifier> names) {
-    int count = names.length;
-    List<String> identifiers = new List<String>(count);
-    for (int i = 0; i < count; i++) {
-      identifiers[i] = names[i].name;
-    }
-    return identifiers;
-  }
-}
-
-/**
  * Instances of the class `CachePartition` implement a single partition in an LRU cache of
  * information related to analysis.
  */
@@ -8771,16 +8321,6 @@ abstract class DartEntry implements SourceEntry {
   static final DataDescriptor<List<AnalysisError>> ANGULAR_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.ANGULAR_ERRORS");
 
   /**
-   * The data descriptor representing the errors reported while building an element model.
-   */
-  static final DataDescriptor<List<AnalysisError>> BUILD_ELEMENT_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.BUILD_ELEMENT_ERRORS");
-
-  /**
-   * The data descriptor representing the AST structure resulting from building the element model.
-   */
-  static final DataDescriptor<CompilationUnit> BUILT_UNIT = new DataDescriptor<CompilationUnit>("DartEntry.BUILT_UNIT");
-
-  /**
    * The data descriptor representing the list of libraries that contain this compilation unit.
    */
   static final DataDescriptor<List<Source>> CONTAINING_LIBRARIES = new DataDescriptor<List<Source>>("DartEntry.CONTAINING_LIBRARIES");
@@ -9273,11 +8813,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
       if (librarySource == state._librarySource) {
-        if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
-          return state._buildElementErrorsState;
-        } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
-          return state._builtUnitState;
-        } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrorsState;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
           return state._resolvedUnitState;
@@ -9292,7 +8828,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state._nextState;
     }
     ;
-    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.BUILT_UNIT) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
+    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       return CacheState.INVALID;
     } else {
       throw new IllegalArgumentException("Invalid descriptor: ${descriptor}");
@@ -9339,11 +8875,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
     DartEntryImpl_ResolutionState state = _resolutionState;
     while (state != null) {
       if (librarySource == state._librarySource) {
-        if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
-          return state._buildElementErrors;
-        } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
-          return state._builtUnit;
-        } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrors;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
           return state._resolvedUnit;
@@ -9358,7 +8890,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       state = state._nextState;
     }
     ;
-    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
+    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       return AnalysisError.NO_ERRORS;
     } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
       return null;
@@ -9400,14 +8932,10 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
       return _sourceKindState == CacheState.INVALID;
     } else if (identical(descriptor, DartEntry.TOKEN_STREAM)) {
       return _tokenStreamState == CacheState.INVALID;
-    } else if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS) || identical(descriptor, DartEntry.BUILT_UNIT) || identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
+    } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS) || identical(descriptor, DartEntry.RESOLVED_UNIT) || identical(descriptor, DartEntry.VERIFICATION_ERRORS) || identical(descriptor, DartEntry.HINTS)) {
       DartEntryImpl_ResolutionState state = _resolutionState;
       while (state != null) {
-        if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
-          return state._buildElementErrorsState == CacheState.INVALID;
-        } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
-          return state._builtUnitState == CacheState.INVALID;
-        } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+        if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
           return state._resolutionErrorsState == CacheState.INVALID;
         } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
           return state._resolvedUnitState == CacheState.INVALID;
@@ -9861,13 +9389,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    */
   void setStateInLibrary(DataDescriptor descriptor, Source librarySource, CacheState cacheState) {
     DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
-    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
-      state._buildElementErrors = updatedValue(cacheState, state._buildElementErrors, AnalysisError.NO_ERRORS);
-      state._buildElementErrorsState = cacheState;
-    } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
-      state._builtUnit = updatedValue(cacheState, state._builtUnit, null);
-      state._builtUnitState = cacheState;
-    } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
       state._resolutionErrors = updatedValue(cacheState, state._resolutionErrors, AnalysisError.NO_ERRORS);
       state._resolutionErrorsState = cacheState;
     } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -9941,13 +9463,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
    */
   void setValueInLibrary(DataDescriptor descriptor, Source librarySource, Object value) {
     DartEntryImpl_ResolutionState state = _getOrCreateResolutionState(librarySource);
-    if (identical(descriptor, DartEntry.BUILD_ELEMENT_ERRORS)) {
-      state._buildElementErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
-      state._buildElementErrorsState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.BUILT_UNIT)) {
-      state._builtUnit = value as CompilationUnit;
-      state._builtUnitState = CacheState.VALID;
-    } else if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
+    if (identical(descriptor, DartEntry.RESOLUTION_ERRORS)) {
       state._resolutionErrors = value == null ? AnalysisError.NO_ERRORS : (value as List<AnalysisError>);
       state._resolutionErrorsState = CacheState.VALID;
     } else if (identical(descriptor, DartEntry.RESOLVED_UNIT)) {
@@ -10420,8 +9936,6 @@ class DartEntryImpl_ResolutionState {
    * @return `true` if some difference was written
    */
   bool writeDiffOn(JavaStringBuilder builder, bool needsSeparator, DartEntry oldEntry) {
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.BUILT_UNIT, _builtUnitState, "builtUnit");
-    needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.BUILD_ELEMENT_ERRORS, _buildElementErrorsState, "buildElementErrors");
     needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.RESOLVED_UNIT, _resolvedUnitState, "resolvedUnit");
     needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.RESOLUTION_ERRORS, _resolutionErrorsState, "resolutionErrors");
     needsSeparator = writeStateDiffOn(builder, needsSeparator, oldEntry, DartEntry.VERIFICATION_ERRORS, _verificationErrorsState, "verificationErrors");

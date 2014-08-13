@@ -1870,7 +1870,7 @@ class Scanner {
  * scanner.
  */
 class ScannerErrorCode extends Enum<ScannerErrorCode> implements ErrorCode {
-  static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character %x");
+  static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode.con1('ILLEGAL_CHARACTER', 0, "Illegal character {0}");
 
   static const ScannerErrorCode MISSING_DIGIT = const ScannerErrorCode.con1('MISSING_DIGIT', 1, "Decimal digit expected");
 

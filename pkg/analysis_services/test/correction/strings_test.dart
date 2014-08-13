@@ -34,13 +34,6 @@ class StringsTest {
     expect(compareStrings('b', 'a'), 1);
   }
 
-  void test_format() {
-    expect(format('Hello, {0}!', 'John'), 'Hello, John!');
-    expect(
-        format('{0} are you {1}ing?', 'What', 'read'),
-        'What are you reading?');
-  }
-
   void test_isBlank() {
     expect(isBlank(null), isTrue);
     expect(isBlank(''), isTrue);

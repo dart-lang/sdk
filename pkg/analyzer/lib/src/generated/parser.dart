@@ -7757,9 +7757,9 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode DIRECTIVE_AFTER_DECLARATION = const ParserErrorCode.con3('DIRECTIVE_AFTER_DECLARATION', 24, "Directives must appear before any declarations");
 
-  static const ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = const ParserErrorCode.con3('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 25, "The label %s was already used in this switch statement");
+  static const ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT = const ParserErrorCode.con3('DUPLICATE_LABEL_IN_SWITCH_STATEMENT', 25, "The label {0} was already used in this switch statement");
 
-  static const ParserErrorCode DUPLICATED_MODIFIER = const ParserErrorCode.con3('DUPLICATED_MODIFIER', 26, "The modifier '%s' was already specified.");
+  static const ParserErrorCode DUPLICATED_MODIFIER = const ParserErrorCode.con3('DUPLICATED_MODIFIER', 26, "The modifier '{0}' was already specified.");
 
   static const ParserErrorCode EMPTY_ENUM_BODY = const ParserErrorCode.con3('EMPTY_ENUM_BODY', 27, "An enum must declare at least one constant name");
 
@@ -7775,7 +7775,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode EXPECTED_STRING_LITERAL = const ParserErrorCode.con3('EXPECTED_STRING_LITERAL', 33, "Expected a string literal");
 
-  static const ParserErrorCode EXPECTED_TOKEN = const ParserErrorCode.con3('EXPECTED_TOKEN', 34, "Expected to find '%s'");
+  static const ParserErrorCode EXPECTED_TOKEN = const ParserErrorCode.con3('EXPECTED_TOKEN', 34, "Expected to find '{0}'");
 
   static const ParserErrorCode EXPECTED_TYPE_NAME = const ParserErrorCode.con3('EXPECTED_TYPE_NAME', 35, "Expected a type name");
 
@@ -7841,15 +7841,15 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode INVALID_AWAIT_IN_FOR = const ParserErrorCode.con4('INVALID_AWAIT_IN_FOR', 66, "The modifier 'await' is not allowed for a normal 'for' statement", "Remove the keyword or use a for-each statement.");
 
-  static const ParserErrorCode INVALID_CODE_POINT = const ParserErrorCode.con3('INVALID_CODE_POINT', 67, "The escape sequence '%s' is not a valid code point");
+  static const ParserErrorCode INVALID_CODE_POINT = const ParserErrorCode.con3('INVALID_CODE_POINT', 67, "The escape sequence '{0}' is not a valid code point");
 
   static const ParserErrorCode INVALID_COMMENT_REFERENCE = const ParserErrorCode.con3('INVALID_COMMENT_REFERENCE', 68, "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else");
 
   static const ParserErrorCode INVALID_HEX_ESCAPE = const ParserErrorCode.con3('INVALID_HEX_ESCAPE', 69, "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
 
-  static const ParserErrorCode INVALID_OPERATOR = const ParserErrorCode.con3('INVALID_OPERATOR', 70, "The string '%s' is not a valid operator");
+  static const ParserErrorCode INVALID_OPERATOR = const ParserErrorCode.con3('INVALID_OPERATOR', 70, "The string '{0}' is not a valid operator");
 
-  static const ParserErrorCode INVALID_OPERATOR_FOR_SUPER = const ParserErrorCode.con3('INVALID_OPERATOR_FOR_SUPER', 71, "The operator '%s' cannot be used with 'super'");
+  static const ParserErrorCode INVALID_OPERATOR_FOR_SUPER = const ParserErrorCode.con3('INVALID_OPERATOR_FOR_SUPER', 71, "The operator '{0}' cannot be used with 'super'");
 
   static const ParserErrorCode INVALID_STAR_AFTER_ASYNC = const ParserErrorCode.con4('INVALID_STAR_AFTER_ASYNC', 72, "The modifier 'async*' is not allowed for an expression function body", "Convert the body to a block.");
 
@@ -7895,7 +7895,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode MISSING_STATEMENT = const ParserErrorCode.con3('MISSING_STATEMENT', 93, "Expected a statement");
 
-  static const ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 94, "There is no '%s' to close the parameter group");
+  static const ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('MISSING_TERMINATOR_FOR_PARAMETER_GROUP', 94, "There is no '{0}' to close the parameter group");
 
   static const ParserErrorCode MISSING_TYPEDEF_PARAMETERS = const ParserErrorCode.con3('MISSING_TYPEDEF_PARAMETERS', 95, "Type aliases for functions must have an explicit list of parameters");
 
@@ -7915,7 +7915,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode MULTIPLE_POSITIONAL_PARAMETER_GROUPS = const ParserErrorCode.con3('MULTIPLE_POSITIONAL_PARAMETER_GROUPS', 103, "Cannot have multiple groups of positional parameters in a single parameter list");
 
-  static const ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = const ParserErrorCode.con3('MULTIPLE_VARIABLES_IN_FOR_EACH', 104, "A single loop variable must be declared in a for-each loop before the 'in', but %s were found");
+  static const ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = const ParserErrorCode.con3('MULTIPLE_VARIABLES_IN_FOR_EACH', 104, "A single loop variable must be declared in a for-each loop before the 'in', but {0} were found");
 
   static const ParserErrorCode MULTIPLE_WITH_CLAUSES = const ParserErrorCode.con3('MULTIPLE_WITH_CLAUSES', 105, "Each class definition can have at most one with clause");
 
@@ -7933,7 +7933,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode NON_PART_OF_DIRECTIVE_IN_PART = const ParserErrorCode.con3('NON_PART_OF_DIRECTIVE_IN_PART', 112, "The part-of directive must be the only directive in a part");
 
-  static const ParserErrorCode NON_USER_DEFINABLE_OPERATOR = const ParserErrorCode.con3('NON_USER_DEFINABLE_OPERATOR', 113, "The operator '%s' is not user definable");
+  static const ParserErrorCode NON_USER_DEFINABLE_OPERATOR = const ParserErrorCode.con3('NON_USER_DEFINABLE_OPERATOR', 113, "The operator '{0}' is not user definable");
 
   static const ParserErrorCode NORMAL_BEFORE_OPTIONAL_PARAMETERS = const ParserErrorCode.con3('NORMAL_BEFORE_OPTIONAL_PARAMETERS', 114, "Normal parameters must occur before optional parameters");
 
@@ -7967,9 +7967,9 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode TOP_LEVEL_OPERATOR = const ParserErrorCode.con3('TOP_LEVEL_OPERATOR', 129, "Operators must be declared within a class");
 
-  static const ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 130, "There is no '%s' to open a parameter group");
+  static const ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP', 130, "There is no '{0}' to open a parameter group");
 
-  static const ParserErrorCode UNEXPECTED_TOKEN = const ParserErrorCode.con3('UNEXPECTED_TOKEN', 131, "Unexpected token '%s'");
+  static const ParserErrorCode UNEXPECTED_TOKEN = const ParserErrorCode.con3('UNEXPECTED_TOKEN', 131, "Unexpected token '{0}'");
 
   static const ParserErrorCode WITH_BEFORE_EXTENDS = const ParserErrorCode.con3('WITH_BEFORE_EXTENDS', 132, "The extends clause must be before the with clause");
 
@@ -7979,7 +7979,7 @@ class ParserErrorCode extends Enum<ParserErrorCode> implements ErrorCode {
 
   static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = const ParserErrorCode.con3('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER', 135, "The default value of a positional parameter should be preceeded by '='");
 
-  static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 136, "Expected '%s' to close parameter group");
+  static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP = const ParserErrorCode.con3('WRONG_TERMINATOR_FOR_PARAMETER_GROUP', 136, "Expected '{0}' to close parameter group");
 
   static const ParserErrorCode VAR_AND_TYPE = const ParserErrorCode.con3('VAR_AND_TYPE', 137, "Variables cannot be declared using both 'var' and a type name; remove the 'var'");
 

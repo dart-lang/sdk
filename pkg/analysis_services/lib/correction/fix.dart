@@ -47,49 +47,49 @@ class Fix {
  */
 class FixKind {
   static const ADD_PACKAGE_DEPENDENCY =
-      const FixKind('ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '%s'");
+      const FixKind('ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION =
       const FixKind(
           'ADD_SUPER_CONSTRUCTOR_INVOCATION',
           50,
-          "Add super constructor %s invocation");
-  static const CHANGE_TO = const FixKind('CHANGE_TO', 51, "Change to '%s'");
+          "Add super constructor {0} invocation");
+  static const CHANGE_TO = const FixKind('CHANGE_TO', 51, "Change to '{0}'");
   static const CHANGE_TO_STATIC_ACCESS =
       const FixKind(
           'CHANGE_TO_STATIC_ACCESS',
           50,
-          "Change access to static using '%s'");
+          "Change access to static using '{0}'");
   static const CREATE_CLASS =
-      const FixKind('CREATE_CLASS', 50, "Create class '%s'");
+      const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
-      const FixKind('CREATE_CONSTRUCTOR', 50, "Create constructor '%s'");
+      const FixKind('CREATE_CONSTRUCTOR', 50, "Create constructor '{0}'");
   static const CREATE_CONSTRUCTOR_SUPER =
-      const FixKind('CREATE_CONSTRUCTOR_SUPER', 50, "Create constructor to call %s");
+      const FixKind('CREATE_CONSTRUCTOR_SUPER', 50, "Create constructor to call {0}");
   static const CREATE_FUNCTION =
-      const FixKind('CREATE_FUNCTION', 49, "Create function '%s'");
+      const FixKind('CREATE_FUNCTION', 49, "Create function '{0}'");
   static const CREATE_METHOD =
-      const FixKind('CREATE_METHOD', 50, "Create method '%s'");
+      const FixKind('CREATE_METHOD', 50, "Create method '{0}'");
   static const CREATE_MISSING_OVERRIDES =
       const FixKind('CREATE_MISSING_OVERRIDES', 50, "Create %d missing override(s)");
   static const CREATE_NO_SUCH_METHOD =
       const FixKind('CREATE_NO_SUCH_METHOD', 49, "Create 'noSuchMethod' method");
   static const CREATE_PART =
-      const FixKind('CREATE_PART', 50, "Create part '%s'");
+      const FixKind('CREATE_PART', 50, "Create part '{0}'");
   static const IMPORT_LIBRARY_PREFIX =
       const FixKind(
           'IMPORT_LIBRARY_PREFIX',
           51,
-          "Use imported library '%s' with prefix '%s'");
+          "Use imported library '{0}' with prefix '{1}'");
   static const IMPORT_LIBRARY_PROJECT =
-      const FixKind('IMPORT_LIBRARY_PROJECT', 51, "Import library '%s'");
+      const FixKind('IMPORT_LIBRARY_PROJECT', 51, "Import library '{0}'");
   static const IMPORT_LIBRARY_SDK =
-      const FixKind('IMPORT_LIBRARY_SDK', 51, "Import library '%s'");
+      const FixKind('IMPORT_LIBRARY_SDK', 51, "Import library '{0}'");
   static const IMPORT_LIBRARY_SHOW =
-      const FixKind('IMPORT_LIBRARY_SHOW', 51, "Update library '%s' import");
+      const FixKind('IMPORT_LIBRARY_SHOW', 51, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
   static const MAKE_CLASS_ABSTRACT =
-      const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '%s' abstract");
+      const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION =
       const FixKind(
           'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
