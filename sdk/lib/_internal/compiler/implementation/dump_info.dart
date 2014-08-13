@@ -256,6 +256,16 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
         if (member is MemberElement) {
           for (Element closure in member.nestedClosures) {
             Map<String, dynamic> child = this.process(closure);
+
+            // Look for the parent element of this closure which should
+            // be a class.  If it exists, set the display name to
+            // the name of the class + the name of the closure function.
+            Element parent = closure.enclosingElement;
+            Map<String, dynamic> processedParent = this.process(parent);
+            if (processedParent != null) {
+              child['name'] = "${processedParent['name']}.${child['name']}";
+            }
+
             if (child != null) {
               size += child['size'];
             }
