@@ -511,7 +511,10 @@ intptr_t CompileType::ToNullableCid() {
       if (FLAG_use_cha) {
         const Class& type_class = Class::Handle(type_->type_class());
         CHA* cha = Isolate::Current()->cha();
-        if (!cha->IsImplemented(type_class) &&
+        // Don't infer a cid from an abstract type for signature classes since
+        // there can be multiple compatible classes with different cids.
+        if (!type_class.IsSignatureClass() &&
+            !cha->IsImplemented(type_class) &&
             !cha->HasSubclasses(type_class.id())) {
           cid_ = type_class.id();
         } else {
