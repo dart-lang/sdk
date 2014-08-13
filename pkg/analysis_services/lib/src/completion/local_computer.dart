@@ -178,4 +178,12 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
   visitNode(AstNode node) {
     node.parent.accept(this);
   }
+
+  visitVariableDeclaration(VariableDeclaration node) {
+    // Do not add suggestions if editing the name in a var declaration
+    SimpleIdentifier name = node.name;
+    if (name == null || name.offset < offset || offset > name.end) {
+      visitNode(node);
+    }
+  }
 }

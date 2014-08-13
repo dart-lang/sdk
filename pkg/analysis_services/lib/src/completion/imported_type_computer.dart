@@ -32,7 +32,7 @@ class ImportedTypeComputer extends CompletionComputer {
   Future<bool> computeFull(CompilationUnit unit, AstNode node,
       List<CompletionSuggestion> suggestions) {
     return node.accept(
-        new _ImportedTypeVisitor(searchEngine, unit, suggestions));
+        new _ImportedTypeVisitor(searchEngine, unit, offset, suggestions));
   }
 }
 
@@ -43,9 +43,11 @@ class ImportedTypeComputer extends CompletionComputer {
 class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
   final SearchEngine searchEngine;
   final CompilationUnit unit;
+  final int offset;
   final List<CompletionSuggestion> suggestions;
 
-  _ImportedTypeVisitor(this.searchEngine, this.unit, this.suggestions);
+  _ImportedTypeVisitor(this.searchEngine, this.unit, this.offset,
+      this.suggestions);
 
   Future<bool> visitCombinator(Combinator node) {
     var directive = node.getAncestor((parent) => parent is NamespaceDirective);
@@ -61,6 +63,15 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
 
   Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
     return node.parent.accept(this);
+  }
+
+  Future<bool> visitVariableDeclaration(VariableDeclaration node) {
+    // Do not add suggestions if editing the name in a var declaration
+    SimpleIdentifier name = node.name;
+    if (name == null || name.offset < offset || offset > name.end) {
+      return visitNode(node);
+    }
+    return new Future.value(false);
   }
 
   Future<bool> _addImportedElements() {

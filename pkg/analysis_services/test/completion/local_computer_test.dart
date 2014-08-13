@@ -59,6 +59,21 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestLibraryPrefix('x');
   }
 
+  test_field_name() {
+    addTestSource('class A {B ^}}');
+    expect(computeFast(), isTrue);
+    assertNotSuggested('A');
+  }
+
+  test_field_name2() {
+    addTestSource('class A {var ^}}');
+    expect(computeFast(), isTrue);
+    //TODO (danrubel) should not be suggested
+    // but var ^ in this test
+    // parses differently than B ^ in test above
+    assertSuggestClass('A');
+  }
+
   test_for() {
     addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
     expect(computeFast(), isTrue);
@@ -77,6 +92,25 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestFunction('main');
     assertSuggestParameter('args');
     assertSuggestParameter('b');
+  }
+
+  test_local_name() {
+    addTestSource('class A {a() {var f; A ^}}');
+    expect(computeFast(), isTrue);
+    //TODO (danrubel) should not be suggested
+    // but A ^ in this test
+    // parses differently than var ^ in test below
+    assertSuggestClass('A');
+    assertSuggestMethodName('a');
+    assertSuggestVariable('f');
+  }
+
+  test_local_name2() {
+    addTestSource('class A {a() {var f; var ^}}');
+    expect(computeFast(), isTrue);
+    assertNotSuggested('A');
+    assertNotSuggested('a');
+    assertNotSuggested('f');
   }
 
   test_members() {
@@ -103,6 +137,21 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertSuggestParameter('y');
   }
 
+  test_topLevelVar_name() {
+    addTestSource('class A {} B ^');
+    expect(computeFast(), isTrue);
+    assertNotSuggested('A');
+  }
+
+  test_topLevelVar_name2() {
+    addTestSource('class A {} var ^');
+    expect(computeFast(), isTrue);
+    // TODO (danrubel) should not be suggested
+    // but var ^ in this test
+    // parses differently than B ^ in test above
+    assertSuggestClass('A');
+  }
+
   test_variableDeclaration() {
     addTestSource('main() {int a = 1, b = 2 + ^;}');
     expect(computeFast(), isTrue);
@@ -110,4 +159,3 @@ class LocalComputerTest extends AbstractCompletionTest {
     assertNotSuggested('b');
   }
 }
-

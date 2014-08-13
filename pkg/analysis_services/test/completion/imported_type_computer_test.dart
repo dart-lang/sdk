@@ -130,12 +130,69 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     });
   }
 
+  test_field_name() {
+    addSource('/testA.dart', 'class A { }');
+    addTestSource('import "/testA.dart"; class C {A ^}');
+    return computeFull().then((_) {
+      assertNotSuggested('A');
+    });
+  }
+
+  test_field_name2() {
+    addSource('/testA.dart', 'class A { }');
+    addTestSource('import "/testA.dart"; class C {var ^}');
+    return computeFull().then((_) {
+      // TODO (danrubel) should not be suggested
+      // but var ^ in this test
+      // parses differently than A ^ in test above
+      assertSuggestClass('A');
+    });
+  }
+
+  test_local_name() {
+    addSource('/testA.dart', 'var T1;');
+    addTestSource('import "/testA.dart"; class C {a() {C ^}}');
+    return computeFull().then((_) {
+      //TODO (danrubel) should not be suggested
+      // but C ^ in this test
+      // parses differently than var ^ in test below
+      assertSuggestTopLevelVar('T1');
+    });
+  }
+
+  test_local_name2() {
+    addSource('/testA.dart', 'var T1;');
+    addTestSource('import "/testA.dart"; class C {a() {var ^}}');
+    return computeFull().then((_) {
+      assertNotSuggested('T1');
+    });
+  }
+
   test_topLevelVar() {
     addSource('/testA.dart', 'var T1; var _T2;');
     addTestSource('import "/testA.dart"; class C {foo(){^}}');
     return computeFull().then((_) {
       assertSuggestTopLevelVar('T1');
       assertNotSuggested('_T2');
+    });
+  }
+
+  test_topLevelVar_name() {
+    addSource('/testA.dart', 'class B { };');
+    addTestSource('import "/testA.dart"; class C {} B ^');
+    return computeFull().then((_) {
+      assertNotSuggested('B');
+    });
+  }
+
+  test_topLevelVar_name2() {
+    addSource('/testA.dart', 'class B { };');
+    addTestSource('import "/testA.dart"; class C {} var ^');
+    return computeFull().then((_) {
+      // TODO (danrubel) should not be suggested
+      // but var ^ in this test
+      // parses differently than B ^ in test above
+      assertSuggestClass('B');
     });
   }
 
