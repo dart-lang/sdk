@@ -293,7 +293,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     intptr_t instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     if (kind_ == Snapshot::kFull) {
-      result ^= AllocateUninitialized(cls_, instance_size);
+      result ^= AllocateUninitialized(cls_.id(), instance_size);
     } else {
       result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
     }
@@ -424,7 +424,7 @@ void SnapshotReader::ReadFullSnapshot() {
   ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
   cls_ = class_obj;                                                            \
   Raw##type* obj = reinterpret_cast<Raw##type*>(                               \
-      AllocateUninitialized(cls_, type::InstanceSize(length)));                \
+      AllocateUninitialized(cls_.id(), type::InstanceSize(length)));           \
   obj->ptr()->length_ = Smi::New(length);                                      \
   return obj;                                                                  \
 
@@ -467,13 +467,13 @@ RawTokenStream* SnapshotReader::NewTokenStream(intptr_t len) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = Object::token_stream_class();
   stream_ = reinterpret_cast<RawTokenStream*>(
-      AllocateUninitialized(cls_, TokenStream::InstanceSize()));
+      AllocateUninitialized(cls_.id(), TokenStream::InstanceSize()));
   cls_ = isolate()->class_table()->At(kExternalTypedDataUint8ArrayCid);
   uint8_t* array = const_cast<uint8_t*>(CurrentBufferAddress());
   ASSERT(array != NULL);
   Advance(len);
   data_ = reinterpret_cast<RawExternalTypedData*>(
-      AllocateUninitialized(cls_, ExternalTypedData::InstanceSize()));
+      AllocateUninitialized(cls_.id(), ExternalTypedData::InstanceSize()));
   data_.SetData(array);
   data_.SetLength(len);
   stream_.SetStream(data_);
@@ -486,7 +486,7 @@ RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = Object::context_class();
   RawContext* obj = reinterpret_cast<RawContext*>(
-      AllocateUninitialized(cls_, Context::InstanceSize(num_variables)));
+      AllocateUninitialized(cls_.id(), Context::InstanceSize(num_variables)));
   obj->ptr()->num_variables_ = num_variables;
   return obj;
 }
@@ -502,7 +502,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   }
   cls_ = Object::class_class();
   RawClass* obj = reinterpret_cast<RawClass*>(
-      AllocateUninitialized(cls_, Class::InstanceSize()));
+      AllocateUninitialized(cls_.id(), Class::InstanceSize()));
   Instance fake;
   obj->ptr()->handle_vtable_ = fake.vtable();
   cls_ = obj;
@@ -517,7 +517,7 @@ RawInstance* SnapshotReader::NewInstance() {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = object_store()->object_class();
   RawInstance* obj = reinterpret_cast<RawInstance*>(
-      AllocateUninitialized(cls_, Instance::InstanceSize()));
+      AllocateUninitialized(cls_.id(), Instance::InstanceSize()));
   return obj;
 }
 
@@ -527,7 +527,7 @@ RawMint* SnapshotReader::NewMint(int64_t value) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = object_store()->mint_class();
   RawMint* obj = reinterpret_cast<RawMint*>(
-      AllocateUninitialized(cls_, Mint::InstanceSize()));
+      AllocateUninitialized(cls_.id(), Mint::InstanceSize()));
   obj->ptr()->value_ = value;
   return obj;
 }
@@ -539,7 +539,7 @@ RawBigint* SnapshotReader::NewBigint(const char* hex_string) {
   cls_ = object_store()->bigint_class();
   intptr_t bigint_length = BigintOperations::ComputeChunkLength(hex_string);
   RawBigint* obj = reinterpret_cast<RawBigint*>(
-      AllocateUninitialized(cls_, Bigint::InstanceSize(bigint_length)));
+      AllocateUninitialized(cls_.id(), Bigint::InstanceSize(bigint_length)));
   obj->ptr()->allocated_length_ = bigint_length;
   obj->ptr()->signed_length_ = bigint_length;
   BigintOperations::FromHexCString(hex_string, Bigint::Handle(obj));
@@ -552,8 +552,19 @@ RawDouble* SnapshotReader::NewDouble(double value) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = object_store()->double_class();
   RawDouble* obj = reinterpret_cast<RawDouble*>(
-      AllocateUninitialized(cls_, Double::InstanceSize()));
+      AllocateUninitialized(cls_.id(), Double::InstanceSize()));
   obj->ptr()->value_ = value;
+  return obj;
+}
+
+
+RawTypedData* SnapshotReader::NewTypedData(intptr_t class_id, intptr_t len) {
+  ASSERT(kind_ == Snapshot::kFull);
+  ASSERT(isolate()->no_gc_scope_depth() != 0);
+  const intptr_t lengthInBytes = len * TypedData::ElementSizeInBytes(class_id);
+  RawTypedData* obj = reinterpret_cast<RawTypedData*>(
+      AllocateUninitialized(class_id, TypedData::InstanceSize(lengthInBytes)));
+  obj->ptr()->length_ = Smi::New(len);
   return obj;
 }
 
@@ -563,7 +574,7 @@ RawDouble* SnapshotReader::NewDouble(double value) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);                                 \
   cls_ = class_obj;                                                            \
   return reinterpret_cast<Raw##type*>(                                         \
-      AllocateUninitialized(cls_, type::InstanceSize()));                      \
+      AllocateUninitialized(cls_.id(), type::InstanceSize()));                 \
 
 
 RawUnresolvedClass* SnapshotReader::NewUnresolvedClass() {
@@ -658,7 +669,7 @@ RawFloat32x4* SnapshotReader::NewFloat32x4(float v0, float v1, float v2,
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = object_store()->float32x4_class();
   RawFloat32x4* obj = reinterpret_cast<RawFloat32x4*>(
-      AllocateUninitialized(cls_, Float32x4::InstanceSize()));
+      AllocateUninitialized(cls_.id(), Float32x4::InstanceSize()));
   obj->ptr()->value_[0] = v0;
   obj->ptr()->value_[1] = v1;
   obj->ptr()->value_[2] = v2;
@@ -673,7 +684,7 @@ RawInt32x4* SnapshotReader::NewInt32x4(uint32_t v0, uint32_t v1, uint32_t v2,
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = object_store()->int32x4_class();
   RawInt32x4* obj = reinterpret_cast<RawInt32x4*>(
-      AllocateUninitialized(cls_, Int32x4::InstanceSize()));
+      AllocateUninitialized(cls_.id(), Int32x4::InstanceSize()));
   obj->ptr()->value_[0] = v0;
   obj->ptr()->value_[1] = v1;
   obj->ptr()->value_[2] = v2;
@@ -687,7 +698,7 @@ RawFloat64x2* SnapshotReader::NewFloat64x2(double v0, double v1) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   cls_ = object_store()->float64x2_class();
   RawFloat64x2* obj = reinterpret_cast<RawFloat64x2*>(
-      AllocateUninitialized(cls_, Float64x2::InstanceSize()));
+      AllocateUninitialized(cls_.id(), Float64x2::InstanceSize()));
   obj->ptr()->value_[0] = v0;
   obj->ptr()->value_[1] = v1;
   return obj;
@@ -745,7 +756,7 @@ RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
 }
 
 
-RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
+RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
                                                  intptr_t size) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -776,9 +787,8 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
 
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   uword tags = 0;
-  intptr_t index = cls.id();
-  ASSERT(index != kIllegalCid);
-  tags = RawObject::ClassIdTag::update(index, tags);
+  ASSERT(class_id != kIllegalCid);
+  tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   raw_obj->ptr()->tags_ = tags;
   return raw_obj;
@@ -860,7 +870,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
       ASSERT(instance_size > 0);
       // Allocate the instance and read in all the fields for the object.
       if (kind_ == Snapshot::kFull) {
-        *result ^= AllocateUninitialized(cls_, instance_size);
+        *result ^= AllocateUninitialized(cls_.id(), instance_size);
       } else {
         *result ^= Object::Allocate(cls_.id(),
                                     instance_size,

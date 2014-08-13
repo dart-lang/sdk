@@ -72,7 +72,7 @@ namespace dart {
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
-    V(LinkedHashMap)                                                         \
+    V(LinkedHashMap)                                                           \
     V(UserTag)                                                                 \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
@@ -1619,6 +1619,7 @@ class RawTypedData : public RawInstance {
   friend class Api;
   friend class Object;
   friend class Instance;
+  friend class SnapshotReader;
 };
 
 

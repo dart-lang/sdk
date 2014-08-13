@@ -2391,8 +2391,9 @@ RawTypedData* TypedData::ReadFrom(SnapshotReader* reader,
 
   intptr_t cid = RawObject::ClassIdTag::decode(tags);
   intptr_t len = reader->ReadSmiValue();
-  TypedData& result = TypedData::ZoneHandle(
-      reader->isolate(), TypedData::New(cid, len, HEAP_SPACE(kind)));
+  TypedData& result = TypedData::ZoneHandle(reader->isolate(),
+      (kind == Snapshot::kFull) ? reader->NewTypedData(cid, len)
+                                : TypedData::New(cid, len, HEAP_SPACE(kind)));
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
   // Set the object tags.
