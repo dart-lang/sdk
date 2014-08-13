@@ -20,6 +20,8 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 
+#include "platform/utils.h"
+
 
 namespace dart {
 namespace bin {
