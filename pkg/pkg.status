@@ -102,6 +102,11 @@ typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64Li
 analysis_server/test/search/element_references_test: Pass, Slow
 analysis_services/test/index/store/codec_test: Pass, Slow
 
+# Analysis server integration tests don't make sense to run under
+# dart2js, since the code under test always runs in the Dart vm as a
+# subprocess.
+analysis_server/test/integration: Skip
+
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 http/test/html/client_test: Fail # Issue 19750
 scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
