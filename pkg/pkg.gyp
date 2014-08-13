@@ -69,11 +69,8 @@
                 '"third_party"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"../third_party/pkg"])',
-            '<!@(["python", "../tools/list_pkg_directories.py", '
-                '"polymer/e2e_test/"])',
             '../sdk/lib/_internal/compiler',
             '../sdk/lib/_internal/libraries.dart',
-            '../site/try',
             '<(SHARED_INTERMEDIATE_DIR)/remove_html_imports/http/lib/http.dart',
           ],
           'outputs': [

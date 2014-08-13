@@ -23,6 +23,7 @@
             '<(SHARED_INTERMEDIATE_DIR)/pub_files.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/dart2js_files.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
+            '<(SHARED_INTERMEDIATE_DIR)/pub_packages.stamp',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
