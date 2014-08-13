@@ -725,7 +725,11 @@ abstract class IntegrationTestMixin {
    *
    * results ( List<CompletionSuggestion> )
    *
-   *   The completion suggestions being reported.
+   *   The completion suggestions being reported. The notification contains all
+   *   possible completions at the requested cursor position, even those that
+   *   do not match the characters the user has already typed. This allows the
+   *   client to respond to further keystrokes from the user without having to
+   *   make additional requests.
    *
    * last ( bool )
    *
