@@ -6771,6 +6771,42 @@ const char* Function::ToCString() const {
 }
 
 
+const char* GetFunctionServiceId(const Function& f, const Class& cls) {
+  Zone* zone = Isolate::Current()->current_zone();
+  // Special kinds of functions use indices in their respective lists.
+  intptr_t id = -1;
+  const char* selector = NULL;
+  if (f.IsNonImplicitClosureFunction()) {
+    id = cls.FindClosureIndex(f);
+    selector = "closures";
+  } else if (f.IsImplicitClosureFunction()) {
+    id = cls.FindImplicitClosureFunctionIndex(f);
+    selector = "implicit_closures";
+  } else if (f.IsNoSuchMethodDispatcher() || f.IsInvokeFieldDispatcher()) {
+    id = cls.FindInvocationDispatcherFunctionIndex(f);
+    selector = "dispatchers";
+  }
+  if (id != -1) {
+    ASSERT(selector != NULL);
+    return zone->PrintToString("classes/%" Pd "/%s/%" Pd "",
+                               cls.id(), selector, id);
+  }
+  // Regular functions known to their owner use their name (percent-encoded).
+  String& name = String::Handle(f.name());
+  if (cls.LookupFunction(name) == f.raw()) {
+    name = String::EncodeIRI(name);
+    return zone->PrintToString("classes/%" Pd "/functions/%s",
+                               cls.id(), name.ToCString());
+  }
+  // Oddball functions (not known to their owner) fall back to use the object
+  // id ring. Current known examples are signature functions of closures
+  // and stubs like 'megamorphic_miss'.
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  id = ring->GetIdForObject(f.raw());
+  return zone->PrintToString("objects/%" Pd "", id);
+}
+
+
 void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* internal_name = String::Handle(name()).ToCString();
   const char* pretty_name =
@@ -6780,34 +6816,9 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Error& err = Error::Handle();
   err ^= cls.EnsureIsFinalized(Isolate::Current());
   ASSERT(err.IsNull());
-  intptr_t id = -1;
-  const char* selector = NULL;
-  if (IsNonImplicitClosureFunction()) {
-    id = cls.FindClosureIndex(*this);
-    selector = "closures";
-  } else if (IsImplicitClosureFunction()) {
-    id = cls.FindImplicitClosureFunctionIndex(*this);
-    selector = "implicit_closures";
-  } else if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
-    id = cls.FindInvocationDispatcherFunctionIndex(*this);
-    selector = "dispatchers";
-  } else {
-    id = cls.FindFunctionIndex(*this);
-    selector = "functions";
-  }
-  intptr_t cid = cls.id();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  // TODO(17697): Oddball functions (functions without owners) use the object
-  // id ring. Current known examples are signature functions of closures
-  // and stubs like 'megamorphic_miss'.
-  if (id < 0) {
-    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-    id = ring->GetIdForObject(raw());
-    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  } else {
-    jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
-  }
+  jsobj.AddProperty("id", GetFunctionServiceId(*this, cls));
   jsobj.AddProperty("name", internal_name);
   jsobj.AddProperty("user_name", pretty_name);
   if (cls.IsTopLevel()) {

@@ -1370,6 +1370,7 @@ class Class extends ServiceObject with Coverage {
   }
 }
 
+// TODO(koda): Sync this with VM.
 class FunctionKind {
   final String _strValue;
   FunctionKind._internal(this._strValue);
@@ -1383,8 +1384,8 @@ class FunctionKind {
       case 'kGetterFunction': return kGetterFunction;
       case 'kSetterFunction': return kSetterFunction;
       case 'kConstructor': return kConstructor;
-      case 'kImplicitGetterFunction': return kImplicitGetterFunction;
-      case 'kImplicitSetterFunction': return kImplicitSetterFunction;
+      case 'kImplicitGetter': return kImplicitGetterFunction;
+      case 'kImplicitSetter': return kImplicitSetterFunction;
       case 'kStaticInitializer': return kStaticInitializer;
       case 'kMethodExtractor': return kMethodExtractor;
       case 'kNoSuchMethodDispatcher': return kNoSuchMethodDispatcher;

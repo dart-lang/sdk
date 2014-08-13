@@ -985,16 +985,16 @@ TEST_CASE(Service_Classes) {
       "\"valueAsString\":\"111235\"}",
       handler.msg());
 
-  // Request function 0 from class A.
+  // Request function 'b' from class A.
   service_msg = EvalF(lib,
-                      "[0, port, ['classes', '%" Pd "', 'functions', '0'],"
+                      "[0, port, ['classes', '%" Pd "', 'functions', 'b'],"
                       "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Function\"", handler.msg());
   ExpectSubstringF(handler.msg(),
-                   "\"id\":\"classes\\/%" Pd "\\/functions\\/0\","
-                   "\"name\":\"get:a\",", cid);
+                   "\"id\":\"classes\\/%" Pd "\\/functions\\/b\","
+                   "\"name\":\"b\",", cid);
 
   // Request field 0 from class A.
   service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'fields', '0'],"
@@ -1058,21 +1058,22 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Command too long\","
+    "{\"type\":\"Error\",\"id\":\"\","
+    "\"message\":\"Command should have 4 or 5 arguments\","
     "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"0\",\"x\",\"y\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function subcommand with valid function id.
   service_msg = EvalF(lib,
-                      "[0, port, ['classes', '%" Pd "', 'functions', '0',"
+                      "[0, port, ['classes', '%" Pd "', 'functions', 'b',"
                       "'x'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Invalid sub collection x\","
     "\"request\":"
-    "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"0\",\"x\"],"
+    "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"b\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Retained size of all instances of class B.
@@ -1715,14 +1716,11 @@ TEST_CASE(Service_ClassesFunctionsCoverage) {
   const Function& func = Function::Handle(
       cls.LookupFunction(String::Handle(String::New("bar"))));
   ASSERT(!func.IsNull());
-  intptr_t function_id = -1;
-  function_id = cls.FindFunctionIndex(func);
-  ASSERT(function_id != -1);
 
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
               "[0, port, ['classes', '%" Pd "', 'functions',"
-              "'% " Pd "', 'coverage'], [], []]", i,  function_id);
+              "'bar', 'coverage'], [], []]", i);
 
   Array& service_msg = Array::Handle();
   service_msg = Eval(lib, buf);

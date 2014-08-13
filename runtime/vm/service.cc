@@ -1139,19 +1139,20 @@ static bool HandleClassesFunctionsCoverage(
 
 static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
                                    JSONStream* js) {
-  intptr_t id;
-  if (js->num_arguments() > 5) {
-    PrintError(js, "Command too long");
+  if (js->num_arguments() != 4 && js->num_arguments() != 5) {
+    PrintError(js, "Command should have 4 or 5 arguments");
     return true;
   }
-  if (!GetIntegerId(js->GetArgument(3), &id)) {
-    PrintError(js, "Must specify collection object id: functions/id");
+  const char* encoded_id = js->GetArgument(3);
+  String& id = String::Handle(isolate, String::New(encoded_id));
+  id = String::DecodeIRI(id);
+  if (id.IsNull()) {
+    PrintError(js, "Function id %s is malformed", encoded_id);
     return true;
   }
-  Function& func = Function::Handle();
-  func ^= cls.FunctionFromIndex(id);
+  Function& func = Function::Handle(cls.LookupFunction(id));
   if (func.IsNull()) {
-    PrintError(js, "Function %" Pd " not found", id);
+    PrintError(js, "Function %s not found", encoded_id);
     return true;
   }
   if (js->num_arguments() == 4) {

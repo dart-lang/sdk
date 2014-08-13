@@ -949,7 +949,7 @@ class Class : public Object {
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
 
-  // TODO(koda): Avoid VM service indexing into this array; unite w/ hash table.
+  // TODO(koda): Unite w/ hash table.
   RawArray* functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
