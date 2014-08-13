@@ -5,7 +5,7 @@
 /**
  * Code generation for the file "AnalysisServer.java".
  */
-library server.generator.java;
+library java.generator.server;
 
 import 'api.dart';
 import 'codegen_java.dart';
@@ -109,7 +109,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
    * Get the name of the consumer class for responses to this request.
    */
   String consumerName(Request request) {
-    return camelJoin([request.method, 'consumer'], capitalize: true);
+    return camelJoin([request.method, 'consumer'], doCapitalize: true);
   }
 }
 

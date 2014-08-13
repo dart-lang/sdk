@@ -16,19 +16,26 @@ import 'text_formatter.dart';
 import 'html_tools.dart';
 
 /**
- * Join the given strings using camelCase.  If [capitalize] is true, the first
+ * Join the given strings using camelCase.  If [doCapitalize] is true, the first
  * part will be capitalized as well.
  */
-String camelJoin(List<String> parts, {bool capitalize: false}) {
+String camelJoin(List<String> parts, {bool doCapitalize: false}) {
   List<String> upcasedParts = <String>[];
   for (int i = 0; i < parts.length; i++) {
-    if (i == 0 && !capitalize) {
+    if (i == 0 && !doCapitalize) {
       upcasedParts.add(parts[i]);
     } else {
-      upcasedParts.add(parts[i][0].toUpperCase() + parts[i].substring(1));
+      upcasedParts.add(capitalize(parts[i]));
     }
   }
   return upcasedParts.join();
+}
+
+/**
+ * Capitalize and return the passed String.
+ */
+String capitalize(String string) {
+  return string[0].toUpperCase() + string.substring(1);
 }
 
 final RegExp trailingWhitespaceRegExp = new RegExp(r' +$', multiLine: true);
@@ -76,16 +83,14 @@ class CodeGenerator {
   /**
    * Execute [callback], using [additionalIndent] to indent any code it outputs.
    */
-  void indentBy(String additionalIndent, void callback()) => indentSpecial(
-      additionalIndent, additionalIndent, callback);
+  void indentBy(String additionalIndent, void callback()) => indentSpecial(additionalIndent, additionalIndent, callback);
 
   /**
    * Execute [callback], using [additionalIndent] to indent any code it outputs.
    * The first line of output is indented by [firstAdditionalIndent] instead of
    * [additionalIndent].
    */
-  void indentSpecial(String firstAdditionalIndent, String additionalIndent, void
-      callback()) {
+  void indentSpecial(String firstAdditionalIndent, String additionalIndent, void callback()) {
     String oldNextIndent = _state.nextIndent;
     String oldIndent = _state.indent;
     try {
@@ -119,7 +124,7 @@ class CodeGenerator {
 
   void outputHeader({bool javaStyle: false}) {
     String header;
-    if(javaStyle) {
+    if (javaStyle) {
       header = '''
 /*
  * Copyright (c) 2014, the Dart project authors.
@@ -137,8 +142,7 @@ class CodeGenerator {
  * This file has been automatically generated.  Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/spec/generate_files".
  */''';
-    }
-    else {
+    } else {
       header = '''
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -297,13 +301,20 @@ class _HtmlCodeGeneratorState {
 /**
  * Type of functions used to compute the contents of generated files.
  */
-typedef String ContentsComputer();
+typedef String FileContentsComputer();
+
+typedef Map<String, FileContentsComputer> DirectoryContentsComputer();
+
+abstract class GeneratedContent {
+  bool check();
+  void generate();
+}
 
 /**
  * Class representing a single output file (either generated code or generated
  * HTML).
  */
-class GeneratedFile {
+class GeneratedFile extends GeneratedContent {
   /**
    * The output file to which generated output should be written, relative to
    * the "tool/spec" directory.  This filename uses the posix path separator
@@ -314,7 +325,7 @@ class GeneratedFile {
   /**
    * Callback function which computes the file.
    */
-  final ContentsComputer computeContents;
+  final FileContentsComputer computeContents;
 
   GeneratedFile(this.outputPath, this.computeContents);
 
@@ -327,11 +338,12 @@ class GeneratedFile {
    * Check whether the file has the correct contents, and return true if it
    * does.
    */
+  @override
   bool check() {
     String expectedContents = computeContents();
     try {
       return expectedContents == outputFile.readAsStringSync();
-    } catch(e) {
+    } catch (e) {
       // There was a problem reading the file (most likely because it didn't
       // exist).  Treat that the same as if the file doesn't have the expected
       // contents.
@@ -346,5 +358,49 @@ class GeneratedFile {
    */
   void generate() {
     outputFile.writeAsStringSync(computeContents());
+  }
+}
+
+class GeneratedDirectory extends GeneratedContent {
+
+  final String outputDirPath;
+  final DirectoryContentsComputer directoryContentsComputer;
+  GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
+
+  /**
+   * Get a Directory object representing the output directory.
+   */
+  Directory get outputDir => new Directory(joinAll(posix.split(outputDirPath)));
+
+  @override
+  bool check() {
+    // TODO (jwren) the lists of files in the directories need to be compared to
+    // ensure no unexpected files have been added
+    Map<String, FileContentsComputer> map = directoryContentsComputer();
+    map.forEach((String file, FileContentsComputer fileContentsComputer) {
+      String expectedContents = fileContentsComputer();
+      File outputFile = new File(joinAll(posix.split(outputDirPath + file)));
+      try {
+        if (expectedContents != outputFile.readAsStringSync()) {
+          return false;
+        }
+      } catch (e) {
+        // There was a problem reading the file (most likely because it didn't
+        // exist).  Treat that the same as if the file doesn't have the expected
+        // contents.
+        return false;
+      }
+    });
+    return true;
+  }
+
+  @override
+  void generate() {
+    // TODO (jwren) Delete contents in the directory first.
+    Map<String, FileContentsComputer> map = directoryContentsComputer();
+    map.forEach((String file, FileContentsComputer fileContentsComputer) {
+      File outputFile = new File(joinAll(posix.split(outputDirPath + file)));
+      outputFile.writeAsStringSync(fileContentsComputer());
+    });
   }
 }
