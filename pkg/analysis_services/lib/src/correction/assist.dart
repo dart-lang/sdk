@@ -126,7 +126,7 @@ class AssistProcessor {
       assistFile = file;
     }
     FileEdit fileEdit = new FileEdit(file);
-    edits.forEach((edit) => fileEdit.add(edit));
+    fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);
     Change change = new Change(message);

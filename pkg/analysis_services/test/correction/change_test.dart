@@ -24,11 +24,6 @@ main() {
 
 @ReflectiveTestCase()
 class ChangeTest {
-  void test_getFileEdit_empty() {
-    Change change = new Change('msg');
-    expect(change.getFileEdit('/some.dart'), isNull);
-  }
-
   void test_addEdit() {
     Change change = new Change('msg');
     Edit edit1 = new Edit(1, 2, 'a');
@@ -50,6 +45,11 @@ class ChangeTest {
     FileEdit fileEdit = new FileEdit('/a.dart');
     change.addFileEdit(fileEdit);
     expect(change.getFileEdit('/a.dart'), fileEdit);
+  }
+
+  void test_getFileEdit_empty() {
+    Change change = new Change('msg');
+    expect(change.getFileEdit('/some.dart'), isNull);
   }
 
   void test_toJson() {
@@ -79,24 +79,24 @@ class ChangeTest {
       'edits': [{
           'file': '/a.dart',
           'edits': [{
-              'offset': 1,
-              'length': 2,
-              'replacement': 'aaa'
-            }, {
               'offset': 10,
               'length': 20,
               'replacement': 'bbb'
+            }, {
+              'offset': 1,
+              'length': 2,
+              'replacement': 'aaa'
             }]
         }, {
           'file': '/b.dart',
           'edits': [{
-              'offset': 21,
-              'length': 22,
-              'replacement': 'xxx'
-            }, {
               'offset': 210,
               'length': 220,
               'replacement': 'yyy'
+            }, {
+              'offset': 21,
+              'length': 22,
+              'replacement': 'xxx'
             }]
         }],
       'linkedEditGroups': [{
@@ -142,6 +142,12 @@ class ChangeTest {
 
 @ReflectiveTestCase()
 class EditTest {
+  void test_applySequence() {
+    Edit edit1 = new Edit(5, 2, 'abc');
+    Edit edit2 = new Edit(1, 0, '!');
+    expect(Edit.applySequence('0123456789', [edit1, edit2]), '0!1234abc789');
+  }
+
   void test_end() {
     Edit edit = new Edit(1, 2, 'foo');
     expect(edit.end, 3);
@@ -188,6 +194,29 @@ class EditTest {
 
 @ReflectiveTestCase()
 class FileEditTest {
+  void test_addAll() {
+    Edit edit1a = new Edit(1, 0, 'a1');
+    Edit edit1b = new Edit(1, 0, 'a2');
+    Edit edit10 = new Edit(10, 1, 'b');
+    Edit edit100 = new Edit(100, 2, 'c');
+    FileEdit fileEdit = new FileEdit('/test.dart');
+    fileEdit.addAll([edit100, edit1a, edit10, edit1b]);
+    expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
+  }
+
+  void test_add_sorts() {
+    Edit edit1a = new Edit(1, 0, 'a1');
+    Edit edit1b = new Edit(1, 0, 'a2');
+    Edit edit10 = new Edit(10, 1, 'b');
+    Edit edit100 = new Edit(100, 2, 'c');
+    FileEdit fileEdit = new FileEdit('/test.dart');
+    fileEdit.add(edit100);
+    fileEdit.add(edit1a);
+    fileEdit.add(edit1b);
+    fileEdit.add(edit10);
+    expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
+  }
+
   void test_new() {
     FileEdit fileEdit = new FileEdit('/test.dart');
     fileEdit.add(new Edit(1, 2, 'aaa'));
@@ -195,8 +224,8 @@ class FileEditTest {
     expect(
         fileEdit.toString(),
         'FileEdit(file=/test.dart, edits=['
-            'Edit(offset=1, length=2, replacement=:>aaa<:), '
-            'Edit(offset=10, length=20, replacement=:>bbb<:)])');
+            'Edit(offset=10, length=20, replacement=:>bbb<:), '
+            'Edit(offset=1, length=2, replacement=:>aaa<:)])');
   }
 
   void test_toJson() {
@@ -206,13 +235,13 @@ class FileEditTest {
     var expectedJson = {
       FILE: '/test.dart',
       EDITS: [{
-          OFFSET: 1,
-          LENGTH: 2,
-          REPLACEMENT: 'aaa'
-        }, {
           OFFSET: 10,
           LENGTH: 20,
           REPLACEMENT: 'bbb'
+        }, {
+          OFFSET: 1,
+          LENGTH: 2,
+          REPLACEMENT: 'aaa'
         },]
     };
     expect(fileEdit.toJson(), expectedJson);

@@ -43,9 +43,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     // apply to "file"
     List<FileEdit> fileEdits = change.fileEdits;
     expect(fileEdits, hasLength(1));
-    // TODO(paulberry): should the code under test be responsible for sorting
-    // the edits?
-    resultCode = Edit.applySorted(testCode, change.fileEdits[0].edits);
+    resultCode = Edit.applySequence(testCode, change.fileEdits[0].edits);
     // verify
     expect(resultCode, expected);
   }

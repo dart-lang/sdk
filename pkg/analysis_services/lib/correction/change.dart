@@ -88,8 +88,9 @@ class Change implements HasToJson {
   }
 
   @override
-  String toString() => 'Change(message=$message, edits=$fileEdits, '
-      'linkedEditGroups=$linkedEditGroups, selection=$selection)';
+  String toString() =>
+      'Change(message=$message, edits=$fileEdits, '
+          'linkedEditGroups=$linkedEditGroups, selection=$selection)';
 }
 
 
@@ -114,8 +115,10 @@ class Edit implements HasToJson {
 
   Edit(this.offset, this.length, this.replacement);
 
-  Edit.range(SourceRange range, String replacement) : this(range.offset,
-      range.length, replacement);
+  Edit.range(SourceRange range, String replacement) : this(
+      range.offset,
+      range.length,
+      replacement);
 
   /**
    * The offset of a character immediately after the region to be modified. 
@@ -124,10 +127,18 @@ class Edit implements HasToJson {
 
   bool operator ==(other) {
     if (other is Edit) {
-      return other.offset == offset && other.length == length &&
+      return other.offset == offset &&
+          other.length == length &&
           other.replacement == replacement;
     }
     return false;
+  }
+
+  /**
+   * Get the result of applying the edit to the given [code].
+   */
+  String apply(String code) {
+    return code.substring(0, offset) + replacement + code.substring(end);
   }
 
   @override
@@ -144,12 +155,6 @@ class Edit implements HasToJson {
       "Edit(offset=$offset, length=$length, replacement=:>$replacement<:)";
 
   /**
-   * Get the result of applying the edit to the given [code].
-   */
-  String apply(String code) => code.substring(0, offset) + replacement +
-      code.substring(end);
-
-  /**
    * Get the result of applying a set of [edits] to the given [code].  Edits
    * are applied in the order they appear in [edits].
    */
@@ -159,21 +164,14 @@ class Edit implements HasToJson {
     });
     return code;
   }
-
-  /**
-   * Get the result of applying a set of [edits] to the given [code].  Edits
-   * are applied in the order of decreasing offset.
-   */
-  static String applySorted(String code, Iterable<Edit> edits) {
-    List<Edit> sortedEdits = edits.toList();
-    mergeSort(sortedEdits, compare: (a, b) => a.offset - b.offset);
-    return Edit.applySequence(code, sortedEdits.reversed);
-  }
 }
 
 
 /**
- * A description of a set of changes to a single file. 
+ * A description of a set of changes to a single file.
+ *
+ * [Edit]s are added in the order of decreasing offset, so they are easy to
+ * apply to the original file content without correcting offsets.
  */
 class FileEdit implements HasToJson {
   /**
@@ -192,7 +190,18 @@ class FileEdit implements HasToJson {
    * Adds the given [Edit] to the list.
    */
   void add(Edit edit) {
-    edits.add(edit);
+    int index = 0;
+    while (index < edits.length && edits[index].offset > edit.offset) {
+      index++;
+    }
+    edits.insert(index, edit);
+  }
+
+  /**
+   * Adds the given [Edit]s.
+   */
+  void addAll(Iterable<Edit> edits) {
+    edits.forEach(add);
   }
 
   @override
@@ -241,8 +250,9 @@ class LinkedEditGroup implements HasToJson {
   }
 
   @override
-  String toString() => 'LinkedEditGroup(id=$id, length=$length, '
-      'positions=$positions, suggestions=$suggestions)';
+  String toString() =>
+      'LinkedEditGroup(id=$id, length=$length, '
+          'positions=$positions, suggestions=$suggestions)';
 }
 
 

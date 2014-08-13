@@ -61,9 +61,7 @@ class RenameRefactoringTest extends RefactoringTest {
     FileEdit fileEdit = refactoringChange.getFileEdit(testFile);
     expect(fileEdit, isNotNull);
     // validate resulting code
-    // TODO(paulberry): should the code under test be responsible for sorting
-    // the edits?
-    String actualCode = Edit.applySorted(testCode, fileEdit.edits);
+    String actualCode = Edit.applySequence(testCode, fileEdit.edits);
     expect(actualCode, expectedCode);
   }
 
