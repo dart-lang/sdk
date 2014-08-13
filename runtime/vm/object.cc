@@ -2650,6 +2650,7 @@ class CHACodeArray : public WeakCodeReferences {
   }
 
   virtual void UpdateArrayTo(const Array& value) {
+    // TODO(fschneider): Fails for classes in the VM isolate.
     cls_.set_cha_codes(value);
   }
 

@@ -26,6 +26,7 @@ class AbstractType;
 class ApiState;
 class Array;
 class Capability;
+class CHA;
 class Class;
 class Code;
 class CodeIndexTable;
@@ -143,8 +144,8 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, class_table_);
   }
 
-  bool cha_used() const { return cha_used_; }
-  void set_cha_used(bool value) { cha_used_ = value; }
+  CHA* cha() const { return cha_; }
+  void set_cha(CHA* value) { cha_ = value; }
 
   MegamorphicCacheTable* megamorphic_cache_table() {
     return &megamorphic_cache_table_;
@@ -647,7 +648,7 @@ class Isolate : public BaseIsolate {
   int64_t last_allocationprofile_accumulator_reset_timestamp_;
   int64_t last_allocationprofile_gc_timestamp_;
 
-  bool cha_used_;
+  CHA* cha_;
 
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;

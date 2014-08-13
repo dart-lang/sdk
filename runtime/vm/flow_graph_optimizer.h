@@ -125,6 +125,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInt32x4Method(InstanceCallInstr* call,
                                MethodRecognizer::Kind recognized_kind);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
+  bool TypeCheckAsClassEquality(const AbstractType& type);
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
   bool TryReplaceInstanceCallWithInline(InstanceCallInstr* call);

@@ -2275,8 +2275,8 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
   if (function.IsDynamicFunction() &&
       callee_receiver->IsParameter() &&
       (callee_receiver->AsParameter()->index() == 0)) {
-    return CHA::HasOverride(Class::Handle(I, function.Owner()),
-                            call->function_name());
+    return isolate()->cha()->HasOverride(Class::Handle(I, function.Owner()),
+                                         call->function_name());
   }
   return true;
 }
@@ -2293,7 +2293,8 @@ bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
       (callee_receiver->AsParameter()->index() == 0)) {
     const String& field_name =
       String::Handle(I, Field::NameFromGetter(call->function_name()));
-    return CHA::HasOverride(Class::Handle(I, function.Owner()), field_name);
+    return isolate()->cha()->HasOverride(
+        Class::Handle(I, function.Owner()), field_name);
   }
   return true;
 }
@@ -3893,7 +3894,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
 
 
 // Returns true if checking against this type is a direct class id comparison.
-static bool TypeCheckAsClassEquality(const AbstractType& type) {
+bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   // Requires CHA.
   if (!FLAG_use_cha) return false;
@@ -3902,9 +3903,9 @@ static bool TypeCheckAsClassEquality(const AbstractType& type) {
   // Signature classes have different type checking rules.
   if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
-  if (type_class.is_implemented()) return false;
-  const intptr_t type_cid = type_class.id();
-  if (CHA::HasSubclasses(type_cid)) return false;
+  if (isolate()->cha()->IsImplemented(type_class)) return false;
+  // Check if there are subclasses.
+  if (isolate()->cha()->HasSubclasses(type_class)) return false;
   const intptr_t num_type_args = type_class.NumTypeArguments();
   if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type

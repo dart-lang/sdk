@@ -498,20 +498,6 @@ intptr_t CompileType::ToCid() {
 }
 
 
-// Return true if the class is private to our internal libraries (not extendable
-// or implementable by users).
-// (TODO): Allow more libraries.
-static bool IsKnownPrivateClass(const Class& type_class) {
-  if (!Library::IsPrivate(String::Handle(type_class.Name()))) return false;
-  const Library& library = Library::Handle(type_class.library());
-  if (library.raw() == Library::CoreLibrary()) return true;
-  if (library.raw() == Library::CollectionLibrary()) return true;
-  if (library.raw() == Library::TypedDataLibrary()) return true;
-  if (library.raw() == Library::MathLibrary()) return true;
-  return false;
-}
-
-
 intptr_t CompileType::ToNullableCid() {
   if (cid_ == kIllegalCid) {
     if (type_ == NULL) {
@@ -522,11 +508,11 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->IsVoidType()) {
       cid_ = kNullCid;
     } else if (type_->HasResolvedTypeClass()) {
-      const Class& type_class = Class::Handle(type_->type_class());
-      if (FLAG_use_cha || IsKnownPrivateClass(type_class)) {
-        // A known private class cannot be subclassed or implemented.
-        if (!type_class.is_implemented() &&
-            !CHA::HasSubclassesSafe(type_class.id())) {
+      if (FLAG_use_cha) {
+        const Class& type_class = Class::Handle(type_->type_class());
+        CHA* cha = Isolate::Current()->cha();
+        if (!cha->IsImplemented(type_class) &&
+            !cha->HasSubclasses(type_class.id())) {
           cid_ = type_class.id();
         } else {
           cid_ = kDynamicCid;
@@ -743,7 +729,7 @@ CompileType ParameterInstr::ComputeType() const {
     intptr_t cid = kDynamicCid;
     if (FLAG_use_cha && type.HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type.type_class());
-      if (!CHA::HasSubclasses(type_class.id())) {
+      if (!Isolate::Current()->cha()->HasSubclasses(type_class.id())) {
         cid = type_class.id();
       }
     }
@@ -788,15 +774,18 @@ CompileType* AssertAssignableInstr::ComputeInitialType() const {
     return ZoneCompileType::Wrap(CompileType::Null());
   }
 
-  return ZoneCompileType::Wrap(CompileType::FromAbstractType(dst_type()));
+  return ZoneCompileType::Wrap(
+      CompileType::FromAbstractType(dst_type(), value_type->is_nullable()));
 }
 
 
 bool AssertAssignableInstr::RecomputeType() {
   CompileType* value_type = value()->Type();
-  return UpdateType(value_type->IsMoreSpecificThan(dst_type())
-                      ? *value_type
-                      : CompileType::FromAbstractType(dst_type()));
+  return UpdateType(
+      value_type->IsMoreSpecificThan(dst_type())
+          ? *value_type
+          : CompileType::FromAbstractType(dst_type(),
+                                          value_type->is_nullable()));
 }
 
 
