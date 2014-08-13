@@ -13,7 +13,7 @@ main() {
   integration('does not publish if the package is private even if a server '
       'argument is provided', () {
     var pkg = packageMap("test_pkg", "1.0.0");
-    pkg["publishTo"] = "none";
+    pkg["publish_to"] = "none";
     d.dir(appPath, [d.pubspec(pkg)]).create();
 
     schedulePub(args: ["lish", "--server", "http://example.com"],

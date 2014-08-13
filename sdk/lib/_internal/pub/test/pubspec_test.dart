@@ -421,26 +421,26 @@ environment:
       });
 
       test("throws if not a string", () {
-        expectPubspecException('publishTo: 123',
+        expectPubspecException('publish_to: 123',
             (pubspec) => pubspec.publishTo);
       });
 
       test("allows a URL", () {
         var pubspec = new Pubspec.parse('''
-publishTo: http://example.com
+publish_to: http://example.com
 ''', sources);
         expect(pubspec.publishTo, equals("http://example.com"));
       });
 
       test("allows none", () {
         var pubspec = new Pubspec.parse('''
-publishTo: none
+publish_to: none
 ''', sources);
         expect(pubspec.publishTo, equals("none"));
       });
 
       test("throws on other strings", () {
-        expectPubspecException('publishTo: http://bad.url:not-port',
+        expectPubspecException('publish_to: http://bad.url:not-port',
             (pubspec) => pubspec.publishTo);
       });
     });
