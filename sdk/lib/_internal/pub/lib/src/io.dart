@@ -794,7 +794,7 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
   }
 
   var args = ["--extract", "--gunzip", "--directory", destination];
-  if (Platform.operatingSystem == "linux") {
+  if (_noUnknownKeyword) {
     // BSD tar (the default on OS X) can insert strange headers to a tarfile
     // that GNU tar (the default on Linux) is unable to understand. This will
     // cause GNU tar to emit a number of harmless but scary-looking warnings
@@ -820,6 +820,28 @@ Future<bool> extractTarGz(Stream<List<int>> stream, String destination) {
     }
     log.fine("Extracted .tar.gz stream to $destination. Exit code $exitCode.");
   });
+}
+
+/// Whether to include "--warning=no-unknown-keyword" when invoking tar.
+///
+/// This flag quiets warnings that come from opening OS X-generated tarballs on
+/// Linux, but only GNU tar >= 1.26 supports it.
+final bool _noUnknownKeyword = _computeNoUnknownKeyword();
+bool _computeNoUnknownKeyword() {
+  if (!Platform.isLinux) return false;
+  var result = Process.runSync("tar", ["--version"]);
+  if (result.exitCode != 0) {
+    throw new ApplicationException(
+        "Failed to run tar (exit code ${result.exitCode}):\n${result.stderr}");
+  }
+
+  var match = new RegExp(r"^tar \(GNU tar\) (\d+).(\d+)\n")
+      .firstMatch(result.stdout);
+  if (match == null) return false;
+
+  var major = int.parse(match[1]);
+  var minor = int.parse(match[2]);
+  return major >= 2 || (major == 1 && minor >= 23);
 }
 
 String get pathTo7zip {
