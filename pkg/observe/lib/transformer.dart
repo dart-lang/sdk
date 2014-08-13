@@ -187,8 +187,6 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
 
   // Track fields that were transformed.
   var instanceFields = new Set<String>();
-  var getters = new List<String>();
-  var setters = new List<String>();
 
   for (var member in cls.members) {
     if (member is FieldDeclaration) {
@@ -212,20 +210,7 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
 
         var names = member.fields.variables.map((v) => v.name.name);
 
-        getters.addAll(names);
-        if (!_isReadOnly(member.fields)) {
-          setters.addAll(names);
-          instanceFields.addAll(names);
-        }
-      }
-    }
-    // TODO(jmesserly): this is a temporary workaround until we can remove
-    // getValueWorkaround and setValueWorkaround.
-    if (member is MethodDeclaration) {
-      if (_hasKeyword(member.propertyKeyword, Keyword.GET)) {
-        getters.add(member.name.name);
-      } else if (_hasKeyword(member.propertyKeyword, Keyword.SET)) {
-        setters.add(member.name.name);
+        if (!_isReadOnly(member.fields)) instanceFields.addAll(names);
       }
     }
   }
