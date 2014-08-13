@@ -19,7 +19,6 @@ main() {
 @ReflectiveTestCase()
 class StringsTest {
   void test_capitalize() {
-    expect(capitalize(null), null);
     expect(capitalize(''), '');
     expect(capitalize('a'), 'A');
     expect(capitalize('abc'), 'Abc');
@@ -33,6 +32,13 @@ class StringsTest {
     expect(compareStrings('a', null), -1);
     expect(compareStrings('a', 'b'), -1);
     expect(compareStrings('b', 'a'), 1);
+  }
+
+  void test_format() {
+    expect(format('Hello, {0}!', 'John'), 'Hello, John!');
+    expect(
+        format('{0} are you {1}ing?', 'What', 'read'),
+        'What are you reading?');
   }
 
   void test_isBlank() {

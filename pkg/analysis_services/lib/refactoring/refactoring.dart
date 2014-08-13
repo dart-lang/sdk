@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/refactoring/rename_constructor.dart';
 import 'package:analysis_services/src/refactoring/rename_import.dart';
 import 'package:analysis_services/src/refactoring/rename_library.dart';
 import 'package:analysis_services/src/refactoring/rename_local.dart';
@@ -67,6 +68,9 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(SearchEngine searchEngine, Element element) {
+    if (element is ConstructorElement) {
+      return new RenameConstructorRefactoringImpl(searchEngine, element);
+    }
     if (element is ImportElement) {
       return new RenameImportRefactoringImpl(searchEngine, element);
     }
