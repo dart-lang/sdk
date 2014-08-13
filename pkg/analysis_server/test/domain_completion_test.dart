@@ -46,10 +46,20 @@ class CompletionTest extends AbstractAnalysisTest {
   void assertHasResult(CompletionSuggestionKind kind, String completion,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT,
       bool isDeprecated = false, bool isPotential = false]) {
-    var cs = suggestions.firstWhere((cs) => cs.completion == completion, orElse: () {
+    var cs;
+    suggestions.forEach((s) {
+      if (s.completion == completion) {
+        if (cs == null) {
+          cs = s;
+        } else {
+          fail('expected exactly one $completion but found > 1');
+        }
+      }
+    });
+    if (cs == null) {
       var completions = suggestions.map((s) => s.completion).toList();
       fail('expected "$completion" but found\n $completions');
-    });
+    }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
     expect(cs.selectionOffset, equals(completion.length));
@@ -98,6 +108,7 @@ class CompletionTest extends AbstractAnalysisTest {
         replacementLength = notification.getParameter(REPLACEMENT_LENGTH);
         suggestionsDone = notification.getParameter(LAST);
         expect(suggestionsDone, isNotNull);
+        suggestions = [];
         for (Map<String, Object> json in notification.getParameter(RESULTS)) {
           expect(json, isNotNull);
           suggestions.add(new CompletionSuggestion.fromJson(json));
@@ -113,7 +124,7 @@ class CompletionTest extends AbstractAnalysisTest {
     handler = new CompletionDomainHandler(server);
   }
 
-  test_suggestions_html() {
+  test_html() {
     testFile = '/project/web/test.html';
     addTestFile('''
       <html>^</html>
@@ -125,7 +136,7 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
-  test_suggestions_importedType() {
+  test_imports() {
     addTestFile('''
       import 'dart:html';
       main() {^}
@@ -139,7 +150,34 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
-  test_suggestions_topLevel() {
+  test_imports_prefixed() {
+    addTestFile('''
+      import 'dart:html' as foo;
+      main() {^}
+    ''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
+      assertHasResult(CompletionSuggestionKind.LIBRARY_PREFIX, 'foo');
+      assertNoResult('HtmlElement');
+      assertNoResult('test');
+    });
+  }
+
+  test_locals() {
+    addTestFile('class A {var a; x() {var b;^}}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.CLASS, 'A');
+      assertHasResult(CompletionSuggestionKind.FIELD, 'a');
+      assertHasResult(CompletionSuggestionKind.LOCAL_VARIABLE, 'b');
+      assertHasResult(CompletionSuggestionKind.METHOD_NAME, 'x');
+    });
+  }
+
+  test_topLevel() {
     addTestFile('''
       typedef foo();
       var test = '';

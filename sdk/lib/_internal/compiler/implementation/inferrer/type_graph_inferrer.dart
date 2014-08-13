@@ -1032,7 +1032,7 @@ class TypeGraphInferrerEngine
         if (element.isAbstract) return;
         // Put the other operators in buckets by length, later to be added in
         // length order.
-        int length = mapping.selectors.length;
+        int length = mapping.getSelectorCount();
         max = length > max ? length : max;
         Setlet<Element> set = methodSizes.putIfAbsent(
             length, () => new Setlet<Element>());

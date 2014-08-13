@@ -4,8 +4,11 @@
 
 part of unittestTest;
 
+/**
+ * Schedule [fn] for future execution in an event handler.
+ */
 Future _defer(void fn()) {
-  return new Future.sync(fn);
+  return new Future(fn);
 }
 
 String buildStatusString(int passed, int failed, int errors,

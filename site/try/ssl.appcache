@@ -1,0 +1,26 @@
+CACHE MANIFEST
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# @@TIMESTAMP@@
+
+CACHE:
+compiler_isolate.dart.js
+dartlang-style.css
+iframe.html
+iframe.js
+leap.dart.js
+line_numbers.css
+sdk.json
+
+dart-icon-196px.png
+dart-icon.png
+dart-iphone5.png
+favicon.ico
+try-dart-screenshot.png
+
+/css/fonts/fontawesome-webfont.woff?v=3.0.1
+
+NETWORK:
+*

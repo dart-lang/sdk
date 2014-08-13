@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library services.src.correction.util;
 
 import 'package:analysis_services/correction/change.dart';
@@ -60,6 +57,27 @@ String getDefaultValueCode(DartType type) {
 
 
 /**
+ * Return the name of the [Element] kind.
+ */
+String getElementKindName(Element element) {
+  return element.kind.displayName;
+}
+
+
+/**
+ * Returns the name to display in the UI for the given [Element].
+ */
+String getElementQualifiedName(Element element) {
+  ElementKind kind = element.kind;
+  if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
+    return '${element.enclosingElement.displayName}.${element.displayName}';
+  } else {
+    return element.displayName;
+  }
+}
+
+
+/**
  * @return the [ExecutableElement] of the enclosing executable [AstNode].
  */
 ExecutableElement getEnclosingExecutableElement(AstNode node) {
@@ -77,7 +95,6 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
   }
   return null;
 }
-
 
 /**
  * Returns a namespace of the given [ExportElement].
@@ -107,7 +124,6 @@ Element getExportedElement(LibraryElement library, String name) {
   }
   return getExportNamespaceForLibrary(library)[name];
 }
-
 
 /**
  * Returns [getExpressionPrecedence] for the parent of [node],
@@ -142,6 +158,7 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
   return namespace.definedNames;
 }
 
+
 /**
  * If given [AstNode] is name of qualified property extraction, returns target from which
  * this property is extracted. Otherwise `null`.
@@ -150,18 +167,19 @@ Expression getQualifiedPropertyTarget(AstNode node) {
   AstNode parent = node.parent;
   if (parent is PrefixedIdentifier) {
     PrefixedIdentifier prefixed = parent;
-    if (identical(prefixed.identifier, node)) {
+    if (prefixed.identifier == node) {
       return parent.prefix;
     }
   }
   if (parent is PropertyAccess) {
     PropertyAccess access = parent;
-    if (identical(access.propertyName, node)) {
+    if (access.propertyName == node) {
       return access.realTarget;
     }
   }
   return null;
 }
+
 
 /**
  * Returns the given [Statement] if not a [Block], or the first child

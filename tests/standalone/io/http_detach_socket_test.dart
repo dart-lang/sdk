@@ -14,6 +14,7 @@ import "dart:isolate";
 
 void testServerDetachSocket() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
+    server.defaultResponseHeaders.clear();
     server.serverHeader = null;
     server.listen((request) {
       var response = request.response;

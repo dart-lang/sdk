@@ -2971,8 +2971,8 @@ ASSEMBLER_TEST_RUN(ConditionalMovesCompare, test) {
 
 ASSEMBLER_TEST_GENERATE(BitTest, assembler) {
   __ movq(RAX, Immediate(4));
-  __ movq(R12, Immediate(2));
-  __ btq(RAX, R12);
+  __ movq(R11, Immediate(2));
+  __ btq(RAX, R11);
   Label ok;
   __ j(CARRY, &ok);
   __ int3();

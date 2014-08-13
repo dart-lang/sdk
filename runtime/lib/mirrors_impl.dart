@@ -5,7 +5,6 @@
 // VM-specific implementation of the dart:mirrors library.
 
 import "dart:collection" show UnmodifiableListView, UnmodifiableMapView;
-import "dart:_internal" show LRUMap;
 
 final emptyList = new UnmodifiableListView([]);
 final emptyMap = new UnmodifiableMapView({});
@@ -89,6 +88,149 @@ bool _subtypeTest(Type a, Type b)
 
 bool _moreSpecificTest(Type a, Type b)
     native 'TypeMirror_moreSpecificTest';
+
+class _AccessorCacheAssociation {
+  String key;
+  Function value;
+  bool usedSinceGrowth = true;
+  _AccessorCacheAssociation(this.key, this.value);
+}
+
+/**
+ * A map that will grow as associations are added but will prefer to evict
+ * associations that have not been used since the last growth when needing to
+ * grow again. Implemented as an open addressing hash table.
+ */
+class _AccessorCache {
+  List table;
+  int shift;
+  int mask;
+  int capacity;  // Max number of associations before we start evicting/growing.
+  int size = 0;  // Current number of associations.
+
+  /**
+   * Create a cache whose capacity is 75% of 2^shift.
+   */
+  _AccessorCache.withInitialShift(int shift) {
+    // The scheme used here for handling collisions relies on there always
+    // being at least one empty slot.
+    if (shift < 1) throw new Exception("_AccessorCache requires a shift >= 1");
+    initWithShift(shift);
+  }
+
+  void initWithShift(int shift) {
+    this.shift = shift;
+    this.mask = (1 << shift) - 1;
+    this.capacity = (1 << shift) * 3 ~/ 4;
+    this.table = new List(1 << shift);
+    assert(table.length > capacity);
+  }
+
+  int scanFor(String key) {
+    var start = key.hashCode & mask;
+    var index = start;
+    do {
+      var assoc = table[index];
+      if (null == assoc || assoc.key == key) {
+        return index;
+      }
+      index = (index + 1) & mask;
+    } while (index != start);
+    // Should never happen because we start evicting associations before the
+    // table is full.
+    throw new Exception("Internal error: _AccessorCache table full");
+  }
+
+  int scanForEmpty(String key) {
+    var start = key.hashCode & mask;
+    var index = start;
+    do {
+      if (null == table[index]) {
+        return index;
+      }
+      index = (index + 1) & mask;
+    } while (index != start);
+    // Should never happen because we start evicting associations before the
+    // table is full.
+    throw new Exception("Internal error: _AccessorCache table full");
+  }
+
+  void fixCollisionsAfter(int start) {
+    var assoc;
+    var index = (start + 1) & mask;
+    while (null != (assoc = table[index])) {
+      var newIndex = scanFor(assoc.key);
+      if (newIndex != index) {
+        assert(table[newIndex] == null);
+        table[newIndex] = assoc;
+        table[index] = null;
+      }
+      index = (index + 1) & mask;
+    }
+  }
+
+  void grow() {
+    var oldTable = table;
+
+    initWithShift(shift + 1);
+
+    for (int oldIndex = 0; oldIndex < oldTable.length; oldIndex++) {
+      var assoc = oldTable[oldIndex];
+      if (assoc != null) {
+        var newIndex = scanForEmpty(assoc.key);
+        assoc.usedSinceGrowth = false;
+        table[newIndex] = assoc;
+      }
+    }
+  }
+
+  void tryToShrinkOtherwiseGrow() {
+    // Remove any associations not accessed since the last growth. If we are
+    // unable to free any slots, grow.
+    bool needToGrow = true;
+    for (int i = 0; i < table.length; i++) {
+      var assoc = table[i];
+      if (null != assoc && (!assoc.usedSinceGrowth || null == assoc.value)) {
+        table[i] = null;
+        size--;
+        fixCollisionsAfter(i);
+        needToGrow = false;
+      }
+    }
+    if (needToGrow) grow();
+  }
+
+  operator []=(String key, Function value) {
+    int index = scanFor(key);
+    var assoc = table[index];
+    if (null != assoc) {
+      // Existing key, replace value.
+      assert(assoc.key == key);
+      assoc.value = value;
+      assoc.usedSinceGrowth = true;
+    } else {
+      // New key.
+      var newAssoc = new _AccessorCacheAssociation(key, value);
+      if (size == capacity) {
+        // No free slots.
+        tryToShrinkOtherwiseGrow();
+        index = scanFor(key);
+        assert(table[index] == null);
+      }
+      table[index] = newAssoc;
+      size++;
+    }
+  }
+
+  Function operator [](String key) {
+    var index = scanFor(key);
+    var assoc = table[index];
+    if (null == assoc) return null;
+    assoc.usedSinceGrowth = true;
+    return assoc.value;
+  }
+}
+
 
 class _LocalMirrorSystem extends MirrorSystem {
   final Map<Uri, LibraryMirror> libraries;
@@ -299,40 +441,33 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     return identityHashCode(_reflectee) ^ 0x36363636;
   }
 
-  static var _getFieldClosures = new LRUMap.withShift(9);
-  static var _setFieldClosures = new LRUMap.withShift(9);
-  static var _getFieldCallCounts = new LRUMap.withShift(10);
-  static var _setFieldCallCounts = new LRUMap.withShift(10);
-  static const _closureThreshold = 20;
+  static var _getFieldClosures = new _AccessorCache.withInitialShift(4);
+  static var _setFieldClosures = new _AccessorCache.withInitialShift(4);
+
+  _createGetterClosure(unwrapped) {
+    var atPosition = unwrapped.indexOf('@');
+    if (atPosition == -1) {
+      // Public symbol.
+      return  _eval('(x) => x.$unwrapped', null);
+    } else {
+      // Private symbol.
+      var withoutKey = unwrapped.substring(0, atPosition);
+      var privateKey = unwrapped.substring(atPosition);
+      return _eval('(x) => x.$withoutKey', privateKey);
+    }
+  }
 
   _getFieldSlow(unwrapped) {
     // Slow path factored out to give the fast path a better chance at being
     // inlined.
-    var callCount = _getFieldCallCounts[unwrapped];
-    if (callCount == null) {
-      callCount = 0;
-    }
-    if (callCount == _closureThreshold) {
-      // We've seen a successful setter invocation a few times: time to invest
-      // in a closure.
-      var f;
-      var atPosition = unwrapped.indexOf('@');
-      if (atPosition == -1) {
-        // Public symbol.
-        f = _eval('(x) => x.$unwrapped', null);
-      } else {
-        // Private symbol.
-        var withoutKey = unwrapped.substring(0, atPosition);
-        var privateKey = unwrapped.substring(atPosition);
-        f = _eval('(x) => x.$withoutKey', privateKey);
-      }
-      _getFieldClosures[unwrapped] = f;
-      return reflect(f(_reflectee));
-    }
     var result = reflect(_invokeGetter(_reflectee, unwrapped));
-    // Only update call count if we don't throw to avoid creating closures for
-    // non-existent getters.
-    _getFieldCallCounts[unwrapped] = callCount + 1;
+    // Wait until success to avoid creating closures for non-existent getters,
+    // and defer the creation until the next getField invocation.
+    _getFieldClosures[unwrapped] = (receiver) {
+      var getterClosure = _createGetterClosure(unwrapped);
+      _getFieldClosures[unwrapped] = getterClosure;
+      return getterClosure(receiver);
+    };
     return result;
   }
 
@@ -342,35 +477,31 @@ class _LocalInstanceMirror extends _LocalObjectMirror
     return (f == null) ? _getFieldSlow(unwrapped) : reflect(f(_reflectee));
   }
 
+  _createSetterClosure(unwrapped) {
+    var atPosition = unwrapped.indexOf('@');
+    if (atPosition == -1) {
+      // Public symbol.
+      return _eval('(x, v) => x.$unwrapped = v', null);
+    } else {
+      // Private symbol.
+      var withoutKey = unwrapped.substring(0, atPosition);
+      var privateKey = unwrapped.substring(atPosition);
+      return _eval('(x, v) => x.$withoutKey = v', privateKey);
+    }
+  }
+
   _setFieldSlow(unwrapped, arg) {
     // Slow path factored out to give the fast path a better chance at being
     // inlined.
-    var callCount = _setFieldCallCounts[unwrapped];
-    if (callCount == null) {
-      callCount = 0;
-    }
-    if (callCount == _closureThreshold) {
-      // We've seen a successful getter invocation a few times: time to invest
-      // in a closure.
-      var f;
-      var atPosition = unwrapped.indexOf('@');
-      if (atPosition == -1) {
-        // Public symbol.
-        f = _eval('(x, v) => x.$unwrapped = v', null);
-      } else {
-        // Private symbol.
-        var withoutKey = unwrapped.substring(0, atPosition);
-        var privateKey = unwrapped.substring(atPosition);
-        f = _eval('(x, v) => x.$withoutKey = v', privateKey);
-      }
-      _setFieldClosures[unwrapped] = f;
-      return reflect(f(_reflectee, arg));
-    }
     _invokeSetter(_reflectee, unwrapped, arg);
     var result = reflect(arg);
-    // Only update call count if we don't throw to avoid creating closures for
-    // non-existent setters.
-    _setFieldCallCounts[unwrapped] = callCount + 1;
+    // Wait until success to avoid creating closures for non-existent setters.
+    // and defer the creation until the next setField invocation.
+    _setFieldClosures[unwrapped] = (receiver, argument) {
+      var setterClosure = _createSetterClosure(unwrapped);
+      _setFieldClosures[unwrapped] = setterClosure;
+      return setterClosure(receiver, argument);
+    };
     return result;
   }
 

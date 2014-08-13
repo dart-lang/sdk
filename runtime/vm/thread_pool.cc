@@ -4,6 +4,9 @@
 
 #include "vm/thread_pool.h"
 
+#include "vm/flags.h"
+#include "vm/lockers.h"
+
 namespace dart {
 
 DEFINE_FLAG(int, worker_timeout_millis, 5000,

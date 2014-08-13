@@ -86,6 +86,12 @@ abstract class Resource {
    * denote this resource.
    */
   String get shortName;
+
+  /**
+   * Return `true` if absolute [path] references this resource or a resource in
+   * this folder.
+   */
+  bool isOrContains(String path);
 }
 
 
@@ -124,7 +130,8 @@ class ResourceUriResolver extends UriResolver {
     if (!_isFileUri(uri)) {
       return null;
     }
-    Resource resource = _provider.getResource(uri.path);
+    Resource resource = _provider.getResource(_provider.pathContext.fromUri(uri)
+        );
     if (resource is File) {
       return resource.createSource(uri);
     }

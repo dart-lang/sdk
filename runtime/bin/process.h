@@ -7,6 +7,7 @@
 
 #include "bin/builtin.h"
 #include "bin/io_buffer.h"
+#include "bin/lockers.h"
 #include "bin/thread.h"
 #include "platform/globals.h"
 #include "platform/utils.h"

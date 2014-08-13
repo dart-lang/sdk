@@ -5,6 +5,7 @@
 
 """This is the entry point to create Dart APIs from the IDL database."""
 
+import css_code_generator
 import dartgenerator
 import database
 import fremontcutbuilder
@@ -50,8 +51,7 @@ def LoadDatabase(database_dir, use_database_cache):
   return common_database
 
 def GenerateFromDatabase(common_database, dart2js_output_dir,
-                         dartium_output_dir, update_dom_metadata=False,
-                         dart_use_blink=False):
+                         dartium_output_dir, update_dom_metadata=False):
   current_dir = os.path.dirname(__file__)
   auxiliary_dir = os.path.join(current_dir, '..', 'src')
   template_dir = os.path.join(current_dir, '..', 'templates')
@@ -101,8 +101,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
     template_paths = ['html/dart2js', 'html/impl', 'html/interface', '']
     template_loader = TemplateLoader(template_dir,
                                      template_paths,
-                                     {'DARTIUM': False, 'DART2JS': True,
-                                      'DART_USE_BLINK' : False})
+                                     {'DARTIUM': False, 'DART2JS': True})
     backend_options = GeneratorOptions(
         template_loader, webkit_database, type_registry, renamer,
         metadata)
@@ -120,8 +119,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
     template_paths = ['html/dartium', 'html/impl', 'html/interface', '']
     template_loader = TemplateLoader(template_dir,
                                      template_paths,
-                                     {'DARTIUM': True, 'DART2JS': False,
-                                      'DART_USE_BLINK' : dart_use_blink})
+                                     {'DARTIUM': True, 'DART2JS': False})
     backend_options = GeneratorOptions(
         template_loader, webkit_database, type_registry, renamer,
         metadata)
@@ -134,7 +132,7 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
                                 auxiliary_dir)
     backend_factory = lambda interface:\
         DartiumBackend(interface, native_library_emitter,
-                       cpp_library_emitter, backend_options, dart_use_blink)
+                       cpp_library_emitter, backend_options)
     dart_libraries = DartLibraries(
         HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir)
     RunGenerator(dart_libraries, dart_output_dir,
@@ -163,6 +161,12 @@ def GenerateSingleFile(library_path, output_dir, generated_output_dir=None):
                       copy_dart_script, output_dir, library_filename])
   subprocess.call([command], shell=True)
 
+def UpdateCssProperties():
+  """Regenerate the CssStyleDeclaration template file with the current CSS
+  properties."""
+  _logger.info('Updating Css Properties.')
+  css_code_generator.GenerateCssTemplateFile()
+
 def main():
   parser = optparse.OptionParser()
   parser.add_option('--parallel', dest='parallel',
@@ -179,10 +183,6 @@ def main():
                     action='store', type='string',
                     default=None,
                     help='Directory to put the generated files')
-  parser.add_option('--use-blink', dest='dart_use_blink',
-                    action='store_true',
-                    default=False,
-                    help='''Delegate all native calls to dart:blink''')
   parser.add_option('--use-database-cache', dest='use_database_cache',
                     action='store_true',
                     default=False,
@@ -210,6 +210,7 @@ def main():
   if 'htmldartium' in systems:
     dartium_output_dir = os.path.join(output_dir, 'dartium')
 
+  UpdateCssProperties()
   if options.rebuild:
     # Parse the IDL and create the database.
     database = fremontcutbuilder.main(options.parallel)
@@ -217,7 +218,7 @@ def main():
     # Load the previously generated database.
     database = LoadDatabase(database_dir, options.use_database_cache)
   GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir,
-      options.update_dom_metadata, options.dart_use_blink)
+      options.update_dom_metadata)
 
   if 'htmldart2js' in systems:
     _logger.info('Generating dart2js single files.')

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library services.src.correction.statement_analyzer;
 
+import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/src/correction/selection_analyzer.dart';
 import 'package:analysis_services/src/correction/source_range.dart';
 import 'package:analysis_services/src/correction/util.dart';
@@ -33,23 +31,6 @@ List<Token> _getTokens(String text) {
   } catch (e) {
     return new List<Token>(0);
   }
-}
-
-/**
- * TODO(scheglov) port the real class
- */
-class RefactoringStatus {
-  bool get hasFatalError => false;
-
-  void addFatalError(String message, RefactoringStatusContext context) {
-  }
-}
-
-/**
- * TODO(scheglov) port the real class
- */
-class RefactoringStatusContext {
-  RefactoringStatusContext.forUnit(CompilationUnit unit, SourceRange range);
 }
 
 
@@ -164,16 +145,16 @@ class StatementAnalyzer extends SelectionAnalyzer {
     super.visitTryStatement(node);
     AstNode firstSelectedNode = this.firstSelectedNode;
     if (firstSelectedNode != null) {
-      if (identical(firstSelectedNode, node.body) ||
-          identical(firstSelectedNode, node.finallyBlock)) {
+      if (firstSelectedNode == node.body ||
+          firstSelectedNode == node.finallyBlock) {
         invalidSelection(
             "Selection must either cover whole try statement or parts of try, catch, or finally block.");
       } else {
         List<CatchClause> catchClauses = node.catchClauses;
         for (CatchClause catchClause in catchClauses) {
-          if (identical(firstSelectedNode, catchClause) ||
-              identical(firstSelectedNode, catchClause.body) ||
-              identical(firstSelectedNode, catchClause.exceptionParameter)) {
+          if (firstSelectedNode == catchClause ||
+              firstSelectedNode == catchClause.body ||
+              firstSelectedNode == catchClause.exceptionParameter) {
             invalidSelection(
                 "Selection must either cover whole try statement or parts of try, catch, or finally block.");
           }

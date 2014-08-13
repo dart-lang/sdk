@@ -115,9 +115,8 @@ class MemoryResourceProvider implements ResourceProvider {
     } else if (resource is _MemoryFolder) {
       return resource;
     } else {
-      String message = 'Folder expected at '
-                       "'$path'"
-                       'but ${resource.runtimeType} found';
+      String message =
+          'Folder expected at ' "'$path'" 'but ${resource.runtimeType} found';
       throw new ArgumentError(message);
     }
   }
@@ -131,9 +130,11 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   void _notifyWatchers(String path, ChangeType changeType) {
-    _pathToWatchers.forEach((String watcherPath, List<StreamController<WatchEvent>> streamControllers) {
+    _pathToWatchers.forEach(
+        (String watcherPath, List<StreamController<WatchEvent>> streamControllers) {
       if (posix.isWithin(watcherPath, path)) {
-        for (StreamController<WatchEvent> streamController in streamControllers) {
+        for (StreamController<WatchEvent> streamController in streamControllers)
+            {
           streamController.add(new WatchEvent(changeType, path));
         }
       }
@@ -147,8 +148,9 @@ class MemoryResourceProvider implements ResourceProvider {
  * non-existent file.
  */
 class _MemoryDummyLink extends _MemoryResource implements File {
-  _MemoryDummyLink(MemoryResourceProvider provider, String path) :
-      super(provider, path);
+  _MemoryDummyLink(MemoryResourceProvider provider, String path) : super(
+      provider,
+      path);
 
   @override
   bool get exists => false;
@@ -163,6 +165,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   Source createSource([Uri uri]) {
     throw new MemoryResourceException(path, "File '$path' could not be read");
   }
+
+  @override
+  bool isOrContains(String path) {
+    return path == this.path;
+  }
 }
 
 
@@ -170,8 +177,9 @@ class _MemoryDummyLink extends _MemoryResource implements File {
  * An in-memory implementation of [File].
  */
 class _MemoryFile extends _MemoryResource implements File {
-  _MemoryFile(MemoryResourceProvider provider, String path) :
-      super(provider, path);
+  _MemoryFile(MemoryResourceProvider provider, String path) : super(
+      provider,
+      path);
 
   String get _content {
     String content = _provider._pathToContent[path];
@@ -189,6 +197,11 @@ class _MemoryFile extends _MemoryResource implements File {
       uri = posix.toUri(path);
     }
     return new _MemoryFileSource(this, uri);
+  }
+
+  @override
+  bool isOrContains(String path) {
+    return path == this.path;
   }
 }
 
@@ -266,11 +279,13 @@ class _MemoryFileSource implements Source {
  * An in-memory implementation of [Folder].
  */
 class _MemoryFolder extends _MemoryResource implements Folder {
-  _MemoryFolder(MemoryResourceProvider provider, String path) :
-      super(provider, path);
+  _MemoryFolder(MemoryResourceProvider provider, String path) : super(
+      provider,
+      path);
   @override
   Stream<WatchEvent> get changes {
-    StreamController<WatchEvent> streamController = new StreamController<WatchEvent>();
+    StreamController<WatchEvent> streamController =
+        new StreamController<WatchEvent>();
     if (!_provider._pathToWatchers.containsKey(path)) {
       _provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
     }
@@ -316,6 +331,14 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       }
     });
     return children;
+  }
+
+  @override
+  bool isOrContains(String path) {
+    if (path == this.path) {
+      return true;
+    }
+    return contains(path);
   }
 }
 

@@ -11,9 +11,7 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
-$if DART_USE_BLINK
 import 'dart:_blink' as _blink;
-$endif
 
 $!GENERATED_DART_FILES
 
@@ -35,9 +33,7 @@ class _KeyRangeFactoryProvider {
       [bool lowerOpen = false, bool upperOpen = false]) =>
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
-$if DART_USE_BLINK
 // FIXME: Can we make this private?
 final indexed_dbBlinkMap = {
 $!TYPE_MAP
 };
-$endif

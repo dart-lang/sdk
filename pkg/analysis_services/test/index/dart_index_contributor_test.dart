@@ -848,7 +848,41 @@ main(B p) {
         _expectedLocation(vElement, 'B v;'));
   }
 
-  void test_isReferencedBy_CompilationUnitElement() {
+  void test_isReferencedBy_CompilationUnitElement_export() {
+    addSource('/lib.dart', '''
+library lib;
+''');
+    _indexTestUnit('''
+export 'lib.dart';
+''');
+    // prepare elements
+    LibraryElement libElement = testLibraryElement.exportedLibraries[0];
+    CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
+    // verify
+    _assertRecordedRelation(
+        libUnitElement,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(testUnitElement, "'lib.dart'", length: 10));
+  }
+
+  void test_isReferencedBy_CompilationUnitElement_import() {
+    addSource('/lib.dart', '''
+library lib;
+''');
+    _indexTestUnit('''
+import 'lib.dart';
+''');
+    // prepare elements
+    LibraryElement libElement = testLibraryElement.imports[0].importedLibrary;
+    CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
+    // verify
+    _assertRecordedRelation(
+        libUnitElement,
+        IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(testUnitElement, "'lib.dart'", length: 10));
+  }
+
+  void test_isReferencedBy_CompilationUnitElement_part() {
     addSource('/my_unit.dart', 'part of my_lib;');
     _indexTestUnit('''
 library my_lib;
@@ -1260,40 +1294,6 @@ main() {
         element,
         IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'L;'));
-  }
-
-  void test_isReferencedBy_LibraryElement_export() {
-    addSource('/lib.dart', '''
-library lib;
-''');
-    _indexTestUnit('''
-export 'lib.dart';
-''');
-    // prepare elements
-    LibraryElement libElement = testLibraryElement.exportedLibraries[0];
-    CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
-    // verify
-    _assertRecordedRelation(
-        libUnitElement,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, "'lib.dart'", length: 10));
-  }
-
-  void test_isReferencedBy_LibraryElement_import() {
-    addSource('/lib.dart', '''
-library lib;
-''');
-    _indexTestUnit('''
-import 'lib.dart';
-''');
-    // prepare elements
-    LibraryElement libElement = testLibraryElement.imports[0].importedLibrary;
-    CompilationUnitElement libUnitElement = libElement.definingCompilationUnit;
-    // verify
-    _assertRecordedRelation(
-        libUnitElement,
-        IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(testUnitElement, "'lib.dart'", length: 10));
   }
 
   void test_isReferencedBy_MethodElement() {

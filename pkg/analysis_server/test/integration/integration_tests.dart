@@ -13,12 +13,14 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
+import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
 
 /**
  * Base class for analysis server integration tests.
  */
-abstract class AbstractAnalysisServerIntegrationTest {
+abstract class AbstractAnalysisServerIntegrationTest extends
+    IntegrationTestMixin {
   /**
    * Amount of time to give the server to respond to a shutdown request before
    * forcibly terminating it.
@@ -55,6 +57,15 @@ abstract class AbstractAnalysisServerIntegrationTest {
   var serverConnectedParams;
 
   /**
+   * True if we are currently subscribed to [SERVER_STATUS] updates.
+   */
+  bool _subscribedToServerStatus = false;
+
+  AbstractAnalysisServerIntegrationTest() {
+    initializeInttestMixin();
+  }
+
+  /**
    * Write a source file with the given absolute [pathname] and [contents].
    *
    * If the file didn't previously exist, it is created.  If it did, it is
@@ -78,22 +89,17 @@ abstract class AbstractAnalysisServerIntegrationTest {
 
   /**
    * Send the server an 'analysis.setAnalysisRoots' command directing it to
-   * analyze [sourceDirectory].
+   * analyze [sourceDirectory].  If [subscribeStatus] is true (the default),
+   * then also enable [SERVER_STATUS] notifications so that [analysisFinished]
+   * can be used.
    */
-  Future standardAnalysisRoot() {
-    return server.send(ANALYSIS_SET_ANALYSIS_ROOTS, {
-      'included': [sourceDirectory.path],
-      'excluded': []
-    });
-  }
-
-  /**
-   * Send the server a 'server.setSubscriptions' command.
-   */
-  Future server_setSubscriptions(List<String> subscriptions) {
-    return server.send(SERVER_SET_SUBSCRIPTIONS, {
-      'subscriptions': subscriptions
-    });
+  Future standardAnalysisSetup({bool subscribeStatus: true}) {
+    List<Future> futures = <Future>[];
+    if (subscribeStatus) {
+      futures.add(sendServerSetSubscriptions(['STATUS']));
+    }
+    futures.add(sendAnalysisSetAnalysisRoots([sourceDirectory.path], []));
+    return Future.wait(futures);
   }
 
   /**
@@ -108,7 +114,10 @@ abstract class AbstractAnalysisServerIntegrationTest {
   Future get analysisFinished {
     Completer completer = new Completer();
     StreamSubscription subscription;
-    subscription = server.onNotification(SERVER_STATUS).listen((params) {
+    // This will only work if the caller has already subscribed to
+    // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
+    expect(_subscribedToServerStatus, isTrue);
+    subscription = onServerStatus.listen((params) {
       bool analysisComplete = false;
       try {
         analysisComplete = !params['analysis']['analyzing'];
@@ -133,6 +142,14 @@ abstract class AbstractAnalysisServerIntegrationTest {
     server.debugStdio();
   }
 
+  @override
+  Future sendServerSetSubscriptions(List<String> subscriptions, {bool
+      checkTypes: true}) {
+    _subscribedToServerStatus = subscriptions.contains('STATUS');
+    return super.sendServerSetSubscriptions(subscriptions, checkTypes:
+        checkTypes);
+  }
+
   /**
    * The server is automatically started before every test, and a temporary
    * [sourceDirectory] is created.
@@ -140,17 +157,15 @@ abstract class AbstractAnalysisServerIntegrationTest {
   Future setUp() {
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
 
-    server.onNotification(ANALYSIS_ERRORS).listen((params) {
-      expect(params, isMap);
-      expect(params['file'], isString);
+    onAnalysisErrors.listen((params) {
       currentAnalysisErrors[params['file']] = params['errors'];
     });
     Completer serverConnected = new Completer();
-    server.onNotification(SERVER_CONNECTED).listen((_) {
+    onServerConnected.listen((_) {
       expect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
-    return server.start().then((params) {
+    return server.start(dispatchNotification).then((params) {
       serverConnectedParams = params;
       server.exitCode.then((_) {
         skipShutdown = true;
@@ -178,7 +193,7 @@ abstract class AbstractAnalysisServerIntegrationTest {
     // Give the server a short time to comply with the shutdown request; if it
     // doesn't exit, then forcibly terminate it.
     Completer processExited = new Completer();
-    server.send(SERVER_SHUTDOWN, null);
+    sendServerShutdown();
     return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
       return server.kill();
     });
@@ -296,6 +311,32 @@ abstract class _RecursiveMatcher extends Matcher {
       });
     }
   }
+}
+
+/**
+ * Matcher that matches a String drawn from a limited set.
+ */
+class MatchesEnum extends Matcher {
+  /**
+   * Short description of the expected type.
+   */
+  final String description;
+
+  /**
+   * The set of enum values that are allowed.
+   */
+  final List<String> allowedValues;
+
+  const MatchesEnum(this.description, this.allowedValues);
+
+  @override
+  bool matches(item, Map matchState) {
+    return allowedValues.contains(item);
+  }
+
+  @override
+  Description describe(Description description) => description.add(
+      this.description);
 }
 
 /**
@@ -454,6 +495,11 @@ Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) => new _MapOf(
     keyMatcher, valueMatcher);
 
 /**
+ * Type of callbacks used to process notifications.
+ */
+typedef void NotificationProcessor(String event, params);
+
+/**
  * Instances of the class [Server] manage a connection to a server process, and
  * facilitate communication to and from the server.
  */
@@ -477,18 +523,9 @@ class Server {
   int _nextId = 0;
 
   /**
-   * [StreamController]s to which notifications should be sent, organized by
-   * event type.
+   * [StreamController] to which notifications will be sent.
    */
-  final HashMap<String, StreamController> _notificationControllers =
-      new HashMap<String, StreamController>();
-
-  /**
-   * [Stream]s associated with the controllers in [_notificationControllers],
-   * but converted to broadcast streams.
-   */
-  final HashMap<String, Stream> _notificationStreams = new HashMap<String,
-      Stream>();
+  final StreamController _notifications = new StreamController();
 
   /**
    * Messages which have been exchanged with the server; we buffer these
@@ -514,26 +551,26 @@ class Server {
   Stopwatch _time = new Stopwatch();
 
   /**
-   * Get a stream which will receive notifications of the given event type.
-   * The values delivered to the stream will be the contents of the 'params'
-   * field of the notification message.
+   * Find the root directory of the analysis_server package by proceeding
+   * upward to the 'test' dir, and then going up one more directory.
    */
-  Stream onNotification(String event) {
-    Stream notificationStream = _notificationStreams[event];
-    if (notificationStream == null) {
-      StreamController notificationController = new StreamController();
-      _notificationControllers[event] = notificationController;
-      notificationStream = notificationController.stream.asBroadcastStream();
-      _notificationStreams[event] = notificationStream;
+  String findRoot(String pathname) {
+    while (basename(pathname) != 'test') {
+      String parent = dirname(pathname);
+      if (parent.length >= pathname.length) {
+        throw new Exception("Can't find root directory");
+      }
+      pathname = parent;
     }
-    return notificationStream;
+    return dirname(pathname);
   }
 
   /**
    * Start the server.  If [debugServer] is true, the server will be started
    * with "--debug", allowing a debugger to be attached.
    */
-  Future start({bool debugServer: false}) {
+  Future start(NotificationProcessor notificationProcessor, {bool debugServer:
+      false}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
@@ -541,10 +578,9 @@ class Server {
     // TODO(paulberry): move the logic for finding the script, the dart
     // executable, and the package root into a shell script.
     String dartBinary = Platform.executable;
-    String scriptDir = dirname(Platform.script.toFilePath(windows:
+    String rootDir = findRoot(Platform.script.toFilePath(windows:
         Platform.isWindows));
-    String serverPath = normalize(join(scriptDir, '..', '..', 'bin',
-        'server.dart'));
+    String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     List<String> arguments = [];
     if (debugServer) {
       arguments.add('--debug');
@@ -581,7 +617,7 @@ class Server {
           if (messageAsMap.containsKey('error')) {
             // TODO(paulberry): propagate the error info to the completer.
             completer.completeError(new UnimplementedError(
-                'Server responded with an error'));
+                'Server responded with an error: ${JSON.encode(message)}'));
           } else {
             completer.complete(messageAsMap['result']);
           }
@@ -594,12 +630,7 @@ class Server {
           // params.
           expect(messageAsMap, contains('event'));
           expect(messageAsMap['event'], isString);
-          String event = messageAsMap['event'];
-          StreamController notificationController =
-              _notificationControllers[event];
-          if (notificationController != null) {
-            notificationController.add(messageAsMap['params']);
-          }
+          notificationProcessor(messageAsMap['event'], messageAsMap['params']);
           // Check that the message is well-formed.  We do this after calling
           // notificationController.add() so that we don't stall the test in the
           // event of an error.

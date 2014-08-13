@@ -186,6 +186,52 @@ void testHost() {
   Expect.equals(1234, headers.port);
 }
 
+void testTransferEncoding() {
+  expectChunked(headers) {
+    Expect.listEquals(headers['transfer-encoding'], ['chunked']);
+    Expect.isTrue(headers.chunkedTransferEncoding);
+  }
+
+  expectNonChunked(headers) {
+    Expect.isNull(headers['transfer-encoding']);
+    Expect.isFalse(headers.chunkedTransferEncoding);
+  }
+
+  _HttpHeaders headers;
+
+  headers = new _HttpHeaders("1.1");
+  headers.chunkedTransferEncoding = true;
+  expectChunked(headers);
+  headers.set('transfer-encoding', ['chunked']);
+  expectChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.set('transfer-encoding', ['chunked']);
+  expectChunked(headers);
+  headers.chunkedTransferEncoding = true;
+  expectChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.chunkedTransferEncoding = true;
+  headers.chunkedTransferEncoding = false;
+  expectNonChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.chunkedTransferEncoding = true;
+  headers.remove('transfer-encoding', 'chunked');
+  expectNonChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.set('transfer-encoding', ['chunked']);
+  headers.chunkedTransferEncoding = false;
+  expectNonChunked(headers);
+
+  headers = new _HttpHeaders("1.1");
+  headers.set('transfer-encoding', ['chunked']);
+  headers.remove('transfer-encoding', 'chunked');
+  expectNonChunked(headers);
+}
+
 void testEnumeration() {
   _HttpHeaders headers = new _HttpHeaders("1.1");
   Expect.isNull(headers[HttpHeaders.PRAGMA]);
@@ -366,67 +412,64 @@ void testCookie() {
 
     Cookie cookie;
     cookie = new Cookie(name, value);
-    Expect.equals("$name=$value", cookie.toString());
+    Expect.equals("$name=$value; HttpOnly", cookie.toString());
     DateTime date = new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
     cookie.expires = date;
     checkCookie(cookie, "$name=$value"
-                "; Expires=Sun, 05 Jan 2014 23:59:59 GMT");
+                "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
+                "; HttpOnly");
     cookie.maxAge = 567;
     checkCookie(cookie, "$name=$value"
                 "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
-                "; Max-Age=567");
+                "; Max-Age=567"
+                "; HttpOnly");
     cookie.domain = "example.com";
     checkCookie(cookie, "$name=$value"
                 "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
                 "; Max-Age=567"
-                "; Domain=example.com");
+                "; Domain=example.com"
+                "; HttpOnly");
     cookie.path = "/xxx";
     checkCookie(cookie, "$name=$value"
                 "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
                 "; Max-Age=567"
                 "; Domain=example.com"
-                "; Path=/xxx");
+                "; Path=/xxx"
+                "; HttpOnly");
     cookie.secure = true;
     checkCookie(cookie, "$name=$value"
                 "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
                 "; Max-Age=567"
                 "; Domain=example.com"
                 "; Path=/xxx"
-                "; Secure");
-    cookie.httpOnly = true;
+                "; Secure"
+                "; HttpOnly");
+    cookie.httpOnly = false;
     checkCookie(cookie, "$name=$value"
                 "; Expires=Sun, 05 Jan 2014 23:59:59 GMT"
                 "; Max-Age=567"
                 "; Domain=example.com"
                 "; Path=/xxx"
-                "; Secure"
-                "; HttpOnly");
+                "; Secure");
     cookie.expires = null;
     checkCookie(cookie, "$name=$value"
                 "; Max-Age=567"
                 "; Domain=example.com"
                 "; Path=/xxx"
-                "; Secure"
-                "; HttpOnly");
+                "; Secure");
     cookie.maxAge = null;
     checkCookie(cookie, "$name=$value"
                 "; Domain=example.com"
                 "; Path=/xxx"
-                "; Secure"
-                "; HttpOnly");
+                "; Secure");
     cookie.domain = null;
     checkCookie(cookie, "$name=$value"
                 "; Path=/xxx"
-                "; Secure"
-                "; HttpOnly");
+                "; Secure");
     cookie.path = null;
     checkCookie(cookie, "$name=$value"
-                "; Secure"
-                "; HttpOnly");
+                "; Secure");
     cookie.secure = false;
-    checkCookie(cookie, "$name=$value"
-                "; HttpOnly");
-    cookie.httpOnly = false;
     checkCookie(cookie, "$name=$value");
   }
   test("name", "value");
@@ -499,12 +542,24 @@ void testInvalidFieldValue() {
   test(new StringBuffer('\x00'), remove: false);
 }
 
+void testClear() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add("a", "b");
+  headers.contentLength = 7;
+  headers.chunkedTransferEncoding = true;
+  headers.clear();
+  Expect.isNull(headers["a"]);
+  Expect.equals(headers.contentLength, -1);
+  Expect.isFalse(headers.chunkedTransferEncoding);
+}
+
 main() {
   testMultiValue();
   testDate();
   testExpires();
   testIfModifiedSince();
   testHost();
+  testTransferEncoding();
   testEnumeration();
   testHeaderValue();
   testContentType();
@@ -514,4 +569,5 @@ main() {
   testHeaderLists();
   testInvalidFieldName();
   testInvalidFieldValue();
+  testClear();
 }

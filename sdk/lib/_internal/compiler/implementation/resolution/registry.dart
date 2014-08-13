@@ -201,8 +201,8 @@ class ResolutionRegistry extends Registry {
     backend.resolutionCallbacks.onLazyField(this);
   }
 
-  void registerMetadataConstant(Constant constant) {
-    backend.registerMetadataConstant(constant, this);
+  void registerMetadataConstant(Constant constant, Element annotatedElement) {
+    backend.registerMetadataConstant(constant, annotatedElement, this);
   }
 
   void registerThrowRuntimeError() {
@@ -232,7 +232,7 @@ class ResolutionRegistry extends Registry {
   }
 
   void registerSuperUse(Node node) {
-    mapping.superUses.add(node);
+    mapping.addSuperUse(node);
   }
 
   void registerDynamicInvocation(Selector selector) {
@@ -348,9 +348,8 @@ class ResolutionRegistry extends Registry {
     registerDependency(element);
   }
 
-  void registerInstantiation(ClassElement element) {
-    if (element == null) return;
-    world.registerInstantiatedClass(element, this);
+  void registerInstantiation(InterfaceType type) {
+    world.registerInstantiatedType(type, this);
   }
 
   void registerAssert(Send node) {

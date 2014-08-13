@@ -17,6 +17,7 @@
 #include <unistd.h>  // NOLINT
 
 #include "bin/fdutils.h"
+#include "bin/lockers.h"
 #include "bin/log.h"
 #include "bin/thread.h"
 

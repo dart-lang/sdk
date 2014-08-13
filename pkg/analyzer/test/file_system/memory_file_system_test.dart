@@ -260,6 +260,13 @@ main() {
         expect(file1.hashCode, equals(file2.hashCode));
       });
 
+      test('isOrContains', () {
+        String path = '/foo/bar/file.txt';
+        File file = provider.getResource(path);
+        expect(file.isOrContains(path), isTrue);
+        expect(file.isOrContains('/foo/bar'), isFalse);
+      });
+
       test('shortName', () {
         File file = provider.getResource('/foo/bar/file.txt');
         expect(file.shortName, 'file.txt');
@@ -308,6 +315,13 @@ main() {
         expect(folder.contains('/foo/bar/aaa/bbb.txt'), isTrue);
         expect(folder.contains('/baz.txt'), isFalse);
         expect(folder.contains('/foo/bar'), isFalse);
+      });
+
+      test('isOrContains', () {
+        expect(folder.isOrContains('/foo/bar'), isTrue);
+        expect(folder.isOrContains('/foo/bar/aaa.txt'), isTrue);
+        expect(folder.isOrContains('/foo/bar/aaa/bbb.txt'), isTrue);
+        expect(folder.isOrContains('/baz.txt'), isFalse);
       });
 
       group('getChild', () {

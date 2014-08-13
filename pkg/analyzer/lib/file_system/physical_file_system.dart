@@ -55,6 +55,11 @@ class _PhysicalFile extends _PhysicalResource implements File {
     }
     return new FileBasedSource.con2(uri, javaFile);
   }
+
+  @override
+  bool isOrContains(String path) {
+    return path == this.path;
+  }
 }
 
 
@@ -98,6 +103,14 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
       }
     }
     return children;
+  }
+
+  @override
+  bool isOrContains(String path) {
+    if (path == this.path) {
+      return true;
+    }
+    return contains(path);
   }
 }
 

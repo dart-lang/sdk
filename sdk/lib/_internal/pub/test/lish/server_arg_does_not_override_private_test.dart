@@ -12,7 +12,7 @@ main() {
   initConfig();
   integration('an explicit --server argument does not override privacy', () {
     var pkg = packageMap("test_pkg", "1.0.0");
-    pkg["publishTo"] = "none";
+    pkg["publish_to"] = "none";
     d.dir(appPath, [d.pubspec(pkg)]).create();
 
     schedulePub(args: ["lish", "--server", "http://arg.com"],

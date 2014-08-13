@@ -29,6 +29,7 @@ const String ANALYSIS_SET_SUBSCRIPTIONS = 'analysis.setSubscriptions';
 const String ANALYSIS_UPDATE_CONTENT = 'analysis.updateContent';
 const String ANALYSIS_UPDATE_OPTIONS = 'analysis.updateOptions';
 
+
 //
 // Analysis notifications
 //

@@ -5,6 +5,7 @@
 #include "bin/dbg_connection.h"
 #include "bin/dbg_message.h"
 #include "bin/dartutils.h"
+#include "bin/lockers.h"
 #include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
@@ -12,7 +13,6 @@
 
 #include "platform/globals.h"
 #include "platform/json.h"
-#include "platform/thread.h"
 #include "platform/utils.h"
 
 #include "include/dart_api.h"

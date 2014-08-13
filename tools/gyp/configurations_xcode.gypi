@@ -65,13 +65,6 @@
             'defines': [
               'PROFILE_NATIVE_CODE',
             ],
-          }, {
-            'xcode_settings': {
-              'OTHER_CFLAGS': [
-                '-fomit-frame-pointer',
-                '-momit-leaf-frame-pointer',
-              ],
-            },
           }],
         ],
       },

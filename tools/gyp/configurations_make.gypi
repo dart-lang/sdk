@@ -141,7 +141,7 @@
               '-fno-omit-frame-pointer',
               # Clang on Linux will still omit frame pointers from leaf
               # functions unless told otherwise:
-              # '-mno-omit-leaf-frame-pointer',
+              '-mno-omit-leaf-frame-pointer',
             ],
             'defines': [
               'PROFILE_NATIVE_CODE'
@@ -161,7 +161,7 @@
               '-fno-omit-frame-pointer',
               # Clang on Linux will still omit frame pointers from leaf
               # functions unless told otherwise:
-              # '-mno-omit-leaf-frame-pointer',
+              '-mno-omit-leaf-frame-pointer',
             ],
             'defines': [
               'PROFILE_NATIVE_CODE'

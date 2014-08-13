@@ -949,6 +949,7 @@ class Class : public Object {
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
 
+  // TODO(koda): Avoid VM service indexing into this array; unite w/ hash table.
   RawArray* functions() const { return raw_ptr()->functions_; }
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
@@ -1210,6 +1211,9 @@ class Class : public Object {
                                           RawFunction::Kind kind) const;
 
   void CalculateFieldOffsets() const;
+
+  // functions_hash_table is in use iff there are at least this many functions.
+  static const intptr_t kFunctionLookupHashTreshold = 16;
 
   // Initial value for the cached number of type arguments.
   static const intptr_t kUnknownNumTypeArguments = -1;
@@ -5547,8 +5551,11 @@ class String : public Instance {
                    intptr_t len);
 
   static RawString* EscapeSpecialCharacters(const String& str);
-  static RawString* EncodeURI(const String& str);
-  static RawString* DecodeURI(const String& str);
+  // Encodes 'str' for use in an Internationalized Resource Identifier (IRI),
+  // a generalization of URI (percent-encoding). See RFC 3987.
+  static RawString* EncodeIRI(const String& str);
+  // Returns null if 'str' is not a valid encoding.
+  static RawString* DecodeIRI(const String& str);
   static RawString* Concat(const String& str1,
                            const String& str2,
                            Heap::Space space = Heap::kNew);
@@ -5901,8 +5908,8 @@ class ExternalOneByteString : public AllStatic {
   }
 
   static RawOneByteString* EscapeSpecialCharacters(const String& str);
-  static RawOneByteString* EncodeURI(const String& str);
-  static RawOneByteString* DecodeURI(const String& str);
+  static RawOneByteString* EncodeIRI(const String& str);
+  static RawOneByteString* DecodeIRI(const String& str);
 
   static const ClassId kClassId = kExternalOneByteStringCid;
 

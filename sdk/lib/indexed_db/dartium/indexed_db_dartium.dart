@@ -238,7 +238,18 @@ class Database extends EventTarget {
   @DocsEditable()
   void deleteObjectStore(String name) => _blink.BlinkIDBDatabase.$deleteObjectStore_Callback(this, name);
 
-  Transaction transaction(storeName_OR_storeNames, String mode) => _blink.BlinkIDBDatabase.$transaction(this, storeName_OR_storeNames, mode);
+  Transaction transaction(storeName_OR_storeNames, String mode) {
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
+      return _blink.BlinkIDBDatabase.$_transaction_1_Callback(this, storeName_OR_storeNames, mode);
+    }
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
+      return _blink.BlinkIDBDatabase.$_transaction_2_Callback(this, storeName_OR_storeNames, mode);
+    }
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
+      return _blink.BlinkIDBDatabase.$_transaction_3_Callback(this, storeName_OR_storeNames, mode);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('IDBDatabase.transactionList')
   @DocsEditable()
@@ -372,7 +383,12 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   @DocsEditable()
   OpenDBRequest _deleteDatabase(String name) => _blink.BlinkIDBFactory.$deleteDatabase_Callback(this, name);
 
-  OpenDBRequest _open(String name, [int version]) => _blink.BlinkIDBFactory.$_open(this, name, version);
+  OpenDBRequest _open(String name, [int version]) {
+    if (version != null) {
+      return _blink.BlinkIDBFactory.$_open_1_Callback(this, name, version);
+    }
+    return _blink.BlinkIDBFactory.$_open_2_Callback(this, name);
+  }
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
   @DocsEditable()
@@ -772,7 +788,15 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   @DocsEditable()
   Request _count(Object key) => _blink.BlinkIDBObjectStore.$count_Callback(this, key);
 
-  Index _createIndex(String name, keyPath, [Map options]) => _blink.BlinkIDBObjectStore.$_createIndex(this, name, keyPath, options);
+  Index _createIndex(String name, keyPath, [Map options]) {
+    if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
+      return _blink.BlinkIDBObjectStore.$_createIndex_1_Callback(this, name, keyPath, options);
+    }
+    if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
+      return _blink.BlinkIDBObjectStore.$_createIndex_2_Callback(this, name, keyPath, options);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('IDBObjectStore.delete')
   @DocsEditable()

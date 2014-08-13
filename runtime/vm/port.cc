@@ -7,6 +7,7 @@
 #include "platform/utils.h"
 #include "vm/dart_api_impl.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
 #include "vm/message_handler.h"
 #include "vm/thread.h"
 

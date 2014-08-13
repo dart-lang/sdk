@@ -429,14 +429,16 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
 
   _HttpOutboundMessage(Uri uri,
                        String protocolVersion,
-                       _HttpOutgoing outgoing)
+                       _HttpOutgoing outgoing,
+                       {_HttpHeaders initialHeaders})
       : super(outgoing, null),
         _uri = uri,
         headers = new _HttpHeaders(
             protocolVersion,
             defaultPortForScheme: uri.scheme == 'https' ?
                 HttpClient.DEFAULT_HTTPS_PORT :
-                HttpClient.DEFAULT_HTTP_PORT),
+                HttpClient.DEFAULT_HTTP_PORT,
+            initialHeaders: initialHeaders),
         _outgoing = outgoing {
     _outgoing.outbound = this;
     _encodingMutable = false;
@@ -503,9 +505,10 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   _HttpResponse(Uri uri,
                 String protocolVersion,
                 _HttpOutgoing outgoing,
+                HttpHeaders defaultHeaders,
                 String serverHeader)
-      : super(uri, protocolVersion, outgoing) {
-    if (serverHeader != null) headers._add('server', serverHeader);
+      : super(uri, protocolVersion, outgoing, initialHeaders: defaultHeaders) {
+    if (serverHeader != null) headers.set('server', serverHeader);
   }
 
   bool get _isConnectionClosed => _httpRequest._httpConnection._isClosing;
@@ -2037,6 +2040,7 @@ class _HttpConnection
           var response = new _HttpResponse(incoming.uri,
                                            incoming.headers.protocolVersion,
                                            outgoing,
+                                           _httpServer.defaultResponseHeaders,
                                            _httpServer.serverHeader);
           var request = new _HttpRequest(response, incoming, _httpServer, this);
           _streamFuture = outgoing.done
@@ -2155,6 +2159,7 @@ class _HttpServer
   static Map<int, _HttpServer> _servers = new Map<int, _HttpServer>();
 
   String serverHeader;
+  final HttpHeaders defaultResponseHeaders = _initDefaultResponseHeaders();
 
   Duration _idleTimeout;
   Timer _idleTimer;
@@ -2195,6 +2200,15 @@ class _HttpServer
     idleTimeout = const Duration(seconds: 120);
     _servers[_serviceId] = this;
     try { _serverSocket._owner = this; } catch (_) {}
+  }
+
+  static HttpHeaders _initDefaultResponseHeaders() {
+    var defaultResponseHeaders = new _HttpHeaders('1.1');
+    defaultResponseHeaders.contentType = ContentType.TEXT;
+    defaultResponseHeaders.set('X-Frame-Options', 'SAMEORIGIN');
+    defaultResponseHeaders.set('X-Content-Type-Options', 'nosniff');
+    defaultResponseHeaders.set('X-XSS-Protection', '1; mode=block');
+    return defaultResponseHeaders;
   }
 
   Duration get idleTimeout => _idleTimeout;

@@ -4,11 +4,10 @@
 
 part of js;
 
-class Printer implements NodeVisitor {
+class Printer extends Indentation implements NodeVisitor {
   final bool shouldCompressOutput;
   leg.Compiler compiler;
   leg.CodeBuffer outBuffer;
-  int indentLevel = 0;
   bool inForInit = false;
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
@@ -104,7 +103,7 @@ class Printer implements NodeVisitor {
   void outIndentLn(String str) { indent(); outLn(str); }
   void indent() {
     if (!shouldCompressOutput) {
-      for (int i = 0; i < indentLevel; i++) out("  ");
+      out(indentation);
     }
   }
 
@@ -173,9 +172,7 @@ class Printer implements NodeVisitor {
     } else {
       lineOut();
     }
-    indentLevel++;
-    visit(body);
-    indentLevel--;
+    indentBlock(() => visit(body));
     return false;
   }
 
@@ -195,9 +192,7 @@ class Printer implements NodeVisitor {
     beginSourceRange(node);
     out("{");
     lineOut();
-    indentLevel++;
-    node.statements.forEach(blockOutWithoutBraces);
-    indentLevel--;
+    indentBlock(() => node.statements.forEach(blockOutWithoutBraces));
     indent();
     out("}");
     endSourceRange(node);
@@ -399,9 +394,7 @@ class Printer implements NodeVisitor {
     out(")");
     spaceOut();
     outLn("{");
-    indentLevel++;
-    visitAll(node.cases);
-    indentLevel--;
+    indentBlock(() => visitAll(node.cases));
     outIndentLn("}");
   }
 
@@ -412,18 +405,14 @@ class Printer implements NodeVisitor {
                           newInForInit: false, newAtStatementBegin: false);
     outLn(":");
     if (!node.body.statements.isEmpty) {
-      indentLevel++;
-      blockOutWithoutBraces(node.body);
-      indentLevel--;
+      indentBlock(() => blockOutWithoutBraces(node.body));
     }
   }
 
   visitDefault(Default node) {
     outIndentLn("default:");
     if (!node.body.statements.isEmpty) {
-      indentLevel++;
-      blockOutWithoutBraces(node.body);
-      indentLevel--;
+      indentBlock(() => blockOutWithoutBraces(node.body));
     }
   }
 
@@ -812,7 +801,7 @@ class Printer implements NodeVisitor {
     // decision based on layout.
     List<Property> properties = node.properties;
     out("{");
-    ++indentLevel;
+    indentMore();
     for (int i = 0; i < properties.length; i++) {
       Expression value = properties[i].value;
       if (i != 0) {
@@ -825,7 +814,7 @@ class Printer implements NodeVisitor {
       }
       visit(properties[i]);
     }
-    --indentLevel;
+    indentLess();
     if (!node.isOneLiner && !properties.isEmpty) {
       lineOut();
       indent();

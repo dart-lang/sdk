@@ -51,7 +51,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (type != null) {
         toHtmlVisitor.showType(null, type);
       }
-    }), false);
+    }));
     write('final Matcher ${camelJoin(nameParts)} = ');
     if (type == null) {
       write('isNull');
@@ -65,6 +65,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   @override
   visitApi() {
     outputHeader();
+    writeln();
     writeln('/**');
     writeln(' * Matchers for data types defined in the analysis server API');
     writeln(' */');
@@ -103,7 +104,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   visitTypeEnum(TypeEnum typeEnum) {
-    writeln('isIn([');
+    writeln('new MatchesEnum(${JSON.encode(context)}, [');
     indent(() {
       bool commaNeeded = false;
       for (TypeEnumValue value in typeEnum.values) {
@@ -170,7 +171,11 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
           writeln(',');
         }
         write('${JSON.encode(field.name)}: ');
-        visitTypeDecl(field.type);
+        if (field.value != null) {
+          write('equals(${JSON.encode(field.value)})');
+        } else {
+          visitTypeDecl(field.type);
+        }
         commaNeeded = true;
       }
       writeln();

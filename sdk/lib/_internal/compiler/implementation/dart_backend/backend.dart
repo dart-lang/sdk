@@ -228,9 +228,11 @@ class DartBackend extends Backend {
       } else {
         cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
         // Transformations on the CPS IR.
-        new cps_ir.RedundantPhiEliminator().rewrite(function);
+        new RedundantPhiEliminator().rewrite(function);
         compiler.tracer.traceCompilation(element.name, null, compiler);
         compiler.tracer.traceGraph("Redundant phi elimination", function);
+        new ShrinkingReducer().rewrite(function);
+        compiler.tracer.traceGraph("Shrinking reductions", function);
         // Do not rewrite the IR after variable allocation.  Allocation
         // makes decisions based on an approximation of IR variable live
         // ranges that can be invalidated by transforming the IR.

@@ -11,5 +11,7 @@ class OSUtilities {
 }
 
 class FileUtilities2 {
-  static JavaFile createFile(String path) => new JavaFile(path);
+  static JavaFile createFile(String path) {
+    return new JavaFile(path).getAbsoluteFile();
+  }
 }

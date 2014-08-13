@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library test.services.correction.assist;
 
 import 'package:analysis_services/correction/assist.dart';
@@ -45,9 +42,9 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     assist = _assertHasAssist(kind);
     change = assist.change;
     // apply to "file"
-    List<FileEdit> fileEdits = change.edits;
+    List<FileEdit> fileEdits = change.fileEdits;
     expect(fileEdits, hasLength(1));
-    resultCode = _applyEdits(testCode, change.edits[0].edits);
+    resultCode = _applyEdits(testCode, change.fileEdits[0].edits);
     // verify
     expect(resultCode, expected);
   }

@@ -132,13 +132,18 @@ def upload_to_new_location(channel, config, source_zip):
                                     config['bits'])
 
   if not DRY_RUN:
-    bot_utils.CreateChecksumFile(source_zip, mangled_filename=zipfilename)
+    bot_utils.CreateMD5ChecksumFile(source_zip, mangled_filename=zipfilename)
+    bot_utils.CreateSha256ChecksumFile(source_zip,
+                                       mangled_filename=zipfilename)
   md5_zip_file = source_zip + '.md5sum'
+  sha256_zip_file = source_zip + '.sha256sum'
 
   run([GSUTIL, 'cp', source_zip, bucket])
   run([GSUTIL, 'cp', md5_zip_file, bucket + '.md5sum'])
+  run([GSUTIL, 'cp', sha256_zip_file, bucket + '.sha256sum'])
   run([GSUTIL, 'setacl', 'public-read', bucket])
   run([GSUTIL, 'setacl', 'public-read', bucket + '.md5sum'])
+  run([GSUTIL, 'setacl', 'public-read', bucket + '.sha256sum'])
 
 def upload_msi_installer_to_new_location(channel, config, signed_msi):
   namer = bot_utils.GCSNamer(channel, bot_utils.ReleaseType.SIGNED)
@@ -279,4 +284,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-

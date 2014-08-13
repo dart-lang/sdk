@@ -5,19 +5,6 @@ CACHE MANIFEST
 
 # @@TIMESTAMP@@
 
-CACHE:
-index.html
-dartlang-style.css
-line_numbers.css
-leap.dart.js
-
-iframe.html
-iframe.js
-dart-icon.png
-dart-iphone5.png
-sdk.json
-
-/css/fonts/fontawesome-webfont.woff?v=3.0.1
-
-NETWORK:
-*
+FALLBACK:
+/leap.dart.js /nossl.js
+/ /nossl.html

@@ -1,3 +1,7 @@
+##0.11.0+4
+
+* Fix for [20153](https://code.google.com/p/dart/issues/detail?id=20153)
+
 ##0.11.0+3
 
 * Updated maximum `matcher` version.

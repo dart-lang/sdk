@@ -36,8 +36,12 @@ main() {
   setUp(() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null, new MockSdk());
+    server = new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
+        new MockSdk());
     handler = new AnalysisDomainHandler(server);
   });
 
@@ -54,11 +58,26 @@ main() {
         request.setParameter(EXCLUDED, []);
       });
 
-      test('excluded', () {
-        request.setParameter(EXCLUDED, ['foo']);
-        // TODO(scheglov) implement
-        var response = handler.handleRequest(request);
-        expect(response, isResponseFailure('0'));
+      group('excluded', () {
+        test('excluded folder', () {
+          String project = '/project';
+          String fileA = '/project/aaa/a.dart';
+          String fileB = '/project/bbb/b.dart';
+          resourceProvider.newFolder(project);
+          resourceProvider.newFile(fileA, '// a');
+          resourceProvider.newFile(fileB, '// b');
+          request.setParameter(INCLUDED, [project]);
+          request.setParameter(EXCLUDED, ['/project/bbb']);
+          var response = handler.handleRequest(request);
+          var serverRef = server;
+          expect(response, isResponseSuccess('0'));
+          // unit "a" is resolved eventually
+          // unit "b" is not resolved
+          return waitForServerOperationsPerformed(server).then((_) {
+            expect(serverRef.test_getResolvedCompilationUnit(fileA), isNotNull);
+            expect(serverRef.test_getResolvedCompilationUnit(fileB), isNull);
+          });
+        });
       });
 
       group('included', () {
@@ -72,8 +91,8 @@ main() {
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
           return waitForServerOperationsPerformed(server).then((_) {
-            var unit = serverRef.test_getResolvedCompilationUnit(
-                '/project/bin/test.dart');
+            var unit =
+                serverRef.test_getResolvedCompilationUnit('/project/bin/test.dart');
             expect(unit, isNotNull);
           });
         });
@@ -148,6 +167,21 @@ main() {
 
 
 testUpdateContent() {
+  test('bad type', () {
+    AnalysisTestHelper helper = new AnalysisTestHelper();
+    helper.createSingleFileProject('// empty');
+    return helper.waitForOperationsFinished().then((_) {
+      Request request = new Request('0', ANALYSIS_UPDATE_CONTENT);
+      request.setParameter('files', {
+        helper.testFile: {
+          TYPE: 'foo',
+        }
+      });
+      Response response = helper.handler.handleRequest(request);
+      expect(response, isResponseFailure('0'));
+    });
+  });
+
   test('full content', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
@@ -157,6 +191,7 @@ testUpdateContent() {
       expect(errors, isEmpty);
       // update code
       helper.sendContentChange({
+        TYPE: ADD,
         CONTENT: 'library lib'
       });
       // wait, there is an error
@@ -169,17 +204,23 @@ testUpdateContent() {
 
   test('incremental', () {
     AnalysisTestHelper helper = new AnalysisTestHelper();
-    helper.createSingleFileProject('library A;');
+    String initialContent = 'library A;';
+    helper.createSingleFileProject(initialContent);
     return helper.waitForOperationsFinished().then((_) {
       // no errors initially
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
+      // Add the file to the cache
+      helper.sendContentChange({
+        TYPE: ADD,
+        CONTENT: initialContent
+      });
       // update code
       helper.sendContentChange({
-        CONTENT: 'library lib',
+        TYPE: CHANGE,
+        REPLACEMENT: 'lib',
         OFFSET: 'library '.length,
-        OLD_LENGTH: 'A;'.length,
-        NEW_LENGTH: 'lib'.length,
+        LENGTH: 'A;'.length,
       });
       // wait, there is an error
       return helper.waitForOperationsFinished().then((_) {
@@ -212,6 +253,7 @@ testUpdateContent() {
     return helper.waitForOperationsFinished().then((_) {
       // update code
       helper.sendContentChange({
+        TYPE: ADD,
         CONTENT: 'library B;'
       });
       // There should be no errors
@@ -225,7 +267,7 @@ testUpdateContent() {
           // Send a content change with a null content param--file should be
           // reread from disk.
           helper.sendContentChange({
-            CONTENT: null
+            TYPE: REMOVE
           });
           // There should be errors now.
           return helper.waitForOperationsFinished().then((_) {
@@ -363,8 +405,8 @@ f(A a) {
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] = [resourceProvider.getResource(
-        '/packages/pkgA')];
+    packageMapProvider.packageMap['pkgA'] = [
+        resourceProvider.getResource('/packages/pkgA')];
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
@@ -403,8 +445,12 @@ class AnalysisTestHelper {
   AnalysisTestHelper() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null, new MockSdk());
+    server = new AnalysisServer(
+        serverChannel,
+        resourceProvider,
+        new MockPackageMapProvider(),
+        null,
+        new MockSdk());
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
     Stream<Notification> notificationStream =

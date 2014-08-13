@@ -1046,6 +1046,42 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     UnchainContexts(current_context_level);
   }
 
+  // Async functions contain two types of return statements:
+  // 1) Returns that should complete the completer once all finally blocks have
+  //    been inlined (call: :async_completer.complete(return_value)). These
+  //    returns end up returning null in the end.
+  // 2) "Continuation" returns that should not complete the completer but return
+  //    the value.
+  //
+  // We distinguish those kinds of nodes via is_regular_return().
+  //
+  if (function.is_async_closure() && node->is_regular_return()) {
+    // Temporary store the computed return value.
+    Do(BuildStoreExprTemp(return_value));
+
+    LocalVariable* rcv_var = node->scope()->LookupVariable(
+        Symbols::AsyncCompleter(), false);
+    ASSERT(rcv_var != NULL && rcv_var->is_captured());
+    Value* rcv_value = Bind(BuildLoadLocal(*rcv_var));
+    Value* returned_value = Bind(BuildLoadExprTemp());
+    ZoneGrowableArray<PushArgumentInstr*>* arguments =
+        new(I) ZoneGrowableArray<PushArgumentInstr*>(2);
+    arguments->Add(PushArgument(rcv_value));
+    arguments->Add(PushArgument(returned_value));
+    InstanceCallInstr* call = new(I) InstanceCallInstr(
+        Scanner::kNoSourcePos,
+        Symbols::CompleterComplete(),
+        Token::kILLEGAL,
+        arguments,
+        Object::null_array(),
+        1,
+        owner()->ic_data_array());
+    Do(call);
+
+    // Rebind the return value for the actual return call to be null.
+    return_value = BuildNullValue();
+  }
+
   AddReturnExit(node->token_pos(), return_value);
 }
 

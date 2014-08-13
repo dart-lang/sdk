@@ -67,6 +67,14 @@ void SequenceNode::VisitChildren(AstNodeVisitor* visitor) const {
 }
 
 
+void SequenceNode::Add(AstNode* node) {
+  if (node->IsReturnNode()) {
+    node->AsReturnNode()->set_scope(scope());
+  }
+  nodes_.Add(node);
+}
+
+
 void PrimaryNode::VisitChildren(AstNodeVisitor* visitor) const {
 }
 

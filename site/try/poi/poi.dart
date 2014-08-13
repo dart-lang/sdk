@@ -5,10 +5,22 @@
 library trydart.poi;
 
 import 'dart:async' show
-    Future;
+    Completer,
+    Future,
+    Stream;
 
 import 'dart:io' show
-    Platform;
+    HttpClient,
+    HttpClientRequest,
+    HttpClientResponse,
+    Platform,
+    stdout;
+
+import 'dart:io' as io;
+
+import 'dart:convert' show
+    LineSplitter,
+    UTF8;
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
     reuseCompiler;
@@ -32,36 +44,181 @@ import 'package:compiler/implementation/elements/elements.dart' show
     ClassElement,
     CompilationUnitElement,
     Element,
+    ElementCategory,
     LibraryElement,
     ScopeContainerElement;
 
-import 'package:compiler/implementation/scanner/scannerlib.dart' show
-    PartialClassElement,
-    PartialElement;
+import 'package:compiler/implementation/dart_types.dart' show
+    DartType;
 
-import 'package:compiler/implementation/util/uri_extras.dart' show
-    relativize;
+import 'package:compiler/implementation/scanner/scannerlib.dart' show
+    EOF_TOKEN,
+    IDENTIFIER_TOKEN,
+    KEYWORD_TOKEN,
+    PartialClassElement,
+    PartialElement,
+    Token;
+
+/// Controls if this program should be querying Dart Mind. Used by tests.
+bool enableDartMind = true;
+
+/// Iterator over lines from standard input (or the argument array).
+Iterator<String> stdin;
+
+/// Iterator for reading lines from [io.stdin].
+class StdinIterator implements Iterator<String> {
+  String current;
+
+  bool moveNext() {
+    current = io.stdin.readLineSync();
+    return true;
+  }
+}
 
 main(List<String> arguments) {
-  Uri script = Uri.base.resolve(arguments.first);
-  int position = int.parse(arguments[1]);
-
   FormattingDiagnosticHandler handler = new FormattingDiagnosticHandler();
   handler
-      ..verbose = true
+      ..verbose = false
       ..enableColors = true;
   api.CompilerInputProvider inputProvider = handler.provider;
+
+  if (arguments.length == 0) {
+    stdin = new StdinIterator();
+  } else {
+    stdin = arguments.where((String line) {
+      print(line); // Simulates user input in terminal.
+      return true;
+    }).iterator;
+  }
+
+  return prompt('Dart file: ').then((String fileName) {
+    return prompt('Position: ').then((String position) {
+      return parseUserInput(fileName, position, inputProvider, handler);
+    });
+  });
+}
+
+Future<String> prompt(message) {
+  stdout.write(message);
+  return stdout.flush().then((_) {
+    stdin.moveNext();
+    return stdin.current;
+  });
+}
+
+Future queryDartMind(String prefix, String info) {
+  // TODO(lukechurch): Use [info] for something.
+  if (!enableDartMind) return new Future.value("[]");
+  String encodedArg0 = Uri.encodeComponent('"$prefix"');
+  String mindQuery =
+      'http://dart-mind.appspot.com/rpc'
+      '?action=GetExportingPubCompletions'
+      '&arg0=$encodedArg0';
+  Uri uri = Uri.parse(mindQuery);
+
+  HttpClient client = new HttpClient();
+  return client.getUrl(uri).then((HttpClientRequest request) {
+    return request.close();
+  }).then((HttpClientResponse response) {
+    Completer<String> completer = new Completer<String>();
+    response.transform(UTF8.decoder).listen((contents) {
+      completer.complete(contents);
+    });
+    return completer.future;
+  });
+}
+
+Future parseUserInput(
+    String fileName,
+    String positionString,
+    api.CompilerInputProvider inputProvider,
+    api.DiagnosticHandler handler) {
+  Future repeat() {
+    return prompt('Position: ').then((String positionString) {
+      return parseUserInput(fileName, positionString, inputProvider, handler);
+    });
+  }
+
+  Uri script = Uri.base.resolveUri(new Uri.file(fileName));
+  if (positionString == null) return null;
+  int position = int.parse(
+      positionString, onError: (_) => print('Please enter an integer.'));
+  if (position == null) return repeat();
 
   inputProvider(script);
   handler(
       script, position, position + 1,
-      'Point of interest.', api.Diagnostic.HINT);
+      'Point of interest. Cursor is immediately before highlighted character.',
+      api.Diagnostic.HINT);
+
+  Stopwatch sw = new Stopwatch()..start();
 
   Future future = runPoi(script, position, inputProvider, handler);
   return future.then((Element element) {
-    print(scopeInformation(element, position));
+    print('Resolving took ${sw.elapsedMicroseconds}us.');
+    sw.reset();
+    String info = scopeInformation(element, position);
+    sw.stop();
+    print(info);
+    print('Scope information took ${sw.elapsedMicroseconds}us.');
+    sw..reset()..start();
+    Token token = findToken(element, position);
+    String prefix;
+    if (token != null) {
+      if (token.charOffset + token.charCount <= position) {
+        // After the token; in whitespace, or in the beginning of another token.
+        prefix = "";
+      } else if (token.kind == IDENTIFIER_TOKEN ||
+                 token.kind == KEYWORD_TOKEN) {
+        prefix = token.value.substring(0, position - token.charOffset);
+      }
+    }
+    print('Find token took ${sw.elapsedMicroseconds}us.');
+    sw.reset();
+    if (prefix != null) {
+      return queryDartMind(prefix, info).then((String dartMindSuggestion) {
+        sw.stop();
+        print('Dart Mind ($prefix): $dartMindSuggestion.');
+        print('Dart Mind took ${sw.elapsedMicroseconds}us.');
+        return repeat();
+      });
+    } else {
+      print("Didn't talk to Dart Mind, no identifier at POI ($token).");
+      return repeat();
+    }
   });
 }
+
+/// Find the token corresponding to [position] in [element].  The method only
+/// works for instances of [PartialElement] or [LibraryElement].  Support for
+/// [LibraryElement] is currently limited, and works only for named libraries.
+Token findToken(Element element, int position) {
+  Token beginToken;
+  if (element is PartialElement) {
+    beginToken = element.beginToken;
+  } else if (element is PartialClassElement) {
+    beginToken = element.beginToken;
+  } else if (element.isLibrary) {
+    // TODO(ahe): Generalize support for library elements (and update above
+    // documentation).
+    LibraryElement lib = element;
+    var tag = lib.libraryTag;
+    if (tag != null) {
+      beginToken = tag.libraryKeyword;
+    }
+  } else {
+    beginToken = element.position;
+  }
+  if (beginToken == null) return null;
+  for (Token token = beginToken; token.kind != EOF_TOKEN; token = token.next) {
+    if (token.charOffset < position && position <= token.next.charOffset) {
+      return token;
+    }
+  }
+  return null;
+}
+
+Compiler cachedCompiler;
 
 Future<Element> runPoi(
     Uri script, int position,
@@ -78,9 +235,10 @@ Future<Element> runPoi(
       '--no-source-maps',
       '--verbose',
       '--categories=Client,Server',
+      '--incremental-support',
+      '--disable-type-inference',
   ];
 
-  Compiler cachedCompiler = null;
   cachedCompiler = reuseCompiler(
       diagnosticHandler: handler,
       inputProvider: inputProvider,
@@ -157,15 +315,21 @@ class ScriptOnlyFilter implements QueueFilter {
   }
 }
 
+/**
+ * Serializes scope information about an element. This is accomplished by
+ * calling the [serialize] method on each element. Some elements need special
+ * treatment, as their enclosing scope must also be serialized.
+ */
 class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
   // TODO(ahe): Include function parameters and local variables.
 
-  final Element element;
+  final Element currentElement;
   final int position;
   final StringBuffer buffer = new StringBuffer();
   int indentationLevel = 0;
+  ClassElement currentClass;
 
-  ScopeInformationVisitor(this.element, this.position);
+  ScopeInformationVisitor(this.currentElement, this.position);
 
   String get indentation => '  ' * indentationLevel;
 
@@ -177,27 +341,116 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
 
   void visitLibraryElement(LibraryElement e) {
     bool isFirst = true;
+    forEach(Element member) {
+      if (!isFirst) {
+        buffer.write(',');
+      }
+      buffer.write('\n');
+      indented;
+      serialize(member);
+      isFirst = false;
+    }
     serialize(
-        e, omitEnclosing: true,
-        name: relativize(Uri.base, e.canonicalUri, false),
+        e,
+        // TODO(ahe): We omit the import scope if there is no current
+        // class. That's wrong.
+        omitEnclosing: currentClass == null,
+        name: e.getLibraryName(),
+        serializeEnclosing: () {
+          // The enclosing scope of a library is a scope which contains all the
+          // imported names.
+          isFirst = true;
+          buffer.write('{\n');
+          indentationLevel++;
+          indented.write('"kind": "imports",\n');
+          indented.write('"members": [');
+          indentationLevel++;
+          e.importScope.importScope.values.forEach(forEach);
+          indentationLevel--;
+          buffer.write('\n');
+          indented.write('],\n');
+          // The enclosing scope of the imported names scope is the superclass
+          // scope of the current class.
+          indented.write('"enclosing": ');
+          serializeClassSide(
+              currentClass.superclass, isStatic: false, includeSuper: true);
+          buffer.write('\n');
+          indentationLevel--;
+          indented.write('}');
+        },
         serializeMembers: () {
-          // TODO(ahe): Include imported elements in libraries.
-          e.forEachLocalMember((Element member) {
-            if (!isFirst) {
-              buffer.write(',');
-            }
-            buffer.write('\n');
-            indented;
-            serialize(member);
-            isFirst = false;
-          });
+          isFirst = true;
+          e.localScope.values.forEach(forEach);
         });
+  }
+
+  void visitClassElement(ClassElement e) {
+    currentClass = e;
+    serializeClassSide(e, isStatic: true);
+  }
+
+  /// Serializes one of the "sides" a class. The sides of a class are "instance
+  /// side" and "class side". These terms are from Smalltalk. The instance side
+  /// is all the local instance members of the class (the members of the
+  /// mixin), and the class side is the equivalent for static members and
+  /// constructors.
+  /// The scope chain is ordered so that the "class side" is searched before
+  /// the "instance side".
+  void serializeClassSide(
+      ClassElement e,
+      {bool isStatic: false,
+       bool omitEnclosing: false,
+       bool includeSuper: false}) {
+    bool isFirst = true;
+    var serializeEnclosing;
+    String kind;
+    if (isStatic) {
+      kind = 'class side';
+      serializeEnclosing = () {
+        serializeClassSide(e, isStatic: false, omitEnclosing: omitEnclosing);
+      };
+    } else {
+      kind = 'instance side';
+    }
+    if (includeSuper) {
+      assert(!omitEnclosing && !isStatic);
+      if (e.superclass == null) {
+        omitEnclosing = true;
+      } else {
+        // Members of the superclass are represented as a separate scope.
+        serializeEnclosing = () {
+          serializeClassSide(
+              e.superclass, isStatic: false, omitEnclosing: false,
+              includeSuper: true);
+        };
+      }
+    }
+    serialize(
+        e, omitEnclosing: omitEnclosing, serializeEnclosing: serializeEnclosing,
+        kind: kind, serializeMembers: () {
+      e.forEachLocalMember((Element member) {
+        // Filter out members that don't belong to this "side".
+        if (member.isConstructor) {
+          // In dart2js, some constructors aren't static, but that isn't
+          // convenient here.
+          if (!isStatic) return;
+        } else if (member.isStatic != isStatic) {
+          return;
+        }
+        if (!isFirst) {
+          buffer.write(',');
+        }
+        buffer.write('\n');
+        indented;
+        serialize(member);
+        isFirst = false;
+      });
+    });
   }
 
   void visitScopeContainerElement(ScopeContainerElement e) {
     bool isFirst = true;
     serialize(e, omitEnclosing: false, serializeMembers: () {
-      // TODO(ahe): Include inherited members in classes.
       e.forEachLocalMember((Element member) {
         if (!isFirst) {
           buffer.write(',');
@@ -218,21 +471,41 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
       Element element,
       {bool omitEnclosing: true,
        void serializeMembers(),
+       void serializeEnclosing(),
+       String kind,
        String name}) {
+    DartType type;
+    int category = element.kind.category;
+    if (category == ElementCategory.FUNCTION ||
+        category == ElementCategory.VARIABLE ||
+        element.isConstructor) {
+      type = element.computeType(cachedCompiler);
+    }
     if (name == null) {
       name = element.name;
     }
+    if (kind == null) {
+      kind = '${element.kind}';
+    }
     buffer.write('{\n');
     indentationLevel++;
-    indented
-        ..write('"name": "')
-        ..write(name)
-        ..write('",\n');
+    if (name != '') {
+      indented
+          ..write('"name": "')
+          ..write(name)
+          ..write('",\n');
+    }
     indented
         ..write('"kind": "')
-        ..write(element.kind)
+        ..write(kind)
         ..write('"');
-    // TODO(ahe): Add a type/signature field.
+    if (type != null) {
+      buffer.write(',\n');
+      indented
+          ..write('"type": "')
+          ..write(type)
+          ..write('"');
+    }
     if (serializeMembers != null) {
       buffer.write(',\n');
       indented.write('"members": [');
@@ -245,7 +518,11 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     if (!omitEnclosing) {
       buffer.write(',\n');
       indented.write('"enclosing": ');
-      element.enclosingElement.accept(this);
+      if (serializeEnclosing != null) {
+        serializeEnclosing();
+      } else {
+        element.enclosingElement.accept(this);
+      }
     }
     indentationLevel--;
     buffer.write('\n');

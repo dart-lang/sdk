@@ -12,7 +12,6 @@ import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
@@ -28,16 +27,9 @@ class AnalysisDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
-   * The [SearchEngine] for this server.
-   */
-  SearchEngine searchEngine;
-
-  /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  AnalysisDomainHandler(this.server) {
-    searchEngine = server.searchEngine;
-  }
+  AnalysisDomainHandler(this.server);
 
   /**
    * Implement the `analysis.getErrors` request.
@@ -171,18 +163,28 @@ class AnalysisDomainHandler implements RequestHandler {
   Response updateContent(Request request) {
     var changes = new HashMap<String, ContentChange>();
     RequestDatum filesDatum = request.getRequiredParameter(FILES);
-    filesDatum.forEachMap((file, changeDatum) {
-      var change = new ContentChange();
-      change.content = changeDatum[CONTENT].isNull ?
-          null :
-          changeDatum[CONTENT].asString();
-      if (changeDatum.hasKey(OFFSET)) {
-        change.offset = changeDatum[OFFSET].asInt();
-        change.oldLength = changeDatum[OLD_LENGTH].asInt();
-        change.newLength = changeDatum[NEW_LENGTH].asInt();
+    for (String file in filesDatum.keys) {
+      RequestDatum changeDatum = filesDatum[file];
+      ContentChange change = new ContentChange();
+      switch (changeDatum[TYPE].asString()) {
+        case ADD:
+          change.contentOrReplacement = changeDatum[CONTENT].asString();
+          break;
+        case CHANGE:
+          change.offset = changeDatum[OFFSET].asInt();
+          change.length = changeDatum[LENGTH].asInt();
+          change.contentOrReplacement = changeDatum[REPLACEMENT].asString();
+          break;
+        case REMOVE:
+          break;
+        default:
+          return new Response.invalidParameter(
+              request,
+              changeDatum[TYPE].path,
+              'be one of "add", "change", or "remove"');
       }
       changes[file] = change;
-    });
+    }
     server.updateContent(changes);
     return new Response(request.id);
   }
@@ -247,8 +249,15 @@ class AnalysisDomainHandler implements RequestHandler {
  * A description of the change to the content of a file.
  */
 class ContentChange {
-  String content;
+  /**
+   * If [offset] and [length] are null, the full content of the file (or null
+   * if the file should be read from the filesystem).
+   *
+   * If [offset] and [length] are non-null, the replacement text which should
+   * take the place of the [length] characters of the file starting at [offset].
+   */
+  String contentOrReplacement;
+
   int offset;
-  int oldLength;
-  int newLength;
+  int length;
 }

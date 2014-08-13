@@ -19,9 +19,9 @@
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/log.h"
+#include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/hashmap.h"
-#include "platform/thread.h"
 #include "platform/utils.h"
 
 

@@ -41,6 +41,9 @@ main() {
     expect(context.rootPrefix('C:\\'), r'C:\');
     expect(context.rootPrefix('C:/'), 'C:/');
     expect(context.rootPrefix(r'\\server\share\a\b'), r'\\server\share');
+    expect(context.rootPrefix(r'\\server\share'), r'\\server\share');
+    expect(context.rootPrefix(r'\\server\'), r'\\server\');
+    expect(context.rootPrefix(r'\\server'), r'\\server');
     expect(context.rootPrefix(r'\a\b'), r'\');
     expect(context.rootPrefix(r'/a/b'), r'/');
     expect(context.rootPrefix(r'\'), r'\');

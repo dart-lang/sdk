@@ -143,7 +143,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    */
   final Set<String> declaredLocals;
 
-  int indent = 0;
   HGraph currentGraph;
 
   // Records a block-information that is being handled specially.
@@ -314,7 +313,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitGraph(HGraph graph) {
     preGenerateMethod(graph);
     currentGraph = graph;
-    indent++;  // We are already inside a function.
     subGraph = new SubGraph(graph.entry, graph.exit);
     visitBasicBlock(graph.entry);
     handleDelayedVariableDeclarations();

@@ -8,8 +8,6 @@ samples/pop_pop_win: Pass, Slow
 samples/searchable_list: Pass, Slow
 pkg/docgen: Pass, Slow
 
-pkg/observatory: Skip # Issue 20306
-
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
 pkg/browser: PubGetError
@@ -20,16 +18,9 @@ samples/third_party/angular_todo: Fail # angular needs to be updated
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
 
-[ $use_public_packages && $builder_tag == russian ]
-samples/third_party/todomvc: Fail # Issue 18104
-
 [ $builder_tag == russian ]
 samples/pop_pop_win: Fail # Issue 16356
 samples/third_party/angular_todo: Fail # Issue 16356
 
 [ $system == windows ]
 samples/third_party/todomvc_performance: Fail # Issue 18086
-
-[ $use_public_packages && $builder_tag == russian && $system == windows]
-pkg/code_transformers: Fail # Issue 20386
-pkg/polymer_expressions: Fail # Issue 20386

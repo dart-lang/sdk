@@ -267,4 +267,14 @@ main() {
 
   d = const Duration(microseconds: 1000000);
   Expect.equals("0:00:01.000000", d.toString());
+
+  d1 = const Duration(hours: 1);
+  d2 = const Duration(hours: -1);
+  Expect.isFalse(d1.isNegative);
+  Expect.isTrue(d2.isNegative);
+  Expect.equals(d1, d1.abs());
+  Expect.equals(d1, d2.abs());
+
+  Expect.equals(d2, -d1);
+  Expect.equals(d1, -d2);
 }

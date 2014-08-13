@@ -606,6 +606,9 @@
       "__getter__": {
         "support_level": "untriaged"
       },
+      "__propertyQuery__": {
+        "support_level": "untriaged"
+      },
       "__setter__": {},
       "cssText": {},
       "getPropertyCSSValue": {
@@ -6522,8 +6525,7 @@
         "support_level": "nonstandard"
       },
       "fromElement": {
-        "dart_action": "experimental",
-        "support_level": "nonstandard"
+        "support_level": "deprecated"
       },
       "initMouseEvent": {},
       "metaKey": {},
@@ -6540,8 +6542,7 @@
       "screenY": {},
       "shiftKey": {},
       "toElement": {
-        "dart_action": "experimental",
-        "support_level": "nonstandard"
+        "support_level": "deprecated"
       },
       "webkitMovementX": {
         "support_level": "experimental"
@@ -12168,6 +12169,9 @@
   },
   "Timing": {
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "__setter__": {
         "support_level": "untriaged"
       },

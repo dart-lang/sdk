@@ -21,6 +21,26 @@ void main() {
   Expect.listEquals(["", "a", "", "", "a", ""],
                     exp.allMatches(str).map((x)=>x[0]).toList());
 
+  // Check that allMatches works with optional start index.
+  exp = new RegExp("as{2}");
+  str = "assassin";
+  Expect.equals(2, exp.allMatches(str).length);
+  Expect.equals(2, exp.allMatches(str, 0).length);
+  Expect.equals(1, exp.allMatches(str, 1).length);
+  Expect.equals(0, exp.allMatches(str, 4).length);
+  Expect.equals(0, exp.allMatches(str, str.length).length);
+  Expect.throws(() => exp.allMatches(str, -1));
+  Expect.throws(() => exp.allMatches(str, str.length + 1));
+
+  exp = new RegExp(".*");
+  Expect.equals("", exp.allMatches(str, str.length).single[0]);
+
+  // The "^" must only match at the beginning of the string.
+  // Using a start-index doesn't change where the string starts.
+  exp = new RegExp("^ass");
+  Expect.equals(1, exp.allMatches(str, 0).length);
+  Expect.equals(0, exp.allMatches(str, 3).length);
+
   // Regression test for http://dartbug.com/2980
   exp = new RegExp("^", multiLine: true);  // Any zero-length match will work.
   str = "foo\nbar\nbaz";

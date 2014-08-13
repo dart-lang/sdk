@@ -540,17 +540,17 @@ class _StringBase {
     return _concatRangeNative(stringList, 0, stringList.length);
   }
 
-  Iterable<Match> allMatches(String str) {
+  Iterable<Match> allMatches(String string, [int start = 0]) {
     List<Match> result = new List<Match>();
-    int length = str.length;
+    int length = string.length;
     int patternLength = this.length;
-    int startIndex = 0;
+    int startIndex = start;
     while (true) {
-      int position = str.indexOf(this, startIndex);
+      int position = string.indexOf(this, startIndex);
       if (position == -1) {
         break;
       }
-      result.add(new _StringMatch(position, str, this));
+      result.add(new _StringMatch(position, string, this));
       int endIndex = position + patternLength;
       if (endIndex == length) {
         break;

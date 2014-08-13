@@ -37,6 +37,7 @@ main() {
     expect(context.rootPrefix('http://dartlang.org'), 'http://dartlang.org');
     expect(context.rootPrefix('file://'), 'file://');
     expect(context.rootPrefix('/'), '/');
+    expect(context.rootPrefix('foo/bar://'), '');
   });
 
   test('dirname', () {

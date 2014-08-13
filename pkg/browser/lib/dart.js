@@ -4,7 +4,8 @@
 
 (function() {
 // Bootstrap support for Dart scripts on the page as this script.
-if (navigator.userAgent.indexOf('(Dart)') === -1) {
+// TODO(18463): Remove user agent check. We will remove 'Dart' from there.
+if (!navigator.dartEnabled && (navigator.userAgent.indexOf('(Dart)') === -1)) {
   // TODO:
   // - Support in-browser compilation.
   // - Handle inline Dart scripts.

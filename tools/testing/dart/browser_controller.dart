@@ -38,7 +38,7 @@ abstract class Browser {
   /**
    * The underlying process - don't mess directly with this if you don't
    * know what you are doing (this is an interactive process that needs
-   * special threatment to not leak).
+   * special treatment to not leak).
    */
   Process process;
 
@@ -581,7 +581,9 @@ class AndroidBrowser extends Browser {
   AdbDevice _adbDevice;
   AndroidBrowserConfig _config;
 
-  AndroidBrowser(this._adbDevice, this._config, this.checkedMode);
+  AndroidBrowser(this._adbDevice, this._config, this.checkedMode, apkPath) {
+    _binary = apkPath;
+  }
 
   Future<bool> start(String url) {
     var intent = new Intent(
@@ -600,6 +602,8 @@ class AndroidBrowser extends Browser {
       } else {
         return _adbDevice.setProp("DART_FLAGS", "");
       }
+    }).then((_) {
+      return _adbDevice.installApk(new Path(_binary));
     }).then((_) {
       return _adbDevice.startActivity(intent).then((_) => true);
     });
@@ -885,10 +889,16 @@ class BrowserTestRunner {
     var browsersCompleter = new Completer();
     var androidBrowserCreationMapping = {
       'chromeOnAndroid' : (AdbDevice device) => new AndroidChrome(device),
-      'ContentShellOnAndroid' : (AdbDevice device) =>
-          new AndroidBrowser(device, contentShellOnAndroidConfig, checkedMode),
-      'DartiumOnAndroid' : (AdbDevice device) =>
-          new AndroidBrowser(device, dartiumOnAndroidConfig, checkedMode),
+      'ContentShellOnAndroid' : (AdbDevice device) => new AndroidBrowser(
+          device,
+          contentShellOnAndroidConfig,
+          checkedMode,
+          globalConfiguration['drt']),
+      'DartiumOnAndroid' : (AdbDevice device) => new AndroidBrowser(
+          device,
+          dartiumOnAndroidConfig,
+          checkedMode,
+          globalConfiguration['dartium']),
     };
     if (androidBrowserCreationMapping.containsKey(browserName)) {
       AdbHelper.listDevices().then((deviceIds) {
@@ -1041,11 +1051,13 @@ class BrowserTestRunner {
     } else if (browserName == 'ContentShellOnAndroid') {
       browser = new AndroidBrowser(adbDeviceMapping[id],
                                    contentShellOnAndroidConfig,
-                                   checkedMode);
+                                   checkedMode,
+                                   globalConfiguration['drt']);
     } else if (browserName == 'DartiumOnAndroid') {
       browser = new AndroidBrowser(adbDeviceMapping[id],
                                    dartiumOnAndroidConfig,
-                                   checkedMode);
+                                   checkedMode,
+                                   globalConfiguration['dartium']);
     } else {
       browserStatus.remove(id);
       browser = getInstance();
@@ -1252,90 +1264,93 @@ class BrowserTestingServer {
   BrowserTestingServer(this.globalConfiguration, this.localIp, this.useIframe);
 
   Future start() {
-    int port = globalConfiguration['test_driver_port'];
-    return HttpServer.bind(localIp, port).then((createdServer) {
-      httpServer = createdServer;
-      void handler(HttpRequest request) {
-        // Don't allow caching of resources from the browser controller, i.e.,
-        // we don't want the browser to cache the result of getNextTest.
-        request.response.headers.set("Cache-Control",
-                                     "no-cache, no-store, must-revalidate");
-        bool isReport = request.uri.path.startsWith(reportPath);
-        bool isStatusUpdate = request.uri.path.startsWith(statusUpdatePath);
-        if (isReport || isStatusUpdate) {
-          var browserId;
-          if (isStatusUpdate) {
-            browserId = request.uri.path.substring(statusUpdatePath.length + 1);
-          } else {
-            browserId = request.uri.path.substring(reportPath.length + 1);
-          }
-          var testId =
-              int.parse(request.uri.queryParameters["id"].split("=")[1]);
-          handleReport(
-              request, browserId, testId, isStatusUpdate: isStatusUpdate);
-          // handleReport will asynchroniously fetch the data and will handle
-          // the closing of the streams.
-          return;
-        }
-        if (request.uri.path.startsWith(startedPath)) {
-          var browserId = request.uri.path.substring(startedPath.length + 1);
-          var testId =
-              int.parse(request.uri.queryParameters["id"].split("=")[1]);
-          handleStarted(request, browserId, testId);
-          return;
-        }
-        var textResponse = "";
-        if (request.uri.path.startsWith(driverPath)) {
-          var browserId = request.uri.path.substring(driverPath.length + 1);
-          textResponse = getDriverPage(browserId);
-        } else if (request.uri.path.startsWith(nextTestPath)) {
-          var browserId = request.uri.path.substring(nextTestPath.length + 1);
-          textResponse = getNextTest(browserId);
+    var test_driver_port = globalConfiguration['test_driver_port'];
+    var test_driver_error_port = globalConfiguration['test_driver_error_port'];
+    return HttpServer.bind(localIp, test_driver_port)
+      .then(setupDriverServer)
+      .then((_) => HttpServer.bind(localIp, test_driver_error_port))
+      .then(setupErrorServer);
+  }
+
+  void setupDriverServer(HttpServer server) {
+    httpServer = server;
+    void handler(HttpRequest request) {
+      // Don't allow caching of resources from the browser controller, i.e.,
+      // we don't want the browser to cache the result of getNextTest.
+      request.response.headers.set("Cache-Control",
+                                   "no-cache, no-store, must-revalidate");
+      bool isReport = request.uri.path.startsWith(reportPath);
+      bool isStatusUpdate = request.uri.path.startsWith(statusUpdatePath);
+      if (isReport || isStatusUpdate) {
+        var browserId;
+        if (isStatusUpdate) {
+          browserId = request.uri.path.substring(statusUpdatePath.length + 1);
         } else {
-          // /favicon.ico requests
+          browserId = request.uri.path.substring(reportPath.length + 1);
         }
-        request.response.write(textResponse);
-        request.listen((_) {}, onDone: request.response.close);
-        request.response.done.catchError((error) {
+        var testId =
+            int.parse(request.uri.queryParameters["id"].split("=")[1]);
+        handleReport(
+            request, browserId, testId, isStatusUpdate: isStatusUpdate);
+        // handleReport will asynchroniously fetch the data and will handle
+        // the closing of the streams.
+        return;
+      }
+      if (request.uri.path.startsWith(startedPath)) {
+        var browserId = request.uri.path.substring(startedPath.length + 1);
+        var testId =
+            int.parse(request.uri.queryParameters["id"].split("=")[1]);
+        handleStarted(request, browserId, testId);
+        return;
+      }
+      var textResponse = "";
+      if (request.uri.path.startsWith(driverPath)) {
+        var browserId = request.uri.path.substring(driverPath.length + 1);
+        textResponse = getDriverPage(browserId);
+      } else if (request.uri.path.startsWith(nextTestPath)) {
+        var browserId = request.uri.path.substring(nextTestPath.length + 1);
+        textResponse = getNextTest(browserId);
+      } else {
+        // /favicon.ico requests
+      }
+      request.response.write(textResponse);
+      request.listen((_) {}, onDone: request.response.close);
+      request.response.done.catchError((error) {
           if (!underTermination) {
             print("URI ${request.uri}");
             print("Textresponse $textResponse");
             throw "Error returning content to browser: $error";
           }
         });
-      }
-      void errorHandler(e) {
-        if (!underTermination) print("Error occured in httpserver: $e");
-      };
+    }
+    void errorHandler(e) {
+      if (!underTermination) print("Error occured in httpserver: $e");
+    }
+    httpServer.listen(handler, onError: errorHandler);
+  }
 
-      httpServer.listen(handler, onError: errorHandler);
-
-      // Set up the error reporting server that enables us to send back
-      // errors from the browser.
-      port = globalConfiguration['test_driver_error_port'];
-      return HttpServer.bind(localIp, port).then((createdReportServer) {
-        errorReportingServer = createdReportServer;
-        void errorReportingHandler(HttpRequest request) {
-          StringBuffer buffer = new StringBuffer();
-          request.transform(UTF8.decoder).listen((data) {
-            buffer.write(data);
-          }, onDone: () {
-              String back = buffer.toString();
-              request.response.headers.set("Access-Control-Allow-Origin", "*");
-              request.response.done.catchError((error) {
-                DebugLogger.error("Error getting error from browser"
-                                  "on uri ${request.uri.path}: $error");
-              });
-              request.response.close();
-              DebugLogger.error("Error from browser on : "
-                               "${request.uri.path}, data:  $back");
-          }, onError: (error) { print(error); });
-        }
-        errorReportingServer.listen(errorReportingHandler,
-                                    onError: errorHandler);
-        return true;
-      });
-    });
+  void setupErrorServer(HttpServer server) {
+    errorReportingServer = server;
+    void errorReportingHandler(HttpRequest request) {
+      StringBuffer buffer = new StringBuffer();
+      request.transform(UTF8.decoder).listen((data) {
+          buffer.write(data);
+        }, onDone: () {
+          String back = buffer.toString();
+          request.response.headers.set("Access-Control-Allow-Origin", "*");
+          request.response.done.catchError((error) {
+              DebugLogger.error("Error getting error from browser"
+                                "on uri ${request.uri.path}: $error");
+            });
+          request.response.close();
+          DebugLogger.error("Error from browser on : "
+                            "${request.uri.path}, data:  $back");
+        }, onError: (error) { print(error); });
+    }
+    void errorHandler(e) {
+      if (!underTermination) print("Error occured in httpserver: $e");
+    }
+    errorReportingServer.listen(errorReportingHandler, onError: errorHandler);
   }
 
   void handleReport(HttpRequest request, String browserId, var testId,

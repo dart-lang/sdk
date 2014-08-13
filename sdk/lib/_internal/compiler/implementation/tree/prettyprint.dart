@@ -10,10 +10,7 @@ part of tree;
  * TODO(smok): Add main() to run from command-line to print out tree for given
  * .dart file.
  */
-class PrettyPrinter implements Visitor {
-
-  /** String used to represent one level of indent. */
-  static const String INDENT = "  ";
+class PrettyPrinter extends Indentation implements Visitor {
 
   StringBuffer sb;
   Link<String> tagStack;
@@ -24,12 +21,14 @@ class PrettyPrinter implements Visitor {
 
   void pushTag(String tag) {
     tagStack = tagStack.prepend(tag);
+    indentMore();
   }
 
   String popTag() {
     assert(!tagStack.isEmpty);
     String tag = tagStack.head;
     tagStack = tagStack.tail;
+    indentLess();
     return tag;
   }
 
@@ -104,7 +103,7 @@ class PrettyPrinter implements Visitor {
   }
 
   void addCurrentIndent() {
-    tagStack.forEach((_) { sb.write(INDENT); });
+    sb.write(indentation);
   }
 
   /**

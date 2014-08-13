@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library services.correction.change;
 
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/json.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -23,7 +21,7 @@ class Change implements HasToJson {
   /**
    * A list of the [FileEdit]s used to effect the change. 
    */
-  final List<FileEdit> edits = <FileEdit>[];
+  final List<FileEdit> fileEdits = <FileEdit>[];
 
   /**
    * A list of the [LinkedEditGroup]s in the change. 
@@ -38,10 +36,22 @@ class Change implements HasToJson {
   Change(this.message);
 
   /**
+   * Adds [edit] to the [FileEdit] for the given [file].
+   */
+  void addEdit(String file, Edit edit) {
+    FileEdit fileEdit = getFileEdit(file);
+    if (fileEdit == null) {
+      fileEdit = new FileEdit(file);
+      addFileEdit(fileEdit);
+    }
+    fileEdit.add(edit);
+  }
+
+  /**
    * Adds the given [FileEdit].
    */
-  void add(FileEdit edit) {
-    edits.add(edit);
+  void addFileEdit(FileEdit edit) {
+    fileEdits.add(edit);
   }
 
   /**
@@ -51,11 +61,23 @@ class Change implements HasToJson {
     linkedEditGroups.add(linkedEditGroup);
   }
 
+  /**
+   * Returns the [FileEdit] for the given [file], maybe `null`.
+   */
+  FileEdit getFileEdit(String file) {
+    for (FileEdit fileEdit in fileEdits) {
+      if (fileEdit.file == file) {
+        return fileEdit;
+      }
+    }
+    return null;
+  }
+
   @override
   Map<String, Object> toJson() {
     Map<String, Object> json = {
       MESSAGE: message,
-      EDITS: objectToJson(edits),
+      EDITS: objectToJson(fileEdits),
       LINKED_EDIT_GROUPS: objectToJson(linkedEditGroups)
     };
     if (selection != null) {
@@ -66,7 +88,7 @@ class Change implements HasToJson {
 
   @override
   String toString() =>
-      'Change(message=$message, edits=$edits, '
+      'Change(message=$message, edits=$fileEdits, '
           'linkedEditGroups=$linkedEditGroups, selection=$selection)';
 }
 
@@ -91,6 +113,11 @@ class Edit implements HasToJson {
   final String replacement;
 
   Edit(this.offset, this.length, this.replacement);
+
+  Edit.range(SourceRange range, String replacement) : this(
+      range.offset,
+      range.length,
+      replacement);
 
   /**
    * The offset of a character immediately after the region to be modified. 

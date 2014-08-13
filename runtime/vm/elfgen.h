@@ -5,6 +5,7 @@
 #ifndef VM_ELFGEN_H_
 #define VM_ELFGEN_H_
 
+#include "vm/lockers.h"
 #include "vm/thread.h"
 
 namespace dart {

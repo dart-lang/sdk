@@ -143,6 +143,8 @@ class CompletionSuggestionKind {
       const CompletionSuggestionKind('IMPORT');
   static const CompletionSuggestionKind LIBRARY_PREFIX =
       const CompletionSuggestionKind('LIBRARY_PREFIX');
+  static const CompletionSuggestionKind LOCAL_VARIABLE =
+      const CompletionSuggestionKind('LOCAL_VARIABLE');
   static const CompletionSuggestionKind METHOD =
       const CompletionSuggestionKind('METHOD');
   static const CompletionSuggestionKind METHOD_NAME =
@@ -159,10 +161,6 @@ class CompletionSuggestionKind {
       const CompletionSuggestionKind('TOP_LEVEL_VARIABLE');
   static const CompletionSuggestionKind TYPE_PARAMETER =
       const CompletionSuggestionKind('TYPE_PARAMETER');
-  // TODO (danrubel) consider renaming VARIABLE --> LOCAL_VARIABLE
-  //                 to match ElementKind.LOCAL_VARIABLE
-  static const CompletionSuggestionKind VARIABLE =
-      const CompletionSuggestionKind('VARIABLE');
 
   final String name;
 
@@ -196,7 +194,7 @@ class CompletionSuggestionKind {
     if (kind == ElementKind.IMPORT) return IMPORT;
     //    ElementKind.LABEL,
     //    ElementKind.LIBRARY,
-    if (kind == ElementKind.LOCAL_VARIABLE) return VARIABLE;
+    if (kind == ElementKind.LOCAL_VARIABLE) return LOCAL_VARIABLE;
     if (kind == ElementKind.METHOD) return METHOD;
     //    ElementKind.NAME,
     if (kind == ElementKind.PARAMETER) return PARAMETER;
@@ -222,6 +220,7 @@ class CompletionSuggestionKind {
     if (GETTER.name == name) return GETTER;
     if (IMPORT.name == name) return IMPORT;
     if (LIBRARY_PREFIX.name == name) return LIBRARY_PREFIX;
+    if (LOCAL_VARIABLE.name == name) return LOCAL_VARIABLE;
     if (METHOD.name == name) return METHOD;
     if (METHOD_NAME.name == name) return METHOD_NAME;
     if (NAMED_ARGUMENT.name == name) return NAMED_ARGUMENT;
@@ -230,7 +229,6 @@ class CompletionSuggestionKind {
     if (SETTER.name == name) return SETTER;
     if (TOP_LEVEL_VARIABLE.name == name) return TOP_LEVEL_VARIABLE;
     if (TYPE_PARAMETER.name == name) return TYPE_PARAMETER;
-    if (VARIABLE.name == name) return VARIABLE;
     throw new ArgumentError('Unknown CompletionSuggestionKind: $name');
   }
 }

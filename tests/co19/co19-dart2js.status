@@ -1073,7 +1073,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A04_t01: RuntimeError, OK 
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/2_Privacy_A01_t09: RuntimeError, OK # co19 issue 198
 Language/03_Overview/2_Privacy_A01_t11: Pass, OK # co19 issue 316
 Language/06_Functions/4_External_Functions_A01_t01: CompileTimeError, OK # http://dartbug.com/5021
 LibTest/core/int/hashCode_A01_t01: RuntimeError, OK # co19 issue 308
@@ -1362,7 +1361,6 @@ Language/13_Statements/02_Expression_Statements_A01_t08: fail # co19-roll r546: 
 Language/13_Statements/06_For_A01_t11: fail # co19-roll r546: Please triage this failure
 Language/13_Statements/10_Rethrow_A01_t04: fail # co19-roll r559: Please triage this failure
 Language/13_Statements/10_Rethrow_A01_t05: fail # co19-roll r559: Please triage this failure
-Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t08: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t09: fail # co19-roll r546: Please triage this failure
 Language/14_Libraries_and_Scripts/1_Imports_A03_t10: fail # co19-roll r546: Please triage this failure

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library services.src.index.index_contributor;
 
 import 'dart:collection' show Queue;
@@ -880,7 +877,7 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   bool _isAlreadyHandledName(SimpleIdentifier node) {
     AstNode parent = node.parent;
     if (parent is MethodInvocation) {
-      return identical(parent.methodName, node);
+      return parent.methodName == node;
     }
     return false;
   }
@@ -1049,14 +1046,14 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     Element usedElement = null;
     if (parent is PrefixedIdentifier) {
       PrefixedIdentifier prefixed = parent;
-      if (identical(prefixed.prefix, prefixNode)) {
+      if (prefixed.prefix == prefixNode) {
         usedElement = prefixed.staticElement;
         info._periodEnd = prefixed.period.end;
       }
     }
     if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
-      if (identical(invocation.target, prefixNode)) {
+      if (invocation.target == prefixNode) {
         usedElement = invocation.methodName.staticElement;
         info._periodEnd = invocation.period.end;
       }
@@ -1181,6 +1178,6 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
    */
   static bool _isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
     AstNode parent = node.parent;
-    return parent is PrefixedIdentifier && identical(parent.identifier, node);
+    return parent is PrefixedIdentifier && parent.identifier == node;
   }
 }

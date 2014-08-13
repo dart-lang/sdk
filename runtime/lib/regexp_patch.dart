@@ -76,9 +76,13 @@ class _JSSyntaxRegExp implements RegExp {
     return new _JSRegExpMatch(this, str, match);
   }
 
-  Iterable<Match> allMatches(String str) {
-    if (str is! String) throw new ArgumentError(str);
-    return new _AllMatchesIterable(this, str);
+  Iterable<Match> allMatches(String string, [int start = 0]) {
+    if (string is! String) throw new ArgumentError(string);
+    if (start is! int) throw new ArgumentError(start);
+    if (0 > start || start > string.length) {
+      throw new RangeError.range(start, 0, string.length);
+    }
+    return new _AllMatchesIterable(this, string, start);
   }
 
   Match matchAsPrefix(String string, [int start = 0]) {
@@ -121,43 +125,39 @@ class _JSSyntaxRegExp implements RegExp {
 class _AllMatchesIterable extends IterableBase<Match> {
   final _JSSyntaxRegExp _re;
   final String _str;
+  final int _start;
 
-  const _AllMatchesIterable(this._re, this._str);
+  _AllMatchesIterable(this._re, this._str, this._start);
 
-  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _str);
+  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _str, _start);
 }
 
 class _AllMatchesIterator implements Iterator<Match> {
   final String _str;
+  int _nextIndex;
   _JSSyntaxRegExp _re;
   Match _current;
 
-  _AllMatchesIterator(this._re, this._str);
+  _AllMatchesIterator(this._re, this._str, this._nextIndex);
 
   Match get current => _current;
 
   bool moveNext() {
     if (_re == null) return false;  // Cleared after a failed match.
-    int nextIndex = 0;
-    if (_current != null) {
-      nextIndex = _current.end;
-      if (nextIndex == _current.start) {
-        // Zero-width match. Advance by one more.
-        nextIndex++;
-        if (nextIndex > _str.length) {
-          _re = null;
-          _current = null;
-          return false;
+    if (_nextIndex <= _str.length) {
+      var match = _re._ExecuteMatch(_str, _nextIndex);
+      if (match != null) {
+        _current = new _JSRegExpMatch(_re, _str, match);
+        _nextIndex = _current.end;
+        if (_nextIndex == _current.start) {
+          // Zero-width match. Advance by one more.
+          _nextIndex++;
         }
+        return true;
       }
     }
-    var match = _re._ExecuteMatch(_str, nextIndex);
-    if (match == null) {
-      _current = null;
-      _re = null;
-      return false;
-    }
-    _current = new _JSRegExpMatch(_re, _str, match);
-    return true;
+    _current = null;
+    _re = null;
+    return false;
   }
 }

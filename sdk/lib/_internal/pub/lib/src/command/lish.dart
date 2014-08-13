@@ -113,7 +113,7 @@ class LishCommand extends PubCommand {
 
     if (entrypoint.root.pubspec.isPrivate) {
       dataError('A private package cannot be published.\n'
-          'You can enable this by changing the "publishTo" field in your '
+          'You can enable this by changing the "publish_to" field in your '
               'pubspec.');
     }
 

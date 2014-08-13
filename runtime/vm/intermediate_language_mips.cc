@@ -2043,21 +2043,23 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                               FieldAddress(V0, Array::length_offset()),
                               kLengthReg);
 
-  __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
   // Initialize all array elements to raw_null.
   // V0: new object start as a tagged pointer.
   // T1: new object end address.
   // T2: iterator which initially points to the start of the variable
   // data area to be initialized.
   // T7: null.
-  __ AddImmediate(T2, V0, sizeof(RawArray) - kHeapObjectTag);
+  if (num_elements > 0) {
+    __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+    __ AddImmediate(T2, V0, sizeof(RawArray) - kHeapObjectTag);
 
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ BranchUnsignedGreaterEqual(T2, T1, done);
-  __ sw(T7, Address(T2, 0));
-  __ b(&init_loop);
-  __ delay_slot()->addiu(T2, T2, Immediate(kWordSize));
+    Label init_loop;
+    __ Bind(&init_loop);
+    __ sw(T7, Address(T2, 0));
+    __ addiu(T2, T2, Immediate(kWordSize));
+    __ BranchUnsignedLess(T2, T1, &init_loop);
+  }
+  __ b(done);
 }
 
 

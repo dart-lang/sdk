@@ -11,6 +11,7 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
+import '../cps_ir/optimizers.dart';
 import 'tree_ir_builder.dart' as tree_builder;
 import 'tree_ir_nodes.dart' as tree_ir;
 import '../util/util.dart';

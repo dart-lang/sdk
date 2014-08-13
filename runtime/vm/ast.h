@@ -162,7 +162,7 @@ class SequenceNode : public AstNode {
 
   void VisitChildren(AstNodeVisitor* visitor) const;
 
-  void Add(AstNode* node) { nodes_.Add(node); }
+  void Add(AstNode* node);
   intptr_t length() const { return nodes_.length(); }
   AstNode* NodeAt(intptr_t index) const { return nodes_[index]; }
   void ReplaceNodeAt(intptr_t index, AstNode* value) { nodes_[index] = value; }
@@ -515,6 +515,8 @@ class PrimaryNode : public AstNode {
 };
 
 
+// TODO(mlippautz): Implement return nodes that are used to return from a
+// continuation.
 class ReturnNode : public AstNode {
  public:
   // Return from a void function returns the null object.
@@ -522,14 +524,16 @@ class ReturnNode : public AstNode {
       : AstNode(token_pos),
         value_(new LiteralNode(token_pos, Instance::ZoneHandle())),
         inlined_finally_list_(),
-        saved_return_value_var_(NULL) { }
+        saved_return_value_var_(NULL),
+        is_regular_return_(true) { }
   // Return from a non-void function.
   ReturnNode(intptr_t token_pos,
              AstNode* value)
       : AstNode(token_pos),
         value_(value),
         inlined_finally_list_(),
-        saved_return_value_var_(NULL) {
+        saved_return_value_var_(NULL),
+        is_regular_return_(true) {
     ASSERT(value_ != NULL);
   }
 
@@ -558,12 +562,20 @@ class ReturnNode : public AstNode {
     }
   }
 
+  void set_scope(LocalScope* scope) { scope_ = scope; }
+  LocalScope* scope() const { return scope_; }
+
+  // Returns false if the return node is used to return from a continuation.
+  bool is_regular_return() const { return is_regular_return_; }
+
   DECLARE_COMMON_NODE_FUNCTIONS(ReturnNode);
 
  private:
   AstNode* value_;
   GrowableArray<InlinedFinallyNode*> inlined_finally_list_;
   LocalVariable* saved_return_value_var_;
+  LocalScope* scope_;
+  bool is_regular_return_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnNode);
 };

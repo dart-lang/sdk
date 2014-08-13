@@ -400,6 +400,7 @@ abstract class TestSuite {
      *      pkg/PACKAGE_NAME
      *      pkg/third_party/PACKAGE_NAME
      *      third_party/pkg/PACKAGE_NAME
+     *      runtime/bin/vmservice/PACKAGE_NAME
      */
 
     // Directories containing "-" are not valid pub packages and we therefore
@@ -412,6 +413,8 @@ abstract class TestSuite {
       listDir(dartDir.append('pkg'), isValid),
       listDir(dartDir.append('pkg').append('third_party'), isValid),
       listDir(dartDir.append('third_party').append('pkg'), isValid),
+      listDir(dartDir.append('runtime').append('bin').append('vmservice'),
+              isValid),
     ];
     return Future.wait(futures).then((results) {
       var packageDirectories = {};
@@ -1946,6 +1949,27 @@ class TestUtils {
             "${args.join(' ')}'.");
       }
     });
+  }
+
+  static Future deleteDirectory(String path) {
+    // We are seeing issues with long path names on windows when
+    // deleting them. Use the system tools to delete our long paths.
+    // See issue 16264.
+    if (Platform.operatingSystem == 'windows') {
+      var native_path = new Path(path).toNativePath();
+      // Running this in a shell sucks, but rmdir is not part of the standard
+      // path.
+      return Process.run('rmdir', ['/s', '/q', native_path], runInShell: true)
+        .then((ProcessResult result) {
+          if (result.exitCode != 0) {
+            throw new Exception('Can\'t delete path $native_path. '
+                                'This path might be too long');
+          }  
+        });
+    } else {
+      var dir = new Directory(path);
+      return dir.delete(recursive: true);
+    }
   }
 
   static Path debugLogfile() {

@@ -33,13 +33,13 @@ class StringMatch implements Match {
   final String pattern;
 }
 
-List<Match> allMatchesInStringUnchecked(String needle, String haystack) {
+List<Match> allMatchesInStringUnchecked(String needle, String haystack,
+                                        int startIndex) {
   // Copied from StringBase.allMatches in
   // /runtime/lib/string_base.dart
   List<Match> result = new List<Match>();
   int length = haystack.length;
   int patternLength = needle.length;
-  int startIndex = 0;
   while (true) {
     int position = haystack.indexOf(needle, startIndex);
     if (position == -1) {

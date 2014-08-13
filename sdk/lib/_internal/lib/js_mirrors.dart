@@ -2759,7 +2759,10 @@ Symbol computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
 
 List extractMetadata(victim) {
   preserveMetadata();
-  var metadataFunction = JS('', '#["@"]', victim);
+  var metadataFunction;
+  if (JS('bool', 'Object.prototype.hasOwnProperty.call(#, "@")', victim)) {
+    metadataFunction = JS('', '#["@"]', victim);
+  }
   if (metadataFunction != null) return JS('', '#()', metadataFunction);
   if (JS('bool', 'typeof # != "function"', victim)) return const [];
   if (JS('bool', '# in #', r'$metadataIndex', victim)) {
@@ -2768,13 +2771,7 @@ List extractMetadata(victim) {
            r'#.$reflectionInfo.splice(#.$metadataIndex)', victim, victim))
         .map((int i) => getMetadata(i)).toList();
   }
-  String source = JS('String', 'Function.prototype.toString.call(#)', victim);
-  int index = source.lastIndexOf(new RegExp('"[0-9,]*";?[ \n\r]*}'));
-  if (index == -1) return const [];
-  index++;
-  int endQuote = source.indexOf('"', index);
-  return source.substring(index, endQuote).split(',').map(int.parse).map(
-      (int i) => getMetadata(i)).toList();
+  return const [];
 }
 
 void parseCompactFieldSpecification(

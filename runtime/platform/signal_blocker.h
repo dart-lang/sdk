@@ -6,14 +6,13 @@
 #define PLATFORM_SIGNAL_BLOCKER_H_
 
 #include "platform/globals.h"
+#include "platform/assert.h"
 
 #if defined(TARGET_OS_WINDOWS)
 #error Do not include this file on Windows.
 #endif
 
 #include <signal.h>  // NOLINT
-
-#include "platform/thread.h"
 
 namespace dart {
 

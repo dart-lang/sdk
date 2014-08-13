@@ -5,61 +5,97 @@
 #ifndef BIN_THREAD_H_
 #define BIN_THREAD_H_
 
-#include "platform/assert.h"
-#include "platform/thread.h"
+#include "platform/globals.h"
 
+// Declare the OS-specific types ahead of defining the generic classes.
+#if defined(TARGET_OS_ANDROID)
+#include "bin/thread_android.h"
+#elif defined(TARGET_OS_LINUX)
+#include "bin/thread_linux.h"
+#elif defined(TARGET_OS_MACOS)
+#include "bin/thread_macos.h"
+#elif defined(TARGET_OS_WINDOWS)
+#include "bin/thread_win.h"
+#else
+#error Unknown target os.
+#endif
 
 namespace dart {
-namespace bin {
 
-class MutexLocker  {
+class Thread {
  public:
-  explicit MutexLocker(dart::Mutex* mutex) : mutex_(mutex) {
-    ASSERT(mutex != NULL);
-    mutex_->Lock();
+  static ThreadLocalKey kUnsetThreadLocalKey;
+  static ThreadId kInvalidThreadId;
+
+  typedef void (*ThreadStartFunction) (uword parameter);
+
+  // Start a thread running the specified function. Returns 0 if the
+  // thread started successfuly and a system specific error code if
+  // the thread failed to start.
+  static int Start(ThreadStartFunction function, uword parameters);
+
+  static ThreadLocalKey CreateThreadLocal();
+  static void DeleteThreadLocal(ThreadLocalKey key);
+  static uword GetThreadLocal(ThreadLocalKey key) {
+    return ThreadInlineImpl::GetThreadLocal(key);
   }
-
-  virtual ~MutexLocker() {
-    mutex_->Unlock();
-  }
-
- private:
-  dart::Mutex* const mutex_;
-
-  DISALLOW_COPY_AND_ASSIGN(MutexLocker);
+  static void SetThreadLocal(ThreadLocalKey key, uword value);
+  static intptr_t GetMaxStackSize();
+  static ThreadId GetCurrentThreadId();
+  static bool Join(ThreadId id);
+  static intptr_t ThreadIdToIntPtr(ThreadId id);
+  static bool Compare(ThreadId a, ThreadId b);
+  static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
 };
 
 
-class MonitorLocker {
+class Mutex {
  public:
-  explicit MonitorLocker(dart::Monitor* monitor) : monitor_(monitor) {
-    ASSERT(monitor != NULL);
-    monitor_->Enter();
-  }
+  Mutex();
+  ~Mutex();
 
-  virtual ~MonitorLocker() {
-    monitor_->Exit();
-  }
-
-  dart::Monitor::WaitResult Wait(int64_t millis = dart::Monitor::kNoTimeout) {
-    return monitor_->Wait(millis);
-  }
-
-  void Notify() {
-    monitor_->Notify();
-  }
-
-  void NotifyAll() {
-    monitor_->NotifyAll();
-  }
+  void Lock();
+  bool TryLock();
+  void Unlock();
 
  private:
-  dart::Monitor* const monitor_;
+  MutexData data_;
 
-  DISALLOW_COPY_AND_ASSIGN(MonitorLocker);
+  DISALLOW_COPY_AND_ASSIGN(Mutex);
 };
 
-}  // namespace bin
+
+class Monitor {
+ public:
+  enum WaitResult {
+    kNotified,
+    kTimedOut
+  };
+
+  static const int64_t kNoTimeout = 0;
+
+  Monitor();
+  ~Monitor();
+
+  void Enter();
+  void Exit();
+
+  // Wait for notification or timeout.
+  WaitResult Wait(int64_t millis);
+  WaitResult WaitMicros(int64_t micros);
+
+  // Notify waiting threads.
+  void Notify();
+  void NotifyAll();
+
+ private:
+  MonitorData data_;  // OS-specific data.
+
+  DISALLOW_COPY_AND_ASSIGN(Monitor);
+};
+
+
 }  // namespace dart
+
 
 #endif  // BIN_THREAD_H_

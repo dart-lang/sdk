@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library services.src.correction.assist;
 
 import 'dart:collection';
@@ -133,7 +130,7 @@ class AssistProcessor {
     // prepare Change
     String message = JavaString.format(kind.message, args);
     Change change = new Change(message);
-    change.add(fileEdit);
+    change.addFileEdit(fileEdit);
     linkedPositionGroups.values.forEach(
         (group) => change.addLinkedEditGroup(group));
     change.selection = exitPosition;
@@ -696,7 +693,7 @@ class AssistProcessor {
     // check that node is LHS in assignment
     if (node is SimpleIdentifier &&
         node.parent is AssignmentExpression &&
-        identical((node.parent as AssignmentExpression).leftHandSide, node) &&
+        (node.parent as AssignmentExpression).leftHandSide == node &&
         node.parent.parent is ExpressionStatement) {
     } else {
       _coverageMarker();
@@ -718,7 +715,7 @@ class AssistProcessor {
     AstNode declNode = new NodeLocator.con1(declOffset).searchWithin(unit);
     if (declNode != null &&
         declNode.parent is VariableDeclaration &&
-        identical((declNode.parent as VariableDeclaration).name, declNode) &&
+        (declNode.parent as VariableDeclaration).name == declNode &&
         declNode.parent.parent is VariableDeclarationList &&
         declNode.parent.parent.parent is VariableDeclarationStatement) {
     } else {
@@ -1067,7 +1064,7 @@ class AssistProcessor {
             TokenType.AMPERSAND_AMPERSAND) {
       condition = condition.parent as BinaryExpression;
     }
-    if (!identical(ifStatement.condition, condition)) {
+    if (ifStatement.condition != condition) {
       _coverageMarker();
       return;
     }

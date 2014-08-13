@@ -7,7 +7,6 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
-#include "bin/thread.h"
 #include "bin/utils.h"
 
 #include "include/dart_api.h"

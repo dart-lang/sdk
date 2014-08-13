@@ -7,13 +7,15 @@ library test.services.completion;
 import 'package:unittest/unittest.dart';
 
 import 'completion_computer_test.dart' as completion_test;
-import 'top_level_computer_test.dart' as topLevel_test;
+import 'imported_type_computer_test.dart' as importedType_test;
+import 'local_computer_test.dart' as local_test;
 
 /// Utility for manually running all tests.
 main() {
   groupSep = ' | ';
   group('completion', () {
     completion_test.main();
-    topLevel_test.main();
+    importedType_test.main();
+    local_test.main();
   });
 }

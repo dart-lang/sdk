@@ -8,9 +8,8 @@ import 'dart:async';
 
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/search/search_engine.dart';
-import 'package:analysis_services/src/completion/top_level_computer.dart';
+import 'package:analysis_services/src/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -18,11 +17,31 @@ import 'package:analyzer/src/generated/source.dart';
  * The base class for computing code completion suggestions.
  */
 abstract class CompletionComputer {
+  AnalysisContext context;
+  Source source;
+  int offset;
+  SearchEngine searchEngine;
 
   /**
-   * Computes [CompletionSuggestion]s for the specified position in the source.
+   * Computes the initial set of [CompletionSuggestion]s based on
+   * the compilation [unit], the AST [node] in which the completion occurred,
+   * and information already cached in the analysis context.
+   * The supplied [unit] and [node] may not be resolved.
+   * This method should execute quickly and not block waiting for any analysis.
+   * Returns `true` if the computer's work is complete
+   * or `false` if [computeFull] should be called to complete the work.
    */
-  Future<List<CompletionSuggestion>> compute();
+  bool computeFast(CompilationUnit unit, AstNode node,
+      List<CompletionSuggestion> suggestions);
+
+  /**
+   * Computes the complete set of [CompletionSuggestion]s based on
+   * the resolved compilation [unit] and the resolved AST [node] in which the
+   * completion occurred.
+   * Returns `true` if the receiver modified the list of suggestions.
+   */
+  Future<bool> computeFull(CompilationUnit unit, AstNode node,
+      List<CompletionSuggestion> suggestions);
 }
 
 /**
@@ -34,6 +53,8 @@ abstract class CompletionManager {
 
   /**
    * Compute completion results and append them to the stream.
+   * Subclasses should override this method, append at least one result
+   * to the [controller], and close the controller stream once complete.
    * Clients should not call this method directly as it is automatically called
    * when a client listens to the stream returned by [results].
    */
@@ -98,28 +119,6 @@ class CompletionResult {
       this.suggestions, this.last);
 }
 
-/**
- * Manages code completion for a given Dart file completion request.
- */
-class DartCompletionManager extends CompletionManager {
-  final AnalysisContext context;
-  final Source source;
-  final int offset;
-  final SearchEngine searchEngine;
-
-  DartCompletionManager(this.context, this.source, this.offset,
-      this.searchEngine);
-
-  @override
-  void compute() {
-    LibraryElement library = context.computeLibraryElement(source);
-    CompilationUnit unit = context.resolveCompilationUnit(source, library);
-    TopLevelComputer computer = new TopLevelComputer(searchEngine, unit);
-    computer.compute().then((List<CompletionSuggestion> suggestions) {
-      controller.add(new CompletionResult(offset, 0, suggestions, true));
-    });
-  }
-}
 
 class NoOpCompletionManager extends CompletionManager {
   final Source source;

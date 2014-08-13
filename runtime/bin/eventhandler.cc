@@ -5,7 +5,6 @@
 #include "bin/dartutils.h"
 #include "bin/eventhandler.h"
 #include "bin/socket.h"
-#include "bin/thread.h"
 
 #include "include/dart_api.h"
 

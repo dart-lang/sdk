@@ -136,7 +136,7 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
 
       MirrorUsageBuilder builder =
           new MirrorUsageBuilder(
-              analyzer, mapping.currentElement.library, named.expression,
+              analyzer, mapping.analyzedElement.library, named.expression,
               value, mapping);
 
       if (named.name.source == 'symbols') {

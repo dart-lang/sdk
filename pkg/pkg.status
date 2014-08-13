@@ -59,13 +59,11 @@ polymer/test/instance_attrs_test: Skip # Issue 19496
 [ $compiler == none && $runtime == dartium && $system == windows ]
 polymer/test/property_observe_test: Pass, Timeout # Issue 19326
 
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
-collection/test/unmodifiable_collection_test: Skip # Times out, Issue 20348
-
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
 analysis_server/test/domain_context_test: Skip  # Times out
 analysis_server/test/domain_server_test: Skip  # Times out
+analysis_server/test/integration/analysis/update_content_test: Skip # Times out
 analyzer/test/generated/element_test: Skip  # Times out
 analyzer/test/generated/parser_test: Skip  # Times out
 code_transformers/test/resolver_test: Skip  # Times out
@@ -309,6 +307,7 @@ http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_multi_server/test/http_multi_server_test: Skip # Uses dart:io
 http_server/test/*: Fail, OK # Uses dart:io.
+http_base/test/http_base_io_test: SkipByDesign # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
@@ -372,6 +371,7 @@ watcher/test/directory_watcher/linux_test: Skip # Issue 16118
 serialization/test/no_library_test: Skip # Expected Failure
 serialization/test/serialization_test: Fail # 13921
 unittest/test/async_exception_test: RuntimeError # 13921
+unittest/test/async_exception_with_future_test: RuntimeError # 13921
 unittest/test/async_setup_teardown_test: RuntimeError # 13921
 unittest/test/completion_test: RuntimeError # 13921
 unittest/test/correct_callback_test: RuntimeError # 13921
@@ -412,6 +412,7 @@ polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 http/test/html/*: Skip
+http_base/test/http_base_html_test: SkipByDesign # Uses dart:html.
 
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io
@@ -465,5 +466,5 @@ oauth2/test/handle_access_token_response_test: Fail
 [ $runtime == drt ]
 http/test/html/client_test: Skip # Issue 18566
 
-[ $mode == debug ]
-analysis_server/test/integration/analysis_domain_int_test: Slow, Pass
+[ $system == windows ]
+analysis_server/test/integration/search/get_type_hierarchy_test: Pass, Fail # Issue 20436

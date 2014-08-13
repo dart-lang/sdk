@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library services.src.correction.name_suggestion;
 
 import 'package:analysis_services/src/correction/strings.dart';
@@ -224,7 +221,7 @@ String _getBaseNameFromLocationInParent(Expression expression) {
   // value in named expression
   if (expression.parent is NamedExpression) {
     NamedExpression namedExpression = expression.parent as NamedExpression;
-    if (identical(namedExpression.expression, expression)) {
+    if (namedExpression.expression == expression) {
       return namedExpression.name.label.name;
     }
   }

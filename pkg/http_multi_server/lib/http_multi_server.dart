@@ -27,6 +27,9 @@ class HttpMultiServer extends StreamView<HttpRequest> implements HttpServer {
     }
   }
 
+  HttpHeaders get defaultResponseHeaders =>
+      throw new UnsupportedError('defaultResponseHeaders not supported');
+
   Duration get idleTimeout => _servers.first.idleTimeout;
   set idleTimeout(Duration value) {
     for (var server in _servers) {

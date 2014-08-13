@@ -452,7 +452,8 @@ class _ScriptCompactor extends PolymerTransformer {
     code.writeln(');');
 
     if (options.injectBuildLogsInOutput) {
-      code.writeln('  new LogInjector().injectLogsFromUrl();');
+      var buildUrl = "${path.basename(docId.path)}$LOG_EXTENSION";
+      code.writeln("  new LogInjector().injectLogsFromUrl('$buildUrl');");
     }
 
     if (experimentalBootstrap) {
@@ -491,7 +492,7 @@ class _ScriptCompactor extends PolymerTransformer {
     if (options.injectBuildLogsInOutput) {
       document.head.append(parseFragment(
           '<link rel="stylesheet" type="text/css"'
-              'href="packages/polymer/src/build/log_injector.css">'));
+          ' href="packages/polymer/src/build/log_injector.css">'));
     }
 
     transform.addOutput(new Asset.fromString(docId, document.outerHtml));

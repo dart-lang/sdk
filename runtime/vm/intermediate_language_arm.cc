@@ -2257,15 +2257,17 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // R8: iterator which initially points to the start of the variable
   // data area to be initialized.
   // R3: null
-  __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
-  __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
+  if (num_elements > 0) {
+    __ LoadImmediate(R3, reinterpret_cast<intptr_t>(Object::null()));
+    __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
 
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ cmp(R8, Operand(R7));
-  __ str(R3, Address(R8, 0), CC);
-  __ AddImmediate(R8, kWordSize, CC);
-  __ b(&init_loop, CC);
+    Label init_loop;
+    __ Bind(&init_loop);
+    __ cmp(R8, Operand(R7));
+    __ str(R3, Address(R8, 0), CC);
+    __ AddImmediate(R8, kWordSize, CC);
+    __ b(&init_loop, CC);
+  }
   __ b(done);
 }
 

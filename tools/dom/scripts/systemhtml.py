@@ -53,6 +53,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'ConsoleBase.warn',
     'WebKitCSSKeyframesRule.insertRule',
     'CSSStyleDeclaration.setProperty',
+    'CSSStyleDeclaration.__propertyQuery__',
     'Document.createNodeIterator',
     'Document.createTreeWalker',
     'DOMException.name',

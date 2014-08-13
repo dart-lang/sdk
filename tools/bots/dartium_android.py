@@ -39,7 +39,10 @@ def UploadSetACL(gsutil, local, remote):
 
 def UploadAPKs(options):
   with bot.BuildStep('Upload apk'):
-    bot_name = os.environ.get("BUILDBOT_BUILDERNAME")
+    bot_name = os.environ.get('BUILDBOT_BUILDERNAME')
+    on_fyi = 'fyi-' in os.environ.get('BUILDBOT_SCHEDULER')
+    if '-integration' in bot_name or on_fyi:
+      return
     channel = bot_utils.GetChannelFromName(bot_name)
     namer = bot_utils.GCSNamer(channel=channel)
     gsutil = bot_utils.GSUtil()

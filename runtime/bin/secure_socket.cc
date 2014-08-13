@@ -23,6 +23,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/lockers.h"
 #include "bin/net/nss_memio.h"
 #include "bin/socket.h"
 #include "bin/thread.h"

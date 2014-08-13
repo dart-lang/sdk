@@ -5,6 +5,8 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
+#include "vm/flags.h"
+#include "vm/os.h"
 #include "vm/signal_handler.h"
 #include "vm/thread_interrupter.h"
 

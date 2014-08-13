@@ -12,6 +12,7 @@
 namespace dart {
 
 class DebuggerEvent;
+class GCEvent;
 class EmbedderServiceHandler;
 class Instance;
 class Isolate;
@@ -42,8 +43,13 @@ class Service : public AllStatic {
   static bool NeedsDebuggerEvents() {
     return IsRunning() && ((event_mask_ & kEventFamilyDebugMask) != 0);
   }
+  // Is the service interested in garbage collection events?
+  static bool NeedsGCEvents() {
+    return IsRunning() && ((event_mask_ & kEventFamilyGCMask) != 0);
+  }
 
   static void HandleDebuggerEvent(DebuggerEvent* event);
+  static void HandleGCEvent(GCEvent* event);
 
   static void RegisterIsolateEmbedderCallback(
       const char* name,
@@ -62,7 +68,9 @@ class Service : public AllStatic {
  private:
   // These must be kept in sync with service/constants.dart
   static const int kEventFamilyDebug = 0;
+  static const int kEventFamilyGC = 1;
   static const uint32_t kEventFamilyDebugMask = (1 << kEventFamilyDebug);
+  static const uint32_t kEventFamilyGCMask = (1 << kEventFamilyGC);
 
   static void EmbedderHandleMessage(EmbedderServiceHandler* handler,
                                     JSONStream* js);

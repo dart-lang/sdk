@@ -12,8 +12,6 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "platform/globals.h"
-#include "platform/thread.h"
 
 
 namespace dart {

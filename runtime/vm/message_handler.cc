@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/message_handler.h"
-#include "vm/port.h"
+
 #include "vm/dart.h"
+#include "vm/lockers.h"
+#include "vm/port.h"
 
 namespace dart {
 

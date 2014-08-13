@@ -18,6 +18,9 @@ abstract class Node {
   static int hashCount = 0;
   final int hashCode = hashCount = (hashCount + 1) & 0x3fffffff;
 
+  /// A pointer to the parent node. Is null until set by optimization passes.
+  Node parent;
+
   accept(Visitor visitor);
 }
 
@@ -31,10 +34,10 @@ abstract class Definition extends Node {
   // The head of a linked-list of occurrences, in no particular order.
   Reference firstRef = null;
 
-  bool get hasAtMostOneUse => firstRef == null || firstRef.nextRef == null;
-  bool get hasExactlyOneUse => firstRef != null && firstRef.nextRef == null;
+  bool get hasAtMostOneUse  => firstRef == null || firstRef.next == null;
+  bool get hasExactlyOneUse => firstRef != null && firstRef.next == null;
   bool get hasAtLeastOneUse => firstRef != null;
-  bool get hasMultipleUses => !hasAtMostOneUse;
+  bool get hasMultipleUses  => !hasAtMostOneUse;
 
   void substituteFor(Definition other) {
     if (other.firstRef == null) return;
@@ -42,9 +45,10 @@ abstract class Definition extends Node {
     do {
       current.definition = this;
       previous = current;
-      current = current.nextRef;
+      current = current.next;
     } while (current != null);
-    previous.nextRef = firstRef;
+    previous.next = firstRef;
+    if (firstRef != null) firstRef.previous = previous;
     firstRef = other.firstRef;
   }
 }
@@ -76,14 +80,30 @@ abstract class Primitive extends Definition {
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
-/// their definition and are linked into a list of occurrences.
+/// their definition and are doubly-linked into a list of occurrences.
 class Reference {
   Definition definition;
-  Reference nextRef = null;
+  Reference previous = null;
+  Reference next = null;
+
+  /// A pointer to the parent node. Is null until set by optimization passes.
+  Node parent;
 
   Reference(this.definition) {
-    nextRef = definition.firstRef;
+    next = definition.firstRef;
+    if (next != null) next.previous = this;
     definition.firstRef = this;
+  }
+
+  /// Unlinks this reference from the list of occurrences.
+  void unlink() {
+    if (previous == null) {
+      assert(definition.firstRef == this);
+      definition.firstRef = next;
+    } else {
+      previous.next = next;
+    }
+    if (next != null) next.previous = previous;
   }
 }
 
@@ -91,7 +111,7 @@ class Reference {
 /// value is in scope in the body.
 /// During one-pass construction a LetVal with an empty body is used to
 /// represent one-level context 'let val x = V in []'.
-class LetPrim extends Expression {
+class LetPrim extends Expression implements InteriorNode {
   final Primitive primitive;
   Expression body = null;
 
@@ -111,9 +131,9 @@ class LetPrim extends Expression {
 /// continuation body.
 /// During one-pass construction a LetCont with an empty continuation body is
 /// used to represent the one-level context 'let cont k(v) = [] in E'.
-class LetCont extends Expression {
+class LetCont extends Expression implements InteriorNode {
   final Continuation continuation;
-  final Expression body;
+  Expression body;
 
   LetCont(this.continuation, this.body);
 
@@ -128,6 +148,18 @@ class LetCont extends Expression {
 abstract class Invoke {
   Selector get selector;
   List<Reference> get arguments;
+}
+
+/// Represents a node with a child node, which can be accessed through the
+/// `body` member. A typical usage is when removing a node from the CPS graph:
+///
+///     Node child          = node.body;
+///     InteriorNode parent = node.parent;
+///
+///     child.parent = parent;
+///     parent.body  = child;
+abstract class InteriorNode implements Node {
+  Expression body;
 }
 
 /// Invoke a static function or static field getter/setter.
@@ -303,7 +335,7 @@ class GetClosureVariable extends Primitive {
 ///
 /// Closure variables without a declaring [SetClosureVariable] are implicitly
 /// declared at the entry to the [variable]'s enclosing function.
-class SetClosureVariable extends Expression {
+class SetClosureVariable extends Expression implements InteriorNode {
   final Local variable;
   final Reference value;
   Expression body;
@@ -338,7 +370,7 @@ class SetClosureVariable extends Expression {
 ///
 ///   let rec [variable] = [definition] in [body]
 ///
-class DeclareFunction extends Expression {
+class DeclareFunction extends Expression implements InteriorNode {
   final Local variable;
   final FunctionDefinition definition;
   Expression body;
@@ -467,30 +499,32 @@ class Parameter extends Primitive {
   accept(Visitor visitor) => visitor.visitParameter(this);
 }
 
-/// Continuations are normally bound by 'let cont'.  A continuation with no
-/// parameter (or body) is used to represent a function's return continuation.
+/// Continuations are normally bound by 'let cont'.  A continuation with one
+/// parameter and no body is used to represent a function's return continuation.
 /// The return continuation is bound by the Function, not by 'let cont'.
-class Continuation extends Definition {
+class Continuation extends Definition implements InteriorNode {
   final List<Parameter> parameters;
   Expression body = null;
 
   // A continuation is recursive if it has any recursive invocations.
   bool isRecursive = false;
 
+  bool get isReturnContinuation => body == null;
+
   Continuation(this.parameters);
 
-  Continuation.retrn() : parameters = null;
+  Continuation.retrn() : parameters = <Parameter>[new Parameter(null)];
 
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
 
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter.
-class FunctionDefinition extends Node {
+class FunctionDefinition extends Node implements InteriorNode {
   final FunctionElement element;
   final Continuation returnContinuation;
   final List<Parameter> parameters;
-  final Expression body;
+  Expression body;
   final List<ConstDeclaration> localConstants;
 
   /// Values for optional parameters.
@@ -548,6 +582,8 @@ abstract class Visitor<T> {
   T visitIsTrue(IsTrue node) => visitCondition(node);
 }
 
+/// Recursively visits the entire CPS term, and calls abstract `process*`
+/// (i.e. `processLetPrim`) functions in pre-order.
 abstract class RecursiveVisitor extends Visitor {
   // Ensures that RecursiveVisitor contains overrides for all relevant nodes.
   // As a rule of thumb, nodes with structure to traverse should be overridden
@@ -557,63 +593,157 @@ abstract class RecursiveVisitor extends Visitor {
     throw "RecursiveVisitor is stale, add missing visit overrides";
   }
 
+  processReference(Reference ref) {}
+
+  processFunctionDefinition(FunctionDefinition node) {}
   visitFunctionDefinition(FunctionDefinition node) {
+    processFunctionDefinition(node);
+    node.parameters.forEach(visitParameter);
     visit(node.body);
   }
 
   // Expressions.
 
+  processLetPrim(LetPrim node) {}
   visitLetPrim(LetPrim node) {
+    processLetPrim(node);
     visit(node.primitive);
     visit(node.body);
   }
 
+  processLetCont(LetCont node) {}
   visitLetCont(LetCont node) {
-    visit(node.continuation.body);
+    processLetCont(node);
+    visit(node.continuation);
     visit(node.body);
   }
 
-  visitInvokeStatic(InvokeStatic node) => null;
-  visitInvokeContinuation(InvokeContinuation node) => null;
-  visitInvokeMethod(InvokeMethod node) => null;
-  visitInvokeSuperMethod(InvokeSuperMethod node) => null;
-  visitInvokeConstructor(InvokeConstructor node) => null;
-  visitConcatenateStrings(ConcatenateStrings node) => null;
+  processInvokeStatic(InvokeStatic node) {}
+  visitInvokeStatic(InvokeStatic node) {
+    processInvokeStatic(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
 
+  processInvokeContinuation(InvokeContinuation node) {}
+  visitInvokeContinuation(InvokeContinuation node) {
+    processInvokeContinuation(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+  processInvokeMethod(InvokeMethod node) {}
+  visitInvokeMethod(InvokeMethod node) {
+    processInvokeMethod(node);
+    processReference(node.receiver);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+  processInvokeSuperMethod(InvokeSuperMethod node) {}
+  visitInvokeSuperMethod(InvokeSuperMethod node) {
+    processInvokeSuperMethod(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+  processInvokeConstructor(InvokeConstructor node) {}
+  visitInvokeConstructor(InvokeConstructor node) {
+    processInvokeConstructor(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+  processConcatenateStrings(ConcatenateStrings node) {}
+  visitConcatenateStrings(ConcatenateStrings node) {
+    processConcatenateStrings(node);
+    processReference(node.continuation);
+    node.arguments.forEach(processReference);
+  }
+
+
+  processBranch(Branch node) {}
   visitBranch(Branch node) {
+    processBranch(node);
+    processReference(node.trueContinuation);
+    processReference(node.falseContinuation);
     visit(node.condition);
   }
 
-  visitTypeOperator(TypeOperator node) => null;
+  processTypeOperator(TypeOperator node) {}
+  visitTypeOperator(TypeOperator node) {
+    processTypeOperator(node);
+    processReference(node.continuation);
+    processReference(node.receiver);
+  }
 
+  processSetClosureVariable(SetClosureVariable node) {}
   visitSetClosureVariable(SetClosureVariable node) {
+    processSetClosureVariable(node);
+    processReference(node.value);
     visit(node.body);
   }
 
+  processDeclareFunction(DeclareFunction node) {}
   visitDeclareFunction(DeclareFunction node) {
+    processDeclareFunction(node);
     visit(node.definition);
     visit(node.body);
   }
 
   // Definitions.
 
-  visitLiteralList(LiteralList node) => null;
-  visitLiteralMap(LiteralMap node) => null;
-  visitConstant(Constant node) => null;
-  visitThis(This node) => null;
-  visitReifyTypeVar(ReifyTypeVar node) => null;
+  processLiteralList(LiteralList node) {}
+  visitLiteralList(LiteralList node) {
+    processLiteralList(node);
+    node.values.forEach(processReference);
+  }
 
+  processLiteralMap(LiteralMap node) {}
+  visitLiteralMap(LiteralMap node) {
+    processLiteralMap(node);
+    for (int i = 0; i < node.keys.length; i++) {
+      processReference(node.keys[i]);
+      processReference(node.values[i]);
+    }
+  }
+
+  processConstant(Constant node) {}
+  visitConstant(Constant node) => processConstant(node);
+
+  processThis(This node) {}
+  visitThis(This node) => processThis(node);
+
+  processReifyTypeVar(ReifyTypeVar node) {}
+  visitReifyTypeVar(ReifyTypeVar node) => processReifyTypeVar(node);
+
+  processCreateFunction(CreateFunction node) {}
   visitCreateFunction(CreateFunction node) {
+    processCreateFunction(node);
     visit(node.definition);
   }
 
-  visitGetClosureVariable(GetClosureVariable node) => null;
-  visitParameter(Parameter node) => null;
-  visitContinuation(Continuation node) => null;
+  processGetClosureVariable(GetClosureVariable node) {}
+  visitGetClosureVariable(GetClosureVariable node) =>
+      processGetClosureVariable(node);
+
+  processParameter(Parameter node) {}
+  visitParameter(Parameter node) => processParameter(node);
+
+  processContinuation(Continuation node) {}
+  visitContinuation(Continuation node) {
+    processContinuation(node);
+    node.parameters.forEach(visitParameter);
+    visit(node.body);
+  }
 
   // Conditions.
 
-  visitIsTrue(IsTrue node) => null;
+  processIsTrue(IsTrue node) {}
+  visitIsTrue(IsTrue node) {
+    processIsTrue(node);
+    processReference(node.value);
+  }
 }
 
 /// Keeps track of currently unused register indices.
@@ -782,126 +912,3 @@ class RegisterAllocator extends Visitor {
 
 }
 
-/// Eliminate redundant phis from the given [FunctionDefinition].
-///
-/// Phis in this case are [Continuations] together with corresponding
-/// [InvokeContinuation]s. A [Continuation] parameter at position i is redundant
-/// if for all [InvokeContinuation]s, the parameter at position i is identical
-/// (except for feedback). Redundant parameters are removed from the
-/// continuation signature, all invocations, and replaced within the
-/// continuation body.
-class RedundantPhiEliminator extends RecursiveVisitor {
-  final Map<Continuation, List<InvokeContinuation>> cont2invokes =
-      <Continuation, List<InvokeContinuation>>{};
-  // For each reference r used in a continuation invocation i, stores the
-  // corresponding continuation i.continuation. If required by other passes,
-  // we could consider adding parent pointers to references instead.
-  final Map<Reference, Continuation> ref2cont = <Reference, Continuation>{};
-  final Set<Continuation> workSet = new Set<Continuation>();
-
-  void rewrite(final FunctionDefinition root) {
-    // Traverse the tree once to build the work set.
-    visit(root);
-    workSet.addAll(cont2invokes.keys);
-
-    // Process each continuation one-by-one.
-    while (workSet.isNotEmpty) {
-      Continuation cont = workSet.first;
-      workSet.remove(cont);
-
-      if (cont.body == null) {
-        continue; // Skip function return continuations.
-      }
-
-      List<InvokeContinuation> invokes = cont2invokes[cont];
-      assert(invokes != null);
-
-      _processContinuation(cont, invokes);
-    }
-  }
-
-  /// Called for each continuation on the work set, together with its
-  /// invocations.
-  void _processContinuation(Continuation cont,
-                            List<InvokeContinuation> invokes) {
-    /// Returns the unique definition of parameter i if it exists and null
-    /// otherwise. A definition is unique if it is the only value used to
-    /// invoke the continuation, excluding feedback.
-    Definition uniqueDefinitionOf(int i) {
-      Definition value = null;
-      for (InvokeContinuation invoke in invokes) {
-        Definition def = invoke.arguments[i].definition;
-
-        if (cont.parameters[i] == def) {
-          // Invocation param == param in LetCont (i.e. a recursive call).
-          continue;
-        } else if (value == null) {
-          value = def; // Set initial comparison value.
-        } else if (value != def) {
-          return null; // Differing invocation arguments.
-        }
-      }
-
-      return value;
-    }
-
-    // Check if individual parameters are always called with a unique
-    // definition, and remove them if that is the case. During each iteration,
-    // we read the current parameter/argument from index `src` and copy it
-    // to index `dst`.
-    int dst = 0;
-    for (int src = 0; src < cont.parameters.length; src++) {
-      // Is the current phi redundant?
-      Definition uniqueDefinition = uniqueDefinitionOf(src);
-      if (uniqueDefinition == null) {
-        // Reorganize parameters and arguments in case of deletions.
-        cont.parameters[dst] = cont.parameters[src];
-        for (InvokeContinuation invoke in invokes) {
-          invoke.arguments[dst] = invoke.arguments[src];
-        }
-
-        dst++;
-        continue;
-      }
-
-      Definition oldDefinition = cont.parameters[src];
-
-      // Add continuations of about-to-be modified invokes to worklist since
-      // we might introduce new optimization opportunities.
-      for (Reference ref = oldDefinition.firstRef; ref != null;
-           ref = ref.nextRef) {
-        Continuation thatCont = ref2cont[ref];
-        // thatCont is null if ref does not belong to a continuation invocation.
-        if (thatCont != null && thatCont != cont) {
-          workSet.add(thatCont);
-        }
-      }
-
-      // Replace individual parameters:
-      // * In the continuation body, replace occurrence of param with value,
-      // * and implicitly remove param from continuation signature and
-      //   invocations by not incrementing `dst`.
-      uniqueDefinition.substituteFor(oldDefinition);
-    }
-
-    // Remove trailing items from parameter and argument lists.
-    cont.parameters.length = dst;
-    for (InvokeContinuation invoke in invokes) {
-      invoke.arguments.length = dst;
-    }
-  }
-
-  void visitInvokeContinuation(InvokeContinuation node) {
-    // Update the continuation map.
-    Continuation cont = node.continuation.definition;
-    assert(cont != null);
-    cont2invokes.putIfAbsent(cont, () => <InvokeContinuation>[])
-        .add(node);
-
-    // And the reference map.
-    node.arguments.forEach((Reference ref) {
-      assert(!ref2cont.containsKey(ref));
-      ref2cont[ref] = node.continuation.definition;
-    });
-  }
-}

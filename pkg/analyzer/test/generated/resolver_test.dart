@@ -10419,6 +10419,37 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_ambiguousImport_hideCombinator() {
+    Source source = addSource(EngineTestCase.createSource([
+        "import 'lib1.dart';",
+        "import 'lib2.dart';",
+        "import 'lib3.dart' hide N;",
+        "main() {",
+        "  new N1();",
+        "  new N2();",
+        "  new N3();",
+        "}"]));
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class N {}", "class N1 {}"]));
+    addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "class N {}", "class N2 {}"]));
+    addNamedSource("/lib3.dart", EngineTestCase.createSource(["library lib3;", "class N {}", "class N3 {}"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
+  void test_ambiguousImport_showCombinator() {
+    Source source = addSource(EngineTestCase.createSource([
+        "import 'lib1.dart';",
+        "import 'lib2.dart' show N, N2;",
+        "main() {",
+        "  new N1();",
+        "  new N2();",
+        "}"]));
+    addNamedSource("/lib1.dart", EngineTestCase.createSource(["library lib1;", "class N {}", "class N1 {}"]));
+    addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "class N {}", "class N2 {}"]));
+    resolve(source);
+    assertNoErrors(source);
+  }
+
   void test_argumentTypeNotAssignable_classWithCall_Function() {
     Source source = addSource(EngineTestCase.createSource([
         "  caller(Function callee) {",
@@ -14436,6 +14467,14 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_ambiguousExport_sameDeclaration', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_ambiguousExport_sameDeclaration);
+      });
+      _ut.test('test_ambiguousImport_hideCombinator', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_ambiguousImport_hideCombinator);
+      });
+      _ut.test('test_ambiguousImport_showCombinator', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_ambiguousImport_showCombinator);
       });
       _ut.test('test_argumentTypeNotAssignable_Object_Function', () {
         final __test = new NonErrorResolverTest();

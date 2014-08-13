@@ -13,7 +13,6 @@
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
-#include "vm/thread.h"
 
 namespace dart {
 

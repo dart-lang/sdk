@@ -12,7 +12,6 @@ import 'source.dart' show ContentCache, Source, UriKind;
 import 'ast.dart';
 import 'engine.dart' show AnalysisContext;
 
-
 /**
  * Instances of the class `DartSdk` represent a Dart SDK installed in a specified location.
  */

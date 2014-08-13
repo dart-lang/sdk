@@ -11,10 +11,10 @@
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
-#include "vm/thread.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
@@ -354,7 +354,7 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
   } else {
     intptr_t size_in_bytes = size_in_words << kWordSizeLog2;
     VirtualMemory* reserved = VirtualMemory::Reserve(size_in_bytes);
-    if ((reserved == NULL) || !reserved->Commit(VirtualMemory::kReadWrite)) {
+    if ((reserved == NULL) || !reserved->Commit(false)) {  // Not executable.
       // TODO(koda): If cache_ is not empty, we could try to delete it.
       delete reserved;
       return NULL;

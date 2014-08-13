@@ -15,6 +15,7 @@ main() {
   testEmptyString();
   testEmptyPatternAndString();
   testMatchAsPrefix();
+  testAllMatchesStart();
 }
 
 testNoMatch() {
@@ -96,4 +97,16 @@ testMatchAsPrefix() {
   Expect.isNull(pattern.matchAsPrefix(str, 6));
   Expect.throws(() => pattern.matchAsPrefix(str, -1));
   Expect.throws(() => pattern.matchAsPrefix(str, 7));
+}
+
+testAllMatchesStart() {
+  String p = "ass";
+  String s = "assassin";
+  Expect.equals(2, p.allMatches(s).length);
+  Expect.equals(2, p.allMatches(s, 0).length);
+  Expect.equals(1, p.allMatches(s, 1).length);
+  Expect.equals(0, p.allMatches(s, 4).length);
+  Expect.equals(0, p.allMatches(s, s.length).length);
+  Expect.throws(() => p.allMatches(s, -1));
+  Expect.throws(() => p.allMatches(s, s.length + 1));
 }

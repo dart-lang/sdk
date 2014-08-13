@@ -359,8 +359,8 @@ class CompileTimeConstantEvaluator extends Visitor {
         new DartString.literal(node.slowNameString))];
     }
     return makeConstructedConstant(
-        node, type, compiler.symbolConstructor, createArguments,
-        isLiteralSymbol: true);
+        compiler, handler, node, type, compiler.symbolConstructor,
+        createArguments, isLiteralSymbol: true);
   }
 
   Constant makeTypeConstant(DartType elementType) {
@@ -430,21 +430,11 @@ class CompileTimeConstantEvaluator extends Visitor {
       Constant receiverConstant = evaluate(send.receiver);
       if (receiverConstant == null) return null;
       Operator op = send.selector;
-      Constant folded;
-      switch (op.source) {
-        case "!":
-          folded = constantSystem.not.fold(receiverConstant);
-          break;
-        case "-":
-          folded = constantSystem.negate.fold(receiverConstant);
-          break;
-        case "~":
-          folded = constantSystem.bitNot.fold(receiverConstant);
-          break;
-        default:
-          compiler.internalError(op, "Unexpected operator.");
-          break;
+      UnaryOperation operation = constantSystem.lookupUnary(op.source);
+      if (operation == null) {
+        compiler.internalError(op, "Unexpected operator.");
       }
+      Constant folded = operation.fold(receiverConstant);
       if (folded == null) return signalNotCompileTimeConstant(send);
       return folded;
     } else if (send.isOperator && !send.isPostfix) {
@@ -455,64 +445,10 @@ class CompileTimeConstantEvaluator extends Visitor {
       Operator op = send.selector.asOperator();
       Constant folded = null;
       switch (op.source) {
-        case "+":
-          folded = constantSystem.add.fold(left, right);
-          break;
-        case "-":
-          folded = constantSystem.subtract.fold(left, right);
-          break;
-        case "*":
-          folded = constantSystem.multiply.fold(left, right);
-          break;
-        case "/":
-          folded = constantSystem.divide.fold(left, right);
-          break;
-        case "%":
-          folded = constantSystem.modulo.fold(left, right);
-          break;
-        case "~/":
-          folded = constantSystem.truncatingDivide.fold(left, right);
-          break;
-        case "|":
-          folded = constantSystem.bitOr.fold(left, right);
-          break;
-        case "&":
-          folded = constantSystem.bitAnd.fold(left, right);
-          break;
-        case "^":
-          folded = constantSystem.bitXor.fold(left, right);
-          break;
-        case "||":
-          folded = constantSystem.booleanOr.fold(left, right);
-          break;
-        case "&&":
-          folded = constantSystem.booleanAnd.fold(left, right);
-          break;
-        case "<<":
-          folded = constantSystem.shiftLeft.fold(left, right);
-          break;
-        case ">>":
-          folded = constantSystem.shiftRight.fold(left, right);
-          break;
-        case "<":
-          folded = constantSystem.less.fold(left, right);
-          break;
-        case "<=":
-          folded = constantSystem.lessEqual.fold(left, right);
-          break;
-        case ">":
-          folded = constantSystem.greater.fold(left, right);
-          break;
-        case ">=":
-          folded = constantSystem.greaterEqual.fold(left, right);
-          break;
         case "==":
           if (left.isPrimitive && right.isPrimitive) {
             folded = constantSystem.equal.fold(left, right);
           }
-          break;
-        case "===":
-          folded = constantSystem.identity.fold(left, right);
           break;
         case "!=":
           if (left.isPrimitive && right.isPrimitive) {
@@ -524,15 +460,11 @@ class CompileTimeConstantEvaluator extends Visitor {
             }
           }
           break;
-        case "!==":
-          BoolConstant areIdentical =
-              constantSystem.identity.fold(left, right);
-          if (areIdentical == null) {
-            folded = null;
-          } else {
-            folded = areIdentical.negate();
+        default:
+          BinaryOperation operation = constantSystem.lookupBinary(op.source);
+          if (operation != null) {
+            folded = operation.fold(left, right);
           }
-          break;
       }
       if (folded == null) return signalNotCompileTimeConstant(send);
       return folded;
@@ -692,14 +624,19 @@ class CompileTimeConstantEvaluator extends Visitor {
       }
     } else {
       return makeConstructedConstant(
-          node, type, constructor, evaluateArguments);
+          compiler, handler, node, type, constructor, evaluateArguments);
     }
   }
 
-  Constant makeConstructedConstant(
-      Spannable node, InterfaceType type, ConstructorElement constructor,
+  static Constant makeConstructedConstant(
+      Compiler compiler,
+      ConstantCompilerBase handler,
+      Spannable node,
+      InterfaceType type,
+      ConstructorElement constructor,
       List<Constant> getArguments(ConstructorElement constructor),
       {bool isLiteralSymbol: false}) {
+
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
     compiler.resolver.resolveRedirectionChain(constructor, node);

@@ -3340,7 +3340,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         writer.println("---------");
         parent = parent.parent;
       }
-      AnalysisEngine.instance.logger.logError2(writer.toString(), new AnalysisException());
+      AnalysisEngine.instance.logger.logError2(writer.toString(), new CaughtException(new AnalysisException(), null));
     }
     return element;
   }
@@ -23061,7 +23061,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       builder.append(" in ");
       builder.append(source.fullName);
       builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new AnalysisException());
+      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
     } else {
       ClassElement definingClass = element.enclosingElement as ClassElement;
       element.returnType = definingClass.type;
@@ -23128,7 +23128,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       builder.append(" in ");
       builder.append(source.fullName);
       builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new AnalysisException());
+      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
@@ -23177,7 +23177,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       builder.append(" in ");
       builder.append(source.fullName);
       builder.append(" was not set while trying to resolve types.");
-      AnalysisEngine.instance.logger.logError2(builder.toString(), new AnalysisException());
+      AnalysisEngine.instance.logger.logError2(builder.toString(), new CaughtException(new AnalysisException(), null));
     }
     element.returnType = _computeReturnType(node.returnType);
     FunctionTypeImpl type = new FunctionTypeImpl.con1(element);
@@ -24073,6 +24073,9 @@ class VariableResolverVisitor extends ScopedVisitor {
   VariableResolverVisitor.con3(ResolvableLibrary library, Source source, TypeProvider typeProvider) : super.con4(library, source, typeProvider);
 
   @override
+  Object visitExportDirective(ExportDirective node) => null;
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -24097,6 +24100,9 @@ class VariableResolverVisitor extends ScopedVisitor {
       return super.visitFunctionExpression(node);
     }
   }
+
+  @override
+  Object visitImportDirective(ImportDirective node) => null;
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {

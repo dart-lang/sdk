@@ -217,17 +217,17 @@ class Pubspec {
   String get publishTo {
     if (_parsedPublishTo) return _publishTo;
 
-    var publishTo = fields['publishTo'];
+    var publishTo = fields['publish_to'];
     if (publishTo != null) {
-      var span = fields.nodes['publishTo'].span;
+      var span = fields.nodes['publish_to'].span;
 
       if (publishTo is! String) {
-        _error('"publishTo" field must be a string.', span);
+        _error('"publish_to" field must be a string.', span);
       }
 
       // It must be "none" or a valid URL.
       if (publishTo != "none") {
-        _wrapFormatException('"publishTo" field', span,
+        _wrapFormatException('"publish_to" field', span,
             () => Uri.parse(publishTo));
       }
     }
@@ -241,7 +241,7 @@ class Pubspec {
 
   /// Whether the package is private and cannot be published.
   ///
-  /// This is specified in the pubspec by setting "publishTo" to "none".
+  /// This is specified in the pubspec by setting "publish_to" to "none".
   bool get isPrivate => publishTo == "none";
 
   /// Whether or not the pubspec has no contents.

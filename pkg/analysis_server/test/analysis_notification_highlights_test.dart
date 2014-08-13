@@ -46,6 +46,12 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
     assertHasRawRegion(type, offset, length);
   }
 
+  void assertHasStringRegion(HighlightType type, String str) {
+    int offset = findOffset(str);
+    int length = str.length;
+    assertHasRawRegion(type, offset, length);
+  }
+
   void assertNoRawRegion(HighlightType type, int offset, int length) {
     for (HighlightRegion region in regions) {
       if (region.offset == offset &&
@@ -343,10 +349,7 @@ main() {
   var part = 1;
   var of = 2;
 }''');
-    addFile('/project/bin/my_lib.dart', '''
-library lib;
-part 'test.dart';
-''');
+    _addLibraryForTestPart();
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightType.BUILT_IN, 'part of', 'part of'.length);
       assertNoRegion(HighlightType.BUILT_IN, 'part = 1');
@@ -479,6 +482,31 @@ main() {
     });
   }
 
+  test_DIRECTIVE() {
+    addTestFile('''
+library lib;
+import 'dart:math';
+export 'dart:math';
+part 'part.dart';
+''');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightType.DIRECTIVE, "library lib;");
+      assertHasStringRegion(HighlightType.DIRECTIVE, "import 'dart:math';");
+      assertHasStringRegion(HighlightType.DIRECTIVE, "export 'dart:math';");
+      assertHasStringRegion(HighlightType.DIRECTIVE, "part 'part.dart';");
+    });
+  }
+
+  test_DIRECTIVE_partOf() {
+    addTestFile('''
+part of lib;
+''');
+    _addLibraryForTestPart();
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightType.DIRECTIVE, "part of lib;");
+    });
+  }
+
   test_DYNAMIC_TYPE() {
     addTestFile('''
 f() {}
@@ -578,7 +606,7 @@ main(A a) {
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightType.GETTER_DECLARATION, 'aaa => null');
       assertHasRegion(HighlightType.GETTER_DECLARATION, 'bbb => null');
-      assertHasRegion(HighlightType.FIELD_STATIC, 'aaa;');
+      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'aaa;');
       assertHasRegion(HighlightType.FIELD, 'bbb;');
     });
   }
@@ -611,6 +639,71 @@ main() {
     });
   }
 
+  test_KEYWORD() {
+    addTestFile('''
+main() {
+  assert(true);
+  for (;;) break;
+  switch (0) {
+    case 0: break;
+    default: break;
+  }
+  try {} catch (e) {}
+  const v1 = 0;
+  for (;;) continue;
+  do {} while (true);
+  if (true) {} else {}
+  var v2 = false;
+  final v3 = 1;
+  try {} finally {}
+  for (var v4 in []) {}
+  v3 is int;
+  new A();
+  try {} catch (e) {rethrow;}
+  var v5 = true;
+  while (true) {}
+}
+class A {}
+class B extends A {
+  B() : super();
+  m() {
+    return this;
+  }
+}
+class C = Object with A;
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightType.KEYWORD, 'assert(true)');
+      assertHasRegion(HighlightType.KEYWORD, 'for (;;)');
+      assertHasRegion(HighlightType.KEYWORD, 'for (var v4 in');
+      assertHasRegion(HighlightType.KEYWORD, 'break;');
+      assertHasRegion(HighlightType.KEYWORD, 'case 0:');
+      assertHasRegion(HighlightType.KEYWORD, 'catch (e) {}');
+      assertHasRegion(HighlightType.KEYWORD, 'class A {}');
+      assertHasRegion(HighlightType.KEYWORD, 'const v1');
+      assertHasRegion(HighlightType.KEYWORD, 'continue;');
+      assertHasRegion(HighlightType.KEYWORD, 'default:');
+      assertHasRegion(HighlightType.KEYWORD, 'do {} while');
+      assertHasRegion(HighlightType.KEYWORD, 'if (true)');
+      assertHasRegion(HighlightType.KEYWORD, 'false;');
+      assertHasRegion(HighlightType.KEYWORD, 'final v3 =');
+      assertHasRegion(HighlightType.KEYWORD, 'finally {}');
+      assertHasRegion(HighlightType.KEYWORD, 'in []');
+      assertHasRegion(HighlightType.KEYWORD, 'is int');
+      assertHasRegion(HighlightType.KEYWORD, 'new A();');
+      assertHasRegion(HighlightType.KEYWORD, 'rethrow;');
+      assertHasRegion(HighlightType.KEYWORD, 'return this');
+      assertHasRegion(HighlightType.KEYWORD, 'super();');
+      assertHasRegion(HighlightType.KEYWORD, 'switch (0)');
+      assertHasRegion(HighlightType.KEYWORD, 'this;');
+      assertHasRegion(HighlightType.KEYWORD, 'true;');
+      assertHasRegion(HighlightType.KEYWORD, 'try {');
+      assertHasRegion(HighlightType.KEYWORD, 'while (true) {}');
+      assertHasRegion(HighlightType.KEYWORD, 'while (true);');
+      assertHasRegion(HighlightType.KEYWORD, 'with A;');
+    });
+  }
+
   test_KEYWORD_void() {
     addTestFile('''
 void main() {
@@ -639,6 +732,22 @@ void main() {
     addTestFile('var V = 42;');
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightType.LITERAL_INTEGER, '42;');
+    });
+  }
+
+  test_LITERAL_LIST() {
+    addTestFile('var V = <int>[1, 2, 3];');
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(HighlightType.LITERAL_LIST, '<int>[1, 2, 3]');
+    });
+  }
+
+  test_LITERAL_MAP() {
+    addTestFile("var V = const <int, String>{1: 'a', 2: 'b', 3: 'c'};");
+    return prepareHighlights().then((_) {
+      assertHasStringRegion(
+          HighlightType.LITERAL_MAP,
+          "const <int, String>{1: 'a', 2: 'b', 3: 'c'}");
     });
   }
 
@@ -728,14 +837,15 @@ main(A a) {
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightType.SETTER_DECLARATION, 'aaa(x)');
       assertHasRegion(HighlightType.SETTER_DECLARATION, 'bbb(x)');
-      assertHasRegion(HighlightType.FIELD_STATIC, 'aaa = 1');
+      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'aaa = 1');
       assertHasRegion(HighlightType.FIELD, 'bbb = 2');
     });
   }
 
   test_TOP_LEVEL_VARIABLE() {
     addTestFile('''
-var VVV = 0;
+const VVV = 0;
+@VVV // annotation
 main() {
   print(VVV);
   VVV = 1;
@@ -743,8 +853,9 @@ main() {
 ''');
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV = 0');
-      assertHasRegion(HighlightType.FIELD_STATIC, 'VVV);');
-      assertHasRegion(HighlightType.FIELD_STATIC, 'VVV = 1');
+      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV // annotation');
+      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV);');
+      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV = 1');
     });
   }
 
@@ -774,6 +885,13 @@ class A<T> {
       assertHasRegion(HighlightType.TYPE_PARAMETER, 'T mmm(');
       assertHasRegion(HighlightType.TYPE_PARAMETER, 'T p)');
     });
+  }
+
+  void _addLibraryForTestPart() {
+    addFile('$testFolder/my_lib.dart', '''
+library lib;
+part 'test.dart';
+    ''');
   }
 }
 

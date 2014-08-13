@@ -9,7 +9,7 @@ library sexpr_unstringifier;
 
 import 'package:compiler/implementation/dart2jslib.dart' as dart2js
   show Constant, IntConstant, NullConstant, StringConstant,
-       DoubleConstant, MessageKind;
+       DoubleConstant, TrueConstant, FalseConstant, MessageKind;
 import 'package:compiler/implementation/dart_types.dart' as dart_types
   show DartType;
 import 'package:compiler/implementation/elements/elements.dart'
@@ -139,6 +139,15 @@ class SExpressionUnstringifier {
   final Map<String, Definition> name2variable =
       <String, Definition>{ "return": new Continuation.retrn() };
 
+  // Operator names used for canonicalization. In theory, we could simply use
+  // Elements.isOperatorName() on the parsed tokens; however, comparisons are
+  // done using identical() for performance reasons, which are reliable only for
+  // compile-time literal strings.
+  static Set<String> OPERATORS = new Set<String>.from(
+      [ '~', '==', '[]', '*', '/', '%', '~/', '+', '<<', 'unary-'
+      , '>>', '>=', '>', '<=', '<', '&', '^', '|', '[]=', '-'
+      ]);
+
   // The tokens currently being parsed.
   Tokens tokens;
 
@@ -151,8 +160,14 @@ class SExpressionUnstringifier {
 
   /// Returns a new named dummy selector with a roughly appropriate kind.
   Selector dummySelector(String name, int argumentCount) {
-    SelectorKind kind = Elements.isOperatorName(name)
-        ? SelectorKind.OPERATOR : SelectorKind.CALL;
+    SelectorKind kind;
+    if (name == "[]") {
+      kind = SelectorKind.INDEX;
+    } else if (Elements.isOperatorName(name)) {
+      kind = SelectorKind.OPERATOR;
+    } else {
+      kind = SelectorKind.CALL;
+    }
     return new Selector(kind, name, null, argumentCount);
   }
 
@@ -165,7 +180,18 @@ class SExpressionUnstringifier {
            .replaceAll(")", " ) ")
            .replaceAll(new RegExp(r"[ \t\n]+"), " ")
            .trim()
-           .split(" "));
+           .split(" ")
+           .map(canonicalizeOperators)
+           .toList());
+
+  /// Canonicalizes strings containing operator names.
+  String canonicalizeOperators(String token) {
+    String opname = OPERATORS.lookup(token);
+    if (opname != null) {
+      return opname;
+    }
+    return token;
+  }
 
   Expression parseExpression() {
     assert(tokens.current == "(");
@@ -525,11 +551,22 @@ class SExpressionUnstringifier {
     tokens.consumeStart(CONSTANT);
     String tag = tokens.read();
 
+    // NullConstant.
     if (tag == "null") {
       tokens.consumeEnd();
       return new Constant(null, new dart2js.NullConstant());
     }
 
+    // BoolConstant.
+    if (tag == "true") {
+      tokens.consumeEnd();
+      return new Constant(null, new dart2js.TrueConstant());
+    } else if (tag == "false") {
+      tokens.consumeEnd();
+      return new Constant(null, new dart2js.FalseConstant());
+    }
+
+    // StringConstant.
     if (tag == "StringConstant") {
       tokens.consumeStart();
       List<String> strings = <String>[];

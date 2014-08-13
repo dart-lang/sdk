@@ -7,7 +7,6 @@
 
 #include "include/dart_api.h"
 
-#include "platform/thread.h"
 #include "platform/utils.h"
 #include "vm/bitfield.h"
 #include "vm/dart_api_impl.h"
@@ -17,6 +16,7 @@
 #include "vm/object.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
+#include "vm/thread.h"
 #include "vm/visitor.h"
 
 #include "vm/handles_impl.h"

@@ -2093,16 +2093,18 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // EBX: new object end address.
   // EDI: iterator which initially points to the start of the variable
   // data area to be initialized.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
-  Label init_loop;
-  __ Bind(&init_loop);
-  __ cmpl(EDI, EBX);
-  __ j(ABOVE_EQUAL, done, Assembler::kNearJump);
-  __ movl(Address(EDI, 0), raw_null);
-  __ addl(EDI, Immediate(kWordSize));
-  __ jmp(&init_loop, Assembler::kNearJump);
+  if (num_elements > 0) {
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
+    Label init_loop;
+    __ Bind(&init_loop);
+    __ movl(Address(EDI, 0), raw_null);
+    __ addl(EDI, Immediate(kWordSize));
+    __ cmpl(EDI, EBX);
+    __ j(BELOW, &init_loop, Assembler::kNearJump);
+  }
+  __ jmp(done, Assembler::kNearJump);
 }
 
 

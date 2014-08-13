@@ -29,6 +29,7 @@ import 'dart:collection';
 import 'dart:_internal' hide Symbol, deprecated;
 import 'dart:html_common';
 import 'dart:indexed_db';
+import 'dart:indexed_db' show indexed_dbBlinkMap;
 import 'dart:isolate';
 import 'dart:js' as js;
 import "dart:convert";
@@ -37,11 +38,14 @@ import 'dart:mirrors';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:web_gl' as gl;
+import 'dart:web_gl' show web_glBlinkMap;
 import 'dart:web_sql';
 import 'dart:svg' as svg;
+import 'dart:svg' show svgBlinkMap;
 import 'dart:svg' show Matrix;
 import 'dart:svg' show SvgSvgElement;
 import 'dart:web_audio' as web_audio;
+import 'dart:web_audio' show web_audioBlinkMap;
 import 'dart:_blink' as _blink;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -489,6 +493,94 @@ final htmlBlinkMap = {
   // post Chrome 35.  We still generate the old mapping from 'Clipboard'.
   'DataTransfer': () => DataTransfer,
 };
+
+// TODO(leafp): We may want to move this elsewhere if html becomes
+// a package to avoid dartium depending on pkg:html.
+Type _getType(String key) {
+  var result;
+
+  // TODO(vsm): Add Cross Frame and JS types here as well.
+
+  // Check the html library.
+  result = _getHtmlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web gl library.
+  result = _getWebGlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the indexed db library.
+  result = _getIndexDbType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web audio library.
+  result = _getWebAudioType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web sql library.
+  result = _getWebSqlType(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the svg library.
+  result = _getSvgType(key);
+  if (result != null) {
+    return result;
+  }
+
+  return null;
+}
+
+Type _getHtmlType(String key) {
+  if (htmlBlinkMap.containsKey(key)) {
+    return htmlBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebGlType(String key) {
+  if (web_glBlinkMap.containsKey(key)) {
+    return web_glBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getIndexDbType(String key) {
+  if (indexed_dbBlinkMap.containsKey(key)) {
+    return indexed_dbBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebAudioType(String key) {
+  if (web_audioBlinkMap.containsKey(key)) {
+    return web_audioBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getWebSqlType(String key) {
+  if (web_sqlBlinkMap.containsKey(key)) {
+    return web_sqlBlinkMap[key]();
+  }
+  return null;
+}
+
+Type _getSvgType(String key) {
+  if (svgBlinkMap.containsKey(key)) {
+    return svgBlinkMap[key]();
+  }
+  return null;
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -713,7 +805,18 @@ class Animation extends TimedItem {
 
   @DomName('Animation.Animation')
   @DocsEditable()
-  factory Animation(Element target, List<Map> keyframes, [timingInput]) => _blink.BlinkAnimation.$mkAnimation(target, keyframes, timingInput);
+  factory Animation(Element target, List<Map> keyframes, [timingInput]) {
+    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
+      return _blink.BlinkAnimation.$_create_1constructorCallback(target, keyframes, timingInput);
+    }
+    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
+      return _blink.BlinkAnimation.$_create_2constructorCallback(target, keyframes, timingInput);
+    }
+    if ((keyframes is List<Map> || keyframes == null) && (target is Element || target == null) && timingInput == null) {
+      return _blink.BlinkAnimation.$_create_3constructorCallback(target, keyframes);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -749,6 +852,9 @@ class AnimationEvent extends Event {
 
 
 @DocsEditable()
+/**
+ * ApplicationCache is accessed via [Window.applicationCache].
+ */
 @DomName('ApplicationCache')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -1099,7 +1205,9 @@ class AudioElement extends MediaElement {
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable()
-  factory AudioElement([String src]) => _blink.BlinkHTMLAudioElement.$mkAudioElement(src);
+  factory AudioElement([String src]) {
+    return _blink.BlinkHTMLAudioElement.$_create_1constructorCallback(src);
+  }
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1274,7 +1382,18 @@ class Blob extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String get type => _blink.BlinkBlob.$type_Getter(this);
 
-  Blob slice([int start, int end, String contentType]) => _blink.BlinkBlob.$slice(this, start, end, contentType);
+  Blob slice([int start, int end, String contentType]) {
+    if (contentType != null) {
+      return _blink.BlinkBlob.$_slice_1_Callback(this, start, end, contentType);
+    }
+    if (end != null) {
+      return _blink.BlinkBlob.$_slice_2_Callback(this, start, end);
+    }
+    if (start != null) {
+      return _blink.BlinkBlob.$_slice_3_Callback(this, start);
+    }
+    return _blink.BlinkBlob.$_slice_4_Callback(this);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2145,7 +2264,14 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void clearRect(num x, num y, num width, num height) => _blink.BlinkCanvasRenderingContext2D.$clearRect_Callback(this, x, y, width, height);
 
-  void clip([String winding]) => _blink.BlinkCanvasRenderingContext2D.$clip(this, winding);
+  void clip([String winding]) {
+    if (winding != null) {
+      _blink.BlinkCanvasRenderingContext2D.$_clip_1_Callback(this, winding);
+      return;
+    }
+    _blink.BlinkCanvasRenderingContext2D.$_clip_2_Callback(this);
+    return;
+  }
 
   @DomName('CanvasRenderingContext2D.closePath')
   @DocsEditable()
@@ -2180,20 +2306,84 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @Experimental() // untriaged
   bool drawCustomFocusRing(Element element) => _blink.BlinkCanvasRenderingContext2D.$drawCustomFocusRing_Callback(this, element);
 
-  void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) => _blink.BlinkCanvasRenderingContext2D.$_drawImage(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+  void _drawImage(canvas_OR_image_OR_imageBitmap_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_1_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_2_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_3_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_4_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_5_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is CanvasElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_6_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_7_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_8_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is VideoElement || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_9_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_10_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y);
+      return;
+    }
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_11_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
+      return;
+    }
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_imageBitmap_OR_video is ImageBitmap || canvas_OR_image_OR_imageBitmap_OR_video == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_drawImage_12_Callback(this, canvas_OR_image_OR_imageBitmap_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('CanvasRenderingContext2D.ellipse')
   @DocsEditable()
   @Experimental() // untriaged
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) => _blink.BlinkCanvasRenderingContext2D.$ellipse_Callback(this, x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
 
-  void fill([String winding]) => _blink.BlinkCanvasRenderingContext2D.$fill(this, winding);
+  void fill([String winding]) {
+    if (winding != null) {
+      _blink.BlinkCanvasRenderingContext2D.$_fill_1_Callback(this, winding);
+      return;
+    }
+    _blink.BlinkCanvasRenderingContext2D.$_fill_2_Callback(this);
+    return;
+  }
 
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable()
   void fillRect(num x, num y, num width, num height) => _blink.BlinkCanvasRenderingContext2D.$fillRect_Callback(this, x, y, width, height);
 
-  void fillText(String text, num x, num y, [num maxWidth]) => _blink.BlinkCanvasRenderingContext2D.$fillText(this, text, x, y, maxWidth);
+  void fillText(String text, num x, num y, [num maxWidth]) {
+    if (maxWidth != null) {
+      _blink.BlinkCanvasRenderingContext2D.$_fillText_1_Callback(this, text, x, y, maxWidth);
+      return;
+    }
+    _blink.BlinkCanvasRenderingContext2D.$_fillText_2_Callback(this, text, x, y);
+    return;
+  }
 
   @DomName('CanvasRenderingContext2D.getContextAttributes')
   @DocsEditable()
@@ -2209,7 +2399,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   List<num> _getLineDash() => _blink.BlinkCanvasRenderingContext2D.$getLineDash_Callback(this);
 
-  bool isPointInPath(num x, num y, [String winding]) => _blink.BlinkCanvasRenderingContext2D.$isPointInPath(this, x, y, winding);
+  bool isPointInPath(num x, num y, [String winding]) {
+    if (winding != null) {
+      return _blink.BlinkCanvasRenderingContext2D.$_isPointInPath_1_Callback(this, x, y, winding);
+    }
+    return _blink.BlinkCanvasRenderingContext2D.$_isPointInPath_2_Callback(this, x, y);
+  }
 
   @DomName('CanvasRenderingContext2D.isPointInStroke')
   @DocsEditable()
@@ -2227,7 +2422,17 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void moveTo(num x, num y) => _blink.BlinkCanvasRenderingContext2D.$moveTo_Callback(this, x, y);
 
-  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) => _blink.BlinkCanvasRenderingContext2D.$putImageData(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+  void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
+    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
+      _blink.BlinkCanvasRenderingContext2D.$_putImageData_1_Callback(this, imagedata, dx, dy);
+      return;
+    }
+    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
+      _blink.BlinkCanvasRenderingContext2D.$_putImageData_2_Callback(this, imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('CanvasRenderingContext2D.quadraticCurveTo')
   @DocsEditable()
@@ -2274,7 +2479,14 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable()
   void strokeRect(num x, num y, num width, num height) => _blink.BlinkCanvasRenderingContext2D.$strokeRect_Callback(this, x, y, width, height);
 
-  void strokeText(String text, num x, num y, [num maxWidth]) => _blink.BlinkCanvasRenderingContext2D.$strokeText(this, text, x, y, maxWidth);
+  void strokeText(String text, num x, num y, [num maxWidth]) {
+    if (maxWidth != null) {
+      _blink.BlinkCanvasRenderingContext2D.$_strokeText_1_Callback(this, text, x, y, maxWidth);
+      return;
+    }
+    _blink.BlinkCanvasRenderingContext2D.$_strokeText_2_Callback(this, text, x, y);
+    return;
+  }
 
   @DomName('CanvasRenderingContext2D.transform')
   @DocsEditable()
@@ -2641,7 +2853,9 @@ class Comment extends CharacterData {
 
   @DomName('Comment.Comment')
   @DocsEditable()
-  factory Comment([String data]) => _blink.BlinkComment.$mkComment(data);
+  factory Comment([String data]) {
+    return _blink.BlinkComment.$_create_1constructorCallback(data);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3356,13 +3570,20 @@ class CssRule extends NativeFieldWrapperClass2 {
   int get type => _blink.BlinkCSSRule.$type_Getter(this);
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: DO NOT EDIT THIS TEMPLATE FILE.
+// The template file was generated by scripts/css_code_generator.py
+
+// Source of CSS properties:
+//   CSSPropertyNames.in
+
 
 @DomName('CSSStyleDeclaration')
- class CssStyleDeclaration  extends NativeFieldWrapperClass2 with 
+ class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -3371,14 +3592,63 @@ class CssRule extends NativeFieldWrapperClass2 {
     style.cssText = css;
     return style;
   }
-  
+
   String getPropertyValue(String propertyName) {
-    var propValue = _getPropertyValue(propertyName);
+    var propValue = _getPropertyValueHelper(propertyName);
     return propValue != null ? propValue : '';
   }
 
+  String _getPropertyValueHelper(String propertyName) {
+    if (_supportsProperty(_camelCase(propertyName))) {
+      return _getPropertyValue(propertyName);
+    } else {
+      return _getPropertyValue(Device.cssPrefix + propertyName);
+    }
+  }
+
+  /**
+   * Returns true if the provided *CSS* property name is supported on this
+   * element.
+   *
+   * Please note the property name camelCase, not-hyphens. This
+   * method returns true if the property is accessible via an unprefixed _or_
+   * prefixed property.
+   */
+  bool supportsProperty(String propertyName) {
+    return _supportsProperty(propertyName) ||
+        _supportsProperty(_camelCase(Device.cssPrefix + propertyName));
+  }
+
+  bool _supportsProperty(String propertyName) {
+    // You can't just check the value of a property, because there is no way
+    // to distinguish between property not being present in the browser and
+    // not having a value at all. (Ultimately we'll want the native method to
+    // return null if the property doesn't exist and empty string if it's
+    // defined but just doesn't have a value.
+    return _hasProperty(propertyName);
+  }
+
+  bool _hasProperty(String propertyName) =>
+      _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback(this, propertyName);
+
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
+    if (_supportsProperty(_camelCase(propertyName))) {
+      return _setPropertyHelper(propertyName, value, priority);
+    } else {
+      return _setPropertyHelper(Device.cssPrefix + propertyName, value,
+          priority);
+    }
+  }
+
+  static String _camelCase(String hyphenated) {
+    // The "ms" prefix is always lowercased.
+    return hyphenated.replaceFirst(new RegExp('^-ms-'), 'ms-').replaceAllMapped(
+        new RegExp('-([a-z]+)', caseSensitive: false),
+        (match) => match[0][1].toUpperCase() + match[0].substring(2));
+  }
+
+  void _setPropertyHelper(String propertyName, String value, [String priority]) {
     if (priority == null) {
       priority = '';
     }
@@ -3407,6 +3677,11 @@ class CssRule extends NativeFieldWrapperClass2 {
   @DomName('CSSStyleDeclaration.parentRule')
   @DocsEditable()
   CssRule get parentRule => _blink.BlinkCSSStyleDeclaration.$parentRule_Getter(this);
+
+  @DomName('CSSStyleDeclaration.__propertyQuery__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool __propertyQuery__(String name) => _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback(this, name);
 
   @DomName('CSSStyleDeclaration.__setter__')
   @DocsEditable()
@@ -3459,152 +3734,151 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 }
 
 abstract class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName);  
+  String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String value, [String priority]);
 
-  // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
   String get alignContent =>
-    getPropertyValue('${Device.cssPrefix}align-content');
+    getPropertyValue('align-content');
 
   /** Sets the value of "align-content" */
   void set alignContent(String value) {
-    setProperty('${Device.cssPrefix}align-content', value, '');
+    setProperty('align-content', value, '');
   }
 
   /** Gets the value of "align-items" */
   String get alignItems =>
-    getPropertyValue('${Device.cssPrefix}align-items');
+    getPropertyValue('align-items');
 
   /** Sets the value of "align-items" */
   void set alignItems(String value) {
-    setProperty('${Device.cssPrefix}align-items', value, '');
+    setProperty('align-items', value, '');
   }
 
   /** Gets the value of "align-self" */
   String get alignSelf =>
-    getPropertyValue('${Device.cssPrefix}align-self');
+    getPropertyValue('align-self');
 
   /** Sets the value of "align-self" */
   void set alignSelf(String value) {
-    setProperty('${Device.cssPrefix}align-self', value, '');
+    setProperty('align-self', value, '');
   }
 
   /** Gets the value of "animation" */
   String get animation =>
-    getPropertyValue('${Device.cssPrefix}animation');
+    getPropertyValue('animation');
 
   /** Sets the value of "animation" */
   void set animation(String value) {
-    setProperty('${Device.cssPrefix}animation', value, '');
+    setProperty('animation', value, '');
   }
 
   /** Gets the value of "animation-delay" */
   String get animationDelay =>
-    getPropertyValue('${Device.cssPrefix}animation-delay');
+    getPropertyValue('animation-delay');
 
   /** Sets the value of "animation-delay" */
   void set animationDelay(String value) {
-    setProperty('${Device.cssPrefix}animation-delay', value, '');
+    setProperty('animation-delay', value, '');
   }
 
   /** Gets the value of "animation-direction" */
   String get animationDirection =>
-    getPropertyValue('${Device.cssPrefix}animation-direction');
+    getPropertyValue('animation-direction');
 
   /** Sets the value of "animation-direction" */
   void set animationDirection(String value) {
-    setProperty('${Device.cssPrefix}animation-direction', value, '');
+    setProperty('animation-direction', value, '');
   }
 
   /** Gets the value of "animation-duration" */
   String get animationDuration =>
-    getPropertyValue('${Device.cssPrefix}animation-duration');
+    getPropertyValue('animation-duration');
 
   /** Sets the value of "animation-duration" */
   void set animationDuration(String value) {
-    setProperty('${Device.cssPrefix}animation-duration', value, '');
+    setProperty('animation-duration', value, '');
   }
 
   /** Gets the value of "animation-fill-mode" */
   String get animationFillMode =>
-    getPropertyValue('${Device.cssPrefix}animation-fill-mode');
+    getPropertyValue('animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
   void set animationFillMode(String value) {
-    setProperty('${Device.cssPrefix}animation-fill-mode', value, '');
+    setProperty('animation-fill-mode', value, '');
   }
 
   /** Gets the value of "animation-iteration-count" */
   String get animationIterationCount =>
-    getPropertyValue('${Device.cssPrefix}animation-iteration-count');
+    getPropertyValue('animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
   void set animationIterationCount(String value) {
-    setProperty('${Device.cssPrefix}animation-iteration-count', value, '');
+    setProperty('animation-iteration-count', value, '');
   }
 
   /** Gets the value of "animation-name" */
   String get animationName =>
-    getPropertyValue('${Device.cssPrefix}animation-name');
+    getPropertyValue('animation-name');
 
   /** Sets the value of "animation-name" */
   void set animationName(String value) {
-    setProperty('${Device.cssPrefix}animation-name', value, '');
+    setProperty('animation-name', value, '');
   }
 
   /** Gets the value of "animation-play-state" */
   String get animationPlayState =>
-    getPropertyValue('${Device.cssPrefix}animation-play-state');
+    getPropertyValue('animation-play-state');
 
   /** Sets the value of "animation-play-state" */
   void set animationPlayState(String value) {
-    setProperty('${Device.cssPrefix}animation-play-state', value, '');
+    setProperty('animation-play-state', value, '');
   }
 
   /** Gets the value of "animation-timing-function" */
   String get animationTimingFunction =>
-    getPropertyValue('${Device.cssPrefix}animation-timing-function');
+    getPropertyValue('animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
   void set animationTimingFunction(String value) {
-    setProperty('${Device.cssPrefix}animation-timing-function', value, '');
+    setProperty('animation-timing-function', value, '');
   }
 
   /** Gets the value of "app-region" */
   String get appRegion =>
-    getPropertyValue('${Device.cssPrefix}app-region');
+    getPropertyValue('app-region');
 
   /** Sets the value of "app-region" */
   void set appRegion(String value) {
-    setProperty('${Device.cssPrefix}app-region', value, '');
+    setProperty('app-region', value, '');
   }
 
   /** Gets the value of "appearance" */
   String get appearance =>
-    getPropertyValue('${Device.cssPrefix}appearance');
+    getPropertyValue('appearance');
 
   /** Sets the value of "appearance" */
   void set appearance(String value) {
-    setProperty('${Device.cssPrefix}appearance', value, '');
+    setProperty('appearance', value, '');
   }
 
   /** Gets the value of "aspect-ratio" */
   String get aspectRatio =>
-    getPropertyValue('${Device.cssPrefix}aspect-ratio');
+    getPropertyValue('aspect-ratio');
 
   /** Sets the value of "aspect-ratio" */
   void set aspectRatio(String value) {
-    setProperty('${Device.cssPrefix}aspect-ratio', value, '');
+    setProperty('aspect-ratio', value, '');
   }
 
   /** Gets the value of "backface-visibility" */
   String get backfaceVisibility =>
-    getPropertyValue('${Device.cssPrefix}backface-visibility');
+    getPropertyValue('backface-visibility');
 
   /** Sets the value of "backface-visibility" */
   void set backfaceVisibility(String value) {
-    setProperty('${Device.cssPrefix}backface-visibility', value, '');
+    setProperty('backface-visibility', value, '');
   }
 
   /** Gets the value of "background" */
@@ -3623,6 +3897,15 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "background-attachment" */
   void set backgroundAttachment(String value) {
     setProperty('background-attachment', value, '');
+  }
+
+  /** Gets the value of "background-blend-mode" */
+  String get backgroundBlendMode =>
+    getPropertyValue('background-blend-mode');
+
+  /** Sets the value of "background-blend-mode" */
+  void set backgroundBlendMode(String value) {
+    setProperty('background-blend-mode', value, '');
   }
 
   /** Gets the value of "background-clip" */
@@ -3645,11 +3928,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "background-composite" */
   String get backgroundComposite =>
-    getPropertyValue('${Device.cssPrefix}background-composite');
+    getPropertyValue('background-composite');
 
   /** Sets the value of "background-composite" */
   void set backgroundComposite(String value) {
-    setProperty('${Device.cssPrefix}background-composite', value, '');
+    setProperty('background-composite', value, '');
   }
 
   /** Gets the value of "background-image" */
@@ -3733,15 +4016,6 @@ abstract class CssStyleDeclarationBase {
     setProperty('background-size', value, '');
   }
 
-  /** Gets the value of "blend-mode" */
-  String get blendMode =>
-    getPropertyValue('${Device.cssPrefix}blend-mode');
-
-  /** Sets the value of "blend-mode" */
-  void set blendMode(String value) {
-    setProperty('${Device.cssPrefix}blend-mode', value, '');
-  }
-
   /** Gets the value of "border" */
   String get border =>
     getPropertyValue('border');
@@ -3753,74 +4027,74 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "border-after" */
   String get borderAfter =>
-    getPropertyValue('${Device.cssPrefix}border-after');
+    getPropertyValue('border-after');
 
   /** Sets the value of "border-after" */
   void set borderAfter(String value) {
-    setProperty('${Device.cssPrefix}border-after', value, '');
+    setProperty('border-after', value, '');
   }
 
   /** Gets the value of "border-after-color" */
   String get borderAfterColor =>
-    getPropertyValue('${Device.cssPrefix}border-after-color');
+    getPropertyValue('border-after-color');
 
   /** Sets the value of "border-after-color" */
   void set borderAfterColor(String value) {
-    setProperty('${Device.cssPrefix}border-after-color', value, '');
+    setProperty('border-after-color', value, '');
   }
 
   /** Gets the value of "border-after-style" */
   String get borderAfterStyle =>
-    getPropertyValue('${Device.cssPrefix}border-after-style');
+    getPropertyValue('border-after-style');
 
   /** Sets the value of "border-after-style" */
   void set borderAfterStyle(String value) {
-    setProperty('${Device.cssPrefix}border-after-style', value, '');
+    setProperty('border-after-style', value, '');
   }
 
   /** Gets the value of "border-after-width" */
   String get borderAfterWidth =>
-    getPropertyValue('${Device.cssPrefix}border-after-width');
+    getPropertyValue('border-after-width');
 
   /** Sets the value of "border-after-width" */
   void set borderAfterWidth(String value) {
-    setProperty('${Device.cssPrefix}border-after-width', value, '');
+    setProperty('border-after-width', value, '');
   }
 
   /** Gets the value of "border-before" */
   String get borderBefore =>
-    getPropertyValue('${Device.cssPrefix}border-before');
+    getPropertyValue('border-before');
 
   /** Sets the value of "border-before" */
   void set borderBefore(String value) {
-    setProperty('${Device.cssPrefix}border-before', value, '');
+    setProperty('border-before', value, '');
   }
 
   /** Gets the value of "border-before-color" */
   String get borderBeforeColor =>
-    getPropertyValue('${Device.cssPrefix}border-before-color');
+    getPropertyValue('border-before-color');
 
   /** Sets the value of "border-before-color" */
   void set borderBeforeColor(String value) {
-    setProperty('${Device.cssPrefix}border-before-color', value, '');
+    setProperty('border-before-color', value, '');
   }
 
   /** Gets the value of "border-before-style" */
   String get borderBeforeStyle =>
-    getPropertyValue('${Device.cssPrefix}border-before-style');
+    getPropertyValue('border-before-style');
 
   /** Sets the value of "border-before-style" */
   void set borderBeforeStyle(String value) {
-    setProperty('${Device.cssPrefix}border-before-style', value, '');
+    setProperty('border-before-style', value, '');
   }
 
   /** Gets the value of "border-before-width" */
   String get borderBeforeWidth =>
-    getPropertyValue('${Device.cssPrefix}border-before-width');
+    getPropertyValue('border-before-width');
 
   /** Sets the value of "border-before-width" */
   void set borderBeforeWidth(String value) {
-    setProperty('${Device.cssPrefix}border-before-width', value, '');
+    setProperty('border-before-width', value, '');
   }
 
   /** Gets the value of "border-bottom" */
@@ -3897,56 +4171,56 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "border-end" */
   String get borderEnd =>
-    getPropertyValue('${Device.cssPrefix}border-end');
+    getPropertyValue('border-end');
 
   /** Sets the value of "border-end" */
   void set borderEnd(String value) {
-    setProperty('${Device.cssPrefix}border-end', value, '');
+    setProperty('border-end', value, '');
   }
 
   /** Gets the value of "border-end-color" */
   String get borderEndColor =>
-    getPropertyValue('${Device.cssPrefix}border-end-color');
+    getPropertyValue('border-end-color');
 
   /** Sets the value of "border-end-color" */
   void set borderEndColor(String value) {
-    setProperty('${Device.cssPrefix}border-end-color', value, '');
+    setProperty('border-end-color', value, '');
   }
 
   /** Gets the value of "border-end-style" */
   String get borderEndStyle =>
-    getPropertyValue('${Device.cssPrefix}border-end-style');
+    getPropertyValue('border-end-style');
 
   /** Sets the value of "border-end-style" */
   void set borderEndStyle(String value) {
-    setProperty('${Device.cssPrefix}border-end-style', value, '');
+    setProperty('border-end-style', value, '');
   }
 
   /** Gets the value of "border-end-width" */
   String get borderEndWidth =>
-    getPropertyValue('${Device.cssPrefix}border-end-width');
+    getPropertyValue('border-end-width');
 
   /** Sets the value of "border-end-width" */
   void set borderEndWidth(String value) {
-    setProperty('${Device.cssPrefix}border-end-width', value, '');
+    setProperty('border-end-width', value, '');
   }
 
   /** Gets the value of "border-fit" */
   String get borderFit =>
-    getPropertyValue('${Device.cssPrefix}border-fit');
+    getPropertyValue('border-fit');
 
   /** Sets the value of "border-fit" */
   void set borderFit(String value) {
-    setProperty('${Device.cssPrefix}border-fit', value, '');
+    setProperty('border-fit', value, '');
   }
 
   /** Gets the value of "border-horizontal-spacing" */
   String get borderHorizontalSpacing =>
-    getPropertyValue('${Device.cssPrefix}border-horizontal-spacing');
+    getPropertyValue('border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
   void set borderHorizontalSpacing(String value) {
-    setProperty('${Device.cssPrefix}border-horizontal-spacing', value, '');
+    setProperty('border-horizontal-spacing', value, '');
   }
 
   /** Gets the value of "border-image" */
@@ -4095,38 +4369,38 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "border-start" */
   String get borderStart =>
-    getPropertyValue('${Device.cssPrefix}border-start');
+    getPropertyValue('border-start');
 
   /** Sets the value of "border-start" */
   void set borderStart(String value) {
-    setProperty('${Device.cssPrefix}border-start', value, '');
+    setProperty('border-start', value, '');
   }
 
   /** Gets the value of "border-start-color" */
   String get borderStartColor =>
-    getPropertyValue('${Device.cssPrefix}border-start-color');
+    getPropertyValue('border-start-color');
 
   /** Sets the value of "border-start-color" */
   void set borderStartColor(String value) {
-    setProperty('${Device.cssPrefix}border-start-color', value, '');
+    setProperty('border-start-color', value, '');
   }
 
   /** Gets the value of "border-start-style" */
   String get borderStartStyle =>
-    getPropertyValue('${Device.cssPrefix}border-start-style');
+    getPropertyValue('border-start-style');
 
   /** Sets the value of "border-start-style" */
   void set borderStartStyle(String value) {
-    setProperty('${Device.cssPrefix}border-start-style', value, '');
+    setProperty('border-start-style', value, '');
   }
 
   /** Gets the value of "border-start-width" */
   String get borderStartWidth =>
-    getPropertyValue('${Device.cssPrefix}border-start-width');
+    getPropertyValue('border-start-width');
 
   /** Sets the value of "border-start-width" */
   void set borderStartWidth(String value) {
-    setProperty('${Device.cssPrefix}border-start-width', value, '');
+    setProperty('border-start-width', value, '');
   }
 
   /** Gets the value of "border-style" */
@@ -4194,11 +4468,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "border-vertical-spacing" */
   String get borderVerticalSpacing =>
-    getPropertyValue('${Device.cssPrefix}border-vertical-spacing');
+    getPropertyValue('border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
   void set borderVerticalSpacing(String value) {
-    setProperty('${Device.cssPrefix}border-vertical-spacing', value, '');
+    setProperty('border-vertical-spacing', value, '');
   }
 
   /** Gets the value of "border-width" */
@@ -4221,92 +4495,92 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "box-align" */
   String get boxAlign =>
-    getPropertyValue('${Device.cssPrefix}box-align');
+    getPropertyValue('box-align');
 
   /** Sets the value of "box-align" */
   void set boxAlign(String value) {
-    setProperty('${Device.cssPrefix}box-align', value, '');
+    setProperty('box-align', value, '');
   }
 
   /** Gets the value of "box-decoration-break" */
   String get boxDecorationBreak =>
-    getPropertyValue('${Device.cssPrefix}box-decoration-break');
+    getPropertyValue('box-decoration-break');
 
   /** Sets the value of "box-decoration-break" */
   void set boxDecorationBreak(String value) {
-    setProperty('${Device.cssPrefix}box-decoration-break', value, '');
+    setProperty('box-decoration-break', value, '');
   }
 
   /** Gets the value of "box-direction" */
   String get boxDirection =>
-    getPropertyValue('${Device.cssPrefix}box-direction');
+    getPropertyValue('box-direction');
 
   /** Sets the value of "box-direction" */
   void set boxDirection(String value) {
-    setProperty('${Device.cssPrefix}box-direction', value, '');
+    setProperty('box-direction', value, '');
   }
 
   /** Gets the value of "box-flex" */
   String get boxFlex =>
-    getPropertyValue('${Device.cssPrefix}box-flex');
+    getPropertyValue('box-flex');
 
   /** Sets the value of "box-flex" */
   void set boxFlex(String value) {
-    setProperty('${Device.cssPrefix}box-flex', value, '');
+    setProperty('box-flex', value, '');
   }
 
   /** Gets the value of "box-flex-group" */
   String get boxFlexGroup =>
-    getPropertyValue('${Device.cssPrefix}box-flex-group');
+    getPropertyValue('box-flex-group');
 
   /** Sets the value of "box-flex-group" */
   void set boxFlexGroup(String value) {
-    setProperty('${Device.cssPrefix}box-flex-group', value, '');
+    setProperty('box-flex-group', value, '');
   }
 
   /** Gets the value of "box-lines" */
   String get boxLines =>
-    getPropertyValue('${Device.cssPrefix}box-lines');
+    getPropertyValue('box-lines');
 
   /** Sets the value of "box-lines" */
   void set boxLines(String value) {
-    setProperty('${Device.cssPrefix}box-lines', value, '');
+    setProperty('box-lines', value, '');
   }
 
   /** Gets the value of "box-ordinal-group" */
   String get boxOrdinalGroup =>
-    getPropertyValue('${Device.cssPrefix}box-ordinal-group');
+    getPropertyValue('box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
   void set boxOrdinalGroup(String value) {
-    setProperty('${Device.cssPrefix}box-ordinal-group', value, '');
+    setProperty('box-ordinal-group', value, '');
   }
 
   /** Gets the value of "box-orient" */
   String get boxOrient =>
-    getPropertyValue('${Device.cssPrefix}box-orient');
+    getPropertyValue('box-orient');
 
   /** Sets the value of "box-orient" */
   void set boxOrient(String value) {
-    setProperty('${Device.cssPrefix}box-orient', value, '');
+    setProperty('box-orient', value, '');
   }
 
   /** Gets the value of "box-pack" */
   String get boxPack =>
-    getPropertyValue('${Device.cssPrefix}box-pack');
+    getPropertyValue('box-pack');
 
   /** Sets the value of "box-pack" */
   void set boxPack(String value) {
-    setProperty('${Device.cssPrefix}box-pack', value, '');
+    setProperty('box-pack', value, '');
   }
 
   /** Gets the value of "box-reflect" */
   String get boxReflect =>
-    getPropertyValue('${Device.cssPrefix}box-reflect');
+    getPropertyValue('box-reflect');
 
   /** Sets the value of "box-reflect" */
   void set boxReflect(String value) {
-    setProperty('${Device.cssPrefix}box-reflect', value, '');
+    setProperty('box-reflect', value, '');
   }
 
   /** Gets the value of "box-shadow" */
@@ -4319,17 +4593,12 @@ abstract class CssStyleDeclarationBase {
   }
 
   /** Gets the value of "box-sizing" */
-  String get boxSizing => Device.isFirefox ? 
-      getPropertyValue('${Device.cssPrefix}box-sizing') : 
-      getPropertyValue('box-sizing');
+  String get boxSizing =>
+    getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
   void set boxSizing(String value) {
-    if (Device.isFirefox) {
-      setProperty('${Device.cssPrefix}box-sizing', value, '');
-    } else {
-      setProperty('box-sizing', value, '');
-    }
+    setProperty('box-sizing', value, '');
   }
 
   /** Gets the value of "caption-side" */
@@ -4361,11 +4630,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "clip-path" */
   String get clipPath =>
-    getPropertyValue('${Device.cssPrefix}clip-path');
+    getPropertyValue('clip-path');
 
   /** Sets the value of "clip-path" */
   void set clipPath(String value) {
-    setProperty('${Device.cssPrefix}clip-path', value, '');
+    setProperty('clip-path', value, '');
   }
 
   /** Gets the value of "color" */
@@ -4377,139 +4646,121 @@ abstract class CssStyleDeclarationBase {
     setProperty('color', value, '');
   }
 
-  /** Gets the value of "color-correction" */
-  String get colorCorrection =>
-    getPropertyValue('${Device.cssPrefix}color-correction');
-
-  /** Sets the value of "color-correction" */
-  void set colorCorrection(String value) {
-    setProperty('${Device.cssPrefix}color-correction', value, '');
-  }
-
-  /** Gets the value of "column-axis" */
-  String get columnAxis =>
-    getPropertyValue('${Device.cssPrefix}column-axis');
-
-  /** Sets the value of "column-axis" */
-  void set columnAxis(String value) {
-    setProperty('${Device.cssPrefix}column-axis', value, '');
-  }
-
   /** Gets the value of "column-break-after" */
   String get columnBreakAfter =>
-    getPropertyValue('${Device.cssPrefix}column-break-after');
+    getPropertyValue('column-break-after');
 
   /** Sets the value of "column-break-after" */
   void set columnBreakAfter(String value) {
-    setProperty('${Device.cssPrefix}column-break-after', value, '');
+    setProperty('column-break-after', value, '');
   }
 
   /** Gets the value of "column-break-before" */
   String get columnBreakBefore =>
-    getPropertyValue('${Device.cssPrefix}column-break-before');
+    getPropertyValue('column-break-before');
 
   /** Sets the value of "column-break-before" */
   void set columnBreakBefore(String value) {
-    setProperty('${Device.cssPrefix}column-break-before', value, '');
+    setProperty('column-break-before', value, '');
   }
 
   /** Gets the value of "column-break-inside" */
   String get columnBreakInside =>
-    getPropertyValue('${Device.cssPrefix}column-break-inside');
+    getPropertyValue('column-break-inside');
 
   /** Sets the value of "column-break-inside" */
   void set columnBreakInside(String value) {
-    setProperty('${Device.cssPrefix}column-break-inside', value, '');
+    setProperty('column-break-inside', value, '');
   }
 
   /** Gets the value of "column-count" */
   String get columnCount =>
-    getPropertyValue('${Device.cssPrefix}column-count');
+    getPropertyValue('column-count');
 
   /** Sets the value of "column-count" */
   void set columnCount(String value) {
-    setProperty('${Device.cssPrefix}column-count', value, '');
+    setProperty('column-count', value, '');
+  }
+
+  /** Gets the value of "column-fill" */
+  String get columnFill =>
+    getPropertyValue('column-fill');
+
+  /** Sets the value of "column-fill" */
+  void set columnFill(String value) {
+    setProperty('column-fill', value, '');
   }
 
   /** Gets the value of "column-gap" */
   String get columnGap =>
-    getPropertyValue('${Device.cssPrefix}column-gap');
+    getPropertyValue('column-gap');
 
   /** Sets the value of "column-gap" */
   void set columnGap(String value) {
-    setProperty('${Device.cssPrefix}column-gap', value, '');
-  }
-
-  /** Gets the value of "column-progression" */
-  String get columnProgression =>
-    getPropertyValue('${Device.cssPrefix}column-progression');
-
-  /** Sets the value of "column-progression" */
-  void set columnProgression(String value) {
-    setProperty('${Device.cssPrefix}column-progression', value, '');
+    setProperty('column-gap', value, '');
   }
 
   /** Gets the value of "column-rule" */
   String get columnRule =>
-    getPropertyValue('${Device.cssPrefix}column-rule');
+    getPropertyValue('column-rule');
 
   /** Sets the value of "column-rule" */
   void set columnRule(String value) {
-    setProperty('${Device.cssPrefix}column-rule', value, '');
+    setProperty('column-rule', value, '');
   }
 
   /** Gets the value of "column-rule-color" */
   String get columnRuleColor =>
-    getPropertyValue('${Device.cssPrefix}column-rule-color');
+    getPropertyValue('column-rule-color');
 
   /** Sets the value of "column-rule-color" */
   void set columnRuleColor(String value) {
-    setProperty('${Device.cssPrefix}column-rule-color', value, '');
+    setProperty('column-rule-color', value, '');
   }
 
   /** Gets the value of "column-rule-style" */
   String get columnRuleStyle =>
-    getPropertyValue('${Device.cssPrefix}column-rule-style');
+    getPropertyValue('column-rule-style');
 
   /** Sets the value of "column-rule-style" */
   void set columnRuleStyle(String value) {
-    setProperty('${Device.cssPrefix}column-rule-style', value, '');
+    setProperty('column-rule-style', value, '');
   }
 
   /** Gets the value of "column-rule-width" */
   String get columnRuleWidth =>
-    getPropertyValue('${Device.cssPrefix}column-rule-width');
+    getPropertyValue('column-rule-width');
 
   /** Sets the value of "column-rule-width" */
   void set columnRuleWidth(String value) {
-    setProperty('${Device.cssPrefix}column-rule-width', value, '');
+    setProperty('column-rule-width', value, '');
   }
 
   /** Gets the value of "column-span" */
   String get columnSpan =>
-    getPropertyValue('${Device.cssPrefix}column-span');
+    getPropertyValue('column-span');
 
   /** Sets the value of "column-span" */
   void set columnSpan(String value) {
-    setProperty('${Device.cssPrefix}column-span', value, '');
+    setProperty('column-span', value, '');
   }
 
   /** Gets the value of "column-width" */
   String get columnWidth =>
-    getPropertyValue('${Device.cssPrefix}column-width');
+    getPropertyValue('column-width');
 
   /** Sets the value of "column-width" */
   void set columnWidth(String value) {
-    setProperty('${Device.cssPrefix}column-width', value, '');
+    setProperty('column-width', value, '');
   }
 
   /** Gets the value of "columns" */
   String get columns =>
-    getPropertyValue('${Device.cssPrefix}columns');
+    getPropertyValue('columns');
 
   /** Sets the value of "columns" */
   void set columns(String value) {
-    setProperty('${Device.cssPrefix}columns', value, '');
+    setProperty('columns', value, '');
   }
 
   /** Gets the value of "content" */
@@ -4548,15 +4799,6 @@ abstract class CssStyleDeclarationBase {
     setProperty('cursor', value, '');
   }
 
-  /** Gets the value of "dashboard-region" */
-  String get dashboardRegion =>
-    getPropertyValue('${Device.cssPrefix}dashboard-region');
-
-  /** Sets the value of "dashboard-region" */
-  void set dashboardRegion(String value) {
-    setProperty('${Device.cssPrefix}dashboard-region', value, '');
-  }
-
   /** Gets the value of "direction" */
   String get direction =>
     getPropertyValue('direction');
@@ -4586,79 +4828,74 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "filter" */
   String get filter =>
-    getPropertyValue('${Device.cssPrefix}filter');
+    getPropertyValue('filter');
 
   /** Sets the value of "filter" */
   void set filter(String value) {
-    setProperty('${Device.cssPrefix}filter', value, '');
+    setProperty('filter', value, '');
   }
 
   /** Gets the value of "flex" */
-  String get flex {
-    String prefix = Device.cssPrefix;
-    if (Device.isFirefox) prefix = '';
-    return getPropertyValue('${prefix}flex');
-  }
+  String get flex =>
+    getPropertyValue('flex');
 
   /** Sets the value of "flex" */
   void set flex(String value) {
-    String prefix = Device.cssPrefix;
-    if (Device.isFirefox) prefix = '';
-    setProperty('${prefix}flex', value, '');
+    setProperty('flex', value, '');
   }
 
   /** Gets the value of "flex-basis" */
   String get flexBasis =>
-    getPropertyValue('${Device.cssPrefix}flex-basis');
+    getPropertyValue('flex-basis');
 
   /** Sets the value of "flex-basis" */
   void set flexBasis(String value) {
-    setProperty('${Device.cssPrefix}flex-basis', value, '');
+    setProperty('flex-basis', value, '');
   }
 
   /** Gets the value of "flex-direction" */
   String get flexDirection =>
-    getPropertyValue('${Device.cssPrefix}flex-direction');
+    getPropertyValue('flex-direction');
 
   /** Sets the value of "flex-direction" */
   void set flexDirection(String value) {
-    setProperty('${Device.cssPrefix}flex-direction', value, '');
+    setProperty('flex-direction', value, '');
   }
 
   /** Gets the value of "flex-flow" */
   String get flexFlow =>
-    getPropertyValue('${Device.cssPrefix}flex-flow');
+    getPropertyValue('flex-flow');
 
   /** Sets the value of "flex-flow" */
   void set flexFlow(String value) {
-    setProperty('${Device.cssPrefix}flex-flow', value, '');
+    setProperty('flex-flow', value, '');
   }
 
   /** Gets the value of "flex-grow" */
   String get flexGrow =>
-    getPropertyValue('${Device.cssPrefix}flex-grow');
+    getPropertyValue('flex-grow');
 
   /** Sets the value of "flex-grow" */
   void set flexGrow(String value) {
-    setProperty('${Device.cssPrefix}flex-grow', value, '');
+    setProperty('flex-grow', value, '');
   }
 
   /** Gets the value of "flex-shrink" */
   String get flexShrink =>
-    getPropertyValue('${Device.cssPrefix}flex-shrink');
+    getPropertyValue('flex-shrink');
 
   /** Sets the value of "flex-shrink" */
   void set flexShrink(String value) {
-    setProperty('${Device.cssPrefix}flex-shrink', value, '');
+    setProperty('flex-shrink', value, '');
   }
 
   /** Gets the value of "flex-wrap" */
   String get flexWrap =>
-    getPropertyValue('${Device.cssPrefix}flex-wrap');
+    getPropertyValue('flex-wrap');
 
   /** Sets the value of "flex-wrap" */
   void set flexWrap(String value) {
-    setProperty('${Device.cssPrefix}flex-wrap', value, '');
+    setProperty('flex-wrap', value, '');
   }
 
   /** Gets the value of "float" */
@@ -4668,24 +4905,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "float" */
   void set float(String value) {
     setProperty('float', value, '');
-  }
-
-  /** Gets the value of "flow-from" */
-  String get flowFrom =>
-    getPropertyValue('${Device.cssPrefix}flow-from');
-
-  /** Sets the value of "flow-from" */
-  void set flowFrom(String value) {
-    setProperty('${Device.cssPrefix}flow-from', value, '');
-  }
-
-  /** Gets the value of "flow-into" */
-  String get flowInto =>
-    getPropertyValue('${Device.cssPrefix}flow-into');
-
-  /** Sets the value of "flow-into" */
-  void set flowInto(String value) {
-    setProperty('${Device.cssPrefix}flow-into', value, '');
   }
 
   /** Gets the value of "font" */
@@ -4708,20 +4927,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "font-feature-settings" */
   String get fontFeatureSettings =>
-    getPropertyValue('${Device.cssPrefix}font-feature-settings');
+    getPropertyValue('font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
   void set fontFeatureSettings(String value) {
-    setProperty('${Device.cssPrefix}font-feature-settings', value, '');
+    setProperty('font-feature-settings', value, '');
   }
 
   /** Gets the value of "font-kerning" */
   String get fontKerning =>
-    getPropertyValue('${Device.cssPrefix}font-kerning');
+    getPropertyValue('font-kerning');
 
   /** Sets the value of "font-kerning" */
   void set fontKerning(String value) {
-    setProperty('${Device.cssPrefix}font-kerning', value, '');
+    setProperty('font-kerning', value, '');
   }
 
   /** Gets the value of "font-size" */
@@ -4735,20 +4954,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "font-size-delta" */
   String get fontSizeDelta =>
-    getPropertyValue('${Device.cssPrefix}font-size-delta');
+    getPropertyValue('font-size-delta');
 
   /** Sets the value of "font-size-delta" */
   void set fontSizeDelta(String value) {
-    setProperty('${Device.cssPrefix}font-size-delta', value, '');
+    setProperty('font-size-delta', value, '');
   }
 
   /** Gets the value of "font-smoothing" */
   String get fontSmoothing =>
-    getPropertyValue('${Device.cssPrefix}font-smoothing');
+    getPropertyValue('font-smoothing');
 
   /** Sets the value of "font-smoothing" */
   void set fontSmoothing(String value) {
-    setProperty('${Device.cssPrefix}font-smoothing', value, '');
+    setProperty('font-smoothing', value, '');
   }
 
   /** Gets the value of "font-stretch" */
@@ -4780,11 +4999,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "font-variant-ligatures" */
   String get fontVariantLigatures =>
-    getPropertyValue('${Device.cssPrefix}font-variant-ligatures');
+    getPropertyValue('font-variant-ligatures');
 
   /** Sets the value of "font-variant-ligatures" */
   void set fontVariantLigatures(String value) {
-    setProperty('${Device.cssPrefix}font-variant-ligatures', value, '');
+    setProperty('font-variant-ligatures', value, '');
   }
 
   /** Gets the value of "font-weight" */
@@ -4796,40 +5015,139 @@ abstract class CssStyleDeclarationBase {
     setProperty('font-weight', value, '');
   }
 
+  /** Gets the value of "grid" */
+  String get grid =>
+    getPropertyValue('grid');
+
+  /** Sets the value of "grid" */
+  void set grid(String value) {
+    setProperty('grid', value, '');
+  }
+
+  /** Gets the value of "grid-area" */
+  String get gridArea =>
+    getPropertyValue('grid-area');
+
+  /** Sets the value of "grid-area" */
+  void set gridArea(String value) {
+    setProperty('grid-area', value, '');
+  }
+
+  /** Gets the value of "grid-auto-columns" */
+  String get gridAutoColumns =>
+    getPropertyValue('grid-auto-columns');
+
+  /** Sets the value of "grid-auto-columns" */
+  void set gridAutoColumns(String value) {
+    setProperty('grid-auto-columns', value, '');
+  }
+
+  /** Gets the value of "grid-auto-flow" */
+  String get gridAutoFlow =>
+    getPropertyValue('grid-auto-flow');
+
+  /** Sets the value of "grid-auto-flow" */
+  void set gridAutoFlow(String value) {
+    setProperty('grid-auto-flow', value, '');
+  }
+
+  /** Gets the value of "grid-auto-rows" */
+  String get gridAutoRows =>
+    getPropertyValue('grid-auto-rows');
+
+  /** Sets the value of "grid-auto-rows" */
+  void set gridAutoRows(String value) {
+    setProperty('grid-auto-rows', value, '');
+  }
+
   /** Gets the value of "grid-column" */
   String get gridColumn =>
-    getPropertyValue('${Device.cssPrefix}grid-column');
+    getPropertyValue('grid-column');
 
   /** Sets the value of "grid-column" */
   void set gridColumn(String value) {
-    setProperty('${Device.cssPrefix}grid-column', value, '');
+    setProperty('grid-column', value, '');
   }
 
-  /** Gets the value of "grid-columns" */
-  String get gridColumns =>
-    getPropertyValue('${Device.cssPrefix}grid-columns');
+  /** Gets the value of "grid-column-end" */
+  String get gridColumnEnd =>
+    getPropertyValue('grid-column-end');
 
-  /** Sets the value of "grid-columns" */
-  void set gridColumns(String value) {
-    setProperty('${Device.cssPrefix}grid-columns', value, '');
+  /** Sets the value of "grid-column-end" */
+  void set gridColumnEnd(String value) {
+    setProperty('grid-column-end', value, '');
+  }
+
+  /** Gets the value of "grid-column-start" */
+  String get gridColumnStart =>
+    getPropertyValue('grid-column-start');
+
+  /** Sets the value of "grid-column-start" */
+  void set gridColumnStart(String value) {
+    setProperty('grid-column-start', value, '');
   }
 
   /** Gets the value of "grid-row" */
   String get gridRow =>
-    getPropertyValue('${Device.cssPrefix}grid-row');
+    getPropertyValue('grid-row');
 
   /** Sets the value of "grid-row" */
   void set gridRow(String value) {
-    setProperty('${Device.cssPrefix}grid-row', value, '');
+    setProperty('grid-row', value, '');
   }
 
-  /** Gets the value of "grid-rows" */
-  String get gridRows =>
-    getPropertyValue('${Device.cssPrefix}grid-rows');
+  /** Gets the value of "grid-row-end" */
+  String get gridRowEnd =>
+    getPropertyValue('grid-row-end');
 
-  /** Sets the value of "grid-rows" */
-  void set gridRows(String value) {
-    setProperty('${Device.cssPrefix}grid-rows', value, '');
+  /** Sets the value of "grid-row-end" */
+  void set gridRowEnd(String value) {
+    setProperty('grid-row-end', value, '');
+  }
+
+  /** Gets the value of "grid-row-start" */
+  String get gridRowStart =>
+    getPropertyValue('grid-row-start');
+
+  /** Sets the value of "grid-row-start" */
+  void set gridRowStart(String value) {
+    setProperty('grid-row-start', value, '');
+  }
+
+  /** Gets the value of "grid-template" */
+  String get gridTemplate =>
+    getPropertyValue('grid-template');
+
+  /** Sets the value of "grid-template" */
+  void set gridTemplate(String value) {
+    setProperty('grid-template', value, '');
+  }
+
+  /** Gets the value of "grid-template-areas" */
+  String get gridTemplateAreas =>
+    getPropertyValue('grid-template-areas');
+
+  /** Sets the value of "grid-template-areas" */
+  void set gridTemplateAreas(String value) {
+    setProperty('grid-template-areas', value, '');
+  }
+
+  /** Gets the value of "grid-template-columns" */
+  String get gridTemplateColumns =>
+    getPropertyValue('grid-template-columns');
+
+  /** Sets the value of "grid-template-columns" */
+  void set gridTemplateColumns(String value) {
+    setProperty('grid-template-columns', value, '');
+  }
+
+  /** Gets the value of "grid-template-rows" */
+  String get gridTemplateRows =>
+    getPropertyValue('grid-template-rows');
+
+  /** Sets the value of "grid-template-rows" */
+  void set gridTemplateRows(String value) {
+    setProperty('grid-template-rows', value, '');
   }
 
   /** Gets the value of "height" */
@@ -4843,65 +5161,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "highlight" */
   String get highlight =>
-    getPropertyValue('${Device.cssPrefix}highlight');
+    getPropertyValue('highlight');
 
   /** Sets the value of "highlight" */
   void set highlight(String value) {
-    setProperty('${Device.cssPrefix}highlight', value, '');
+    setProperty('highlight', value, '');
   }
 
   /** Gets the value of "hyphenate-character" */
   String get hyphenateCharacter =>
-    getPropertyValue('${Device.cssPrefix}hyphenate-character');
+    getPropertyValue('hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
   void set hyphenateCharacter(String value) {
-    setProperty('${Device.cssPrefix}hyphenate-character', value, '');
-  }
-
-  /** Gets the value of "hyphenate-limit-after" */
-  String get hyphenateLimitAfter =>
-    getPropertyValue('${Device.cssPrefix}hyphenate-limit-after');
-
-  /** Sets the value of "hyphenate-limit-after" */
-  void set hyphenateLimitAfter(String value) {
-    setProperty('${Device.cssPrefix}hyphenate-limit-after', value, '');
-  }
-
-  /** Gets the value of "hyphenate-limit-before" */
-  String get hyphenateLimitBefore =>
-    getPropertyValue('${Device.cssPrefix}hyphenate-limit-before');
-
-  /** Sets the value of "hyphenate-limit-before" */
-  void set hyphenateLimitBefore(String value) {
-    setProperty('${Device.cssPrefix}hyphenate-limit-before', value, '');
-  }
-
-  /** Gets the value of "hyphenate-limit-lines" */
-  String get hyphenateLimitLines =>
-    getPropertyValue('${Device.cssPrefix}hyphenate-limit-lines');
-
-  /** Sets the value of "hyphenate-limit-lines" */
-  void set hyphenateLimitLines(String value) {
-    setProperty('${Device.cssPrefix}hyphenate-limit-lines', value, '');
-  }
-
-  /** Gets the value of "hyphens" */
-  String get hyphens =>
-    getPropertyValue('${Device.cssPrefix}hyphens');
-
-  /** Sets the value of "hyphens" */
-  void set hyphens(String value) {
-    setProperty('${Device.cssPrefix}hyphens', value, '');
-  }
-
-  /** Gets the value of "image-orientation" */
-  String get imageOrientation =>
-    getPropertyValue('image-orientation');
-
-  /** Sets the value of "image-orientation" */
-  void set imageOrientation(String value) {
-    setProperty('image-orientation', value, '');
+    setProperty('hyphenate-character', value, '');
   }
 
   /** Gets the value of "image-rendering" */
@@ -4913,22 +5186,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('image-rendering', value, '');
   }
 
-  /** Gets the value of "image-resolution" */
-  String get imageResolution =>
-    getPropertyValue('image-resolution');
+  /** Gets the value of "isolation" */
+  String get isolation =>
+    getPropertyValue('isolation');
 
-  /** Sets the value of "image-resolution" */
-  void set imageResolution(String value) {
-    setProperty('image-resolution', value, '');
+  /** Sets the value of "isolation" */
+  void set isolation(String value) {
+    setProperty('isolation', value, '');
   }
 
   /** Gets the value of "justify-content" */
   String get justifyContent =>
-    getPropertyValue('${Device.cssPrefix}justify-content');
+    getPropertyValue('justify-content');
 
   /** Sets the value of "justify-content" */
   void set justifyContent(String value) {
-    setProperty('${Device.cssPrefix}justify-content', value, '');
+    setProperty('justify-content', value, '');
+  }
+
+  /** Gets the value of "justify-self" */
+  String get justifySelf =>
+    getPropertyValue('justify-self');
+
+  /** Sets the value of "justify-self" */
+  void set justifySelf(String value) {
+    setProperty('justify-self', value, '');
   }
 
   /** Gets the value of "left" */
@@ -4949,49 +5231,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('letter-spacing', value, '');
   }
 
-  /** Gets the value of "line-align" */
-  String get lineAlign =>
-    getPropertyValue('${Device.cssPrefix}line-align');
-
-  /** Sets the value of "line-align" */
-  void set lineAlign(String value) {
-    setProperty('${Device.cssPrefix}line-align', value, '');
-  }
-
   /** Gets the value of "line-box-contain" */
   String get lineBoxContain =>
-    getPropertyValue('${Device.cssPrefix}line-box-contain');
+    getPropertyValue('line-box-contain');
 
   /** Sets the value of "line-box-contain" */
   void set lineBoxContain(String value) {
-    setProperty('${Device.cssPrefix}line-box-contain', value, '');
+    setProperty('line-box-contain', value, '');
   }
 
   /** Gets the value of "line-break" */
   String get lineBreak =>
-    getPropertyValue('${Device.cssPrefix}line-break');
+    getPropertyValue('line-break');
 
   /** Sets the value of "line-break" */
   void set lineBreak(String value) {
-    setProperty('${Device.cssPrefix}line-break', value, '');
+    setProperty('line-break', value, '');
   }
 
   /** Gets the value of "line-clamp" */
   String get lineClamp =>
-    getPropertyValue('${Device.cssPrefix}line-clamp');
+    getPropertyValue('line-clamp');
 
   /** Sets the value of "line-clamp" */
   void set lineClamp(String value) {
-    setProperty('${Device.cssPrefix}line-clamp', value, '');
-  }
-
-  /** Gets the value of "line-grid" */
-  String get lineGrid =>
-    getPropertyValue('${Device.cssPrefix}line-grid');
-
-  /** Sets the value of "line-grid" */
-  void set lineGrid(String value) {
-    setProperty('${Device.cssPrefix}line-grid', value, '');
+    setProperty('line-clamp', value, '');
   }
 
   /** Gets the value of "line-height" */
@@ -5001,15 +5265,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "line-height" */
   void set lineHeight(String value) {
     setProperty('line-height', value, '');
-  }
-
-  /** Gets the value of "line-snap" */
-  String get lineSnap =>
-    getPropertyValue('${Device.cssPrefix}line-snap');
-
-  /** Sets the value of "line-snap" */
-  void set lineSnap(String value) {
-    setProperty('${Device.cssPrefix}line-snap', value, '');
   }
 
   /** Gets the value of "list-style" */
@@ -5050,29 +5305,29 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "locale" */
   String get locale =>
-    getPropertyValue('${Device.cssPrefix}locale');
+    getPropertyValue('locale');
 
   /** Sets the value of "locale" */
   void set locale(String value) {
-    setProperty('${Device.cssPrefix}locale', value, '');
+    setProperty('locale', value, '');
   }
 
   /** Gets the value of "logical-height" */
   String get logicalHeight =>
-    getPropertyValue('${Device.cssPrefix}logical-height');
+    getPropertyValue('logical-height');
 
   /** Sets the value of "logical-height" */
   void set logicalHeight(String value) {
-    setProperty('${Device.cssPrefix}logical-height', value, '');
+    setProperty('logical-height', value, '');
   }
 
   /** Gets the value of "logical-width" */
   String get logicalWidth =>
-    getPropertyValue('${Device.cssPrefix}logical-width');
+    getPropertyValue('logical-width');
 
   /** Sets the value of "logical-width" */
   void set logicalWidth(String value) {
-    setProperty('${Device.cssPrefix}logical-width', value, '');
+    setProperty('logical-width', value, '');
   }
 
   /** Gets the value of "margin" */
@@ -5086,38 +5341,38 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "margin-after" */
   String get marginAfter =>
-    getPropertyValue('${Device.cssPrefix}margin-after');
+    getPropertyValue('margin-after');
 
   /** Sets the value of "margin-after" */
   void set marginAfter(String value) {
-    setProperty('${Device.cssPrefix}margin-after', value, '');
+    setProperty('margin-after', value, '');
   }
 
   /** Gets the value of "margin-after-collapse" */
   String get marginAfterCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-after-collapse');
+    getPropertyValue('margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
   void set marginAfterCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-after-collapse', value, '');
+    setProperty('margin-after-collapse', value, '');
   }
 
   /** Gets the value of "margin-before" */
   String get marginBefore =>
-    getPropertyValue('${Device.cssPrefix}margin-before');
+    getPropertyValue('margin-before');
 
   /** Sets the value of "margin-before" */
   void set marginBefore(String value) {
-    setProperty('${Device.cssPrefix}margin-before', value, '');
+    setProperty('margin-before', value, '');
   }
 
   /** Gets the value of "margin-before-collapse" */
   String get marginBeforeCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-before-collapse');
+    getPropertyValue('margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
   void set marginBeforeCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-before-collapse', value, '');
+    setProperty('margin-before-collapse', value, '');
   }
 
   /** Gets the value of "margin-bottom" */
@@ -5131,29 +5386,29 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "margin-bottom-collapse" */
   String get marginBottomCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-bottom-collapse');
+    getPropertyValue('margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
   void set marginBottomCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-bottom-collapse', value, '');
+    setProperty('margin-bottom-collapse', value, '');
   }
 
   /** Gets the value of "margin-collapse" */
   String get marginCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-collapse');
+    getPropertyValue('margin-collapse');
 
   /** Sets the value of "margin-collapse" */
   void set marginCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-collapse', value, '');
+    setProperty('margin-collapse', value, '');
   }
 
   /** Gets the value of "margin-end" */
   String get marginEnd =>
-    getPropertyValue('${Device.cssPrefix}margin-end');
+    getPropertyValue('margin-end');
 
   /** Sets the value of "margin-end" */
   void set marginEnd(String value) {
-    setProperty('${Device.cssPrefix}margin-end', value, '');
+    setProperty('margin-end', value, '');
   }
 
   /** Gets the value of "margin-left" */
@@ -5176,11 +5431,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "margin-start" */
   String get marginStart =>
-    getPropertyValue('${Device.cssPrefix}margin-start');
+    getPropertyValue('margin-start');
 
   /** Sets the value of "margin-start" */
   void set marginStart(String value) {
-    setProperty('${Device.cssPrefix}margin-start', value, '');
+    setProperty('margin-start', value, '');
   }
 
   /** Gets the value of "margin-top" */
@@ -5194,236 +5449,182 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "margin-top-collapse" */
   String get marginTopCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-top-collapse');
+    getPropertyValue('margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
   void set marginTopCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-top-collapse', value, '');
-  }
-
-  /** Gets the value of "marquee" */
-  String get marquee =>
-    getPropertyValue('${Device.cssPrefix}marquee');
-
-  /** Sets the value of "marquee" */
-  void set marquee(String value) {
-    setProperty('${Device.cssPrefix}marquee', value, '');
-  }
-
-  /** Gets the value of "marquee-direction" */
-  String get marqueeDirection =>
-    getPropertyValue('${Device.cssPrefix}marquee-direction');
-
-  /** Sets the value of "marquee-direction" */
-  void set marqueeDirection(String value) {
-    setProperty('${Device.cssPrefix}marquee-direction', value, '');
-  }
-
-  /** Gets the value of "marquee-increment" */
-  String get marqueeIncrement =>
-    getPropertyValue('${Device.cssPrefix}marquee-increment');
-
-  /** Sets the value of "marquee-increment" */
-  void set marqueeIncrement(String value) {
-    setProperty('${Device.cssPrefix}marquee-increment', value, '');
-  }
-
-  /** Gets the value of "marquee-repetition" */
-  String get marqueeRepetition =>
-    getPropertyValue('${Device.cssPrefix}marquee-repetition');
-
-  /** Sets the value of "marquee-repetition" */
-  void set marqueeRepetition(String value) {
-    setProperty('${Device.cssPrefix}marquee-repetition', value, '');
-  }
-
-  /** Gets the value of "marquee-speed" */
-  String get marqueeSpeed =>
-    getPropertyValue('${Device.cssPrefix}marquee-speed');
-
-  /** Sets the value of "marquee-speed" */
-  void set marqueeSpeed(String value) {
-    setProperty('${Device.cssPrefix}marquee-speed', value, '');
-  }
-
-  /** Gets the value of "marquee-style" */
-  String get marqueeStyle =>
-    getPropertyValue('${Device.cssPrefix}marquee-style');
-
-  /** Sets the value of "marquee-style" */
-  void set marqueeStyle(String value) {
-    setProperty('${Device.cssPrefix}marquee-style', value, '');
+    setProperty('margin-top-collapse', value, '');
   }
 
   /** Gets the value of "mask" */
   String get mask =>
-    getPropertyValue('${Device.cssPrefix}mask');
+    getPropertyValue('mask');
 
   /** Sets the value of "mask" */
   void set mask(String value) {
-    setProperty('${Device.cssPrefix}mask', value, '');
-  }
-
-  /** Gets the value of "mask-attachment" */
-  String get maskAttachment =>
-    getPropertyValue('${Device.cssPrefix}mask-attachment');
-
-  /** Sets the value of "mask-attachment" */
-  void set maskAttachment(String value) {
-    setProperty('${Device.cssPrefix}mask-attachment', value, '');
+    setProperty('mask', value, '');
   }
 
   /** Gets the value of "mask-box-image" */
   String get maskBoxImage =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image');
+    getPropertyValue('mask-box-image');
 
   /** Sets the value of "mask-box-image" */
   void set maskBoxImage(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image', value, '');
+    setProperty('mask-box-image', value, '');
   }
 
   /** Gets the value of "mask-box-image-outset" */
   String get maskBoxImageOutset =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-outset');
+    getPropertyValue('mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
   void set maskBoxImageOutset(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-outset', value, '');
+    setProperty('mask-box-image-outset', value, '');
   }
 
   /** Gets the value of "mask-box-image-repeat" */
   String get maskBoxImageRepeat =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-repeat');
+    getPropertyValue('mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
   void set maskBoxImageRepeat(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-repeat', value, '');
+    setProperty('mask-box-image-repeat', value, '');
   }
 
   /** Gets the value of "mask-box-image-slice" */
   String get maskBoxImageSlice =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-slice');
+    getPropertyValue('mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
   void set maskBoxImageSlice(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-slice', value, '');
+    setProperty('mask-box-image-slice', value, '');
   }
 
   /** Gets the value of "mask-box-image-source" */
   String get maskBoxImageSource =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-source');
+    getPropertyValue('mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
   void set maskBoxImageSource(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-source', value, '');
+    setProperty('mask-box-image-source', value, '');
   }
 
   /** Gets the value of "mask-box-image-width" */
   String get maskBoxImageWidth =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-width');
+    getPropertyValue('mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
   void set maskBoxImageWidth(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-width', value, '');
+    setProperty('mask-box-image-width', value, '');
   }
 
   /** Gets the value of "mask-clip" */
   String get maskClip =>
-    getPropertyValue('${Device.cssPrefix}mask-clip');
+    getPropertyValue('mask-clip');
 
   /** Sets the value of "mask-clip" */
   void set maskClip(String value) {
-    setProperty('${Device.cssPrefix}mask-clip', value, '');
+    setProperty('mask-clip', value, '');
   }
 
   /** Gets the value of "mask-composite" */
   String get maskComposite =>
-    getPropertyValue('${Device.cssPrefix}mask-composite');
+    getPropertyValue('mask-composite');
 
   /** Sets the value of "mask-composite" */
   void set maskComposite(String value) {
-    setProperty('${Device.cssPrefix}mask-composite', value, '');
+    setProperty('mask-composite', value, '');
   }
 
   /** Gets the value of "mask-image" */
   String get maskImage =>
-    getPropertyValue('${Device.cssPrefix}mask-image');
+    getPropertyValue('mask-image');
 
   /** Sets the value of "mask-image" */
   void set maskImage(String value) {
-    setProperty('${Device.cssPrefix}mask-image', value, '');
+    setProperty('mask-image', value, '');
   }
 
   /** Gets the value of "mask-origin" */
   String get maskOrigin =>
-    getPropertyValue('${Device.cssPrefix}mask-origin');
+    getPropertyValue('mask-origin');
 
   /** Sets the value of "mask-origin" */
   void set maskOrigin(String value) {
-    setProperty('${Device.cssPrefix}mask-origin', value, '');
+    setProperty('mask-origin', value, '');
   }
 
   /** Gets the value of "mask-position" */
   String get maskPosition =>
-    getPropertyValue('${Device.cssPrefix}mask-position');
+    getPropertyValue('mask-position');
 
   /** Sets the value of "mask-position" */
   void set maskPosition(String value) {
-    setProperty('${Device.cssPrefix}mask-position', value, '');
+    setProperty('mask-position', value, '');
   }
 
   /** Gets the value of "mask-position-x" */
   String get maskPositionX =>
-    getPropertyValue('${Device.cssPrefix}mask-position-x');
+    getPropertyValue('mask-position-x');
 
   /** Sets the value of "mask-position-x" */
   void set maskPositionX(String value) {
-    setProperty('${Device.cssPrefix}mask-position-x', value, '');
+    setProperty('mask-position-x', value, '');
   }
 
   /** Gets the value of "mask-position-y" */
   String get maskPositionY =>
-    getPropertyValue('${Device.cssPrefix}mask-position-y');
+    getPropertyValue('mask-position-y');
 
   /** Sets the value of "mask-position-y" */
   void set maskPositionY(String value) {
-    setProperty('${Device.cssPrefix}mask-position-y', value, '');
+    setProperty('mask-position-y', value, '');
   }
 
   /** Gets the value of "mask-repeat" */
   String get maskRepeat =>
-    getPropertyValue('${Device.cssPrefix}mask-repeat');
+    getPropertyValue('mask-repeat');
 
   /** Sets the value of "mask-repeat" */
   void set maskRepeat(String value) {
-    setProperty('${Device.cssPrefix}mask-repeat', value, '');
+    setProperty('mask-repeat', value, '');
   }
 
   /** Gets the value of "mask-repeat-x" */
   String get maskRepeatX =>
-    getPropertyValue('${Device.cssPrefix}mask-repeat-x');
+    getPropertyValue('mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
   void set maskRepeatX(String value) {
-    setProperty('${Device.cssPrefix}mask-repeat-x', value, '');
+    setProperty('mask-repeat-x', value, '');
   }
 
   /** Gets the value of "mask-repeat-y" */
   String get maskRepeatY =>
-    getPropertyValue('${Device.cssPrefix}mask-repeat-y');
+    getPropertyValue('mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
   void set maskRepeatY(String value) {
-    setProperty('${Device.cssPrefix}mask-repeat-y', value, '');
+    setProperty('mask-repeat-y', value, '');
   }
 
   /** Gets the value of "mask-size" */
   String get maskSize =>
-    getPropertyValue('${Device.cssPrefix}mask-size');
+    getPropertyValue('mask-size');
 
   /** Sets the value of "mask-size" */
   void set maskSize(String value) {
-    setProperty('${Device.cssPrefix}mask-size', value, '');
+    setProperty('mask-size', value, '');
+  }
+
+  /** Gets the value of "mask-source-type" */
+  String get maskSourceType =>
+    getPropertyValue('mask-source-type');
+
+  /** Sets the value of "mask-source-type" */
+  void set maskSourceType(String value) {
+    setProperty('mask-source-type', value, '');
   }
 
   /** Gets the value of "max-height" */
@@ -5437,20 +5638,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "max-logical-height" */
   String get maxLogicalHeight =>
-    getPropertyValue('${Device.cssPrefix}max-logical-height');
+    getPropertyValue('max-logical-height');
 
   /** Sets the value of "max-logical-height" */
   void set maxLogicalHeight(String value) {
-    setProperty('${Device.cssPrefix}max-logical-height', value, '');
+    setProperty('max-logical-height', value, '');
   }
 
   /** Gets the value of "max-logical-width" */
   String get maxLogicalWidth =>
-    getPropertyValue('${Device.cssPrefix}max-logical-width');
+    getPropertyValue('max-logical-width');
 
   /** Sets the value of "max-logical-width" */
   void set maxLogicalWidth(String value) {
-    setProperty('${Device.cssPrefix}max-logical-width', value, '');
+    setProperty('max-logical-width', value, '');
   }
 
   /** Gets the value of "max-width" */
@@ -5482,20 +5683,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "min-logical-height" */
   String get minLogicalHeight =>
-    getPropertyValue('${Device.cssPrefix}min-logical-height');
+    getPropertyValue('min-logical-height');
 
   /** Sets the value of "min-logical-height" */
   void set minLogicalHeight(String value) {
-    setProperty('${Device.cssPrefix}min-logical-height', value, '');
+    setProperty('min-logical-height', value, '');
   }
 
   /** Gets the value of "min-logical-width" */
   String get minLogicalWidth =>
-    getPropertyValue('${Device.cssPrefix}min-logical-width');
+    getPropertyValue('min-logical-width');
 
   /** Sets the value of "min-logical-width" */
   void set minLogicalWidth(String value) {
-    setProperty('${Device.cssPrefix}min-logical-width', value, '');
+    setProperty('min-logical-width', value, '');
   }
 
   /** Gets the value of "min-width" */
@@ -5516,13 +5717,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('min-zoom', value, '');
   }
 
-  /** Gets the value of "nbsp-mode" */
-  String get nbspMode =>
-    getPropertyValue('${Device.cssPrefix}nbsp-mode');
+  /** Gets the value of "mix-blend-mode" */
+  String get mixBlendMode =>
+    getPropertyValue('mix-blend-mode');
 
-  /** Sets the value of "nbsp-mode" */
-  void set nbspMode(String value) {
-    setProperty('${Device.cssPrefix}nbsp-mode', value, '');
+  /** Sets the value of "mix-blend-mode" */
+  void set mixBlendMode(String value) {
+    setProperty('mix-blend-mode', value, '');
+  }
+
+  /** Gets the value of "object-fit" */
+  String get objectFit =>
+    getPropertyValue('object-fit');
+
+  /** Sets the value of "object-fit" */
+  void set objectFit(String value) {
+    setProperty('object-fit', value, '');
+  }
+
+  /** Gets the value of "object-position" */
+  String get objectPosition =>
+    getPropertyValue('object-position');
+
+  /** Sets the value of "object-position" */
+  void set objectPosition(String value) {
+    setProperty('object-position', value, '');
   }
 
   /** Gets the value of "opacity" */
@@ -5536,11 +5755,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "order" */
   String get order =>
-    getPropertyValue('${Device.cssPrefix}order');
+    getPropertyValue('order');
 
   /** Sets the value of "order" */
   void set order(String value) {
-    setProperty('${Device.cssPrefix}order', value, '');
+    setProperty('order', value, '');
   }
 
   /** Gets the value of "orientation" */
@@ -5615,15 +5834,6 @@ abstract class CssStyleDeclarationBase {
     setProperty('overflow', value, '');
   }
 
-  /** Gets the value of "overflow-scrolling" */
-  String get overflowScrolling =>
-    getPropertyValue('${Device.cssPrefix}overflow-scrolling');
-
-  /** Sets the value of "overflow-scrolling" */
-  void set overflowScrolling(String value) {
-    setProperty('${Device.cssPrefix}overflow-scrolling', value, '');
-  }
-
   /** Gets the value of "overflow-wrap" */
   String get overflowWrap =>
     getPropertyValue('overflow-wrap');
@@ -5662,20 +5872,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "padding-after" */
   String get paddingAfter =>
-    getPropertyValue('${Device.cssPrefix}padding-after');
+    getPropertyValue('padding-after');
 
   /** Sets the value of "padding-after" */
   void set paddingAfter(String value) {
-    setProperty('${Device.cssPrefix}padding-after', value, '');
+    setProperty('padding-after', value, '');
   }
 
   /** Gets the value of "padding-before" */
   String get paddingBefore =>
-    getPropertyValue('${Device.cssPrefix}padding-before');
+    getPropertyValue('padding-before');
 
   /** Sets the value of "padding-before" */
   void set paddingBefore(String value) {
-    setProperty('${Device.cssPrefix}padding-before', value, '');
+    setProperty('padding-before', value, '');
   }
 
   /** Gets the value of "padding-bottom" */
@@ -5689,11 +5899,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "padding-end" */
   String get paddingEnd =>
-    getPropertyValue('${Device.cssPrefix}padding-end');
+    getPropertyValue('padding-end');
 
   /** Sets the value of "padding-end" */
   void set paddingEnd(String value) {
-    setProperty('${Device.cssPrefix}padding-end', value, '');
+    setProperty('padding-end', value, '');
   }
 
   /** Gets the value of "padding-left" */
@@ -5716,11 +5926,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "padding-start" */
   String get paddingStart =>
-    getPropertyValue('${Device.cssPrefix}padding-start');
+    getPropertyValue('padding-start');
 
   /** Sets the value of "padding-start" */
   void set paddingStart(String value) {
-    setProperty('${Device.cssPrefix}padding-start', value, '');
+    setProperty('padding-start', value, '');
   }
 
   /** Gets the value of "padding-top" */
@@ -5770,38 +5980,38 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "perspective" */
   String get perspective =>
-    getPropertyValue('${Device.cssPrefix}perspective');
+    getPropertyValue('perspective');
 
   /** Sets the value of "perspective" */
   void set perspective(String value) {
-    setProperty('${Device.cssPrefix}perspective', value, '');
+    setProperty('perspective', value, '');
   }
 
   /** Gets the value of "perspective-origin" */
   String get perspectiveOrigin =>
-    getPropertyValue('${Device.cssPrefix}perspective-origin');
+    getPropertyValue('perspective-origin');
 
   /** Sets the value of "perspective-origin" */
   void set perspectiveOrigin(String value) {
-    setProperty('${Device.cssPrefix}perspective-origin', value, '');
+    setProperty('perspective-origin', value, '');
   }
 
   /** Gets the value of "perspective-origin-x" */
   String get perspectiveOriginX =>
-    getPropertyValue('${Device.cssPrefix}perspective-origin-x');
+    getPropertyValue('perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
   void set perspectiveOriginX(String value) {
-    setProperty('${Device.cssPrefix}perspective-origin-x', value, '');
+    setProperty('perspective-origin-x', value, '');
   }
 
   /** Gets the value of "perspective-origin-y" */
   String get perspectiveOriginY =>
-    getPropertyValue('${Device.cssPrefix}perspective-origin-y');
+    getPropertyValue('perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
   void set perspectiveOriginY(String value) {
-    setProperty('${Device.cssPrefix}perspective-origin-y', value, '');
+    setProperty('perspective-origin-y', value, '');
   }
 
   /** Gets the value of "pointer-events" */
@@ -5824,11 +6034,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "print-color-adjust" */
   String get printColorAdjust =>
-    getPropertyValue('${Device.cssPrefix}print-color-adjust');
+    getPropertyValue('print-color-adjust');
 
   /** Sets the value of "print-color-adjust" */
   void set printColorAdjust(String value) {
-    setProperty('${Device.cssPrefix}print-color-adjust', value, '');
+    setProperty('print-color-adjust', value, '');
   }
 
   /** Gets the value of "quotes" */
@@ -5838,42 +6048,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "quotes" */
   void set quotes(String value) {
     setProperty('quotes', value, '');
-  }
-
-  /** Gets the value of "region-break-after" */
-  String get regionBreakAfter =>
-    getPropertyValue('${Device.cssPrefix}region-break-after');
-
-  /** Sets the value of "region-break-after" */
-  void set regionBreakAfter(String value) {
-    setProperty('${Device.cssPrefix}region-break-after', value, '');
-  }
-
-  /** Gets the value of "region-break-before" */
-  String get regionBreakBefore =>
-    getPropertyValue('${Device.cssPrefix}region-break-before');
-
-  /** Sets the value of "region-break-before" */
-  void set regionBreakBefore(String value) {
-    setProperty('${Device.cssPrefix}region-break-before', value, '');
-  }
-
-  /** Gets the value of "region-break-inside" */
-  String get regionBreakInside =>
-    getPropertyValue('${Device.cssPrefix}region-break-inside');
-
-  /** Sets the value of "region-break-inside" */
-  void set regionBreakInside(String value) {
-    setProperty('${Device.cssPrefix}region-break-inside', value, '');
-  }
-
-  /** Gets the value of "region-overflow" */
-  String get regionOverflow =>
-    getPropertyValue('${Device.cssPrefix}region-overflow');
-
-  /** Sets the value of "region-overflow" */
-  void set regionOverflow(String value) {
-    setProperty('${Device.cssPrefix}region-overflow', value, '');
   }
 
   /** Gets the value of "resize" */
@@ -5896,47 +6070,56 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "rtl-ordering" */
   String get rtlOrdering =>
-    getPropertyValue('${Device.cssPrefix}rtl-ordering');
+    getPropertyValue('rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
   void set rtlOrdering(String value) {
-    setProperty('${Device.cssPrefix}rtl-ordering', value, '');
+    setProperty('rtl-ordering', value, '');
   }
 
-  /** Gets the value of "shape-inside" */
-  String get shapeInside =>
-    getPropertyValue('${Device.cssPrefix}shape-inside');
+  /** Gets the value of "ruby-position" */
+  String get rubyPosition =>
+    getPropertyValue('ruby-position');
 
-  /** Sets the value of "shape-inside" */
-  void set shapeInside(String value) {
-    setProperty('${Device.cssPrefix}shape-inside', value, '');
+  /** Sets the value of "ruby-position" */
+  void set rubyPosition(String value) {
+    setProperty('ruby-position', value, '');
+  }
+
+  /** Gets the value of "scroll-behavior" */
+  String get scrollBehavior =>
+    getPropertyValue('scroll-behavior');
+
+  /** Sets the value of "scroll-behavior" */
+  void set scrollBehavior(String value) {
+    setProperty('scroll-behavior', value, '');
+  }
+
+  /** Gets the value of "shape-image-threshold" */
+  String get shapeImageThreshold =>
+    getPropertyValue('shape-image-threshold');
+
+  /** Sets the value of "shape-image-threshold" */
+  void set shapeImageThreshold(String value) {
+    setProperty('shape-image-threshold', value, '');
   }
 
   /** Gets the value of "shape-margin" */
   String get shapeMargin =>
-    getPropertyValue('${Device.cssPrefix}shape-margin');
+    getPropertyValue('shape-margin');
 
   /** Sets the value of "shape-margin" */
   void set shapeMargin(String value) {
-    setProperty('${Device.cssPrefix}shape-margin', value, '');
+    setProperty('shape-margin', value, '');
   }
 
   /** Gets the value of "shape-outside" */
   String get shapeOutside =>
-    getPropertyValue('${Device.cssPrefix}shape-outside');
+    getPropertyValue('shape-outside');
 
   /** Sets the value of "shape-outside" */
   void set shapeOutside(String value) {
-    setProperty('${Device.cssPrefix}shape-outside', value, '');
-  }
-
-  /** Gets the value of "shape-padding" */
-  String get shapePadding =>
-    getPropertyValue('${Device.cssPrefix}shape-padding');
-
-  /** Sets the value of "shape-padding" */
-  void set shapePadding(String value) {
-    setProperty('${Device.cssPrefix}shape-padding', value, '');
+    setProperty('shape-outside', value, '');
   }
 
   /** Gets the value of "size" */
@@ -5986,11 +6169,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "tap-highlight-color" */
   String get tapHighlightColor =>
-    getPropertyValue('${Device.cssPrefix}tap-highlight-color');
+    getPropertyValue('tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
   void set tapHighlightColor(String value) {
-    setProperty('${Device.cssPrefix}tap-highlight-color', value, '');
+    setProperty('tap-highlight-color', value, '');
   }
 
   /** Gets the value of "text-align" */
@@ -6004,20 +6187,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "text-align-last" */
   String get textAlignLast =>
-    getPropertyValue('${Device.cssPrefix}text-align-last');
+    getPropertyValue('text-align-last');
 
   /** Sets the value of "text-align-last" */
   void set textAlignLast(String value) {
-    setProperty('${Device.cssPrefix}text-align-last', value, '');
+    setProperty('text-align-last', value, '');
   }
 
   /** Gets the value of "text-combine" */
   String get textCombine =>
-    getPropertyValue('${Device.cssPrefix}text-combine');
+    getPropertyValue('text-combine');
 
   /** Sets the value of "text-combine" */
   void set textCombine(String value) {
-    setProperty('${Device.cssPrefix}text-combine', value, '');
+    setProperty('text-combine', value, '');
   }
 
   /** Gets the value of "text-decoration" */
@@ -6029,76 +6212,85 @@ abstract class CssStyleDeclarationBase {
     setProperty('text-decoration', value, '');
   }
 
+  /** Gets the value of "text-decoration-color" */
+  String get textDecorationColor =>
+    getPropertyValue('text-decoration-color');
+
+  /** Sets the value of "text-decoration-color" */
+  void set textDecorationColor(String value) {
+    setProperty('text-decoration-color', value, '');
+  }
+
   /** Gets the value of "text-decoration-line" */
   String get textDecorationLine =>
-    getPropertyValue('${Device.cssPrefix}text-decoration-line');
+    getPropertyValue('text-decoration-line');
 
   /** Sets the value of "text-decoration-line" */
   void set textDecorationLine(String value) {
-    setProperty('${Device.cssPrefix}text-decoration-line', value, '');
+    setProperty('text-decoration-line', value, '');
   }
 
   /** Gets the value of "text-decoration-style" */
   String get textDecorationStyle =>
-    getPropertyValue('${Device.cssPrefix}text-decoration-style');
+    getPropertyValue('text-decoration-style');
 
   /** Sets the value of "text-decoration-style" */
   void set textDecorationStyle(String value) {
-    setProperty('${Device.cssPrefix}text-decoration-style', value, '');
+    setProperty('text-decoration-style', value, '');
   }
 
   /** Gets the value of "text-decorations-in-effect" */
   String get textDecorationsInEffect =>
-    getPropertyValue('${Device.cssPrefix}text-decorations-in-effect');
+    getPropertyValue('text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
   void set textDecorationsInEffect(String value) {
-    setProperty('${Device.cssPrefix}text-decorations-in-effect', value, '');
+    setProperty('text-decorations-in-effect', value, '');
   }
 
   /** Gets the value of "text-emphasis" */
   String get textEmphasis =>
-    getPropertyValue('${Device.cssPrefix}text-emphasis');
+    getPropertyValue('text-emphasis');
 
   /** Sets the value of "text-emphasis" */
   void set textEmphasis(String value) {
-    setProperty('${Device.cssPrefix}text-emphasis', value, '');
+    setProperty('text-emphasis', value, '');
   }
 
   /** Gets the value of "text-emphasis-color" */
   String get textEmphasisColor =>
-    getPropertyValue('${Device.cssPrefix}text-emphasis-color');
+    getPropertyValue('text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
   void set textEmphasisColor(String value) {
-    setProperty('${Device.cssPrefix}text-emphasis-color', value, '');
+    setProperty('text-emphasis-color', value, '');
   }
 
   /** Gets the value of "text-emphasis-position" */
   String get textEmphasisPosition =>
-    getPropertyValue('${Device.cssPrefix}text-emphasis-position');
+    getPropertyValue('text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
   void set textEmphasisPosition(String value) {
-    setProperty('${Device.cssPrefix}text-emphasis-position', value, '');
+    setProperty('text-emphasis-position', value, '');
   }
 
   /** Gets the value of "text-emphasis-style" */
   String get textEmphasisStyle =>
-    getPropertyValue('${Device.cssPrefix}text-emphasis-style');
+    getPropertyValue('text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
   void set textEmphasisStyle(String value) {
-    setProperty('${Device.cssPrefix}text-emphasis-style', value, '');
+    setProperty('text-emphasis-style', value, '');
   }
 
   /** Gets the value of "text-fill-color" */
   String get textFillColor =>
-    getPropertyValue('${Device.cssPrefix}text-fill-color');
+    getPropertyValue('text-fill-color');
 
   /** Sets the value of "text-fill-color" */
   void set textFillColor(String value) {
-    setProperty('${Device.cssPrefix}text-fill-color', value, '');
+    setProperty('text-fill-color', value, '');
   }
 
   /** Gets the value of "text-indent" */
@@ -6110,13 +6302,13 @@ abstract class CssStyleDeclarationBase {
     setProperty('text-indent', value, '');
   }
 
-  /** Gets the value of "text-line-through" */
-  String get textLineThrough =>
-    getPropertyValue('text-line-through');
+  /** Gets the value of "text-justify" */
+  String get textJustify =>
+    getPropertyValue('text-justify');
 
-  /** Sets the value of "text-line-through" */
-  void set textLineThrough(String value) {
-    setProperty('text-line-through', value, '');
+  /** Sets the value of "text-justify" */
+  void set textJustify(String value) {
+    setProperty('text-justify', value, '');
   }
 
   /** Gets the value of "text-line-through-color" */
@@ -6157,11 +6349,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "text-orientation" */
   String get textOrientation =>
-    getPropertyValue('${Device.cssPrefix}text-orientation');
+    getPropertyValue('text-orientation');
 
   /** Sets the value of "text-orientation" */
   void set textOrientation(String value) {
-    setProperty('${Device.cssPrefix}text-orientation', value, '');
+    setProperty('text-orientation', value, '');
   }
 
   /** Gets the value of "text-overflow" */
@@ -6171,15 +6363,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "text-overflow" */
   void set textOverflow(String value) {
     setProperty('text-overflow', value, '');
-  }
-
-  /** Gets the value of "text-overline" */
-  String get textOverline =>
-    getPropertyValue('text-overline');
-
-  /** Sets the value of "text-overline" */
-  void set textOverline(String value) {
-    setProperty('text-overline', value, '');
   }
 
   /** Gets the value of "text-overline-color" */
@@ -6229,11 +6412,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "text-security" */
   String get textSecurity =>
-    getPropertyValue('${Device.cssPrefix}text-security');
+    getPropertyValue('text-security');
 
   /** Sets the value of "text-security" */
   void set textSecurity(String value) {
-    setProperty('${Device.cssPrefix}text-security', value, '');
+    setProperty('text-security', value, '');
   }
 
   /** Gets the value of "text-shadow" */
@@ -6245,40 +6428,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('text-shadow', value, '');
   }
 
-  /** Gets the value of "text-size-adjust" */
-  String get textSizeAdjust =>
-    getPropertyValue('${Device.cssPrefix}text-size-adjust');
-
-  /** Sets the value of "text-size-adjust" */
-  void set textSizeAdjust(String value) {
-    setProperty('${Device.cssPrefix}text-size-adjust', value, '');
-  }
-
   /** Gets the value of "text-stroke" */
   String get textStroke =>
-    getPropertyValue('${Device.cssPrefix}text-stroke');
+    getPropertyValue('text-stroke');
 
   /** Sets the value of "text-stroke" */
   void set textStroke(String value) {
-    setProperty('${Device.cssPrefix}text-stroke', value, '');
+    setProperty('text-stroke', value, '');
   }
 
   /** Gets the value of "text-stroke-color" */
   String get textStrokeColor =>
-    getPropertyValue('${Device.cssPrefix}text-stroke-color');
+    getPropertyValue('text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
   void set textStrokeColor(String value) {
-    setProperty('${Device.cssPrefix}text-stroke-color', value, '');
+    setProperty('text-stroke-color', value, '');
   }
 
   /** Gets the value of "text-stroke-width" */
   String get textStrokeWidth =>
-    getPropertyValue('${Device.cssPrefix}text-stroke-width');
+    getPropertyValue('text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
   void set textStrokeWidth(String value) {
-    setProperty('${Device.cssPrefix}text-stroke-width', value, '');
+    setProperty('text-stroke-width', value, '');
   }
 
   /** Gets the value of "text-transform" */
@@ -6288,15 +6462,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "text-transform" */
   void set textTransform(String value) {
     setProperty('text-transform', value, '');
-  }
-
-  /** Gets the value of "text-underline" */
-  String get textUnderline =>
-    getPropertyValue('text-underline');
-
-  /** Sets the value of "text-underline" */
-  void set textUnderline(String value) {
-    setProperty('text-underline', value, '');
   }
 
   /** Gets the value of "text-underline-color" */
@@ -6315,6 +6480,15 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "text-underline-mode" */
   void set textUnderlineMode(String value) {
     setProperty('text-underline-mode', value, '');
+  }
+
+  /** Gets the value of "text-underline-position" */
+  String get textUnderlinePosition =>
+    getPropertyValue('text-underline-position');
+
+  /** Sets the value of "text-underline-position" */
+  void set textUnderlinePosition(String value) {
+    setProperty('text-underline-position', value, '');
   }
 
   /** Gets the value of "text-underline-style" */
@@ -6344,111 +6518,127 @@ abstract class CssStyleDeclarationBase {
     setProperty('top', value, '');
   }
 
+  /** Gets the value of "touch-action" */
+  String get touchAction =>
+    getPropertyValue('touch-action');
+
+  /** Sets the value of "touch-action" */
+  void set touchAction(String value) {
+    setProperty('touch-action', value, '');
+  }
+
+  /** Gets the value of "touch-action-delay" */
+  String get touchActionDelay =>
+    getPropertyValue('touch-action-delay');
+
+  /** Sets the value of "touch-action-delay" */
+  void set touchActionDelay(String value) {
+    setProperty('touch-action-delay', value, '');
+  }
+
   /** Gets the value of "transform" */
   String get transform =>
-    getPropertyValue('${Device.cssPrefix}transform');
+    getPropertyValue('transform');
 
   /** Sets the value of "transform" */
   void set transform(String value) {
-    setProperty('${Device.cssPrefix}transform', value, '');
+    setProperty('transform', value, '');
   }
 
   /** Gets the value of "transform-origin" */
   String get transformOrigin =>
-    getPropertyValue('${Device.cssPrefix}transform-origin');
+    getPropertyValue('transform-origin');
 
   /** Sets the value of "transform-origin" */
   void set transformOrigin(String value) {
-    setProperty('${Device.cssPrefix}transform-origin', value, '');
+    setProperty('transform-origin', value, '');
   }
 
   /** Gets the value of "transform-origin-x" */
   String get transformOriginX =>
-    getPropertyValue('${Device.cssPrefix}transform-origin-x');
+    getPropertyValue('transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
   void set transformOriginX(String value) {
-    setProperty('${Device.cssPrefix}transform-origin-x', value, '');
+    setProperty('transform-origin-x', value, '');
   }
 
   /** Gets the value of "transform-origin-y" */
   String get transformOriginY =>
-    getPropertyValue('${Device.cssPrefix}transform-origin-y');
+    getPropertyValue('transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
   void set transformOriginY(String value) {
-    setProperty('${Device.cssPrefix}transform-origin-y', value, '');
+    setProperty('transform-origin-y', value, '');
   }
 
   /** Gets the value of "transform-origin-z" */
   String get transformOriginZ =>
-    getPropertyValue('${Device.cssPrefix}transform-origin-z');
+    getPropertyValue('transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
   void set transformOriginZ(String value) {
-    setProperty('${Device.cssPrefix}transform-origin-z', value, '');
+    setProperty('transform-origin-z', value, '');
   }
 
   /** Gets the value of "transform-style" */
   String get transformStyle =>
-    getPropertyValue('${Device.cssPrefix}transform-style');
+    getPropertyValue('transform-style');
 
   /** Sets the value of "transform-style" */
   void set transformStyle(String value) {
-    setProperty('${Device.cssPrefix}transform-style', value, '');
+    setProperty('transform-style', value, '');
   }
 
-  /** Gets the value of "transition" */
-  @SupportedBrowser(SupportedBrowser.CHROME)
+  /** Gets the value of "transition" */@SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition =>
-    getPropertyValue('${Device.cssPrefix}transition');
+    getPropertyValue('transition');
 
-  /** Sets the value of "transition" */
-  @SupportedBrowser(SupportedBrowser.CHROME)
+  /** Sets the value of "transition" */@SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void set transition(String value) {
-    setProperty('${Device.cssPrefix}transition', value, '');
+    setProperty('transition', value, '');
   }
 
   /** Gets the value of "transition-delay" */
   String get transitionDelay =>
-    getPropertyValue('${Device.cssPrefix}transition-delay');
+    getPropertyValue('transition-delay');
 
   /** Sets the value of "transition-delay" */
   void set transitionDelay(String value) {
-    setProperty('${Device.cssPrefix}transition-delay', value, '');
+    setProperty('transition-delay', value, '');
   }
 
   /** Gets the value of "transition-duration" */
   String get transitionDuration =>
-    getPropertyValue('${Device.cssPrefix}transition-duration');
+    getPropertyValue('transition-duration');
 
   /** Sets the value of "transition-duration" */
   void set transitionDuration(String value) {
-    setProperty('${Device.cssPrefix}transition-duration', value, '');
+    setProperty('transition-duration', value, '');
   }
 
   /** Gets the value of "transition-property" */
   String get transitionProperty =>
-    getPropertyValue('${Device.cssPrefix}transition-property');
+    getPropertyValue('transition-property');
 
   /** Sets the value of "transition-property" */
   void set transitionProperty(String value) {
-    setProperty('${Device.cssPrefix}transition-property', value, '');
+    setProperty('transition-property', value, '');
   }
 
   /** Gets the value of "transition-timing-function" */
   String get transitionTimingFunction =>
-    getPropertyValue('${Device.cssPrefix}transition-timing-function');
+    getPropertyValue('transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
   void set transitionTimingFunction(String value) {
-    setProperty('${Device.cssPrefix}transition-timing-function', value, '');
+    setProperty('transition-timing-function', value, '');
   }
 
   /** Gets the value of "unicode-bidi" */
@@ -6471,29 +6661,29 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "user-drag" */
   String get userDrag =>
-    getPropertyValue('${Device.cssPrefix}user-drag');
+    getPropertyValue('user-drag');
 
   /** Sets the value of "user-drag" */
   void set userDrag(String value) {
-    setProperty('${Device.cssPrefix}user-drag', value, '');
+    setProperty('user-drag', value, '');
   }
 
   /** Gets the value of "user-modify" */
   String get userModify =>
-    getPropertyValue('${Device.cssPrefix}user-modify');
+    getPropertyValue('user-modify');
 
   /** Sets the value of "user-modify" */
   void set userModify(String value) {
-    setProperty('${Device.cssPrefix}user-modify', value, '');
+    setProperty('user-modify', value, '');
   }
 
   /** Gets the value of "user-select" */
   String get userSelect =>
-    getPropertyValue('${Device.cssPrefix}user-select');
+    getPropertyValue('user-select');
 
   /** Sets the value of "user-select" */
   void set userSelect(String value) {
-    setProperty('${Device.cssPrefix}user-select', value, '');
+    setProperty('user-select', value, '');
   }
 
   /** Gets the value of "user-zoom" */
@@ -6550,6 +6740,15 @@ abstract class CssStyleDeclarationBase {
     setProperty('width', value, '');
   }
 
+  /** Gets the value of "will-change" */
+  String get willChange =>
+    getPropertyValue('will-change');
+
+  /** Sets the value of "will-change" */
+  void set willChange(String value) {
+    setProperty('will-change', value, '');
+  }
+
   /** Gets the value of "word-break" */
   String get wordBreak =>
     getPropertyValue('word-break');
@@ -6577,40 +6776,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('word-wrap', value, '');
   }
 
-  /** Gets the value of "wrap" */
-  String get wrap =>
-    getPropertyValue('${Device.cssPrefix}wrap');
-
-  /** Sets the value of "wrap" */
-  void set wrap(String value) {
-    setProperty('${Device.cssPrefix}wrap', value, '');
-  }
-
   /** Gets the value of "wrap-flow" */
   String get wrapFlow =>
-    getPropertyValue('${Device.cssPrefix}wrap-flow');
+    getPropertyValue('wrap-flow');
 
   /** Sets the value of "wrap-flow" */
   void set wrapFlow(String value) {
-    setProperty('${Device.cssPrefix}wrap-flow', value, '');
+    setProperty('wrap-flow', value, '');
   }
 
   /** Gets the value of "wrap-through" */
   String get wrapThrough =>
-    getPropertyValue('${Device.cssPrefix}wrap-through');
+    getPropertyValue('wrap-through');
 
   /** Sets the value of "wrap-through" */
   void set wrapThrough(String value) {
-    setProperty('${Device.cssPrefix}wrap-through', value, '');
+    setProperty('wrap-through', value, '');
   }
 
   /** Gets the value of "writing-mode" */
   String get writingMode =>
-    getPropertyValue('${Device.cssPrefix}writing-mode');
+    getPropertyValue('writing-mode');
 
   /** Sets the value of "writing-mode" */
   void set writingMode(String value) {
-    setProperty('${Device.cssPrefix}writing-mode', value, '');
+    setProperty('writing-mode', value, '');
   }
 
   /** Gets the value of "z-index" */
@@ -6683,13 +6873,23 @@ class CssStyleSheet extends StyleSheet {
   @Experimental() // non-standard
   List<CssRule> get rules => _blink.BlinkCSSStyleSheet.$rules_Getter(this);
 
-  int addRule(String selector, String style, [int index]) => _blink.BlinkCSSStyleSheet.$addRule(this, selector, style, index);
+  int addRule(String selector, String style, [int index]) {
+    if (index != null) {
+      return _blink.BlinkCSSStyleSheet.$_addRule_1_Callback(this, selector, style, index);
+    }
+    return _blink.BlinkCSSStyleSheet.$_addRule_2_Callback(this, selector, style);
+  }
 
   @DomName('CSSStyleSheet.deleteRule')
   @DocsEditable()
   void deleteRule(int index) => _blink.BlinkCSSStyleSheet.$deleteRule_Callback(this, index);
 
-  int insertRule(String rule, [int index]) => _blink.BlinkCSSStyleSheet.$insertRule(this, rule, index);
+  int insertRule(String rule, [int index]) {
+    if (index != null) {
+      return _blink.BlinkCSSStyleSheet.$_insertRule_1_Callback(this, rule, index);
+    }
+    return _blink.BlinkCSSStyleSheet.$_insertRule_2_Callback(this, rule);
+  }
 
   @DomName('CSSStyleSheet.removeRule')
   @DocsEditable()
@@ -6899,7 +7099,14 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DocsEditable()
   List<String> get types => _blink.BlinkClipboard.$types_Getter(this);
 
-  void clearData([String type]) => _blink.BlinkClipboard.$clearData(this, type);
+  void clearData([String type]) {
+    if (type != null) {
+      _blink.BlinkClipboard.$_clearData_1_Callback(this, type);
+      return;
+    }
+    _blink.BlinkClipboard.$_clearData_2_Callback(this);
+    return;
+  }
 
   /**
    * Gets the data for the specified type.
@@ -6998,7 +7205,15 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
   @Experimental() // untriaged
   DataTransferItem __getter__(int index) => _blink.BlinkDataTransferItemList.$__getter___Callback(this, index);
 
-  DataTransferItem add(data_OR_file, [String type]) => _blink.BlinkDataTransferItemList.$add(this, data_OR_file, type);
+  DataTransferItem add(data_OR_file, [String type]) {
+    if ((data_OR_file is File || data_OR_file == null) && type == null) {
+      return _blink.BlinkDataTransferItemList.$_add_1_Callback(this, data_OR_file);
+    }
+    if ((type is String || type == null) && (data_OR_file is String || data_OR_file == null)) {
+      return _blink.BlinkDataTransferItemList.$_add_2_Callback(this, data_OR_file, type);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('DataTransferItemList.addData')
   @DocsEditable()
@@ -7770,9 +7985,22 @@ class Document extends Node
   @DocsEditable()
   Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => _blink.BlinkDocument.$createElementNS_Callback(this, namespaceURI, qualifiedName, typeExtension);
 
-  Event _createEvent([String eventType]) => _blink.BlinkDocument.$_createEvent(this, eventType);
+  Event _createEvent([String eventType]) {
+    if (eventType != null) {
+      return _blink.BlinkDocument.$_createEvent_1_Callback(this, eventType);
+    }
+    return _blink.BlinkDocument.$_createEvent_2_Callback(this);
+  }
 
-  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) => _blink.BlinkDocument.$_createNodeIterator(this, root, whatToShow, filter);
+  NodeIterator _createNodeIterator(Node root, [int whatToShow, NodeFilter filter]) {
+    if (filter != null) {
+      return _blink.BlinkDocument.$_createNodeIterator_1_Callback(this, root, whatToShow, filter);
+    }
+    if (whatToShow != null) {
+      return _blink.BlinkDocument.$_createNodeIterator_2_Callback(this, root, whatToShow);
+    }
+    return _blink.BlinkDocument.$_createNodeIterator_3_Callback(this, root);
+  }
 
   @DomName('Document.createRange')
   @DocsEditable()
@@ -7788,7 +8016,15 @@ class Document extends Node
   @Experimental()
   Touch _createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) => _blink.BlinkDocument.$createTouch_Callback(this, window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
 
-  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) => _blink.BlinkDocument.$_createTreeWalker(this, root, whatToShow, filter);
+  TreeWalker _createTreeWalker(Node root, [int whatToShow, NodeFilter filter]) {
+    if (filter != null) {
+      return _blink.BlinkDocument.$_createTreeWalker_1_Callback(this, root, whatToShow, filter);
+    }
+    if (whatToShow != null) {
+      return _blink.BlinkDocument.$_createTreeWalker_2_Callback(this, root, whatToShow);
+    }
+    return _blink.BlinkDocument.$_createTreeWalker_3_Callback(this, root);
+  }
 
   @DomName('Document.elementFromPoint')
   @DocsEditable()
@@ -7820,7 +8056,12 @@ class Document extends Node
   @DocsEditable()
   List<Node> getElementsByTagName(String localName) => _blink.BlinkDocument.$getElementsByTagName_Callback(this, localName);
 
-  Node importNode(Node node, [bool deep]) => _blink.BlinkDocument.$importNode(this, node, deep);
+  Node importNode(Node node, [bool deep]) {
+    if (deep != null) {
+      return _blink.BlinkDocument.$_importNode_1_Callback(this, node, deep);
+    }
+    return _blink.BlinkDocument.$_importNode_2_Callback(this, node);
+  }
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable()
@@ -8511,7 +8752,9 @@ class DomParser extends NativeFieldWrapperClass2 {
 
   @DomName('DOMParser.DOMParser')
   @DocsEditable()
-  factory DomParser() => _blink.BlinkDOMParser.$mkDomParser();
+  factory DomParser() {
+    return _blink.BlinkDOMParser.$_create_1constructorCallback();
+  }
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
@@ -8629,11 +8872,37 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
-  bool __delete__(index_OR_name) => _blink.BlinkDOMStringMap.$__delete__(this, index_OR_name);
+  bool __delete__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkDOMStringMap.$___delete___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkDOMStringMap.$___delete___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  String __getter__(index_OR_name) => _blink.BlinkDOMStringMap.$__getter__(this, index_OR_name);
+  String __getter__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkDOMStringMap.$___getter___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkDOMStringMap.$___getter___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  void __setter__(index_OR_name, String value) => _blink.BlinkDOMStringMap.$__setter__(this, index_OR_name, value);
+  void __setter__(index_OR_name, String value) {
+    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
+      _blink.BlinkDOMStringMap.$___setter___1_Callback(this, index_OR_name, value);
+      return;
+    }
+    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
+      _blink.BlinkDOMStringMap.$___setter___2_Callback(this, index_OR_name, value);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8665,7 +8934,12 @@ class DomTokenList extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String toString() => _blink.BlinkDOMTokenList.$toString_Callback(this);
 
-  bool toggle(String token, [bool force]) => _blink.BlinkDOMTokenList.$toggle(this, token, force);
+  bool toggle(String token, [bool force]) {
+    if (force != null) {
+      return _blink.BlinkDOMTokenList.$_toggle_1_Callback(this, token, force);
+    }
+    return _blink.BlinkDOMTokenList.$_toggle_2_Callback(this, token);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11320,7 +11594,18 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   String get tagName => _blink.BlinkElement.$tagName_Getter(this);
 
-  Animation animate(List<Map> keyframes, [timingInput]) => _blink.BlinkElement.$animate(this, keyframes, timingInput);
+  Animation animate(List<Map> keyframes, [timingInput]) {
+    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
+      return _blink.BlinkElement.$_animate_1_Callback(this, keyframes, timingInput);
+    }
+    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null)) {
+      return _blink.BlinkElement.$_animate_2_Callback(this, keyframes, timingInput);
+    }
+    if ((keyframes is List<Map> || keyframes == null) && timingInput == null) {
+      return _blink.BlinkElement.$_animate_3_Callback(this, keyframes);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('Element.blur')
   @DocsEditable()
@@ -11499,9 +11784,23 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   void scrollByPages(int pages) => _blink.BlinkElement.$scrollByPages_Callback(this, pages);
 
-  void _scrollIntoView([bool alignWithTop]) => _blink.BlinkElement.$_scrollIntoView(this, alignWithTop);
+  void _scrollIntoView([bool alignWithTop]) {
+    if (alignWithTop != null) {
+      _blink.BlinkElement.$_scrollIntoView_1_Callback(this, alignWithTop);
+      return;
+    }
+    _blink.BlinkElement.$_scrollIntoView_2_Callback(this);
+    return;
+  }
 
-  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) => _blink.BlinkElement.$_scrollIntoViewIfNeeded(this, centerIfNeeded);
+  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) {
+    if (centerIfNeeded != null) {
+      _blink.BlinkElement.$_scrollIntoViewIfNeeded_1_Callback(this, centerIfNeeded);
+      return;
+    }
+    _blink.BlinkElement.$_scrollIntoViewIfNeeded_2_Callback(this);
+    return;
+  }
 
   @DomName('Element.setAttribute')
   @DocsEditable()
@@ -12105,7 +12404,14 @@ class Entry extends NativeFieldWrapperClass2 {
   @DocsEditable()
   String get name => _blink.BlinkEntry.$name_Getter(this);
 
-  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) => _blink.BlinkEntry.$_copyTo(this, parent, name, successCallback, errorCallback);
+  void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+    if (name != null) {
+      _blink.BlinkEntry.$_copyTo_1_Callback(this, parent, name, successCallback, errorCallback);
+      return;
+    }
+    _blink.BlinkEntry.$_copyTo_2_Callback(this, parent);
+    return;
+  }
 
   Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
@@ -12139,7 +12445,14 @@ class Entry extends NativeFieldWrapperClass2 {
     return completer.future;
   }
 
-  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) => _blink.BlinkEntry.$_moveTo(this, parent, name, successCallback, errorCallback);
+  void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
+    if (name != null) {
+      _blink.BlinkEntry.$_moveTo_1_Callback(this, parent, name, successCallback, errorCallback);
+      return;
+    }
+    _blink.BlinkEntry.$_moveTo_2_Callback(this, parent);
+    return;
+  }
 
   Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
     var completer = new Completer<Entry>();
@@ -12455,7 +12768,9 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.EventSource')
   @DocsEditable()
-  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) => _blink.BlinkEventSource.$mkEventSource(url, eventSourceInit);
+  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
+    return _blink.BlinkEventSource.$_create_1constructorCallback(url, eventSourceInit);
+  }
 
   @DomName('EventSource.CLOSED')
   @DocsEditable()
@@ -12998,7 +13313,9 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.FileReader')
   @DocsEditable()
-  factory FileReader() => _blink.BlinkFileReader.$mkFileReader();
+  factory FileReader() {
+    return _blink.BlinkFileReader.$_create_1constructorCallback();
+  }
 
   @DomName('FileReader.DONE')
   @DocsEditable()
@@ -13036,7 +13353,14 @@ class FileReader extends EventTarget {
   @DocsEditable()
   void readAsDataUrl(Blob blob) => _blink.BlinkFileReader.$readAsDataURL_Callback(this, blob);
 
-  void readAsText(Blob blob, [String encoding]) => _blink.BlinkFileReader.$readAsText(this, blob, encoding);
+  void readAsText(Blob blob, [String encoding]) {
+    if (encoding != null) {
+      _blink.BlinkFileReader.$_readAsText_1_Callback(this, blob, encoding);
+      return;
+    }
+    _blink.BlinkFileReader.$_readAsText_2_Callback(this, blob);
+    return;
+  }
 
   /// Stream of `abort` events handled by this [FileReader].
   @DomName('FileReader.onabort')
@@ -13323,7 +13647,9 @@ class FontFace extends NativeFieldWrapperClass2 {
 
   @DomName('FontFace.FontFace')
   @DocsEditable()
-  factory FontFace(String family, String source, Map descriptors) => _blink.BlinkFontFace.$mkFontFace(family, source, descriptors);
+  factory FontFace(String family, String source, Map descriptors) {
+    return _blink.BlinkFontFace.$_create_1constructorCallback(family, source, descriptors);
+  }
 
   @DomName('FontFace.family')
   @DocsEditable()
@@ -13450,7 +13776,14 @@ class FontFaceSet extends EventTarget {
   @Experimental() // untriaged
   bool delete(FontFace fontFace) => _blink.BlinkFontFaceSet.$delete_Callback(this, fontFace);
 
-  void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) => _blink.BlinkFontFaceSet.$forEach(this, callback, thisArg);
+  void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) {
+    if (thisArg != null) {
+      _blink.BlinkFontFaceSet.$_forEach_1_Callback(this, callback, thisArg);
+      return;
+    }
+    _blink.BlinkFontFaceSet.$_forEach_2_Callback(this, callback);
+    return;
+  }
 
   @DomName('FontFaceSet.has')
   @DocsEditable()
@@ -16972,13 +17305,44 @@ class InputElement extends HtmlElement implements
   @DocsEditable()
   void setCustomValidity(String error) => _blink.BlinkHTMLInputElement.$setCustomValidity_Callback(this, error);
 
-  void setRangeText(String replacement, {int start, int end, String selectionMode}) => _blink.BlinkHTMLInputElement.$setRangeText(this, replacement, start, end, selectionMode);
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
+    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
+      _blink.BlinkHTMLInputElement.$_setRangeText_1_Callback(this, replacement);
+      return;
+    }
+    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
+      _blink.BlinkHTMLInputElement.$_setRangeText_2_Callback(this, replacement, start, end, selectionMode);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  void setSelectionRange(int start, int end, [String direction]) => _blink.BlinkHTMLInputElement.$setSelectionRange(this, start, end, direction);
+  void setSelectionRange(int start, int end, [String direction]) {
+    if (direction != null) {
+      _blink.BlinkHTMLInputElement.$_setSelectionRange_1_Callback(this, start, end, direction);
+      return;
+    }
+    _blink.BlinkHTMLInputElement.$_setSelectionRange_2_Callback(this, start, end);
+    return;
+  }
 
-  void stepDown([int n]) => _blink.BlinkHTMLInputElement.$stepDown(this, n);
+  void stepDown([int n]) {
+    if (n != null) {
+      _blink.BlinkHTMLInputElement.$_stepDown_1_Callback(this, n);
+      return;
+    }
+    _blink.BlinkHTMLInputElement.$_stepDown_2_Callback(this);
+    return;
+  }
 
-  void stepUp([int n]) => _blink.BlinkHTMLInputElement.$stepUp(this, n);
+  void stepUp([int n]) {
+    if (n != null) {
+      _blink.BlinkHTMLInputElement.$_stepUp_1_Callback(this, n);
+      return;
+    }
+    _blink.BlinkHTMLInputElement.$_stepUp_2_Callback(this);
+    return;
+  }
 
   /// Stream of `speechchange` events handled by this [InputElement].
   @DomName('HTMLInputElement.onwebkitSpeechChange')
@@ -18229,7 +18593,9 @@ class MediaController extends EventTarget {
 
   @DomName('MediaController.MediaController')
   @DocsEditable()
-  factory MediaController() => _blink.BlinkMediaController.$mkMediaController();
+  factory MediaController() {
+    return _blink.BlinkMediaController.$_create_1constructorCallback();
+  }
 
   @DomName('MediaController.buffered')
   @DocsEditable()
@@ -18818,7 +19184,15 @@ class MediaElement extends HtmlElement {
   @Experimental() // nonstandard
   int get videoDecodedByteCount => _blink.BlinkHTMLMediaElement.$webkitVideoDecodedByteCount_Getter(this);
 
-  TextTrack addTextTrack(String kind, [String label, String language]) => _blink.BlinkHTMLMediaElement.$addTextTrack(this, kind, label, language);
+  TextTrack addTextTrack(String kind, [String label, String language]) {
+    if (language != null) {
+      return _blink.BlinkHTMLMediaElement.$_addTextTrack_1_Callback(this, kind, label, language);
+    }
+    if (label != null) {
+      return _blink.BlinkHTMLMediaElement.$_addTextTrack_2_Callback(this, kind, label);
+    }
+    return _blink.BlinkHTMLMediaElement.$_addTextTrack_3_Callback(this, kind);
+  }
 
   @DomName('HTMLMediaElement.canPlayType')
   @DocsEditable()
@@ -18842,7 +19216,14 @@ class MediaElement extends HtmlElement {
   @Experimental() // untriaged
   void setMediaKeys(MediaKeys mediaKeys) => _blink.BlinkHTMLMediaElement.$setMediaKeys_Callback(this, mediaKeys);
 
-  void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) => _blink.BlinkHTMLMediaElement.$addKey(this, keySystem, key, initData, sessionId);
+  void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
+    if (initData != null) {
+      _blink.BlinkHTMLMediaElement.$_webkitAddKey_1_Callback(this, keySystem, key, initData, sessionId);
+      return;
+    }
+    _blink.BlinkHTMLMediaElement.$_webkitAddKey_2_Callback(this, keySystem, key);
+    return;
+  }
 
   @DomName('HTMLMediaElement.webkitCancelKeyRequest')
   @DocsEditable()
@@ -18852,7 +19233,14 @@ class MediaElement extends HtmlElement {
   // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#extensions
   void cancelKeyRequest(String keySystem, String sessionId) => _blink.BlinkHTMLMediaElement.$webkitCancelKeyRequest_Callback(this, keySystem, sessionId);
 
-  void generateKeyRequest(String keySystem, [Uint8List initData]) => _blink.BlinkHTMLMediaElement.$generateKeyRequest(this, keySystem, initData);
+  void generateKeyRequest(String keySystem, [Uint8List initData]) {
+    if (initData != null) {
+      _blink.BlinkHTMLMediaElement.$_webkitGenerateKeyRequest_1_Callback(this, keySystem, initData);
+      return;
+    }
+    _blink.BlinkHTMLMediaElement.$_webkitGenerateKeyRequest_2_Callback(this, keySystem);
+    return;
+  }
 
   /// Stream of `canplay` events handled by this [MediaElement].
   @DomName('HTMLMediaElement.oncanplay')
@@ -19227,7 +19615,9 @@ class MediaKeys extends NativeFieldWrapperClass2 {
 
   @DomName('MediaKeys.MediaKeys')
   @DocsEditable()
-  factory MediaKeys(String keySystem) => _blink.BlinkMediaKeys.$mkMediaKeys(keySystem);
+  factory MediaKeys(String keySystem) {
+    return _blink.BlinkMediaKeys.$_create_1constructorCallback(keySystem);
+  }
 
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
@@ -19317,7 +19707,9 @@ class MediaSource extends EventTarget {
 
   @DomName('MediaSource.MediaSource')
   @DocsEditable()
-  factory MediaSource() => _blink.BlinkMediaSource.$mkMediaSource();
+  factory MediaSource() {
+    return _blink.BlinkMediaSource.$_create_1constructorCallback();
+  }
 
   @DomName('MediaSource.activeSourceBuffers')
   @DocsEditable()
@@ -19343,7 +19735,14 @@ class MediaSource extends EventTarget {
   @DocsEditable()
   SourceBuffer addSourceBuffer(String type) => _blink.BlinkMediaSource.$addSourceBuffer_Callback(this, type);
 
-  void endOfStream([String error]) => _blink.BlinkMediaSource.$endOfStream(this, error);
+  void endOfStream([String error]) {
+    if (error != null) {
+      _blink.BlinkMediaSource.$_endOfStream_1_Callback(this, error);
+      return;
+    }
+    _blink.BlinkMediaSource.$_endOfStream_2_Callback(this);
+    return;
+  }
 
   @DomName('MediaSource.isTypeSupported')
   @DocsEditable()
@@ -19399,7 +19798,18 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.MediaStream')
   @DocsEditable()
-  factory MediaStream([stream_OR_tracks]) => _blink.BlinkMediaStream.$mkMediaStream(stream_OR_tracks);
+  factory MediaStream([stream_OR_tracks]) {
+    if (stream_OR_tracks == null) {
+      return _blink.BlinkMediaStream.$_create_1constructorCallback();
+    }
+    if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
+      return _blink.BlinkMediaStream.$_create_2constructorCallback(stream_OR_tracks);
+    }
+    if ((stream_OR_tracks is List<MediaStreamTrack> || stream_OR_tracks == null)) {
+      return _blink.BlinkMediaStream.$_create_3constructorCallback(stream_OR_tracks);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('MediaStream.ended')
   @DocsEditable()
@@ -20127,7 +20537,14 @@ class MidiOutput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
 
-  void send(Uint8List data, [num timestamp]) => _blink.BlinkMIDIOutput.$send(this, data, timestamp);
+  void send(Uint8List data, [num timestamp]) {
+    if (timestamp != null) {
+      _blink.BlinkMIDIOutput.$_send_1_Callback(this, data, timestamp);
+      return;
+    }
+    _blink.BlinkMIDIOutput.$_send_2_Callback(this, data);
+    return;
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20378,9 +20795,16 @@ class MouseEvent extends UIEvent {
   @Unstable()
   DataTransfer get dataTransfer => _blink.BlinkMouseEvent.$dataTransfer_Getter(this);
 
+  /**
+   * The nonstandard way to access the element that the mouse comes
+   * from in the case of a `mouseover` event.
+   *
+   * This member is deprecated and not cross-browser compatible; use
+   * relatedTarget to get the same information in the standard way.
+   */
   @DomName('MouseEvent.fromElement')
   @DocsEditable()
-  @Experimental() // nonstandard
+  @deprecated
   Node get fromElement => _blink.BlinkMouseEvent.$fromElement_Getter(this);
 
   @DomName('MouseEvent.metaKey')
@@ -20413,9 +20837,16 @@ class MouseEvent extends UIEvent {
   @DocsEditable()
   bool get shiftKey => _blink.BlinkMouseEvent.$shiftKey_Getter(this);
 
+  /**
+   * The nonstandard way to access the element that the mouse goes
+   * to in the case of a `mouseout` event.
+   *
+   * This member is deprecated and not cross-browser compatible; use
+   * relatedTarget to get the same information in the standard way.
+   */
   @DomName('MouseEvent.toElement')
   @DocsEditable()
-  @Experimental() // nonstandard
+  @deprecated
   Node get toElement => _blink.BlinkMouseEvent.$toElement_Getter(this);
 
   @DomName('MouseEvent.webkitMovementX')
@@ -21783,7 +22214,9 @@ class Notification extends EventTarget {
 
   @DomName('Notification.Notification')
   @DocsEditable()
-  static Notification _factoryNotification(String title, [Map options]) => _blink.BlinkNotification.$mkNotification(title, options);
+  static Notification _factoryNotification(String title, [Map options]) {
+    return _blink.BlinkNotification.$_create_1constructorCallback(title, options);
+  }
 
   @DomName('Notification.body')
   @DocsEditable()
@@ -22078,7 +22511,9 @@ class OptionElement extends HtmlElement {
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable()
-  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) => _blink.BlinkHTMLOptionElement.$mkOptionElement__(data, value, defaultSelected, selected);
+  factory OptionElement._([String data, String value, bool defaultSelected, bool selected]) {
+    return _blink.BlinkHTMLOptionElement.$_create_1constructorCallback(data, value, defaultSelected, selected);
+  }
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22402,7 +22837,18 @@ class Path extends NativeFieldWrapperClass2 {
 
   @DomName('Path.Path')
   @DocsEditable()
-  factory Path([path_OR_text]) => _blink.BlinkPath.$mkPath(path_OR_text);
+  factory Path([path_OR_text]) {
+    if (path_OR_text == null) {
+      return _blink.BlinkPath.$_create_1constructorCallback();
+    }
+    if ((path_OR_text is Path || path_OR_text == null)) {
+      return _blink.BlinkPath.$_create_2constructorCallback(path_OR_text);
+    }
+    if ((path_OR_text is String || path_OR_text == null)) {
+      return _blink.BlinkPath.$_create_3constructorCallback(path_OR_text);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('Path.arc')
   @DocsEditable()
@@ -23635,7 +24081,25 @@ class RtcDataChannel extends EventTarget {
   @DocsEditable()
   void close() => _blink.BlinkRTCDataChannel.$close_Callback(this);
 
-  void send(data) => _blink.BlinkRTCDataChannel.$send(this, data);
+  void send(data) {
+    if ((data is TypedData || data == null)) {
+      _blink.BlinkRTCDataChannel.$_send_1_Callback(this, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null)) {
+      _blink.BlinkRTCDataChannel.$_send_2_Callback(this, data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      _blink.BlinkRTCDataChannel.$_send_3_Callback(this, data);
+      return;
+    }
+    if ((data is String || data == null)) {
+      _blink.BlinkRTCDataChannel.$_send_4_Callback(this, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('RTCDataChannel.sendBlob')
   @DocsEditable()
@@ -23739,7 +24203,18 @@ class RtcDtmfSender extends EventTarget {
   @DocsEditable()
   MediaStreamTrack get track => _blink.BlinkRTCDTMFSender.$track_Getter(this);
 
-  void insertDtmf(String tones, [int duration, int interToneGap]) => _blink.BlinkRTCDTMFSender.$insertDtmf(this, tones, duration, interToneGap);
+  void insertDtmf(String tones, [int duration, int interToneGap]) {
+    if (interToneGap != null) {
+      _blink.BlinkRTCDTMFSender.$_insertDTMF_1_Callback(this, tones, duration, interToneGap);
+      return;
+    }
+    if (duration != null) {
+      _blink.BlinkRTCDTMFSender.$_insertDTMF_2_Callback(this, tones, duration);
+      return;
+    }
+    _blink.BlinkRTCDTMFSender.$_insertDTMF_3_Callback(this, tones);
+    return;
+  }
 
   /// Stream of `tonechange` events handled by this [RtcDtmfSender].
   @DomName('RTCDTMFSender.ontonechange')
@@ -23785,7 +24260,9 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
 
   @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable()
-  factory RtcIceCandidate(Map dictionary) => _blink.BlinkRTCIceCandidate.$mkRtcIceCandidate(dictionary);
+  factory RtcIceCandidate(Map dictionary) {
+    return _blink.BlinkRTCIceCandidate.$_create_1constructorCallback(dictionary);
+  }
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
@@ -23933,7 +24410,9 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.RTCPeerConnection')
   @DocsEditable()
-  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) => _blink.BlinkRTCPeerConnection.$mkRtcPeerConnection(rtcIceServers, mediaConstraints);
+  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+    return _blink.BlinkRTCPeerConnection.$_create_1constructorCallback(rtcIceServers, mediaConstraints);
+  }
 
   @DomName('RTCPeerConnection.iceConnectionState')
   @DocsEditable()
@@ -24085,7 +24564,9 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
 
   @DomName('RTCSessionDescription.RTCSessionDescription')
   @DocsEditable()
-  factory RtcSessionDescription([Map descriptionInitDict]) => _blink.BlinkRTCSessionDescription.$mkRtcSessionDescription(descriptionInitDict);
+  factory RtcSessionDescription([Map descriptionInitDict]) {
+    return _blink.BlinkRTCSessionDescription.$_create_1constructorCallback(descriptionInitDict);
+  }
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
@@ -24878,7 +25359,9 @@ class SharedWorker extends EventTarget implements AbstractWorker {
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable()
-  factory SharedWorker(String scriptURL, [String name]) => _blink.BlinkSharedWorker.$mkSharedWorker(scriptURL, name);
+  factory SharedWorker(String scriptURL, [String name]) {
+    return _blink.BlinkSharedWorker.$_create_1constructorCallback(scriptURL, name);
+  }
 
   @DomName('SharedWorker.port')
   @DocsEditable()
@@ -25003,7 +25486,14 @@ class SourceBuffer extends EventTarget {
   @Experimental() // untriaged
   void appendBuffer(ByteBuffer data) => _blink.BlinkSourceBuffer.$appendBuffer_Callback(this, data);
 
-  void appendStream(FileStream stream, [int maxSize]) => _blink.BlinkSourceBuffer.$appendStream(this, stream, maxSize);
+  void appendStream(FileStream stream, [int maxSize]) {
+    if (maxSize != null) {
+      _blink.BlinkSourceBuffer.$_appendStream_1_Callback(this, stream, maxSize);
+      return;
+    }
+    _blink.BlinkSourceBuffer.$_appendStream_2_Callback(this, stream);
+    return;
+  }
 
   @DomName('SourceBuffer.appendTypedData')
   @DocsEditable()
@@ -25210,7 +25700,9 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
 
   @DomName('SpeechGrammar.SpeechGrammar')
   @DocsEditable()
-  factory SpeechGrammar() => _blink.BlinkSpeechGrammar.$mkSpeechGrammar();
+  factory SpeechGrammar() {
+    return _blink.BlinkSpeechGrammar.$_create_1constructorCallback();
+  }
 
   @DomName('SpeechGrammar.src')
   @DocsEditable()
@@ -25246,7 +25738,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable()
-  factory SpeechGrammarList() => _blink.BlinkSpeechGrammarList.$mkSpeechGrammarList();
+  factory SpeechGrammarList() {
+    return _blink.BlinkSpeechGrammarList.$_create_1constructorCallback();
+  }
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable()
@@ -25298,9 +25792,23 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(String string, [num weight]) => _blink.BlinkSpeechGrammarList.$addFromString(this, string, weight);
+  void addFromString(String string, [num weight]) {
+    if (weight != null) {
+      _blink.BlinkSpeechGrammarList.$_addFromString_1_Callback(this, string, weight);
+      return;
+    }
+    _blink.BlinkSpeechGrammarList.$_addFromString_2_Callback(this, string);
+    return;
+  }
 
-  void addFromUri(String src, [num weight]) => _blink.BlinkSpeechGrammarList.$addFromUri(this, src, weight);
+  void addFromUri(String src, [num weight]) {
+    if (weight != null) {
+      _blink.BlinkSpeechGrammarList.$_addFromUri_1_Callback(this, src, weight);
+      return;
+    }
+    _blink.BlinkSpeechGrammarList.$_addFromUri_2_Callback(this, src);
+    return;
+  }
 
   @DomName('SpeechGrammarList.item')
   @DocsEditable()
@@ -25467,7 +25975,9 @@ class SpeechRecognition extends EventTarget {
 
   @DomName('SpeechRecognition.SpeechRecognition')
   @DocsEditable()
-  factory SpeechRecognition() => _blink.BlinkSpeechRecognition.$mkSpeechRecognition();
+  factory SpeechRecognition() {
+    return _blink.BlinkSpeechRecognition.$_create_1constructorCallback();
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -25855,7 +26365,9 @@ class SpeechSynthesisUtterance extends EventTarget {
 
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
   @DocsEditable()
-  factory SpeechSynthesisUtterance([String text]) => _blink.BlinkSpeechSynthesisUtterance.$mkSpeechSynthesisUtterance(text);
+  factory SpeechSynthesisUtterance([String text]) {
+    return _blink.BlinkSpeechSynthesisUtterance.$_create_1constructorCallback(text);
+  }
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
@@ -26071,11 +26583,37 @@ class Storage extends NativeFieldWrapperClass2
   @DocsEditable()
   int get _length => _blink.BlinkStorage.$length_Getter(this);
 
-  bool __delete__(index_OR_name) => _blink.BlinkStorage.$__delete__(this, index_OR_name);
+  bool __delete__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkStorage.$___delete___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkStorage.$___delete___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  String __getter__(index_OR_name) => _blink.BlinkStorage.$__getter__(this, index_OR_name);
+  String __getter__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkStorage.$___getter___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkStorage.$___getter___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  void __setter__(index_OR_name, String value) => _blink.BlinkStorage.$__setter__(this, index_OR_name, value);
+  void __setter__(index_OR_name, String value) {
+    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
+      _blink.BlinkStorage.$___setter___1_Callback(this, index_OR_name, value);
+      return;
+    }
+    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
+      _blink.BlinkStorage.$___setter___2_Callback(this, index_OR_name, value);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('Storage.clear')
   @DocsEditable()
@@ -26960,9 +27498,26 @@ class TextAreaElement extends HtmlElement {
   @DocsEditable()
   void setCustomValidity(String error) => _blink.BlinkHTMLTextAreaElement.$setCustomValidity_Callback(this, error);
 
-  void setRangeText(String replacement, {int start, int end, String selectionMode}) => _blink.BlinkHTMLTextAreaElement.$setRangeText(this, replacement, start, end, selectionMode);
+  void setRangeText(String replacement, {int start, int end, String selectionMode}) {
+    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
+      _blink.BlinkHTMLTextAreaElement.$_setRangeText_1_Callback(this, replacement);
+      return;
+    }
+    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
+      _blink.BlinkHTMLTextAreaElement.$_setRangeText_2_Callback(this, replacement, start, end, selectionMode);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
-  void setSelectionRange(int start, int end, [String direction]) => _blink.BlinkHTMLTextAreaElement.$setSelectionRange(this, start, end, direction);
+  void setSelectionRange(int start, int end, [String direction]) {
+    if (direction != null) {
+      _blink.BlinkHTMLTextAreaElement.$_setSelectionRange_1_Callback(this, start, end, direction);
+      return;
+    }
+    _blink.BlinkHTMLTextAreaElement.$_setSelectionRange_2_Callback(this, start, end);
+    return;
+  }
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -28167,7 +28722,18 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
-  static String createObjectUrl(blob_OR_source_OR_stream) => _blink.BlinkURL.$createObjectUrl(blob_OR_source_OR_stream);
+  static String createObjectUrl(blob_OR_source_OR_stream) {
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
+      return _blink.BlinkURL.$_createObjectURL_1_Callback(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+      return _blink.BlinkURL.$_createObjectURL_2_Callback(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+      return _blink.BlinkURL.$_createObjectURL_3_Callback(blob_OR_source_OR_stream);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('URL.createObjectUrlFromBlob')
   @DocsEditable()
@@ -28685,7 +29251,9 @@ class VttCue extends TextTrackCue {
 
   @DomName('VTTCue.VTTCue')
   @DocsEditable()
-  factory VttCue(num startTime, num endTime, String text) => _blink.BlinkVTTCue.$mkVttCue(startTime, endTime, text);
+  factory VttCue(num startTime, num endTime, String text) {
+    return _blink.BlinkVTTCue.$_create_1constructorCallback(startTime, endTime, text);
+  }
 
   @DomName('VTTCue.align')
   @DocsEditable()
@@ -28789,7 +29357,9 @@ class VttRegion extends NativeFieldWrapperClass2 {
 
   @DomName('VTTRegion.VTTRegion')
   @DocsEditable()
-  factory VttRegion() => _blink.BlinkVTTRegion.$mkVttRegion();
+  factory VttRegion() {
+    return _blink.BlinkVTTRegion.$_create_1constructorCallback();
+  }
 
   @DomName('VTTRegion.height')
   @DocsEditable()
@@ -29001,7 +29571,18 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.WebSocket')
   @DocsEditable()
-  factory WebSocket(String url, [protocol_OR_protocols]) => _blink.BlinkWebSocket.$mkWebSocket(url, protocol_OR_protocols);
+  factory WebSocket(String url, [protocol_OR_protocols]) {
+    if ((url is String || url == null) && protocol_OR_protocols == null) {
+      return _blink.BlinkWebSocket.$_create_1constructorCallback(url);
+    }
+    if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
+      return _blink.BlinkWebSocket.$_create_2constructorCallback(url, protocol_OR_protocols);
+    }
+    if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
+      return _blink.BlinkWebSocket.$_create_3constructorCallback(url, protocol_OR_protocols);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -29050,9 +29631,38 @@ class WebSocket extends EventTarget {
   @DocsEditable()
   String get url => _blink.BlinkWebSocket.$url_Getter(this);
 
-  void close([int code, String reason]) => _blink.BlinkWebSocket.$close(this, code, reason);
+  void close([int code, String reason]) {
+    if (reason != null) {
+      _blink.BlinkWebSocket.$_close_1_Callback(this, code, reason);
+      return;
+    }
+    if (code != null) {
+      _blink.BlinkWebSocket.$_close_2_Callback(this, code);
+      return;
+    }
+    _blink.BlinkWebSocket.$_close_3_Callback(this);
+    return;
+  }
 
-  void send(data) => _blink.BlinkWebSocket.$send(this, data);
+  void send(data) {
+    if ((data is TypedData || data == null)) {
+      _blink.BlinkWebSocket.$_send_1_Callback(this, data);
+      return;
+    }
+    if ((data is ByteBuffer || data == null)) {
+      _blink.BlinkWebSocket.$_send_2_Callback(this, data);
+      return;
+    }
+    if ((data is Blob || data == null)) {
+      _blink.BlinkWebSocket.$_send_3_Callback(this, data);
+      return;
+    }
+    if ((data is String || data == null)) {
+      _blink.BlinkWebSocket.$_send_4_Callback(this, data);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('WebSocket.sendBlob')
   @DocsEditable()
@@ -30075,7 +30685,15 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   WindowBase get window => _blink.BlinkWindow.$window_Getter(this);
 
-  WindowBase __getter__(index_OR_name) => _blink.BlinkWindow.$__getter__(this, index_OR_name);
+  WindowBase __getter__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return _blink.BlinkWindow.$___getter___1_Callback(this, index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return _blink.BlinkWindow.$___getter___2_Callback(this, index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   /**
    * Displays a modal alert to the user.
@@ -30892,7 +31510,9 @@ class Worker extends EventTarget implements AbstractWorker {
 
   @DomName('Worker.Worker')
   @DocsEditable()
-  factory Worker(String scriptUrl) => _blink.BlinkWorker.$mkWorker(scriptUrl);
+  factory Worker(String scriptUrl) {
+    return _blink.BlinkWorker.$_create_1constructorCallback(scriptUrl);
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -31148,7 +31768,9 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
 
   @DomName('XPathEvaluator.XPathEvaluator')
   @DocsEditable()
-  factory XPathEvaluator() => _blink.BlinkXPathEvaluator.$mkXPathEvaluator();
+  factory XPathEvaluator() {
+    return _blink.BlinkXPathEvaluator.$_create_1constructorCallback();
+  }
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable()
@@ -31327,7 +31949,9 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
 
   @DomName('XMLSerializer.XMLSerializer')
   @DocsEditable()
-  factory XmlSerializer() => _blink.BlinkXMLSerializer.$mkXmlSerializer();
+  factory XmlSerializer() {
+    return _blink.BlinkXMLSerializer.$_create_1constructorCallback();
+  }
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable()
@@ -31353,7 +31977,9 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
 
   @DomName('XSLTProcessor.XSLTProcessor')
   @DocsEditable()
-  factory XsltProcessor() => _blink.BlinkXSLTProcessor.$mkXsltProcessor();
+  factory XsltProcessor() {
+    return _blink.BlinkXSLTProcessor.$_create_1constructorCallback();
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -32037,7 +32663,9 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
 
   @DomName('FileReaderSync.FileReaderSync')
   @DocsEditable()
-  factory _FileReaderSync() => _blink.BlinkFileReaderSync.$mk_FileReaderSync();
+  factory _FileReaderSync() {
+    return _blink.BlinkFileReaderSync.$_create_1constructorCallback();
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32772,7 +33400,9 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
 
   @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable()
-  factory _WebKitCSSMatrix([String cssValue]) => _blink.BlinkWebKitCSSMatrix.$mk_WebKitCSSMatrix(cssValue);
+  factory _WebKitCSSMatrix([String cssValue]) {
+    return _blink.BlinkWebKitCSSMatrix.$_create_1constructorCallback(cssValue);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32807,7 +33437,9 @@ abstract class _WebKitMediaSource extends EventTarget {
 
   @DomName('WebKitMediaSource.WebKitMediaSource')
   @DocsEditable()
-  factory _WebKitMediaSource() => _blink.BlinkWebKitMediaSource.$mk_WebKitMediaSource();
+  factory _WebKitMediaSource() {
+    return _blink.BlinkWebKitMediaSource.$_create_1constructorCallback();
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37534,6 +38166,8 @@ class _Utils {
   static List toListIfIterable(obj) => obj is Iterable ? obj.toList() : null;
 
   static Map createMap() => {};
+
+  static parseJson(String jsonSource) => const JsonDecoder().convert(jsonSource);
 
   static makeUnimplementedError(String fileName, int lineNo) {
     return new UnsupportedError('[info: $fileName:$lineNo]');

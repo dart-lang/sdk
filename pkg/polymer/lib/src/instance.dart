@@ -404,6 +404,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // CE.
     attributes.remove('unresolved');
     // user entry point
+    _readyLog.info(() => '[$this]: ready');
     ready();
   }
 
@@ -705,7 +706,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   // we should choose a more explicit name.
   void asyncUnbindAll() {
     if (_unbound == true) return;
-    _unbindLog.fine('[$_name] asyncUnbindAll');
+    _unbindLog.fine(() => '[$_name] asyncUnbindAll');
     _unbindAllJob = scheduleJob(_unbindAllJob, unbindAll);
   }
 
@@ -718,10 +719,11 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
   void cancelUnbindAll() {
     if (_unbound == true) {
-      _unbindLog.warning('[$_name] already unbound, cannot cancel unbindAll');
+      _unbindLog.warning(() =>
+          '[$_name] already unbound, cannot cancel unbindAll');
       return;
     }
-    _unbindLog.fine('[$_name] cancelUnbindAll');
+    _unbindLog.fine(() => '[$_name] cancelUnbindAll');
     if (_unbindAllJob != null) {
       _unbindAllJob.stop();
       _unbindAllJob = null;
@@ -822,11 +824,13 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       // The setter of a new-style property will create an accessor in
       // _properties[name]. We can skip the workaround for those properties.
       if (_properties[name] != null) continue;
-      _propertyChange(name);
+      _propertyChange(name, record.newValue, record.oldValue);
     }
   }
 
-  void _propertyChange(Symbol nameSymbol) {
+  void _propertyChange(Symbol nameSymbol, newValue, oldValue) {
+    _watchLog.info(
+        () => '[$this]: $nameSymbol changed from: $oldValue to: $newValue');
     var name = smoke.symbolToName(nameSymbol);
     var reflect = _element._reflect;
     if (reflect != null && reflect.contains(name)) {
@@ -844,17 +848,13 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
     // if we are observing the previous value, stop
     if (old is ObservableList) {
-      if (_observeLog.isLoggable(Level.FINE)) {
-        _observeLog.fine('[$_name] observeArrayValue: unregister $name');
-      }
+      _observeLog.fine(() => '[$_name] observeArrayValue: unregister $name');
 
       closeNamedObserver('${name}__array');
     }
     // if the new value is an array, being observing it
     if (value is ObservableList) {
-      if (_observeLog.isLoggable(Level.FINE)) {
-        _observeLog.fine('[$_name] observeArrayValue: register $name');
-      }
+      _observeLog.fine(() => '[$_name] observeArrayValue: register $name');
       var sub = value.listChanges.listen((changes) {
         for (var callback in callbacks) {
           smoke.invoke(this, callback, [old], adjust: true);
@@ -866,7 +866,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
   emitPropertyChangeRecord(Symbol name, newValue, oldValue) {
     if (identical(oldValue, newValue)) return;
-    _propertyChange(name);
+    _propertyChange(name, newValue, oldValue);
   }
 
   bindToAccessor(Symbol name, Bindable bindable, {resolveBindingValue: false}) {
@@ -998,15 +998,13 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // inside PolymerBinding. That doesn't seem unreasonable, but it's a slight
     // difference from Polymer.js behavior.
 
-    if (_bindLog.isLoggable(Level.FINE)) {
-      _bindLog.fine('bindProperty: [$bindableOrValue] to [$_name].[$name]');
-    }
+    _bindLog.fine(() => 'bindProperty: [$bindableOrValue] to [$_name].[$name]');
 
     if (oneTime) {
       if (bindableOrValue is Bindable) {
-        _bindLog.warning('bindProperty: expected non-bindable value '
-            'on a one-time binding to [$_name].[$name], '
-            'but found $bindableOrValue.');
+        _bindLog.warning(() =>
+            'bindProperty: expected non-bindable value n a one-time binding to '
+            '[$_name].[$name], but found $bindableOrValue.');
       }
       smoke.write(this, name, bindableOrValue);
       return null;
@@ -1020,9 +1018,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     var events = _element._eventDelegates;
     if (events.isEmpty) return;
 
-    if (_eventsLog.isLoggable(Level.FINE)) {
-      _eventsLog.fine('[$_name] addHostListeners: $events');
-    }
+    _eventsLog.fine(() => '[$_name] addHostListeners: $events');
 
     // NOTE: host events look like bindings but really are not;
     // (1) we don't want the attribute to be set and (2) we want to support
@@ -1037,8 +1033,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   /// Calls [methodOrCallback] with [args] if it is a closure, otherwise, treat
   /// it as a method name in [object], and invoke it.
   void dispatchMethod(object, callbackOrMethod, List args) {
-    bool log = _eventsLog.isLoggable(Level.FINE);
-    if (log) _eventsLog.fine('>>> [$_name]: dispatch $callbackOrMethod');
+    _eventsLog.info(() => '>>> [$_name]: dispatch $callbackOrMethod');
 
     if (callbackOrMethod is Function) {
       int maxArgs = smoke.maxArgs(callbackOrMethod);
@@ -1055,7 +1050,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
       _eventsLog.warning('invalid callback');
     }
 
-    if (log) _eventsLog.info('<<< [$_name]: dispatch $callbackOrMethod');
+    _eventsLog.fine(() => '<<< [$_name]: dispatch $callbackOrMethod');
   }
 
   /// Call [methodName] method on this object with [args].
@@ -1355,6 +1350,8 @@ final Logger _observeLog = new Logger('polymer.observe');
 final Logger _eventsLog = new Logger('polymer.events');
 final Logger _unbindLog = new Logger('polymer.unbind');
 final Logger _bindLog = new Logger('polymer.bind');
+final Logger _watchLog = new Logger('polymer.watch');
+final Logger _readyLog = new Logger('polymer.ready');
 
 final Expando _eventHandledTable = new Expando<Set<Node>>();
 

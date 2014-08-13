@@ -34,16 +34,38 @@ class WindowsStyle extends InternalStyle {
     return !isSeparator(path.codeUnitAt(path.length - 1));
   }
 
-  String getRoot(String path) {
-    var root = _getRoot(path);
-    return root == null ? getRelativeRoot(path) : root;
+  int rootLength(String path) {
+    if (path.isEmpty) return 0;
+    if (path.codeUnitAt(0) == chars.SLASH) return 1;
+    if (path.codeUnitAt(0) == chars.BACKSLASH) {
+    if (path.length < 2 || path.codeUnitAt(1) != chars.BACKSLASH) return 1;
+      // The path is a network share. Search for up to two '\'s, as they are
+      // the server and share - and part of the root part.
+      var index = path.indexOf('\\', 2);
+      if (index > 0) {
+        index = path.indexOf('\\', index + 1);
+        if (index > 0) return index;
+      }
+      return path.length;
+    }
+    // If the path is of the form 'C:/' or 'C:\', with C being any letter, it's
+    // a root part.
+    if (path.length < 3) return 0;
+    // Check for the letter.
+    if (!isAlphabetic(path.codeUnitAt(0))) return 0;
+    // Check for the ':'.
+    if (path.codeUnitAt(1) != chars.COLON) return 0;
+    // Check for either '/' or '\'.
+    if (!isSeparator(path.codeUnitAt(2))) return 0;
+    return 3;
   }
 
+  bool isRootRelative(String path) => rootLength(path) == 1;
+
   String getRelativeRoot(String path) {
-    if (path.isEmpty) return null;
-    if (!isSeparator(path.codeUnitAt(0))) return null;
-    if (path.length > 1 && isSeparator(path.codeUnitAt(1))) return null;
-    return path[0];
+    var length = rootLength(path);
+    if (length == 1) return path[0];
+    return null;
   }
 
   String pathFromUri(Uri uri) {
@@ -99,40 +121,5 @@ class WindowsStyle extends InternalStyle {
 
       return new Uri(scheme: 'file', pathSegments: parsed.parts);
     }
-  }
-
-  // A helper method for [getRoot] that doesn't handle relative roots.
-  String _getRoot(String path) {
-    if (path.length < 3) return null;
-
-    // We aren't using a RegExp for this because they're slow (issue 19090). If
-    // we could, we'd match against r'^(\\\\[^\\]+\\[^\\/]+|[a-zA-Z]:[/\\])'.
-
-    // Try roots like "C:\".
-    if (isAlphabetic(path.codeUnitAt(0))) {
-      if (path.codeUnitAt(1) != chars.COLON) return null;
-      if (!isSeparator(path.codeUnitAt(2))) return null;
-      return path.substring(0, 3);
-    }
-
-    // Try roots like "\\server\share".
-    if (!path.startsWith('\\\\')) return null;
-
-    var start = 2;
-    // The server is one or more non-"\" characters.
-    while (start < path.length && path.codeUnitAt(start) != chars.BACKSLASH) {
-      start++;
-    }
-    if (start == 2 || start == path.length) return null;
-
-    // The share is one or more non-"\" characters.
-    start += 1;
-    if (path.codeUnitAt(start) == chars.BACKSLASH) return null;
-    start += 1;
-    while (start < path.length && path.codeUnitAt(start) != chars.BACKSLASH) {
-      start++;
-    }
-
-    return path.substring(0, start);
   }
 }

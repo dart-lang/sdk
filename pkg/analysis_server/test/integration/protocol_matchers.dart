@@ -210,12 +210,12 @@ final Matcher isAnalysisSetSubscriptionsResult = isNull;
  * analysis.updateContent params
  *
  * {
- *   "files": Map<FilePath, ContentChange>
+ *   "files": Map<FilePath, object>
  * }
  */
 final Matcher isAnalysisUpdateContentParams = new MatchesJsonObject(
   "analysis.updateContent params", {
-    "files": isMapOf(isFilePath, isContentChange)
+    "files": isMapOf(isFilePath, isObject)
   });
 
 /**
@@ -516,11 +516,11 @@ final Matcher isSearchGetTypeHierarchyParams = new MatchesJsonObject(
  * search.getTypeHierarchy result
  *
  * {
- *   "hierarchyItems": List<TypeHierarchyItem>
+ *   "hierarchyItems": optional List<TypeHierarchyItem>
  * }
  */
 final Matcher isSearchGetTypeHierarchyResult = new MatchesJsonObject(
-  "search.getTypeHierarchy result", {
+  "search.getTypeHierarchy result", null, optionalFields: {
     "hierarchyItems": isListOf(isTypeHierarchyItem)
   });
 
@@ -768,6 +768,20 @@ final Matcher isDebugLaunchDataParams = new MatchesJsonObject(
   });
 
 /**
+ * AddContentOverlay
+ *
+ * {
+ *   "type": "add"
+ *   "content": String
+ * }
+ */
+final Matcher isAddContentOverlay = new MatchesJsonObject(
+  "AddContentOverlay", {
+    "type": equals("add"),
+    "content": isString
+  });
+
+/**
  * AnalysisError
  *
  * {
@@ -824,7 +838,7 @@ final Matcher isAnalysisOptions = new MatchesJsonObject(
  *   OVERRIDES
  * }
  */
-final Matcher isAnalysisService = isIn([
+final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
   "FOLDING",
   "HIGHLIGHTS",
   "NAVIGATION",
@@ -849,6 +863,24 @@ final Matcher isAnalysisStatus = new MatchesJsonObject(
   });
 
 /**
+ * ChangeContentOverlay
+ *
+ * {
+ *   "type": "change"
+ *   "offset": int
+ *   "length": int
+ *   "replacement": String
+ * }
+ */
+final Matcher isChangeContentOverlay = new MatchesJsonObject(
+  "ChangeContentOverlay", {
+    "type": equals("change"),
+    "offset": isInt,
+    "length": isInt,
+    "replacement": isString
+  });
+
+/**
  * CompletionId
  *
  * String
@@ -864,7 +896,7 @@ final Matcher isCompletionId = isString;
  *   HIGH
  * }
  */
-final Matcher isCompletionRelevance = isIn([
+final Matcher isCompletionRelevance = new MatchesEnum("CompletionRelevance", [
   "LOW",
   "DEFAULT",
   "HIGH"
@@ -940,7 +972,7 @@ final Matcher isCompletionSuggestion = new MatchesJsonObject(
  *   TYPE_PARAMETER
  * }
  */
-final Matcher isCompletionSuggestionKind = isIn([
+final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestionKind", [
   "ARGUMENT_LIST",
   "CLASS",
   "CLASS_ALIAS",
@@ -963,25 +995,6 @@ final Matcher isCompletionSuggestionKind = isIn([
 ]);
 
 /**
- * ContentChange
- *
- * {
- *   "content": String
- *   "offset": optional int
- *   "oldLength": optional int
- *   "newLength": optional int
- * }
- */
-final Matcher isContentChange = new MatchesJsonObject(
-  "ContentChange", {
-    "content": isString
-  }, optionalFields: {
-    "offset": isInt,
-    "oldLength": isInt,
-    "newLength": isInt
-  });
-
-/**
  * DebugContextId
  *
  * String
@@ -995,7 +1008,7 @@ final Matcher isDebugContextId = isString;
  *   LAUNCH_DATA
  * }
  */
-final Matcher isDebugService = isIn([
+final Matcher isDebugService = new MatchesEnum("DebugService", [
   "LAUNCH_DATA"
 ]);
 
@@ -1045,7 +1058,7 @@ final Matcher isElement = new MatchesJsonObject(
  *   UNIT_TEST_TEST
  * }
  */
-final Matcher isElementKind = isIn([
+final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "CLASS",
   "CLASS_TYPE_ALIAS",
   "COMPILATION_UNIT",
@@ -1105,7 +1118,7 @@ final Matcher isErrorFixes = new MatchesJsonObject(
  *   ERROR
  * }
  */
-final Matcher isErrorSeverity = isIn([
+final Matcher isErrorSeverity = new MatchesEnum("ErrorSeverity", [
   "INFO",
   "WARNING",
   "ERROR"
@@ -1123,7 +1136,7 @@ final Matcher isErrorSeverity = isIn([
  *   TODO
  * }
  */
-final Matcher isErrorType = isIn([
+final Matcher isErrorType = new MatchesEnum("ErrorType", [
   "COMPILE_TIME_ERROR",
   "HINT",
   "STATIC_TYPE_WARNING",
@@ -1155,7 +1168,7 @@ final Matcher isExecutableFile = new MatchesJsonObject(
  *   SERVER
  * }
  */
-final Matcher isExecutableKind = isIn([
+final Matcher isExecutableKind = new MatchesEnum("ExecutableKind", [
   "CLIENT",
   "EITHER",
   "SERVER"
@@ -1179,7 +1192,7 @@ final Matcher isFilePath = isString;
  *   TOP_LEVEL_DECLARATION
  * }
  */
-final Matcher isFoldingKind = isIn([
+final Matcher isFoldingKind = new MatchesEnum("FoldingKind", [
   "COMMENT",
   "CLASS_MEMBER",
   "DIRECTIVES",
@@ -1234,24 +1247,24 @@ final Matcher isHighlightRegion = new MatchesJsonObject(
  *   DYNAMIC_TYPE
  *   FIELD
  *   FIELD_STATIC
- *   FUNCTION_DECLARATION
  *   FUNCTION
+ *   FUNCTION_DECLARATION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER_DECLARATION
- *   KEYWORD
  *   IDENTIFIER_DEFAULT
  *   IMPORT_PREFIX
+ *   KEYWORD
  *   LITERAL_BOOLEAN
  *   LITERAL_DOUBLE
  *   LITERAL_INTEGER
  *   LITERAL_LIST
  *   LITERAL_MAP
  *   LITERAL_STRING
- *   LOCAL_VARIABLE_DECLARATION
  *   LOCAL_VARIABLE
+ *   LOCAL_VARIABLE_DECLARATION
+ *   METHOD
  *   METHOD_DECLARATION
  *   METHOD_DECLARATION_STATIC
- *   METHOD
  *   METHOD_STATIC
  *   PARAMETER
  *   SETTER_DECLARATION
@@ -1260,7 +1273,7 @@ final Matcher isHighlightRegion = new MatchesJsonObject(
  *   TYPE_PARAMETER
  * }
  */
-final Matcher isHighlightRegionType = isIn([
+final Matcher isHighlightRegionType = new MatchesEnum("HighlightRegionType", [
   "ANNOTATION",
   "BUILT_IN",
   "CLASS",
@@ -1272,24 +1285,24 @@ final Matcher isHighlightRegionType = isIn([
   "DYNAMIC_TYPE",
   "FIELD",
   "FIELD_STATIC",
-  "FUNCTION_DECLARATION",
   "FUNCTION",
+  "FUNCTION_DECLARATION",
   "FUNCTION_TYPE_ALIAS",
   "GETTER_DECLARATION",
-  "KEYWORD",
   "IDENTIFIER_DEFAULT",
   "IMPORT_PREFIX",
+  "KEYWORD",
   "LITERAL_BOOLEAN",
   "LITERAL_DOUBLE",
   "LITERAL_INTEGER",
   "LITERAL_LIST",
   "LITERAL_MAP",
   "LITERAL_STRING",
-  "LOCAL_VARIABLE_DECLARATION",
   "LOCAL_VARIABLE",
+  "LOCAL_VARIABLE_DECLARATION",
+  "METHOD",
   "METHOD_DECLARATION",
   "METHOD_DECLARATION_STATIC",
-  "METHOD",
   "METHOD_STATIC",
   "PARAMETER",
   "SETTER_DECLARATION",
@@ -1369,7 +1382,7 @@ final Matcher isLinkedEditSuggestion = new MatchesJsonObject(
  *   VARIABLE
  * }
  */
-final Matcher isLinkedEditSuggestionKind = isIn([
+final Matcher isLinkedEditSuggestionKind = new MatchesEnum("LinkedEditSuggestionKind", [
   "METHOD",
   "PARAMETER",
   "TYPE",
@@ -1521,7 +1534,7 @@ final Matcher isPosition = new MatchesJsonObject(
  *   RENAME
  * }
  */
-final Matcher isRefactoringKind = isIn([
+final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "CONVERT_GETTER_TO_METHOD",
   "CONVERT_METHOD_TO_GETTER",
   "EXTRACT_LOCAL_VARIABLE",
@@ -1557,12 +1570,24 @@ final Matcher isRefactoringProblem = new MatchesJsonObject(
  *   FATAL
  * }
  */
-final Matcher isRefactoringProblemSeverity = isIn([
+final Matcher isRefactoringProblemSeverity = new MatchesEnum("RefactoringProblemSeverity", [
   "INFO",
   "WARNING",
   "ERROR",
   "FATAL"
 ]);
+
+/**
+ * RemoveContentOverlay
+ *
+ * {
+ *   "type": "remove"
+ * }
+ */
+final Matcher isRemoveContentOverlay = new MatchesJsonObject(
+  "RemoveContentOverlay", {
+    "type": equals("remove")
+  });
 
 /**
  * SearchId
@@ -1601,7 +1626,7 @@ final Matcher isSearchResult = new MatchesJsonObject(
  *   WRITE
  * }
  */
-final Matcher isSearchResultKind = isIn([
+final Matcher isSearchResultKind = new MatchesEnum("SearchResultKind", [
   "DECLARATION",
   "INVOCATION",
   "READ",
@@ -1617,7 +1642,7 @@ final Matcher isSearchResultKind = isIn([
  *   STATUS
  * }
  */
-final Matcher isServerService = isIn([
+final Matcher isServerService = new MatchesEnum("ServerService", [
   "STATUS"
 ]);
 

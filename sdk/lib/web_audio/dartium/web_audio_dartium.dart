@@ -248,9 +248,31 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable()
   void noteOn(num when) => _blink.BlinkAudioBufferSourceNode.$noteOn_Callback(this, when);
 
-  void start([num when, num grainOffset, num grainDuration]) => _blink.BlinkAudioBufferSourceNode.$start(this, when, grainOffset, grainDuration);
+  void start([num when, num grainOffset, num grainDuration]) {
+    if (grainDuration != null) {
+      _blink.BlinkAudioBufferSourceNode.$_start_1_Callback(this, when, grainOffset, grainDuration);
+      return;
+    }
+    if (grainOffset != null) {
+      _blink.BlinkAudioBufferSourceNode.$_start_2_Callback(this, when, grainOffset);
+      return;
+    }
+    if (when != null) {
+      _blink.BlinkAudioBufferSourceNode.$_start_3_Callback(this, when);
+      return;
+    }
+    _blink.BlinkAudioBufferSourceNode.$_start_4_Callback(this);
+    return;
+  }
 
-  void stop([num when]) => _blink.BlinkAudioBufferSourceNode.$stop(this, when);
+  void stop([num when]) {
+    if (when != null) {
+      _blink.BlinkAudioBufferSourceNode.$_stop_1_Callback(this, when);
+      return;
+    }
+    _blink.BlinkAudioBufferSourceNode.$_stop_2_Callback(this);
+    return;
+  }
 
   /// Stream of `ended` events handled by this [AudioBufferSourceNode].
   @DomName('AudioBufferSourceNode.onended')
@@ -285,7 +307,9 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.AudioContext')
   @DocsEditable()
-  factory AudioContext() => _blink.BlinkAudioContext.$mkAudioContext();
+  factory AudioContext() {
+    return _blink.BlinkAudioContext.$_create_1constructorCallback();
+  }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -322,15 +346,30 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   AudioBufferSourceNode createBufferSource() => _blink.BlinkAudioContext.$createBufferSource_Callback(this);
 
-  ChannelMergerNode createChannelMerger([int numberOfInputs]) => _blink.BlinkAudioContext.$createChannelMerger(this, numberOfInputs);
+  ChannelMergerNode createChannelMerger([int numberOfInputs]) {
+    if (numberOfInputs != null) {
+      return _blink.BlinkAudioContext.$_createChannelMerger_1_Callback(this, numberOfInputs);
+    }
+    return _blink.BlinkAudioContext.$_createChannelMerger_2_Callback(this);
+  }
 
-  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) => _blink.BlinkAudioContext.$createChannelSplitter(this, numberOfOutputs);
+  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
+    if (numberOfOutputs != null) {
+      return _blink.BlinkAudioContext.$_createChannelSplitter_1_Callback(this, numberOfOutputs);
+    }
+    return _blink.BlinkAudioContext.$_createChannelSplitter_2_Callback(this);
+  }
 
   @DomName('AudioContext.createConvolver')
   @DocsEditable()
   ConvolverNode createConvolver() => _blink.BlinkAudioContext.$createConvolver_Callback(this);
 
-  DelayNode createDelay([num maxDelayTime]) => _blink.BlinkAudioContext.$createDelay(this, maxDelayTime);
+  DelayNode createDelay([num maxDelayTime]) {
+    if (maxDelayTime != null) {
+      return _blink.BlinkAudioContext.$_createDelay_1_Callback(this, maxDelayTime);
+    }
+    return _blink.BlinkAudioContext.$_createDelay_2_Callback(this);
+  }
 
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable()
@@ -365,7 +404,18 @@ class AudioContext extends EventTarget {
   @Experimental() // untriaged
   PeriodicWave createPeriodicWave(Float32List real, Float32List imag) => _blink.BlinkAudioContext.$createPeriodicWave_Callback(this, real, imag);
 
-  ScriptProcessorNode createScriptProcessor([int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) => _blink.BlinkAudioContext.$createScriptProcessor(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
+  ScriptProcessorNode createScriptProcessor([int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) {
+    if (numberOfOutputChannels != null) {
+      return _blink.BlinkAudioContext.$_createScriptProcessor_1_Callback(this, bufferSize, numberOfInputChannels, numberOfOutputChannels);
+    }
+    if (numberOfInputChannels != null) {
+      return _blink.BlinkAudioContext.$_createScriptProcessor_2_Callback(this, bufferSize, numberOfInputChannels);
+    }
+    if (bufferSize != null) {
+      return _blink.BlinkAudioContext.$_createScriptProcessor_3_Callback(this, bufferSize);
+    }
+    return _blink.BlinkAudioContext.$_createScriptProcessor_4_Callback(this);
+  }
 
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
@@ -511,7 +561,17 @@ class AudioNode extends EventTarget {
   @DocsEditable()
   int get numberOfOutputs => _blink.BlinkAudioNode.$numberOfOutputs_Getter(this);
 
-  void _connect(destination, int output, [int input]) => _blink.BlinkAudioNode.$_connect(this, destination, output, input);
+  void _connect(destination, int output, [int input]) {
+    if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
+      _blink.BlinkAudioNode.$_connect_1_Callback(this, destination, output, input);
+      return;
+    }
+    if ((output is int || output == null) && (destination is AudioParam || destination == null) && input == null) {
+      _blink.BlinkAudioNode.$_connect_2_Callback(this, destination, output);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
 
   @DomName('AudioNode.disconnect')
   @DocsEditable()
@@ -951,7 +1011,9 @@ class OfflineAudioContext extends AudioContext {
 
   @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable()
-  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) => _blink.BlinkOfflineAudioContext.$mkOfflineAudioContext(numberOfChannels, numberOfFrames, sampleRate);
+  factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
+    return _blink.BlinkOfflineAudioContext.$_create_1constructorCallback(numberOfChannels, numberOfFrames, sampleRate);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1025,9 +1087,23 @@ class OscillatorNode extends AudioSourceNode {
   @Experimental() // untriaged
   void setPeriodicWave(PeriodicWave periodicWave) => _blink.BlinkOscillatorNode.$setPeriodicWave_Callback(this, periodicWave);
 
-  void start([num when]) => _blink.BlinkOscillatorNode.$start(this, when);
+  void start([num when]) {
+    if (when != null) {
+      _blink.BlinkOscillatorNode.$_start_1_Callback(this, when);
+      return;
+    }
+    _blink.BlinkOscillatorNode.$_start_2_Callback(this);
+    return;
+  }
 
-  void stop([num when]) => _blink.BlinkOscillatorNode.$stop(this, when);
+  void stop([num when]) {
+    if (when != null) {
+      _blink.BlinkOscillatorNode.$_stop_1_Callback(this, when);
+      return;
+    }
+    _blink.BlinkOscillatorNode.$_stop_2_Callback(this);
+    return;
+  }
 
   /// Stream of `ended` events handled by this [OscillatorNode].
   @DomName('OscillatorNode.onended')

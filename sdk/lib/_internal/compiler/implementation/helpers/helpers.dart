@@ -17,22 +17,21 @@ part 'trace.dart';
 part 'expensive_map.dart';
 part 'expensive_set.dart';
 part 'stats.dart';
+part 'track_map.dart';
 
 /// Global flag to enable [debugPrint]. This should always be `true` by default
 /// and be set to `false` as a means to temporarily turn off all debugging
 /// printouts.
 const bool DEBUG_PRINT_ENABLED = true;
 
-/// Current indentation used by [debugPrint].
-String _debugPrint_indentation = '';
+class _DebugIndentation extends Indentation {
+  final String indentationUnit = " ";
+}
+_DebugIndentation _indentation = new _DebugIndentation();
 
-/// The current indentation level of [debugPrint].
-int get debugPrintIndentationLevel => _debugPrint_indentation.length;
-
-/// If [DEBUG_PRINT_ENABLED] is `true` print [s] using the current identation
-/// defined by [debugWrapPrint].
+/// If [DEBUG_PRINT_ENABLED] is `true` print [s] using the current identation.
 debugPrint(s) {
-  if (DEBUG_PRINT_ENABLED) print('$_debugPrint_indentation$s');
+  if (DEBUG_PRINT_ENABLED) print('${_indentation.indentation}$s');
 }
 
 /// Wraps the call to [f] with a print of 'start:$s' and 'end:$s' incrementing
@@ -40,11 +39,8 @@ debugPrint(s) {
 ///
 /// Use this to get a tree-like debug printout for nested calls.
 debugWrapPrint(s, f()) {
-  String previousIndentation = _debugPrint_indentation;
   debugPrint('start:$s');
-  _debugPrint_indentation += ' ';
-  var result = f();
-  _debugPrint_indentation = previousIndentation;
+  var result = _indentation.indentBlock(f);
   debugPrint('end:$s');
   return result;
 }

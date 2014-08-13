@@ -1,0 +1,438 @@
+// TODO(efortuna): Delete this file once
+// https://codereview.chromium.org/444453006/ has been committed, in which case
+// it will be pulled in from DEPS!
+// Copied from http://trac.webkit.org/browser/trunk/WebCore/css/CSSPropertyNames.in
+//
+// CSS property names
+//
+// Some properties are used internally, but are not part of CSS. They are used to get
+// HTML4 compatibility in the rendering engine.
+//
+// Microsoft extensions are documented here:
+// http://msdn.microsoft.com/workshop/author/css/reference/attributes.asp
+//
+
+// properties that generate animations must be listed first
+display
+-webkit-animation
+-webkit-animation-delay
+-webkit-animation-direction
+-webkit-animation-duration
+-webkit-animation-fill-mode
+-webkit-animation-iteration-count
+-webkit-animation-name
+-webkit-animation-play-state
+-webkit-animation-timing-function
+animation
+animation-delay
+animation-direction
+animation-duration
+animation-fill-mode
+animation-iteration-count
+animation-name
+animation-play-state
+animation-timing-function
+-webkit-transition
+-webkit-transition-delay
+-webkit-transition-duration
+-webkit-transition-property
+-webkit-transition-timing-function
+transition
+transition-delay
+transition-duration
+transition-property
+transition-timing-function
+
+// next, high-priority properties (those on which other properties can depend)
+// must be listed
+color
+direction
+font
+font-family
+font-kerning
+font-size
+font-style
+font-variant
+font-variant-ligatures
+font-weight
+text-rendering
+-webkit-font-feature-settings
+-webkit-font-smoothing
+-webkit-locale
+-webkit-text-orientation
+-epub-text-orientation alias_for=-webkit-text-orientation
+-webkit-writing-mode
+-epub-writing-mode alias_for=-webkit-writing-mode
+zoom
+
+// line height needs to be right after the above high-priority properties
+line-height
+
+// The remaining properties are listed in alphabetical order
+background
+background-attachment
+background-blend-mode
+background-clip
+background-color
+background-image
+background-origin
+background-position
+background-position-x
+background-position-y
+background-repeat
+background-repeat-x
+background-repeat-y
+background-size
+border
+border-bottom
+border-bottom-color
+border-bottom-left-radius
+-webkit-border-bottom-left-radius alias_for=border-bottom-left-radius
+border-bottom-right-radius
+-webkit-border-bottom-right-radius alias_for=border-bottom-right-radius
+border-bottom-style
+border-bottom-width
+border-collapse
+border-color
+border-image
+border-image-outset
+border-image-repeat
+border-image-slice
+border-image-source
+border-image-width
+border-left
+border-left-color
+border-left-style
+border-left-width
+border-radius
+border-right
+border-right-color
+border-right-style
+border-right-width
+border-spacing
+border-style
+border-top
+border-top-color
+border-top-left-radius
+-webkit-border-top-left-radius alias_for=border-top-left-radius
+border-top-right-radius
+-webkit-border-top-right-radius alias_for=border-top-right-radius
+border-top-style
+border-top-width
+border-width
+bottom
+box-shadow
+box-sizing
+// -webkit-box-sizing worked in Safari 4 and earlier.
+-webkit-box-sizing alias_for=box-sizing
+caption-side
+-epub-caption-side alias_for=caption-side
+clear
+clip
+-webkit-clip-path
+content
+counter-increment
+counter-reset
+cursor
+empty-cells
+float
+font-stretch
+height
+image-rendering
+isolation
+justify-self
+left
+letter-spacing
+list-style
+list-style-image
+list-style-position
+list-style-type
+margin
+margin-bottom
+margin-left
+margin-right
+margin-top
+mask-source-type
+max-height
+max-width
+min-height
+min-width
+mix-blend-mode
+opacity
+// Honor -webkit-opacity as a synonym for opacity. This was the only syntax that worked in Safari 1.1,
+// and may be in use on some websites and widgets.
+-webkit-opacity alias_for=opacity
+orphans
+outline
+outline-color
+outline-offset
+outline-style
+outline-width
+object-fit
+object-position
+overflow
+overflow-wrap
+overflow-x
+overflow-y
+padding
+padding-bottom
+padding-left
+padding-right
+padding-top
+page
+page-break-after
+page-break-before
+page-break-inside
+pointer-events
+position
+quotes
+resize
+right
+scroll-behavior
+size
+src
+speak
+table-layout
+tab-size
+text-align
+text-align-last
+text-decoration
+text-decoration-line
+text-decoration-style
+text-decoration-color
+text-indent
+text-justify
+text-line-through-color
+text-line-through-mode
+text-line-through-style
+text-line-through-width
+text-overflow
+text-overline-color
+text-overline-mode
+text-overline-style
+text-overline-width
+text-shadow
+text-transform
+-epub-text-transform alias_for=text-transform
+text-underline-color
+text-underline-mode
+text-underline-style
+text-underline-width
+text-underline-position
+top
+touch-action
+touch-action-delay
+
+unicode-bidi
+unicode-range
+vertical-align
+visibility
+white-space
+widows
+width
+will-change
+word-break
+-epub-word-break alias_for=word-break
+word-spacing
+word-wrap
+z-index
+-webkit-appearance
+-webkit-aspect-ratio
+backface-visibility
+-webkit-backface-visibility
+-webkit-background-clip
+-webkit-background-composite
+-webkit-background-origin
+// -webkit-background-size differs from background-size only in the interpretation of
+// a single value: -webkit-background-size: l; is equivalent to background-size: l l;
+// whereas background-size: l; is equivalent to background-size: l auto;
+-webkit-background-size
+-webkit-border-after
+-webkit-border-after-color
+-webkit-border-after-style
+-webkit-border-after-width
+-webkit-border-before
+-webkit-border-before-color
+-webkit-border-before-style
+-webkit-border-before-width
+-webkit-border-end
+-webkit-border-end-color
+-webkit-border-end-style
+-webkit-border-end-width
+-webkit-border-fit
+-webkit-border-horizontal-spacing
+-webkit-border-image
+// -webkit-border-radius differs from border-radius only in the interpretation of
+// a value consisting of two lengths: "-webkit-border-radius: l1 l2;" is equivalent
+// to "border-radius: l1 / l2;"
+-webkit-border-radius
+-webkit-border-start
+-webkit-border-start-color
+-webkit-border-start-style
+-webkit-border-start-width
+-webkit-border-vertical-spacing
+-webkit-box-align
+-webkit-box-direction
+-webkit-box-flex
+-webkit-box-flex-group
+-webkit-box-lines
+-webkit-box-ordinal-group
+-webkit-box-orient
+-webkit-box-pack
+-webkit-box-reflect
+-webkit-box-shadow
+-internal-callback
+-webkit-column-break-after
+-webkit-column-break-before
+-webkit-column-break-inside
+-webkit-column-count
+column-fill
+-webkit-column-gap
+-webkit-column-rule
+-webkit-column-rule-color
+-webkit-column-rule-style
+-webkit-column-rule-width
+-webkit-column-span
+-webkit-column-width
+-webkit-columns
+-webkit-box-decoration-break
+-webkit-filter
+align-content
+-webkit-align-content alias_for=align-content
+align-items
+-webkit-align-items alias_for=align-items
+align-self
+-webkit-align-self alias_for=align-self
+flex
+-webkit-flex alias_for=flex
+flex-basis
+-webkit-flex-basis alias_for=flex-basis
+flex-direction
+-webkit-flex-direction alias_for=flex-direction
+flex-flow
+-webkit-flex-flow alias_for=flex-flow
+flex-grow
+-webkit-flex-grow alias_for=flex-grow
+flex-shrink
+-webkit-flex-shrink alias_for=flex-shrink
+flex-wrap
+-webkit-flex-wrap alias_for=flex-wrap
+justify-content
+-webkit-justify-content alias_for=justify-content
+-webkit-font-size-delta
+grid-auto-columns
+grid-auto-flow
+grid-auto-rows
+grid-area
+grid-column
+grid-column-end
+grid-column-start
+grid
+grid-template
+grid-template-columns
+grid-template-rows
+grid-row
+grid-row-end
+grid-row-start
+grid-template-areas
+-webkit-highlight
+-webkit-hyphenate-character
+-webkit-line-box-contain
+-webkit-line-break
+-webkit-line-clamp
+-webkit-logical-width
+-webkit-logical-height
+-webkit-margin-after-collapse
+-webkit-margin-before-collapse
+-webkit-margin-bottom-collapse
+-webkit-margin-top-collapse
+-webkit-margin-collapse
+-webkit-margin-after
+-webkit-margin-before
+-webkit-margin-end
+-webkit-margin-start
+-webkit-mask
+-webkit-mask-box-image
+-webkit-mask-box-image-outset
+-webkit-mask-box-image-repeat
+-webkit-mask-box-image-slice
+-webkit-mask-box-image-source
+-webkit-mask-box-image-width
+-webkit-mask-clip
+-webkit-mask-composite
+-webkit-mask-image
+-webkit-mask-origin
+-webkit-mask-position
+-webkit-mask-position-x
+-webkit-mask-position-y
+-webkit-mask-repeat
+-webkit-mask-repeat-x
+-webkit-mask-repeat-y
+-webkit-mask-size
+-webkit-max-logical-width
+-webkit-max-logical-height
+-webkit-min-logical-width
+-webkit-min-logical-height
+order
+-webkit-order alias_for=order
+-webkit-padding-after
+-webkit-padding-before
+-webkit-padding-end
+-webkit-padding-start
+perspective
+-webkit-perspective
+perspective-origin
+-webkit-perspective-origin
+-webkit-perspective-origin-x
+-webkit-perspective-origin-y
+-webkit-print-color-adjust
+-webkit-rtl-ordering
+-webkit-ruby-position
+-webkit-text-combine
+-epub-text-combine alias_for=-webkit-text-combine
+-webkit-text-decorations-in-effect
+-webkit-text-emphasis
+-epub-text-emphasis alias_for=-webkit-text-emphasis
+-webkit-text-emphasis-color
+-epub-text-emphasis-color alias_for=-webkit-text-emphasis-color
+-webkit-text-emphasis-position
+-webkit-text-emphasis-style
+-epub-text-emphasis-style alias_for=-webkit-text-emphasis-style
+-webkit-text-fill-color
+-webkit-text-security
+-webkit-text-stroke
+-webkit-text-stroke-color
+-webkit-text-stroke-width
+transform
+-webkit-transform
+transform-origin
+-webkit-transform-origin
+-webkit-transform-origin-x
+-webkit-transform-origin-y
+-webkit-transform-origin-z
+transform-style
+-webkit-transform-style
+-webkit-user-drag
+-webkit-user-modify
+-webkit-user-select
+-webkit-shape-outside alias_for=shape-outside
+-webkit-shape-margin alias_for=shape-margin
+-webkit-shape-image-threshold alias_for=shape-image-threshold
+shape-outside
+shape-margin
+shape-image-threshold
+-webkit-wrap-flow
+-webkit-wrap-through
+max-zoom
+min-zoom
+orientation
+user-zoom
+-webkit-tap-highlight-color
+-webkit-app-region
+
+// Internal properties.
+-internal-marquee-direction
+-internal-marquee-increment
+-internal-marquee-repetition
+-internal-marquee-speed
+-internal-marquee-style

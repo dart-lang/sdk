@@ -193,20 +193,13 @@ abstract class StatsPrinter {
 }
 
 /// Abstract base class for [ConsolePrinter] and [XMLPrinter].
-abstract class BasePrinter extends StatsPrinter {
+abstract class BasePrinter extends StatsPrinter with Indentation {
   final int examples;
   final StatsOutput output;
-  int indentationLevel = 0;
 
   BasePrinter({this.output: const DebugOutput(),
-               this.examples: 10});
-
-  String get indentation {
-    StringBuffer sb = new StringBuffer();
-    for (int i = 0 ; i < indentationLevel ; i++) {
-      sb.write(' ');
-    }
-    return sb.toString();
+               this.examples: 10}) {
+    indentationUnit = " ";
   }
 }
 
@@ -244,13 +237,13 @@ class ConsolePrinter extends BasePrinter {
       });
     }
     output.println(sb.toString());
-    indentationLevel++;
+    indentMore();
   }
 
   void close(String id) {
     if (extraLevel > 0) return;
 
-    indentationLevel--;
+    indentLess();
   }
 
   void beginExtra() {
@@ -287,9 +280,7 @@ class XMLPrinter extends BasePrinter {
   void open(String id,
             [Map<String, dynamic> data = const <String, dynamic>{}]) {
     StringBuffer sb = new StringBuffer();
-    for (int i = 0 ; i < indentationLevel ; i++) {
-      sb.write(' ');
-    }
+    sb.write(indentation);
     sb.write('<$id');
     data.forEach((key, value) {
       if (value != null) {
@@ -298,11 +289,11 @@ class XMLPrinter extends BasePrinter {
     });
     sb.write('>');
     output.println(sb.toString());
-    indentationLevel++;
+    indentMore();
   }
 
   void close(String id) {
-    indentationLevel--;
+    indentLess();
     output.println('${indentation}</$id>');
   }
 

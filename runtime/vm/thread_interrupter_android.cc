@@ -7,6 +7,8 @@
 
 #include <sys/syscall.h>  // NOLINT
 
+#include "vm/flags.h"
+#include "vm/os.h"
 #include "vm/signal_handler.h"
 #include "vm/thread_interrupter.h"
 

@@ -10,7 +10,7 @@ String unparse(Node node, {minify: true}) {
   return unparser.result;
 }
 
-class Unparser implements Visitor {
+class Unparser extends Indentation implements Visitor {
   final StringBuffer sb = new StringBuffer();
 
   String get result => sb.toString();
@@ -19,17 +19,6 @@ class Unparser implements Visitor {
 
   bool minify;
   bool stripTypes;
-
-  String indentation = "";
-
-  indentMore() {
-    indentation += "  ";
-  }
-
-  indentLess() {
-    assert(indentation.length >= 2);
-    indentation = indentation.substring(2);
-  }
 
   void newline() {
     if (!minify) {

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library services.hierarchy;
 
 import 'dart:async';
@@ -196,6 +193,20 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
   // we don't need "seed" itself
   result.remove(seed);
   return result;
+}
+
+
+/**
+ * If the given [element] is a synthetic [PropertyAccessorElement] returns
+ * its variable, otherwise returns [element].
+ */
+Element getSyntheticAccessorVariable(Element element) {
+  if (element is PropertyAccessorElement) {
+    if (element.isSynthetic) {
+      return element.variable;
+    }
+  }
+  return element;
 }
 
 

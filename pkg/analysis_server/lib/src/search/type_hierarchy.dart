@@ -47,7 +47,7 @@ class TypeHierarchyComputer {
         return new Future.value(_items);
       });
     }
-    return new Future.value([]);
+    return new Future.value(null);
   }
 
   Future _createSubclasses(TypeHierarchyItem item, InterfaceType type) {

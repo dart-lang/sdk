@@ -6,6 +6,9 @@ import "package:expect/expect.dart";
 
 // Dart test program for DateTime.
 
+// Identical to _MAX_MILLISECONDS_SINCE_EPOCH in date_time.dart
+const int _MAX_MILLISECONDS = 8640000000000000;
+
 // Tests if the time moves eventually forward.
 void testNow() {
   var t1 = new DateTime.now();
@@ -232,7 +235,7 @@ void testEquivalentYears() {
 
 void testExtremes() {
   var dt =
-      new DateTime.fromMillisecondsSinceEpoch(8640000000000000, isUtc: true);
+      new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS, isUtc: true);
   Expect.equals(275760, dt.year);
   Expect.equals(9, dt.month);
   Expect.equals(13, dt.day);
@@ -240,7 +243,7 @@ void testExtremes() {
   Expect.equals(0, dt.minute);
   Expect.equals(0, dt.second);
   Expect.equals(0, dt.millisecond);
-  dt = new DateTime.fromMillisecondsSinceEpoch(-8640000000000000, isUtc: true);
+  dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS, isUtc: true);
   Expect.equals(-271821, dt.year);
   Expect.equals(4, dt.month);
   Expect.equals(20, dt.day);
@@ -249,28 +252,30 @@ void testExtremes() {
   Expect.equals(0, dt.second);
   Expect.equals(0, dt.millisecond);
   // Make sure that we can build the extreme dates in local too.
-  dt = new DateTime.fromMillisecondsSinceEpoch(8640000000000000);
+  dt = new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS);
   dt = new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
-  Expect.equals(8640000000000000, dt.millisecondsSinceEpoch);
-  dt = new DateTime.fromMillisecondsSinceEpoch(-8640000000000000);
+  Expect.equals(_MAX_MILLISECONDS, dt.millisecondsSinceEpoch);
+  dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS);
   dt = new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
-  Expect.equals(-8640000000000000, dt.millisecondsSinceEpoch);
-  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(8640000000000001,
-                                                          isUtc: true));
-  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(-8640000000000001,
-                                                          isUtc: true));
-  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(8640000000000001));
-  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(-8640000000000001));
-  dt = new DateTime.fromMillisecondsSinceEpoch(8640000000000000);
+  Expect.equals(-_MAX_MILLISECONDS, dt.millisecondsSinceEpoch);
+  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
+      _MAX_MILLISECONDS + 1, isUtc: true));
+  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
+      -_MAX_MILLISECONDS - 1, isUtc: true));
+  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
+      _MAX_MILLISECONDS + 1));
+  Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
+      -_MAX_MILLISECONDS - 1));
+  dt = new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS);
   Expect.throws(() => new DateTime(dt.year, dt.month, dt.day,
                                dt.hour, dt.minute, 0, 1));
-  dt = new DateTime.fromMillisecondsSinceEpoch(8640000000000000, isUtc: true);
+  dt = new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS, isUtc: true);
   Expect.throws(() => new DateTime.utc(dt.year, dt.month, dt.day,
                                    dt.hour, dt.minute, 0, 1));
-  dt = new DateTime.fromMillisecondsSinceEpoch(-8640000000000000);
+  dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS);
   Expect.throws(() => new DateTime(dt.year, dt.month, dt.day,
                                dt.hour, dt.minute, 0, -1));
-  dt = new DateTime.fromMillisecondsSinceEpoch(-8640000000000000, isUtc: true);
+  dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS, isUtc: true);
   Expect.throws(() => new DateTime.utc(dt.year, dt.month, dt.day,
                                    dt.hour, dt.minute, 0, -1));
 }
@@ -848,6 +853,22 @@ void testDateStrings() {
   Expect.equals(9, dt1.second);
   Expect.equals(9, dt1.millisecond);
   Expect.equals(true, dt1.isUtc);
+
+  Expect.throws(() => DateTime.parse("bad"), (e) => e is FormatException);
+  var bad_year = 1970 + (_MAX_MILLISECONDS ~/ (1000*60*60*24*365.2425)) + 1;
+  Expect.throws(() => DateTime.parse(bad_year.toString() + "-01-01"),
+                (e) => e is FormatException);
+  // The last valid time; should not throw.
+  dt1 = DateTime.parse("275760-09-13T00:00:00.000Z");
+  Expect.throws(() => DateTime.parse("275760-09-14T00:00:00.000Z"),
+                (e) => e is FormatException);
+  Expect.throws(() => DateTime.parse("275760-09-13T00:00:00.001Z"),
+                (e) => e is FormatException);
+
+  // first valid time; should not throw.
+  dt1 = DateTime.parse("-271821-04-20T00:00:00.000Z");
+  Expect.throws(() => DateTime.parse("-271821-04-19T23:59:59.999Z"),
+                (e) => e is FormatException);
 }
 
 void testWeekday() {

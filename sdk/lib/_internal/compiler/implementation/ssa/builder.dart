@@ -1762,13 +1762,21 @@ class SsaBuilder extends ResolvedVisitor {
       }
 
       Element target = constructor.definingConstructor.implementation;
-      Selector.addForwardingElementArgumentsToList(
+      bool match = Selector.addForwardingElementArgumentsToList(
           constructor,
           arguments,
           target,
           compileArgument,
           handleConstantForOptionalParameter,
           compiler);
+      if (!match) {
+        // If this fails, the selector we constructed for the call to a
+        // forwarding constructor in a mixin application did not match the
+        // constructor (which, for example, may happen when the libraries are
+        // not compatible for private names, see issue 20394).
+        compiler.internalError(constructor,
+                               'forwarding constructor call does not match');
+      }
       inlineSuperOrRedirect(
           target,
           arguments,
@@ -2176,9 +2184,25 @@ class SsaBuilder extends ResolvedVisitor {
             return;
           }
         }
-        HInstruction newParameter = potentiallyCheckType(
-            localsHandler.directLocals[parameterElement],
-            parameterElement.type);
+        HInstruction newParameter =
+            localsHandler.directLocals[parameterElement];
+        if (!element.isConstructor ||
+            !(element as ConstructorElement).isRedirectingFactory) {
+          // Redirection factories must not check their argument types.
+          // Example:
+          //
+          //     class A {
+          //       A(String foo) = A.b;
+          //       A(int foo) { print(foo); }
+          //     }
+          //     main() {
+          //       new A(499);    // valid even in checked mode.
+          //       new A("foo");  // invalid in checked mode.
+          //
+          // Only the final target is allowed to check for the argument types.
+          newParameter =
+              potentiallyCheckType(newParameter, parameterElement.type);
+        }
         localsHandler.directLocals[parameterElement] = newParameter;
       });
 

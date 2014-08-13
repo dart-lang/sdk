@@ -48,6 +48,7 @@ import "../tests/co19/test_config.dart";
 final TEST_SUITE_DIRECTORIES = [
     new Path('pkg'),
     new Path('runtime/tests/vm'),
+    new Path('runtime/bin/vmservice'),
     new Path('samples'),
     new Path('samples-dev'),
     new Path('tests/benchmark_smoke'),

@@ -8,12 +8,11 @@
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"
 #include "bin/file.h"
+#include "bin/lockers.h"
 #include "bin/log.h"
 #include "bin/socket.h"
+#include "bin/thread.h"
 #include "bin/utils.h"
-
-#include "vm/thread.h"
-
 
 namespace dart {
 namespace bin {

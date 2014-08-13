@@ -12,7 +12,6 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
-#include "vm/thread.h"
 
 #if defined(HOST_ARCH_ARM)
 #include <sys/syscall.h>  /* NOLINT */

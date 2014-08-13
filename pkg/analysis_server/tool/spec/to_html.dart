@@ -22,8 +22,7 @@ import 'html_tools.dart';
 /**
  * Embedded stylesheet
  */
-final String stylesheet =
-    '''
+final String stylesheet = '''
 h1 {
   text-align: center;
 }
@@ -39,8 +38,11 @@ dt {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-'''.trim(
-    );
+div.hangingIndent {
+  padding-left: 3em;
+  text-indent: -3em;
+}
+'''.trim();
 
 /**
  * Helper methods for creating HTML elements.
@@ -78,6 +80,9 @@ abstract class HtmlMixin {
   void h2(void callback()) => element('h2', {}, callback);
   void h3(void callback()) => element('h3', {}, callback);
   void h4(void callback()) => element('h4', {}, callback);
+  void hangingIndent(void callback()) => element('div', {
+    'class': 'hangingIndent'
+  }, callback);
   void head(void callback()) => element('head', {}, callback);
   void html(void callback()) => element('html', {}, callback);
   void i(void callback()) => element('i', {}, callback);
@@ -98,8 +103,7 @@ abstract class HtmlMixin {
  *   }
  * }
  */
-class TypeVisitor extends HierarchicalApiVisitor with HtmlMixin,
-    HtmlCodeGenerator {
+class TypeVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlCodeGenerator {
   /**
    * Set of fields which should be shown in boldface, or null if no field
    * should be shown in boldface.
@@ -200,7 +204,7 @@ class TypeVisitor extends HierarchicalApiVisitor with HtmlMixin,
 class ApiMappings extends HierarchicalApiVisitor {
   ApiMappings(Api api) : super(api);
 
-  Map<dom.Element, Domain> domains = <dom.Element, Domain> {};
+  Map<dom.Element, Domain> domains = <dom.Element, Domain>{};
 
   @override
   void visitDomain(Domain domain) {
@@ -211,8 +215,7 @@ class ApiMappings extends HierarchicalApiVisitor {
 /**
  * Visitor that generates HTML documentation of the API.
  */
-class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
-    {
+class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator {
   /**
    * Set of types defined in the API.
    */
@@ -298,8 +301,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
     });
     dd(() {
       box(() {
-        showType('notification', notification.notificationType,
-            notification.params);
+        showType('notification', notification.notificationType, notification.params);
       });
       translateHtml(notification.html);
       describePayload(notification.params, 'Parameters');
@@ -310,19 +312,23 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
    * Copy the contents of the given HTML element, translating the special
    * elements that define the API appropriately.
    */
-  void translateHtml(dom.Element html) {
+  void translateHtml(dom.Element html, {bool squashParagraphs: false}) {
     for (dom.Node node in html.nodes) {
       if (node is dom.Element) {
+        if (squashParagraphs && node.localName == 'p') {
+          translateHtml(node, squashParagraphs: squashParagraphs);
+          continue;
+        }
         switch (node.localName) {
           case 'api':
-            translateHtml(node);
+            translateHtml(node, squashParagraphs: squashParagraphs);
             break;
           case 'domain':
             visitDomain(apiMappings.domains[node]);
             break;
           case 'head':
             head(() {
-              translateHtml(node);
+              translateHtml(node, squashParagraphs: squashParagraphs);
               element('style', {}, () {
                 writeln(stylesheet);
               });
@@ -335,12 +341,12 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
             visitTypes(api.types);
             break;
           case 'version':
-            translateHtml(node);
+            translateHtml(node, squashParagraphs: squashParagraphs);
             break;
           default:
             if (!specialElements.contains(node.localName)) {
               element(node.localName, node.attributes, () {
-                translateHtml(node);
+                translateHtml(node, squashParagraphs: squashParagraphs);
               });
             }
         }
@@ -371,8 +377,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
       if (shortDesc != null) {
         write('$shortDesc: ');
       }
-      TypeVisitor typeVisitor = new TypeVisitor(api, fieldsToBold: fieldsToBold
-          );
+      TypeVisitor typeVisitor = new TypeVisitor(api, fieldsToBold: fieldsToBold);
       addAll(typeVisitor.collectHtml(() {
         typeVisitor.visitTypeDecl(type);
       }));
@@ -397,6 +402,17 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
         });
       } else {
         visitTypeDecl(subType);
+      }
+    }
+  }
+
+  void javadocParams(TypeObject typeObject) {
+    if (typeObject != null) {
+      for (TypeObjectField field in typeObject.fields) {
+        hangingIndent(() {
+          write('@param ${field.name} ');
+          translateHtml(field.html, squashParagraphs: true);
+        });
       }
     }
   }
@@ -446,8 +462,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
   void visitTypeEnumValue(TypeEnumValue typeEnumValue) {
     bool isDocumented = false;
     for (dom.Node node in typeEnumValue.html.nodes) {
-      if ((node is dom.Element && node.localName != 'code') || (node is dom.Text
-          && node.text.trim().isNotEmpty)) {
+      if ((node is dom.Element && node.localName != 'code') || (node is dom.Text && node.text.trim().isNotEmpty)) {
         isDocumented = true;
         break;
       }
@@ -486,7 +501,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor with HtmlMixin, HtmlGenerator
         i(() {
           write(typeObjectField.name);
           if (typeObjectField.value != null) {
-            write(' = ${typeObjectField.value}');
+            write(' = ${JSON.encode(typeObjectField.value)}');
           } else {
             write(' ( ');
             if (typeObjectField.optional) {

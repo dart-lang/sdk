@@ -767,6 +767,12 @@ testConditionalExpression(MockCompiler compiler) {
   check("{ int i; true ? 2 : i = 2.7; }",
           warnings: NOT_ASSIGNABLE);
   check("{ int i; i = true ? 2.7 : 2; }");
+
+  compiler.parseScript("""
+    bool cond() => true;
+    void f1() {}
+    void f2() {}""");
+  check("{ cond() ? f1() : f2(); }");
 }
 
 testIfStatement(MockCompiler compiler) {

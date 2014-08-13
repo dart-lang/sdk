@@ -19,6 +19,8 @@
                 '"../third_party/pkg"])',
             '<!@(["python", "../tools/list_pkg_directories.py", '
                 '"polymer/e2e_test/"])',
+            '<!@(["python", "../tools/list_pkg_directories.py", '
+                '"../runtime/bin/vmservice"])',
             '../sdk/lib/_internal/compiler',
             '../sdk/lib/_internal/libraries.dart',
             '../site/try',
@@ -41,6 +43,9 @@
       'actions': [
         {
           'action_name': 'remove_html_imports',
+          'dependencies': [
+            'pkg_files.gyp:http_files_stamp',
+          ],
           'inputs': [
             '../tools/remove_html_imports.py',
             '<(SHARED_INTERMEDIATE_DIR)/http_files.stamp',

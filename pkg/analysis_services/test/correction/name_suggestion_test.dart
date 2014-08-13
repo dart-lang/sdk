@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library test.services.correction.name_suggestion;
 
 import 'package:analysis_services/src/correction/name_suggestion.dart';
@@ -12,7 +9,7 @@ import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:unittest/unittest.dart' hide isEmpty;
+import 'package:unittest/unittest.dart';
 
 
 main() {

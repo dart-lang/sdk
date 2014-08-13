@@ -6,8 +6,8 @@
 #define BIN_VMSERVICE_IMPL_H_
 
 #include "bin/vmservice.h"
-#include "platform/thread.h"
 
+#include "platform/globals.h"
 
 namespace dart {
 namespace bin {
