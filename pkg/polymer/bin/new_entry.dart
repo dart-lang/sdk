@@ -110,8 +110,8 @@ String html = '''
             'for polymer transformer');
       } else {
         var existing = e['polymer']['entry_points'];
-        entryPoints = existing == null ? [] :
-            (existing is String ? [existing] : existing.toList());
+        entryPoints = (existing == null ? [] :
+            (existing is String ? [existing] : existing.toList()));
 
         if (entryPoints.contains(entryPoint)) return false;
         entryPoints.add(entryPoint);
@@ -133,6 +133,7 @@ String html = '''
     // There were no transformers at all.
     insertionPoint = pubspecText.length;
     textToInsert = 'transformers:\n- ';
+    entryPoints = [entryPoint];
   }
 
   // TODO(dgrove): Once dartbug.com/20409 is addressed, use that here.
