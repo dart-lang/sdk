@@ -2321,7 +2321,7 @@ class AllocateContextSlowPath : public SlowPathCode {
                            &label,
                            RawPcDescriptors::kOther,
                            locs);
-    ASSERT(instruction_->locs()->out(0).reg() == R0);
+    ASSERT(instruction_->locs()->out(0).reg() == V0);
     compiler->RestoreLiveRegisters(instruction_->locs());
     __ b(exit_label());
   }
