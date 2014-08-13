@@ -13,7 +13,7 @@ set -x
 cd src
 ninja -C out/Release forwarder2
 ninja -C out/Release pkg_packages
-cp -R out/Release/packages out/ReleaseARM/packages
+cp -R out/Release/packages out/ReleaseARM
 export PATH=$PATH:third_party/android_tools/sdk/platform-tools/\
 :third_party/android_tools/sdk/tools/
 
