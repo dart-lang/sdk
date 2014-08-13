@@ -7,6 +7,10 @@ web_components, and template_binding) if they impact polymer.
 #### Pub version 0.12.2-dev
   * Backward compatible change to prepare for upcoming change of the user agent
     in Dartium.
+  * `pub run polymer:new_element` now supports specifying a base class.
+    **Note**: only native DOM types and custom elements written in Dart can be
+    extended. Elements adapted from Javascript (like core- and paper- elements)
+    cannot be extended.
 
 #### Pub version 0.12.1
   * **New**: When running in pub-serve, any warnings and errors detected by the
