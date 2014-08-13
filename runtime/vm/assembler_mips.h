@@ -47,7 +47,7 @@ class Immediate : public ValueObject {
 
 class Address : public ValueObject {
  public:
-  Address(Register base, int32_t offset = 0)
+  explicit Address(Register base, int32_t offset = 0)
       : ValueObject(), base_(base), offset_(offset) { }
 
   Address(const Address& other)
@@ -213,6 +213,14 @@ class Assembler : public ValueObject {
                    Label* failure,
                    Register instance_reg,
                    Register temp_reg);
+
+  void TryAllocateArray(intptr_t cid,
+                        intptr_t instance_size,
+                        Label* failure,
+                        Register instance,
+                        Register end_address,
+                        Register temp1,
+                        Register temp2);
 
   // Debugging and bringup support.
   void Stop(const char* message);

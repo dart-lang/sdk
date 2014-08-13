@@ -812,6 +812,13 @@ class Assembler : public ValueObject {
                    Register instance_reg,
                    Register temp_reg);
 
+  void TryAllocateArray(intptr_t cid,
+                        intptr_t instance_size,
+                        Label* failure,
+                        bool near_jump,
+                        Register instance,
+                        Register end_address);
+
   // Debugging and bringup support.
   void Stop(const char* message);
   void Unimplemented(const char* message);

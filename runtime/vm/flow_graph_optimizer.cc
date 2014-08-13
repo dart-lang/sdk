@@ -4407,6 +4407,37 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
 }
 
 
+void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
+  // Replace generic allocation with a sequence of inlined allocation and
+  // explicit initalizing stores.
+  AllocateUninitializedContextInstr* replacement =
+      new AllocateUninitializedContextInstr(instr->token_pos(),
+                                            instr->num_context_variables());
+  instr->ReplaceWith(replacement, current_iterator());
+
+  StoreInstanceFieldInstr* store =
+      new(I) StoreInstanceFieldInstr(Context::parent_offset(),
+                                     new Value(replacement),
+                                     new Value(flow_graph_->constant_null()),
+                                     kNoStoreBarrier,
+                                     instr->token_pos());
+  store->set_is_initialization(true);  // Won't be eliminated by DSE.
+  flow_graph_->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
+  Definition* cursor = store;
+  for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
+    store =
+        new(I) StoreInstanceFieldInstr(Context::variable_offset(i),
+                                       new Value(replacement),
+                                       new Value(flow_graph_->constant_null()),
+                                       kNoStoreBarrier,
+                                       instr->token_pos());
+    store->set_is_initialization(true);  // Won't be eliminated by DSE.
+    flow_graph_->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
+    cursor = store;
+  }
+}
+
+
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
@@ -7729,6 +7760,12 @@ void ConstantPropagator::VisitInstantiateTypeArguments(
 
 
 void ConstantPropagator::VisitAllocateContext(AllocateContextInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitAllocateUninitializedContext(
+    AllocateUninitializedContextInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

@@ -1884,41 +1884,11 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                                    Label* done) {
   const Register kLengthReg = R10;
   const Register kElemTypeReg = RBX;
-  const intptr_t kArraySize = Array::InstanceSize(num_elements);
+  const intptr_t instance_size = Array::InstanceSize(num_elements);
 
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
-  __ movq(RAX, Immediate(heap->TopAddress()));
-  __ movq(RAX, Address(RAX, 0));
-  __ movq(RCX, RAX);
-
-  __ addq(RCX, Immediate(kArraySize));
-  __ j(CARRY, slow_path);
-
-  // Check if the allocation fits into the remaining space.
-  // RAX: potential new object start.
-  // RCX: potential next object start.
-  __ movq(R13, Immediate(heap->EndAddress()));
-  __ cmpq(RCX, Address(R13, 0));
-  __ j(ABOVE_EQUAL, slow_path);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress()));
-  __ movq(Address(R13, 0), RCX);
-  __ addq(RAX, Immediate(kHeapObjectTag));
-  __ movq(R13, Immediate(kArraySize));
-  __ UpdateAllocationStatsWithSize(kArrayCid, R13);
-
-  // Initialize the tags.
-  // RAX: new object start as a tagged pointer.
-  {
-    uword tags = 0;
-    tags = RawObject::ClassIdTag::update(kArrayCid, tags);
-    tags = RawObject::SizeTag::update(kArraySize, tags);
-    __ movq(FieldAddress(RAX, Array::tags_offset()), Immediate(tags));
-  }
+  __ TryAllocateArray(kArrayCid, instance_size, slow_path, Assembler::kFarJump,
+                      RAX,  // instance
+                      RCX);  // end address
 
   // RAX: new object start as a tagged pointer.
   // Store the type argument field.
@@ -2218,6 +2188,79 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ popq(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
+}
+
+
+LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
+    Isolate* isolate,
+    bool opt) const {
+  ASSERT(opt);
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_temp(0, Location::RegisterLocation(R10));
+  locs->set_out(0, Location::RegisterLocation(RAX));
+  return locs;
+}
+
+
+class AllocateContextSlowPath : public SlowPathCode {
+ public:
+  explicit AllocateContextSlowPath(
+      AllocateUninitializedContextInstr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("AllocateContextSlowPath");
+    __ Bind(entry_label());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out(0));
+
+    compiler->SaveLiveRegisters(locs);
+
+    __ LoadImmediate(R10, Immediate(instruction_->num_context_variables()), PP);
+    StubCode* stub_code = compiler->isolate()->stub_code();
+    const ExternalLabel label(stub_code->AllocateContextEntryPoint());
+    compiler->GenerateCall(instruction_->token_pos(),
+                           &label,
+                           RawPcDescriptors::kOther,
+                           locs);
+    ASSERT(instruction_->locs()->out(0).reg() == RAX);
+    compiler->RestoreLiveRegisters(instruction_->locs());
+    __ jmp(exit_label());
+  }
+
+ private:
+  AllocateUninitializedContextInstr* instruction_;
+};
+
+
+void AllocateUninitializedContextInstr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  ASSERT(compiler->is_optimizing());
+  Register temp = locs()->temp(0).reg();
+  Register result = locs()->out(0).reg();
+  // Try allocate the object.
+  AllocateContextSlowPath* slow_path = new AllocateContextSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+  intptr_t instance_size = Context::InstanceSize(num_context_variables());
+
+  __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
+                      Assembler::kFarJump,
+                      result,  // instance
+                      temp);  // end address
+
+  // Setup up number of context variables field.
+  __ movq(FieldAddress(result, Context::num_variables_offset()),
+          Immediate(num_context_variables()));
+
+  // Setup isolate field.
+  __ movq(FieldAddress(result, Context::isolate_offset()),
+          Immediate(reinterpret_cast<intptr_t>(Isolate::Current())));
+
+  __ Bind(slow_path->exit_label());
 }
 
 

@@ -716,6 +716,7 @@ class EmbeddedArray<T, 0> {
   M(InstantiateType)                                                           \
   M(InstantiateTypeArguments)                                                  \
   M(AllocateContext)                                                           \
+  M(AllocateUninitializedContext)                                              \
   M(CloneContext)                                                              \
   M(BinarySmiOp)                                                               \
   M(UnarySmiOp)                                                                \
@@ -4617,6 +4618,35 @@ class AllocateContextInstr : public TemplateDefinition<0> {
   const intptr_t num_context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
+};
+
+
+class AllocateUninitializedContextInstr : public TemplateDefinition<0> {
+ public:
+  AllocateUninitializedContextInstr(intptr_t token_pos,
+                                    intptr_t num_context_variables)
+      : token_pos_(token_pos),
+        num_context_variables_(num_context_variables) {}
+
+  DECLARE_INSTRUCTION(AllocateUninitializedContext)
+  virtual CompileType ComputeType() const;
+
+  virtual intptr_t token_pos() const { return token_pos_; }
+  intptr_t num_context_variables() const { return num_context_variables_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const intptr_t token_pos_;
+  const intptr_t num_context_variables_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocateUninitializedContextInstr);
 };
 
 

@@ -887,6 +887,51 @@ void Assembler::TryAllocate(const Class& cls,
 }
 
 
+void Assembler::TryAllocateArray(intptr_t cid,
+                                 intptr_t instance_size,
+                                 Label* failure,
+                                 Register instance,
+                                 Register end_address,
+                                 Register temp1,
+                                 Register temp2) {
+  if (FLAG_inline_alloc) {
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
+
+    LoadImmediate(temp1, heap->TopAddress());
+    lw(instance, Address(temp1, 0));  // Potential new object start.
+    // Potential next object start.
+    AddImmediateDetectOverflow(end_address, instance, instance_size, CMPRES1);
+    bltz(CMPRES1, failure);  // CMPRES1 < 0 on overflow.
+
+    // Check if the allocation fits into the remaining space.
+    // instance: potential new object start.
+    // end_address: potential next object start.
+    LoadImmediate(temp2, heap->EndAddress());
+    lw(temp2, Address(temp2, 0));
+    BranchUnsignedGreaterEqual(end_address, temp2, failure);
+
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    sw(end_address, Address(temp1, 0));
+    addiu(instance, instance, Immediate(kHeapObjectTag));
+    LoadImmediate(temp1, instance_size);
+    UpdateAllocationStatsWithSize(cid, temp1, temp2);
+
+    // Initialize the tags.
+    // instance: new object start as a tagged pointer.
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    LoadImmediate(temp1, tags);
+    sw(temp1, FieldAddress(instance, Array::tags_offset()));  // Store tags.
+  } else {
+    b(failure);
+  }
+}
+
+
 void Assembler::CallRuntime(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   entry.Call(this, argument_count);

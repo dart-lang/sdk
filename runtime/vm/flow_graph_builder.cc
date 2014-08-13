@@ -3506,10 +3506,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         parent_context = Bind(new(I) CurrentContextInstr());
       }
       Do(new(I) StoreInstanceFieldInstr(Context::parent_offset(),
-                                     tmp_val,
-                                     parent_context,
-                                     kEmitStoreBarrier,
-                                     Scanner::kNoSourcePos));
+                                        tmp_val,
+                                        parent_context,
+                                        kEmitStoreBarrier,
+                                        Scanner::kNoSourcePos));
       AddInstruction(
           new(I) StoreContextInstr(Bind(ExitTempLocalScope(tmp_var))));
     }

@@ -2443,6 +2443,7 @@ static void ComputeCounterAddressesForCid(intptr_t cid,
       class_heap_stats_table_address + class_offset + size_field_offset);
 }
 
+
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
                                       Heap::Space space) {
@@ -2517,6 +2518,45 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     movl(FieldAddress(instance_reg, Object::tags_offset()), Immediate(tags));
+  } else {
+    jmp(failure);
+  }
+}
+
+
+void Assembler::TryAllocateArray(intptr_t cid,
+                                 intptr_t instance_size,
+                                 Label* failure,
+                                 bool near_jump,
+                                 Register instance,
+                                 Register end_address) {
+  ASSERT(failure != NULL);
+  if (FLAG_inline_alloc) {
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
+    movl(instance, Address::Absolute(heap->TopAddress()));
+    movl(end_address, instance);
+
+    addl(end_address, Immediate(instance_size));
+    j(CARRY, failure);
+
+    // Check if the allocation fits into the remaining space.
+    // EAX: potential new object start.
+    // EBX: potential next object start.
+    cmpl(end_address, Address::Absolute(heap->EndAddress()));
+    j(ABOVE_EQUAL, failure);
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    movl(Address::Absolute(heap->TopAddress()), end_address);
+    addl(instance, Immediate(kHeapObjectTag));
+    UpdateAllocationStatsWithSize(cid, instance_size, kNoRegister);
+
+    // Initialize the tags.
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    movl(FieldAddress(instance, Object::tags_offset()), Immediate(tags));
   } else {
     jmp(failure);
   }

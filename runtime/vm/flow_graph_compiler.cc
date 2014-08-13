@@ -462,7 +462,7 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
-    slow_path_code_[i]->EmitNativeCode(this);
+    slow_path_code_[i]->GenerateCode(this);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     deopt_infos_[i]->GenerateCode(this, i);

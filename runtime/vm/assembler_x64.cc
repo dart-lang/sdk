@@ -3119,28 +3119,43 @@ void Assembler::LeaveStubFrame() {
 }
 
 
-void Assembler::UpdateAllocationStats(intptr_t cid,
-                                      Heap::Space space) {
+void Assembler::ComputeCounterAddressesForCid(intptr_t cid,
+                                              Heap::Space space,
+                                              Address* count_address,
+                                              Address* size_address) {
+  ASSERT(cid < kNumPredefinedCids);
   Register temp_reg = TMP;
-  ASSERT(cid > 0);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
+  const uword class_heap_stats_table_address =
+      class_table->PredefinedClassHeapStatsTableAddress();
+  const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+  const uword count_field_offset = (space == Heap::kNew)
+      ? ClassHeapStats::allocated_since_gc_new_space_offset()
+      : ClassHeapStats::allocated_since_gc_old_space_offset();
+  const uword size_field_offset = (space == Heap::kNew)
+      ? ClassHeapStats::allocated_size_since_gc_new_space_offset()
+      : ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  movq(temp_reg, Immediate(class_heap_stats_table_address + class_offset));
+  *count_address = Address(temp_reg, count_field_offset);
+  *size_address = Address(temp_reg, size_field_offset);
+}
+
+
+void Assembler::UpdateAllocationStats(intptr_t cid,
+                                      Heap::Space space) {
+  ASSERT(cid > 0);
   if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    movq(temp_reg, Immediate(class_heap_stats_table_address + class_offset));
-    const Address& count_address = Address(temp_reg, count_field_offset);
+    Address count_address(kNoRegister, 0), size_address(kNoRegister, 0);
+    ComputeCounterAddressesForCid(cid, space, &count_address, &size_address);
     incq(count_address);
   } else {
-    ASSERT(temp_reg != kNoRegister);
+    Register temp_reg = TMP;
     const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
+    const uword count_field_offset = (space == Heap::kNew)
+        ? ClassHeapStats::allocated_since_gc_new_space_offset()
+        : ClassHeapStats::allocated_since_gc_old_space_offset();
+    ClassTable* class_table = Isolate::Current()->class_table();
     movq(temp_reg, Immediate(class_table->ClassStatsTableAddress()));
     movq(temp_reg, Address(temp_reg, 0));
     incq(Address(temp_reg, class_offset + count_field_offset));
@@ -3151,39 +3166,24 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register size_reg,
                                               Heap::Space space) {
-  Register temp_reg = TMP;
   ASSERT(cid > 0);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    movq(temp_reg, Immediate(class_heap_stats_table_address + class_offset));
-    const Address& count_address = Address(temp_reg, count_field_offset);
-    const Address& size_address = Address(temp_reg, size_field_offset);
-    incq(count_address);
-    addq(size_address, size_reg);
-  } else {
-    ASSERT(temp_reg != kNoRegister);
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    movq(temp_reg, Immediate(class_table->ClassStatsTableAddress()));
-    movq(temp_reg, Address(temp_reg, 0));
-    incq(Address(temp_reg, class_offset + count_field_offset));
-    addq(Address(temp_reg, class_offset + size_field_offset), size_reg);
-  }
+  ASSERT(cid < kNumPredefinedCids);
+  Address count_address(kNoRegister, 0), size_address(kNoRegister, 0);
+  ComputeCounterAddressesForCid(cid, space, &count_address, &size_address);
+  incq(count_address);
+  addq(size_address, size_reg);
+}
+
+
+void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
+                                              intptr_t size_in_bytes,
+                                              Heap::Space space) {
+  ASSERT(cid > 0);
+  ASSERT(cid < kNumPredefinedCids);
+  Address count_address(kNoRegister, 0), size_address(kNoRegister, 0);
+  ComputeCounterAddressesForCid(cid, space, &count_address, &size_address);
+  incq(count_address);
+  addq(size_address, Immediate(size_in_bytes));
 }
 
 
@@ -3221,6 +3221,49 @@ void Assembler::TryAllocate(const Class& cls,
   }
 }
 
+
+void Assembler::TryAllocateArray(intptr_t cid,
+                                 intptr_t instance_size,
+                                 Label* failure,
+                                 bool near_jump,
+                                 Register instance,
+                                 Register end_address) {
+  ASSERT(failure != NULL);
+  if (FLAG_inline_alloc) {
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
+
+    movq(instance, Immediate(heap->TopAddress()));
+    movq(instance, Address(instance, 0));
+    movq(end_address, RAX);
+
+    addq(end_address, Immediate(instance_size));
+    j(CARRY, failure);
+
+    // Check if the allocation fits into the remaining space.
+    // instance: potential new object start.
+    // end_address: potential next object start.
+    movq(TMP, Immediate(heap->EndAddress()));
+    cmpq(end_address, Address(TMP, 0));
+    j(ABOVE_EQUAL, failure);
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    movq(TMP, Immediate(heap->TopAddress()));
+    movq(Address(TMP, 0), end_address);
+    addq(instance, Immediate(kHeapObjectTag));
+    UpdateAllocationStatsWithSize(kArrayCid, instance_size);
+
+    // Initialize the tags.
+    // instance: new object start as a tagged pointer.
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    movq(FieldAddress(instance, Array::tags_offset()), Immediate(tags));
+  } else {
+    jmp(failure);
+  }
+}
 
 void Assembler::Align(int alignment, intptr_t offset) {
   ASSERT(Utils::IsPowerOfTwo(alignment));

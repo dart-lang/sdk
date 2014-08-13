@@ -2186,6 +2186,84 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 }
 
 
+LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
+    Isolate* isolate,
+    bool opt) const {
+  ASSERT(opt);
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* locs = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_temp(0, Location::RegisterLocation(R1));
+  locs->set_temp(1, Location::RegisterLocation(R2));
+  locs->set_temp(2, Location::RegisterLocation(R3));
+  locs->set_out(0, Location::RegisterLocation(R0));
+  return locs;
+}
+
+
+class AllocateContextSlowPath : public SlowPathCode {
+ public:
+  explicit AllocateContextSlowPath(
+      AllocateUninitializedContextInstr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("AllocateContextSlowPath");
+    __ Bind(entry_label());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out(0));
+
+    compiler->SaveLiveRegisters(locs);
+
+    __ LoadImmediate(R1, instruction_->num_context_variables(), PP);
+    StubCode* stub_code = compiler->isolate()->stub_code();
+    const ExternalLabel label(stub_code->AllocateContextEntryPoint());
+    compiler->GenerateCall(instruction_->token_pos(),
+                           &label,
+                           RawPcDescriptors::kOther,
+                           locs);
+    ASSERT(instruction_->locs()->out(0).reg() == R0);
+    compiler->RestoreLiveRegisters(instruction_->locs());
+    __ b(exit_label());
+  }
+
+ private:
+  AllocateUninitializedContextInstr* instruction_;
+};
+
+
+
+void AllocateUninitializedContextInstr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  Register temp0 = locs()->temp(0).reg();
+  Register temp1 = locs()->temp(1).reg();
+  Register temp2 = locs()->temp(2).reg();
+  Register result = locs()->out(0).reg();
+  // Try allocate the object.
+  AllocateContextSlowPath* slow_path = new AllocateContextSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+  intptr_t instance_size = Context::InstanceSize(num_context_variables());
+
+  __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
+                      result,  // instance
+                      temp0,
+                      temp1,
+                      temp2);
+
+  // Setup up number of context variables field.
+  __ LoadImmediate(temp0, num_context_variables(), PP);
+  __ str(temp0, FieldAddress(result, Context::num_variables_offset()));
+
+  // Setup isolate field.
+  __ ldr(temp0, FieldAddress(CTX, Context::isolate_offset()));
+  __ str(temp0, FieldAddress(result, Context::isolate_offset()));
+
+  __ Bind(slow_path->exit_label());
+}
+
+
 LocationSummary* AllocateContextInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;

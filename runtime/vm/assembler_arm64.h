@@ -1221,6 +1221,14 @@ class Assembler : public ValueObject {
                    Register temp_reg,
                    Register pp);
 
+  void TryAllocateArray(intptr_t cid,
+                        intptr_t instance_size,
+                        Label* failure,
+                        Register instance,
+                        Register end_address,
+                        Register temp1,
+                        Register temp2);
+
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,

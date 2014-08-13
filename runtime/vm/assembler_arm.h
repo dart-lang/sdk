@@ -809,6 +809,14 @@ class Assembler : public ValueObject {
                    Register instance_reg,
                    Register temp_reg);
 
+  void TryAllocateArray(intptr_t cid,
+                        intptr_t instance_size,
+                        Label* failure,
+                        Register instance,
+                        Register end_address,
+                        Register temp1,
+                        Register temp2);
+
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
 

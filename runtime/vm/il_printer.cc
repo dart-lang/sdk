@@ -576,6 +576,12 @@ void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void AllocateUninitializedContextInstr::PrintOperandsTo(
+    BufferFormatter* f) const {
+  f->Print("%" Pd "", num_context_variables());
+}
+
+
 void MathUnaryInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("'%s', ", MathUnaryInstr::KindToCString(kind()));
   value()->PrintTo(f);

@@ -2203,41 +2203,13 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                                    Label* done) {
   const Register kLengthReg = R2;
   const Register kElemTypeReg = R1;
-  const intptr_t kArraySize = Array::InstanceSize(num_elements);
+  const intptr_t instance_size = Array::InstanceSize(num_elements);
 
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
-  __ LoadImmediate(R6, heap->TopAddress());
-  __ ldr(R0, Address(R6, 0));  // Potential new object start.
-  __ AddImmediate(R7, R0, kArraySize);  // Potential next object start.
-  __ b(slow_path, VS);
-
-  // Check if the allocation fits into the remaining space.
-  // R0: potential new object start.
-  // R7: potential next object start.
-  __ LoadImmediate(R3, heap->EndAddress());
-  __ ldr(R3, Address(R3, 0));
-  __ cmp(R7, Operand(R3));
-  __ b(slow_path, CS);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ str(R7, Address(R6, 0));
-  __ add(R0, R0, Operand(kHeapObjectTag));
-  __ LoadImmediate(R8, heap->TopAddress());
-  __ UpdateAllocationStatsWithSize(kArrayCid, R8, R4);
-
-
-  // Initialize the tags.
-  // R0: new object start as a tagged pointer.
-  {
-    uword tags = 0;
-    tags = RawObject::ClassIdTag::update(kArrayCid, tags);
-    tags = RawObject::SizeTag::update(kArraySize, tags);
-    __ LoadImmediate(R8, tags);
-    __ str(R8, FieldAddress(R0, Array::tags_offset()));  // Store tags.
-  }
+  __ TryAllocateArray(kArrayCid, instance_size, slow_path,
+                      R0,  // instance
+                      R7,  // end address
+                      R6,
+                      R8);
   // R0: new object start as a tagged pointer.
   // R7: new object end address.
 
@@ -2554,6 +2526,83 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
   __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
   __ Pop(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
+}
+
+
+LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
+    Isolate* isolate,
+    bool opt) const {
+  ASSERT(opt);
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* locs = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  locs->set_temp(0, Location::RegisterLocation(R1));
+  locs->set_temp(1, Location::RegisterLocation(R2));
+  locs->set_temp(2, Location::RegisterLocation(R3));
+  locs->set_out(0, Location::RegisterLocation(R0));
+  return locs;
+}
+
+
+class AllocateContextSlowPath : public SlowPathCode {
+ public:
+  explicit AllocateContextSlowPath(
+      AllocateUninitializedContextInstr* instruction)
+      : instruction_(instruction) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Comment("AllocateContextSlowPath");
+    __ Bind(entry_label());
+
+    LocationSummary* locs = instruction_->locs();
+    locs->live_registers()->Remove(locs->out(0));
+
+    compiler->SaveLiveRegisters(locs);
+
+    __ LoadImmediate(R1, instruction_->num_context_variables());
+    StubCode* stub_code = compiler->isolate()->stub_code();
+    const ExternalLabel label(stub_code->AllocateContextEntryPoint());
+    compiler->GenerateCall(instruction_->token_pos(),
+                           &label,
+                           RawPcDescriptors::kOther,
+                           locs);
+    ASSERT(instruction_->locs()->out(0).reg() == R0);
+    compiler->RestoreLiveRegisters(instruction_->locs());
+    __ b(exit_label());
+  }
+
+ private:
+  AllocateUninitializedContextInstr* instruction_;
+};
+
+
+void AllocateUninitializedContextInstr::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  Register temp0 = locs()->temp(0).reg();
+  Register temp1 = locs()->temp(1).reg();
+  Register temp2 = locs()->temp(2).reg();
+  Register result = locs()->out(0).reg();
+  // Try allocate the object.
+  AllocateContextSlowPath* slow_path = new AllocateContextSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+  intptr_t instance_size = Context::InstanceSize(num_context_variables());
+
+  __ TryAllocateArray(kContextCid, instance_size, slow_path->entry_label(),
+                      result,  // instance
+                      temp0,
+                      temp1,
+                      temp2);
+
+  // Setup up number of context variables field.
+  __ LoadImmediate(temp0, num_context_variables());
+  __ str(temp0, FieldAddress(result, Context::num_variables_offset()));
+
+  // Setup isolate field.
+  __ ldr(temp0, FieldAddress(CTX, Context::isolate_offset()));
+  __ str(temp0, FieldAddress(result, Context::isolate_offset()));
+
+  __ Bind(slow_path->exit_label());
 }
 
 

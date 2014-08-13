@@ -855,6 +855,13 @@ CompileType AllocateContextInstr::ComputeType() const {
 }
 
 
+CompileType AllocateUninitializedContextInstr::ComputeType() const {
+  return CompileType(CompileType::kNonNullable,
+                     kContextCid,
+                     &AbstractType::ZoneHandle(Type::DynamicType()));
+}
+
+
 CompileType StaticCallInstr::ComputeType() const {
   if (result_cid_ != kDynamicCid) {
     return CompileType::FromCid(result_cid_);
