@@ -3,7 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
-observatory/test/allocations_test: Fail # Issue 20487
+# The transformations of dart2dart are not guaranteed to preserve the
+# state/properties of the VM that the Observatory tests are inspecting.
+observatory/test/*: Skip
 
 [ $browser ]
 observatory/test/*: Skip # Uses dart:io
