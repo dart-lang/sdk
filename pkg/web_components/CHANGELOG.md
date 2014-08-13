@@ -2,6 +2,10 @@
 
 This file contains highlights of what changes on each version of this package.
 
+#### Pub version 0.5.0+1
+  * Backward compatible change to prepare for upcoming change of the user agent
+    in Dartium.
+
 #### Pub version 0.5.0
   * Upgrades to platform version 0.3.4-02a0f66 (see lib/build.log for details).
 

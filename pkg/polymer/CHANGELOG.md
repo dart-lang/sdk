@@ -4,6 +4,10 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.2-dev
+  * Backward compatible change to prepare for upcoming change of the user agent
+    in Dartium.
+
 #### Pub version 0.12.1
   * **New**: When running in pub-serve, any warnings and errors detected by the
     polymer transformers will be displayed in the lower-right corner of your
