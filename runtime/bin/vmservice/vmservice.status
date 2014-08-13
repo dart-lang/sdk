@@ -2,5 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2dart ]
+observatory/test/allocations_test: Fail # Issue 20487
+
 [ $browser ]
 observatory/test/*: Skip # Uses dart:io
