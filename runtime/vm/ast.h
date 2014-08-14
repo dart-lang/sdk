@@ -524,7 +524,6 @@ class ReturnNode : public AstNode {
       : AstNode(token_pos),
         value_(new LiteralNode(token_pos, Instance::ZoneHandle())),
         inlined_finally_list_(),
-        saved_return_value_var_(NULL),
         is_regular_return_(true) { }
   // Return from a non-void function.
   ReturnNode(intptr_t token_pos,
@@ -532,7 +531,6 @@ class ReturnNode : public AstNode {
       : AstNode(token_pos),
         value_(value),
         inlined_finally_list_(),
-        saved_return_value_var_(NULL),
         is_regular_return_(true) {
     ASSERT(value_ != NULL);
   }
@@ -547,13 +545,6 @@ class ReturnNode : public AstNode {
   }
   void AddInlinedFinallyNode(InlinedFinallyNode* finally_node) {
     inlined_finally_list_.Add(finally_node);
-  }
-
-  LocalVariable* saved_return_value_var() const {
-    return saved_return_value_var_;
-  }
-  void set_saved_return_value_var(LocalVariable* var) {
-    saved_return_value_var_ = var;
   }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
@@ -573,7 +564,6 @@ class ReturnNode : public AstNode {
  private:
   AstNode* value_;
   GrowableArray<InlinedFinallyNode*> inlined_finally_list_;
-  LocalVariable* saved_return_value_var_;
   LocalScope* scope_;
   bool is_regular_return_;
 

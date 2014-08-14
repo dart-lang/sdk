@@ -12,6 +12,7 @@
 #error Do not include this file on Windows.
 #endif
 
+#include <pthread.h>
 #include <signal.h>  // NOLINT
 
 namespace dart {

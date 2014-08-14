@@ -115,14 +115,28 @@ static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
 LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   if (!has_expression_temp_var()) {
     LocalVariable* temp =
-        new LocalVariable(function_.token_pos(),
-                          Symbols::ExprTemp(),
-                          Type::ZoneHandle(Type::DynamicType()));
+        new (I) LocalVariable(function_.token_pos(),
+                              Symbols::ExprTemp(),
+                              Type::ZoneHandle(Type::DynamicType()));
     ASSERT(temp != NULL);
     set_expression_temp_var(temp);
   }
   ASSERT(has_expression_temp_var());
   return expression_temp_var();
+}
+
+
+void ParsedFunction::EnsureFinallyReturnTemp() {
+  if (!has_finally_return_temp_var()) {
+    LocalVariable* temp = new(I) LocalVariable(
+        function_.token_pos(),
+        String::ZoneHandle(I, Symbols::New(":finally_ret_val")),
+        Type::ZoneHandle(I, Type::DynamicType()));
+    ASSERT(temp != NULL);
+    temp->set_is_final();
+    set_finally_return_temp_var(temp);
+  }
+  ASSERT(has_finally_return_temp_var());
 }
 
 
@@ -843,6 +857,10 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     node_sequence->scope()->AddVariable(
         parsed_function->saved_current_context_var());
   }
+  if (parsed_function->has_finally_return_temp_var()) {
+    node_sequence->scope()->AddVariable(
+        parsed_function->finally_return_temp_var());
+  }
   parsed_function->SetNodeSequence(node_sequence);
 
   // The instantiator may be required at run time for generic type checks or
@@ -1114,15 +1132,16 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
   LocalVariable* context_var =
       current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
   if (context_var == NULL) {
-    context_var = new LocalVariable(token_pos,
-                                    Symbols::SavedTryContextVar(),
-                                    Type::ZoneHandle(I, Type::DynamicType()));
+    context_var = new(I) LocalVariable(
+        token_pos,
+        Symbols::SavedTryContextVar(),
+        Type::ZoneHandle(I, Type::DynamicType()));
     current_block_->scope->AddVariable(context_var);
   }
   LocalVariable* catch_excp_var =
       current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
   if (catch_excp_var == NULL) {
-    catch_excp_var = new LocalVariable(
+    catch_excp_var = new (I) LocalVariable(
         token_pos,
         Symbols::ExceptionVar(),
         Type::ZoneHandle(I, Type::DynamicType()));
@@ -1131,7 +1150,7 @@ SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
   LocalVariable* catch_trace_var =
       current_block_->scope->LocalLookupVariable(Symbols::StackTraceVar());
   if (catch_trace_var == NULL) {
-    catch_trace_var = new LocalVariable(
+    catch_trace_var = new (I) LocalVariable(
         token_pos,
         Symbols::StackTraceVar(),
         Type::ZoneHandle(I, Type::DynamicType()));
@@ -6076,8 +6095,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // Add the function variable to the scope before parsing the function in
     // order to allow self reference from inside the function.
     function_variable = new(I) LocalVariable(function_pos,
-                                          *variable_name,
-                                          function_type);
+                                             *variable_name,
+                                             function_type);
     function_variable->set_is_final();
     ASSERT(current_block_ != NULL);
     ASSERT(current_block_->scope != NULL);
@@ -7247,12 +7266,8 @@ void Parser::AddFinallyBlockToNode(AstNode* node,
                                    InlinedFinallyNode* finally_node) {
   ReturnNode* return_node = node->AsReturnNode();
   if (return_node != NULL) {
+    parsed_function()->EnsureFinallyReturnTemp();
     return_node->AddInlinedFinallyNode(finally_node);
-    if (return_node->saved_return_value_var() == NULL) {
-      LocalVariable* temp =
-          CreateTempConstVariable(node->token_pos(), "finally_ret_val");
-      return_node->set_saved_return_value_var(temp);
-    }
     return;
   }
   JumpNode* jump_node = node->AsJumpNode();
@@ -7533,9 +7548,9 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     while (node_to_inline != NULL) {
       finally_block = ParseFinallyBlock();
       InlinedFinallyNode* node = new(I) InlinedFinallyNode(finally_pos,
-                                                        finally_block,
-                                                        context_var,
-                                                        outer_try_index);
+                                                           finally_block,
+                                                           context_var,
+                                                           outer_try_index);
       AddFinallyBlockToNode(node_to_inline, node);
       node_index += 1;
       node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);

@@ -992,7 +992,8 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   Value* return_value = for_value.value();
 
   if (node->inlined_finally_list_length() > 0) {
-    LocalVariable* temp = node->saved_return_value_var();
+    LocalVariable* temp = owner()->parsed_function()->finally_return_temp_var();
+    ASSERT(temp != NULL);
     Do(BuildStoreLocal(*temp, return_value));
     for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
       InlineBailout("EffectGraphVisitor::VisitReturnNode (exception)");
