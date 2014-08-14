@@ -1035,19 +1035,20 @@ final Matcher isElement = new MatchesJsonObject(
  *   CLASS_TYPE_ALIAS
  *   COMPILATION_UNIT
  *   CONSTRUCTOR
- *   GETTER
  *   FIELD
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
+ *   GETTER
  *   LIBRARY
  *   LOCAL_VARIABLE
  *   METHOD
+ *   PARAMETER
  *   SETTER
  *   TOP_LEVEL_VARIABLE
  *   TYPE_PARAMETER
- *   UNKNOWN
  *   UNIT_TEST_GROUP
  *   UNIT_TEST_TEST
+ *   UNKNOWN
  * }
  */
 final Matcher isElementKind = new MatchesEnum("ElementKind", [
@@ -1055,19 +1056,20 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "CLASS_TYPE_ALIAS",
   "COMPILATION_UNIT",
   "CONSTRUCTOR",
-  "GETTER",
   "FIELD",
   "FUNCTION",
   "FUNCTION_TYPE_ALIAS",
+  "GETTER",
   "LIBRARY",
   "LOCAL_VARIABLE",
   "METHOD",
+  "PARAMETER",
   "SETTER",
   "TOP_LEVEL_VARIABLE",
   "TYPE_PARAMETER",
-  "UNKNOWN",
   "UNIT_TEST_GROUP",
-  "UNIT_TEST_TEST"
+  "UNIT_TEST_TEST",
+  "UNKNOWN"
 ]);
 
 /**
