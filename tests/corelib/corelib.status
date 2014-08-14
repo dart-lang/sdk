@@ -80,6 +80,9 @@ iterable_return_type_test/02: RuntimeError # Issue 13646
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
 
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+core_runtime_types_test: Pass, Fail # Issue 20525
+
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 

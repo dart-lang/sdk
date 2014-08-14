@@ -46,6 +46,8 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 1766
 audiobuffersourcenode_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
 audiocontext_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issue 20524
+
 element_offset_test/offset: RuntimeError # Issue 17550
 request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
 fileapi_test/fileEntry: RuntimeError # Issue 20488
