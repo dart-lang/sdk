@@ -8,7 +8,7 @@ During development you do not need to run dart2js or rebuild the VM (unless
 you are also making changes to the backend). While you're working on your
 feature follow the steps:
 
-1. Open runtime/bin/vmservice/client in the Dart Editor
+1. Open runtime/bin/vmservice/observatory in the Dart Editor
 2. Run pub upgrade
 3. Run dart --observe script.dart
 4. Run index.html in Dartium
