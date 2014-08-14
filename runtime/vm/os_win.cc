@@ -11,6 +11,9 @@
 #include <process.h>  // NOLINT
 #include <time.h>  // NOLINT
 
+// TODO(iposva): Move this out to bin/thread initialization.
+#include "bin/thread.h"
+
 #include "platform/utils.h"
 #include "platform/assert.h"
 #include "vm/thread.h"
@@ -315,6 +318,9 @@ void OS::InitOnce() {
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
   MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
   MonitorData::GetMonitorWaitDataForThread();
+  // TODO(iposva): Move this out to bin/thread initialization.
+  bin::MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
+  bin::MonitorData::GetMonitorWaitDataForThread();
 }
 
 
