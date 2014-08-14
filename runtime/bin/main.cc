@@ -20,6 +20,7 @@
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
+#include "bin/thread.h"
 #include "bin/vmservice_impl.h"
 #include "platform/globals.h"
 #include "platform/hashmap.h"
@@ -985,6 +986,8 @@ void main(int argc, char** argv) {
       exit(kErrorExitCode);
     }
   }
+
+  Thread::InitOnce();
 
   if (!DartUtils::SetOriginalWorkingDirectory()) {
     OSError err;

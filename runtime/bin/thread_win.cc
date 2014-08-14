@@ -165,6 +165,12 @@ void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
 }
 
 
+void Thread::InitOnce() {
+  MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
+  MonitorData::GetMonitorWaitDataForThread();
+}
+
+
 Mutex::Mutex() {
   // Allocate unnamed semaphore with initial count 1 and max count 1.
   data_.semaphore_ = CreateSemaphore(NULL, 1, 1, NULL);

@@ -15,6 +15,7 @@
 #include "bin/dartutils.h"
 #include "bin/file.h"
 #include "bin/log.h"
+#include "bin/thread.h"
 
 #include "platform/globals.h"
 
@@ -495,6 +496,7 @@ int main(int argc, char** argv) {
     return 255;
   }
 
+  Thread::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());

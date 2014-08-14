@@ -178,6 +178,11 @@ void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
 }
 
 
+void Thread::InitOnce() {
+  // Nothing to be done.
+}
+
+
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);
