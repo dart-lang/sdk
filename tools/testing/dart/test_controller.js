@@ -109,16 +109,39 @@ var isContentShell = testRunner;
 
 var waitForDone = false;
 
+var driverWindowCached = false;
+var driverWindow;
+var reportingDriverWindowError = false;
+
 // Returns the driving window object if available
+// This function occasionally returns null instead of the
+// parent on Android content shell, so we cache the value
+// to get a consistent answer.
 function getDriverWindow() {
   if (window != window.parent) {
     // We're running in an iframe.
-    return window.parent;
+    result = window.parent;
   } else if (window.opener) {
     // We were opened by another window.
-    return window.opener;
+    result = window.opener;
+  } else {
+    result = null;
   }
-  return null;
+  if (driverWindowCached) {
+    if (result != driverWindow) {
+      recordEvent('debug', 'Driver windows changed: was null == ' +
+           (driverWindow == null) + ', is null == ' + (result == null));
+      // notifyDone calls back into this function multiple times.  Avoid loop.
+      if (!reportingDriverWindowError) {
+        reportingDriverWindowError = true;
+        notifyDone('FAIL');
+      }
+    }
+  } else {
+    driverWindowCached = true;
+    driverWindow = result;
+  }
+  return driverWindow;
 }
 
 function usingBrowserController() {
