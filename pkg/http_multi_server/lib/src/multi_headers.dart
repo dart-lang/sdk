@@ -95,13 +95,13 @@ class MultiHeaders implements HttpHeaders {
 
   void remove(String name, Object value) {
     for (var headers in _headers) {
-      headers.remove(name);
+      headers.remove(name, value);
     }
   }
 
   void removeAll(String name) {
     for (var headers in _headers) {
-      headers.removeAll(name, value);
+      headers.removeAll(name);
     }
   }
 
@@ -114,4 +114,10 @@ class MultiHeaders implements HttpHeaders {
   String value(String name) => _headers.first.value(name);
 
   List<String> operator[](String name) => _headers.first[name];
+
+  void clear() {
+    for (var headers in _headers) {
+      headers.clear();
+    }
+  }
 }

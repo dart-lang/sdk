@@ -1,3 +1,9 @@
+## 1.2.0
+
+* Add support for `HttpServer.defaultResponseHeaders.clear`.
+
+* Fix `HttpServer.defaultResponseHeaders.remove` and `.removeAll`.
+
 ## 1.1.0
 
 * Add support for `HttpServer.defaultResponseHeaders`.
