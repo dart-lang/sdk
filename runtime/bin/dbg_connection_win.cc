@@ -28,7 +28,7 @@ void DebuggerConnectionImpl::ThreadEntry(uword args) {
 
 void DebuggerConnectionImpl::StartHandler(int port_number) {
   ASSERT(DebuggerConnectionHandler::listener_fd_ != -1);
-  int result = dart::Thread::Start(&DebuggerConnectionImpl::ThreadEntry, 0);
+  int result = Thread::Start(&DebuggerConnectionImpl::ThreadEntry, 0);
   if (result != 0) {
     FATAL1("Failed to start debugger connection handler thread: %d\n", result);
   }

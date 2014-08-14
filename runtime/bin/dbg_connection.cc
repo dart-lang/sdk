@@ -24,7 +24,7 @@ namespace bin {
 extern bool trace_debug_protocol;
 
 intptr_t DebuggerConnectionHandler::listener_fd_ = -1;
-dart::Monitor* DebuggerConnectionHandler::handler_lock_ = new dart::Monitor();
+Monitor* DebuggerConnectionHandler::handler_lock_ = new Monitor();
 
 // TODO(asiva): Remove this once we have support for multiple debugger
 // connections. For now we just store the single debugger connection
@@ -346,8 +346,8 @@ void DebuggerConnectionHandler::WaitForConnection() {
     return;
   }
   while (!IsConnected()) {
-    dart::Monitor::WaitResult res = ml.Wait();
-    ASSERT(res == dart::Monitor::kNotified);
+    Monitor::WaitResult res = ml.Wait();
+    ASSERT(res == Monitor::kNotified);
   }
 }
 
@@ -395,7 +395,7 @@ void DebuggerConnectionHandler::SendMsgHelper(intptr_t debug_fd,
     intptr_t remaining = msg->length();
     intptr_t sent = 0;
     const intptr_t max_piece_len = 122;  // Pretty arbitrary, not a power of 2.
-    dart::Monitor sleep;
+    Monitor sleep;
     while (remaining > 0) {
       intptr_t piece_len = remaining;
       if (piece_len > max_piece_len) {

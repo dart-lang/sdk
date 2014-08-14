@@ -106,7 +106,7 @@ void DebuggerConnectionImpl::SetupPollQueue() {
 void DebuggerConnectionImpl::StartHandler(int port_number) {
   ASSERT(DebuggerConnectionHandler::listener_fd_ != -1);
   SetupPollQueue();
-  int result = dart::Thread::Start(&DebuggerConnectionImpl::Handler, 0);
+  int result = Thread::Start(&DebuggerConnectionImpl::Handler, 0);
   if (result != 0) {
     FATAL1("Failed to start debugger connection handler thread: %d\n", result);
   }

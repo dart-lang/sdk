@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 
 namespace dart {
+namespace bin {
 
 class ThreadStartData {
  public:
@@ -434,6 +435,7 @@ void Monitor::NotifyAll() {
   data_.SignalAndRemoveAllWaiters();
 }
 
+}  // namespace bin
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

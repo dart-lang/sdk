@@ -103,7 +103,7 @@ class DebuggerConnectionHandler {
   // mutex/condition variable used by isolates when writing back to the
   // debugger. This is also used to ensure that the isolate waits for
   // a debugger to be attached when that is requested on the command line.
-  static dart::Monitor* handler_lock_;
+  static Monitor* handler_lock_;
 
   static bool IsListening() {
     return listener_fd_ != -1;

@@ -14,6 +14,7 @@
 #include "platform/assert.h"
 
 namespace dart {
+namespace bin {
 
 #define VALIDATE_PTHREAD_RESULT(result) \
   if (result != 0) { \
@@ -325,6 +326,7 @@ void Monitor::NotifyAll() {
   VALIDATE_PTHREAD_RESULT(result);
 }
 
+}  // namespace bin
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)

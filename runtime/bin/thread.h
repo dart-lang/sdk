@@ -21,6 +21,7 @@
 #endif
 
 namespace dart {
+namespace bin {
 
 class Thread {
  public:
@@ -95,6 +96,7 @@ class Monitor {
 };
 
 
+}  // namespace bin
 }  // namespace dart
 
 

@@ -17,7 +17,7 @@ namespace bin {
 static const int kProcessIdNativeField = 0;
 
 int Process::global_exit_code_ = 0;
-dart::Mutex* Process::global_exit_code_mutex_ = new dart::Mutex();
+Mutex* Process::global_exit_code_mutex_ = new Mutex();
 
 // Extract an array of C strings from a list of Dart strings.
 static char** ExtractCStringList(Dart_Handle strings,

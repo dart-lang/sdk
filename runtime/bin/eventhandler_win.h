@@ -335,7 +335,7 @@ class StdHandle : public FileHandle {
   DWORD thread_wrote_;
   bool write_thread_exists_;
   bool write_thread_running_;
-  dart::Monitor* write_monitor_;
+  Monitor* write_monitor_;
 };
 
 

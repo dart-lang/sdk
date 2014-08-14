@@ -93,7 +93,7 @@ class SSLFilter {
   static const int kMemioBufferSize = 20 * KB;
   static bool library_initialized_;
   static const char* password_;
-  static dart::Mutex* mutex_;  // To protect library initialization.
+  static Mutex* mutex_;  // To protect library initialization.
 
   uint8_t* buffers_[kNumBuffers];
   int buffer_size_;
