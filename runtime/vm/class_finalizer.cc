@@ -93,6 +93,27 @@ static void CollectFinalizedSuperClasses(
 }
 
 
+static void CollectImmediateSuperInterfaces(
+    const Class& cls, GrowableArray<intptr_t>* cids) {
+  const Array& interfaces = Array::Handle(cls.interfaces());
+  Class& ifc = Class::Handle();
+  AbstractType& type = AbstractType::Handle();
+  for (intptr_t i = 0; i < interfaces.Length(); ++i) {
+    type ^= interfaces.At(i);
+    if (type.IsMalformed()) continue;
+    if (!type.HasResolvedTypeClass()) continue;
+    ifc ^= type.type_class();
+    for (intptr_t j = 0; j < cids->length(); ++j) {
+      if ((*cids)[j] == ifc.id()) {
+        // Already added.
+        return;
+      }
+    }
+    cids->Add(ifc.id());
+  }
+}
+
+
 // Processing ObjectStore::pending_classes_ occurs:
 // a) when bootstrap process completes (VerifyBootstrapClasses).
 // b) after the user classes are loaded (dart_api).
@@ -2287,8 +2308,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     // the class conflict with inherited methods.
     ApplyMixinMembers(cls);
   }
-  GrowableArray<intptr_t> added_subclass_to_cids;
-  CollectFinalizedSuperClasses(cls, &added_subclass_to_cids);
   // Ensure super class is finalized.
   const Class& super = Class::Handle(cls.SuperClass());
   if (!super.IsNull()) {
@@ -2317,7 +2336,10 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     CheckForLegalConstClass(cls);
   }
   if (FLAG_use_cha) {
-    RemoveCHAOptimizedCode(added_subclass_to_cids);
+    GrowableArray<intptr_t> cids;
+    CollectFinalizedSuperClasses(cls, &cids);
+    CollectImmediateSuperInterfaces(cls, &cids);
+    RemoveCHAOptimizedCode(cids);
   }
 }
 

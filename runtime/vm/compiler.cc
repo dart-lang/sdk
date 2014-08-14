@@ -8,6 +8,7 @@
 
 #include "vm/ast_printer.h"
 #include "vm/block_scheduler.h"
+#include "vm/cha.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
@@ -252,7 +253,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
   HANDLESCOPE(isolate);
-  isolate->set_cha_used(false);
 
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM and MIPS. In the else branch of the setjmp call,
@@ -269,6 +269,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
       FlowGraph* flow_graph = NULL;
+
+      // Class hierarchy analysis is registered with the isolate in the
+      // constructor and unregisters itself upon destruction.
+      CHA cha(isolate);
+
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
       {
@@ -545,12 +550,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
-        // CHA should not be used for unoptimized code.
-        ASSERT(optimized || !isolate->cha_used());
-        if (isolate->cha_used()) {
-          Class::Handle(function.Owner()).RegisterCHACode(code);
-          isolate->set_cha_used(false);
-        }
         graph_compiler.FinalizePcDescriptors(code);
         graph_compiler.FinalizeDeoptInfo(code);
         graph_compiler.FinalizeStackmaps(code);
@@ -571,6 +570,13 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
             }
           }
           function.AttachCode(code);
+
+          // Register code with the classes it depends on because of CHA.
+          for (intptr_t i = 0;
+               i < isolate->cha()->leaf_classes().length();
+               ++i) {
+            isolate->cha()->leaf_classes()[i]->RegisterCHACode(code);
+          }
 
           for (intptr_t i = 0;
                i < flow_graph->guarded_fields()->length();

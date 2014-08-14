@@ -429,7 +429,7 @@ Isolate::Isolate()
       stack_frame_index_(-1),
       last_allocationprofile_accumulator_reset_timestamp_(0),
       last_allocationprofile_gc_timestamp_(0),
-      cha_used_(false),
+      cha_(NULL),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
       profiler_data_(NULL),
