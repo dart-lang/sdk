@@ -191,7 +191,9 @@ class CommandLineOptions {
 
   static String _getVersion() {
     try {
-      String versionPath = Platform.script.resolve('../version').toFilePath();
+      // This is relative to bin/snapshot, so ../..
+      String versionPath =
+          Platform.script.resolve('../../version').toFilePath();
       File versionFile = new File(versionPath);
       return versionFile.readAsStringSync().trim();
     } catch (_) {
