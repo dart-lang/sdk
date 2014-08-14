@@ -456,6 +456,59 @@ class _ListOf extends Matcher {
 Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
 
 /**
+ * Type of closures used by LazyMatcher.
+ */
+typedef Matcher MatcherCreator();
+
+/**
+ * Wrapper class for Matcher which doesn't create the underlying Matcher object
+ * until it is needed.  This is necessary in order to create matchers that can
+ * refer to themselves (so that recursive data structures can be represented).
+ */
+class LazyMatcher implements Matcher {
+  /**
+   * Callback that will be used to create the matcher the first time it is
+   * needed.
+   */
+  final MatcherCreator _creator;
+
+  /**
+   * The matcher returned by [_creator], if it has already been called.
+   * Otherwise null.
+   */
+  Matcher _wrappedMatcher;
+
+  LazyMatcher(this._creator);
+
+  @override
+  Description describe(Description description) {
+    _createMatcher();
+    return _wrappedMatcher.describe(description);
+  }
+
+  @override
+  Description describeMismatch(item, Description mismatchDescription, Map matchState, bool verbose) {
+    _createMatcher();
+    return _wrappedMatcher.describeMismatch(item, mismatchDescription, matchState, verbose);
+  }
+
+  @override
+  bool matches(item, Map matchState) {
+    _createMatcher();
+    return _wrappedMatcher.matches(item, matchState);
+  }
+
+  /**
+   * Create the wrapped matcher object, if it hasn't been created already.
+   */
+  void _createMatcher() {
+    if (_wrappedMatcher == null) {
+      _wrappedMatcher = _creator();
+    }
+  }
+}
+
+/**
  * Matcher that matches a union of different types, each of which is described
  * by a matcher.
  */

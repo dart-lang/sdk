@@ -136,7 +136,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   void visitTypeObject(TypeObject typeObject) {
-    writeln('new MatchesJsonObject(');
+    writeln('new LazyMatcher(() => new MatchesJsonObject(');
     indent(() {
       write('${JSON.encode(context)}, ');
       Iterable<TypeObjectField> requiredFields = typeObject.fields.where(
@@ -149,7 +149,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
         outputObjectFields(optionalFields);
       }
     });
-    write(')');
+    write('))');
   }
 
   /**
