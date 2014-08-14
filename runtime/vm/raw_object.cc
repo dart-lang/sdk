@@ -18,7 +18,7 @@ namespace dart {
 const intptr_t RawPcDescriptors::kFullRecSize =
     sizeof(RawPcDescriptors::PcDescriptorRec);
 const intptr_t RawPcDescriptors::kCompressedRecSize =
-    kFullRecSize - sizeof(int16_t);
+    sizeof(RawPcDescriptors::CompressedPcDescriptorRec);
 
 bool RawObject::IsVMHeapObject() const {
   return Dart::vm_isolate()->heap()->Contains(ToAddr(this));

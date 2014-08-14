@@ -788,6 +788,9 @@ class Assembler : public ValueObject {
   //   call L             (size is 5 bytes)
   //   L:
   static const intptr_t kEntryPointToPcMarkerOffset = 8;
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return kEntryPointToPcMarkerOffset;
+  }
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,

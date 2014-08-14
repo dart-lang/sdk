@@ -985,7 +985,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   // The runtime system assumes that the code marker address is
   // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
   // code to set up the frame pointer, etc., the address needs to be adjusted.
-  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
   // Calculate the offset of the pool pointer from the PC.
   const intptr_t object_pool_pc_dist =
       Instructions::HeaderSize() - Instructions::object_pool_offset() +

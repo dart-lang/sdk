@@ -69,6 +69,7 @@ bool HostCPUFeatures::neon_supported_ = false;
 bool HostCPUFeatures::hardfp_supported_ = false;
 const char* HostCPUFeatures::hardware_ = NULL;
 ARMVersion HostCPUFeatures::arm_version_ = ARMvUnknown;
+intptr_t HostCPUFeatures::store_pc_read_offset_ = 8;
 #if defined(DEBUG)
 bool HostCPUFeatures::initialized_ = false;
 #endif
@@ -89,6 +90,10 @@ void HostCPUFeatures::InitOnce() {
       CpuInfo::FieldContains(kCpuInfoModel, "ARM926EJ-S")) {
     // Lego Mindstorm EV3.
     arm_version_ = ARMv5TE;
+    // On ARMv5, the PC read offset in an STR or STM instruction is either 8 or
+    // 12 bytes depending on the implementation. On the Mindstorm EV3 it is 12
+    // bytes.
+    store_pc_read_offset_ = 12;
   } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv6") ||
              CpuInfo::FieldContains(kCpuInfoModel, "ARMv6")) {
     // Raspberry Pi, etc.

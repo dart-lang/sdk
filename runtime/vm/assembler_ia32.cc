@@ -2571,7 +2571,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   // The runtime system assumes that the code marker address is
   // kEntryPointToPcMarkerOffset bytes from the entry.  If there is any code
   // generated before entering the frame, the address needs to be adjusted.
-  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
   if (offset != 0) {
     addl(Address(ESP, 0), Immediate(offset));
   }
@@ -2594,7 +2594,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   // The runtime system assumes that the code marker address is
   // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
   // code to set up the frame pointer, the address needs to be adjusted.
-  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
   if (offset != 0) {
     addl(Address(ESP, 0), Immediate(offset));
   }

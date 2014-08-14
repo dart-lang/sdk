@@ -192,7 +192,7 @@ RawCode* StackFrame::GetCodeObject() const {
       *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
   if (pc_marker != 0) {
     const uword entry_point =
-        (pc_marker - Assembler::kEntryPointToPcMarkerOffset);
+        (pc_marker - Assembler::EntryPointToPcMarkerOffset());
     RawInstructions* instr = Instructions::FromEntryPoint(entry_point);
     if (instr != Instructions::null()) {
       return instr->ptr()->code_;

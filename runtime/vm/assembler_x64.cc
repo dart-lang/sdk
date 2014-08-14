@@ -3023,7 +3023,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   const intptr_t object_pool_pc_dist =
       Instructions::HeaderSize() - Instructions::object_pool_offset() +
       CodeSize();
-  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
   if (offset != 0) {
     addq(Address(RSP, 0), Immediate(offset));
   }
@@ -3082,7 +3082,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size,
     const intptr_t object_pool_pc_dist =
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
         CodeSize();
-    const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+    const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
     if (offset != 0) {
       addq(Address(RSP, 0), Immediate(offset));
     }

@@ -549,6 +549,8 @@ void Assembler::ldm(BlockAddressMode am, Register base, RegList regs,
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, true, base, regs);
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    // On ARMv5, touching a "banked" register after an ldm gives undefined
+    // behavior, so we just add a nop here to make that case easy to avoid.
     nop();
   }
 }
@@ -558,6 +560,11 @@ void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, false, base, regs);
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    // On ARMv5, touching a "banked" register after an stm gives undefined
+    // behavior, so we just add a nop here to make that case easy to avoid.
+    nop();
+  }
 }
 
 
@@ -2810,6 +2817,7 @@ void Assembler::IntegerDivide(Register result, Register left, Register right,
   if (TargetCPUFeatures::integer_division_supported()) {
     sdiv(result, left, right);
   } else {
+    ASSERT(TargetCPUFeatures::vfp_supported());
     SRegister stmpl = static_cast<SRegister>(2 * tmpl);
     SRegister stmpr = static_cast<SRegister>(2 * tmpr);
     vmovsr(stmpl, left);

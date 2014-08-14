@@ -476,6 +476,9 @@ void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 
 
 void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+  if (!TargetCPUFeatures::vfp_supported()) {
+    return;
+  }
   Label fall_through;
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Index.
   __ ldr(R1, Address(SP, + 1 * kWordSize));  // Array.
@@ -511,6 +514,9 @@ void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
 
 
 void Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+  if (!TargetCPUFeatures::vfp_supported()) {
+    return;
+  }
   Label fall_through;
   __ ldr(R0, Address(SP, + 1 * kWordSize));  // Index.
   __ ldr(R1, Address(SP, + 2 * kWordSize));  // Array.
@@ -623,22 +629,23 @@ void Intrinsifier::Integer_sub(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
-  Label fall_through;
-
-  TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
-  __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
-
   if (TargetCPUFeatures::arm_version() == ARMv7) {
+    Label fall_through;
+    TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
+    __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
     __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
     __ cmp(IP, Operand(R0, ASR, 31));
     __ bx(LR, EQ);
-  } else {
+    __ Bind(&fall_through);  // Fall through on overflow.
+  } else if (TargetCPUFeatures::can_divide()) {
+    Label fall_through;
+    TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
+    __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
     __ CheckMultSignedOverflow(R0, R1, IP, D0, D1, &fall_through);
     __ mul(R0, R0, R1);
     __ Ret();
+    __ Bind(&fall_through);  // Fall through on overflow.
   }
-
-  __ Bind(&fall_through);  // Fall through on overflow.
 }
 
 
@@ -704,6 +711,9 @@ static void EmitRemainderOperation(Assembler* assembler) {
 //    }
 //  }
 void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
+  if (!TargetCPUFeatures::can_divide()) {
+    return;
+  }
   // Check to see if we have integer division
   Label fall_through;
   __ ldr(R1, Address(SP, + 0 * kWordSize));
@@ -735,6 +745,9 @@ void Intrinsifier::Integer_moduloFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
+  if (!TargetCPUFeatures::can_divide()) {
+    return;
+  }
   // Check to see if we have integer division
   Label fall_through;
 

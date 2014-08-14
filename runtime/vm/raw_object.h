@@ -971,6 +971,14 @@ class RawPcDescriptors : public RawObject {
     int16_t try_index_;
   };
 
+  // This structure is only used to compute what the size of PcDescriptorRec
+  // should be when the try_index_ field is omitted.
+  struct CompressedPcDescriptorRec {
+    uword pc_;
+    int32_t deopt_id_and_kind_;
+    int32_t token_pos_;
+  };
+
   static intptr_t RecordSize(bool has_try_index);
 
  private:

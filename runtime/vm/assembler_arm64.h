@@ -452,6 +452,9 @@ class Assembler : public ValueObject {
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
   static const intptr_t kEntryPointToPcMarkerOffset = 0;
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return kEntryPointToPcMarkerOffset;
+  }
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);

@@ -991,7 +991,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
         __ CodeSize();
     const intptr_t offset =
-        Assembler::kEntryPointToPcMarkerOffset - __ CodeSize();
+        Assembler::EntryPointToPcMarkerOffset() - __ CodeSize();
     __ popq(new_pc);
     if (offset != 0) {
       __ addq(new_pc, Immediate(offset));
@@ -1035,7 +1035,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
         __ CodeSize();
     const intptr_t offset =
-        Assembler::kEntryPointToPcMarkerOffset - __ CodeSize();
+        Assembler::EntryPointToPcMarkerOffset() - __ CodeSize();
     __ popq(new_pc);
     if (offset != 0) {
       __ addq(new_pc, Immediate(offset));

@@ -3021,13 +3021,15 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
               // IP: result bits 32..63.
               __ cmp(IP, Operand(result, ASR, 31));
               __ b(deopt, NE);
-            } else {
+            } else if (TargetCPUFeatures::can_divide()) {
               const QRegister qtmp = locs()->temp(0).fpu_reg();
               const DRegister dtmp0 = EvenDRegisterOf(qtmp);
               const DRegister dtmp1 = OddDRegisterOf(qtmp);
               __ LoadImmediate(IP, value);
               __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
               __ mul(result, left, IP);
+            } else {
+              __ b(deopt);
             }
           }
         }
@@ -3160,12 +3162,14 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           // IP: result bits 32..63.
           __ cmp(IP, Operand(result, ASR, 31));
           __ b(deopt, NE);
-        } else {
+        } else if (TargetCPUFeatures::can_divide()) {
           const QRegister qtmp = locs()->temp(0).fpu_reg();
           const DRegister dtmp0 = EvenDRegisterOf(qtmp);
           const DRegister dtmp1 = OddDRegisterOf(qtmp);
           __ CheckMultSignedOverflow(IP, right, result, dtmp0, dtmp1, deopt);
           __ mul(result, IP, right);
+        } else {
+          __ b(deopt);
         }
       }
       break;
@@ -3192,11 +3196,14 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ b(deopt, EQ);
       }
       const Register temp = locs()->temp(0).reg();
-      const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
-      __ SmiUntag(temp, left);
-      __ SmiUntag(IP, right);
-
-      __ IntegerDivide(result, temp, IP, dtemp, DTMP);
+      if (TargetCPUFeatures::can_divide()) {
+        const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+        __ SmiUntag(temp, left);
+        __ SmiUntag(IP, right);
+        __ IntegerDivide(result, temp, IP, dtemp, DTMP);
+      } else {
+        __ b(deopt);
+      }
 
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
@@ -3212,12 +3219,14 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ b(deopt, EQ);
       }
       const Register temp = locs()->temp(0).reg();
-      const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
-      __ SmiUntag(temp, left);
-      __ SmiUntag(IP, right);
-
-      __ IntegerDivide(result, temp, IP, dtemp, DTMP);
-
+      if (TargetCPUFeatures::can_divide()) {
+        const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+        __ SmiUntag(temp, left);
+        __ SmiUntag(IP, right);
+        __ IntegerDivide(result, temp, IP, dtemp, DTMP);
+      } else {
+        __ b(deopt);
+      }
       __ SmiUntag(IP, right);
       __ mls(result, IP, result, temp);  // result <- left - right * result
       __ SmiTag(result);
@@ -5394,12 +5403,14 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ b(deopt, EQ);
     }
     const Register temp = locs()->temp(0).reg();
-    const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
-
-    __ SmiUntag(temp, left);
-    __ SmiUntag(IP, right);
-
-    __ IntegerDivide(result_div, temp, IP, dtemp, DTMP);
+    if (TargetCPUFeatures::can_divide()) {
+      const DRegister dtemp = EvenDRegisterOf(locs()->temp(1).fpu_reg());
+      __ SmiUntag(temp, left);
+      __ SmiUntag(IP, right);
+      __ IntegerDivide(result_div, temp, IP, dtemp, DTMP);
+    } else {
+      __ b(deopt);
+    }
 
     // Check the corner case of dividing the 'MIN_SMI' with -1, in which
     // case we cannot tag the result.

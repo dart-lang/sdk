@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/constants_arm.h"
+#include "vm/cpu.h"
 #include "vm/object.h"
 #include "vm/simulator.h"
 
@@ -774,7 +775,9 @@ class Assembler : public ValueObject {
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
-  static const intptr_t kEntryPointToPcMarkerOffset = Instr::kPCReadOffset;
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return TargetCPUFeatures::store_pc_read_offset();
+  }
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,

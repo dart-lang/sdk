@@ -854,6 +854,9 @@ class Assembler : public ValueObject {
   //   call L             (size is 5 bytes)
   //   L:
   static const intptr_t kEntryPointToPcMarkerOffset = 9;
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return kEntryPointToPcMarkerOffset;
+  }
 
   void UpdateAllocationStats(intptr_t cid,
                              Heap::Space space = Heap::kNew);

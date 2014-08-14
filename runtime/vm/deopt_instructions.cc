@@ -1070,7 +1070,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
         Function::Handle(deopt_context->isolate(), code.function());
     ASSERT(function.HasCode());
     const intptr_t pc_marker =
-        code.EntryPoint() + Assembler::kEntryPointToPcMarkerOffset;
+        code.EntryPoint() + Assembler::EntryPointToPcMarkerOffset();
     *dest_addr = pc_marker;
     // Increment the deoptimization counter. This effectively increments each
     // function occurring in the optimized frame.
