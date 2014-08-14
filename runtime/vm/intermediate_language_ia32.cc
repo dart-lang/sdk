@@ -4155,6 +4155,37 @@ void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(
+    Isolate* isolate, bool opt) const {
+  const intptr_t kNumInputs = 4;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(2, Location::RequiresRegister());
+  summary->set_in(3, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register v0 = locs()->in(0).reg();
+  Register v1 = locs()->in(1).reg();
+  Register v2 = locs()->in(2).reg();
+  Register v3 = locs()->in(3).reg();
+  XmmRegister result = locs()->out(0).fpu_reg();
+  __ subl(ESP, Immediate(4 * kInt32Size));
+  __ movl(Address(ESP, 0 * kInt32Size), v0);
+  __ movl(Address(ESP, 1 * kInt32Size), v1);
+  __ movl(Address(ESP, 2 * kInt32Size), v2);
+  __ movl(Address(ESP, 3 * kInt32Size), v3);
+  __ movups(result, Address(ESP, 0));
+  __ addl(ESP, Immediate(4 * kInt32Size));
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     Isolate* isolate, bool opt) const {
   const intptr_t kNumInputs = 4;

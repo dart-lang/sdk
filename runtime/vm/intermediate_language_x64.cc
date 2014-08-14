@@ -4082,6 +4082,37 @@ void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(
+    Isolate* isolate, bool opt) const {
+  const intptr_t kNumInputs = 4;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(2, Location::RequiresRegister());
+  summary->set_in(3, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresFpuRegister());
+  return summary;
+}
+
+
+void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register v0 = locs()->in(0).reg();
+  Register v1 = locs()->in(1).reg();
+  Register v2 = locs()->in(2).reg();
+  Register v3 = locs()->in(3).reg();
+  XmmRegister result = locs()->out(0).fpu_reg();
+  __ AddImmediate(RSP, Immediate(-4 * kInt32Size), PP);
+  __ movl(Address(RSP, 0 * kInt32Size), v0);
+  __ movl(Address(RSP, 1 * kInt32Size), v1);
+  __ movl(Address(RSP, 2 * kInt32Size), v2);
+  __ movl(Address(RSP, 3 * kInt32Size), v3);
+  __ movups(result, Address(RSP, 0));
+  __ AddImmediate(RSP, Immediate(4 * kInt32Size), PP);
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     Isolate* isolate, bool opt) const {
   const intptr_t kNumInputs = 4;
@@ -5492,13 +5523,30 @@ void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* UnboxUint32Instr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(0, Location::SameAsFirstInput());
+  return summary;
 }
 
 
 void UnboxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  ASSERT(value == locs()->out(0).reg());
+
+  if (value_cid == kSmiCid) {
+    __ SmiUntag(value);
+  } else {
+    Label* deopt = compiler->AddDeoptStub(deopt_id_,
+                                          ICData::kDeoptUnboxInteger);
+    __ testq(value, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt);
+    __ SmiUntag(value);
+  }
 }
 
 

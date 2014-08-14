@@ -139,6 +139,7 @@ class RangeBoundary;
   V(_Float64x2, withY, Float64x2WithY, 1496958947)                             \
   V(_Float64x2, min, Float64x2Min, 485240583)                                  \
   V(_Float64x2, max, Float64x2Max, 2146148204)                                 \
+  V(Int32x4, Int32x4., Int32x4Constructor, 665986284)                          \
   V(Int32x4, Int32x4.bool, Int32x4BoolConstructor, 87082660)                   \
   V(Int32x4, Int32x4.fromFloat32x4Bits, Int32x4FromFloat32x4Bits,              \
       372517418)                                                               \
@@ -774,6 +775,7 @@ class EmbeddedArray<T, 0> {
   M(Float32x4With)                                                             \
   M(Float32x4ToInt32x4)                                                        \
   M(MaterializeObject)                                                         \
+  M(Int32x4Constructor)                                                        \
   M(Int32x4BoolConstructor)                                                    \
   M(Int32x4GetFlag)                                                            \
   M(Int32x4Select)                                                             \
@@ -1100,6 +1102,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class Float64x2ZeroInstr;
   friend class Float64x2SplatInstr;
   friend class Float64x2ConstructorInstr;
+  friend class Int32x4ConstructorInstr;
   friend class Int32x4BoolConstructorInstr;
   friend class Int32x4GetFlagInstr;
   friend class Int32x4SetFlagInstr;
@@ -6389,10 +6392,10 @@ class Float64x2OneArgInstr : public TemplateDefinition<2> {
 };
 
 
-class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
+class Int32x4ConstructorInstr : public TemplateDefinition<4> {
  public:
-  Int32x4BoolConstructorInstr(Value* value0, Value* value1, Value* value2,
-                               Value* value3, intptr_t deopt_id) {
+  Int32x4ConstructorInstr(Value* value0, Value* value1, Value* value2,
+                          Value* value3, intptr_t deopt_id) {
     SetInputAt(0, value0);
     SetInputAt(1, value1);
     SetInputAt(2, value2);
@@ -6414,7 +6417,57 @@ class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx >= 0 && idx < 4);
+    ASSERT((idx >= 0) && (idx < 4));
+    return kUnboxedUint32;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  DECLARE_INSTRUCTION(Int32x4Constructor)
+  virtual CompileType ComputeType() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Int32x4ConstructorInstr);
+};
+
+
+class Int32x4BoolConstructorInstr : public TemplateDefinition<4> {
+ public:
+  Int32x4BoolConstructorInstr(Value* value0, Value* value1, Value* value2,
+                              Value* value3, intptr_t deopt_id) {
+    SetInputAt(0, value0);
+    SetInputAt(1, value1);
+    SetInputAt(2, value2);
+    SetInputAt(3, value3);
+    deopt_id_ = deopt_id;
+  }
+
+  Value* value0() const { return inputs_[0]; }
+  Value* value1() const { return inputs_[1]; }
+  Value* value2() const { return inputs_[2]; }
+  Value* value3() const { return inputs_[3]; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation representation() const {
+    return kUnboxedInt32x4;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((idx >= 0) && (idx < 4));
     return kTagged;
   }
 

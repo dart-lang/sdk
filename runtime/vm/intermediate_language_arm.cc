@@ -4539,6 +4539,42 @@ void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(
+    Isolate* isolate, bool opt) const {
+  const intptr_t kNumInputs = 4;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_in(2, Location::RequiresRegister());
+  summary->set_in(3, Location::RequiresRegister());
+  // Low (< 7) Q register needed for the vmovsr instruction.
+  summary->set_out(0, Location::FpuRegisterLocation(Q6));
+  return summary;
+}
+
+
+void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register v0 = locs()->in(0).reg();
+  const Register v1 = locs()->in(1).reg();
+  const Register v2 = locs()->in(2).reg();
+  const Register v3 = locs()->in(3).reg();
+  const QRegister result = locs()->out(0).fpu_reg();
+  const DRegister dresult0 = EvenDRegisterOf(result);
+  const DRegister dresult1 = OddDRegisterOf(result);
+  const SRegister sresult0 = EvenSRegisterOf(dresult0);
+  const SRegister sresult1 = OddSRegisterOf(dresult0);
+  const SRegister sresult2 = EvenSRegisterOf(dresult1);
+  const SRegister sresult3 = OddSRegisterOf(dresult1);
+  __ veorq(result, result, result);
+  __ vmovsr(sresult0, v0);
+  __ vmovsr(sresult1, v1);
+  __ vmovsr(sresult2, v2);
+  __ vmovsr(sresult3, v3);
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     Isolate* isolate, bool opt) const {
   const intptr_t kNumInputs = 4;

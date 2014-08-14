@@ -612,6 +612,10 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new(I) UnboxedIntConverterInstr(from, to, use->CopyWithType());
   } else if ((from == kUnboxedUint32) && (to == kUnboxedMint)) {
     converted = new(I) UnboxedIntConverterInstr(from, to, use->CopyWithType());
+  } else if ((from == kTagged) && (to == kUnboxedUint32)) {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxUint32Instr(use->CopyWithType(), deopt_id);
   } else if (from == kUnboxedMint && to == kUnboxedDouble) {
     ASSERT(CanUnboxDouble());
     // Convert by boxing/unboxing.
@@ -3233,6 +3237,16 @@ bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
             new(I) Value(call->ArgumentAt(1)), call->deopt_id());
     ReplaceCall(call, cast);
     return true;
+  } else if (recognized_kind == MethodRecognizer::kInt32x4Constructor) {
+    Int32x4ConstructorInstr* con =
+        new(I) Int32x4ConstructorInstr(
+            new(I) Value(call->ArgumentAt(1)),
+            new(I) Value(call->ArgumentAt(2)),
+            new(I) Value(call->ArgumentAt(3)),
+            new(I) Value(call->ArgumentAt(4)),
+            call->deopt_id());
+    ReplaceCall(call, con);
+    return true;
   }
   return false;
 }
@@ -4275,7 +4289,8 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
              (recognized_kind == MethodRecognizer::kFloat64x2Splat) ||
              (recognized_kind == MethodRecognizer::kFloat64x2FromFloat32x4)) {
     TryInlineFloat64x2Constructor(call, recognized_kind);
-  } else if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
+  } else if ((recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) ||
+             (recognized_kind == MethodRecognizer::kInt32x4Constructor)) {
     TryInlineInt32x4Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
     // Remove the original push arguments.
@@ -8094,6 +8109,12 @@ void ConstantPropagator::VisitFloat32x4With(Float32x4WithInstr* instr) {
 
 void ConstantPropagator::VisitFloat32x4ToInt32x4(
     Float32x4ToInt32x4Instr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitInt32x4Constructor(
+    Int32x4ConstructorInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
