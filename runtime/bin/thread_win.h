@@ -74,7 +74,7 @@ class MonitorWaitData {
 
   friend class Monitor;
   friend class MonitorData;
-  friend class OS;
+  friend class Thread;
 
 
   DISALLOW_COPY_AND_ASSIGN(MonitorWaitData);
@@ -110,7 +110,7 @@ class MonitorData {
   MonitorWaitData* waiters_tail_;
 
   friend class Monitor;
-  friend class OS;
+  friend class Thread;
   friend unsigned int __stdcall ThreadEntry(void* data_ptr);
 
   DISALLOW_ALLOCATION();
