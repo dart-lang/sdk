@@ -3511,6 +3511,18 @@ void Float64x2OneArgInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Int32x4ConstructorInstr::MakeLocationSummary(
+    Isolate* isolate, bool opt) const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Int32x4ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* Int32x4BoolConstructorInstr::MakeLocationSummary(
     Isolate* isolate, bool opt) const {
   UNIMPLEMENTED();
