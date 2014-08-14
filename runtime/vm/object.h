@@ -5389,6 +5389,10 @@ class String : public Instance {
     this->SetHash(result);
     return result;
   }
+  bool HasHash() const {
+    ASSERT(Smi::New(0) == NULL);
+    return (raw_ptr()->hash_ != NULL);
+  }
 
   static intptr_t hash_offset() { return OFFSET_OF(RawString, hash_); }
   static intptr_t Hash(const String& str, intptr_t begin_index, intptr_t len);
@@ -5601,11 +5605,6 @@ class String : public Instance {
   // by friendly templated code (e.g., Symbols).
   bool Equals(const uint8_t* characters, intptr_t len) const;
   static intptr_t Hash(const uint8_t* characters, intptr_t len);
-
-  bool HasHash() const {
-    ASSERT(Smi::New(0) == NULL);
-    return (raw_ptr()->hash_ != NULL);
-  }
 
   void SetLength(intptr_t value) const {
     // This is only safe because we create a new Smi, which does not cause

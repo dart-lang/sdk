@@ -333,6 +333,7 @@ RawString* Symbols::NewSymbol(const StringType& str) {
     isolate->object_store()->set_symbol_table(table.Release());
   }
   ASSERT(symbol.IsSymbol());
+  ASSERT(symbol.HasHash());
   return symbol.raw();
 }
 

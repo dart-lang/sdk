@@ -17065,10 +17065,12 @@ RawString* String::MakeExternal(void* array,
       tags = RawObject::ClassIdTag::update(class_id, tags);
       raw_ptr()->tags_ = tags;
       result = this->raw();
+      const uint8_t* ext_array = reinterpret_cast<const uint8_t*>(array);
       ExternalStringData<uint8_t>* ext_data = new ExternalStringData<uint8_t>(
-          reinterpret_cast<const uint8_t*>(array), peer, cback);
-      result.SetLength(str_length);
-      result.SetHash(0);
+          ext_array, peer, cback);
+      ASSERT(result.Length() == str_length);
+      ASSERT(!result.HasHash() ||
+             (result.Hash() == String::Hash(ext_array, str_length)));
       ExternalOneByteString::SetExternalData(result, ext_data);
       external_data = ext_data;
       finalizer = ExternalOneByteString::Finalize;
@@ -17091,10 +17093,12 @@ RawString* String::MakeExternal(void* array,
       tags = RawObject::ClassIdTag::update(class_id, tags);
       raw_ptr()->tags_ = tags;
       result = this->raw();
+      const uint16_t* ext_array = reinterpret_cast<const uint16_t*>(array);
       ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
-          reinterpret_cast<const uint16_t*>(array), peer, cback);
-      result.SetLength(str_length);
-      result.SetHash(0);
+          ext_array, peer, cback);
+      ASSERT(result.Length() == str_length);
+      ASSERT(!result.HasHash() ||
+             (result.Hash() == String::Hash(ext_array, str_length)));
       ExternalTwoByteString::SetExternalData(result, ext_data);
       external_data = ext_data;
       finalizer = ExternalTwoByteString::Finalize;
