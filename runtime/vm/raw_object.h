@@ -499,6 +499,7 @@ class RawClass : public RawObject {
   RawString* name_;
   RawString* user_name_;
   RawArray* functions_;
+  RawArray* functions_hash_table_;
   RawArray* fields_;
   RawArray* offset_in_words_to_field_;
   RawGrowableObjectArray* closure_functions_;  // Local functions and literals.
