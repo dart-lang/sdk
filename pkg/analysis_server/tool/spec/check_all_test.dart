@@ -19,10 +19,10 @@ main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   Directory.current = new Directory(dirname(script));
   bool generateAllNeeded = false;
-  for (GeneratedFile generatedFile in allTargets) {
-    if (!generatedFile.check()) {
+  for (GeneratedContent generatedContent in allTargets) {
+    if (!generatedContent.check()) {
       print(
-          '${generatedFile.outputFile.absolute} does not have expected contents.');
+          '${generatedContent.outputFile.absolute} does not have expected contents.');
       generateAllNeeded = true;
     }
   }

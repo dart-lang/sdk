@@ -306,6 +306,7 @@ typedef String FileContentsComputer();
 typedef Map<String, FileContentsComputer> DirectoryContentsComputer();
 
 abstract class GeneratedContent {
+  FileSystemEntity get outputFile;
   bool check();
   void generate();
 }
@@ -370,7 +371,7 @@ class GeneratedDirectory extends GeneratedContent {
   /**
    * Get a Directory object representing the output directory.
    */
-  Directory get outputDir => new Directory(joinAll(posix.split(outputDirPath)));
+  Directory get outputFile => new Directory(joinAll(posix.split(outputDirPath)));
 
   @override
   bool check() {
