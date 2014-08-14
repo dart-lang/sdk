@@ -1486,20 +1486,6 @@ final Matcher isOverriddenMember = new MatchesJsonObject(
   });
 
 /**
- * Parameter
- *
- * {
- *   "type": String
- *   "name": String
- * }
- */
-final Matcher isParameter = new MatchesJsonObject(
-  "Parameter", {
-    "type": isString,
-    "name": isString
-  });
-
-/**
  * Position
  *
  * {
@@ -1534,6 +1520,42 @@ final Matcher isRefactoringKind = new MatchesEnum("RefactoringKind", [
   "INLINE_LOCAL_VARIABLE",
   "INLINE_METHOD",
   "RENAME"
+]);
+
+/**
+ * RefactoringMethodParameter
+ *
+ * {
+ *   "id": optional String
+ *   "kind": RefactoringMethodParameterKind
+ *   "type": String
+ *   "name": String
+ *   "parameters": optional String
+ * }
+ */
+final Matcher isRefactoringMethodParameter = new MatchesJsonObject(
+  "RefactoringMethodParameter", {
+    "kind": isRefactoringMethodParameterKind,
+    "type": isString,
+    "name": isString
+  }, optionalFields: {
+    "id": isString,
+    "parameters": isString
+  });
+
+/**
+ * RefactoringMethodParameterKind
+ *
+ * enum {
+ *   REQUIRED
+ *   POSITIONAL
+ *   NAMED
+ * }
+ */
+final Matcher isRefactoringMethodParameterKind = new MatchesEnum("RefactoringMethodParameterKind", [
+  "REQUIRED",
+  "POSITIONAL",
+  "NAMED"
 ]);
 
 /**
@@ -1771,7 +1793,7 @@ final Matcher isExtractLocalVariableOptions = new MatchesJsonObject(
  *   "returnType": String
  *   "names": List<String>
  *   "canCreateGetter": bool
- *   "parameters": List<Parameter>
+ *   "parameters": List<RefactoringMethodParameter>
  *   "occurrences": int
  *   "offsets": List<int>
  *   "lengths": List<int>
@@ -1784,7 +1806,7 @@ final Matcher isExtractMethodFeedback = new MatchesJsonObject(
     "returnType": isString,
     "names": isListOf(isString),
     "canCreateGetter": isBool,
-    "parameters": isListOf(isParameter),
+    "parameters": isListOf(isRefactoringMethodParameter),
     "occurrences": isInt,
     "offsets": isListOf(isInt),
     "lengths": isListOf(isInt)
@@ -1797,7 +1819,7 @@ final Matcher isExtractMethodFeedback = new MatchesJsonObject(
  *   "returnType": String
  *   "createGetter": bool
  *   "name": String
- *   "parameters": List<Parameter>
+ *   "parameters": List<RefactoringMethodParameter>
  *   "extractAll": bool
  * }
  */
@@ -1806,7 +1828,7 @@ final Matcher isExtractMethodOptions = new MatchesJsonObject(
     "returnType": isString,
     "createGetter": isBool,
     "name": isString,
-    "parameters": isListOf(isParameter),
+    "parameters": isListOf(isRefactoringMethodParameter),
     "extractAll": isBool
   });
 

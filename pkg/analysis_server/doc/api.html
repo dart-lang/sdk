@@ -1705,6 +1705,7 @@ dt.typeDefinition {
       
       
       
+      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -2450,21 +2451,6 @@ dt.typeDefinition {
             <p>
               The name of the class in which the member is defined.
             </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_Parameter">Parameter: object</a></dt><dd>
-        <p>
-          A description of a parameter.
-        </p>
-        
-      <dl><dt class="field"><b><i>type ( String )</i></b></dt><dd>
-            
-            <p>
-              The type that should be given to the parameter.
-            </p>
-          </dd><dt class="field"><b><i>name ( String )</i></b></dt><dd>
-            
-            <p>
-              The name that should be given to the parameter.
-            </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_Position">Position: object</a></dt><dd>
         <p>
           A position within a file.
@@ -2486,7 +2472,47 @@ dt.typeDefinition {
           created.
         </p>
         
-      <dl><dt class="value">CONVERT_GETTER_TO_METHOD</dt><dt class="value">CONVERT_METHOD_TO_GETTER</dt><dt class="value">EXTRACT_LOCAL_VARIABLE</dt><dt class="value">EXTRACT_METHOD</dt><dt class="value">INLINE_LOCAL_VARIABLE</dt><dt class="value">INLINE_METHOD</dt><dt class="value">RENAME</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringProblem">RefactoringProblem: object</a></dt><dd>
+      <dl><dt class="value">CONVERT_GETTER_TO_METHOD</dt><dt class="value">CONVERT_METHOD_TO_GETTER</dt><dt class="value">EXTRACT_LOCAL_VARIABLE</dt><dt class="value">EXTRACT_METHOD</dt><dt class="value">INLINE_LOCAL_VARIABLE</dt><dt class="value">INLINE_METHOD</dt><dt class="value">RENAME</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameter">RefactoringMethodParameter: object</a></dt><dd>
+        <p>
+          A description of a parameter in a method refactoring.
+        </p>
+        
+      <dl><dt class="field"><b><i>id ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
+            
+            <p>
+              The unique identifier of the parameter.
+              Clients may omit this field for the parameters they want to add.
+            </p>
+          </dd><dt class="field"><b><i>kind ( <a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a> )</i></b></dt><dd>
+            
+            <p>
+              The kind of the parameter.
+            </p>
+          </dd><dt class="field"><b><i>type ( String )</i></b></dt><dd>
+            
+            <p>
+              The type that should be given to the parameter, or the return type
+              of the parameter's function type.
+            </p>
+          </dd><dt class="field"><b><i>name ( String )</i></b></dt><dd>
+            
+            <p>
+              The name that should be given to the parameter.
+            </p>
+          </dd><dt class="field"><b><i>parameters ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
+            
+            <p>
+              The parameter list of the parameter's function type.
+              If the parameter is not of a function type, this field will
+              not be defined. If the function type has zero parameters, this
+              field will have a value of "()".
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameterKind">RefactoringMethodParameterKind: String</a></dt><dd>
+        <p>
+          An enumeration of the kinds of parameters.
+        </p>
+        
+      <dl><dt class="value">REQUIRED</dt><dt class="value">POSITIONAL</dt><dt class="value">NAMED</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringProblem">RefactoringProblem: object</a></dt><dd>
         <p>
           A description of a problem related to a refactoring.
         </p>
@@ -2848,7 +2874,7 @@ dt.typeDefinition {
             <p>
               True if a getter could be created rather than a method.
             </p>
-          </dd><dt class="field"><b><i>parameters ( List&lt;<a href="#type_Parameter">Parameter</a>&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>parameters ( List&lt;<a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a>&gt; )</i></b></dt><dd>
             
             <p>
               The proposed parameters for the method.
@@ -2891,11 +2917,25 @@ dt.typeDefinition {
             <p>
               The name that the method should be given.
             </p>
-          </dd><dt class="field"><b><i>parameters ( List&lt;<a href="#type_Parameter">Parameter</a>&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>parameters ( List&lt;<a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a>&gt; )</i></b></dt><dd>
             
             <p>
               The parameters that should be defined for the method.
-            </p>
+              </p><p>
+                It is an error if a REQUIRED or NAMED parameter follows a
+                POSITIONAL parameter.
+                It is an error if a REQUIRED or POSITIONAL parameter follows a
+                NAMED parameter.
+              </p>
+              <ul>
+                <li>
+                  To change the order and/or update proposed paramerers, add
+                  parameters with the same identifiers as proposed.
+                </li>
+                <li>To add new parameters, omit their identifier.</li>
+                <li>To remove some parameters, omit them in this list.</li>
+              </ul>
+            <p></p>
           </dd><dt class="field"><b><i>extractAll ( bool )</i></b></dt><dd>
             
             <p>

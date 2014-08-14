@@ -2418,25 +2418,6 @@
           </field>
         </object>
       </type>
-      <type name="Parameter">
-        <p>
-          A description of a parameter.
-        </p>
-        <object>
-          <field name="type">
-            <ref>String</ref>
-            <p>
-              The type that should be given to the parameter.
-            </p>
-          </field>
-          <field name="name">
-            <ref>String</ref>
-            <p>
-              The name that should be given to the parameter.
-            </p>
-          </field>
-        </object>
-      </type>
       <type name="Position">
         <p>
           A position within a file.
@@ -2469,6 +2450,58 @@
           <value><code>INLINE_LOCAL_VARIABLE</code></value>
           <value><code>INLINE_METHOD</code></value>
           <value><code>RENAME</code></value>
+        </enum>
+      </type>
+      <type name="RefactoringMethodParameter">
+        <p>
+          A description of a parameter in a method refactoring.
+        </p>
+        <object>
+          <field name="id" optional="true">
+            <ref>String</ref>
+            <p>
+              The unique identifier of the parameter.
+              Clients may omit this field for the parameters they want to add.
+            </p>
+          </field>
+          <field name="kind">
+            <ref>RefactoringMethodParameterKind</ref>
+            <p>
+              The kind of the parameter.
+            </p>
+          </field>
+          <field name="type">
+            <ref>String</ref>
+            <p>
+              The type that should be given to the parameter, or the return type
+              of the parameter's function type.
+            </p>
+          </field>
+          <field name="name">
+            <ref>String</ref>
+            <p>
+              The name that should be given to the parameter.
+            </p>
+          </field>
+          <field name="parameters" optional="true">
+            <ref>String</ref>
+            <p>
+              The parameter list of the parameter's function type.
+              If the parameter is not of a function type, this field will
+              not be defined. If the function type has zero parameters, this
+              field will have a value of "()".
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="RefactoringMethodParameterKind">
+        <p>
+          An enumeration of the kinds of parameters.
+        </p>
+        <enum>
+          <value><code>REQUIRED</code></value>
+          <value><code>POSITIONAL</code></value>
+          <value><code>NAMED</code></value>
         </enum>
       </type>
       <type name="RefactoringProblem">
@@ -2897,7 +2930,7 @@
             </p>
           </field>
           <field name="parameters">
-            <list><ref>Parameter</ref></list>
+            <list><ref>RefactoringMethodParameter</ref></list>
             <p>
               The proposed parameters for the method.
             </p>
@@ -2949,9 +2982,23 @@
             </p>
           </field>
           <field name="parameters">
-            <list><ref>Parameter</ref></list>
+            <list><ref>RefactoringMethodParameter</ref></list>
             <p>
               The parameters that should be defined for the method.
+              <p>
+                It is an error if a REQUIRED or NAMED parameter follows a
+                POSITIONAL parameter.
+                It is an error if a REQUIRED or POSITIONAL parameter follows a
+                NAMED parameter.
+              </p>
+              <ul>
+                <li>
+                  To change the order and/or update proposed paramerers, add
+                  parameters with the same identifiers as proposed.
+                </li>
+                <li>To add new parameters, omit their identifier.</li>
+                <li>To remove some parameters, omit them in this list.</li>
+              </ul>
             </p>
           </field>
           <field name="extractAll">
