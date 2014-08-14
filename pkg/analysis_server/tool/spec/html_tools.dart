@@ -47,6 +47,32 @@ String innerText(dom.Element parent) {
 }
 
 /**
+ * Return true if the given node is a text node containing only whitespace, or
+ * a comment.
+ */
+bool isWhitespaceNode(dom.Node node) {
+  if (node is dom.Element) {
+    return false;
+  } else if (node is dom.Text) {
+    return node.text.trim().isEmpty;
+  }
+  // Treat all other types of nodes (e.g. comments) as whitespace.
+  return true;
+}
+
+/**
+ * Return true if the given iterable contains only whitespace text nodes.
+ */
+bool containsOnlyWhitespace(Iterable<dom.Node> nodes) {
+  for (dom.Node node in nodes) {
+    if (!isWhitespaceNode(node)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Mixin class for generating HTML.
  */
 class HtmlGenerator {

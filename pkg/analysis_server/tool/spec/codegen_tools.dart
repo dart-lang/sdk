@@ -115,6 +115,9 @@ class CodeGenerator {
    * which understands certain HTML constructs.
    */
   void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle: false}) {
+    if (containsOnlyWhitespace(docs)) {
+      return;
+    }
     writeln('/**');
     indentBy(' * ', () {
       write(nodesToText(docs, width - _state.indent.length, javadocStyle));

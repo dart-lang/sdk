@@ -183,6 +183,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       for (TypeEnumValue value in values) {
         privateField(javaName(value.value), () {
+          javadocComment(toHtmlVisitor.collectHtml(() {
+            toHtmlVisitor.translateHtml(value.html);
+          }));
           writeln(
               'public static final String ${value.value} = \"${value.value}\";');
         });
