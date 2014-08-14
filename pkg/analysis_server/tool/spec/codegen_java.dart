@@ -96,21 +96,24 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
       writeln('$header {');
       indent(() {
         // fields
-        List<String> allFields = _valuesSortedByKey(_state.privateFields).toList();
+        List<String> allFields =
+            _valuesSortedByKey(_state.privateFields).toList();
         for (String field in allFields) {
           writeln();
           write(field);
         }
 
         // constructors
-        List<String> allConstructors = _valuesSortedByKey(_state.constructors).toList();
+        List<String> allConstructors =
+            _valuesSortedByKey(_state.constructors).toList();
         for (String constructor in allConstructors) {
           writeln();
           write(constructor);
         }
 
         // methods
-        List<String> allMethods = _valuesSortedByKey(_state.publicMethods).toList();
+        List<String> allMethods =
+            _valuesSortedByKey(_state.publicMethods).toList();
         allMethods.addAll(_valuesSortedByKey(_state.privateMethods));
         for (String method in allMethods) {
           writeln();
@@ -240,7 +243,8 @@ class _CodegenJavaState {
  * Create a [GeneratedFile] that creates Java code and outputs it to [path].
  * [path] uses Posix-style path separators regardless of the OS.
  */
-GeneratedFile javaGeneratedFile(String path, CodegenJavaVisitor createVisitor(Api api)) {
+GeneratedFile javaGeneratedFile(String path, CodegenJavaVisitor
+    createVisitor(Api api)) {
   return new GeneratedFile(path, () {
     CodegenJavaVisitor visitor = createVisitor(readApi());
     return visitor.collectCode(visitor.visitApi);
