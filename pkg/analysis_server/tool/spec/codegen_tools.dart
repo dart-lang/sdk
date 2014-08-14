@@ -83,14 +83,16 @@ class CodeGenerator {
   /**
    * Execute [callback], using [additionalIndent] to indent any code it outputs.
    */
-  void indentBy(String additionalIndent, void callback()) => indentSpecial(additionalIndent, additionalIndent, callback);
+  void indentBy(String additionalIndent, void callback()) =>
+      indentSpecial(additionalIndent, additionalIndent, callback);
 
   /**
    * Execute [callback], using [additionalIndent] to indent any code it outputs.
    * The first line of output is indented by [firstAdditionalIndent] instead of
    * [additionalIndent].
    */
-  void indentSpecial(String firstAdditionalIndent, String additionalIndent, void callback()) {
+  void indentSpecial(String firstAdditionalIndent, String additionalIndent, void
+      callback()) {
     String oldNextIndent = _state.nextIndent;
     String oldIndent = _state.indent;
     try {
@@ -114,7 +116,8 @@ class CodeGenerator {
    * If [javadocStyle] is true, then the output is compatable with Javadoc,
    * which understands certain HTML constructs.
    */
-  void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle: false}) {
+  void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle:
+      false}) {
     if (containsOnlyWhitespace(docs)) {
       return;
     }
@@ -302,10 +305,13 @@ class _HtmlCodeGeneratorState {
 }
 
 /**
- * Type of functions used to compute the contents of generated files.
+ * Type of functions used to compute the contents of a generated file.
  */
 typedef String FileContentsComputer();
 
+/**
+ * Type of functions used to compute the contents of a set of generated files.
+ */
 typedef Map<String, FileContentsComputer> DirectoryContentsComputer();
 
 abstract class GeneratedContent {
@@ -365,42 +371,78 @@ class GeneratedFile extends GeneratedContent {
   }
 }
 
+/**
+ * Class representing a single output directory (either generated code or
+ * generated HTML). No other content should exisit in the directory.
+ */
 class GeneratedDirectory extends GeneratedContent {
 
+  /**
+   * The path to the directory that will have the generated content.
+   */
   final String outputDirPath;
+
+  /**
+   * Callback function which computes the directory contents.
+   */
   final DirectoryContentsComputer directoryContentsComputer;
+
   GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
 
   /**
    * Get a Directory object representing the output directory.
    */
-  Directory get outputFile => new Directory(joinAll(posix.split(outputDirPath)));
+  Directory get outputFile =>
+      new Directory(joinAll(posix.split(outputDirPath)));
 
+  /**
+   * Check whether the directory has the correct contents, and return true if it
+   * does.
+   */
   @override
   bool check() {
-    // TODO (jwren) the lists of files in the directories need to be compared to
-    // ensure no unexpected files have been added
     Map<String, FileContentsComputer> map = directoryContentsComputer();
-    map.forEach((String file, FileContentsComputer fileContentsComputer) {
-      String expectedContents = fileContentsComputer();
-      File outputFile = new File(joinAll(posix.split(outputDirPath + file)));
-      try {
+    try {
+      map.forEach((String file, FileContentsComputer fileContentsComputer) {
+        String expectedContents = fileContentsComputer();
+        File outputFile =
+            new File(joinAll(posix.split(posix.join(outputDirPath, file))));
         if (expectedContents != outputFile.readAsStringSync()) {
           return false;
         }
-      } catch (e) {
-        // There was a problem reading the file (most likely because it didn't
-        // exist).  Treat that the same as if the file doesn't have the expected
-        // contents.
+      });
+      if (outputFile.listSync().length != map.length) {
+        // The number of files generated doesn't match the number we expected to
+        // generate.
         return false;
       }
-    });
+    } catch (e) {
+      // There was a problem reading the file (most likely because it didn't
+      // exist).  Treat that the same as if the file doesn't have the expected
+      // contents.
+      return false;
+    }
     return true;
   }
 
+  /**
+   * Replace the directory with the correct contents.  [spec] is the "tool/spec"
+   * directory.  If [spec] is unspecified, it is assumed to be the directory
+   * containing Platform.executable.
+   */
   @override
   void generate() {
-    // TODO (jwren) Delete contents in the directory first.
+    try {
+      // delete the contents of the directory (and the directory itself)
+      outputFile.deleteSync(recursive: true);
+    } catch (e) {
+      // Error caught while trying to delete the directory, this can happen if
+      // it didn't yet exist.
+    }
+    // re-create the empty directory
+    outputFile.createSync(recursive: true);
+
+    // generate all of the files in the directory
     Map<String, FileContentsComputer> map = directoryContentsComputer();
     map.forEach((String file, FileContentsComputer fileContentsComputer) {
       File outputFile = new File(joinAll(posix.split(outputDirPath + file)));
