@@ -83,8 +83,8 @@ total length. */
 #ifndef DFTABLES
 
 // TODO(xxx): Hook this up to something that checks assertions.
-#define ASSERT(x) if (!(x)) *(reinterpret_cast<volatile int*>(NULL)) = NULL
-#define ASSERT_NOT_REACHED() *(reinterpret_cast<volatile int*>(NULL)) = NULL
+#define ASSERT(x) if (!(x)) abort()
+#define ASSERT_NOT_REACHED() abort()
 
 #ifdef WIN32
 #pragma warning(disable: 4232)
