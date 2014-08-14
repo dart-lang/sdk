@@ -55,12 +55,22 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }));
     writeln('@SuppressWarnings("unused")');
     makeClass('public class ${className}', () {
+      //
+      // public static final "EMPTY_ARRAY" field
+      // i.e. "public static final Parameter[] EMPTY_ARRAY = new Parameter[0];"
+      //
+      publicField(javaName("EMPTY_ARRAY"), () {
+        javadocComment(toHtmlVisitor.collectHtml(() {
+          toHtmlVisitor.write('An empty array of {@link ${className}}s.');
+        }));
+        writeln(
+            'public static final ${className}[] EMPTY_ARRAY = new ${className}[0];');
+      });
+
       TypeObject typeObject = typeDef.type as TypeObject;
       List<TypeObjectField> fields = typeObject.fields;
       // TODO (jwren) we need to possibly remove fields such as "type" in
       // these objects: AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay
-      // TODO (jwren) In this case, we don't want to sort the ordering of the
-      // fields, the order from the spec would be better.
       //
       // fields
       //
@@ -155,7 +165,6 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('return builder.toString();');
         });
         writeln('}');
-        writeln();
       });
     });
   }

@@ -55,6 +55,13 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   /**
+   * Create a public field, using [callback] to create its contents.
+   */
+  void publicField(String fieldName, void callback()) {
+    _state.publicFields[fieldName] = collectCode(callback);
+  }
+
+  /**
    * Create a private field, using [callback] to create its contents.
    */
   void privateField(String fieldName, void callback()) {
@@ -96,22 +103,21 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
       writeln('$header {');
       indent(() {
         // fields
-        List<String> allFields =
-            _valuesSortedByKey(_state.privateFields).toList();
+        List<String> allFields = _state.publicFields.values.toList();
+        allFields.addAll(_state.privateFields.values.toList());
         for (String field in allFields) {
           writeln();
           write(field);
         }
 
         // constructors
-        List<String> allConstructors =
-            _valuesSortedByKey(_state.constructors).toList();
+        List<String> allConstructors =_state.constructors.values.toList();
         for (String constructor in allConstructors) {
           writeln();
           write(constructor);
         }
 
-        // methods
+        // methods (ordered by method name)
         List<String> allMethods =
             _valuesSortedByKey(_state.publicMethods).toList();
         allMethods.addAll(_valuesSortedByKey(_state.privateMethods));
@@ -119,6 +125,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
           writeln();
           write(method);
         }
+        writeln();
       });
       writeln('}');
     } finally {
@@ -227,6 +234,11 @@ class _CodegenJavaState {
    * Temporary storage for private methods.
    */
   Map<String, String> privateMethods = <String, String>{};
+
+  /**
+   * Temporary storage for public fields.
+   */
+  Map<String, String> publicFields = <String, String>{};
 
   /**
    * Temporary storage for private fields.
