@@ -156,10 +156,14 @@ class CodegenJavaType extends CodegenJavaVisitor {
         indent(() {
           writeln('StringBuilder builder = new StringBuilder();');
           writeln('builder.append(\"[\");');
-          for (TypeObjectField field in fields) {
-            // TODO (jwren) nit: don't print the last ", "
-            writeln("builder.append(\"${javaName(field.name)}=\");");
-            writeln("builder.append(${_toStringForField(field)} + \", \");");
+          for(int i = 0; i < fields.length; i++) {
+            writeln("builder.append(\"${javaName(fields[i].name)}=\");");
+            write("builder.append(${_toStringForField(fields[i])}");
+            if(i + 1 != fields.length) {
+              // this is not the last field
+              write(' + \", \"');
+            }
+            writeln(');');
           }
           writeln('builder.append(\"]\");');
           writeln('return builder.toString();');
@@ -205,15 +209,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
   }
 
   String _toStringForField(TypeObjectField field) {
-    // TODO (jwren) if the field is a type String, we don't need to append
-    // ".toString()"
     String name = javaName(field.name);
-    if (isPrimitive(field.type)) {
-      return name;
-    } else if (isArray(field.type) || isList(field.type)) {
+    if (isArray(field.type) || isList(field.type)) {
       return 'StringUtils.join(${name}, ", ")';
     } else {
-      return '${name}.toString()';
+      return name;
     }
   }
 
