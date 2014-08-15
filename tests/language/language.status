@@ -141,4 +141,7 @@ stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 large_class_declaration_test: Skip # Times out. Issue 20352
 
+[ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) && $mode == debug ]
+large_class_declaration_test: Skip # Times out. Issue 20352
+
 

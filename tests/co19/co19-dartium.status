@@ -457,6 +457,7 @@ LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: RuntimeError, Pass # co19-
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: Skip # Issue 19495.
+WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: Skip # Issue 20540.
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.
