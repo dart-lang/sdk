@@ -23,10 +23,8 @@ import 'package:analyzer/src/generated/source.dart';
  * A [Refactoring] for renaming [LocalElement]s.
  */
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
-  RenameLocalRefactoringImpl(SearchEngine searchEngine, LocalElement element) :
-      super(
-      searchEngine,
-      element);
+  RenameLocalRefactoringImpl(SearchEngine searchEngine, LocalElement element)
+      : super(searchEngine, element);
 
   @override
   LocalElement get element => super.element as LocalElement;

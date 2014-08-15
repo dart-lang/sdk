@@ -22,10 +22,8 @@ import 'package:analysis_services/search/element_visitors.dart';
  * A [Refactoring] for renaming compilation unit member [Element]s.
  */
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
-  RenameUnitMemberRefactoringImpl(SearchEngine searchEngine, Element element) :
-      super(
-      searchEngine,
-      element);
+  RenameUnitMemberRefactoringImpl(SearchEngine searchEngine, Element element)
+      : super(searchEngine, element);
 
   @override
   String get refactoringName {

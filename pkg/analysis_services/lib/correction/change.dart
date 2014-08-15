@@ -126,10 +126,8 @@ class Edit implements HasToJson {
 
   Edit(this.offset, this.length, this.replacement);
 
-  Edit.range(SourceRange range, String replacement) : this(
-      range.offset,
-      range.length,
-      replacement);
+  Edit.range(SourceRange range, String replacement)
+      : this(range.offset, range.length, replacement);
 
   /**
    * The offset of a character immediately after the region to be modified. 

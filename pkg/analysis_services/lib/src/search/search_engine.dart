@@ -39,10 +39,7 @@ class SearchEngineImpl implements SearchEngine {
   Future<List<SearchMatch>> searchMemberReferences(String name) {
     NameElement element = new NameElement(name);
     _Requestor requestor = new _Requestor(_index);
-    requestor.add(
-        element,
-        IndexConstants.IS_INVOKED_BY,
-        MatchKind.INVOCATION);
+    requestor.add(element, IndexConstants.IS_INVOKED_BY, MatchKind.INVOCATION);
     requestor.add(element, IndexConstants.IS_READ_BY, MatchKind.READ);
     requestor.add(
         element,

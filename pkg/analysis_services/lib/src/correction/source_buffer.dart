@@ -16,15 +16,16 @@ class SourceBuilder {
   final int offset;
   final StringBuffer _buffer = new StringBuffer();
 
-  final List<LinkedEditGroup> linkedPositionGroups = <LinkedEditGroup>[
-      ];
+  final List<LinkedEditGroup> linkedPositionGroups = <LinkedEditGroup>[];
   LinkedEditGroup _currentLinkedPositionGroup;
   int _currentPositionStart;
   int _exitOffset;
 
   SourceBuilder(this.file, this.offset);
 
-  SourceBuilder.buffer() : file = null, offset = 0;
+  SourceBuilder.buffer()
+      : file = null,
+        offset = 0;
 
   /**
    * Returns the exit offset, maybe `null` if not set.

@@ -305,10 +305,8 @@ class Location {
 class LocationWithData<D> extends Location {
   final D data;
 
-  LocationWithData(Location location, this.data) : super(
-      location.element,
-      location.offset,
-      location.length);
+  LocationWithData(Location location, this.data)
+      : super(location.element, location.offset, location.length);
 }
 
 

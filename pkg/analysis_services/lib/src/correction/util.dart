@@ -705,7 +705,8 @@ class CorrectionUtils {
    * Returns the source with indentation changed from [oldIndent] to
    * [newIndent], keeping indentation of lines relative to each other.
    */
-  String replaceSourceIndent(String source, String oldIndent, String newIndent) {
+  String replaceSourceIndent(String source, String oldIndent,
+      String newIndent) {
     // prepare STRING token ranges
     List<SourceRange> lineRanges = [];
     {

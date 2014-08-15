@@ -17,8 +17,8 @@ import 'package:analyzer/src/generated/source.dart';
  *
  * Returns the computed [Fix]s, not `null`.
  */
-List<Fix> computeFixes(SearchEngine searchEngine,
-    CompilationUnit unit, AnalysisError error) {
+List<Fix> computeFixes(SearchEngine searchEngine, CompilationUnit unit,
+    AnalysisError error) {
   Source source = unit.element.source;
   String file = source.fullName;
   var processor = new FixProcessor(searchEngine, source, file, unit, error);

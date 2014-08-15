@@ -22,10 +22,8 @@ import 'package:analyzer/src/generated/element.dart';
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   _RenameClassMemberValidator _validator;
 
-  RenameClassMemberRefactoringImpl(SearchEngine searchEngine, Element element) :
-      super(
-      searchEngine,
-      element);
+  RenameClassMemberRefactoringImpl(SearchEngine searchEngine, Element element)
+      : super(searchEngine, element);
 
   @override
   String get refactoringName {

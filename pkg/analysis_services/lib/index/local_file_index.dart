@@ -15,8 +15,13 @@ import 'package:analyzer/src/generated/engine.dart';
 Index createLocalFileIndex() {
   var fileManager = new TemporaryFolderFileManager();
   var stringCodec = new StringCodec();
-  var nodeManager = new FileNodeManager(fileManager,
-      AnalysisEngine.instance.logger, stringCodec, new ContextCodec(),
-      new ElementCodec(stringCodec), new RelationshipCodec(stringCodec));
+  var nodeManager =
+      new FileNodeManager(
+          fileManager,
+          AnalysisEngine.instance.logger,
+          stringCodec,
+          new ContextCodec(),
+          new ElementCodec(stringCodec),
+          new RelationshipCodec(stringCodec));
   return new LocalIndex(nodeManager);
 }
