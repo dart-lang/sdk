@@ -7,6 +7,7 @@ library services.hierarchy;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_services/search/element_visitors.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -16,11 +17,11 @@ import 'package:analyzer/src/generated/element.dart';
  */
 List<Element> getChildren(Element parent, [String name]) {
   List<Element> children = <Element>[];
-  parent.visitChildren(new _ElementVisitorAdapter((Element element) {
+  visitChildren(parent, (Element element) {
     if (name == null || element.displayName == name) {
       children.add(element);
     }
-  }));
+  });
   return children;
 }
 
@@ -33,7 +34,7 @@ List<Element> getChildren(Element parent, [String name]) {
  */
 List<Element> getClassMembers(ClassElement clazz, [String name]) {
   List<Element> members = <Element>[];
-  clazz.visitChildren(new _ElementVisitorAdapter((Element element) {
+  visitChildren(clazz, (Element element) {
     if (element.isSynthetic) {
       return;
     }
@@ -49,7 +50,7 @@ List<Element> getClassMembers(ClassElement clazz, [String name]) {
     if (element is FieldElement) {
       members.add(element);
     }
-  }));
+  });
   return members;
 }
 
@@ -207,21 +208,4 @@ Element getSyntheticAccessorVariable(Element element) {
     }
   }
   return element;
-}
-
-
-typedef void _ElementProcessor(Element element);
-
-/**
- * A [GeneralizingElementVisitor] adapter for [_ElementProcessor].
- */
-class _ElementVisitorAdapter extends GeneralizingElementVisitor {
-  final _ElementProcessor processor;
-
-  _ElementVisitorAdapter(this.processor);
-
-  @override
-  void visitElement(Element element) {
-    processor(element);
-  }
 }

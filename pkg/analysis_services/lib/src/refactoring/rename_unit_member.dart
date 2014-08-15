@@ -15,6 +15,7 @@ import 'package:analysis_services/src/refactoring/naming_conventions.dart';
 import 'package:analysis_services/src/refactoring/rename.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analysis_services/search/element_visitors.dart';
 
 
 /**
@@ -92,22 +93,17 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
       elements.add(element);
     }
     // update each element
-    List<Future> futures = <Future>[];
-    for (Element element in elements) {
+    return Future.forEach(elements, (Element element) {
       // update declaration
       addDeclarationEdit(change, element);
-      // schedule unpeting references
-      Future future = searchEngine.searchReferences(element).then((refMatches) {
+      // schedule updating references
+      return searchEngine.searchReferences(element).then((refMatches) {
         List<SourceReference> references = getSourceReferences(refMatches);
         for (SourceReference reference in references) {
           addReferenceEdit(change, reference);
         }
-        return change;
       });
-      futures.add(future);
-    }
-    // wait for all references
-    return Future.wait(futures).then((_) {
+    }).then((_) {
       return change;
     });
   }
@@ -175,8 +171,19 @@ class RenameUnitMemberValidator {
         ClassElement refClass =
             refElement.getAncestor((e) => e is ClassElement);
         if (refClass != null) {
-          refClass.visitChildren(
-              new _WillBeShadowedValidator(result, element, newName));
+          visitChildren(refClass, (shadow) {
+            if (hasDisplayName(shadow, newName)) {
+              String message =
+                  format(
+                      "Reference to renamed {0} will be shadowed by {1} '{2}'.",
+                      getElementKindName(element),
+                      getElementKindName(shadow),
+                      getElementQualifiedName(shadow));
+              result.addError(
+                  message,
+                  new RefactoringStatusContext.forElement(shadow));
+            }
+          });
         }
       }
     });
@@ -188,7 +195,18 @@ class RenameUnitMemberValidator {
    */
   void _validateWillConflict() {
     LibraryElement library = element.getAncestor((e) => e is LibraryElement);
-    library.accept(new _WillConflictValidator(result, newName));
+    visitLibraryTopLevelElements(library, (element) {
+      if (hasDisplayName(element, newName)) {
+        String message =
+            format(
+                "Library already declares {0} with name '{1}'.",
+                getElementKindName(element),
+                newName);
+        result.addError(
+            message,
+            new RefactoringStatusContext.forElement(element));
+      }
+    });
   }
 
   /**
@@ -196,91 +214,41 @@ class RenameUnitMemberValidator {
    */
   Future _validateWillShadow() {
     return searchEngine.searchMemberDeclarations(newName).then((declarations) {
-      List<Future> futures = <Future>[];
-      for (SearchMatch declaration in declarations) {
+      return Future.forEach(declarations, (SearchMatch declaration) {
         Element member = declaration.element;
         ClassElement declaringClass = member.enclosingElement;
-        Future future =
-            searchEngine.searchReferences(member).then((memberReferences) {
+        return searchEngine.searchReferences(member).then((memberReferences) {
           for (SearchMatch memberReference in memberReferences) {
+            Element refElement = memberReference.element;
+            // cannot be shadowed if qualified
             if (memberReference.isQualified) {
               continue;
             }
-            Element refElement = memberReference.element;
+            // cannot be shadowed if declared in the same class as reference
             ClassElement refClass =
                 refElement.getAncestor((e) => e is ClassElement);
-            if (refClass != declaringClass) {
-              if (!_isVisibleAt(element, memberReference)) {
-                continue;
-              }
-              String message =
-                  format(
-                      forRename ?
-                          "Renamed {0} will shadow {1} '{2}'." :
-                          "Created {0} will shadow {1} '{2}'.",
-                      getElementKindName(element),
-                      getElementKindName(member),
-                      getElementQualifiedName(member));
-              result.addError(
-                  message,
-                  new RefactoringStatusContext.forMatch(memberReference));
+            if (refClass == declaringClass) {
+              continue;
             }
+            // ignore if not visitble
+            if (!_isVisibleAt(element, memberReference)) {
+              continue;
+            }
+            // OK, reference will be shadowed be the element being renamed
+            String message =
+                format(
+                    forRename ?
+                        "Renamed {0} will shadow {1} '{2}'." :
+                        "Created {0} will shadow {1} '{2}'.",
+                    getElementKindName(element),
+                    getElementKindName(member),
+                    getElementQualifiedName(member));
+            result.addError(
+                message,
+                new RefactoringStatusContext.forMatch(memberReference));
           }
         });
-        futures.add(future);
-      }
-      return Future.wait(futures);
+      });
     });
-  }
-}
-
-
-class _WillBeShadowedValidator extends GeneralizingElementVisitor {
-  final RefactoringStatus result;
-  final Element element;
-  final String newName;
-
-  _WillBeShadowedValidator(this.result, this.element, this.newName);
-
-  @override
-  void visitElement(Element maybeShadow) {
-    if (hasDisplayName(maybeShadow, newName)) {
-      String message =
-          format(
-              "Reference to renamed {0} will be shadowed by {1} '{2}'.",
-              getElementKindName(element),
-              getElementKindName(maybeShadow),
-              getElementQualifiedName(maybeShadow));
-      result.addError(
-          message,
-          new RefactoringStatusContext.forElement(maybeShadow));
-    }
-  }
-}
-
-
-class _WillConflictValidator extends GeneralizingElementVisitor {
-  final RefactoringStatus result;
-  final String newName;
-
-  _WillConflictValidator(this.result, this.newName);
-
-  @override
-  void visitElement(Element element) {
-    // library or unit
-    if (element is LibraryElement || element is CompilationUnitElement) {
-      return super.visitElement(element);
-    }
-    // top-level
-    if (hasDisplayName(element, newName)) {
-      String message =
-          format(
-              "Library already declares {0} with name '{1}'.",
-              getElementKindName(element),
-              newName);
-      result.addError(
-          message,
-          new RefactoringStatusContext.forElement(element));
-    }
   }
 }
