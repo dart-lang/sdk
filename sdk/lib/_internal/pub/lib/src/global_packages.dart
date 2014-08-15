@@ -16,8 +16,8 @@ import 'log.dart' as log;
 import 'package.dart';
 import 'system_cache.dart';
 import 'solver/version_solver.dart';
-import 'source.dart';
 import 'source/cached.dart';
+import 'source/git.dart';
 import 'source/path.dart';
 import 'utils.dart';
 import 'version.dart';
@@ -59,6 +59,19 @@ class GlobalPackages {
   /// The directory may not physically exist yet. If not, this will create it
   /// when needed.
   GlobalPackages(this.cache);
+
+  /// Caches the package located in the Git repository [repo] and makes it the
+  /// active global version.
+  Future activateGit(String repo) {
+    var source = cache.sources["git"] as GitSource;
+    return source.getPackageNameFromRepo(repo).then((name) {
+      // Call this just to log what the current active package is, if any.
+      _describeActive(name);
+
+      var id = new PackageId(name, "git", Version.none, repo);
+      return _installInCache(id);
+    });
+  }
 
   /// Finds the latest version of the hosted package with [name] that matches
   /// [constraint] and makes it the active global version.
@@ -155,7 +168,11 @@ class GlobalPackages {
     writeTextFile(_getLockFilePath(id.name),
         lockFile.serialize(cache.rootDir, cache.sources));
 
-    if (id.source == "path") {
+    if (id.source == "git") {
+      var url = GitSource.urlFromDescription(id.description);
+      log.message('Activated ${log.bold(id.name)} ${id.version} from Git '
+          'repository "$url".');
+    } else if (id.source == "path") {
       var path = PathSource.pathFromDescription(id.description);
       log.message('Activated ${log.bold(id.name)} ${id.version} at path '
           '"$path".');
@@ -174,7 +191,11 @@ class GlobalPackages {
           cache.sources);
       var id = lockFile.packages[package];
 
-      if (id.source == "path") {
+      if (id.source == "git") {
+        var url = GitSource.urlFromDescription(id.description);
+        log.message('Package ${log.bold(id.name)} is currently active from '
+            'Git repository "${url}".');
+      } else if (id.source == "path") {
         var path = PathSource.pathFromDescription(id.description);
         log.message('Package ${log.bold(package)} is currently active at '
             'path "$path".');
@@ -204,7 +225,11 @@ class GlobalPackages {
     deleteEntry(lockFilePath);
 
     if (logDeactivate) {
-      if (id.source == "path") {
+      if (id.source == "git") {
+        var url = GitSource.urlFromDescription(id.description);
+        log.message('Deactivated package ${log.bold(name)} from Git repository '
+            '"$url".');
+      } else if (id.source == "path") {
         var path = PathSource.pathFromDescription(id.description);
         log.message('Deactivated package ${log.bold(name)} at path "$path".');
       } else {

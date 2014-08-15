@@ -18,11 +18,27 @@ import 'cached.dart';
 
 /// A package source that gets packages from Git repos.
 class GitSource extends CachedSource {
+  /// Given a valid git package description, returns the URL of the repository
+  /// it pulls from.
+  static String urlFromDescription(description) => description["url"];
+
   final name = "git";
 
   /// The paths to the canonical clones of repositories for which "git fetch"
   /// has already been run during this run of pub.
   final _updatedRepos = new Set<String>();
+
+  /// Given a Git repo that contains a pub package, gets the name of the pub
+  /// package.
+  Future<String> getPackageNameFromRepo(String repo) {
+    // Clone the repo to a temp directory.
+    return withTempDir((tempDir) {
+      return _clone(repo, tempDir, shallow: true).then((_) {
+        var pubspec = new Pubspec.load(tempDir, systemCache.sources);
+        return pubspec.name;
+      });
+    });
+  }
 
   /// Since we don't have an easy way to read from a remote Git repo, this
   /// just installs [id] into the system cache, then describes it from there.
@@ -134,10 +150,10 @@ class GitSource extends CachedSource {
     var failures = 0;
 
     var packages = listDir(systemCacheRoot)
-      .where((entry) => dirExists(path.join(entry, ".git")))
-      .map((packageDir) => new Package.load(null, packageDir,
-          systemCache.sources))
-      .toList();
+        .where((entry) => dirExists(path.join(entry, ".git")))
+        .map((packageDir) => new Package.load(null, packageDir,
+            systemCache.sources))
+        .toList();
 
     // Note that there may be multiple packages with the same name and version
     // (pinned to different commits). The sort order of those is unspecified.
@@ -219,16 +235,24 @@ class GitSource extends CachedSource {
   /// Clones the repo at the URI [from] to the path [to] on the local
   /// filesystem.
   ///
-  /// If [mirror] is true, create a bare, mirrored clone. This doesn't check out
-  /// the working tree, but instead makes the repository a local mirror of the
-  /// remote repository. See the manpage for `git clone` for more information.
-  Future _clone(String from, String to, {bool mirror: false}) {
+  /// If [mirror] is true, creates a bare, mirrored clone. This doesn't check
+  /// out the working tree, but instead makes the repository a local mirror of
+  /// the remote repository. See the manpage for `git clone` for more
+  /// information.
+  ///
+  /// If [shallow] is true, creates a shallow clone that contains no history
+  /// for the repository.
+  Future _clone(String from, String to, {bool mirror: false,
+      bool shallow: false}) {
     return syncFuture(() {
       // Git on Windows does not seem to automatically create the destination
       // directory.
       ensureDir(to);
       var args = ["clone", from, to];
+
       if (mirror) args.insert(1, "--mirror");
+      if (shallow) args.insertAll(1, ["--depth", "1"]);
+
       return git.run(args);
     }).then((result) => null);
   }

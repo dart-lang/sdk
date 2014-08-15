@@ -4,18 +4,28 @@
 
 import 'package:scheduled_test/scheduled_test.dart';
 
+import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('activating a package installs its dependencies', () {
+  integration('activating a Git package installs its dependencies', () {
     servePackages([
-      packageMap("foo", "1.0.0", {"bar": "any"}),
       packageMap("bar", "1.0.0", {"baz": "any"}),
       packageMap("baz", "1.0.0")
     ]);
 
-    schedulePub(args: ["global", "activate", "foo"], output: allOf([
+    d.git('foo.git', [
+      d.libPubspec("foo", "1.0.0", deps: {
+        "bar": "any"
+      }),
+      d.dir("bin", [
+        d.file("foo.dart", "main() => print('ok');")
+      ])
+    ]).create();
+
+    schedulePub(args: ["global", "activate", "-sgit", "../foo.git"],
+        output: allOf([
       contains("Downloading bar 1.0.0..."),
       contains("Downloading baz 1.0.0...")
     ]));
