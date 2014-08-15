@@ -380,6 +380,11 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   }
 }
 
+class Selection {
+  final Element selectedElement;
+  final Selector selector;
+  Selection(this.selectedElement, this.selector);
+}
 
 class DumpInfoTask extends CompilerTask {
   DumpInfoTask(Compiler compiler)
@@ -417,15 +422,20 @@ class DumpInfoTask extends CompilerTask {
   }
 
   /**
-   * Returns an iterable of [Element]s that are used by
-   * [element].
+   * Returns an iterable of [Selection]s that are used by
+   * [element].  Each [Selection] contains an element that is
+   * used and the selector that selected the element.
    */
-  Iterable<Element> getRetaining(Element element) {
+  Iterable<Selection> getRetaining(Element element) {
     if (!selectorsFromElement.containsKey(element)) {
-      return const <Element>[];
+      return const <Selection>[];
     } else {
       return selectorsFromElement[element].expand(
-          (s) => compiler.world.allFunctions.filter(s));
+        (selector) {
+          return compiler.world.allFunctions.filter(selector).map((element) {
+            return new Selection(element, selector);
+          });
+        });
     }
   }
 
@@ -548,7 +558,7 @@ class DumpInfoTask extends CompilerTask {
 
     Map<String, List<String>> holding = <String, List<String>>{};
     for (Element fn in infoCollector.mapper.functions) {
-      Iterable<Element> pulling = getRetaining(fn);
+      Iterable<Selection> pulling = getRetaining(fn);
       // Don't bother recording an empty list of dependencies.
       if (pulling.length > 0) {
         String fnId = infoCollector.idOf(fn);
@@ -556,9 +566,14 @@ class DumpInfoTask extends CompilerTask {
         // recorded.  Don't register these.
         if (fnId != null) {
           holding[fnId] = pulling
-            .map((a) => infoCollector.idOf(a))
+            .map((selection) {
+              return <String, String>{
+                "id": infoCollector.idOf(selection.selectedElement),
+                "mask": selection.selector.mask.toString()
+              };
+            })
             // Filter non-null ids for the same reason as above.
-            .where((a) => a != null)
+            .where((a) => a['id'] != null)
             .toList();
         }
       }
@@ -583,7 +598,7 @@ class DumpInfoTask extends CompilerTask {
       'elements': infoCollector.toJson(),
       'holding': holding,
       'outputUnits': outputUnits,
-      'dump_version': 2,
+      'dump_version': 3,
     };
 
     Duration toJsonDuration = new DateTime.now().difference(startToJsonTime);
