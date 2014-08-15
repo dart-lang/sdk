@@ -217,6 +217,17 @@ List<Statement> getStatements(Statement statement) {
 }
 
 
+/**
+ * Checks if the given [Element]'s display name equals to the given name.
+ */
+bool hasDisplayName(Element element, String name) {
+  if (element == null) {
+    return false;
+  }
+  return element.displayName == name;
+}
+
+
 class CorrectionUtils {
   final CompilationUnit unit;
 

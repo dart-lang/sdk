@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 
 
 SourceRange rangeElementName(Element element) {
-  return new SourceRange(element.nameOffset, element.name.length);
+  return new SourceRange(element.nameOffset, element.displayName.length);
 }
 
 SourceRange rangeEndEnd(a, b) {

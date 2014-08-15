@@ -13,6 +13,7 @@ import 'package:analysis_services/src/refactoring/rename_constructor.dart';
 import 'package:analysis_services/src/refactoring/rename_import.dart';
 import 'package:analysis_services/src/refactoring/rename_library.dart';
 import 'package:analysis_services/src/refactoring/rename_local.dart';
+import 'package:analysis_services/src/refactoring/rename_unit_member.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 
@@ -68,6 +69,12 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(SearchEngine searchEngine, Element element) {
+    if (element is PropertyAccessorElement) {
+      element = (element as PropertyAccessorElement).variable;
+    }
+    if (element.enclosingElement is CompilationUnitElement) {
+      return new RenameUnitMemberRefactoringImpl(searchEngine, element);
+    }
     if (element is ConstructorElement) {
       return new RenameConstructorRefactoringImpl(searchEngine, element);
     }

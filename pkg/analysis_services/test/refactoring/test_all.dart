@@ -11,6 +11,7 @@ import 'rename_constructor_test.dart' as rename_constructor_test;
 import 'rename_import_test.dart' as rename_import_test;
 import 'rename_library_test.dart' as rename_library_test;
 import 'rename_local_test.dart' as rename_local_test;
+import 'rename_unit_member_test.dart' as rename_unit_member_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -21,5 +22,6 @@ main() {
     rename_import_test.main();
     rename_library_test.main();
     rename_local_test.main();
+    rename_unit_member_test.main();
   });
 }
