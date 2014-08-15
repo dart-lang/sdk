@@ -1890,18 +1890,62 @@ bool Class::HasInstanceFields() const {
 }
 
 
+class FunctionName {
+ public:
+  FunctionName(const String& name, String* tmp_string)
+      : name_(name), tmp_string_(tmp_string) {}
+  bool Matches(const Function& function) const {
+    if (name_.IsSymbol()) {
+      return name_.raw() == function.name();
+    } else {
+      *tmp_string_ = function.name();
+      return name_.Equals(*tmp_string_);
+    }
+  }
+  intptr_t Hash() const { return name_.Hash(); }
+ private:
+  const String& name_;
+  String* tmp_string_;
+};
+
+
+// Traits for looking up Functions by name.
+class ClassFunctionsTraits {
+ public:
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    ASSERT(a.IsFunction() && b.IsFunction());
+    // Function objects are always canonical.
+    return a.raw() == b.raw();
+  }
+  static bool IsMatch(const FunctionName& name, const Object& obj) {
+    return name.Matches(Function::Cast(obj));
+  }
+  static uword Hash(const Object& key) {
+    return String::HashRawSymbol(Function::Cast(key).name());
+  }
+  static uword Hash(const FunctionName& name) {
+    return name.Hash();
+  }
+};
+typedef UnorderedHashSet<ClassFunctionsTraits> ClassFunctionsSet;
+
+
 void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
-#if defined(DEBUG)
-  // Verify that all the functions in the array have this class as owner.
-  Function& func = Function::Handle();
-  intptr_t len = value.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    func ^= value.At(i);
-    ASSERT(func.Owner() == raw());
-  }
-#endif
   StorePointer(&raw_ptr()->functions_, value.raw());
+  const intptr_t len = value.Length();
+  ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len));
+  if (len >= kFunctionLookupHashTreshold) {
+    Function& func = Function::Handle();
+    for (intptr_t i = 0; i < len; ++i) {
+      func ^= value.At(i);
+      // Verify that all the functions in the array have this class as owner.
+      ASSERT(func.Owner() == raw());
+      set.Insert(func);
+    }
+  }
+  StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
 }
 
 
@@ -1909,7 +1953,17 @@ void Class::AddFunction(const Function& function) const {
   const Array& arr = Array::Handle(functions());
   const Array& new_arr = Array::Handle(Array::Grow(arr, arr.Length() + 1));
   new_arr.SetAt(arr.Length(), function);
-  SetFunctions(new_arr);
+  StorePointer(&raw_ptr()->functions_, new_arr.raw());
+  // Add to hash table, if any.
+  const intptr_t new_len = new_arr.Length();
+  if (new_len == kFunctionLookupHashTreshold) {
+    // Transition to using hash table.
+    SetFunctions(new_arr);
+  } else if (new_len > kFunctionLookupHashTreshold) {
+    ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
+    set.Insert(function);
+    StorePointer(&raw_ptr()->functions_hash_table_, set.Release().raw());
+  }
 }
 
 
@@ -3831,6 +3885,15 @@ RawFunction* Class::LookupFunction(const String& name, MemberKind kind) const {
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
   Function& function = isolate->FunctionHandle();
+  if (len >= kFunctionLookupHashTreshold) {
+    ClassFunctionsSet set(raw_ptr()->functions_hash_table_);
+    REUSABLE_STRING_HANDLESCOPE(isolate);
+    function ^= set.GetOrNull(FunctionName(name, &(isolate->StringHandle())));
+    // No mutations.
+    ASSERT(set.Release().raw() == raw_ptr()->functions_hash_table_);
+    return function.IsNull() ? Function::null()
+                             : CheckFunctionType(function, kind);
+  }
   if (name.IsSymbol()) {
     // Quick Symbol compare.
     NoGCScope no_gc;
@@ -17053,10 +17116,12 @@ RawString* String::MakeExternal(void* array,
       tags = RawObject::ClassIdTag::update(class_id, tags);
       raw_ptr()->tags_ = tags;
       result = this->raw();
+      const uint8_t* ext_array = reinterpret_cast<const uint8_t*>(array);
       ExternalStringData<uint8_t>* ext_data = new ExternalStringData<uint8_t>(
-          reinterpret_cast<const uint8_t*>(array), peer, cback);
-      result.SetLength(str_length);
-      result.SetHash(0);
+          ext_array, peer, cback);
+      ASSERT(result.Length() == str_length);
+      ASSERT(!result.HasHash() ||
+             (result.Hash() == String::Hash(ext_array, str_length)));
       ExternalOneByteString::SetExternalData(result, ext_data);
       external_data = ext_data;
       finalizer = ExternalOneByteString::Finalize;
@@ -17079,10 +17144,12 @@ RawString* String::MakeExternal(void* array,
       tags = RawObject::ClassIdTag::update(class_id, tags);
       raw_ptr()->tags_ = tags;
       result = this->raw();
+      const uint16_t* ext_array = reinterpret_cast<const uint16_t*>(array);
       ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
-          reinterpret_cast<const uint16_t*>(array), peer, cback);
-      result.SetLength(str_length);
-      result.SetHash(0);
+          ext_array, peer, cback);
+      ASSERT(result.Length() == str_length);
+      ASSERT(!result.HasHash() ||
+             (result.Hash() == String::Hash(ext_array, str_length)));
       ExternalTwoByteString::SetExternalData(result, ext_data);
       external_data = ext_data;
       finalizer = ExternalTwoByteString::Finalize;

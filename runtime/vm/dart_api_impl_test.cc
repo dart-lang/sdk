@@ -8328,6 +8328,44 @@ TEST_CASE(MakeExternalString) {
       EXPECT_EQ(0x4e8c, ext_utf16_str[i]);
     }
 
+    // Test with a symbol (hash value should be preserved on externalization).
+    const char* symbol_ascii = "string";
+    expected_length = strlen(symbol_ascii);
+    Dart_Handle symbol_str =
+        Api::NewHandle(isolate, Symbols::New(symbol_ascii, expected_length));
+    EXPECT_VALID(symbol_str);
+    EXPECT(Dart_IsString(symbol_str));
+    EXPECT(Dart_IsStringLatin1(symbol_str));
+    EXPECT(!Dart_IsExternalString(symbol_str));
+    EXPECT_VALID(Dart_StringLength(symbol_str, &length));
+    EXPECT_EQ(expected_length, length);
+    EXPECT(Api::UnwrapStringHandle(isolate, symbol_str).HasHash());
+
+    uint8_t ext_symbol_ascii[kLength];
+    EXPECT_VALID(Dart_StringStorageSize(symbol_str, &size));
+    str = Dart_MakeExternalString(symbol_str,
+                                  ext_symbol_ascii,
+                                  size,
+                                  &peer8,
+                                  MakeExternalCback);
+    EXPECT(Api::UnwrapStringHandle(isolate, str).HasHash());
+    EXPECT(Api::UnwrapStringHandle(isolate, str).Hash() ==
+           Api::UnwrapStringHandle(isolate, symbol_str).Hash());
+    EXPECT(Dart_IsString(str));
+    EXPECT(Dart_IsString(symbol_str));
+    EXPECT(Dart_IsStringLatin1(str));
+    EXPECT(Dart_IsStringLatin1(symbol_str));
+    EXPECT(Dart_IsExternalString(str));
+    EXPECT(Dart_IsExternalString(symbol_str));
+    EXPECT_VALID(Dart_StringLength(str, &length));
+    EXPECT_EQ(expected_length, length);
+    EXPECT_VALID(Dart_StringLength(symbol_str, &length));
+    EXPECT_EQ(expected_length, length);
+    EXPECT(Dart_IdentityEquals(str, symbol_str));
+    for (intptr_t i = 0; i < length; i++) {
+      EXPECT_EQ(symbol_ascii[i], ext_symbol_ascii[i]);
+    }
+
     Dart_ExitScope();
   }
   EXPECT_EQ(40, peer8);

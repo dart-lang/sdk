@@ -112,7 +112,10 @@ class JavaFile {
   bool isDirectory() {
     return _newDirectory().existsSync();
   }
-  Uri toURI() => pathos.toUri(_path);
+  Uri toURI() {
+    String path = getAbsolutePath();
+    return pathos.toUri(path);
+  }
   String readAsStringSync() => _newFile().readAsStringSync();
   int lastModified() {
     if (!_newFile().existsSync()) return 0;
