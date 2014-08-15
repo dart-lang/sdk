@@ -261,40 +261,53 @@ TEST_CASE(RangeBinaryOp) {
   range_b->Clamp(RangeBoundary::kRangeBoundaryInt64);
   EXPECT(range_b->min().ConstantValue() == RangeBoundary::kMin);
   EXPECT(range_b->max().ConstantValue() == 1);
-  Range* result = Range::BinaryOp(Token::kADD,
-                                  range_a,
-                                  range_b,
-                                  NULL);
-  ASSERT(result != NULL);
-  EXPECT(result->min().IsNegativeInfinity());
-  EXPECT(result->max().IsPositiveInfinity());
+
+  {
+    Range result;
+    Range::BinaryOp(Token::kADD,
+                    range_a,
+                    range_b,
+                    NULL,
+                    &result);
+    ASSERT(!Range::IsUnknown(&result));
+    EXPECT(result.min().IsNegativeInfinity());
+    EXPECT(result.max().IsPositiveInfinity());
+  }
 
   // Test that [5, 10] + [0, 5] = [5, 15].
   Range* range_c = new Range(RangeBoundary::FromConstant(5),
                              RangeBoundary::FromConstant(10));
   Range* range_d = new Range(RangeBoundary::FromConstant(0),
                              RangeBoundary::FromConstant(5));
-  result = Range::BinaryOp(Token::kADD,
-                           range_c,
-                           range_d,
-                           NULL);
-  ASSERT(result != NULL);
-  EXPECT(result->min().ConstantValue() == 5);
-  EXPECT(result->max().ConstantValue() == 15);
 
+  {
+    Range result;
+    Range::BinaryOp(Token::kADD,
+                    range_c,
+                    range_d,
+                    NULL,
+                    &result);
+    ASSERT(!Range::IsUnknown(&result));
+    EXPECT(result.min().ConstantValue() == 5);
+    EXPECT(result.max().ConstantValue() == 15);
+  }
 
   // Test that [0xff, 0xfff] & [0xf, 0xf] = [0x0, 0xf].
   Range* range_e = new Range(RangeBoundary::FromConstant(0xff),
                              RangeBoundary::FromConstant(0xfff));
   Range* range_f = new Range(RangeBoundary::FromConstant(0xf),
                              RangeBoundary::FromConstant(0xf));
-  result = Range::BinaryOp(Token::kBIT_AND,
-                           range_e,
-                           range_f,
-                           NULL);
-  ASSERT(result != NULL);
-  EXPECT(result->min().ConstantValue() == 0x0);
-  EXPECT(result->max().ConstantValue() == 0xf);
+  {
+    Range result;
+    Range::BinaryOp(Token::kBIT_AND,
+                    range_e,
+                    range_f,
+                    NULL,
+                    &result);
+    ASSERT(!Range::IsUnknown(&result));
+    EXPECT(result.min().ConstantValue() == 0x0);
+    EXPECT(result.max().ConstantValue() == 0xf);
+  }
 }
 
 
@@ -525,118 +538,151 @@ TEST_CASE(RangeAnd) {
 }
 
 
-TEST_CASE(RangeMinMax) {
+TEST_CASE(RangeIntersectionMinMax) {
+  // Test IntersectionMin and IntersectionMax methods which for constants are
+  // simply defined as Max/Min respectively.
+
   // Constants.
   // MIN(0, 1) == 0
-  EXPECT(RangeBoundary::Min(
+  EXPECT(RangeBoundary::IntersectionMax(
       RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(1),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 0);
+      RangeBoundary::FromConstant(1)).ConstantValue() == 0);
   // MIN(0, -1) == -1
-  EXPECT(RangeBoundary::Min(
+  EXPECT(RangeBoundary::IntersectionMax(
       RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(-1),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == -1);
+      RangeBoundary::FromConstant(-1)).ConstantValue() == -1);
 
   // MIN(1, 0) == 0
-  EXPECT(RangeBoundary::Min(
+  EXPECT(RangeBoundary::IntersectionMax(
       RangeBoundary::FromConstant(1),
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 0);
+      RangeBoundary::FromConstant(0)).ConstantValue() == 0);
   // MIN(-1, 0) == -1
-  EXPECT(RangeBoundary::Min(
+  EXPECT(RangeBoundary::IntersectionMax(
       RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == -1);
+      RangeBoundary::FromConstant(0)).ConstantValue() == -1);
 
   // MAX(0, 1) == 1
-  EXPECT(RangeBoundary::Max(
+  EXPECT(RangeBoundary::IntersectionMin(
       RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(1),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 1);
+      RangeBoundary::FromConstant(1)).ConstantValue() == 1);
 
   // MAX(0, -1) == 0
-  EXPECT(RangeBoundary::Max(
+  EXPECT(RangeBoundary::IntersectionMin(
       RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(-1),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 0);
+      RangeBoundary::FromConstant(-1)).ConstantValue() == 0);
 
   // MAX(1, 0) == 1
-  EXPECT(RangeBoundary::Max(
+  EXPECT(RangeBoundary::IntersectionMin(
       RangeBoundary::FromConstant(1),
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 1);
+      RangeBoundary::FromConstant(0)).ConstantValue() == 1);
   // MAX(-1, 0) == 0
-  EXPECT(RangeBoundary::Max(
+  EXPECT(RangeBoundary::IntersectionMin(
       RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(0),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 0);
+      RangeBoundary::FromConstant(0)).ConstantValue() == 0);
 
   RangeBoundary n_infinity = RangeBoundary::NegativeInfinity();
   RangeBoundary p_infinity = RangeBoundary::PositiveInfinity();
 
   // Constants vs. infinity.
-  EXPECT(RangeBoundary::Max(
+  EXPECT(RangeBoundary::IntersectionMin(
       n_infinity,
-      RangeBoundary::FromConstant(-1),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == -1);
+      RangeBoundary::FromConstant(-1)).ConstantValue() == -1);
 
-  EXPECT(RangeBoundary::Max(
+  EXPECT(RangeBoundary::IntersectionMin(
       RangeBoundary::FromConstant(-1),
+      n_infinity).ConstantValue() == -1);
+
+  EXPECT(RangeBoundary::IntersectionMin(
+      RangeBoundary::FromConstant(1),
+      n_infinity).ConstantValue() == 1);
+
+  EXPECT(RangeBoundary::IntersectionMin(
       n_infinity,
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == -1);
+      RangeBoundary::FromConstant(1)).ConstantValue() == 1);
 
-  EXPECT(RangeBoundary::Max(
-      RangeBoundary::FromConstant(1),
-      n_infinity,
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 1);
-
-  EXPECT(RangeBoundary::Max(
-      n_infinity,
-      RangeBoundary::FromConstant(1),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 1);
-
-  EXPECT(RangeBoundary::Min(
+  EXPECT(RangeBoundary::IntersectionMax(
       p_infinity,
+      RangeBoundary::FromConstant(-1)).ConstantValue() == -1);
+
+  EXPECT(RangeBoundary::IntersectionMax(
       RangeBoundary::FromConstant(-1),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == -1);
+      p_infinity).ConstantValue() == -1);
 
-  EXPECT(RangeBoundary::Min(
-      RangeBoundary::FromConstant(-1),
-      p_infinity,
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == -1);
-
-  EXPECT(RangeBoundary::Min(
+  EXPECT(RangeBoundary::IntersectionMax(
       RangeBoundary::FromConstant(1),
+      p_infinity).ConstantValue() == 1);
+
+  EXPECT(RangeBoundary::IntersectionMax(
       p_infinity,
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 1);
-
-  EXPECT(RangeBoundary::Min(
-      p_infinity,
-      RangeBoundary::FromConstant(1),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == 1);
-
-  // 64-bit values.
-  EXPECT(RangeBoundary::Min(
-      RangeBoundary(static_cast<int64_t>(kMinInt64)),
-      RangeBoundary(static_cast<int64_t>(kMinInt32)),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == kMinInt64);
-
-  EXPECT(RangeBoundary::Max(
-      RangeBoundary(static_cast<int64_t>(kMinInt64)),
-      RangeBoundary(static_cast<int64_t>(kMinInt32)),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == kMinInt32);
-
-  EXPECT(RangeBoundary::Min(
-      RangeBoundary(static_cast<int64_t>(kMaxInt64)),
-      RangeBoundary(static_cast<int64_t>(kMaxInt32)),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == kMaxInt32);
-
-  EXPECT(RangeBoundary::Max(
-      RangeBoundary(static_cast<int64_t>(kMaxInt64)),
-      RangeBoundary(static_cast<int64_t>(kMaxInt32)),
-      RangeBoundary::kRangeBoundaryInt64).ConstantValue() == kMaxInt64);
+      RangeBoundary::FromConstant(1)).ConstantValue() == 1);
 }
 
+
+TEST_CASE(RangeJoinMinMax) {
+  // Test IntersectionMin and IntersectionMax methods which for constants are
+  // simply defined as Min/Max respectively.
+
+  // Constants.
+  EXPECT(RangeBoundary::JoinMax(
+      RangeBoundary::FromConstant(0),
+      RangeBoundary::FromConstant(1)).ConstantValue() == 1);
+  EXPECT(RangeBoundary::JoinMax(
+      RangeBoundary::FromConstant(0),
+      RangeBoundary::FromConstant(-1)).ConstantValue() == 0);
+  EXPECT(RangeBoundary::JoinMax(
+      RangeBoundary::FromConstant(1),
+      RangeBoundary::FromConstant(0)).ConstantValue() == 1);
+  EXPECT(RangeBoundary::JoinMax(
+      RangeBoundary::FromConstant(-1),
+      RangeBoundary::FromConstant(0)).ConstantValue() == 0);
+  EXPECT(RangeBoundary::JoinMin(
+      RangeBoundary::FromConstant(0),
+      RangeBoundary::FromConstant(1)).ConstantValue() == 0);
+  EXPECT(RangeBoundary::JoinMin(
+      RangeBoundary::FromConstant(0),
+      RangeBoundary::FromConstant(-1)).ConstantValue() == -1);
+  EXPECT(RangeBoundary::JoinMin(
+      RangeBoundary::FromConstant(1),
+      RangeBoundary::FromConstant(0)).ConstantValue() == 0);
+  EXPECT(RangeBoundary::JoinMin(
+      RangeBoundary::FromConstant(-1),
+      RangeBoundary::FromConstant(0)).ConstantValue() == -1);
+
+  RangeBoundary n_infinity = RangeBoundary::NegativeInfinity();
+  RangeBoundary p_infinity = RangeBoundary::PositiveInfinity();
+
+  // Constants vs. infinity.
+  EXPECT(RangeBoundary::JoinMin(
+      n_infinity,
+      RangeBoundary::FromConstant(-1)).IsSmiMinimumOrBelow());
+
+  EXPECT(RangeBoundary::JoinMin(
+      RangeBoundary::FromConstant(-1),
+      n_infinity).IsSmiMinimumOrBelow());
+
+  EXPECT(RangeBoundary::JoinMin(
+      RangeBoundary::FromConstant(1),
+      n_infinity).IsSmiMinimumOrBelow());
+
+  EXPECT(RangeBoundary::JoinMin(
+      n_infinity,
+      RangeBoundary::FromConstant(1)).IsSmiMinimumOrBelow());
+
+  EXPECT(RangeBoundary::JoinMax(
+      p_infinity,
+      RangeBoundary::FromConstant(-1)).IsSmiMaximumOrAbove());
+
+  EXPECT(RangeBoundary::JoinMax(
+      RangeBoundary::FromConstant(-1),
+      p_infinity).IsSmiMaximumOrAbove());
+
+  EXPECT(RangeBoundary::JoinMax(
+      RangeBoundary::FromConstant(1),
+      p_infinity).IsSmiMaximumOrAbove());
+
+  EXPECT(RangeBoundary::JoinMax(
+      p_infinity,
+      RangeBoundary::FromConstant(1)).IsSmiMaximumOrAbove());
+}
 
 }  // namespace dart
