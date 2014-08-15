@@ -112,6 +112,18 @@ class Edit implements HasToJson {
    */
   final String replacement;
 
+  /**
+   * An identifier that uniquely identifies this source edit from other edits in
+   * the same response. This field is omitted unless a containing structure
+   * needs to be able to identify the edit for some reason.
+   *
+   * For example, some refactoring operations can produce edits that might not
+   * be appropriate (referred to as potential edits). Such edits will have an id
+   * so that they can be referenced. Edits in the same response that do not need
+   * to be referenced will not have an id.
+   */
+  String id;
+
   Edit(this.offset, this.length, this.replacement);
 
   Edit.range(SourceRange range, String replacement) : this(
@@ -150,8 +162,22 @@ class Edit implements HasToJson {
   }
 
   @override
-  String toString() =>
-      "Edit(offset=$offset, length=$length, replacement=:>$replacement<:)";
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write('Edit(offset=');
+    sb.write(offset);
+    sb.write(', length=');
+    sb.write(length);
+    sb.write(', replacement=:>');
+    sb.write(replacement);
+    sb.write('<:');
+    if (id != null) {
+      sb.write(', id=');
+      sb.write(id);
+    }
+    sb.write(')');
+    return sb.toString();
+  }
 
   /**
    * Get the result of applying a set of [edits] to the given [code].  Edits

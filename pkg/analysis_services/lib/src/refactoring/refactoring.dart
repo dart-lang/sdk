@@ -14,6 +14,8 @@ import 'package:analysis_services/refactoring/refactoring.dart';
  * Abstract implementation of [Refactoring].
  */
 abstract class RefactoringImpl implements Refactoring {
+  final List<String> potentialEditIds = <String>[];
+
   @override
   Future<RefactoringStatus> checkAllConditions() {
     RefactoringStatus result = new RefactoringStatus();

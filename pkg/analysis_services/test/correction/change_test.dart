@@ -166,10 +166,13 @@ class EditTest {
 
   void test_new() {
     Edit edit = new Edit(1, 2, 'foo');
+    edit.id = 'my-id';
     expect(edit.offset, 1);
     expect(edit.length, 2);
     expect(edit.replacement, 'foo');
-    expect(edit.toString(), 'Edit(offset=1, length=2, replacement=:>foo<:)');
+    expect(
+        edit.toString(),
+        'Edit(offset=1, length=2, replacement=:>foo<:, id=my-id)');
   }
 
   void test_new_range() {

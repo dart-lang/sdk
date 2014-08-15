@@ -9,6 +9,7 @@ import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_rename.dart';
+import 'package:analysis_services/correction/change.dart';
 
 
 main() {
@@ -319,8 +320,9 @@ class A {
   test() {}
 }
 main(var a) {
-  a.test();
+  a.test(); // 1
   new A().test();
+  a.test(); // 2
 }
 ''');
     // configure refactoring
@@ -334,10 +336,13 @@ class A {
   newName() {}
 }
 main(var a) {
-  a.newName();
+  a.newName(); // 1
   new A().newName();
+  a.newName(); // 2
 }
-''');
+''').then((_) {
+      assertPotentialEdits(['test(); // 1', 'test(); // 2']);
+    });
   }
 
   test_createChange_MethodElement_potential_private_otherLibrary() {

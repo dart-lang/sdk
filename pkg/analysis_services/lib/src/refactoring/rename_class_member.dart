@@ -108,10 +108,16 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         }
         // add edit
         Edit edit = createReferenceEdit(reference, newName);
-        // TODO(scheglov) set ID, remember as a potential edit
+        _markEditAsPotential(edit);
         change.addEdit(reference.file, edit);
       }
     }).then((_) => change);
+  }
+
+  void _markEditAsPotential(Edit edit) {
+    String id = potentialEditIds.length.toString();
+    potentialEditIds.add(id);
+    edit.id = id;
   }
 }
 

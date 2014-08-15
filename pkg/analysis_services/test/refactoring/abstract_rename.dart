@@ -49,6 +49,26 @@ class RenameRefactoringTest extends RefactoringTest {
   }
 
   /**
+   * Asserts that [refactoring] has potential edits in [testFile] at offset
+   * of the given [searches].
+   */
+  void assertPotentialEdits(List<String> searches) {
+    Set<int> expectedOffsets = new Set<int>();
+    for (String search in searches) {
+      int offset = findOffset(search);
+      expectedOffsets.add(offset);
+    }
+    // remove offset marked as potential
+    for (String potentialId in refactoring.potentialEditIds) {
+      Edit edit = findEditById(potentialId);
+      expect(edit, isNotNull);
+      expectedOffsets.remove(edit.offset);
+    }
+    // all potential offsets are marked as such
+    expect(expectedOffsets, isEmpty);
+  }
+
+  /**
    * Checks that all conditions are OK and the result of applying the [Change]
    * to [testUnit] is [expectedCode].
    */
@@ -95,6 +115,20 @@ class RenameRefactoringTest extends RefactoringTest {
   void createRenameRefactoringForElement(Element element) {
     refactoring = new RenameRefactoring(searchEngine, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
+  }
+
+  /**
+   * Returns the [Edit] with the given [id], maybe `null`.
+   */
+  Edit findEditById(String id) {
+    for (FileEdit fileEdit in refactoringChange.fileEdits) {
+      for (Edit edit in fileEdit.edits) {
+        if (edit.id == id) {
+          return edit;
+        }
+      }
+    }
+    return null;
   }
 
 //  /**

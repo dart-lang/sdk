@@ -9,19 +9,30 @@ import 'dart:async';
 import 'package:analysis_services/correction/change.dart';
 import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/refactoring/rename_class_member.dart';
 import 'package:analysis_services/src/refactoring/rename_constructor.dart';
 import 'package:analysis_services/src/refactoring/rename_import.dart';
 import 'package:analysis_services/src/refactoring/rename_library.dart';
 import 'package:analysis_services/src/refactoring/rename_local.dart';
 import 'package:analysis_services/src/refactoring/rename_unit_member.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analysis_services/src/refactoring/rename_class_member.dart';
 
 
 /**
  * Abstract interface for all refactorings.
  */
 abstract class Refactoring {
+  /**
+   * The ids of source edits that are not known to be valid.
+   *
+   * An edit is not known to be valid if there was insufficient type information
+   * for the server to be able to determine whether or not the code needs to be
+   * modified, such as when a member is being renamed and there is a reference
+   * to a member from an unknown type. This field will be omitted if the change
+   * field is omitted or if there are no potential edits for the refactoring.
+   */
+  List<String> get potentialEditIds;
+
   /**
    * Returns the human readable name of this [Refactoring].
    */
