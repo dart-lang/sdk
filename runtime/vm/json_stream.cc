@@ -8,6 +8,7 @@
 #include "vm/debugger.h"
 #include "vm/json_stream.h"
 #include "vm/message.h"
+#include "vm/metrics.h"
 #include "vm/object.h"
 #include "vm/unicode.h"
 
@@ -259,6 +260,12 @@ void JSONStream::PrintValue(const DebuggerEvent* event) {
 }
 
 
+void JSONStream::PrintValue(Metric* metric) {
+  PrintCommaIfNeeded();
+  metric->PrintJSON(this);
+}
+
+
 void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   PrintCommaIfNeeded();
   isolate->PrintJSON(this, ref);
@@ -312,6 +319,11 @@ void JSONStream::PrintProperty(const char* name, SourceBreakpoint* bpt) {
   PrintValue(bpt);
 }
 
+
+void JSONStream::PrintProperty(const char* name, Metric* metric) {
+  PrintPropertyName(name);
+  PrintValue(metric);
+}
 
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintPropertyName(name);
@@ -396,6 +408,9 @@ bool JSONStream::NeedComma() {
 
 
 void JSONStream::AddEscapedUTF8String(const char* s) {
+  if (s == NULL) {
+    return;
+  }
   intptr_t len = strlen(s);
   const uint8_t* s8 = reinterpret_cast<const uint8_t*>(s);
   intptr_t i = 0;

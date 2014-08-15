@@ -12,6 +12,7 @@
 #include "vm/counters.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
+#include "vm/metrics.h"
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
@@ -555,11 +556,26 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, current_tag_);
   }
 
+#define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
+  type* Get##variable##Metric() { return &metric_##variable##_; }
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
+#undef ISOLATE_METRIC_ACCESSOR
+
+  static intptr_t IsolateListLength();
+
   RawGrowableObjectArray* tag_table() const { return tag_table_; }
   void set_tag_table(const GrowableObjectArray& value);
 
   RawUserTag* current_tag() const { return current_tag_; }
   void set_current_tag(const UserTag& tag);
+
+  Metric* metrics_list_head() {
+    return metrics_list_head_;
+  }
+
+  void set_metrics_list_head(Metric* metric) {
+    metrics_list_head_ = metric;
+  }
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -665,6 +681,8 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
   RawUserTag* current_tag_;
 
+  Metric* metrics_list_head_;
+
   Counters counters_;
 
   // Isolate list next pointer.
@@ -682,6 +700,11 @@ class Isolate : public BaseIsolate {
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_VARIABLE);
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
+
+#define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
+  type metric_##variable##_;
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
+#undef ISOLATE_METRIC_VARIABLE
 
   VMHandles reusable_handles_;
 

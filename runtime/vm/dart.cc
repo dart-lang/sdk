@@ -13,6 +13,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/metrics.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/object_id_ring.h"
@@ -108,6 +109,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   ThreadInterrupter::InitOnce();
   Profiler::InitOnce();
   SemiSpace::InitOnce();
+  Metric::InitOnce();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();

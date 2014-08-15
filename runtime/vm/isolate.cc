@@ -436,6 +436,7 @@ Isolate::Isolate()
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
       current_tag_(UserTag::null()),
+      metrics_list_head_(NULL),
       next_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
@@ -510,8 +511,16 @@ Isolate* Isolate::Init(const char* name_prefix) {
   Isolate* result = new Isolate();
   ASSERT(result != NULL);
 
+  // Initialize metrics.
+#define ISOLATE_METRIC_INIT(type, variable, name, unit)                        \
+  result->metric_##variable##_.Init(result, name, NULL, Metric::unit);
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
+#undef ISOLATE_METRIC_INIT
+
+
   // Add to isolate list.
   AddIsolateTolist(result);
+
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -1234,6 +1243,18 @@ void Isolate::VisitIsolates(IsolateVisitor* visitor) {
     visitor->VisitIsolate(current);
     current = current->next_;
   }
+}
+
+
+intptr_t Isolate::IsolateListLength() {
+  MonitorLocker ml(isolates_list_monitor_);
+  intptr_t count = 0;
+  Isolate* current = isolates_list_head_;
+  while (current != NULL) {
+    count++;
+    current = current->next_;
+  }
+  return count;
 }
 
 

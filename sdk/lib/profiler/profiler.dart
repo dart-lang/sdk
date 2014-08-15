@@ -77,9 +77,10 @@ abstract class Metric {
   final String description;
 
   Metric(this.name, this.description) {
-    if (name.contains('/')) {
+    if ((name == 'vm') || name.contains('/')) {
       throw new ArgumentError('Invalid Metric name.');
     }
+
   }
 
   Map _toJSON();

@@ -1595,6 +1595,40 @@ static RawClass* GetMetricsClass(Isolate* isolate) {
 }
 
 
+static bool HandleIsolateMetricsList(Isolate* isolate, JSONStream* js) {
+  JSONObject obj(js);
+  obj.AddProperty("type", "MetricList");
+  obj.AddProperty("id", "metrics/vm");
+  {
+    JSONArray members(&obj, "members");
+    Metric* current = isolate->metrics_list_head();
+    while (current != NULL) {
+      members.AddValue(current);
+      current = current->next();
+    }
+  }
+  return true;
+}
+
+
+static bool HandleIsolateMetric(Isolate* isolate,
+                                JSONStream* js,
+                                const char* id) {
+  Metric* current = isolate->metrics_list_head();
+  while (current != NULL) {
+    const char* name = current->name();
+    ASSERT(name != NULL);
+    if (strcmp(name, id) == 0) {
+      current->PrintJSON(js);
+      return true;
+    }
+    current = current->next();
+  }
+  PrintError(js, "Metric %s not found\n", id);
+  return true;
+}
+
+
 static bool HandleMetricsList(Isolate* isolate, JSONStream* js) {
   const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
   const String& print_metrics_name =
@@ -1646,11 +1680,23 @@ static bool HandleMetrics(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     return HandleMetricsList(isolate, js);
   }
+  ASSERT(js->num_arguments() > 1);
+  const char* arg = js->GetArgument(1);
+  if (strcmp(arg, "vm") == 0) {
+    if (js->num_arguments() == 2) {
+      return HandleIsolateMetricsList(isolate, js);
+    } else {
+      if (js->num_arguments() > 3) {
+        PrintError(js, "Command too long");
+        return true;
+      }
+      return HandleIsolateMetric(isolate, js, js->GetArgument(2));
+    }
+  }
   if (js->num_arguments() > 2) {
     PrintError(js, "Command too long");
     return true;
   }
-  const char* arg = js->GetArgument(1);
   return HandleMetric(isolate, js, arg);
 }
 
