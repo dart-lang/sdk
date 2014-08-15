@@ -7,7 +7,6 @@ library services.correction.change;
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/json.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:collection/collection.dart';
 
 
 /**

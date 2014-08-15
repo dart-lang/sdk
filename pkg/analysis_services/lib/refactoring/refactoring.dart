@@ -15,6 +15,7 @@ import 'package:analysis_services/src/refactoring/rename_library.dart';
 import 'package:analysis_services/src/refactoring/rename_local.dart';
 import 'package:analysis_services/src/refactoring/rename_unit_member.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analysis_services/src/refactoring/rename_class_member.dart';
 
 
 /**
@@ -86,6 +87,9 @@ abstract class RenameRefactoring implements Refactoring {
     }
     if (element is LocalElement) {
       return new RenameLocalRefactoringImpl(searchEngine, element);
+    }
+    if (element.enclosingElement is ClassElement) {
+      return new RenameClassMemberRefactoringImpl(searchEngine, element);
     }
     return null;
   }

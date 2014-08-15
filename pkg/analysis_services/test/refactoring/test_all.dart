@@ -7,6 +7,7 @@ library test.services.refactoring;
 import 'package:unittest/unittest.dart';
 
 import 'naming_conventions_test.dart' as naming_conventions_test;
+import 'rename_class_member_test.dart' as rename_class_member_test;
 import 'rename_constructor_test.dart' as rename_constructor_test;
 import 'rename_import_test.dart' as rename_import_test;
 import 'rename_library_test.dart' as rename_library_test;
@@ -18,6 +19,7 @@ main() {
   groupSep = ' | ';
   group('refactoring', () {
     naming_conventions_test.main();
+    rename_class_member_test.main();
     rename_constructor_test.main();
     rename_import_test.main();
     rename_library_test.main();

@@ -40,6 +40,15 @@ class RenameRefactoringTest extends RefactoringTest {
   }
 
   /**
+   * Asserts that [refactoringChange] does not contain a [FileEdit] for the file
+   * with the given [path].
+   */
+  void assertNoFileChange(String path) {
+    FileEdit fileEdit = refactoringChange.getFileEdit(path);
+    expect(fileEdit, isNull);
+  }
+
+  /**
    * Checks that all conditions are OK and the result of applying the [Change]
    * to [testUnit] is [expectedCode].
    */

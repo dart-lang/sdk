@@ -43,10 +43,10 @@ List<SourceReference> getSourceReferences(List<SearchMatch> matches) {
   var uniqueReferences = new HashMap<SourceReference, SourceReference>();
   for (SearchMatch match in matches) {
     Element element = match.element;
-    MatchKind kind = match.kind;
     String file = getElementFile(element);
     SourceRange range = match.sourceRange;
-    SourceReference newReference = new SourceReference(kind, file, range);
+    SourceReference newReference =
+        new SourceReference(file, range, element, match.isResolved, match.isQualified);
     SourceReference oldReference = uniqueReferences[newReference];
     if (oldReference == null) {
       uniqueReferences[newReference] = newReference;
@@ -166,9 +166,11 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
    * Adds the "Update declaration" [Edit] to [change].
    */
   void addDeclarationEdit(Change change, Element element) {
-    String file = getElementFile(element);
-    Edit edit = new Edit.range(rangeElementName(element), newName);
-    change.addEdit(file, edit);
+    if (element != null) {
+      String file = getElementFile(element);
+      Edit edit = new Edit.range(rangeElementName(element), newName);
+      change.addEdit(file, edit);
+    }
   }
 
   /**
@@ -216,11 +218,14 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
  * The [SourceRange] in some [Source].
  */
 class SourceReference {
-  final MatchKind kind;
   final String file;
   final SourceRange range;
+  final Element element;
+  final bool isResolved;
+  final bool isQualified;
 
-  SourceReference(this.kind, this.file, this.range);
+  SourceReference(this.file, this.range, this.element, this.isResolved,
+      this.isQualified);
 
   @override
   int get hashCode {
