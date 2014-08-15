@@ -1146,9 +1146,19 @@ abstract class IntegrationTestMixin {
    * change ( optional SourceChange )
    *
    *   The changes that are to be applied to affect the refactoring. This field
-   *   will be omitted if there are problems that prevent a set of changed from
+   *   will be omitted if there are problems that prevent a set of changes from
    *   being computed, such as having no options specified for a refactoring
    *   that requires them, or if only validation was requested.
+   *
+   * potentialChanges ( optional List<String> )
+   *
+   *   The ids of source edits that are not known to be valid. An edit is not
+   *   known to be valid if there was insufficient type information for the
+   *   server to be able to determine whether or not the code needs to be
+   *   modified, such as when a member is being renamed and there is a
+   *   reference to a member from an unknown type. This field will be omitted
+   *   if the change field is omitted or if there are no potential edits for
+   *   the refactoring.
    */
   Future sendEditGetRefactoring(String kindId, String file, int offset, int length, bool validateOnly, {Map<String, dynamic> options, bool checkTypes: true}) {
     Map<String, dynamic> params = {};

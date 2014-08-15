@@ -652,6 +652,7 @@ final Matcher isEditGetRefactoringParams = new LazyMatcher(() => new MatchesJson
  *   "status": List<RefactoringProblem>
  *   "feedback": optional object
  *   "change": optional SourceChange
+ *   "potentialChanges": optional List<String>
  * }
  */
 final Matcher isEditGetRefactoringResult = new LazyMatcher(() => new MatchesJsonObject(
@@ -659,7 +660,8 @@ final Matcher isEditGetRefactoringResult = new LazyMatcher(() => new MatchesJson
     "status": isListOf(isRefactoringProblem)
   }, optionalFields: {
     "feedback": isObject,
-    "change": isSourceChange
+    "change": isSourceChange,
+    "potentialChanges": isListOf(isString)
   }));
 
 /**
@@ -1690,6 +1692,7 @@ final Matcher isSourceChange = new LazyMatcher(() => new MatchesJsonObject(
  *   "offset": int
  *   "length": int
  *   "replacement": String
+ *   "id": optional String
  * }
  */
 final Matcher isSourceEdit = new LazyMatcher(() => new MatchesJsonObject(
@@ -1697,6 +1700,8 @@ final Matcher isSourceEdit = new LazyMatcher(() => new MatchesJsonObject(
     "offset": isInt,
     "length": isInt,
     "replacement": isString
+  }, optionalFields: {
+    "id": isString
   }));
 
 /**

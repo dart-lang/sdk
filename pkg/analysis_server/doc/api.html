@@ -1392,6 +1392,7 @@ dt.typeDefinition {
     "<b>status</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
     "<b>feedback</b>": <span style="color:#999999">optional</span> object
     "<b>change</b>": <span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>
+    "<b>potentialChanges</b>": <span style="color:#999999">optional</span> List&lt;String&gt;
   }
 }</pre></div>
         <p>
@@ -1458,10 +1459,21 @@ dt.typeDefinition {
             <p>
               The changes that are to be applied to affect the
               refactoring. This field will be omitted if there are
-              problems that prevent a set of changed from being
+              problems that prevent a set of changes from being
               computed, such as having no options specified for a
               refactoring that requires them, or if only validation
               was requested.
+            </p>
+          </dd><dt class="field"><b><i>potentialChanges ( <span style="color:#999999">optional</span> List&lt;String&gt; )</i></b></dt><dd>
+            
+            <p>
+              The ids of source edits that are not known to be valid. An edit is
+              not known to be valid if there was insufficient type information
+              for the server to be able to determine whether or not the code
+              needs to be modified, such as when a member is being renamed and
+              there is a reference to a member from an unknown type. This field
+              will be omitted if the change field is omitted or if there are no
+              potential edits for the refactoring.
             </p>
           </dd></dl></dd></dl>
     <h2 class="domain"><a name="domain_debug">Domain: debug</a></h2>
@@ -2675,6 +2687,21 @@ dt.typeDefinition {
             <p>
               The code that is to replace the specified region in the
               original code.
+            </p>
+          </dd><dt class="field"><b><i>id ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
+            
+            <p>
+              An identifier that uniquely identifies this source edit from other
+              edits in the same response. This field is omitted unless a
+              containing structure needs to be able to identify the edit for
+              some reason.
+            </p>
+            <p>
+              For example, some refactoring operations can produce edits that
+              might not be appropriate (referred to as potential edits). Such
+              edits will have an id so that they can be referenced. Edits in
+              the same response that do not need to be referenced will not have
+              an id.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_SourceFileEdit">SourceFileEdit: object</a></dt><dd>
         <p>
