@@ -2271,7 +2271,7 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 // receiver is the same as the caller's receiver and there are no overriden
 // callee functions, then no class check is needed.
 bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
-    InstanceCallInstr* call) const {
+    InstanceCallInstr* call, RawFunction::Kind kind) const {
   if (!FLAG_use_cha) return true;
   Definition* callee_receiver = call->ArgumentAt(0);
   ASSERT(callee_receiver != NULL);
@@ -2279,26 +2279,11 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
   if (function.IsDynamicFunction() &&
       callee_receiver->IsParameter() &&
       (callee_receiver->AsParameter()->index() == 0)) {
+    const String& name = (kind == RawFunction::kMethodExtractor)
+        ? String::Handle(I, Field::NameFromGetter(call->function_name()))
+        : call->function_name();
     return isolate()->cha()->HasOverride(Class::Handle(I, function.Owner()),
-                                         call->function_name());
-  }
-  return true;
-}
-
-
-bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
-    InstanceCallInstr* call) const {
-  if (!FLAG_use_cha) return true;
-  Definition* callee_receiver = call->ArgumentAt(0);
-  ASSERT(callee_receiver != NULL);
-  const Function& function = flow_graph_->parsed_function().function();
-  if (function.IsDynamicFunction() &&
-      callee_receiver->IsParameter() &&
-      (callee_receiver->AsParameter()->index() == 0)) {
-    const String& field_name =
-      String::Handle(I, Field::NameFromGetter(call->function_name()));
-    return isolate()->cha()->HasOverride(
-        Class::Handle(I, function.Owner()), field_name);
+                                         name);
   }
   return true;
 }
@@ -2319,7 +2304,7 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       Field::ZoneHandle(I, GetField(class_ids[0], field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(call)) {
+  if (InstanceCallNeedsClassCheck(call, RawFunction::kImplicitGetter)) {
     AddReceiverCheck(call);
   }
   LoadFieldInstr* load = new(I) LoadFieldInstr(
@@ -4167,7 +4152,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       ? FLAG_max_equality_polymorphic_checks
       : FLAG_max_polymorphic_checks;
   if ((unary_checks.NumberOfChecks() > max_checks) &&
-      InstanceCallNeedsClassCheck(instr)) {
+      InstanceCallNeedsClassCheck(instr, RawFunction::kRegularFunction)) {
     // Too many checks, it will be megamorphic which needs unary checks.
     instr->set_ic_data(&unary_checks);
     return;
@@ -4220,11 +4205,9 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 
   if (has_one_target) {
-    const bool is_method_extraction =
-        Function::Handle(I, unary_checks.GetTargetAt(0)).IsMethodExtractor();
-
-    if ((is_method_extraction && !MethodExtractorNeedsClassCheck(instr)) ||
-        (!is_method_extraction && !InstanceCallNeedsClassCheck(instr))) {
+    RawFunction::Kind function_kind =
+        Function::Handle(I, unary_checks.GetTargetAt(0)).kind();
+    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
       const bool call_with_checks = false;
       PolymorphicInstanceCallInstr* call =
           new(I) PolymorphicInstanceCallInstr(instr, unary_checks,
@@ -4487,7 +4470,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       Field::ZoneHandle(I, GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(instr)) {
+  if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
     AddReceiverCheck(instr);
   }
   StoreBarrierType needs_store_barrier = kEmitStoreBarrier;

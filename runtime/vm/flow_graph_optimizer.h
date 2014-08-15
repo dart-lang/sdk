@@ -215,8 +215,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                         Value* use,
                         bool is_environment_use);
 
-  bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
-  bool MethodExtractorNeedsClassCheck(InstanceCallInstr* call) const;
+  bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
+                                   RawFunction::Kind kind) const;
 
   bool InlineFloat32x4Getter(InstanceCallInstr* call,
                              MethodRecognizer::Kind getter);

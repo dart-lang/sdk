@@ -98,40 +98,10 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   const intptr_t kArrayOffset = 1 * kWordSize;
   Label fall_through;
 
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize(sizeof(RawGrowableObjectArray)) +
-  intptr_t fixed_size = GrowableObjectArray::InstanceSize();
-
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
-  __ movq(RAX, Immediate(heap->TopAddress()));
-  __ movq(RAX, Address(RAX, 0));
-  __ leaq(RCX, Address(RAX, fixed_size));
-
-  // Check if the allocation fits into the remaining space.
-  // RAX: potential new backing array object start.
-  // RCX: potential next object start.
-  __ movq(R13, Immediate(heap->EndAddress()));
-  __ cmpq(RCX, Address(R13, 0));
-  __ j(ABOVE_EQUAL, &fall_through);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress()));
-  __ movq(Address(R13, 0), RCX);
-  __ addq(RAX, Immediate(kHeapObjectTag));
-
-  // Initialize the tags.
-  // EAX: new growable array object start as a tagged pointer.
+  // Try allocating in new space.
   const Class& cls = Class::Handle(
-      isolate->object_store()->growable_object_array_class());
-  uword tags = 0;
-  tags = RawObject::SizeTag::update(fixed_size, tags);
-  tags = RawObject::ClassIdTag::update(cls.id(), tags);
-  __ movq(FieldAddress(RAX, GrowableObjectArray::tags_offset()),
-          Immediate(tags));
+      Isolate::Current()->object_store()->growable_object_array_class());
+  __ TryAllocate(cls, &fall_through, Assembler::kNearJump, RAX, PP);
 
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
