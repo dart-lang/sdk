@@ -141,6 +141,8 @@ class CompletionSuggestionKind {
       const CompletionSuggestionKind('GETTER');
   static const CompletionSuggestionKind IMPORT =
       const CompletionSuggestionKind('IMPORT');
+  static const CompletionSuggestionKind KEYWORD =
+      const CompletionSuggestionKind('KEYWORD');
   static const CompletionSuggestionKind LIBRARY_PREFIX =
       const CompletionSuggestionKind('LIBRARY_PREFIX');
   static const CompletionSuggestionKind LOCAL_VARIABLE =
@@ -219,6 +221,7 @@ class CompletionSuggestionKind {
     if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
     if (GETTER.name == name) return GETTER;
     if (IMPORT.name == name) return IMPORT;
+    if (KEYWORD.name == name) return KEYWORD;
     if (LIBRARY_PREFIX.name == name) return LIBRARY_PREFIX;
     if (LOCAL_VARIABLE.name == name) return LOCAL_VARIABLE;
     if (METHOD.name == name) return METHOD;

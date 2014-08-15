@@ -165,6 +165,17 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_keyword() {
+    addTestFile('^');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'library');
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'import');
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'class');
+    });
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}}');
     return getSuggestions().then((_) {

@@ -952,6 +952,7 @@ final Matcher isCompletionSuggestion = new LazyMatcher(() => new MatchesJsonObje
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
  *   IMPORT
+ *   KEYWORD
  *   LIBRARY_PREFIX
  *   LOCAL_VARIABLE
  *   METHOD
@@ -974,6 +975,7 @@ final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestion
   "FUNCTION_TYPE_ALIAS",
   "GETTER",
   "IMPORT",
+  "KEYWORD",
   "LIBRARY_PREFIX",
   "LOCAL_VARIABLE",
   "METHOD",

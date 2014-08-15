@@ -9,7 +9,6 @@ import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:path/path.dart';
 
 
 class MockSdk implements DartSdk {

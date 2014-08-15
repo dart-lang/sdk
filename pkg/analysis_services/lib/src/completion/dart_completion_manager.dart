@@ -10,6 +10,7 @@ import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/completion/imported_type_computer.dart';
+import 'package:analysis_services/src/completion/keyword_computer.dart';
 import 'package:analysis_services/src/completion/invocation_computer.dart';
 import 'package:analysis_services/src/completion/local_computer.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -80,6 +81,7 @@ class DartCompletionManager extends CompletionManager {
   void initComputers() {
     if (computers == null) {
       computers = [
+          new KeywordComputer(),
           new LocalComputer(),
           new ImportedTypeComputer(),
           new InvocationComputer()];

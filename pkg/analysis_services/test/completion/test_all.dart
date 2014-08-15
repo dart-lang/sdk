@@ -10,6 +10,7 @@ import 'completion_computer_test.dart' as completion_test;
 import 'imported_type_computer_test.dart' as importedType_test;
 import 'invocation_computer_test.dart' as invocation_test;
 import 'local_computer_test.dart' as local_test;
+import 'keyword_computer_test.dart' as keyword_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -17,6 +18,7 @@ main() {
   group('completion', () {
     completion_test.main();
     importedType_test.main();
+    keyword_test.main();
     invocation_test.main();
     local_test.main();
   });
