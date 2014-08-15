@@ -636,10 +636,7 @@ abstract class IntegrationTestMixin {
   StreamController _onAnalysisOutline;
 
   /**
-   * Reports the overridding members in a file. This notification currently
-   * includes only members that override a member from a superclass. In
-   * particular, it does not include members that override members from
-   * interfaces.
+   * Reports the overridding members in a file.
    *
    * This notification is not subscribed to by default. Clients can subscribe
    * by including the value "OVERRIDES" in the list of services passed in an
