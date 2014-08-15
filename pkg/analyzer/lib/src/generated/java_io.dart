@@ -84,7 +84,11 @@ class JavaFile {
     if (parent == null) return null;
     return new JavaFile(parent);
   }
-  String getAbsolutePath() => pathos.absolute(_path);
+  String getAbsolutePath() {
+    String path = pathos.absolute(_path);
+    path = pathos.normalize(path);
+    return path;
+  }
   String getCanonicalPath() {
     try {
       return _newFile().resolveSymbolicLinksSync();
