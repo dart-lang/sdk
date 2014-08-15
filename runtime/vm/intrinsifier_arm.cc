@@ -167,7 +167,6 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // Set the length field in the growable array object to 0.
   __ LoadImmediate(R1, 0);
   __ str(R1, FieldAddress(R0, GrowableObjectArray::length_offset()));
-  __ UpdateAllocationStats(kGrowableObjectArrayCid, R1);
   __ Ret();  // Returns the newly allocated object in R0.
 
   __ Bind(&fall_through);

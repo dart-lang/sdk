@@ -167,7 +167,6 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // Set the length field in the growable array object to 0.
   __ movl(FieldAddress(EAX, GrowableObjectArray::length_offset()),
           Immediate(0));
-  __ UpdateAllocationStats(kGrowableObjectArrayCid, EBX);
   __ ret();  // returns the newly allocated object in EAX.
 
   __ Bind(&fall_through);

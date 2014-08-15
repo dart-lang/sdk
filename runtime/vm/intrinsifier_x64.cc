@@ -101,7 +101,7 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // Try allocating in new space.
   const Class& cls = Class::Handle(
       Isolate::Current()->object_store()->growable_object_array_class());
-  __ TryAllocate(cls, &fall_through, Assembler::kNearJump, RAX, PP);
+  __ TryAllocate(cls, &fall_through, Assembler::kFarJump, RAX, kNoRegister);
 
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
@@ -122,7 +122,6 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // Set the length field in the growable array object to 0.
   __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()),
           Immediate(0));
-  __ UpdateAllocationStats(kGrowableObjectArrayCid);
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
