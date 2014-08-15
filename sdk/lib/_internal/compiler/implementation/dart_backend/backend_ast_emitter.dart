@@ -415,7 +415,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     Statement body = new Block(statementBuffer);
     Statement statement = new While(new Literal(new dart2js.TrueConstant()),
                                     body);
-    if (usedLabels.remove(stmt.label.name)) {
+    if (usedLabels.remove(stmt.label)) {
       statement = new LabeledStatement(stmt.label.name, statement);
     }
     savedBuffer.add(statement);
@@ -436,7 +436,7 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
     Statement body = new Block(statementBuffer);
     Statement statement;
     statement = new While(condition, body);
-    if (usedLabels.remove(stmt.label.name)) {
+    if (usedLabels.remove(stmt.label)) {
       statement = new LabeledStatement(stmt.label.name, statement);
     }
     savedBuffer.add(statement);
