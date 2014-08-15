@@ -182,6 +182,18 @@ class MyClass {
         secondField = "another",
         thirdField = "last";
 }
+>>> DO format constructor initialization lists with each field on its own line.
+class MyClass {
+  MyClass(looooooooooooooonA, looooooooooooooonB) : super(looooooooooooooonA, looooooooooooooonB);
+  MyClass(looooooooooooooonA, looooooooooooooonB) : this(looooooooooooooonA, looooooooooooooonB);
+}
+<<<
+class MyClass {
+  MyClass(looooooooooooooonA, looooooooooooooonB)
+      : super(looooooooooooooonA, looooooooooooooonB);
+  MyClass(looooooooooooooonA, looooooooooooooonB)
+      : this(looooooooooooooonA, looooooooooooooonB);
+}
 >>> DO use a space after : in named parameters and named arguments.
 class ListBox {
   bool showScrollbars;
