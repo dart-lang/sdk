@@ -1150,7 +1150,7 @@ abstract class IntegrationTestMixin {
    *   being computed, such as having no options specified for a refactoring
    *   that requires them, or if only validation was requested.
    *
-   * potentialChanges ( optional List<String> )
+   * potentialEdits ( optional List<String> )
    *
    *   The ids of source edits that are not known to be valid. An edit is not
    *   known to be valid if there was insufficient type information for the
