@@ -61,7 +61,9 @@ class AbstractCompletionTest extends AbstractContextTest {
         if (cs == null) {
           cs = s;
         } else {
-          fail('expected exactly one $completion but found > 1');
+          var match =
+              suggestions.where((s) => s.completion == completion).toList();
+          fail('expected exactly one $completion but found > 1\n $match');
         }
       }
     });
@@ -92,12 +94,22 @@ class AbstractCompletionTest extends AbstractContextTest {
     assertSuggest(CompletionSuggestionKind.FUNCTION, completion, relevance);
   }
 
+  void assertSuggestGetter(String className, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.GETTER, className, relevance);
+  }
+
   void assertSuggestLibraryPrefix(String completion,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     assertSuggest(
         CompletionSuggestionKind.LIBRARY_PREFIX,
         completion,
         relevance);
+  }
+
+  void assertSuggestMethod(String className, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.METHOD, className, relevance);
   }
 
   void assertSuggestMethodName(String completion, [CompletionRelevance relevance
@@ -110,6 +122,11 @@ class AbstractCompletionTest extends AbstractContextTest {
     assertSuggest(CompletionSuggestionKind.PARAMETER, completion, relevance);
   }
 
+  void assertSuggestSetter(String className, [CompletionRelevance relevance =
+      CompletionRelevance.DEFAULT]) {
+    assertSuggest(CompletionSuggestionKind.SETTER, className, relevance);
+  }
+
   void assertSuggestTopLevelVar(String completion,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
     assertSuggest(
@@ -120,7 +137,10 @@ class AbstractCompletionTest extends AbstractContextTest {
 
   void assertSuggestVariable(String completion, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
-    assertSuggest(CompletionSuggestionKind.LOCAL_VARIABLE, completion, relevance);
+    assertSuggest(
+        CompletionSuggestionKind.LOCAL_VARIABLE,
+        completion,
+        relevance);
   }
 
   bool computeFast() {

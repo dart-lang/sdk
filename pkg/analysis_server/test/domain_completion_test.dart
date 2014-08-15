@@ -177,6 +177,15 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_invocation() {
+    addTestFile('class A {b() {}} main() {A a; a.^}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.METHOD, 'b');
+    });
+  }
+
   test_topLevel() {
     addTestFile('''
       typedef foo();
