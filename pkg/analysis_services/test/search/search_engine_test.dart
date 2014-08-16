@@ -94,21 +94,34 @@ class SearchEngineImplTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
 
-//  void mockLocation(Element element, Relationship relationship,
-//      Location location) {
-//    mockLocations(element, relationship, [location]);
-//  }
-//
-//  void mockLocations(Element element, Relationship relationship,
-//      List<Location> locations) {
-//    index.getRelationships(element, relationship);
-//    when(null).thenReturn(new Future.value(locations));
-//  }
-
   void setUp() {
     super.setUp();
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
+  }
+
+  Future test_searchElementDeclarations() {
+    _indexTestUnit('''
+class A {
+  test() {}
+}
+class B {
+  int test = 1;
+  main() {
+    int test = 2;
+  }
+}
+''');
+    ClassElement elementA = findElement('A');
+    ClassElement elementB = findElement('B');
+    Element element_test = findElement('test', ElementKind.LOCAL_VARIABLE);
+    var expected = [
+        _expectId(elementA.methods[0], MatchKind.DECLARATION, 'test() {}'),
+        _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 1;'),
+        _expectId(element_test, MatchKind.DECLARATION, 'test = 2;'),];
+    return searchEngine.searchElementDeclarations('test').then((matches) {
+      _assertMatches(matches, expected);
+    });
   }
 
   Future test_searchMemberDeclarations() {
@@ -117,15 +130,17 @@ class A {
   test() {}
 }
 class B {
-  int test = 42;
+  int test = 1;
+  main() {
+    int test = 2;
+  }
 }
 ''');
-    NameElement element = new NameElement('test');
     ClassElement elementA = findElement('A');
     ClassElement elementB = findElement('B');
     var expected = [
         _expectId(elementA.methods[0], MatchKind.DECLARATION, 'test() {}'),
-        _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 42;')];
+        _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 1;')];
     return searchEngine.searchMemberDeclarations('test').then((matches) {
       _assertMatches(matches, expected);
     });
@@ -287,8 +302,7 @@ class A {
         _expectId(main, MatchKind.INVOCATION, 'field(); // inv-nq'),
         _expectIdQ(main, MatchKind.INVOCATION, 'field(); // inv-q'),
         _expectId(main, MatchKind.WRITE, 'field = 2; // ref-nq'),
-        _expectIdQ(main, MatchKind.WRITE, 'field = 3; // ref-q'),
-        ];
+        _expectIdQ(main, MatchKind.WRITE, 'field = 3; // ref-q'),];
     return _verifyReferences(element, expected);
   }
 
@@ -531,8 +545,7 @@ main() {
         _expectId(main, MatchKind.INVOCATION, 'V(); // q'),
         _expectId(main, MatchKind.WRITE, 'V = 1; // nq'),
         _expectId(main, MatchKind.READ, 'V); // nq'),
-        _expectId(main, MatchKind.INVOCATION, 'V(); // nq'),
-        ];
+        _expectId(main, MatchKind.INVOCATION, 'V(); // nq'),];
     return _verifyReferences(variable, expected);
   }
 

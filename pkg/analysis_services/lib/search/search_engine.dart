@@ -83,6 +83,13 @@ class MatchKind {
  */
 abstract class SearchEngine {
   /**
+   * Returns declarations of elements with the given name.
+   *
+   * [name] - the name being declared by the found matches.
+   */
+  Future<List<SearchMatch>> searchElementDeclarations(String name);
+
+  /**
    * Returns declarations of class members with the given name.
    *
    * [name] - the name being declared by the found matches.

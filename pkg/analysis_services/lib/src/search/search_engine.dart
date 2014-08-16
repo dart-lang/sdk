@@ -21,14 +21,19 @@ class SearchEngineImpl implements SearchEngine {
   SearchEngineImpl(this._index);
 
   @override
-  Future<List<SearchMatch>> searchMemberDeclarations(String name) {
+  Future<List<SearchMatch>> searchElementDeclarations(String name) {
     NameElement element = new NameElement(name);
     _Requestor requestor = new _Requestor(_index);
     requestor.add(
         element,
         IndexConstants.NAME_IS_DEFINED_BY,
         MatchKind.DECLARATION);
-    return requestor.merge().then((matches) {
+    return requestor.merge();
+  }
+
+  @override
+  Future<List<SearchMatch>> searchMemberDeclarations(String name) {
+    return searchElementDeclarations(name).then((matches) {
       return matches.where((match) {
         return match.element.enclosingElement is ClassElement;
       }).toList();
