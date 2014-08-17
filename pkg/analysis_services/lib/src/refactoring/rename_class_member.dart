@@ -11,9 +11,11 @@ import 'package:analysis_services/correction/status.dart';
 import 'package:analysis_services/refactoring/refactoring.dart';
 import 'package:analysis_services/search/hierarchy.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/correction/util.dart';
 import 'package:analysis_services/src/refactoring/naming_conventions.dart';
 import 'package:analysis_services/src/refactoring/rename.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 
 
 /**
@@ -130,9 +132,6 @@ class _RenameClassMemberValidator {
   final String oldName;
   final String newName;
 
-//  Set<ClassElement> _superClasses;
-//  Set<ClassElement> _subClasses;
-
   Set<Element> elements = new Set();
   List<SearchMatch> references = [];
 
@@ -143,17 +142,72 @@ class _RenameClassMemberValidator {
   Future<RefactoringStatus> validate() {
     RefactoringStatus result = new RefactoringStatus();
     ClassElement elementClass = element.enclosingElement;
-    return _prepareElements().then((_) {
-      return Future.forEach(elements, (Element element) {
-        return searchEngine.searchReferences(element).then((references) {
-          this.references.addAll(references);
-        });
+    // check if there is a member with "newName" in the same ClassElement
+    for (Element newNameMember in getChildren(elementClass, newName)) {
+      result.addError(
+          format(
+              "Class '{0}' already declares {1} with name '{2}'.",
+              elementClass.displayName,
+              getElementKindName(newNameMember),
+              newName),
+          new RefactoringStatusContext.forElement(newNameMember));
+    }
+    // do chained computations
+    Set<ClassElement> superClasses = getSuperClasses(elementClass);
+    Set<ClassElement> subClasses;
+    return _prepareReferences().then((_) {
+      return getSubClasses(searchEngine, elementClass).then((_subs) {
+        subClasses = _subs;
       });
     }).then((_) {
-      return new RefactoringStatus();
-    });
-//    _superClasses = getSuperClasses(elementClass);
-    // TODO(scheglov) validate
+      // check shadowing in hierarchy
+      return searchEngine.searchElementDeclarations(newName).then((decls) {
+        for (SearchMatch decl in decls) {
+          Element nameElement = getSyntheticAccessorVariable(decl.element);
+          Element nameClass = nameElement.enclosingElement;
+          // renamed Element shadows member of superclass
+          if (superClasses.contains(nameClass)) {
+            result.addError(
+                format(
+                    "Renamed {0} will shadow {1} '{2}'.",
+                    getElementKindName(element),
+                    getElementKindName(nameElement),
+                    getElementQualifiedName(nameElement)),
+                new RefactoringStatusContext.forElement(nameElement));
+          }
+          // renamed Element is shadowed by member of subclass
+          if (subClasses.contains(nameClass)) {
+            result.addError(
+                format(
+                    "Renamed {0} will be shadowed by {1} '{2}'.",
+                    getElementKindName(element),
+                    getElementKindName(nameElement),
+                    getElementQualifiedName(nameElement)),
+                new RefactoringStatusContext.forElement(nameElement));
+          }
+          // renamed Element is shadowed by local
+          if (nameElement is LocalElement) {
+            LocalElement localElement = nameElement;
+            ClassElement enclosingClass =
+                nameElement.getAncestor((element) => element is ClassElement);
+            if (enclosingClass == elementClass ||
+                subClasses.contains(enclosingClass)) {
+              for (SearchMatch reference in references) {
+                if (isReferenceInLocalRange(localElement, reference)) {
+                  result.addError(
+                      format(
+                          "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+                          getElementKindName(element),
+                          getElementKindName(localElement),
+                          localElement.displayName),
+                      new RefactoringStatusContext.forMatch(reference));
+                }
+              }
+            }
+          }
+        }
+      });
+    }).then((_) => result);
   }
 
   /**
@@ -170,5 +224,18 @@ class _RenameClassMemberValidator {
       elements = new Set.from([element]);
       return new Future.value();
     }
+  }
+
+  /**
+   * Fills [references] with all references to [elements].
+   */
+  Future _prepareReferences() {
+    return _prepareElements().then((_) {
+      return Future.forEach(elements, (Element element) {
+        return searchEngine.searchReferences(element).then((references) {
+          this.references.addAll(references);
+        });
+      });
+    });
   }
 }

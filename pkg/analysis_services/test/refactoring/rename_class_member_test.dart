@@ -9,7 +9,6 @@ import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_rename.dart';
-import 'package:analysis_services/correction/change.dart';
 
 
 main() {
@@ -20,6 +19,226 @@ main() {
 
 @ReflectiveTestCase()
 class RenameClassMemberTest extends RenameRefactoringTest {
+  test_checkFinalConditions_OK_noShadow() {
+    indexTestUnit('''
+class A {
+  int newName;
+}
+class B {
+  test() {}
+}
+class C extends A {
+  main() {
+    print(newName);
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatusOK(status);
+    });
+  }
+
+  test_checkFinalConditions_hasMember_MethodElement() {
+    indexTestUnit('''
+class A {
+  test() {}
+  newName() {} // existing
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: "Class 'A' already declares method with name 'newName'.",
+          expectedContextSearch: 'newName() {} // existing');
+    });
+  }
+
+  test_checkFinalConditions_shadowed_byLocal_OK_qualifiedReference() {
+    indexTestUnit('''
+class A {
+  test() {}
+  main() {
+    var newName;
+    this.test(); // marker
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatusOK(status);
+    });
+  }
+
+  test_checkFinalConditions_shadowed_byLocal_OK_renamedNotUsed() {
+    indexTestUnit('''
+class A {
+  test() {}
+  main() {
+    var newName;
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatusOK(status);
+    });
+  }
+
+  test_checkFinalConditions_shadowed_byLocal_inSameClass() {
+    indexTestUnit('''
+class A {
+  test() {}
+  main() {
+    var newName;
+    test(); // marker
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage:
+              "Usage of renamed method will be shadowed by local variable 'newName'.",
+          expectedContextSearch: 'test(); // marker');
+    });
+  }
+
+  test_checkFinalConditions_shadowed_byLocal_inSubClass() {
+    indexTestUnit('''
+class A {
+  test() {}
+}
+class B extends A {
+  main() {
+    var newName;
+    test(); // marker
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage:
+              "Usage of renamed method will be shadowed by local variable 'newName'.",
+          expectedContextSearch: 'test(); // marker');
+    });
+  }
+
+  test_checkFinalConditions_shadowed_byParameter_inSameClass() {
+    indexTestUnit('''
+class A {
+  test() {}
+  main(newName) {
+    test(); // marker
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage:
+              "Usage of renamed method will be shadowed by parameter 'newName'.",
+          expectedContextSearch: 'test(); // marker');
+    });
+  }
+
+  test_checkFinalConditions_shadowed_inSubClass() {
+    indexTestUnit('''
+class A {
+  newName() {} // marker
+}
+class B extends A {
+  test() {}
+  main() {
+    newName();
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: "Renamed method will shadow method 'A.newName'.",
+          expectedContextSearch: 'newName() {} // marker');
+    });
+  }
+
+  test_checkFinalConditions_shadowsSuper_MethodElement() {
+    indexTestUnit('''
+class A {
+  test() {}
+}
+class B extends A {
+  newName() {} // marker
+  main() {
+    test();
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: "Renamed method will be shadowed by method 'B.newName'.",
+          expectedContextSearch: 'newName() {} // marker');
+    });
+  }
+
+  test_checkFinalConditions_shadowsSuper_inSubClass_FieldElement() {
+    indexTestUnit('''
+class A {
+  int newName; // marker
+}
+class B extends A {
+  test() {}
+}
+class C extends B {
+  main() {
+    print(newName);
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringStatusSeverity.ERROR,
+          expectedMessage: "Renamed method will shadow field 'A.newName'.",
+          expectedContextSearch: 'newName; // marker');
+    });
+  }
+
   test_checkInitialConditions_operator() {
     indexTestUnit('''
 class A {
@@ -380,29 +599,6 @@ main(var a) {
     });
   }
 
-  test_createChange_TypeParameterElement() {
-    indexTestUnit('''
-class A<Test> {
-  Test field;
-  List<Test> items;
-  Test method(Test p) => null;
-}
-''');
-    // configure refactoring
-    createRenameRefactoringAtString('Test> {');
-    expect(refactoring.refactoringName, 'Rename Type Parameter');
-    expect(refactoring.oldName, 'Test');
-    refactoring.newName = 'NewName';
-    // validate change
-    return assertSuccessfulRename('''
-class A<NewName> {
-  NewName field;
-  List<NewName> items;
-  NewName method(NewName p) => null;
-}
-''');
-  }
-
   test_createChange_PropertyAccessorElement_getter() {
     indexTestUnit('''
 class A {
@@ -509,6 +705,29 @@ main() {
   B b = new B();
   print(b.newName);
   b.newName = 2;
+}
+''');
+  }
+
+  test_createChange_TypeParameterElement() {
+    indexTestUnit('''
+class A<Test> {
+  Test field;
+  List<Test> items;
+  Test method(Test p) => null;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test> {');
+    expect(refactoring.refactoringName, 'Rename Type Parameter');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRename('''
+class A<NewName> {
+  NewName field;
+  List<NewName> items;
+  NewName method(NewName p) => null;
 }
 ''');
   }
