@@ -308,6 +308,8 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
 
   /// A stack of collectors for breaks.
   final List<JumpCollector> breakCollectors;
+  /// A stack of collectors for continues.
+  final List<JumpCollector> continueCollectors;
 
   ConstExpBuilder constantBuilder;
 
@@ -322,6 +324,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         parameters = <ir.Parameter>[],
         environment = new Environment.empty(),
         breakCollectors = <JumpCollector>[],
+        continueCollectors = <JumpCollector>[],
         localConstants = <ConstDeclaration>[],
         closureLocals = new DetectClosureVariables(elements),
         super(elements, compiler) {
@@ -340,6 +343,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         parameters = <ir.Parameter>[],
         environment = new Environment.from(parent.environment),
         breakCollectors = parent.breakCollectors,
+        continueCollectors = parent.continueCollectors,
         constantBuilder = parent.constantBuilder,
         localConstants = parent.localConstants,
         currentFunction = parent.currentFunction,
@@ -360,6 +364,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         parameters = <ir.Parameter>[],
         environment = new Environment.empty(),
         breakCollectors = parent.breakCollectors,
+        continueCollectors = parent.continueCollectors,
         constantBuilder = parent.constantBuilder,
         localConstants = parent.localConstants,
         currentFunction = parent.currentFunction,
@@ -489,6 +494,23 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return null;
   }
 
+  // Build(ContinueStatement L, C) = C[InvokeContinuation(...)]
+  //
+  // The continuation and arguments are filled in later after translating
+  // the body containing the continue.
+  ir.Primitive visitContinueStatement(ast.ContinueStatement node) {
+    assert(isOpen);
+    JumpTarget target = elements.getTargetOf(node);
+    for (JumpCollector collector in continueCollectors) {
+      if (target == collector.target) {
+        collector.addJump(this);
+        return null;
+      }
+    }
+    compiler.internalError(node, "'continue' target not found");
+    return null;
+  }
+
   // Build(EmptyStatement, C) = C
   ir.Primitive visitEmptyStatement(ast.EmptyStatement node) {
     assert(isOpen);
@@ -609,20 +631,23 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     return join;
   }
 
-  /// Invoke a recursive join-point continuation.
+  /// Invoke a join-point continuation that contains arguments for all local
+  /// variables.
   ///
-  /// Given the continuation and a list of open contexts that should contain
-  /// recursive invocations, plug each context with an invocation of the
-  /// continuation.
-  void invokeRecursiveJoin(ir.Continuation join, List<IrBuilder> contexts) {
-    for (IrBuilder context in contexts) {
-      // Passing `this` as one of the contexts will not do the right thing
-      // (this.environment has already been mutated).
-      assert(context != this);
-      List<ir.Primitive> args =
-          context.environment.index2value.sublist(0, join.parameters.length);
-      context.add(new ir.InvokeContinuation(join, args, recursive: true));
-      context.current = null;
+  /// Given the continuation and a list of uninitialized invocations, fill
+  /// in each invocation with the continuation and appropriate arguments.
+  void invokeFullJoin(ir.Continuation join,
+                      JumpCollector jumps,
+                      {recursive: false}) {
+    join.isRecursive = recursive;
+    for (int i = 0; i < jumps.length; ++i) {
+      Environment currentEnvironment = jumps.environments[i];
+      ir.InvokeContinuation invoke = jumps.invocations[i];
+      invoke.continuation = new ir.Reference(join);
+      invoke.arguments = new List<ir.Reference>.generate(
+          join.parameters.length,
+          (i) => new ir.Reference(currentEnvironment[i]));
+      invoke.isRecursive = recursive;
     }
   }
 
@@ -649,13 +674,17 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     //     let prim cond = [[condition]] in
     //     let cont break() = [[successor]] in
     //     let cont exit() = break(v, ...) in
-    //     let cont body() = [[body]]; [[update]]; loop(v, ...) in
+    //     let cont body() =
+    //       let cont continue(x, ...) = [[update]]; loop(v, ...) in
+    //       [[body]]; continue(v, ...) in
     //     branch cond (body, exit) in
     // loop(v, ...)
     //
     // If there are no breaks in the body, the break continuation is inlined
     // in the exit continuation (i.e., the translation of the successor
-    // statement occurs in the exit continuation).
+    // statement occurs in the exit continuation).  If there is only one
+    // invocation of the continue continuation (i.e., no continues in the
+    // body), the continue continuation is inlined in the body.
 
     if (node.initializer != null) visit(node.initializer);
 
@@ -669,17 +698,31 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       condition = condBuilder.visit(node.condition);
     }
 
-    JumpCollector breakCollector =
-        new JumpCollector(elements.getTargetDefinition(node));
+    JumpTarget target = elements.getTargetDefinition(node);
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
     breakCollectors.add(breakCollector);
+    continueCollectors.add(continueCollector);
+
     IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
     bodyBuilder.visit(node.body);
-    for (ast.Node n in node.update) {
-      if (!bodyBuilder.isOpen) break;
-      bodyBuilder.visit(n);
-    }
     assert(breakCollectors.last == breakCollector);
+    assert(continueCollectors.last == continueCollector);
     breakCollectors.removeLast();
+    continueCollectors.removeLast();
+
+    // The binding of the continue continuation should occur as late as
+    // possible, that is, at the nearest common ancestor of all the continue
+    // sites in the body.  However, that is difficult to compute here, so it
+    // is instead placed just outside the body of the body continuation.
+    bool hasContinues = !continueCollector.isEmpty;
+    IrBuilder updateBuilder = hasContinues
+        ? new IrBuilder.recursive(condBuilder)
+        : bodyBuilder;
+    for (ast.Node n in node.update) {
+      if (!updateBuilder.isOpen) break;
+      updateBuilder.visit(n);
+    }
 
     // Create body entry and loop exit continuations and a branch to them.
     ir.Continuation bodyContinuation = new ir.Continuation([]);
@@ -692,34 +735,54 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
                               exitContinuation)));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.
+    bool hasBreaks = !breakCollector.isEmpty;
     ir.LetCont letJoin;
-    if (breakCollector.isEmpty) {
-      condBuilder.add(branch);
-    } else {
+    if (hasBreaks) {
       letJoin = new ir.LetCont(null, branch);
       condBuilder.add(letJoin);
       condBuilder.current = branch;
+    } else {
+      condBuilder.add(branch);
     }
-    List<ir.Parameter> parameters = condBuilder.parameters;
-    ir.Continuation loopContinuation = new ir.Continuation(parameters);
-    if (bodyBuilder.isOpen) {
-      invokeRecursiveJoin(loopContinuation, [bodyBuilder]);
+    ir.Continuation continueContinuation;
+    if (hasContinues) {
+      // If there are continues in the body, we need a named continue
+      // continuation as a join point.
+      continueContinuation = new ir.Continuation(updateBuilder.parameters);
+      if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+      invokeFullJoin(continueContinuation, continueCollector);
     }
-    bodyContinuation.body = bodyBuilder.root;
+    ir.Continuation loopContinuation =
+        new ir.Continuation(condBuilder.parameters);
+    if (updateBuilder.isOpen) {
+      JumpCollector backEdges = new JumpCollector(null);
+      backEdges.addJump(updateBuilder);
+      invokeFullJoin(loopContinuation, backEdges, recursive: true);
+    }
+
+    // Fill in the body and possible continue continuation bodies.  Do this
+    // only after it is guaranteed that they are not empty.
+    if (hasContinues) {
+      continueContinuation.body = updateBuilder.root;
+      bodyContinuation.body =
+          new ir.LetCont(continueContinuation, bodyBuilder.root);
+    } else {
+      bodyContinuation.body = bodyBuilder.root;
+    }
 
     loopContinuation.body = condBuilder.root;
     add(new ir.LetCont(loopContinuation,
             new ir.InvokeContinuation(loopContinuation,
                                       environment.index2value)));
-    if (letJoin == null) {
-      current = condBuilder.current;
-      environment = condBuilder.environment;
-    } else {
+    if (hasBreaks) {
       current = branch;
       environment = condBuilder.environment;
       breakCollector.addJump(this);
       letJoin.continuation = createJoin(environment.length, breakCollector);
       current = letJoin;
+    } else {
+      current = condBuilder.current;
+      environment = condBuilder.environment;
     }
     return null;
   }
@@ -799,13 +862,13 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     // loop exit, the loop back edge (continue), and the loop exit (break).
     // The CPS translation of [[while (condition) body; successor]] is:
     //
-    // let cont loop(x, ...) =
+    // let cont continue(x, ...) =
     //     let prim cond = [[condition]] in
     //     let cont break() = [[successor]] in
     //     let cont exit() = break(v, ...) in
     //     let cont body() = [[body]]; continue(v, ...) in
     //     branch cond (body, exit) in
-    // loop(v, ...)
+    // continue(v, ...)
     //
     // If there are no breaks in the body, the break continuation is inlined
     // in the exit continuation (i.e., the translation of the successor
@@ -815,13 +878,18 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     IrBuilder condBuilder = new IrBuilder.recursive(this);
     ir.Primitive condition = condBuilder.visit(node.condition);
 
-    JumpCollector breakCollector =
-        new JumpCollector(elements.getTargetDefinition(node));
+    JumpTarget target = elements.getTargetDefinition(node);
+    JumpCollector breakCollector = new JumpCollector(target);
+    JumpCollector continueCollector = new JumpCollector(target);
     breakCollectors.add(breakCollector);
+    continueCollectors.add(continueCollector);
+
     IrBuilder bodyBuilder = new IrBuilder.delimited(condBuilder);
     bodyBuilder.visit(node.body);
     assert(breakCollectors.last == breakCollector);
+    assert(continueCollectors.last == continueCollector);
     breakCollectors.removeLast();
+    continueCollectors.removeLast();
 
     // Create body entry and loop exit continuations and a branch to them.
     ir.Continuation bodyContinuation = new ir.Continuation([]);
@@ -834,34 +902,34 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
                               exitContinuation)));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.
+    bool hasBreaks = !breakCollector.isEmpty;
     ir.LetCont letJoin;
-    if (breakCollector.isEmpty) {
-      condBuilder.add(branch);
-    } else {
+    if (hasBreaks) {
       letJoin = new ir.LetCont(null, branch);
       condBuilder.add(letJoin);
       condBuilder.current = branch;
+    } else {
+      condBuilder.add(branch);
     }
-    List<ir.Parameter> parameters = condBuilder.parameters;
-    ir.Continuation loopContinuation = new ir.Continuation(parameters);
-    if (bodyBuilder.isOpen) {
-      invokeRecursiveJoin(loopContinuation, [bodyBuilder]);
-    }
+    ir.Continuation loopContinuation =
+        new ir.Continuation(condBuilder.parameters);
+    if (bodyBuilder.isOpen) continueCollector.addJump(bodyBuilder);
+    invokeFullJoin(loopContinuation, continueCollector, recursive: true);
     bodyContinuation.body = bodyBuilder.root;
 
     loopContinuation.body = condBuilder.root;
     add(new ir.LetCont(loopContinuation,
             new ir.InvokeContinuation(loopContinuation,
                                       environment.index2value)));
-    if (letJoin == null) {
-      current = condBuilder.current;
-      environment = condBuilder.environment;
-    } else {
+    if (hasBreaks) {
       current = branch;
       environment = condBuilder.environment;
       breakCollector.addJump(this);
       letJoin.continuation = createJoin(environment.length, breakCollector);
       current = letJoin;
+    } else {
+      current = condBuilder.current;
+      environment = condBuilder.environment;
     }
     return null;
   }
