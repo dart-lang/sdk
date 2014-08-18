@@ -28,6 +28,7 @@ part 'map_tracer.dart';
 
 bool _VERBOSE = false;
 bool _PRINT_SUMMARY = false;
+final _ANOMALY_WARN = false;
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
@@ -783,6 +784,9 @@ class TypeGraphInferrerEngine
         if (info.hasStableType(this)) {
           info.stabilize(this);
         } else if (info.refineCount > MAX_CHANGE_COUNT) {
+          if (_ANOMALY_WARN) {
+            print("ANOMALY WARNING: max refinement reached for $info");
+          }
           info.giveUp(this);
         }
       }
