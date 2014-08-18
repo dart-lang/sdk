@@ -12,12 +12,41 @@ import 'codegen_java.dart';
 import 'codegen_tools.dart';
 import 'from_html.dart';
 
-
 /**
  * Type references in the spec that are named something else in Java.
  */
 const Map<String, String> _typeRenames = const {
   'Override': 'OverrideMember',
+};
+
+/**
+ * A map between the field names and values for the Element object such as:
+ * 
+ * private static final int ABSTRACT = 0x01;
+ */
+const Map<String, String> _extraFieldsOnElement = const {
+  'ABSTRACT': '0x01',
+  'CONST': '0x02',
+  'FINAL': '0x04',
+  'TOP_LEVEL_STATIC': '0x08',
+  'PRIVATE': '0x10',
+  'DEPRECATED': '0x20',
+};
+
+/**
+ * A map between the method names and field names to generate additional methods on the Element object:
+ * 
+ * public boolean isFinal() {
+ *   return (flags & FINAL) != 0;
+ * }
+ */
+const Map<String, String> _extraMethodsOnElement = const {
+  'isAbstract': 'ABSTRACT',
+  'isConst': 'CONST',
+  'isDeprecated': 'DEPRECATED',
+  'isFinal': 'FINAL',
+  'isPrivate': 'PRIVATE',
+  'isTopLevelOrStatic': 'TOP_LEVEL_STATIC',
 };
 
 class CodegenJavaType extends CodegenJavaVisitor {
@@ -56,6 +85,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
     writeln('@SuppressWarnings("unused")');
     makeClass('public class ${className}', () {
       //
+      // fields
+      //
+      //
       // public static final "EMPTY_ARRAY" field
       // i.e. "public static final Parameter[] EMPTY_ARRAY = new Parameter[0];"
       //
@@ -67,13 +99,25 @@ class CodegenJavaType extends CodegenJavaVisitor {
             'public static final ${className}[] EMPTY_ARRAY = new ${className}[0];');
       });
 
+      //
+      // Extra filds on the Element type such as:
+      // private static final int ABSTRACT = 0x01;
+      //
+      if (className == 'Element') {
+        _extraFieldsOnElement.forEach((String name, String value) {
+          publicField(javaName(name), () {
+            writeln('private static final int ${name} = ${value};');
+          });
+        });
+      }
+
+      //
+      // "private static String name;" fields:
+      //
       TypeObject typeObject = typeDef.type as TypeObject;
       List<TypeObjectField> fields = typeObject.fields;
       // TODO (jwren) we need to possibly remove fields such as "type" in
       // these objects: AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay
-      //
-      // fields
-      //
       for (TypeObjectField field in fields) {
         privateField(javaName(field.name), () {
           javadocComment(toHtmlVisitor.collectHtml(() {
@@ -83,6 +127,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
               'private final ${javaType(field.type)} ${javaName(field.name)};');
         });
       }
+
       //
       // constructor
       //
@@ -104,6 +149,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         }
         writeln('}');
       });
+
       //
       // getter methods
       //
@@ -118,6 +164,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('}');
         });
       }
+
       //
       // equals method
       //
@@ -143,6 +190,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         });
         writeln('}');
       });
+
       //
       // hashCode
       //
@@ -156,10 +204,10 @@ class CodegenJavaType extends CodegenJavaVisitor {
         indent(() {
           writeln('StringBuilder builder = new StringBuilder();');
           writeln('builder.append(\"[\");');
-          for(int i = 0; i < fields.length; i++) {
+          for (int i = 0; i < fields.length; i++) {
             writeln("builder.append(\"${javaName(fields[i].name)}=\");");
             write("builder.append(${_toStringForField(fields[i])}");
-            if(i + 1 != fields.length) {
+            if (i + 1 != fields.length) {
               // this is not the last field
               write(' + \", \"');
             }
@@ -170,6 +218,24 @@ class CodegenJavaType extends CodegenJavaVisitor {
         });
         writeln('}');
       });
+
+      //
+      // Extra methods for the Element type such as:
+      // public boolean isFinal() {
+      //   return (flags & FINAL) != 0;
+      // }
+      //
+      if (className == 'Element') {
+        _extraMethodsOnElement.forEach((String methodName, String fieldName) {
+          publicMethod(methodName, () {
+            writeln(
+                'public boolean ${methodName}() {');
+            writeln('  return (flags & ${fieldName}) != 0;');
+            writeln('}');
+          });
+        });
+      }
+
     });
   }
 
