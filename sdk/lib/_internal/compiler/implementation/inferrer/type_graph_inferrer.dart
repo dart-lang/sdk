@@ -214,7 +214,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
                              {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return nullType;
-    if (annotation.element == compiler.objectClass) return type;
+    if (annotation.element == compiler.objectClass && isNullable) return type;
     TypeMask otherType;
     if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType.type;
@@ -223,7 +223,9 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return type;
     } else {
       assert(annotation.isInterfaceType);
-      otherType = new TypeMask.nonNullSubtype(annotation.element);
+      otherType = annotation.element == compiler.objectClass
+          ? dynamicType.type.nonNullable()
+          : new TypeMask.nonNullSubtype(annotation.element);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type.type.isExact) {
