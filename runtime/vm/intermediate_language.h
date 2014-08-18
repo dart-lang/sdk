@@ -32,6 +32,7 @@ class Instruction;
 class LocalVariable;
 class ParsedFunction;
 class Range;
+class RangeAnalysis;
 class RangeBoundary;
 
 
@@ -1950,9 +1951,10 @@ class Definition : public Instruction {
   //    - unknown sentinel
   Object& constant_value() const { return constant_value_; }
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   Range* range() const { return range_; }
+  void set_range(const Range&);
 
   // Definitions can be canonicalized only into definitions to ensure
   // this check statically we override base Canonicalize with a Canonicalize
@@ -2103,7 +2105,7 @@ class PhiInstr : public Definition {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   BitVector* reaching_defs() const {
     return reaching_defs_;
@@ -2600,7 +2602,7 @@ class ConstraintInstr : public TemplateDefinition<2> {
   Value* value() const { return inputs_[0]; }
   Range* constraint() const { return constraint_; }
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   void AddDependency(Definition* defn) {
     Value* val = new Value(defn);
@@ -2645,7 +2647,7 @@ class ConstantInstr : public TemplateDefinition<0> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -3282,7 +3284,7 @@ class IfThenElseInstr : public Definition {
 
   virtual CompileType ComputeType() const;
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   ComparisonInstr* comparison() const { return comparison_; }
   intptr_t if_true() const { return if_true_; }
@@ -3916,7 +3918,7 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   }
 
   virtual Representation representation() const;
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual bool AllowsCSE() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -4485,7 +4487,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   bool IsImmutableLengthLoad() const;
 
@@ -4884,7 +4886,7 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -5057,7 +5059,7 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
 
   intptr_t deopt_id() const { return deopt_id_; }
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   DECLARE_INSTRUCTION(UnboxInteger)
   virtual CompileType ComputeType() const;
@@ -6903,7 +6905,7 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -6977,7 +6979,7 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   DECLARE_INSTRUCTION(ShiftMintOp)
 
@@ -7094,7 +7096,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   void PrintTo(BufferFormatter* f) const;
 
-  virtual void InferRange();
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
