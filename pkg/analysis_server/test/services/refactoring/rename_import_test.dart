@@ -93,6 +93,33 @@ main() {
 ''');
   }
 
+  test_createChange_change_onPrefixElement() {
+    indexTestUnit('''
+import 'dart:async' as test;
+import 'dart:math' as test;
+main() {
+  test.Future f;
+  test.PI;
+  test.E;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test.PI');
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRename('''
+import 'dart:async' as test;
+import 'dart:math' as newName;
+main() {
+  test.Future f;
+  newName.PI;
+  newName.E;
+}
+''');
+  }
+
   test_createChange_change_function() {
     indexTestUnit('''
 import 'dart:math' as test;

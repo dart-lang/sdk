@@ -23,6 +23,9 @@ main() {
 
 @ReflectiveTestCase()
 class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
+  /**
+   * Tests that there is a RENAME refactoring available at the [search] offset.
+   */
   Future assertHasRenameRefactoring(String code, String search) {
     addTestFile(code);
     return waitForTasksFinished().then((_) {
@@ -31,6 +34,10 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
     });
   }
 
+  /**
+   * Returns the list of available refactorings of the offset of [search] with
+   * [length] characters selected.
+   */
   List<String> getAvailableRefactorings(String search, [int length = 0]) {
     Request request = new Request('0', EDIT_GET_AVAILABLE_REFACTORINGS);
     request.setParameter(FILE, testFile);
@@ -83,6 +90,25 @@ main() {
   math.PI;
 }
 ''', 'import ');
+  }
+
+  Future test_rename_hasElement_importElement_prefixDecl() {
+    return assertHasRenameRefactoring('''
+import 'dart:math' as math;
+main() {
+  math.PI;
+}
+''', 'math;');
+  }
+
+  Future test_rename_hasElement_importElement_prefixRef() {
+    return assertHasRenameRefactoring('''
+import 'dart:async' as test;
+import 'dart:math' as test;
+main() {
+  test.PI;
+}
+''', 'test.PI;');
   }
 
   Future test_rename_hasElement_instanceGetter() {

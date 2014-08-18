@@ -8,14 +8,16 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/correction/source_buffer.dart';
-import 'package:analysis_server/src/services/correction/source_range.dart' as rf;
+import 'package:analysis_server/src/services/correction/source_range.dart' as
+    rf;
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -420,8 +422,8 @@ class FixProcessor {
           }
           // prepare InstanceCreationExpression
           if (constructorName.parent is InstanceCreationExpression) {
-            instanceCreation = constructorName.parent as
-                InstanceCreationExpression;
+            instanceCreation =
+                constructorName.parent as InstanceCreationExpression;
             if (instanceCreation.constructorName != constructorName) {
               return;
             }
@@ -474,8 +476,8 @@ class FixProcessor {
         if (constructorName.name == name) {
           // Type.name
           if (constructorName.parent is InstanceCreationExpression) {
-            instanceCreation = constructorName.parent as
-                InstanceCreationExpression;
+            instanceCreation =
+                constructorName.parent as InstanceCreationExpression;
             // new Type.name()
             if (instanceCreation.constructorName != constructorName) {
               return;
@@ -546,9 +548,8 @@ class FixProcessor {
         } else {
           ClassDeclaration enclosingClass =
               node.getAncestor((node) => node is ClassDeclaration);
-          targetElement = enclosingClass != null ?
-              enclosingClass.element :
-              null;
+          targetElement =
+              enclosingClass != null ? enclosingClass.element : null;
           argument = nameNode;
         }
       }
@@ -963,11 +964,10 @@ class FixProcessor {
   void _addFix_undefinedClass_useSimilar() {
     if (_mayBeTypeIdentifier(node)) {
       String name = (node as SimpleIdentifier).name;
-      _ClosestElementFinder finder =
-          new _ClosestElementFinder(
-              name,
-              (Element element) => element is ClassElement,
-              MAX_LEVENSHTEIN_DISTANCE);
+      _ClosestElementFinder finder = new _ClosestElementFinder(
+          name,
+          (Element element) => element is ClassElement,
+          MAX_LEVENSHTEIN_DISTANCE);
       // find closest element
       {
         // elements of this library
@@ -1042,11 +1042,10 @@ class FixProcessor {
   void _addFix_undefinedFunction_useSimilar() {
     if (node is SimpleIdentifier) {
       String name = (node as SimpleIdentifier).name;
-      _ClosestElementFinder finder =
-          new _ClosestElementFinder(
-              name,
-              (Element element) => element is FunctionElement,
-              MAX_LEVENSHTEIN_DISTANCE);
+      _ClosestElementFinder finder = new _ClosestElementFinder(
+          name,
+          (Element element) => element is FunctionElement,
+          MAX_LEVENSHTEIN_DISTANCE);
       // this library
       for (CompilationUnitElement unit in unitLibraryElement.units) {
         finder._updateList(unit.functions);
@@ -1184,11 +1183,10 @@ class FixProcessor {
     if (node is SimpleIdentifier && node.parent is MethodInvocation) {
       MethodInvocation invocation = node.parent as MethodInvocation;
       String name = (node as SimpleIdentifier).name;
-      _ClosestElementFinder finder =
-          new _ClosestElementFinder(
-              name,
-              (Element element) => element is MethodElement && !element.isOperator,
-              MAX_LEVENSHTEIN_DISTANCE);
+      _ClosestElementFinder finder = new _ClosestElementFinder(
+          name,
+          (Element element) => element is MethodElement && !element.isOperator,
+          MAX_LEVENSHTEIN_DISTANCE);
       // unqualified invocation
       Expression target = invocation.realTarget;
       if (target == null) {

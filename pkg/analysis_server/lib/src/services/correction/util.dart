@@ -97,35 +97,6 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
 }
 
 /**
- * Returns a namespace of the given [ExportElement].
- */
-Map<String, Element> getExportNamespaceForDirective(ExportElement exp) {
-  Namespace namespace =
-      new NamespaceBuilder().createExportNamespaceForDirective(exp);
-  return namespace.definedNames;
-}
-
-
-/**
- * Returns a export namespace of the given [LibraryElement].
- */
-Map<String, Element> getExportNamespaceForLibrary(LibraryElement library) {
-  Namespace namespace =
-      new NamespaceBuilder().createExportNamespaceForLibrary(library);
-  return namespace.definedNames;
-}
-
-/**
- * Returns an [Element] exported from the given [LibraryElement].
- */
-Element getExportedElement(LibraryElement library, String name) {
-  if (library == null) {
-    return null;
-  }
-  return getExportNamespaceForLibrary(library)[name];
-}
-
-/**
  * Returns [getExpressionPrecedence] for the parent of [node],
  * or `0` if the parent node is [ParenthesizedExpression].
  *

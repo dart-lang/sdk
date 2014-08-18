@@ -29,6 +29,7 @@ import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analysis_server/src/services/correction/namespace.dart';
 
 
 class ServerContextManager extends ContextManager {
@@ -680,6 +681,9 @@ class AnalysisServer {
     for (CompilationUnit unit in units) {
       AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
       Element element = ElementLocator.locateWithOffset(node, offset);
+      if (node is SimpleIdentifier && element is PrefixElement) {
+        element = getImportElement(node);
+      }
       if (element != null) {
         elements.add(element);
       }

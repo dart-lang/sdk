@@ -7,6 +7,7 @@ library test.services.refactoring.rename;
 import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -101,10 +102,9 @@ class RenameRefactoringTest extends RefactoringTest {
   void createRenameRefactoringAtString(String search) {
     SimpleIdentifier identifier = findIdentifier(search);
     Element element = identifier.bestElement;
-    // TODO(scheglov) uncomment later
-//    if (element instanceof PrefixElement) {
-//      element = IndexContributor.getImportElement(identifier);
-//    }
+    if (element is PrefixElement) {
+      element = getImportElement(identifier);
+    }
     createRenameRefactoringForElement(element);
   }
 

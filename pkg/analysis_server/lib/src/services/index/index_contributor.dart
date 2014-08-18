@@ -6,15 +6,14 @@ library services.src.index.index_contributor;
 
 import 'dart:collection' show Queue;
 
+import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/html.dart' as ht;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -315,17 +314,6 @@ abstract class _ExpressionVisitor extends ht.RecursiveXmlVisitor<Object> {
       }
     }
   }
-}
-
-
-/**
- * Information about [ImportElement] and place where it is referenced using
- * [PrefixElement].
- */
-class _ImportElementInfo {
-  ImportElement _element;
-
-  int _periodEnd = 0;
 }
 
 
@@ -918,13 +906,13 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
    * with given prefix node.
    */
   void _recordImportElementReferenceWithPrefix(SimpleIdentifier prefixNode) {
-    _ImportElementInfo info = getImportElementInfo(prefixNode);
+    ImportElementInfo info = internal_getImportElementInfo(prefixNode);
     if (info != null) {
       int offset = prefixNode.offset;
-      int length = info._periodEnd - offset;
+      int length = info.periodEnd - offset;
       Location location = _createLocationForOffset(offset, length);
       recordRelationship(
-          info._element,
+          info.element,
           IndexConstants.IS_REFERENCED_BY,
           location);
     }
@@ -943,7 +931,7 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
     }
     Element element = node.staticElement;
     ImportElement importElement =
-        _internalGetImportElement(_libraryElement, null, element, _importElementsMap);
+        internal_getImportElement(_libraryElement, null, element, _importElementsMap);
     if (importElement != null) {
       Location location = _createLocationForOffset(node.offset, 0);
       recordRelationship(
@@ -1023,60 +1011,6 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
   }
 
   /**
-   * @return the [ImportElement] that is referenced by this node with [PrefixElement],
-   *         may be `null`.
-   */
-  static ImportElement getImportElement(SimpleIdentifier prefixNode) {
-    _ImportElementInfo info = getImportElementInfo(prefixNode);
-    return info != null ? info._element : null;
-  }
-
-  /**
-   * @return the [ImportElementInfo] with [ImportElement] that is referenced by this
-   *         node with [PrefixElement], may be `null`.
-   */
-  static _ImportElementInfo getImportElementInfo(SimpleIdentifier prefixNode) {
-    _ImportElementInfo info = new _ImportElementInfo();
-    // prepare environment
-    AstNode parent = prefixNode.parent;
-    CompilationUnit unit =
-        prefixNode.getAncestor((node) => node is CompilationUnit);
-    LibraryElement libraryElement = unit.element.library;
-    // prepare used element
-    Element usedElement = null;
-    if (parent is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = parent;
-      if (prefixed.prefix == prefixNode) {
-        usedElement = prefixed.staticElement;
-        info._periodEnd = prefixed.period.end;
-      }
-    }
-    if (parent is MethodInvocation) {
-      MethodInvocation invocation = parent;
-      if (invocation.target == prefixNode) {
-        usedElement = invocation.methodName.staticElement;
-        info._periodEnd = invocation.period.end;
-      }
-    }
-    // we need used Element
-    if (usedElement == null) {
-      return null;
-    }
-    // find ImportElement
-    String prefix = prefixNode.name;
-    Map<ImportElement, Set<Element>> importElementsMap = {};
-    info._element = _internalGetImportElement(
-        libraryElement,
-        prefix,
-        usedElement,
-        importElementsMap);
-    if (info._element == null) {
-      return null;
-    }
-    return info;
-  }
-
-  /**
    * If the given expression has resolved type, returns the new location with this type.
    *
    * [location] - the base location
@@ -1088,81 +1022,6 @@ class _IndexContributor extends GeneralizingAstVisitor<Object> {
       return new LocationWithData<DartType>(location, expression.bestType);
     }
     return location;
-  }
-
-  /**
-   * @return the [ImportElement] that declares given [PrefixElement] and imports library
-   *         with given "usedElement".
-   */
-  static ImportElement _internalGetImportElement(LibraryElement libraryElement,
-      String prefix, Element usedElement, Map<ImportElement,
-      Set<Element>> importElementsMap) {
-    // validate Element
-    if (usedElement == null) {
-      return null;
-    }
-    if (usedElement.enclosingElement is! CompilationUnitElement) {
-      return null;
-    }
-    LibraryElement usedLibrary = usedElement.library;
-    // find ImportElement that imports used library with used prefix
-    List<ImportElement> candidates = null;
-    for (ImportElement importElement in libraryElement.imports) {
-      // required library
-      if (importElement.importedLibrary != usedLibrary) {
-        continue;
-      }
-      // required prefix
-      PrefixElement prefixElement = importElement.prefix;
-      if (prefix == null) {
-        if (prefixElement != null) {
-          continue;
-        }
-      } else {
-        if (prefixElement == null) {
-          continue;
-        }
-        if (prefix != prefixElement.name) {
-          continue;
-        }
-      }
-      // no combinators => only possible candidate
-      if (importElement.combinators.length == 0) {
-        return importElement;
-      }
-      // OK, we have candidate
-      if (candidates == null) {
-        candidates = [];
-      }
-      candidates.add(importElement);
-    }
-    // no candidates, probably element is defined in this library
-    if (candidates == null) {
-      return null;
-    }
-    // one candidate
-    if (candidates.length == 1) {
-      return candidates[0];
-    }
-    // ensure that each ImportElement has set of elements
-    for (ImportElement importElement in candidates) {
-      if (importElementsMap.containsKey(importElement)) {
-        continue;
-      }
-      Namespace namespace =
-          new NamespaceBuilder().createImportNamespaceForDirective(importElement);
-      Set<Element> elements = new Set.from(namespace.definedNames.values);
-      importElementsMap[importElement] = elements;
-    }
-    // use import namespace to choose correct one
-    for (MapEntry<ImportElement, Set<Element>> entry in getMapEntrySet(
-        importElementsMap)) {
-      if (entry.getValue().contains(usedElement)) {
-        return entry.getKey();
-      }
-    }
-    // not found
-    return null;
   }
 
   /**
