@@ -377,7 +377,12 @@ class TypeReference extends TypeDecl {
 class TypeUnion extends TypeDecl {
   final List<TypeDecl> choices;
 
-  TypeUnion(this.choices, dom.Element html) : super(html);
+  /**
+   * The field that is used to disambiguate this union
+   */
+  final String field;
+
+  TypeUnion(this.choices, this.field, dom.Element html) : super(html);
 
   accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
 }
@@ -391,6 +396,18 @@ class TypeObject extends TypeDecl {
   TypeObject(this.fields, dom.Element html) : super(html);
 
   accept(ApiVisitor visitor) => visitor.visitTypeObject(this);
+
+  /**
+   * Return the field with the given [name], or null if there is no such field.
+   */
+  TypeObjectField getField(String name) {
+    for (TypeObjectField field in fields) {
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
+  }
 }
 
 /**

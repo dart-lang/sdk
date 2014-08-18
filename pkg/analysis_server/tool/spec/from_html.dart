@@ -388,8 +388,9 @@ List<TypeDecl> processContentsAsTypes(dom.Element html) {
       types.add(new TypeReference(innerText(child), child));
     },
     'union': (dom.Element child) {
-      checkAttributes(child, []);
-      types.add(new TypeUnion(processContentsAsTypes(child), child));
+      checkAttributes(child, ['field']);
+      String field = child.attributes['field'];
+      types.add(new TypeUnion(processContentsAsTypes(child), field, child));
     }
   });
   return types;
