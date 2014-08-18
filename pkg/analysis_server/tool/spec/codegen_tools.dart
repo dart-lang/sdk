@@ -411,7 +411,15 @@ class GeneratedDirectory extends GeneratedContent {
           return false;
         }
       });
-      if (outputFile.listSync().length != map.length) {
+      int nonHiddenFileCount = 0;
+      outputFile.listSync(
+          recursive: false,
+          followLinks: false).forEach((FileSystemEntity fileSystemEntity) {
+         if(fileSystemEntity is File && !basename(fileSystemEntity.path).startsWith('.')) {
+           nonHiddenFileCount++;
+         }
+      });
+      if (nonHiddenFileCount != map.length) {
         // The number of files generated doesn't match the number we expected to
         // generate.
         return false;
