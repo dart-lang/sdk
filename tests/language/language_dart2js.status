@@ -185,6 +185,9 @@ label_test: Skip
 # renamed, but the unresolved reference to it is not.
 type_variable_conflict2_test/04: Fail # Issue 19725
 
+[ $compiler == dart2dart && $minified && $builder_tag != new_backend ]
+type_variable_conflict2_test/01: RuntimeError # Issue 16180
+
 [ $compiler == dart2dart ]
 type_variable_conflict2_test/02: MissingCompileTimeError # Issue 19725
 type_variable_conflict2_test/06: MissingCompileTimeError # Issue 16180
