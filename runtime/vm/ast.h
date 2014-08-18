@@ -16,6 +16,7 @@
 namespace dart {
 
 #define FOR_EACH_NODE(V)                                                       \
+  V(Await)                                                                     \
   V(Return)                                                                    \
   V(Literal)                                                                   \
   V(Type)                                                                      \
@@ -143,6 +144,26 @@ class AstNode : public ZoneAllocated {
  private:
   const intptr_t token_pos_;
   DISALLOW_COPY_AND_ASSIGN(AstNode);
+};
+
+
+class AwaitNode : public AstNode {
+ public:
+  AwaitNode(intptr_t token_pos, AstNode* expr)
+    : AstNode(token_pos), expr_(expr) { }
+
+  void VisitChildren(AstNodeVisitor* visitor) const {
+    expr_->Visit(visitor);
+  }
+
+  AstNode* expr() const { return expr_; }
+
+  DECLARE_COMMON_NODE_FUNCTIONS(AwaitNode);
+
+ private:
+  AstNode* expr_;
+
+  DISALLOW_COPY_AND_ASSIGN(AwaitNode);
 };
 
 

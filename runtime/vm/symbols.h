@@ -71,8 +71,10 @@ class ObjectPointerVisitor;
   V(Async, "async")                                                            \
   V(AsyncCompleter, ":async_completer")                                        \
   V(AsyncOperation, ":async_op")                                               \
+  V(AsyncOperationParam, ":async_result")                                      \
   V(Future, "Future")                                                          \
   V(FutureConstructor, "Future.")                                              \
+  V(FutureThen, "then")                                                        \
   V(Completer, "Completer")                                                    \
   V(CompleterComplete, "complete")                                             \
   V(CompleterConstructor, "Completer.")                                        \

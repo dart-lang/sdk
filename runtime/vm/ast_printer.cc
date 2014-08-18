@@ -152,6 +152,11 @@ void AstPrinter::VisitAssignableNode(AssignableNode* node) {
 }
 
 
+void AstPrinter::VisitAwaitNode(AwaitNode* node) {
+  VisitGenericAstNode(node);
+}
+
+
 void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
   OS::Print("*****%s***** \"%s\")",
             node->PrettyName(),

@@ -48,11 +48,13 @@ class ParsedFunction : public ZoneAllocated {
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
+        await_temps_scope_(NULL),
         deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
         num_stack_locals_(0),
+        have_seen_await_expr_(false),
         isolate_(isolate) {
     ASSERT(function.IsZoneHandle());
   }
@@ -138,6 +140,21 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
 
+  void set_await_temps_scope(LocalScope* scope) {
+    ASSERT(await_temps_scope_ == NULL);
+    await_temps_scope_ = scope;
+  }
+  LocalScope* await_temps_scope() const {
+    ASSERT(await_temps_scope_ != NULL);
+    return await_temps_scope_;
+  }
+
+  void record_await() {
+    have_seen_await_expr_ = true;
+  }
+  void reset_have_seen_await() { have_seen_await_expr_ = false; }
+  bool have_seen_await() const { return have_seen_await_expr_; }
+
   Isolate* isolate() const { return isolate_; }
 
  private:
@@ -150,12 +167,14 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
+  LocalScope* await_temps_scope_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
 
   int first_parameter_index_;
   int first_stack_local_index_;
   int num_copied_params_;
   int num_stack_locals_;
+  bool have_seen_await_expr_;
 
   Isolate* isolate_;
 
@@ -502,6 +521,7 @@ class Parser : public ValueObject {
   void OpenBlock();
   void OpenLoopBlock();
   void OpenFunctionBlock(const Function& func);
+  void OpenAsyncClosure();
   RawFunction* OpenAsyncFunction(intptr_t formal_param_pos);
   SequenceNode* CloseBlock();
   SequenceNode* CloseAsyncFunction(const Function& closure,
@@ -586,6 +606,8 @@ class Parser : public ValueObject {
   static const bool kAllowConst = false;
   static const bool kConsumeCascades = true;
   static const bool kNoCascades = false;
+  AstNode* ParseAwaitableExpr(bool require_compiletime_const,
+                              bool consume_cascades);
   AstNode* ParseExpr(bool require_compiletime_const, bool consume_cascades);
   AstNode* ParseExprList();
   AstNode* ParseConditionalExpr();

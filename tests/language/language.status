@@ -32,14 +32,16 @@ deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
 [ $runtime != vm ]
-# Async tests are currently only supported by the vm.
+# Async/await is currently only supported by the vm.
 async_test/*: Skip
 async_control_structures_test: Skip
+await_test: Skip
 
 [ $compiler == dart2dart]
-# Async tests are not yet supported in dart2dart.
+# Async/await not yet supported in dart2dart.
 async_test/*: Skip
 async_control_structures_test: Skip
+await_test: Skip
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
 deferred_load_inval_code_test: Fail # Issue 17523
 deferred_not_loaded_check_test: Fail # Issue 17523

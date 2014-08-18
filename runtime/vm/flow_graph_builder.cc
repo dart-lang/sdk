@@ -2114,6 +2114,12 @@ void EffectGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
 }
 
 
+void EffectGraphVisitor::VisitAwaitNode(AwaitNode* node) {
+  // Await nodes are temporary during parsing.
+  UNREACHABLE();
+}
+
+
 intptr_t EffectGraphVisitor::GetCurrentTempLocalIndex() const {
   return kFirstLocalSlotFromFp
       - owner()->num_stack_locals()

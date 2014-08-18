@@ -6,6 +6,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "platform/utils.h"
+#include "vm/ast_transformer.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
@@ -2988,13 +2989,25 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // we are compiling a getter this will at most populate the receiver.
     AddFormalParamsToScope(&params, current_block_->scope);
   } else if (func.is_async_closure()) {
+    // Async closures have one optional parameter for continuation results.
+    ParamDesc result_param;
+    result_param.name = &Symbols::AsyncOperationParam();
+    result_param.default_value = &Object::null_instance();
+    result_param.type = &Type::ZoneHandle(I, Type::DynamicType());
+    params.parameters->Add(result_param);
+    params.num_optional_parameters++;
+    params.has_optional_positional_parameters = true;
+    SetupDefaultsForOptionalParams(&params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
     ASSERT(AbstractType::Handle(I, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
     if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
       // Parse away any formal parameters, as they are accessed as as context
       // variables.
-      ParseFormalParameterList(allow_explicit_default_values, false, &params);
+      ParamList parse_away;
+      ParseFormalParameterList(allow_explicit_default_values,
+                               false,
+                               &parse_away);
     }
   } else {
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
@@ -3044,6 +3057,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   Function& async_closure = Function::ZoneHandle(I);
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
     async_closure = OpenAsyncFunction(formal_params_pos);
+  } else if (func.is_async_closure()) {
+    OpenAsyncClosure();
   }
 
   intptr_t end_token_pos = 0;
@@ -5526,7 +5541,15 @@ void Parser::OpenFunctionBlock(const Function& func) {
 }
 
 
+void Parser::OpenAsyncClosure() {
+  TRACE_PARSER("OpenAsyncClosure");
+  parsed_function()->set_await_temps_scope(current_block_->scope);
+  // TODO(mlippautz): Set up explicit jump table for await continuations.
+}
+
+
 RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
+  TRACE_PARSER("OpenAsyncFunction");
   // Create the closure containing the old body of this function.
   Class& sig_cls = Class::ZoneHandle(I);
   Type& sig_type = Type::ZoneHandle(I);
@@ -5537,6 +5560,13 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
       formal_param_pos,
       &Symbols::ClosureParameter(),
       &Type::ZoneHandle(I, Type::DynamicType()));
+  ParamDesc result_param;
+  result_param.name = &Symbols::AsyncOperationParam();
+  result_param.default_value = &Object::null_instance();
+  result_param.type = &Type::ZoneHandle(I, Type::DynamicType());
+  closure_params.parameters->Add(result_param);
+  closure_params.has_optional_positional_parameters = true;
+  closure_params.num_optional_parameters++;
   closure = Function::NewClosureFunction(
       Symbols::AnonymousClosure(),
       innermost_function(),
@@ -5580,6 +5610,7 @@ SequenceNode* Parser::CloseBlock() {
 
 SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
                                          SequenceNode* closure_body) {
+  TRACE_PARSER("CloseAsyncFunction");
   ASSERT(!closure.IsNull());
   ASSERT(closure_body != NULL);
   // The block for the async closure body has already been closed. Close the
@@ -5676,6 +5707,7 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
 
 void Parser::CloseAsyncClosure(SequenceNode* body) {
+  TRACE_PARSER("CloseAsyncClosure");
   // We need a temporary expression to store intermediate return values.
   parsed_function()->EnsureExpressionTemp();
 }
@@ -5878,7 +5910,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     // Variable initialization.
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
-    AstNode* expr = ParseExpr(is_const, kConsumeCascades);
+    AstNode* expr = ParseAwaitableExpr(is_const, kConsumeCascades);
     initialization = new(I) StoreLocalNode(
         assign_pos, variable, expr);
     if (is_const) {
@@ -7751,7 +7783,7 @@ AstNode* Parser::ParseStatement() {
         new(I) LoadLocalNode(statement_pos, excp_var),
         new(I) LoadLocalNode(statement_pos, trace_var));
   } else {
-    statement = ParseExpr(kAllowConst, kConsumeCascades);
+    statement = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
     ExpectSemicolon();
   }
   return statement;
@@ -8402,6 +8434,31 @@ static AstNode* LiteralIfStaticConst(Isolate* iso, AstNode* expr) {
       return new(iso) LiteralNode(expr->token_pos(),
                              Instance::ZoneHandle(iso, field.value()));
     }
+  }
+  return expr;
+}
+
+
+AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
+                                    bool consume_cascades) {
+  TRACE_PARSER("ParseAwaitableExpr");
+  parsed_function()->reset_have_seen_await();
+  AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
+  if (parsed_function()->have_seen_await()) {
+    if (!current_block_->scope->LookupVariable(
+          Symbols::AsyncOperation(), true)) {
+      // Async operations are always encapsulated into a local function. We only
+      // need to transform the expression when generating code for this inner
+      // function.
+      return expr;
+    }
+    SequenceNode* intermediates_block = new(I) SequenceNode(
+        Scanner::kNoSourcePos, current_block_->scope);
+    AwaitTransformer at(intermediates_block, library_, parsed_function());
+    AstNode* result = at.Transform(expr);
+    current_block_->statements->Add(intermediates_block);
+    parsed_function()->reset_have_seen_await();
+    return result;
   }
   return expr;
 }
@@ -10775,6 +10832,18 @@ AstNode* Parser::ParsePrimary() {
     OpenBlock();
     primary = ParseFunctionStatement(true);
     CloseBlock();
+  } else if (IsLiteral("await") &&
+             (parsed_function()->function().IsAsyncFunction() ||
+              parsed_function()->function().is_async_closure())) {
+    // The body of an async function is parsed multiple times. The first time
+    // when setting up an AsyncFunction() for generating relevant scope
+    // information. The second time the body is parsed for actually generating
+    // code.
+    TRACE_PARSER("ParseAwaitExpr");
+    ConsumeToken();
+    parsed_function()->record_await();
+    primary = new(I) AwaitNode(
+        TokenPos(), ParseExpr(kAllowConst, kConsumeCascades));
   } else if (IsIdentifier()) {
     intptr_t qual_ident_pos = TokenPos();
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(I, ParsePrefix());

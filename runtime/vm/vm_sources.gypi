@@ -34,6 +34,8 @@
     'ast_printer.h',
     'ast_printer_test.cc',
     'ast_test.cc',
+    'ast_transformer.cc',
+    'ast_transformer.h',
     'atomic.h',
     'atomic_android.cc',
     'atomic_linux.cc',
