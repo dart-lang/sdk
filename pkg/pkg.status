@@ -57,7 +57,8 @@ web_components/test/interop_test: Pass, RuntimeError # Issue 18931
 polymer/test/instance_attrs_test: Skip # Issue 19496
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
-polymer/test/property_observe_test: Pass, Timeout # Issue 19326
+polymer/test/property_observe_test: Skip # Sometimes times out. Issue 19326
+polymer/test/bind_properties_test: Skip # Sometimes times out. Issue 19326
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
