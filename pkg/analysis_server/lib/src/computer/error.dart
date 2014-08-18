@@ -5,8 +5,8 @@
 library computer.error;
 
 import 'package:analysis_server/src/computer/element.dart';
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/json.dart';
+import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/json.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;

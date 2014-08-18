@@ -5,10 +5,10 @@
 library edit.fix;
 
 import 'package:analysis_server/src/computer/error.dart';
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/correction/change.dart';
-import 'package:analysis_services/correction/fix.dart';
-import 'package:analysis_services/json.dart';
+import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/json.dart';
 
 
 class ErrorFixes implements HasToJson {

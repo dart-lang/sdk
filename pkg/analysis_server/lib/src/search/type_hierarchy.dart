@@ -9,10 +9,10 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/computer/element.dart' show
     engineElementToJson;
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/json.dart';
-import 'package:analysis_services/search/hierarchy.dart';
-import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/json.dart';
+import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**

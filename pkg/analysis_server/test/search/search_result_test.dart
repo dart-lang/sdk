@@ -6,8 +6,8 @@ library test.search.search_result;
 
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/search/search_result.dart';
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 

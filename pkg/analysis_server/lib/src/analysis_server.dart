@@ -25,10 +25,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/correction/change.dart';
-import 'package:analysis_services/index/index.dart';
-import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 

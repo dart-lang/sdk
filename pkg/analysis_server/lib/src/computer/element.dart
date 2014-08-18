@@ -4,7 +4,7 @@
 
 library computer.element;
 
-import 'package:analysis_services/constants.dart';
+import 'package:analysis_server/src/services/constants.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;

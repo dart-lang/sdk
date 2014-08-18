@@ -8,8 +8,8 @@ import 'dart:async';
 
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/search/search_result.dart';
-import 'package:analysis_services/search/hierarchy.dart';
-import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 

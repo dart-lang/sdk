@@ -13,9 +13,9 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/json.dart';
-import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/json.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**

@@ -10,7 +10,7 @@ import 'dart:io';
 @MirrorsUsed(targets: 'mocks', override: '*')
 import 'dart:mirrors';
 
-import 'package:analysis_services/index/index.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analysis_server/src/analysis_server.dart';

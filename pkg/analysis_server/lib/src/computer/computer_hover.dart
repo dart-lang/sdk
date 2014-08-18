@@ -6,8 +6,8 @@ library computer.hover;
 
 import 'dart:collection';
 
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/json.dart';
+import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/json.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 

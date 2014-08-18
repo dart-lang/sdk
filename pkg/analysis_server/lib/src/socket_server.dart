@@ -15,8 +15,8 @@ import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
-import 'package:analysis_services/index/index.dart';
-import 'package:analysis_services/index/local_file_index.dart';
+import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index/local_file_index.dart';
 
 
 /**

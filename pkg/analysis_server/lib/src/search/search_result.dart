@@ -5,9 +5,9 @@
 library search.search_result;
 
 import 'package:analysis_server/src/computer/element.dart';
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/json.dart';
-import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/json.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 
 

@@ -7,9 +7,9 @@ library domain.completion;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/completion/completion_manager.dart';
-import 'package:analysis_services/completion/completion_suggestion.dart';
-import 'package:analysis_services/constants.dart';
+import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
+import 'package:analysis_server/src/services/constants.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
