@@ -113,7 +113,7 @@ internals of the code, code reviews, etc.
 [cs_mac]: http://gsdview.appspot.com/dartium-archive/continuous/drt-mac.zip
 [cs_win]: http://gsdview.appspot.com/dartium-archive/continuous/drt-win.zip
 [dartium_src]: http://code.google.com/p/dart/wiki/BuildingDartium
-[TodoMVC]: http://addyosmani.github.com/todomvc/
+[TodoMVC]: http://todomvc.com/
 [issues]: http://dartbug.com/new
 [mailinglist]: https://groups.google.com/a/dartlang.org/forum/?fromgroups#!forum/web-ui
 [devlist]: https://groups.google.com/a/dartlang.org/forum/?fromgroups#!forum/web-ui-dev
