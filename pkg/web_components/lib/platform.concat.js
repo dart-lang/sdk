@@ -95,16 +95,7 @@ if (typeof WeakMap === 'undefined') {
             entry[1] : undefined;
       },
       delete: function(key) {
-        var entry = key[this.name];
-        if (!entry) return false;
-        var hasValue = entry[0] === key;
-        entry[0] = entry[1] = undefined;
-        return hasValue;
-      },
-      has: function(key) {
-        var entry = key[this.name];
-        if (!entry) return false;
-        return entry[0] === key;
+        this.set(key, undefined);
       }
     };
 
@@ -128,8 +119,6 @@ if (typeof WeakMap === 'undefined') {
 
 (function(global) {
   'use strict';
-
-  var testingExposeCycleCount = global.testingExposeCycleCount;
 
   // Detect and do basic sanity checking on Object/Array.observe.
   function detectObjectObserve() {
@@ -178,13 +167,6 @@ if (typeof WeakMap === 'undefined') {
     // Don't test for eval if we're running in a Chrome App environment.
     // We check for APIs set that only exist in a Chrome App context.
     if (typeof chrome !== 'undefined' && chrome.app && chrome.app.runtime) {
-      return false;
-    }
-
-    // Firefox OS Apps do not allow eval. This feature detection is very hacky
-    // but even if some other platform adds support for this function this code
-    // will continue to work.
-    if (navigator.getDeviceStorage) {
       return false;
     }
 
@@ -562,7 +544,7 @@ if (typeof WeakMap === 'undefined') {
     while (cycles < MAX_DIRTY_CHECK_CYCLES && observer.check_()) {
       cycles++;
     }
-    if (testingExposeCycleCount)
+    if (global.testingExposeCycleCount)
       global.dirtyCheckCycleCount = cycles;
 
     return cycles > 0;
@@ -961,7 +943,7 @@ if (typeof WeakMap === 'undefined') {
         anyChanged = true;
     } while (cycles < MAX_DIRTY_CHECK_CYCLES && anyChanged);
 
-    if (testingExposeCycleCount)
+    if (global.testingExposeCycleCount)
       global.dirtyCheckCycleCount = cycles;
 
     runningMicrotaskCheckpoint = false;
@@ -1863,13 +1845,6 @@ window.ShadowDOMPolyfill = {};
       return false;
     }
 
-    // Firefox OS Apps do not allow eval. This feature detection is very hacky
-    // but even if some other platform adds support for this function this code
-    // will continue to work.
-    if (navigator.getDeviceStorage) {
-      return false;
-    }
-
     try {
       var f = new Function('return true;');
       return f();
@@ -2127,15 +2102,13 @@ window.ShadowDOMPolyfill = {};
   var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
   var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
   var OriginalSVGElementInstance = window.SVGElementInstance;
-  var OriginalFormData = window.FormData;
-  
+
   function isWrapper(object) {
     return object instanceof wrappers.EventTarget ||
            object instanceof wrappers.Event ||
            object instanceof wrappers.Range ||
            object instanceof wrappers.DOMImplementation ||
            object instanceof wrappers.CanvasRenderingContext2D ||
-           object instanceof wrappers.FormData ||
            wrappers.WebGLRenderingContext &&
                object instanceof wrappers.WebGLRenderingContext;
   }
@@ -2148,7 +2121,6 @@ window.ShadowDOMPolyfill = {};
            object instanceof OriginalRange ||
            object instanceof OriginalDOMImplementation ||
            object instanceof OriginalCanvasRenderingContext2D ||
-           object instanceof OriginalFormData ||
            OriginalWebGLRenderingContext &&
                object instanceof OriginalWebGLRenderingContext ||
            OriginalSVGElementInstance &&
@@ -4612,39 +4584,6 @@ window.ShadowDOMPolyfill = {};
 
   var HTMLCollection = scope.wrappers.HTMLCollection;
   var NodeList = scope.wrappers.NodeList;
-  var getTreeScope = scope.getTreeScope;
-  var wrap = scope.wrap;
-
-  var originalDocumentQuerySelector = document.querySelector;
-  var originalElementQuerySelector = document.documentElement.querySelector;
-
-  var originalDocumentQuerySelectorAll = document.querySelectorAll;
-  var originalElementQuerySelectorAll = document.documentElement.querySelectorAll;
-
-  var originalDocumentGetElementsByTagName = document.getElementsByTagName;
-  var originalElementGetElementsByTagName = document.documentElement.getElementsByTagName;
-
-  var originalDocumentGetElementsByTagNameNS = document.getElementsByTagNameNS;
-  var originalElementGetElementsByTagNameNS = document.documentElement.getElementsByTagNameNS;
-
-  var OriginalElement = window.Element;
-  var OriginalDocument = window.HTMLDocument;
-
-  function filterNodeList(list, index, result) {
-    var wrappedItem = null;
-    var root = null;
-    for (var i = 0, length = list.length; i < length; i++) {
-      wrappedItem = wrap(list[i]);
-      if (root = getTreeScope(wrappedItem).root) {
-        if (root instanceof scope.wrappers.ShadowRoot) {
-          continue;
-        }
-      }
-      result[index++] = wrappedItem;
-    }
-    
-    return index;
-  }
 
   function findOne(node, selector) {
     var m, el = node.firstElementChild;
@@ -4675,7 +4614,7 @@ window.ShadowDOMPolyfill = {};
     return true;
   }
 
-  function matchesLocalNameOnly(el, ns, localName) {
+  function matchesLocalName(el, localName) {
     return el.localName === localName;
   }
 
@@ -4687,143 +4626,40 @@ window.ShadowDOMPolyfill = {};
     return el.namespaceURI === ns && el.localName === localName;
   }
 
-  function findElements(node, index, result, p, arg0, arg1) {
+  function findElements(node, result, p, arg0, arg1) {
     var el = node.firstElementChild;
     while (el) {
       if (p(el, arg0, arg1))
-        result[index++] = el;
-      index = findElements(el, index, result, p, arg0, arg1);
+        result[result.length++] = el;
+      findElements(el, result, p, arg0, arg1);
       el = el.nextElementSibling;
     }
-    return index;
+    return result;
   }
 
   // find and findAll will only match Simple Selectors,
   // Structural Pseudo Classes are not guarenteed to be correct
   // http://www.w3.org/TR/css3-selectors/#simple-selectors
 
-  function querySelectorAllFiltered (p, index, result, selector) {
-    var target = this.impl;
-    var list;
-    var root = getTreeScope(this).root;
-    if (root instanceof scope.wrappers.ShadowRoot) {
-      // We are in the shadow tree and the logical tree is
-      // going to be disconnected so we do a manual tree traversal
-      return findElements(this, index, result, p, selector, null);
-    } else if (target instanceof OriginalElement) {
-      list = originalElementQuerySelectorAll.call(target, selector);
-    } else if (target instanceof OriginalDocument) {
-      list = originalDocumentQuerySelectorAll.call(target, selector);
-    } else {
-      // When we get a ShadowRoot the logical tree is going to be disconnected
-      // so we do a manual tree traversal
-      return findElements(this, index, result, p, selector, null);
-    }
-
-    return filterNodeList(list, index, result);
-  }
-
   var SelectorsInterface = {
     querySelector: function(selector) {
-      var target = this.impl;
-      var wrappedItem;
-      var root = getTreeScope(this).root;
-      if (root instanceof scope.wrappers.ShadowRoot) {
-        // We are in the shadow tree and the logical tree is
-        // going to be disconnected so we do a manual tree traversal
-        return findOne(this, selector);
-      } else if (target instanceof OriginalElement) {
-        wrappedItem = wrap(originalElementQuerySelector.call(target, selector));
-      } else if (target instanceof OriginalDocument) {
-        wrappedItem = wrap(originalDocumentQuerySelector.call(target, selector));
-      } else {
-        // When we get a ShadowRoot the logical tree is going to be disconnected
-        // so we do a manual tree traversal
-        return findOne(this, selector);
-      }
-
-      if (!wrappedItem) {
-        // When the original query returns nothing
-        // we return nothing (to be consistent with the other wrapped calls)
-        return wrappedItem;
-      } else if (root = getTreeScope(wrappedItem).root) {
-        if (root instanceof scope.wrappers.ShadowRoot) {
-          // When the original query returns an element in the ShadowDOM
-          // we must do a manual tree traversal
-          return findOne(this, selector);
-        }
-      }
-
-      return wrappedItem;
+      return findOne(this, selector);
     },
     querySelectorAll: function(selector) {
-      var result = new NodeList();
-
-      result.length = querySelectorAllFiltered.call(this,
-          matchesSelector,
-          0,
-          result,
-          selector);
-
-      return result;
+      return findElements(this, new NodeList(), matchesSelector, selector);
     }
   };
-
-  function getElementsByTagNameFiltered (p, index, result, localName, lowercase) {
-    var target = this.impl;
-    var list;
-    var root = getTreeScope(this).root;
-    if (root instanceof scope.wrappers.ShadowRoot) {
-      // We are in the shadow tree and the logical tree is
-      // going to be disconnected so we do a manual tree traversal
-      return findElements(this, index, result, p, localName, lowercase);
-    } else if (target instanceof OriginalElement) {
-      list = originalElementGetElementsByTagName.call(target, localName, lowercase);
-    } else if (target instanceof OriginalDocument) {
-      list = originalDocumentGetElementsByTagName.call(target, localName, lowercase);
-    } else {
-      // When we get a ShadowRoot the logical tree is going to be disconnected
-      // so we do a manual tree traversal
-      return findElements(this, index, result, p, localName, lowercase);
-    }
-
-    return filterNodeList(list, index, result);
-  }
-
-  function getElementsByTagNameNSFiltered (p, index, result, ns, localName) {
-    var target = this.impl;
-    var list;
-    var root = getTreeScope(this).root;
-    if (root instanceof scope.wrappers.ShadowRoot) {
-      // We are in the shadow tree and the logical tree is
-      // going to be disconnected so we do a manual tree traversal
-      return findElements(this, index, result, p, ns, localName);
-    } else if (target instanceof OriginalElement) {
-      list = originalElementGetElementsByTagNameNS.call(target, ns, localName);
-    } else if (target instanceof OriginalDocument) {
-      list = originalDocumentGetElementsByTagNameNS.call(target, ns, localName);
-    } else {
-      // When we get a ShadowRoot the logical tree is going to be disconnected
-      // so we do a manual tree traversal
-      return findElements(this, index, result, p, ns, localName);
-    }
-
-    return filterNodeList(list, index, result);
-  }
 
   var GetElementsByInterface = {
     getElementsByTagName: function(localName) {
       var result = new HTMLCollection();
-      var match = localName === '*' ? matchesEveryThing : matchesTagName;
+      if (localName === '*')
+        return findElements(this, result, matchesEveryThing);
 
-      result.length = getElementsByTagNameFiltered.call(this, 
-          match,
-          0, 
-          result,
+      return findElements(this, result,
+          matchesTagName,
           localName,
           localName.toLowerCase());
-
-      return result;
     },
 
     getElementsByClassName: function(className) {
@@ -4833,22 +4669,19 @@ window.ShadowDOMPolyfill = {};
 
     getElementsByTagNameNS: function(ns, localName) {
       var result = new HTMLCollection();
-      var match = null;
 
-      if (ns === '*') {
-        match = localName === '*' ? matchesEveryThing : matchesLocalNameOnly;
-      } else {
-        match = localName === '*' ? matchesNameSpace : matchesLocalNameNS;
+      if (ns === '') {
+        ns = null;
+      } else if (ns === '*') {
+        if (localName === '*')
+          return findElements(this, result, matchesEveryThing);
+        return findElements(this, result, matchesLocalName, localName);
       }
-      
-      result.length = getElementsByTagNameNSFiltered.call(this, 
-          match,
-          0,
-          result,
-          ns || null,
-          localName);
 
-      return result;
+      if (localName === '*')
+        return findElements(this, result, matchesNameSpace, ns);
+
+      return findElements(this, result, matchesLocalNameNS, ns, localName);
     }
   };
 
@@ -5452,17 +5285,6 @@ window.ShadowDOMPolyfill = {};
 
       var df = frag(contextElement, text);
       contextElement.insertBefore(df, refNode);
-    },
-
-    get hidden() {
-      return this.hasAttribute('hidden');
-    },
-    set hidden(v) {
-      if (v) {
-        this.setAttribute('hidden', '');
-      } else {
-        this.removeAttribute('hidden');
-      }
     }
   });
 
@@ -7715,7 +7537,6 @@ window.ShadowDOMPolyfill = {};
 
   var OriginalWindow = window.Window;
   var originalGetComputedStyle = window.getComputedStyle;
-  var originalGetDefaultComputedStyle = window.getDefaultComputedStyle;
   var originalGetSelection = window.getSelection;
 
   function Window(impl) {
@@ -7726,14 +7547,6 @@ window.ShadowDOMPolyfill = {};
   OriginalWindow.prototype.getComputedStyle = function(el, pseudo) {
     return wrap(this || window).getComputedStyle(unwrapIfNeeded(el), pseudo);
   };
-
-  // Mozilla proprietary extension.
-  if (originalGetDefaultComputedStyle) {
-    OriginalWindow.prototype.getDefaultComputedStyle = function(el, pseudo) {
-      return wrap(this || window).getDefaultComputedStyle(
-          unwrapIfNeeded(el), pseudo);
-    };
-  }
 
   OriginalWindow.prototype.getSelection = function() {
     return wrap(this || window).getSelection();
@@ -7769,15 +7582,6 @@ window.ShadowDOMPolyfill = {};
       return wrap(unwrap(this).document);
     }
   });
-
-  // Mozilla proprietary extension.
-  if (originalGetDefaultComputedStyle) {
-    Window.prototype.getDefaultComputedStyle = function(el, pseudo) {
-      renderAllPending();
-      return originalGetDefaultComputedStyle.call(unwrap(this),
-          unwrapIfNeeded(el),pseudo);
-    };
-  }
 
   registerWrapper(OriginalWindow, Window, window);
 
@@ -7827,10 +7631,7 @@ window.ShadowDOMPolyfill = {};
   var OriginalFormData = window.FormData;
 
   function FormData(formElement) {
-    if (formElement instanceof OriginalFormData)
-      this.impl = formElement;
-    else
-      this.impl = new OriginalFormData(formElement && unwrap(formElement));
+    this.impl = new OriginalFormData(formElement && unwrap(formElement));
   }
 
   registerWrapper(OriginalFormData, FormData, new OriginalFormData());
@@ -8594,13 +8395,13 @@ var selectorRe = /([^{]*)({[\s\S]*?})/gim,
     cssCommentRe = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//gim,
     // TODO(sorvell): remove either content or comment
     cssCommentNextSelectorRe = /\/\*\s*@polyfill ([^*]*\*+([^/*][^*]*\*+)*\/)([^{]*?){/gim,
-    cssContentNextSelectorRe = /polyfill-next-selector[^}]*content\:[\s]*?['"](.*?)['"][;\s]*}([^{]*?){/gim,  
+    cssContentNextSelectorRe = /polyfill-next-selector[^}]*content\:[\s]*['|"]([^'"]*)['|"][^}]*}([^{]*?){/gim,
     // TODO(sorvell): remove either content or comment
     cssCommentRuleRe = /\/\*\s@polyfill-rule([^*]*\*+([^/*][^*]*\*+)*)\//gim,
-    cssContentRuleRe = /(polyfill-rule)[^}]*(content\:[\s]*['"](.*?)['"])[;\s]*[^}]*}/gim,
+    cssContentRuleRe = /(polyfill-rule)[^}]*(content\:[\s]*['|"]([^'"]*)['|"][^;]*;)[^}]*}/gim,
     // TODO(sorvell): remove either content or comment
     cssCommentUnscopedRuleRe = /\/\*\s@polyfill-unscoped-rule([^*]*\*+([^/*][^*]*\*+)*)\//gim,
-    cssContentUnscopedRuleRe = /(polyfill-unscoped-rule)[^}]*(content\:[\s]*['"](.*?)['"])[;\s]*[^}]*}/gim,
+    cssContentUnscopedRuleRe = /(polyfill-unscoped-rule)[^}]*(content\:[\s]*['|"]([^'"]*)['|"][^;]*;)[^}]*}/gim,
     cssPseudoRe = /::(x-[^\s{,(]*)/gim,
     cssPartRe = /::part\(([^)]*)\)/gim,
     // note: :host pre-processed to -shadowcsshost.
@@ -8796,7 +8597,7 @@ if (window.ShadowDOMPolyfill) {
           if (elt.parentNode === head) {
             head.replaceChild(style, elt);
           } else {
-            this.addElementToDocument(style);
+            head.appendChild(style);
           }
         }
         style.__importParsed = true;
@@ -8871,6 +8672,572 @@ scope.ShadowCSS = ShadowCSS;
 })(window.Platform);
 
 }
+/* Any copyright is dedicated to the Public Domain.
+ * http://creativecommons.org/publicdomain/zero/1.0/ */
+
+(function(scope) {
+  'use strict';
+
+  // feature detect for URL constructor
+  var hasWorkingUrl = false;
+  if (!scope.forceJURL) {
+    try {
+      var u = new URL('b', 'http://a');
+      hasWorkingUrl = u.href === 'http://a/b';
+    } catch(e) {}
+  }
+
+  if (hasWorkingUrl)
+    return;
+
+  var relative = Object.create(null);
+  relative['ftp'] = 21;
+  relative['file'] = 0;
+  relative['gopher'] = 70;
+  relative['http'] = 80;
+  relative['https'] = 443;
+  relative['ws'] = 80;
+  relative['wss'] = 443;
+
+  var relativePathDotMapping = Object.create(null);
+  relativePathDotMapping['%2e'] = '.';
+  relativePathDotMapping['.%2e'] = '..';
+  relativePathDotMapping['%2e.'] = '..';
+  relativePathDotMapping['%2e%2e'] = '..';
+
+  function isRelativeScheme(scheme) {
+    return relative[scheme] !== undefined;
+  }
+
+  function invalid() {
+    clear.call(this);
+    this._isInvalid = true;
+  }
+
+  function IDNAToASCII(h) {
+    if ('' == h) {
+      invalid.call(this)
+    }
+    // XXX
+    return h.toLowerCase()
+  }
+
+  function percentEscape(c) {
+    var unicode = c.charCodeAt(0);
+    if (unicode > 0x20 &&
+       unicode < 0x7F &&
+       // " # < > ? `
+       [0x22, 0x23, 0x3C, 0x3E, 0x3F, 0x60].indexOf(unicode) == -1
+      ) {
+      return c;
+    }
+    return encodeURIComponent(c);
+  }
+
+  function percentEscapeQuery(c) {
+    // XXX This actually needs to encode c using encoding and then
+    // convert the bytes one-by-one.
+
+    var unicode = c.charCodeAt(0);
+    if (unicode > 0x20 &&
+       unicode < 0x7F &&
+       // " # < > ` (do not escape '?')
+       [0x22, 0x23, 0x3C, 0x3E, 0x60].indexOf(unicode) == -1
+      ) {
+      return c;
+    }
+    return encodeURIComponent(c);
+  }
+
+  var EOF = undefined,
+      ALPHA = /[a-zA-Z]/,
+      ALPHANUMERIC = /[a-zA-Z0-9\+\-\.]/;
+
+  function parse(input, stateOverride, base) {
+    function err(message) {
+      errors.push(message)
+    }
+
+    var state = stateOverride || 'scheme start',
+        cursor = 0,
+        buffer = '',
+        seenAt = false,
+        seenBracket = false,
+        errors = [];
+
+    loop: while ((input[cursor - 1] != EOF || cursor == 0) && !this._isInvalid) {
+      var c = input[cursor];
+      switch (state) {
+        case 'scheme start':
+          if (c && ALPHA.test(c)) {
+            buffer += c.toLowerCase(); // ASCII-safe
+            state = 'scheme';
+          } else if (!stateOverride) {
+            buffer = '';
+            state = 'no scheme';
+            continue;
+          } else {
+            err('Invalid scheme.');
+            break loop;
+          }
+          break;
+
+        case 'scheme':
+          if (c && ALPHANUMERIC.test(c)) {
+            buffer += c.toLowerCase(); // ASCII-safe
+          } else if (':' == c) {
+            this._scheme = buffer;
+            buffer = '';
+            if (stateOverride) {
+              break loop;
+            }
+            if (isRelativeScheme(this._scheme)) {
+              this._isRelative = true;
+            }
+            if ('file' == this._scheme) {
+              state = 'relative';
+            } else if (this._isRelative && base && base._scheme == this._scheme) {
+              state = 'relative or authority';
+            } else if (this._isRelative) {
+              state = 'authority first slash';
+            } else {
+              state = 'scheme data';
+            }
+          } else if (!stateOverride) {
+            buffer = '';
+            cursor = 0;
+            state = 'no scheme';
+            continue;
+          } else if (EOF == c) {
+            break loop;
+          } else {
+            err('Code point not allowed in scheme: ' + c)
+            break loop;
+          }
+          break;
+
+        case 'scheme data':
+          if ('?' == c) {
+            query = '?';
+            state = 'query';
+          } else if ('#' == c) {
+            this._fragment = '#';
+            state = 'fragment';
+          } else {
+            // XXX error handling
+            if (EOF != c && '\t' != c && '\n' != c && '\r' != c) {
+              this._schemeData += percentEscape(c);
+            }
+          }
+          break;
+
+        case 'no scheme':
+          if (!base || !(isRelativeScheme(base._scheme))) {
+            err('Missing scheme.');
+            invalid.call(this);
+          } else {
+            state = 'relative';
+            continue;
+          }
+          break;
+
+        case 'relative or authority':
+          if ('/' == c && '/' == input[cursor+1]) {
+            state = 'authority ignore slashes';
+          } else {
+            err('Expected /, got: ' + c);
+            state = 'relative';
+            continue
+          }
+          break;
+
+        case 'relative':
+          this._isRelative = true;
+          if ('file' != this._scheme)
+            this._scheme = base._scheme;
+          if (EOF == c) {
+            this._host = base._host;
+            this._port = base._port;
+            this._path = base._path.slice();
+            this._query = base._query;
+            break loop;
+          } else if ('/' == c || '\\' == c) {
+            if ('\\' == c)
+              err('\\ is an invalid code point.');
+            state = 'relative slash';
+          } else if ('?' == c) {
+            this._host = base._host;
+            this._port = base._port;
+            this._path = base._path.slice();
+            this._query = '?';
+            state = 'query';
+          } else if ('#' == c) {
+            this._host = base._host;
+            this._port = base._port;
+            this._path = base._path.slice();
+            this._query = base._query;
+            this._fragment = '#';
+            state = 'fragment';
+          } else {
+            var nextC = input[cursor+1]
+            var nextNextC = input[cursor+2]
+            if (
+              'file' != this._scheme || !ALPHA.test(c) ||
+              (nextC != ':' && nextC != '|') ||
+              (EOF != nextNextC && '/' != nextNextC && '\\' != nextNextC && '?' != nextNextC && '#' != nextNextC)) {
+              this._host = base._host;
+              this._port = base._port;
+              this._path = base._path.slice();
+              this._path.pop();
+            }
+            state = 'relative path';
+            continue;
+          }
+          break;
+
+        case 'relative slash':
+          if ('/' == c || '\\' == c) {
+            if ('\\' == c) {
+              err('\\ is an invalid code point.');
+            }
+            if ('file' == this._scheme) {
+              state = 'file host';
+            } else {
+              state = 'authority ignore slashes';
+            }
+          } else {
+            if ('file' != this._scheme) {
+              this._host = base._host;
+              this._port = base._port;
+            }
+            state = 'relative path';
+            continue;
+          }
+          break;
+
+        case 'authority first slash':
+          if ('/' == c) {
+            state = 'authority second slash';
+          } else {
+            err("Expected '/', got: " + c);
+            state = 'authority ignore slashes';
+            continue;
+          }
+          break;
+
+        case 'authority second slash':
+          state = 'authority ignore slashes';
+          if ('/' != c) {
+            err("Expected '/', got: " + c);
+            continue;
+          }
+          break;
+
+        case 'authority ignore slashes':
+          if ('/' != c && '\\' != c) {
+            state = 'authority';
+            continue;
+          } else {
+            err('Expected authority, got: ' + c);
+          }
+          break;
+
+        case 'authority':
+          if ('@' == c) {
+            if (seenAt) {
+              err('@ already seen.');
+              buffer += '%40';
+            }
+            seenAt = true;
+            for (var i = 0; i < buffer.length; i++) {
+              var cp = buffer[i];
+              if ('\t' == cp || '\n' == cp || '\r' == cp) {
+                err('Invalid whitespace in authority.');
+                continue;
+              }
+              // XXX check URL code points
+              if (':' == cp && null === this._password) {
+                this._password = '';
+                continue;
+              }
+              var tempC = percentEscape(cp);
+              (null !== this._password) ? this._password += tempC : this._username += tempC;
+            }
+            buffer = '';
+          } else if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c) {
+            cursor -= buffer.length;
+            buffer = '';
+            state = 'host';
+            continue;
+          } else {
+            buffer += c;
+          }
+          break;
+
+        case 'file host':
+          if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c) {
+            if (buffer.length == 2 && ALPHA.test(buffer[0]) && (buffer[1] == ':' || buffer[1] == '|')) {
+              state = 'relative path';
+            } else if (buffer.length == 0) {
+              state = 'relative path start';
+            } else {
+              this._host = IDNAToASCII.call(this, buffer);
+              buffer = '';
+              state = 'relative path start';
+            }
+            continue;
+          } else if ('\t' == c || '\n' == c || '\r' == c) {
+            err('Invalid whitespace in file host.');
+          } else {
+            buffer += c;
+          }
+          break;
+
+        case 'host':
+        case 'hostname':
+          if (':' == c && !seenBracket) {
+            // XXX host parsing
+            this._host = IDNAToASCII.call(this, buffer);
+            buffer = '';
+            state = 'port';
+            if ('hostname' == stateOverride) {
+              break loop;
+            }
+          } else if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c) {
+            this._host = IDNAToASCII.call(this, buffer);
+            buffer = '';
+            state = 'relative path start';
+            if (stateOverride) {
+              break loop;
+            }
+            continue;
+          } else if ('\t' != c && '\n' != c && '\r' != c) {
+            if ('[' == c) {
+              seenBracket = true;
+            } else if (']' == c) {
+              seenBracket = false;
+            }
+            buffer += c;
+          } else {
+            err('Invalid code point in host/hostname: ' + c);
+          }
+          break;
+
+        case 'port':
+          if (/[0-9]/.test(c)) {
+            buffer += c;
+          } else if (EOF == c || '/' == c || '\\' == c || '?' == c || '#' == c || stateOverride) {
+            if ('' != buffer) {
+              var temp = parseInt(buffer, 10);
+              if (temp != relative[this._scheme]) {
+                this._port = temp + '';
+              }
+              buffer = '';
+            }
+            if (stateOverride) {
+              break loop;
+            }
+            state = 'relative path start';
+            continue;
+          } else if ('\t' == c || '\n' == c || '\r' == c) {
+            err('Invalid code point in port: ' + c);
+          } else {
+            invalid.call(this);
+          }
+          break;
+
+        case 'relative path start':
+          if ('\\' == c)
+            err("'\\' not allowed in path.");
+          state = 'relative path';
+          if ('/' != c && '\\' != c) {
+            continue;
+          }
+          break;
+
+        case 'relative path':
+          if (EOF == c || '/' == c || '\\' == c || (!stateOverride && ('?' == c || '#' == c))) {
+            if ('\\' == c) {
+              err('\\ not allowed in relative path.');
+            }
+            var tmp;
+            if (tmp = relativePathDotMapping[buffer.toLowerCase()]) {
+              buffer = tmp;
+            }
+            if ('..' == buffer) {
+              this._path.pop();
+              if ('/' != c && '\\' != c) {
+                this._path.push('');
+              }
+            } else if ('.' == buffer && '/' != c && '\\' != c) {
+              this._path.push('');
+            } else if ('.' != buffer) {
+              if ('file' == this._scheme && this._path.length == 0 && buffer.length == 2 && ALPHA.test(buffer[0]) && buffer[1] == '|') {
+                buffer = buffer[0] + ':';
+              }
+              this._path.push(buffer);
+            }
+            buffer = '';
+            if ('?' == c) {
+              this._query = '?';
+              state = 'query';
+            } else if ('#' == c) {
+              this._fragment = '#';
+              state = 'fragment';
+            }
+          } else if ('\t' != c && '\n' != c && '\r' != c) {
+            buffer += percentEscape(c);
+          }
+          break;
+
+        case 'query':
+          if (!stateOverride && '#' == c) {
+            this._fragment = '#';
+            state = 'fragment';
+          } else if (EOF != c && '\t' != c && '\n' != c && '\r' != c) {
+            this._query += percentEscapeQuery(c);
+          }
+          break;
+
+        case 'fragment':
+          if (EOF != c && '\t' != c && '\n' != c && '\r' != c) {
+            this._fragment += c;
+          }
+          break;
+      }
+
+      cursor++;
+    }
+  }
+
+  function clear() {
+    this._scheme = '';
+    this._schemeData = '';
+    this._username = '';
+    this._password = null;
+    this._host = '';
+    this._port = '';
+    this._path = [];
+    this._query = '';
+    this._fragment = '';
+    this._isInvalid = false;
+    this._isRelative = false;
+  }
+
+  // Does not process domain names or IP addresses.
+  // Does not handle encoding for the query parameter.
+  function jURL(url, base /* , encoding */) {
+    if (base !== undefined && !(base instanceof jURL))
+      base = new jURL(String(base));
+
+    this._url = url;
+    clear.call(this);
+
+    var input = url.replace(/^[ \t\r\n\f]+|[ \t\r\n\f]+$/g, '');
+    // encoding = encoding || 'utf-8'
+
+    parse.call(this, input, null, base);
+  }
+
+  jURL.prototype = {
+    get href() {
+      if (this._isInvalid)
+        return this._url;
+
+      var authority = '';
+      if ('' != this._username || null != this._password) {
+        authority = this._username +
+            (null != this._password ? ':' + this._password : '') + '@';
+      }
+
+      return this.protocol +
+          (this._isRelative ? '//' + authority + this.host : '') +
+          this.pathname + this._query + this._fragment;
+    },
+    set href(href) {
+      clear.call(this);
+      parse.call(this, href);
+    },
+
+    get protocol() {
+      return this._scheme + ':';
+    },
+    set protocol(protocol) {
+      if (this._isInvalid)
+        return;
+      parse.call(this, protocol + ':', 'scheme start');
+    },
+
+    get host() {
+      return this._isInvalid ? '' : this._port ?
+          this._host + ':' + this._port : this._host;
+    },
+    set host(host) {
+      if (this._isInvalid || !this._isRelative)
+        return;
+      parse.call(this, host, 'host');
+    },
+
+    get hostname() {
+      return this._host;
+    },
+    set hostname(hostname) {
+      if (this._isInvalid || !this._isRelative)
+        return;
+      parse.call(this, hostname, 'hostname');
+    },
+
+    get port() {
+      return this._port;
+    },
+    set port(port) {
+      if (this._isInvalid || !this._isRelative)
+        return;
+      parse.call(this, port, 'port');
+    },
+
+    get pathname() {
+      return this._isInvalid ? '' : this._isRelative ?
+          '/' + this._path.join('/') : this._schemeData;
+    },
+    set pathname(pathname) {
+      if (this._isInvalid || !this._isRelative)
+        return;
+      this._path = [];
+      parse.call(this, pathname, 'relative path start');
+    },
+
+    get search() {
+      return this._isInvalid || !this._query || '?' == this._query ?
+          '' : this._query;
+    },
+    set search(search) {
+      if (this._isInvalid || !this._isRelative)
+        return;
+      this._query = '?';
+      if ('?' == search[0])
+        search = search.slice(1);
+      parse.call(this, search, 'query');
+    },
+
+    get hash() {
+      return this._isInvalid || !this._fragment || '#' == this._fragment ?
+          '' : this._fragment;
+    },
+    set hash(hash) {
+      if (this._isInvalid)
+        return;
+      this._fragment = '#';
+      if ('#' == hash[0])
+        hash = hash.slice(1);
+      parse.call(this, hash, 'fragment');
+    }
+  };
+
+  scope.URL = jURL;
+
+})(window);
+
 /*
  * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
  * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
@@ -10424,23 +10791,7 @@ var importParser = {
   },
   parseGeneric: function(elt) {
     this.trackElement(elt);
-    this.addElementToDocument(elt);
-  },
-  rootImportForElement: function(elt) {
-    var n = elt;
-    while (n.ownerDocument.__importLink) {
-      n = n.ownerDocument.__importLink;
-    }
-    return n;
-  },
-  addElementToDocument: function(elt) {
-    var port = this.rootImportForElement(elt.__importElement || elt);
-    var l = port.__insertedElements = port.__insertedElements || 0;
-    var refNode = port.nextElementSibling;
-    for (var i=0; i < l; i++) {
-      refNode = refNode && refNode.nextElementSibling;
-    }
-    port.parentNode.insertBefore(elt, refNode);
+    document.head.appendChild(elt);
   },
   // tracks when a loadable element has loaded
   trackElement: function(elt, callback) {
@@ -10497,7 +10848,7 @@ var importParser = {
       script.parentNode.removeChild(script);
       scope.currentScript = null;  
     });
-    this.addElementToDocument(script);
+    document.head.appendChild(script);
   },
   // determine the next element in the tree which should be parsed
   nextToParse: function() {
@@ -11043,22 +11394,16 @@ if (!HTMLImports.useNative) {
 })();
 
 /*
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ * Copyright 2013 The Polymer Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 window.CustomElements = window.CustomElements || {flags:{}};
-/*
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
+ /*
+Copyright 2013 The Polymer Authors. All rights reserved.
+Use of this source code is governed by a BSD-style
+license that can be found in the LICENSE file.
+*/
 
 (function(scope){
 
@@ -11400,16 +11745,13 @@ scope.takeRecords = takeRecords;
 })(window.CustomElements);
 
 /*
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ * Copyright 2013 The Polymer Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 
 /**
- * Implements `document.registerElement`
+ * Implements `document.register`
  * @module CustomElements
 */
 
@@ -11641,6 +11983,8 @@ if (useNative) {
     if (definition.is) {
       element.setAttribute('is', definition.is);
     }
+    // remove 'unresolved' attr, which is a standin for :unresolved.
+    element.removeAttribute('unresolved');
     // make 'element' implement definition.prototype
     implement(element, definition);
     // flag as upgraded
@@ -11878,12 +12222,9 @@ scope.useNative = useNative;
 })(window.CustomElements);
 
 /*
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ * Copyright 2013 The Polymer Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 
 (function(scope) {
@@ -11945,12 +12286,9 @@ scope.IMPORT_LINK_TYPE = IMPORT_LINK_TYPE;
 
 })(window.CustomElements);
 /*
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ * Copyright 2013 The Polymer Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
  */
 (function(scope){
 
@@ -11989,13 +12327,11 @@ function bootstrap() {
 
 // CustomEvent shim for IE
 if (typeof window.CustomEvent !== 'function') {
-  window.CustomEvent = function(inType, params) {
-    params = params || {};
-    var e = document.createEvent('CustomEvent');
-    e.initCustomEvent(inType, Boolean(params.bubbles), Boolean(params.cancelable), params.detail);
+  window.CustomEvent = function(inType) {
+    var e = document.createEvent('HTMLEvents');
+    e.initEvent(inType, true, true);
     return e;
   };
-  window.CustomEvent.prototype = window.Event.prototype;
 }
 
 // When loading at readyState complete time (or via flag), boot custom elements
@@ -13160,7 +13496,7 @@ scope.styleResolver = styleResolver;
 
       this.refContent_ = undefined;
       this.iterator_.valueChanged();
-      this.iterator_.updateIteratedValue(this.iterator_.getUpdatedValue());
+      this.iterator_.updateIteratedValue();
     },
 
     clear: function() {
@@ -13564,22 +13900,19 @@ scope.styleResolver = styleResolver;
       var deps = this.deps = {};
       var template = this.templateElement_;
 
-      var ifValue = true;
       if (directives.if) {
         deps.hasIf = true;
         deps.ifOneTime = directives.if.onlyOneTime;
         deps.ifValue = processBinding(IF, directives.if, template, model);
 
-        ifValue = deps.ifValue;
-
         // oneTime if & predicate is false. nothing else to do.
-        if (deps.ifOneTime && !ifValue) {
-          this.valueChanged();
+        if (deps.ifOneTime && !deps.ifValue) {
+          this.updateIteratedValue();
           return;
         }
 
         if (!deps.ifOneTime)
-          ifValue = ifValue.open(this.updateIfValue, this);
+          deps.ifValue.open(this.updateIteratedValue, this);
       }
 
       if (directives.repeat) {
@@ -13592,40 +13925,13 @@ scope.styleResolver = styleResolver;
         deps.value = processBinding(BIND, directives.bind, template, model);
       }
 
-      var value = deps.value;
       if (!deps.oneTime)
-        value = value.open(this.updateIteratedValue, this);
+        deps.value.open(this.updateIteratedValue, this);
 
-      if (!ifValue) {
-        this.valueChanged();
-        return;
-      }
-
-      this.updateValue(value);
+      this.updateIteratedValue();
     },
 
-    /**
-     * Gets the updated value of the bind/repeat. This can potentially call
-     * user code (if a bindingDelegate is set up) so we try to avoid it if we
-     * already have the value in hand (from Observer.open).
-     */
-    getUpdatedValue: function() {
-      var value = this.deps.value;
-      if (!this.deps.oneTime)
-        value = value.discardChanges();
-      return value;
-    },
-
-    updateIfValue: function(ifValue) {
-      if (!ifValue) {
-        this.valueChanged();
-        return;
-      }
-
-      this.updateValue(this.getUpdatedValue());
-    },
-
-    updateIteratedValue: function(value) {
+    updateIteratedValue: function() {
       if (this.deps.hasIf) {
         var ifValue = this.deps.ifValue;
         if (!this.deps.ifOneTime)
@@ -13636,10 +13942,9 @@ scope.styleResolver = styleResolver;
         }
       }
 
-      this.updateValue(value);
-    },
-
-    updateValue: function(value) {
+      var value = this.deps.value;
+      if (!this.deps.oneTime)
+        value = value.discardChanges();
       if (!this.deps.repeat)
         value = [value];
       var observe = this.deps.repeat &&

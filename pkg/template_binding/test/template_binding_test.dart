@@ -397,59 +397,6 @@ templateInstantiationTests() {
     });
   });
 
-  test('Bind If minimal discardChanges', () {
-    var div = createTestHtml(
-        '<template bind="{{bound}}" if="{{predicate}}">value:{{ value }}'
-        '</template>');
-    // Dart Note: bound changed from null->{}.
-    var m = toObservable({ 'bound': {}, 'predicate': null });
-    var template = div.firstChild;
-
-    var discardChangesCalled = { 'bound': 0, 'predicate': 0 };
-    templateBind(template)
-        ..model = m
-        ..bindingDelegate =
-            new BindIfMinimalDiscardChanges(discardChangesCalled);
-
-    return new Future(() {
-      expect(discardChangesCalled['bound'], 0);
-      expect(discardChangesCalled['predicate'], 0);
-      expect(div.childNodes.length, 1);
-      m['predicate'] = 1;
-    }).then(endOfMicrotask).then((_) {
-      expect(discardChangesCalled['bound'], 1);
-      expect(discardChangesCalled['predicate'], 0);
-
-      expect(div.nodes.length, 2);
-      expect(div.lastChild.text, 'value:');
-
-      m['bound'] = toObservable({'value': 2});
-    }).then(endOfMicrotask).then((_) {
-      expect(discardChangesCalled['bound'], 1);
-      expect(discardChangesCalled['predicate'], 1);
-
-      expect(div.nodes.length, 2);
-      expect(div.lastChild.text, 'value:2');
-
-      m['bound']['value'] = 3;
-
-    }).then(endOfMicrotask).then((_) {
-      expect(discardChangesCalled['bound'], 1);
-      expect(discardChangesCalled['predicate'], 1);
-
-      expect(div.nodes.length, 2);
-      expect(div.lastChild.text, 'value:3');
-
-      templateBind(template).model = null;
-    }).then(endOfMicrotask).then((_) {
-      expect(discardChangesCalled['bound'], 1);
-      expect(discardChangesCalled['predicate'], 1);
-
-      expect(div.nodes.length, 1);
-    });
-  });
-
-
   test('Empty-If', () {
     var div = createTestHtml('<template if>{{ value }}</template>');
     var template = div.firstChild;
@@ -2693,29 +2640,6 @@ class Issue18Syntax extends BindingDelegate {
     if (name != 'class') return null;
 
     return (model, _, oneTime) => new PathObserver(model, path);
-  }
-}
-
-class BindIfMinimalDiscardChanges extends BindingDelegate {
-  Map<String, int> discardChangesCalled;
-
-  BindIfMinimalDiscardChanges(this.discardChangesCalled) : super() {}
-
-  prepareBinding(path, name, node) {
-    return (model, node, oneTime) =>
-      new DiscardCountingPathObserver(discardChangesCalled, model, path);
-  }
-}
-
-class DiscardCountingPathObserver extends PathObserver {
-  Map<String, int> discardChangesCalled;
-
-  DiscardCountingPathObserver(this.discardChangesCalled, model, path)
-      : super(model, path) {}
-
-  get value {
-    discardChangesCalled[path.toString()]++;
-    return super.value;
   }
 }
 

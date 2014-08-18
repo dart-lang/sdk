@@ -8,14 +8,6 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_config.dart';
 import 'package:polymer/polymer.dart';
 
-
-class XAttrPublish extends PolymerElement {
-  XAttrPublish.created() : super.created();
-
-  @PublishedProperty(reflect: false)
-  String nog = '';
-}
-
 class XFoo extends PolymerElement {
   XFoo.created() : super.created();
 
@@ -64,39 +56,18 @@ Future onAttributeChange(Element node) {
 main() => initPolymer().run(() {
   useHtmlConfiguration();
 
+  setUp(() => Polymer.onReady);
+
   // Most tests use @CustomTag, here we test out the impertive register:
   Polymer.register('x-foo', XFoo);
   Polymer.register('x-bar', XBar);
   Polymer.register('x-zot', XZot);
   Polymer.register('x-compose', XCompose);
-  Polymer.register('x-attr-publish', XAttrPublish);
-
-  setUp(() => Polymer.onReady);
 
   test('property to attribute reflection', () {
-    var xbasic = querySelector('x-basic');
-    expect(xbasic.getAttribute('nog'), null, reason:
-        'property published with `attributes` has correct initial value');
-    xbasic.setAttribute('nog', 'hi');
-    expect(xbasic.getAttribute('nog'), 'hi', reason:
-        'deserialization of property published via `attributes`');
-
-    var xattrpublish = querySelector('x-attr-publish');
-    expect(xattrpublish.nog, '', reason:
-        'property published with `attributes` has correct initial value');
-    xattrpublish.setAttribute('nog', 'hi');
-    expect(xattrpublish.nog, 'hi', reason:
-        'deserialization of property published via `attributes`');
-
     var xcompose = querySelector('x-compose');
     var xfoo = querySelector('x-foo');
-    expect(xfoo.foo, '', reason:
-        'property published with info object has correct initial value');
     var xbar = querySelector('x-bar');
-    expect(xbar.zim, false, reason:
-        'property published with info object has correct initial value');
-    expect(xbar.foo, '', reason:
-        'property published with info object has correct initial value');
     var xzot = querySelector('x-zot');
     xfoo.foo = 5;
     xfoo.attributes['def1'] = '15';

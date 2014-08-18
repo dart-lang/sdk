@@ -88,28 +88,21 @@ abstract class PolymerEventBindings {
     eventType = translated != null ? translated : eventType;
 
     return (model, node, oneTime) {
-      var eventHandler =
-          Zone.current.bindUnaryCallback(getEventHandler(null, node, path));
-      // TODO(jakemac): Remove this indirection if/when JsFunction gets a
-      // simpler constructor that doesn't pass this, http://dartbug.com/20545.
-      var handler = new JsFunction.withThis((_, e) => eventHandler(e));
-      _PolymerGestures.callMethod(
-          'addEventListener', [node, eventType, handler]);
+      var handler = getEventHandler(null, node, path);
+      var sub = node.on[eventType].listen(handler);
 
       if (oneTime) return null;
-      return new _EventBindable(path, node, eventType, handler);
+      return new _EventBindable(sub, path);
     };
   }
 }
 
 
 class _EventBindable extends Bindable {
+  StreamSubscription _sub;
   final String _path;
-  final Node _node;
-  final String _eventType;
-  final JsFunction _handler;
 
-  _EventBindable(this._path, this._node, this._eventType, this._handler);
+  _EventBindable(this._sub, this._path);
 
   // TODO(rafaelw): This is really pointless work. Aside from the cost
   // of these allocations, NodeBind is going to setAttribute back to its
@@ -120,8 +113,10 @@ class _EventBindable extends Bindable {
   open(callback) => value;
 
   void close() {
-    _PolymerGestures.callMethod(
-        'removeEventListener', [_node, _eventType, _handler]);
+    if (_sub != null) {
+      _sub.cancel();
+      _sub = null;
+    }
   }
 }
 

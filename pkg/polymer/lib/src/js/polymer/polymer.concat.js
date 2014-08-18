@@ -7,7 +7,10 @@
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
-window.PolymerGestures = {};
+window.PolymerGestures = {
+  hasSDPolyfill: Boolean(window.ShadowDOMPolyfill)
+};
+PolymerGestures.wrap = PolymerGestures.hasSDPolyfill ? ShadowDOMPolyfill.wrapIfNeeded : function(a){ return a; };
 
 /*
  * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
@@ -23,7 +26,7 @@ window.PolymerGestures = {};
 
   // test for full event path support
   var pathTest = document.createElement('meta');
-  if (pathTest.createShadowRoot) {
+  if (!scope.hasSDPolyfill && pathTest.createShadowRoot) {
     var sr = pathTest.createShadowRoot();
     var s = document.createElement('span');
     sr.appendChild(s);
@@ -119,27 +122,25 @@ window.PolymerGestures = {};
       }
       return this.searchRoot(s, x, y);
     },
-    findTouchAction: function(inEvent) {
+    findScrollAxis: function(inEvent) {
       var n;
       if (HAS_FULL_PATH && inEvent.path) {
         var path = inEvent.path;
         for (var i = 0; i < path.length; i++) {
           n = path[i];
-          if (n.nodeType === Node.ELEMENT_NODE && n.hasAttribute('touch-action')) {
-            return n.getAttribute('touch-action');
+          if (n._scrollType) {
+            return n._scrollType;
           }
         }
       } else {
-        n = inEvent.target;
+        n = scope.wrap(inEvent.currentTarget);
         while(n) {
-          if (n.hasAttribute('touch-action')) {
-            return n.getAttribute('touch-action');
+          if (n._scrollType) {
+            return n._scrollType;
           }
           n = n.parentNode || n.host;
         }
       }
-      // auto is default
-      return "auto";
     },
     LCA: function(a, b) {
       if (a === b) {
@@ -252,7 +253,7 @@ window.PolymerGestures = {};
 
 (function() {
   function shadowSelector(v) {
-    return 'html /deep/ ' + selector(v);
+    return 'body /deep/ ' + selector(v);
   }
   function selector(v) {
     return '[touch-action="' + v + '"]';
@@ -276,6 +277,7 @@ window.PolymerGestures = {};
   ];
   var styles = '';
   // only install stylesheet if the browser has touch action support
+  var head = document.head;
   var hasTouchAction = typeof document.head.style.touchAction === 'string';
   // only add shadow selectors if shadowdom is supported
   var hasShadowRoot = !window.ShadowDOMPolyfill && document.head.createShadowRoot;
@@ -591,6 +593,9 @@ window.PolymerGestures = {};
 
   var eventFactory = scope.eventFactory;
 
+  var hasSDPolyfill = scope.hasSDPolyfill;
+  var wrap = scope.wrap;
+
   /**
    * This module is for normalizing events. Mouse and Touch events will be
    * collected here, and fire PointerEvents that have the same semantics, no
@@ -611,12 +616,6 @@ window.PolymerGestures = {};
     eventSources: Object.create(null),
     eventSourceList: [],
     gestures: [],
-    // map gesture event -> {listeners: int, index: gestures[int]}
-    dependencyMap: {
-      // make sure down and up are in the map to trigger "register"
-      down: {listeners: 0, index: -1},
-      up: {listeners: 0, index: -1}
-    },
     gestureQueue: [],
     /**
      * Add a new event source that will generate pointer events.
@@ -640,20 +639,13 @@ window.PolymerGestures = {};
       }
     },
     registerGesture: function(name, source) {
-      var obj = Object.create(null);
-      obj.listeners = 0;
-      obj.index = this.gestures.length;
-      for (var i = 0, g; i < source.exposes.length; i++) {
-        g = source.exposes[i].toLowerCase();
-        this.dependencyMap[g] = obj;
-      }
       this.gestures.push(source);
     },
-    register: function(element, initial) {
+    register: function(element) {
       var l = this.eventSourceList.length;
       for (var i = 0, es; (i < l) && (es = this.eventSourceList[i]); i++) {
         // call eventsource register
-        es.register.call(es, element, initial);
+        es.register.call(es, element);
       }
     },
     unregister: function(element) {
@@ -684,9 +676,6 @@ window.PolymerGestures = {};
       // This is used to prevent multiple dispatch of events from
       // platform events. This can happen when two elements in different scopes
       // are set up to create pointer events, which is relevant to Shadow DOM.
-
-      // TODO(dfreedm): make this check more granular, allow for minimal event generation
-      // e.g inEvent._handledByPG['tap'] and inEvent._handledByPG['track'], etc
       if (inEvent._handledByPG) {
         return;
       }
@@ -710,10 +699,20 @@ window.PolymerGestures = {};
       }
     },
     addEvent: function(target, eventName) {
-      target.addEventListener(eventName, this.boundHandler);
+      // NOTE: Work around for #4, use native event listener in SD Polyfill
+      if (hasSDPolyfill) {
+        target.addEventListener_(eventName, this.boundHandler);
+      } else {
+        target.addEventListener(eventName, this.boundHandler);
+      }
     },
     removeEvent: function(target, eventName) {
-      target.removeEventListener(eventName, this.boundHandler);
+      // NOTE: Work around for #4, use native event listener in SD Polyfill
+      if (hasSDPolyfill) {
+        target.removeEventListener_(eventName, this.boundHandler);
+      } else {
+        target.removeEventListener(eventName, this.boundHandler);
+      }
     },
     // EVENT CREATION AND TRACKING
     /**
@@ -755,12 +754,11 @@ window.PolymerGestures = {};
           if (HAS_SVG_INSTANCE && eventCopy[p] instanceof SVGElementInstance) {
             eventCopy[p] = eventCopy[p].correspondingUseElement;
           }
+          eventCopy[p] = wrap(eventCopy[p]);
         }
       }
       // keep the semantics of preventDefault
-      eventCopy.preventDefault = function() {
-        inEvent.preventDefault();
-      };
+      eventCopy.preventDefault = inEvent.preventDefault;
       return eventCopy;
     },
     /**
@@ -787,7 +785,7 @@ window.PolymerGestures = {};
         for (var j = 0, g, fn; j < this.gestures.length; j++) {
           g = this.gestures[j];
           fn = g[e.type];
-          if (g.enabled && fn) {
+          if (fn) {
             fn.call(g, e);
           }
         }
@@ -805,117 +803,136 @@ window.PolymerGestures = {};
   dispatcher.boundHandler = dispatcher.eventHandler.bind(dispatcher);
   dispatcher.boundGestureTrigger = dispatcher.gestureTrigger.bind(dispatcher);
   scope.dispatcher = dispatcher;
+  scope.register = function(root) {
+    dispatcher.register(root);
+  };
+  scope.unregister = dispatcher.unregister.bind(dispatcher);
+  scope.wrap = wrap;
+})(window.PolymerGestures);
 
-  /**
-   * Listen for `gesture` on `node` with the `handler` function
-   *
-   * If `handler` is the first listener for `gesture`, the underlying gesture recognizer is then enabled.
-   *
-   * @param {Element} node
-   * @param {string} gesture
-   * @return Boolean `gesture` is a valid gesture
-   */
-  scope.activateGesture = function(node, gesture) {
-    var g = gesture.toLowerCase();
-    var dep = dispatcher.dependencyMap[g];
-    if (dep) {
-      var recognizer = dispatcher.gestures[dep.index];
-      if (dep.listeners === 0) {
-        if (recognizer) {
-          recognizer.enabled = true;
-        }
-      }
-      dep.listeners++;
-      if (!node._pgListeners) {
-        dispatcher.register(node);
-        node._pgListeners = 0;
-      }
-      // TODO(dfreedm): re-evaluate bookkeeping to avoid using attributes
-      if (recognizer) {
-        var touchAction = recognizer.defaultActions && recognizer.defaultActions[g];
-        var actionNode;
-        switch(node.nodeType) {
-          case Node.ELEMENT_NODE:
-            actionNode = node;
-          break;
-          case Node.DOCUMENT_FRAGMENT_NODE:
-            actionNode = node.host;
-          break;
-          default:
-            actionNode = null;
-          break;
-        }
-        if (touchAction && actionNode && !actionNode.hasAttribute('touch-action')) {
-          actionNode.setAttribute('touch-action', touchAction);
-        }
-      }
-      node._pgListeners++;
-    }
-    return Boolean(dep);
+/*
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+/**
+ * This module uses Mutation Observers to dynamically adjust which nodes will
+ * generate Pointer Events.
+ *
+ * All nodes that wish to generate Pointer Events must have the attribute
+ * `touch-action` set to `none`.
+ */
+(function(scope) {
+  var forEach = Array.prototype.forEach.call.bind(Array.prototype.forEach);
+  var map = Array.prototype.map.call.bind(Array.prototype.map);
+  var toArray = Array.prototype.slice.call.bind(Array.prototype.slice);
+  var filter = Array.prototype.filter.call.bind(Array.prototype.filter);
+  var MO = window.MutationObserver || window.WebKitMutationObserver;
+  var SELECTOR = '[touch-action]';
+  var OBSERVER_INIT = {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeOldValue: true,
+    attributeFilter: ['touch-action']
   };
 
-  /**
-   *
-   * Listen for `gesture` from `node` with `handler` function.
-   *
-   * @param {Element} node
-   * @param {string} gesture
-   * @param {Function} handler
-   * @param {Boolean} capture
-   */
-  scope.addEventListener = function(node, gesture, handler, capture) {
-    if (handler) {
-      scope.activateGesture(node, gesture);
-      node.addEventListener(gesture, handler, capture);
+  function Installer(add, remove, changed, binder) {
+    this.addCallback = add.bind(binder);
+    this.removeCallback = remove.bind(binder);
+    this.changedCallback = changed.bind(binder);
+    if (MO) {
+      this.observer = new MO(this.mutationWatcher.bind(this));
     }
-  };
+  }
 
-  /**
-   * Tears down the gesture configuration for `node`
-   *
-   * If `handler` is the last listener for `gesture`, the underlying gesture recognizer is disabled.
-   *
-   * @param {Element} node
-   * @param {string} gesture
-   * @return Boolean `gesture` is a valid gesture
-   */
-  scope.deactivateGesture = function(node, gesture) {
-    var g = gesture.toLowerCase();
-    var dep = dispatcher.dependencyMap[g];
-    if (dep) {
-      if (dep.listeners > 0) {
-        dep.listeners--;
+  Installer.prototype = {
+    watchSubtree: function(target) {
+      // Only watch scopes that can target find, as these are top-level.
+      // Otherwise we can see duplicate additions and removals that add noise.
+      //
+      // TODO(dfreedman): For some instances with ShadowDOMPolyfill, we can see
+      // a removal without an insertion when a node is redistributed among
+      // shadows. Since it all ends up correct in the document, watching only
+      // the document will yield the correct mutations to watch.
+      if (scope.targetFinding.canTarget(target)) {
+        this.observer.observe(target, OBSERVER_INIT);
       }
-      if (dep.listeners === 0) {
-        var recognizer = dispatcher.gestures[dep.index];
-        if (recognizer) {
-          recognizer.enabled = false;
+    },
+    enableOnSubtree: function(target) {
+      this.watchSubtree(target);
+      if (target === document && document.readyState !== 'complete') {
+        this.installOnLoad();
+      } else {
+        this.installNewSubtree(target);
+      }
+    },
+    installNewSubtree: function(target) {
+      forEach(this.findElements(target), this.addElement, this);
+    },
+    findElements: function(target) {
+      if (target.querySelectorAll) {
+        return target.querySelectorAll(SELECTOR);
+      }
+      return [];
+    },
+    removeElement: function(el) {
+      this.removeCallback(el);
+    },
+    addElement: function(el) {
+      this.addCallback(el);
+    },
+    elementChanged: function(el, oldValue) {
+      this.changedCallback(el, oldValue);
+    },
+    concatLists: function(accum, list) {
+      return accum.concat(toArray(list));
+    },
+    // register all touch-action = none nodes on document load
+    installOnLoad: function() {
+      document.addEventListener('readystatechange', function() {
+        if (document.readyState === 'complete') {
+          this.installNewSubtree(document);
         }
-      }
-      if (node._pgListeners > 0) {
-        node._pgListeners--;
-      }
-      if (node._pgListeners === 0) {
-        dispatcher.unregister(node);
+      }.bind(this));
+    },
+    isElement: function(n) {
+      return n.nodeType === Node.ELEMENT_NODE;
+    },
+    flattenMutationTree: function(inNodes) {
+      // find children with touch-action
+      var tree = map(inNodes, this.findElements, this);
+      // make sure the added nodes are accounted for
+      tree.push(filter(inNodes, this.isElement));
+      // flatten the list
+      return tree.reduce(this.concatLists, []);
+    },
+    mutationWatcher: function(mutations) {
+      mutations.forEach(this.mutationHandler, this);
+    },
+    mutationHandler: function(m) {
+      if (m.type === 'childList') {
+        var added = this.flattenMutationTree(m.addedNodes);
+        added.forEach(this.addElement, this);
+        var removed = this.flattenMutationTree(m.removedNodes);
+        removed.forEach(this.removeElement, this);
+      } else if (m.type === 'attributes') {
+        this.elementChanged(m.target, m.oldValue);
       }
     }
-    return Boolean(dep);
   };
 
-  /**
-   * Stop listening for `gesture` from `node` with `handler` function.
-   *
-   * @param {Element} node
-   * @param {string} gesture
-   * @param {Function} handler
-   * @param {Boolean} capture
-   */
-  scope.removeEventListener = function(node, gesture, handler, capture) {
-    if (handler) {
-      scope.deactivateGesture(node, gesture);
-      node.removeEventListener(gesture, handler, capture);
-    }
-  };
+  if (!MO) {
+    Installer.prototype.watchSubtree = function(){
+      console.warn('PolymerGestures: MutationObservers not found, touch-action will not be dynamically detected');
+    };
+  }
+
+  scope.Installer = Installer;
 })(window.PolymerGestures);
 
 /*
@@ -949,12 +966,10 @@ window.PolymerGestures = {};
       'mousemove',
       'mouseup'
     ],
-    exposes: [
-      'down',
-      'up',
-      'move'
-    ],
     register: function(target) {
+      if (target !== document) {
+        return;
+      }
       dispatcher.listen(target, this.events);
     },
     unregister: function(target) {
@@ -993,31 +1008,22 @@ window.PolymerGestures = {};
           this.mouseup(inEvent);
         }
         var e = this.prepareEvent(inEvent);
-        e.target = scope.findTarget(inEvent);
+        e.target = scope.wrap(scope.findTarget(inEvent));
         pointermap.set(this.POINTER_ID, e.target);
         dispatcher.down(e);
       }
     },
     mousemove: function(inEvent) {
       if (!this.isEventSimulatedFromTouch(inEvent)) {
-        var target = pointermap.get(this.POINTER_ID);
-        if (target) {
-          var e = this.prepareEvent(inEvent);
-          e.target = target;
-          // handle case where we missed a mouseup
-          if (e.buttons === 0) {
-            dispatcher.cancel(e);
-            this.cleanupMouse();
-          } else {
-            dispatcher.move(e);
-          }
-        }
+        var e = this.prepareEvent(inEvent);
+        e.target = pointermap.get(this.POINTER_ID);
+        dispatcher.move(e);
       }
     },
     mouseup: function(inEvent) {
       if (!this.isEventSimulatedFromTouch(inEvent)) {
         var e = this.prepareEvent(inEvent);
-        e.relatedTarget = scope.findTarget(inEvent);
+        e.relatedTarget = scope.wrap(scope.findTarget(inEvent));
         e.target = pointermap.get(this.POINTER_ID);
         dispatcher.up(e);
         this.cleanupMouse();
@@ -1050,9 +1056,10 @@ window.PolymerGestures = {};
   var CLICK_COUNT_TIMEOUT = 200;
   var HYSTERESIS = 20;
   var ATTRIB = 'touch-action';
-  // TODO(dfreedm): disable until http://crbug.com/399765 is resolved
-  // var HAS_TOUCH_ACTION = ATTRIB in document.head.style;
-  var HAS_TOUCH_ACTION = false;
+  var INSTALLER;
+  // maybe one day...
+  // var CAN_USE_GLOBAL = ATTRIB in document.head.style;
+  var CAN_USE_GLOBAL = false;
 
   // handler block for native touch events
   var touchEvents = {
@@ -1062,35 +1069,74 @@ window.PolymerGestures = {};
       'touchend',
       'touchcancel'
     ],
-    exposes: [
-      'down',
-      'up',
-      'move'
-    ],
-    register: function(target, initial) {
-      if (initial) {
-        return;
+    register: function(target) {
+      if (CAN_USE_GLOBAL) {
+        dispatcher.listen(target, this.events);
+      } else {
+        INSTALLER.enableOnSubtree(target);
       }
-      dispatcher.listen(target, this.events);
     },
     unregister: function(target) {
-      dispatcher.unlisten(target, this.events);
+      if (CAN_USE_GLOBAL) {
+        dispatcher.unlisten(target, this.events);
+      } else {
+        // TODO(dfreedman): is it worth it to disconnect the MO?
+      }
+    },
+    elementAdded: function(el) {
+      var a = el.getAttribute(ATTRIB);
+      var st = this.touchActionToScrollType(a);
+      if (st) {
+        el._scrollType = st;
+        dispatcher.listen(el, this.events);
+        // set touch-action on shadows as well
+        allShadows(el).forEach(function(s) {
+          s._scrollType = st;
+          dispatcher.listen(s, this.events);
+        }, this);
+      }
+    },
+    elementRemoved: function(el) {
+      el._scrollType = undefined;
+      dispatcher.unlisten(el, this.events);
+      // remove touch-action from shadow
+      allShadows(el).forEach(function(s) {
+        s._scrollType = undefined;
+        dispatcher.unlisten(s, this.events);
+      }, this);
+    },
+    elementChanged: function(el, oldValue) {
+      var a = el.getAttribute(ATTRIB);
+      var st = this.touchActionToScrollType(a);
+      var oldSt = this.touchActionToScrollType(oldValue);
+      // simply update scrollType if listeners are already established
+      if (st && oldSt) {
+        el._scrollType = st;
+        allShadows(el).forEach(function(s) {
+          s._scrollType = st;
+        }, this);
+      } else if (oldSt) {
+        this.elementRemoved(el);
+      } else if (st) {
+        this.elementAdded(el);
+      }
     },
     scrollTypes: {
       EMITTER: 'none',
       XSCROLLER: 'pan-x',
       YSCROLLER: 'pan-y',
+      SCROLLER: /^(?:pan-x pan-y)|(?:pan-y pan-x)|auto|manipulation$/
     },
     touchActionToScrollType: function(touchAction) {
       var t = touchAction;
       var st = this.scrollTypes;
-      if (t === st.EMITTER) {
+      if (t === 'none') {
         return 'none';
       } else if (t === st.XSCROLLER) {
         return 'X';
       } else if (t === st.YSCROLLER) {
         return 'Y';
-      } else {
+      } else if (st.SCROLLER.exec(t)) {
         return 'XY';
       }
     },
@@ -1143,7 +1189,7 @@ window.PolymerGestures = {};
             clientX: touch.clientX,
             clientY: touch.clientY,
             path: this.currentTouchEvent.path,
-            target: this.currentTouchEvent.target
+            target: scope.wrap(this.currentTouchEvent.target)
           };
           return scope.findTarget(fastPath);
         } else {
@@ -1160,7 +1206,7 @@ window.PolymerGestures = {};
       // Touch identifiers can start at 0.
       // Add 2 to the touch identifier for compatibility.
       var id = e.pointerId = inTouch.identifier + 2;
-      e.target = this.findTarget(inTouch, id);
+      e.target = scope.wrap(this.findTarget(inTouch, id));
       e.bubbles = true;
       e.cancelable = true;
       e.detail = this.clickCount;
@@ -1202,8 +1248,7 @@ window.PolymerGestures = {};
     shouldScroll: function(inEvent) {
       if (this.firstXY) {
         var ret;
-        var touchAction = scope.targetFinding.findTouchAction(inEvent);
-        var scrollAxis = this.touchActionToScrollType(touchAction);
+        var scrollAxis = scope.targetFinding.findScrollAxis(inEvent);
         if (scrollAxis === 'none') {
           // this element is a touch-action: none, should never scroll
           ret = false;
@@ -1271,12 +1316,8 @@ window.PolymerGestures = {};
       dispatcher.down(inPointer);
     },
     touchmove: function(inEvent) {
-      if (HAS_TOUCH_ACTION) {
-        // touchevent.cancelable == false is sent when the page is scrolling under native Touch Action in Chrome 36
-        // https://groups.google.com/a/chromium.org/d/msg/input-dev/wHnyukcYBcA/b9kmtwM1jJQJ
-        if (inEvent.cancelable) {
-          this.processTouches(inEvent, this.move);
-        }
+      if (CAN_USE_GLOBAL) {
+        this.processTouches(inEvent, this.move);
       } else {
         if (!this.scrolling) {
           if (this.scrolling === null && this.shouldScroll(inEvent)) {
@@ -1307,7 +1348,7 @@ window.PolymerGestures = {};
       this.processTouches(inEvent, this.up);
     },
     up: function(inPointer) {
-      inPointer.relatedTarget = scope.findTarget(inPointer);
+      inPointer.relatedTarget = scope.wrap(scope.findTarget(inPointer));
       dispatcher.up(inPointer);
     },
     cancel: function(inPointer) {
@@ -1340,6 +1381,10 @@ window.PolymerGestures = {};
       }
     }
   };
+
+  if (!CAN_USE_GLOBAL) {
+    INSTALLER = new scope.Installer(touchEvents.elementAdded, touchEvents.elementRemoved, touchEvents.elementChanged, touchEvents);
+  }
 
   scope.touchEvents = touchEvents;
 })(window.PolymerGestures);
@@ -1394,7 +1439,7 @@ window.PolymerGestures = {};
     },
     MSPointerDown: function(inEvent) {
       var e = this.prepareEvent(inEvent);
-      e.target = scope.findTarget(inEvent);
+      e.target = scope.wrap(scope.findTarget(inEvent));
       pointermap.set(inEvent.pointerId, e.target);
       dispatcher.down(e);
     },
@@ -1405,14 +1450,14 @@ window.PolymerGestures = {};
     },
     MSPointerUp: function(inEvent) {
       var e = this.prepareEvent(inEvent);
-      e.relatedTarget = scope.findTarget(inEvent);
+      e.relatedTarget = scope.wrap(scope.findTarget(inEvent));
       e.target = pointermap.get(e.pointerId);
       dispatcher.up(e);
       this.cleanup(inEvent.pointerId);
     },
     MSPointerCancel: function(inEvent) {
       var e = this.prepareEvent(inEvent);
-      e.relatedTarget = scope.findTarget(inEvent);
+      e.relatedTarget = scope.wrap(scope.findTarget(inEvent));
       e.target = pointermap.get(e.pointerId);
       dispatcher.cancel(e);
       this.cleanup(inEvent.pointerId);
@@ -1460,7 +1505,7 @@ window.PolymerGestures = {};
     },
     pointerdown: function(inEvent) {
       var e = this.prepareEvent(inEvent);
-      e.target = scope.findTarget(inEvent);
+      e.target = scope.wrap(scope.findTarget(inEvent));
       pointermap.set(e.pointerId, e.target);
       dispatcher.down(e);
     },
@@ -1471,14 +1516,14 @@ window.PolymerGestures = {};
     },
     pointerup: function(inEvent) {
       var e = this.prepareEvent(inEvent);
-      e.relatedTarget = scope.findTarget(inEvent);
+      e.relatedTarget = scope.wrap(scope.findTarget(inEvent));
       e.target = pointermap.get(e.pointerId);
       dispatcher.up(e);
       this.cleanup(inEvent.pointerId);
     },
     pointercancel: function(inEvent) {
       var e = this.prepareEvent(inEvent);
-      e.relatedTarget = scope.findTarget(inEvent);
+      e.relatedTarget = scope.wrap(scope.findTarget(inEvent));
       e.target = pointermap.get(e.pointerId);
       dispatcher.cancel(e);
       this.cleanup(inEvent.pointerId);
@@ -1504,29 +1549,19 @@ window.PolymerGestures = {};
  */
 (function(scope) {
   var dispatcher = scope.dispatcher;
-  var nav = window.navigator;
 
   if (window.PointerEvent) {
     dispatcher.registerSource('pointer', scope.pointerEvents);
-  } else if (nav.msPointerEnabled) {
+  } else if (window.navigator.msPointerEnabled) {
     dispatcher.registerSource('ms', scope.msEvents);
   } else {
     dispatcher.registerSource('mouse', scope.mouseEvents);
     if (window.ontouchstart !== undefined) {
       dispatcher.registerSource('touch', scope.touchEvents);
-      /*
-       * NOTE: an empty touch listener on body will reactivate nodes imported from templates with touch listeners
-       * Removing it will re-break the nodes
-       *
-       * Work around for https://bugs.webkit.org/show_bug.cgi?id=135628
-       */
-      var isSafari = nav.userAgent.match('Safari') && !nav.userAgent.match('Chrome');
-      if (isSafari) {
-        document.body.addEventListener('touchstart', function(){});
-      }
     }
   }
-  dispatcher.register(document, true);
+
+  dispatcher.register(document);
 })(window.PolymerGestures);
 
 /*
@@ -1644,18 +1679,6 @@ window.PolymerGestures = {};
        'move',
        'up',
      ],
-     exposes: [
-      'trackstart',
-      'track',
-      'trackx',
-      'tracky',
-      'trackend'
-     ],
-     defaultActions: {
-       'track': 'none',
-       'trackx': 'pan-y',
-       'tracky': 'pan-x'
-     },
      WIGGLE_THRESHOLD: 4,
      clampDir: function(inDelta) {
        return inDelta > 0 ? 1 : -1;
@@ -1674,42 +1697,33 @@ window.PolymerGestures = {};
        var dd = this.calcPositionDelta(t.lastMoveEvent, inEvent);
        if (dd.x) {
          t.xDirection = this.clampDir(dd.x);
-       } else if (inType === 'trackx') {
-         return;
        }
        if (dd.y) {
          t.yDirection = this.clampDir(dd.y);
-       } else if (inType === 'tracky') {
-         return;
        }
-       var gestureProto = {
+       var e = eventFactory.makeGestureEvent(inType, {
          bubbles: true,
          cancelable: true,
+         dx: d.x,
+         dy: d.y,
+         ddx: dd.x,
+         ddy: dd.y,
+         x: inEvent.x,
+         y: inEvent.y,
+         clientX: inEvent.clientX,
+         clientY: inEvent.clientY,
+         pageX: inEvent.pageX,
+         pageY: inEvent.pageY,
+         screenX: inEvent.screenX,
+         screenY: inEvent.screenY,
+         xDirection: t.xDirection,
+         yDirection: t.yDirection,
          trackInfo: t.trackInfo,
          relatedTarget: inEvent.relatedTarget,
          pointerType: inEvent.pointerType,
          pointerId: inEvent.pointerId,
          _source: 'track'
-       };
-       if (inType !== 'tracky') {
-         gestureProto.x = inEvent.x;
-         gestureProto.dx = d.x;
-         gestureProto.ddx = dd.x;
-         gestureProto.clientX = inEvent.clientX;
-         gestureProto.pageX = inEvent.pageX;
-         gestureProto.screenX = inEvent.screenX;
-         gestureProto.xDirection = t.xDirection;
-       }
-       if (inType !== 'trackx') {
-         gestureProto.dy = d.y;
-         gestureProto.ddy = dd.y;
-         gestureProto.y = inEvent.y;
-         gestureProto.clientY = inEvent.clientY;
-         gestureProto.pageY = inEvent.pageY;
-         gestureProto.screenY = inEvent.screenY;
-         gestureProto.yDirection = t.yDirection;
-       }
-       var e = eventFactory.makeGestureEvent(inType, gestureProto);
+       });
        t.downTarget.dispatchEvent(e);
      },
      down: function(inEvent) {
@@ -1735,14 +1749,11 @@ window.PolymerGestures = {};
            // start tracking only if finger moves more than WIGGLE_THRESHOLD
            if (move > this.WIGGLE_THRESHOLD) {
              p.tracking = true;
-             p.lastMoveEvent = p.downEvent;
-             this.fireTrack('trackstart', inEvent, p);
+             this.fireTrack('trackstart', p.downEvent, p);
+             this.fireTrack('track', inEvent, p);
            }
-         }
-         if (p.tracking) {
+         } else {
            this.fireTrack('track', inEvent, p);
-           this.fireTrack('trackx', inEvent, p);
-           this.fireTrack('tracky', inEvent, p);
          }
          p.lastMoveEvent = inEvent;
        }
@@ -1825,11 +1836,6 @@ window.PolymerGestures = {};
       'down',
       'move',
       'up',
-    ],
-    exposes: [
-      'hold',
-      'holdpulse',
-      'release'
     ],
     heldPointer: null,
     holdJob: null,
@@ -1936,9 +1942,6 @@ window.PolymerGestures = {};
     events: [
       'down',
       'up'
-    ],
-    exposes: [
-      'tap'
     ],
     down: function(inEvent) {
       if (inEvent.isPrimary && !inEvent.tapPrevented) {
@@ -3324,21 +3327,6 @@ window.PolymerGestures = {};
       left = getFn(left);
       right = getFn(right);
 
-      switch (op) {
-        case '||':
-          this.dynamicDeps = true;
-          return function(model, observer, filterRegistry) {
-            return left(model, observer, filterRegistry) ||
-                right(model, observer, filterRegistry);
-          };
-        case '&&':
-          this.dynamicDeps = true;
-          return function(model, observer, filterRegistry) {
-            return left(model, observer, filterRegistry) &&
-                right(model, observer, filterRegistry);
-          };
-      }
-
       return function(model, observer, filterRegistry) {
         return binaryOperators[op](left(model, observer, filterRegistry),
                                    right(model, observer, filterRegistry));
@@ -3349,8 +3337,6 @@ window.PolymerGestures = {};
       test = getFn(test);
       consequent = getFn(consequent);
       alternate = getFn(alternate);
-
-      this.dynamicDeps = true;
 
       return function(model, observer, filterRegistry) {
         return test(model, observer, filterRegistry) ?
@@ -3667,18 +3653,6 @@ window.PolymerGestures = {};
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
-Polymer = {
-  version: '0.3.5-5d00e4b'
-};
-
-/*
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
 
 // TODO(sorvell): this ensures Polymer is an object and not a function
 // Platform is currently defining it as a function to allow for async loading
@@ -3980,13 +3954,10 @@ if (typeof window.Polymer === 'function') {
 
 (function(scope) {
 
-  function noopHandler(value) {
-    return value;
-  }
-
   var typeHandlers = {
-    string: noopHandler,
-    'undefined': noopHandler,
+    string: function(value) {
+      return value;
+    },
     date: function(value) {
       return new Date(Date.parse(value) || Date.now());
     },
@@ -4127,15 +4098,13 @@ if (typeof window.Polymer === 'function') {
       * @param {string} type An event name.
       * @param {any} detail
       * @param {Node} onNode Target node.
-      * @param {Boolean} bubbles Set false to prevent bubbling, defaults to true
-      * @param {Boolean} cancelable Set false to prevent cancellation, defaults to true
       */
     fire: function(type, detail, onNode, bubbles, cancelable) {
       var node = onNode || this;
-      var detail = detail === null || detail === undefined ? {} : detail;
+      var detail = detail || {};
       var event = new CustomEvent(type, {
-        bubbles: bubbles !== undefined ? bubbles : true,
-        cancelable: cancelable !== undefined ? cancelable : true,
+        bubbles: (bubbles !== undefined ? bubbles : true), 
+        cancelable: (cancelable !== undefined ? cancelable : true), 
         detail: detail
       });
       node.dispatchEvent(event);
@@ -4232,7 +4201,8 @@ if (typeof window.Polymer === 'function') {
       // by default supports 1 thing being bound.
       for (var type in events) {
         var methodName = events[type];
-        PolymerGestures.addEventListener(this, type, this.element.getEventHandler(this, this, methodName));
+        this.addEventListener(type, this.element.getEventHandler(this, this,
+                                                                 methodName));
       }
     },
     // call 'method' or function method on 'obj' with 'args', if the method exists
@@ -4252,10 +4222,6 @@ if (typeof window.Polymer === 'function') {
   // exports
 
   scope.api.instance.events = events;
-
-  // alias PolymerGestures event listener logic
-  scope.addEventListener = PolymerGestures.addEventListener;
-  scope.removeEventListener = PolymerGestures.removeEventListener;
 
 })(Polymer);
 
@@ -4773,7 +4739,9 @@ if (typeof window.Polymer === 'function') {
       }
       this.created();
       this.prepareElement();
-      if (!this.ownerDocument.isStagingDocument) {
+      // TODO(sorvell): replace when ShadowDOMPolyfill issue is corrected
+      // https://github.com/Polymer/ShadowDOM/issues/420
+      if (!this.ownerDocument.isStagingDocument || window.ShadowDOMPolyfill) {
         this.makeElementReady();
       }
     },
@@ -4788,6 +4756,7 @@ if (typeof window.Polymer === 'function') {
       this.shadowRoots = {};
       // install property observers
       this.createPropertyObserver();
+      // TODO (sorvell): temporarily open observer when created
       this.openPropertyObserver();
       // install boilerplate attributes
       this.copyInstanceAttributes();
@@ -4812,6 +4781,9 @@ if (typeof window.Polymer === 'function') {
       this.removeAttribute('unresolved');
       // user entry point
       this.ready();
+      // TODO (sorvell): temporarily open observer when created
+      // turn on property observation and take any initial changes
+      //this.openPropertyObserver();
     },
     attachedCallback: function() {
       this.cancelUnbindAll();
@@ -4928,6 +4900,8 @@ if (typeof window.Polymer === 'function') {
     shadowRootReady: function(root) {
       // locate nodes with id and store references to them in this.$ hash
       this.marshalNodeReferences(root);
+      // set up polymer gestures
+      PolymerGestures.register(root);
     },
     // locate nodes with id and store references to them in this.$ hash
     marshalNodeReferences: function(root) {
@@ -4992,8 +4966,7 @@ if (typeof window.Polymer === 'function') {
   // imports
 
   var log = window.logFlags || {};
-  var hasShadowDOMPolyfill = window.ShadowDOMPolyfill;
-
+  
   // magic words
   
   var STYLE_SCOPE_ATTRIBUTE = 'element';
@@ -5041,7 +5014,7 @@ if (typeof window.Polymer === 'function') {
       if (!scope) {
         return;
       }
-      if (hasShadowDOMPolyfill) {
+      if (window.ShadowDOMPolyfill) {
         cssText = shimCssText(cssText, scope.host);
       }
       var style = this.element.cssTextToScopeStyle(cssText,
@@ -5063,7 +5036,7 @@ if (typeof window.Polymer === 'function') {
       return cache[name];
     },
     styleCacheForScope: function(scope) {
-      if (hasShadowDOMPolyfill) {
+      if (window.ShadowDOMPolyfill) {
         var scopeName = scope.host ? scope.host.localName : scope.localName;
         return polyfillScopeStyleCache[scopeName] || (polyfillScopeStyleCache[scopeName] = {});
       } else {
@@ -5248,8 +5221,6 @@ scope.api.declaration.path = path;
   var api = scope.api.instance.styles;
   var STYLE_SCOPE_ATTRIBUTE = api.STYLE_SCOPE_ATTRIBUTE;
 
-  var hasShadowDOMPolyfill = window.ShadowDOMPolyfill;
-
   // magic words
 
   var STYLE_SELECTOR = 'style';
@@ -5422,7 +5393,7 @@ scope.api.declaration.path = path;
       if (scope === document) {
         scope = document.head;
       }
-      if (hasShadowDOMPolyfill) {
+      if (window.ShadowDOMPolyfill) {
         scope = document.head;
       }
       // TODO(sorvell): necessary for IE
@@ -5563,7 +5534,7 @@ scope.api.declaration.path = path;
 
       return function(model, node, oneTime) {
         var handler = events.getEventHandler(undefined, node, pathString);
-        PolymerGestures.addEventListener(node, eventType, handler);
+        node.addEventListener(eventType, handler);
 
         if (oneTime)
           return;
@@ -5580,7 +5551,7 @@ scope.api.declaration.path = path;
           open: bindingValue,
           discardChanges: bindingValue,
           close: function() {
-            PolymerGestures.removeEventListener(node, eventType, handler);
+            node.removeEventListener(eventType, handler);
           }
         };
       };
@@ -5671,51 +5642,38 @@ scope.api.declaration.path = path;
         prototype._publishLC = this.lowerCaseMap(publish);
       }
     },
+    // sync prototype to property descriptors;
+    // desriptor format contains default value and optionally a
+    // hint for reflecting the property to an attribute.
+    // e.g. {foo: 5, bar: {value: true, reflect: true}}
+    // reflect: {foo: true} is also supported
     //
-    // `name: value` entries in the `publish` object may need to generate 
-    // matching properties on the prototype.
-    //
-    // Values that are objects may have a `reflect` property, which
-    // signals that the value describes property control metadata.
-    // In metadata objects, the prototype default value (if any)
-    // is encoded in the `value` property.
-    //
-    // publish: {
-    //   foo: 5, 
-    //   bar: {value: true, reflect: true},
-    //   zot: {}
-    // }
-    //
-    // `reflect` metadata property controls whether changes to the property
-    // are reflected back to the attribute (default false). 
-    //
-    // A value is stored on the prototype unless it's === `undefined`,
-    // in which case the base chain is checked for a value.
-    // If the basal value is also undefined, `null` is stored on the prototype.
-    //
-    // The reflection data is stored on another prototype object, `reflect`
-    // which also can be specified directly.
-    //
-    // reflect: {
-    //   foo: true
-    // }
-    //
-    requireProperties: function(propertyInfos, prototype, base) {
-      // per-prototype storage for reflected properties
+    requireProperties: function(propertyDescriptors, prototype, base) {
+      // reflected properties
       prototype.reflect = prototype.reflect || {};
       // ensure a prototype value for each property
       // and update the property's reflect to attribute status
-      for (var n in propertyInfos) {
-        var value = propertyInfos[n];
-        // value has metadata if it has a `reflect` property
-        if (value && value.reflect !== undefined) {
-          prototype.reflect[n] = Boolean(value.reflect);
-          value = value.value;
+      for (var n in propertyDescriptors) {
+        var propertyDescriptor = propertyDescriptors[n];
+        var reflects = this.reflectHintForDescriptor(propertyDescriptor);
+        if (prototype.reflect[n] === undefined && reflects !== undefined) {
+          prototype.reflect[n] = reflects;
         }
-        // only set a value if one is specified
-        if (value !== undefined) {
-          prototype[n] = value;
+        if (prototype[n] === undefined) {
+          prototype[n] = this.valueForDescriptor(propertyDescriptor);
         }
+      }
+    },
+    valueForDescriptor: function(propertyDescriptor) {
+      var value = typeof propertyDescriptor === 'object' &&
+          propertyDescriptor ? propertyDescriptor.value : propertyDescriptor;
+      return value !== undefined ? value : null;
+    },
+    // returns the value of the descriptor's 'reflect' property or undefined
+    reflectHintForDescriptor: function(propertyDescriptor) {
+      if (typeof propertyDescriptor === 'object' &&
+          propertyDescriptor && propertyDescriptor.reflect !== undefined) {
+        return propertyDescriptor.reflect;
       }
     },
     lowerCaseMap: function(properties) {
@@ -5763,12 +5721,14 @@ scope.api.declaration.path = path;
           this.createPropertyAccessor(n);
         }
       }
+
       var n$ = prototype._computedNames;
       if (n$ && n$.length) {
         for (var i=0, l=n$.length, n, fn; (i<l) && (n=n$[i]); i++) {
           this.createPropertyAccessor(n);
         }
       }
+
     }
   };
 
@@ -5805,27 +5765,35 @@ scope.api.declaration.path = path;
     },
 
     publishAttributes: function(prototype, base) {
-      // merge names from 'attributes' attribute into the 'publish' object
+      // merge names from 'attributes' attribute
       var attributes = this.getAttribute(ATTRIBUTES_ATTRIBUTE);
       if (attributes) {
-        // create a `publish` object if needed.
-        // the `publish` object is only relevant to this prototype, the 
-        // publishing logic in `declaration/properties.js` is responsible for
-        // managing property values on the prototype chain.
-        // TODO(sjmiles): the `publish` object is later chained to it's 
-        //                ancestor object, presumably this is only for 
-        //                reflection or other non-library uses. 
-        var publish = prototype.publish || (prototype.publish = {}); 
+        // get properties to publish
+        var publish = prototype.publish || (prototype.publish = {});
         // names='a b c' or names='a,b,c'
         var names = attributes.split(ATTRIBUTES_REGEX);
         // record each name for publishing
         for (var i=0, l=names.length, n; i<l; i++) {
           // remove excess ws
           n = names[i].trim();
-          // looks weird, but causes n to exist on `publish` if it does not;
-          // a more careful test would need expensive `in` operator
+          // if the user hasn't specified a value, we want to use the
+          // default, unless a superclass has already chosen one
           if (n && publish[n] === undefined) {
-            publish[n] = undefined;
+            // TODO(sjmiles): querying native properties on IE11 (and possibly
+            // on other browsers) throws an exception because there is no actual
+            // instance.
+            // In fact, trying to publish native properties is known bad for this
+            // and other reasons, and we need to solve this problem writ large.
+            try {
+              var hasValue = (base[n] !== undefined);
+            } catch(x) {
+              hasValue = false;
+            }
+            // supply an empty 'descriptor' object and let the publishProperties
+            // code determine a default
+            if (!hasValue) {
+              publish[n] = Polymer.nob;
+            }
           }
         }
       }
@@ -5932,8 +5900,6 @@ scope.api.declaration.path = path;
   var isBase = scope.isBase;
   var extend = scope.extend;
 
-  var hasShadowDOMPolyfill = window.ShadowDOMPolyfill;
-
   // prototype api
 
   var prototype = {
@@ -6020,7 +5986,7 @@ scope.api.declaration.path = path;
       // this.$.image.src = this.resolvePath('images/foo.png')
       this.addResolvePathApi();
       // under ShadowDOMPolyfill, transforms to approximate missing CSS features
-      if (hasShadowDOMPolyfill) {
+      if (window.ShadowDOMPolyfill) {
         Platform.ShadowCSS.shimStyling(this.templateContent(), name, extendee);
       }
       // allow custom element access to the declarative context
@@ -6289,6 +6255,9 @@ scope.api.declaration.path = path;
       // prevent re-entrance
       if (this.flushing) {
         return;
+      }
+      if (flushQueue.length) {
+        console.warn('flushing %s elements', flushQueue.length);
       }
       this.flushing = true;
       var element;

@@ -178,7 +178,6 @@ polymer/test/build/log_injector_test: Skip # uses dart:html
 polymer/test/computed_properties_test: Skip # uses dart:html
 polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/entered_view_test: Skip # uses dart:html
-polymer/test/event_binding_release_handler_test: Skip #uses dart:html
 polymer/test/event_handlers_test: Skip #uses dart:html
 polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html

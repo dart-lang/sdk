@@ -1,36 +1,45 @@
 BUILD LOG
 ---------
-Build Time: 2014-08-14T11:16:58
+Build Time: 2014-07-24T18:04:50
 
 NODEJS INFORMATION
 ==================
-nodejs: v0.10.29
-chai: 1.9.1
-grunt: 0.4.5
-grunt-audit: 0.0.3
-grunt-concat-sourcemap: 0.4.3
-grunt-contrib-concat: 0.4.0
-grunt-contrib-uglify: 0.5.1
-grunt-karma: 0.8.3
-karma: 0.12.21
+nodejs: v0.10.21
+chai: 1.9.0
+grunt: 0.4.2
+grunt-audit: 0.0.2
+grunt-concat-sourcemap: 0.4.1
+grunt-contrib-concat: 0.3.0
+grunt-contrib-uglify: 0.3.2
+grunt-contrib-yuidoc: 0.5.1
+grunt-karma: 0.6.2
+karma: 0.10.9
+karma-chrome-launcher: 0.1.2
+karma-coffee-preprocessor: 0.1.3
 karma-crbot-reporter: 0.0.4
 karma-firefox-launcher: 0.1.3
-karma-ie-launcher: 0.1.5
-karma-mocha: 0.1.7
+karma-html2js-preprocessor: 0.1.0
+karma-ie-launcher: 0.1.1
+karma-jasmine: 0.1.5
+karma-mocha: 0.1.1
+karma-phantomjs-launcher: 0.1.2
+karma-requirejs: 0.2.1
 karma-safari-launcher: 0.1.1
-mocha: 1.21.4
+karma-script-launcher: 0.1.0
+mocha: 1.17.1
+requirejs: 2.1.11
 
 REPO REVISIONS
 ==============
-CustomElements: 033aee4e8b5b79d6efa8274fe3df281c79f420d0
-HTMLImports: 34130553506648029102e783502f1d4f6ca6d887
-NodeBind: 69cb5b25ac3aa90a2abd2b342ba49d21ade45770
-ShadowDOM: b9dba135f9191a5327b4cda7e99b386b4b76ef9c
-TemplateBinding: 6a2808c4f57d3d98be1c493f1ed6ed46b4150534
-WeakMap: 82541df620f0e20c8205f54c1affc03e51485726
-observe-js: a4311dac037633577989b00a292be8236e30f622
-platform-dev: fe549bc7f05ec668bc496108958eaee0bd174a06
+CustomElements: 2df917e8b1fb1928651a71372ae901a400ddf726
+HTMLImports: d240c62fe5b784239f08f77eff40efb4aabf0105
+NodeBind: 9f0089946c312d9ac9ca45d06913fce507a8b185
+ShadowDOM: 86943c29aa8a10da214bc2f42e3067cf0f190279
+TemplateBinding: d9f4543dc06935824bfd43564c442b0897ce1c54
+WeakMap: 43ab1056a0d821af9b6028fc27ddf30db817c05a
+observe-js: e212e7473962067c099a3d1859595c2f8baa36d7
+platform-dev: 02a0f66b65c34585b4b986e6a3a73cc0d743683a
 
 BUILD HASHES
 ============
-build/platform.js: 500e3a76585af22c2df501d6bb1aebd8b237391c
+build/platform.js: 9ca6c8137fefb7461693d8ec7bac2af8d5a4fd1a
