@@ -37,8 +37,9 @@ main() {
           String path = join(tempPath, 'foo.dart');
           expect(isAbsolute(path), isTrue);
           // prepare a relative path
+          // We should not check that "relPath" is actually relative -
+          // it may be not on Windows, if "temp" is on other disk.
           String relPath = relative(path);
-          expect(isAbsolute(relPath), isFalse);
           // test that toURI() returns an absolute URI
           Uri uri = new JavaFile(relPath).toURI();
           expect(uri.isAbsolute, isTrue);
