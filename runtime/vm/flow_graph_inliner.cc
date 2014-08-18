@@ -1286,12 +1286,9 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 bool PolymorphicInliner::TryInliningPoly(intptr_t receiver_cid,
                                         const Function& target) {
-  if (!target.IsInlineable()) {
-    if (TryInlineRecognizedMethod(receiver_cid, target)) {
-      owner_->inlined_ = true;
-      return true;
-    }
-    return false;
+  if (TryInlineRecognizedMethod(receiver_cid, target)) {
+    owner_->inlined_ = true;
+    return true;
   }
 
   GrowableArray<Value*> arguments(call_->ArgumentCount());
