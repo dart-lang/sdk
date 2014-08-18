@@ -31,7 +31,9 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * Type references in the spec that are named something else in Java.
    */
   static const Map<String, String> _typeRenames = const {
-    'bool': 'boolean',
+    // TODO (jwren) in some situations we want to use Boolean while other
+    // situations we want to use boolean...
+    'bool': 'Boolean',
     'FilePath': 'String',
     'DebugContextId': 'String',
     'object': 'Object',
