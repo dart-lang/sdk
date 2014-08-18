@@ -53,9 +53,10 @@ class ContainerTypeMask extends ForwardingTypeMask {
 
   bool equalsDisregardNull(other) {
     if (other is! ContainerTypeMask) return false;
-    return allocationNode == other.allocationNode
-        && elementType == other.elementType
-        && length == other.length;
+    return super.equalsDisregardNull(other) &&
+        allocationNode == other.allocationNode &&
+        elementType == other.elementType &&
+        length == other.length;
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
@@ -81,7 +82,11 @@ class ContainerTypeMask extends ForwardingTypeMask {
       int newLength = (length == other.length) ? length : null;
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, compiler);
       return new ContainerTypeMask(
-          newForwardTo, null, null, newElementType, newLength);
+          newForwardTo,
+          allocationNode == other.allocationNode ? allocationNode : null,
+          allocationElement == other.allocationElement ? allocationElement
+                                                       : null,
+          newElementType, newLength);
     } else {
       return forwardTo.union(other, compiler);
     }

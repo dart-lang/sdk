@@ -100,12 +100,17 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.locateSingleElement(selector, compiler);
   }
 
-  bool equalsDisregardNull(other);
+  bool equalsDisregardNull(other) {
+    if (other is! ForwardingTypeMask) return false;
+    if (forwardTo.isNullable) {
+      return forwardTo == other.forwardTo.nullable();
+    } else {
+      return forwardTo == other.forwardTo.nonNullable();
+    }
+  }
 
   bool operator==(other) {
-    return equalsDisregardNull(other) &&
-        isNullable == other.isNullable &&
-        forwardTo == other.forwardTo;
+    return equalsDisregardNull(other) && isNullable == other.isNullable;
   }
 
   int get hashCode => throw "Subclass should implement hashCode getter";

@@ -26,7 +26,7 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   bool equalsDisregardNull(other) {
     if (other is! ValueTypeMask) return false;
-    return value == other.value;
+    return super.equalsDisregardNull(other) && value == other.value;
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
