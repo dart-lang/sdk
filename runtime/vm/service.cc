@@ -27,6 +27,7 @@
 #include "vm/reusable_handles.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/unicode.h"
 #include "vm/version.h"
 
 
@@ -789,11 +790,36 @@ static bool HandleStackTrace(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "message");
-  PrintArgumentsAndOptions(jsobj, js);
+static bool HandleCommonEcho(JSONObject* jsobj, JSONStream* js) {
+  jsobj->AddProperty("type", "message");
+  PrintArgumentsAndOptions(*jsobj, js);
   return true;
+}
+
+
+void Service::SendEchoEvent(Isolate* isolate) {
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("type", "ServiceEvent");
+    jsobj.AddPropertyF("id", "_echoEvent");
+    jsobj.AddProperty("eventType", "_Echo");
+    jsobj.AddProperty("isolate", isolate);
+  }
+  const String& message = String::Handle(String::New(js.ToCString()));
+  uint8_t data[] = {0, 128, 255};
+  // TODO(koda): Add 'testing' event family.
+  SendEvent(kEventFamilyDebug, message, data, sizeof(data));
+}
+
+
+bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("id", "_echo");
+  if (js->num_arguments() == 2 && strcmp(js->GetArgument(1), "event") == 0) {
+    Service::SendEchoEvent(isolate);
+  }
+  return HandleCommonEcho(&jsobj, js);
 }
 
 
@@ -2323,9 +2349,8 @@ void Service::HandleRootMessage(const Instance& msg) {
 
 static bool HandleRootEcho(JSONStream* js) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "message");
-  PrintArgumentsAndOptions(jsobj, js);
-  return true;
+  jsobj.AddProperty("id", "_echo");
+  return HandleCommonEcho(&jsobj, js);
 }
 
 
@@ -2438,7 +2463,7 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
 }
 
 
-void Service::SendEvent(intptr_t eventId, const String& eventMessage) {
+void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
   if (!IsRunning()) {
     return;
   }
@@ -2463,6 +2488,33 @@ void Service::SendEvent(intptr_t eventId, const String& eventMessage) {
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
+}
+
+
+void Service::SendEvent(intptr_t eventId,
+                        const String& meta,
+                        const uint8_t* data,
+                        intptr_t size) {
+  // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
+  const intptr_t meta_bytes = Utf8::Length(meta);
+  const intptr_t total_bytes = sizeof(uint64_t) + meta_bytes + size;
+  const TypedData& message = TypedData::Handle(
+      TypedData::New(kTypedDataUint8ArrayCid, total_bytes));
+  intptr_t offset = 0;
+  // TODO(koda): Rename these methods SetHostUint64, etc.
+  message.SetUint64(0, Utils::HostToBigEndian64(meta_bytes));
+  offset += sizeof(uint64_t);
+  {
+    NoGCScope no_gc;
+    meta.ToUTF8(static_cast<uint8_t*>(message.DataAddr(offset)), meta_bytes);
+    offset += meta_bytes;
+  }
+  // TODO(koda): It would be nice to avoid this copy (requires changes to
+  // MessageWriter code).
+  memmove(message.DataAddr(offset), data, size);
+  offset += size;
+  ASSERT(offset == total_bytes);
+  SendEvent(eventId, message);
 }
 
 

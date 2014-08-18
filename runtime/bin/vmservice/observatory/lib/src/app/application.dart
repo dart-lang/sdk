@@ -89,7 +89,7 @@ class ObservatoryApplication extends Observable {
 
       default:
         // Ignore unrecognized events.
-        Logger.root.severe('Unrecognized event type: ${event.eventType}');
+        Logger.root.severe('Unrecognized event: $event');
         break;
     }
   }

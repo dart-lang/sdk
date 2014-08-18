@@ -4,7 +4,9 @@
 
 library service_io;
 
+import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:observatory/service_common.dart';
 
@@ -39,6 +41,15 @@ class _IOWebSocket implements CommonWebSocket {
   
   void close() {
     _webSocket.close();
+  }
+  
+  Future<ByteData> nonStringToByteData(dynamic data) {
+    assert(data is Uint8List);
+    print('nonString: ${data.lengthInBytes}, $data');
+    return new Future.sync(() =>
+        new ByteData.view(data.buffer,
+                          data.offsetInBytes,
+                          data.lengthInBytes));
   }
 }
 

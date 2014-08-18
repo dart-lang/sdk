@@ -7,7 +7,9 @@
   var ShadowDOMPolyfill = window.ShadowDOMPolyfill;
   if (!ShadowDOMPolyfill) return;
 
-  if (navigator.userAgent.indexOf('(Dart)') !== -1) {
+  // TODO(sigmund): remove the userAgent check once 1.6 rolls as stable.
+  // See: dartbug.com/18463
+  if (navigator.dartEnabled || (navigator.userAgent.indexOf('(Dart)') !== -1)) {
     console.error("ShadowDOMPolyfill polyfill was loaded in Dartium. This " +
         "will not work. This indicates that Dartium's Chrome version is " +
         "not compatible with this version of web_components.");

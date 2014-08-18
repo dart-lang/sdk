@@ -34,7 +34,7 @@ abstract class Client {
   }
 
   /// When implementing, responsible for sending [response] to the client.
-  void post(var seq, String response);
+  void post(var seq, dynamic response);
 
   dynamic toJson() {
     return {

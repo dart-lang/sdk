@@ -253,10 +253,14 @@ abstract class VM extends ServiceObjectOwner {
   final StreamController<ServiceEvent> events =
       new StreamController.broadcast();
 
-  void postEventMessage(String eventMessage) {
+  void postEventMessage(String eventMessage, [dynamic data]) {
       var map;
       try {
         map = _parseJSON(eventMessage);
+        assert(!map.containsKey('_data'));
+        if (data != null) {
+          map['_data'] = data;
+        }
       } catch (e, st) {
         Logger.root.severe('Ignoring malformed event message: ${eventMessage}');
         return;
@@ -1167,6 +1171,7 @@ class ServiceEvent extends ServiceObject {
   @observable String eventType;
   @observable ServiceMap breakpoint;
   @observable ServiceMap exception;
+  @observable ByteData data;
 
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
@@ -1180,6 +1185,14 @@ class ServiceEvent extends ServiceObject {
     if (map['exception'] != null) {
       exception = map['exception'];
     }
+    if (map['_data'] != null) {
+      data = map['_data'];
+    }
+  }
+  
+  String toString() {
+    return 'ServiceEvent of type $eventType with '
+        '${data == null ? 0 : data.lengthInBytes} bytes of binary data';
   }
 }
 

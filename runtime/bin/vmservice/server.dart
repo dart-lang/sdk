@@ -37,15 +37,19 @@ class WebSocketClient extends Client {
     }
   }
 
-  void post(var seq, String response) {
+  void post(var seq, dynamic response) {
     try {
       Map map = {
         'seq': seq,
         'response': response
       };
-      socket.add(JSON.encode(map));
+      if (seq == null && response is! String) {
+        socket.add(response);
+      } else {
+        socket.add(JSON.encode(map));
+      }
     } catch (_) {
-      // Error posting over WebSocket.
+      print("Ignoring error posting over WebSocket.");
     }
   }
 
