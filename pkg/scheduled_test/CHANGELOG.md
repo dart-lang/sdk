@@ -1,3 +1,7 @@
+## 0.11.2
+
+* Add a `DirectoryDescriptor.fromFilesystem` constructor.
+
 ## 0.11.1
 
 * Add a top-level `tearDown` function.

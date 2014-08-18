@@ -410,4 +410,31 @@ void main(_, message) {
       expect(d.dir('dir').describe(), equals('dir'));
     });
   });
+
+  expectTestPasses("new DirectoryDescriptor().fromFilesystem creates a "
+      "descriptor based on the physical filesystem", () {
+    scheduleSandbox();
+
+    d.dir('dir', [
+      d.dir('subdir', [
+        d.file('subfile1.txt', 'subcontents1'),
+        d.file('subfile2.txt', 'subcontents2')
+      ]),
+      d.file('file1.txt', 'contents1'),
+      d.file('file2.txt', 'contents2')
+    ]).create();
+
+    schedule(() {
+      var descriptor = new d.DirectoryDescriptor.fromFilesystem(
+          "descriptor", path.join(sandbox, 'dir'));
+      expect(descriptor, isDirectoryDescriptor('descriptor', [
+        isDirectoryDescriptor('subdir', [
+          isFileDescriptor('subfile1.txt', 'subcontents1'),
+          isFileDescriptor('subfile2.txt', 'subcontents2')
+        ]),
+        isFileDescriptor('file1.txt', 'contents1'),
+        isFileDescriptor('file2.txt', 'contents2')
+      ]));
+    });
+  });
 }
