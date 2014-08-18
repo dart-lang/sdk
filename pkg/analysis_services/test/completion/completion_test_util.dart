@@ -6,10 +6,10 @@ library test.services.completion.util;
 
 import 'dart:async';
 
-import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_memory_index.dart';
+import 'package:analysis_services/src/completion/dart_completion_manager.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
 import 'package:analysis_testing/abstract_context.dart';
 import 'package:analysis_testing/mock_sdk.dart';
@@ -22,12 +22,12 @@ import 'package:unittest/unittest.dart';
 class AbstractCompletionTest extends AbstractContextTest {
   Index index;
   SearchEngineImpl searchEngine;
-  CompletionComputer computer;
+  DartCompletionComputer computer;
   String testFile = '/completionTest.dart';
   Source testSource;
   int completionOffset;
-  List<CompletionSuggestion> suggestions;
   bool _computeFastCalled = false;
+  DartCompletionRequest request;
 
   void addResolvedUnit(String file, String code) {
     Source source = addSource(file, code);
@@ -44,10 +44,15 @@ class AbstractCompletionTest extends AbstractContextTest {
     content = content.substring(0, completionOffset) +
         content.substring(completionOffset + 1);
     testSource = addSource(testFile, content);
+    request = new DartCompletionRequest(
+        context,
+        searchEngine,
+        testSource,
+        completionOffset);
   }
 
   void assertNotSuggested(String completion) {
-    if (suggestions.any((cs) => cs.completion == completion)) {
+    if (request.suggestions.any((cs) => cs.completion == completion)) {
       fail('did not expect completion: $completion');
     }
   }
@@ -55,20 +60,22 @@ class AbstractCompletionTest extends AbstractContextTest {
   void assertSuggest(CompletionSuggestionKind kind, String completion,
       [CompletionRelevance relevance = CompletionRelevance.DEFAULT, bool isDeprecated
       = false, bool isPotential = false]) {
-    var cs;
-    suggestions.forEach((s) {
+    CompletionSuggestion cs;
+    request.suggestions.forEach((s) {
       if (s.completion == completion) {
         if (cs == null) {
           cs = s;
         } else {
-          var match =
-              suggestions.where((s) => s.completion == completion).toList();
-          fail('expected exactly one $completion but found > 1\n $match');
+          List<CompletionSuggestion> matchSuggestions =
+              request.suggestions.where((s) => s.completion == completion).toList();
+          fail(
+              'expected exactly one $completion but found > 1\n $matchSuggestions');
         }
       }
     });
     if (cs == null) {
-      var completions = suggestions.map((s) => s.completion).toList();
+      List<CompletionSuggestion> completions =
+          request.suggestions.map((s) => s.completion).toList();
       fail('expected "$completion" but found\n $completions');
     }
     expect(cs.kind, equals(kind));
@@ -107,6 +114,14 @@ class AbstractCompletionTest extends AbstractContextTest {
         relevance);
   }
 
+  void assertSuggestLocalVariable(String completion,
+      [CompletionRelevance relevance = CompletionRelevance.DEFAULT]) {
+    assertSuggest(
+        CompletionSuggestionKind.LOCAL_VARIABLE,
+        completion,
+        relevance);
+  }
+
   void assertSuggestMethod(String className, [CompletionRelevance relevance =
       CompletionRelevance.DEFAULT]) {
     assertSuggest(CompletionSuggestionKind.METHOD, className, relevance);
@@ -135,47 +150,52 @@ class AbstractCompletionTest extends AbstractContextTest {
         relevance);
   }
 
-  void assertSuggestVariable(String completion, [CompletionRelevance relevance =
-      CompletionRelevance.DEFAULT]) {
-    assertSuggest(
-        CompletionSuggestionKind.LOCAL_VARIABLE,
-        completion,
-        relevance);
-  }
-
   bool computeFast() {
     _computeFastCalled = true;
-    computer
-        ..context = context
-        ..searchEngine = searchEngine
-        ..source = testSource
-        ..offset = completionOffset;
-    suggestions = [];
     CompilationUnit unit = context.parseCompilationUnit(testSource);
-    AstNode node = new NodeLocator.con1(completionOffset).searchWithin(unit);
-    return computer.computeFast(unit, node, suggestions);
+    request.unit = unit;
+    request.node = new NodeLocator.con1(completionOffset).searchWithin(unit);
+    return computer.computeFast(request);
   }
 
-  Future<bool> computeFull() {
+  Future<bool> computeFull([bool fullAnalysis = false]) {
     if (!_computeFastCalled) {
       expect(computeFast(), isFalse);
     }
     var result = context.performAnalysisTask();
+    bool resolved = false;
     while (result.hasMoreWork) {
+
+      // Update the index
       result.changeNotices.forEach((ChangeNotice notice) {
         CompilationUnit unit = notice.compilationUnit;
         if (unit != null) {
           index.indexUnit(context, unit);
         }
       });
+
+      // If the unit has been resolved, then finish the completion
+      LibraryElement library = context.getLibraryElement(testSource);
+      if (library != null) {
+        CompilationUnit unit =
+            context.getResolvedCompilationUnit(testSource, library);
+        if (unit != null) {
+          request.unit = unit;
+          request.node = new NodeLocator.con1(
+              completionOffset).searchWithin(unit);
+          resolved = true;
+          if (!fullAnalysis) {
+            break;
+          }
+        }
+      }
+
       result = context.performAnalysisTask();
     }
-    LibraryElement library = context.getLibraryElement(testSource);
-    expect(library, isNotNull);
-    var unit = context.getResolvedCompilationUnit(testSource, library);
-    expect(unit, isNotNull);
-    AstNode node = new NodeLocator.con1(completionOffset).searchWithin(unit);
-    return computer.computeFull(unit, node, suggestions);
+    if (!resolved) {
+      fail('expected unit to be resolved');
+    }
+    return computer.computeFull(request);
   }
 
   @override

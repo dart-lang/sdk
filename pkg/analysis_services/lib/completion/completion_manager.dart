@@ -9,40 +9,8 @@ import 'dart:async';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/completion/dart_completion_manager.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-/**
- * The base class for computing code completion suggestions.
- */
-abstract class CompletionComputer {
-  AnalysisContext context;
-  Source source;
-  int offset;
-  SearchEngine searchEngine;
-
-  /**
-   * Computes the initial set of [CompletionSuggestion]s based on
-   * the compilation [unit], the AST [node] in which the completion occurred,
-   * and information already cached in the analysis context.
-   * The supplied [unit] and [node] may not be resolved.
-   * This method should execute quickly and not block waiting for any analysis.
-   * Returns `true` if the computer's work is complete
-   * or `false` if [computeFull] should be called to complete the work.
-   */
-  bool computeFast(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions);
-
-  /**
-   * Computes the complete set of [CompletionSuggestion]s based on
-   * the resolved compilation [unit] and the resolved AST [node] in which the
-   * completion occurred.
-   * Returns `true` if the receiver modified the list of suggestions.
-   */
-  Future<bool> computeFull(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions);
-}
 
 /**
  * Manages `CompletionComputer`s for a given completion request.
@@ -77,7 +45,11 @@ abstract class CompletionManager {
       int offset, SearchEngine searchEngine) {
     if (context != null) {
       if (AnalysisEngine.isDartFileName(source.shortName)) {
-        return new DartCompletionManager(context, source, offset, searchEngine);
+        return new DartCompletionManager(context, searchEngine, source, offset);
+      }
+      if (AnalysisEngine.isHtmlFileName(source.shortName)) {
+        //TODO (danrubel) implement
+//        return new HtmlCompletionManager(context, searchEngine, source, offset);
       }
     }
     return new NoOpCompletionManager(source, offset);
@@ -118,7 +90,6 @@ class CompletionResult {
   CompletionResult(this.replacementOffset, this.replacementLength,
       this.suggestions, this.last);
 }
-
 
 class NoOpCompletionManager extends CompletionManager {
   final Source source;

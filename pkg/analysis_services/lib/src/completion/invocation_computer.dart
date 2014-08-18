@@ -6,8 +6,8 @@ library services.completion.computer.dart.invocation;
 
 import 'dart:async';
 
-import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
+import 'package:analysis_services/src/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -15,19 +15,17 @@ import 'package:analyzer/src/generated/element.dart';
  * A computer for calculating invocation / access suggestions
  * `completion.getSuggestions` request results.
  */
-class InvocationComputer extends CompletionComputer {
+class InvocationComputer extends DartCompletionComputer {
 
   @override
-  bool computeFast(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
+  bool computeFast(DartCompletionRequest request) {
     // TODO: implement computeFast
     return false;
   }
 
   @override
-  Future<bool> computeFull(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
-    return node.accept(new _InvocationAstVisitor(unit, offset, suggestions));
+  Future<bool> computeFull(DartCompletionRequest request) {
+    return request.node.accept(new _InvocationAstVisitor(request));
   }
 }
 
@@ -36,17 +34,17 @@ class InvocationComputer extends CompletionComputer {
  * suggestions based upon the node in which the completion is requested.
  */
 class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
-  final CompilationUnit unit;
-  final int offset;
-  final List<CompletionSuggestion> suggestions;
+  final DartCompletionRequest request;
   AstNode completionNode;
 
-  _InvocationAstVisitor(this.unit, this.offset, this.suggestions);
+  _InvocationAstVisitor(this.request);
 
+  @override
   Future<bool> visitNode(AstNode node) {
     return new Future.value(false);
   }
 
+  @override
   Future<bool> visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (node.identifier == completionNode) {
       return _addSuggestions(node.prefix.bestElement);
@@ -54,6 +52,7 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
     return super.visitPrefixedIdentifier(node);
   }
 
+  @override
   Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
     completionNode = node;
     return node.parent.accept(this);
@@ -64,7 +63,7 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
    */
   Future<bool> _addSuggestions(Element element) {
     if (element != null) {
-      return element.accept(new _InvocationElementVisitor(suggestions));
+      return element.accept(new _InvocationElementVisitor(request));
     }
     return new Future.value(false);
   }
@@ -76,21 +75,23 @@ class _InvocationAstVisitor extends GeneralizingAstVisitor<Future<bool>> {
  */
 class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
     {
-  final List<CompletionSuggestion> suggestions;
+  final DartCompletionRequest request;
 
-  _InvocationElementVisitor(this.suggestions);
+  _InvocationElementVisitor(this.request);
 
+  @override
   Future<bool> visitElement(Element element) {
     return new Future.value(false);
   }
 
+  @override
   Future<bool> visitVariableElement(VariableElement element) {
     return _addSuggestions(element.type);
   }
 
   Future<bool> _addSuggestions(DartType type) {
     if (type != null && type.element != null) {
-      type.element.accept(new _SuggestionBuilderVisitor(suggestions));
+      type.element.accept(new _SuggestionBuilderVisitor(request));
       return new Future.value(true);
     }
     return new Future.value(false);
@@ -102,31 +103,36 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
  * elements in a type hierarchy.
  */
 class _SuggestionBuilderVisitor extends GeneralizingElementVisitor {
-  final List<CompletionSuggestion> suggestions;
+  final DartCompletionRequest request;
 
-  _SuggestionBuilderVisitor(this.suggestions);
+  _SuggestionBuilderVisitor(this.request);
 
+  @override
   visitClassElement(ClassElement element) {
     //TODO (danrubel): filter private members if not in the same library
     element.visitChildren(this);
   }
 
+  @override
   visitElement(Element element) {
     // ignored
   }
 
+  @override
   visitFieldElement(FieldElement element) {
     if (!element.isSynthetic) {
       _addSuggestion(element, CompletionSuggestionKind.FIELD);
     }
   }
 
+  @override
   visitMethodElement(MethodElement element) {
     if (!element.isSynthetic) {
       _addSuggestion(element, CompletionSuggestionKind.METHOD);
     }
   }
 
+  @override
   visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!element.isSynthetic) {
       if (element.isGetter) {
@@ -146,7 +152,7 @@ class _SuggestionBuilderVisitor extends GeneralizingElementVisitor {
       completion = element.name;
     }
     if (completion != null && completion.length > 0) {
-      suggestions.add(
+      request.suggestions.add(
           new CompletionSuggestion(
               kind,
               CompletionRelevance.DEFAULT,
@@ -154,7 +160,7 @@ class _SuggestionBuilderVisitor extends GeneralizingElementVisitor {
               completion.length,
               0,
               element.isDeprecated,
-              false /* isPotential */));
+              false));
     }
   }
 }

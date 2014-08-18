@@ -6,24 +6,21 @@ library test.services.completion.suggestion;
 
 import 'dart:async';
 
-import 'package:analysis_services/completion/completion_computer.dart';
+import 'package:analysis_services/completion/completion_manager.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/index/index.dart';
 import 'package:analysis_services/index/local_memory_index.dart';
 import 'package:analysis_services/search/search_engine.dart';
 import 'package:analysis_services/src/completion/dart_completion_manager.dart';
 import 'package:analysis_services/src/search/search_engine.dart';
-import 'package:analysis_testing/abstract_context.dart';
 import 'package:analysis_testing/abstract_single_unit.dart';
 import 'package:analysis_testing/reflective_tests.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(CompletionManagerTest);
   runReflectiveTests(DartCompletionManagerTest);
 }
 
@@ -42,34 +39,6 @@ Future pumpEventQueue([int times = 20]) {
 }
 
 @ReflectiveTestCase()
-class CompletionManagerTest extends AbstractContextTest {
-
-  test_dart() {
-    Source source = addSource('/does/not/exist.dart', '');
-    var manager = CompletionManager.create(context, source, 0, null);
-    expect(manager.runtimeType, DartCompletionManager);
-  }
-
-  test_html() {
-    Source source = addSource('/does/not/exist.html', '');
-    var manager = CompletionManager.create(context, source, 0, null);
-    expect(manager.runtimeType, NoOpCompletionManager);
-  }
-
-  test_null_context() {
-    Source source = addSource('/does/not/exist.dart', '');
-    var manager = CompletionManager.create(null, source, 0, null);
-    expect(manager.runtimeType, NoOpCompletionManager);
-  }
-
-  test_other() {
-    Source source = addSource('/does/not/exist.foo', '');
-    var manager = CompletionManager.create(context, source, 0, null);
-    expect(manager.runtimeType, NoOpCompletionManager);
-  }
-}
-
-@ReflectiveTestCase()
 class DartCompletionManagerTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
@@ -80,13 +49,19 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
   CompletionSuggestion suggestion1;
   CompletionSuggestion suggestion2;
 
+  void resolveLibrary() {
+    context.resolveCompilationUnit(
+        source,
+        context.computeLibraryElement(source));
+  }
+
   @override
   void setUp() {
     super.setUp();
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     source = addSource('/does/not/exist.dart', '');
-    manager = new DartCompletionManager(context, source, 17, searchEngine);
+    manager = new DartCompletionManager(context, searchEngine, source, 17);
     suggestion1 = new CompletionSuggestion(
         CompletionSuggestionKind.CLASS,
         CompletionRelevance.DEFAULT,
@@ -103,34 +78,6 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
         2,
         false,
         false);
-  }
-
-  test_compute_fastOnly() {
-    computer1 = new MockCompletionComputer(suggestion1, null);
-    computer2 = new MockCompletionComputer(suggestion2, null);
-    manager.computers = [computer1, computer2];
-    int count = 0;
-    bool done = false;
-    manager.results().listen((CompletionResult r) {
-      switch (++count) {
-        case 1:
-          computer1.assertCalls(context, source, 17, searchEngine);
-          computer2.assertCalls(context, source, 17, searchEngine);
-          expect(r.last, isTrue);
-          expect(r.suggestions, hasLength(2));
-          expect(r.suggestions, contains(suggestion1));
-          expect(r.suggestions, contains(suggestion2));
-          break;
-        default:
-          fail('unexpected');
-      }
-    }, onDone: () {
-      done = true;
-      expect(count, equals(1));
-    });
-    return pumpEventQueue().then((_) {
-      expect(done, isTrue);
-    });
   }
 
   test_compute_fastAndFull() {
@@ -169,27 +116,50 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     });
   }
 
-  void resolveLibrary() {
-    context.resolveCompilationUnit(
-        source,
-        context.computeLibraryElement(source));
+  test_compute_fastOnly() {
+    computer1 = new MockCompletionComputer(suggestion1, null);
+    computer2 = new MockCompletionComputer(suggestion2, null);
+    manager.computers = [computer1, computer2];
+    int count = 0;
+    bool done = false;
+    manager.results().listen((CompletionResult r) {
+      switch (++count) {
+        case 1:
+          computer1.assertCalls(context, source, 17, searchEngine);
+          computer2.assertCalls(context, source, 17, searchEngine);
+          expect(r.last, isTrue);
+          expect(r.suggestions, hasLength(2));
+          expect(r.suggestions, contains(suggestion1));
+          expect(r.suggestions, contains(suggestion2));
+          break;
+        default:
+          fail('unexpected');
+      }
+    }, onDone: () {
+      done = true;
+      expect(count, equals(1));
+    });
+    return pumpEventQueue().then((_) {
+      expect(done, isTrue);
+    });
   }
 }
 
-class MockCompletionComputer extends CompletionComputer {
+class MockCompletionComputer extends DartCompletionComputer {
   final CompletionSuggestion fastSuggestion;
   final CompletionSuggestion fullSuggestion;
   int fastCount = 0;
   int fullCount = 0;
+  DartCompletionRequest request;
 
   MockCompletionComputer(this.fastSuggestion, this.fullSuggestion);
 
   assertCalls(AnalysisContext context, Source source, int offset,
       SearchEngine searchEngine) {
-    expect(this.context, equals(context));
-    expect(this.source, equals(source));
-    expect(this.offset, equals(offset));
-    expect(this.searchEngine, equals(searchEngine));
+    expect(request.context, equals(context));
+    expect(request.source, equals(source));
+    expect(request.offset, equals(offset));
+    expect(request.searchEngine, equals(searchEngine));
     expect(this.fastCount, equals(1));
     expect(this.fullCount, equals(0));
   }
@@ -200,21 +170,21 @@ class MockCompletionComputer extends CompletionComputer {
   }
 
   @override
-  bool computeFast(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
+  bool computeFast(DartCompletionRequest request) {
+    this.request = request;
     fastCount++;
     if (fastSuggestion != null) {
-      suggestions.add(fastSuggestion);
+      request.suggestions.add(fastSuggestion);
     }
     return fastSuggestion != null;
   }
 
   @override
-  Future<bool> computeFull(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
+  Future<bool> computeFull(DartCompletionRequest request) {
+    this.request = request;
     fullCount++;
     if (fullSuggestion != null) {
-      suggestions.add(fullSuggestion);
+      request.suggestions.add(fullSuggestion);
     }
     return new Future.value(fullSuggestion != null);
   }

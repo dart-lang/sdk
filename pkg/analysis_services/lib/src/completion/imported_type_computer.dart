@@ -6,9 +6,9 @@ library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
-import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
 import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_services/src/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -16,11 +16,10 @@ import 'package:analyzer/src/generated/element.dart';
  * A computer for calculating imported class and top level variable
  * `completion.getSuggestions` request results.
  */
-class ImportedTypeComputer extends CompletionComputer {
+class ImportedTypeComputer extends DartCompletionComputer {
 
   @override
-  bool computeFast(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
+  bool computeFast(DartCompletionRequest request) {
     // TODO: implement computeFast
     // - compute results based upon current search, then replace those results
     // during the full compute phase
@@ -29,10 +28,8 @@ class ImportedTypeComputer extends CompletionComputer {
   }
 
   @override
-  Future<bool> computeFull(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
-    return node.accept(
-        new _ImportedTypeVisitor(searchEngine, unit, offset, suggestions));
+  Future<bool> computeFull(DartCompletionRequest request) {
+    return request.node.accept(new _ImportedTypeVisitor(request));
   }
 }
 
@@ -41,14 +38,11 @@ class ImportedTypeComputer extends CompletionComputer {
  * and builds the list of suggestions.
  */
 class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
-  final SearchEngine searchEngine;
-  final CompilationUnit unit;
-  final int offset;
-  final List<CompletionSuggestion> suggestions;
+  final DartCompletionRequest request;
 
-  _ImportedTypeVisitor(this.searchEngine, this.unit, this.offset,
-      this.suggestions);
+  _ImportedTypeVisitor(this.request);
 
+  @override
   Future<bool> visitCombinator(Combinator node) {
     var directive = node.getAncestor((parent) => parent is NamespaceDirective);
     if (directive is NamespaceDirective) {
@@ -57,25 +51,30 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
     return new Future.value(true);
   }
 
+  @override
   Future<bool> visitNode(AstNode node) {
     return _addImportedElements();
   }
 
+  @override
   Future<bool> visitSimpleIdentifier(SimpleIdentifier node) {
     return node.parent.accept(this);
   }
 
+  @override
   Future<bool> visitVariableDeclaration(VariableDeclaration node) {
     // Do not add suggestions if editing the name in a var declaration
     SimpleIdentifier name = node.name;
-    if (name == null || name.offset < offset || offset > name.end) {
+    if (name == null ||
+        name.offset < request.offset ||
+        request.offset > name.end) {
       return visitNode(node);
     }
     return new Future.value(false);
   }
 
   Future<bool> _addImportedElements() {
-    var future = searchEngine.searchTopLevelDeclarations('');
+    var future = request.searchEngine.searchTopLevelDeclarations('');
     return future.then((List<SearchMatch> matches) {
 
       Set<LibraryElement> visibleLibs = new Set<LibraryElement>();
@@ -88,8 +87,8 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
 
       // Exclude elements from the local library
       // as they will be included by the LocalComputer
-      excludedLibs.add(unit.element.library);
-      unit.directives.forEach((Directive directive) {
+      excludedLibs.add(request.unit.element.library);
+      request.unit.directives.forEach((Directive directive) {
         if (directive is ImportDirective) {
           LibraryElement lib = directive.element.importedLibrary;
           if (directive.prefix == null) {
@@ -120,7 +119,7 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
             Set<String> hide = hideNames[lib];
             if ((show == null || show.contains(completion)) &&
                 (hide == null || !hide.contains(completion))) {
-              suggestions.add(
+              request.suggestions.add(
                   new CompletionSuggestion(
                       CompletionSuggestionKind.fromElementKind(element.kind),
                       visibleLibs.contains(lib) || lib.isDartCore ?
@@ -130,8 +129,7 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
                       completion.length,
                       0,
                       element.isDeprecated,
-                      false // isPotential
-              ));
+                      false));
             }
           }
         }
@@ -141,7 +139,7 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
   }
 
   Future<bool> _addLibraryElements(LibraryElement library) {
-    library.visitChildren(new _LibraryElementVisitor(suggestions));
+    library.visitChildren(new _LibraryElementVisitor(request));
     return new Future.value(true);
   }
 }
@@ -152,26 +150,31 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
  * the `show`.
  */
 class _LibraryElementVisitor extends GeneralizingElementVisitor {
-  final List<CompletionSuggestion> suggestions;
+  final DartCompletionRequest request;
 
-  _LibraryElementVisitor(this.suggestions);
+  _LibraryElementVisitor(this.request);
 
+  @override
   visitClassElement(ClassElement element) {
     _addSuggestion(element);
   }
 
+  @override
   visitCompilationUnitElement(CompilationUnitElement element) {
     element.visitChildren(this);
   }
 
+  @override
   visitElement(Element element) {
     // ignored
   }
 
+  @override
   visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     _addSuggestion(element);
   }
 
+  @override
   visitTopLevelVariableElement(TopLevelVariableElement element) {
     _addSuggestion(element);
   }
@@ -180,7 +183,7 @@ class _LibraryElementVisitor extends GeneralizingElementVisitor {
     if (element != null) {
       String completion = element.name;
       if (completion != null && completion.length > 0) {
-        suggestions.add(
+        request.suggestions.add(
             new CompletionSuggestion(
                 CompletionSuggestionKind.fromElementKind(element.kind),
                 CompletionRelevance.DEFAULT,
@@ -188,8 +191,7 @@ class _LibraryElementVisitor extends GeneralizingElementVisitor {
                 completion.length,
                 0,
                 element.isDeprecated,
-                false // isPotential
-        ));
+                false));
       }
     }
   }

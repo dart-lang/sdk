@@ -107,7 +107,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
   test_class_notImported() {
     addSource('/testA.dart', 'class A {int x;} class _B { }');
     addTestSource('class C {foo(){^}}');
-    return computeFull().then((_) {
+    return computeFull(true).then((_) {
       assertSuggestClass('A', CompletionRelevance.LOW);
       assertNotSuggested('x');
       assertNotSuggested('_B');
@@ -199,7 +199,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
   test_topLevelVar_notImported() {
     addSource('/testA.dart', 'var T1; var _T2;');
     addTestSource('class C {foo(){^}}');
-    return computeFull().then((_) {
+    return computeFull(true).then((_) {
       assertSuggestTopLevelVar('T1', CompletionRelevance.LOW);
       assertNotSuggested('_T2');
     });

@@ -6,36 +6,32 @@ library services.completion.computer.dart.local;
 
 import 'dart:async';
 
-import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
+import 'package:analysis_services/src/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 
 /**
  * A computer for calculating `completion.getSuggestions` request results
  * for the local library in which the completion is requested.
  */
-class LocalComputer extends CompletionComputer {
+class LocalComputer extends DartCompletionComputer {
 
   @override
-  bool computeFast(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
+  bool computeFast(DartCompletionRequest request) {
 
     // Find the specific child [AstNode] that contains the completion offset
     // and collect suggestions starting with that node
-    if (node != null) {
-      node.accept(new _LocalVisitor(offset, suggestions));
-    }
+    request.node.accept(new _LocalVisitor(request));
 
     // If the unit is not a part and does not reference any parts
     // then work is complete
-    return !unit.directives.any(
+    return !request.unit.directives.any(
         (Directive directive) =>
             directive is PartOfDirective || directive is PartDirective);
   }
 
   @override
-  Future<bool> computeFull(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
+  Future<bool> computeFull(DartCompletionRequest request) {
     // TODO: implement computeFull
     // include results from part files that are included in the library
     return new Future.value(false);
@@ -47,16 +43,139 @@ class LocalComputer extends CompletionComputer {
  * that contains the completion offset to the [CompilationUnit].
  */
 class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
-  final int offset;
-  final List<CompletionSuggestion> suggestions;
+  final DartCompletionRequest request;
 
-  _LocalVisitor(this.offset, this.suggestions);
+  _LocalVisitor(this.request);
 
-  void addSuggestion(SimpleIdentifier id, CompletionSuggestionKind kind) {
+  @override
+  visitBlock(Block node) {
+    node.statements.forEach((Statement stmt) {
+      if (stmt.offset < request.offset) {
+        if (stmt is LabeledStatement) {
+          stmt.labels.forEach((Label label) {
+//            _addSuggestion(label.label, CompletionSuggestionKind.LABEL);
+          });
+        } else if (stmt is VariableDeclarationStatement) {
+          stmt.variables.variables.forEach((VariableDeclaration varDecl) {
+            if (varDecl.end < request.offset) {
+              _addSuggestion(
+                  varDecl.name,
+                  CompletionSuggestionKind.LOCAL_VARIABLE);
+            }
+          });
+        }
+      }
+    });
+    visitNode(node);
+  }
+
+  @override
+  visitCatchClause(CatchClause node) {
+    _addSuggestion(node.exceptionParameter, CompletionSuggestionKind.PARAMETER);
+    _addSuggestion(node.stackTraceParameter, CompletionSuggestionKind.PARAMETER);
+    visitNode(node);
+  }
+
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
+    node.members.forEach((ClassMember classMbr) {
+      if (classMbr is FieldDeclaration) {
+        _addSuggestions(classMbr.fields, CompletionSuggestionKind.FIELD);
+      } else if (classMbr is MethodDeclaration) {
+        _addSuggestion(classMbr.name, CompletionSuggestionKind.METHOD_NAME);
+      }
+    });
+    visitNode(node);
+  }
+
+  @override
+  visitCompilationUnit(CompilationUnit node) {
+    node.directives.forEach((Directive directive) {
+      if (directive is ImportDirective) {
+        _addSuggestion(
+            directive.prefix,
+            CompletionSuggestionKind.LIBRARY_PREFIX);
+      }
+    });
+    node.declarations.forEach((Declaration declaration) {
+      if (declaration is ClassDeclaration) {
+        _addSuggestion(declaration.name, CompletionSuggestionKind.CLASS);
+      } else if (declaration is EnumDeclaration) {
+//        _addSuggestion(d.name, CompletionSuggestionKind.ENUM);
+      } else if (declaration is FunctionDeclaration) {
+        _addSuggestion(declaration.name, CompletionSuggestionKind.FUNCTION);
+      } else if (declaration is TopLevelVariableDeclaration) {
+        _addSuggestions(
+            declaration.variables,
+            CompletionSuggestionKind.TOP_LEVEL_VARIABLE);
+      } else if (declaration is ClassTypeAlias) {
+        _addSuggestion(declaration.name, CompletionSuggestionKind.CLASS_ALIAS);
+      } else if (declaration is FunctionTypeAlias) {
+        _addSuggestion(
+            declaration.name,
+            CompletionSuggestionKind.FUNCTION_TYPE_ALIAS);
+      }
+    });
+  }
+
+  @override
+  visitForEachStatement(ForEachStatement node) {
+    _addSuggestion(node.identifier, CompletionSuggestionKind.LOCAL_VARIABLE);
+    visitNode(node);
+  }
+
+  @override
+  visitForStatement(ForStatement node) {
+    _addSuggestions(node.variables, CompletionSuggestionKind.LOCAL_VARIABLE);
+    visitNode(node);
+  }
+
+  @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    // This is added by the compilation unit containing it
+    //_addSuggestion(node.name, CompletionSuggestionKind.FUNCTION);
+    visitNode(node);
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    node.parameters.parameters.forEach((FormalParameter param) {
+      _addSuggestion(param.identifier, CompletionSuggestionKind.PARAMETER);
+    });
+    visitNode(node);
+  }
+
+  @override
+  visitMethodDeclaration(MethodDeclaration node) {
+    node.parameters.parameters.forEach((FormalParameter param) {
+      if (param.identifier != null) {
+        _addSuggestion(param.identifier, CompletionSuggestionKind.PARAMETER);
+      }
+    });
+    visitNode(node);
+  }
+
+  @override
+  visitNode(AstNode node) {
+    node.parent.accept(this);
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    // Do not add suggestions if editing the name in a var declaration
+    SimpleIdentifier name = node.name;
+    if (name == null ||
+        name.offset < request.offset ||
+        request.offset > name.end) {
+      visitNode(node);
+    }
+  }
+
+  void _addSuggestion(SimpleIdentifier id, CompletionSuggestionKind kind) {
     if (id != null) {
       String completion = id.name;
       if (completion != null && completion.length > 0) {
-        suggestions.add(
+        request.suggestions.add(
             new CompletionSuggestion(
                 kind,
                 CompletionRelevance.DEFAULT,
@@ -69,121 +188,10 @@ class _LocalVisitor extends GeneralizingAstVisitor<dynamic> {
     }
   }
 
-  void addSuggestions(VariableDeclarationList variables,
+  void _addSuggestions(VariableDeclarationList variables,
       CompletionSuggestionKind kind) {
     variables.variables.forEach((VariableDeclaration varDecl) {
-      addSuggestion(varDecl.name, kind);
+      _addSuggestion(varDecl.name, kind);
     });
-  }
-
-  visitBlock(Block node) {
-    node.statements.forEach((Statement stmt) {
-      if (stmt.offset < offset) {
-        if (stmt is LabeledStatement) {
-          stmt.labels.forEach((Label label) {
-//            addSuggestion(label.label, CompletionSuggestionKind.LABEL);
-          });
-        } else if (stmt is VariableDeclarationStatement) {
-          stmt.variables.variables.forEach((VariableDeclaration varDecl) {
-            if (varDecl.end < offset) {
-              addSuggestion(
-                  varDecl.name,
-                  CompletionSuggestionKind.LOCAL_VARIABLE);
-            }
-          });
-        }
-      }
-    });
-    visitNode(node);
-  }
-
-  visitCatchClause(CatchClause node) {
-    addSuggestion(node.exceptionParameter, CompletionSuggestionKind.PARAMETER);
-    addSuggestion(node.stackTraceParameter, CompletionSuggestionKind.PARAMETER);
-    visitNode(node);
-  }
-
-  visitClassDeclaration(ClassDeclaration node) {
-    node.members.forEach((ClassMember classMbr) {
-      if (classMbr is FieldDeclaration) {
-        addSuggestions(classMbr.fields, CompletionSuggestionKind.FIELD);
-      } else if (classMbr is MethodDeclaration) {
-        addSuggestion(classMbr.name, CompletionSuggestionKind.METHOD_NAME);
-      }
-    });
-    visitNode(node);
-  }
-
-  visitCompilationUnit(CompilationUnit node) {
-    node.directives.forEach((Directive directive) {
-      if (directive is ImportDirective) {
-        addSuggestion(
-            directive.prefix,
-            CompletionSuggestionKind.LIBRARY_PREFIX);
-      }
-    });
-    node.declarations.forEach((Declaration declaration) {
-      if (declaration is ClassDeclaration) {
-        addSuggestion(declaration.name, CompletionSuggestionKind.CLASS);
-      } else if (declaration is EnumDeclaration) {
-//        addSuggestion(d.name, CompletionSuggestionKind.ENUM);
-      } else if (declaration is FunctionDeclaration) {
-        addSuggestion(declaration.name, CompletionSuggestionKind.FUNCTION);
-      } else if (declaration is TopLevelVariableDeclaration) {
-        addSuggestions(
-            declaration.variables,
-            CompletionSuggestionKind.TOP_LEVEL_VARIABLE);
-      } else if (declaration is ClassTypeAlias) {
-        addSuggestion(declaration.name, CompletionSuggestionKind.CLASS_ALIAS);
-      } else if (declaration is FunctionTypeAlias) {
-        addSuggestion(
-            declaration.name,
-            CompletionSuggestionKind.FUNCTION_TYPE_ALIAS);
-      }
-    });
-  }
-
-  visitForEachStatement(ForEachStatement node) {
-    addSuggestion(node.identifier, CompletionSuggestionKind.LOCAL_VARIABLE);
-    visitNode(node);
-  }
-
-  visitForStatement(ForStatement node) {
-    addSuggestions(node.variables, CompletionSuggestionKind.LOCAL_VARIABLE);
-    visitNode(node);
-  }
-
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    // This is added by the compilation unit containing it
-    //addSuggestion(node.name, CompletionSuggestionKind.FUNCTION);
-    visitNode(node);
-  }
-
-  visitFunctionExpression(FunctionExpression node) {
-    node.parameters.parameters.forEach((FormalParameter param) {
-      addSuggestion(param.identifier, CompletionSuggestionKind.PARAMETER);
-    });
-    visitNode(node);
-  }
-
-  visitMethodDeclaration(MethodDeclaration node) {
-    node.parameters.parameters.forEach((FormalParameter param) {
-      if (param.identifier != null) {
-        addSuggestion(param.identifier, CompletionSuggestionKind.PARAMETER);
-      }
-    });
-    visitNode(node);
-  }
-
-  visitNode(AstNode node) {
-    node.parent.accept(this);
-  }
-
-  visitVariableDeclaration(VariableDeclaration node) {
-    // Do not add suggestions if editing the name in a var declaration
-    SimpleIdentifier name = node.name;
-    if (name == null || name.offset < offset || offset > name.end) {
-      visitNode(node);
-    }
   }
 }

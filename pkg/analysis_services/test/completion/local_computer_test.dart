@@ -27,7 +27,7 @@ class LocalComputerTest extends AbstractCompletionTest {
   test_block() {
     addTestSource('class A {a() {var f; {var x;} ^ var g;}}');
     expect(computeFast(), isTrue);
-    assertSuggestVariable('f');
+    assertSuggestLocalVariable('f');
     assertNotSuggested('g');
     assertNotSuggested('x');
   }
@@ -77,13 +77,13 @@ class LocalComputerTest extends AbstractCompletionTest {
   test_for() {
     addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestVariable('i');
+    assertSuggestLocalVariable('i');
   }
 
   test_forEach() {
     addTestSource('main(args) {for (foo in bar) {^}}');
     expect(computeFast(), isTrue);
-    assertSuggestVariable('foo');
+    assertSuggestLocalVariable('foo');
   }
 
   test_function() {
@@ -102,7 +102,7 @@ class LocalComputerTest extends AbstractCompletionTest {
     // parses differently than var ^ in test below
     assertSuggestClass('A');
     assertSuggestMethodName('a');
-    assertSuggestVariable('f');
+    assertSuggestLocalVariable('f');
   }
 
   test_local_name2() {
@@ -155,7 +155,7 @@ class LocalComputerTest extends AbstractCompletionTest {
   test_variableDeclaration() {
     addTestSource('main() {int a = 1, b = 2 + ^;}');
     expect(computeFast(), isTrue);
-    assertSuggestVariable('a');
+    assertSuggestLocalVariable('a');
     assertNotSuggested('b');
   }
 }

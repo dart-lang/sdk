@@ -6,8 +6,8 @@ library services.completion.computer.dart.keyword;
 
 import 'dart:async';
 
-import 'package:analysis_services/completion/completion_computer.dart';
 import 'package:analysis_services/completion/completion_suggestion.dart';
+import 'package:analysis_services/src/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -15,18 +15,16 @@ import 'package:analyzer/src/generated/scanner.dart';
  * A computer for calculating `completion.getSuggestions` request results
  * for the local library in which the completion is requested.
  */
-class KeywordComputer extends CompletionComputer {
+class KeywordComputer extends DartCompletionComputer {
 
   @override
-  bool computeFast(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
-    node.accept(new _KeywordVisitor(suggestions));
+  bool computeFast(DartCompletionRequest request) {
+    request.node.accept(new _KeywordVisitor(request));
     return true;
   }
 
   @override
-  Future<bool> computeFull(CompilationUnit unit, AstNode node,
-      List<CompletionSuggestion> suggestions) {
+  Future<bool> computeFull(DartCompletionRequest request) {
     return new Future.value(false);
   }
 }
@@ -35,10 +33,16 @@ class KeywordComputer extends CompletionComputer {
  * A vistor for generating keyword suggestions.
  */
 class _KeywordVisitor extends GeneralizingAstVisitor {
-  final List<CompletionSuggestion> suggestions;
+  final DartCompletionRequest request;
 
-  _KeywordVisitor(this.suggestions);
+  _KeywordVisitor(this.request);
 
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
+    _addSuggestions([Keyword.EXTENDS, Keyword.IMPLEMENTS, Keyword.WITH]);
+  }
+
+  @override
   visitCompilationUnit(CompilationUnit node) {
     _addSuggestions(
         [
@@ -54,14 +58,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
             Keyword.VAR]);
   }
 
-  visitClassDeclaration(ClassDeclaration node) {
-    _addSuggestions([Keyword.EXTENDS, Keyword.IMPLEMENTS, Keyword.WITH]);
+  @override
+  visitNode(AstNode node) {
+    // ignored
   }
 
   void _addSuggestions(List<Keyword> keywords) {
     keywords.forEach((Keyword keyword) {
       String completion = keyword.syntax;
-      suggestions.add(
+      request.suggestions.add(
           new CompletionSuggestion(
               CompletionSuggestionKind.KEYWORD,
               CompletionRelevance.DEFAULT,
@@ -72,6 +77,4 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
               false));
     });
   }
-
-  visitNode(AstNode node) {}
 }
