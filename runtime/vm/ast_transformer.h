@@ -69,7 +69,7 @@ class AwaitTransformer : public AstNodeVisitor {
   Isolate* isolate() const { return isolate_; }
 
   SequenceNode* preamble_;
-  int temp_cnt_;
+  int32_t temp_cnt_;
   AstNode* result_;
   const Library& library_;
   ParsedFunction* const parsed_function_;
