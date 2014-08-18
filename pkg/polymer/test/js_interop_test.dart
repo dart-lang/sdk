@@ -45,6 +45,13 @@ main() => initPolymer().run(() {
 
   setUp(() => Polymer.onReady);
 
+  test('elements can be passed through Node.bind to JS', () {
+    var text = querySelector('dart-element2')
+        .shadowRoot.querySelector('js-element2')
+        .shadowRoot.text;
+    expect(text, 'QUX:123');
+  });
+
   test('dart-element upgraded', () {
     expect(querySelector('dart-element') is DartElement, true,
         reason: 'dart-element upgraded');
@@ -55,13 +62,6 @@ main() => initPolymer().run(() {
 
   test('js-element in dart-element', () => testInterop(
       querySelector('dart-element').shadowRoot.querySelector('js-element')));
-
-  test('elements can be passed through Node.bind to JS', () {
-    var text = querySelector('dart-element2')
-        .shadowRoot.querySelector('js-element2')
-        .shadowRoot.text;
-    expect(text, 'QUX:123');
-  });
 
   test('objects with functions can be passed through Node.bind to JS', () {
     var sr = querySelector('dart-element3')

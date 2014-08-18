@@ -205,7 +205,7 @@ class PolymerDeclaration {
 
     _getPublishedProperties(type);
 
-    // merge names from 'attributes' attribute
+    // merge names from 'attributes' attribute into the '_publish' object
     var attrs = element.attributes['attributes'];
     if (attrs != null) {
       // names='a b c' or names='a,b,c'
@@ -489,7 +489,7 @@ PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 /// Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
 void _shimShadowDomStyling(DocumentFragment template, String name,
     String extendee) {
-  if (template == null || _ShadowCss == null) return;
+  if (template == null || _ShadowCss == null ||!_hasShadowDomPolyfill) return;
 
   _ShadowCss.callMethod('shimStyling', [template, name, extendee]);
 }
