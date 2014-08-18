@@ -49,9 +49,8 @@ AstNode* AwaitTransformer::Transform(AstNode* expr) {
 
 LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   const char* await_temp_prefix = ":await_temp_var_";
-  const String& cnt_str = String::ZoneHandle(I,
-      String::NewFormatted(
-          "%s%" Pd "", await_temp_prefix, temp_cnt_));
+  const String& cnt_str = String::ZoneHandle(
+      I, String::NewFormatted("%s%d", await_temp_prefix, temp_cnt_));
   const String& symbol = String::ZoneHandle(I, Symbols::New(cnt_str));
   ASSERT(!symbol.IsNull());
   LocalVariable* await_tmp =
