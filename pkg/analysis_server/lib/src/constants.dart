@@ -68,13 +68,10 @@ const String SEARCH_RESULTS = 'search.results';
 //
 // Edit methods
 //
-const String EDIT_APPLY_REFACTORING = 'edit.applyRefactoring';
-const String EDIT_CREATE_REFACTORING = 'edit.createRefactoring';
-const String EDIT_DELETE_REFACTORING = 'edit.deleteRefactoring';
 const String EDIT_GET_ASSISTS = 'edit.getAssists';
+const String EDIT_GET_AVAILABLE_REFACTORINGS = 'edit.getAvailableRefactorings';
 const String EDIT_GET_FIXES = 'edit.getFixes';
-const String EDIT_GET_REFACTORINGS = 'edit.getRefactorings';
-const String EDIT_SET_REFACTORING_OPTIONS = 'edit.setRefactoringOptions';
+const String EDIT_GET_REFACTORING = 'edit.getRefactoring';
 
 //
 // Analysis option names

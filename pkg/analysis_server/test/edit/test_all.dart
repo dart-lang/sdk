@@ -7,7 +7,8 @@ library test.edit.all;
 import 'package:unittest/unittest.dart';
 
 import 'edit_domain_test.dart' as domain_edit_test;
-import 'fix_test.dart' as fix_test;
+import 'fixes_test.dart' as fixes_test;
+import 'refactoring_test.dart' as refactoring_test;
 
 /**
  * Utility for manually running all tests.
@@ -16,6 +17,7 @@ main() {
   groupSep = ' | ';
   group('edit', () {
     domain_edit_test.main();
-    fix_test.main();
+    fixes_test.main();
+    refactoring_test.main();
   });
 }

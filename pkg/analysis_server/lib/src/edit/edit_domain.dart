@@ -5,16 +5,18 @@
 library edit.domain;
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_services/constants.dart';
 import 'package:analysis_services/correction/fix.dart';
+import 'package:analysis_services/refactoring/refactoring.dart';
 import 'package:analysis_services/search/search_engine.dart';
-import 'package:analyzer/src/generated/error.dart' as engine;
-import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analysis_server/src/computer/error.dart';
-import 'package:analysis_server/src/edit/fix.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/generated/error.dart' as engine;
 
 
 /**
@@ -39,39 +41,6 @@ class EditDomainHandler implements RequestHandler {
     searchEngine = server.searchEngine;
   }
 
-  Response applyRefactoring(Request request) {
-    // id
-    RequestDatum idDatum = request.getRequiredParameter(ID);
-    String id = idDatum.asString();
-    // TODO(brianwilkerson) implement
-    return null;
-  }
-
-  Response createRefactoring(Request request) {
-    // kind
-    RequestDatum kindDatum = request.getRequiredParameter(KIND);
-    String kind = kindDatum.asString();
-    // file
-    RequestDatum fileDatum = request.getRequiredParameter(FILE);
-    String file = fileDatum.asString();
-    // offset
-    RequestDatum offsetDatum = request.getRequiredParameter(OFFSET);
-    int offset = offsetDatum.asInt();
-    // length
-    RequestDatum lengthDatum = request.getRequiredParameter(LENGTH);
-    int length = lengthDatum.asInt();
-    // TODO(brianwilkerson) implement
-    return null;
-  }
-
-  Response deleteRefactoring(Request request) {
-    // id
-    RequestDatum idDatum = request.getRequiredParameter(ID);
-    String id = idDatum.asString();
-    // TODO(brianwilkerson) implement
-    return null;
-  }
-
   Response getAssists(Request request) {
     // file
     RequestDatum fileDatum = request.getRequiredParameter(FILE);
@@ -84,6 +53,24 @@ class EditDomainHandler implements RequestHandler {
     int length = lengthDatum.asInt();
     // TODO(brianwilkerson) implement
     return null;
+  }
+
+  Response getAvailableRefactorings(Request request) {
+    String file = request.getRequiredParameter(FILE).asString();
+    int offset = request.getRequiredParameter(OFFSET).asInt();
+    int length = request.getRequiredParameter(LENGTH).asInt();
+    List<String> kinds = <String>[];
+    List<Element> elements = server.getElementsAtOffset(file, offset);
+    if (elements.isNotEmpty) {
+      Element element = elements[0];
+      RenameRefactoring renameRefactoring =
+          new RenameRefactoring(searchEngine, element);
+      if (renameRefactoring != null) {
+        kinds.add(RefactoringKind.RENAME);
+      }
+    }
+    // respond
+    return new Response(request.id)..setResult(KINDS, kinds);
   }
 
   Response getFixes(Request request) {
@@ -112,50 +99,31 @@ class EditDomainHandler implements RequestHandler {
     return new Response(request.id)..setResult(FIXES, errorFixesList);
   }
 
-  Response getRefactorings(Request request) {
-    // file
-    RequestDatum fileDatum = request.getRequiredParameter(FILE);
-    String file = fileDatum.asString();
-    // offset
-    RequestDatum offsetDatum = request.getRequiredParameter(OFFSET);
-    int offset = offsetDatum.asInt();
-    // length
-    RequestDatum lengthDatum = request.getRequiredParameter(LENGTH);
-    int length = lengthDatum.asInt();
-    // TODO(brianwilkerson) implement
-    return null;
-  }
-
   @override
   Response handleRequest(Request request) {
     try {
       String requestName = request.method;
-      if (requestName == EDIT_APPLY_REFACTORING) {
-        return applyRefactoring(request);
-      } else if (requestName == EDIT_CREATE_REFACTORING) {
-        return createRefactoring(request);
-      } else if (requestName == EDIT_DELETE_REFACTORING) {
-        return deleteRefactoring(request);
+      if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
+        return getAvailableRefactorings(request);
       } else if (requestName == EDIT_GET_ASSISTS) {
         return getAssists(request);
       } else if (requestName == EDIT_GET_FIXES) {
         return getFixes(request);
-      } else if (requestName == EDIT_GET_REFACTORINGS) {
-        return getRefactorings(request);
-      } else if (requestName == EDIT_SET_REFACTORING_OPTIONS) {
-        return setRefactoringOptions(request);
       }
     } on RequestFailure catch (exception) {
       return exception.response;
     }
     return null;
   }
+}
 
-  Response setRefactoringOptions(Request request) {
-    // id
-    RequestDatum idDatum = request.getRequiredParameter(ID);
-    String id = idDatum.asString();
-    // TODO(brianwilkerson) implement
-    return null;
-  }
+
+class RefactoringKind {
+  static const String CONVERT_GETTER_TO_METHOD = 'CONVERT_GETTER_TO_METHOD';
+  static const String CONVERT_METHOD_TO_GETTER = 'CONVERT_METHOD_TO_GETTER';
+  static const String EXTRACT_LOCAL_VARIABLE = 'EXTRACT_LOCAL_VARIABLE';
+  static const String EXTRACT_METHOD = 'EXTRACT_METHOD';
+  static const String INLINE_LOCAL_VARIABLE = 'INLINE_LOCAL_VARIABLE';
+  static const String INLINE_METHOD = 'INLINE_METHOD';
+  static const String RENAME = 'RENAME';
 }

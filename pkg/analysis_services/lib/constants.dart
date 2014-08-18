@@ -45,6 +45,7 @@ const String IS_DEPRECATED = 'isDeprecated';
 const String IS_POTENTIAL = 'isPotential';
 const String IS_STATIC = 'isStatic';
 const String KIND = 'kind';
+const String KINDS = 'kinds';
 const String LAST = 'last';
 const String LENGTH = 'length';
 const String LINKED_EDIT_GROUPS = 'linkedEditGroups';
