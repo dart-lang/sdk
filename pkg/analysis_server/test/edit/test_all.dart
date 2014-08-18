@@ -6,6 +6,7 @@ library test.edit.all;
 
 import 'package:unittest/unittest.dart';
 
+import 'assists_test.dart' as assists_test;
 import 'edit_domain_test.dart' as domain_edit_test;
 import 'fixes_test.dart' as fixes_test;
 import 'refactoring_test.dart' as refactoring_test;
@@ -16,6 +17,7 @@ import 'refactoring_test.dart' as refactoring_test;
 main() {
   groupSep = ' | ';
   group('edit', () {
+    assists_test.main();
     domain_edit_test.main();
     fixes_test.main();
     refactoring_test.main();

@@ -10,7 +10,10 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -42,17 +45,22 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response getAssists(Request request) {
-    // file
-    RequestDatum fileDatum = request.getRequiredParameter(FILE);
-    String file = fileDatum.asString();
-    // offset
-    RequestDatum offsetDatum = request.getRequiredParameter(OFFSET);
-    int offset = offsetDatum.asInt();
-    // length
-    RequestDatum lengthDatum = request.getRequiredParameter(LENGTH);
-    int length = lengthDatum.asInt();
-    // TODO(brianwilkerson) implement
-    return null;
+    String file = request.getRequiredParameter(FILE).asString();
+    int offset = request.getRequiredParameter(OFFSET).asInt();
+    int length = request.getRequiredParameter(LENGTH).asInt();
+    List<Change> changes = <Change>[];
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    if (units.isNotEmpty) {
+      CompilationUnit unit = units[0];
+      List<Assist> assists = computeAssists(searchEngine, unit, offset, length);
+      assists.forEach((Assist assist) {
+        changes.add(assist.change);
+      });
+    }
+    // respond
+    Response response = new Response(request.id);
+    response.setResult(ASSISTS, objectToJson(changes));
+    return response;
   }
 
   Response getAvailableRefactorings(Request request) {
@@ -89,7 +97,7 @@ class EditDomainHandler implements RequestHandler {
             ErrorFixes errorFixes = new ErrorFixes(serverError);
             errorFixesList.add(errorFixes);
             fixes.forEach((fix) {
-              return errorFixes.addFix(fix);
+              errorFixes.addFix(fix);
             });
           }
         }

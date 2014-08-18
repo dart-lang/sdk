@@ -9,6 +9,7 @@ library services.constants;
 //
 const String ADD = 'add';
 const String ADDED = 'added';
+const String ASSISTS = 'assists';
 const String CHANGE = 'change';
 const String CHILDREN = 'children';
 const String CLASS_ELEMENT = 'classElement';
