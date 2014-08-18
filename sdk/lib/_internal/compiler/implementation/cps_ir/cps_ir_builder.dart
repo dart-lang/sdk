@@ -110,6 +110,10 @@ class IrBuilderTask extends CompilerTask {
     if (function is ConstructorElement && function.isRedirectingFactory) {
       return false;
     }
+    // TODO(kmillikin,sigurdm): support syntax for factory constructors
+    if (function is ConstructorElement && function.isFactoryConstructor) {
+      return false;
+    }
 
     return true;
   }

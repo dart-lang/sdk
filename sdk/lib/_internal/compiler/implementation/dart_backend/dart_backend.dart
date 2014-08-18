@@ -5,6 +5,7 @@
 library dart_backend;
 
 import 'dart:async' show Future;
+import 'dart:math' show max;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show SynthesizedConstructorElementX;
 import '../dart2jslib.dart';
@@ -32,6 +33,5 @@ import '../scanner/scannerlib.dart' show StringToken,
                                          IDENTIFIER_INFO;
 
 part 'backend.dart';
-part 'emitter.dart';
 part 'renamer.dart';
 part 'placeholder_collector.dart';

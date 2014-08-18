@@ -23,10 +23,9 @@ class DartBackend extends Backend {
   final bool stripAsserts;
   // TODO(antonm): make available from command-line options.
   final bool outputAst = false;
-  final Map<Node, String> renames;
-  final Map<LibraryElement, String> imports;
   final Map<ClassNode, List<Node>> memberNodes;
-  Map<Element, LibraryElement> reexportingLibraries;
+
+  PlaceholderRenamer placeholderRenamer;
 
   // TODO(zarah) Maybe change this to a command-line option.
   // Right now, it is set by the tests.
@@ -105,10 +104,7 @@ class DartBackend extends Backend {
 
   DartBackend(Compiler compiler, List<String> strips)
       : tasks = <CompilerTask>[],
-        renames = new Map<Node, String>(),
-        imports = new Map<LibraryElement, String>(),
         memberNodes = new Map<ClassNode, List<Node>>(),
-        reexportingLibraries = <Element, LibraryElement>{},
         forceStripTypes = strips.indexOf('types') != -1,
         stripAsserts = strips.indexOf('asserts') != -1,
         constantCompilerTask  = new DartConstantTask(compiler),
@@ -159,6 +155,10 @@ class DartBackend extends Backend {
     // however as of today there are problems with names of some core library
     // interfaces, most probably for interfaces of literals.
     final fixedMemberNames = new Set<String>();
+
+    Map<Element, LibraryElement> reexportingLibraries =
+        <Element, LibraryElement>{};
+
     for (final library in compiler.libraryLoader.libraries) {
       if (!library.isPlatformLibrary) continue;
       library.forEachLocalMember((Element element) {
@@ -183,6 +183,7 @@ class DartBackend extends Backend {
         // those names.
         fixedMemberNames.add(element.name);
       });
+
       for (Element export in library.exports) {
         if (!library.isInternalLibrary &&
             export.library.isInternalLibrary) {
@@ -398,15 +399,17 @@ class DartBackend extends Backend {
     bool shouldCutDeclarationTypes = forceStripTypes
         || (compiler.enableMinification
             && isSafeToRemoveTypeDeclarations(classMembers));
-    renamePlaceholders(
-        compiler, collector, renames, imports,
-        fixedMemberNames, reexportingLibraries,
-        shouldCutDeclarationTypes,
-        uniqueGlobalNaming: useMirrorHelperLibrary);
+
+    placeholderRenamer =
+        new PlaceholderRenamer(compiler, fixedMemberNames, reexportingLibraries,
+            cutDeclarationTypes: shouldCutDeclarationTypes);
+
+    placeholderRenamer.computeRenames(collector);
 
     // Sort elements.
-    final sortedTopLevels = sortElements(topLevelElements);
-    final sortedClassMembers = new Map<ClassElement, List<Element>>();
+    final List<Element> sortedTopLevels = sortElements(topLevelElements);
+    final Map<ClassElement, List<Element>> sortedClassMembers =
+        new Map<ClassElement, List<Element>>();
     classMembers.forEach((classElement, members) {
       sortedClassMembers[classElement] = sortElements(members);
     });
@@ -432,7 +435,7 @@ class DartBackend extends Backend {
       return;
     }
 
-    final topLevelNodes = <Node>[];
+    final List<Node> topLevelNodes = <Node>[];
     for (final element in sortedTopLevels) {
       topLevelNodes.add(elementAsts[element].ast);
       if (element.isClass && !element.isMixinApplication) {
@@ -445,18 +448,35 @@ class DartBackend extends Backend {
     }
 
     if (useMirrorHelperLibrary) {
-      mirrorRenamer.addRenames(renames, topLevelNodes, collector);
+      mirrorRenamer.addRenames(placeholderRenamer.renames,
+                               topLevelNodes, collector);
     }
 
-    final unparser = new EmitterUnparser(renames, stripTypes: forceStripTypes,
-        minify: compiler.enableMinification);
-    emitCode(unparser, imports, topLevelNodes, memberNodes);
-    String assembledCode = unparser.result;
-    compiler.outputProvider('', 'dart')
-        ..add(assembledCode)
-        ..close();
-    compiler.assembledCode = assembledCode;
+    final EmitterUnparser unparser =
+        new EmitterUnparser(placeholderRenamer.renames,
+                            stripTypes: forceStripTypes,
+                            minify: compiler.enableMinification);
+    for (LibraryElement library in placeholderRenamer.platformImports) {
+      if (library.isPlatformLibrary && !library.isInternalLibrary) {
+        unparser.unparseImportTag(library.canonicalUri.toString());
+      }
+    }
+    for (int i = 0; i < sortedTopLevels.length; i++) {
+      Element element = sortedTopLevels[i];
+      Node node = topLevelNodes[i];
+      if (node is ClassNode) {
+        // TODO(smok): Filter out default constructors here.
+        unparser.unparseClassWithBody(node, memberNodes[node]);
+      } else {
+        unparser.unparse(node);
+      }
+      unparser.newline();
+    }
 
+    compiler.assembledCode = unparser.result;
+    compiler.outputProvider("", "dart")
+         ..add(compiler.assembledCode)
+         ..close();
     // Output verbose info about size ratio of resulting bundle to all
     // referenced non-platform sources.
     logResultBundleSizeInfo(topLevelElements);

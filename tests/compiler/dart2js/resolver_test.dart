@@ -609,7 +609,7 @@ Future testFunctionExpression() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Map mapping = compiler.resolveStatement("int f() {}").map;
-    Expect.equals(1, mapping.length);
+    Expect.equals(2, mapping.length);
     Element element;
     Node node;
     mapping.forEach((Node n, Element e) {

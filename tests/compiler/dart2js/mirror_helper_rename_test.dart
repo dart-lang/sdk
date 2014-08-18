@@ -37,7 +37,7 @@ void testWithMirrorHelperLibrary({bool minify}) {
       then((Compiler compiler) {
     DartBackend backend = compiler.backend;
     MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
-    Map<Node, String> renames = backend.renames;
+    Map<Node, String> renames = backend.placeholderRenamer.renames;
     Map<String, String> symbols = mirrorRenamer.symbols;
 
     Expect.isFalse(null == backend.mirrorHelperLibrary);

@@ -42,8 +42,9 @@ void testWithMirrorRenaming({bool minify}) {
 
     DartBackend backend = compiler.backend;
     MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
-    Map<Node, String> renames = backend.renames;
-    Map<LibraryElement, String> imports = backend.imports;
+    Map<Node, String> renames = backend.placeholderRenamer.renames;
+    Set<LibraryElement> imports =
+        backend.placeholderRenamer.platformImports;
 
     FunctionExpression node = backend.memberNodes.values.first.first;
     Block block = node.body;
@@ -54,7 +55,7 @@ void testWithMirrorRenaming({bool minify}) {
                   renames[send.selector]);
     Expect.equals("",
                   renames[send.receiver]);
-    Expect.equals(1, imports.keys.length);
+    Expect.equals(1, imports.length);
   }));
 }
 
@@ -63,17 +64,16 @@ void testWithoutMirrorRenaming({bool minify}) {
       then((Compiler compiler) {
 
     DartBackend backend = compiler.backend;
-    Map<Node, String> renames = backend.renames;
-    Map<LibraryElement, String> imports = backend.imports;
-
+    Map<Node, String> renames = backend.placeholderRenamer.renames;
+    Set<LibraryElement> imports =
+        backend.placeholderRenamer.platformImports;
     FunctionExpression node = backend.memberNodes.values.first.first;
     Block block = node.body;
     ExpressionStatement getNameFunctionNode = block.statements.nodes.head;
     Send send = getNameFunctionNode.expression;
 
     Expect.isFalse(renames.containsKey(send.selector));
-    Expect.isFalse(renames.containsKey(send.receiver));
-    Expect.equals(1, imports.keys.length);
+    Expect.equals(1, imports.length);
   }));
 }
 

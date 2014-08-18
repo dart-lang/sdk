@@ -181,9 +181,6 @@ closure_call_wrong_argument_count_negative_test: Skip
 label_test: Skip
 
 [ $compiler == dart2dart && $builder_tag == new_backend && $minified == false ]
-dynamic_test: RuntimeError # Issue 19751
-
-[ $compiler == dart2dart && $builder_tag == new_backend && $minified == false ]
 # This test happens not to fail in minified, because the type-argument is
 # renamed, but the unresolved reference to it is not.
 type_variable_conflict2_test/04: Fail # Issue 19725
@@ -199,9 +196,6 @@ mixin_super_constructor_positionals_test: Fail # Issue 12631
 
 built_in_identifier_prefix_test: Fail # Issue 6972
 constructor_initializer_test/none: Fail # Issue 12633
-factory3_test: Fail # Issue 13077
-redirecting_factory_long_test: Fail # Issue 13077
-type_checks_in_factory_method_test: Fail # Issue 12747
 
 # Mixins fail on the VM.
 mixin_forwarding_constructor2_test: Fail # Issue 13641
@@ -230,9 +224,6 @@ method_override4_test: Fail # Issue 12810
 method_override5_test: Fail # Issue 12810
 scope_variable_test/01: Fail # Issue 13016
 factory_redirection_test/01: Fail # Issue 12753
-factory_redirection_test/02: Crash # Issue 12753
-factory_redirection_test/03: Crash # Issue 12753
-factory_redirection_test/09: Fail # Issue 12753
 
 # DartVM problem.
 constructor5_test: Fail
@@ -256,7 +247,6 @@ super_getter_setter_test: Fail # Issue 11065.
 f_bounded_quantification4_test: Fail # Issue 12605.
 f_bounded_quantification5_test: Fail # Issue 12605.
 type_variable_typedef_test: Fail # Issue 11467
-type_variable_conflict2_test/01: RuntimeError # Issue 16180
 
 invocation_mirror_test: Fail, OK # Issue 12706 (hardcoded names).
 super_call4_test: Fail, OK # hardcoded names.

@@ -518,6 +518,7 @@ class TreePrinter {
           null,
           makeIdentifier(exp.name));
       setElement(result, exp.element, exp);
+      setType(result, exp.element.type, exp);
     } else if (exp is StringConcat) {
       precedence = PRIMARY;
       result = unparseStringLiteral(exp);

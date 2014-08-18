@@ -82,8 +82,6 @@ Language/03_Overview/1_Scoping_A02_t28: Fail # co19-roll r559: Please triage thi
 Language/05_Variables/05_Variables_A05_t01: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A05_t02: fail # co19-roll r546: Please triage this failure
 Language/05_Variables/05_Variables_A11_t01: fail
-Language/07_Classes/6_Constructors/2_Factories_A10_t01: crash # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/2_Factories_A10_t04: crash # co19-roll r587: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t03: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t05: fail # co19-roll r546: Please triage this failure
 Language/12_Expressions/12_Instance_Creation/1_New_A02_t06: fail # co19-roll r546: Please triage this failure

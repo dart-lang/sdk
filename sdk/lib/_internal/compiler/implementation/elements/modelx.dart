@@ -299,7 +299,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   computeEffectiveTargetType(InterfaceType newType) => unsupported();
 
-  get definingConstructor => this;
+  get definingConstructor => null;
 
   FunctionElement asFunctionElement() => this;
 
