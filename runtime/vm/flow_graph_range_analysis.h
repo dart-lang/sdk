@@ -444,7 +444,7 @@ class RangeAnalysis : public ValueObject {
   // inference.
   // Returns meaningful results for uses of non-smi definitions that have smi
   // as a reaching type.
-  const Range* GetRange(Value* value) const;
+  const Range* GetSmiRange(Value* value) const;
 
  private:
   enum JoinOperator {

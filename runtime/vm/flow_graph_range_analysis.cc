@@ -199,9 +199,6 @@ ConstraintInstr* RangeAnalysis::InsertConstraintFor(Value* use,
                                                     Definition* defn,
                                                     Range* constraint_range,
                                                     Instruction* after) {
-  // Avoid constraining inside the dead code.
-  if (!use->IsSmiValue()) return NULL;
-
   // No need to constrain constants.
   if (defn->IsConstant()) return NULL;
 
@@ -322,13 +319,11 @@ void RangeAnalysis::InsertConstraints() {
 }
 
 
-const Range* RangeAnalysis::GetRange(Value* value) const {
+const Range* RangeAnalysis::GetSmiRange(Value* value) const {
   Definition* defn = value->definition();
   const Range* range = defn->range();
 
-  if ((range == NULL) &&
-      (value->Type()->ToCid() == kSmiCid) &&
-      (defn->Type()->ToCid() != kSmiCid)) {
+  if ((range == NULL) && (defn->Type()->ToCid() != kSmiCid)) {
     // Type propagator determined that reaching type for this use is Smi.
     // However the definition itself is not a smi-definition and
     // thus it will never have range assigned to it. Just return the widest
@@ -1763,7 +1758,7 @@ void PhiInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   ASSERT(Type()->ToCid() == kSmiCid);
   for (intptr_t i = 0; i < InputCount(); i++) {
     Value* input = InputAt(i);
-    Join(range, input->definition(), analysis->GetRange(input));
+    Join(range, input->definition(), analysis->GetSmiRange(input));
   }
 
   BlockEntryInstr* phi_block = GetBlock();
@@ -1791,10 +1786,7 @@ void ConstantInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 
 void ConstraintInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  // Only constraining smi values.
-  ASSERT(value()->IsSmiValue());
-
-  const Range* value_range = analysis->GetRange(value());
+  const Range* value_range = analysis->GetSmiRange(value());
   if (Range::IsUnknown(value_range)) {
     return;
   }
@@ -1903,8 +1895,8 @@ void BinarySmiOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   // right and a non-constant on the left.
   Definition* left_defn = left()->definition();
 
-  const Range* left_range = analysis->GetRange(left());
-  const Range* right_range = analysis->GetRange(right());
+  const Range* left_range = analysis->GetSmiRange(left());
+  const Range* right_range = analysis->GetSmiRange(right());
 
   if (Range::IsUnknown(left_range) || Range::IsUnknown(right_range)) {
     return;
@@ -1932,8 +1924,8 @@ void BinaryMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   // the right and a non-constant on the left.
   Definition* left_defn = left()->definition();
 
-  const Range* left_range = analysis->GetRange(left());
-  const Range* right_range = analysis->GetRange(right());
+  const Range* left_range = left_defn->range();
+  const Range* right_range = right()->definition()->range();
 
   if (Range::IsUnknown(left_range) || Range::IsUnknown(right_range)) {
     return;
@@ -1959,8 +1951,8 @@ void BinaryMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   Definition* left_defn = left()->definition();
 
-  const Range* left_range = analysis->GetRange(left());
-  const Range* right_range = analysis->GetRange(right());
+  const Range* left_range = left_defn->range();
+  const Range* right_range = right()->definition()->range();
 
   if (Range::IsUnknown(left_range) || Range::IsUnknown(right_range)) {
     return;
@@ -1984,7 +1976,7 @@ void ShiftMintOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 
 void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* input_range = analysis->GetRange(value());
+  const Range* input_range = value()->definition()->range();
   if (input_range != NULL) {
     bool is_smi = !input_range->min().LowerBound().OverflowedSmi() &&
                   !input_range->max().UpperBound().OverflowedSmi();
@@ -1996,11 +1988,11 @@ void BoxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
 
 
 void UnboxIntegerInstr::InferRange(RangeAnalysis* analysis, Range* range) {
-  const Range* value_range = analysis->GetRange(value());
+  const Range* value_range = value()->definition()->range();
   if (value_range != NULL) {
     *range = *value_range;
   } else if (!value()->definition()->IsMintDefinition() &&
-             (value()->Type()->ToCid() != kSmiCid)) {
+             (value()->definition()->Type()->ToCid() != kSmiCid)) {
     *range = Range::Full(RangeBoundary::kRangeBoundaryInt64);
   }
 }
