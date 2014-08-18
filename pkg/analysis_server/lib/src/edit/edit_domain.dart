@@ -9,7 +9,6 @@ import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/constants.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';

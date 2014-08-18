@@ -8,7 +8,6 @@ import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 

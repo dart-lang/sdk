@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/constants.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;

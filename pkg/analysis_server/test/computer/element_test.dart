@@ -5,7 +5,7 @@
 library test.computer.element;
 
 import 'package:analysis_server/src/computer/element.dart';
-import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_testing/abstract_context.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';

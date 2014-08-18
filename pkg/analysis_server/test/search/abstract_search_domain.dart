@@ -11,7 +11,6 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/search/search_result.dart';
-import 'package:analysis_server/src/services/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:unittest/unittest.dart';

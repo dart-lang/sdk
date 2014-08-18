@@ -4,7 +4,7 @@
 
 library computer.navigation;
 
-import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';

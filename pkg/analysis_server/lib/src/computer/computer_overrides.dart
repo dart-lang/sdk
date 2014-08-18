@@ -5,7 +5,7 @@
 library computer.overrides;
 
 import 'package:analysis_server/src/computer/element.dart';
-import 'package:analysis_server/src/services/constants.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/json.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
