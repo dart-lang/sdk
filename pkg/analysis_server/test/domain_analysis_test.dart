@@ -15,7 +15,6 @@ import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -143,24 +142,26 @@ main() {
           'not-an-option': true
         });
         var response = handler.handleRequest(request);
-        expect(response, isResponseFailure('0'));
+        // Invalid options should be silently ignored.
+        expect(response, isResponseSuccess('0'));
       });
 
-      test('valid', () {
-        AnalysisOptions options = server.contextDirectoryManager.defaultOptions;
-        bool analyzeAngular = !options.analyzeAngular;
-        bool enableDeferredLoading = options.enableDeferredLoading;
-        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
-        request.setParameter(OPTIONS, {
-          'analyzeAngular': analyzeAngular,
-          'enableDeferredLoading': enableDeferredLoading,
-          'enableEnums': false
-        });
-        var response = handler.handleRequest(request);
-        expect(response, isResponseSuccess('0'));
-        expect(options.analyzeAngular, equals(analyzeAngular));
-        expect(options.enableDeferredLoading, equals(enableDeferredLoading));
-      });
+      // TODO(paulberry): disabled because analyzeAngular is currently not in the API.
+//      test('valid', () {
+//        AnalysisOptions options = server.contextDirectoryManager.defaultOptions;
+//        bool analyzeAngular = !options.analyzeAngular;
+//        bool enableDeferredLoading = options.enableDeferredLoading;
+//        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
+//        request.setParameter(OPTIONS, {
+//          'analyzeAngular': analyzeAngular,
+//          'enableDeferredLoading': enableDeferredLoading,
+//          'enableEnums': false
+//        });
+//        var response = handler.handleRequest(request);
+//        expect(response, isResponseSuccess('0'));
+//        expect(options.analyzeAngular, equals(analyzeAngular));
+//        expect(options.enableDeferredLoading, equals(enableDeferredLoading));
+//      });
     });
   });
 }

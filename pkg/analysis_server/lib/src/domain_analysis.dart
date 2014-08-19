@@ -14,7 +14,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' as engine;
 
 
 /**
@@ -39,7 +39,7 @@ class AnalysisDomainHandler implements RequestHandler {
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
     server.onFileAnalysisComplete(file).then((_) {
       Response response = new Response(request.id);
-      AnalysisErrorInfo errorInfo = server.getErrors(file);
+      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
       if (errorInfo == null) {
         response.setResult(ERRORS, []);
       } else {
@@ -48,7 +48,7 @@ class AnalysisDomainHandler implements RequestHandler {
       server.sendResponse(response);
     }).catchError((message) {
       if (message is! String) {
-        AnalysisEngine.instance.logger.logError(
+        engine.AnalysisEngine.instance.logger.logError(
             'Illegal error message during getErrors: $message');
         message = '';
       }
@@ -193,51 +193,45 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response updateOptions(Request request) {
     // options
-    RequestDatum optionsDatum = request.getRequiredParameter(OPTIONS);
+    var params = new AnalysisUpdateOptionsParams.fromRequest(request);
+    AnalysisOptions newOptions = params.options;
     List<OptionUpdater> updaters = new List<OptionUpdater>();
-    optionsDatum.forEachMap((String optionName, RequestDatum optionDatum) {
-      if (optionName == ANALYZE_ANGULAR) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.analyzeAngular = optionValue;
-        });
-      } else if (optionName == ANALYZE_POLYMER) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.analyzePolymer = optionValue;
-        });
-      } else if (optionName == ENABLE_ASYNC) {
-        // TODO(brianwilkerson) Uncomment this when the option is supported.
-//        bool optionValue = optionDatum.asBool();
-//        updaters.add((AnalysisOptionsImpl options) {
-//          options.enableAsync = optionValue;
-//        });
-      } else if (optionName == ENABLE_DEFERRED_LOADING) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.enableDeferredLoading = optionValue;
-        });
-      } else if (optionName == ENABLE_ENUMS) {
-        // TODO(brianwilkerson) Uncomment this when the option is supported.
-//        bool optionValue = optionDatum.asBool();
-//        updaters.add((AnalysisOptionsImpl options) {
-//          options.enableEnums = optionValue;
-//        });
-      } else if (optionName == GENERATE_DART2JS_HINTS) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.dart2jsHint = optionValue;
-        });
-      } else if (optionName == GENERATE_HINTS) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.hint = optionValue;
-        });
-      } else {
-        throw new RequestFailure(
-            new Response.unknownOptionName(request, optionName));
-      }
-    });
+    // TODO(paulberry): analyzeAngular and analyzePolymer are not in the API.
+//    if (newOptions.analyzeAngular != null) {
+//      updaters.add((engine.AnalysisOptionsImpl options) {
+//        options.analyzeAngular = newOptions.analyzeAngular;
+//      });
+//    }
+//    if (newOptions.analyzePolymer != null) {
+//      updaters.add((engine.AnalysisOptionsImpl options) {
+//        options.analyzePolymer = newOptions.analyzePolymer;
+//      });
+//    }
+    if (newOptions.enableAsync != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.enableAsync = newOptions.enableAsync;
+      });
+    }
+    if (newOptions.enableDeferredLoading != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.enableDeferredLoading = newOptions.enableDeferredLoading;
+      });
+    }
+    if (newOptions.enableEnums != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.enableEnum = newOptions.enableEnums;
+      });
+    }
+    if (newOptions.generateDart2jsHints != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.dart2jsHint = newOptions.generateDart2jsHints;
+      });
+    }
+    if (newOptions.generateHints != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.hint = newOptions.generateHints;
+      });
+    }
     server.updateOptions(updaters);
     return new Response(request.id);
   }
