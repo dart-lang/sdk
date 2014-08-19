@@ -622,6 +622,8 @@ WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: S
 LibTest/math/log_A01_t01: Pass, Fail # co19 issue 44.
 LibTest/html/Element/getBoundingClientRect_A01_t02: RuntimeError # Issue 19127.
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/canvas-scale-fillPath-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/getComputedStyle/computed-style-select-overflow_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/vertical-align-length-copy-bug_t01: RuntimeError # co19-roll r761: Please triage this failure.
