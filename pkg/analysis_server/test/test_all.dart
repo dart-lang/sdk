@@ -4,7 +4,6 @@
 
 import 'package:unittest/unittest.dart';
 
-import '../tool/spec/check_all_test.dart' as check_all_test;
 import 'analysis/test_all.dart' as analysis_all;
 import 'analysis_hover_test.dart' as analysis_hover_test;
 import 'analysis_notification_highlights_test.dart' as analysis_notification_highlights_test;
@@ -42,7 +41,6 @@ main() {
     analysis_notification_overrides_test.main();
     analysis_server_test.main();
     channel_test.main();
-    check_all_test.main();
     completion_test.main();
     computer_test_all.main();
     context_manager_test.main();
