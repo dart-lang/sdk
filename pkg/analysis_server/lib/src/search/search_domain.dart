@@ -80,7 +80,7 @@ class SearchDomainHandler implements RequestHandler {
     response.setResult(ID, searchId);
     if (elements.isNotEmpty) {
       var serverElement = new se.Element.fromEngine(elements[0]);
-      response.setResult(ELEMENT, serverElement);
+      response.setResult(ELEMENT, objectToJson(serverElement));
     }
     return response;
   }
@@ -182,7 +182,7 @@ class SearchDomainHandler implements RequestHandler {
     Notification notification = new Notification(SEARCH_RESULTS);
     notification.setParameter(ID, searchId);
     notification.setParameter(LAST, isLast);
-    notification.setParameter(RESULTS, results);
+    notification.setParameter(RESULTS, objectToJson(results));
     server.sendNotification(notification);
   }
 
