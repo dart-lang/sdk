@@ -538,6 +538,11 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {'
         );
     indent(() {
+      writeln('if (json == null) {');
+      indent(() {
+        writeln('json = {};');
+      });
+      writeln('}');
       writeln('if (json is Map) {');
       indent(() {
         List<String> args = <String>[];

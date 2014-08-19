@@ -24,6 +24,9 @@ class ServerGetVersionResult implements HasToJson {
   ServerGetVersionResult(this.version);
 
   factory ServerGetVersionResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String version;
       if (json.containsKey("version")) {
@@ -83,6 +86,9 @@ class ServerSetSubscriptionsParams implements HasToJson {
   ServerSetSubscriptionsParams(this.subscriptions);
 
   factory ServerSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<ServerService> subscriptions;
       if (json.containsKey("subscriptions")) {
@@ -160,6 +166,9 @@ class ServerErrorParams implements HasToJson {
   ServerErrorParams(this.fatal, this.message, this.stackTrace);
 
   factory ServerErrorParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       bool fatal;
       if (json.containsKey("fatal")) {
@@ -238,6 +247,9 @@ class ServerStatusParams implements HasToJson {
   ServerStatusParams({this.analysis});
 
   factory ServerStatusParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       AnalysisStatus analysis;
       if (json.containsKey("analysis")) {
@@ -297,6 +309,9 @@ class AnalysisGetErrorsParams implements HasToJson {
   AnalysisGetErrorsParams(this.file);
 
   factory AnalysisGetErrorsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -360,6 +375,9 @@ class AnalysisGetErrorsResult implements HasToJson {
   AnalysisGetErrorsResult(this.errors);
 
   factory AnalysisGetErrorsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
@@ -425,6 +443,9 @@ class AnalysisGetHoverParams implements HasToJson {
   AnalysisGetHoverParams(this.file, this.offset);
 
   factory AnalysisGetHoverParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -501,6 +522,9 @@ class AnalysisGetHoverResult implements HasToJson {
   AnalysisGetHoverResult(this.hovers);
 
   factory AnalysisGetHoverResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<HoverInformation> hovers;
       if (json.containsKey("hovers")) {
@@ -567,6 +591,9 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   AnalysisSetAnalysisRootsParams(this.included, this.excluded);
 
   factory AnalysisSetAnalysisRootsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<String> included;
       if (json.containsKey("included")) {
@@ -639,6 +666,9 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
   AnalysisSetPriorityFilesParams(this.files);
 
   factory AnalysisSetPriorityFilesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
@@ -703,6 +733,9 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
   AnalysisSetSubscriptionsParams(this.subscriptions);
 
   factory AnalysisSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey("subscriptions")) {
@@ -767,6 +800,9 @@ class AnalysisUpdateContentParams implements HasToJson {
   AnalysisUpdateContentParams(this.files);
 
   factory AnalysisUpdateContentParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       Map<String, dynamic> files;
       if (json.containsKey("files")) {
@@ -830,6 +866,9 @@ class AnalysisUpdateOptionsParams implements HasToJson {
   AnalysisUpdateOptionsParams(this.options);
 
   factory AnalysisUpdateOptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       AnalysisOptions options;
       if (json.containsKey("options")) {
@@ -899,6 +938,9 @@ class AnalysisErrorsParams implements HasToJson {
   AnalysisErrorsParams(this.file, this.errors);
 
   factory AnalysisErrorsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -967,6 +1009,9 @@ class AnalysisFlushResultsParams implements HasToJson {
   AnalysisFlushResultsParams(this.files);
 
   factory AnalysisFlushResultsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
@@ -1032,6 +1077,9 @@ class AnalysisFoldingParams implements HasToJson {
   AnalysisFoldingParams(this.file, this.regions);
 
   factory AnalysisFoldingParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1110,6 +1158,9 @@ class AnalysisHighlightsParams implements HasToJson {
   AnalysisHighlightsParams(this.file, this.regions);
 
   factory AnalysisHighlightsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1189,6 +1240,9 @@ class AnalysisNavigationParams implements HasToJson {
   AnalysisNavigationParams(this.file, this.regions);
 
   factory AnalysisNavigationParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1263,6 +1317,9 @@ class AnalysisOccurrencesParams implements HasToJson {
   AnalysisOccurrencesParams(this.file, this.occurrences);
 
   factory AnalysisOccurrencesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1337,6 +1394,9 @@ class AnalysisOutlineParams implements HasToJson {
   AnalysisOutlineParams(this.file, this.outline);
 
   factory AnalysisOutlineParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1411,6 +1471,9 @@ class AnalysisOverridesParams implements HasToJson {
   AnalysisOverridesParams(this.file, this.overrides);
 
   factory AnalysisOverridesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1485,6 +1548,9 @@ class CompletionGetSuggestionsParams implements HasToJson {
   CompletionGetSuggestionsParams(this.file, this.offset);
 
   factory CompletionGetSuggestionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1557,6 +1623,9 @@ class CompletionGetSuggestionsResult implements HasToJson {
   CompletionGetSuggestionsResult(this.id);
 
   factory CompletionGetSuggestionsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -1650,6 +1719,9 @@ class CompletionResultsParams implements HasToJson {
   CompletionResultsParams(this.id, this.replacementOffset, this.replacementLength, this.results, this.last);
 
   factory CompletionResultsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -1759,6 +1831,9 @@ class SearchFindElementReferencesParams implements HasToJson {
   SearchFindElementReferencesParams(this.file, this.offset, this.includePotential);
 
   factory SearchFindElementReferencesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -1847,6 +1922,9 @@ class SearchFindElementReferencesResult implements HasToJson {
   SearchFindElementReferencesResult(this.id, this.element);
 
   factory SearchFindElementReferencesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -1915,6 +1993,9 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
   SearchFindMemberDeclarationsParams(this.name);
 
   factory SearchFindMemberDeclarationsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -1978,6 +2059,9 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
   SearchFindMemberDeclarationsResult(this.id);
 
   factory SearchFindMemberDeclarationsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -2037,6 +2121,9 @@ class SearchFindMemberReferencesParams implements HasToJson {
   SearchFindMemberReferencesParams(this.name);
 
   factory SearchFindMemberReferencesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -2100,6 +2187,9 @@ class SearchFindMemberReferencesResult implements HasToJson {
   SearchFindMemberReferencesResult(this.id);
 
   factory SearchFindMemberReferencesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -2160,6 +2250,9 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
   SearchFindTopLevelDeclarationsParams(this.pattern);
 
   factory SearchFindTopLevelDeclarationsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String pattern;
       if (json.containsKey("pattern")) {
@@ -2223,6 +2316,9 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
   SearchFindTopLevelDeclarationsResult(this.id);
 
   factory SearchFindTopLevelDeclarationsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -2289,6 +2385,9 @@ class SearchGetTypeHierarchyParams implements HasToJson {
   SearchGetTypeHierarchyParams(this.file, this.offset);
 
   factory SearchGetTypeHierarchyParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2369,6 +2468,9 @@ class SearchGetTypeHierarchyResult implements HasToJson {
   SearchGetTypeHierarchyResult({this.hierarchyItems});
 
   factory SearchGetTypeHierarchyResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<TypeHierarchyItem> hierarchyItems;
       if (json.containsKey("hierarchyItems")) {
@@ -2441,6 +2543,9 @@ class SearchResultsParams implements HasToJson {
   SearchResultsParams(this.id, this.results, this.last);
 
   factory SearchResultsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -2530,6 +2635,9 @@ class EditGetAssistsParams implements HasToJson {
   EditGetAssistsParams(this.file, this.offset, this.length);
 
   factory EditGetAssistsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2611,6 +2719,9 @@ class EditGetAssistsResult implements HasToJson {
   EditGetAssistsResult(this.assists);
 
   factory EditGetAssistsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<SourceChange> assists;
       if (json.containsKey("assists")) {
@@ -2682,6 +2793,9 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
   EditGetAvailableRefactoringsParams(this.file, this.offset, this.length);
 
   factory EditGetAvailableRefactoringsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2763,6 +2877,9 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
   EditGetAvailableRefactoringsResult(this.kinds);
 
   factory EditGetAvailableRefactoringsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<RefactoringKind> kinds;
       if (json.containsKey("kinds")) {
@@ -2828,6 +2945,9 @@ class EditGetFixesParams implements HasToJson {
   EditGetFixesParams(this.file, this.offset);
 
   factory EditGetFixesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -2905,6 +3025,9 @@ class EditGetFixesResult implements HasToJson {
   EditGetFixesResult(this.fixes);
 
   factory EditGetFixesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<ErrorFixes> fixes;
       if (json.containsKey("fixes")) {
@@ -2999,6 +3122,9 @@ class EditGetRefactoringParams implements HasToJson {
   EditGetRefactoringParams(this.kindId, this.file, this.offset, this.length, this.validateOnly, {this.options});
 
   factory EditGetRefactoringParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       RefactoringKind kindId;
       if (json.containsKey("kindId")) {
@@ -3137,6 +3263,9 @@ class EditGetRefactoringResult implements HasToJson {
   EditGetRefactoringResult(this.status, {this.feedback, this.change, this.potentialEdits});
 
   factory EditGetRefactoringResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<RefactoringProblem> status;
       if (json.containsKey("status")) {
@@ -3223,6 +3352,9 @@ class DebugCreateContextParams implements HasToJson {
   DebugCreateContextParams(this.contextRoot);
 
   factory DebugCreateContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String contextRoot;
       if (json.containsKey("contextRoot")) {
@@ -3286,6 +3418,9 @@ class DebugCreateContextResult implements HasToJson {
   DebugCreateContextResult(this.id);
 
   factory DebugCreateContextResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -3345,6 +3480,9 @@ class DebugDeleteContextParams implements HasToJson {
   DebugDeleteContextParams(this.id);
 
   factory DebugDeleteContextParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -3420,6 +3558,9 @@ class DebugMapUriParams implements HasToJson {
   DebugMapUriParams(this.id, {this.file, this.uri});
 
   factory DebugMapUriParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -3509,6 +3650,9 @@ class DebugMapUriResult implements HasToJson {
   DebugMapUriResult({this.file, this.uri});
 
   factory DebugMapUriResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -3577,6 +3721,9 @@ class DebugSetSubscriptionsParams implements HasToJson {
   DebugSetSubscriptionsParams(this.subscriptions);
 
   factory DebugSetSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<DebugService> subscriptions;
       if (json.containsKey("subscriptions")) {
@@ -3655,6 +3802,9 @@ class DebugLaunchDataParams implements HasToJson {
   DebugLaunchDataParams(this.executables, this.dartToHtml, this.htmlToDart);
 
   factory DebugLaunchDataParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<ExecutableFile> executables;
       if (json.containsKey("executables")) {
@@ -3733,6 +3883,9 @@ class AddContentOverlay implements HasToJson {
   AddContentOverlay(this.content);
 
   factory AddContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       if (json["type"] != "add") {
         throw jsonDecoder.mismatch(jsonPath, "equal " + "add");
@@ -3819,6 +3972,9 @@ class AnalysisError implements HasToJson {
   AnalysisError(this.severity, this.type, this.location, this.message, {this.correction});
 
   factory AnalysisError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       ErrorSeverity severity;
       if (json.containsKey("severity")) {
@@ -3936,6 +4092,9 @@ class AnalysisOptions implements HasToJson {
   AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints});
 
   factory AnalysisOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       bool enableAsync;
       if (json.containsKey("enableAsync")) {
@@ -4097,6 +4256,9 @@ class AnalysisStatus implements HasToJson {
   AnalysisStatus(this.analyzing, {this.analysisTarget});
 
   factory AnalysisStatus.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       bool analyzing;
       if (json.containsKey("analyzing")) {
@@ -4161,6 +4323,9 @@ class ChangeContentOverlay implements HasToJson {
   ChangeContentOverlay(this.edits);
 
   factory ChangeContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       if (json["type"] != "change") {
         throw jsonDecoder.mismatch(jsonPath, "equal " + "change");
@@ -4384,6 +4549,9 @@ class CompletionSuggestion implements HasToJson {
   CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType});
 
   factory CompletionSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       CompletionSuggestionKind kind;
       if (json.containsKey("kind")) {
@@ -4798,6 +4966,9 @@ class Element implements HasToJson {
   Element(this.kind, this.name, this.flags, {this.location, this.parameters, this.returnType});
 
   factory Element.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       ElementKind kind;
       if (json.containsKey("kind")) {
@@ -5034,6 +5205,9 @@ class Error implements HasToJson {
   Error(this.code, this.message, {this.data});
 
   factory Error.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String code;
       if (json.containsKey("code")) {
@@ -5112,6 +5286,9 @@ class ErrorFixes implements HasToJson {
   ErrorFixes(this.error, this.fixes);
 
   factory ErrorFixes.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       AnalysisError error;
       if (json.containsKey("error")) {
@@ -5294,6 +5471,9 @@ class ExecutableFile implements HasToJson {
   ExecutableFile(this.file, this.offset);
 
   factory ExecutableFile.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -5477,6 +5657,9 @@ class FoldingRegion implements HasToJson {
   FoldingRegion(this.kind, this.offset, this.length);
 
   factory FoldingRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       FoldingKind kind;
       if (json.containsKey("kind")) {
@@ -5561,6 +5744,9 @@ class HighlightRegion implements HasToJson {
   HighlightRegion(this.type, this.offset, this.length);
 
   factory HighlightRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       HighlightRegionType type;
       if (json.containsKey("type")) {
@@ -5912,6 +6098,9 @@ class HoverInformation implements HasToJson {
   HoverInformation(this.offset, this.length, {this.containingLibraryPath, this.containingLibraryName, this.dartdoc, this.elementDescription, this.elementKind, this.parameter, this.propagatedType, this.staticType});
 
   factory HoverInformation.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -6060,6 +6249,9 @@ class LinkedEditGroup implements HasToJson {
   LinkedEditGroup(this.positions, this.length, this.suggestions);
 
   factory LinkedEditGroup.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<Position> positions;
       if (json.containsKey("positions")) {
@@ -6138,6 +6330,9 @@ class LinkedEditSuggestion implements HasToJson {
   LinkedEditSuggestion(this.value, this.kind);
 
   factory LinkedEditSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String value;
       if (json.containsKey("value")) {
@@ -6281,6 +6476,9 @@ class Location implements HasToJson {
   Location(this.file, this.offset, this.length, this.startLine, this.startColumn);
 
   factory Location.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -6384,6 +6582,9 @@ class NavigationRegion implements HasToJson {
   NavigationRegion(this.offset, this.length, this.targets);
 
   factory NavigationRegion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -6468,6 +6669,9 @@ class Occurrences implements HasToJson {
   Occurrences(this.element, this.offsets, this.length);
 
   factory Occurrences.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
@@ -6562,6 +6766,9 @@ class Outline implements HasToJson {
   Outline(this.element, this.offset, this.length, {this.children});
 
   factory Outline.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
@@ -6665,6 +6872,9 @@ class Override implements HasToJson {
   Override(this.offset, this.length, {this.superclassMember, this.interfaceMembers});
 
   factory Override.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -6752,6 +6962,9 @@ class OverriddenMember implements HasToJson {
   OverriddenMember(this.element, this.className);
 
   factory OverriddenMember.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       Element element;
       if (json.containsKey("element")) {
@@ -6821,6 +7034,9 @@ class Position implements HasToJson {
   Position(this.file, this.offset);
 
   factory Position.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -6981,6 +7197,9 @@ class RefactoringMethodParameter implements HasToJson {
   RefactoringMethodParameter(this.kind, this.type, this.name, {this.id, this.parameters});
 
   factory RefactoringMethodParameter.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
@@ -7132,6 +7351,9 @@ class RefactoringProblem implements HasToJson {
   RefactoringProblem(this.severity, this.message, this.location);
 
   factory RefactoringProblem.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       RefactoringProblemSeverity severity;
       if (json.containsKey("severity")) {
@@ -7253,6 +7475,9 @@ class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
 
   factory RemoveContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       if (json["type"] != "remove") {
         throw jsonDecoder.mismatch(jsonPath, "equal " + "remove");
@@ -7327,6 +7552,9 @@ class SearchResult implements HasToJson {
   SearchResult(this.location, this.kind, this.isPotential, this.path);
 
   factory SearchResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       Location location;
       if (json.containsKey("location")) {
@@ -7549,6 +7777,9 @@ class SourceChange implements HasToJson {
   SourceChange(this.message, this.edits, this.linkedEditGroups, {this.selection});
 
   factory SourceChange.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String message;
       if (json.containsKey("message")) {
@@ -7655,6 +7886,9 @@ class SourceEdit implements HasToJson {
   SourceEdit(this.offset, this.length, this.replacement, {this.id});
 
   factory SourceEdit.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -7742,6 +7976,9 @@ class SourceFileEdit implements HasToJson {
   SourceFileEdit(this.file, this.edits);
 
   factory SourceFileEdit.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
@@ -7852,6 +8089,9 @@ class TypeHierarchyItem implements HasToJson {
   TypeHierarchyItem(this.classElement, this.interfaces, this.mixins, this.subclasses, {this.displayName, this.memberElement, this.superclass});
 
   factory TypeHierarchyItem.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       Element classElement;
       if (json.containsKey("classElement")) {
@@ -7976,6 +8216,9 @@ class ExtractLocalVariableFeedback implements HasToJson {
   ExtractLocalVariableFeedback(this.names, this.offsets, this.lengths);
 
   factory ExtractLocalVariableFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       List<String> names;
       if (json.containsKey("names")) {
@@ -8062,6 +8305,9 @@ class ExtractLocalVariableOptions implements HasToJson {
   ExtractLocalVariableOptions(this.name, this.extractAll);
 
   factory ExtractLocalVariableOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
@@ -8184,6 +8430,9 @@ class ExtractMethodFeedback implements HasToJson {
   ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names, this.canCreateGetter, this.parameters, this.occurrences, this.offsets, this.lengths);
 
   factory ExtractMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -8351,6 +8600,9 @@ class ExtractMethodOptions implements HasToJson {
   ExtractMethodOptions(this.returnType, this.createGetter, this.name, this.parameters, this.extractAll);
 
   factory ExtractMethodOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String returnType;
       if (json.containsKey("returnType")) {
@@ -8454,6 +8706,9 @@ class InlineMethodOptions implements HasToJson {
   InlineMethodOptions(this.deleteSource, this.inlineAll);
 
   factory InlineMethodOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       bool deleteSource;
       if (json.containsKey("deleteSource")) {
@@ -8528,6 +8783,9 @@ class RenameFeedback implements HasToJson {
   RenameFeedback(this.offset, this.length);
 
   factory RenameFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
@@ -8596,6 +8854,9 @@ class RenameOptions implements HasToJson {
   RenameOptions(this.newName);
 
   factory RenameOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
     if (json is Map) {
       String newName;
       if (json.containsKey("newName")) {

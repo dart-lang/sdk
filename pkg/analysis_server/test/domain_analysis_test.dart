@@ -141,6 +141,13 @@ main() {
         expect(response, isResponseSuccess('0'));
       });
 
+      test('null', () {
+        // null is allowed as a synonym for {}.
+        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {OPTIONS: null});
+        var response = handler.handleRequest(request);
+        expect(response, isResponseSuccess('0'));
+      });
+
       // TODO(paulberry): disabled because analyzeAngular is currently not in the API.
 //      test('valid', () {
 //        engine.AnalysisOptions oldOptions = server.contextDirectoryManager.defaultOptions;
