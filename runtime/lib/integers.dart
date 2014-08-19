@@ -4,7 +4,7 @@
 
 // TODO(srdjan): fix limitations.
 // - shift amount must be a Smi.
-class _IntegerImplementation {
+class _IntegerImplementation extends _Num {
   factory _IntegerImplementation._uninstantiable() {
     throw new UnsupportedError(
         "_IntegerImplementation can only be allocated by the VM");

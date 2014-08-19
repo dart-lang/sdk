@@ -15958,6 +15958,21 @@ RawDouble* Double::NewCanonical(const String& str) {
 }
 
 
+RawString* Number::ToString(Heap::Space space) const {
+  // Refactoring can avoid Zone::Alloc and strlen, but gains are insignificant.
+  const char* cstr = ToCString();
+  intptr_t len = strlen(cstr);
+  // Resulting string is ASCII ...
+#ifdef DEBUG
+  for (intptr_t i = 0; i < len; ++i) {
+    ASSERT(static_cast<uint8_t>(cstr[i]) < 128);
+  }
+#endif  // DEBUG
+  // ... which is a subset of Latin-1.
+  return String::FromLatin1(reinterpret_cast<const uint8_t*>(cstr), len, space);
+}
+
+
 const char* Double::ToCString() const {
   if (isnan(value())) {
     return "NaN";

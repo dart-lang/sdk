@@ -370,6 +370,7 @@ namespace dart {
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
   V(ClassID_getID, 1)                                                          \
+  V(Num_toString, 1)                                                           \
 
 
 class BootstrapNatives : public AllStatic {

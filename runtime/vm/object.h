@@ -262,6 +262,7 @@ class Object {
 
   bool IsNull() const { return raw_ == null_; }
 
+  // Matches Object.toString on instances (except String::ToCString, bug 20583).
   virtual const char* ToCString() const {
     if (IsNull()) {
       return "null";
@@ -5004,7 +5005,8 @@ class MixinAppType : public AbstractType {
 
 class Number : public Instance {
  public:
-  // TODO(iposva): Fill in a useful Number interface.
+  // TODO(iposva): Add more useful Number methods.
+  RawString* ToString(Heap::Space space) const;
 
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);

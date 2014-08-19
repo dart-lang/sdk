@@ -37,6 +37,8 @@
     'lib_prefix.dart',
     'map_patch.dart',
     'null_patch.dart',
+    'num.cc',
+    'num.dart',
     'object.cc',
     'object_patch.dart',
     'regexp.cc',
