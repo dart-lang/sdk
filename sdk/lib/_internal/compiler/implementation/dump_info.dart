@@ -335,7 +335,8 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
         parameters.add({
           'name': parameter.name,
           'type': compiler.typesTask
-            .getGuaranteedTypeOfElement(parameter).toString()
+            .getGuaranteedTypeOfElement(parameter).toString(),
+          'declaredType': parameter.node.type.toString()
         });
       });
       inferredReturnType = compiler.typesTask
