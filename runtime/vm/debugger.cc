@@ -1700,7 +1700,6 @@ static bool IsDebuggableFunctionKind(const Function& func) {
   if ((kind == RawFunction::kImplicitGetter) ||
       (kind == RawFunction::kImplicitSetter) ||
       (kind == RawFunction::kImplicitStaticFinalGetter) ||
-      (kind == RawFunction::kStaticInitializer) ||
       (kind == RawFunction::kMethodExtractor) ||
       (kind == RawFunction::kNoSuchMethodDispatcher) ||
       (kind == RawFunction::kInvokeFieldDispatcher) ||

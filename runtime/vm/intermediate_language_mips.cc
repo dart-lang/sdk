@@ -2387,6 +2387,47 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Isolate* isolate,
+                                                           bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_temp(0, Location::RegisterLocation(T1));
+  return locs;
+}
+
+
+void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register field = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+
+  Label call_runtime, no_call;
+  __ TraceSimMsg("InitStaticFieldInstr");
+
+  __ lw(temp, FieldAddress(field, Field::value_offset()));
+  __ BranchEqual(temp, Object::sentinel(), &call_runtime);
+  __ BranchNotEqual(temp, Object::transition_sentinel(), &no_call);
+
+  __ Bind(&call_runtime);
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ LoadObject(TMP, Object::null_object());
+  __ sw(TMP, Address(SP, 1 * kWordSize));   // Make room for (unused) result.
+  __ sw(field, Address(SP, 0 * kWordSize));
+
+  compiler->GenerateRuntimeCall(token_pos(),
+                                deopt_id(),
+                                kInitStaticFieldRuntimeEntry,
+                                1,
+                                locs());
+
+  __ addiu(SP, SP, Immediate(2 * kWordSize));  // Purge argument and result.
+
+  __ Bind(&no_call);
+}
+
+
 LocationSummary* CloneContextInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;

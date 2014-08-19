@@ -2455,6 +2455,44 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* InitStaticFieldInstr::MakeLocationSummary(Isolate* isolate,
+                                                           bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_temp(0, Location::RegisterLocation(ECX));
+  return locs;
+}
+
+
+void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register field = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+
+  Label call_runtime, no_call;
+
+  __ movl(temp, FieldAddress(field, Field::value_offset()));
+  __ CompareObject(temp, Object::sentinel());
+  __ j(EQUAL, &call_runtime);
+
+  __ CompareObject(temp, Object::transition_sentinel());
+  __ j(NOT_EQUAL, &no_call);
+
+  __ Bind(&call_runtime);
+  __ PushObject(Object::null_object());  // Make room for (unused) result.
+  __ pushl(field);
+  compiler->GenerateRuntimeCall(token_pos(),
+                                deopt_id(),
+                                kInitStaticFieldRuntimeEntry,
+                                1,
+                                locs());
+  __ Drop(2);  // Remove argument and unused result.
+  __ Bind(&no_call);
+}
+
+
 LocationSummary* CloneContextInstr::MakeLocationSummary(Isolate* isolate,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -2807,7 +2845,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(left == result);
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt  = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
   }
 
   if (locs()->in(1).IsConstant()) {

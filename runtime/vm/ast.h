@@ -43,6 +43,7 @@ namespace dart {
   V(ConstructorCall)                                                           \
   V(InstanceGetter)                                                            \
   V(InstanceSetter)                                                            \
+  V(InitStaticField)                                                           \
   V(StaticGetter)                                                              \
   V(StaticSetter)                                                              \
   V(NativeBody)                                                                \
@@ -1409,6 +1410,26 @@ class InstanceSetterNode : public AstNode {
   AstNode* value_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceSetterNode);
+};
+
+
+class InitStaticFieldNode : public AstNode {
+ public:
+  InitStaticFieldNode(intptr_t token_pos, const Field& field)
+      : AstNode(token_pos), field_(field) {
+    ASSERT(field_.IsZoneHandle());
+  }
+
+  const Field& field() const { return field_; }
+
+  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
+
+  DECLARE_COMMON_NODE_FUNCTIONS(InitStaticFieldNode);
+
+ private:
+  const Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(InitStaticFieldNode);
 };
 
 

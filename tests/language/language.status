@@ -102,9 +102,6 @@ dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
 
-[ $compiler == dart2js && $runtime == ie9 ]
-lazy_static3_test: Fail # Issue 13469
-
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assertion_test: Fail # Issue 13719: Please triage this failure.
 generic_test: Fail # Issue 13719: Please triage this failure.

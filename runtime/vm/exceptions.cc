@@ -747,6 +747,9 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       class_name = &Symbols::AbstractClassInstantiationError();
       constructor_name = &Symbols::DotCreate();
       break;
+    case kCyclicInitializationError:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::CyclicInitializationError();
   }
 
   return DartLibraryCalls::InstanceCreate(library,

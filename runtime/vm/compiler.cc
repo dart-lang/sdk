@@ -929,6 +929,39 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 
+RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
+  ASSERT(field.is_static());
+  // The VM sets the field's value to transiton_sentinel prior to
+  // evaluating the initializer value.
+  ASSERT(field.value() == Object::transition_sentinel().raw());
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    ParsedFunction* parsed_function =
+        Parser::ParseStaticFieldInitializer(field);
+
+    parsed_function->AllocateVariables();
+    // Non-optimized code generator.
+    CompileParsedFunctionHelper(parsed_function, false, Isolate::kNoDeoptId);
+
+    // Invoke the function to evaluate the expression.
+    const Function& initializer = parsed_function->function();
+    const Object& result = Object::Handle(
+        DartEntry::InvokeFunction(initializer, Object::empty_array()));
+    return result.raw();
+  } else {
+    const Error& error =
+        Error::Handle(isolate, isolate->object_store()->sticky_error());
+    isolate->object_store()->clear_sticky_error();
+    return error.raw();
+  }
+  UNREACHABLE();
+  return Object::null();
+}
+
+
+
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   Isolate* isolate = Isolate::Current();
   LongJumpScope jump;
@@ -959,7 +992,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // Manually generated AST, do not recompile.
     func.SetIsOptimizable(false);
 
-    // We compile the function here, even though InvokeStatic() below
+    // We compile the function here, even though InvokeFunction() below
     // would compile func automatically. We are checking fewer invariants
     // here.
     ParsedFunction* parsed_function = new ParsedFunction(isolate, func);

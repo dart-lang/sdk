@@ -7586,6 +7586,11 @@ void ConstantPropagator::VisitStoreInstanceField(
 }
 
 
+void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
+  // Nothing to do.
+}
+
+
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
   const Field& field = instr->StaticField();
   ASSERT(field.is_static());

@@ -46,6 +46,7 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
 DECLARE_RUNTIME_ENTRY(DeoptimizeMaterialize);
 DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
+DECLARE_RUNTIME_ENTRY(InitStaticField);
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 

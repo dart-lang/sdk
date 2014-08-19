@@ -326,6 +326,14 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+  const bool is_initialized =
+      (field_.value() != Object::sentinel().raw()) &&
+      (field_.value() != Object::transition_sentinel().raw());
+  return is_initialized ? NULL : this;
+}
+
+
 EffectSet LoadStaticFieldInstr::Dependencies() const {
   return StaticField().is_final() ? EffectSet::None() : EffectSet::All();
 }

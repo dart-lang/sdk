@@ -63,6 +63,12 @@ class Compiler : public AllStatic {
   // on compilation failure.
   static RawObject* ExecuteOnce(SequenceNode* fragment);
 
+  // Evaluates the initializer expression of the given static field.
+  //
+  // The return value is either a RawInstance on success or a RawError
+  // on compilation failure.
+  static RawObject* EvaluateStaticInitializer(const Field& field);
+
   // Eagerly compiles all functions in a class.
   //
   // Returns Error::null() if there is no compilation error.

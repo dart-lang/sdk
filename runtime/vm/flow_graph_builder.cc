@@ -2535,6 +2535,12 @@ void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
 }
 
 
+void EffectGraphVisitor::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
+  Value* field = Bind(new(I) ConstantInstr(node->field()));
+  AddInstruction(new(I) InitStaticFieldInstr(field, node->field()));
+}
+
+
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
   Value* context = Bind(new(I) CurrentContextInstr());
   Value* clone = Bind(new(I) CloneContextInstr(node->token_pos(), context));

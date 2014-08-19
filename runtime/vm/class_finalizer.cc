@@ -1385,13 +1385,6 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
           getter.set_result_type(type);
           cls.AddFunction(getter);
           field.set_value(Instance::Handle(Object::sentinel().raw()));
-
-          // Create initializer function.
-          if (!field.is_const()) {
-            const Function& init_function = Function::ZoneHandle(
-                Function::NewStaticInitializer(field));
-            cls.AddFunction(init_function);
-          }
         }
       }
     }

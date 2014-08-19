@@ -19,6 +19,7 @@ namespace dart {
   V(ClosureCall)                                                               \
   V(DoWhile)                                                                   \
   V(If)                                                                        \
+  V(InitStaticField)                                                           \
   V(InlinedFinally)                                                            \
   V(For)                                                                       \
   V(Jump)                                                                      \

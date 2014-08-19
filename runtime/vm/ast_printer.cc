@@ -313,6 +313,12 @@ void AstPrinter::VisitInstanceSetterNode(InstanceSetterNode* node) {
 }
 
 
+void AstPrinter::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
+  OS::Print("(%s \"%s\")", node->PrettyName(),
+            String::Handle(node->field().name()).ToCString());
+}
+
+
 void AstPrinter::VisitStaticGetterNode(StaticGetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
   OS::Print("(%s \"%s.%s\")",

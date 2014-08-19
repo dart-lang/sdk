@@ -828,10 +828,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       node_sequence = parser.ParseStaticFinalGetter(func);
       CompilerStats::num_implicit_final_getters++;
       break;
-    case RawFunction::kStaticInitializer:
-      node_sequence = parser.ParseStaticInitializer(func);
-      CompilerStats::num_static_initializer_funcs++;
-      break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
       break;
@@ -1003,6 +999,74 @@ RawArray* Parser::EvaluateMetadata() {
 }
 
 
+SequenceNode* Parser::ParseStaticInitializer() {
+  ExpectIdentifier("field name expected");
+  CheckToken(Token::kASSIGN, "field initialier expected");
+  ConsumeToken();
+  OpenFunctionBlock(parsed_function()->function());
+  intptr_t expr_pos = TokenPos();
+  AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+  ReturnNode* ret = new(I) ReturnNode(expr_pos, expr);
+  current_block_->statements->Add(ret);
+  return CloseBlock();
+}
+
+
+ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
+  ASSERT(field.is_static());
+  ASSERT(field.value() == Object::transition_sentinel().raw());
+  Isolate* isolate = Isolate::Current();
+
+  const Class& script_cls = Class::Handle(isolate, field.origin());
+  const Script& script = Script::Handle(isolate, script_cls.script());
+
+  const String& field_name = String::Handle(isolate, field.name());
+  String& init_name = String::Handle(isolate,
+      String::Concat(Symbols::InitPrefix(), field_name));
+  init_name = Symbols::New(init_name);
+
+  const Function& initializer = Function::ZoneHandle(isolate,
+      Function::New(init_name,
+                    RawFunction::kRegularFunction,
+                    true,   // static
+                    false,  // !const
+                    false,  // !abstract
+                    false,  // !external
+                    false,  // !native
+                    Class::Handle(field.owner()),
+                    field.token_pos()));
+  initializer.set_result_type(AbstractType::Handle(isolate, field.type()));
+  // Static initializer functions are hidden from the user.
+  // Since they are only executed once, we avoid optimizing
+  // and inlining them. After the field is initialized, the
+  // compiler can eliminate the call to the static initializer.
+  initializer.set_is_visible(false);
+  initializer.SetIsOptimizable(false);
+  initializer.set_is_inlinable(false);
+
+  ParsedFunction* parsed_function = new ParsedFunction(isolate, initializer);
+  Parser parser(script, parsed_function, field.token_pos());
+
+  SequenceNode* body = parser.ParseStaticInitializer();
+  parsed_function->SetNodeSequence(body);
+  parsed_function->set_default_parameter_values(Object::null_array());
+
+  if (parsed_function->has_expression_temp_var()) {
+    body->scope()->AddVariable(parsed_function->expression_temp_var());
+  }
+  if (parsed_function->has_saved_current_context_var()) {
+    body->scope()->AddVariable(parsed_function->saved_current_context_var());
+  }
+  if (parsed_function->has_finally_return_temp_var()) {
+    body->scope()->AddVariable(parsed_function->finally_return_temp_var());
+  }
+  // The instantiator is not required in a static expression.
+  ASSERT(!parser.IsInstantiatorRequired());
+
+  return parsed_function;
+}
+
+
 SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   TRACE_PARSER("ParseStaticFinalGetter");
   ParamList params;
@@ -1039,184 +1103,16 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
     current_block_->statements->Add(return_node);
   } else {
     // This getter may be called each time the static field is accessed.
-    // The following generated code lazily initializes the field:
-    // if (field.value === transition_sentinel) {
-    //   field.value = null;
-    //   throw("circular dependency in field initialization");
-    // }
-    // if (field.value === sentinel) {
-    //   field.value = transition_sentinel;
-    //   field.value = expr;
-    // }
-    // return field.value;  // Type check is executed here in checked mode.
-
-    // Generate code checking for circular dependency in field initialization.
-    AstNode* compare_circular = new ComparisonNode(
-        ident_pos,
-        Token::kEQ_STRICT,
-        new LoadStaticFieldNode(ident_pos, field),
-        new LiteralNode(ident_pos, Object::transition_sentinel()));
-    // Set field to null prior to throwing exception, so that subsequent
-    // accesses to the field do not throw again, since initializers should only
-    // be executed once.
-    SequenceNode* report_circular = new SequenceNode(ident_pos, NULL);
-    report_circular->Add(
-        new StoreStaticFieldNode(
-            ident_pos,
-            field,
-            new LiteralNode(ident_pos, Instance::ZoneHandle(I))));
-    // Call CyclicInitializationError._throwNew(field_name).
-    ArgumentListNode* error_arguments = new ArgumentListNode(ident_pos);
-    error_arguments->Add(new LiteralNode(ident_pos, field_name));
-    report_circular->Add(
-        MakeStaticCall(Symbols::CyclicInitializationError(),
-                       Library::PrivateCoreLibName(Symbols::ThrowNew()),
-                       error_arguments));
-    AstNode* circular_check =
-        new IfNode(ident_pos, compare_circular, report_circular, NULL);
-    current_block_->statements->Add(circular_check);
-
-    // Generate code checking for uninitialized field.
-    AstNode* compare_uninitialized = new ComparisonNode(
-        ident_pos,
-        Token::kEQ_STRICT,
-        new LoadStaticFieldNode(ident_pos, field),
-        new LiteralNode(ident_pos, Object::sentinel()));
-    SequenceNode* initialize_field = new SequenceNode(ident_pos, NULL);
-    initialize_field->Add(
-        new StoreStaticFieldNode(
-            ident_pos,
-            field,
-            new LiteralNode(ident_pos, Object::transition_sentinel())));
-    const String& init_name = String::Handle(I, Symbols::New(
-        String::Handle(I, String::Concat(
-            Symbols::InitPrefix(), String::Handle(I, field.name())))));
-    const Function& init_function = Function::ZoneHandle(I,
-        field_class.LookupStaticFunction(init_name));
-    ASSERT(!init_function.IsNull());
-    ArgumentListNode* arguments = new ArgumentListNode(expr_pos);
-    StaticCallNode* init_call =
-        new StaticCallNode(expr_pos, init_function, arguments);
-    initialize_field->Add(init_call);
-
-    AstNode* uninitialized_check =
-        new IfNode(ident_pos, compare_uninitialized, initialize_field, NULL);
-    current_block_->statements->Add(uninitialized_check);
-
-    // Generate code returning the field value.
+    // Call runtime support to parse and evaluate the initializer expression.
+    // The runtime function will detect circular dependencies in expressions
+    // and handle errors while evaluating the expression.
+    current_block_->statements->Add(
+        new (I) InitStaticFieldNode(ident_pos, field));
     ReturnNode* return_node =
-        new ReturnNode(ident_pos, new LoadStaticFieldNode(ident_pos, field));
+        new ReturnNode(ident_pos,
+                       new LoadStaticFieldNode(ident_pos, field));
     current_block_->statements->Add(return_node);
   }
-  return CloseBlock();
-}
-
-
-SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
-  TRACE_PARSER("ParseStaticInitializer");
-  ParamList params;
-  ASSERT(func.num_fixed_parameters() == 0);  // static.
-  ASSERT(!func.HasOptionalParameters());
-  ASSERT(AbstractType::Handle(I, func.result_type()).IsResolved());
-
-  // Build local scope for function and populate with the formal parameters.
-  OpenFunctionBlock(func);
-  AddFormalParamsToScope(&params, current_block_->scope);
-
-  // Move forward to the start of the initializer expression.
-  intptr_t ident_pos = TokenPos();
-  ExpectIdentifier("identifier expected");
-  ExpectToken(Token::kASSIGN);
-  intptr_t token_pos = TokenPos();
-
-  // Synthesize a try-catch block to wrap the initializer expression.
-  LocalVariable* context_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
-  if (context_var == NULL) {
-    context_var = new(I) LocalVariable(
-        token_pos,
-        Symbols::SavedTryContextVar(),
-        Type::ZoneHandle(I, Type::DynamicType()));
-    current_block_->scope->AddVariable(context_var);
-  }
-  LocalVariable* catch_excp_var =
-      current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
-  if (catch_excp_var == NULL) {
-    catch_excp_var = new (I) LocalVariable(
-        token_pos,
-        Symbols::ExceptionVar(),
-        Type::ZoneHandle(I, Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_excp_var);
-  }
-  LocalVariable* catch_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::StackTraceVar());
-  if (catch_trace_var == NULL) {
-    catch_trace_var = new (I) LocalVariable(
-        token_pos,
-        Symbols::StackTraceVar(),
-        Type::ZoneHandle(I, Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_trace_var);
-  }
-
-  OpenBlock();  // Start try block.
-  AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
-  const Field& field = Field::ZoneHandle(I, func.saved_static_field());
-  ASSERT(!field.is_const());
-  if (FLAG_enable_type_checks) {
-    expr = new AssignableNode(
-        field.token_pos(),
-        expr,
-        AbstractType::ZoneHandle(I, field.type()),
-        String::ZoneHandle(I, field.name()));
-  }
-  StoreStaticFieldNode* store = new StoreStaticFieldNode(field.token_pos(),
-                                                         field,
-                                                         expr);
-  current_block_->statements->Add(store);
-  SequenceNode* try_block = CloseBlock();  // End try block.
-
-  OpenBlock();  // Start catch handler list.
-  OpenBlock();  // Start catch clause.
-  AstNode* compare_transition_sentinel = new ComparisonNode(
-      token_pos,
-      Token::kEQ_STRICT,
-      new LoadStaticFieldNode(ident_pos, field),
-      new LiteralNode(field.token_pos(), Object::transition_sentinel()));
-
-  SequenceNode* store_null = new SequenceNode(token_pos, NULL);
-  store_null->Add(new StoreStaticFieldNode(
-      field.token_pos(),
-      field,
-      new LiteralNode(token_pos, Instance::ZoneHandle(I))));
-  AstNode* transition_sentinel_check =
-      new IfNode(token_pos, compare_transition_sentinel, store_null, NULL);
-  current_block_->statements->Add(transition_sentinel_check);
-
-  current_block_->statements->Add(
-      new ThrowNode(token_pos,
-                    new LoadLocalNode(token_pos, catch_excp_var),
-                    new LoadLocalNode(token_pos, catch_trace_var)));
-  SequenceNode* catch_clause = CloseBlock();  // End catch clause.
-
-  current_block_->statements->Add(catch_clause);
-  SequenceNode* catch_handler_list = CloseBlock();  // End catch handler list.
-  CatchClauseNode* catch_block =
-      new CatchClauseNode(token_pos,
-                          catch_handler_list,
-                          Array::ZoneHandle(I, Object::empty_array().raw()),
-                          context_var,
-                          catch_excp_var,
-                          catch_trace_var,
-                          CatchClauseNode::kInvalidTryIndex,
-                          false);  // No stack trace needed.
-
-  AstNode* try_catch_node = new TryCatchNode(token_pos,
-                                             try_block,
-                                             context_var,
-                                             catch_block,
-                                             NULL,  // No finally block.
-                                             AllocateTryIndex());
-  current_block_->statements->Add(try_catch_node);
   return CloseBlock();
 }
 
@@ -3695,13 +3591,6 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                field->name_pos);
         getter.set_result_type(*field->type);
         members->AddFunction(getter);
-
-        // Create initializer function for non-const fields.
-        if (!class_field.is_const()) {
-          const Function& init_function = Function::ZoneHandle(I,
-              Function::NewStaticInitializer(class_field));
-          members->AddFunction(init_function);
-        }
       }
     }
 
@@ -4860,13 +4749,6 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                                name_pos);
         getter.set_result_type(type);
         top_level->functions.Add(getter);
-
-        // Create initializer function.
-        if (!field.is_const()) {
-          const Function& init_function = Function::ZoneHandle(I,
-              Function::NewStaticInitializer(field));
-          top_level->functions.Add(init_function);
-        }
       }
     } else if (is_final) {
       ReportError(name_pos, "missing initializer for final or const variable");
@@ -11030,8 +10912,7 @@ const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
     // Compile time constant expressions cannot reference anything from a
     // local scope.
     LocalScope* empty_scope = new(I) LocalScope(NULL, 0, 0);
-    SequenceNode* seq = new(I) SequenceNode(expr->token_pos(),
-                                                    empty_scope);
+    SequenceNode* seq = new(I) SequenceNode(expr->token_pos(), empty_scope);
     seq->Add(ret);
 
     Object& result = Object::Handle(I, Compiler::ExecuteOnce(seq));

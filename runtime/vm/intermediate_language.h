@@ -706,6 +706,7 @@ class EmbeddedArray<T, 0> {
   M(LoadIndexed)                                                               \
   M(StoreIndexed)                                                              \
   M(StoreInstanceField)                                                        \
+  M(InitStaticField)                                                           \
   M(LoadStaticField)                                                           \
   M(StoreStaticField)                                                          \
   M(BooleanNegate)                                                             \
@@ -4623,6 +4624,31 @@ class AllocateContextInstr : public TemplateDefinition<0> {
   const intptr_t num_context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
+};
+
+
+class InitStaticFieldInstr : public TemplateInstruction<1> {
+ public:
+  InitStaticFieldInstr(Value* input, const Field& field)
+      : field_(field) {
+    SetInputAt(0, input);
+  }
+
+  virtual intptr_t token_pos() const { return field_.token_pos(); }
+  const Field& field() const { return field_; }
+
+  DECLARE_INSTRUCTION(InitStaticField)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+  virtual bool CanDeoptimize() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::All(); }
+  virtual bool MayThrow() const { return true; }
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
+
+ private:
+  const Field& field_;
+
+  DISALLOW_COPY_AND_ASSIGN(InitStaticFieldInstr);
 };
 
 

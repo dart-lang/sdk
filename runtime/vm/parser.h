@@ -199,6 +199,10 @@ class Parser : public ValueObject {
   // class if the metadata is at the top-level).
   static RawObject* ParseMetadata(const Class& cls, intptr_t token_pos);
 
+  // Build a function containing the initializer expression of the
+  // given static field.
+  static ParsedFunction* ParseStaticFieldInitializer(const Field& field);
+
   // Parse a function to retrieve parameter information that is not retained in
   // the dart::Function object. Returns either an error if the parse fails
   // (which could be the case for local functions), or a flat array of entries
@@ -507,12 +511,13 @@ class Parser : public ValueObject {
   SequenceNode* ParseInstanceGetter(const Function& func);
   SequenceNode* ParseInstanceSetter(const Function& func);
   SequenceNode* ParseStaticFinalGetter(const Function& func);
-  SequenceNode* ParseStaticInitializer(const Function& func);
+  SequenceNode* ParseStaticInitializer();
   SequenceNode* ParseMethodExtractor(const Function& func);
   SequenceNode* ParseNoSuchMethodDispatcher(const Function& func,
                                             Array* default_values);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
                                            Array* default_values);
+
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
                             Array* default_values);

@@ -1628,9 +1628,6 @@ class Function : public Object {
   void set_saved_args_desc(const Array& array) const;
   RawArray* saved_args_desc() const;
 
-  void set_saved_static_field(const Field& array) const;
-  RawField* saved_static_field() const;
-
   bool IsMethodExtractor() const {
     return kind() == RawFunction::kMethodExtractor;
   }
@@ -1703,7 +1700,6 @@ class Function : public Object {
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
-      case RawFunction::kStaticInitializer:
         return false;
       default:
         UNREACHABLE();
@@ -1721,7 +1717,6 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticFinalGetter:
-      case RawFunction::kStaticInitializer:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -1934,11 +1929,6 @@ class Function : public Object {
     return kind() == RawFunction::kImplicitSetter;
   }
 
-  // Returns true if this function represents an static initializer function.
-  bool IsStaticInitializerFunction() const {
-    return kind() == RawFunction::kStaticInitializer;
-  }
-
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {
@@ -2004,10 +1994,6 @@ class Function : public Object {
   static RawFunction* NewEvalFunction(const Class& owner,
                                       const Script& script,
                                       bool is_static);
-
-  // Creates a new static initializer function which is invoked in the implicit
-  // static getter function.
-  static RawFunction* NewStaticInitializer(const Field& field);
 
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.
@@ -2342,6 +2328,8 @@ class Field : public Object {
   void DeoptimizeDependentCode() const;
 
   bool IsUninitialized() const;
+
+  void EvaluateInitializer() const;
 
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);

@@ -1551,4 +1551,10 @@ DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
   field.RecordStore(value);
 }
 
+
+DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
+  const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
+  field.EvaluateInitializer();
+}
+
 }  // namespace dart
