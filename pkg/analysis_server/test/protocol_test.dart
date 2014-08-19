@@ -503,8 +503,7 @@ class RequestTest {
   }
 
   void test_fromJson_withParams() {
-    Request original = new Request('one', 'aMethod');
-    original.setParameter('foo', 'bar');
+    Request original = new Request('one', 'aMethod', {'foo': 'bar'});
     String json = JSON.encode(original.toJson());
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
@@ -515,15 +514,13 @@ class RequestTest {
   void test_getRequiredParameter_defined() {
     String name = 'name';
     String value = 'value';
-    Request request = new Request('0', '');
-    request.setParameter(name, value);
+    Request request = new Request('0', '', {name: value});
     expect(request.getRequiredParameter(name).datum, equals(value));
   }
 
    void test_getRequiredParameter_null() {
     String name = 'name';
-    Request request = new Request('0', '');
-    request.setParameter(name, null);
+    Request request = new Request('0', '', {name: null});
     expect(request.getRequiredParameter(name).datum, equals(null));
   }
 
@@ -542,8 +539,7 @@ class RequestTest {
   }
 
   void test_toJson_withParams() {
-    Request request = new Request('one', 'aMethod');
-    request.setParameter('foo', 'bar');
+    Request request = new Request('one', 'aMethod', {'foo': 'bar'});
     expect(request.toJson(), equals({
       Request.ID: 'one',
       Request.METHOD: 'aMethod',

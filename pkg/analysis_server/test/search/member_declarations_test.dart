@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show
+    SearchFindMemberDeclarationsParams;
 import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
@@ -40,8 +42,8 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
 
   Future findMemberDeclarations(String name) {
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', SEARCH_FIND_MEMBER_DECLARATIONS);
-      request.setParameter(NAME, name);
+      Request request =
+          new SearchFindMemberDeclarationsParams(name).toRequest('0');
       Response response = handleSuccessfulRequest(request);
       searchId = response.getResult(ID);
       results.clear();

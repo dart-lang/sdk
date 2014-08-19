@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -552,11 +553,8 @@ class D extends C {
   }
 
   Request _createGetTypeHierarchyRequest(String search) {
-    int offset = findOffset(search);
-    Request request = new Request(requestId, SEARCH_GET_TYPE_HIERARCHY);
-    request.setParameter(FILE, testFile);
-    request.setParameter(OFFSET, offset);
-    return request;
+    return new SearchGetTypeHierarchyParams(testFile,
+        findOffset(search)).toRequest(requestId);
   }
 
   Future<List<Map<String, Object>>> _getTypeHierarchy(String search) {

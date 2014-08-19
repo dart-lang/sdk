@@ -119,9 +119,7 @@ main() {
   }
 
   Request _createGetErrorsRequest() {
-    Request request = new Request(requestId, ANALYSIS_GET_ERRORS);
-    request.setParameter(FILE, testFile);
-    return request;
+    return new AnalysisGetErrorsParams(testFile).toRequest(requestId);
   }
 
   Future<List<AnalysisError>> _getErrors(String file) {

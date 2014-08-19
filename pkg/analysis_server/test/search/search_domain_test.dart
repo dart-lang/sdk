@@ -5,8 +5,7 @@
 library test.search.domain;
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -37,8 +36,8 @@ main() {
 
   group('SearchDomainHandler', () {
     test('findMemberReferences', () {
-      var request = new Request('0', SEARCH_FIND_MEMBER_REFERENCES);
-      request.setParameter(NAME, null);
+      // TODO(paulberry): Why are we passing null here?
+      var request = new SearchFindMemberReferencesParams(null).toRequest('0');
       var response = handler.handleRequest(request);
       // TODO(brianwilkerson) implement
       //expect(response, isNull);

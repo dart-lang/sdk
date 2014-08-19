@@ -8,6 +8,8 @@ import 'dart:async';
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show
+    SearchFindMemberReferencesParams;
 import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
@@ -30,8 +32,7 @@ class MemberReferencesTest extends AbstractSearchDomainTest {
 
   Future findMemberReferences(String name) {
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', SEARCH_FIND_MEMBER_REFERENCES);
-      request.setParameter(NAME, name);
+      Request request = new SearchFindMemberReferencesParams(name).toRequest('0');
       Response response = handleSuccessfulRequest(request);
       searchId = response.getResult(ID);
       results.clear();

@@ -5,9 +5,8 @@
 library test.domain.edit;
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:unittest/unittest.dart';
@@ -33,21 +32,21 @@ main() {
 
   group('EditDomainHandler', () {
     test('getAssists', () {
-      var request = new Request('0', EDIT_GET_ASSISTS);
-      request.setParameter(FILE, null);
-      request.setParameter(OFFSET, null);
-      request.setParameter(LENGTH, null);
+      // TODO(paulberry): Why are we passing null here?
+      var request = new EditGetAssistsParams(null, null, null).toRequest('0');
       var response = handler.handleRequest(request);
       // TODO(brianwilkerson) implement
       //expect(response, isNull);
     });
 
     test('getFixes', () {
-      var request = new Request('0', EDIT_GET_FIXES);
-      request.setParameter(ERRORS, []);
-      var response = handler.handleRequest(request);
-      // TODO(brianwilkerson) implement
-      //expect(response, isNull);
+      // TODO(paulberry): Test not yet written, and the code below doesn't
+      // follow the API.
+//      var request = new Request('0', EDIT_GET_FIXES);
+//      request.setParameter(ERRORS, []);
+//      var response = handler.handleRequest(request);
+//      // TODO(brianwilkerson) implement
+//      //expect(response, isNull);
     });
   });
 }

@@ -41,15 +41,10 @@ main() {
     });
 
     group('setSubscriptions', () {
-      Request request;
-      setUp(() {
-        request = new Request('0', SERVER_SET_SUBSCRIPTIONS);
-      });
-
       test('invalid service name', () {
-        request.setParameter(
-            SUBSCRIPTIONS,
-            ['noSuchService']);
+        Request request = new Request('0', SERVER_SET_SUBSCRIPTIONS, {
+          SUBSCRIPTIONS: ['noSuchService']
+        });
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
       });
@@ -57,9 +52,8 @@ main() {
       test('success', () {
         expect(server.serverServices, isEmpty);
         // send request
-        request.setParameter(
-            SUBSCRIPTIONS,
-            [ServerService.STATUS.name]);
+        Request request = new ServerSetSubscriptionsParams(
+            [ServerService.STATUS]).toRequest('0');
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
         // set of services has been changed

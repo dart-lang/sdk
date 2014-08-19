@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
@@ -37,9 +38,8 @@ main() {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', EDIT_GET_FIXES);
-      request.setParameter(FILE, testFile);
-      request.setParameter(OFFSET, findOffset('print'));
+      Request request = new EditGetFixesParams(testFile,
+          findOffset('print')).toRequest('0');
       Response response = handleSuccessfulRequest(request);
       List<Map<String, Object>> errorFixesJsonList = response.getResult(FIXES);
       expect(errorFixesJsonList, hasLength(1));

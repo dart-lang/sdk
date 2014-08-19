@@ -107,13 +107,6 @@ class Request {
   }
 
   /**
-   * Set the value of the parameter with the given [name] to the given [value].
-   */
-  void setParameter(String name, Object value) {
-    params[name] = value;
-  }
-
-  /**
    * Return a table representing the structure of the Json object that will be
    * sent to the client to represent this response.
    */

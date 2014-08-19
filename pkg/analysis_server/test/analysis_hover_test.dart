@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -30,9 +31,8 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
 
   Future<Hover> prepareHoverAt(int offset) {
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', ANALYSIS_GET_HOVER);
-      request.setParameter(FILE, testFile);
-      request.setParameter(OFFSET, offset);
+      Request request = new AnalysisGetHoverParams(testFile,
+          offset).toRequest('0');
       Response response = handleSuccessfulRequest(request);
       List<Map<String, Object>> hoverJsons = response.getResult(HOVERS);
       List<Hover> hovers = hoverJsons.map((json) {

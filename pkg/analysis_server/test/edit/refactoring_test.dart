@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show
+    EditGetAvailableRefactoringsParams;
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
@@ -39,10 +41,8 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
    * [length] characters selected.
    */
   List<String> getAvailableRefactorings(String search, [int length = 0]) {
-    Request request = new Request('0', EDIT_GET_AVAILABLE_REFACTORINGS);
-    request.setParameter(FILE, testFile);
-    request.setParameter(OFFSET, findOffset(search));
-    request.setParameter(LENGTH, length);
+    Request request = new EditGetAvailableRefactoringsParams(testFile,
+        findOffset(search), length).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     return response.getResult(KINDS);
   }

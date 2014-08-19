@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show
+    CompletionGetSuggestionsParams;
 import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -85,9 +87,8 @@ class CompletionTest extends AbstractAnalysisTest {
 
   Future getSuggestions() {
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', COMPLETION_GET_SUGGESTIONS);
-      request.setParameter(FILE, testFile);
-      request.setParameter(OFFSET, completionOffset);
+      Request request = new CompletionGetSuggestionsParams(testFile,
+          completionOffset).toRequest('0');
       Response response = handleSuccessfulRequest(request);
       completionId = response.getResult(ID);
       assertValidId(completionId);

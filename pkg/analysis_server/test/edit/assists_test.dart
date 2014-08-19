@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
@@ -32,10 +33,8 @@ class AssistsTest extends AbstractAnalysisTest {
   }
 
   void prepareAssistsAt(int offset, int length) {
-    Request request = new Request('0', EDIT_GET_ASSISTS);
-    request.setParameter(FILE, testFile);
-    request.setParameter(OFFSET, offset);
-    request.setParameter(LENGTH, length);
+    Request request = new EditGetAssistsParams(testFile, offset,
+        length).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     List<Map<String, dynamic>> changeJsonList = response.getResult(ASSISTS);
     // TODO(scheglov) consider using generated classes and decoders
