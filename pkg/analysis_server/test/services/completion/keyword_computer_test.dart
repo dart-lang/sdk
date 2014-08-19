@@ -36,10 +36,29 @@ class KeywordComputerTest extends AbstractCompletionTest {
     computer = new KeywordComputer();
   }
 
-  test_class_extends() {
+  test_after_class() {
+    addTestSource('class A {} ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        ['abstract', 'class', 'const', 'final', 'typedef', 'var']);
+  }
+
+  test_before_import() {
+    addTestSource('^ import foo;');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(['export', 'import', 'library', 'part']);
+  }
+
+  test_class() {
     addTestSource('class A ^');
     expect(computeFast(), isTrue);
-    assertSuggestKeywords(['extends', 'implements', 'with']);
+    assertSuggestKeywords(['extends', 'implements']);
+  }
+
+  test_class_extends() {
+    addTestSource('class A extends foo ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(['implements', 'with']);
   }
 
   test_class_extends_name() {
@@ -48,8 +67,26 @@ class KeywordComputerTest extends AbstractCompletionTest {
     assertSuggestKeywords([]);
   }
 
+  test_class_implements() {
+    addTestSource('class A ^ implements foo');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(['extends']);
+  }
+
+  test_class_implements_name() {
+    addTestSource('class A implements ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
   test_class_name() {
     addTestSource('class ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_class_with_name() {
+    addTestSource('class A extends foo with ^');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([]);
   }
@@ -66,6 +103,44 @@ class KeywordComputerTest extends AbstractCompletionTest {
             'final',
             'import',
             'library',
+            'part',
+            'typedef',
+            'var']);
+  }
+
+  test_library() {
+    addTestSource('library foo;^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            'abstract',
+            'class',
+            'const',
+            'export',
+            'final',
+            'import',
+            'part',
+            'typedef',
+            'var']);
+  }
+
+  test_library_name() {
+    addTestSource('library ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_part_of() {
+    addTestSource('part of foo;^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            'abstract',
+            'class',
+            'const',
+            'export',
+            'final',
+            'import',
             'part',
             'typedef',
             'var']);

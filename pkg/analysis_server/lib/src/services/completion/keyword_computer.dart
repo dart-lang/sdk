@@ -39,42 +39,86 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    _addSuggestions([Keyword.EXTENDS, Keyword.IMPLEMENTS, Keyword.WITH]);
+    // Very simplistic suggestion because analyzer will warn if
+    // the extends / with / implements keywords are out of order
+    if (node.extendsClause == null) {
+      _addSuggestion(Keyword.EXTENDS);
+    } else if (node.withClause == null) {
+      _addSuggestion(Keyword.WITH);
+    }
+    if (node.implementsClause == null) {
+      _addSuggestion(Keyword.IMPLEMENTS);
+    }
   }
 
   @override
   visitCompilationUnit(CompilationUnit node) {
-    _addSuggestions(
-        [
-            Keyword.ABSTRACT,
-            Keyword.CLASS,
-            Keyword.CONST,
-            Keyword.EXPORT,
-            Keyword.FINAL,
-            Keyword.IMPORT,
-            Keyword.LIBRARY,
-            Keyword.PART,
-            Keyword.TYPEDEF,
-            Keyword.VAR]);
+    Directive firstDirective;
+    int endOfDirectives = 0;
+    if (node.directives.length > 0) {
+      firstDirective = node.directives[0];
+      endOfDirectives = node.directives.last.end - 1;
+    }
+    int startOfDeclarations = node.end;
+    if (node.declarations.length > 0) {
+      startOfDeclarations = node.declarations[0].offset;
+    }
+
+    // Simplistic check for library as first directive
+    if (firstDirective is! LibraryDirective) {
+      if (firstDirective != null) {
+        if (request.offset <= firstDirective.offset) {
+          _addSuggestions([Keyword.LIBRARY]);
+        }
+      } else {
+        if (request.offset <= startOfDeclarations) {
+          _addSuggestions([Keyword.LIBRARY]);
+        }
+      }
+    }
+    if (request.offset <= startOfDeclarations) {
+      _addSuggestions([Keyword.EXPORT, Keyword.IMPORT, Keyword.PART]);
+    }
+    if (request.offset >= endOfDirectives) {
+      _addSuggestions(
+          [
+              Keyword.ABSTRACT,
+              Keyword.CLASS,
+              Keyword.CONST,
+              Keyword.FINAL,
+              Keyword.TYPEDEF,
+              Keyword.VAR]);
+    }
   }
 
   @override
   visitNode(AstNode node) {
-    // ignored
+    if (request.offset == node.end) {
+      Token token = node.endToken;
+      if (token != null && !token.isSynthetic) {
+        if (token.lexeme == ';' || token.lexeme == '}') {
+          node.parent.accept(this);
+        }
+      }
+    }
+  }
+
+  void _addSuggestion(Keyword keyword) {
+    String completion = keyword.syntax;
+    request.suggestions.add(
+        new CompletionSuggestion(
+            CompletionSuggestionKind.KEYWORD,
+            CompletionRelevance.DEFAULT,
+            completion,
+            completion.length,
+            0,
+            false,
+            false));
   }
 
   void _addSuggestions(List<Keyword> keywords) {
     keywords.forEach((Keyword keyword) {
-      String completion = keyword.syntax;
-      request.suggestions.add(
-          new CompletionSuggestion(
-              CompletionSuggestionKind.KEYWORD,
-              CompletionRelevance.DEFAULT,
-              completion,
-              completion.length,
-              0,
-              false,
-              false));
+      _addSuggestion(keyword);
     });
   }
 }
