@@ -26,7 +26,12 @@ class ImpliedType {
    */
   final String kind;
 
-  ImpliedType(this.camelName, this.humanReadableName, this.type, this.kind);
+  /**
+   * API node from which this type was inferred.
+   */
+  final ApiNode apiNode;
+
+  ImpliedType(this.camelName, this.humanReadableName, this.type, this.kind, this.apiNode);
 }
 
 Map<String, ImpliedType> computeImpliedTypes(Api api) {
@@ -40,7 +45,8 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
 
   _ImpliedTypesVisitor(Api api) : super(api);
 
-  void storeType(String name, String nameSuffix, TypeDecl type, String kind) {
+  void storeType(String name, String nameSuffix, TypeDecl type, String
+      kind, ApiNode apiNode) {
     String humanReadableName = name;
     List<String> camelNameParts = name.split('.');
     if (nameSuffix != null) {
@@ -48,30 +54,37 @@ class _ImpliedTypesVisitor extends HierarchicalApiVisitor {
       camelNameParts.add(nameSuffix);
     }
     String camelName = camelJoin(camelNameParts);
-    impliedTypes[camelName] = new ImpliedType(camelName, humanReadableName, type, kind);
+    impliedTypes[camelName] = new ImpliedType(camelName, humanReadableName,
+        type, kind, apiNode);
   }
 
   @override
   visitNotification(Notification notification) {
-    storeType(notification.longEvent, 'params', notification.params, 'notificationParams');
+    storeType(notification.longEvent, 'params', notification.params,
+        'notificationParams', notification);
   }
 
   @override
   visitRequest(Request request) {
-    storeType(request.longMethod, 'params', request.params, 'requestParams');
-    storeType(request.longMethod, 'result', request.result, 'requestResult');
+    storeType(request.longMethod, 'params', request.params, 'requestParams',
+        request);
+    storeType(request.longMethod, 'result', request.result, 'requestResult',
+        request);
   }
 
   @override
   visitRefactoring(Refactoring refactoring) {
     String camelKind = camelJoin(refactoring.kind.toLowerCase().split('_'));
-    storeType(camelKind, 'feedback', refactoring.feedback, 'refactoringFeedback');
-    storeType(camelKind, 'options', refactoring.options, 'refactoringOptions');
+    storeType(camelKind, 'feedback', refactoring.feedback,
+        'refactoringFeedback', refactoring);
+    storeType(camelKind, 'options', refactoring.options, 'refactoringOptions',
+        refactoring);
   }
 
   @override
   visitTypeDefinition(TypeDefinition typeDefinition) {
-    storeType(typeDefinition.name, null, typeDefinition.type, 'typeDefinition');
+    storeType(typeDefinition.name, null, typeDefinition.type, 'typeDefinition',
+        typeDefinition);
   }
 
 }

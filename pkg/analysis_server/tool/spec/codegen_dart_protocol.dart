@@ -230,7 +230,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         toHtmlVisitor.showType(null, impliedType.type);
       }
     }));
-    writeln('class $className {');
+    writeln('class $className implements HasToJson {');
     indent(() {
       for (TypeObjectField field in type.fields) {
         if (field.value != null) {
@@ -251,6 +251,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       }
       emitToJsonMember(type);
       writeln();
+      if (emitToRequestMember(impliedType)) {
+        writeln();
+      }
       writeln('@override');
       writeln('String toString() => JSON.encode(toJson());');
       writeln();
@@ -312,6 +315,24 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       writeln('return result;');
     });
     writeln('}');
+  }
+
+  /**
+   * Emit the toRequest() code for a class, if appropriate.  Returns true if
+   * code was emitted.
+   */
+  bool emitToRequestMember(ImpliedType impliedType) {
+    if (impliedType.kind == 'requestParams') {
+      writeln('Request toRequest(String id) {');
+      indent(() {
+        String methodString = literalString((impliedType.apiNode as
+            Request).longMethod);
+        writeln('return new Request(id, $methodString, toJson());');
+      });
+      writeln('}');
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -440,7 +461,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         return new ToJsonIdentity(dartType(type));
       } else {
         return new ToJsonSnippet(dartType(type), (String value) =>
-            '$value.map(${itemCode.asClosure})');
+            '$value.map(${itemCode.asClosure}).toList()');
       }
     } else if (resolvedType is TypeMap) {
       ToJsonCode keyCode;

@@ -15,7 +15,7 @@ part of protocol2;
  *   "version": String
  * }
  */
-class ServerGetVersionResult {
+class ServerGetVersionResult implements HasToJson {
   /**
    * The version number of the analysis server.
    */
@@ -74,7 +74,7 @@ class ServerGetVersionResult {
  *   "subscriptions": List<ServerService>
  * }
  */
-class ServerSetSubscriptionsParams {
+class ServerSetSubscriptionsParams implements HasToJson {
   /**
    * A list of the services being subscribed to.
    */
@@ -103,8 +103,12 @@ class ServerSetSubscriptionsParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["subscriptions"] = subscriptions.map((ServerService value) => value.toJson());
+    result["subscriptions"] = subscriptions.map((ServerService value) => value.toJson()).toList();
     return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "server.setSubscriptions", toJson());
   }
 
   @override
@@ -135,7 +139,7 @@ class ServerSetSubscriptionsParams {
  *   "stackTrace": String
  * }
  */
-class ServerErrorParams {
+class ServerErrorParams implements HasToJson {
   /**
    * True if the error is a fatal error, meaning that the server will shutdown
    * automatically after sending this notification.
@@ -224,7 +228,7 @@ class ServerErrorParams {
  *   "analysis": optional AnalysisStatus
  * }
  */
-class ServerStatusParams {
+class ServerStatusParams implements HasToJson {
   /**
    * The current status of analysis, including whether analysis is being
    * performed and if so what is being analyzed.
@@ -284,7 +288,7 @@ class ServerStatusParams {
  *   "file": FilePath
  * }
  */
-class AnalysisGetErrorsParams {
+class AnalysisGetErrorsParams implements HasToJson {
   /**
    * The file for which errors are being requested.
    */
@@ -317,6 +321,10 @@ class AnalysisGetErrorsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getErrors", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -343,7 +351,7 @@ class AnalysisGetErrorsParams {
  *   "errors": List<AnalysisError>
  * }
  */
-class AnalysisGetErrorsResult {
+class AnalysisGetErrorsResult implements HasToJson {
   /**
    * The errors associated with the file.
    */
@@ -372,7 +380,7 @@ class AnalysisGetErrorsResult {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["errors"] = errors.map((AnalysisError value) => value.toJson());
+    result["errors"] = errors.map((AnalysisError value) => value.toJson()).toList();
     return result;
   }
 
@@ -403,7 +411,7 @@ class AnalysisGetErrorsResult {
  *   "offset": int
  * }
  */
-class AnalysisGetHoverParams {
+class AnalysisGetHoverParams implements HasToJson {
   /**
    * The file in which hover information is being requested.
    */
@@ -448,6 +456,10 @@ class AnalysisGetHoverParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getHover", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -476,7 +488,7 @@ class AnalysisGetHoverParams {
  *   "hovers": List<HoverInformation>
  * }
  */
-class AnalysisGetHoverResult {
+class AnalysisGetHoverResult implements HasToJson {
   /**
    * The hover information associated with the location. The list will be empty
    * if no information could be determined for the location. The list can
@@ -509,7 +521,7 @@ class AnalysisGetHoverResult {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["hovers"] = hovers.map((HoverInformation value) => value.toJson());
+    result["hovers"] = hovers.map((HoverInformation value) => value.toJson()).toList();
     return result;
   }
 
@@ -540,7 +552,7 @@ class AnalysisGetHoverResult {
  *   "excluded": List<FilePath>
  * }
  */
-class AnalysisSetAnalysisRootsParams {
+class AnalysisSetAnalysisRootsParams implements HasToJson {
   /**
    * A list of the files and directories that should be analyzed.
    */
@@ -586,6 +598,10 @@ class AnalysisSetAnalysisRootsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "analysis.setAnalysisRoots", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -614,7 +630,7 @@ class AnalysisSetAnalysisRootsParams {
  *   "files": List<FilePath>
  * }
  */
-class AnalysisSetPriorityFilesParams {
+class AnalysisSetPriorityFilesParams implements HasToJson {
   /**
    * The files that are to be a priority for analysis.
    */
@@ -647,6 +663,10 @@ class AnalysisSetPriorityFilesParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "analysis.setPriorityFiles", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -673,7 +693,7 @@ class AnalysisSetPriorityFilesParams {
  *   "subscriptions": Map<AnalysisService, List<FilePath>>
  * }
  */
-class AnalysisSetSubscriptionsParams {
+class AnalysisSetSubscriptionsParams implements HasToJson {
   /**
    * A table mapping services to a list of the files being subscribed to the
    * service.
@@ -707,6 +727,10 @@ class AnalysisSetSubscriptionsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "analysis.setSubscriptions", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -733,7 +757,7 @@ class AnalysisSetSubscriptionsParams {
  *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
  * }
  */
-class AnalysisUpdateContentParams {
+class AnalysisUpdateContentParams implements HasToJson {
   /**
    * A table mapping the files whose content has changed to a description of
    * the content change.
@@ -767,6 +791,10 @@ class AnalysisUpdateContentParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "analysis.updateContent", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -793,7 +821,7 @@ class AnalysisUpdateContentParams {
  *   "options": AnalysisOptions
  * }
  */
-class AnalysisUpdateOptionsParams {
+class AnalysisUpdateOptionsParams implements HasToJson {
   /**
    * The options that are to be used to control analysis.
    */
@@ -826,6 +854,10 @@ class AnalysisUpdateOptionsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "analysis.updateOptions", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -853,7 +885,7 @@ class AnalysisUpdateOptionsParams {
  *   "errors": List<AnalysisError>
  * }
  */
-class AnalysisErrorsParams {
+class AnalysisErrorsParams implements HasToJson {
   /**
    * The file containing the errors.
    */
@@ -894,7 +926,7 @@ class AnalysisErrorsParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["errors"] = errors.map((AnalysisError value) => value.toJson());
+    result["errors"] = errors.map((AnalysisError value) => value.toJson()).toList();
     return result;
   }
 
@@ -926,7 +958,7 @@ class AnalysisErrorsParams {
  *   "files": List<FilePath>
  * }
  */
-class AnalysisFlushResultsParams {
+class AnalysisFlushResultsParams implements HasToJson {
   /**
    * The files that are no longer being analyzed.
    */
@@ -986,7 +1018,7 @@ class AnalysisFlushResultsParams {
  *   "regions": List<FoldingRegion>
  * }
  */
-class AnalysisFoldingParams {
+class AnalysisFoldingParams implements HasToJson {
   /**
    * The file containing the folding regions.
    */
@@ -1027,7 +1059,7 @@ class AnalysisFoldingParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["regions"] = regions.map((FoldingRegion value) => value.toJson());
+    result["regions"] = regions.map((FoldingRegion value) => value.toJson()).toList();
     return result;
   }
 
@@ -1060,7 +1092,7 @@ class AnalysisFoldingParams {
  *   "regions": List<HighlightRegion>
  * }
  */
-class AnalysisHighlightsParams {
+class AnalysisHighlightsParams implements HasToJson {
   /**
    * The file containing the highlight regions.
    */
@@ -1105,7 +1137,7 @@ class AnalysisHighlightsParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["regions"] = regions.map((HighlightRegion value) => value.toJson());
+    result["regions"] = regions.map((HighlightRegion value) => value.toJson()).toList();
     return result;
   }
 
@@ -1138,7 +1170,7 @@ class AnalysisHighlightsParams {
  *   "regions": List<NavigationRegion>
  * }
  */
-class AnalysisNavigationParams {
+class AnalysisNavigationParams implements HasToJson {
   /**
    * The file containing the navigation regions.
    */
@@ -1184,7 +1216,7 @@ class AnalysisNavigationParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["regions"] = regions.map((NavigationRegion value) => value.toJson());
+    result["regions"] = regions.map((NavigationRegion value) => value.toJson()).toList();
     return result;
   }
 
@@ -1217,7 +1249,7 @@ class AnalysisNavigationParams {
  *   "occurrences": List<Occurrences>
  * }
  */
-class AnalysisOccurrencesParams {
+class AnalysisOccurrencesParams implements HasToJson {
   /**
    * The file in which the references occur.
    */
@@ -1258,7 +1290,7 @@ class AnalysisOccurrencesParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["occurrences"] = occurrences.map((Occurrences value) => value.toJson());
+    result["occurrences"] = occurrences.map((Occurrences value) => value.toJson()).toList();
     return result;
   }
 
@@ -1291,7 +1323,7 @@ class AnalysisOccurrencesParams {
  *   "outline": Outline
  * }
  */
-class AnalysisOutlineParams {
+class AnalysisOutlineParams implements HasToJson {
   /**
    * The file with which the outline is associated.
    */
@@ -1365,7 +1397,7 @@ class AnalysisOutlineParams {
  *   "overrides": List<Override>
  * }
  */
-class AnalysisOverridesParams {
+class AnalysisOverridesParams implements HasToJson {
   /**
    * The file with which the overrides are associated.
    */
@@ -1406,7 +1438,7 @@ class AnalysisOverridesParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["overrides"] = overrides.map((Override value) => value.toJson());
+    result["overrides"] = overrides.map((Override value) => value.toJson()).toList();
     return result;
   }
 
@@ -1439,7 +1471,7 @@ class AnalysisOverridesParams {
  *   "offset": int
  * }
  */
-class CompletionGetSuggestionsParams {
+class CompletionGetSuggestionsParams implements HasToJson {
   /**
    * The file containing the point at which suggestions are to be made.
    */
@@ -1484,6 +1516,10 @@ class CompletionGetSuggestionsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "completion.getSuggestions", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -1512,7 +1548,7 @@ class CompletionGetSuggestionsParams {
  *   "id": CompletionId
  * }
  */
-class CompletionGetSuggestionsResult {
+class CompletionGetSuggestionsResult implements HasToJson {
   /**
    * The identifier used to associate results with this completion request.
    */
@@ -1575,7 +1611,7 @@ class CompletionGetSuggestionsResult {
  *   "last": bool
  * }
  */
-class CompletionResultsParams {
+class CompletionResultsParams implements HasToJson {
   /**
    * The id associated with the completion.
    */
@@ -1661,7 +1697,7 @@ class CompletionResultsParams {
     result["id"] = id;
     result["replacementOffset"] = replacementOffset;
     result["replacementLength"] = replacementLength;
-    result["results"] = results.map((CompletionSuggestion value) => value.toJson());
+    result["results"] = results.map((CompletionSuggestion value) => value.toJson()).toList();
     result["last"] = last;
     return result;
   }
@@ -1702,7 +1738,7 @@ class CompletionResultsParams {
  *   "includePotential": bool
  * }
  */
-class SearchFindElementReferencesParams {
+class SearchFindElementReferencesParams implements HasToJson {
   /**
    * The file containing the declaration of or reference to the element used to
    * define the search.
@@ -1761,6 +1797,10 @@ class SearchFindElementReferencesParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "search.findElementReferences", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -1792,7 +1832,7 @@ class SearchFindElementReferencesParams {
  *   "element": Element
  * }
  */
-class SearchFindElementReferencesResult {
+class SearchFindElementReferencesResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
@@ -1866,7 +1906,7 @@ class SearchFindElementReferencesResult {
  *   "name": String
  * }
  */
-class SearchFindMemberDeclarationsParams {
+class SearchFindMemberDeclarationsParams implements HasToJson {
   /**
    * The name of the declarations to be found.
    */
@@ -1899,6 +1939,10 @@ class SearchFindMemberDeclarationsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "search.findMemberDeclarations", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -1925,7 +1969,7 @@ class SearchFindMemberDeclarationsParams {
  *   "id": SearchId
  * }
  */
-class SearchFindMemberDeclarationsResult {
+class SearchFindMemberDeclarationsResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
@@ -1984,7 +2028,7 @@ class SearchFindMemberDeclarationsResult {
  *   "name": String
  * }
  */
-class SearchFindMemberReferencesParams {
+class SearchFindMemberReferencesParams implements HasToJson {
   /**
    * The name of the references to be found.
    */
@@ -2017,6 +2061,10 @@ class SearchFindMemberReferencesParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "search.findMemberReferences", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2043,7 +2091,7 @@ class SearchFindMemberReferencesParams {
  *   "id": SearchId
  * }
  */
-class SearchFindMemberReferencesResult {
+class SearchFindMemberReferencesResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
@@ -2102,7 +2150,7 @@ class SearchFindMemberReferencesResult {
  *   "pattern": String
  * }
  */
-class SearchFindTopLevelDeclarationsParams {
+class SearchFindTopLevelDeclarationsParams implements HasToJson {
   /**
    * The regular expression used to match the names of the declarations to be
    * found.
@@ -2136,6 +2184,10 @@ class SearchFindTopLevelDeclarationsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "search.findTopLevelDeclarations", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2162,7 +2214,7 @@ class SearchFindTopLevelDeclarationsParams {
  *   "id": SearchId
  * }
  */
-class SearchFindTopLevelDeclarationsResult {
+class SearchFindTopLevelDeclarationsResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
@@ -2222,7 +2274,7 @@ class SearchFindTopLevelDeclarationsResult {
  *   "offset": int
  * }
  */
-class SearchGetTypeHierarchyParams {
+class SearchGetTypeHierarchyParams implements HasToJson {
   /**
    * The file containing the declaration or reference to the type for which a
    * hierarchy is being requested.
@@ -2268,6 +2320,10 @@ class SearchGetTypeHierarchyParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "search.getTypeHierarchy", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2296,7 +2352,7 @@ class SearchGetTypeHierarchyParams {
  *   "hierarchyItems": optional List<TypeHierarchyItem>
  * }
  */
-class SearchGetTypeHierarchyResult {
+class SearchGetTypeHierarchyResult implements HasToJson {
   /**
    * A list of the types in the requested hierarchy. The first element of the
    * list is the item representing the type for which the hierarchy was
@@ -2332,7 +2388,7 @@ class SearchGetTypeHierarchyResult {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     if (hierarchyItems != null) {
-      result["hierarchyItems"] = hierarchyItems.map((TypeHierarchyItem value) => value.toJson());
+      result["hierarchyItems"] = hierarchyItems.map((TypeHierarchyItem value) => value.toJson()).toList();
     }
     return result;
   }
@@ -2365,7 +2421,7 @@ class SearchGetTypeHierarchyResult {
  *   "last": bool
  * }
  */
-class SearchResultsParams {
+class SearchResultsParams implements HasToJson {
   /**
    * The id associated with the search.
    */
@@ -2418,7 +2474,7 @@ class SearchResultsParams {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["id"] = id;
-    result["results"] = results.map((SearchResult value) => value.toJson());
+    result["results"] = results.map((SearchResult value) => value.toJson()).toList();
     result["last"] = last;
     return result;
   }
@@ -2455,7 +2511,7 @@ class SearchResultsParams {
  *   "length": int
  * }
  */
-class EditGetAssistsParams {
+class EditGetAssistsParams implements HasToJson {
   /**
    * The file containing the code for which assists are being requested.
    */
@@ -2512,6 +2568,10 @@ class EditGetAssistsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "edit.getAssists", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2542,7 +2602,7 @@ class EditGetAssistsParams {
  *   "assists": List<SourceChange>
  * }
  */
-class EditGetAssistsResult {
+class EditGetAssistsResult implements HasToJson {
   /**
    * The assists that are available at the given location.
    */
@@ -2571,7 +2631,7 @@ class EditGetAssistsResult {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["assists"] = assists.map((SourceChange value) => value.toJson());
+    result["assists"] = assists.map((SourceChange value) => value.toJson()).toList();
     return result;
   }
 
@@ -2603,7 +2663,7 @@ class EditGetAssistsResult {
  *   "length": int
  * }
  */
-class EditGetAvailableRefactoringsParams {
+class EditGetAvailableRefactoringsParams implements HasToJson {
   /**
    * The file containing the code on which the refactoring would be based.
    */
@@ -2660,6 +2720,10 @@ class EditGetAvailableRefactoringsParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "edit.getAvailableRefactorings", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2690,7 +2754,7 @@ class EditGetAvailableRefactoringsParams {
  *   "kinds": List<RefactoringKind>
  * }
  */
-class EditGetAvailableRefactoringsResult {
+class EditGetAvailableRefactoringsResult implements HasToJson {
   /**
    * The kinds of refactorings that are valid for the given selection.
    */
@@ -2719,7 +2783,7 @@ class EditGetAvailableRefactoringsResult {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kinds"] = kinds.map((RefactoringKind value) => value.toJson());
+    result["kinds"] = kinds.map((RefactoringKind value) => value.toJson()).toList();
     return result;
   }
 
@@ -2750,7 +2814,7 @@ class EditGetAvailableRefactoringsResult {
  *   "offset": int
  * }
  */
-class EditGetFixesParams {
+class EditGetFixesParams implements HasToJson {
   /**
    * The file containing the errors for which fixes are being requested.
    */
@@ -2795,6 +2859,10 @@ class EditGetFixesParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "edit.getFixes", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2823,7 +2891,7 @@ class EditGetFixesParams {
  *   "fixes": List<ErrorFixes>
  * }
  */
-class EditGetFixesResult {
+class EditGetFixesResult implements HasToJson {
   /**
    * The fixes that are available for each of the analysis errors. There is a
    * one-to-one correspondence between the analysis errors in the request and
@@ -2857,7 +2925,7 @@ class EditGetFixesResult {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["fixes"] = fixes.map((ErrorFixes value) => value.toJson());
+    result["fixes"] = fixes.map((ErrorFixes value) => value.toJson()).toList();
     return result;
   }
 
@@ -2892,7 +2960,7 @@ class EditGetFixesResult {
  *   "options": optional object
  * }
  */
-class EditGetRefactoringParams {
+class EditGetRefactoringParams implements HasToJson {
   /**
    * The identifier of the kind of refactoring to be performed.
    */
@@ -2990,6 +3058,10 @@ class EditGetRefactoringParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "edit.getRefactoring", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -3029,7 +3101,7 @@ class EditGetRefactoringParams {
  *   "potentialEdits": optional List<String>
  * }
  */
-class EditGetRefactoringResult {
+class EditGetRefactoringResult implements HasToJson {
   /**
    * The status of the refactoring. The array will be empty if there are no
    * known problems.
@@ -3097,7 +3169,7 @@ class EditGetRefactoringResult {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["status"] = status.map((RefactoringProblem value) => value.toJson());
+    result["status"] = status.map((RefactoringProblem value) => value.toJson()).toList();
     if (feedback != null) {
       result["feedback"] = feedback;
     }
@@ -3142,7 +3214,7 @@ class EditGetRefactoringResult {
  *   "contextRoot": FilePath
  * }
  */
-class DebugCreateContextParams {
+class DebugCreateContextParams implements HasToJson {
   /**
    * The path of the Dart or HTML file that will be launched.
    */
@@ -3175,6 +3247,10 @@ class DebugCreateContextParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "debug.createContext", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -3201,7 +3277,7 @@ class DebugCreateContextParams {
  *   "id": DebugContextId
  * }
  */
-class DebugCreateContextResult {
+class DebugCreateContextResult implements HasToJson {
   /**
    * The identifier used to refer to the debugging context that was created.
    */
@@ -3260,7 +3336,7 @@ class DebugCreateContextResult {
  *   "id": DebugContextId
  * }
  */
-class DebugDeleteContextParams {
+class DebugDeleteContextParams implements HasToJson {
   /**
    * The identifier of the debugging context that is to be deleted.
    */
@@ -3293,6 +3369,10 @@ class DebugDeleteContextParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "debug.deleteContext", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -3321,7 +3401,7 @@ class DebugDeleteContextParams {
  *   "uri": optional String
  * }
  */
-class DebugMapUriParams {
+class DebugMapUriParams implements HasToJson {
   /**
    * The identifier of the debugging context in which the URI is to be mapped.
    */
@@ -3378,6 +3458,10 @@ class DebugMapUriParams {
     return result;
   }
 
+  Request toRequest(String id) {
+    return new Request(id, "debug.mapUri", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -3409,7 +3493,7 @@ class DebugMapUriParams {
  *   "uri": optional String
  * }
  */
-class DebugMapUriResult {
+class DebugMapUriResult implements HasToJson {
   /**
    * The file to which the URI was mapped. This field is omitted if the uri
    * field was not given in the request.
@@ -3484,7 +3568,7 @@ class DebugMapUriResult {
  *   "subscriptions": List<DebugService>
  * }
  */
-class DebugSetSubscriptionsParams {
+class DebugSetSubscriptionsParams implements HasToJson {
   /**
    * A list of the services being subscribed to.
    */
@@ -3513,8 +3597,12 @@ class DebugSetSubscriptionsParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["subscriptions"] = subscriptions.map((DebugService value) => value.toJson());
+    result["subscriptions"] = subscriptions.map((DebugService value) => value.toJson()).toList();
     return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "debug.setSubscriptions", toJson());
   }
 
   @override
@@ -3545,7 +3633,7 @@ class DebugSetSubscriptionsParams {
  *   "htmlToDart": Map<FilePath, List<FilePath>>
  * }
  */
-class DebugLaunchDataParams {
+class DebugLaunchDataParams implements HasToJson {
   /**
    * A list of the files that are executable in the given context. This list
    * replaces any previous list provided for the given context.
@@ -3599,7 +3687,7 @@ class DebugLaunchDataParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["executables"] = executables.map((ExecutableFile value) => value.toJson());
+    result["executables"] = executables.map((ExecutableFile value) => value.toJson()).toList();
     result["dartToHtml"] = dartToHtml;
     result["htmlToDart"] = htmlToDart;
     return result;
@@ -3636,7 +3724,7 @@ class DebugLaunchDataParams {
  *   "content": String
  * }
  */
-class AddContentOverlay {
+class AddContentOverlay implements HasToJson {
   /**
    * The new content of the file.
    */
@@ -3699,7 +3787,7 @@ class AddContentOverlay {
  *   "correction": optional String
  * }
  */
-class AnalysisError {
+class AnalysisError implements HasToJson {
   /**
    * The severity of the error.
    */
@@ -3816,7 +3904,7 @@ class AnalysisError {
  *   "generateHints": optional bool
  * }
  */
-class AnalysisOptions {
+class AnalysisOptions implements HasToJson {
   /**
    * True if the client wants to enable support for the proposed async feature.
    */
@@ -3994,7 +4082,7 @@ class AnalysisService {
  *   "analysisTarget": optional String
  * }
  */
-class AnalysisStatus {
+class AnalysisStatus implements HasToJson {
   /**
    * True if analysis is currently being performed.
    */
@@ -4064,7 +4152,7 @@ class AnalysisStatus {
  *   "edits": List<SourceEdit>
  * }
  */
-class ChangeContentOverlay {
+class ChangeContentOverlay implements HasToJson {
   /**
    * The edits to be applied to the file.
    */
@@ -4092,7 +4180,7 @@ class ChangeContentOverlay {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["type"] = "change";
-    result["edits"] = edits.map((SourceEdit value) => value.toJson());
+    result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;
   }
 
@@ -4188,7 +4276,7 @@ class CompletionRelevance {
  *   "parameterType": optional String
  * }
  */
-class CompletionSuggestion {
+class CompletionSuggestion implements HasToJson {
   /**
    * The kind of element being suggested.
    */
@@ -4663,7 +4751,7 @@ class DebugService {
  *   "returnType": optional String
  * }
  */
-class Element {
+class Element implements HasToJson {
   /**
    * The kind of the element.
    */
@@ -4926,7 +5014,7 @@ class ElementKind {
  *   "data": optional object
  * }
  */
-class Error {
+class Error implements HasToJson {
   /**
    * A code that uniquely identifies the error that occurred.
    */
@@ -5010,7 +5098,7 @@ class Error {
  *   "fixes": List<SourceChange>
  * }
  */
-class ErrorFixes {
+class ErrorFixes implements HasToJson {
   /**
    * The error with which the fixes are associated.
    */
@@ -5046,7 +5134,7 @@ class ErrorFixes {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["error"] = error.toJson();
-    result["fixes"] = fixes.map((SourceChange value) => value.toJson());
+    result["fixes"] = fixes.map((SourceChange value) => value.toJson()).toList();
     return result;
   }
 
@@ -5192,7 +5280,7 @@ class ErrorType {
  *   "offset": ExecutableKind
  * }
  */
-class ExecutableFile {
+class ExecutableFile implements HasToJson {
   /**
    * The path of the executable file.
    */
@@ -5370,7 +5458,7 @@ class FoldingKind {
  *   "length": int
  * }
  */
-class FoldingRegion {
+class FoldingRegion implements HasToJson {
   /**
    * The kind of the region.
    */
@@ -5454,7 +5542,7 @@ class FoldingRegion {
  *   "length": int
  * }
  */
-class HighlightRegion {
+class HighlightRegion implements HasToJson {
   /**
    * The type of highlight associated with the region.
    */
@@ -5754,7 +5842,7 @@ class HighlightRegionType {
  *   "staticType": optional String
  * }
  */
-class HoverInformation {
+class HoverInformation implements HasToJson {
   /**
    * The offset of the range of characters that encompases the cursor position
    * and has the same hover information as the cursor position.
@@ -5952,7 +6040,7 @@ class HoverInformation {
  *   "suggestions": List<LinkedEditSuggestion>
  * }
  */
-class LinkedEditGroup {
+class LinkedEditGroup implements HasToJson {
   /**
    * The positions of the regions that should be edited simultaneously.
    */
@@ -5999,9 +6087,9 @@ class LinkedEditGroup {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["positions"] = positions.map((Position value) => value.toJson());
+    result["positions"] = positions.map((Position value) => value.toJson()).toList();
     result["length"] = length;
-    result["suggestions"] = suggestions.map((LinkedEditSuggestion value) => value.toJson());
+    result["suggestions"] = suggestions.map((LinkedEditSuggestion value) => value.toJson()).toList();
     return result;
   }
 
@@ -6036,7 +6124,7 @@ class LinkedEditGroup {
  *   "kind": LinkedEditSuggestionKind
  * }
  */
-class LinkedEditSuggestion {
+class LinkedEditSuggestion implements HasToJson {
   /**
    * The value that could be used to replace all of the linked edit regions.
    */
@@ -6162,7 +6250,7 @@ class LinkedEditSuggestionKind {
  *   "startColumn": int
  * }
  */
-class Location {
+class Location implements HasToJson {
   /**
    * The file containing the range.
    */
@@ -6276,7 +6364,7 @@ class Location {
  *   "targets": List<Element>
  * }
  */
-class NavigationRegion {
+class NavigationRegion implements HasToJson {
   /**
    * The offset of the region from which the user can navigate.
    */
@@ -6325,7 +6413,7 @@ class NavigationRegion {
     Map<String, dynamic> result = {};
     result["offset"] = offset;
     result["length"] = length;
-    result["targets"] = targets.map((Element value) => value.toJson());
+    result["targets"] = targets.map((Element value) => value.toJson()).toList();
     return result;
   }
 
@@ -6361,7 +6449,7 @@ class NavigationRegion {
  *   "length": int
  * }
  */
-class Occurrences {
+class Occurrences implements HasToJson {
   /**
    * The element that was referenced.
    */
@@ -6446,7 +6534,7 @@ class Occurrences {
  *   "children": optional List<Outline>
  * }
  */
-class Outline {
+class Outline implements HasToJson {
   /**
    * A description of the element represented by this node.
    */
@@ -6509,7 +6597,7 @@ class Outline {
     result["offset"] = offset;
     result["length"] = length;
     if (children != null) {
-      result["children"] = children.map((Outline value) => value.toJson());
+      result["children"] = children.map((Outline value) => value.toJson()).toList();
     }
     return result;
   }
@@ -6549,7 +6637,7 @@ class Outline {
  *   "interfaceMembers": optional List<OverriddenMember>
  * }
  */
-class Override {
+class Override implements HasToJson {
   /**
    * The offset of the name of the overriding member.
    */
@@ -6612,7 +6700,7 @@ class Override {
       result["superclassMember"] = superclassMember.toJson();
     }
     if (interfaceMembers != null) {
-      result["interfaceMembers"] = interfaceMembers.map((OverriddenMember value) => value.toJson());
+      result["interfaceMembers"] = interfaceMembers.map((OverriddenMember value) => value.toJson()).toList();
     }
     return result;
   }
@@ -6650,7 +6738,7 @@ class Override {
  *   "className": String
  * }
  */
-class OverriddenMember {
+class OverriddenMember implements HasToJson {
   /**
    * The element that is being overridden.
    */
@@ -6719,7 +6807,7 @@ class OverriddenMember {
  *   "offset": int
  * }
  */
-class Position {
+class Position implements HasToJson {
   /**
    * The file containing the position.
    */
@@ -6860,7 +6948,7 @@ class RefactoringKind {
  *   "parameters": optional String
  * }
  */
-class RefactoringMethodParameter {
+class RefactoringMethodParameter implements HasToJson {
   /**
    * The unique identifier of the parameter. Clients may omit this field for
    * the parameters they want to add.
@@ -7025,7 +7113,7 @@ class RefactoringMethodParameterKind {
  *   "location": Location
  * }
  */
-class RefactoringProblem {
+class RefactoringProblem implements HasToJson {
   /**
    * The severity of the problem being represented.
    */
@@ -7161,7 +7249,7 @@ class RefactoringProblemSeverity {
  *   "type": "remove"
  * }
  */
-class RemoveContentOverlay {
+class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
 
   factory RemoveContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -7210,7 +7298,7 @@ class RemoveContentOverlay {
  *   "path": List<Element>
  * }
  */
-class SearchResult {
+class SearchResult implements HasToJson {
   /**
    * The location of the code that matched the search criteria.
    */
@@ -7275,7 +7363,7 @@ class SearchResult {
     result["location"] = location.toJson();
     result["kind"] = kind.toJson();
     result["isPotential"] = isPotential;
-    result["path"] = path.map((Element value) => value.toJson());
+    result["path"] = path.map((Element value) => value.toJson()).toList();
     return result;
   }
 
@@ -7436,7 +7524,7 @@ class ServerService {
  *   "selection": optional Position
  * }
  */
-class SourceChange {
+class SourceChange implements HasToJson {
   /**
    * A human-readable description of the change to be applied.
    */
@@ -7493,8 +7581,8 @@ class SourceChange {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["message"] = message;
-    result["edits"] = edits.map((SourceFileEdit value) => value.toJson());
-    result["linkedEditGroups"] = linkedEditGroups.map((LinkedEditGroup value) => value.toJson());
+    result["edits"] = edits.map((SourceFileEdit value) => value.toJson()).toList();
+    result["linkedEditGroups"] = linkedEditGroups.map((LinkedEditGroup value) => value.toJson()).toList();
     if (selection != null) {
       result["selection"] = selection.toJson();
     }
@@ -7536,7 +7624,7 @@ class SourceChange {
  *   "id": optional String
  * }
  */
-class SourceEdit {
+class SourceEdit implements HasToJson {
   /**
    * The offset of the region to be modified.
    */
@@ -7640,7 +7728,7 @@ class SourceEdit {
  *   "edits": List<SourceEdit>
  * }
  */
-class SourceFileEdit {
+class SourceFileEdit implements HasToJson {
   /**
    * The file containing the code to be modified.
    */
@@ -7676,7 +7764,7 @@ class SourceFileEdit {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["edits"] = edits.map((SourceEdit value) => value.toJson());
+    result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;
   }
 
@@ -7714,7 +7802,7 @@ class SourceFileEdit {
  *   "subclasses": List<int>
  * }
  */
-class TypeHierarchyItem {
+class TypeHierarchyItem implements HasToJson {
   /**
    * The class element represented by this item.
    */
@@ -7865,7 +7953,7 @@ class TypeHierarchyItem {
  *   "lengths": List<int>
  * }
  */
-class ExtractLocalVariableFeedback {
+class ExtractLocalVariableFeedback implements HasToJson {
   /**
    * The proposed names for the local variable.
    */
@@ -7957,7 +8045,7 @@ class ExtractLocalVariableFeedback {
  *   "extractAll": bool
  * }
  */
-class ExtractLocalVariableOptions {
+class ExtractLocalVariableOptions implements HasToJson {
   /**
    * The name that the local variable should be given.
    */
@@ -8041,7 +8129,7 @@ class ExtractLocalVariableOptions {
  *   "lengths": List<int>
  * }
  */
-class ExtractMethodFeedback {
+class ExtractMethodFeedback implements HasToJson {
   /**
    * The offset to the beginning of the expression or statements that will be
    * extracted.
@@ -8169,7 +8257,7 @@ class ExtractMethodFeedback {
     result["returnType"] = returnType;
     result["names"] = names;
     result["canCreateGetter"] = canCreateGetter;
-    result["parameters"] = parameters.map((RefactoringMethodParameter value) => value.toJson());
+    result["parameters"] = parameters.map((RefactoringMethodParameter value) => value.toJson()).toList();
     result["occurrences"] = occurrences;
     result["offsets"] = offsets;
     result["lengths"] = lengths;
@@ -8222,7 +8310,7 @@ class ExtractMethodFeedback {
  *   "extractAll": bool
  * }
  */
-class ExtractMethodOptions {
+class ExtractMethodOptions implements HasToJson {
   /**
    * The return type that should be defined for the method.
    */
@@ -8310,7 +8398,7 @@ class ExtractMethodOptions {
     result["returnType"] = returnType;
     result["createGetter"] = createGetter;
     result["name"] = name;
-    result["parameters"] = parameters.map((RefactoringMethodParameter value) => value.toJson());
+    result["parameters"] = parameters.map((RefactoringMethodParameter value) => value.toJson()).toList();
     result["extractAll"] = extractAll;
     return result;
   }
@@ -8350,7 +8438,7 @@ class ExtractMethodOptions {
  *   "inlineAll": bool
  * }
  */
-class InlineMethodOptions {
+class InlineMethodOptions implements HasToJson {
   /**
    * True if the method being inlined should be removed. It is an error if this
    * field is true and inlineAll is false.
@@ -8426,7 +8514,7 @@ class InlineMethodOptions {
  *   "length": int
  * }
  */
-class RenameFeedback {
+class RenameFeedback implements HasToJson {
   /**
    * The offset to the beginning of the name selected to be renamed.
    */
@@ -8499,7 +8587,7 @@ class RenameFeedback {
  *   "newName": String
  * }
  */
-class RenameOptions {
+class RenameOptions implements HasToJson {
   /**
    * The name that the element should have after the refactoring.
    */

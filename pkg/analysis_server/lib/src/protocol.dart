@@ -80,7 +80,7 @@ class Request {
   /**
    * A table mapping the names of request parameters to their values.
    */
-  final Map<String, Object> params = new HashMap<String, Object>();
+  final Map<String, Object> params;
 
   /**
    * A decoder that can be used to decode strings into JSON objects.
@@ -89,9 +89,11 @@ class Request {
 
   /**
    * Initialize a newly created [Request] to have the given [id] and [method]
-   * name.
+   * name.  If [params] is supplied, it is used as the "params" map for the
+   * request.  Otherwise an empty "params" map is allocated.
    */
-  Request(this.id, this.method);
+  Request(this.id, this.method, [Map<String, Object> params])
+      : params = params != null ? params : new HashMap<String, Object>();
 
   /**
    * Return a request parsed from the given [data], or `null` if the [data] is
@@ -121,15 +123,11 @@ class Request {
         return null;
       }
       var params = result[Request.PARAMS];
-      Request request = new Request(id, method);
-      if (params is Map) {
-        params.forEach((String key, Object value) {
-          request.setParameter(key, value);
-        });
-      } else if (params != null) {
+      if (params is Map || params == null) {
+        return new Request(id, method, params);
+      } else {
         return null;
       }
-      return request;
     } catch (exception) {
       return null;
     }

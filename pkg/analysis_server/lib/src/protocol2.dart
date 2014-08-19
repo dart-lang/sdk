@@ -8,6 +8,8 @@ import 'dart:convert';
 
 import 'protocol.dart';
 
+import 'package:analysis_server/src/services/json.dart';
+
 part 'generated_protocol.dart';
 
 /**
