@@ -14,15 +14,8 @@ const _BINARY_NAME = 'dartanalyzer';
  * Analyzer commandline configuration options.
  */
 class CommandLineOptions {
-
-  /** Batch mode (for unit testing) */
-  final bool shouldBatch;
-
-  /** Whether to use machine format for error display */
-  final bool machineFormat;
-
-  /** Whether to display version information */
-  final bool displayVersion;
+  /** The path to the dart SDK */
+  final String dartSdkPath;
 
   /** A table mapping the names of defined variables to their values. */
   final Map<String, String> definedVariables;
@@ -30,11 +23,32 @@ class CommandLineOptions {
   /** Whether to report hints */
   final bool disableHints;
 
+  /** Whether to display version information */
+  final bool displayVersion;
+
+  /** Whether to enable support for the proposed async feature. */
+  final bool enableAsync;
+
+  /** Whether to enable support for the proposed enum feature. */
+  final bool enableEnum;
+
   /** Whether to ignore unrecognized flags */
   final bool ignoreUnrecognizedFlags;
 
+  /** Whether to log additional analysis messages and exceptions */
+  final bool log;
+
+  /** Whether to use machine format for error display */
+  final bool machineFormat;
+
+  /** The path to the package root */
+  final String packageRootPath;
+
   /** Whether to show performance statistics */
   final bool perf;
+
+  /** Batch mode (for unit testing) */
+  final bool shouldBatch;
 
   /** Whether to show package: warnings */
   final bool showPackageWarnings;
@@ -42,43 +56,36 @@ class CommandLineOptions {
   /** Whether to show SDK warnings */
   final bool showSdkWarnings;
 
+  /** The source files to analyze */
+  final List<String> sourceFiles;
+
   /** Whether to show both cold and hot performance statistics */
   final bool warmPerf;
 
   /** Whether to treat warnings as fatal */
   final bool warningsAreFatal;
 
-  /** The path to the dart SDK */
-  final String dartSdkPath;
-
-  /** The path to the package root */
-  final String packageRootPath;
-
-  /** The source files to analyze */
-  final List<String> sourceFiles;
-
-  /** Whether to log additional analysis messages and exceptions */
-  final bool log;
-
   /**
    * Initialize options from the given parsed [args].
    */
   CommandLineOptions._fromArgs(ArgResults args, Map<String, String> definedVariables)
-    : shouldBatch = args['batch'],
-      machineFormat = args['machine'] || args['format'] == 'machine',
-      displayVersion = args['version'],
+    : dartSdkPath = args['dart-sdk'],
+      this.definedVariables = definedVariables,
       disableHints = args['no-hints'],
+      displayVersion = args['version'],
+      enableAsync = args['enable-async'],
+      enableEnum = args['enable-enum'],
       ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
+      log = args['log'],
+      machineFormat = args['machine'] || args['format'] == 'machine',
+      packageRootPath = args['package-root'],
       perf = args['perf'],
+      shouldBatch = args['batch'],
       showPackageWarnings = args['show-package-warnings'] || args['package-warnings'],
       showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
-      warmPerf = args['warm-perf'],
-      warningsAreFatal = args['fatal-warnings'],
-      dartSdkPath = args['dart-sdk'],
-      packageRootPath = args['package-root'],
-      log = args['log'],
       sourceFiles = args.rest,
-      this.definedVariables = definedVariables;
+      warmPerf = args['warm-perf'],
+      warningsAreFatal = args['fatal-warnings'];
 
   /**
    * Parse [args] into [CommandLineOptions] describing the specified
@@ -135,17 +142,26 @@ class CommandLineOptions {
       ..addFlag('perf',
           help: 'Show performance statistics',
           defaultsTo: false, negatable: false)
-      ..addFlag('warm-perf',
-          help: 'Show both cold and warm performance statistics',
-          defaultsTo: false, negatable: false, hide: true)
       ..addFlag('warnings', help: 'Show warnings from SDK imports',
           defaultsTo: false, negatable: false)
       ..addFlag('show-sdk-warnings', help: 'Show warnings from SDK imports (deprecated)',
           defaultsTo: false, negatable: false)
       ..addFlag('help', abbr: 'h', help: 'Display this help message',
           defaultsTo: false, negatable: false)
+      //
+      // Hidden flags.
+      //
+      ..addFlag('enable-async',
+          help: 'Enable support for the proposed async feature',
+          defaultsTo: false, negatable: false, hide: true)
+      ..addFlag('enable-enum',
+          help: 'Enable support for the proposed enum feature',
+          defaultsTo: false, negatable: false, hide: true)
       ..addFlag('log', help: 'Log additional messages and exceptions',
-        defaultsTo: false, negatable: false, hide: true);
+          defaultsTo: false, negatable: false, hide: true)
+      ..addFlag('warm-perf',
+          help: 'Show both cold and warm performance statistics',
+          defaultsTo: false, negatable: false, hide: true);
 
     try {
       // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061

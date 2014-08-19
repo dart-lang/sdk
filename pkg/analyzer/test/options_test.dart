@@ -15,18 +15,22 @@ main() {
       CommandLineOptions options = CommandLineOptions
           .parse(['--dart-sdk', '.', 'foo.dart']);
       expect(options, isNotNull);
-      expect(options.shouldBatch, isFalse);
-      expect(options.machineFormat, isFalse);
-      expect(options.displayVersion, isFalse);
+      expect(options.dartSdkPath, isNotNull);
       expect(options.disableHints, isFalse);
+      expect(options.displayVersion, isFalse);
+      expect(options.enableAsync, isFalse);
+      expect(options.enableEnum, isFalse);
       expect(options.ignoreUnrecognizedFlags, isFalse);
+      expect(options.log, isFalse);
+      expect(options.machineFormat, isFalse);
+      expect(options.packageRootPath, isNull);
       expect(options.perf, isFalse);
+      expect(options.shouldBatch, isFalse);
       expect(options.showPackageWarnings, isFalse);
       expect(options.showSdkWarnings, isFalse);
-      expect(options.warningsAreFatal, isFalse);
-      expect(options.dartSdkPath, isNotNull);
-      expect(options.log, isFalse);
       expect(options.sourceFiles, equals(['foo.dart']));
+      expect(options.warmPerf, isFalse);
+      expect(options.warningsAreFatal, isFalse);
     });
 
     test('batch', () {
@@ -40,6 +44,18 @@ main() {
           .parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
       expect(options.definedVariables['foo'], equals('bar'));
       expect(options.definedVariables['bar'], isNull);
+    });
+
+    test('enable async', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--enable-async', 'foo.dart']);
+      expect(options.enableAsync, isTrue);
+    });
+
+    test('enable enum', () {
+      CommandLineOptions options = CommandLineOptions
+          .parse(['--dart-sdk', '.', '--enable-enum', 'foo.dart']);
+      expect(options.enableEnum, isTrue);
     });
 
     test('log', () {
