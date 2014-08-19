@@ -41,12 +41,16 @@ import 'package:compiler/implementation/elements/visitor.dart' show
     ElementVisitor;
 
 import 'package:compiler/implementation/elements/elements.dart' show
+    AbstractFieldElement,
     ClassElement,
     CompilationUnitElement,
     Element,
     ElementCategory,
+    FunctionElement,
     LibraryElement,
     ScopeContainerElement;
+
+import 'package:compiler/implementation/elements/modelx.dart' as modelx;
 
 import 'package:compiler/implementation/dart_types.dart' show
     DartType;
@@ -365,7 +369,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
           indented.write('"kind": "imports",\n');
           indented.write('"members": [');
           indentationLevel++;
-          e.importScope.importScope.values.forEach(forEach);
+          importScope(e).importScope.values.forEach(forEach);
           indentationLevel--;
           buffer.write('\n');
           indented.write('],\n');
@@ -380,7 +384,7 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
         },
         serializeMembers: () {
           isFirst = true;
-          e.localScope.values.forEach(forEach);
+          localScope(e).values.forEach(forEach);
         });
   }
 
@@ -467,6 +471,10 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     e.enclosingElement.accept(this);
   }
 
+  void visitAbstractFieldElement(AbstractFieldElement e) {
+    throw new UnsupportedError('AbstractFieldElement cannot be serialized.');
+  }
+
   void serialize(
       Element element,
       {bool omitEnclosing: true,
@@ -474,6 +482,34 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
        void serializeEnclosing(),
        String kind,
        String name}) {
+    if (element.isAbstractField) {
+      AbstractFieldElement field = element;
+      FunctionElement getter = field.getter;
+      FunctionElement setter = field.setter;
+      if (getter != null) {
+        serialize(
+            getter,
+            omitEnclosing: omitEnclosing,
+            serializeMembers: serializeMembers,
+            serializeEnclosing: serializeEnclosing,
+            kind: kind,
+            name: name);
+      }
+      if (setter != null) {
+        if (getter != null) {
+          buffer.write(',\n');
+          indented;
+        }
+        serialize(
+            getter,
+            omitEnclosing: omitEnclosing,
+            serializeMembers: serializeMembers,
+            serializeEnclosing: serializeEnclosing,
+            kind: kind,
+            name: name);
+      }
+      return;
+    }
     DartType type;
     int category = element.kind.category;
     if (category == ElementCategory.FUNCTION ||
@@ -528,4 +564,10 @@ class ScopeInformationVisitor extends ElementVisitor/* <void> */ {
     buffer.write('\n');
     indented.write('}');
   }
+}
+
+modelx.ScopeX localScope(modelx.LibraryElementX element) => element.localScope;
+
+modelx.ImportScope importScope(modelx.LibraryElementX element) {
+  return element.importScope;
 }
