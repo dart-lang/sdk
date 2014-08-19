@@ -354,7 +354,7 @@ class Debugger {
   // TODO(turnidge): script_url may no longer be specific enough.
   SourceBreakpoint* SetBreakpointAtLine(const String& script_url,
                                         intptr_t line_number);
-  void OneTimeBreakAtEntry(const Function& target_function);
+  RawError* OneTimeBreakAtEntry(const Function& target_function);
 
   void RemoveBreakpoint(intptr_t bp_id);
   SourceBreakpoint* GetBreakpointById(intptr_t id);
@@ -458,7 +458,7 @@ class Debugger {
                                 intptr_t requested_token_pos,
                                 intptr_t last_token_pos);
   void DeoptimizeWorld();
-  void SetInternalBreakpoints(const Function& target_function);
+  RawError* SetInternalBreakpoints(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Script& script,
                                   intptr_t token_pos,
                                   intptr_t last_token_pos);

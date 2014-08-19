@@ -450,7 +450,11 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
                          function_name.ToCString());
   }
 
-  debugger->OneTimeBreakAtEntry(bp_target);
+  const Error& error =
+      Error::Handle(isolate, debugger->OneTimeBreakAtEntry(bp_target));
+  if (!error.IsNull()) {
+    return Api::NewHandle(isolate, error.raw());
+  }
   return Api::Success();
 }
 

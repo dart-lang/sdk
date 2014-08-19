@@ -1176,18 +1176,17 @@ void Debugger::DeoptimizeWorld() {
 }
 
 
-void Debugger::SetInternalBreakpoints(const Function& target_function) {
+RawError* Debugger::SetInternalBreakpoints(const Function& target_function) {
   if (target_function.is_native()) {
-    // Can't instrument native functions.
-    return;
+    // Can't instrument native functions. Fail silently.
+    return Error::null();
   }
   Isolate* isolate = Isolate::Current();
   if (!target_function.HasCode()) {
-    Compiler::CompileFunction(isolate, target_function);
-    // If there were any errors, ignore them silently and return without
-    // adding breakpoints to target.
-    if (!target_function.HasCode()) {
-      return;
+    const Error& error = Error::Handle(
+        Compiler::CompileFunction(isolate, target_function));
+    if (!error.IsNull()) {
+      return error.raw();
     }
   }
   // Hang on to the code object before deoptimizing, in case deoptimization
@@ -1213,6 +1212,7 @@ void Debugger::SetInternalBreakpoints(const Function& target_function) {
       bpt->Enable();
     }
   }
+  return Error::null();
 }
 
 
@@ -1871,13 +1871,15 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 }
 
 
-void Debugger::OneTimeBreakAtEntry(const Function& target_function) {
-  SetInternalBreakpoints(target_function);
-  if (target_function.HasImplicitClosureFunction()) {
+RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
+  Error& err = Error::Handle();
+  err = SetInternalBreakpoints(target_function);
+  if (err.IsNull() && target_function.HasImplicitClosureFunction()) {
     const Function& closure_func =
         Function::Handle(target_function.ImplicitClosureFunction());
-    SetInternalBreakpoints(closure_func);
+    err = SetInternalBreakpoints(closure_func);
   }
+  return err.raw();
 }
 
 
