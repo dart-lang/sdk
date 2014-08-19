@@ -10,6 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/file_system/file_system.dart';

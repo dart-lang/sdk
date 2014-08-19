@@ -4,8 +4,8 @@
 
 library test.computer.error;
 
-import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/computer/error.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_testing/mocks.dart';
 import 'package:analysis_testing/reflective_tests.dart';
@@ -54,7 +54,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_hasCorrection() {
     when(engineError.correction).thenReturn('my correction');
-    AnalysisError error = new AnalysisError.fromEngine(lineInfo, engineError);
+    AnalysisError error = analysisErrorFromEngine(lineInfo, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -72,7 +72,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_noCorrection() {
     when(engineError.correction).thenReturn(null);
-    AnalysisError error = new AnalysisError.fromEngine(lineInfo, engineError);
+    AnalysisError error = analysisErrorFromEngine(lineInfo, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -89,7 +89,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_noLineInfo() {
     when(engineError.correction).thenReturn(null);
-    AnalysisError error = new AnalysisError.fromEngine(null, engineError);
+    AnalysisError error = analysisErrorFromEngine(null, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -118,7 +118,8 @@ class AnalysisErrorTest {
       MESSAGE: 'Expected to find \';\'',
       CORRECTION: 'my correction'
     };
-    AnalysisError error = AnalysisError.fromJson(json);
+    AnalysisError error =
+        new AnalysisError.fromJson(new ResponseDecoder(), 'json', json);
     {
       Location location = error.location;
       expect(location.file, '/test.dart');
@@ -128,8 +129,8 @@ class AnalysisErrorTest {
       expect(location.startColumn, 11);
     }
     expect(error.message, "Expected to find ';'");
-    expect(error.severity, 'ERROR');
-    expect(error.type, 'SYNTACTIC_ERROR');
+    expect(error.severity, ErrorSeverity.ERROR);
+    expect(error.type, ErrorType.SYNTACTIC_ERROR);
     expect(error.correction, "my correction");
   }
 

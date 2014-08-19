@@ -10,45 +10,6 @@ import 'dart:convert' show JsonDecoder;
 import 'package:analysis_server/src/services/json.dart';
 
 /**
- * An abstract enumeration.
- */
-abstract class Enum2<E extends Enum2> implements Comparable<E> {
-  /**
-   * The name of this enum constant, as declared in the enum declaration.
-   */
-  final String name;
-
-  /**
-   * The position in the enum declaration.
-   */
-  final int ordinal;
-
-  const Enum2(this.name, this.ordinal);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  String toString() => name;
-
-  int compareTo(E other) => ordinal - other.ordinal;
-
-  /**
-   * Returns the enum constant with the given [name], `null` if not found.
-   */
-  static Enum2 valueOf(List<Enum2> values, String name) {
-    for (int i = 0; i < values.length; i++) {
-      Enum2 value = values[i];
-      if (value.name == name) {
-        return value;
-      }
-    }
-    return null;
-  }
-}
-
-
-/**
  * Instances of the class [Request] represent a request that was received.
  */
 class Request {
@@ -131,17 +92,6 @@ class Request {
     } catch (exception) {
       return null;
     }
-  }
-
-  /**
-   * Return the value of the parameter with the given [name], or [defaultValue]
-   * if there is no such parameter associated with this request.
-   */
-  RequestDatum getParameter(String name, defaultValue) {
-    if (!params.containsKey(name)) {
-      return new RequestDatum(this, "default for $name", defaultValue);
-    }
-    return new RequestDatum(this, name, params[name]);
   }
 
   /**
@@ -350,22 +300,6 @@ class RequestDatum {
           "be a list of strings"));
     }
     return _asList();
-  }
-
-  /**
-   * Validate that the datum is a list of strings, and convert it into [Enum]s.
-   */
-  Set<Enum2> asEnumSet(List<Enum2> allValues) {
-    Set values = new Set();
-    for (String name in asStringList()) {
-      Enum2 value = Enum2.valueOf(allValues, name);
-      if (value == null) {
-        throw new RequestFailure(new Response.invalidParameter(request, path,
-            "be a list of names from the list $allValues"));
-      }
-      values.add(value);
-    }
-    return values;
   }
 
   /**

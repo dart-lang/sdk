@@ -7,10 +7,11 @@ library test.domain.analysis;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
+    AnalysisError, AnalysisErrorsParams;
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -360,9 +361,8 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
-      String file = notification.getParameter(FILE);
-      List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-      filesErrors[file] = errorMaps.map(AnalysisError.fromJson).toList();
+      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      filesErrors[decoded.file] = decoded.errors;
     }
   }
 
@@ -458,9 +458,8 @@ class AnalysisTestHelper {
         serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       if (notification.event == ANALYSIS_ERRORS) {
-        String file = notification.getParameter(FILE);
-        List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-        filesErrors[file] = errorMaps.map(AnalysisError.fromJson).toList();
+        var decoded = new AnalysisErrorsParams.fromNotification(notification);
+        filesErrors[decoded.file] = decoded.errors;
       }
       if (notification.event == ANALYSIS_HIGHLIGHTS) {
         String file = notification.getParameter(FILE);

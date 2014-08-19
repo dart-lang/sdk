@@ -7,6 +7,7 @@ library domain.server;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 
 /**
  * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
@@ -55,8 +56,8 @@ class ServerDomainHandler implements RequestHandler {
    * All previous subscriptions are replaced by the given set of subscriptions.
    */
   Response setSubscriptions(Request request) {
-    RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
-    server.serverServices = subDatum.asEnumSet(ServerService.VALUES);
+    server.serverServices =
+        new ServerSetSubscriptionsParams.fromRequest(request).subscriptions.toSet();
     return new Response(request.id);
   }
 

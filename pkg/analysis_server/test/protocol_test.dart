@@ -509,30 +509,7 @@ class RequestTest {
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
-    expect(request.getParameter('foo', null).asString(), equals('bar'));
-  }
-
-  void test_getParameter_defined() {
-    String name = 'name';
-    String value = 'value';
-    Request request = new Request('0', '');
-    request.setParameter(name, value);
-    expect(request.getParameter(name, null).datum, equals(value));
-  }
-
-   void test_getParameter_null() {
-    String name = 'name';
-    Request request = new Request('0', '');
-    request.setParameter(name, null);
-    expect(request.getParameter(name, 'default').datum, equals(null));
-  }
-
-  void test_getParameter_undefined() {
-    String name = 'name';
-    String defaultValue = 'default value';
-    Request request = new Request('0', '');
-    expect(request.getParameter(name, defaultValue).datum, equals(
-        defaultValue));
+    expect(request.params, equals({'foo': 'bar'}));
   }
 
   void test_getRequiredParameter_defined() {

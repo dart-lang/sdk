@@ -11,6 +11,7 @@ import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -35,7 +36,7 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the `analysis.getErrors` request.
    */
   Response getErrors(Request request) {
-    String file = request.getRequiredParameter(FILE).asString();
+    String file = new AnalysisGetErrorsParams.fromRequest(request).file;
     server.onFileAnalysisComplete(file).then((_) {
       Response response = new Response(request.id);
       AnalysisErrorInfo errorInfo = server.getErrors(file);
@@ -140,16 +141,10 @@ class AnalysisDomainHandler implements RequestHandler {
     // parse subscriptions
     Map<AnalysisService, Set<String>> subMap;
     {
-      RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
-      Map<String, List<String>> subStringMap = subDatum.asStringListMap();
+      Map<AnalysisService, List<String>> subscriptions =
+          new AnalysisSetSubscriptionsParams.fromRequest(request).subscriptions;
       subMap = new HashMap<AnalysisService, Set<String>>();
-      subStringMap.forEach((String serviceName, List<String> paths) {
-        AnalysisService service =
-            Enum2.valueOf(AnalysisService.VALUES, serviceName);
-        if (service == null) {
-          throw new RequestFailure(
-              new Response.unknownAnalysisService(request, serviceName));
-        }
+      subscriptions.forEach((AnalysisService service, List<String> paths) {
         subMap[service] = new HashSet.from(paths);
       });
     }

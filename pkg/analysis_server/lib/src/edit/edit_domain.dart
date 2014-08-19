@@ -9,6 +9,7 @@ import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show AnalysisError;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -92,7 +93,7 @@ class EditDomainHandler implements RequestHandler {
           List<Fix> fixes = computeFixes(searchEngine, unit, error);
           if (fixes.isNotEmpty) {
             AnalysisError serverError =
-                new AnalysisError.fromEngine(errorInfo.lineInfo, error);
+                analysisErrorFromEngine(errorInfo.lineInfo, error);
             ErrorFixes errorFixes = new ErrorFixes(serverError);
             errorFixesList.add(errorFixes);
             fixes.forEach((fix) {

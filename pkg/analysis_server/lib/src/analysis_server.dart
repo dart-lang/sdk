@@ -18,6 +18,8 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
+    ServerService;
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -813,32 +815,4 @@ class AnalysisServer {
 }
 
 
-/**
- * An enumeration of the services provided by the analysis domain.
- */
-class AnalysisService extends Enum2<AnalysisService> {
-  static const HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
-  static const NAVIGATION = const AnalysisService('NAVIGATION', 2);
-  static const OCCURRENCES = const AnalysisService('OCCURRENCES', 3);
-  static const OUTLINE = const AnalysisService('OUTLINE', 4);
-  static const OVERRIDES = const AnalysisService('OVERRIDES', 5);
-
-  static const List<AnalysisService> VALUES =
-      const [HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
-
-  const AnalysisService(String name, int ordinal) : super(name, ordinal);
-}
-
-
 typedef void OptionUpdater(AnalysisOptionsImpl options);
-
-/**
- * An enumeration of the services provided by the server domain.
- */
-class ServerService extends Enum2<ServerService> {
-  static const ServerService STATUS = const ServerService('STATUS', 0);
-
-  static const List<ServerService> VALUES = const [STATUS];
-
-  const ServerService(String name, int ordinal) : super(name, ordinal);
-}

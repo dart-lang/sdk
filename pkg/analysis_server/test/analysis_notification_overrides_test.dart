@@ -6,10 +6,10 @@ library test.domain.analysis.notification.overrides;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show AnalysisService;
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
