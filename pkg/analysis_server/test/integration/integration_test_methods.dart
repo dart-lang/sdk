@@ -768,10 +768,13 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    *
-   * element ( Element )
+   * element ( optional Element )
    *
    *   The element referenced or defined at the given offset and whose
    *   references will be returned in the search results.
+   *
+   *   If no element was found at the given location, this field will be
+   *   absent.
    */
   Future sendSearchFindElementReferences(String file, int offset, bool includePotential, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};

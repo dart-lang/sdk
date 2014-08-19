@@ -1904,7 +1904,7 @@ class SearchFindElementReferencesParams implements HasToJson {
  *
  * {
  *   "id": SearchId
- *   "element": Element
+ *   "element": optional Element
  * }
  */
 class SearchFindElementReferencesResult implements HasToJson {
@@ -1916,10 +1916,12 @@ class SearchFindElementReferencesResult implements HasToJson {
   /**
    * The element referenced or defined at the given offset and whose references
    * will be returned in the search results.
+   *
+   * If no element was found at the given location, this field will be absent.
    */
   final Element element;
 
-  SearchFindElementReferencesResult(this.id, this.element);
+  SearchFindElementReferencesResult(this.id, {this.element});
 
   factory SearchFindElementReferencesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -1935,10 +1937,8 @@ class SearchFindElementReferencesResult implements HasToJson {
       Element element;
       if (json.containsKey("element")) {
         element = new Element.fromJson(jsonDecoder, jsonPath + ".element", json["element"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "element");
       }
-      return new SearchFindElementReferencesResult(id, element);
+      return new SearchFindElementReferencesResult(id, element: element);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "search.findElementReferences result");
     }
@@ -1952,7 +1952,9 @@ class SearchFindElementReferencesResult implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["id"] = id;
-    result["element"] = element.toJson();
+    if (element != null) {
+      result["element"] = element.toJson();
+    }
     return result;
   }
 

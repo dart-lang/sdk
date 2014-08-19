@@ -873,12 +873,16 @@
               search request.
             </p>
           </field>
-          <field name="element">
+          <field name="element" optional="true">
             <ref>Element</ref>
             <p>
               The element referenced or defined at the given offset
               and whose references will be returned in the search
               results.
+            </p>
+            <p>
+              If no element was found at the given location, this
+              field will be absent.
             </p>
           </field>
         </result>

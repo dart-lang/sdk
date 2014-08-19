@@ -995,7 +995,7 @@ dt.typeDefinition {
   "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
   "result": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
-    "<b>element</b>": <a href="#type_Element">Element</a>
+    "<b>element</b>": <span style="color:#999999">optional</span> <a href="#type_Element">Element</a>
   }
 }</pre></div>
         <p>
@@ -1033,12 +1033,16 @@ dt.typeDefinition {
               The identifier used to associate results with this
               search request.
             </p>
-          </dd><dt class="field"><b><i>element ( <a href="#type_Element">Element</a> )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>element ( <span style="color:#999999">optional</span> <a href="#type_Element">Element</a> )</i></b></dt><dd>
             
             <p>
               The element referenced or defined at the given offset
               and whose references will be returned in the search
               results.
+            </p>
+            <p>
+              If no element was found at the given location, this
+              field will be absent.
             </p>
           </dd></dl></dd><dt class="request">search.findMemberDeclarations</dt><dd><div class="box"><pre>request: {
   "id": String
