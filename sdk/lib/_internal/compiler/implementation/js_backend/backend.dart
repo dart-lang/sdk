@@ -848,15 +848,19 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getCopyTypeArguments(), registry);
   }
 
-  void registerGenericCallMethod(Element callMethod,
-                                 Enqueuer enqueuer, Registry registry) {
+  void registerCallMethodWithFreeTypeVariables(
+      Element callMethod,
+      Enqueuer enqueuer,
+      Registry registry) {
     if (enqueuer.isResolutionQueue || methodNeedsRti(callMethod)) {
       registerComputeSignature(enqueuer, registry);
     }
   }
 
-  void registerGenericClosure(Element closure,
-                              Enqueuer enqueuer, Registry registry) {
+  void registerClosureWithFreeTypeVariables(
+      Element closure,
+      Enqueuer enqueuer,
+      Registry registry) {
     if (enqueuer.isResolutionQueue || methodNeedsRti(closure)) {
       registerComputeSignature(enqueuer, registry);
     }

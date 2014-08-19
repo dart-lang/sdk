@@ -170,7 +170,8 @@ abstract class Enqueuer {
       }
       if (member.name == Compiler.CALL_OPERATOR_NAME &&
           !cls.typeVariables.isEmpty) {
-        registerGenericCallMethod(member, compiler.globalDependencies);
+        registerCallMethodWithFreeTypeVariables(
+            member, compiler.globalDependencies);
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
@@ -579,28 +580,32 @@ abstract class Enqueuer {
     universe.usingFactoryWithTypeArguments = true;
   }
 
-  void registerGenericCallMethod(Element element, Registry registry) {
-    compiler.backend.registerGenericCallMethod(element, this, registry);
-    universe.genericCallMethods.add(element);
+  void registerCallMethodWithFreeTypeVariables(
+      Element element,
+      Registry registry) {
+    compiler.backend.registerCallMethodWithFreeTypeVariables(
+        element, this, registry);
+    universe.callMethodsWithFreeTypeVariables.add(element);
   }
 
   void registerClosurizedMember(Element element, Registry registry) {
     assert(element.isInstanceMember);
-    registerIfGeneric(element, registry);
+    registerClosureIfFreeTypeVariables(element, registry);
     compiler.backend.registerBoundClosure(this);
     universe.closurizedMembers.add(element);
   }
 
-  void registerIfGeneric(Element element, Registry registry) {
+  void registerClosureIfFreeTypeVariables(Element element, Registry registry) {
     if (element.computeType(compiler).containsTypeVariables) {
-      compiler.backend.registerGenericClosure(element, this, registry);
-      universe.genericClosures.add(element);
+      compiler.backend.registerClosureWithFreeTypeVariables(
+          element, this, registry);
+      universe.closuresWithFreeTypeVariables.add(element);
     }
   }
 
   void registerClosure(LocalFunctionElement element, Registry registry) {
     universe.allClosures.add(element);
-    registerIfGeneric(element, registry);
+    registerClosureIfFreeTypeVariables(element, registry);
   }
 
   void forEach(void f(WorkItem work)) {

@@ -127,8 +127,8 @@ class CodegenRegistry extends Registry {
     backend.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
-  void registerGenericClosure(FunctionElement element) {
-    backend.registerGenericClosure(element, world, this);
+  void registerClosureWithFreeTypeVariables(FunctionElement element) {
+    backend.registerClosureWithFreeTypeVariables(element, world, this);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
@@ -301,16 +301,19 @@ abstract class Backend {
    * Call this to register that an instantiated generic class has a call
    * method.
    */
-  void registerGenericCallMethod(Element callMethod,
-                                 Enqueuer enqueuer,
-                                 Registry registry) {}
+  void registerCallMethodWithFreeTypeVariables(
+      Element callMethod,
+      Enqueuer enqueuer,
+      Registry registry) {}
+
   /**
    * Call this to register that a getter exists for a function on an
    * instantiated generic class.
    */
-  void registerGenericClosure(Element closure,
-                              Enqueuer enqueuer,
-                              Registry registry) {}
+  void registerClosureWithFreeTypeVariables(
+      Element closure,
+      Enqueuer enqueuer,
+      Registry registry) {}
 
   /// Call this to register that a member has been closurized.
   void registerBoundClosure(Enqueuer enqueuer) {}

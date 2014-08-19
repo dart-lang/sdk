@@ -186,8 +186,10 @@ class RuntimeTypes {
               methodsNeedingRti.add(method);
             }
           }
-          compiler.resolverWorld.genericClosures.forEach(analyzeMethod);
-          compiler.resolverWorld.genericCallMethods.forEach(analyzeMethod);
+          compiler.resolverWorld.closuresWithFreeTypeVariables.forEach(
+              analyzeMethod);
+          compiler.resolverWorld.callMethodsWithFreeTypeVariables.forEach(
+              analyzeMethod);
         }
       }
     });
@@ -200,8 +202,10 @@ class RuntimeTypes {
           methodsNeedingRti.add(method);
         }
       }
-      compiler.resolverWorld.genericClosures.forEach(analyzeMethod);
-      compiler.resolverWorld.genericCallMethods.forEach(analyzeMethod);
+      compiler.resolverWorld.closuresWithFreeTypeVariables.forEach(
+          analyzeMethod);
+      compiler.resolverWorld.callMethodsWithFreeTypeVariables.forEach(
+          analyzeMethod);
     }
     // Add the classes that need RTI because they use a type variable as
     // expression.

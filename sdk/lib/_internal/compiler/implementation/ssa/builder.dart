@@ -2912,7 +2912,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     Element methodElement = nestedClosureData.closureElement;
     if (compiler.backend.methodNeedsRti(methodElement)) {
-      registry.registerGenericClosure(methodElement);
+      registry.registerClosureWithFreeTypeVariables(methodElement);
     }
   }
 

@@ -54,15 +54,19 @@ class Universe {
   final Set<DartType> isChecks = new Set<DartType>();
 
   /**
-   * Set of [:call:] methods in instantiated classes that use type variables
-   * in their signature.
+   * Set of (live) [:call:] methods whose signatures reference type variables.
+   *
+   * A live [:call:] method is one whose enclosing class has been instantiated.
    */
-  final Set<Element> genericCallMethods = new Set<Element>();
+  final Set<Element> callMethodsWithFreeTypeVariables = new Set<Element>();
 
   /**
-   * Set of closures that use type variables in their signature.
+   * Set of (live) local functions (closures) whose signatures reference type
+   * variables.
+   *
+   * A live function is one whose enclosing member function has been enqueued.
    */
-  final Set<Element> genericClosures = new Set<Element>();
+  final Set<Element> closuresWithFreeTypeVariables = new Set<Element>();
 
   /**
    * Set of all closures in the program. Used by the mirror tracking system
