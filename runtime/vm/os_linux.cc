@@ -202,8 +202,9 @@ class JitdumpCodeObserver : public CodeObserver {
   }
 
  private:
-  static const uint32_t kJitHeaderMagic = 0x4F74496A;
-  static const uint32_t kJitHeaderVersion = 0x2;
+  static const uint32_t kJitHeaderMagic = 0x4A695444;
+  static const uint32_t kJitHeaderMagicSw = 0x4454694A;
+  static const uint32_t kJitHeaderVersion = 0x1;
   static const uint32_t kElfMachIA32 = 3;
   static const uint32_t kElfMachX64 = 62;
   static const uint32_t kElfMachARM = 40;
@@ -213,34 +214,38 @@ class JitdumpCodeObserver : public CodeObserver {
   static const int kInvalidClockId = -1;
 
   struct jitheader {
-    uint32_t magic;
-    uint32_t version;
+    uint32_t magic;   /* characters "jItD" */
+    uint32_t version; /* header version */
+    uint32_t total_size;  /* total size of header */
+    uint32_t elf_mach;  /* elf mach target */
+    uint32_t pad1;    /* reserved */
+    uint32_t pid;   /* JIT process id */
+    uint64_t timestamp; /* timestamp */
+  };
+
+  /* record prefix (mandatory in each record) */
+  struct jr_prefix {
+    uint32_t id;
     uint32_t total_size;
-    uint32_t elf_mach;
-    uint32_t pad1;
-    uint32_t pid;
     uint64_t timestamp;
   };
 
   enum jit_record_type {
     JIT_CODE_LOAD = 0,
-    /* JIT_CODE_UNLOAD = 1, */
-    /* JIT_CODE_CLOSE = 2, */
-    /* JIT_CODE_DEBUG_INFO = 3, */
+    /* JIT_CODE_MOVE = 1, */
+    /* JIT_CODE_DEBUG_INFO = 2, */
+    /* JIT_CODE_CLOSE = 3, */
     JIT_CODE_MAX = 4,
   };
 
   struct jr_code_load {
-    uint32_t id;
-    uint32_t total_size;
-    uint64_t timestamp;
+    struct jr_prefix prefix;
     uint32_t pid;
     uint32_t tid;
     uint64_t vma;
     uint64_t code_addr;
-    uint32_t code_size;
+    uint64_t code_size;
     uint64_t code_index;
-    uint32_t align;
   };
 
   const char* GenerateCodeName(const char* name, bool optimized) {
@@ -296,7 +301,7 @@ class JitdumpCodeObserver : public CodeObserver {
     header.magic = kJitHeaderMagic;
     header.version = kJitHeaderVersion;
     header.total_size = sizeof(jitheader);
-    header.pad1 = 0xdeadbeef;
+    header.pad1 = 0x0;
     header.elf_mach = GetElfMach();
     header.pid = getpid();
     header.timestamp = GetKernelTimeNanos();
@@ -317,15 +322,15 @@ class JitdumpCodeObserver : public CodeObserver {
     uint8_t* code_pointer = reinterpret_cast<uint8_t*>(base);
 
     jr_code_load code_load;
-    code_load.id = JIT_CODE_LOAD;
-    code_load.total_size = sizeof(code_load) + code_name_size + code_size;
-    code_load.timestamp = GetKernelTimeNanos();
+    code_load.prefix.id = JIT_CODE_LOAD;
+    code_load.prefix.total_size =
+        sizeof(code_load) + code_name_size + code_size;
+    code_load.prefix.timestamp = GetKernelTimeNanos();
     code_load.pid = getpid();
     code_load.tid = gettid();
     code_load.vma = 0x0;  //  Our addresses are absolute.
     code_load.code_addr = base;
     code_load.code_size = code_size;
-    code_load.align = OS::PreferredCodeAlignment();
 
     {
       MutexLocker ml(CodeObservers::mutex());
