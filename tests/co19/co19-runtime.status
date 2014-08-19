@@ -28,11 +28,6 @@ Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
 
-# All isolate are being ignored at the moment as the library will go through some changes.
-LibTest/isolate/IsolateStream/any_A02_t01: fail # co19 issue 668
-LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19 issue 668
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
-
 LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t03: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError # Dart issue 15617
@@ -46,7 +41,6 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
 [ $compiler == none && $runtime == vm ]
-LibTest/typed_data/Int64List/buffer_A01_t01: Fail # co19 issue 694
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 

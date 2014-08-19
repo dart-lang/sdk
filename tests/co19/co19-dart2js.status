@@ -16,9 +16,6 @@ WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: Run
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
-LayoutTests/fast/dom/Range/range-comparePoint_t01: Crash # Issue 18549
-LayoutTests/fast/dom/Range/range-isPointInRange_t01: Crash # Issue 18549
-
 LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/isolate/ReceivePort/receive_A01_t02: RuntimeError # Issue 6750
 Language/05_Variables/05_Variables_A11_t01: fail # Please triage this issue.
@@ -68,7 +65,6 @@ LibTest/typed_data/Float32x4/greaterThanOrEqual_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThan_A01_t01: Skip # co19 issue 656
 LibTest/typed_data/Float32x4/lessThanOrEqual_A01_t01: Skip # co19 issue 656
 
-LayoutTests/fast/html/imports/import-events_t01: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t03: CompileTimeError # co19-roll r706: Please triage this failure
 LibTest/html/IFrameElement/enteredView_A01_t01: CompileTimeError # co19-roll r706: Please triage this failure
 Language/12_Expressions/07_Maps_A11_t01: CompileTimeError # Maybe ok. Issue 17207
@@ -79,11 +75,7 @@ LibTest/isolate/Isolate/spawnUri_A02_t01: RuntimeError, Pass # Dart issue 15617
 LibTest/math/Rectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 LibTest/math/MutableRectangle/boundingBox_A01_t01: RuntimeError, Pass # co19-roll r706: Please triage this failure.
 
-LayoutTests/fast/dom/HTMLLinkElement/link-onload-before-page-load_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLLinkElement/link-onload2_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLScriptElement/script-load-events_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLStyleElement/style-onload2_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLStyleElement/style-onload-before-page-load_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/dom/Node-replaceChild_t01: CompileTimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.

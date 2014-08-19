@@ -170,8 +170,6 @@ LayoutTests/fast/dom/HTMLDocument/clone-node_t01: StaticWarning # co19-roll r722
 LayoutTests/fast/dom/HTMLInputElement/size-attribute_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLLabelElement/form/test1_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLLabelElement/label-control_t01: StaticWarning # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLLinkElement/link-onload-before-page-load_t01: CompileTimeError
-LayoutTests/fast/dom/HTMLLinkElement/link-onload2_t01: CompileTimeError
 LayoutTests/fast/dom/HTMLObjectElement/set-type-to-null-crash_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LibTest/html/IFrameElement/outerHtml_setter_A01_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LibTest/html/Node/childNodes_A01_t02: StaticWarning # co19-roll r722: Please triage this failure.
@@ -179,17 +177,10 @@ LibTest/html/Node/contains_A01_t02: StaticWarning # co19-roll r722: Please triag
 LibTest/html/Node/dispatchEvent_A01_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LibTest/html/Node/nodes_A01_t01: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: StaticWarning # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-existent-and-non-existent-import_t01: StaticWarning # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-non-existent-import_t01: StaticWarning # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLOptionElement/collection-setter-getter_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/isURLAttribute_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLScriptElement/script-async-attr_t01: StaticWarning # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLScriptElement/script-load-events_t01: CompileTimeError
 LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: StaticWarning
-LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-non-existent-import_t01: StaticWarning
-LayoutTests/fast/dom/HTMLStyleElement/style-onload-before-page-load_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-LayoutTests/fast/dom/HTMLStyleElement/style-onload2_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLTableElement/createCaption_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLTableElement/insert-row_t01: StaticWarning # co19-roll r722: Please triage this failure.
 LayoutTests/fast/dom/HTMLTemplateElement/custom-element-wrapper-gc_t01: StaticWarning # co19-roll r722: Please triage this failure.
@@ -209,9 +200,7 @@ WebPlatformTest/dom/collections/emptyName_A01_t03: StaticWarning # co19-roll r72
 WebPlatformTest/dom/nodes/DOMImplementation-createDocument_t01: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement-namespace_t01: StaticWarning # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/Document-createElementNS_t01: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
-WebPlatformTest/dom/nodes/Document-getElementsByTagName_t01: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-appendChild_t02: StaticWarning # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Node-contains_t01: StaticWarning # co19-roll r722: Please triage this failure.
@@ -272,3 +261,69 @@ WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: StaticWar
 WebPlatformTest/html/semantics/forms/the-datalist-element/datalistelement_t01: StaticWarning # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: StaticWarning # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-fieldset-element/disabled_t01: StaticWarning # co19-roll r738: Please triage this failure.
+
+# co19-roll r738.
+LayoutTests/fast/animation/request-animation-frame-missing-arguments_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/backgrounds/001_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/canvas-createImageBitmap-animated_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/webgl/webgl-specific_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/dom/text-api-arguments_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/html/imports/import-events_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/4XPath/Core/test_location_path_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/4XPath/Core/test_nodeset_expr_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/4XPath/Core/test_predicate_list_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/4XPath/Core/test_step_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/ambiguous-operators_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/attr-namespace_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/attribute-node-predicate_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/complex-id_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/detached-subtree-invalidate-iterator_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/evaluator-exceptions_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/id-path_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/id-simple_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/invalid-resolver_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/name-null-namespace_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/node-name-case-sensitivity_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xpath/position_t01: CompileTimeError # co19 issue 703.
+LayoutTests/fast/xpath/reverse-axes_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xsl/default-html_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xsl/extra-lf-at-end_t01: StaticWarning # co19 issue 703.
+LayoutTests/fast/xsl/xslt-string-parameters_t01: StaticWarning # co19 issue 703.
+WebPlatformTest/dom/Node-replaceChild_t01: CompileTimeError # co19-roll r761: Please triage this failure.
+WebPlatformTest/html-imports/link-import_t01: StaticWarning # co19-roll r761: Please triage this failure.
+WebPlatformTest/html/semantics/forms/the-input-element/date_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/datetime_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/email_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/email_t02: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/hidden_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/month_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/password_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/pattern_attribute_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/range_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/range_t02: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/required_attribute_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/search_input_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/text_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/forms/the-input-element/time_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/grouping-content/the-ol-element/ol.start-reflection_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/grouping-content/the-ol-element/ol.start-reflection_t02: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/scripting-1/the-script-element/async_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/scripting-1/the-script-element/async_t11: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/selectors/pseudo-classes/checked_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/selectors/pseudo-classes/default_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/selectors/pseudo-classes/indeterminate_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/selectors/pseudo-classes/inrange-outofrange_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/selectors/pseudo-classes/valid-invalid_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/semantics/tabular-data/the-caption-element/caption_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/syntax/parsing/Document.getElementsByTagName-foreign_t02: StaticWarning # co19 issue 701.
+WebPlatformTest/html/syntax/parsing/math-parse_t01: StaticWarning # co19 issue 701.
+WebPlatformTest/html/syntax/parsing/math-parse_t03: StaticWarning # co19 issue 701.
+WebPlatformTest/webstorage/storage_builtins_t01: CompileTimeError, StaticWarning # co19 issue 702.
+WebPlatformTest/webstorage/storage_clear_t01: CompileTimeError, StaticWarning # co19 issue 702.
+WebPlatformTest/webstorage/storage_local_key_t01: StaticWarning # co19 issue 702.
+WebPlatformTest/webstorage/storage_session_key_t01: StaticWarning # co19 issue 702.
