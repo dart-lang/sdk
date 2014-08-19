@@ -7,8 +7,9 @@ library services.completion.computer.dart.toplevel;
 import 'dart:async';
 
 import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -34,8 +35,8 @@ class ImportedTypeComputer extends DartCompletionComputer {
 }
 
 /**
- * Visits the node at which the completion is requested
- * and builds the list of suggestions.
+ * A visitor for determining which imported class and top level variable
+ * should be suggested and building those suggestions.
  */
 class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
   final DartCompletionRequest request;
@@ -44,11 +45,14 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
 
   @override
   Future<bool> visitCombinator(Combinator node) {
-    var directive = node.getAncestor((parent) => parent is NamespaceDirective);
-    if (directive is NamespaceDirective) {
-      return _addLibraryElements(directive.uriElement);
+    NamespaceDirective directive =
+        node.getAncestor((parent) => parent is NamespaceDirective);
+    if (directive != null) {
+      LibraryElement library = directive.uriElement;
+      LibraryElementSuggestionBuilder.suggestionsFor(request, library);
+      return new Future.value(true);
     }
-    return new Future.value(true);
+    return new Future.value(false);
   }
 
   @override
@@ -88,6 +92,9 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
       // Exclude elements from the local library
       // as they will be included by the LocalComputer
       excludedLibs.add(request.unit.element.library);
+
+      // Build the set of visible and excluded libraries
+      // and the list of names that should be shown or hidden
       request.unit.directives.forEach((Directive directive) {
         if (directive is ImportDirective) {
           LibraryElement lib = directive.element.importedLibrary;
@@ -137,62 +144,5 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
       return true;
     });
   }
-
-  Future<bool> _addLibraryElements(LibraryElement library) {
-    library.visitChildren(new _LibraryElementVisitor(request));
-    return new Future.value(true);
-  }
 }
 
-/**
- * Provides suggestions from a single library for the show/hide combinators
- * as in `import "foo.dart" show ` where the completion offset is after
- * the `show`.
- */
-class _LibraryElementVisitor extends GeneralizingElementVisitor {
-  final DartCompletionRequest request;
-
-  _LibraryElementVisitor(this.request);
-
-  @override
-  visitClassElement(ClassElement element) {
-    _addSuggestion(element);
-  }
-
-  @override
-  visitCompilationUnitElement(CompilationUnitElement element) {
-    element.visitChildren(this);
-  }
-
-  @override
-  visitElement(Element element) {
-    // ignored
-  }
-
-  @override
-  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addSuggestion(element);
-  }
-
-  @override
-  visitTopLevelVariableElement(TopLevelVariableElement element) {
-    _addSuggestion(element);
-  }
-
-  void _addSuggestion(Element element) {
-    if (element != null) {
-      String completion = element.name;
-      if (completion != null && completion.length > 0) {
-        request.suggestions.add(
-            new CompletionSuggestion(
-                CompletionSuggestionKind.fromElementKind(element.kind),
-                CompletionRelevance.DEFAULT,
-                completion,
-                completion.length,
-                0,
-                element.isDeprecated,
-                false));
-      }
-    }
-  }
-}

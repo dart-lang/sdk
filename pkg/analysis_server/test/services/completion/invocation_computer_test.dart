@@ -25,31 +25,79 @@ class InvocationComputerTest extends AbstractCompletionTest {
     computer = new InvocationComputer();
   }
 
+  test_library_prefix() {
+    addSource('/testB.dart', 'lib B; class X { }');
+    addTestSource('import "/testB.dart" as b; main() {b.^}');
+    return computeFull().then((_) {
+      assertSuggestClass('X');
+    });
+  }
+
   test_field() {
-    addTestSource('class A {A b;} main() {A a; a.^}');
+    addTestSource('class A {var b; var _c;} main() {A a; a.^}');
     return computeFull().then((_) {
       assertSuggestField('b');
+      assertSuggestField('_c');
+    });
+  }
+
+  test_field_imported() {
+    addSource('/testB.dart', 'lib B; class X {var y; var _z;}');
+    addTestSource('import "/testB.dart"; main() {X x; x.^}');
+    return computeFull().then((_) {
+      assertSuggestField('y');
+      assertNotSuggested('_z');
     });
   }
 
   test_getter() {
-    addTestSource('class A {A get b => new A();} main() {A a; a.^}');
+    addTestSource('class A {A get b => new A();A get _c => new A();} main() {A a; a.^}');
     return computeFull().then((_) {
       assertSuggestGetter('b');
+      assertSuggestGetter('_c');
+    });
+  }
+
+  test_getter_imported() {
+    addSource('/testB.dart', 'lib B; class X {X get y => new X(); X get _z => new X();}');
+    addTestSource('import "/testB.dart"; main() {X x; x.^}');
+    return computeFull().then((_) {
+      assertSuggestGetter('y');
+      assertNotSuggested('_z');
     });
   }
 
   test_method() {
-    addTestSource('class A {b(X x) {}} main() {A a; a.^}');
+    addTestSource('class A {b(X x) {} _c(X x) {}} main() {A a; a.^}');
     return computeFull().then((_) {
       assertSuggestMethod('b');
+      assertSuggestMethod('_c');
+    });
+  }
+
+  test_method_imported() {
+    addSource('/testB.dart', 'lib B; class X {y(X x) {} _z(X x) {}}');
+    addTestSource('import "/testB.dart"; main() {X x; x.^}');
+    return computeFull().then((_) {
+      assertSuggestMethod('y');
+      assertNotSuggested('_z');
     });
   }
 
   test_setter() {
-    addTestSource('class A {set b(X x) {}} main() {A a; a.^}');
+    addTestSource('class A {set b(X x) {} set _c(X x) {}} main() {A a; a.^}');
     return computeFull().then((_) {
       assertSuggestSetter('b');
+      assertSuggestSetter('_c');
+    });
+  }
+
+  test_setter_imported() {
+    addSource('/testB.dart', 'lib B; class X {set y(X x) {} set _z(X x) {}}');
+    addTestSource('import "/testB.dart"; main() {X x; x.^}');
+    return computeFull().then((_) {
+      assertSuggestSetter('y');
+      assertNotSuggested('_z');
     });
   }
 }

@@ -6,8 +6,8 @@ library services.completion.computer.dart.invocation;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -85,82 +85,38 @@ class _InvocationElementVisitor extends GeneralizingElementVisitor<Future<bool>>
   }
 
   @override
-  Future<bool> visitVariableElement(VariableElement element) {
-    return _addSuggestions(element.type);
-  }
-
-  Future<bool> _addSuggestions(DartType type) {
-    if (type != null && type.element != null) {
-      type.element.accept(new _SuggestionBuilderVisitor(request));
-      return new Future.value(true);
-    }
-    return new Future.value(false);
-  }
-}
-
-/**
- * An [Element] visitor that builds suggestions by recursively visiting
- * elements in a type hierarchy.
- */
-class _SuggestionBuilderVisitor extends GeneralizingElementVisitor {
-  final DartCompletionRequest request;
-
-  _SuggestionBuilderVisitor(this.request);
-
-  @override
-  visitClassElement(ClassElement element) {
-    //TODO (danrubel): filter private members if not in the same library
-    element.visitChildren(this);
-  }
-
-  @override
-  visitElement(Element element) {
-    // ignored
-  }
-
-  @override
-  visitFieldElement(FieldElement element) {
-    if (!element.isSynthetic) {
-      _addSuggestion(element, CompletionSuggestionKind.FIELD);
-    }
-  }
-
-  @override
-  visitMethodElement(MethodElement element) {
-    if (!element.isSynthetic) {
-      _addSuggestion(element, CompletionSuggestionKind.METHOD);
-    }
-  }
-
-  @override
-  visitPropertyAccessorElement(PropertyAccessorElement element) {
-    if (!element.isSynthetic) {
-      if (element.isGetter) {
-        _addSuggestion(element, CompletionSuggestionKind.GETTER);
-      } else if (element.isSetter) {
-        _addSuggestion(
-            element,
-            CompletionSuggestionKind.SETTER,
-            element.displayName);
+  Future<bool> visitPrefixElement(PrefixElement element) {
+    //TODO (danrubel) reimplement to use prefixElement.importedLibraries
+    // once that accessor is implemented and available in Dart
+    bool modified = false;
+    // Find the import directive with the given prefix
+    request.unit.directives.forEach((Directive directive) {
+      if (directive is ImportDirective) {
+        if (directive.prefix != null) {
+          if (directive.prefix.name == element.name) {
+            // Suggest elements from the imported library
+            LibraryElement library = directive.uriElement;
+            LibraryElementSuggestionBuilder.suggestionsFor(request, library);
+            modified = true;
+          }
+        }
       }
-    }
+    });
+
+    element.importedLibraries.forEach((LibraryElement library) {
+      modified = true;
+      library.accept(new ClassElementSuggestionBuilder(request));
+    });
+    return new Future.value(modified);
   }
 
-  void _addSuggestion(Element element, CompletionSuggestionKind kind,
-      [String completion = null]) {
-    if (completion == null) {
-      completion = element.name;
+  @override
+  Future<bool> visitVariableElement(VariableElement element) {
+    DartType type = element.type;
+    if (type != null) {
+      Element typeElement = type.element;
+      ClassElementSuggestionBuilder.suggestionsFor(request, typeElement);
     }
-    if (completion != null && completion.length > 0) {
-      request.suggestions.add(
-          new CompletionSuggestion(
-              kind,
-              CompletionRelevance.DEFAULT,
-              completion,
-              completion.length,
-              0,
-              element.isDeprecated,
-              false));
-    }
+    return new Future.value(true);
   }
 }
