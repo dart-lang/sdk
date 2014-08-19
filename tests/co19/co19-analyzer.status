@@ -267,7 +267,7 @@ LayoutTests/fast/canvas/canvas-createImageBitmap-animated_t01: StaticWarning # c
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/webgl-specific_t01: StaticWarning # co19-roll r761: Please triage this failure.
-9/LayoutTests/fast/dom/text-api-arguments_t01: StaticWarning # co19-roll r761: Please triage this failure.
+LayoutTests/fast/dom/text-api-arguments_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/html/imports/import-events_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: StaticWarning # co19 issue 703
 LayoutTests/fast/xpath/4XPath/Core/test_location_path_t01: StaticWarning # co19 issue 703
@@ -278,7 +278,7 @@ LayoutTests/fast/xpath/4XPath/Core/test_predicate_list_t01: StaticWarning # co19
 LayoutTests/fast/xpath/4XPath/Core/test_step_t01: StaticWarning # co19 issue 703
 LayoutTests/fast/xpath/ambiguous-operators_t01: StaticWarning # co19 issue 703
 LayoutTests/fast/xpath/attr-namespace_t01: StaticWarning # co19 issue 703
-LayoutTests/fast/xpath/attribute-node-pre issue 703dicate_t01: StaticWarning # co19 issue 703
+LayoutTests/fast/xpath/attribute-node-predicate_t01: StaticWarning # co19 issue 703
 LayoutTests/fast/xpath/complex-id_t01: StaticWarning # co19 issue 703
 LayoutTests/fast/xpath/detached-subtree-invalidate-iterator_t01: StaticWarning # co19 issue 703
 LayoutTests/fast/xpath/evaluator-exceptions_t01: StaticWarning # co19 issue 703

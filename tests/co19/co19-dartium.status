@@ -575,9 +575,11 @@ LayoutTests/fast/css/css-properties-case-insensitive_t01: RuntimeError # co19-ro
 LayoutTests/fast/css/css3-nth-tokens-style_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/cursor-parsing-quirks_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/first-child-display-change-inverse_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/css/focus-display-block-inline_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/font-face-cache-bug_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
+LayoutTests/fast/css/fontfaceset-loadingdone_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/html-attr-case-sensitivity_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/id-or-class-before-stylesheet_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/inherit-initial-shorthand-values_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -591,6 +593,7 @@ LayoutTests/fast/css/media-query-recovery_t01: RuntimeError # co19-roll r761: Pl
 LayoutTests/fast/css/parsing-at-rule-recovery_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/parsing-page-rule_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/parsing-selector-error-recovery_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/css/pseudo-any_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/pseudo-target-indirect-sibling-001_t01: Timeout # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/pseudo-target-indirect-sibling-002_t01: Timeout # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/readonly-pseudoclass-opera-001_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -599,6 +602,7 @@ LayoutTests/fast/css/readonly-pseudoclass-opera-003_t01: RuntimeError # co19-rol
 LayoutTests/fast/css/readonly-pseudoclass-opera-004_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/readonly-pseudoclass-opera-005_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/sticky/parsing-position-sticky_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/css/style-element-process-crash_t01: Skip # Times out. co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/webkit-keyframes-errors_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -654,6 +658,7 @@ WebPlatformTest/html/semantics/selectors/pseudo-classes/default_t01: RuntimeErro
 WebPlatformTest/html/semantics/selectors/pseudo-classes/dir_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/selectors/pseudo-classes/disabled_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/selectors/pseudo-classes/enabled_t01: RuntimeError # co19-roll r761: Please triage this failure.
+WebPlatformTest/html/semantics/selectors/pseudo-classes/focus_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/selectors/pseudo-classes/indeterminate_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/selectors/pseudo-classes/inrange-outofrange_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/selectors/pseudo-classes/link_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -704,8 +709,6 @@ LayoutTests/fast/css/box-sizing-border-box-dynamic-padding-border-update_t01: Ru
 LayoutTests/fast/css/deprecated-flexbox-auto-min-size_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/display-inline-block-scrollbar_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/fixed-width-intrinsic-width-excludes-scrollbars_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/css/focus-display-block-inline_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/name-null-namespace_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/xpath-result-eventlistener-crash_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xsl/default-html_t01: RuntimeError # co19-roll r761: Please triage this failure.

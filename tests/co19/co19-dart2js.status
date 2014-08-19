@@ -1545,6 +1545,8 @@ LibTest/async/Stream/handleError_A04_t01: RuntimeError # co19-roll r641: Please 
 LibTest/async/Stream/listen_A05_t01: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/convert/JsonCodec/encode_A01_t01: RuntimeError # co19-roll r641: Please triage this failure
 LibTest/convert/JsonCodec/encode_A01_t02: RuntimeError # co19-roll r641: Please triage this failure
+WebPlatformTest/webstorage/storage_clear_t01: CompileTimeError # co19 issue 702
+WebPlatformTest/webstorage/storage_builtins_t01: CompileTimeError # co19 issue 702
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 LibTest/async/DeferredLibrary/*: Skip # Issue 17458
