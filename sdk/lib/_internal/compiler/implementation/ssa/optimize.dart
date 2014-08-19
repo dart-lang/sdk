@@ -682,6 +682,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
+    if (node.isNullCheck) return node;
     var receiver = node.receiver;
     if (node.element == backend.jsIndexableLength) {
       JavaScriptItemCompilationContext context = work.compilationContext;
@@ -712,6 +713,21 @@ class SsaInstructionSimplifier extends HBaseVisitor
         }
       }
     }
+
+    // HFieldGet of a constructed constant can be replaced with the constant's
+    // field.
+    if (receiver is HConstant) {
+      Constant constant = receiver.constant;
+      if (constant.isConstructedObject) {
+        ConstructedConstant constructedConstant = constant;
+        Map<Element, Constant> fields = constructedConstant.fieldElements;
+        Constant value = fields[node.element];
+        if (value != null) {
+          return graph.addConstant(value, compiler);
+        }
+      }
+    }
+
     return node;
   }
 
