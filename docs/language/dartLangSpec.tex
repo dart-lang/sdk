@@ -1206,7 +1206,7 @@ Let $C$ be the class in which the superinitializer appears and let $S$ be the su
 
 Then, the initializer list of the constructor $S$ (respectively $S.id$) is executed with respect to the bindings that resulted from the evaluation of the argument list,  with \THIS{} bound to the current binding of \THIS{}, and  the type parameters (if any) of class $S$ bound to the current bindings of $U_1, , \ldots, U_m$.
 
-It is a compile-time error if class $S$ does not declare a generative constructor named $S$ (respectively $S.id$)
+It is a compile-time error if class $S$ does not declare a generative constructor named $S$ (respectively $S.id$).
 
 \subsubsection{Factories}
 \label{factories}
@@ -1510,7 +1510,7 @@ It is a compile-time error to specify an \EXTENDS{} clause for class \code{Objec
 %} 
 
 %It is a compile-time error if  the \EXTENDS{} clause of a class $C$ includes a type expression that does not denote a class available in the lexical scope of $C$. 
-It is a compile-time error if  the \EXTENDS{} clause of a class $C$ specifies a malformed  type or a deferred type (\ref{staticTypes}) as a superclass.
+It is a compile-time error if  the \EXTENDS{} clause of a class $C$ specifies an enumerated type (\ref{enums}), a malformed  type or a deferred type (\ref{staticTypes}) as a superclass.
 % too strict? Do we e want extends List<Undeclared> to work as List<dynamic>? 
 
 \commentary{ The type parameters of a generic class are available in the lexical scope of the superclass clause, potentially shadowing classes in the surrounding scope. The following code is therefore illegal and should cause a compile-time error:
@@ -1633,7 +1633,7 @@ A class has a set of direct superinterfaces. This set includes the interface of 
     .
 \end{grammar}
 
-It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a malformed type or deferred type (\ref{staticTypes}) as a superinterface  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
+It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies an enumerated type (\ref{enums}),  a malformed type or deferred type (\ref{staticTypes}) as a superinterface  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
 It is a compile-time error if the superclass of a class $C$ is specified as a superinterface of $C$.
 
 \rationale{
@@ -1824,7 +1824,7 @@ $q'_i(a_{i1}, \ldots , a_{ik_i}):\SUPER(a_{i1}, \ldots , a_{ik_i});$.
 
 If the mixin application declares support for interfaces, the resulting class implements those interfaces.
 
-It is a compile-time error if $S$ is a malformed type. It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$) is a malformed type. It is a compile time error if a well formed mixin cannot be derived from $M$ (respectively, from each of $M_1, \ldots, M_k$). 
+It is a compile-time error if $S$ is an enumerated type (\ref{enums}) or a malformed type. It is a compile-time error if $M$ (respectively, any of $M_1, \ldots, M_k$) is an enumerated type (\ref{enums}) or a malformed type. It is a compile time error if a well formed mixin cannot be derived from $M$ (respectively, from each of $M_1, \ldots, M_k$). 
 
 Let $K$ be a class declaration  with the same constructors, superclass and interfaces as $C$,  and the instance members declared by $M$ (respectively $M_1, \ldots, M_k$). It is a static warning if the declaration of $K$ would cause a static warning.  It is a compile-time error if the declaration of $K$ would cause a compile-time error.
 
@@ -1874,6 +1874,38 @@ Mixin composition is associative.
 \commentary{
 Note that any subset of $M_1$, $M_2$ and $S$ may or may not be generic. For any non-generic declaration, the corresponding type parameters may be elided, and if no type parameters remain in the derived declarations $Id_1$ and/or $Id_2$ then the those declarations need not be generic either.
 }
+
+
+\section{Enums}
+\label{enums}
+
+An {\em enumerated type}, or {\em enum}, is used to represent a fixed number of constant values.
+
+\begin{grammar}
+{\bf enumType:}
+metadata \ENUM{} id `\{' id [`,' id]* [`,'] `\}'
+    .
+\end{grammar}
+
+The declaration of an enum of the form \code{metadata \ENUM{} E \{ id$_0$, \ldots id$_{n-1}$\};}
+has the same effect as a class declaration
+
+\begin{dartCode}
+metadata \CLASS{} E \{
+  \FINAL{} int index;
+  \CONST{} E(\THIS{}.index);
+  \STATIC{} \CONST{} E id$_0$ = \CONST{} E(0);
+  $\ldots$
+  \STATIC{} \CONST{} E id$_{n-1}$ = const E(n - 1);
+  \STATIC{} \CONST{} List$<$E$>$ values = const $<$E$>$[id$_0 \ldots $ id$_{n-1}$];
+  String toString() =$>$ \{ 0: `E.id$_0$', $\ldots$, n-1: `E.id$_{n-1}$'\}[index]
+\}
+\end{dartCode}
+
+\commentary {
+It is also a compile-time error to subclass, mix-in or implement an enum or to explicitly instantiate an enum.  These restrictions are given in normative form in sections \ref{superclasses}, \ref{superinterfaces}, \ref{mixinApplication} and \ref{instanceCreation} as appropriate.
+}
+
 
 
 \section{Generics}
@@ -2777,6 +2809,18 @@ the type $T$ in an instance creation expression of one of  the forms
 \CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$,  
 
 \CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is malformed (\ref{dynamicTypeSystem}) or malbounded (\ref{parameterizedTypes}).
+
+It is a compile-time error if the type $T$ in an instance creation expression of one of the forms 
+
+\NEW{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$,  
+
+\NEW{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$,
+
+\CONST{} $T.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$,  
+
+\CONST{} $T(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ 
+
+is an enumerated type (\ref{enums}).
 %any of the type arguments to a constructor of a generic type $G$ invoked by a new expression or a constant object expression are not subtypes of the bounds of the corresponding formal type parameters of $G$.
 
 
@@ -4659,6 +4703,17 @@ The sophistication of the analysis of fall-through is another issue. For now, we
   Very elaborate code in a case clause is probably bad style in any case, and such code can always be refactored.
 }
  
+ It is a static warning if all of the following conditions hold:
+ \begin{itemize}
+\item  The switch statement does not have a default clause.
+ \item The static type of $e$ is an enumerated typed with elements $id_1, \ldots, id_n$.
+\item The sets $\{e_1, \ldots,  e_k\} $ and $\{id_1, \ldots, id_n\}$ are not the same.
+\end{itemize}
+
+\commentary{
+In other words, a warning will be issued if a switch statement over an enum is not exhaustive.
+}
+
  
 \subsection{ Rethrow}
 \label{rethrow}
