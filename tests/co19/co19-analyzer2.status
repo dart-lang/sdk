@@ -262,7 +262,7 @@ WebPlatformTest/html/semantics/forms/the-datalist-element/datalistelement_t01: S
 WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: StaticWarning # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-fieldset-element/disabled_t01: StaticWarning # co19-roll r738: Please triage this failure.
 
-# co19-roll r738.
+# co19-roll r761.
 LayoutTests/fast/animation/request-animation-frame-missing-arguments_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/backgrounds/001_t01: StaticWarning # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-createImageBitmap-animated_t01: StaticWarning # co19-roll r761: Please triage this failure.
@@ -294,6 +294,7 @@ LayoutTests/fast/xpath/reverse-axes_t01: StaticWarning # co19 issue 703.
 LayoutTests/fast/xsl/default-html_t01: StaticWarning # co19 issue 703.
 LayoutTests/fast/xsl/extra-lf-at-end_t01: StaticWarning # co19 issue 703.
 LayoutTests/fast/xsl/xslt-string-parameters_t01: StaticWarning # co19 issue 703.
+LibTest/isolate/ReceivePort/any_A01_t02: StaticWarning # co19 issue 704.
 WebPlatformTest/dom/Node-replaceChild_t01: CompileTimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html-imports/link-import_t01: StaticWarning # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/forms/the-input-element/date_t01: StaticWarning # co19 issue 701.
