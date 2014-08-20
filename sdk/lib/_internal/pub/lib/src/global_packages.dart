@@ -14,6 +14,7 @@ import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
+import 'pubspec.dart';
 import 'system_cache.dart';
 import 'solver/version_solver.dart';
 import 'source/cached.dart';
@@ -68,8 +69,8 @@ class GlobalPackages {
       // Call this just to log what the current active package is, if any.
       _describeActive(name);
 
-      var id = new PackageId(name, "git", Version.none, repo);
-      return _installInCache(id);
+      return _installInCache(
+          new PackageDep(name, "git", VersionConstraint.any, repo));
     });
   }
 
@@ -77,24 +78,7 @@ class GlobalPackages {
   /// [constraint] and makes it the active global version.
   Future activateHosted(String name, VersionConstraint constraint) {
     _describeActive(name);
-
-    var source = cache.sources["hosted"];
-    return source.getVersions(name, name).then((versions) {
-      versions = versions.where(constraint.allows).toList();
-
-      if (versions.isEmpty) {
-        // TODO(rnystrom): Show most recent unmatching version?
-        dataError("Package ${log.bold(name)} has no versions that match "
-            "$constraint.");
-      }
-
-      // Pick the best matching version.
-      versions.sort(Version.prioritize);
-
-      // Make sure it's in the cache.
-      var id = new PackageId(name, "hosted", versions.last, name);
-      return _installInCache(id);
-    });
+    return _installInCache(new PackageDep(name, "hosted", constraint, name));
   }
 
   /// Makes the local package at [path] globally active.
@@ -112,36 +96,27 @@ class GlobalPackages {
       var fullPath = canonicalize(entrypoint.root.dir);
       var id = new PackageId(name, "path", entrypoint.root.version,
           PathSource.describePath(fullPath));
-      _writeLockFile(id, new LockFile.empty());
+      _writeLockFile(name, new LockFile([id]));
     });
   }
 
-  /// Installs the package [id] and its dependencies into the system cache.
-  Future _installInCache(PackageId id) {
-    var source = cache.sources[id.source];
+  /// Installs the package [dep] and its dependencies into the system cache.
+  Future _installInCache(PackageDep dep) {
+    var source = cache.sources[dep.source];
 
-    // Put the main package in the cache.
-    return source.downloadToSystemCache(id).then((package) {
-      // If we didn't know the version for the ID (which is true for Git
-      // packages), look it up now that we have it.
-      if (id.version == Version.none) {
-        id = id.atVersion(package.version);
-      }
+    // Create a dummy package with just [dep] so we can do resolution on it.
+    var root = new Package.inMemory(new Pubspec("pub global activate",
+        dependencies: [dep], sources: cache.sources));
 
-      return source.resolveId(id).then((id_) {
-        id = id_;
-
-        // Resolve it and download its dependencies.
-        return resolveVersions(SolveType.GET, cache.sources, package);
-      });
-    }).then((result) {
+    // Resolve it and download its dependencies.
+    return resolveVersions(SolveType.GET, cache.sources, root).then((result) {
       if (!result.succeeded) throw result.error;
       result.showReport(SolveType.GET);
 
       // Make sure all of the dependencies are locally installed.
       return Future.wait(result.packages.map(_cacheDependency));
     }).then((ids) {
-      _writeLockFile(id, new LockFile(ids));
+      _writeLockFile(dep.name, new LockFile(ids));
     });
   }
 
@@ -159,15 +134,13 @@ class GlobalPackages {
     }).then((_) => source.resolveId(id));
   }
 
-  /// Finishes activating package [id] by saving [lockFile] in the cache.
-  void _writeLockFile(PackageId id, LockFile lockFile) {
-    // Add the root package to the lockfile.
-    lockFile.packages[id.name] = id;
-
+  /// Finishes activating package [package] by saving [lockFile] in the cache.
+  void _writeLockFile(String package, LockFile lockFile) {
     ensureDir(_directory);
-    writeTextFile(_getLockFilePath(id.name),
+    writeTextFile(_getLockFilePath(package),
         lockFile.serialize(cache.rootDir, cache.sources));
 
+    var id = lockFile.packages[package];
     if (id.source == "git") {
       var url = GitSource.urlFromDescription(id.description);
       log.message('Activated ${log.bold(id.name)} ${id.version} from Git '
