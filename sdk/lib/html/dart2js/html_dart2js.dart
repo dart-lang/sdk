@@ -26177,7 +26177,7 @@ class Touch extends Interceptor {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  final int radiusX;
+  final int _webkitRadiusX;
 
   @JSName('webkitRadiusY')
   @DomName('Touch.webkitRadiusY')
@@ -26185,7 +26185,7 @@ class Touch extends Interceptor {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  final int radiusY;
+  final int _webkitRadiusY;
 
   @JSName('webkitRotationAngle')
   @DomName('Touch.webkitRotationAngle')
@@ -26196,17 +26196,43 @@ class Touch extends Interceptor {
   final double rotationAngle;
 
 
+// As of Chrome 37, these all changed from long to double.  This code
+// preserves backwards compatability for the time being.
+  int get __clientX => JS('num', '#.clientX', this).round();
+  int get __clientY => JS('num', '#.clientY', this).round();
+  int get __screenX => JS('num', '#.screenX', this).round();
+  int get __screenY => JS('num', '#.screenY', this).round();
+  int get __pageX => JS('num', '#.pageX', this).round();
+  int get __pageY => JS('num', '#.pageY', this).round();
+  int get __webkitRadiusX => JS('num', '#.webkitRadiusX', this).round();
+  int get __webkitRadiusY => JS('num', '#.webkitRadiusY', this).round();
+
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point(_clientX, _clientY);
+  Point get client => new Point(__clientX, __clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point(_pageX, _pageY);
+  Point get page => new Point(__pageX, __pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point(_screenX, _screenY);
+  Point get screen => new Point(__screenX, __screenY);
+
+  @DomName('Touch.webkitRadiusX')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  int get radiusX => __webkitRadiusX;
+
+  @DomName('Touch.webkitRadiusY')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  int get radiusY => __webkitRadiusY;
+
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

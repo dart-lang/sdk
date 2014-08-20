@@ -28199,14 +28199,14 @@ class Touch extends NativeFieldWrapperClass2 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get radiusX => _blink.BlinkTouch.$webkitRadiusX_Getter(this);
+  int get _webkitRadiusX => _blink.BlinkTouch.$webkitRadiusX_Getter(this);
 
   @DomName('Touch.webkitRadiusY')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  int get radiusY => _blink.BlinkTouch.$webkitRadiusY_Getter(this);
+  int get _webkitRadiusY => _blink.BlinkTouch.$webkitRadiusY_Getter(this);
 
   @DomName('Touch.webkitRotationAngle')
   @DocsEditable()
@@ -28216,17 +28216,43 @@ class Touch extends NativeFieldWrapperClass2 {
   double get rotationAngle => _blink.BlinkTouch.$webkitRotationAngle_Getter(this);
 
 
+// As of Chrome 37, these all changed from long to double.  This code
+// preserves backwards compatability for the time being.
+  int get __clientX => _blink.BlinkTouch.$clientX_Getter(this).round();
+  int get __clientY => _blink.BlinkTouch.$clientY_Getter(this).round();
+  int get __screenX => _blink.BlinkTouch.$screenX_Getter(this).round();
+  int get __screenY => _blink.BlinkTouch.$screenY_Getter(this).round();
+  int get __pageX => _blink.BlinkTouch.$pageX_Getter(this).round();
+  int get __pageY => _blink.BlinkTouch.$pageY_Getter(this).round();
+  int get __webkitRadiusX => _blink.BlinkTouch.$webkitRadiusX_Getter(this).round();
+  int get __webkitRadiusY => _blink.BlinkTouch.$webkitRadiusY_Getter(this).round();
+
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point(_clientX, _clientY);
+  Point get client => new Point(__clientX, __clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point(_pageX, _pageY);
+  Point get page => new Point(__pageX, __pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point(_screenX, _screenY);
+  Point get screen => new Point(__screenX, __screenY);
+
+  @DomName('Touch.webkitRadiusX')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  int get radiusX => __webkitRadiusX;
+
+  @DomName('Touch.webkitRadiusY')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  int get radiusY => __webkitRadiusY;
+
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28726,10 +28752,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_1_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_2_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_3_Callback(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

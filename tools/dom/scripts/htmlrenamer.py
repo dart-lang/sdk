@@ -329,12 +329,17 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Storage.setItem',
   'StorageEvent.initStorageEvent',
   'TextEvent.initTextEvent',
+  # TODO(leafp): These have been converted from int to double in Chrome 37.
+  # client, page, and screen were already special cased, adding webKitRadius.
+  # See impl_Touch.darttemplate for impedance matching code
   'Touch.clientX',
   'Touch.clientY',
   'Touch.pageX',
   'Touch.pageY',
   'Touch.screenX',
   'Touch.screenY',
+  'Touch.webkitRadiusX',
+  'Touch.webkitRadiusY',
   'TouchEvent.initTouchEvent',
   'UIEvent.charCode',
   'UIEvent.initUIEvent',
