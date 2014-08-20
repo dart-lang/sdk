@@ -19,7 +19,7 @@ class ServerGetVersionResult implements HasToJson {
   /**
    * The version number of the analysis server.
    */
-  final String version;
+  String version;
 
   ServerGetVersionResult(this.version);
 
@@ -81,7 +81,7 @@ class ServerSetSubscriptionsParams implements HasToJson {
   /**
    * A list of the services being subscribed to.
    */
-  final List<ServerService> subscriptions;
+  List<ServerService> subscriptions;
 
   ServerSetSubscriptionsParams(this.subscriptions);
 
@@ -150,18 +150,18 @@ class ServerErrorParams implements HasToJson {
    * True if the error is a fatal error, meaning that the server will shutdown
    * automatically after sending this notification.
    */
-  final bool fatal;
+  bool fatal;
 
   /**
    * The error message indicating what kind of error was encountered.
    */
-  final String message;
+  String message;
 
   /**
    * The stack trace associated with the generation of the error, used for
    * debugging the server.
    */
-  final String stackTrace;
+  String stackTrace;
 
   ServerErrorParams(this.fatal, this.message, this.stackTrace);
 
@@ -242,7 +242,7 @@ class ServerStatusParams implements HasToJson {
    * The current status of analysis, including whether analysis is being
    * performed and if so what is being analyzed.
    */
-  final AnalysisStatus analysis;
+  AnalysisStatus analysis;
 
   ServerStatusParams({this.analysis});
 
@@ -304,7 +304,7 @@ class AnalysisGetErrorsParams implements HasToJson {
   /**
    * The file for which errors are being requested.
    */
-  final String file;
+  String file;
 
   AnalysisGetErrorsParams(this.file);
 
@@ -370,7 +370,7 @@ class AnalysisGetErrorsResult implements HasToJson {
   /**
    * The errors associated with the file.
    */
-  final List<AnalysisError> errors;
+  List<AnalysisError> errors;
 
   AnalysisGetErrorsResult(this.errors);
 
@@ -433,12 +433,12 @@ class AnalysisGetHoverParams implements HasToJson {
   /**
    * The file in which hover information is being requested.
    */
-  final String file;
+  String file;
 
   /**
    * The offset for which hover information is being requested.
    */
-  final int offset;
+  int offset;
 
   AnalysisGetHoverParams(this.file, this.offset);
 
@@ -517,7 +517,7 @@ class AnalysisGetHoverResult implements HasToJson {
    * in conflicting ways (such as a part that is included in multiple
    * libraries).
    */
-  final List<HoverInformation> hovers;
+  List<HoverInformation> hovers;
 
   AnalysisGetHoverResult(this.hovers);
 
@@ -580,13 +580,13 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   /**
    * A list of the files and directories that should be analyzed.
    */
-  final List<String> included;
+  List<String> included;
 
   /**
    * A list of the files and directories within the included directories that
    * should not be analyzed.
    */
-  final List<String> excluded;
+  List<String> excluded;
 
   AnalysisSetAnalysisRootsParams(this.included, this.excluded);
 
@@ -661,7 +661,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
   /**
    * The files that are to be a priority for analysis.
    */
-  final List<String> files;
+  List<String> files;
 
   AnalysisSetPriorityFilesParams(this.files);
 
@@ -728,7 +728,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
    * A table mapping services to a list of the files being subscribed to the
    * service.
    */
-  final Map<AnalysisService, List<String>> subscriptions;
+  Map<AnalysisService, List<String>> subscriptions;
 
   AnalysisSetSubscriptionsParams(this.subscriptions);
 
@@ -795,7 +795,7 @@ class AnalysisUpdateContentParams implements HasToJson {
    * A table mapping the files whose content has changed to a description of
    * the content change.
    */
-  final Map<String, dynamic> files;
+  Map<String, dynamic> files;
 
   AnalysisUpdateContentParams(this.files);
 
@@ -861,7 +861,7 @@ class AnalysisUpdateOptionsParams implements HasToJson {
   /**
    * The options that are to be used to control analysis.
    */
-  final AnalysisOptions options;
+  AnalysisOptions options;
 
   AnalysisUpdateOptionsParams(this.options);
 
@@ -928,12 +928,12 @@ class AnalysisErrorsParams implements HasToJson {
   /**
    * The file containing the errors.
    */
-  final String file;
+  String file;
 
   /**
    * The errors contained in the file.
    */
-  final List<AnalysisError> errors;
+  List<AnalysisError> errors;
 
   AnalysisErrorsParams(this.file, this.errors);
 
@@ -1004,7 +1004,7 @@ class AnalysisFlushResultsParams implements HasToJson {
   /**
    * The files that are no longer being analyzed.
    */
-  final List<String> files;
+  List<String> files;
 
   AnalysisFlushResultsParams(this.files);
 
@@ -1067,12 +1067,12 @@ class AnalysisFoldingParams implements HasToJson {
   /**
    * The file containing the folding regions.
    */
-  final String file;
+  String file;
 
   /**
    * The folding regions contained in the file.
    */
-  final List<FoldingRegion> regions;
+  List<FoldingRegion> regions;
 
   AnalysisFoldingParams(this.file, this.regions);
 
@@ -1144,7 +1144,7 @@ class AnalysisHighlightsParams implements HasToJson {
   /**
    * The file containing the highlight regions.
    */
-  final String file;
+  String file;
 
   /**
    * The highlight regions contained in the file. Each highlight region
@@ -1153,7 +1153,7 @@ class AnalysisHighlightsParams implements HasToJson {
    * highlight regions if there is more than one meaning associated with a
    * particular region.
    */
-  final List<HighlightRegion> regions;
+  List<HighlightRegion> regions;
 
   AnalysisHighlightsParams(this.file, this.regions);
 
@@ -1225,7 +1225,7 @@ class AnalysisNavigationParams implements HasToJson {
   /**
    * The file containing the navigation regions.
    */
-  final String file;
+  String file;
 
   /**
    * The navigation regions contained in the file. Each navigation region
@@ -1235,7 +1235,7 @@ class AnalysisNavigationParams implements HasToJson {
    * compiled against multiple versions of a package. Note that the navigation
    * regions that are returned do not overlap other navigation regions.
    */
-  final List<NavigationRegion> regions;
+  List<NavigationRegion> regions;
 
   AnalysisNavigationParams(this.file, this.regions);
 
@@ -1307,12 +1307,12 @@ class AnalysisOccurrencesParams implements HasToJson {
   /**
    * The file in which the references occur.
    */
-  final String file;
+  String file;
 
   /**
    * The occurrences of references to elements within the file.
    */
-  final List<Occurrences> occurrences;
+  List<Occurrences> occurrences;
 
   AnalysisOccurrencesParams(this.file, this.occurrences);
 
@@ -1384,12 +1384,12 @@ class AnalysisOutlineParams implements HasToJson {
   /**
    * The file with which the outline is associated.
    */
-  final String file;
+  String file;
 
   /**
    * The outline associated with the file.
    */
-  final Outline outline;
+  Outline outline;
 
   AnalysisOutlineParams(this.file, this.outline);
 
@@ -1461,12 +1461,12 @@ class AnalysisOverridesParams implements HasToJson {
   /**
    * The file with which the overrides are associated.
    */
-  final String file;
+  String file;
 
   /**
    * The overrides associated with the file.
    */
-  final List<Override> overrides;
+  List<Override> overrides;
 
   AnalysisOverridesParams(this.file, this.overrides);
 
@@ -1538,12 +1538,12 @@ class CompletionGetSuggestionsParams implements HasToJson {
   /**
    * The file containing the point at which suggestions are to be made.
    */
-  final String file;
+  String file;
 
   /**
    * The offset within the file at which suggestions are to be made.
    */
-  final int offset;
+  int offset;
 
   CompletionGetSuggestionsParams(this.file, this.offset);
 
@@ -1618,7 +1618,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
   /**
    * The identifier used to associate results with this completion request.
    */
-  final String id;
+  String id;
 
   CompletionGetSuggestionsResult(this.id);
 
@@ -1684,7 +1684,7 @@ class CompletionResultsParams implements HasToJson {
   /**
    * The id associated with the completion.
    */
-  final String id;
+  String id;
 
   /**
    * The offset of the start of the text to be replaced. This will be different
@@ -1692,14 +1692,14 @@ class CompletionResultsParams implements HasToJson {
    * portion of an identifier before the original offset. In particular, the
    * replacementOffset will be the offset of the beginning of said identifier.
    */
-  final int replacementOffset;
+  int replacementOffset;
 
   /**
    * The length of the text to be replaced if the remainder of the identifier
    * containing the cursor is to be replaced when the suggestion is applied
    * (that is, the number of characters in the existing identifier).
    */
-  final int replacementLength;
+  int replacementLength;
 
   /**
    * The completion suggestions being reported. The notification contains all
@@ -1708,13 +1708,13 @@ class CompletionResultsParams implements HasToJson {
    * client to respond to further keystrokes from the user without having to
    * make additional requests.
    */
-  final List<CompletionSuggestion> results;
+  List<CompletionSuggestion> results;
 
   /**
    * True if this is that last set of results that will be returned for the
    * indicated completion.
    */
-  final bool last;
+  bool last;
 
   CompletionResultsParams(this.id, this.replacementOffset, this.replacementLength, this.results, this.last);
 
@@ -1815,18 +1815,18 @@ class SearchFindElementReferencesParams implements HasToJson {
    * The file containing the declaration of or reference to the element used to
    * define the search.
    */
-  final String file;
+  String file;
 
   /**
    * The offset within the file of the declaration of or reference to the
    * element.
    */
-  final int offset;
+  int offset;
 
   /**
    * True if potential matches are to be included in the results.
    */
-  final bool includePotential;
+  bool includePotential;
 
   SearchFindElementReferencesParams(this.file, this.offset, this.includePotential);
 
@@ -1911,7 +1911,7 @@ class SearchFindElementReferencesResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
-  final String id;
+  String id;
 
   /**
    * The element referenced or defined at the given offset and whose references
@@ -1919,7 +1919,7 @@ class SearchFindElementReferencesResult implements HasToJson {
    *
    * If no element was found at the given location, this field will be absent.
    */
-  final Element element;
+  Element element;
 
   SearchFindElementReferencesResult(this.id, {this.element});
 
@@ -1990,7 +1990,7 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
   /**
    * The name of the declarations to be found.
    */
-  final String name;
+  String name;
 
   SearchFindMemberDeclarationsParams(this.name);
 
@@ -2056,7 +2056,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
-  final String id;
+  String id;
 
   SearchFindMemberDeclarationsResult(this.id);
 
@@ -2118,7 +2118,7 @@ class SearchFindMemberReferencesParams implements HasToJson {
   /**
    * The name of the references to be found.
    */
-  final String name;
+  String name;
 
   SearchFindMemberReferencesParams(this.name);
 
@@ -2184,7 +2184,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
-  final String id;
+  String id;
 
   SearchFindMemberReferencesResult(this.id);
 
@@ -2247,7 +2247,7 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
    * The regular expression used to match the names of the declarations to be
    * found.
    */
-  final String pattern;
+  String pattern;
 
   SearchFindTopLevelDeclarationsParams(this.pattern);
 
@@ -2313,7 +2313,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
-  final String id;
+  String id;
 
   SearchFindTopLevelDeclarationsResult(this.id);
 
@@ -2377,12 +2377,12 @@ class SearchGetTypeHierarchyParams implements HasToJson {
    * The file containing the declaration or reference to the type for which a
    * hierarchy is being requested.
    */
-  final String file;
+  String file;
 
   /**
    * The offset of the name of the type within the file.
    */
-  final int offset;
+  int offset;
 
   SearchGetTypeHierarchyParams(this.file, this.offset);
 
@@ -2465,7 +2465,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
    * not represent a type, or if the file has not been sufficiently analyzed to
    * allow a type hierarchy to be produced.
    */
-  final List<TypeHierarchyItem> hierarchyItems;
+  List<TypeHierarchyItem> hierarchyItems;
 
   SearchGetTypeHierarchyResult({this.hierarchyItems});
 
@@ -2529,18 +2529,18 @@ class SearchResultsParams implements HasToJson {
   /**
    * The id associated with the search.
    */
-  final String id;
+  String id;
 
   /**
    * The search results being reported.
    */
-  final List<SearchResult> results;
+  List<SearchResult> results;
 
   /**
    * True if this is that last set of results that will be returned for the
    * indicated search.
    */
-  final bool last;
+  bool last;
 
   SearchResultsParams(this.id, this.results, this.last);
 
@@ -2622,17 +2622,17 @@ class EditGetAssistsParams implements HasToJson {
   /**
    * The file containing the code for which assists are being requested.
    */
-  final String file;
+  String file;
 
   /**
    * The offset of the code for which assists are being requested.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the code for which assists are being requested.
    */
-  final int length;
+  int length;
 
   EditGetAssistsParams(this.file, this.offset, this.length);
 
@@ -2716,7 +2716,7 @@ class EditGetAssistsResult implements HasToJson {
   /**
    * The assists that are available at the given location.
    */
-  final List<SourceChange> assists;
+  List<SourceChange> assists;
 
   EditGetAssistsResult(this.assists);
 
@@ -2780,17 +2780,17 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
   /**
    * The file containing the code on which the refactoring would be based.
    */
-  final String file;
+  String file;
 
   /**
    * The offset of the code on which the refactoring would be based.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the code on which the refactoring would be based.
    */
-  final int length;
+  int length;
 
   EditGetAvailableRefactoringsParams(this.file, this.offset, this.length);
 
@@ -2874,7 +2874,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
   /**
    * The kinds of refactorings that are valid for the given selection.
    */
-  final List<RefactoringKind> kinds;
+  List<RefactoringKind> kinds;
 
   EditGetAvailableRefactoringsResult(this.kinds);
 
@@ -2937,12 +2937,12 @@ class EditGetFixesParams implements HasToJson {
   /**
    * The file containing the errors for which fixes are being requested.
    */
-  final String file;
+  String file;
 
   /**
    * The offset used to select the errors for which fixes will be returned.
    */
-  final int offset;
+  int offset;
 
   EditGetFixesParams(this.file, this.offset);
 
@@ -3022,7 +3022,7 @@ class EditGetFixesResult implements HasToJson {
    * for the error in errors[i]. The list of changes corresponding to an error
    * can be empty if there are no fixes available for that error.
    */
-  final List<ErrorFixes> fixes;
+  List<ErrorFixes> fixes;
 
   EditGetFixesResult(this.fixes);
 
@@ -3089,28 +3089,28 @@ class EditGetRefactoringParams implements HasToJson {
   /**
    * The identifier of the kind of refactoring to be performed.
    */
-  final RefactoringKind kindId;
+  RefactoringKind kindId;
 
   /**
    * The file containing the code involved in the refactoring.
    */
-  final String file;
+  String file;
 
   /**
    * The offset of the region involved in the refactoring.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the region involved in the refactoring.
    */
-  final int length;
+  int length;
 
   /**
    * True if the client is only requesting that the values of the options be
    * validated and no change be generated.
    */
-  final bool validateOnly;
+  bool validateOnly;
 
   /**
    * Data used to provide values provided by the user. The structure of the
@@ -3119,7 +3119,7 @@ class EditGetRefactoringParams implements HasToJson {
    * as “Options”. This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
-  final Object options;
+  Object options;
 
   EditGetRefactoringParams(this.kindId, this.file, this.offset, this.length, this.validateOnly, {this.options});
 
@@ -3234,7 +3234,7 @@ class EditGetRefactoringResult implements HasToJson {
    * The status of the refactoring. The array will be empty if there are no
    * known problems.
    */
-  final List<RefactoringProblem> status;
+  List<RefactoringProblem> status;
 
   /**
    * Data used to provide feedback to the user. The structure of the data is
@@ -3242,7 +3242,7 @@ class EditGetRefactoringResult implements HasToJson {
    * returned is documented in the section titled Refactorings, labeled as
    * “Feedback”.
    */
-  final Object feedback;
+  Object feedback;
 
   /**
    * The changes that are to be applied to affect the refactoring. This field
@@ -3250,7 +3250,7 @@ class EditGetRefactoringResult implements HasToJson {
    * being computed, such as having no options specified for a refactoring that
    * requires them, or if only validation was requested.
    */
-  final SourceChange change;
+  SourceChange change;
 
   /**
    * The ids of source edits that are not known to be valid. An edit is not
@@ -3260,7 +3260,7 @@ class EditGetRefactoringResult implements HasToJson {
    * to a member from an unknown type. This field will be omitted if the change
    * field is omitted or if there are no potential edits for the refactoring.
    */
-  final List<String> potentialEdits;
+  List<String> potentialEdits;
 
   EditGetRefactoringResult(this.status, {this.feedback, this.change, this.potentialEdits});
 
@@ -3349,7 +3349,7 @@ class DebugCreateContextParams implements HasToJson {
   /**
    * The path of the Dart or HTML file that will be launched.
    */
-  final String contextRoot;
+  String contextRoot;
 
   DebugCreateContextParams(this.contextRoot);
 
@@ -3415,7 +3415,7 @@ class DebugCreateContextResult implements HasToJson {
   /**
    * The identifier used to refer to the debugging context that was created.
    */
-  final String id;
+  String id;
 
   DebugCreateContextResult(this.id);
 
@@ -3477,7 +3477,7 @@ class DebugDeleteContextParams implements HasToJson {
   /**
    * The identifier of the debugging context that is to be deleted.
    */
-  final String id;
+  String id;
 
   DebugDeleteContextParams(this.id);
 
@@ -3545,17 +3545,17 @@ class DebugMapUriParams implements HasToJson {
   /**
    * The identifier of the debugging context in which the URI is to be mapped.
    */
-  final String id;
+  String id;
 
   /**
    * The path of the file to be mapped into a URI.
    */
-  final String file;
+  String file;
 
   /**
    * The URI to be mapped into a file path.
    */
-  final String uri;
+  String uri;
 
   DebugMapUriParams(this.id, {this.file, this.uri});
 
@@ -3641,13 +3641,13 @@ class DebugMapUriResult implements HasToJson {
    * The file to which the URI was mapped. This field is omitted if the uri
    * field was not given in the request.
    */
-  final String file;
+  String file;
 
   /**
    * The URI to which the file path was mapped. This field is omitted if the
    * file field was not given in the request.
    */
-  final String uri;
+  String uri;
 
   DebugMapUriResult({this.file, this.uri});
 
@@ -3718,7 +3718,7 @@ class DebugSetSubscriptionsParams implements HasToJson {
   /**
    * A list of the services being subscribed to.
    */
-  final List<DebugService> subscriptions;
+  List<DebugService> subscriptions;
 
   DebugSetSubscriptionsParams(this.subscriptions);
 
@@ -3787,19 +3787,19 @@ class DebugLaunchDataParams implements HasToJson {
    * A list of the files that are executable in the given context. This list
    * replaces any previous list provided for the given context.
    */
-  final List<ExecutableFile> executables;
+  List<ExecutableFile> executables;
 
   /**
    * A mapping from the paths of Dart files that are referenced by HTML files
    * to a list of the HTML files that reference the Dart files.
    */
-  final Map<String, List<String>> dartToHtml;
+  Map<String, List<String>> dartToHtml;
 
   /**
    * A mapping from the paths of HTML files that reference Dart files to a list
    * of the Dart files they reference.
    */
-  final Map<String, List<String>> htmlToDart;
+  Map<String, List<String>> htmlToDart;
 
   DebugLaunchDataParams(this.executables, this.dartToHtml, this.htmlToDart);
 
@@ -3880,7 +3880,7 @@ class AddContentOverlay implements HasToJson {
   /**
    * The new content of the file.
    */
-  final String content;
+  String content;
 
   AddContentOverlay(this.content);
 
@@ -3946,30 +3946,30 @@ class AnalysisError implements HasToJson {
   /**
    * The severity of the error.
    */
-  final ErrorSeverity severity;
+  ErrorSeverity severity;
 
   /**
    * The type of the error.
    */
-  final ErrorType type;
+  ErrorType type;
 
   /**
    * The location associated with the error.
    */
-  final Location location;
+  Location location;
 
   /**
    * The message to be displayed for this error. The message should indicate
    * what is wrong with the code and why it is wrong.
    */
-  final String message;
+  String message;
 
   /**
    * The correction message to be displayed for this error. The correction
    * message should indicate how the user can fix the error. The field is
    * omitted if there is no correction message associated with the error code.
    */
-  final String correction;
+  String correction;
 
   AnalysisError(this.severity, this.type, this.location, this.message, {this.correction});
 
@@ -4066,30 +4066,30 @@ class AnalysisOptions implements HasToJson {
   /**
    * True if the client wants to enable support for the proposed async feature.
    */
-  final bool enableAsync;
+  bool enableAsync;
 
   /**
    * True if the client wants to enable support for the proposed deferred
    * loading feature.
    */
-  final bool enableDeferredLoading;
+  bool enableDeferredLoading;
 
   /**
    * True if the client wants to enable support for the proposed enum feature.
    */
-  final bool enableEnums;
+  bool enableEnums;
 
   /**
    * True if hints that are specific to dart2js should be generated. This
    * option is ignored if generateHints is false.
    */
-  final bool generateDart2jsHints;
+  bool generateDart2jsHints;
 
   /**
    * True is hints should be generated as part of generating errors and
    * warnings.
    */
-  final bool generateHints;
+  bool generateHints;
 
   AnalysisOptions({this.enableAsync, this.enableDeferredLoading, this.enableEnums, this.generateDart2jsHints, this.generateHints});
 
@@ -4247,13 +4247,13 @@ class AnalysisStatus implements HasToJson {
   /**
    * True if analysis is currently being performed.
    */
-  final bool analyzing;
+  bool analyzing;
 
   /**
    * The name of the current target of analysis. This field is omitted if
    * analyzing is false.
    */
-  final String analysisTarget;
+  String analysisTarget;
 
   AnalysisStatus(this.analyzing, {this.analysisTarget});
 
@@ -4320,7 +4320,7 @@ class ChangeContentOverlay implements HasToJson {
   /**
    * The edits to be applied to the file.
    */
-  final List<SourceEdit> edits;
+  List<SourceEdit> edits;
 
   ChangeContentOverlay(this.edits);
 
@@ -4447,12 +4447,12 @@ class CompletionSuggestion implements HasToJson {
   /**
    * The kind of element being suggested.
    */
-  final CompletionSuggestionKind kind;
+  CompletionSuggestionKind kind;
 
   /**
    * The relevance of this completion suggestion.
    */
-  final CompletionRelevance relevance;
+  CompletionRelevance relevance;
 
   /**
    * The identifier to be inserted if the suggestion is selected. If the
@@ -4460,93 +4460,93 @@ class CompletionSuggestion implements HasToJson {
    * additionally insert a template for the parameters. The information
    * required in order to do so is contained in other fields.
    */
-  final String completion;
+  String completion;
 
   /**
    * The offset, relative to the beginning of the completion, of where the
    * selection should be placed after insertion.
    */
-  final int selectionOffset;
+  int selectionOffset;
 
   /**
    * The number of characters that should be selected after insertion.
    */
-  final int selectionLength;
+  int selectionLength;
 
   /**
    * True if the suggested element is deprecated.
    */
-  final bool isDeprecated;
+  bool isDeprecated;
 
   /**
    * True if the element is not known to be valid for the target. This happens
    * if the type of the target is dynamic.
    */
-  final bool isPotential;
+  bool isPotential;
 
   /**
    * An abbreviated version of the Dartdoc associated with the element being
    * suggested, This field is omitted if there is no Dartdoc associated with
    * the element.
    */
-  final String docSummary;
+  String docSummary;
 
   /**
    * The Dartdoc associated with the element being suggested, This field is
    * omitted if there is no Dartdoc associated with the element.
    */
-  final String docComplete;
+  String docComplete;
 
   /**
    * The class that declares the element being suggested. This field is omitted
    * if the suggested element is not a member of a class.
    */
-  final String declaringType;
+  String declaringType;
 
   /**
    * The return type of the getter, function or method being suggested. This
    * field is omitted if the suggested element is not a getter, function or
    * method.
    */
-  final String returnType;
+  String returnType;
 
   /**
    * The names of the parameters of the function or method being suggested.
    * This field is omitted if the suggested element is not a setter, function
    * or method.
    */
-  final List<String> parameterNames;
+  List<String> parameterNames;
 
   /**
    * The types of the parameters of the function or method being suggested.
    * This field is omitted if the parameterNames field is omitted.
    */
-  final List<String> parameterTypes;
+  List<String> parameterTypes;
 
   /**
    * The number of required parameters for the function or method being
    * suggested. This field is omitted if the parameterNames field is omitted.
    */
-  final int requiredParameterCount;
+  int requiredParameterCount;
 
   /**
    * The number of positional parameters for the function or method being
    * suggested. This field is omitted if the parameterNames field is omitted.
    */
-  final int positionalParameterCount;
+  int positionalParameterCount;
 
   /**
    * The name of the optional parameter being suggested. This field is omitted
    * if the suggestion is not the addition of an optional argument within an
    * argument list.
    */
-  final String parameterName;
+  String parameterName;
 
   /**
    * The type of the options parameter being suggested. This field is omitted
    * if the parameterName field is omitted.
    */
-  final String parameterType;
+  String parameterType;
 
   CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType});
 
@@ -4925,18 +4925,18 @@ class Element implements HasToJson {
   /**
    * The kind of the element.
    */
-  final ElementKind kind;
+  ElementKind kind;
 
   /**
    * The name of the element. This is typically used as the label in the
    * outline.
    */
-  final String name;
+  String name;
 
   /**
    * The location of the name in the declaration of the element.
    */
-  final Location location;
+  Location location;
 
   /**
    * A bit-map containing the following flags:
@@ -4949,21 +4949,21 @@ class Element implements HasToJson {
    * - 0x10 - set if the element is private
    * - 0x20 - set if the element is deprecated
    */
-  final int flags;
+  int flags;
 
   /**
    * The parameter list for the element. If the element is not a method or
    * function this field will not be defined. If the element has zero
    * parameters, this field will have a value of "()".
    */
-  final String parameters;
+  String parameters;
 
   /**
    * The return type of the element. If the element is not a method or function
    * this field will not be defined. If the element does not have a declared
    * return type, this field will contain an empty string.
    */
-  final String returnType;
+  String returnType;
 
   Element(this.kind, this.name, this.flags, {this.location, this.parameters, this.returnType});
 
@@ -5191,18 +5191,18 @@ class Error implements HasToJson {
   /**
    * A code that uniquely identifies the error that occurred.
    */
-  final String code;
+  String code;
 
   /**
    * A short description of the error.
    */
-  final String message;
+  String message;
 
   /**
    * Additional data related to the error. This field is omitted if there is no
    * additional data available.
    */
-  final Object data;
+  Object data;
 
   Error(this.code, this.message, {this.data});
 
@@ -5278,12 +5278,12 @@ class ErrorFixes implements HasToJson {
   /**
    * The error with which the fixes are associated.
    */
-  final AnalysisError error;
+  AnalysisError error;
 
   /**
    * The fixes associated with the error.
    */
-  final List<SourceChange> fixes;
+  List<SourceChange> fixes;
 
   ErrorFixes(this.error, this.fixes);
 
@@ -5463,12 +5463,12 @@ class ExecutableFile implements HasToJson {
   /**
    * The path of the executable file.
    */
-  final String file;
+  String file;
 
   /**
    * The offset of the region to be highlighted.
    */
-  final ExecutableKind offset;
+  ExecutableKind offset;
 
   ExecutableFile(this.file, this.offset);
 
@@ -5644,17 +5644,17 @@ class FoldingRegion implements HasToJson {
   /**
    * The kind of the region.
    */
-  final FoldingKind kind;
+  FoldingKind kind;
 
   /**
    * The offset of the region to be folded.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the region to be folded.
    */
-  final int length;
+  int length;
 
   FoldingRegion(this.kind, this.offset, this.length);
 
@@ -5731,17 +5731,17 @@ class HighlightRegion implements HasToJson {
   /**
    * The type of highlight associated with the region.
    */
-  final HighlightRegionType type;
+  HighlightRegionType type;
 
   /**
    * The offset of the region to be highlighted.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the region to be highlighted.
    */
-  final int length;
+  int length;
 
   HighlightRegion(this.type, this.offset, this.length);
 
@@ -6035,26 +6035,26 @@ class HoverInformation implements HasToJson {
    * The offset of the range of characters that encompases the cursor position
    * and has the same hover information as the cursor position.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the range of characters that encompases the cursor position
    * and has the same hover information as the cursor position.
    */
-  final int length;
+  int length;
 
   /**
    * The path to the defining compilation unit of the library in which the
    * referenced element is declared. This data is omitted if there is no
    * referenced element.
    */
-  final String containingLibraryPath;
+  String containingLibraryPath;
 
   /**
    * The name of the library in which the referenced element is declared. This
    * data is omitted if there is no referenced element.
    */
-  final String containingLibraryName;
+  String containingLibraryName;
 
   /**
    * The dartdoc associated with the referenced element. Other than the removal
@@ -6062,40 +6062,40 @@ class HoverInformation implements HasToJson {
    * block comment, the dartdoc is unprocessed markdown. This data is omitted
    * if there is no referenced element.
    */
-  final String dartdoc;
+  String dartdoc;
 
   /**
    * A human-readable description of the element being referenced. This data is
    * omitted if there is no referenced element.
    */
-  final String elementDescription;
+  String elementDescription;
 
   /**
    * A human-readable description of the kind of element being referenced (such
    * as “class” or “function type alias”). This data is omitted if there is no
    * referenced element.
    */
-  final String elementKind;
+  String elementKind;
 
   /**
    * A human-readable description of the parameter corresponding to the
    * expression being hovered over. This data is omitted if the location is not
    * in an argument to a function.
    */
-  final String parameter;
+  String parameter;
 
   /**
    * The name of the propagated type of the expression. This data is omitted if
    * the location does not correspond to an expression or if there is no
    * propagated type information.
    */
-  final String propagatedType;
+  String propagatedType;
 
   /**
    * The name of the static type of the expression. This data is omitted if the
    * location does not correspond to an expression.
    */
-  final String staticType;
+  String staticType;
 
   HoverInformation(this.offset, this.length, {this.containingLibraryPath, this.containingLibraryName, this.dartdoc, this.elementDescription, this.elementKind, this.parameter, this.propagatedType, this.staticType});
 
@@ -6235,18 +6235,18 @@ class LinkedEditGroup implements HasToJson {
   /**
    * The positions of the regions that should be edited simultaneously.
    */
-  final List<Position> positions;
+  List<Position> positions;
 
   /**
    * The length of the regions that should be edited simultaneously.
    */
-  final int length;
+  int length;
 
   /**
    * Pre-computed suggestions for what every region might want to be changed
    * to.
    */
-  final List<LinkedEditSuggestion> suggestions;
+  List<LinkedEditSuggestion> suggestions;
 
   LinkedEditGroup(this.positions, this.length, this.suggestions);
 
@@ -6322,12 +6322,12 @@ class LinkedEditSuggestion implements HasToJson {
   /**
    * The value that could be used to replace all of the linked edit regions.
    */
-  final String value;
+  String value;
 
   /**
    * The kind of value being proposed.
    */
-  final LinkedEditSuggestionKind kind;
+  LinkedEditSuggestionKind kind;
 
   LinkedEditSuggestion(this.value, this.kind);
 
@@ -6451,29 +6451,29 @@ class Location implements HasToJson {
   /**
    * The file containing the range.
    */
-  final String file;
+  String file;
 
   /**
    * The offset of the range.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the range.
    */
-  final int length;
+  int length;
 
   /**
    * The one-based index of the line containing the first character of the
    * range.
    */
-  final int startLine;
+  int startLine;
 
   /**
    * The one-based index of the column containing the first character of the
    * range.
    */
-  final int startColumn;
+  int startColumn;
 
   Location(this.file, this.offset, this.length, this.startLine, this.startColumn);
 
@@ -6568,18 +6568,18 @@ class NavigationRegion implements HasToJson {
   /**
    * The offset of the region from which the user can navigate.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the region from which the user can navigate.
    */
-  final int length;
+  int length;
 
   /**
    * The elements to which the given region is bound. By opening the
    * declaration of the elements, clients can implement one form of navigation.
    */
-  final List<Element> targets;
+  List<Element> targets;
 
   NavigationRegion(this.offset, this.length, this.targets);
 
@@ -6656,17 +6656,17 @@ class Occurrences implements HasToJson {
   /**
    * The element that was referenced.
    */
-  final Element element;
+  Element element;
 
   /**
    * The offsets of the name of the referenced element within the file.
    */
-  final List<int> offsets;
+  List<int> offsets;
 
   /**
    * The length of the name of the referenced element.
    */
-  final int length;
+  int length;
 
   Occurrences(this.element, this.offsets, this.length);
 
@@ -6744,7 +6744,7 @@ class Outline implements HasToJson {
   /**
    * A description of the element represented by this node.
    */
-  final Element element;
+  Element element;
 
   /**
    * The offset of the first character of the element. This is different than
@@ -6752,18 +6752,18 @@ class Outline implements HasToJson {
    * It can be used, for example, to map locations in the file back to an
    * outline.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the element.
    */
-  final int length;
+  int length;
 
   /**
    * The children of the node. The field will be omitted if the node has no
    * children.
    */
-  final List<Outline> children;
+  List<Outline> children;
 
   Outline(this.element, this.offset, this.length, {this.children});
 
@@ -6850,26 +6850,26 @@ class Override implements HasToJson {
   /**
    * The offset of the name of the overriding member.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the name of the overriding member.
    */
-  final int length;
+  int length;
 
   /**
    * The member inherited from a superclass that is overridden by the
    * overriding member. The field is omitted if there is no superclass member,
    * in which case there must be at least one interface member.
    */
-  final OverriddenMember superclassMember;
+  OverriddenMember superclassMember;
 
   /**
    * The members inherited from interfaces that are overridden by the
    * overriding member. The field is omitted if there are no interface members,
    * in which case there must be a superclass member.
    */
-  final List<OverriddenMember> interfaceMembers;
+  List<OverriddenMember> interfaceMembers;
 
   Override(this.offset, this.length, {this.superclassMember, this.interfaceMembers});
 
@@ -6954,12 +6954,12 @@ class OverriddenMember implements HasToJson {
   /**
    * The element that is being overridden.
    */
-  final Element element;
+  Element element;
 
   /**
    * The name of the class in which the member is defined.
    */
-  final String className;
+  String className;
 
   OverriddenMember(this.element, this.className);
 
@@ -7026,12 +7026,12 @@ class Position implements HasToJson {
   /**
    * The file containing the position.
    */
-  final String file;
+  String file;
 
   /**
    * The offset of the position.
    */
-  final int offset;
+  int offset;
 
   Position(this.file, this.offset);
 
@@ -7171,30 +7171,30 @@ class RefactoringMethodParameter implements HasToJson {
    * The unique identifier of the parameter. Clients may omit this field for
    * the parameters they want to add.
    */
-  final String id;
+  String id;
 
   /**
    * The kind of the parameter.
    */
-  final RefactoringMethodParameterKind kind;
+  RefactoringMethodParameterKind kind;
 
   /**
    * The type that should be given to the parameter, or the return type of the
    * parameter's function type.
    */
-  final String type;
+  String type;
 
   /**
    * The name that should be given to the parameter.
    */
-  final String name;
+  String name;
 
   /**
    * The parameter list of the parameter's function type. If the parameter is
    * not of a function type, this field will not be defined. If the function
    * type has zero parameters, this field will have a value of "()".
    */
-  final String parameters;
+  String parameters;
 
   RefactoringMethodParameter(this.kind, this.type, this.name, {this.id, this.parameters});
 
@@ -7338,17 +7338,17 @@ class RefactoringProblem implements HasToJson {
   /**
    * The severity of the problem being represented.
    */
-  final RefactoringProblemSeverity severity;
+  RefactoringProblemSeverity severity;
 
   /**
    * A human-readable description of the problem being represented.
    */
-  final String message;
+  String message;
 
   /**
    * The location of the problem being represented.
    */
-  final Location location;
+  Location location;
 
   RefactoringProblem(this.severity, this.message, this.location);
 
@@ -7529,13 +7529,13 @@ class SearchResult implements HasToJson {
   /**
    * The location of the code that matched the search criteria.
    */
-  final Location location;
+  Location location;
 
   /**
    * The kind of element that was found or the kind of reference that was
    * found.
    */
-  final SearchResultKind kind;
+  SearchResultKind kind;
 
   /**
    * True if the result is a potential match but cannot be confirmed to be a
@@ -7543,13 +7543,13 @@ class SearchResult implements HasToJson {
    * were requested, and a reference to a method m from an unknown class were
    * found, it would be marked as being a potential match.
    */
-  final bool isPotential;
+  bool isPotential;
 
   /**
    * The elements that contain the result, starting with the most immediately
    * enclosing ancestor and ending with the library.
    */
-  final List<Element> path;
+  List<Element> path;
 
   SearchResult(this.location, this.kind, this.isPotential, this.path);
 
@@ -7766,23 +7766,23 @@ class SourceChange implements HasToJson {
   /**
    * A human-readable description of the change to be applied.
    */
-  final String message;
+  String message;
 
   /**
    * A list of the edits used to effect the change, grouped by file.
    */
-  final List<SourceFileEdit> edits;
+  List<SourceFileEdit> edits;
 
   /**
    * A list of the linked editing groups used to customize the changes that
    * were made.
    */
-  final List<LinkedEditGroup> linkedEditGroups;
+  List<LinkedEditGroup> linkedEditGroups;
 
   /**
    * The position that should be selected after the edits have been applied.
    */
-  final Position selection;
+  Position selection;
 
   SourceChange(this.message, this.edits, this.linkedEditGroups, {this.selection});
 
@@ -7869,17 +7869,17 @@ class SourceEdit implements HasToJson {
   /**
    * The offset of the region to be modified.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the region to be modified.
    */
-  final int length;
+  int length;
 
   /**
    * The code that is to replace the specified region in the original code.
    */
-  final String replacement;
+  String replacement;
 
   /**
    * An identifier that uniquely identifies this source edit from other edits
@@ -7891,7 +7891,7 @@ class SourceEdit implements HasToJson {
    * id so that they can be referenced. Edits in the same response that do not
    * need to be referenced will not have an id.
    */
-  final String id;
+  String id;
 
   SourceEdit(this.offset, this.length, this.replacement, {this.id});
 
@@ -7976,12 +7976,12 @@ class SourceFileEdit implements HasToJson {
   /**
    * The file containing the code to be modified.
    */
-  final String file;
+  String file;
 
   /**
    * A list of the edits used to effect the change.
    */
-  final List<SourceEdit> edits;
+  List<SourceEdit> edits;
 
   SourceFileEdit(this.file, this.edits);
 
@@ -8053,7 +8053,7 @@ class TypeHierarchyItem implements HasToJson {
   /**
    * The class element represented by this item.
    */
-  final Element classElement;
+  Element classElement;
 
   /**
    * The name to be displayed for the class. This field will be omitted if the
@@ -8061,7 +8061,7 @@ class TypeHierarchyItem implements HasToJson {
    * different if there is additional type information to be displayed, such as
    * type arguments.
    */
-  final String displayName;
+  String displayName;
 
   /**
    * The member in the class corresponding to the member on which the hierarchy
@@ -8069,32 +8069,32 @@ class TypeHierarchyItem implements HasToJson {
    * requested for a member or if the class does not have a corresponding
    * member.
    */
-  final Element memberElement;
+  Element memberElement;
 
   /**
    * The index of the item representing the superclass of this class. This
    * field will be omitted if this item represents the class Object.
    */
-  final int superclass;
+  int superclass;
 
   /**
    * The indexes of the items representing the interfaces implemented by this
    * class. The list will be empty if there are no implemented interfaces.
    */
-  final List<int> interfaces;
+  List<int> interfaces;
 
   /**
    * The indexes of the items representing the mixins referenced by this class.
    * The list will be empty if there are no classes mixed in to this class.
    */
-  final List<int> mixins;
+  List<int> mixins;
 
   /**
    * The indexes of the items representing the subtypes of this class. The list
    * will be empty if there are no subtypes or if this item represents a
    * supertype of the pivot type.
    */
-  final List<int> subclasses;
+  List<int> subclasses;
 
   TypeHierarchyItem(this.classElement, this.interfaces, this.mixins, this.subclasses, {this.displayName, this.memberElement, this.superclass});
 
@@ -8207,13 +8207,13 @@ class ExtractLocalVariableFeedback implements HasToJson {
   /**
    * The proposed names for the local variable.
    */
-  final List<String> names;
+  List<String> names;
 
   /**
    * The offsets of the expressions that would be replaced by a reference to
    * the variable.
    */
-  final List<int> offsets;
+  List<int> offsets;
 
   /**
    * The lengths of the expressions that would be replaced by a reference to
@@ -8221,7 +8221,7 @@ class ExtractLocalVariableFeedback implements HasToJson {
    * given expression, if the offset of that expression is offsets[i], then the
    * length of that expression is lengths[i].
    */
-  final List<int> lengths;
+  List<int> lengths;
 
   ExtractLocalVariableFeedback(this.names, this.offsets, this.lengths);
 
@@ -8302,7 +8302,7 @@ class ExtractLocalVariableOptions implements HasToJson {
   /**
    * The name that the local variable should be given.
    */
-  final String name;
+  String name;
 
   /**
    * True if all occurrences of the expression within the scope in which the
@@ -8310,7 +8310,7 @@ class ExtractLocalVariableOptions implements HasToJson {
    * variable. The expression used to initiate the refactoring will always be
    * replaced.
    */
-  final bool extractAll;
+  bool extractAll;
 
   ExtractLocalVariableOptions(this.name, this.extractAll);
 
@@ -8390,43 +8390,43 @@ class ExtractMethodFeedback implements HasToJson {
    * The offset to the beginning of the expression or statements that will be
    * extracted.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the expression or statements that will be extracted.
    */
-  final int length;
+  int length;
 
   /**
    * The proposed return type for the method.
    */
-  final String returnType;
+  String returnType;
 
   /**
    * The proposed names for the method.
    */
-  final List<String> names;
+  List<String> names;
 
   /**
    * True if a getter could be created rather than a method.
    */
-  final bool canCreateGetter;
+  bool canCreateGetter;
 
   /**
    * The proposed parameters for the method.
    */
-  final List<RefactoringMethodParameter> parameters;
+  List<RefactoringMethodParameter> parameters;
 
   /**
    * The number of times the expression or statements occurs.
    */
-  final int occurrences;
+  int occurrences;
 
   /**
    * The offsets of the expressions or statements that would be replaced by an
    * invocation of the method.
    */
-  final List<int> offsets;
+  List<int> offsets;
 
   /**
    * The lengths of the expressions or statements that would be replaced by an
@@ -8435,7 +8435,7 @@ class ExtractMethodFeedback implements HasToJson {
    * that expression is offsets[i], then the length of that expression is
    * lengths[i].
    */
-  final List<int> lengths;
+  List<int> lengths;
 
   ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names, this.canCreateGetter, this.parameters, this.occurrences, this.offsets, this.lengths);
 
@@ -8573,18 +8573,18 @@ class ExtractMethodOptions implements HasToJson {
   /**
    * The return type that should be defined for the method.
    */
-  final String returnType;
+  String returnType;
 
   /**
    * True if a getter should be created rather than a method. It is an error if
    * this field is true and the list of parameters is non-empty.
    */
-  final bool createGetter;
+  bool createGetter;
 
   /**
    * The name that the method should be given.
    */
-  final String name;
+  String name;
 
   /**
    * The parameters that should be defined for the method.
@@ -8598,14 +8598,14 @@ class ExtractMethodOptions implements HasToJson {
    * - To add new parameters, omit their identifier.
    * - To remove some parameters, omit them in this list.
    */
-  final List<RefactoringMethodParameter> parameters;
+  List<RefactoringMethodParameter> parameters;
 
   /**
    * True if all occurrences of the expression or statements should be replaced
    * by an invocation of the method. The expression or statements used to
    * initiate the refactoring will always be replaced.
    */
-  final bool extractAll;
+  bool extractAll;
 
   ExtractMethodOptions(this.returnType, this.createGetter, this.name, this.parameters, this.extractAll);
 
@@ -8705,13 +8705,13 @@ class InlineMethodOptions implements HasToJson {
    * True if the method being inlined should be removed. It is an error if this
    * field is true and inlineAll is false.
    */
-  final bool deleteSource;
+  bool deleteSource;
 
   /**
    * True if all invocations of the method should be inlined, or false if only
    * the invocation site used to create this refactoring should be inlined.
    */
-  final bool inlineAll;
+  bool inlineAll;
 
   InlineMethodOptions(this.deleteSource, this.inlineAll);
 
@@ -8783,12 +8783,12 @@ class RenameFeedback implements HasToJson {
   /**
    * The offset to the beginning of the name selected to be renamed.
    */
-  final int offset;
+  int offset;
 
   /**
    * The length of the name selected to be renamed.
    */
-  final int length;
+  int length;
 
   RenameFeedback(this.offset, this.length);
 
@@ -8859,7 +8859,7 @@ class RenameOptions implements HasToJson {
   /**
    * The name that the element should have after the refactoring.
    */
-  final String newName;
+  String newName;
 
   RenameOptions(this.newName);
 

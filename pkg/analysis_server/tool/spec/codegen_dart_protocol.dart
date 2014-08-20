@@ -239,7 +239,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         docComment(toHtmlVisitor.collectHtml(() {
           toHtmlVisitor.translateHtml(field.html);
         }));
-        writeln('final ${dartType(field.type)} ${field.name};');
+        writeln('${dartType(field.type)} ${field.name};');
         writeln();
       }
       emitObjectConstructor(type, className);
