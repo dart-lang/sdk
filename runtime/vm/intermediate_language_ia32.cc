@@ -5377,13 +5377,12 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary(Isolate* isolate,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
-  ConstantInstr* index_constant = index()->definition()->AsConstant();
-  if (index_constant != NULL) {
-    locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
+  if (length()->definition()->IsConstant()) {
+    locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
   } else {
-    locs->set_in(kIndexPos, Location::PrefersRegister());
+    locs->set_in(kLengthPos, Location::PrefersRegister());
   }
+  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
   return locs;
 }
 
@@ -5405,31 +5404,31 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  if (index_loc.IsConstant()) {
-    Register length = length_loc.reg();
-    const Smi& index = Smi::Cast(index_loc.constant());
-    __ cmpl(length, Immediate(reinterpret_cast<int32_t>(index.raw())));
-    __ j(BELOW_EQUAL, deopt);
-  } else if (length_loc.IsConstant()) {
-    const Smi& length = Smi::Cast(length_loc.constant());
-    if (index_loc.IsStackSlot()) {
-      const Address& index = index_loc.ToStackSlotAddress();
-      __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
-    } else {
-      Register index = index_loc.reg();
-      __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
-    }
-    __ j(ABOVE_EQUAL, deopt);
-  } else if (index_loc.IsStackSlot()) {
-    Register length = length_loc.reg();
-    const Address& index = index_loc.ToStackSlotAddress();
-    __ cmpl(length, index);
-    __ j(BELOW_EQUAL, deopt);
-  } else {
-    Register length = length_loc.reg();
+  if (length_loc.IsConstant()) {
     Register index = index_loc.reg();
+    const Smi& length = Smi::Cast(length_loc.constant());
+    __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
+    __ j(ABOVE_EQUAL, deopt);
+  } else if (index_loc.IsConstant()) {
+    const Smi& index = Smi::Cast(index_loc.constant());
+    if (length_loc.IsStackSlot()) {
+      const Address& length = length_loc.ToStackSlotAddress();
+      __ cmpl(length, Immediate(reinterpret_cast<int32_t>(index.raw())));
+    } else {
+      Register length = length_loc.reg();
+      __ cmpl(length, Immediate(reinterpret_cast<int32_t>(index.raw())));
+    }
+    __ j(BELOW_EQUAL, deopt);
+  } else if (length_loc.IsStackSlot()) {
+    Register index = index_loc.reg();
+    const Address& length = length_loc.ToStackSlotAddress();
     __ cmpl(index, length);
     __ j(ABOVE_EQUAL, deopt);
+  } else {
+    Register index = index_loc.reg();
+    Register length = length_loc.reg();
+    __ cmpl(length, index);
+    __ j(BELOW_EQUAL, deopt);
   }
 }
 
