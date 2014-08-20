@@ -54,22 +54,11 @@ class MessageHandler {
   // Returns true on success.
   bool HandleOOBMessages();
 
-  // The number of opened control ports is determined whether the isolate has
-  // live ports. An isolate is considered not having any live ports if only
-  // control ports are open.
-  // Usually either 0 or 1.
-  void increment_control_ports();
-  void decrement_control_ports();
-
   // A message handler tracks how many live ports it has.
-  bool HasLivePorts() const { return live_ports_ > control_ports_; }
+  bool HasLivePorts() const { return live_ports_ > 0; }
 
   intptr_t live_ports() const {
     return live_ports_;
-  }
-
-  intptr_t control_ports() const {
-    return control_ports_;
   }
 
   bool paused() const { return paused_ > 0; }
@@ -168,7 +157,6 @@ class MessageHandler {
   Monitor monitor_;  // Protects all fields in MessageHandler.
   MessageQueue* queue_;
   MessageQueue* oob_queue_;
-  intptr_t control_ports_;  // The number of open control ports usually 0 or 1.
   intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;  // The number of pause messages received.
   bool pause_on_start_;

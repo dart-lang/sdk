@@ -38,7 +38,7 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id =
       PortMap::CreatePort(arguments->isolate()->message_handler());
-  return ReceivePort::New(port_id);
+  return ReceivePort::New(port_id, false /* not control port */);
 }
 
 
@@ -177,20 +177,10 @@ static RawObject* Spawn(Isolate* parent_isolate,
     ThrowIsolateSpawnException(msg);
   }
 
-  // The result of spawning an Isolate is an array with 3 elements:
-  // [main_port, pause_capability, terminate_capability]
-  const Array& result = Array::Handle(Array::New(3));
-
   // Create a SendPort for the new isolate.
   Isolate* spawned_isolate = state->isolate();
   const SendPort& port = SendPort::Handle(
       SendPort::New(spawned_isolate->main_port()));
-  result.SetAt(0, port);
-  Capability& capability = Capability::Handle();
-  capability = Capability::New(spawned_isolate->pause_capability());
-  result.SetAt(1, capability);  // pauseCapability
-  capability = Capability::New(spawned_isolate->terminate_capability());
-  result.SetAt(2, capability);  // terminateCapability
 
   // Start the new isolate if it is already marked as runnable.
   MutexLocker ml(spawned_isolate->mutex());
@@ -199,12 +189,14 @@ static RawObject* Spawn(Isolate* parent_isolate,
     spawned_isolate->Run();
   }
 
-  return result.raw();
+  return port.raw();
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 3) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, closure, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(2));
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
     func = Closure::function(closure);
@@ -214,7 +206,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 1) {
       ctx = Closure::context(closure);
       ASSERT(ctx.num_variables() == 0);
 #endif
-      return Spawn(isolate, new IsolateSpawnState(func));
+      return Spawn(isolate, new IsolateSpawnState(port.Id(), func, message));
     }
   }
   const String& msg = String::Handle(String::New(
@@ -224,8 +216,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(0));
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 4) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
 
   // Canonicalize the uri with respect to the current isolate.
   char* error = NULL;
@@ -238,7 +233,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 1) {
     ThrowIsolateSpawnException(msg);
   }
 
-  return Spawn(isolate, new IsolateSpawnState(canonical_uri));
+  return Spawn(isolate, new IsolateSpawnState(port.Id(), canonical_uri,
+                                              args, message));
 }
 
 
@@ -257,16 +253,6 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 2) {
                                    data, writer.BytesWritten(),
                                    Message::kOOBPriority));
   return Object::null();
-}
-
-
-DEFINE_NATIVE_ENTRY(Isolate_mainPort, 0) {
-  // The control port is being accessed as a regular port from Dart code. This
-  // is most likely due to the _startIsolate code in dart:isolate. Account for
-  // this by increasing the number of open control ports.
-  isolate->message_handler()->increment_control_ports();
-
-  return ReceivePort::New(isolate->main_port());
 }
 
 }  // namespace dart

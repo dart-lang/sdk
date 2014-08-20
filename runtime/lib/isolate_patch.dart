@@ -77,6 +77,14 @@ void _isolateScheduleImmediate(void callback()) {
   _pendingImmediateCallback = callback;
 }
 
+void _runPendingImmediateCallback() {
+  if (_pendingImmediateCallback != null) {
+    var callback = _pendingImmediateCallback;
+    _pendingImmediateCallback = null;
+    callback();
+  }
+}
+
 /// The embedder can execute this function to get hold of
 /// [_isolateScheduleImmediate] above.
 Function _getIsolateScheduleImmediateClosure() {
@@ -120,11 +128,7 @@ class _RawReceivePortImpl implements RawReceivePort {
     // VM. Once we have non-fatal global exceptions we need to catch errors
     // so that we can run the immediate callbacks.
     handler(message);
-    if (_pendingImmediateCallback != null) {
-      var callback = _pendingImmediateCallback;
-      _pendingImmediateCallback = null;
-      callback();
-    }
+    _runPendingImmediateCallback();
   }
 
   // Call into the VM to close the VM maintained mappings.
@@ -181,69 +185,71 @@ typedef _MainFunctionArgsMessage(args, message);
  *
  * The initial startup message is received through the control port.
  */
-void _startIsolate(Function entryPoint, bool isSpawnUri) {
-  // This port keeps the isolate alive until the initial startup message has
-  // been received.
-  var keepAlivePort = new RawReceivePort();
-
-  ignoreHandler(message) {
-    // Messages on the current Isolate's control port are dropped after the
-    // initial startup message has been received.
+void _startIsolate(SendPort parentPort,
+                   Function entryPoint,
+                   List<String> args,
+                   var message,
+                   bool isSpawnUri,
+                   RawReceivePort controlPort,
+                   List capabilities) {
+  if (controlPort != null) {
+    controlPort.handler = (_) {};  // Nobody home on the control port.
   }
+  if (parentPort != null) {
+    // Build a message to our parent isolate providing access to the
+    // current isolate's control port and capabilities.
+    //
+    // TODO(floitsch): Send an error message if we can't find the entry point.
+    var readyMessage = new List(2);
+    readyMessage[0] = controlPort.sendPort;
+    readyMessage[1] = capabilities;
 
-  isolateStartHandler(message) {
-    // We received the initial startup message. Ignore all further messages and
-    // close the port which kept this isolate alive.
-    Isolate._self.handler = ignoreHandler;
-    keepAlivePort.close();
+    // Out of an excess of paranoia we clear the capabilities from the
+    // stack.  Not really necessary.
+    capabilities = null;
+    parentPort.send(readyMessage);
+  }
+  assert(capabilities == null);
 
-    SendPort replyTo = message[0];
-    if (replyTo != null) {
-      // TODO(floitsch): don't send ok-message if we can't find the entry point.
-      replyTo.send("started");
-    }
-    if (isSpawnUri) {
-      assert(message.length == 3);
-      List<String> args = message[1];
-      var isolateMessage = message[2];
-      if (entryPoint is _MainFunctionArgsMessage) {
-        entryPoint(args, isolateMessage);
-      } else if (entryPoint is _MainFunctionArgs) {
-        entryPoint(args);
-      } else {
-        entryPoint();
-      }
+  if (isSpawnUri) {
+    if (entryPoint is _MainFunctionArgsMessage) {
+      entryPoint(args, message);
+    } else if (entryPoint is _MainFunctionArgs) {
+      entryPoint(args);
     } else {
-      assert(message.length == 2);
-      var entryMessage = message[1];
-      entryPoint(entryMessage);
+      entryPoint();
     }
+  } else {
+    entryPoint(message);
   }
-
-  Isolate._self.handler = isolateStartHandler;
+  _runPendingImmediateCallback();
 }
 
 patch class Isolate {
   /* patch */ static Future<Isolate> spawn(
       void entryPoint(message), var message, { bool paused: false }) {
     // `paused` isn't handled yet.
+    RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
-      List spawnData = _spawnFunction(entryPoint);
-      assert(spawnData.length == 3);
-      SendPort controlPort = spawnData[0];
-      RawReceivePort readyPort = new RawReceivePort();
-      controlPort.send([readyPort.sendPort, message]);
+      readyPort = new RawReceivePort();
+      _spawnFunction(readyPort.sendPort, entryPoint, message);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
-        assert(readyMessage == 'started');
         readyPort.close();
+        assert(readyMessage is List);
+        assert(readyMessage.length == 2);
+        SendPort controlPort = readyMessage[0];
+        List capabilities = readyMessage[1];
         completer.complete(new Isolate(controlPort,
-                                       pauseCapability: spawnData[1],
-                                       terminateCapability: spawnData[2]));
+                                       pauseCapability: capabilities[0],
+                                       terminateCapability: capabilities[1]));
       };
       return completer.future;
     } catch (e, st) {
+      if (readyPort != null) {
+        readyPort.close();
+      }
       return new Future<Isolate>.error(e, st);
     };
   }
@@ -251,30 +257,31 @@ patch class Isolate {
   /* patch */ static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message, { bool paused: false }) {
     // `paused` isn't handled yet.
+    RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] and not `main`.
-      List spawnData = _spawnUri(uri.toString());
-      assert(spawnData.length == 3);
-      SendPort controlPort = spawnData[0];
-      RawReceivePort readyPort = new RawReceivePort();
-      controlPort.send([readyPort.sendPort, args, message]);
+      readyPort = new RawReceivePort();
+      _spawnUri(readyPort.sendPort, uri.toString(), args, message);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
-        assert(readyMessage == 'started');
         readyPort.close();
+        assert(readyMessage is List);
+        assert(readyMessage.length == 2);
+        SendPort controlPort = readyMessage[0];
+        List capabilities = readyMessage[1];
         completer.complete(new Isolate(controlPort,
-                                       pauseCapability: spawnData[1],
-                                       terminateCapability: spawnData[2]));
+                                       pauseCapability: capabilities[0],
+                                       terminateCapability: capabilities[1]));
       };
       return completer.future;
     } catch (e, st) {
+      if (readyPort != null) {
+        readyPort.close();
+      }
       return new Future<Isolate>.error(e, st);
     };
     return completer.future;
   }
-
-  static final RawReceivePort _self = _mainPort;
-  static RawReceivePort get _mainPort native "Isolate_mainPort";
 
   // TODO(iposva): Cleanup to have only one definition.
   // These values need to be kept in sync with the class IsolateMessageHandler
@@ -282,10 +289,13 @@ patch class Isolate {
   static const _PAUSE = 1;
   static const _RESUME = 2;
 
-  static List _spawnFunction(Function topLevelFunction)
+  static SendPort _spawnFunction(SendPort readyPort, Function topLevelFunction,
+                                 var message)
       native "Isolate_spawnFunction";
 
-  static List _spawnUri(String uri) native "Isolate_spawnUri";
+  static SendPort _spawnUri(SendPort readyPort, String uri,
+                            List<String> args, var message)
+      native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";
 

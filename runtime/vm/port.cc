@@ -63,6 +63,21 @@ void PortMap::Rehash(intptr_t new_capacity) {
 }
 
 
+const char* PortMap::PortStateString(PortState kind) {
+  switch (kind) {
+    case kNewPort:
+      return "new";
+    case kLivePort:
+      return "live";
+    case kControlPort:
+      return "control";
+    default:
+      UNREACHABLE();
+      return "UNKNOWN";
+  }
+}
+
+
 Dart_Port PortMap::AllocatePort() {
   const Dart_Port kMASK = 0x3fffffff;
   Dart_Port result = prng_->NextUInt32() & kMASK;
@@ -79,16 +94,21 @@ Dart_Port PortMap::AllocatePort() {
 }
 
 
-void PortMap::SetLive(Dart_Port port) {
+void PortMap::SetPortState(Dart_Port port, PortState state) {
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(port);
   ASSERT(index >= 0);
-  map_[index].live = true;
-  map_[index].handler->increment_live_ports();
+  PortState old_state = map_[index].state;
+  ASSERT(old_state == kNewPort);
+  map_[index].state = state;
+  if (state == kLivePort) {
+    map_[index].handler->increment_live_ports();
+  }
   if (FLAG_trace_isolates) {
-    OS::Print("[^] Live port: \n"
+    OS::Print("[^] Port (%s) -> (%s): \n"
               "\thandler:    %s\n"
               "\tport:       %" Pd64 "\n",
+              PortStateString(old_state), PortStateString(state),
               map_[index].handler->name(), port);
   }
 }
@@ -117,7 +137,7 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   Entry entry;
   entry.port = AllocatePort();
   entry.handler = handler;
-  entry.live = false;
+  entry.state = kNewPort;
 
   // Search for the first unused slot. Make use of the knowledge that here is
   // currently no port with this id in the port map.
@@ -179,7 +199,7 @@ bool PortMap::ClosePort(Dart_Port port) {
     // pending messages below.
     map_[index].port = 0;
     map_[index].handler = deleted_entry_;
-    if (map_[index].live) {
+    if (map_[index].state == kLivePort) {
       handler->decrement_live_ports();
     }
 
@@ -203,7 +223,7 @@ void PortMap::ClosePorts(MessageHandler* handler) {
         // Mark the slot as deleted.
         map_[i].port = 0;
         map_[i].handler = deleted_entry_;
-        if (map_[i].live) {
+        if (map_[i].state == kLivePort) {
           handler->decrement_live_ports();
         }
         used_--;

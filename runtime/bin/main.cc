@@ -1125,29 +1125,22 @@ void main(int argc, char** argv) {
 
       // Call _startIsolate in the isolate library to enable dispatching the
       // initial startup message.
-      Dart_Handle isolate_args[2];
-      isolate_args[0] = main_closure;
-      isolate_args[1] = Dart_True();
+      const intptr_t kNumIsolateArgs = 7;
+      Dart_Handle isolate_args[kNumIsolateArgs];
+      isolate_args[0] = Dart_Null();   // no parent port
+      isolate_args[1] = main_closure;  // entryPoint
+      isolate_args[2] = CreateRuntimeOptions(&dart_options);  // args
+      isolate_args[3] = Dart_Null();   // no message
+      isolate_args[4] = Dart_True();   // isSpawnUri
+      isolate_args[5] = Dart_Null();   // no control port
+      isolate_args[6] = Dart_Null();   // no capabilities
 
       Dart_Handle isolate_lib = Dart_LookupLibrary(
           Dart_NewStringFromCString("dart:isolate"));
       result = Dart_Invoke(isolate_lib,
                            Dart_NewStringFromCString("_startIsolate"),
-                           2, isolate_args);
-
-      // Setup the arguments in the initial startup message and leave the
-      // replyTo and message fields empty.
-      Dart_Handle initial_startup_msg = Dart_NewList(3);
-      result = Dart_ListSetAt(initial_startup_msg, 1,
-                              CreateRuntimeOptions(&dart_options));
+                           kNumIsolateArgs, isolate_args);
       DartExitOnError(result);
-      Dart_Port main_port = Dart_GetMainPortId();
-      bool posted = Dart_Post(main_port, initial_startup_msg);
-      if (!posted) {
-        ErrorExit(kErrorExitCode,
-                  "Failed posting startup message to main "
-                  "isolate control port.");
-      }
 
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();

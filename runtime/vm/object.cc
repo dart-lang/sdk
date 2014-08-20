@@ -18808,7 +18808,9 @@ void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawReceivePort* ReceivePort::New(Dart_Port id, Heap::Space space) {
+RawReceivePort* ReceivePort::New(Dart_Port id,
+                                 bool is_control_port,
+                                 Heap::Space space) {
   Isolate* isolate = Isolate::Current();
   const SendPort& send_port = SendPort::Handle(isolate, SendPort::New(id));
 
@@ -18821,7 +18823,11 @@ RawReceivePort* ReceivePort::New(Dart_Port id, Heap::Space space) {
     result ^= raw;
     result.raw_ptr()->send_port_ = send_port.raw();
   }
-  PortMap::SetLive(id);
+  if (is_control_port) {
+    PortMap::SetPortState(id, PortMap::kControlPort);
+  } else {
+    PortMap::SetPortState(id, PortMap::kLivePort);
+  }
   return result.raw();
 }
 

@@ -34,7 +34,6 @@ class MessageHandlerTask : public ThreadPool::Task {
 MessageHandler::MessageHandler()
     : queue_(new MessageQueue()),
       oob_queue_(new MessageQueue()),
-      control_ports_(0),
       live_ports_(0),
       paused_(0),
       pause_on_start_(false),
@@ -272,8 +271,8 @@ void MessageHandler::ClosePort(Dart_Port port) {
     OS::Print("[-] Closing port:\n"
               "\thandler:    %s\n"
               "\tport:       %" Pd64 "\n"
-              "\tports:      control(%" Pd ") live(%" Pd ")\n",
-              name(), port, control_ports_, live_ports_);
+              "\tports:      live(%" Pd ")\n",
+              name(), port, live_ports_);
   }
 }
 
@@ -305,24 +304,6 @@ void MessageHandler::decrement_live_ports() {
   CheckAccess();
 #endif
   live_ports_--;
-}
-
-
-void MessageHandler::increment_control_ports() {
-  MonitorLocker ml(&monitor_);
-#if defined(DEBUG)
-  CheckAccess();
-#endif
-  control_ports_++;
-}
-
-
-void MessageHandler::decrement_control_ports() {
-  MonitorLocker ml(&monitor_);
-#if defined(DEBUG)
-  CheckAccess();
-#endif
-  control_ports_--;
 }
 
 }  // namespace dart

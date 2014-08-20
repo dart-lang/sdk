@@ -771,17 +771,28 @@ static bool RunIsolate(uword parameter) {
     func ^= result.raw();
     func = func.ImplicitClosureFunction();
 
+    const Array& capabilities = Array::Handle(Array::New(2));
+    Capability& capability = Capability::Handle();
+    capability = Capability::New(isolate->pause_capability());
+    capabilities.SetAt(0, capability);
+    capability = Capability::New(isolate->terminate_capability());
+    capabilities.SetAt(1, capability);
+
     // Instead of directly invoking the entry point we call '_startIsolate' with
-    // the entry point as argument. The '_startIsolate' function will
-    // communicate with the spawner to receive the initial message before it
-    // executes the real entry point.
+    // the entry point as argument.
     // Since this function ("RunIsolate") is used for both Isolate.spawn and
     // Isolate.spawnUri we also send a boolean flag as argument so that the
     // "_startIsolate" function can act corresponding to how the isolate was
     // created.
-    const Array& args = Array::Handle(Array::New(2));
-    args.SetAt(0, Instance::Handle(func.ImplicitStaticClosure()));
-    args.SetAt(1, is_spawn_uri ? Bool::True() : Bool::False());
+    const Array& args = Array::Handle(Array::New(7));
+    args.SetAt(0, SendPort::Handle(SendPort::New(state->parent_port())));
+    args.SetAt(1, Instance::Handle(func.ImplicitStaticClosure()));
+    args.SetAt(2, Instance::Handle(state->BuildArgs()));
+    args.SetAt(3, Instance::Handle(state->BuildMessage()));
+    args.SetAt(4, is_spawn_uri ? Bool::True() : Bool::False());
+    args.SetAt(5, ReceivePort::Handle(
+        ReceivePort::New(isolate->main_port(), true /* control port */)));
+    args.SetAt(6, capabilities);
 
     const Library& lib = Library::Handle(Library::IsolateLibrary());
     const String& entry_name = String::Handle(String::New("_startIsolate"));
@@ -1109,7 +1120,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("depth", (intptr_t)0);
   }
   jsobj.AddProperty("livePorts", message_handler()->live_ports());
-  jsobj.AddProperty("controlPorts", message_handler()->control_ports());
   jsobj.AddProperty("pauseOnExit", message_handler()->pause_on_exit());
 
   // TODO(turnidge): Make the debugger support paused_on_start/exit.
@@ -1304,13 +1314,50 @@ T* Isolate::AllocateReusableHandle() {
 }
 
 
-IsolateSpawnState::IsolateSpawnState(const Function& func)
+static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
+  void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  return reinterpret_cast<uint8_t*>(new_ptr);
+}
+
+
+static void SerializeObject(const Instance& obj,
+                            uint8_t** obj_data,
+                            intptr_t* obj_len) {
+  MessageWriter writer(obj_data, &allocator);
+  writer.WriteMessage(obj);
+  *obj_len = writer.BytesWritten();
+}
+
+
+static RawInstance* DeserializeObject(Isolate* isolate,
+                                      uint8_t* obj_data,
+                                      intptr_t obj_len) {
+  if (obj_data == NULL) {
+    return Instance::null();
+  }
+  SnapshotReader reader(obj_data, obj_len, Snapshot::kMessage, isolate);
+  const Object& obj = Object::Handle(isolate, reader.ReadObject());
+  ASSERT(!obj.IsError());
+  Instance& instance = Instance::Handle(isolate);
+  instance ^= obj.raw();  // Can't use Instance::Cast because may be null.
+  return instance.raw();
+}
+
+
+IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     const Function& func,
+                                     const Instance& message)
     : isolate_(NULL),
+      parent_port_(parent_port),
       script_url_(NULL),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
-      exception_callback_name_(NULL) {
+      exception_callback_name_(NULL),
+      serialized_args_(NULL),
+      serialized_args_len_(0),
+      serialized_message_(NULL),
+      serialized_message_len_(0) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
@@ -1324,19 +1371,30 @@ IsolateSpawnState::IsolateSpawnState(const Function& func)
     class_name_ = strdup(class_name.ToCString());
   }
   exception_callback_name_ = strdup("_unhandledExceptionCallback");
+  SerializeObject(message, &serialized_message_, &serialized_message_len_);
 }
 
 
-IsolateSpawnState::IsolateSpawnState(const char* script_url)
+IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     const char* script_url,
+                                     const Instance& args,
+                                     const Instance& message)
     : isolate_(NULL),
+      parent_port_(parent_port),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
-      exception_callback_name_(NULL) {
+      exception_callback_name_(NULL),
+      serialized_args_(NULL),
+      serialized_args_len_(0),
+      serialized_message_(NULL),
+      serialized_message_len_(0) {
   script_url_ = strdup(script_url);
   library_url_ = NULL;
   function_name_ = strdup("main");
   exception_callback_name_ = strdup("_unhandledExceptionCallback");
+  SerializeObject(args, &serialized_args_, &serialized_args_len_);
+  SerializeObject(message, &serialized_message_, &serialized_message_len_);
 }
 
 
@@ -1346,6 +1404,8 @@ IsolateSpawnState::~IsolateSpawnState() {
   free(function_name_);
   free(class_name_);
   free(exception_callback_name_);
+  free(serialized_args_);
+  free(serialized_message_);
 }
 
 
@@ -1399,6 +1459,17 @@ RawObject* IsolateSpawnState::ResolveFunction() {
     return LanguageError::New(msg);
   }
   return func.raw();
+}
+
+
+RawInstance* IsolateSpawnState::BuildArgs() {
+  return DeserializeObject(isolate_, serialized_args_, serialized_args_len_);
+}
+
+
+RawInstance* IsolateSpawnState::BuildMessage() {
+  return DeserializeObject(isolate_,
+                           serialized_message_, serialized_message_len_);
 }
 
 

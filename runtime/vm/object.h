@@ -6915,7 +6915,9 @@ class ReceivePort : public Instance {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawReceivePort));
   }
-  static RawReceivePort* New(Dart_Port id, Heap::Space space = Heap::kNew);
+  static RawReceivePort* New(Dart_Port id,
+                             bool is_control_port,
+                             Heap::Space space = Heap::kNew);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);
