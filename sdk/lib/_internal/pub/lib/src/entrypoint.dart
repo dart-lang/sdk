@@ -5,14 +5,19 @@
 library pub.entrypoint;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:barback/barback.dart';
 
+import 'barback/asset_environment.dart';
+import 'exceptions.dart';
 import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
 import 'package_graph.dart';
+import 'sdk.dart' as sdk;
 import 'solver/version_solver.dart';
 import 'source/cached.dart';
 import 'system_cache.dart';
@@ -133,9 +138,132 @@ class Entrypoint {
         _linkOrDeleteSecondaryPackageDirs();
 
         result.summarizeChanges(type, dryRun: dryRun);
+
+        // TODO(nweiz): we've already parsed all the pubspecs and we know the
+        // lockfile is up to date; there's got to be a way to re-use that
+        // information here.
+        //
+        // Also, don't precompile stuff when the transitive dependencies
+        // haven't changed.
+        return precompileExecutables().catchError((error, stackTrace) {
+          // Just log exceptions here. Since the method is just about acquiring
+          // dependencies, it shouldn't fail unless that fails.
+          log.exception(error, stackTrace);
+        });
       });
     });
   }
+
+  /// Precompiles all executables from dependencies that don't transitively
+  /// depend on [this] or on a path dependency.
+  Future precompileExecutables() {
+    return loadPackageGraph().then((graph) {
+      var executables = new Map.fromIterable(root.immediateDependencies,
+          key: (dep) => dep.name,
+          value: (dep) => _executablesForPackage(graph, dep.name));
+
+      for (var package in executables.keys.toList()) {
+        if (executables[package].isEmpty) executables.remove(package);
+      }
+
+      var binDir = path.join('.pub', 'bin');
+      deleteEntry(binDir);
+      if (executables.isEmpty) return null;
+
+      return log.progress("Precompiling executables", () {
+        // TODO(nweiz): Only add assets touchable by the executables we're
+        // precompiling.
+        ensureDir(binDir);
+
+        // Make sure there's a trailing newline so our version file matches the
+        // SDK's.
+        writeTextFile(path.join(binDir, 'sdk-version'), "${sdk.version}\n");
+        return AssetEnvironment.create(this, BarbackMode.RELEASE,
+            WatcherType.NONE, useDart2JS: false).then((environment) {
+          environment.barback.errors.listen((error) {
+            log.error(log.red("Build error:\n$error"));
+          });
+
+          return waitAndPrintErrors(executables.keys.map((package) {
+            return _precompileExecutablesForPackage(
+                environment, package, executables[package]);
+          }));
+        });
+      });
+    });
+  }
+
+  /// Returns the list of all executable assets for [packageName] that should be
+  /// precompiled.
+  ///
+  /// If [changed] isn't `null`, executables for [packageName] will only be
+  /// compiled if they might depend on a package in [changed].
+  List<AssetId> _executablesForPackage(PackageGraph graph, String packageName) {
+    var package = graph.packages[packageName];
+    var binDir = path.join(package.dir, 'bin');
+    if (!dirExists(binDir)) return [];
+
+    // If the lockfile has a dependency on the entrypoint or on a path
+    // dependency, its executables could change at any point, so we
+    // shouldn't precompile them.
+    var hasUncachedDependency = graph.transitiveDependencies(packageName)
+        .any((package) {
+      var source = cache.sources[
+          graph.lockFile.packages[package.name].source];
+      return source is! CachedSource;
+    });
+    if (hasUncachedDependency) return [];
+
+    return ordered(package.listFiles(beneath: binDir, recursive: false))
+        .where((executable) => path.extension(executable) == '.dart')
+        .map((executable) {
+      return new AssetId(
+          package.name,
+          path.toUri(path.relative(executable, from: package.dir))
+              .toString());
+    }).toList();
+  }
+
+  /// Precompiles all [executables] for [package].
+  ///
+  /// [executables] is assumed to be a list of Dart executables in [package]'s
+  /// bin directory.
+  Future _precompileExecutablesForPackage(
+      AssetEnvironment environment, String package, List<AssetId> executables) {
+    var cacheDir = path.join('.pub', 'bin', package);
+    ensureDir(cacheDir);
+
+    // TODO(nweiz): Unserve this directory when we're done with it.
+    return environment.servePackageBinDirectory(package).then((server) {
+      return waitAndPrintErrors(executables.map((id) {
+        var basename = path.url.basename(id.path);
+        var snapshotPath = path.join(cacheDir, "$basename.snapshot");
+        return runProcess(Platform.executable, [
+          '--snapshot=$snapshotPath',
+          server.url.resolve(basename).toString()
+        ]).then((result) {
+          if (result.success) {
+            log.message("Precompiled ${_executableName(id)}.");
+          } else {
+            // TODO(nweiz): Stop manually deleting this when issue 20504 is
+            // fixed.
+            deleteEntry(snapshotPath);
+            throw new ApplicationException(
+                log.yellow("Failed to precompile "
+                    "${_executableName(id)}:\n") +
+                result.stderr.join('\n'));
+          }
+        });
+      }));
+    });
+  }
+
+  /// Returns the executable name for [id].
+  ///
+  /// [id] is assumed to be an executable in a bin directory. The return value
+  /// is intended for log output and may contain formatting.
+  String _executableName(AssetId id) =>
+      log.bold("${id.package}:${path.basenameWithoutExtension(id.path)}");
 
   /// Makes sure the package at [id] is locally available.
   ///

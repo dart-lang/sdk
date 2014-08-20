@@ -15,7 +15,9 @@ import 'barback/asset_environment.dart';
 import 'command.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
+import 'io.dart';
 import 'log.dart' as log;
+import 'sdk.dart' as sdk;
 import 'utils.dart';
 
 /// Runs [executable] from [package] reachable from [entrypoint].
@@ -31,6 +33,18 @@ import 'utils.dart';
 Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
     String package, String executable, Iterable<String> args,
     {bool isGlobal: false}) {
+  // Unless the user overrides the verbosity, we want to filter out the
+  // normal pub output shown while loading the environment.
+  if (log.verbosity == log.Verbosity.NORMAL) {
+    log.verbosity = log.Verbosity.WARNING;
+  }
+
+  var snapshotPath = p.join(".pub", "bin", package,
+      "$executable.dart.snapshot");
+  if (!isGlobal && fileExists(snapshotPath)) {
+    return _runCachedExecutable(entrypoint, snapshotPath, args);
+  }
+
   // If the command has a path separator, then it's a path relative to the
   // root of the package. Otherwise, it's implicitly understood to be in
   // "bin".
@@ -48,12 +62,6 @@ Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
     rootDir = parts.first;
   } else {
     executable = p.join("bin", executable);
-  }
-
-  // Unless the user overrides the verbosity, we want to filter out the
-  // normal pub output shown while loading the environment.
-  if (log.verbosity == log.Verbosity.NORMAL) {
-    log.verbosity = log.Verbosity.WARNING;
   }
 
   var environment;
@@ -125,6 +133,35 @@ Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
       log.error("$message.");
       log.fine(new Chain.forTrace(stackTrace));
       return exit_codes.NO_INPUT;
+    });
+  });
+}
+
+/// Runs the executable snapshot at [snapshotPath].
+Future _runCachedExecutable(Entrypoint entrypoint, String snapshotPath,
+    List<String> args) {
+  return syncFuture(() {
+    // If the snapshot was compiled with a different SDK version, we need to
+    // recompile it.
+    var sdkVersionPath = p.join(".pub", "bin", "sdk-version");
+    if (fileExists(sdkVersionPath) &&
+        readTextFile(sdkVersionPath) == "${sdk.version}\n") {
+      return null;
+    }
+
+    log.fine("Precompiled executables are out of date.");
+    return entrypoint.precompileExecutables();
+  }).then((_) {
+    var vmArgs = ["--checked", snapshotPath]..addAll(args);
+
+    return Process.start(Platform.executable, vmArgs).then((process) {
+      // Note: we're not using process.std___.pipe(std___) here because
+      // that prevents pub from also writing to the output streams.
+      process.stderr.listen(stderr.add);
+      process.stdout.listen(stdout.add);
+      stdin.listen(process.stdin.add);
+
+      return process.exitCode;
     });
   });
 }

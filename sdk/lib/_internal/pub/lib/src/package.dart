@@ -124,8 +124,10 @@ class Package {
   /// If this is a Git repository, this will respect .gitignore; otherwise, it
   /// will return all non-hidden, non-blacklisted files.
   ///
-  /// If [beneath] is passed, this will only return files beneath that path.
-  List<String> listFiles({String beneath}) {
+  /// If [beneath] is passed, this will only return files beneath that path. If
+  /// [recursive] is true, this will return all files beneath that path;
+  /// otherwise, it will only return files one level beneath it.
+  List<String> listFiles({String beneath, recursive: true}) {
     if (beneath == null) beneath = dir;
 
     // This is used in some performance-sensitive paths and can list many, many
@@ -145,6 +147,12 @@ class Package {
           ["ls-files", "--cached", "--others", "--exclude-standard",
            relativeBeneath],
           workingDir: dir);
+
+      // If we're not listing recursively, strip out paths that contain
+      // separators. Since git always prints forward slashes, we always detect
+      // them.
+      if (!recursive) files = files.where((file) => !file.contains('/'));
+
       // Git always prints files relative to the repository root, but we want
       // them relative to the working directory. It also prints forward slashes
       // on Windows which we normalize away for easier testing.
@@ -156,7 +164,7 @@ class Package {
         return fileExists(file);
       });
     } else {
-      files = listDir(beneath, recursive: true, includeDirs: false,
+      files = listDir(beneath, recursive: recursive, includeDirs: false,
           whitelist: _WHITELISTED_FILES);
     }
 

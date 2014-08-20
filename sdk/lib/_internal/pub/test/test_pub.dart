@@ -255,8 +255,11 @@ Map<String, List<Map>> _servedPackages;
 ///
 /// If [contents] is given, its contents are added to every served
 /// package.
+///
+/// If [serveBarback] is true, the repo versions of barback and its dependencies
+/// will be served as well.
 void servePackages(List<Map> pubspecs, {bool replace: false,
-    Iterable<d.Descriptor> contents}) {
+    Iterable<d.Descriptor> contents, bool serveBarback: false}) {
   if (_servedPackages == null || _servedPackageDir == null) {
     _servedPackages = <String, List<Map>>{};
     _servedApiPackageDir = d.dir('packages', []);
@@ -284,6 +287,28 @@ void servePackages(List<Map> pubspecs, {bool replace: false,
         versions.add(pubspec);
       }
 
+      var repoPackages = new Set();
+      if (serveBarback) {
+        _addPackage(name) {
+          if (_servedPackages.containsKey(name)) return;
+          repoPackages.add(name);
+
+          var pubspec = new Map.from(loadYaml(
+              readTextFile(path.join(repoRoot, 'pkg', name, 'pubspec.yaml'))));
+
+          // Remove any SDK constraints since we don't have a valid SDK version
+          // while testing.
+          pubspec.remove('environment');
+
+          _servedPackages[name] = [pubspec];
+          if (pubspec.containsKey('dependencies')) {
+            pubspec['dependencies'].keys.forEach(_addPackage);
+          }
+        }
+
+        _addPackage('barback');
+      }
+
       _servedApiPackageDir.contents.clear();
       _servedPackageDir.contents.clear();
       for (var name in _servedPackages.keys) {
@@ -304,6 +329,14 @@ void servePackages(List<Map> pubspecs, {bool replace: false,
         _servedPackageDir.contents.add(d.dir(name, [
           d.dir('versions', _servedPackages[name].map((pubspec) {
             var version = pubspec['version'];
+
+            if (repoPackages.contains(name)) {
+              return d.tar('$version.tar.gz', [
+                d.file('pubspec.yaml', JSON.encode(pubspec)),
+                new d.DirectoryDescriptor.fromFilesystem('lib',
+                    path.join(repoRoot, 'pkg', name, 'lib'))
+              ]);
+            }
 
             var archiveContents = [
                 d.file('pubspec.yaml', JSON.encode(pubspec)),
