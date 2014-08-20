@@ -22,7 +22,7 @@ class GCSweeper {
   ~GCSweeper() {}
 
   // Sweep the memory area for the page while clearing the mark bits and adding
-  // all the unmarked objects to the freelist.
+  // all the unmarked objects to the pre-locked freelist.
   // Returns true if the page is in use.
   bool SweepPage(HeapPage* page, FreeList* freelist);
 
