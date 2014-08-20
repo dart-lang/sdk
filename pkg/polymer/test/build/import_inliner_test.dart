@@ -682,12 +682,13 @@ void importTests() {
         'a|web/test.html._buildLogs.1':
           '[{'
             '"level":"Error",'
-            '"message":"Failed to inline html import: '
-              'Could not find asset a|web/foo.html.",'
+            '"message":"${const HtmlEscape().convert(
+                'Failed to inline html import: '
+                'Could not find asset a|web/foo.html.')}",'
             '"assetId":{"package":"a","path":"web/foo.html"},'
             '"span":{'
               '"location":"web/test.html:1:28",'
-              '"text":"${new HtmlEscape().convert(
+              '"text":"${const HtmlEscape().convert(
                 '<link rel="import" href="foo.html">')}"'
               '}'
             '}]',

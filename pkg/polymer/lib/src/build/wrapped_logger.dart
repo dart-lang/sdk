@@ -87,7 +87,7 @@ class WrappedLogger implements TransformLogger {
                SourceSpan span) {
     var data = {
         'level': level.name,
-        'message': message,
+        'message': const HtmlEscape().convert(message),
     };
     if (assetId != null) {
       data['assetId'] = {
