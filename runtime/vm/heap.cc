@@ -222,6 +222,7 @@ void Heap::CollectGarbage(Space space,
       RecordBeforeGC(kNew, reason);
       UpdateClassHeapStatsBeforeGC(kNew);
       new_space_->Scavenge(invoke_api_callbacks);
+      isolate()->class_table()->UpdatePromoted();
       RecordAfterGC();
       PrintStats();
       if (old_space_->NeedsGarbageCollection()) {
@@ -273,6 +274,7 @@ void Heap::CollectAllGarbage() {
     RecordBeforeGC(kNew, kFull);
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_->Scavenge(kInvokeApiCallbacks);
+    isolate()->class_table()->UpdatePromoted();
     RecordAfterGC();
     PrintStats();
   }

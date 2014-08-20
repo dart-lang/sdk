@@ -1296,6 +1296,7 @@ class Class extends ServiceObject with Coverage {
 
   final Allocations newSpace = new Allocations();
   final Allocations oldSpace = new Allocations();
+  final AllocationCount promotedByLastNewGC = new AllocationCount();
 
   bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
 
@@ -1368,6 +1369,8 @@ class Class extends ServiceObject with Coverage {
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
       oldSpace.update(allocationStats['old']);
+      promotedByLastNewGC.instances = allocationStats['promotedInstances'];
+      promotedByLastNewGC.bytes = allocationStats['promotedBytes'];
     }
   }
 

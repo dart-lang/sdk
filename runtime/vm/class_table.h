@@ -74,6 +74,9 @@ class ClassHeapStats {
   AllocStats<int64_t> accumulated;
   // Snapshot of recent at the time of the last reset.
   AllocStats<intptr_t> last_reset;
+  // Promoted from new to old by last new GC.
+  intptr_t promoted_count;
+  intptr_t promoted_size;
 
   static intptr_t allocated_since_gc_new_space_offset() {
     return OFFSET_OF(ClassHeapStats, recent) +
@@ -96,8 +99,14 @@ class ClassHeapStats {
   void ResetAtNewGC();
   void ResetAtOldGC();
   void ResetAccumulator();
+  void UpdatePromotedAfterNewGC();
   void UpdateSize(intptr_t instance_size);
   void PrintToJSONObject(const Class& cls, JSONObject* obj) const;
+
+ private:
+  // Recent old at start of last new GC (used to compute promoted_*).
+  intptr_t old_pre_new_gc_count_;
+  intptr_t old_pre_new_gc_size_;
 };
 
 
@@ -146,6 +155,8 @@ class ClassTable {
   void ResetCountersOld();
   // Called whenever a new GC occurs.
   void ResetCountersNew();
+  // Called immediately after a new GC.
+  void UpdatePromoted();
 
   // Used by the generated code.
   uword PredefinedClassHeapStatsTableAddress() {

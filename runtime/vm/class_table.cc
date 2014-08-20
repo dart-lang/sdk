@@ -193,6 +193,8 @@ void ClassHeapStats::Initialize() {
   recent.Reset();
   accumulated.Reset();
   last_reset.Reset();
+  promoted_count = 0;
+  promoted_size = 0;
 }
 
 
@@ -205,6 +207,8 @@ void ClassHeapStats::ResetAtNewGC() {
   last_reset.ResetNew();
   post_gc.ResetNew();
   recent.ResetNew();
+  old_pre_new_gc_count_ = recent.old_count;
+  old_pre_new_gc_size_ = recent.old_size;
 }
 
 
@@ -226,6 +230,8 @@ void ClassHeapStats::UpdateSize(intptr_t instance_size) {
   recent.UpdateSize(instance_size);
   accumulated.UpdateSize(instance_size);
   last_reset.UpdateSize(instance_size);
+  promoted_size = promoted_count * instance_size;
+  old_pre_new_gc_size_ = old_pre_new_gc_count_ * instance_size;
 }
 
 
@@ -237,6 +243,12 @@ void ClassHeapStats::ResetAccumulator() {
   last_reset.old_count = recent.old_count;
   last_reset.old_size = recent.old_size;
   accumulated.Reset();
+}
+
+
+void ClassHeapStats::UpdatePromotedAfterNewGC() {
+  promoted_count = recent.old_count - old_pre_new_gc_count_;
+  promoted_size = recent.old_size - old_pre_new_gc_size_;
 }
 
 
@@ -271,6 +283,8 @@ void ClassHeapStats::PrintToJSONObject(const Class& cls,
     old_stats.AddValue64(accumulated.old_size + recent.old_size -
                          last_reset.old_size);
   }
+  obj->AddProperty("promotedInstances", promoted_count);
+  obj->AddProperty("promotedBytes", promoted_size);
 }
 
 
@@ -338,6 +352,16 @@ void ClassTable::ResetCountersNew() {
   }
   for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
     class_heap_stats_table_[i].ResetAtNewGC();
+  }
+}
+
+
+void ClassTable::UpdatePromoted() {
+  for (intptr_t i = 0; i < kNumPredefinedCids; i++) {
+    predefined_class_heap_stats_table_[i].UpdatePromotedAfterNewGC();
+  }
+  for (intptr_t i = kNumPredefinedCids; i < top_; i++) {
+    class_heap_stats_table_[i].UpdatePromotedAfterNewGC();
   }
 }
 
