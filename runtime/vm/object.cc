@@ -5812,10 +5812,19 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
 // name of a function in it, and replacing ':' by '_' to make sure the
 // constructed name is a valid C++ identifier for debugging purpose.
 // Set 'chars' to allocated buffer and return number of written characters.
-static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
-                                                       char** chars,
-                                                       intptr_t reserve_len,
-                                                       bool with_lib) {
+
+enum QualifiedFunctionLibKind {
+  kQualifiedFunctionLibKindLibUrl,
+  kQualifiedFunctionLibKindLibName
+};
+
+
+static intptr_t ConstructFunctionFullyQualifiedCString(
+    const Function& function,
+    char** chars,
+    intptr_t reserve_len,
+    bool with_lib,
+    QualifiedFunctionLibKind lib_kind) {
   const char* name = String::Handle(function.name()).ToCString();
   const char* function_format = (reserve_len == 0) ? "%s" : "%s_";
   reserve_len += OS::SNPrint(NULL, 0, function_format, name);
@@ -5831,7 +5840,16 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     const char* library_name = NULL;
     const char* lib_class_format = NULL;
     if (with_lib) {
-      library_name = String::Handle(library.url()).ToCString();
+      switch (lib_kind) {
+        case kQualifiedFunctionLibKindLibUrl:
+          library_name = String::Handle(library.url()).ToCString();
+          break;
+        case kQualifiedFunctionLibKindLibName:
+          library_name = String::Handle(library.name()).ToCString();
+          break;
+        default:
+          UNREACHABLE();
+      }
       ASSERT(library_name != NULL);
       lib_class_format = (library_name[0] == '\0') ? "%s%s_" : "%s_%s_";
     } else {
@@ -5848,7 +5866,8 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     written = ConstructFunctionFullyQualifiedCString(parent,
                                                      chars,
                                                      reserve_len,
-                                                     with_lib);
+                                                     with_lib,
+                                                     lib_kind);
   }
   ASSERT(*chars != NULL);
   char* next = *chars + written;
@@ -5865,14 +5884,24 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
 
 const char* Function::ToFullyQualifiedCString() const {
   char* chars = NULL;
-  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true);
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true,
+                                         kQualifiedFunctionLibKindLibUrl);
+  return chars;
+}
+
+
+const char* Function::ToLibNamePrefixedQualifiedCString() const {
+  char* chars = NULL;
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true,
+                                         kQualifiedFunctionLibKindLibName);
   return chars;
 }
 
 
 const char* Function::ToQualifiedCString() const {
   char* chars = NULL;
-  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, false);
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, false,
+                                         kQualifiedFunctionLibKindLibUrl);
   return chars;
 }
 
@@ -12009,9 +12038,10 @@ RawCode* Code::FinalizeCode(const char* name,
 RawCode* Code::FinalizeCode(const Function& function,
                             Assembler* assembler,
                             bool optimized) {
-  // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
+  // Calling ToLibNamePrefixedQualifiedCString is very expensive,
+  // try to avoid it.
   if (CodeObservers::AreActive()) {
-    return FinalizeCode(function.ToFullyQualifiedCString(),
+    return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(),
                         assembler,
                         optimized);
   } else {

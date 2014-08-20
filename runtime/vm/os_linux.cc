@@ -151,16 +151,12 @@ class JitdumpCodeObserver : public CodeObserver {
     if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
       return;
     }
-    // The Jitdump code observer writes all jitted code into
-    // /tmp/jit-<pid>.dump, we open the file once on initialization and close
-    // it when the VM is going down.
+    // The Jitdump code observer writes all jitted code into the file
+    // 'perf.jitdump' in the current working directory. We open the file once
+    // on initialization and close it when the VM is going down.
     {
       // Open the file.
-      const char* format = "/tmp/jit-%" Pd ".dump";
-      intptr_t pid = getpid();
-      intptr_t len = OS::SNPrint(NULL, 0, format, pid);
-      char* filename = new char[len + 1];
-      OS::SNPrint(filename, len + 1, format, pid);
+      const char* filename = "perf.jitdump";
       out_file_ = (*file_open)(filename, true);
       ASSERT(out_file_ != NULL);
       // Write the jit dump header.
