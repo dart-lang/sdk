@@ -140,6 +140,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return phiType;
   }
 
+  bool selectorNeedsUpdate(TypeMask type, Selector selector) {
+    return type != selector.mask;
+  }
+
   TypeMask refineReceiver(Selector selector, TypeMask receiverType) {
     TypeMask newType = compiler.world.allFunctions.receiverType(selector);
     return receiverType.intersection(newType, compiler);
@@ -1129,7 +1133,7 @@ class SimpleTypeInferrerVisitor<T>
                       T receiverType,
                       ArgumentsTypes arguments) {
     assert(receiverType != null);
-    if (selector.mask != receiverType) {
+    if (types.selectorNeedsUpdate(receiverType, selector)) {
       selector = (receiverType == types.dynamicType)
           ? selector.asUntyped
           : types.newTypedSelector(receiverType, selector);

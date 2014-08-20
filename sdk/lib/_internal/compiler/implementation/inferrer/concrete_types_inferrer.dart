@@ -567,6 +567,11 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   }
 
   @override
+  bool selectorNeedsUpdate(ConcreteType type, Selector selector) {
+    return concreteTypeToTypeMask(type) != selector.mask;
+  }
+
+  @override
   ConcreteType refineReceiver(Selector selector, ConcreteType receiverType) {
     return receiverType.refine(selector, compiler);
   }

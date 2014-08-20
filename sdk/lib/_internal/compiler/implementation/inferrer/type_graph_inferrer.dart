@@ -177,7 +177,6 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 
   TypeInformation nonNullEmptyType;
 
-
   TypeInformation stringLiteralType(ast.DartString value) {
     return new StringLiteralTypeInformation(
         value, compiler.typesTask.stringType);
@@ -194,6 +193,11 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     }
     return getConcreteTypeFor(
         firstType.type.union(secondType.type, compiler));
+  }
+
+  bool selectorNeedsUpdate(TypeInformation info, Selector selector)
+  {
+    return info.type != selector.mask;
   }
 
   TypeInformation refineReceiver(Selector selector, TypeInformation receiver) {
