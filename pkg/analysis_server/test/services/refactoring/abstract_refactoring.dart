@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.refactoring.rename;
+library test.services.refactoring;
 
 import 'dart:async';
 
@@ -87,6 +87,19 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    */
   void assertRefactoringStatusOK(RefactoringStatus status) {
     assertRefactoringStatus(status, RefactoringStatusSeverity.OK);
+  }
+
+  /**
+   * Asserts that [refactoringChange] contains a [FileEdit] for [testFile], and
+   * it results the [expectedCode].
+   */
+  void assertTestChangeResult(String expectedCode) {
+    // prepare FileEdit
+    FileEdit fileEdit = refactoringChange.getFileEdit(testFile);
+    expect(fileEdit, isNotNull);
+    // validate resulting code
+    String actualCode = applySequence(testCode, fileEdit.edits);
+    expect(actualCode, expectedCode);
   }
 
   void indexTestUnit(String code) {

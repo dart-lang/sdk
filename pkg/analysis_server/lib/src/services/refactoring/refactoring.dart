@@ -8,14 +8,78 @@ import 'dart:async';
 
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
 import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+
+
+/**
+ * [Refactoring] to extract an expression into a local variable declaration.
+ */
+abstract class ExtractLocalRefactoring implements Refactoring {
+  /**
+   * Returns a new [ExtractLocalRefactoring] instance.
+   */
+  factory ExtractLocalRefactoring(CompilationUnit unit, int selectionOffset,
+      int selectionLength) {
+    return new ExtractLocalRefactoringImpl(
+        unit,
+        selectionOffset,
+        selectionLength);
+  }
+
+  /**
+   * True if all occurrences of the expression within the scope in which the
+   * variable will be defined should be replaced by a reference to the local
+   * variable. The expression used to initiate the refactoring will always be
+   * replaced.
+   */
+  void set extractAll(bool extractAll);
+
+  /**
+   * The lengths of the expressions that would be replaced by a reference to the
+   * variable. The lengths correspond to the offsets. In other words, for a
+   * given expression, if the offset of that expression is offsets[i], then the
+   * length of that expression is lengths[i].
+   */
+  List<int> get lengths;
+
+  /**
+   * The name that the local variable should be given.
+   */
+  void set name(String name);
+
+  /**
+   * The proposed names for the local variable.
+   *
+   * The first proposal should be used as the "best guess" (if it exists).
+   */
+  List<String> get names;
+
+  /**
+   * The offsets of the expressions that would be replaced by a reference to
+   * the variable.
+   */
+  List<int> get offsets;
+
+  /**
+   * Validates that the [name] is a valid identifier and is appropriate for
+   * local variable.
+   *
+   * It does not perform all the checks (such as checking for conflicts with any
+   * existing names in any of the scopes containing the current name), as many
+   * of these checkes require search engine. Use [checkFinalConditions] for this
+   * level of checking.
+   */
+  RefactoringStatus checkName();
+}
 
 
 /**

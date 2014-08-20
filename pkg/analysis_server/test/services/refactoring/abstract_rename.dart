@@ -84,19 +84,6 @@ class RenameRefactoringTest extends RefactoringTest {
   }
 
   /**
-   * Asserts that [refactoringChange] contains a [FileEdit] for [testFile], and
-   * it results the [expectedCode].
-   */
-  void assertTestChangeResult(String expectedCode) {
-    // prepare FileEdit
-    FileEdit fileEdit = refactoringChange.getFileEdit(testFile);
-    expect(fileEdit, isNotNull);
-    // validate resulting code
-    String actualCode = applySequence(testCode, fileEdit.edits);
-    expect(actualCode, expectedCode);
-  }
-
-  /**
    * Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
    * the [SimpleIdentifier] at the given [search] pattern.
    */

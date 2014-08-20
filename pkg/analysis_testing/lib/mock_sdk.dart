@@ -32,6 +32,7 @@ abstract class Comparable<T> {
 class String implements Comparable<String> {
   bool get isEmpty => false;
   bool get isNotEmpty => false;
+  int get length => 0;
 }
 
 class bool extends Object {}

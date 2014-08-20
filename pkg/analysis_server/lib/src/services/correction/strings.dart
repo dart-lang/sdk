@@ -42,6 +42,22 @@ int compareStrings(String a, String b) {
 }
 
 /**
+ * Counts how many times [sub] appears in [str].
+ */
+int countMatches(String str, String sub) {
+  if (isEmpty(str) || isEmpty(sub)) {
+    return 0;
+  }
+  int count = 0;
+  int idx = 0;
+  while ((idx = str.indexOf(sub, idx)) != -1) {
+    count++;
+    idx += sub.length;
+  }
+  return count;
+}
+
+/**
  * Checks if [str] is `null`, empty or is whitespace.
  */
 bool isBlank(String str) {
@@ -100,6 +116,7 @@ String removeStart(String str, String remove) {
   }
   return str;
 }
+
 
 String repeat(String s, int n) {
   StringBuffer sb = new StringBuffer();
