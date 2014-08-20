@@ -15,7 +15,8 @@ import '../utils.dart';
 class RunCommand extends PubCommand {
   bool get takesArguments => true;
   bool get allowTrailingOptions => false;
-  String get description => "Run an executable from a package.";
+  String get description => "Run an executable from a package.\n"
+      "NOTE: We are currently optimizing this command's startup time.";
   String get usage => "pub run <executable> [args...]";
 
   Future onRun() {

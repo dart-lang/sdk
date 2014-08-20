@@ -16,7 +16,8 @@ class GlobalRunCommand extends PubCommand {
   bool get takesArguments => true;
   bool get allowTrailingOptions => false;
   String get description =>
-      "Run an executable from a globally activated package.";
+      "Run an executable from a globally activated package.\n"
+      "NOTE: We are currently optimizing this command's startup time.";
   String get usage => "pub global run <package>:<executable> [args...]";
 
   Future onRun() {
