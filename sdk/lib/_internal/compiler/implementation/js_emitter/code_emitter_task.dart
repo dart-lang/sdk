@@ -597,8 +597,7 @@ class CodeEmitterTask extends CompilerTask {
                 // Use try-finally, not try-catch/throw as it destroys the
                 // stack trace.
                 if (result === sentinelUndefined)
-                  if ($isolate[fieldName] === sentinelInProgress)
-                    $isolate[fieldName] = null;
+                  $isolate[fieldName] = null;
               }
             } else {
               if (result === sentinelInProgress)
@@ -1336,7 +1335,7 @@ class CodeEmitterTask extends CompilerTask {
 
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
       if (!descriptors.containsKey(outputUnit)) continue;
- 
+
       ClassBuilder descriptor = descriptors[outputUnit];
 
       jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);
