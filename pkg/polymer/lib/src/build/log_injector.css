@@ -7,6 +7,7 @@
   right: 0;
   max-width: 50%;
   z-index: 10000;
+  font-family: sans-serif !important;
 }
 .build-logs .log {
   padding: 0.6em;
@@ -73,5 +74,5 @@
   padding: 0.4em 0.2em 0.2em 2em;
   white-space: pre;
   display: block;
-  font-family: monospace;
+  font-family: monospace !important;
 }
