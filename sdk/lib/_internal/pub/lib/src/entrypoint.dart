@@ -254,7 +254,11 @@ class Entrypoint {
                 result.stderr.join('\n'));
           }
         });
-      }));
+      })).whenComplete(() {
+        // Don't return this future, since we have no need to wait for the
+        // server to fully shut down.
+        server.close();
+      });
     });
   }
 
