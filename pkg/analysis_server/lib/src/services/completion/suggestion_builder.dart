@@ -15,12 +15,16 @@ import 'package:analyzer/src/generated/element.dart';
  */
 class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
   final DartCompletionRequest request;
+  final Set<String> _completions = new Set<String>();
 
   ClassElementSuggestionBuilder(this.request);
 
   @override
   visitClassElement(ClassElement element) {
     element.visitChildren(this);
+    element.allSupertypes.forEach((InterfaceType type) {
+      type.element.visitChildren(this);
+    });
   }
 
   @override
@@ -61,7 +65,9 @@ class ClassElementSuggestionBuilder extends GeneralizingElementVisitor {
       }
     }
     String completion = element.displayName;
-    if (completion == null || completion.length <= 0) {
+    if (completion == null ||
+        completion.length <= 0 ||
+        !_completions.add(completion)) {
       return;
     }
     request.suggestions.add(
