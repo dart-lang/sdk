@@ -139,7 +139,9 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
 PageSpace::~PageSpace() {
   {
     MonitorLocker ml(tasks_lock());
-    ASSERT(tasks() == 0);
+    while (tasks() > 0) {
+      ml.Wait();
+    }
   }
   FreePages(pages_);
   FreePages(large_pages_);
@@ -522,7 +524,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   // Wait for pending tasks to complete and then account for the driver task.
   {
     MonitorLocker locker(tasks_lock());
-    while (tasks() != 0) {
+    while (tasks() > 0) {
       locker.Wait();
     }
     set_tasks(1);
@@ -636,9 +638,10 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   // Done, reset the task count.
   {
-    MonitorLocker locker(tasks_lock());
+    MonitorLocker ml(tasks_lock());
     ASSERT(tasks() == 1);
     set_tasks(tasks() - 1);
+    ml.Notify();
   }
 }
 

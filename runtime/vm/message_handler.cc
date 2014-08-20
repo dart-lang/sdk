@@ -20,7 +20,7 @@ class MessageHandlerTask : public ThreadPool::Task {
     ASSERT(handler != NULL);
   }
 
-  void Run() {
+  virtual void Run() {
     handler_->TaskCallback();
   }
 

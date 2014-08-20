@@ -335,7 +335,7 @@ class SnapshotReader : public BaseReader {
     DeserializeState state_;
   };
 
-  PageSpace* old_space() { return old_space_; }
+  PageSpace* old_space() const { return old_space_; }
 
   // Allocate uninitialized objects, this is used when reading a full snapshot.
   RawObject* AllocateUninitialized(intptr_t class_id, intptr_t size);

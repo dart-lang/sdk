@@ -196,7 +196,6 @@ Mutex::Mutex() {
 
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
-  ASSERT(owner_ == Isolate::Current());
   owner_ = NULL;
 #endif  // defined(DEBUG)
 }

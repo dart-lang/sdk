@@ -62,8 +62,8 @@ class Heap {
 
   ~Heap();
 
-  Scavenger* new_space() { return new_space_; }
-  PageSpace* old_space() { return old_space_; }
+  Scavenger* new_space() const { return new_space_; }
+  PageSpace* old_space() const { return old_space_; }
 
   uword Allocate(intptr_t size, Space space) {
     ASSERT(!read_only_);

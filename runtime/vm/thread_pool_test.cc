@@ -35,7 +35,7 @@ class TestTask : public ThreadPool::Task {
       : sync_(sync), done_(done) {
   }
 
-  void Run() {
+  virtual void Run() {
     MonitorLocker ml(sync_);
     *done_ = true;
     ml.Notify();
@@ -92,7 +92,7 @@ class SleepTask : public ThreadPool::Task {
       : millis_(millis) {
   }
 
-  void Run() {
+  virtual void Run() {
     OS::Sleep(millis_);
   }
 
@@ -166,7 +166,7 @@ class SpawnTask : public ThreadPool::Task {
       : pool_(pool), sync_(sync), todo_(todo), total_(total), done_(done) {
   }
 
-  void Run() {
+  virtual void Run() {
     todo_--;  // Subtract one for current task.
     int child_todo = todo_ / 2;
 
