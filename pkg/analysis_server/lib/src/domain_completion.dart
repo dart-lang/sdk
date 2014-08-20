@@ -7,6 +7,8 @@ library domain.completion;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show
+    CompletionGetSuggestionsParams;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
 
@@ -47,15 +49,14 @@ class CompletionDomainHandler implements RequestHandler {
    * Process a `completion.getSuggestions` request.
    */
   Response processRequest(Request request) {
-    // extract param
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
+    // extract params
+    var params = new CompletionGetSuggestionsParams.fromRequest(request);
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
     CompletionManager.create(
-        server.getAnalysisContext(file),
-        server.getSource(file),
-        offset,
+        server.getAnalysisContext(params.file),
+        server.getSource(params.file),
+        params.offset,
         server.searchEngine).results().listen((CompletionResult result) {
       sendCompletionNotification(
           completionId,

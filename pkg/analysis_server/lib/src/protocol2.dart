@@ -51,7 +51,7 @@ bool _mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
  * Translate the input [map], applying [keyCallback] to all its keys, and
  * [valueCallback] to all its values.
  */
-_mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
+mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
   Map result = {};
   map.forEach((key, value) {
     if (keyCallback != null) {

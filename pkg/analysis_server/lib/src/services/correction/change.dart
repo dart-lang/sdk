@@ -5,6 +5,7 @@
 library services.correction.change;
 
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/json.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -38,7 +39,7 @@ class Change implements HasToJson {
   /**
    * Adds [edit] to the [FileEdit] for the given [file].
    */
-  void addEdit(String file, Edit edit) {
+  void addEdit(String file, SourceEdit edit) {
     FileEdit fileEdit = getFileEdit(file);
     if (fileEdit == null) {
       fileEdit = new FileEdit(file);
@@ -94,99 +95,28 @@ class Change implements HasToJson {
 
 
 /**
- * A description of a single change to a single file. 
+ * Convert a SourceRange to a SourceEdit.
  */
-class Edit implements HasToJson {
-  /**
-   * The offset of the region to be modified. 
-   */
-  final int offset;
+SourceEdit editFromRange(SourceRange range, String replacement, {String id}) =>
+    new SourceEdit(range.offset, range.length, replacement, id: id);
 
-  /**
-   * The length of the region to be modified.
-   */
-  final int length;
+/**
+ * Get the result of applying the edit to the given [code].
+ */
+String applyEdit(String code, SourceEdit edit) {
+  return code.substring(0, edit.offset) + edit.replacement +
+      code.substring(edit.offset + edit.length);
+}
 
-  /**
-   * The text that is to replace the specified region in the original text. 
-   */
-  final String replacement;
-
-  /**
-   * An identifier that uniquely identifies this source edit from other edits in
-   * the same response. This field is omitted unless a containing structure
-   * needs to be able to identify the edit for some reason.
-   *
-   * For example, some refactoring operations can produce edits that might not
-   * be appropriate (referred to as potential edits). Such edits will have an id
-   * so that they can be referenced. Edits in the same response that do not need
-   * to be referenced will not have an id.
-   */
-  String id;
-
-  Edit(this.offset, this.length, this.replacement);
-
-  Edit.range(SourceRange range, String replacement)
-      : this(range.offset, range.length, replacement);
-
-  /**
-   * The offset of a character immediately after the region to be modified. 
-   */
-  int get end => offset + length;
-
-  bool operator ==(other) {
-    if (other is Edit) {
-      return other.offset == offset &&
-          other.length == length &&
-          other.replacement == replacement;
-    }
-    return false;
-  }
-
-  /**
-   * Get the result of applying the edit to the given [code].
-   */
-  String apply(String code) {
-    return code.substring(0, offset) + replacement + code.substring(end);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    return {
-      OFFSET: offset,
-      LENGTH: length,
-      REPLACEMENT: replacement
-    };
-  }
-
-  @override
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.write('Edit(offset=');
-    sb.write(offset);
-    sb.write(', length=');
-    sb.write(length);
-    sb.write(', replacement=:>');
-    sb.write(replacement);
-    sb.write('<:');
-    if (id != null) {
-      sb.write(', id=');
-      sb.write(id);
-    }
-    sb.write(')');
-    return sb.toString();
-  }
-
-  /**
-   * Get the result of applying a set of [edits] to the given [code].  Edits
-   * are applied in the order they appear in [edits].
-   */
-  static String applySequence(String code, Iterable<Edit> edits) {
-    edits.forEach((Edit edit) {
-      code = edit.apply(code);
-    });
-    return code;
-  }
+/**
+ * Get the result of applying a set of [edits] to the given [code].  Edits
+ * are applied in the order they appear in [edits].
+ */
+String applySequence(String code, Iterable<SourceEdit> edits) {
+  edits.forEach((SourceEdit edit) {
+    code = applyEdit(code, edit);
+  });
+  return code;
 }
 
 
@@ -205,14 +135,14 @@ class FileEdit implements HasToJson {
   /**
    * A list of the [Edit]s used to effect the change. 
    */
-  final List<Edit> edits = <Edit>[];
+  final List<SourceEdit> edits = <SourceEdit>[];
 
   FileEdit(this.file);
 
   /**
    * Adds the given [Edit] to the list.
    */
-  void add(Edit edit) {
+  void add(SourceEdit edit) {
     int index = 0;
     while (index < edits.length && edits[index].offset > edit.offset) {
       index++;
@@ -223,7 +153,7 @@ class FileEdit implements HasToJson {
   /**
    * Adds the given [Edit]s.
    */
-  void addAll(Iterable<Edit> edits) {
+  void addAll(Iterable<SourceEdit> edits) {
     edits.forEach(add);
   }
 

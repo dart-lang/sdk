@@ -10,7 +10,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show
-    CompletionGetSuggestionsParams;
+    CompletionGetSuggestionsParams, CompletionGetSuggestionsResult;
 import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -90,7 +90,8 @@ class CompletionTest extends AbstractAnalysisTest {
       Request request = new CompletionGetSuggestionsParams(testFile,
           completionOffset).toRequest('0');
       Response response = handleSuccessfulRequest(request);
-      completionId = response.getResult(ID);
+      var result = new CompletionGetSuggestionsResult.fromResponse(response);
+      completionId = response.id;
       assertValidId(completionId);
       return pumpEventQueue().then((_) {
         expect(suggestionsDone, isTrue);

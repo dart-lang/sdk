@@ -4,10 +4,10 @@
 
 library test.search.top_level_declarations;
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show
-    SearchFindTopLevelDeclarationsParams;
+    SearchFindTopLevelDeclarationsParams, ElementKind,
+    SearchFindTopLevelDeclarationsResult;
 import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
@@ -30,7 +30,8 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
       Request request = new SearchFindTopLevelDeclarationsParams(
           pattern).toRequest('0');
       Response response = handleSuccessfulRequest(request);
-      searchId = response.getResult(ID);
+      searchId = new SearchFindTopLevelDeclarationsResult.fromResponse(
+          response).id;
       results.clear();
       return waitForSearchResults();
     });

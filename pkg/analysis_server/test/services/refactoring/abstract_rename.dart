@@ -6,6 +6,7 @@ library test.services.refactoring.rename;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -36,7 +37,7 @@ class RenameRefactoringTest extends RefactoringTest {
     File file = provider.getResource(path);
     Source source = file.createSource();
     String ini = context.getContents(source).data;
-    String actualCode = Edit.applySequence(ini, fileEdit.edits);
+    String actualCode = applySequence(ini, fileEdit.edits);
     expect(actualCode, expectedCode);
   }
 
@@ -61,7 +62,7 @@ class RenameRefactoringTest extends RefactoringTest {
     }
     // remove offset marked as potential
     for (String potentialId in refactoring.potentialEditIds) {
-      Edit edit = findEditById(potentialId);
+      SourceEdit edit = findEditById(potentialId);
       expect(edit, isNotNull);
       expectedOffsets.remove(edit.offset);
     }
@@ -91,7 +92,7 @@ class RenameRefactoringTest extends RefactoringTest {
     FileEdit fileEdit = refactoringChange.getFileEdit(testFile);
     expect(fileEdit, isNotNull);
     // validate resulting code
-    String actualCode = Edit.applySequence(testCode, fileEdit.edits);
+    String actualCode = applySequence(testCode, fileEdit.edits);
     expect(actualCode, expectedCode);
   }
 
@@ -120,9 +121,9 @@ class RenameRefactoringTest extends RefactoringTest {
   /**
    * Returns the [Edit] with the given [id], maybe `null`.
    */
-  Edit findEditById(String id) {
+  SourceEdit findEditById(String id) {
     for (FileEdit fileEdit in refactoringChange.fileEdits) {
-      for (Edit edit in fileEdit.edits) {
+      for (SourceEdit edit in fileEdit.edits) {
         if (edit.id == id) {
           return edit;
         }

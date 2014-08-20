@@ -9,7 +9,9 @@ import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show AnalysisError;
+import 'package:analysis_server/src/protocol2.dart' show AnalysisError,
+    EditGetAssistsParams, EditGetAvailableRefactoringsParams,
+    EditGetFixesParams;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -45,14 +47,14 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response getAssists(Request request) {
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
-    int length = request.getRequiredParameter(LENGTH).asInt();
+    var params = new EditGetAssistsParams.fromRequest(request);
     List<Change> changes = <Change>[];
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    List<CompilationUnit> units =
+        server.getResolvedCompilationUnits(params.file);
     if (units.isNotEmpty) {
       CompilationUnit unit = units[0];
-      List<Assist> assists = computeAssists(searchEngine, unit, offset, length);
+      List<Assist> assists = computeAssists(searchEngine, unit, params.offset,
+          params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });
@@ -64,11 +66,11 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response getAvailableRefactorings(Request request) {
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
-    int length = request.getRequiredParameter(LENGTH).asInt();
+    var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
+    // TODO(paulberry): params.length isn't used.  Is this a bug?
     List<String> kinds = <String>[];
-    List<Element> elements = server.getElementsAtOffset(file, offset);
+    List<Element> elements = server.getElementsAtOffset(params.file,
+        params.offset);
     if (elements.isNotEmpty) {
       Element element = elements[0];
       RenameRefactoring renameRefactoring =
@@ -82,12 +84,12 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Response getFixes(Request request) {
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
+    var params = new EditGetFixesParams.fromRequest(request);
+    // TODO(paulberry): params.offset isn't used.  Is this a bug?
     List<ErrorFixes> errorFixesList = <ErrorFixes>[];
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(params.file);
     for (CompilationUnit unit in units) {
-      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
+      engine.AnalysisErrorInfo errorInfo = server.getErrors(params.file);
       if (errorInfo != null) {
         for (engine.AnalysisError error in errorInfo.errors) {
           List<Fix> fixes = computeFixes(searchEngine, unit, error);

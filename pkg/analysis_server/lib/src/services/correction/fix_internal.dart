@@ -6,6 +6,7 @@ library services.src.correction.fix;
 
 import 'dart:collection';
 
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -54,7 +55,7 @@ class FixProcessor {
   String unitLibraryFile;
   String unitLibraryFolder;
 
-  final List<Edit> edits = <Edit>[];
+  final List<SourceEdit> edits = <SourceEdit>[];
   final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
       LinkedEditGroup>{};
   Position exitPosition = null;
@@ -1272,7 +1273,7 @@ class FixProcessor {
    * Adds a new [Edit] to [edits].
    */
   void _addInsertEdit(int offset, String text) {
-    Edit edit = new Edit(offset, 0, text);
+    SourceEdit edit = new SourceEdit(offset, 0, text);
     edits.add(edit);
   }
 
@@ -1433,7 +1434,7 @@ class FixProcessor {
    * Adds a new [Edit] to [edits].
    */
   void _addReplaceEdit(SourceRange range, String text) {
-    Edit edit = new Edit(range.offset, range.length, text);
+    SourceEdit edit = new SourceEdit(range.offset, range.length, text);
     edits.add(edit);
   }
 

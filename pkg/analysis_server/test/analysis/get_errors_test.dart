@@ -6,7 +6,6 @@ library test.analysis.get_errors;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart';
@@ -111,7 +110,8 @@ main() {
     }
     // wait for an error response
     return serverChannel.waitForResponse(request).then((Response response) {
-      expect(response.getResult(ERRORS), isEmpty);
+      var result = new AnalysisGetErrorsResult.fromResponse(response);
+      expect(result.errors, isEmpty);
       RequestError error = response.error;
       expect(error, isNotNull);
       expect(error.code, 'GET_ERRORS_ERROR');

@@ -6,6 +6,7 @@ library services.src.correction.assist;
 
 import 'dart:collection';
 
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -42,7 +43,7 @@ class AssistProcessor {
   String unitLibraryFile;
   String unitLibraryFolder;
 
-  final List<Edit> edits = <Edit>[];
+  final List<SourceEdit> edits = <SourceEdit>[];
   final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
       LinkedEditGroup>{};
   Position exitPosition = null;
@@ -147,7 +148,7 @@ class AssistProcessor {
    * Adds a new [Edit] to [edits].
    */
   void _addInsertEdit(int offset, String text) {
-    Edit edit = new Edit(offset, 0, text);
+    SourceEdit edit = new SourceEdit(offset, 0, text);
     edits.add(edit);
   }
 
@@ -1216,7 +1217,7 @@ class AssistProcessor {
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}{${eol}");
       {
-        Edit edit =
+        SourceEdit edit =
             utils.createIndentEdit(statementsRange, indentOld, indentNew);
         edits.add(edit);
       }
@@ -1242,7 +1243,7 @@ class AssistProcessor {
         _insertBuilder(sb);
       }
       {
-        Edit edit =
+        SourceEdit edit =
             utils.createIndentEdit(statementsRange, indentOld, indentNew);
         edits.add(edit);
       }
@@ -1268,7 +1269,7 @@ class AssistProcessor {
         _insertBuilder(sb);
       }
       {
-        Edit edit =
+        SourceEdit edit =
             utils.createIndentEdit(statementsRange, indentOld, indentNew);
         edits.add(edit);
       }
@@ -1300,7 +1301,7 @@ class AssistProcessor {
         _insertBuilder(sb);
       }
       {
-        Edit edit =
+        SourceEdit edit =
             utils.createIndentEdit(statementsRange, indentOld, indentNew);
         edits.add(edit);
       }
@@ -1344,7 +1345,7 @@ class AssistProcessor {
         _insertBuilder(sb);
       }
       {
-        Edit edit =
+        SourceEdit edit =
             utils.createIndentEdit(statementsRange, indentOld, indentNew);
         edits.add(edit);
       }
@@ -1357,7 +1358,7 @@ class AssistProcessor {
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}do {${eol}");
       {
-        Edit edit =
+        SourceEdit edit =
             utils.createIndentEdit(statementsRange, indentOld, indentNew);
         edits.add(edit);
       }
@@ -1383,7 +1384,7 @@ class AssistProcessor {
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
       {
-        Edit edit =
+        SourceEdit edit =
             utils.createIndentEdit(statementsRange, indentOld, indentNew);
         edits.add(edit);
       }
@@ -1429,7 +1430,7 @@ class AssistProcessor {
     {
       _addInsertEdit(statementsRange.offset, "${indentOld}try {${eol}");
       {
-        Edit edit =
+        SourceEdit edit =
             utils.createIndentEdit(statementsRange, indentOld, indentNew);
         edits.add(edit);
       }
@@ -1470,10 +1471,10 @@ class AssistProcessor {
   }
 
   /**
-   * Adds a new [Edit] to [edits].
+   * Adds a new [SourceEdit] to [edits].
    */
   void _addReplaceEdit(SourceRange range, String text) {
-    Edit edit = new Edit(range.offset, range.length, text);
+    SourceEdit edit = new SourceEdit(range.offset, range.length, text);
     edits.add(edit);
   }
 

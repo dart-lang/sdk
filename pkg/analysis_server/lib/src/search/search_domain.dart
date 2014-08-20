@@ -10,6 +10,10 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/element.dart' as se;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol2.dart' show
+    SearchFindElementReferencesParams, SearchFindMemberDeclarationsParams,
+    SearchFindMemberReferencesParams, SearchFindTopLevelDeclarationsParams,
+    SearchGetTypeHierarchyParams;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
@@ -45,12 +49,10 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   Response findElementReferences(Request request) {
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
-    bool includePotential =
-        request.getRequiredParameter(INCLUDE_POTENTIAL).asBool();
+    var params = new SearchFindElementReferencesParams.fromRequest(request);
     // prepare elements
-    List<Element> elements = server.getElementsAtOffset(file, offset);
+    List<Element> elements = server.getElementsAtOffset(params.file,
+        params.offset);
     elements = elements.map((Element element) {
       if (element is FieldFormalParameterElement) {
         return element.field;
@@ -64,7 +66,7 @@ class SearchDomainHandler implements RequestHandler {
     String searchId = (_nextSearchId++).toString();
     elements.forEach((Element element) {
       var computer = new ElementReferencesComputer(searchEngine);
-      var future = computer.compute(element, includePotential);
+      var future = computer.compute(element, params.includePotential);
       future.then((List<SearchResult> results) {
         bool isLast = identical(element, elements.last);
         _sendSearchNotification(searchId, isLast, results);
@@ -80,17 +82,17 @@ class SearchDomainHandler implements RequestHandler {
     response.setResult(ID, searchId);
     if (elements.isNotEmpty) {
       var serverElement = new se.Element.fromEngine(elements[0]);
-      response.setResult(ELEMENT, objectToJson(serverElement));
+      response.setResult(ELEMENT, serverElement.toJson());
     }
     return response;
   }
 
   Response findMemberDeclarations(Request request) {
-    String name = request.getRequiredParameter(NAME).asString();
+    var params = new SearchFindMemberDeclarationsParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
     {
-      var matchesFuture = searchEngine.searchMemberDeclarations(name);
+      var matchesFuture = searchEngine.searchMemberDeclarations(params.name);
       matchesFuture.then((List<SearchMatch> matches) {
         _sendSearchNotification(searchId, true, matches.map(toResult));
       });
@@ -100,11 +102,11 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   Response findMemberReferences(Request request) {
-    String name = request.getRequiredParameter(NAME).asString();
+    var params = new SearchFindMemberReferencesParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
     {
-      var matchesFuture = searchEngine.searchMemberReferences(name);
+      var matchesFuture = searchEngine.searchMemberReferences(params.name);
       matchesFuture.then((List<SearchMatch> matches) {
         _sendSearchNotification(searchId, true, matches.map(toResult));
       });
@@ -114,11 +116,11 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   Response findTopLevelDeclarations(Request request) {
-    String pattern = request.getRequiredParameter(PATTERN).asString();
+    var params = new SearchFindTopLevelDeclarationsParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
     {
-      var matchesFuture = searchEngine.searchTopLevelDeclarations(pattern);
+      var matchesFuture = searchEngine.searchTopLevelDeclarations(params.pattern);
       matchesFuture.then((List<SearchMatch> matches) {
         _sendSearchNotification(searchId, true, matches.map(toResult));
       });
@@ -131,11 +133,11 @@ class SearchDomainHandler implements RequestHandler {
    * Implement the `search.getTypeHierarchy` request.
    */
   Response getTypeHierarchy(Request request) {
+    var params = new SearchGetTypeHierarchyParams.fromRequest(request);
     // prepare parameters
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
     // prepare Element
-    List<Element> elements = server.getElementsAtOffset(file, offset);
+    List<Element> elements = server.getElementsAtOffset(params.file,
+        params.offset);
     Response response = new Response(request.id);
     if (elements.isEmpty) {
       response.setEmptyResult();

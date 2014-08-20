@@ -6,7 +6,6 @@ library test.edit.fixes;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart';
@@ -41,14 +40,15 @@ main() {
       Request request = new EditGetFixesParams(testFile,
           findOffset('print')).toRequest('0');
       Response response = handleSuccessfulRequest(request);
-      List<Map<String, Object>> errorFixesJsonList = response.getResult(FIXES);
-      expect(errorFixesJsonList, hasLength(1));
+      var result = new EditGetFixesResult.fromResponse(response);
+      List<ErrorFixes> errorFixes = result.fixes;
+      expect(errorFixes, hasLength(1));
       {
-        Map<String, Object> fixes = errorFixesJsonList[0];
-        Map<String, Object> error = fixes[ERROR];
-        expect(error[SEVERITY], 'ERROR');
-        expect(error[TYPE], 'SYNTACTIC_ERROR');
-        expect(fixes[FIXES], hasLength(1));
+        ErrorFixes fixes = errorFixes[0];
+        AnalysisError error = fixes.error;
+        expect(error.severity, ErrorSeverity.ERROR);
+        expect(error.type, ErrorType.SYNTACTIC_ERROR);
+        expect(fixes.fixes, hasLength(1));
       }
     });
   }

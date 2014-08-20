@@ -10,7 +10,8 @@ import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show AnalysisService;
+import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
+    ElementKind;
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 

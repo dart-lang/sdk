@@ -6,11 +6,11 @@ library test.edit.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/edit/edit_domain.dart' hide RefactoringKind;
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show
-    EditGetAvailableRefactoringsParams;
+    EditGetAvailableRefactoringsParams, EditGetAvailableRefactoringsResult,
+    RefactoringKind;
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
@@ -31,7 +31,7 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   Future assertHasRenameRefactoring(String code, String search) {
     addTestFile(code);
     return waitForTasksFinished().then((_) {
-      List<String> kinds = getAvailableRefactorings(search);
+      List<RefactoringKind> kinds = getAvailableRefactorings(search);
       expect(kinds, contains(RefactoringKind.RENAME));
     });
   }
@@ -40,11 +40,12 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
    * Returns the list of available refactorings of the offset of [search] with
    * [length] characters selected.
    */
-  List<String> getAvailableRefactorings(String search, [int length = 0]) {
+  List<RefactoringKind> getAvailableRefactorings(String search, [int length = 0]) {
     Request request = new EditGetAvailableRefactoringsParams(testFile,
         findOffset(search), length).toRequest('0');
     Response response = handleSuccessfulRequest(request);
-    return response.getResult(KINDS);
+    var result = new EditGetAvailableRefactoringsResult.fromResponse(response);
+    return result.kinds;
   }
 
   @override
@@ -166,7 +167,7 @@ main() {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      List<String> kinds = getAvailableRefactorings('// not an element');
+      List<RefactoringKind> kinds = getAvailableRefactorings('// not an element');
       expect(kinds, isNot(contains(RefactoringKind.RENAME)));
     });
   }

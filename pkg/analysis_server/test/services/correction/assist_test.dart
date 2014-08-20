@@ -43,7 +43,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     // apply to "file"
     List<FileEdit> fileEdits = change.fileEdits;
     expect(fileEdits, hasLength(1));
-    resultCode = Edit.applySequence(testCode, change.fileEdits[0].edits);
+    resultCode = applySequence(testCode, change.fileEdits[0].edits);
     // verify
     expect(resultCode, expected);
   }

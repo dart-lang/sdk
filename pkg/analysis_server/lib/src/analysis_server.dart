@@ -12,14 +12,14 @@ import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
-    ServerService;
+    ServerService, AddContentOverlay, ChangeContentOverlay,
+    RemoveContentOverlay;
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -478,7 +478,7 @@ class AnalysisServer {
   /**
    * Implementation for `analysis.updateContent`.
    */
-  void updateContent(Map<String, ContentChange> changes) {
+  void updateContent(Map<String, dynamic> changes) {
     changes.forEach((file, change) {
       AnalysisContext analysisContext = getAnalysisContext(file);
       // TODO(paulberry): handle the case where a file is referred to by more
@@ -487,23 +487,22 @@ class AnalysisServer {
       // and user modifies a file in package B).
       if (analysisContext != null) {
         Source source = getSource(file);
-        switch (change.type) {
-          case ADD:
-            analysisContext.setContents(source, change.content);
-            break;
-          case CHANGE:
-            // TODO(paulberry): an error should be generated if source is not
-            // currently in the content cache.
-            TimestampedData<String> oldContents = analysisContext.getContents(
-                source);
-            String newContents = Edit.applySequence(oldContents.data, change.changes);
-            // TODO(paulberry): to aid in incremental processing it would be
-            // better to use setChangedContents.
-            analysisContext.setContents(source, newContents);
-            break;
-          case REMOVE:
-            analysisContext.setContents(source, null);
-            break;
+        if (change is AddContentOverlay) {
+          analysisContext.setContents(source, change.content);
+        } else if (change is ChangeContentOverlay) {
+          // TODO(paulberry): an error should be generated if source is not
+          // currently in the content cache.
+          TimestampedData<String> oldContents = analysisContext.getContents(
+              source);
+          String newContents = applySequence(oldContents.data, change.edits);
+          // TODO(paulberry): to aid in incremental processing it would be
+          // better to use setChangedContents.
+          analysisContext.setContents(source, newContents);
+        } else if (change is RemoveContentOverlay) {
+          analysisContext.setContents(source, null);
+        } else {
+          // Protocol parsing should have ensured that we never get here.
+          throw new AnalysisException('Illegal change type');
         }
         schedulePerformAnalysisOperation(analysisContext);
       }

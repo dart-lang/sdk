@@ -756,7 +756,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["subscriptions"] = _mapMap(subscriptions, keyCallback: (AnalysisService value) => value.toJson());
+    result["subscriptions"] = mapMap(subscriptions, keyCallback: (AnalysisService value) => value.toJson());
     return result;
   }
 
@@ -823,7 +823,7 @@ class AnalysisUpdateContentParams implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["files"] = _mapMap(files, valueCallback: (dynamic value) => value.toJson());
+    result["files"] = mapMap(files, valueCallback: (dynamic value) => value.toJson());
     return result;
   }
 

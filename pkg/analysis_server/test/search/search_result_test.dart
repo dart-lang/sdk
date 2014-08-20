@@ -5,6 +5,7 @@
 library test.search.search_result;
 
 import 'package:analysis_server/src/computer/element.dart';
+import 'package:analysis_server/src/protocol2.dart' show ElementKind;
 import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';

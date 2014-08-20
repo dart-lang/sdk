@@ -6,6 +6,7 @@ library services.src.refactoring.rename_constructor;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -57,7 +58,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       List<SourceReference> references = getSourceReferences(refMatches);
       if (!element.isSynthetic) {
         for (SourceReference reference in references) {
-          Edit edit = createReferenceEdit(reference, replacement);
+          SourceEdit edit = createReferenceEdit(reference, replacement);
           change.addEdit(reference.file, edit);
         }
       }

@@ -5,6 +5,7 @@
 library computer.element;
 
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
@@ -76,7 +77,7 @@ class Element {
     String elementParameters = _getParametersString(element);
     String elementReturnType = _getReturnTypeString(element);
     return new Element(
-        ElementKind.valueOfEngine(element.kind),
+        elementKindFromEngine(element.kind),
         name,
         new Location.fromElement(element),
         element.isPrivate,
@@ -90,7 +91,7 @@ class Element {
   }
 
   factory Element.fromJson(Map<String, Object> map) {
-    ElementKind kind = ElementKind.valueOf(map[KIND]);
+    ElementKind kind = new ElementKind(map[KIND]);
     int flags = map[FLAGS];
     return new Element(
         kind,
@@ -224,103 +225,50 @@ class Element {
 }
 
 
-/**
- * An enumeration of the kinds of elements.
- */
-class ElementKind {
-  static const CLASS = const ElementKind('CLASS');
-  static const CLASS_TYPE_ALIAS = const ElementKind('CLASS_TYPE_ALIAS');
-  static const COMPILATION_UNIT = const ElementKind('COMPILATION_UNIT');
-  static const CONSTRUCTOR = const ElementKind('CONSTRUCTOR');
-  static const FIELD = const ElementKind('FIELD');
-  static const FUNCTION = const ElementKind('FUNCTION');
-  static const FUNCTION_TYPE_ALIAS = const ElementKind('FUNCTION_TYPE_ALIAS');
-  static const GETTER = const ElementKind('GETTER');
-  static const LIBRARY = const ElementKind('LIBRARY');
-  static const LOCAL_VARIABLE = const ElementKind('LOCAL_VARIABLE');
-  static const METHOD = const ElementKind('METHOD');
-  static const PARAMETER = const ElementKind('PARAMETER');
-  static const SETTER = const ElementKind('SETTER');
-  static const TOP_LEVEL_VARIABLE = const ElementKind('TOP_LEVEL_VARIABLE');
-  static const TYPE_PARAMETER = const ElementKind('TYPE_PARAMETER');
-  static const UNIT_TEST_CASE = const ElementKind('UNIT_TEST_CASE');
-  static const UNIT_TEST_GROUP = const ElementKind('UNIT_TEST_GROUP');
-  static const UNKNOWN = const ElementKind('UNKNOWN');
-
-  final String name;
-
-  const ElementKind(this.name);
-
-  @override
-  String toString() => name;
-
-  static ElementKind valueOf(String name) {
-    if (CLASS.name == name) return CLASS;
-    if (CLASS_TYPE_ALIAS.name == name) return CLASS_TYPE_ALIAS;
-    if (COMPILATION_UNIT.name == name) return COMPILATION_UNIT;
-    if (CONSTRUCTOR.name == name) return CONSTRUCTOR;
-    if (FIELD.name == name) return FIELD;
-    if (FUNCTION.name == name) return FUNCTION;
-    if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
-    if (GETTER.name == name) return GETTER;
-    if (LIBRARY.name == name) return LIBRARY;
-    if (LOCAL_VARIABLE.name == name) return LOCAL_VARIABLE;
-    if (METHOD.name == name) return METHOD;
-    if (PARAMETER.name == name) return PARAMETER;
-    if (SETTER.name == name) return SETTER;
-    if (TOP_LEVEL_VARIABLE.name == name) return TOP_LEVEL_VARIABLE;
-    if (TYPE_PARAMETER.name == name) return TYPE_PARAMETER;
-    if (UNIT_TEST_CASE.name == name) return UNIT_TEST_CASE;
-    if (UNIT_TEST_GROUP.name == name) return UNIT_TEST_GROUP;
-    if (UNKNOWN.name == name) return UNKNOWN;
-    throw new ArgumentError('Unknown ElementKind: $name');
+ElementKind elementKindFromEngine(engine.ElementKind kind) {
+  if (kind == engine.ElementKind.CLASS) {
+    return ElementKind.CLASS;
   }
-
-  static ElementKind valueOfEngine(engine.ElementKind kind) {
-    if (kind == engine.ElementKind.CLASS) {
-      return CLASS;
-    }
-    if (kind == engine.ElementKind.COMPILATION_UNIT) {
-      return COMPILATION_UNIT;
-    }
-    if (kind == engine.ElementKind.CONSTRUCTOR) {
-      return CONSTRUCTOR;
-    }
-    if (kind == engine.ElementKind.FIELD) {
-      return FIELD;
-    }
-    if (kind == engine.ElementKind.FUNCTION) {
-      return FUNCTION;
-    }
-    if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
-      return FUNCTION_TYPE_ALIAS;
-    }
-    if (kind == engine.ElementKind.GETTER) {
-      return GETTER;
-    }
-    if (kind == engine.ElementKind.LIBRARY) {
-      return LIBRARY;
-    }
-    if (kind == engine.ElementKind.LOCAL_VARIABLE) {
-      return LOCAL_VARIABLE;
-    }
-    if (kind == engine.ElementKind.METHOD) {
-      return METHOD;
-    }
-    if (kind == engine.ElementKind.PARAMETER) {
-      return PARAMETER;
-    }
-    if (kind == engine.ElementKind.SETTER) {
-      return SETTER;
-    }
-    if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
-      return TOP_LEVEL_VARIABLE;
-    }
-    if (kind == engine.ElementKind.TYPE_PARAMETER) {
-      return TYPE_PARAMETER;
-    }
-    return UNKNOWN;
+  if (kind == engine.ElementKind.COMPILATION_UNIT) {
+    return ElementKind.COMPILATION_UNIT;
   }
+  if (kind == engine.ElementKind.CONSTRUCTOR) {
+    return ElementKind.CONSTRUCTOR;
+  }
+  if (kind == engine.ElementKind.FIELD) {
+    return ElementKind.FIELD;
+  }
+  if (kind == engine.ElementKind.FUNCTION) {
+    return ElementKind.FUNCTION;
+  }
+  if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
+    return ElementKind.FUNCTION_TYPE_ALIAS;
+  }
+  if (kind == engine.ElementKind.GETTER) {
+    return ElementKind.GETTER;
+  }
+  if (kind == engine.ElementKind.LIBRARY) {
+    return ElementKind.LIBRARY;
+  }
+  if (kind == engine.ElementKind.LOCAL_VARIABLE) {
+    return ElementKind.LOCAL_VARIABLE;
+  }
+  if (kind == engine.ElementKind.METHOD) {
+    return ElementKind.METHOD;
+  }
+  if (kind == engine.ElementKind.PARAMETER) {
+    return ElementKind.PARAMETER;
+  }
+  if (kind == engine.ElementKind.SETTER) {
+    return ElementKind.SETTER;
+  }
+  if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
+    return ElementKind.TOP_LEVEL_VARIABLE;
+  }
+  if (kind == engine.ElementKind.TYPE_PARAMETER) {
+    return ElementKind.TYPE_PARAMETER;
+  }
+  return ElementKind.UNKNOWN;
 }
 
 

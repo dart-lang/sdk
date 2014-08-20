@@ -4,7 +4,7 @@
 
 library services.src.correction.util;
 
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -231,9 +231,10 @@ class CorrectionUtils {
    * [SourceRange] from [oldIndent] to [newIndent], keeping indentation of lines
    * relative to each other.
    */
-  Edit createIndentEdit(SourceRange range, String oldIndent, String newIndent) {
+  SourceEdit createIndentEdit(SourceRange range, String oldIndent,
+      String newIndent) {
     String newSource = replaceSourceRangeIndent(range, oldIndent, newIndent);
-    return new Edit(range.offset, range.length, newSource);
+    return new SourceEdit(range.offset, range.length, newSource);
   }
 
   /**

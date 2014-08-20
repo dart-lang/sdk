@@ -6,6 +6,7 @@ library test.computer.element;
 
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/protocol2.dart' show ElementKind;
 import 'package:analysis_testing/abstract_context.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -25,101 +26,102 @@ main() {
 
 class ElementKindTest {
   void test_toString() {
-    expect(ElementKind.CLASS.toString(), 'CLASS');
-    expect(ElementKind.COMPILATION_UNIT.toString(), 'COMPILATION_UNIT');
+    expect(ElementKind.CLASS.toString(), 'ElementKind.CLASS');
+    expect(ElementKind.COMPILATION_UNIT.toString(),
+        'ElementKind.COMPILATION_UNIT');
   }
 
-  void test_valueOf() {
-    expect(ElementKind.valueOf(ElementKind.CLASS.name), ElementKind.CLASS);
+  void test_string_constructor() {
+    expect(new ElementKind(ElementKind.CLASS.name), ElementKind.CLASS);
     expect(
-        ElementKind.valueOf(ElementKind.CLASS_TYPE_ALIAS.name),
+        new ElementKind(ElementKind.CLASS_TYPE_ALIAS.name),
         ElementKind.CLASS_TYPE_ALIAS);
     expect(
-        ElementKind.valueOf(ElementKind.COMPILATION_UNIT.name),
+        new ElementKind(ElementKind.COMPILATION_UNIT.name),
         ElementKind.COMPILATION_UNIT);
     expect(
-        ElementKind.valueOf(ElementKind.CONSTRUCTOR.name),
+        new ElementKind(ElementKind.CONSTRUCTOR.name),
         ElementKind.CONSTRUCTOR);
-    expect(ElementKind.valueOf(ElementKind.FIELD.name), ElementKind.FIELD);
+    expect(new ElementKind(ElementKind.FIELD.name), ElementKind.FIELD);
     expect(
-        ElementKind.valueOf(ElementKind.FUNCTION.name),
+        new ElementKind(ElementKind.FUNCTION.name),
         ElementKind.FUNCTION);
     expect(
-        ElementKind.valueOf(ElementKind.FUNCTION_TYPE_ALIAS.name),
+        new ElementKind(ElementKind.FUNCTION_TYPE_ALIAS.name),
         ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(ElementKind.valueOf(ElementKind.GETTER.name), ElementKind.GETTER);
-    expect(ElementKind.valueOf(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
+    expect(new ElementKind(ElementKind.GETTER.name), ElementKind.GETTER);
+    expect(new ElementKind(ElementKind.LIBRARY.name), ElementKind.LIBRARY);
     expect(
-        ElementKind.valueOf(ElementKind.LOCAL_VARIABLE.name),
+        new ElementKind(ElementKind.LOCAL_VARIABLE.name),
         ElementKind.LOCAL_VARIABLE);
-    expect(ElementKind.valueOf(ElementKind.METHOD.name), ElementKind.METHOD);
+    expect(new ElementKind(ElementKind.METHOD.name), ElementKind.METHOD);
     expect(
-        ElementKind.valueOf(ElementKind.PARAMETER.name),
+        new ElementKind(ElementKind.PARAMETER.name),
         ElementKind.PARAMETER);
-    expect(ElementKind.valueOf(ElementKind.SETTER.name), ElementKind.SETTER);
+    expect(new ElementKind(ElementKind.SETTER.name), ElementKind.SETTER);
     expect(
-        ElementKind.valueOf(ElementKind.TOP_LEVEL_VARIABLE.name),
+        new ElementKind(ElementKind.TOP_LEVEL_VARIABLE.name),
         ElementKind.TOP_LEVEL_VARIABLE);
     expect(
-        ElementKind.valueOf(ElementKind.TYPE_PARAMETER.name),
+        new ElementKind(ElementKind.TYPE_PARAMETER.name),
         ElementKind.TYPE_PARAMETER);
     expect(
-        ElementKind.valueOf(ElementKind.UNIT_TEST_CASE.name),
-        ElementKind.UNIT_TEST_CASE);
+        new ElementKind(ElementKind.UNIT_TEST_TEST.name),
+        ElementKind.UNIT_TEST_TEST);
     expect(
-        ElementKind.valueOf(ElementKind.UNIT_TEST_GROUP.name),
+        new ElementKind(ElementKind.UNIT_TEST_GROUP.name),
         ElementKind.UNIT_TEST_GROUP);
-    expect(ElementKind.valueOf(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
+    expect(new ElementKind(ElementKind.UNKNOWN.name), ElementKind.UNKNOWN);
     expect(() {
-      ElementKind.valueOf('no-such-kind');
+      new ElementKind('no-such-kind');
     }, throws);
   }
 
   void test_valueOfEngine() {
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.CLASS),
+        elementKindFromEngine(engine.ElementKind.CLASS),
         ElementKind.CLASS);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.COMPILATION_UNIT),
+        elementKindFromEngine(engine.ElementKind.COMPILATION_UNIT),
         ElementKind.COMPILATION_UNIT);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.CONSTRUCTOR),
+        elementKindFromEngine(engine.ElementKind.CONSTRUCTOR),
         ElementKind.CONSTRUCTOR);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.FIELD),
+        elementKindFromEngine(engine.ElementKind.FIELD),
         ElementKind.FIELD);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.FUNCTION),
+        elementKindFromEngine(engine.ElementKind.FUNCTION),
         ElementKind.FUNCTION);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
+        elementKindFromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
         ElementKind.FUNCTION_TYPE_ALIAS);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.GETTER),
+        elementKindFromEngine(engine.ElementKind.GETTER),
         ElementKind.GETTER);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.LIBRARY),
+        elementKindFromEngine(engine.ElementKind.LIBRARY),
         ElementKind.LIBRARY);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.LOCAL_VARIABLE),
+        elementKindFromEngine(engine.ElementKind.LOCAL_VARIABLE),
         ElementKind.LOCAL_VARIABLE);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.METHOD),
+        elementKindFromEngine(engine.ElementKind.METHOD),
         ElementKind.METHOD);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.PARAMETER),
+        elementKindFromEngine(engine.ElementKind.PARAMETER),
         ElementKind.PARAMETER);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.SETTER),
+        elementKindFromEngine(engine.ElementKind.SETTER),
         ElementKind.SETTER);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
+        elementKindFromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
         ElementKind.TOP_LEVEL_VARIABLE);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.TYPE_PARAMETER),
+        elementKindFromEngine(engine.ElementKind.TYPE_PARAMETER),
         ElementKind.TYPE_PARAMETER);
     expect(
-        ElementKind.valueOfEngine(engine.ElementKind.ANGULAR_COMPONENT),
+        elementKindFromEngine(engine.ElementKind.ANGULAR_COMPONENT),
         ElementKind.UNKNOWN);
   }
 }

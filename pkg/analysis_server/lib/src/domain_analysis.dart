@@ -4,15 +4,12 @@
 
 library domain.analysis;
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart';
-import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 
@@ -65,14 +62,14 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response getHover(Request request) {
     // prepare parameters
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
+    var params = new AnalysisGetHoverParams.fromRequest(request);
     // prepare hovers
     List<Hover> hovers = <Hover>[];
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    List<CompilationUnit> units =
+        server.getResolvedCompilationUnits(params.file);
     for (CompilationUnit unit in units) {
       Hover hoverInformation =
-          new DartUnitHoverComputer(unit, offset).compute();
+          new DartUnitHoverComputer(unit, params.offset).compute();
       if (hoverInformation != null) {
         hovers.add(hoverInformation);
       }
@@ -112,14 +109,9 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the 'analysis.setAnalysisRoots' request.
    */
   Response setAnalysisRoots(Request request) {
-    // included
-    RequestDatum includedDatum = request.getRequiredParameter(INCLUDED);
-    List<String> includedPaths = includedDatum.asStringList();
-    // excluded
-    RequestDatum excludedDatum = request.getRequiredParameter(EXCLUDED);
-    List<String> excludedPaths = excludedDatum.asStringList();
+    var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     // continue in server
-    server.setAnalysisRoots(request.id, includedPaths, excludedPaths);
+    server.setAnalysisRoots(request.id, params.included, params.excluded);
     return new Response(request.id);
   }
 
@@ -127,10 +119,8 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the 'analysis.setPriorityFiles' request.
    */
   Response setPriorityFiles(Request request) {
-    // files
-    RequestDatum filesDatum = request.getRequiredParameter(FILES);
-    List<String> files = filesDatum.asStringList();
-    server.setPriorityFiles(request, files);
+    var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
+    server.setPriorityFiles(request, params.files);
     return new Response(request.id);
   }
 
@@ -138,16 +128,11 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the 'analysis.setSubscriptions' request.
    */
   Response setSubscriptions(Request request) {
+    var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
     // parse subscriptions
-    Map<AnalysisService, Set<String>> subMap;
-    {
-      Map<AnalysisService, List<String>> subscriptions =
-          new AnalysisSetSubscriptionsParams.fromRequest(request).subscriptions;
-      subMap = new HashMap<AnalysisService, Set<String>>();
-      subscriptions.forEach((AnalysisService service, List<String> paths) {
-        subMap[service] = new HashSet.from(paths);
-      });
-    }
+    Map<AnalysisService, Set<String>> subMap =
+        mapMap(params.subscriptions, valueCallback:
+          (List<String> subscriptions) => subscriptions.toSet());
     server.setAnalysisSubscriptions(subMap);
     return new Response(request.id);
   }
@@ -156,35 +141,8 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the 'analysis.updateContent' request.
    */
   Response updateContent(Request request) {
-    var changes = new HashMap<String, ContentChange>();
-    RequestDatum filesDatum = request.getRequiredParameter(FILES);
-    for (String file in filesDatum.keys) {
-      RequestDatum changeDatum = filesDatum[file];
-      ContentChange change = new ContentChange();
-      change.type = changeDatum[TYPE].asString();
-      switch (change.type) {
-        case ADD:
-          change.content = changeDatum[CONTENT].asString();
-          break;
-        case CHANGE:
-          change.changes = changeDatum[EDITS].asList((RequestDatum item) {
-            int offset = item[OFFSET].asInt();
-            int length = item[LENGTH].asInt();
-            String replacement = item[REPLACEMENT].asString();
-            return new Edit(offset, length, replacement);
-          });
-          break;
-        case REMOVE:
-          break;
-        default:
-          return new Response.invalidParameter(
-              request,
-              changeDatum[TYPE].path,
-              'be one of "add", "change", or "remove"');
-      }
-      changes[file] = change;
-    }
-    server.updateContent(changes);
+    var params = new AnalysisUpdateContentParams.fromRequest(request);
+    server.updateContent(params.files);
     return new Response(request.id);
   }
 
@@ -235,22 +193,4 @@ class AnalysisDomainHandler implements RequestHandler {
     server.updateOptions(updaters);
     return new Response(request.id);
   }
-}
-
-
-/**
- * A description of the change to the content of a file.
- */
-class ContentChange {
-  /**
-   * Type of content change.  'add' means that [content] contains the full
-   * content of the file, and [changes] should be null.  'change' means that
-   * [changes] contains changes to be applied to the file, and [content] should
-   * be null.  'remove' means that the file should be read from the filesystem,
-   * and both [content] and [changes] should be null.
-   */
-  String type;
-
-  String content;
-  List<Edit> changes;
 }

@@ -6,6 +6,7 @@ library services.src.refactoring.rename_import;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -52,21 +53,21 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     {
       String file = getElementFile(element);
       PrefixElement prefix = element.prefix;
-      Edit edit = null;
+      SourceEdit edit = null;
       if (newName.isEmpty) {
         int uriEnd = element.uriEnd;
         int prefixEnd = element.prefixOffset + prefix.displayName.length;
         SourceRange range = rangeStartEnd(uriEnd, prefixEnd);
-        edit = new Edit.range(range, "");
+        edit = editFromRange(range, "");
       } else {
         if (prefix == null) {
           SourceRange range = rangeStartLength(element.uriEnd, 0);
-          edit = new Edit.range(range, " as ${newName}");
+          edit = editFromRange(range, " as ${newName}");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.displayName.length;
           SourceRange range = rangeStartLength(offset, length);
-          edit = new Edit.range(range, newName);
+          edit = editFromRange(range, newName);
         }
       }
       if (edit != null) {
@@ -77,7 +78,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
     return searchEngine.searchReferences(element).then((refMatches) {
       List<SourceReference> references = getSourceReferences(refMatches);
       for (SourceReference reference in references) {
-        Edit edit;
+        SourceEdit edit;
         if (newName.isEmpty) {
           edit = createReferenceEdit(reference, newName);
         } else {

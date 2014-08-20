@@ -6,6 +6,7 @@ library computer.outline;
 
 import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/protocol2.dart' show ElementKind;
 import 'package:analysis_server/src/services/json.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;

@@ -69,7 +69,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
 
   String getPathString(List<Element> path) {
     return path.map((Element element) {
-      return '${element.kind} ${element.name}';
+      return '${element.kind.name} ${element.name}';
     }).join('\n');
   }
 

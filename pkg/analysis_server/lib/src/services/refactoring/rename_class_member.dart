@@ -6,6 +6,7 @@ library services.src.refactoring.rename_class_member;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -107,17 +108,17 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           }
         }
         // add edit
-        Edit edit = createReferenceEdit(reference, newName);
-        _markEditAsPotential(edit);
+        SourceEdit edit = createReferenceEdit(reference, newName,
+            id: _newPotentialId());
         change.addEdit(reference.file, edit);
       }
     }).then((_) => change);
   }
 
-  void _markEditAsPotential(Edit edit) {
+  String _newPotentialId() {
     String id = potentialEditIds.length.toString();
     potentialEditIds.add(id);
-    edit.id = id;
+    return id;
   }
 }
 

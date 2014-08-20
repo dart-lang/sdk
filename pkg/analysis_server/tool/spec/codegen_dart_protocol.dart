@@ -476,7 +476,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       } else {
         return new ToJsonSnippet(dartType(type), (String value) {
           StringBuffer result = new StringBuffer();
-          result.write('_mapMap($value');
+          result.write('mapMap($value');
           if (!keyCode.isIdentity) {
             result.write(', keyCallback: ${keyCode.asClosure}');
           }

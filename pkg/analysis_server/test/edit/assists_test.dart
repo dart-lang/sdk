@@ -6,7 +6,6 @@ library test.edit.assists;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart';
@@ -36,17 +35,15 @@ class AssistsTest extends AbstractAnalysisTest {
     Request request = new EditGetAssistsParams(testFile, offset,
         length).toRequest('0');
     Response response = handleSuccessfulRequest(request);
-    List<Map<String, dynamic>> changeJsonList = response.getResult(ASSISTS);
+    var result = new EditGetAssistsResult.fromResponse(response);
+    List<SourceChange> sourceChangeList = result.assists;
     // TODO(scheglov) consider using generated classes and decoders
-    changes = changeJsonList.map((Map<String, dynamic> changeJson) {
-      Change change = new Change(changeJson[MESSAGE]);
-      changeJson[EDITS].forEach((Map<String, dynamic> fileEditJson) {
-        FileEdit fileEdit = new FileEdit(fileEditJson[FILE]);
+    changes = sourceChangeList.map((SourceChange sourceChange) {
+      Change change = new Change(sourceChange.message);
+      sourceChange.edits.forEach((SourceFileEdit sourceFileEdit) {
+        FileEdit fileEdit = new FileEdit(sourceFileEdit.file);
         change.fileEdits.add(fileEdit);
-        fileEditJson[EDITS].forEach((Map<String, dynamic> json) {
-          Edit edit = new Edit(json[OFFSET], json[LENGTH], json[REPLACEMENT]);
-          fileEdit.edits.add(edit);
-        });
+        fileEdit.edits.addAll(sourceFileEdit.edits);
       });
       return change;
     }).toList();
@@ -118,7 +115,7 @@ main() {
     for (Change change in changes) {
       if (change.message == message) {
         String resultCode =
-            Edit.applySequence(testCode, change.fileEdits[0].edits);
+            applySequence(testCode, change.fileEdits[0].edits);
         expect(resultCode, expectedCode);
         return;
       }
