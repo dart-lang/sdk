@@ -7631,6 +7631,7 @@ class SearchResult implements HasToJson {
  *   READ
  *   READ_WRITE
  *   REFERENCE
+ *   UNKNOWN
  *   WRITE
  * }
  */
@@ -7662,6 +7663,11 @@ class SearchResultKind {
   static const REFERENCE = const SearchResultKind._("REFERENCE");
 
   /**
+   * Some other kind of search result.
+   */
+  static const UNKNOWN = const SearchResultKind._("UNKNOWN");
+
+  /**
    * A reference to a field, parameter or variable where it is being written.
    */
   static const WRITE = const SearchResultKind._("WRITE");
@@ -7682,6 +7688,8 @@ class SearchResultKind {
         return READ_WRITE;
       case "REFERENCE":
         return REFERENCE;
+      case "UNKNOWN":
+        return UNKNOWN;
       case "WRITE":
         return WRITE;
     }

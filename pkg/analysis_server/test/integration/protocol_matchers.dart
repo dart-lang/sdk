@@ -1644,6 +1644,7 @@ final Matcher isSearchResult = new LazyMatcher(() => new MatchesJsonObject(
  *   READ
  *   READ_WRITE
  *   REFERENCE
+ *   UNKNOWN
  *   WRITE
  * }
  */
@@ -1653,6 +1654,7 @@ final Matcher isSearchResultKind = new MatchesEnum("SearchResultKind", [
   "READ",
   "READ_WRITE",
   "REFERENCE",
+  "UNKNOWN",
   "WRITE"
 ]);
 
