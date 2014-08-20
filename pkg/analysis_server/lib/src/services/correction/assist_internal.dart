@@ -1484,7 +1484,7 @@ class AssistProcessor {
   LinkedEditGroup _getLinkedPosition(String groupId) {
     LinkedEditGroup group = linkedPositionGroups[groupId];
     if (group == null) {
-      group = new LinkedEditGroup(groupId);
+      group = new LinkedEditGroup();
       linkedPositionGroups[groupId] = group;
     }
     return group;
@@ -1511,8 +1511,8 @@ class AssistProcessor {
     String text = builder.toString();
     _addInsertEdit(builder.offset, text);
     // add linked positions
-    builder.linkedPositionGroups.forEach((LinkedEditGroup group) {
-      LinkedEditGroup fixGroup = _getLinkedPosition(group.id);
+    builder.linkedPositionGroups.forEach((String id, LinkedEditGroup group) {
+      LinkedEditGroup fixGroup = _getLinkedPosition(id);
       group.positions.forEach((Position position) {
         fixGroup.addPosition(position, group.length);
       });

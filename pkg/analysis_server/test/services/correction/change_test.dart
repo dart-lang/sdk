@@ -62,7 +62,7 @@ class ChangeTest {
         ..add(new SourceEdit(21, 22, 'xxx'))
         ..add(new SourceEdit(210, 220, 'yyy')));
     {
-      var group = new LinkedEditGroup('id-a');
+      var group = new LinkedEditGroup();
       change.addLinkedEditGroup(group
           ..addPosition(new Position('/ga.dart', 1), 2)
           ..addPosition(new Position('/ga.dart', 10), 2));
@@ -71,7 +71,7 @@ class ChangeTest {
       group.addSuggestion(
           new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'BB'));
     }
-    change.addLinkedEditGroup(new LinkedEditGroup('id-b')
+    change.addLinkedEditGroup(new LinkedEditGroup()
         ..addPosition(new Position('/gb.dart', 10), 5)
         ..addPosition(new Position('/gb.dart', 100), 5));
     change.selection = new Position('/selection.dart', 42);
@@ -101,7 +101,6 @@ class ChangeTest {
             }]
         }],
       'linkedEditGroups': [{
-          'id': 'id-a',
           'length': 2,
           'positions': [{
               'file': '/ga.dart',
@@ -118,7 +117,6 @@ class ChangeTest {
               'value': 'BB'
             }]
         }, {
-          'id': 'id-b',
           'length': 5,
           'positions': [{
               'file': '/gb.dart',
@@ -250,18 +248,18 @@ class FileEditTest {
 @ReflectiveTestCase()
 class LinkedEditGroupTest {
   void test_new() {
-    LinkedEditGroup group = new LinkedEditGroup('my-id');
+    LinkedEditGroup group = new LinkedEditGroup();
     group.addPosition(new Position('/a.dart', 1), 2);
     group.addPosition(new Position('/b.dart', 10), 2);
     expect(
         group.toString(),
-        'LinkedEditGroup(id=my-id, length=2, positions=['
+        'LinkedEditGroup(length=2, positions=['
             'Position(file=/a.dart, offset=1), '
             'Position(file=/b.dart, offset=10)], suggestions=[])');
   }
 
   void test_toJson() {
-    LinkedEditGroup group = new LinkedEditGroup('my-id');
+    LinkedEditGroup group = new LinkedEditGroup();
     group.addPosition(new Position('/a.dart', 1), 2);
     group.addPosition(new Position('/b.dart', 10), 2);
     group.addSuggestion(
@@ -269,7 +267,6 @@ class LinkedEditGroupTest {
     group.addSuggestion(
         new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'BB'));
     expect(group.toJson(), {
-      'id': 'my-id',
       'length': 2,
       'positions': [{
           'file': '/a.dart',

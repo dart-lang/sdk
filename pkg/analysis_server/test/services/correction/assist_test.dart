@@ -57,20 +57,6 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     assertHasAssist(kind, expected);
   }
 
-  void assertHasPositionGroup(String id, int expectedLength,
-      List<Position> expectedPositions) {
-    List<LinkedEditGroup> linkedPositionGroups = change.linkedEditGroups;
-    for (LinkedEditGroup group in linkedPositionGroups) {
-      if (group.id == id) {
-        expect(group.length, expectedLength);
-        expect(group.positions, unorderedEquals(expectedPositions));
-        linkedPositionGroup = group;
-        return;
-      }
-    }
-    fail('No PositionGroup with id=$id found in $linkedPositionGroups');
-  }
-
   /**
    * Asserts that there is no [Assist] of the given [kind] at [offset].
    */
@@ -309,13 +295,12 @@ main() {
 }
 List<int> readBytes() => <int>[];
 ''');
-    assertHasPositionGroup('NAME', 9, expectedPositions(['readBytes = ']));
-    expect(
-        linkedPositionGroup.suggestions,
-        unorderedEquals(
-            expectedSuggestions(
-                LinkedEditSuggestionKind.VARIABLE,
-                ['list', 'bytes2', 'readBytes'])));
+    _assertLinkedGroup(
+        change.linkedEditGroups[0],
+        ['readBytes = '],
+        expectedSuggestions(
+            LinkedEditSuggestionKind.VARIABLE,
+            ['list', 'bytes2', 'readBytes']));
   }
 
   void test_assignToLocalVariable_alreadyAssignment() {
@@ -2202,28 +2187,13 @@ main() {
     throw fail('Expected to find assist $kind in\n${assists.join('\n')}');
   }
 
-  void _assertHasLinkedPositions(String groupId, List<String> expectedStrings) {
+  void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
+      [List<LinkedEditSuggestion> expectedSuggestions]) {
     List<Position> expectedPositions = _findResultPositions(expectedStrings);
-    List<LinkedEditGroup> groups = change.linkedEditGroups;
-    for (LinkedEditGroup group in groups) {
-      if (group.id == groupId) {
-        List<Position> actualPositions = group.positions;
-        expect(actualPositions, unorderedEquals(expectedPositions));
-        return;
-      }
+    expect(group.positions, unorderedEquals(expectedPositions));
+    if (expectedSuggestions != null) {
+      expect(group.suggestions, unorderedEquals(expectedSuggestions));
     }
-    fail('No group with ID=$groupId foind in\n${groups.join('\n')}');
-  }
-
-  void _assertHasLinkedProposals(String groupId, List<String> expected) {
-    List<LinkedEditGroup> groups = change.linkedEditGroups;
-    for (LinkedEditGroup group in groups) {
-      if (group.id == groupId) {
-        expect(group.suggestions, expected);
-        return;
-      }
-    }
-    fail('No group with ID=$groupId foind in\n${groups.join('\n')}');
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {

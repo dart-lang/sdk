@@ -176,12 +176,9 @@ class FileEdit implements HasToJson {
  * same way. All linked positions in a group have the same content.
  */
 class LinkedEditGroup implements HasToJson {
-  final String id;
   int length;
   final List<Position> positions = <Position>[];
   final List<LinkedEditSuggestion> suggestions = <LinkedEditSuggestion>[];
-
-  LinkedEditGroup(this.id);
 
   void addPosition(Position position, int length) {
     positions.add(position);
@@ -195,7 +192,6 @@ class LinkedEditGroup implements HasToJson {
   @override
   Map<String, Object> toJson() {
     return {
-      ID: id,
       LENGTH: length,
       POSITIONS: objectToJson(positions),
       SUGGESTIONS: objectToJson(suggestions)
@@ -204,8 +200,7 @@ class LinkedEditGroup implements HasToJson {
 
   @override
   String toString() =>
-      'LinkedEditGroup(id=$id, length=$length, '
-          'positions=$positions, suggestions=$suggestions)';
+      'LinkedEditGroup(length=$length, positions=$positions, suggestions=$suggestions)';
 }
 
 

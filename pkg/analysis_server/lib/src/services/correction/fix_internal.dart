@@ -56,8 +56,8 @@ class FixProcessor {
   String unitLibraryFolder;
 
   final List<SourceEdit> edits = <SourceEdit>[];
-  final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
-      LinkedEditGroup>{};
+  final LinkedHashMap<String, LinkedEditGroup> linkedPositionGroups =
+      new LinkedHashMap<String, LinkedEditGroup>();
   Position exitPosition = null;
   final List<Fix> fixes = <Fix>[];
 
@@ -1570,7 +1570,7 @@ class FixProcessor {
   LinkedEditGroup _getLinkedPosition(String groupId) {
     LinkedEditGroup group = linkedPositionGroups[groupId];
     if (group == null) {
-      group = new LinkedEditGroup(groupId);
+      group = new LinkedEditGroup();
       linkedPositionGroups[groupId] = group;
     }
     return group;
@@ -1715,8 +1715,8 @@ class FixProcessor {
     String text = builder.toString();
     _addInsertEdit(builder.offset, text);
     // add linked positions
-    builder.linkedPositionGroups.forEach((LinkedEditGroup group) {
-      LinkedEditGroup fixGroup = _getLinkedPosition(group.id);
+    builder.linkedPositionGroups.forEach((String id, LinkedEditGroup group) {
+      LinkedEditGroup fixGroup = _getLinkedPosition(id);
       group.positions.forEach((Position position) {
         fixGroup.addPosition(position, group.length);
       });
@@ -1725,31 +1725,6 @@ class FixProcessor {
       });
     });
   }
-
-//  void _addLinkedPositionProposal(String group,
-//      LinkedPositionProposal proposal) {
-//    List<LinkedPositionProposal> nodeProposals = linkedPositionProposals[group];
-//    if (nodeProposals == null) {
-//      nodeProposals = <LinkedPositionProposal>[];
-//      linkedPositionProposals[group] = nodeProposals;
-//    }
-//    nodeProposals.add(proposal);
-//  }
-
-//  /**
-//   * Returns `true` if the given [ClassMember] is a part of a static method or
-//   * a field initializer.
-//   */
-//  bool _inStaticMemberContext2(ClassMember member) {
-//    if (member is MethodDeclaration) {
-//      return member.isStatic;
-//    }
-//    // field initializer cannot reference "this"
-//    if (member is FieldDeclaration) {
-//      return true;
-//    }
-//    return false;
-//  }
 
   _ConstructorLocation
       _prepareNewConstructorLocation(ClassDeclaration classDeclaration) {

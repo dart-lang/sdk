@@ -16,7 +16,8 @@ class SourceBuilder {
   final int offset;
   final StringBuffer _buffer = new StringBuffer();
 
-  final List<LinkedEditGroup> linkedPositionGroups = <LinkedEditGroup>[];
+  final Map<String, LinkedEditGroup> linkedPositionGroups = <String,
+      LinkedEditGroup>{};
   LinkedEditGroup _currentLinkedPositionGroup;
   int _currentPositionStart;
   int _exitOffset;
@@ -75,17 +76,12 @@ class SourceBuilder {
   /**
    * Marks start of a new linked position for the group with the given ID.
    */
-  void startPosition(String groupId) {
+  void startPosition(String id) {
     assert(_currentLinkedPositionGroup == null);
-    for (LinkedEditGroup position in linkedPositionGroups) {
-      if (position.id == groupId) {
-        _currentLinkedPositionGroup = position;
-        break;
-      }
-    }
+    _currentLinkedPositionGroup = linkedPositionGroups[id];
     if (_currentLinkedPositionGroup == null) {
-      _currentLinkedPositionGroup = new LinkedEditGroup(groupId);
-      linkedPositionGroups.add(_currentLinkedPositionGroup);
+      _currentLinkedPositionGroup = new LinkedEditGroup();
+      linkedPositionGroups[id] = _currentLinkedPositionGroup;
     }
     _currentPositionStart = _buffer.length;
   }

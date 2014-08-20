@@ -46,17 +46,6 @@ class FixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, expected);
   }
 
-  void assertHasPositionGroup(String id, List<Position> expectedPositions) {
-    List<LinkedEditGroup> linkedPositionGroups = change.linkedEditGroups;
-    for (LinkedEditGroup group in linkedPositionGroups) {
-      if (group.id == id) {
-        expect(group.positions, unorderedEquals(expectedPositions));
-        return;
-      }
-    }
-    fail('No PositionGroup with id=$id found in $linkedPositionGroups');
-  }
-
   void assertNoFix(FixKind kind) {
     AnalysisError error = _findErrorToFix();
     List<Fix> fixes = computeFixes(searchEngine, testUnit, error);
@@ -97,6 +86,13 @@ bool test() {
       positions.add(expectedPosition(search));
     });
     return positions;
+  }
+
+  List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
+      List<String> values) {
+    return values.map((value) {
+      return new LinkedEditSuggestion(kind, value);
+    }).toList();
   }
 
   void setUp() {
@@ -186,7 +182,7 @@ main() {
 class Test {
 }
 ''');
-    assertHasPositionGroup('NAME', expectedPositions(['Test v =', 'Test {']));
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
   }
 
   void test_createConstructorSuperExplicit() {
@@ -1593,39 +1589,34 @@ class A {
 }
 ''');
     // linked positions
-    _assertHasLinkedPositions(
-        'NAME',
+    int index = 0;
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++],
+        ['void myUndefinedMethod(']);
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++],
         ['myUndefinedMethod(0', 'myUndefinedMethod(int']);
-    _assertHasLinkedPositions('RETURN_TYPE', ['void myUndefinedMethod(']);
-    _assertHasLinkedPositions('TYPE0', ['int i']);
-    _assertHasLinkedPositions('TYPE1', ['double d']);
-    _assertHasLinkedPositions('TYPE2', ['String s']);
-    _assertHasLinkedPositions('ARG0', ['i,']);
-    _assertHasLinkedPositions('ARG1', ['d,']);
-    _assertHasLinkedPositions('ARG2', ['s)']);
-    // linked proposals
-    _assertHasLinkedSuggestions(
-        'TYPE0',
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++],
+        ['int i'],
         expectedSuggestions(
             LinkedEditSuggestionKind.TYPE,
             ['int', 'num', 'Object', 'Comparable']));
-    _assertHasLinkedSuggestions(
-        'TYPE1',
+    _assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++],
+        ['double d'],
         expectedSuggestions(
             LinkedEditSuggestionKind.TYPE,
             ['double', 'num', 'Object', 'Comparable']));
-    _assertHasLinkedSuggestions(
-        'TYPE2',
+    _assertLinkedGroup(change.linkedEditGroups[index++], ['d,']);
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++],
+        ['String s'],
         expectedSuggestions(
             LinkedEditSuggestionKind.TYPE,
             ['String', 'Object', 'Comparable']));
-  }
-
-  List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
-      List<String> values) {
-    return values.map((value) {
-      return new LinkedEditSuggestion(kind, value);
-    }).toList();
+    _assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
   void test_undefinedMethod_createUnqualified_returnType() {
@@ -1647,10 +1638,10 @@ class A {
 }
 ''');
     // linked positions
-    _assertHasLinkedPositions(
-        'NAME',
+    _assertLinkedGroup(change.linkedEditGroups[0], ['int myUndefinedMethod(']);
+    _assertLinkedGroup(
+        change.linkedEditGroups[1],
         ['myUndefinedMethod();', 'myUndefinedMethod() {']);
-    _assertHasLinkedPositions('RETURN_TYPE', ['int myUndefinedMethod(']);
   }
 
   void test_undefinedMethod_createUnqualified_staticFromField() {
@@ -1812,29 +1803,13 @@ main() {
     throw fail('Expected to find fix $kind in\n${fixes.join('\n')}');
   }
 
-  void _assertHasLinkedPositions(String groupId, List<String> expectedStrings) {
+  void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
+      [List<LinkedEditSuggestion> expectedSuggestions]) {
     List<Position> expectedPositions = _findResultPositions(expectedStrings);
-    List<LinkedEditGroup> groups = change.linkedEditGroups;
-    for (LinkedEditGroup group in groups) {
-      if (group.id == groupId) {
-        List<Position> actualPositions = group.positions;
-        expect(actualPositions, unorderedEquals(expectedPositions));
-        return;
-      }
+    expect(group.positions, unorderedEquals(expectedPositions));
+    if (expectedSuggestions != null) {
+      expect(group.suggestions, unorderedEquals(expectedSuggestions));
     }
-    fail('No group with ID=$groupId foind in\n${groups.join('\n')}');
-  }
-
-  void _assertHasLinkedSuggestions(String groupId,
-      List<LinkedEditSuggestion> expected) {
-    List<LinkedEditGroup> groups = change.linkedEditGroups;
-    for (LinkedEditGroup group in groups) {
-      if (group.id == groupId) {
-        expect(group.suggestions, expected);
-        return;
-      }
-    }
-    fail('No group with ID=$groupId foind in\n${groups.join('\n')}');
   }
 
   /**
