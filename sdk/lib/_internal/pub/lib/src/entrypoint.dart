@@ -57,6 +57,9 @@ class Entrypoint {
   /// If not provided to the entrypoint, it will be laoded lazily from disc.
   LockFile _lockFile;
 
+  /// The graph of all packages reachable from the entrypoint.
+  PackageGraph _packageGraph;
+
   /// Loads the entrypoint from a package at [rootDir].
   ///
   /// If [packageSymlinks] is `true`, this will create a "packages" directory
@@ -139,11 +142,18 @@ class Entrypoint {
 
         result.summarizeChanges(type, dryRun: dryRun);
 
-        // TODO(nweiz): we've already parsed all the pubspecs and we know the
-        // lockfile is up to date; there's got to be a way to re-use that
-        // information here.
-        //
-        // Also, don't precompile stuff when the transitive dependencies
+        /// Build a package graph from the version solver results so we don't
+        /// have to reload and reparse all the pubspecs.
+        return Future.wait(ids.map((id) {
+          return cache.sources[id.source].getDirectory(id).then((dir) {
+            return new Package(result.pubspecs[id.name], dir);
+          });
+        }));
+      }).then((packages) {
+        _packageGraph = new PackageGraph(this, _lockFile,
+            new Map.fromIterable(packages, key: (package) => package.name));
+
+        // TODO(nweiz): don't precompile stuff when the transitive dependencies
         // haven't changed.
         return precompileExecutables().catchError((error, stackTrace) {
           // Just log exceptions here. Since the method is just about acquiring
@@ -381,6 +391,8 @@ class Entrypoint {
   /// Before loading, makes sure the lockfile and dependencies are installed
   /// and up to date.
   Future<PackageGraph> loadPackageGraph() {
+    if (_packageGraph != null) return new Future.value(_packageGraph);
+
     return ensureLockFileIsUpToDate().then((_) {
       return Future.wait(lockFile.packages.values.map((id) {
         var source = cache.sources[id.source];
@@ -389,7 +401,8 @@ class Entrypoint {
       })).then((packages) {
         var packageMap = new Map.fromIterable(packages, key: (p) => p.name);
         packageMap[root.name] = root;
-        return new PackageGraph(this, lockFile, packageMap);
+        _packageGraph = new PackageGraph(this, lockFile, packageMap);
+        return _packageGraph;
       });
     });
   }

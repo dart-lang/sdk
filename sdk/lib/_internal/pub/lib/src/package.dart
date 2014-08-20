@@ -110,6 +110,9 @@ class Package {
   Package.inMemory(this.pubspec)
     : dir = null;
 
+  /// Creates a package with [pubspec] located at [dir].
+  Package(this.pubspec, this.dir);
+
   /// The basenames of files that are included in [list] despite being hidden.
   static final _WHITELISTED_FILES = const ['.htaccess'];
 

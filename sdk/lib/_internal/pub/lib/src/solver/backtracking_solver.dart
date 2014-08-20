@@ -143,8 +143,13 @@ class BacktrackingSolver {
       _validateSdkConstraint(root.pubspec);
       return _traverseSolution();
     }).then((packages) {
+      var pubspecs = new Map.fromIterable(packages,
+          key: (id) => id.name,
+          value: (id) => cache.getCachedPubspec(id));
+
       return new SolveResult.success(sources, root, lockFile, packages,
-          overrides, _getAvailableVersions(packages), attemptedSolutions);
+          overrides, pubspecs, _getAvailableVersions(packages),
+          attemptedSolutions);
     }).catchError((error) {
       if (error is! SolveFailure) throw error;
 

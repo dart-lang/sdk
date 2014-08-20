@@ -53,6 +53,10 @@ class SolveResult {
   /// The dependency overrides that were used in the solution.
   final List<PackageDep> overrides;
 
+  /// A map from package names to the pubspecs for the versions of those
+  /// packages that were installed, or `null` if the solver failed.
+  final Map<String, Pubspec> pubspecs;
+
   /// The available versions of all selected packages from their source.
   ///
   /// Will be empty if the solve failed. An entry here may not include the full
@@ -76,13 +80,14 @@ class SolveResult {
   final LockFile _previousLockFile;
 
   SolveResult.success(this._sources, this._root, this._previousLockFile,
-      this.packages, this.overrides, this.availableVersions,
+      this.packages, this.overrides, this.pubspecs, this.availableVersions,
       this.attemptedSolutions)
       : error = null;
 
   SolveResult.failure(this._sources, this._root, this._previousLockFile,
       this.overrides, this.error, this.attemptedSolutions)
       : this.packages = null,
+        this.pubspecs = null,
         this.availableVersions = {};
 
   /// Displays a report of what changes were made to the lockfile.
