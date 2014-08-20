@@ -32,7 +32,8 @@ bool isBlockElement(Node node) {
   // div element.
   if (element.classes.contains('dart-code-completion')) return false;
 
-  return element.getComputedStyle().display != 'inline';
+  var display = element.getComputedStyle().display;
+  return display != 'inline' && display != 'none';
 }
 
 /// Writes the text of [root] to [buffer]. Keeps track of [selection] and

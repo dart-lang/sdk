@@ -33,6 +33,8 @@ import 'ui.dart' show
 
 import 'settings.dart' show
     alwaysRunInWorker,
+    alwaysRunInIframe,
+    communicateViaBlobs,
     incrementalCompilation,
     minified,
     onlyAnalyze,
@@ -110,6 +112,8 @@ class CompilationProcess {
     }
     interaction.compilationStarting();
     compilerPort.send([['options', options], receivePort.sendPort]);
+    compilerPort.send([['communicateViaBlobs', communicateViaBlobs.value],
+                       receivePort.sendPort]);
     receivePort.listen(onMessage);
     compilerPort.send([source, receivePort.sendPort]);
   }
@@ -214,7 +218,8 @@ self.importScripts("$url");
           ..appendText('\n');
     }
     interaction.aboutToRun();
-    if (usesDartHtml && !alwaysRunInWorker) {
+    if (alwaysRunInIframe.value ||
+        usesDartHtml && !alwaysRunInWorker) {
       retryInIframe();
     } else {
       runInWorker(url, onError);

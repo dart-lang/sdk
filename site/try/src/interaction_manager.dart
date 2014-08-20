@@ -21,6 +21,8 @@ import 'dart:async' show
 import 'dart:collection' show
     Queue;
 
+import 'dart:js' as hack;
+
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
     BeginGroupToken,
     EOF_TOKEN,
@@ -82,7 +84,8 @@ import 'settings.dart' as settings;
 import 'shadow_root.dart' show
     getShadowRoot,
     getText,
-    setShadowRoot;
+    setShadowRoot,
+    containsNode;
 
 import 'iframe_error_handler.dart' show
     ErrorMessage;
@@ -459,7 +462,7 @@ class InitialState extends InteractionState {
         state = previousLine.getAttribute('dart-state');
       }
 
-      node.parent.insertAllBefore(
+      node.parentNode.insertAllBefore(
           createHighlightedNodes(trySelection, currentText, state),
           node);
       node.remove();
@@ -476,7 +479,7 @@ class InitialState extends InteractionState {
           ..addAll(nodes);
     }
 
-    if (mainEditorPane.contains(trySelection.anchorNode)) {
+    if (containsNode(mainEditorPane, trySelection.anchorNode)) {
       // Sometimes the anchor node is removed by the above call. This has
       // only been observed in Firefox, and is hard to reproduce.
       trySelection.adjust(selection);
@@ -1217,7 +1220,7 @@ void normalizeMutationRecord(MutationRecord record,
                              TrySelection selection,
                              Set<Node> normalizedNodes) {
   for (Node node in record.addedNodes) {
-    if (node.parent == null) continue;
+    if (node.parentNode == null) continue;
     normalizedNodes.add(findLine(node));
     if (node is Text) continue;
     StringBuffer buffer = new StringBuffer();
@@ -1238,7 +1241,7 @@ void normalizeMutationRecord(MutationRecord record,
     }
     normalizedNodes.add(line);
   }
-  if (record.type == "characterData" && record.target.parent != null) {
+  if (record.type == "characterData" && record.target.parentNode != null) {
     // At least Firefox sends a "characterData" record whose target is the
     // deleted text node. It also sends a record where "removedNodes" isn't
     // empty whose target is the parent (which we are interested in).
@@ -1250,7 +1253,7 @@ void normalizeMutationRecord(MutationRecord record,
 // If no such parent exists, return mainEditorPane if it is a parent.
 // Otherwise return [node].
 Node findLine(Node node) {
-  for (Node n = node; n != null; n = n.parent) {
+  for (Node n = node; n != null; n = n.parentNode) {
     if (n is Element && n.classes.contains('lineNumber')) return n;
     if (n == mainEditorPane) return n;
   }
@@ -1268,7 +1271,7 @@ bool isAtEndOfFile(Text text, int offset) {
   Node line = findLine(text);
   return
       line.nextNode == null &&
-      text.parent.nextNode == null &&
+      text.parentNode.nextNode == null &&
       offset == text.length;
 }
 
@@ -1307,11 +1310,18 @@ void workAroundFirefoxBug() {
     // Safari can also reach this code, but the offset isn't wrong, just
     // inconsistent.  After moving the cursor back and forth, Safari will make
     // the offset relative to a text node.
-    selection
-        ..modify('move', 'backward', 'character')
-        ..modify('move', 'forward', 'character');
-    print('Selection adjusted $node@$offset -> '
-          '${selection.anchorNode}@${selection.anchorOffset}.');
+    // TODO(ahe): Come up with a better way to encapsulate the method below.
+    var selectionProxy = new hack.JsObject.fromBrowserObject(selection);
+    var modify = selectionProxy['modify'];
+    if (modify != null) {
+      // IE doesn't support selection.modify, but it's okay since the code
+      // above is for Firefox, IE doesn't have problems with anchorOffset.
+      selection
+          ..modify('move', 'backward', 'character')
+          ..modify('move', 'forward', 'character');
+      print('Selection adjusted $node@$offset -> '
+            '${selection.anchorNode}@${selection.anchorOffset}.');
+    }
   }
 }
 

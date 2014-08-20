@@ -23,6 +23,8 @@ final cachedSources = new Map<Uri, Future<String>>();
 Uri sdkLocation;
 List options = [];
 
+var communicateViaBlobs;
+
 var cachedCompiler;
 
 void notifyDartHtml(SendPort port) {
@@ -57,6 +59,8 @@ compile(source, SendPort replyTo) {
     var data = (source.length > 1) ? source[1] : null;
     if (messageType == 'options') {
       options = data as List;
+    } if (messageType == 'communicateViaBlobs') {
+      communicateViaBlobs = data as bool;
     }
     return;
   }
@@ -128,13 +132,17 @@ compile(source, SendPort replyTo) {
               'Compiled ${source.length}/${charactersRead} characters Dart'
               ' -> ${js.length} characters.',
               compiler.Diagnostic.VERBOSE_INFO);
-      try {
-        // At least Safari and Firefox do not support creating an
-        // object URL from a web worker.  MDN claims that it will be
-        // supported in Firefox 21.
-        url = Url.createObjectUrl(new Blob([js], 'application/javascript'));
-      } catch (_) {
-        // Ignored.
+      if (communicateViaBlobs) {
+        try {
+          // At least Safari and Firefox do not support creating an
+          // object URL from a web worker.  MDN claims that it will be
+          // supported in Firefox 21.
+          url = Url.createObjectUrl(new Blob([js], 'application/javascript'));
+        } catch (_) {
+          // Ignored.
+        }
+      } else  {
+        url = null;
       }
       if (url != null) {
         replyTo.send(['url', url]);
