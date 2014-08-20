@@ -895,7 +895,11 @@ abstract class Compiler implements DiagnosticListener {
   bool enabledInvokeOn = false;
   bool hasIsolateSupport = false;
 
-  Stopwatch progress = new Stopwatch()..start();
+  Stopwatch progress;
+
+  bool get shouldPrintProgress {
+    return verbose && progress.elapsedMilliseconds > 500;
+  }
 
   static const int PHASE_SCANNING = 0;
   static const int PHASE_RESOLVING = 1;
@@ -951,6 +955,10 @@ abstract class Compiler implements DiagnosticListener {
     world = new World(this);
     types = new Types(this);
     tracer = new Tracer(this.outputProvider);
+
+    if (verbose) {
+      progress = new Stopwatch()..start();
+    }
 
     // TODO(johnniwinther): Separate the dependency tracking from the enqueueing
     // for global dependencies.
@@ -1536,7 +1544,9 @@ abstract class Compiler implements DiagnosticListener {
       }
       world.addToWorkList(main);
     }
-    progress.reset();
+    if (verbose) {
+      progress.reset();
+    }
     world.forEach((WorkItem work) {
       withCurrentElement(work.element, () => work.run(this, world));
     });
@@ -1620,7 +1630,7 @@ abstract class Compiler implements DiagnosticListener {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed(),
         message: 'Element ${work.element} has already been analyzed'));
-    if (progress.elapsedMilliseconds > 500) {
+    if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       if (phase == PHASE_RESOLVING) {
@@ -1637,7 +1647,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void codegen(CodegenWorkItem work, CodegenEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.codegen)));
-    if (progress.elapsedMilliseconds > 500) {
+    if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       log('Compiled ${enqueuer.codegen.generatedCode.length} methods.');

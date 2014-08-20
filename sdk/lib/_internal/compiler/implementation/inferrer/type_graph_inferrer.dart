@@ -558,10 +558,11 @@ class TypeGraphInferrerEngine
 
   void runOverAllElements() {
     if (compiler.disableTypeInference) return;
-    compiler.progress.reset();
-
+    if (compiler.verbose) {
+      compiler.progress.reset();
+    }
     sortResolvedElements().forEach((Element element) {
-      if (compiler.progress.elapsedMilliseconds > 500) {
+      if (compiler.shouldPrintProgress) {
         compiler.log('Added $addedInGraph elements in inferencing graph.');
         compiler.progress.reset();
       }
@@ -772,7 +773,7 @@ class TypeGraphInferrerEngine
 
   void refine() {
     while (!workQueue.isEmpty) {
-      if (compiler.progress.elapsedMilliseconds > 500) {
+      if (compiler.shouldPrintProgress) {
         compiler.log('Inferred $overallRefineCount types.');
         compiler.progress.reset();
       }
