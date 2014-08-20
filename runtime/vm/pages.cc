@@ -8,7 +8,9 @@
 #include "vm/compiler_stats.h"
 #include "vm/gc_marker.h"
 #include "vm/gc_sweeper.h"
+#include "vm/lockers.h"
 #include "vm/object.h"
+#include "vm/thread.h"
 #include "vm/virtual_memory.h"
 
 namespace dart {
@@ -31,7 +33,6 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
-DECLARE_FLAG(bool, write_protect_code);
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
@@ -124,7 +125,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       pages_tail_(NULL),
       large_pages_(NULL),
       max_capacity_in_words_(max_capacity_in_words),
-      sweeping_(false),
+      tasks_lock_(new Monitor()),
+      tasks_(0),
       page_space_controller_(heap,
                              FLAG_heap_growth_space_ratio,
                              FLAG_heap_growth_rate,
@@ -135,8 +137,13 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
 
 
 PageSpace::~PageSpace() {
+  {
+    MonitorLocker ml(tasks_lock());
+    ASSERT(tasks() == 0);
+  }
   FreePages(pages_);
   FreePages(large_pages_);
+  delete tasks_lock_;
 }
 
 
@@ -238,18 +245,22 @@ void PageSpace::FreePages(HeapPage* pages) {
 }
 
 
-uword PageSpace::TryAllocate(intptr_t size,
-                             HeapPage::PageType type,
-                             GrowthPolicy growth_policy) {
+uword PageSpace::TryAllocateInternal(intptr_t size,
+                            HeapPage::PageType type,
+                            GrowthPolicy growth_policy,
+                            bool is_protected,
+                            bool is_locked) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
   SpaceUsage after_allocation = usage_;
   after_allocation.used_in_words += size >> kWordSizeLog2;
   if (size < kAllocatablePageSize) {
-    const bool is_protected = (type == HeapPage::kExecutable)
-        && FLAG_write_protect_code;
-    result = freelist_[type].TryAllocate(size, is_protected);
+    if (is_locked) {
+      result = freelist_[type].TryAllocateLocked(size, is_protected);
+    } else {
+      result = freelist_[type].TryAllocate(size, is_protected);
+    }
     if (result == 0) {
       // Can we grow by one page?
       after_allocation.capacity_in_words += kPageSizeInWords;
@@ -264,7 +275,11 @@ uword PageSpace::TryAllocate(intptr_t size,
         uword free_start = result + size;
         intptr_t free_size = page->object_end() - free_start;
         if (free_size > 0) {
-          freelist_[type].Free(free_start, free_size);
+          if (is_locked) {
+            freelist_[type].FreeLocked(free_start, free_size);
+          } else {
+            freelist_[type].Free(free_start, free_size);
+          }
         }
       }
     }
@@ -294,6 +309,16 @@ uword PageSpace::TryAllocate(intptr_t size,
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
 }
+
+
+  void PageSpace::AcquireDataLock() {
+    freelist_[HeapPage::kData].mutex()->Lock();
+  }
+
+
+  void PageSpace::ReleaseDataLock() {
+    freelist_[HeapPage::kData].mutex()->Unlock();
+  }
 
 
 void PageSpace::AllocateExternal(intptr_t size) {
@@ -491,10 +516,17 @@ void PageSpace::WriteProtectCode(bool read_only) {
 
 
 void PageSpace::MarkSweep(bool invoke_api_callbacks) {
-  // MarkSweep is not reentrant. Make sure that is the case.
-  ASSERT(!sweeping_);
-  sweeping_ = true;
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = heap_->isolate();
+  ASSERT(isolate == Isolate::Current());
+
+  // Wait for pending tasks to complete and then account for the driver task.
+  {
+    MonitorLocker locker(tasks_lock());
+    while (tasks() != 0) {
+      locker.Wait();
+    }
+    set_tasks(1);
+  }
 
   NoHandleScope no_handles(isolate);
 
@@ -594,9 +626,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
-  // Done, reset the marker.
-  ASSERT(sweeping_);
-  sweeping_ = false;
+  // Done, reset the task count.
+  {
+    MonitorLocker locker(tasks_lock());
+    ASSERT(tasks() == 1);
+    set_tasks(tasks() - 1);
+  }
 }
 
 

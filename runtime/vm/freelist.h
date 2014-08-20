@@ -9,6 +9,7 @@
 #include "vm/allocation.h"
 #include "vm/bit_set.h"
 #include "vm/raw_object.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -85,14 +86,18 @@ class FreeList {
 
   void Reset();
 
-  intptr_t Length(int index) const;
-
   void Print() const;
+
+  Mutex* mutex() { return mutex_; }
+  uword TryAllocateLocked(intptr_t size, bool is_protected);
+  void FreeLocked(uword addr, intptr_t size);
 
  private:
   static const int kNumLists = 128;
 
   static intptr_t IndexForSize(intptr_t size);
+
+  intptr_t Length(int index) const;
 
   void EnqueueElement(FreeListElement* element, intptr_t index);
   FreeListElement* DequeueElement(intptr_t index);
@@ -103,6 +108,9 @@ class FreeList {
 
   void PrintSmall() const;
   void PrintLarge() const;
+
+  // Lock protecting the free list data structures.
+  Mutex* mutex_;
 
   BitSet<kNumLists> free_map_;
 

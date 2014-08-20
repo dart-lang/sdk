@@ -16,6 +16,7 @@ namespace dart {
 DECLARE_FLAG(bool, collect_code);
 DECLARE_FLAG(bool, log_code_drop);
 DECLARE_FLAG(bool, always_drop_code);
+DECLARE_FLAG(bool, write_protect_code);
 
 // Forward declarations.
 class Heap;
@@ -199,7 +200,13 @@ class PageSpace {
 
   uword TryAllocate(intptr_t size,
                     HeapPage::PageType type = HeapPage::kData,
-                    GrowthPolicy growth_policy = kControlGrowth);
+                    GrowthPolicy growth_policy = kControlGrowth) {
+    bool is_protected =
+        (type == HeapPage::kExecutable) && FLAG_write_protect_code;
+    bool is_locked = false;
+    return TryAllocateInternal(
+        size, type, growth_policy, is_protected, is_locked);
+  }
 
   bool NeedsGarbageCollection() const {
     return page_space_controller_.NeedsGarbageCollection(usage_) ||
@@ -276,6 +283,19 @@ class PageSpace {
   void AllocateExternal(intptr_t size);
   void FreeExternal(intptr_t size);
 
+  // Bulk data allocation.
+  void AcquireDataLock();
+  void ReleaseDataLock();
+
+  uword TryAllocateDataLocked(intptr_t size, GrowthPolicy growth_policy) {
+    bool is_protected = false;
+    bool is_locked = true;
+    return TryAllocateInternal(size,
+                               HeapPage::kData,
+                               growth_policy,
+                               is_protected, is_locked);
+  }
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -291,8 +311,17 @@ class PageSpace {
     kAllowedGrowth = 3
   };
 
+  Monitor* tasks_lock() const { return tasks_lock_; }
+  intptr_t tasks() const { return tasks_; }
+  void set_tasks(intptr_t val) { tasks_ = val; }
+
   static const intptr_t kAllocatablePageSize = 64 * KB;
 
+  uword TryAllocateInternal(intptr_t size,
+                            HeapPage::PageType type,
+                            GrowthPolicy growth_policy,
+                            bool is_protected,
+                            bool is_locked);
   HeapPage* AllocatePage(HeapPage::PageType type);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
@@ -323,8 +352,9 @@ class PageSpace {
   intptr_t max_capacity_in_words_;
   SpaceUsage usage_;
 
-  // Keep track whether a MarkSweep is currently running.
-  bool sweeping_;
+  // Keep track of running MarkSweep tasks.
+  Monitor* tasks_lock_;
+  intptr_t tasks_;
 
   PageSpaceController page_space_controller_;
 

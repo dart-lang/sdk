@@ -600,6 +600,8 @@ void Isolate::SetStackLimitFromCurrentTOS(uword stack_top_value) {
 
 
 void Isolate::SetStackLimit(uword limit) {
+  // The isolate setting the stack limit is not necessarily the isolate which
+  // the stack limit is being set on.
   MutexLocker ml(mutex_);
   if (stack_limit_ == saved_stack_limit_) {
     // No interrupt pending, set stack_limit_ too.
@@ -625,16 +627,12 @@ bool Isolate::GetStackBounds(uword* lower, uword* upper) {
 
 
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {
-  // TODO(turnidge): Can't use MutexLocker here because MutexLocker is
-  // a StackResource, which requires a current isolate.  Should
-  // MutexLocker really be a StackResource?
-  mutex_->Lock();
+  MutexLocker ml(mutex_);
   ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
   if (stack_limit_ == saved_stack_limit_) {
     stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
   }
   stack_limit_ |= interrupt_bits;
-  mutex_->Unlock();
 }
 
 
@@ -656,12 +654,9 @@ void Isolate::DoneLoading() {
 
 bool Isolate::MakeRunnable() {
   ASSERT(Isolate::Current() == NULL);
-  // Can't use MutexLocker here because MutexLocker is
-  // a StackResource, which requires a current isolate.
-  mutex_->Lock();
+  MutexLocker ml(mutex_);
   // Check if we are in a valid state to make the isolate runnable.
   if (is_runnable_ == true) {
-    mutex_->Unlock();
     return false;  // Already runnable.
   }
   // Set the isolate as runnable and if we are being spawned schedule
@@ -676,7 +671,6 @@ bool Isolate::MakeRunnable() {
     ASSERT(this == state->isolate());
     Run();
   }
-  mutex_->Unlock();
   return true;
 }
 

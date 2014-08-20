@@ -13,12 +13,12 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
+#include "vm/object_id_ring.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
-#include "vm/object_id_ring.h"
 
 namespace dart {
 
@@ -81,6 +81,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         scavenger_(scavenger),
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()),
+        page_space_(scavenger->heap_->old_space()),
         visited_count_(0),
         handled_count_(0),
         delayed_weak_stack_(),
@@ -204,8 +205,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         //
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object.
-        new_addr =
-            heap_->TryAllocate(size, Heap::kOld, PageSpace::kForceGrowth);
+        new_addr = page_space_->TryAllocateDataLocked(size,
+                                                      PageSpace::kForceGrowth);
         if (new_addr != 0) {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
@@ -240,6 +241,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   Scavenger* scavenger_;
   Heap* heap_;
   Heap* vm_heap_;
+  PageSpace* page_space_;
   intptr_t visited_count_;
   intptr_t handled_count_;
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
@@ -781,6 +783,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   ASSERT(!scavenging_);
   scavenging_ = true;
   Isolate* isolate = heap_->isolate();
+  PageSpace* page_space = heap_->old_space();
   NoHandleScope no_handles(isolate);
 
   if (FLAG_verify_before_gc) {
@@ -796,6 +799,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
       (survivor_end_ - FirstObjectStart()) / kWordSize;
   Prologue(isolate, invoke_api_callbacks);
   const bool prologue_weak_are_strong = !invoke_api_callbacks;
+  page_space->AcquireDataLock();
   IterateRoots(isolate, &visitor, prologue_weak_are_strong);
   int64_t start = OS::GetCurrentTimeMicros();
   ProcessToSpace(&visitor);
@@ -807,6 +811,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   IterateWeakRoots(isolate, &weak_visitor, visit_prologue_weak_handles);
   visitor.Finalize();
   ProcessWeakTables();
+  page_space->ReleaseDataLock();
   int64_t end = OS::GetCurrentTimeMicros();
   heap_->RecordTime(kProcessToSpace, middle - start);
   heap_->RecordTime(kIterateWeaks, end - middle);

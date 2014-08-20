@@ -22,6 +22,8 @@
 
 namespace dart {
 
+class Isolate;
+
 class Thread {
  public:
   static ThreadLocalKey kUnsetThreadLocalKey;
@@ -58,8 +60,15 @@ class Mutex {
   bool TryLock();
   void Unlock();
 
+#if defined(DEBUG)
+  Isolate* Owner() const { return owner_; }
+#endif  // defined(DEBUG)
+
  private:
   MutexData data_;
+#if defined(DEBUG)
+  Isolate* owner_;
+#endif  // defined(DEBUG)
 
   DISALLOW_COPY_AND_ASSIGN(Mutex);
 };

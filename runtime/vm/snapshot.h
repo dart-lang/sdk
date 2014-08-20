@@ -29,6 +29,7 @@ class LanguageError;
 class Library;
 class Object;
 class ObjectStore;
+class PageSpace;
 class RawApiError;
 class RawArray;
 class RawBigint;
@@ -248,7 +249,7 @@ class SnapshotReader : public BaseReader {
   ~SnapshotReader() { }
 
   Isolate* isolate() const { return isolate_; }
-  Heap* heap() const { return isolate_->heap(); }
+  Heap* heap() const { return heap_; }
   ObjectStore* object_store() const { return isolate_->object_store(); }
   ClassTable* class_table() const { return isolate_->class_table(); }
   Object* ObjectHandle() { return &obj_; }
@@ -334,6 +335,8 @@ class SnapshotReader : public BaseReader {
     DeserializeState state_;
   };
 
+  PageSpace* old_space() { return old_space_; }
+
   // Allocate uninitialized objects, this is used when reading a full snapshot.
   RawObject* AllocateUninitialized(intptr_t class_id, intptr_t size);
 
@@ -361,6 +364,8 @@ class SnapshotReader : public BaseReader {
 
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
+  Heap* heap_;  // Heap of the current isolate.
+  PageSpace* old_space_;  // Old space of the current isolate.
   Class& cls_;  // Temporary Class handle.
   Object& obj_;  // Temporary Object handle.
   Array& array_;  // Temporary Array handle.

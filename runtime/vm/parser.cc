@@ -4125,8 +4125,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
   cls.AddFields(members.fields());
 
   // Creating a new array for functions marks the class as parsed.
-  const Array& array = Array::Handle(I,
-                                     Array::MakeArray(members.functions()));
+  const Array& array = Array::Handle(I, Array::MakeArray(members.functions()));
   cls.SetFunctions(array);
 
   // Add an implicit constructor if no explicit constructor is present.

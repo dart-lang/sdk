@@ -165,6 +165,8 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
     : BaseReader(buffer, size),
       kind_(kind),
       isolate_(isolate),
+      heap_(isolate->heap()),
+      old_space_(isolate->heap()->old_space()),
       cls_(Class::Handle(isolate)),
       obj_(Object::Handle(isolate)),
       array_(Array::Handle(isolate)),
@@ -386,6 +388,21 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
 }
 
 
+class HeapLocker : public StackResource {
+ public:
+  HeapLocker(Isolate* isolate, PageSpace* page_space)
+      : StackResource(isolate), page_space_(page_space) {
+        page_space_->AcquireDataLock();
+  }
+  ~HeapLocker() {
+    page_space_->ReleaseDataLock();
+  }
+
+ private:
+  PageSpace* page_space_;
+};
+
+
 void SnapshotReader::ReadFullSnapshot() {
   ASSERT(kind_ == Snapshot::kFull);
   Isolate* isolate = Isolate::Current();
@@ -397,15 +414,18 @@ void SnapshotReader::ReadFullSnapshot() {
   // TODO(asiva): Add a check here to ensure we have the right heap
   // size for the full snapshot being read.
 
-  // Read in all the objects stored in the object store.
-  intptr_t num_flds = (object_store->to() - object_store->from());
-  for (intptr_t i = 0; i <= num_flds; i++) {
-    *(object_store->from() + i) = ReadObjectImpl();
-  }
-  for (intptr_t i = 0; i < backward_references_.length(); i++) {
-    if (!backward_references_[i].is_deserialized()) {
-      ReadObjectImpl();
-      backward_references_[i].set_state(kIsDeserialized);
+  {
+    HeapLocker hl(isolate, old_space());
+    // Read in all the objects stored in the object store.
+    intptr_t num_flds = (object_store->to() - object_store->from());
+    for (intptr_t i = 0; i <= num_flds; i++) {
+      *(object_store->from() + i) = ReadObjectImpl();
+    }
+    for (intptr_t i = 0; i < backward_references_.length(); i++) {
+      if (!backward_references_[i].is_deserialized()) {
+        ReadObjectImpl();
+        backward_references_[i].set_state(kIsDeserialized);
+      }
     }
   }
 
@@ -739,9 +759,9 @@ RawObject* SnapshotReader::AllocateUninitialized(intptr_t class_id,
                                                  intptr_t size) {
   ASSERT(isolate()->no_gc_scope_depth() != 0);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  Heap* heap = isolate()->heap();
 
-  uword address = heap->TryAllocate(size, Heap::kOld, PageSpace::kForceGrowth);
+  uword address = old_space()->TryAllocateDataLocked(size,
+                                                     PageSpace::kForceGrowth);
   if (address == 0) {
     // Use the preallocated out of memory exception to avoid calling
     // into dart code or allocating any code.

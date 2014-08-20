@@ -139,9 +139,9 @@ static bool CanonicalizeUri(Isolate* isolate,
 }
 
 
-static bool CreateIsolate(IsolateSpawnState* state, char** error) {
-  Isolate* parent_isolate = Isolate::Current();
-
+static bool CreateIsolate(Isolate* parent_isolate,
+                          IsolateSpawnState* state,
+                          char** error) {
   Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
   if (callback == NULL) {
     *error = strdup("Null callback specified for isolate creation\n");
@@ -166,10 +166,11 @@ static bool CreateIsolate(IsolateSpawnState* state, char** error) {
 }
 
 
-static RawObject* Spawn(NativeArguments* arguments, IsolateSpawnState* state) {
+static RawObject* Spawn(Isolate* parent_isolate,
+                        IsolateSpawnState* state) {
   // Create a new isolate.
   char* error = NULL;
-  if (!CreateIsolate(state, &error)) {
+  if (!CreateIsolate(parent_isolate, state, &error)) {
     delete state;
     const String& msg = String::Handle(String::New(error));
     free(error);
@@ -213,7 +214,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 1) {
       ctx = Closure::context(closure);
       ASSERT(ctx.num_variables() == 0);
 #endif
-      return Spawn(arguments, new IsolateSpawnState(func));
+      return Spawn(isolate, new IsolateSpawnState(func));
     }
   }
   const String& msg = String::Handle(String::New(
@@ -237,7 +238,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 1) {
     ThrowIsolateSpawnException(msg);
   }
 
-  return Spawn(arguments, new IsolateSpawnState(canonical_uri));
+  return Spawn(isolate, new IsolateSpawnState(canonical_uri));
 }
 
 
