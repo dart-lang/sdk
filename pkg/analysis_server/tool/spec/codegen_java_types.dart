@@ -75,6 +75,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
     writeln('import java.util.List;');
     writeln('import java.util.Map;');
     writeln('import com.google.dart.server.utilities.general.ObjectUtilities;');
+    writeln('import com.google.gson.JsonArray;');
+    writeln('import com.google.gson.JsonObject;');
+    writeln('import com.google.gson.JsonPrimitive;');
     writeln('import org.apache.commons.lang3.StringUtils;');
     writeln();
     javadocComment(toHtmlVisitor.collectHtml(() {
@@ -116,8 +119,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       TypeObject typeObject = typeDef.type as TypeObject;
       List<TypeObjectField> fields = typeObject.fields;
-      // TODO (jwren) we need to possibly remove fields such as "type" in
-      // these objects: AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay
+      // TODO (jwren) we need to possibly remove fields such as "type" in these
+      // objects: AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay
       for (TypeObjectField field in fields) {
         privateField(javaName(field.name), () {
           javadocComment(toHtmlVisitor.collectHtml(() {
@@ -166,7 +169,37 @@ class CodegenJavaType extends CodegenJavaVisitor {
       }
 
       //
-      // equals method
+      // toJson() method, example:
+//      public JsonObject toJson() {
+//          JsonObject jsonObject = new JsonObject();
+//          jsonObject.addProperty("x", x);
+//          jsonObject.addProperty("y", y);
+//          return jsonObject;
+//        }
+      publicMethod('toJson', () {
+        writeln('public JsonObject toJson() {');
+        indent(() {
+          writeln('JsonObject jsonObject = new JsonObject();');
+          for (TypeObjectField field in fields) {
+            if (!isObject(field.type)) {
+              if (field.optional) {
+                writeln('if (${javaName(field.name)} != null) {');
+                indent(() {
+                  _writeOutJsonObjectAddStatement(field);
+                });
+                writeln('}');
+              } else {
+                _writeOutJsonObjectAddStatement(field);
+              }
+            }
+          }
+          writeln('return jsonObject;');
+        });
+        writeln('}');
+      });
+
+      //
+      // equals() method
       //
       publicMethod('equals', () {
         writeln('@Override');
@@ -228,8 +261,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       if (className == 'Element') {
         _extraMethodsOnElement.forEach((String methodName, String fieldName) {
           publicMethod(methodName, () {
-            writeln(
-                'public boolean ${methodName}() {');
+            writeln('public boolean ${methodName}() {');
             writeln('  return (flags & ${fieldName}) != 0;');
             writeln('}');
           });
@@ -280,6 +312,29 @@ class CodegenJavaType extends CodegenJavaVisitor {
       return 'StringUtils.join(${name}, ", ")';
     } else {
       return name;
+    }
+  }
+
+  void _writeOutJsonObjectAddStatement(TypeObjectField field) {
+    String name = javaName(field.name);
+    if (isDeclaredInSpec(field.type)) {
+      writeln('jsonObject.add("${name}", ${name}.toJson());');
+    } else if (field.type is TypeList) {
+      TypeDecl listItemType = (field.type as TypeList).itemType;
+      String jsonArrayName = 'jsonArray${capitalize(name)}';
+      writeln('JsonArray ${jsonArrayName} = new JsonArray();');
+      writeln('for(${javaType(listItemType)} elt : ${name}) {');
+      indent(() {
+        if (isDeclaredInSpec(listItemType)) {
+          writeln('${jsonArrayName}.add(elt.toJson());');
+        } else {
+          writeln('${jsonArrayName}.add(new JsonPrimitive(elt));');
+        }
+      });
+      writeln('}');
+      writeln('jsonObject.add("${name}", ${jsonArrayName});');
+    } else {
+      writeln('jsonObject.addProperty("${name}", ${name});');
     }
   }
 

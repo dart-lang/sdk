@@ -31,9 +31,10 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * Type references in the spec that are named something else in Java.
    */
   static const Map<String, String> _typeRenames = const {
-    // TODO (jwren) in some situations we want to use Boolean while other
-    // situations we want to use boolean...
+    // TODO (jwren) in some situations we want to use Boolean/Integer while
+    // other situations we want to use boolean/int...
     'bool': 'Boolean',
+    'int': 'Integer',
     'FilePath': 'String',
     'DebugContextId': 'String',
     'object': 'Object',
@@ -113,7 +114,7 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
         }
 
         // constructors
-        List<String> allConstructors =_state.constructors.values.toList();
+        List<String> allConstructors = _state.constructors.values.toList();
         for (String constructor in allConstructors) {
           writeln();
           write(constructor);
@@ -168,9 +169,31 @@ class CodegenJavaVisitor extends HierarchicalApiVisitor with CodeGenerator {
   bool isPrimitive(TypeDecl type) {
     if (type is TypeReference) {
       String typeStr = javaType(type);
-      return typeStr == 'int' || typeStr == 'boolean';
+      return typeStr == 'Integer' || typeStr == 'boolean';
     }
     return false;
+  }
+
+  /**
+   * Return true iff the passed [TypeDecl] is a type declared in the spec_input.
+   */
+  bool isDeclaredInSpec(TypeDecl type) {
+//    TypeReference resolvedType = super.resolveTypeReferenceChain(type);
+//    if(resolvedType is TypeObject) {
+//      return truye;
+//    }
+    if (type is TypeReference) {
+      return api.types.containsKey(type.typeName) && javaType(type) != 'String';
+    }
+    return false;
+  }
+  
+  /**
+   * Return true iff the passed [TypeDecl] will be represented as Object in Java.
+   */
+  bool isObject(TypeDecl type) {
+    String typeStr = javaType(type);
+    return typeStr == 'Object';
   }
 
   /**
