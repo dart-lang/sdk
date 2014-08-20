@@ -312,17 +312,6 @@ class ChangeSetTest extends EngineTestCase {
 }
 
 class CompileTimeErrorCodeTest extends ResolverTestCase {
-  void fail_accessPrivateEnumField() {
-    Source source = addSource(EngineTestCase.createSource([
-        "enum E { ONE }",
-        "String name(E e) {",
-        "  return e._name;",
-        "}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD]);
-    verify([source]);
-  }
-
   void fail_compileTimeConstantRaisesException() {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
@@ -341,59 +330,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
-  void fail_extendsEnum() {
-    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A extends E {}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.EXTENDS_ENUM]);
-    verify([source]);
-  }
-
-  void fail_implementsEnum() {
-    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A implements E {}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_ENUM]);
-    verify([source]);
-  }
-
-  void fail_instantiateEnum_const() {
-    Source source = addSource(EngineTestCase.createSource([
-        "enum E { ONE }",
-        "E e(String name) {",
-        "  const E(0, name);",
-        "}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
-    verify([source]);
-  }
-
-  void fail_instantiateEnum_new() {
-    Source source = addSource(EngineTestCase.createSource([
-        "enum E { ONE }",
-        "E e(String name) {",
-        "  new E(0, name);",
-        "}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
-    verify([source]);
-  }
-
-  void fail_missingEnumConstantInSwitch() {
-    Source source = addSource(EngineTestCase.createSource([
-        "enum E { ONE, TWO, THREE, FOUR }",
-        "bool odd(E e) {",
-        "  switch (e) {",
-        "    case ONE:",
-        "    case THREE: return true;",
-        "  }",
-        "  return false;",
-        "}"]));
-    resolve(source);
-    assertErrors(source, [
-        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH]);
-    verify([source]);
-  }
-
   void fail_mixinDeclaresConstructor() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -402,13 +338,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends Object mixin A {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
-    verify([source]);
-  }
-
-  void fail_mixinOfEnum() {
-    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A with E {}"]));
-    resolve(source);
-    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_ENUM]);
     verify([source]);
   }
 
@@ -450,6 +379,19 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT]);
     verify([source]);
+  }
+
+  void test_accessPrivateEnumField() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { ONE }",
+        "String name(E e) {",
+        "  return e._name;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD]);
   }
 
   void test_ambiguousExport() {
@@ -1533,6 +1475,16 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_extendsEnum() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A extends E {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_ENUM]);
+    verify([source]);
+  }
+
   void test_extendsNonClass_class() {
     Source source = addSource(EngineTestCase.createSource(["int A;", "class B extends A {}"]));
     resolve(source);
@@ -1917,6 +1869,16 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_implementsEnum() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A implements E {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.IMPLEMENTS_ENUM]);
+    verify([source]);
+  }
+
   void test_implementsNonClass_class() {
     Source source = addSource(EngineTestCase.createSource(["int A;", "class B implements A {}"]));
     resolve(source);
@@ -2247,6 +2209,34 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC]);
+    verify([source]);
+  }
+
+  void test_instantiateEnum_const() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { ONE }",
+        "E e(String name) {",
+        "  return const E();",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
+    verify([source]);
+  }
+
+  void test_instantiateEnum_new() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { ONE }",
+        "E e(String name) {",
+        "  return new E();",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INSTANTIATE_ENUM]);
     verify([source]);
   }
 
@@ -2587,6 +2577,26 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_missingEnumConstantInSwitch() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { ONE, TWO, THREE, FOUR }",
+        "bool odd(E e) {",
+        "  switch (e) {",
+        "    case E.ONE:",
+        "    case E.THREE: return true;",
+        "  }",
+        "  return false;",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [
+        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+        CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH]);
+    verify([source]);
+  }
+
   void test_mixinDeclaresConstructor_classDeclaration() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -2754,6 +2764,16 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
         CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS]);
+    verify([source]);
+  }
+
+  void test_mixinOfEnum() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource(["enum E { ONE }", "class A extends Object with E {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_OF_ENUM]);
     verify([source]);
   }
 
@@ -4207,6 +4227,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   static dartSuite() {
     _ut.group('CompileTimeErrorCodeTest', () {
+      _ut.test('test_accessPrivateEnumField', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_accessPrivateEnumField);
+      });
       _ut.test('test_ambiguousExport', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_ambiguousExport);
@@ -4639,6 +4663,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_extendsDisallowedClass_class_num);
       });
+      _ut.test('test_extendsEnum', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_extendsEnum);
+      });
       _ut.test('test_extendsNonClass_class', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_extendsNonClass_class);
@@ -4803,6 +4831,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_implementsDynamic);
       });
+      _ut.test('test_implementsEnum', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_implementsEnum);
+      });
       _ut.test('test_implementsNonClass_class', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_implementsNonClass_class);
@@ -4922,6 +4954,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_instanceMemberAccessFromStatic_method', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_instanceMemberAccessFromStatic_method);
+      });
+      _ut.test('test_instantiateEnum_const', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_instantiateEnum_const);
+      });
+      _ut.test('test_instantiateEnum_new', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_instantiateEnum_new);
       });
       _ut.test('test_invalidAnnotationFromDeferredLibrary', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -5091,6 +5131,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_methodAndGetterWithSameName);
       });
+      _ut.test('test_missingEnumConstantInSwitch', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_missingEnumConstantInSwitch);
+      });
       _ut.test('test_mixinDeclaresConstructor_classDeclaration', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_mixinDeclaresConstructor_classDeclaration);
@@ -5174,6 +5218,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_mixinOfDisallowedClass_class_num', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_mixinOfDisallowedClass_class_num);
+      });
+      _ut.test('test_mixinOfEnum', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_mixinOfEnum);
       });
       _ut.test('test_mixinOfNonClass_class', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -12548,6 +12596,43 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_missingEnumConstantInSwitch_all() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { A, B, C }",
+        "",
+        "f(E e) {",
+        "  switch (e) {",
+        "    case E.A: break;",
+        "    case E.B: break;",
+        "    case E.C: break;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_missingEnumConstantInSwitch_default() {
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.enableEnum = true;
+    resetWithOptions(analysisOptions);
+    Source source = addSource(EngineTestCase.createSource([
+        "enum E { A, B, C }",
+        "",
+        "f(E e) {",
+        "  switch (e) {",
+        "    case E.B: break;",
+        "    default: break;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_mixedReturnTypes_differentScopes() {
     Source source = addSource(EngineTestCase.createSource([
         "class C {",
@@ -15187,6 +15272,14 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_misMatchedGetterAndSetterTypes_topLevel_unspecifiedSetter', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_misMatchedGetterAndSetterTypes_topLevel_unspecifiedSetter);
+      });
+      _ut.test('test_missingEnumConstantInSwitch_all', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_missingEnumConstantInSwitch_all);
+      });
+      _ut.test('test_missingEnumConstantInSwitch_default', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_missingEnumConstantInSwitch_default);
       });
       _ut.test('test_mixedReturnTypes_differentScopes', () {
         final __test = new NonErrorResolverTest();

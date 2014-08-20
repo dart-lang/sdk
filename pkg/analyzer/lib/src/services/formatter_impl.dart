@@ -467,8 +467,6 @@ class SourceVisitor implements AstVisitor {
     token(node.awaitKeyword);
     space();
     visit(node.expression);
-    // TODO(scheglov) a bug in the spec, there sould not be a ';'
-    token(node.semicolon);
   }
 
   visitBinaryExpression(BinaryExpression node) {

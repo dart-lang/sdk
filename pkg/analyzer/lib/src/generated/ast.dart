@@ -992,7 +992,7 @@ class AstCloner implements AstVisitor<AstNode> {
   AssignmentExpression visitAssignmentExpression(AssignmentExpression node) => new AssignmentExpression(cloneNode(node.leftHandSide), node.operator, cloneNode(node.rightHandSide));
 
   @override
-  AwaitExpression visitAwaitExpression(AwaitExpression node) => new AwaitExpression(node.awaitKeyword, node.expression, node.semicolon);
+  AwaitExpression visitAwaitExpression(AwaitExpression node) => new AwaitExpression(node.awaitKeyword, node.expression);
 
   @override
   BinaryExpression visitBinaryExpression(BinaryExpression node) => new BinaryExpression(cloneNode(node.leftOperand), node.operator, cloneNode(node.rightOperand));
@@ -1404,7 +1404,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitAwaitExpression(AwaitExpression node) {
     AwaitExpression other = this._other as AwaitExpression;
-    return _isEqualTokens(node.awaitKeyword, other.awaitKeyword) && _isEqualNodes(node.expression, other.expression) && _isEqualTokens(node.semicolon, other.semicolon);
+    return _isEqualTokens(node.awaitKeyword, other.awaitKeyword) && _isEqualNodes(node.expression, other.expression);
   }
 
   @override
@@ -2556,18 +2556,12 @@ class AwaitExpression extends Expression {
   Expression _expression;
 
   /**
-   * The semicolon following the expression.
-   */
-  Token semicolon;
-
-  /**
    * Initialize a newly created await expression.
    *
    * @param awaitKeyword the 'await' keyword
    * @param expression the expression whose value is being waited on
-   * @param semicolon the semicolon following the expression
    */
-  AwaitExpression(this.awaitKeyword, Expression expression, this.semicolon) {
+  AwaitExpression(this.awaitKeyword, Expression expression) {
     this._expression = becomeParentOf(expression);
   }
 
@@ -2583,12 +2577,7 @@ class AwaitExpression extends Expression {
   }
 
   @override
-  Token get endToken {
-    if (semicolon != null) {
-      return semicolon;
-    }
-    return _expression.endToken;
-  }
+  Token get endToken => _expression.endToken;
 
   /**
    * Return the expression whose value is being waited on.
@@ -9154,7 +9143,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  AwaitExpression visitAwaitExpression(AwaitExpression node) => new AwaitExpression(_mapToken(node.awaitKeyword), _cloneNode(node.expression), _mapToken(node.semicolon));
+  AwaitExpression visitAwaitExpression(AwaitExpression node) => new AwaitExpression(_mapToken(node.awaitKeyword), _cloneNode(node.expression));
 
   @override
   BinaryExpression visitBinaryExpression(BinaryExpression node) {

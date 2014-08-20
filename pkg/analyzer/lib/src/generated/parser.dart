@@ -1897,6 +1897,22 @@ class Parser {
         _validateModifiersForOperator(modifiers);
         return _parseOperator(commentAndMetadata, modifiers.externalKeyword, null);
       }
+      Token keyword = modifiers.varKeyword;
+      if (keyword == null) {
+        keyword = modifiers.finalKeyword;
+      }
+      if (keyword == null) {
+        keyword = modifiers.constKeyword;
+      }
+      if (keyword != null) {
+        //
+        // We appear to have found an incomplete field declaration.
+        //
+        _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
+        List<VariableDeclaration> variables = new List<VariableDeclaration>();
+        variables.add(new VariableDeclaration(null, null, _createSyntheticIdentifier(), null, null));
+        return new FieldDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, null, new VariableDeclarationList(null, null, keyword, null, variables), _expectSemicolon());
+      }
       _reportErrorForToken(ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken, []);
       if (commentAndMetadata.comment != null || !commentAndMetadata.metadata.isEmpty) {
         //
@@ -2146,8 +2162,6 @@ class Parser {
     } else if (_matchesKeyword(Keyword.RETHROW)) {
       // TODO(brianwilkerson) Rethrow is a statement again.
       return _parseRethrowExpression();
-    } else if (_parseAsync && _matchesString(_AWAIT)) {
-      return _parseAwaitExpression();
     }
     //
     // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
@@ -3644,16 +3658,15 @@ class Parser {
    *
    * <pre>
    * awaitExpression ::=
-   *     'await' expression ';'
+   *     'await' unaryExpression
    * </pre>
    *
    * @return the await expression that was parsed
    */
   AwaitExpression _parseAwaitExpression() {
     Token awaitToken = andAdvance;
-    Expression expression = parseExpression2();
-    Token semicolon = _expect(TokenType.SEMICOLON);
-    return new AwaitExpression(awaitToken, expression, semicolon);
+    Expression expression = _parseUnaryExpression();
+    return new AwaitExpression(awaitToken, expression);
   }
 
   /**
@@ -4243,6 +4256,22 @@ class Parser {
       _reportErrorForToken(ParserErrorCode.TOP_LEVEL_OPERATOR, _currentToken, []);
       return _convertToFunctionDeclaration(_parseOperator(commentAndMetadata, modifiers.externalKeyword, null));
     } else if (!_matchesIdentifier()) {
+      Token keyword = modifiers.varKeyword;
+      if (keyword == null) {
+        keyword = modifiers.finalKeyword;
+      }
+      if (keyword == null) {
+        keyword = modifiers.constKeyword;
+      }
+      if (keyword != null) {
+        //
+        // We appear to have found an incomplete top-level variable declaration.
+        //
+        _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
+        List<VariableDeclaration> variables = new List<VariableDeclaration>();
+        variables.add(new VariableDeclaration(null, null, _createSyntheticIdentifier(), null, null));
+        return new TopLevelVariableDeclaration(commentAndMetadata.comment, commentAndMetadata.metadata, new VariableDeclarationList(null, null, keyword, null, variables), _expectSemicolon());
+      }
       _reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken, []);
       return null;
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
@@ -6507,6 +6536,7 @@ class Parser {
    * <pre>
    * unaryExpression ::=
    *     prefixOperator unaryExpression
+   *   | awaitExpression
    *   | postfixExpression
    *   | unaryOperator 'super'
    *   | '-' 'super'
@@ -6559,6 +6589,8 @@ class Parser {
     } else if (_matches(TokenType.PLUS)) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
       return _createSyntheticIdentifier();
+    } else if (_parseAsync && _matchesString(_AWAIT)) {
+      return _parseAwaitExpression();
     }
     return _parsePostfixExpression();
   }
@@ -8296,7 +8328,7 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitAwaitExpression(AwaitExpression node) {
     AwaitExpression toNode = this._toNode as AwaitExpression;
-    return javaBooleanAnd(javaBooleanAnd(_isEqualTokens(node.awaitKeyword, toNode.awaitKeyword), _isEqualNodes(node.expression, toNode.expression)), _isEqualTokens(node.semicolon, toNode.semicolon));
+    return javaBooleanAnd(_isEqualTokens(node.awaitKeyword, toNode.awaitKeyword), _isEqualNodes(node.expression, toNode.expression));
   }
 
   @override

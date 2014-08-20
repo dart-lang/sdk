@@ -68,10 +68,7 @@ class LocalComputerTest extends AbstractCompletionTest {
   test_field_name2() {
     addTestSource('class A {var ^}}');
     expect(computeFast(), isTrue);
-    //TODO (danrubel) should not be suggested
-    // but var ^ in this test
-    // parses differently than B ^ in test above
-    assertSuggestClass('A');
+    assertNotSuggested('A');
   }
 
   test_for() {
@@ -146,10 +143,7 @@ class LocalComputerTest extends AbstractCompletionTest {
   test_topLevelVar_name2() {
     addTestSource('class A {} var ^');
     expect(computeFast(), isTrue);
-    // TODO (danrubel) should not be suggested
-    // but var ^ in this test
-    // parses differently than B ^ in test above
-    assertSuggestClass('A');
+    assertNotSuggested('A');
   }
 
   test_variableDeclaration() {

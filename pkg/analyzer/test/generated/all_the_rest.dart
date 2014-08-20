@@ -9433,38 +9433,40 @@
 //     EnumDeclaration enumDeclaration = AstFactory.enumDeclaration2("E", [firstName, secondName, thirdName]);
 //     ClassElement enumElement = _buildElement(enumDeclaration);
 //     List<FieldElement> fields = enumElement.fields;
-//     EngineTestCase.assertLength(6, fields);
-//     FieldElement constant = fields[3];
+//     EngineTestCase.assertLength(5, fields);
+//     FieldElement constant = fields[2];
 //     JUnitTestCase.assertNotNull(constant);
 //     JUnitTestCase.assertEquals(firstName, constant.name);
-//     constant = fields[4];
+//     JUnitTestCase.assertTrue(constant.isStatic);
+//     constant = fields[3];
 //     JUnitTestCase.assertNotNull(constant);
 //     JUnitTestCase.assertEquals(secondName, constant.name);
-//     constant = fields[5];
+//     JUnitTestCase.assertTrue(constant.isStatic);
+//     constant = fields[4];
 //     JUnitTestCase.assertNotNull(constant);
 //     JUnitTestCase.assertEquals(thirdName, constant.name);
+//     JUnitTestCase.assertTrue(constant.isStatic);
 //   }
 //   void test_visitEnumDeclaration_single() {
 //     String firstName = "ONE";
 //     EnumDeclaration enumDeclaration = AstFactory.enumDeclaration2("E", [firstName]);
 //     ClassElement enumElement = _buildElement(enumDeclaration);
 //     List<FieldElement> fields = enumElement.fields;
-//     EngineTestCase.assertLength(4, fields);
+//     EngineTestCase.assertLength(3, fields);
 //     FieldElement field = fields[0];
 //     JUnitTestCase.assertNotNull(field);
 //     JUnitTestCase.assertEquals("index", field.name);
 //     JUnitTestCase.assertFalse(field.isStatic);
+//     JUnitTestCase.assertTrue(field.isSynthetic);
 //     field = fields[1];
-//     JUnitTestCase.assertNotNull(field);
-//     JUnitTestCase.assertEquals("_name", field.name);
-//     JUnitTestCase.assertFalse(field.isStatic);
-//     field = fields[2];
 //     JUnitTestCase.assertNotNull(field);
 //     JUnitTestCase.assertEquals("values", field.name);
 //     JUnitTestCase.assertTrue(field.isStatic);
-//     FieldElement constant = fields[3];
+//     JUnitTestCase.assertTrue(field.isSynthetic);
+//     FieldElement constant = fields[2];
 //     JUnitTestCase.assertNotNull(constant);
 //     JUnitTestCase.assertEquals(firstName, constant.name);
+//     JUnitTestCase.assertTrue(constant.isStatic);
 //   }
 //   ClassElement _buildElement(EnumDeclaration enumDeclaration) {
 //     ElementHolder holder = new ElementHolder();
@@ -13385,6 +13387,7 @@
 //     suite.addTestSuite(FunctionTypeImplTest);
 //     suite.addTestSuite(InterfaceTypeImplTest);
 //     suite.addTestSuite(TypeParameterTypeImplTest);
+//     suite.addTestSuite(UnionTypeImplTest);
 //     suite.addTestSuite(VoidTypeImplTest);
 //     return suite;
 //   }

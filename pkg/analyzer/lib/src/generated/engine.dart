@@ -251,6 +251,14 @@ class AnalysisCache {
  */
 abstract class AnalysisContext {
   /**
+   * Add the given listener to the list of objects that are to be notified when various analysis
+   * results are produced in this context.
+   *
+   * @param listener the listener to be added
+   */
+  void addListener(AnalysisListener listener);
+
+  /**
    * Apply the given delta to change the level of analysis that will be performed for the sources
    * known to this context.
    *
@@ -726,6 +734,14 @@ abstract class AnalysisContext {
   AnalysisResult performAnalysisTask();
 
   /**
+   * Remove the given listener from the list of objects that are to be notified when various
+   * analysis results are produced in this context.
+   *
+   * @param listener the listener to be removed
+   */
+  void removeListener(AnalysisListener listener);
+
+  /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
    *
    * <b>Note:</b> This method cannot be used in an async environment.
@@ -941,12 +957,25 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   Set<AngularApplication> _angularApplications = new Set();
 
   /**
+   * The listeners that are to be notified when various analysis results are produced in this
+   * context.
+   */
+  List<AnalysisListener> _listeners = new List<AnalysisListener>();
+
+  /**
    * Initialize a newly created analysis context.
    */
   AnalysisContextImpl() : super() {
     _resultRecorder = new AnalysisContextImpl_AnalysisTaskResultRecorder(this);
     _privatePartition = new UniversalCachePartition(AnalysisOptionsImpl.DEFAULT_CACHE_SIZE, new AnalysisContextImpl_ContextRetentionPolicy(this));
     _cache = createCacheFromSourceFactory(null);
+  }
+
+  @override
+  void addListener(AnalysisListener listener) {
+    if (!_listeners.contains(listener)) {
+      _listeners.add(listener);
+    }
   }
 
   @override
@@ -1701,30 +1730,46 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (task == null) {
       return new AnalysisResult(_getChangeNotices(true), getEnd - getStart, null, -1);
     }
-    String taskDescriptor = task.toString();
-    //    if (recentTasks.add(taskDescriptor)) {
-    //      logInformation("Performing task: " + taskDescriptor);
+    String taskDescription = task.toString();
+    //    if (recentTasks.add(taskDescription)) {
+    //      logInformation("Performing task: " + taskDescription);
     //    } else {
     //      if (TRACE_PERFORM_TASK) {
     //        System.out.print("* ");
     //      }
-    //      logInformation("*** Performing repeated task: " + taskDescriptor);
+    //      logInformation("*** Performing repeated task: " + taskDescription);
     //    }
+    _notifyAboutToPerformTask(taskDescription);
     if (_TRACE_PERFORM_TASK) {
-      print(taskDescriptor);
+      print(taskDescription);
     }
     int performStart = JavaSystem.currentTimeMillis();
     try {
       task.perform(_resultRecorder);
     } on ObsoleteSourceAnalysisException catch (exception) {
-      AnalysisEngine.instance.logger.logInformation2("Could not perform analysis task: ${taskDescriptor}", exception);
+      AnalysisEngine.instance.logger.logInformation2("Could not perform analysis task: ${taskDescription}", exception);
     } on AnalysisException catch (exception) {
       if (exception.cause is! JavaIOException) {
         AnalysisEngine.instance.logger.logError2("Internal error while performing the task: ${task}", exception);
       }
     }
     int performEnd = JavaSystem.currentTimeMillis();
-    return new AnalysisResult(_getChangeNotices(false), getEnd - getStart, task.runtimeType.toString(), performEnd - performStart);
+    List<ChangeNotice> notices = _getChangeNotices(false);
+    int noticeCount = notices.length;
+    for (int i = 0; i < noticeCount; i++) {
+      ChangeNotice notice = notices[i];
+      Source source = notice.source;
+      // TODO(brianwilkerson) Figure out whether the compilation unit is always resolved, or whether
+      // we need to decide whether to invoke the "parsed" or "resolved" method. This might be better
+      // done when recording task results in order to reduce the chance of errors.
+      //      if (notice.getCompilationUnit() != null) {
+      //        notifyResolvedDart(source, notice.getCompilationUnit());
+      //      } else if (notice.getHtmlUnit() != null) {
+      //        notifyResolvedHtml(source, notice.getHtmlUnit());
+      //      }
+      _notifyErrors(source, notice.errors, notice.lineInfo);
+    }
+    return new AnalysisResult(notices, getEnd - getStart, task.runtimeType.toString(), performEnd - performStart);
   }
 
   @override
@@ -1751,6 +1796,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _cache.put(librarySource, dartCopy);
       }
     }
+  }
+
+  @override
+  void removeListener(AnalysisListener listener) {
+    _listeners.remove(listener);
   }
 
   @override
@@ -3828,6 +3878,111 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       AnalysisEngine.instance.logger.logInformation(message);
     } else {
       AnalysisEngine.instance.logger.logInformation2(message, exception);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that a task is about to be performed.
+   *
+   * @param taskDescription a human readable description of the task that is about to be performed
+   */
+  void _notifyAboutToPerformTask(String taskDescription) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].aboutToPerformTask(this, taskDescription);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the errors associated with the given source has been
+   * updated to the given errors.
+   *
+   * @param source the source containing the errors that were computed
+   * @param errors the errors that were computed
+   * @param lineInfo the line information associated with the source
+   */
+  void _notifyErrors(Source source, List<AnalysisError> errors, LineInfo lineInfo) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].computedErrors(this, source, errors, lineInfo);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given source is no longer included in the set of
+   * sources that are being analyzed.
+   *
+   * @param source the source that is no longer being analyzed
+   */
+  void _notifyExcludedSource(Source source) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].excludedSource(this, source);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given source is now included in the set of
+   * sources that are being analyzed.
+   *
+   * @param source the source that is now being analyzed
+   */
+  void _notifyIncludedSource(Source source) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].includedSource(this, source);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given Dart source was parsed.
+   *
+   * @param source the source that was parsed
+   * @param unit the result of parsing the source
+   */
+  void _notifyParsedDart(Source source, CompilationUnit unit) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].parsedDart(this, source, unit);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given HTML source was parsed.
+   *
+   * @param source the source that was parsed
+   * @param unit the result of parsing the source
+   */
+  void _notifyParsedHtml(Source source, ht.HtmlUnit unit) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].parsedHtml(this, source, unit);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given Dart source was resolved.
+   *
+   * @param source the source that was resolved
+   * @param unit the result of resolving the source
+   */
+  void _notifyResolvedDart(Source source, CompilationUnit unit) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].resolvedDart(this, source, unit);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the given HTML source was resolved.
+   *
+   * @param source the source that was resolved
+   * @param unit the result of resolving the source
+   */
+  void _notifyResolvedHtml(Source source, ht.HtmlUnit unit) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].resolvedHtml(this, source, unit);
     }
   }
 
@@ -6168,6 +6323,85 @@ class AnalysisLevel extends Enum<AnalysisLevel> {
   static const List<AnalysisLevel> values = const [ALL, ERRORS, RESOLVED, NONE];
 
   const AnalysisLevel(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
+ * The interface `AnalysisListener` defines the behavior of objects that are listening for
+ * results being produced by an analysis context.
+ */
+abstract class AnalysisListener {
+  /**
+   * Reports that a task is about to be performed by the given context.
+   *
+   * @param context the context in which the task is to be performed
+   * @param taskDescription a human readable description of the task that is about to be performed
+   */
+  void aboutToPerformTask(AnalysisContext context, String taskDescription);
+
+  /**
+   * Reports that the errors associated with the given source in the given context has been updated
+   * to the given errors.
+   *
+   * @param context the context in which the new list of errors was produced
+   * @param source the source containing the errors that were computed
+   * @param errors the errors that were computed
+   * @param lineInfo the line information associated with the source
+   */
+  void computedErrors(AnalysisContext context, Source source, List<AnalysisError> errors, LineInfo lineInfo);
+
+  /**
+   * Reports that the given source is no longer included in the set of sources that are being
+   * analyzed by the given analysis context.
+   *
+   * @param context the context in which the source is being analyzed
+   * @param source the source that is no longer being analyzed
+   */
+  void excludedSource(AnalysisContext context, Source source);
+
+  /**
+   * Reports that the given source is now included in the set of sources that are being analyzed by
+   * the given analysis context.
+   *
+   * @param context the context in which the source is being analyzed
+   * @param source the source that is now being analyzed
+   */
+  void includedSource(AnalysisContext context, Source source);
+
+  /**
+   * Reports that the given Dart source was parsed in the given context.
+   *
+   * @param context the context in which the source was parsed
+   * @param source the source that was parsed
+   * @param unit the result of parsing the source in the given context
+   */
+  void parsedDart(AnalysisContext context, Source source, CompilationUnit unit);
+
+  /**
+   * Reports that the given HTML source was parsed in the given context.
+   *
+   * @param context the context in which the source was parsed
+   * @param source the source that was parsed
+   * @param unit the result of parsing the source in the given context
+   */
+  void parsedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
+
+  /**
+   * Reports that the given Dart source was resolved in the given context.
+   *
+   * @param context the context in which the source was resolved
+   * @param source the source that was resolved
+   * @param unit the result of resolving the source in the given context
+   */
+  void resolvedDart(AnalysisContext context, Source source, CompilationUnit unit);
+
+  /**
+   * Reports that the given HTML source was resolved in the given context.
+   *
+   * @param context the context in which the source was resolved
+   * @param source the source that was resolved
+   * @param unit the result of resolving the source in the given context
+   */
+  void resolvedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
 }
 
 /**
@@ -11348,6 +11582,11 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  void addListener(AnalysisListener listener) {
+    _basis.addListener(listener);
+  }
+
+  @override
   void addSourceInfo(Source source, SourceEntry info) {
     _basis.addSourceInfo(source, info);
   }
@@ -11948,6 +12187,11 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     _basis.recordLibraryElements(elementMap);
+  }
+
+  @override
+  void removeListener(AnalysisListener listener) {
+    _basis.removeListener(listener);
   }
 
   @override

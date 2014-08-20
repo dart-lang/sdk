@@ -1009,6 +1009,13 @@ abstract class ClassElement implements Element {
   bool get isAbstract;
 
   /**
+   * Return `true` if this class is defined by an enum declaration.
+   *
+   * @return `true` if this class is defined by an enum declaration
+   */
+  bool get isEnum;
+
+  /**
    * Return `true` if this class [isProxy], or if it inherits the proxy annotation
    * from a supertype.
    *
@@ -1475,6 +1482,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   bool get isAbstract => hasModifier(Modifier.ABSTRACT);
 
   @override
+  bool get isEnum => hasModifier(Modifier.ENUM);
+
+  @override
   bool get isOrInheritsProxy => _safeIsOrInheritsProxy(this, new HashSet<ClassElement>());
 
   @override
@@ -1548,6 +1558,15 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       (constructor as ConstructorElementImpl).enclosingElement = this;
     }
     this._constructors = constructors;
+  }
+
+  /**
+   * Set whether this class is defined by an enum declaration to correspond to the given value.
+   *
+   * @param isEnum `true` if the class is defined by an enum declaration
+   */
+  void set enum2(bool isEnum) {
+    setModifier(Modifier.ENUM, isEnum);
   }
 
   /**
@@ -2863,6 +2882,8 @@ class DynamicTypeImpl extends TypeImpl {
     // T is S
     if (identical(this, type)) {
       return true;
+    } else if (type is UnionType) {
+      throw new NotImplementedException("No known use case");
     }
     // else
     return withDynamic;
@@ -4098,6 +4119,20 @@ abstract class ExecutableElement implements Element {
   FunctionType get type;
 
   /**
+   * Return `true` if this executable element has body marked as being asynchronous.
+   *
+   * @return `true` if this executable element has body marked as being asynchronous
+   */
+  bool get isAsynchronous;
+
+  /**
+   * Return `true` if this executable element has a body marked as being a generator.
+   *
+   * @return `true` if this executable element has a body marked as being a generator
+   */
+  bool get isGenerator;
+
+  /**
    * Return `true` if this executable element is an operator. The test may be based on the
    * name of the executable element, in which case the result will be correct when the name is
    * legal.
@@ -4113,6 +4148,13 @@ abstract class ExecutableElement implements Element {
    * @return `true` if this executable element is a static element
    */
   bool get isStatic;
+
+  /**
+   * Return `true` if this executable element has a body marked as being synchronous.
+   *
+   * @return `true` if this executable element has a body marked as being synchronous
+   */
+  bool get isSynchronous;
 }
 
 /**
@@ -4209,7 +4251,16 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   List<ParameterElement> get parameters => _parameters;
 
   @override
+  bool get isAsynchronous => hasModifier(Modifier.ASYNCHRONOUS);
+
+  @override
+  bool get isGenerator => hasModifier(Modifier.GENERATOR);
+
+  @override
   bool get isOperator => false;
+
+  @override
+  bool get isSynchronous => !hasModifier(Modifier.ASYNCHRONOUS);
 
   /**
    * Set the functions defined within this executable element to the given functions.
@@ -4368,10 +4419,19 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   FunctionType get type => substituteFor(baseElement.type);
 
   @override
+  bool get isAsynchronous => baseElement.isAsynchronous;
+
+  @override
+  bool get isGenerator => baseElement.isGenerator;
+
+  @override
   bool get isOperator => baseElement.isOperator;
 
   @override
   bool get isStatic => baseElement.isStatic;
+
+  @override
+  bool get isSynchronous => baseElement.isSynchronous;
 
   @override
   void visitChildren(ElementVisitor visitor) {
@@ -5428,6 +5488,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
       return true;
+    } else if (type is UnionType) {
+      throw new NotImplementedException("No known use case");
     } else if (type is! FunctionType) {
       return false;
     } else if (this == type) {
@@ -7197,6 +7259,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     if (identical(type, DynamicTypeImpl.instance)) {
       return true;
+    } else if (type is UnionType) {
+      throw new NotImplementedException("No known use case");
     } else if (type is! InterfaceType) {
       return false;
     }
@@ -8621,75 +8685,103 @@ class Modifier extends Enum<Modifier> {
   static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
 
   /**
+   * Indicates that an executable element has a body marked as being asynchronous.
+   */
+  static const Modifier ASYNCHRONOUS = const Modifier('ASYNCHRONOUS', 1);
+
+  /**
    * Indicates that the modifier 'const' was applied to the element.
    */
-  static const Modifier CONST = const Modifier('CONST', 1);
+  static const Modifier CONST = const Modifier('CONST', 2);
 
   /**
    * Indicates that the import element represents a deferred library.
    */
-  static const Modifier DEFERRED = const Modifier('DEFERRED', 2);
+  static const Modifier DEFERRED = const Modifier('DEFERRED', 3);
+
+  /**
+   * Indicates that a class element was defined by an enum declaration.
+   */
+  static const Modifier ENUM = const Modifier('ENUM', 4);
 
   /**
    * Indicates that the modifier 'factory' was applied to the element.
    */
-  static const Modifier FACTORY = const Modifier('FACTORY', 3);
+  static const Modifier FACTORY = const Modifier('FACTORY', 5);
 
   /**
    * Indicates that the modifier 'final' was applied to the element.
    */
-  static const Modifier FINAL = const Modifier('FINAL', 4);
+  static const Modifier FINAL = const Modifier('FINAL', 6);
+
+  /**
+   * Indicates that an executable element has a body marked as being a generator.
+   */
+  static const Modifier GENERATOR = const Modifier('GENERATOR', 7);
 
   /**
    * Indicates that the pseudo-modifier 'get' was applied to the element.
    */
-  static const Modifier GETTER = const Modifier('GETTER', 5);
+  static const Modifier GETTER = const Modifier('GETTER', 8);
 
   /**
    * A flag used for libraries indicating that the defining compilation unit contains at least one
    * import directive whose URI uses the "dart-ext" scheme.
    */
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 6);
+  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 9);
 
-  static const Modifier MIXIN = const Modifier('MIXIN', 7);
+  /**
+   * Indicates that a class can validly be used as a mixin.
+   */
+  static const Modifier MIXIN = const Modifier('MIXIN', 10);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated within the context.
    */
-  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT = const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 8);
+  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT = const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 11);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated within the scope.
    */
-  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE = const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 9);
+  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE = const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 12);
 
-  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 10);
+  /**
+   * Indicates that a class contains an explicit reference to 'super'.
+   */
+  static const Modifier REFERENCES_SUPER = const Modifier('REFERENCES_SUPER', 13);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 11);
+  static const Modifier SETTER = const Modifier('SETTER', 14);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 12);
+  static const Modifier STATIC = const Modifier('STATIC', 15);
 
   /**
    * Indicates that the element does not appear in the source code but was implicitly created. For
    * example, if a class does not define any constructors, an implicit zero-argument constructor
    * will be created and it will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 13);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
 
-  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 14);
+  /**
+   * Indicates that a class was defined using an alias. TODO(brianwilkerson) This should be renamed
+   * to 'ALIAS'.
+   */
+  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 17);
 
   static const List<Modifier> values = const [
       ABSTRACT,
+      ASYNCHRONOUS,
       CONST,
       DEFERRED,
+      ENUM,
       FACTORY,
       FINAL,
+      GENERATOR,
       GETTER,
       HAS_EXT_URI,
       MIXIN,
@@ -9750,6 +9842,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
    */
   PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable) : super(variable.name, variable.nameOffset) {
     this.variable = variable;
+    static = variable.isStatic;
     synthetic = true;
   }
 
@@ -11000,6 +11093,158 @@ abstract class UndefinedElement implements Element {
 }
 
 /**
+ * A flat immutable union of `Type`s. Here "flat" means a union type never contains another
+ * union type.
+ */
+abstract class UnionType implements DartType {
+  /**
+   * @return an immutable view of the types in this union type.
+   */
+  Set<DartType> get elements;
+}
+
+/**
+ * In addition to the methods of the `UnionType` interface we add a factory method
+ * `union` for building unions.
+ */
+class UnionTypeImpl extends TypeImpl implements UnionType {
+  /**
+   * Any unions in the `types` will be flattened in the returned union. If there is only one
+   * type after flattening then it will be returned directly, instead of a singleton union.
+   *
+   * @param types the `Type`s to union
+   * @return a `Type` comprising the `Type`s in `types`
+   */
+  static DartType union(List<DartType> types) {
+    Set<DartType> set = new HashSet<DartType>();
+    for (DartType t in types) {
+      if (t is UnionType) {
+        set.addAll(t.elements);
+      } else {
+        set.add(t);
+      }
+    }
+    if (set.length == 0) {
+      throw new IllegalArgumentException("No known use case for empty unions.");
+    } else if (set.length == 1) {
+      return new JavaIterator(set).next();
+    } else {
+      return new UnionTypeImpl(set);
+    }
+  }
+
+  /**
+   * The types in this union.
+   */
+  final Set<DartType> _types;
+
+  /**
+   * This constructor should only be called by the `union` factory: it does not check that its
+   * argument `types` contains no union types.
+   *
+   * @param types
+   */
+  UnionTypeImpl(this._types) : super(null, null);
+
+  @override
+  bool operator ==(Object other) {
+    if (other == null || other is! UnionType) {
+      return false;
+    } else if (identical(this, other)) {
+      return true;
+    } else {
+      return javaSetEquals(this._types, (other as UnionType).elements);
+    }
+  }
+
+  @override
+  Set<DartType> get elements => _types;
+
+  @override
+  int get hashCode => this._types.hashCode;
+
+  @override
+  DartType substitute2(List<DartType> argumentTypes, List<DartType> parameterTypes) {
+    // I can't think of any reason to substitute into a union type, since
+    // they should only appear at the top level and not be be nested inside
+    // other types.
+    //
+    // If there were a reason, then the implementation is to form a new union type
+    // by mapping the substitution over the elements of this union type.
+    throw new NotImplementedException("No known use case.");
+  }
+
+  @override
+  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
+    // TODO(collinsn): I understand why we have the [visitedElementPairs]
+    // in subtyping definitions: the user code could have inheritance loops, e.g.
+    //
+    //   class A extends B {}
+    //   class B extends A {}
+    //
+    // However, I don't see how a type equality comparison could cause a loop, since type
+    // equality should be structural. For example, we have
+    //
+    //   G<X1,...,Xm> = H<Y1,...,Yn>
+    //
+    // when [G = H /\ m = n /\ for all i. Xi = Yi]. Assuming there is no way to build
+    // loopy generics (which would break [toString()]), each of the equality comparisons
+    // above are on something structurally smaller.
+    throw new NotImplementedException("I don't believe there is any concern about infinite loops in type equality comparisons.");
+  }
+
+  @override
+  bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // I can't think of any reason to use [isMoreSpecificThan] for union types.
+    throw new NotImplementedException("No known use case.");
+  }
+
+  @override
+  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // TODO(collinsn): what version of subtyping do we want?
+    //
+    // The more unsound version: any.
+    /*
+    for (Type t : this.types) {
+      if (((TypeImpl) t).internalIsSubtypeOf(type, visitedTypePairs)) {
+        return true;
+      }
+    }
+    return false;
+    */
+    // The less unsound version: all.
+    for (DartType t in this._types) {
+      if (!(t as TypeImpl).internalIsSubtypeOf(type, visitedTypePairs)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * The super type test for union types is uniform in non-union subtypes. So, other
+   * `TypeImpl`s can call this method to implement @ internalIsSubtypeOf} for union types.
+   *
+   * @param type
+   * @param visitedTypePairs
+   * @return true if this union type is a super type of `type`
+   */
+  bool internalIsSuperTypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    // This implementation does not make sense when [type] is a union type, at least
+    // for the "less unsound" version of [internalIsSubtypeOf] above.
+    if (type is UnionType) {
+      throw new IllegalArgumentException("Only non-union types are supported.");
+    }
+    for (DartType t in this._types) {
+      if ((type as TypeImpl).internalIsSubtypeOf(t, visitedTypePairs)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+/**
  * The interface `UriReferencedElement` defines the behavior of objects included into a
  * library using some URI.
  */
@@ -11334,5 +11579,14 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool internalIsMoreSpecificThan(DartType type, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) => isSubtypeOf(type);
 
   @override
-  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => identical(type, this) || identical(type, DynamicTypeImpl.instance);
+  bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) {
+    if (type is UnionType) {
+      throw new NotImplementedException("No known use case");
+    }
+    // The only subtype relations that pertain to void are therefore:
+    // void <: void (by reflexivity)
+    // bottom <: void (as bottom is a subtype of all types).
+    // void <: dynamic (as dynamic is a supertype of all types)
+    return identical(type, this) || identical(type, DynamicTypeImpl.instance);
+  }
 }

@@ -315,6 +315,10 @@ class IllegalStateException extends JavaException {
   IllegalStateException([message = ""]) : super(message);
 }
 
+class NotImplementedException extends JavaException {
+  NotImplementedException(message) : super(message);
+}
+
 class UnsupportedOperationException extends JavaException {
   UnsupportedOperationException([message = ""]) : super(message);
 }
@@ -415,6 +419,10 @@ javaListSet(List list, int index, newValue) {
 
 bool javaCollectionContainsAll(Iterable list, Iterable c) {
   return c.fold(true, (bool prev, e) => prev && list.contains(e));
+}
+
+bool javaSetEquals(Set a, Set b) {
+  return a.containsAll(b) && b.containsAll(a);
 }
 
 javaMapPut(Map target, key, value) {

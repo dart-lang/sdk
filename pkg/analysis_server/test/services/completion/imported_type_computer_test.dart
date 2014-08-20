@@ -142,10 +142,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     addSource('/testA.dart', 'class A { }');
     addTestSource('import "/testA.dart"; class C {var ^}');
     return computeFull().then((_) {
-      // TODO (danrubel) should not be suggested
-      // but var ^ in this test
-      // parses differently than A ^ in test above
-      assertSuggestClass('A');
+      assertNotSuggested('A');
     });
   }
 
@@ -189,10 +186,7 @@ class ImportedTypeComputerTest extends AbstractCompletionTest {
     addSource('/testA.dart', 'class B { };');
     addTestSource('import "/testA.dart"; class C {} var ^');
     return computeFull().then((_) {
-      // TODO (danrubel) should not be suggested
-      // but var ^ in this test
-      // parses differently than B ^ in test above
-      assertSuggestClass('B');
+      assertNotSuggested('B');
     });
   }
 

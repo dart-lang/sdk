@@ -46,7 +46,7 @@ class AstFactory {
 
   static BlockFunctionBody asyncGeneratorBlockFunctionBody(List<Statement> statements) => new BlockFunctionBody(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "async"), TokenFactory.tokenFromType(TokenType.STAR), block(statements));
 
-  static AwaitExpression awaitExpression(Expression expression) => new AwaitExpression(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "await"), expression, TokenFactory.tokenFromType(TokenType.SEMICOLON));
+  static AwaitExpression awaitExpression(Expression expression) => new AwaitExpression(TokenFactory.tokenFromTypeAndString(TokenType.IDENTIFIER, "await"), expression);
 
   static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator, Expression rightOperand) => new BinaryExpression(leftOperand, TokenFactory.tokenFromType(operator), rightOperand);
 

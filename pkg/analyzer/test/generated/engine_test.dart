@@ -5141,9 +5141,9 @@
 //     Source source = new TestSource.con1(FileUtilities2.createFile("/test.html"), content);
 //     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
 //     ParseHtmlTask parseTask = new ParseHtmlTask(context, source, modificationStamp, content);
-//     parseTask.perform(new TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid());
+//     parseTask.perform(new TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2());
 //     ResolveHtmlTask task = new ResolveHtmlTask(context, source, parseTask.modificationTime, parseTask.htmlUnit);
-//     task.perform(new TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2(modificationStamp, source));
+//     task.perform(new TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid(modificationStamp, source));
 //   }
 //   static dartSuite() {
 //     _ut.group('ResolveHtmlTaskTest', () {
@@ -5292,6 +5292,10 @@
 //  * method will cause a test to fail when invoked.
 //  */
 // class TestAnalysisContext implements InternalAnalysisContext {
+//   @override
+//   void addListener(AnalysisListener listener) {
+//     JUnitTestCase.fail("Unexpected invocation of addListener");
+//   }
 //   @override
 //   void addSourceInfo(Source source, SourceEntry info) {
 //     JUnitTestCase.fail("Unexpected invocation of addSourceInfo");
@@ -5554,6 +5558,10 @@
 //   @override
 //   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
 //     JUnitTestCase.fail("Unexpected invocation of recordLibraryElements");
+//   }
+//   @override
+//   void removeListener(AnalysisListener listener) {
+//     JUnitTestCase.fail("Unexpected invocation of removeListener");
 //   }
 //   @override
 //   CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library) {
@@ -6489,13 +6497,9 @@
 //   }
 // }
 // class TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid extends TestTaskVisitor<Object> {
-//   @override
-//   Object visitParseHtmlTask(ParseHtmlTask task) => null;
-// }
-// class TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2 extends TestTaskVisitor<Object> {
 //   long modificationStamp;
 //   Source source;
-//   TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2(this.modificationStamp, this.source) : super();
+//   TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid(this.modificationStamp, this.source) : super();
 //   @override
 //   Object visitResolveHtmlTask(ResolveHtmlTask task) {
 //     CaughtException exception = task.exception;
@@ -6508,6 +6512,10 @@
 //     JUnitTestCase.assertSame(source, task.source);
 //     return null;
 //   }
+// }
+// class TestTaskVisitor_ResolveHtmlTaskTest_test_perform_valid_2 extends TestTaskVisitor<Object> {
+//   @override
+//   Object visitParseHtmlTask(ParseHtmlTask task) => null;
 // }
 // class TestTaskVisitor_ScanDartTaskTest_test_accept extends TestTaskVisitor<Boolean> {
 //   @override

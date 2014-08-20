@@ -4373,6 +4373,186 @@ class TypeParameterTypeImplTest extends EngineTestCase {
   }
 }
 
+class UnionTypeImplTest extends EngineTestCase {
+  ClassElement _classA;
+
+  InterfaceType _typeA;
+
+  ClassElement _classB;
+
+  InterfaceType _typeB;
+
+  DartType _uA;
+
+  DartType _uB;
+
+  DartType _uAB;
+
+  DartType _uBA;
+
+  List<DartType> _us;
+
+  void fail_isSubtypeOf_element() {
+    // Elements of union are sub types
+    JUnitTestCase.assertTrue(_typeA.isSubtypeOf(_uAB));
+    JUnitTestCase.assertTrue(_typeB.isSubtypeOf(_uAB));
+  }
+
+  void fail_isSubtypeOf_reflexivity() {
+    for (DartType u in _us) {
+      JUnitTestCase.assertTrue(u.isSubtypeOf(u));
+    }
+  }
+
+  void fail_toString_pair() {
+    DartType u = UnionTypeImpl.union([_typeA, _typeB]);
+    String s = u.toString();
+    JUnitTestCase.assertTrue(s == "{A,B}" || s == "{B,A}");
+  }
+
+  void test_emptyUnionsNotAllowed() {
+    try {
+      UnionTypeImpl.union([]);
+    } on IllegalArgumentException catch (e) {
+      return;
+    }
+    JUnitTestCase.fail("Expected illegal argument exception.");
+  }
+
+  void test_equality_beingASubtypeOfAnElementIsNotSufficient() {
+    // Non-equal if some elements are different
+    JUnitTestCase.assertFalse(_uAB == _uA);
+  }
+
+  void test_equality_insertionOrderDoesntMatter() {
+    // Insertion order doesn't matter, only sets of elements
+    JUnitTestCase.assertTrue(_uAB == _uBA);
+    JUnitTestCase.assertTrue(_uBA == _uAB);
+  }
+
+  void test_equality_reflexivity() {
+    for (DartType u in _us) {
+      JUnitTestCase.assertTrue(u == u);
+    }
+  }
+
+  void test_equality_singletonsCollapse() {
+    JUnitTestCase.assertTrue(_typeA == _uA);
+    JUnitTestCase.assertTrue(_uA == _typeA);
+  }
+
+  void test_isSubtypeOf_allElementsOnLHSAreSubtypesOfSomeElementOnRHS() {
+    // Unions are subtypes when all elements are subtypes
+    JUnitTestCase.assertTrue(_uAB.isSubtypeOf(_uA));
+    JUnitTestCase.assertTrue(_uAB.isSubtypeOf(_typeA));
+  }
+
+  void test_isSubtypeOf_notSubtypeOfAnyElement() {
+    // Types that are not subtypes of elements are not subtypes
+    JUnitTestCase.assertFalse(_typeA.isSubtypeOf(_uB));
+  }
+
+  void test_isSubtypeOf_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS() {
+    // Unions are not subtypes when some element is not a subtype
+    JUnitTestCase.assertFalse(_uAB.isSubtypeOf(_uB));
+    JUnitTestCase.assertFalse(_uAB.isSubtypeOf(_typeB));
+  }
+
+  void test_isSubtypeOf_subtypeOfSomeElement() {
+    // Subtypes of elements are sub types
+    JUnitTestCase.assertTrue(_typeB.isSubtypeOf(_uA));
+  }
+
+  void test_nestedUnionsCollapse() {
+    UnionType u = UnionTypeImpl.union([_uAB, _typeA]) as UnionType;
+    for (DartType t in u.elements) {
+      if (t is UnionType) {
+        JUnitTestCase.fail("Expected only non-union types but found ${t}!");
+      }
+    }
+  }
+
+  void test_noLossage() {
+    UnionType u = UnionTypeImpl.union([_typeA, _typeB, _typeB, _typeA, _typeB, _typeB]) as UnionType;
+    Set<DartType> elements = u.elements;
+    JUnitTestCase.assertTrue(elements.contains(_typeA));
+    JUnitTestCase.assertTrue(elements.contains(_typeB));
+    JUnitTestCase.assertTrue(elements.length == 2);
+  }
+
+  void test_toString_singleton() {
+    // Singleton unions collapse to the the single type.
+    JUnitTestCase.assertEquals("A", _uA.toString());
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    _classA = ElementFactory.classElement2("A", []);
+    _typeA = _classA.type;
+    _classB = ElementFactory.classElement("B", _typeA, []);
+    _typeB = _classB.type;
+    _uA = UnionTypeImpl.union([_typeA]);
+    _uB = UnionTypeImpl.union([_typeB]);
+    _uAB = UnionTypeImpl.union([_typeA, _typeB]);
+    _uBA = UnionTypeImpl.union([_typeB, _typeA]);
+    _us = <DartType> [_uA, _uB, _uAB, _uBA];
+  }
+
+  static dartSuite() {
+    _ut.group('UnionTypeImplTest', () {
+      _ut.test('test_emptyUnionsNotAllowed', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_emptyUnionsNotAllowed);
+      });
+      _ut.test('test_equality_beingASubtypeOfAnElementIsNotSufficient', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_equality_beingASubtypeOfAnElementIsNotSufficient);
+      });
+      _ut.test('test_equality_insertionOrderDoesntMatter', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_equality_insertionOrderDoesntMatter);
+      });
+      _ut.test('test_equality_reflexivity', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_equality_reflexivity);
+      });
+      _ut.test('test_equality_singletonsCollapse', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_equality_singletonsCollapse);
+      });
+      _ut.test('test_isSubtypeOf_allElementsOnLHSAreSubtypesOfSomeElementOnRHS', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_allElementsOnLHSAreSubtypesOfSomeElementOnRHS);
+      });
+      _ut.test('test_isSubtypeOf_notSubtypeOfAnyElement', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_notSubtypeOfAnyElement);
+      });
+      _ut.test('test_isSubtypeOf_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS);
+      });
+      _ut.test('test_isSubtypeOf_subtypeOfSomeElement', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_subtypeOfSomeElement);
+      });
+      _ut.test('test_nestedUnionsCollapse', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_nestedUnionsCollapse);
+      });
+      _ut.test('test_noLossage', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_noLossage);
+      });
+      _ut.test('test_toString_singleton', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_toString_singleton);
+      });
+    });
+  }
+}
+
 class VoidTypeImplTest extends EngineTestCase {
   /**
    * Reference {code VoidTypeImpl.getInstance()}.
@@ -4449,6 +4629,7 @@ main() {
   FunctionTypeImplTest.dartSuite();
   InterfaceTypeImplTest.dartSuite();
   TypeParameterTypeImplTest.dartSuite();
+  UnionTypeImplTest.dartSuite();
   VoidTypeImplTest.dartSuite();
   ClassElementImplTest.dartSuite();
   CompilationUnitElementImplTest.dartSuite();
