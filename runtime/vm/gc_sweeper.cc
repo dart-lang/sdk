@@ -45,7 +45,7 @@ bool GCSweeper::SweepPage(HeapPage* page, FreeList* freelist) {
       }
       if ((current != start) || (free_end != end)) {
         // Only add to the free list if not covering the whole page.
-        freelist->Free(current, obj_size);
+        freelist->FreeLocked(current, obj_size);
       }
     }
     current += obj_size;

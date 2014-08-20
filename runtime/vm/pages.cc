@@ -565,38 +565,46 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   freelist_[HeapPage::kExecutable].Reset();
 
   int64_t mid2 = OS::GetCurrentTimeMicros();
+  int64_t mid3 = 0;
 
   GCSweeper sweeper(heap_);
 
-  HeapPage* prev_page = NULL;
-  HeapPage* page = pages_;
-  while (page != NULL) {
-    HeapPage* next_page = page->next();
-    bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
-    if (page_in_use) {
-      prev_page = page;
-    } else {
-      FreePage(page, prev_page);
-    }
-    // Advance to the next page.
-    page = next_page;
-  }
+  // During stop-the-world phases we should use bulk lock when adding elements
+  // to the free list.
+  {
+    MutexLocker mld(freelist_[HeapPage::kData].mutex());
+    MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
 
-  int64_t mid3 = OS::GetCurrentTimeMicros();
-
-  prev_page = NULL;
-  page = large_pages_;
-  while (page != NULL) {
-    HeapPage* next_page = page->next();
-    const intptr_t words_to_end = sweeper.SweepLargePage(page);
-    if (words_to_end == 0) {
-      FreeLargePage(page, prev_page);
-    } else {
-      TruncateLargePage(page, words_to_end << kWordSizeLog2);
-      prev_page = page;
+    HeapPage* prev_page = NULL;
+    HeapPage* page = pages_;
+    while (page != NULL) {
+      HeapPage* next_page = page->next();
+      bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
+      if (page_in_use) {
+        prev_page = page;
+      } else {
+        FreePage(page, prev_page);
+      }
+      // Advance to the next page.
+      page = next_page;
     }
-    // Advance to the next page.
-    page = next_page;
+
+    mid3 = OS::GetCurrentTimeMicros();
+
+    prev_page = NULL;
+    page = large_pages_;
+    while (page != NULL) {
+      HeapPage* next_page = page->next();
+      const intptr_t words_to_end = sweeper.SweepLargePage(page);
+      if (words_to_end == 0) {
+        FreeLargePage(page, prev_page);
+      } else {
+        TruncateLargePage(page, words_to_end << kWordSizeLog2);
+        prev_page = page;
+      }
+      // Advance to the next page.
+      page = next_page;
+    }
   }
 
   // Make code pages read-only.
