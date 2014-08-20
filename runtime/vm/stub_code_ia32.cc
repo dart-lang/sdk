@@ -1509,18 +1509,12 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   }
 #endif  // DEBUG
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
   __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
   __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
-
-  __ EnterStubFrame();
-  __ pushl(ECX);
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ popl(ECX);
-  __ LeaveFrame();
-  __ Bind(&not_stepping);
+  __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
+  __ Bind(&done_stepping);
 
   // ECX: IC data object (preserved).
   __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
@@ -1531,11 +1525,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
   // Increment count for this call.
-  Label increment_done;
-  __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
-  __ j(NO_OVERFLOW, &increment_done, Assembler::kNearJump);
-  __ movl(Address(EBX, count_offset), Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ Bind(&increment_done);
+  __ movl(EAX, Address(EBX, count_offset));
+  __ addl(EAX, Immediate(Smi::RawValue(1)));
+  __ movl(EDI, Immediate(Smi::RawValue(Smi::kMaxValue)));
+  __ cmovno(EDI, EAX);
+  __ movl(Address(EBX, count_offset), EDI);
 
   // Load arguments descriptor into EDX.
   __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
@@ -1547,6 +1541,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // EBX: Target instructions.
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(EBX);
+
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ pushl(ECX);
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ popl(ECX);
+  __ LeaveFrame();
+  __ jmp(&done_stepping, Assembler::kNearJump);
 }
 
 
@@ -1635,18 +1637,19 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 // Called only from unoptimized code.
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
   __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
   __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
+  __ Bind(&done_stepping);
+  __ ret();
 
+  __ Bind(&stepping);
   __ EnterStubFrame();
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ LeaveFrame();
-  __ Bind(&not_stepping);
-
-  __ ret();
+  __ jmp(&done_stepping, Assembler::kNearJump);
 }
 
 
@@ -1896,16 +1899,12 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
   __ movzxb(EAX, Address(EAX, Isolate::single_step_offset()));
   __ cmpl(EAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
-
-  __ EnterStubFrame();
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ LeaveFrame();
-  __ Bind(&not_stepping);
+  __ j(NOT_EQUAL, &stepping);
+  __ Bind(&done_stepping);
 
   const Register left = EAX;
   const Register right = EDX;
@@ -1914,6 +1913,12 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ movl(right, Address(ESP, 1 * kWordSize));
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp);
   __ ret();
+
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveFrame();
+  __ jmp(&done_stepping);
 }
 
 

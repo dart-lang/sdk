@@ -1476,17 +1476,12 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 #endif  // DEBUG
 
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
-  __ EnterStubFrame();
-  __ pushq(RBX);  // Preserve IC data object.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ popq(RBX);
-  __ LeaveStubFrame();
-  __ Bind(&not_stepping);
+  __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
+  __ Bind(&done_stepping);
 
   // RBX: IC data object (preserved).
   __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
@@ -1497,12 +1492,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
   // Increment count for this call.
-  Label increment_done;
-  __ addq(Address(R12, count_offset), Immediate(Smi::RawValue(1)));
-  __ j(NO_OVERFLOW, &increment_done, Assembler::kNearJump);
-  __ movq(Address(R12, count_offset),
-          Immediate(Smi::RawValue(Smi::kMaxValue)));
-  __ Bind(&increment_done);
+  __ movq(R8, Address(R12, count_offset));
+  __ addq(R8, Immediate(Smi::RawValue(1)));
+  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+  __ cmovnoq(R9, R8);
+  __ movq(Address(R12, count_offset), R9);
 
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
@@ -1513,6 +1507,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // RCX: Target instructions.
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(RCX);
+
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ pushq(RBX);  // Preserve IC data object.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ popq(RBX);
+  __ LeaveStubFrame();
+  __ jmp(&done_stepping, Assembler::kNearJump);
 }
 
 
@@ -1601,18 +1603,19 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 // Called only from unoptimized code.
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
+  __ Bind(&done_stepping);
+  __ ret();
 
+  __ Bind(&stepping);
   __ EnterStubFrame();
   __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
   __ LeaveStubFrame();
-  __ Bind(&not_stepping);
-
-  __ ret();
+  __ jmp(&done_stepping, Assembler::kNearJump);
 }
 
 
@@ -1867,15 +1870,12 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ movq(RAX, FieldAddress(CTX, Context::isolate_offset()));
   __ movzxb(RAX, Address(RAX, Isolate::single_step_offset()));
   __ cmpq(RAX, Immediate(0));
-  __ j(EQUAL, &not_stepping, Assembler::kNearJump);
-  __ EnterStubFrame();
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ LeaveStubFrame();
-  __ Bind(&not_stepping);
+  __ j(NOT_EQUAL, &stepping);
+  __ Bind(&done_stepping);
 
   const Register left = RAX;
   const Register right = RDX;
@@ -1884,6 +1884,12 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ movq(right, Address(RSP, 1 * kWordSize));
   GenerateIdenticalWithNumberCheckStub(assembler, left, right);
   __ ret();
+
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ LeaveStubFrame();
+  __ jmp(&done_stepping);
 }
 
 

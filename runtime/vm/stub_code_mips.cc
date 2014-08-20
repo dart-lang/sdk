@@ -1638,21 +1638,11 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 #endif  // DEBUG
 
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchEqual(T0, 0, &not_stepping);
-  // Call single step callback in debugger.
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
-  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ lw(RA, Address(SP, 0 * kWordSize));
-  __ lw(S5, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ LeaveStubFrame();
-  __ Bind(&not_stepping);
+  __ BranchNotEqual(T0, 0, &stepping);
+  __ Bind(&done_stepping);
 
   // S5: IC data object (preserved).
   __ lw(T0, FieldAddress(S5, ICData::ic_data_offset()));
@@ -1663,16 +1653,12 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
 
   // Increment count for this call.
-  Label increment_done;
   __ lw(T4, Address(T0, count_offset));
-  __ AddImmediateDetectOverflow(T4, T4, Smi::RawValue(1), T5, T6);
-  __ bgez(T5, &increment_done);  // No overflow.
-  __ delay_slot()->sw(T4, Address(T0, count_offset));
-
-  __ LoadImmediate(T1, Smi::RawValue(Smi::kMaxValue));
-  __ sw(T1, Address(T0, count_offset));
-
-  __ Bind(&increment_done);
+  __ AddImmediateDetectOverflow(T7, T4, Smi::RawValue(1), T5, T6);
+  __ slt(CMPRES1, T5, ZR);  // T5 is < 0 if there was overflow.
+  __ LoadImmediate(T4, Smi::RawValue(Smi::kMaxValue));
+  __ movz(T4, T7, CMPRES1);
+  __ sw(T4, Address(T0, count_offset));
 
   // Load arguments descriptor into S4.
   __ lw(S4,  FieldAddress(S5, ICData::arguments_descriptor_offset()));
@@ -1684,6 +1670,19 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // T4: target instructions.
   __ AddImmediate(T4, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T4);
+
+  // Call single step callback in debugger.
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));  // Preserve IC data.
+  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ lw(RA, Address(SP, 0 * kWordSize));
+  __ lw(S5, Address(SP, 1 * kWordSize));
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ LeaveStubFrame();
+  __ b(&done_stepping);
 }
 
 
@@ -1779,11 +1778,16 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 // RA: return address.
 void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchEqual(T0, 0, &not_stepping);
+  __ BranchNotEqual(T0, 0, &stepping);
+  __ Bind(&done_stepping);
+
+  __ Ret();
+
   // Call single step callback in debugger.
+  __ Bind(&stepping);
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
@@ -1791,9 +1795,7 @@ void StubCode::GenerateDebugStepCheckStub(Assembler* assembler) {
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(1 * kWordSize));
   __ LeaveStubFrame();
-  __ Bind(&not_stepping);
-
-  __ Ret();
+  __ b(&done_stepping);
 }
 
 
@@ -2064,19 +2066,11 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
 void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     Assembler* assembler) {
   // Check single stepping.
-  Label not_stepping;
+  Label stepping, done_stepping;
   __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
   __ lbu(T0, Address(T0, Isolate::single_step_offset()));
-  __ BranchEqual(T0, 0, &not_stepping);
-  // Call single step callback in debugger.
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
-  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
-  __ lw(RA, Address(SP, 0 * kWordSize));
-  __ addiu(SP, SP, Immediate(1 * kWordSize));
-  __ LeaveStubFrame();
-  __ Bind(&not_stepping);
+  __ BranchNotEqual(T0, 0, &stepping);
+  __ Bind(&done_stepping);
 
   const Register temp1 = T2;
   const Register temp2 = T3;
@@ -2086,6 +2080,17 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   __ lw(right, Address(SP, 0 * kWordSize));
   GenerateIdenticalWithNumberCheckStub(assembler, left, right, temp1, temp2);
   __ Ret();
+
+  // Call single step callback in debugger.
+  __ Bind(&stepping);
+  __ EnterStubFrame();
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
+  __ sw(RA, Address(SP, 0 * kWordSize));  // Return address.
+  __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
+  __ lw(RA, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(1 * kWordSize));
+  __ LeaveStubFrame();
+  __ b(&done_stepping);
 }
 
 
