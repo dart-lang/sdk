@@ -3,6 +3,9 @@
 This file contains highlights of what changes on each version of the
 polymer_expressions package.
 
+#### Pub version 0.12.0+1
+  * Widen dependency constraint on `observe`.
+
 #### Pub version 0.12.0
   * Exposed a couple new APIs to create a polymer expression binding outside the
     context of a template binding.

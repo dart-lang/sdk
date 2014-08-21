@@ -14,7 +14,6 @@ pkg/browser: PubGetError
 pkg/intl: PubGetError # Issue 19782
 pkg/third_party/html5lib: PubGetError # angular needs to be updated
 samples/third_party/angular_todo: Fail # angular needs to be updated
-pkg/observe: PubGetError # Issue 20576
 
 [ $use_public_packages ]
 samples/third_party/angular_todo: Pass, Slow
