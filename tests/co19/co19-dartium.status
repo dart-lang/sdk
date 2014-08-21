@@ -584,6 +584,8 @@ WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # co19-roll r761:
 WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/storage_clear_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/storage_local_key_t01: RuntimeError # co19-roll r761: Please triage this failure.
+WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
+WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 # New Dartium checked failures on new co19 browser tests in co19 revision 706.
