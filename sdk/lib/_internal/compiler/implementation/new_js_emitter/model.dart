@@ -7,15 +7,6 @@ library dart2js.new_js_emitter.model;
 import '../dart2jslib.dart' show Compiler;
 import '../js/js.dart' as js;
 
-js.Fun lazy(js.Expression value) {
-  js.Block block = new js.Block([new js.Return(value)]);
-  return new js.Fun([], block);
-}
-
-js.Expression eager(js.Expression value) {
-  return value;
-}
-
 js.LiteralString unparse(Compiler compiler, js.Expression value) {
   String text = js.prettyPrint(value, compiler).getText();
   if (value is js.Fun) text = '($text)';
