@@ -39,11 +39,6 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
     MessageKind.UNIMPLEMENTED_METHOD_ONE,
     MessageKind.VAR_FUNCTION_TYPE_PARAMETER,
     MessageKind.VOID_NOT_ALLOWED,
-
-    MessageKind.HEX_DIGIT_EXPECTED, // http://dartbug.com/18574
-    MessageKind.UNMATCHED_TOKEN, // http://dartbug.com/18574
-    MessageKind.UNTERMINATED_COMMENT, // http://dartbug.com/18574
-    MessageKind.UNTERMINATED_STRING, // http://dartbug.com/18574
 ]);
 
 /// Most messages can be tested without causing a fatal error. Add an exception
@@ -60,7 +55,6 @@ final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
 /// stop before analyzing all input, and it isn't safe to reuse it.
 final Set<MessageKind> kindsWithFatalErrors = new Set<MessageKind>.from([
     // If you add something here, please file a *new* bug report.
-    MessageKind.HEX_DIGIT_EXPECTED,
     MessageKind.UNMATCHED_TOKEN,
     MessageKind.UNTERMINATED_STRING,
 ]);

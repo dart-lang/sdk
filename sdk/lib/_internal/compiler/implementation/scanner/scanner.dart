@@ -628,7 +628,8 @@ abstract class AbstractScanner implements Scanner {
         hasDigits = true;
       } else {
         if (!hasDigits) {
-          return unterminated('0x');
+          unterminated('0x', shouldAdvance: false);
+          return next;
         }
         appendSubstringToken(HEXADECIMAL_INFO, start, true);
         return next;
@@ -949,7 +950,6 @@ abstract class AbstractScanner implements Scanner {
 
   int tokenizeSingleLineRawString(int next, int quoteChar, int start) {
     bool asciiOnly = true;
-    next = advance(); // Advance past the quote.
     while (next != $EOF) {
       if (identical(next, quoteChar)) {
         if (!asciiOnly) handleUnicode(start);
@@ -1078,6 +1078,7 @@ abstract class AbstractScanner implements Scanner {
     return unterminated(
         new String.fromCharCodes([quoteChar, quoteChar, quoteChar]));
   }
+
   int unterminatedRawMultiLineString(int quoteChar) {
     return unterminated(
         'r${new String.fromCharCodes([quoteChar, quoteChar, quoteChar])}');
