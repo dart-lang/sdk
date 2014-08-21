@@ -362,7 +362,7 @@ class CallSites : public ValueObject {
         } else if (current->IsStaticCall()) {
           StaticCallInstr* static_call = current->AsStaticCall();
           if (!inline_only_recognized_methods ||
-              static_call->function().is_recognized()) {
+              static_call->function().IsRecognized()) {
             static_calls_.Add(StaticCallInfo(static_call, graph));
           } else {
             // Method not inlined because inlining too deep and method

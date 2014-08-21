@@ -63,8 +63,6 @@ class ObjectPointerVisitor;
   V(StackTraceVar, ":stack_trace_var")                                         \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
-  V(ClosureFunctionField, ":function")                                         \
-  V(ClosureContextField, ":context")                                           \
   V(Library, "library")                                                        \
   V(LoadLibrary, "loadLibrary")                                                \
   V(_LibraryPrefix, "_LibraryPrefix")                                          \
@@ -80,8 +78,6 @@ class ObjectPointerVisitor;
   V(CompleterConstructor, "Completer.")                                        \
   V(CompleterFuture, "future")                                                 \
   V(Native, "native")                                                          \
-  V(Import, "import")                                                          \
-  V(Source, "source")                                                          \
   V(Class, "Class")                                                            \
   V(Null, "Null")                                                              \
   V(Dynamic, "dynamic")                                                        \
@@ -158,33 +154,19 @@ class ObjectPointerVisitor;
   V(Float64x2, "Float64x2")                                                    \
   V(Int32x4, "Int32x4")                                                        \
   V(Int8List, "Int8List")                                                      \
-  V(Int8ListFactory, "Int8List.")                                              \
   V(Uint8List, "Uint8List")                                                    \
-  V(Uint8ListFactory, "Uint8List.")                                            \
   V(Uint8ClampedList, "Uint8ClampedList")                                      \
-  V(Uint8ClampedListFactory, "Uint8ClampedList.")                              \
   V(Int16List, "Int16List")                                                    \
-  V(Int16ListFactory, "Int16List.")                                            \
   V(Uint16List, "Uint16List")                                                  \
-  V(Uint16ListFactory, "Uint16List.")                                          \
   V(Int32List, "Int32List")                                                    \
-  V(Int32ListFactory, "Int32List.")                                            \
   V(Uint32List, "Uint32List")                                                  \
-  V(Uint32ListFactory, "Uint32List.")                                          \
   V(Int64List, "Int64List")                                                    \
-  V(Int64ListFactory, "Int64List.")                                            \
   V(Uint64List, "Uint64List")                                                  \
-  V(Uint64ListFactory, "Uint64List.")                                          \
   V(Float32x4List, "Float32x4List")                                            \
-  V(Float32x4ListFactory, "Float32x4List.")                                    \
   V(Int32x4List, "Int32x4List")                                                \
-  V(Int32x4ListFactory, "Int32x4List.")                                        \
   V(Float64x2List, "Float64x2List")                                            \
-  V(Float64x2ListFactory, "Float64x2List.")                                    \
   V(Float32List, "Float32List")                                                \
-  V(Float32ListFactory, "Float32List.")                                        \
   V(Float64List, "Float64List")                                                \
-  V(Float64ListFactory, "Float64List.")                                        \
   V(_Int8Array, "_Int8Array")                                                  \
   V(_Int8ArrayFactory, "_Int8Array.")                                          \
   V(_Uint8Array, "_Uint8Array")                                                \
@@ -244,7 +226,6 @@ class ObjectPointerVisitor;
   V(ByteData, "ByteData")                                                      \
   V(ByteDataDot, "ByteData.")                                                  \
   V(ByteDataDot_view, "ByteData._view")                                        \
-  V(ByteDataDotview, "ByteData.view")                                          \
   V(_ByteDataView, "_ByteDataView")                                            \
   V(_ByteBuffer, "_ByteBuffer")                                                \
   V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
@@ -274,7 +255,6 @@ class ObjectPointerVisitor;
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \
   V(Malbounded, "malbounded")                                                  \
-  V(InstanceOf, "InstanceOf")                                                  \
   V(MegamorphicMiss, "megamorphic_miss")                                       \
   V(CommaSpace, ", ")                                                          \
   V(ColonSpace, ": ")                                                          \
@@ -288,20 +268,15 @@ class ObjectPointerVisitor;
   V(GetterPrefix, "get:")                                                      \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
-  V(PrivateGetterPrefix, "get:_")                                              \
-  V(PrivateSetterPrefix, "set:_")                                              \
   V(_New, "_new")                                                              \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartNativeWrappersLibName, "dart.nativewrappers")                          \
-  V(DartAsync, "dart:async")                                                   \
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
-  V(DartConvert, "dart:convert")                                               \
   V(DartInternal, "dart:_internal")                                            \
   V(DartIsolate, "dart:isolate")                                               \
-  V(DartMath, "dart:math")                                                     \
   V(DartMirrors, "dart:mirrors")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVMService, "dart:vmservice")                                           \
@@ -331,7 +306,6 @@ class ObjectPointerVisitor;
   V(NotInitialized, "<not initialized>")                                       \
   V(AllocationStubFor, "Allocation stub for ")                                 \
   V(TempParam, ":temp_param")                                                  \
-  V(UserTag, "UserTag")                                                        \
   V(_UserTag, "_UserTag")                                                      \
   V(Default, "Default")                                                        \
   V(StubPrefix, "[Stub] ")                                                     \

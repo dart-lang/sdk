@@ -5480,8 +5480,8 @@ void Function::set_is_intrinsic(bool value) const {
 }
 
 
-void Function::set_is_recognized(bool value) const {
-  set_kind_tag(RecognizedBit::update(value, raw_ptr()->kind_tag_));
+void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
+  set_kind_tag(RecognizedBits::update(value, raw_ptr()->kind_tag_));
 }
 
 
@@ -6138,6 +6138,7 @@ RawFunction* Function::New(const String& name,
   result.set_parameter_names(Object::empty_array());
   result.set_name(name);
   result.set_kind(kind);
+  result.set_recognized_kind(MethodRecognizer::kUnknown);
   result.set_modifier(RawFunction::kNoModifier);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
@@ -6146,9 +6147,10 @@ RawFunction* Function::New(const String& name,
   result.set_is_native(is_native);
   result.set_is_visible(true);  // Will be computed later.
   result.set_is_intrinsic(false);
-  result.set_is_recognized(false);
   result.set_is_redirecting(false);
   result.set_is_async_closure(false);
+  result.set_always_inline(false);
+  result.set_is_polymorphic_target(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
@@ -10349,7 +10351,7 @@ void Library::CheckFunctionFingerprints() {
 
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  RECOGNIZED_LIST(CHECK_FINGERPRINTS);
+  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
@@ -10360,6 +10362,10 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::ProfilerLibrary()));
+  PROFILER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
 

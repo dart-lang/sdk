@@ -14,6 +14,7 @@
 #include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/locations.h"
+#include "vm/method_recognizer.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -484,174 +485,6 @@ CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
   return NULL;
 }
 
-
-static bool StartsWith(const String& name, const char* prefix, intptr_t n) {
-  ASSERT(name.IsOneByteString());
-
-  if (name.Length() < n) {
-    return false;
-  }
-
-  for (intptr_t i = 0; i < n; i++) {
-    if (name.CharAt(i) != prefix[i]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-
-static bool CompareNames(const Library& lib,
-                         const char* test_name,
-                         const String& name) {
-  ASSERT(Library::kPrivateIdentifierStart == '_');
-  const char* kPrivateGetterPrefix = "get:_";
-  const char* kPrivateSetterPrefix = "set:_";
-
-  if (test_name[0] == Library::kPrivateIdentifierStart) {
-    if (name.CharAt(0) != Library::kPrivateIdentifierStart) {
-      return false;
-    }
-  } else if (strncmp(test_name,
-                     kPrivateGetterPrefix,
-                     strlen(kPrivateGetterPrefix)) == 0) {
-    if (!StartsWith(name, kPrivateGetterPrefix, strlen(kPrivateGetterPrefix))) {
-      return false;
-    }
-  } else if (strncmp(test_name,
-                     kPrivateSetterPrefix,
-                     strlen(kPrivateSetterPrefix)) == 0) {
-    if (!StartsWith(name, kPrivateSetterPrefix, strlen(kPrivateSetterPrefix))) {
-      return false;
-    }
-  } else {
-    // Compare without mangling.
-    return name.Equals(test_name);
-  }
-
-  // Both names are private. Mangle test_name before comparison.
-  // Check if this is a constructor (e.g., List,), in which case the mangler
-  // needs some help (see comment in Library::PrivateName).
-  String& test_name_symbol = String::Handle();
-  if (test_name[strlen(test_name) - 1] == '.') {
-    test_name_symbol = Symbols::New(test_name, strlen(test_name) - 1);
-    test_name_symbol = lib.PrivateName(test_name_symbol);
-    test_name_symbol = String::Concat(test_name_symbol, Symbols::Dot());
-  } else {
-    test_name_symbol = Symbols::New(test_name);
-    test_name_symbol = lib.PrivateName(test_name_symbol);
-  }
-  return test_name_symbol.Equals(name);
-}
-
-
-static bool IsRecognizedLibrary(const Library& library) {
-  // List of libraries where methods can be recognized.
-  return (library.raw() == Library::CoreLibrary())
-      || (library.raw() == Library::MathLibrary())
-      || (library.raw() == Library::TypedDataLibrary())
-      || (library.raw() == Library::InternalLibrary());
-}
-
-
-MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
-    const Function& function) {
-  if (!function.is_recognized()) {
-    return kUnknown;
-  }
-
-  const Class& function_class = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(function_class.library());
-  const String& function_name = String::Handle(function.name());
-  const String& class_name = String::Handle(function_class.Name());
-
-#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
-  if (CompareNames(lib, #test_function_name, function_name) &&                 \
-      CompareNames(lib, #test_class_name, class_name)) {                       \
-    ASSERT(function.CheckSourceFingerprint(fp));                               \
-    return k##enum_name;                                                       \
-  }
-RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
-#undef RECOGNIZE_FUNCTION
-  UNREACHABLE();
-  return kUnknown;
-}
-
-
-bool MethodRecognizer::AlwaysInline(const Function& function) {
-  const Class& function_class = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(function_class.library());
-  if (!IsRecognizedLibrary(lib)) {
-    return false;
-  }
-
-  const String& function_name = String::Handle(function.name());
-  const String& class_name = String::Handle(function_class.Name());
-
-#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
-  if (CompareNames(lib, #test_function_name, function_name) &&                 \
-      CompareNames(lib, #test_class_name, class_name)) {                       \
-    ASSERT(function.CheckSourceFingerprint(fp));                               \
-    return true;                                                               \
-  }
-INLINE_WHITE_LIST(RECOGNIZE_FUNCTION)
-#undef RECOGNIZE_FUNCTION
-  return false;
-}
-
-
-bool MethodRecognizer::PolymorphicTarget(const Function& function) {
-  const Class& function_class = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(function_class.library());
-  if (!IsRecognizedLibrary(lib)) {
-    return false;
-  }
-
-  const String& function_name = String::Handle(function.name());
-  const String& class_name = String::Handle(function_class.Name());
-
-#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
-  if (CompareNames(lib, #test_function_name, function_name) &&                 \
-      CompareNames(lib, #test_class_name, class_name)) {                       \
-    ASSERT(function.CheckSourceFingerprint(fp));                               \
-    return true;                                                               \
-  }
-POLYMORPHIC_TARGET_LIST(RECOGNIZE_FUNCTION)
-#undef RECOGNIZE_FUNCTION
-  return false;
-}
-
-
-const char* MethodRecognizer::KindToCString(Kind kind) {
-#define KIND_TO_STRING(class_name, function_name, enum_name, fp)               \
-  if (kind == k##enum_name) return #enum_name;
-RECOGNIZED_LIST(KIND_TO_STRING)
-#undef KIND_TO_STRING
-  return "?";
-}
-
-
-void MethodRecognizer::InitializeState() {
-  GrowableArray<Library*> libs(3);
-  libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  Function& func = Function::Handle();
-
-#define SET_IS_RECOGNIZED(class_name, function_name, dest, fp)                 \
-  func = Library::GetFunction(libs, #class_name, #function_name);              \
-  if (func.IsNull()) {                                                         \
-    OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
-    UNREACHABLE();                                                             \
-  }                                                                            \
-  ASSERT(func.CheckSourceFingerprint(fp));                                     \
-  func.set_is_recognized(true);                                                \
-
-  RECOGNIZED_LIST(SET_IS_RECOGNIZED);
-
-#undef SET_IS_RECOGNIZED
-}
 
 // ==== Support for visiting flow graphs.
 
@@ -2476,7 +2309,6 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Array& arguments_descriptor =
         Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
                                                argument_names()));
-    // TODO(srdjan): Improve performance of function recognition.
     MethodRecognizer::Kind recognized_kind =
         MethodRecognizer::RecognizeKind(function());
     int num_args_checked = 0;

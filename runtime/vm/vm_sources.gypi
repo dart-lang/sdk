@@ -271,6 +271,8 @@
     'message_handler.h',
     'message_handler_test.cc',
     'message_test.cc',
+    'method_recognizer.cc',
+    'method_recognizer.h',
     'metrics.cc',
     'metrics.h',
     'metrics_test.cc',

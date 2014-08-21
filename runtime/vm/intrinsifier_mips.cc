@@ -21,19 +21,19 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
-void Intrinsifier::Array_getLength(Assembler* assembler) {
+void Intrinsifier::ObjectArrayLength(Assembler* assembler) {
   __ lw(V0, Address(SP, 0 * kWordSize));
   __ Ret();
   __ delay_slot()->lw(V0, FieldAddress(V0, Array::length_offset()));
 }
 
 
-void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
-  Array_getLength(assembler);
+void Intrinsifier::ImmutableArrayLength(Assembler* assembler) {
+  ObjectArrayLength(assembler);
 }
 
 
-void Intrinsifier::Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::ObjectArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
 
   __ lw(T0, Address(SP, + 0 * kWordSize));  // Index
@@ -56,8 +56,8 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
-  Array_getIndexed(assembler);
+void Intrinsifier::ImmutableArrayGetIndexed(Assembler* assembler) {
+  ObjectArrayGetIndexed(assembler);
 }
 
 
@@ -75,7 +75,7 @@ static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
 
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
-void Intrinsifier::Array_setIndexed(Assembler* assembler) {
+void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   Label fall_through;
 
   if (FLAG_enable_type_checks) {
@@ -135,7 +135,7 @@ void Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+1), data (+0).
-void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
+void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // The newly allocated object is returned in V0.
   const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
   const intptr_t kArrayOffset = 0 * kWordSize;
@@ -170,7 +170,7 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
 }
 
 
-void Intrinsifier::GrowableList_getLength(Assembler* assembler) {
+void Intrinsifier::GrowableArrayLength(Assembler* assembler) {
   __ lw(V0, Address(SP, 0 * kWordSize));
   __ Ret();
   __ delay_slot()->lw(V0,
@@ -178,7 +178,7 @@ void Intrinsifier::GrowableList_getLength(Assembler* assembler) {
 }
 
 
-void Intrinsifier::GrowableList_getCapacity(Assembler* assembler) {
+void Intrinsifier::GrowableArrayCapacity(Assembler* assembler) {
   __ lw(V0, Address(SP, 0 * kWordSize));
   __ lw(V0, FieldAddress(V0, GrowableObjectArray::data_offset()));
   __ Ret();
@@ -186,7 +186,7 @@ void Intrinsifier::GrowableList_getCapacity(Assembler* assembler) {
 }
 
 
-void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
 
   __ lw(T0, Address(SP, 0 * kWordSize));  // Index
@@ -213,7 +213,7 @@ void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
 
 // Set value into growable object array at specified index.
 // On stack: growable array (+2), index (+1), value (+0).
-void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableArraySetIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -243,7 +243,7 @@ void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
 // Set length of growable object array. The length cannot
 // be greater than the length of the data container.
 // On stack: growable array (+1), length (+0).
-void Intrinsifier::GrowableList_setLength(Assembler* assembler) {
+void Intrinsifier::GrowableArraySetLength(Assembler* assembler) {
   Label fall_through;
   __ lw(T1, Address(SP, 0 * kWordSize));  // Length value.
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
@@ -258,7 +258,7 @@ void Intrinsifier::GrowableList_setLength(Assembler* assembler) {
 
 // Set data of growable object array.
 // On stack: growable array (+1), data (+0).
-void Intrinsifier::GrowableList_setData(Assembler* assembler) {
+void Intrinsifier::GrowableArraySetData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -281,7 +281,7 @@ void Intrinsifier::GrowableList_setData(Assembler* assembler) {
 // Add an element to growable array if it doesn't need to grow, otherwise
 // call into regular code.
 // On stack: growable array (+1), value (+0).
-void Intrinsifier::GrowableList_add(Assembler* assembler) {
+void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
   if (FLAG_enable_type_checks) return;
   Label fall_through;
@@ -400,14 +400,14 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
 
 
 // Gets the length of a TypedData.
-void Intrinsifier::TypedData_getLength(Assembler* assembler) {
+void Intrinsifier::TypedDataLength(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ Ret();
   __ delay_slot()->lw(V0, FieldAddress(T0, TypedData::length_offset()));
 }
 
 
-void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::Uint8ArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
 
   __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
@@ -430,7 +430,7 @@ void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::ExternalUint8ArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
 
   __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
@@ -454,7 +454,7 @@ void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::Float64ArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
 
   __ lw(T0, Address(SP, + 0 * kWordSize));  // Index.
@@ -489,7 +489,7 @@ void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+void Intrinsifier::Float64ArraySetIndexed(Assembler* assembler) {
   Label fall_through;
 
   __ lw(T0, Address(SP, + 1 * kWordSize));  // Index.
@@ -1293,7 +1293,7 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Double_toInt(Assembler* assembler) {
+void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ LoadDFromOffset(D0, T0, Double::value_offset() - kHeapObjectTag);
 
@@ -1312,7 +1312,7 @@ void Intrinsifier::Double_toInt(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Math_sqrt(Assembler* assembler) {
+void Intrinsifier::MathSqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Argument is double and is in T0.
@@ -1382,7 +1382,7 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Object_equal(Assembler* assembler) {
+void Intrinsifier::ObjectEquals(Assembler* assembler) {
   Label is_true;
 
   __ lw(T0, Address(SP, 0 * kWordSize));
@@ -1406,14 +1406,14 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
 }
 
 
-void Intrinsifier::String_getLength(Assembler* assembler) {
+void Intrinsifier::StringBaseLength(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ Ret();
   __ delay_slot()->lw(V0, FieldAddress(T0, String::length_offset()));
 }
 
 
-void Intrinsifier::String_codeUnitAt(Assembler* assembler) {
+void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
 
   __ lw(T1, Address(SP, 0 * kWordSize));  // Index.
@@ -1447,7 +1447,7 @@ void Intrinsifier::String_codeUnitAt(Assembler* assembler) {
 }
 
 
-void Intrinsifier::String_getIsEmpty(Assembler* assembler) {
+void Intrinsifier::StringBaseIsEmpty(Assembler* assembler) {
   Label is_true;
 
   __ lw(T0, Address(SP, 0 * kWordSize));
@@ -1662,7 +1662,7 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
 }
 
 
-void Intrinsifier::OneByteString_setAt(Assembler* assembler) {
+void Intrinsifier::OneByteStringSetAt(Assembler* assembler) {
   __ lw(T2, Address(SP, 0 * kWordSize));  // Value.
   __ lw(T1, Address(SP, 1 * kWordSize));  // Index.
   __ lw(T0, Address(SP, 2 * kWordSize));  // OneByteString.

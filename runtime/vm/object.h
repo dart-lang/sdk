@@ -15,6 +15,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/method_recognizer.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/report.h"
@@ -1839,10 +1840,14 @@ class Function : public Object {
   }
   void set_is_intrinsic(bool value) const;
 
-  bool is_recognized() const {
-    return RecognizedBit::decode(raw_ptr()->kind_tag_);
+  MethodRecognizer::Kind recognized_kind() const {
+    return RecognizedBits::decode(raw_ptr()->kind_tag_);
   }
-  void set_is_recognized(bool value) const;
+  void set_recognized_kind(MethodRecognizer::Kind value) const;
+
+  bool IsRecognized() const {
+    return recognized_kind() != MethodRecognizer::kUnknown;
+  }
 
   bool is_redirecting() const {
     return RedirectingBit::decode(raw_ptr()->kind_tag_);
@@ -1853,6 +1858,21 @@ class Function : public Object {
     return AllowsHoistingCheckClassBit::decode(raw_ptr()->kind_tag_);
   }
   void set_allows_hoisting_check_class(bool value) const;
+
+  bool always_inline() const {
+    return AlwaysInlineBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_always_inline(bool value) const {
+    set_kind_tag(AlwaysInlineBit::update(value, raw_ptr()->kind_tag_));
+  }
+
+  bool is_polymorphic_target() const {
+    return PolymorphicTargetBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_polymorphic_target(bool value) const {
+    set_kind_tag(PolymorphicTargetBit::update(value, raw_ptr()->kind_tag_));
+  }
+
 
   bool HasOptimizedCode() const;
 
@@ -2029,23 +2049,37 @@ class Function : public Object {
   enum KindTagBits {
     kKindTagPos = 0,
     kKindTagSize = 4,
-    kStaticBit = kKindTagPos + kKindTagSize,  // = 4
-    kConstBit = 5,
-    kAbstractBit = 6,
-    kVisibleBit = 7,
-    kOptimizableBit = 8,
-    kInlinableBit = 9,
-    kIntrinsicBit = 10,
-    kRecognizedBit = 11,
-    kNativeBit = 12,
-    kRedirectingBit = 13,
-    kExternalBit = 14,
-    kAllowsHoistingCheckClassBit = 15,
-    kModifierPos = 16,
-    kAsyncClosureBit = 17,
+    kRecognizedTagPos = kKindTagPos + kKindTagSize,
+    kRecognizedTagSize = 8,
+    // Single bit sized fields start here.
+    kStaticBit = kRecognizedTagPos + kRecognizedTagSize,
+    kConstBit,
+    kAbstractBit,
+    kVisibleBit,
+    kOptimizableBit,
+    kInlinableBit,
+    kIntrinsicBit,
+    kNativeBit,
+    kRedirectingBit,
+    kExternalBit,
+    kAllowsHoistingCheckClassBit,
+    kModifierPos,
+    kAsyncClosureBit,
+    kAlwaysInlineBit,
+    kPolymorphicTargetBit,
+    kNumTagBits
   };
+
+  COMPILE_ASSERT(
+      MethodRecognizer::kNumRecognizedMethods < (1 << kRecognizedTagSize));
+  COMPILE_ASSERT(
+      kNumTagBits <= (kBitsPerByte * sizeof(RawFunction::kind_tag_)));
+
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
+  class RecognizedBits : public BitField<MethodRecognizer::Kind,
+                                         kRecognizedTagPos,
+                                         kRecognizedTagSize> {};
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
@@ -2053,7 +2087,6 @@ class Function : public Object {
   class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
   class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
   class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
-  class RecognizedBit : public BitField<bool, kRecognizedBit, 1> {};
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
@@ -2062,6 +2095,9 @@ class Function : public Object {
   class ModifierBits :
       public BitField<RawFunction::AsyncModifier, kModifierPos, 1> {};  // NOLINT
   class AsyncClosureBit : public BitField<bool, kAsyncClosureBit, 1> {};
+  class AlwaysInlineBit : public BitField<bool, kAlwaysInlineBit, 1> {};
+  class PolymorphicTargetBit :
+      public BitField<bool, kPolymorphicTargetBit, 1> {};  // NOLINT
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
