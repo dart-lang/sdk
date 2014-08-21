@@ -11,13 +11,13 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('errors if the script is in a subdirectory.', () {
-    servePackages([
-      packageMap("foo", "1.0.0")
-    ], contents: [
-      d.dir("example", [
-        d.file("script.dart", "main(args) => print('ok');")
-      ])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0", contents: [
+        d.dir("example", [
+          d.file("script.dart", "main(args) => print('ok');")
+        ])
+      ]);
+    });
 
     schedulePub(args: ["global", "activate", "foo"]);
     schedulePub(args: ["global", "run", "foo:example/script"],

@@ -11,10 +11,10 @@ main() {
   initConfig();
   integration("downgrades one locked hosted package's dependencies if it's "
       "necessary", () {
-    servePackages([
-      packageMap("foo", "2.0.0", {"foo_dep": "any"}),
-      packageMap("foo_dep", "2.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "2.0.0", deps: {"foo_dep": "any"});
+      builder.serve("foo_dep", "2.0.0");
+    });
 
     d.appDir({"foo": "any"}).create();
 
@@ -25,10 +25,10 @@ main() {
       "foo_dep": "2.0.0"
     }).validate();
 
-    servePackages([
-      packageMap("foo", "1.0.0", {"foo_dep": "<2.0.0"}),
-      packageMap("foo_dep", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0", deps: {"foo_dep": "<2.0.0"});
+      builder.serve("foo_dep", "1.0.0");
+    });
 
     pubDowngrade(args: ['foo']);
 

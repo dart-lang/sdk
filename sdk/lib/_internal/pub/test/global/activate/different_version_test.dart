@@ -8,10 +8,10 @@ main() {
   initConfig();
   integration("discards the previous active version if it doesn't match the "
       "constraint", () {
-    servePackages([
-      packageMap("foo", "1.0.0"),
-      packageMap("foo", "2.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+      builder.serve("foo", "2.0.0");
+    });
 
     // Activate 1.0.0.
     schedulePub(args: ["global", "activate", "foo", "1.0.0"]);

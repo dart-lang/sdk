@@ -10,12 +10,12 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('gets packages transitively from a pub server', () {
-    servePackages([
-      packageMap("foo", "1.2.3", {"bar": "2.0.4"}),
-      packageMap("bar", "2.0.3"),
-      packageMap("bar", "2.0.4"),
-      packageMap("bar", "2.0.5")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", deps: {"bar": "2.0.4"});
+      builder.serve("bar", "2.0.3");
+      builder.serve("bar", "2.0.4");
+      builder.serve("bar", "2.0.5");
+    });
 
     d.appDir({"foo": "1.2.3"}).create();
 

@@ -15,7 +15,7 @@ import 'utils.dart';
 main() {
   initConfig();
   integration("gets first if a transitive dependency is not installed", () {
-    servePackages([packageMap("bar", "1.2.3")]);
+    servePackages((builder) => builder.serve("bar", "1.2.3"));
 
     d.dir("foo", [
       d.libPubspec("foo", "1.0.0", deps: {

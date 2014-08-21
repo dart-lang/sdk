@@ -32,19 +32,23 @@ class ReplaceTransformer extends Transformer {
 main() {
   initConfig();
   integration("snapshots the transformed version of an executable", () {
-    servePackages([
-      packageMap("foo", "1.2.3", {"barback": "any"})
-          ..addAll({'transformers': ['foo']})
-    ], contents: [
-      d.dir("lib", [d.file("foo.dart", REPLACE_TRANSFORMER)]),
-      d.dir("bin", [
-        d.file("hello.dart", """
+    servePackages((builder) {
+      builder.serveRepoPackage('barback');
+
+      builder.serve("foo", "1.2.3",
+          deps: {"barback": "any"},
+          pubspec: {'transformers': ['foo']},
+          contents: [
+        d.dir("lib", [d.file("foo.dart", REPLACE_TRANSFORMER)]),
+        d.dir("bin", [
+          d.file("hello.dart", """
 final message = 'REPLACE ME';
 
 void main() => print(message);
 """),
-      ])
-    ], serveBarback: true);
+        ])
+      ]);
+    });
 
     d.appDir({"foo": "1.2.3"}).create();
 

@@ -10,7 +10,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
   integration('re-gets a package if its source has changed', () {
-    servePackages([packageMap("foo", "1.2.3")]);
+    servePackages((builder) => builder.serve("foo", "1.2.3"));
 
     d.dir('foo', [
       d.libDir('foo', 'foo 0.0.1'),

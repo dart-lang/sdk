@@ -15,7 +15,7 @@ main() {
   initConfig();
   integration('keeps a pub server package locked to the version in the '
       'lockfile', () {
-    servePackages([packageMap("foo", "1.0.0")]);
+    servePackages((builder) => builder.serve("foo", "1.0.0"));
 
     d.appDir({"foo": "any"}).create();
 
@@ -28,7 +28,7 @@ main() {
     schedule(() => deleteEntry(path.join(sandboxDir, packagesPath)));
 
     // Start serving a newer package as well.
-    servePackages([packageMap("foo", "1.0.1")]);
+    servePackages((builder) => builder.serve("foo", "1.0.1"));
 
     // This shouldn't upgrade the foo dependency due to the lockfile.
     pubGet();

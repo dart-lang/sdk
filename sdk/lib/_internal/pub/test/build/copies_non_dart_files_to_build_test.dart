@@ -9,7 +9,7 @@ main() {
   initConfig();
 
   integration("copies non-Dart files to build/", () {
-    servePackages([packageMap("browser", "1.0.0")]);
+    servePackages((builder) => builder.serve("browser", "1.0.0"));
 
     d.dir(appPath, [
       // A browser dependency with no entrypoints shouldn't cause dart.js to be

@@ -12,9 +12,9 @@ main() {
   initConfig();
 
   integration('lists an activated hosted package', () {
-    servePackages([
-      packageMap('foo', '1.0.0')
-    ]);
+    servePackages((builder) {
+      builder.serve('foo', '1.0.0');
+    });
 
     schedulePub(args: ['global', 'activate', 'foo']);
 
@@ -53,11 +53,11 @@ main() {
   });
 
   integration('lists activated packages in alphabetical order', () {
-    servePackages([
-      packageMap('aaa', '1.0.0'),
-      packageMap('bbb', '1.0.0'),
-      packageMap('ccc', '1.0.0')
-    ]);
+    servePackages((builder) {
+      builder.serve('aaa', '1.0.0');
+      builder.serve('bbb', '1.0.0');
+      builder.serve('ccc', '1.0.0');
+    });
 
     schedulePub(args: ['global', 'activate', 'ccc']);
     schedulePub(args: ['global', 'activate', 'aaa']);

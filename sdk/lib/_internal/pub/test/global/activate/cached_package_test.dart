@@ -10,9 +10,9 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('can activate an already cached package', () {
-    servePackages([
-      packageMap("foo", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+    });
 
     schedulePub(args: ["cache", "add", "foo"]);
 

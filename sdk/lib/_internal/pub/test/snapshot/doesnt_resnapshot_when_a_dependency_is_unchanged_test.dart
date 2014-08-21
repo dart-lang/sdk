@@ -14,12 +14,12 @@ main() {
   initConfig();
   integration("doesn't recreate a snapshot when no dependencies of a package "
       "have changed", () {
-    servePackages([
-      packageMap("foo", "1.2.3", {"bar": "any"}),
-      packageMap("bar", "1.2.3")
-    ], contents: [
-      d.dir("bin", [d.file("hello.dart", "void main() => print('hello!');")])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", deps: {"bar": "any"}, contents: [
+        d.dir("bin", [d.file("hello.dart", "void main() => print('hello!');")])
+      ]);
+      builder.serve("bar", "1.2.3");
+    });
 
     d.appDir({"foo": "1.2.3"}).create();
 

@@ -45,6 +45,9 @@ import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';
 import '../lib/src/version.dart';
 import 'descriptor.dart' as d;
+import 'serve_packages.dart';
+
+export 'serve_packages.dart';
 
 /// This should be called at the top of a test file to set up an appropriate
 /// test configuration for the machine running the tests.
@@ -221,139 +224,6 @@ Future _closeServer() {
 
 /// `true` if the current test spins up an HTTP server.
 bool _hasServer = false;
-
-/// The [d.DirectoryDescriptor] describing the server layout of `/api/packages`
-/// on the test server.
-///
-/// This contains metadata for packages that are being served via
-/// [servePackages]. It's `null` if [servePackages] has not yet been called for
-/// this test.
-d.DirectoryDescriptor _servedApiPackageDir;
-
-/// The [d.DirectoryDescriptor] describing the server layout of `/packages` on
-/// the test server.
-///
-/// This contains the tarballs for packages that are being served via
-/// [servePackages]. It's `null` if [servePackages] has not yet been called for
-/// this test.
-d.DirectoryDescriptor _servedPackageDir;
-
-/// A map from package names to parsed pubspec maps for those packages.
-///
-/// This represents the packages currently being served by [servePackages], and
-/// is `null` if [servePackages] has not yet been called for this test.
-Map<String, List<Map>> _servedPackages;
-
-/// Creates an HTTP server that replicates the structure of pub.dartlang.org.
-///
-/// [pubspecs] is a list of unserialized pubspecs representing the packages to
-/// serve.
-///
-/// If [replace] is false, subsequent calls to [servePackages] will add to the
-/// set of packages that are being served. Previous packages will continue to be
-/// served. Otherwise, the previous packages will no longer be served.
-///
-/// If [contents] is given, its contents are added to every served
-/// package.
-///
-/// If [serveBarback] is true, the repo versions of barback and its dependencies
-/// will be served as well.
-void servePackages(List<Map> pubspecs, {bool replace: false,
-    Iterable<d.Descriptor> contents, bool serveBarback: false}) {
-  if (_servedPackages == null || _servedPackageDir == null) {
-    _servedPackages = <String, List<Map>>{};
-    _servedApiPackageDir = d.dir('packages', []);
-    _servedPackageDir = d.dir('packages', []);
-    serve([
-      d.dir('api', [_servedApiPackageDir]),
-      _servedPackageDir
-    ]);
-
-    currentSchedule.onComplete.schedule(() {
-      _servedPackages = null;
-      _servedApiPackageDir = null;
-      _servedPackageDir = null;
-    }, 'cleaning up served packages');
-  }
-
-  schedule(() {
-    return awaitObject(pubspecs).then((resolvedPubspecs) {
-      if (replace) _servedPackages.clear();
-
-      for (var pubspec in resolvedPubspecs) {
-        var name = pubspec['name'];
-        var version = pubspec['version'];
-        var versions = _servedPackages.putIfAbsent(name, () => []);
-        versions.add(pubspec);
-      }
-
-      var repoPackages = new Set();
-      if (serveBarback) {
-        _addPackage(name) {
-          if (_servedPackages.containsKey(name)) return;
-          repoPackages.add(name);
-
-          var pubspec = new Map.from(loadYaml(
-              readTextFile(path.join(repoRoot, 'pkg', name, 'pubspec.yaml'))));
-
-          // Remove any SDK constraints since we don't have a valid SDK version
-          // while testing.
-          pubspec.remove('environment');
-
-          _servedPackages[name] = [pubspec];
-          if (pubspec.containsKey('dependencies')) {
-            pubspec['dependencies'].keys.forEach(_addPackage);
-          }
-        }
-
-        _addPackage('barback');
-      }
-
-      _servedApiPackageDir.contents.clear();
-      _servedPackageDir.contents.clear();
-      for (var name in _servedPackages.keys) {
-        _servedApiPackageDir.contents.addAll([
-          d.file('$name', JSON.encode({
-            'name': name,
-            'uploaders': ['nweiz@google.com'],
-            'versions': _servedPackages[name].map(packageVersionApiMap).toList()
-          })),
-          d.dir(name, [
-            d.dir('versions', _servedPackages[name].map((pubspec) {
-              return d.file(pubspec['version'], JSON.encode(
-                  packageVersionApiMap(pubspec, full: true)));
-            }))
-          ])
-        ]);
-
-        _servedPackageDir.contents.add(d.dir(name, [
-          d.dir('versions', _servedPackages[name].map((pubspec) {
-            var version = pubspec['version'];
-
-            if (repoPackages.contains(name)) {
-              return d.tar('$version.tar.gz', [
-                d.file('pubspec.yaml', JSON.encode(pubspec)),
-                new d.DirectoryDescriptor.fromFilesystem('lib',
-                    path.join(repoRoot, 'pkg', name, 'lib'))
-              ]);
-            }
-
-            var archiveContents = [
-                d.file('pubspec.yaml', JSON.encode(pubspec)),
-                d.libDir(name, '$name $version')
-            ];
-
-            if (contents != null) {
-              archiveContents.addAll(contents);
-            }
-
-            return d.tar('$version.tar.gz', archiveContents);
-          }))
-        ]));
-      }
-    });
-  }, 'initializing the package server');
-}
 
 /// Converts [value] into a YAML string.
 String yaml(value) => JSON.encode(value);
@@ -778,7 +648,7 @@ void makeGlobalPackage(String package, String version,
     Iterable<d.Descriptor> contents, {Iterable<String> pkg,
     Map<String, String> hosted}) {
   // Start the server so we know what port to use in the cache directory name.
-  servePackages([]);
+  serveNoPackages();
 
   // Create the package in the hosted cache.
   d.hostedCache([

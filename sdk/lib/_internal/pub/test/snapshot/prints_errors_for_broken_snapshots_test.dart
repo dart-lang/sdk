@@ -13,15 +13,20 @@ import '../test_pub.dart';
 main() {
   initConfig();
   integration("prints errors for broken snapshot compilation", () {
-    servePackages([
-      packageMap("foo", "1.2.3"),
-      packageMap("bar", "1.2.3")
-    ], contents: [
-      d.dir("bin", [
-        d.file("hello.dart", "void main() { no closing brace"),
-        d.file("goodbye.dart", "void main() { no closing brace"),
-      ])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", contents: [
+        d.dir("bin", [
+          d.file("hello.dart", "void main() { no closing brace"),
+          d.file("goodbye.dart", "void main() { no closing brace"),
+        ])
+      ]);
+      builder.serve("bar", "1.2.3", contents: [
+        d.dir("bin", [
+          d.file("hello.dart", "void main() { no closing brace"),
+          d.file("goodbye.dart", "void main() { no closing brace"),
+        ])
+      ]);
+    });
 
     d.appDir({"foo": "1.2.3", "bar": "1.2.3"}).create();
 

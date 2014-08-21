@@ -10,9 +10,7 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration("highlights overridden packages", () {
-    servePackages([
-      packageMap("overridden", "1.0.0")
-    ]);
+    servePackages((builder) => builder.serve("overridden", "1.0.0"));
 
     d.dir(appPath, [
       d.pubspec({

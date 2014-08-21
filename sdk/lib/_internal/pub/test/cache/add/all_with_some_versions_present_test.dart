@@ -10,12 +10,12 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('"--all" adds all non-installed versions of the package', () {
-    servePackages([
-      packageMap("foo", "1.2.1"),
-      packageMap("foo", "1.2.2"),
-      packageMap("foo", "1.2.3"),
-      packageMap("foo", "2.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.1");
+      builder.serve("foo", "1.2.2");
+      builder.serve("foo", "1.2.3");
+      builder.serve("foo", "2.0.0");
+    });
 
     // Install a couple of versions first.
     schedulePub(args: ["cache", "add", "foo", "-v", "1.2.1"],

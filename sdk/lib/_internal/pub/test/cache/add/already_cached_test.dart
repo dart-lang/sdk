@@ -10,9 +10,9 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('does nothing if the package is already cached', () {
-    servePackages([
-      packageMap("foo", "1.2.3")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3");
+    });
 
     // Run once to put it in the cache.
     schedulePub(args: ["cache", "add", "foo"],

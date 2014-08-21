@@ -11,11 +11,11 @@ main() {
   initConfig();
   integration("does not show how many newer versions are available for "
       "packages that are locked and not being upgraded", () {
-    servePackages([
-      packageMap("a", "1.0.0"),
-      packageMap("b", "1.0.0"),
-      packageMap("c", "2.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("a", "1.0.0");
+      builder.serve("b", "1.0.0");
+      builder.serve("c", "2.0.0");
+    });
 
     d.appDir({
       "a": "any"

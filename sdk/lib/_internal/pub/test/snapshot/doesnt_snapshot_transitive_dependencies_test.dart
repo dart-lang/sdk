@@ -14,12 +14,12 @@ main() {
   initConfig();
   integration("doesn't create a snapshot for transitive dependencies' "
       "executables", () {
-    servePackages([
-      packageMap("foo", "1.2.3", {'bar': '1.2.3'}),
-      packageMap("bar", "1.2.3")
-    ], contents: [
-      d.dir("bin", [d.file("hello.dart", "void main() => print('hello!');")])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", deps: {'bar': '1.2.3'});
+      builder.serve("bar", "1.2.3", contents: [
+        d.dir("bin", [d.file("hello.dart", "void main() => print('hello!');")])
+      ]);
+    });
 
     d.appDir({"foo": "1.2.3"}).create();
 

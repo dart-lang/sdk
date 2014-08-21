@@ -12,10 +12,10 @@ import '../test_pub.dart';
 main() {
   initConfig();
   integration("--dry-run shows report but does not apply changes", () {
-    servePackages([
-      packageMap("foo", "1.0.0"),
-      packageMap("foo", "2.0.0"),
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+      builder.serve("foo", "2.0.0");
+    });
 
     // Create the first lockfile.
     d.appDir({

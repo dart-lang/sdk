@@ -10,13 +10,13 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('reinstalls previously cached hosted packages', () {
-    servePackages([
-      packageMap("foo", "1.2.3"),
-      packageMap("foo", "1.2.4"),
-      packageMap("foo", "1.2.5"),
-      packageMap("bar", "1.2.3"),
-      packageMap("bar", "1.2.4")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3");
+      builder.serve("foo", "1.2.4");
+      builder.serve("foo", "1.2.5");
+      builder.serve("bar", "1.2.3");
+      builder.serve("bar", "1.2.4");
+    });
 
     // Set up a cache with some broken packages.
     d.dir(cachePath, [

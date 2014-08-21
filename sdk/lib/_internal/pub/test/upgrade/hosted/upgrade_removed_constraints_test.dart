@@ -10,12 +10,12 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration("upgrades dependencies whose constraints have been removed", () {
-    servePackages([
-      packageMap("foo", "1.0.0", {"shared-dep": "any"}),
-      packageMap("bar", "1.0.0", {"shared-dep": "<2.0.0"}),
-      packageMap("shared-dep", "1.0.0"),
-      packageMap("shared-dep", "2.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0", deps: {"shared-dep": "any"});
+      builder.serve("bar", "1.0.0", deps: {"shared-dep": "<2.0.0"});
+      builder.serve("shared-dep", "1.0.0");
+      builder.serve("shared-dep", "2.0.0");
+    });
 
     d.appDir({"foo": "any", "bar": "any"}).create();
 

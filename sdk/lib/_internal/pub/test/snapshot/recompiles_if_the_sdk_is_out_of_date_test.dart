@@ -15,9 +15,11 @@ main() {
   initConfig();
   integration("creates a snapshot for an immediate dependency's executables",
       () {
-    servePackages([packageMap("foo", "5.6.7")], contents: [
-      d.dir("bin", [d.file("hello.dart", "void main() => print('hello!');")])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "5.6.7", contents: [
+        d.dir("bin", [d.file("hello.dart", "void main() => print('hello!');")])
+      ]);
+    });
 
     d.appDir({"foo": "5.6.7"}).create();
 

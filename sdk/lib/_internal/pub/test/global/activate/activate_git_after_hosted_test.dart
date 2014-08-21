@@ -10,13 +10,13 @@ main() {
   integration('activating a Git package deactivates the hosted one', () {
     ensureGit();
 
-    servePackages([
-      packageMap("foo", "1.0.0")
-    ], contents: [
-      d.dir("bin", [
-        d.file("foo.dart", "main(args) => print('hosted');")
-      ])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0", contents: [
+        d.dir("bin", [
+          d.file("foo.dart", "main(args) => print('hosted');")
+        ])
+      ]);
+    });
 
     d.git('foo.git', [
       d.libPubspec("foo", "1.0.0"),

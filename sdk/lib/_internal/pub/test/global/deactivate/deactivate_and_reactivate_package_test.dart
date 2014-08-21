@@ -7,10 +7,10 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('activates a different version after deactivating', () {
-    servePackages([
-      packageMap("foo", "1.0.0"),
-      packageMap("foo", "2.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+      builder.serve("foo", "2.0.0");
+    });
 
     // Activate an old version.
     schedulePub(args: ["global", "activate", "foo", "1.0.0"]);

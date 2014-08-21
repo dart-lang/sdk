@@ -10,7 +10,7 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('errors if the package could not be found', () {
-    servePackages([]);
+    serveNoPackages();
 
     schedulePub(args: ["global", "activate", "foo"],
         error: startsWith("Could not find package foo at"),

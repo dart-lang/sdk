@@ -11,7 +11,7 @@ import '../test_pub.dart';
 main() {
   initConfig();
   integration('prints the local paths to all packages in the lockfile', () {
-    servePackages([packageMap("bar", "1.0.0")]);
+    servePackages((builder) => builder.serve("bar", "1.0.0"));
 
     d.dir("foo", [
       d.libDir("foo"),

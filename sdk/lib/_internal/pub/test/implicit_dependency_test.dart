@@ -12,14 +12,14 @@ main() {
 
   forBothPubGetAndUpgrade((command) {
     integration("implicitly constrains it to versions pub supports", () {
-      servePackages([
-        packageMap("barback", current("barback")),
-        packageMap("stack_trace", previous("stack_trace")),
-        packageMap("stack_trace", current("stack_trace")),
-        packageMap("stack_trace", nextPatch("stack_trace")),
-        packageMap("stack_trace", max("stack_trace")),
-        packageMap("source_span", current("source_span"))
-      ]);
+      servePackages((builder) {
+        builder.serve("barback", current("barback"));
+        builder.serve("stack_trace", previous("stack_trace"));
+        builder.serve("stack_trace", current("stack_trace"));
+        builder.serve("stack_trace", nextPatch("stack_trace"));
+        builder.serve("stack_trace", max("stack_trace"));
+        builder.serve("source_span", current("source_span"));
+      });
 
       d.appDir({
         "barback": "any"
@@ -32,11 +32,11 @@ main() {
 
     integration("pub's implicit constraint uses the same source and "
         "description as a dependency override", () {
-      servePackages([
-        packageMap("barback", current("barback")),
-        packageMap("stack_trace", nextPatch("stack_trace")),
-        packageMap("source_span", current("source_span"))
-      ]);
+      servePackages((builder) {
+        builder.serve("barback", current("barback"));
+        builder.serve("stack_trace", nextPatch("stack_trace"));
+        builder.serve("source_span", current("source_span"));
+      });
 
       d.dir("stack_trace", [
         d.libDir("stack_trace", 'stack_trace ${current("stack_trace")}'),
@@ -64,13 +64,13 @@ main() {
 
     integration("doesn't add a constraint if barback isn't in the package "
         "graph", () {
-      servePackages([
-        packageMap("stack_trace", previous("stack_trace")),
-        packageMap("stack_trace", current("stack_trace")),
-        packageMap("stack_trace", nextPatch("stack_trace")),
-        packageMap("stack_trace", max("stack_trace")),
-        packageMap("source_span", current("source_span"))
-      ]);
+      servePackages((builder) {
+        builder.serve("stack_trace", previous("stack_trace"));
+        builder.serve("stack_trace", current("stack_trace"));
+        builder.serve("stack_trace", nextPatch("stack_trace"));
+        builder.serve("stack_trace", max("stack_trace"));
+        builder.serve("source_span", current("source_span"));
+      });
 
       d.appDir({
         "stack_trace": "any"
@@ -84,12 +84,12 @@ main() {
 
   integration("unlocks if the locked version doesn't meet pub's "
       "constraint", () {
-    servePackages([
-      packageMap("barback", current("barback")),
-      packageMap("stack_trace", previous("stack_trace")),
-      packageMap("stack_trace", current("stack_trace")),
-      packageMap("source_span", current("source_span"))
-    ]);
+    servePackages((builder) {
+      builder.serve("barback", current("barback"));
+      builder.serve("stack_trace", previous("stack_trace"));
+      builder.serve("stack_trace", current("stack_trace"));
+      builder.serve("source_span", current("source_span"));
+    });
 
     d.appDir({"barback": "any"}).create();
 

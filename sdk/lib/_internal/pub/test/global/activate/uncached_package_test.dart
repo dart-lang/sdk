@@ -10,11 +10,11 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('installs and activates the best version of a package', () {
-    servePackages([
-      packageMap("foo", "1.0.0"),
-      packageMap("foo", "1.2.3"),
-      packageMap("foo", "2.0.0-wildly.unstable")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+      builder.serve("foo", "1.2.3");
+      builder.serve("foo", "2.0.0-wildly.unstable");
+    });
 
     schedulePub(args: ["global", "activate", "foo"], output: """
         Resolving dependencies...

@@ -14,19 +14,19 @@ main() {
   initConfig();
   integration("creates a snapshot for an immediate dependency that's also a "
       "transitive dependency", () {
-    servePackages([
-      packageMap("foo", "1.2.3"),
-      packageMap("bar", "1.2.3", {"foo": "1.2.3"})
-    ], contents: [
-      d.dir("bin", [
-        d.file("hello.dart", "void main() => print('hello!');"),
-        d.file("goodbye.dart", "void main() => print('goodbye!');"),
-        d.file("shell.sh", "echo shell"),
-        d.dir("subdir", [
-          d.file("sub.dart", "void main() => print('sub!');")
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", contents: [
+        d.dir("bin", [
+          d.file("hello.dart", "void main() => print('hello!');"),
+          d.file("goodbye.dart", "void main() => print('goodbye!');"),
+          d.file("shell.sh", "echo shell"),
+          d.dir("subdir", [
+            d.file("sub.dart", "void main() => print('sub!');")
+          ])
         ])
-      ])
-    ]);
+      ]);
+      builder.serve("bar", "1.2.3", deps: {"foo": "1.2.3"});
+    });
 
     d.appDir({"foo": "1.2.3"}).create();
 

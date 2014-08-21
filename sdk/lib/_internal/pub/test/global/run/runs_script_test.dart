@@ -8,13 +8,13 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('runs a script in an activated package', () {
-    servePackages([
-      packageMap("foo", "1.0.0")
-    ], contents: [
-      d.dir("bin", [
-        d.file("script.dart", "main(args) => print('ok');")
-      ])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0", contents: [
+        d.dir("bin", [
+          d.file("script.dart", "main(args) => print('ok');")
+        ])
+      ]);
+    });
 
     schedulePub(args: ["global", "activate", "foo"]);
 

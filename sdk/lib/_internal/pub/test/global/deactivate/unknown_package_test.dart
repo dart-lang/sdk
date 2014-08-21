@@ -8,7 +8,7 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('errors if the package is not activated', () {
-    servePackages([]);
+    serveNoPackages();
 
     schedulePub(args: ["global", "deactivate", "foo"],
         error: "No active package foo.",

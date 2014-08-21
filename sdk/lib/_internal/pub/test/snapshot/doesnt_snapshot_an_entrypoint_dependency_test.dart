@@ -14,12 +14,12 @@ main() {
   initConfig();
   integration("doesn't create a snapshot for a package that depends on the "
       "entrypoint", () {
-    servePackages([
-      packageMap("foo", "1.2.3", {'bar': '1.2.3'}),
-      packageMap("bar", "1.2.3", {'myapp': 'any'})
-    ], contents: [
-      d.dir("bin", [d.file("hello.dart", "void main() => print('hello!');")])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", deps: {'bar': '1.2.3'}, contents: [
+        d.dir("bin", [d.file("hello.dart", "void main() => print('hello!');")])
+      ]);
+      builder.serve("bar", "1.2.3", deps: {'myapp': 'any'});
+    });
 
     d.appDir({"foo": "1.2.3"}).create();
 

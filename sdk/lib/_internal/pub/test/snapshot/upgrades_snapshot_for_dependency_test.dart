@@ -13,19 +13,22 @@ import '../test_pub.dart';
 main() {
   initConfig();
   integration("upgrades a snapshot when a dependency is upgraded", () {
-    servePackages([
-      packageMap("foo", "1.2.3", {"bar": "any"}),
-      packageMap("bar", "1.2.3")
-    ], contents: [
-      d.dir("lib", [d.file("bar.dart", "final message = 'hello!';")]),
-      d.dir("bin", [
-        d.file("hello.dart", """
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", pubspec: {
+        "dependencies": {"bar": "any"}
+      }, contents: [
+        d.dir("bin", [
+          d.file("hello.dart", """
 import 'package:bar/bar.dart';
 
 void main() => print(message);
 """)
-      ])
-    ]);
+        ])
+      ]);
+      builder.serve("bar", "1.2.3", contents: [
+        d.dir("lib", [d.file("bar.dart", "final message = 'hello!';")])
+      ]);
+    });
 
     d.appDir({"foo": "any"}).create();
 
@@ -35,12 +38,11 @@ void main() => print(message);
       d.matcherFile('hello.dart.snapshot', contains('hello!'))
     ]).validate();
 
-    servePackages([
-      packageMap("foo", "1.2.3", {"bar": "any"}),
-      packageMap("bar", "1.2.4")
-    ], contents: [
-      d.dir("lib", [d.file("bar.dart", "final message = 'hello 2!';")]),
-    ], replace: true);
+    servePackages((builder) {
+      builder.serve("bar", "1.2.4", contents: [
+        d.dir("lib", [d.file("bar.dart", "final message = 'hello 2!';")]),
+      ]);
+    });
 
     pubUpgrade(output: contains("Precompiled foo:hello."));
 

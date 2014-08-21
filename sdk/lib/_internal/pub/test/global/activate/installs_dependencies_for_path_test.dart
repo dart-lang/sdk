@@ -11,10 +11,10 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('activating a path package installs dependencies', () {
-    servePackages([
-      packageMap("bar", "1.0.0", {"baz": "any"}),
-      packageMap("baz", "2.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("bar", "1.0.0", deps: {"baz": "any"});
+      builder.serve("baz", "2.0.0");
+    });
 
     d.dir("foo", [
       d.libPubspec("foo", "0.0.0", deps: {

@@ -11,14 +11,14 @@ main() {
   initConfig();
   integration("does not show how many newer versions are available for "
       "packages that are locked and not being upgraded", () {
-    servePackages([
-      packageMap("not_upgraded", "1.0.0"),
-      packageMap("not_upgraded", "2.0.0"),
-      packageMap("not_upgraded", "3.0.0-dev"),
-      packageMap("upgraded", "1.0.0"),
-      packageMap("upgraded", "2.0.0"),
-      packageMap("upgraded", "3.0.0-dev")
-    ]);
+    servePackages((builder) {
+      builder.serve("not_upgraded", "1.0.0");
+      builder.serve("not_upgraded", "2.0.0");
+      builder.serve("not_upgraded", "3.0.0-dev");
+      builder.serve("upgraded", "1.0.0");
+      builder.serve("upgraded", "2.0.0");
+      builder.serve("upgraded", "3.0.0-dev");
+    });
 
     // Constraint everything to the first version.
     d.appDir({

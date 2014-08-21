@@ -8,10 +8,10 @@ main() {
   initConfig();
   integration('ignores previously activated version',
         () {
-    servePackages([
-      packageMap("foo", "1.2.3"),
-      packageMap("foo", "1.3.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3");
+      builder.serve("foo", "1.3.0");
+    });
 
     // Activate 1.2.3.
     schedulePub(args: ["global", "activate", "foo", "1.2.3"]);

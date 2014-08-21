@@ -14,16 +14,18 @@ main() {
   initConfig();
   integration("creates a snapshot for an immediate dependency's executables",
       () {
-    servePackages([packageMap("foo", "1.2.3")], contents: [
-      d.dir("bin", [
-        d.file("hello.dart", "void main() => print('hello!');"),
-        d.file("goodbye.dart", "void main() => print('goodbye!');"),
-        d.file("shell.sh", "echo shell"),
-        d.dir("subdir", [
-          d.file("sub.dart", "void main() => print('sub!');")
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", contents: [
+        d.dir("bin", [
+          d.file("hello.dart", "void main() => print('hello!');"),
+          d.file("goodbye.dart", "void main() => print('goodbye!');"),
+          d.file("shell.sh", "echo shell"),
+          d.dir("subdir", [
+            d.file("sub.dart", "void main() => print('sub!');")
+          ])
         ])
-      ])
-    ]);
+      ]);
+    });
 
     d.appDir({"foo": "1.2.3"}).create();
 

@@ -11,12 +11,12 @@ main() {
   initConfig();
   integration('adds the latest version of the package matching the '
               'version constraint', () {
-    servePackages([
-      packageMap("foo", "1.2.2"),
-      packageMap("foo", "1.2.3"),
-      packageMap("foo", "2.0.0-dev"),
-      packageMap("foo", "2.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.2");
+      builder.serve("foo", "1.2.3");
+      builder.serve("foo", "2.0.0-dev");
+      builder.serve("foo", "2.0.0");
+    });
 
     schedulePub(args: ["cache", "add", "foo", "-v", ">=1.0.0 <2.0.0"],
         output: 'Downloading foo 1.2.3...');

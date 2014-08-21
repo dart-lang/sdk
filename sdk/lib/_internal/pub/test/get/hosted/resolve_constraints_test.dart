@@ -10,13 +10,13 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('resolves version constraints from a pub server', () {
-    servePackages([
-      packageMap("foo", "1.2.3", {"baz": ">=2.0.0"}),
-      packageMap("bar", "2.3.4", {"baz": "<3.0.0"}),
-      packageMap("baz", "2.0.3"),
-      packageMap("baz", "2.0.4"),
-      packageMap("baz", "3.0.1")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3", deps: {"baz": ">=2.0.0"});
+      builder.serve("bar", "2.3.4", deps: {"baz": "<3.0.0"});
+      builder.serve("baz", "2.0.3");
+      builder.serve("baz", "2.0.4");
+      builder.serve("baz", "3.0.1");
+    });
 
     d.appDir({"foo": "any", "bar": "any"}).create();
 

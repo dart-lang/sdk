@@ -12,10 +12,10 @@ main() {
 
   forBothPubGetAndUpgrade((command) {
     integration("removes a dependency that's removed from the pubspec", () {
-      servePackages([
-        packageMap("foo", "1.0.0"),
-        packageMap("bar", "1.0.0")
-      ]);
+      servePackages((builder) {
+        builder.serve("foo", "1.0.0");
+        builder.serve("bar", "1.0.0");
+      });
 
       d.appDir({"foo": "any", "bar": "any"}).create();
 

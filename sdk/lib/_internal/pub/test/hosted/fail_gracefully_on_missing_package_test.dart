@@ -14,7 +14,7 @@ main() {
 
   forBothPubGetAndUpgrade((command) {
     integration('fails gracefully if the package does not exist', () {
-      servePackages([]);
+      serveNoPackages();
 
       d.appDir({"foo": "1.2.3"}).create();
 

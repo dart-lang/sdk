@@ -10,14 +10,14 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('performs verison solver backtracking if necessary', () {
-    servePackages([
-      packageMap("foo", "1.1.0")..addAll({
+    servePackages((builder) {
+      builder.serve("foo", "1.1.0", pubspec: {
         "environment": {"sdk": ">=0.1.2 <0.2.0"}
-      }),
-      packageMap("foo", "1.2.0")..addAll({
+      });
+      builder.serve("foo", "1.2.0", pubspec: {
         "environment": {"sdk": ">=0.1.3 <0.2.0"}
-      }),
-    ]);
+      });
+    });
 
     schedulePub(args: ["global", "activate", "foo"]);
 

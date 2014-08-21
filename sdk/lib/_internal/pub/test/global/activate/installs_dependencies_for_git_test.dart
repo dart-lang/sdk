@@ -10,10 +10,10 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('activating a Git package installs its dependencies', () {
-    servePackages([
-      packageMap("bar", "1.0.0", {"baz": "any"}),
-      packageMap("baz", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("bar", "1.0.0", deps: {"baz": "any"});
+      builder.serve("baz", "1.0.0");
+    });
 
     d.git('foo.git', [
       d.libPubspec("foo", "1.0.0", deps: {

@@ -10,9 +10,9 @@ import '../test_pub.dart';
 main() {
   initConfig();
   integration("--dry-run shows but does not apply changes", () {
-    servePackages([
-      packageMap("foo", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+    });
 
     d.appDir({
       "foo": "1.0.0"
