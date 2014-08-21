@@ -32,24 +32,47 @@ class FixesTest extends AbstractAnalysisTest {
 
   Future test_hasFixes() {
     addTestFile('''
-main() {
-  print(42)
+foo() {
+  print(1)
+}
+bar() {
+  print(10) print(20)
 }
 ''');
     return waitForTasksFinished().then((_) {
-      Request request = new EditGetFixesParams(testFile,
-          findOffset('print')).toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      var result = new EditGetFixesResult.fromResponse(response);
-      List<ErrorFixes> errorFixes = result.fixes;
-      expect(errorFixes, hasLength(1));
+      // print(1)
       {
-        ErrorFixes fixes = errorFixes[0];
-        AnalysisError error = fixes.error;
-        expect(error.severity, ErrorSeverity.ERROR);
-        expect(error.type, ErrorType.SYNTACTIC_ERROR);
-        expect(fixes.fixes, hasLength(1));
+        List<ErrorFixes> errorFixes = _getFixesAt('print(1)');
+        expect(errorFixes, hasLength(1));
+        _isSyntacticErrorWithSingleFix(errorFixes[0]);
+      }
+      // print(10)
+      {
+        List<ErrorFixes> errorFixes = _getFixesAt('print(10)');
+        expect(errorFixes, hasLength(2));
+        _isSyntacticErrorWithSingleFix(errorFixes[0]);
+        _isSyntacticErrorWithSingleFix(errorFixes[1]);
       }
     });
+  }
+
+  void _isSyntacticErrorWithSingleFix(ErrorFixes fixes) {
+    AnalysisError error = fixes.error;
+    expect(error.severity, ErrorSeverity.ERROR);
+    expect(error.type, ErrorType.SYNTACTIC_ERROR);
+    expect(fixes.fixes, hasLength(1));
+  }
+
+  List<ErrorFixes> _getFixesAt(String search) {
+    int offset = findOffset(search);
+    return _getFixes(offset);
+  }
+
+
+  List<ErrorFixes> _getFixes(int offset) {
+    Request request = new EditGetFixesParams(testFile, offset).toRequest('0');
+    Response response = handleSuccessfulRequest(request);
+    var result = new EditGetFixesResult.fromResponse(response);
+    return result.fixes;
   }
 }

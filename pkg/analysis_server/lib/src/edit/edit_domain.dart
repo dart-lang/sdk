@@ -9,8 +9,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show AnalysisError,
-    EditGetAssistsParams, EditGetAvailableRefactoringsParams,
-    EditGetFixesParams;
+    EditGetAssistsParams, EditGetAvailableRefactoringsParams, EditGetFixesParams;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -21,6 +20,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
+import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -52,8 +52,8 @@ class EditDomainHandler implements RequestHandler {
         server.getResolvedCompilationUnits(params.file);
     if (units.isNotEmpty) {
       CompilationUnit unit = units[0];
-      List<Assist> assists = computeAssists(searchEngine, unit, params.offset,
-          params.length);
+      List<Assist> assists =
+          computeAssists(searchEngine, unit, params.offset, params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });
@@ -68,8 +68,8 @@ class EditDomainHandler implements RequestHandler {
     var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
     // TODO(paulberry): params.length isn't used.  Is this a bug?
     List<String> kinds = <String>[];
-    List<Element> elements = server.getElementsAtOffset(params.file,
-        params.offset);
+    List<Element> elements =
+        server.getElementsAtOffset(params.file, params.offset);
     if (elements.isNotEmpty) {
       Element element = elements[0];
       RenameRefactoring renameRefactoring =
@@ -84,22 +84,29 @@ class EditDomainHandler implements RequestHandler {
 
   Response getFixes(Request request) {
     var params = new EditGetFixesParams.fromRequest(request);
-    // TODO(paulberry): params.offset isn't used.  Is this a bug?
+    String file = params.file;
+    int offset = params.offset;
+    // add fixes
     List<ErrorFixes> errorFixesList = <ErrorFixes>[];
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(params.file);
+    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
     for (CompilationUnit unit in units) {
-      engine.AnalysisErrorInfo errorInfo = server.getErrors(params.file);
+      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
       if (errorInfo != null) {
+        LineInfo lineInfo = errorInfo.lineInfo;
+        int requestLine = lineInfo.getLocation(offset).lineNumber;
         for (engine.AnalysisError error in errorInfo.errors) {
-          List<Fix> fixes = computeFixes(searchEngine, unit, error);
-          if (fixes.isNotEmpty) {
-            AnalysisError serverError =
-                new AnalysisError.fromEngine(errorInfo.lineInfo, error);
-            ErrorFixes errorFixes = new ErrorFixes(serverError);
-            errorFixesList.add(errorFixes);
-            fixes.forEach((fix) {
-              errorFixes.addFix(fix);
-            });
+          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+          if (errorLine == requestLine) {
+            List<Fix> fixes = computeFixes(searchEngine, unit, error);
+            if (fixes.isNotEmpty) {
+              AnalysisError serverError =
+                  new AnalysisError.fromEngine(lineInfo, error);
+              ErrorFixes errorFixes = new ErrorFixes(serverError);
+              errorFixesList.add(errorFixes);
+              fixes.forEach((fix) {
+                errorFixes.addFix(fix);
+              });
+            }
           }
         }
       }
