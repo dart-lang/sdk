@@ -2073,7 +2073,8 @@ class Function : public Object {
   COMPILE_ASSERT(
       MethodRecognizer::kNumRecognizedMethods < (1 << kRecognizedTagSize));
   COMPILE_ASSERT(
-      kNumTagBits <= (kBitsPerByte * sizeof(RawFunction::kind_tag_)));
+      kNumTagBits <=
+      (kBitsPerByte * sizeof(static_cast<RawFunction*>(0)->kind_tag_)));
 
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
