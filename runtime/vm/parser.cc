@@ -1522,7 +1522,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   }
 
   if (params->has_optional_named_parameters &&
-      (parameter.name->CharAt(0) == '_')) {
+      (parameter.name->CharAt(0) == Library::kPrivateIdentifierStart)) {
     ReportError(parameter.name_pos, "named parameter must not be private");
   }
 
@@ -9553,6 +9553,15 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
   HANDLESCOPE(I);
+  if (ident.CharAt(0) == Library::kPrivateIdentifierStart) {
+    // Private names are not exported by libraries. The name mangling
+    // of private names with a library-specific suffix usually ensures
+    // that _x in library A is not found when looked up from library B.
+    // In the pathological case where a library includes itself with
+    // a prefix, the name mangling would not help in hiding the private
+    // name, so we need to explicitly reject private names here.
+    return NULL;
+  }
   Object& obj = Object::Handle(I);
   if (prefix.is_loaded()) {
     obj = prefix.LookupObject(ident);
