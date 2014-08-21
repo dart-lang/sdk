@@ -1306,7 +1306,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Double_fromInteger(Assembler* assembler) {
+void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     Label fall_through;
 
@@ -1521,7 +1521,7 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 }
 
 
-void Intrinsifier::StringBase_charAt(Assembler* assembler) {
+void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
 
   __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.

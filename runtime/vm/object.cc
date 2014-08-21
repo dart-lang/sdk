@@ -5481,6 +5481,8 @@ void Function::set_is_intrinsic(bool value) const {
 
 
 void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
+  // Prevent multiple settings of kind.
+  ASSERT((value == MethodRecognizer::kUnknown) || !IsRecognized());
   set_kind_tag(RecognizedBits::update(value, raw_ptr()->kind_tag_));
 }
 

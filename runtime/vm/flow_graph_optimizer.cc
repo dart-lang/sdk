@@ -4390,7 +4390,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
                                         recognized_kind,
                                         call->token_pos());
     ReplaceCall(call, invoke);
-  } else if (recognized_kind == MethodRecognizer::kObjectArrayConstructor) {
+  } else if (recognized_kind == MethodRecognizer::kObjectArrayAllocate) {
     Value* type = new(I) Value(call->ArgumentAt(0));
     Value* num_elements = new(I) Value(call->ArgumentAt(1));
     CreateArrayInstr* create_array =

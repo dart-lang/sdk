@@ -16,7 +16,6 @@ namespace dart {
   V(::, identical, ObjectIdentical, 496869842)                                 \
   V(ClassID, getID, ClassIDgetID, 1322490980)                                  \
   V(Object, Object., ObjectConstructor, 1066669787)                            \
-  V(_List, _List., ObjectArrayConstructor, 1595327584)                         \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 1541411498)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 1032404349)                  \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 381073990)                   \
@@ -37,12 +36,10 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 972883980)               \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 950522310)           \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 1301138078)              \
-  V(_StringBase, [], StringBaseCharAt, 1512210677)                             \
   V(_StringBase, _interpolate, StringBaseInterpolate, 1758627989)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 1084977108)             \
   V(_IntegerImplementation, _leftShiftWithMask32, IntegerLeftShiftWithMask32,  \
       597111055)                                                               \
-  V(_Double, .fromInteger, DoubleFromInteger, 999771940)                       \
   V(_Double, truncateToDouble, DoubleTruncate, 2117801967)                     \
   V(_Double, roundToDouble, DoubleRound, 2124216110)                           \
   V(_Double, floorToDouble, DoubleFloor, 968600699)                            \
@@ -164,7 +161,7 @@ namespace dart {
   V(_Double, get:isNaN, Double_getIsNaN, 843050033)                            \
   V(_Double, get:isNegative, Double_getIsNegative, 1637875580)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 1594796483)               \
-  V(_Double, .fromInteger, Double_fromInteger, 999771940)                      \
+  V(_Double, .fromInteger, DoubleFromInteger, 999771940)                       \
   V(_List, ., ObjectArrayAllocate, 1595327584)                                 \
   V(_List, get:length, ObjectArrayLength, 1181352729)                          \
   V(_List, [], ObjectArrayGetIndexed, 795612476)                               \
@@ -184,7 +181,7 @@ namespace dart {
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 49873871)                     \
   V(_StringBase, get:length, StringBaseLength, 784399628)                      \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 397735324)                  \
-  V(_StringBase, [], StringBase_charAt, 1512210677)                            \
+  V(_StringBase, [], StringBaseCharAt, 1512210677)                             \
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 1111837929)       \
   V(_OneByteString, _substringUncheckedNative,                                 \
       OneByteString_substringUnchecked, 1527498975)                            \

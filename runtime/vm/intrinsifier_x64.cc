@@ -1210,7 +1210,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
 
 
 // Left is double right is integer (Bigint, Mint or Smi)
-void Intrinsifier::Double_fromInteger(Assembler* assembler) {
+void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
@@ -1410,7 +1410,7 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 }
 
 
-void Intrinsifier::StringBase_charAt(Assembler* assembler) {
+void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
