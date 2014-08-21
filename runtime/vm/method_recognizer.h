@@ -42,11 +42,16 @@ namespace dart {
   V(_IntegerImplementation, toDouble, IntegerToDouble, 1084977108)             \
   V(_IntegerImplementation, _leftShiftWithMask32, IntegerLeftShiftWithMask32,  \
       597111055)                                                               \
+  V(_Double, .fromInteger, DoubleFromInteger, 999771940)                       \
   V(_Double, truncateToDouble, DoubleTruncate, 2117801967)                     \
   V(_Double, roundToDouble, DoubleRound, 2124216110)                           \
   V(_Double, floorToDouble, DoubleFloor, 968600699)                            \
   V(_Double, ceilToDouble, DoubleCeil, 1779929274)                             \
   V(_Double, _modulo, DoubleMod, 1473971007)                                   \
+  V(_Double, _add, DoubleAdd, 1570715125)                                      \
+  V(_Double, _sub, DoubleSub, 1466395310)                                      \
+  V(_Double, _mul, DoubleMul, 546441193)                                       \
+  V(_Double, _div, DoubleDiv, 1201505037)                                      \
   V(::, sin, MathSin, 1741396147)                                              \
   V(::, cos, MathCos, 1951197905)                                              \
   V(::, min, MathMin, 1022567780)                                              \

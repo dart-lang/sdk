@@ -1518,6 +1518,13 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RCX);
+  GenerateNArgsCheckInlineCacheStub(
+      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry);
+}
+
+
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(

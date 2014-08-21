@@ -894,6 +894,37 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerThreeArgs, 4) {
 }
 
 
+// Handles a static call in unoptimized code that has one argument type not
+// seen before. Compile the target if necessary and update the ICData.
+// Arg0: argument.
+// Arg1: IC data object.
+DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerOneArg, 2) {
+  const Instance& arg = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  // IC data for static call is prepopulated with the statically known target.
+  ASSERT(ic_data.NumberOfChecks() == 1);
+  const Function& target = Function::Handle(ic_data.GetTargetAt(0));
+  if (!target.HasCode()) {
+    const Error& error = Error::Handle(Compiler::CompileFunction(isolate,
+                                                                 target));
+    if (!error.IsNull()) {
+      Exceptions::PropagateError(error);
+    }
+  }
+  ASSERT(!target.IsNull() && target.HasCode());
+  ic_data.AddReceiverCheck(arg.GetClassId(), target, 1);
+  if (FLAG_trace_ic) {
+    DartFrameIterator iterator;
+    StackFrame* caller_frame = iterator.NextFrame();
+    ASSERT(caller_frame != NULL);
+    OS::PrintErr("StaticCallMissHandler at %#" Px
+                 " target %s (%" Pd ")\n",
+                 caller_frame->pc(), target.ToCString(), arg.GetClassId());
+  }
+  arguments.SetReturn(target);
+}
+
+
 // Handles a static call in unoptimized code that has two argument types not
 // seen before. Compile the target if necessary and update the ICData.
 // Arg0: argument 0.

@@ -11351,11 +11351,15 @@ void ICData::AddTarget(const Function& target) const {
   ASSERT(!target.IsNull());
   if (NumArgsTested() > 0) {
     // Create a fake cid entry, so that we can store the target.
-    GrowableArray<intptr_t> class_ids(NumArgsTested());
-    for (intptr_t i = 0; i < NumArgsTested(); i++) {
-      class_ids.Add(kObjectCid);
+    if (NumArgsTested() == 1) {
+      AddReceiverCheck(kObjectCid, target, 1);
+    } else {
+      GrowableArray<intptr_t> class_ids(NumArgsTested());
+      for (intptr_t i = 0; i < NumArgsTested(); i++) {
+        class_ids.Add(kObjectCid);
+      }
+      AddCheck(class_ids, target);
     }
-    AddCheck(class_ids, target);
     return;
   }
   ASSERT(NumArgsTested() >= 0);

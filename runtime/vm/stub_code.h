@@ -62,6 +62,7 @@ class RawCode;
   V(ThreeArgsOptimizedCheckInlineCache)                                        \
   V(ClosureCallInlineCache)                                                    \
   V(ZeroArgsUnoptimizedStaticCall)                                             \
+  V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
@@ -161,6 +162,8 @@ class StubCode {
 #undef STUB_CODE_ACCESSOR
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
+
+  uword UnoptimizedStaticCallEntryPoint(intptr_t num_args_tested);
 
   static const intptr_t kNoInstantiator = 0;
 

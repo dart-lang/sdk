@@ -131,8 +131,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool TryReplaceInstanceCallWithInline(InstanceCallInstr* call);
 
-  LoadFieldInstr* BuildLoadStringLength(Definition* str);
-
   Definition* PrepareInlineStringIndexOp(Instruction* call,
                                          intptr_t cid,
                                          Definition* str,
@@ -148,6 +146,11 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                               intptr_t cid,
                               TargetEntryInstr** entry,
                               Definition** last);
+
+  bool InlineDoubleOp(Token::Kind op_kind,
+                      Instruction* call,
+                      TargetEntryInstr** entry,
+                      Definition** last);
 
   bool InlineByteArrayViewLoad(Instruction* call,
                                Definition* receiver,

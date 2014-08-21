@@ -1560,6 +1560,14 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       return InlineStringCodeUnitAt(call, receiver_cid, entry, last);
     case MethodRecognizer::kStringBaseCharAt:
       return InlineStringBaseCharAt(call, receiver_cid, entry, last);
+    case MethodRecognizer::kDoubleAdd:
+      return InlineDoubleOp(Token::kADD, call, entry, last);
+    case MethodRecognizer::kDoubleSub:
+      return InlineDoubleOp(Token::kSUB, call, entry, last);
+    case MethodRecognizer::kDoubleMul:
+      return InlineDoubleOp(Token::kMUL, call, entry, last);
+    case MethodRecognizer::kDoubleDiv:
+      return InlineDoubleOp(Token::kDIV, call, entry, last);
     default:
       return false;
   }
@@ -2336,21 +2344,6 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
 }
 
 
-LoadFieldInstr* FlowGraphOptimizer::BuildLoadStringLength(Definition* str) {
-  // Treat length loads as mutable (i.e. affected by side effects) to avoid
-  // hoisting them since we can't hoist the preceding class-check. This
-  // is because of externalization of strings that affects their class-id.
-  LoadFieldInstr* load = new(I) LoadFieldInstr(
-      new(I) Value(str),
-      String::length_offset(),
-      Type::ZoneHandle(I, Type::SmiType()),
-      str->token_pos());
-  load->set_result_cid(kSmiCid);
-  load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
-  return load;
-}
-
-
 bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
                                                MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
@@ -2711,7 +2704,17 @@ Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
                                   FlowGraph::kEffect);
 
   // Load the length of the string.
-  LoadFieldInstr* length = BuildLoadStringLength(str);
+  // Treat length loads as mutable (i.e. affected by side effects) to avoid
+  // hoisting them since we can't hoist the preceding class-check. This
+  // is because of externalization of strings that affects their class-id.
+  LoadFieldInstr* length = new(I) LoadFieldInstr(
+      new(I) Value(str),
+      String::length_offset(),
+      Type::ZoneHandle(I, Type::SmiType()),
+      str->token_pos());
+  length->set_result_cid(kSmiCid);
+  length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
+
   cursor = flow_graph()->AppendTo(cursor, length, NULL, FlowGraph::kValue);
   // Bounds check.
   cursor = flow_graph()->AppendTo(cursor,
@@ -2785,6 +2788,30 @@ bool FlowGraphOptimizer::InlineStringBaseCharAt(
 
   flow_graph()->AppendTo(*last, char_at, NULL, FlowGraph::kValue);
   *last = char_at;
+
+  return true;
+}
+
+
+bool FlowGraphOptimizer::InlineDoubleOp(
+    Token::Kind op_kind,
+    Instruction* call,
+    TargetEntryInstr** entry,
+    Definition** last) {
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+
+  *entry = new(I) TargetEntryInstr(flow_graph()->allocate_block_id(),
+                                   call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(I, call);
+  // Arguments are checked. No need for class check.
+  BinaryDoubleOpInstr* double_bin_op =
+      new(I) BinaryDoubleOpInstr(op_kind,
+                                 new(I) Value(left),
+                                 new(I) Value(right),
+                                 call->deopt_id(), call->token_pos());
+  flow_graph()->AppendTo(*entry, double_bin_op, call->env(), FlowGraph::kValue);
+  *last = double_bin_op;
 
   return true;
 }
@@ -2960,6 +2987,11 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           ReplaceCall(call, d2d_instr);
         }
         return true;
+      case MethodRecognizer::kDoubleAdd:
+      case MethodRecognizer::kDoubleSub:
+      case MethodRecognizer::kDoubleMul:
+      case MethodRecognizer::kDoubleDiv:
+        return TryReplaceInstanceCallWithInline(call);
       default:
         // Unsupported method.
         return false;
@@ -4342,6 +4374,23 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
     CreateArrayInstr* create_array =
         new(I) CreateArrayInstr(call->token_pos(), type, num_elements);
     ReplaceCall(call, create_array);
+  } else if (recognized_kind == MethodRecognizer::kDoubleFromInteger) {
+    if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
+      const ICData& ic_data = *call->ic_data();
+      if (CanUnboxDouble() && ArgIsAlways(kSmiCid, ic_data, 0)) {
+        Definition* arg = call->ArgumentAt(0);
+        InsertBefore(call,
+                     new(I) CheckSmiInstr(
+                         new(I) Value(arg),
+                         call->deopt_id(),
+                         call->token_pos()),
+                     call->env(),
+                     FlowGraph::kEffect);
+        ReplaceCall(call,
+                    new(I) SmiToDoubleInstr(new(I) Value(arg),
+                                            call->token_pos()));
+      }
+    }
   } else if (call->function().IsFactory()) {
     const Class& function_class =
         Class::Handle(I, call->function().Owner());

@@ -1215,15 +1215,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     intptr_t token_pos,
     LocationSummary* locs,
     const ICData& ic_data) {
-  uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
-  if (ic_data.NumArgsTested() == 0) {
-    label_address = stub_code->ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.NumArgsTested() == 2) {
-    label_address = stub_code->TwoArgsUnoptimizedStaticCallEntryPoint();
-  } else {
-    UNIMPLEMENTED();
-  }
+  const uword label_address =
+      stub_code->UnoptimizedStaticCallEntryPoint(ic_data.NumArgsTested());
   ExternalLabel target_label(label_address);
   __ LoadObject(RBX, ic_data, PP);
   GenerateDartCall(deopt_id,

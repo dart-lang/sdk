@@ -2312,9 +2312,16 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     MethodRecognizer::Kind recognized_kind =
         MethodRecognizer::RecognizeKind(function());
     int num_args_checked = 0;
-    if ((recognized_kind == MethodRecognizer::kMathMin) ||
-        (recognized_kind == MethodRecognizer::kMathMax)) {
-      num_args_checked = 2;
+    switch (recognized_kind) {
+      case MethodRecognizer::kDoubleFromInteger:
+        num_args_checked = 1;
+        break;
+      case MethodRecognizer::kMathMin:
+      case MethodRecognizer::kMathMax:
+        num_args_checked = 2;
+        break;
+      default:
+        break;
     }
     call_ic_data = compiler->GetOrAddStaticCallICData(deopt_id(),
                                                       function(),
