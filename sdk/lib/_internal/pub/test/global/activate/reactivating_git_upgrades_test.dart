@@ -17,8 +17,9 @@ main() {
 
     schedulePub(args: ["global", "activate", "-sgit", "../foo.git"],
         output: '''
-Resolving dependencies...
-Activated foo 1.0.0 from Git repository "../foo.git".''');
+            Resolving dependencies...
+            + foo 1.0.0 from git ../foo.git
+            Activated foo 1.0.0 from Git repository "../foo.git".''');
 
     d.git('foo.git', [
       d.libPubspec("foo", "1.0.1")
@@ -27,8 +28,9 @@ Activated foo 1.0.0 from Git repository "../foo.git".''');
     // Activating it again pulls down the latest commit.
     schedulePub(args: ["global", "activate", "-sgit", "../foo.git"],
         output: '''
-Package foo is currently active from Git repository "../foo.git".
-Resolving dependencies...
-Activated foo 1.0.1 from Git repository "../foo.git".''');
+            Package foo is currently active from Git repository "../foo.git".
+            Resolving dependencies...
+            + foo 1.0.1 from git ../foo.git
+            Activated foo 1.0.1 from Git repository "../foo.git".''');
   });
 }

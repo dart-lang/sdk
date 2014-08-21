@@ -20,9 +20,9 @@ main() {
 
     // Activating again should forget the old version.
     schedulePub(args: ["global", "activate", "foo"], output: """
-Downloading foo 2.0.0...
-Resolving dependencies...
-Activated foo 2.0.0.
-    """);
+        Resolving dependencies...
+        + foo 2.0.0
+        Downloading foo 2.0.0...
+        Activated foo 2.0.0.""");
   });
 }

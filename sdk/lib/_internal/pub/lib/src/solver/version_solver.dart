@@ -280,12 +280,15 @@ class Dependency {
   final String depender;
 
   /// The version of the depender that has this dependency.
-  ///
-  /// This will be `null` when [depender] is the magic "pub itself" dependency.
   final Version dependerVersion;
 
   /// The package being depended on.
   final PackageDep dep;
+
+  /// Whether [depender] is a magic dependency (e.g. "pub itself" or "pub global
+  /// activate").
+  bool get isMagic => depender.contains(" ");
+
 
   Dependency(this.depender, this.dependerVersion, this.dep);
 
@@ -347,9 +350,7 @@ abstract class SolveFailure implements ApplicationException {
     for (var dep in sorted) {
       buffer.writeln();
       buffer.write("- ${log.bold(dep.depender)}");
-      if (dep.dependerVersion != null) {
-        buffer.write(" ${dep.dependerVersion}");
-      }
+      if (!dep.isMagic) buffer.write(" ${dep.dependerVersion}");
       buffer.write(" ${_describeDependency(dep.dep)}");
     }
 

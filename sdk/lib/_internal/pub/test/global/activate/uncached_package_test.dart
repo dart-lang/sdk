@@ -17,10 +17,10 @@ main() {
     ]);
 
     schedulePub(args: ["global", "activate", "foo"], output: """
-Downloading foo 1.2.3...
-Resolving dependencies...
-Activated foo 1.2.3.
-    """);
+        Resolving dependencies...
+        + foo 1.2.3 (2.0.0-wildly.unstable available)
+        Downloading foo 1.2.3...
+        Activated foo 1.2.3.""");
 
     // Should be in global package cache.
     d.dir(cachePath, [

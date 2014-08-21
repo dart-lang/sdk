@@ -31,8 +31,9 @@ main() {
     var path = canonicalize(p.join(sandboxDir, "foo"));
     schedulePub(args: ["global", "activate", "foo"], output: """
         Package foo is currently active from Git repository "../foo.git".
-        Downloading foo 2.0.0...
         Resolving dependencies...
+        + foo 2.0.0
+        Downloading foo 2.0.0...
         Activated foo 2.0.0.""");
 
     // Should now run the hosted one.

@@ -18,9 +18,10 @@ main() {
 
     // Activating it again resolves to the new best version.
     schedulePub(args: ["global", "activate", "foo", ">1.0.0"], output: """
-Package foo is currently active at version 1.2.3.
-Downloading foo 1.3.0...
-Resolving dependencies...
-Activated foo 1.3.0.""");
+        Package foo is currently active at version 1.2.3.
+        Resolving dependencies...
+        + foo 1.3.0
+        Downloading foo 1.3.0...
+        Activated foo 1.3.0.""");
   });
 }

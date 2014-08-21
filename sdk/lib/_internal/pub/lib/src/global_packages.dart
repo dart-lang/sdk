@@ -110,7 +110,13 @@ class GlobalPackages {
 
     // Resolve it and download its dependencies.
     return resolveVersions(SolveType.GET, cache.sources, root).then((result) {
-      if (!result.succeeded) throw result.error;
+      if (!result.succeeded) {
+        // If the package specified by the user doesn't exist, we want to
+        // surface that as a [DataError] with the associated exit code.
+        if (result.error.package != dep.name) throw result.error;
+        if (result.error is NoVersionException) dataError(result.error.message);
+        throw result.error;
+      }
       result.showReport(SolveType.GET);
 
       // Make sure all of the dependencies are locally installed.

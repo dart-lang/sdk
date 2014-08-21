@@ -19,7 +19,8 @@ main() {
 
     schedulePub(args: ["global", "activate", "-sgit", "../foo.git"],
         output: '''
-Resolving dependencies...
-Activated foo 1.0.0 from Git repository "../foo.git".''');
+            Resolving dependencies...
+            + foo 1.0.0 from git ../foo.git
+            Activated foo 1.0.0 from Git repository "../foo.git".''');
   });
 }

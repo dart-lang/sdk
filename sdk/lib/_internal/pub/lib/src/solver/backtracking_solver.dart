@@ -700,7 +700,8 @@ class Traverser {
       var pubDep = override == null ?
           new PackageDep(depName, "hosted", constraint, depName) :
           override.withConstraint(constraint);
-      return _registerDependency(new Dependency("pub itself", null, pubDep));
+      return _registerDependency(
+          new Dependency("pub itself", Version.none, pubDep));
     }));
   }
 

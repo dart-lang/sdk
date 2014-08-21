@@ -17,6 +17,7 @@ import '../lib/src/http.dart';
 import '../lib/src/io.dart';
 import '../lib/src/log.dart' as log;
 import '../lib/src/sdk.dart' as sdk;
+import '../lib/src/solver/version_solver.dart';
 import '../lib/src/utils.dart';
 
 void main(List<String> arguments) {
@@ -115,7 +116,8 @@ int chooseExitCode(exception) {
   while (exception is WrappedException) exception = exception.innerError;
 
   if (exception is HttpException || exception is http.ClientException ||
-      exception is SocketException || exception is PubHttpException) {
+      exception is SocketException || exception is PubHttpException ||
+      exception is DependencyNotFoundException) {
     return exit_codes.UNAVAILABLE;
   } else if (exception is FormatException || exception is DataException) {
     return exit_codes.DATA;
