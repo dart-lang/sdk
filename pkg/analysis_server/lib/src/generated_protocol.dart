@@ -3125,7 +3125,7 @@ class EditGetFixesResult implements HasToJson {
  * edit.getRefactoring params
  *
  * {
- *   "kindId": RefactoringKind
+ *   "kind": RefactoringKind
  *   "file": FilePath
  *   "offset": int
  *   "length": int
@@ -3135,9 +3135,9 @@ class EditGetFixesResult implements HasToJson {
  */
 class EditGetRefactoringParams implements HasToJson {
   /**
-   * The identifier of the kind of refactoring to be performed.
+   * The kind of refactoring to be performed.
    */
-  RefactoringKind kindId;
+  RefactoringKind kind;
 
   /**
    * The file containing the code involved in the refactoring.
@@ -3169,18 +3169,18 @@ class EditGetRefactoringParams implements HasToJson {
    */
   Object options;
 
-  EditGetRefactoringParams(this.kindId, this.file, this.offset, this.length, this.validateOnly, {this.options});
+  EditGetRefactoringParams(this.kind, this.file, this.offset, this.length, this.validateOnly, {this.options});
 
   factory EditGetRefactoringParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
-      RefactoringKind kindId;
-      if (json.containsKey("kindId")) {
-        kindId = new RefactoringKind.fromJson(jsonDecoder, jsonPath + ".kindId", json["kindId"]);
+      RefactoringKind kind;
+      if (json.containsKey("kind")) {
+        kind = new RefactoringKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "kindId");
+        throw jsonDecoder.missingKey(jsonPath, "kind");
       }
       String file;
       if (json.containsKey("file")) {
@@ -3210,7 +3210,7 @@ class EditGetRefactoringParams implements HasToJson {
       if (json.containsKey("options")) {
         options = json["options"];
       }
-      return new EditGetRefactoringParams(kindId, file, offset, length, validateOnly, options: options);
+      return new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring params");
     }
@@ -3223,7 +3223,7 @@ class EditGetRefactoringParams implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kindId"] = kindId.toJson();
+    result["kind"] = kind.toJson();
     result["file"] = file;
     result["offset"] = offset;
     result["length"] = length;
@@ -3244,7 +3244,7 @@ class EditGetRefactoringParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetRefactoringParams) {
-      return kindId == other.kindId &&
+      return kind == other.kind &&
           file == other.file &&
           offset == other.offset &&
           length == other.length &&
@@ -3257,7 +3257,7 @@ class EditGetRefactoringParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kindId.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
     hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = _JenkinsSmiHash.combine(hash, length.hashCode);

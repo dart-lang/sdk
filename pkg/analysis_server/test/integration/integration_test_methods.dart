@@ -1102,9 +1102,9 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * kindId ( RefactoringKind )
+   * kind ( RefactoringKind )
    *
-   *   The identifier of the kind of refactoring to be performed.
+   *   The kind of refactoring to be performed.
    *
    * file ( FilePath )
    *
@@ -1162,9 +1162,9 @@ abstract class IntegrationTestMixin {
    *   if the change field is omitted or if there are no potential edits for
    *   the refactoring.
    */
-  Future sendEditGetRefactoring(String kindId, String file, int offset, int length, bool validateOnly, {Map<String, dynamic> options, bool checkTypes: true}) {
+  Future sendEditGetRefactoring(String kind, String file, int offset, int length, bool validateOnly, {Map<String, dynamic> options, bool checkTypes: true}) {
     Map<String, dynamic> params = {};
-    params["kindId"] = kindId;
+    params["kind"] = kind;
     params["file"] = file;
     params["offset"] = offset;
     params["length"] = length;

@@ -9,7 +9,8 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show AnalysisError,
-    EditGetAssistsParams, EditGetAvailableRefactoringsParams, EditGetFixesParams;
+    EditGetAssistsParams, EditGetAvailableRefactoringsParams,
+    EditGetAvailableRefactoringsResult, EditGetFixesParams, RefactoringKind;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -70,7 +71,7 @@ class EditDomainHandler implements RequestHandler {
     int offset = params.offset;
     int length = params.length;
     // add refactoring kinds
-    List<String> kinds = <String>[];
+    List<RefactoringKind> kinds = <RefactoringKind>[];
     // try EXTRACT_*
     if (length != 0) {
       kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
@@ -89,7 +90,7 @@ class EditDomainHandler implements RequestHandler {
       }
     }
     // respond
-    return new Response(request.id)..setResult(KINDS, kinds);
+    return new EditGetAvailableRefactoringsResult(kinds).toResponse(request.id);
   }
 
   Response getFixes(Request request) {
@@ -141,15 +142,4 @@ class EditDomainHandler implements RequestHandler {
     }
     return null;
   }
-}
-
-
-class RefactoringKind {
-  static const String CONVERT_GETTER_TO_METHOD = 'CONVERT_GETTER_TO_METHOD';
-  static const String CONVERT_METHOD_TO_GETTER = 'CONVERT_METHOD_TO_GETTER';
-  static const String EXTRACT_LOCAL_VARIABLE = 'EXTRACT_LOCAL_VARIABLE';
-  static const String EXTRACT_METHOD = 'EXTRACT_METHOD';
-  static const String INLINE_LOCAL_VARIABLE = 'INLINE_LOCAL_VARIABLE';
-  static const String INLINE_METHOD = 'INLINE_METHOD';
-  static const String RENAME = 'RENAME';
 }

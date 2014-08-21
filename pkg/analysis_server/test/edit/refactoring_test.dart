@@ -6,7 +6,7 @@ library test.edit.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/edit/edit_domain.dart' hide RefactoringKind;
+import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show
     EditGetAvailableRefactoringsParams, EditGetAvailableRefactoringsResult,

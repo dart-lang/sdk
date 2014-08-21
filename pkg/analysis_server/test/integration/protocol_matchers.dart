@@ -627,7 +627,7 @@ final Matcher isEditGetFixesResult = new LazyMatcher(() => new MatchesJsonObject
  * edit.getRefactoring params
  *
  * {
- *   "kindId": RefactoringKind
+ *   "kind": RefactoringKind
  *   "file": FilePath
  *   "offset": int
  *   "length": int
@@ -637,7 +637,7 @@ final Matcher isEditGetFixesResult = new LazyMatcher(() => new MatchesJsonObject
  */
 final Matcher isEditGetRefactoringParams = new LazyMatcher(() => new MatchesJsonObject(
   "edit.getRefactoring params", {
-    "kindId": isRefactoringKind,
+    "kind": isRefactoringKind,
     "file": isFilePath,
     "offset": isInt,
     "length": isInt,
