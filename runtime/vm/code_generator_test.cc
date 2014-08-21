@@ -509,7 +509,7 @@ CODEGEN_TEST2_GENERATE(StaticNonNullSumCallCodegen, function, test) {
   SequenceNode* node_seq = test->node_sequence();
   ArgumentListNode* arguments = new ArgumentListNode(kPos);
   arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(1))));
-  arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle()));
+  arguments->Add(new LiteralNode(kPos, Instance::ZoneHandle()));
   arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))));
   node_seq->Add(new ReturnNode(kPos,
                                new StaticCallNode(kPos, function, arguments)));
