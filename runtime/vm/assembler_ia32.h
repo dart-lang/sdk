@@ -839,13 +839,25 @@ class Assembler : public ValueObject {
   static const char* FpuRegisterName(FpuRegister reg);
 
   // Smis that do not fit into 17 bits (16 bits of payload) are unsafe.
-  static bool IsSafe(const Object& object) {
-    return !object.IsSmi() ||
-        Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()));
-  }
   static bool IsSafeSmi(const Object& object) {
-    return object.IsSmi() &&
-        Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()));
+    if (!object.IsSmi()) {
+      return false;
+    }
+
+    if (Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()))) {
+      return true;
+    }
+
+    // Single bit smis (powers of two) and corresponding masks are safe.
+    const intptr_t value = Smi::Cast(object).Value();
+    if (Utils::IsPowerOfTwo(value) || Utils::IsPowerOfTwo(value + 1)) {
+      return true;
+    }
+
+    return false;
+  }
+  static bool IsSafe(const Object& object) {
+    return !object.IsSmi() || IsSafeSmi(object);
   }
 
  private:
