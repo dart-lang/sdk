@@ -786,6 +786,11 @@ static bool UnboxPhi(PhiInstr* phi) {
         unboxed = kUnboxedInt32x4;
       }
       break;
+    case kFloat64x2Cid:
+      if (ShouldInlineSimd()) {
+        unboxed = kUnboxedFloat64x2;
+      }
+      break;
   }
 
   if (unboxed != current) {

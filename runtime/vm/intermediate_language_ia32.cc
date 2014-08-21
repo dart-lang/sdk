@@ -4052,11 +4052,10 @@ void Float64x2ConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   XmmRegister v0 = locs()->in(0).fpu_reg();
   XmmRegister v1 = locs()->in(1).fpu_reg();
   ASSERT(v0 == locs()->out(0).fpu_reg());
-  __ subl(ESP, Immediate(16));
-  __ movsd(Address(ESP, 0), v0);
-  __ movsd(Address(ESP, 8), v1);
-  __ movups(v0, Address(ESP, 0));
-  __ addl(ESP, Immediate(16));
+  // shufpd mask 0x0 results in:
+  // Lower 64-bits of v0 = Lower 64-bits of v0.
+  // Upper 64-bits of v0 = Lower 64-bits of v1.
+  __ shufpd(v0, v1, Immediate(0x0));
 }
 
 
