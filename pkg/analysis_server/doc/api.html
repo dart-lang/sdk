@@ -2539,10 +2539,13 @@ dt.typeDefinition {
               A human-readable description of the problem being
               represented.
             </p>
-          </dd><dt class="field"><b><i>location ( <a href="#type_Location">Location</a> )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>location ( <span style="color:#999999">optional</span> <a href="#type_Location">Location</a> )</i></b></dt><dd>
             
             <p>
               The location of the problem being represented.
+              This field is omitted unless there is a specific location
+              associated with the problem (such as a location where an element
+              being renamed will be shadowed).
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringProblemSeverity">RefactoringProblemSeverity: String</a></dt><dd>
         <p>

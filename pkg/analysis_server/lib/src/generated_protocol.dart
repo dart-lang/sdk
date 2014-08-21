@@ -7452,7 +7452,7 @@ class RefactoringMethodParameterKind {
  * {
  *   "severity": RefactoringProblemSeverity
  *   "message": String
- *   "location": Location
+ *   "location": optional Location
  * }
  */
 class RefactoringProblem implements HasToJson {
@@ -7467,11 +7467,13 @@ class RefactoringProblem implements HasToJson {
   String message;
 
   /**
-   * The location of the problem being represented.
+   * The location of the problem being represented. This field is omitted
+   * unless there is a specific location associated with the problem (such as a
+   * location where an element being renamed will be shadowed).
    */
   Location location;
 
-  RefactoringProblem(this.severity, this.message, this.location);
+  RefactoringProblem(this.severity, this.message, {this.location});
 
   factory RefactoringProblem.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7493,10 +7495,8 @@ class RefactoringProblem implements HasToJson {
       Location location;
       if (json.containsKey("location")) {
         location = new Location.fromJson(jsonDecoder, jsonPath + ".location", json["location"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "location");
       }
-      return new RefactoringProblem(severity, message, location);
+      return new RefactoringProblem(severity, message, location: location);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "RefactoringProblem");
     }
@@ -7506,7 +7506,9 @@ class RefactoringProblem implements HasToJson {
     Map<String, dynamic> result = {};
     result["severity"] = severity.toJson();
     result["message"] = message;
-    result["location"] = location.toJson();
+    if (location != null) {
+      result["location"] = location.toJson();
+    }
     return result;
   }
 

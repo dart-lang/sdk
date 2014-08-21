@@ -2535,10 +2535,13 @@
               represented.
             </p>
           </field>
-          <field name="location">
+          <field name="location" optional="true">
             <ref>Location</ref>
             <p>
               The location of the problem being represented.
+              This field is omitted unless there is a specific location
+              associated with the problem (such as a location where an element
+              being renamed will be shadowed).
             </p>
           </field>
         </object>

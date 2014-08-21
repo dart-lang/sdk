@@ -1571,13 +1571,14 @@ final Matcher isRefactoringMethodParameterKind = new MatchesEnum("RefactoringMet
  * {
  *   "severity": RefactoringProblemSeverity
  *   "message": String
- *   "location": Location
+ *   "location": optional Location
  * }
  */
 final Matcher isRefactoringProblem = new LazyMatcher(() => new MatchesJsonObject(
   "RefactoringProblem", {
     "severity": isRefactoringProblemSeverity,
-    "message": isString,
+    "message": isString
+  }, optionalFields: {
     "location": isLocation
   }));
 
