@@ -57,6 +57,9 @@ class RawCode;
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(ThreeArgsCheckInlineCache)                                                 \
+  V(SmiAddInlineCache)                                                         \
+  V(SmiSubInlineCache)                                                         \
+  V(SmiEqualInlineCache)                                                       \
   V(OneArgOptimizedCheckInlineCache)                                           \
   V(TwoArgsOptimizedCheckInlineCache)                                          \
   V(ThreeArgsOptimizedCheckInlineCache)                                        \
@@ -202,7 +205,8 @@ class StubCode {
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,
-      const RuntimeEntry& handle_ic_miss);
+      const RuntimeEntry& handle_ic_miss,
+      Token::Kind kind);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

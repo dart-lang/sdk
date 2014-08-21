@@ -5198,7 +5198,7 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(
       deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
-  if (ic_data().NumberOfChecks() == 0) {
+  if (ic_data().NumberOfUsedChecks() == 0) {
     __ jmp(deopt);
     return;
   }

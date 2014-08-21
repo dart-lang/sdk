@@ -6646,7 +6646,7 @@ void Function::RestoreICDataMap(
   const Array& saved_icd = Array::Handle(isolate, ic_data_array());
   if (saved_icd.Length() == 0) {
     deopt_id_to_ic_data->Clear();
-    return;;
+    return;
   }
   ICData& icd = ICData::Handle();
   icd ^= saved_icd.At(saved_icd.Length() - 1);
@@ -11314,6 +11314,22 @@ intptr_t ICData::NumberOfChecks() const {
 }
 
 
+// Discounts any checks with usage of zero.
+intptr_t ICData::NumberOfUsedChecks() const {
+  intptr_t n = NumberOfChecks();
+  if (n == 0) {
+    return 0;
+  }
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < n; i++) {
+    if (GetCountAt(i) > 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+
 void ICData::WriteSentinel(const Array& data) const {
   ASSERT(!data.IsNull());
   for (intptr_t i = 1; i <= TestEntryLength(); i++) {
@@ -11362,7 +11378,7 @@ void ICData::AddTarget(const Function& target) const {
     }
     return;
   }
-  ASSERT(NumArgsTested() >= 0);
+  ASSERT(NumArgsTested() == 0);
   // Can add only once.
   const intptr_t old_num = NumberOfChecks();
   ASSERT(old_num == 0);
@@ -11374,6 +11390,8 @@ void ICData::AddTarget(const Function& target) const {
   intptr_t data_pos = old_num * TestEntryLength();
   ASSERT(!target.IsNull());
   data.SetAt(data_pos++, target);
+  // Set count to 0 as this is called during compilation, before the
+  // call has been executed.
   const Smi& value = Smi::Handle(Smi::New(0));
   data.SetAt(data_pos, value);
 }
@@ -11382,6 +11400,7 @@ void ICData::AddTarget(const Function& target) const {
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
   ASSERT(!target.IsNull());
+  ASSERT(target.name() == target_name());
   DEBUG_ASSERT(!HasCheck(class_ids));
   ASSERT(NumArgsTested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == NumArgsTested());
@@ -11593,6 +11612,9 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);
     const intptr_t count = GetCountAt(i);
+    if (count == 0) {
+      continue;
+    }
     intptr_t duplicate_class_id = -1;
     const intptr_t result_len = result.NumberOfChecks();
     for (intptr_t k = 0; k < result_len; k++) {
@@ -11625,9 +11647,11 @@ bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
   Class& cls = Class::Handle();
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    cls = Function::Handle(GetTargetAt(i)).Owner();
-    if (cls.id() != owner_cid) {
-      return false;
+    if (IsUsedAt(i)) {
+      cls = Function::Handle(GetTargetAt(i)).Owner();
+      if (cls.id() != owner_cid) {
+        return false;
+      }
     }
   }
   return true;
@@ -11639,13 +11663,15 @@ bool ICData::AllReceiversAreNumbers() const {
   Class& cls = Class::Handle();
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    cls = Function::Handle(GetTargetAt(i)).Owner();
-    const intptr_t cid = cls.id();
-    if ((cid != kSmiCid) &&
-        (cid != kMintCid) &&
-        (cid != kBigintCid) &&
-        (cid != kDoubleCid)) {
-      return false;
+    if (IsUsedAt(i)) {
+      cls = Function::Handle(GetTargetAt(i)).Owner();
+      const intptr_t cid = cls.id();
+      if ((cid != kSmiCid) &&
+          (cid != kMintCid) &&
+          (cid != kBigintCid) &&
+          (cid != kDoubleCid)) {
+        return false;
+      }
     }
   }
   return true;
@@ -11656,9 +11682,11 @@ bool ICData::HasReceiverClassId(intptr_t class_id) const {
   ASSERT(NumArgsTested() > 0);
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    const intptr_t test_class_id = GetReceiverClassIdAt(i);
-    if (test_class_id == class_id) {
-      return true;
+    if (IsUsedAt(i)) {
+      const intptr_t test_class_id = GetReceiverClassIdAt(i);
+      if (test_class_id == class_id) {
+        return true;
+      }
     }
   }
   return false;
@@ -11672,9 +11700,45 @@ bool ICData::HasOneTarget() const {
   const Function& first_target = Function::Handle(GetTargetAt(0));
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 1; i < len; i++) {
-    if (GetTargetAt(i) != first_target.raw()) {
+    if (IsUsedAt(i) && (GetTargetAt(i) != first_target.raw())) {
       return false;
     }
+  }
+  return true;
+}
+
+
+void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
+                                   GrowableArray<intptr_t>* second) const {
+  ASSERT(NumArgsTested() == 2);
+  first->Clear();
+  second->Clear();
+  Function& target = Function::Handle();
+  GrowableArray<intptr_t> class_ids;
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    if (GetCountAt(i) > 0) {
+      GetCheckAt(i, &class_ids, &target);
+      ASSERT(class_ids.length() == 2);
+      first->Add(class_ids[0]);
+      second->Add(class_ids[1]);
+    }
+  }
+}
+
+
+bool ICData::IsUsedAt(intptr_t i) const {
+  if (GetCountAt(i) <= 0) {
+    // Do not mistake unoptimized static call ICData for unused.
+    // See ICData::AddTarget.
+    // TODO(srdjan): Make this test more robust.
+    if (NumArgsTested() > 0) {
+      const intptr_t cid = GetReceiverClassIdAt(i);
+      if (cid == kObjectCid) {
+        return true;
+      }
+    }
+    return false;
   }
   return true;
 }

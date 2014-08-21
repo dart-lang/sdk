@@ -1236,6 +1236,81 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 }
 
 
+// Note: RBX must be preserved.
+// Attempt a quick Smi operation for known operations ('kind'). The ICData
+// must have been primed with a Smi/Smi check that will be used for counting
+// the invocations.
+static void EmitFastSmiOp(Assembler* assembler,
+                          Token::Kind kind,
+                          intptr_t num_args,
+                          Label* not_smi_or_overflow) {
+  if (FLAG_throw_on_javascript_int_overflow) {
+    // The overflow check is more complex than implemented below.
+    return;
+  }
+  ASSERT(num_args == 2);
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Right
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left.
+  __ movq(R12, RCX);
+  __ orq(R12, RAX);
+  __ testq(R12, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, not_smi_or_overflow, Assembler::kNearJump);
+  switch (kind) {
+    case Token::kADD: {
+      __ addq(RAX, RCX);
+      __ j(OVERFLOW, not_smi_or_overflow, Assembler::kNearJump);
+      break;
+    }
+    case Token::kSUB: {
+      __ subq(RAX, RCX);
+      __ j(OVERFLOW, not_smi_or_overflow, Assembler::kNearJump);
+      break;
+    }
+    case Token::kEQ: {
+      Label done, is_true;
+      __ cmpq(RAX, RCX);
+      __ j(EQUAL, &is_true, Assembler::kNearJump);
+      __ LoadObject(RAX, Bool::False(), PP);
+      __ jmp(&done, Assembler::kNearJump);
+      __ Bind(&is_true);
+      __ LoadObject(RAX, Bool::True(), PP);
+      __ Bind(&done);
+      break;
+    }
+    default: UNIMPLEMENTED();
+  }
+
+  // RBX: IC data object (preserved).
+  __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
+  // R12: ic_data_array with check entries: classes and target functions.
+  __ leaq(R12, FieldAddress(R12, Array::data_offset()));
+  // R12: points directly to the first ic data array element.
+#if defined(DEBUG)
+  // Check that first entry is for Smi/Smi.
+  Label error, ok;
+  const Immediate& imm_smi_cid =
+      Immediate(reinterpret_cast<intptr_t>(Smi::New(kSmiCid)));
+  __ cmpq(Address(R12, 0 * kWordSize), imm_smi_cid);
+  __ j(NOT_EQUAL, &error, Assembler::kNearJump);
+  __ cmpq(Address(R12, 1 * kWordSize), imm_smi_cid);
+  __ j(EQUAL, &ok, Assembler::kNearJump);
+  __ Bind(&error);
+  __ Stop("Incorrect IC data");
+  __ Bind(&ok);
+#endif
+
+  const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
+  // Update counter.
+  __ movq(R8, Address(R12, count_offset));
+  __ addq(R8, Immediate(Smi::RawValue(1)));
+  __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
+  __ cmovnoq(R9, R8);
+  __ movq(Address(R12, count_offset), R9);
+
+  __ ret();
+}
+
+
 // Generate inline cache check for 'num_args'.
 //  RBX: Inline cache data object.
 //  TOS(0): return address
@@ -1249,7 +1324,8 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 void StubCode::GenerateNArgsCheckInlineCacheStub(
     Assembler* assembler,
     intptr_t num_args,
-    const RuntimeEntry& handle_ic_miss) {
+    const RuntimeEntry& handle_ic_miss,
+    Token::Kind kind) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
@@ -1271,6 +1347,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
   __ j(NOT_EQUAL, &stepping);
   __ Bind(&done_stepping);
+
+  if (kind != Token::kILLEGAL) {
+    Label not_smi_or_overflow;
+    EmitFastSmiOp(assembler, kind, num_args, &not_smi_or_overflow);
+    __ Bind(&not_smi_or_overflow);
+  }
 
   // Load arguments descriptor into R10.
   __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
@@ -1396,23 +1478,45 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 //   - 1 target function.
 void StubCode::GenerateOneArgCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1,
+      kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2,
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 3, kInlineCacheMissHandlerThreeArgsRuntimeEntry);
+  GenerateNArgsCheckInlineCacheStub(assembler, 3,
+      kInlineCacheMissHandlerThreeArgsRuntimeEntry, Token::kILLEGAL);
 }
+
+
+void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RCX);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2,
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kADD);
+}
+
+
+void StubCode::GenerateSmiSubInlineCacheStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RCX);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2,
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kSUB);
+}
+
+
+void StubCode::GenerateSmiEqualInlineCacheStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RCX);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2,
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kEQ);
+}
+
 
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
@@ -1428,31 +1532,31 @@ void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
 void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1,
+      kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kInlineCacheMissHandlerTwoArgsRuntimeEntry);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2,
+      kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
     Assembler* assembler) {
   GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 3, kInlineCacheMissHandlerThreeArgsRuntimeEntry);
+  GenerateNArgsCheckInlineCacheStub(assembler, 3,
+      kInlineCacheMissHandlerThreeArgsRuntimeEntry, Token::kILLEGAL);
 }
 
 
 // Do not count as no type feedback is collected.
 void StubCode::GenerateClosureCallInlineCacheStub(Assembler* assembler) {
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kInlineCacheMissHandlerOneArgRuntimeEntry);
+  GenerateNArgsCheckInlineCacheStub(assembler, 1,
+      kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
@@ -1521,14 +1625,14 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 void StubCode::GenerateOneArgUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(
-      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry);
+      assembler, 1, kStaticCallMissHandlerOneArgRuntimeEntry, Token::kILLEGAL);
 }
 
 
 void StubCode::GenerateTwoArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
-  GenerateNArgsCheckInlineCacheStub(
-      assembler, 2, kStaticCallMissHandlerTwoArgsRuntimeEntry);
+  GenerateNArgsCheckInlineCacheStub(assembler, 2,
+      kStaticCallMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL);
 }
 
 

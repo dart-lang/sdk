@@ -112,7 +112,7 @@ static bool IsNumberCid(intptr_t cid) {
 // Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
-  if (call->ic_data()->NumberOfChecks() > 0) {
+  if (call->ic_data()->NumberOfUsedChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
     // to megamorphic call.
     return false;
@@ -195,8 +195,7 @@ const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
                                                       intptr_t cid) {
   ASSERT(ic_data.NumArgsTested() == 1);
 
-  if ((ic_data.NumberOfChecks() == 1) &&
-      (ic_data.GetReceiverClassIdAt(0) == cid)) {
+  if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
     return ic_data;  // Nothing to do
   }
 
@@ -848,31 +847,10 @@ void FlowGraphOptimizer::SelectRepresentations() {
 }
 
 
-static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
-                                              intptr_t receiver_class_id,
-                                              intptr_t argument_class_id) {
-  ASSERT(receiver_class_id != kIllegalCid);
-  ASSERT(argument_class_id != kIllegalCid);
-  if (ic_data.NumArgsTested() != 2) return false;
-
-  Function& target = Function::Handle();
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    GrowableArray<intptr_t> class_ids;
-    ic_data.GetCheckAt(i, &class_ids, &target);
-    ASSERT(class_ids.length() == 2);
-    if ((class_ids[0] == receiver_class_id) &&
-        (class_ids[1] == argument_class_id)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 static bool ClassIdIsOneOf(intptr_t class_id,
                            const GrowableArray<intptr_t>& class_ids) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {
+    ASSERT(class_ids[i] != kIllegalCid);
     if (class_ids[i] == class_id) {
       return true;
     }
@@ -887,51 +865,80 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
     const ICData& ic_data,
     const GrowableArray<intptr_t>& receiver_class_ids,
     const GrowableArray<intptr_t>& argument_class_ids) {
-  if (ic_data.NumArgsTested() != 2) return false;
+  if (ic_data.NumArgsTested() != 2) {
+    return false;
+  }
   Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    GrowableArray<intptr_t> class_ids;
-    ic_data.GetCheckAt(i, &class_ids, &target);
-    ASSERT(class_ids.length() == 2);
-    if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
-        !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
-      return false;
+    if (ic_data.IsUsedAt(i)) {
+      GrowableArray<intptr_t> class_ids;
+      ic_data.GetCheckAt(i, &class_ids, &target);
+      ASSERT(class_ids.length() == 2);
+      if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
+          !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
+        return false;
+      }
     }
   }
   return true;
 }
 
 
+static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
+                                              intptr_t receiver_class_id,
+                                              intptr_t argument_class_id) {
+  GrowableArray<intptr_t> receiver_cids(1);
+  receiver_cids.Add(receiver_class_id);
+  GrowableArray<intptr_t> argument_cids(1);
+  argument_cids.Add(argument_class_id);
+  return ICDataHasOnlyReceiverArgumentClassIds(
+      ic_data, receiver_cids, argument_cids);
+}
+
+
 static bool HasOnlyOneSmi(const ICData& ic_data) {
-  return (ic_data.NumberOfChecks() == 1)
+  return (ic_data.NumberOfUsedChecks() == 1)
       && ic_data.HasReceiverClassId(kSmiCid);
 }
 
 
 static bool HasOnlySmiOrMint(const ICData& ic_data) {
-  if (ic_data.NumberOfChecks() == 1) {
+  if (ic_data.NumberOfUsedChecks() == 1) {
     return ic_data.HasReceiverClassId(kSmiCid)
         || ic_data.HasReceiverClassId(kMintCid);
   }
-  return (ic_data.NumberOfChecks() == 2)
+  return (ic_data.NumberOfUsedChecks() == 2)
       && ic_data.HasReceiverClassId(kSmiCid)
       && ic_data.HasReceiverClassId(kMintCid);
 }
 
 
 static bool HasOnlyTwoOf(const ICData& ic_data, intptr_t cid) {
-  return (ic_data.NumberOfChecks() == 1) &&
-      ICDataHasReceiverArgumentClassIds(ic_data, cid, cid);
+  if (ic_data.NumberOfUsedChecks() != 1) {
+    return false;
+  }
+  GrowableArray<intptr_t> first;
+  GrowableArray<intptr_t> second;
+  ic_data.GetUsedCidsForTwoArgs(&first, &second);
+  return (first[0] == cid) && (second[0] == cid);
 }
 
 // Returns false if the ICData contains anything other than the 4 combinations
 // of Mint and Smi for the receiver and argument classes.
 static bool HasTwoMintOrSmi(const ICData& ic_data) {
-  GrowableArray<intptr_t> class_ids(2);
-  class_ids.Add(kSmiCid);
-  class_ids.Add(kMintCid);
-  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
+  GrowableArray<intptr_t> first;
+  GrowableArray<intptr_t> second;
+  ic_data.GetUsedCidsForTwoArgs(&first, &second);
+  for (intptr_t i = 0; i < first.length(); i++) {
+    if ((first[i] != kSmiCid) && (first[i] != kMintCid)) {
+      return false;
+    }
+    if ((second[i] != kSmiCid) && (second[i] != kMintCid)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -946,7 +953,7 @@ static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
 
 
 static bool HasOnlyOneDouble(const ICData& ic_data) {
-  return (ic_data.NumberOfChecks() == 1)
+  return (ic_data.NumberOfUsedChecks() == 1)
       && ic_data.HasReceiverClassId(kDoubleCid);
 }
 
@@ -1001,8 +1008,8 @@ Instruction* FlowGraphOptimizer::GetCheckClass(Definition* to_check,
                                                const ICData& unary_checks,
                                                intptr_t deopt_id,
                                                intptr_t token_pos) {
-  if ((unary_checks.NumberOfChecks() == 1) &&
-      (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+  if ((unary_checks.NumberOfUsedChecks() == 1) &&
+      unary_checks.HasReceiverClassId(kSmiCid)) {
     return new(I) CheckSmiInstr(new(I) Value(to_check),
                                 deopt_id,
                                 token_pos);
@@ -1037,10 +1044,14 @@ static bool ArgIsAlways(intptr_t cid,
                         const ICData& ic_data,
                         intptr_t arg_number) {
   ASSERT(ic_data.NumArgsTested() > arg_number);
+  if (ic_data.NumberOfUsedChecks() == 0) {
+    return false;
+  }
   const intptr_t num_checks = ic_data.NumberOfChecks();
-  if (num_checks == 0) return false;
   for (intptr_t i = 0; i < num_checks; i++) {
-    if (ic_data.GetClassIdAt(i, arg_number) != cid) return false;
+    if (ic_data.IsUsedAt(i) && ic_data.GetClassIdAt(i, arg_number) != cid) {
+      return false;
+    }
   }
   return true;
 }
@@ -1134,7 +1145,10 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   if (!call->HasICData()) return false;
   const ICData& ic_data =
       ICData::Handle(I, call->ic_data()->AsUnaryClassChecks());
-  if (ic_data.NumberOfChecks() != 1) return false;
+  if (ic_data.NumberOfChecks() != 1) {
+    return false;
+  }
+  ASSERT(ic_data.NumberOfUsedChecks() == 1);
   ASSERT(ic_data.HasOneTarget());
 
   const Function& target = Function::Handle(I, ic_data.GetTargetAt(0));
@@ -1701,7 +1715,10 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   if (!call->HasICData()) return false;
   const ICData& ic_data =
       ICData::Handle(I, call->ic_data()->AsUnaryClassChecks());
-  if (ic_data.NumberOfChecks() != 1) return false;
+  if (ic_data.NumberOfChecks() != 1) {
+    return false;
+  }
+  ASSERT(ic_data.NumberOfUsedChecks() == 1);
   ASSERT(ic_data.HasOneTarget());
 
   const Function& target = Function::Handle(I, ic_data.GetTargetAt(0));
@@ -2621,7 +2638,7 @@ bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
 bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
-  if (ic_data.NumberOfChecks() == 0) {
+  if (ic_data.NumberOfUsedChecks() == 0) {
     // No type feedback collected.
     return false;
   }
@@ -2861,7 +2878,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
 bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
-  if ((ic_data.NumberOfChecks() == 0) || !ic_data.HasOneTarget()) {
+  if ((ic_data.NumberOfUsedChecks() == 0) || !ic_data.HasOneTarget()) {
     // No type feedback collected or multiple targets found.
     return false;
   }
@@ -4161,7 +4178,7 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (!instr->HasICData() || (instr->ic_data()->NumberOfChecks() == 0)) {
+  if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
     return;
   }
 
@@ -4180,7 +4197,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(I, instr->ic_data()->AsUnaryClassChecks());
 
-  intptr_t max_checks = (op_kind == Token::kEQ)
+  const intptr_t max_checks = (op_kind == Token::kEQ)
       ? FLAG_max_equality_polymorphic_checks
       : FLAG_max_polymorphic_checks;
   if ((unary_checks.NumberOfChecks() > max_checks) &&

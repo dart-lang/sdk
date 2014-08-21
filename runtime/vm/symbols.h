@@ -14,6 +14,7 @@ namespace dart {
 class Isolate;
 class ObjectPointerVisitor;
 
+// One-character symbols are added implicitly.
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
   V(Empty, "")                                                                 \
   V(EqualOperator, "==")                                                       \

@@ -1480,7 +1480,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
   ASSERT(is_optimizing());
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfUsedChecks() > 0));
   Label match_found;
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<CidTarget> sorted(len);

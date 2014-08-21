@@ -29,6 +29,8 @@ namespace dart {
 
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
+DEFINE_FLAG(bool, two_args_smi_icd, true,
+    "Generate special IC stubs for two args Smi operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -2232,23 +2234,38 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+static uword TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
+  if (!FLAG_two_args_smi_icd) {
+    return 0;
+  }
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  switch (kind) {
+    case Token::kADD: return stub_code->SmiAddInlineCacheEntryPoint();
+    case Token::kSUB: return stub_code->SmiSubInlineCacheEntryPoint();
+    case Token::kEQ:  return stub_code->SmiEqualInlineCacheEntryPoint();
+    default:          return 0;
+  }
+}
+
+
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Isolate* isolate = compiler->isolate();
   const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
     const Array& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
-                                               argument_names()));
+        Array::Handle(isolate, ArgumentsDescriptor::New(ArgumentCount(),
+                                                        argument_names()));
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
         checked_argument_count());
   } else {
-    call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
+    call_ic_data = &ICData::ZoneHandle(isolate, ic_data()->raw());
   }
   if (compiler->is_optimizing()) {
     ASSERT(HasICData());
-    if (ic_data()->NumberOfChecks() > 0) {
+    if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =
-          ICData::ZoneHandle(ic_data()->AsUnaryClassChecks());
+          ICData::ZoneHandle(isolate, ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
                                      ArgumentCount(),
@@ -2268,11 +2285,46 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
-    compiler->GenerateInstanceCall(deopt_id(),
-                                   token_pos(),
-                                   ArgumentCount(),
-                                   locs(),
-                                   *call_ic_data);
+    bool is_smi_two_args_op = false;
+    const uword label_address = TwoArgsSmiOpInlineCacheEntry(token_kind());
+    if (label_address != 0) {
+      // We have a dedicated inline cache stub for this operation, add an
+      // an initial Smi/Smi check with count 0.
+      ASSERT(call_ic_data->NumArgsTested() == 2);
+      const String& name = String::Handle(isolate, call_ic_data->target_name());
+      const Class& smi_class = Class::Handle(isolate, Smi::Class());
+      const Function& smi_op_target =
+          Function::Handle(Resolver::ResolveDynamicAnyArgs(smi_class, name));
+      if (call_ic_data->NumberOfChecks() == 0) {
+        GrowableArray<intptr_t> class_ids(2);
+        class_ids.Add(kSmiCid);
+        class_ids.Add(kSmiCid);
+        call_ic_data->AddCheck(class_ids, smi_op_target);
+        // 'AddCheck' sets the initial count to 1.
+        call_ic_data->SetCountAt(0, 0);
+        is_smi_two_args_op = true;
+      } else if (call_ic_data->NumberOfChecks() == 1) {
+        GrowableArray<intptr_t> class_ids(2);
+        Function& target = Function::Handle(isolate);
+        call_ic_data->GetCheckAt(0, &class_ids, &target);
+        if ((target.raw() == smi_op_target.raw()) &&
+            (class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
+          is_smi_two_args_op = true;
+        }
+      }
+    }
+    if (is_smi_two_args_op) {
+      ASSERT(ArgumentCount() == 2);
+      ExternalLabel target_label(label_address);
+      compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
+                                 deopt_id(), token_pos(), locs());
+    } else {
+      compiler->GenerateInstanceCall(deopt_id(),
+                                     token_pos(),
+                                     ArgumentCount(),
+                                     locs(),
+                                     *call_ic_data);
+    }
   }
 }
 

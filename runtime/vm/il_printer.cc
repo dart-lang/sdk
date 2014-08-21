@@ -151,10 +151,7 @@ static void PrintICDataHelper(BufferFormatter* f, const ICData& ic_data) {
           Class::Handle(Isolate::Current()->class_table()->At(class_ids[k]));
       f->Print("%s", String::Handle(cls.Name()).ToCString());
     }
-    if (count > 0) {
-      f->Print(" #%" Pd, count);
-    }
-    f->Print(" <%p>", static_cast<void*>(target.raw()));
+    f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
   }
   f->Print("]");
 }

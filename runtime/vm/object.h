@@ -3451,6 +3451,9 @@ class ICData : public Object {
 
   intptr_t NumberOfChecks() const;
 
+  // Discounts any checks with usage of zero.
+  intptr_t NumberOfUsedChecks() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawICData));
   }
@@ -3500,6 +3503,7 @@ class ICData : public Object {
 
   // Retrieving checks.
 
+  // TODO(srdjan): GetCheckAt without target.
   void GetCheckAt(intptr_t index,
                   GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
@@ -3523,11 +3527,13 @@ class ICData : public Object {
 
   // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
   // returns a new ICData object containing only unique arg_nr checks.
+  // Returns only used entries.
   RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
   RawICData* AsUnaryClassChecks() const {
     return AsUnaryClassChecksForArgNr(0);
   }
 
+  // Consider only used entries.
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
@@ -3548,6 +3554,11 @@ class ICData : public Object {
   static intptr_t CountIndexFor(intptr_t num_args) {
     return (num_args + 1);
   }
+
+  bool IsUsedAt(intptr_t i) const;
+
+  void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
+                             GrowableArray<intptr_t>* second) const;
 
  private:
   RawArray* ic_data() const {

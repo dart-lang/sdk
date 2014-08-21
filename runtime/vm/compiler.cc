@@ -51,6 +51,8 @@ DEFINE_FLAG(bool, loop_invariant_code_motion, true,
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, print_flow_graph_optimized, false,
     "Print the IR flow graph when optimizing.");
+DEFINE_FLAG(bool, print_ic_data_map, false,
+    "Print the deopt-id to ICData map in optimizing compiler.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
@@ -240,7 +242,6 @@ RawError* Compiler::CompileClass(const Class& cls) {
 }
 
 
-
 // Return false if bailed out.
 static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                                         bool optimized,
@@ -289,6 +290,14 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           ASSERT(function.deoptimization_counter() <
                  FLAG_deoptimization_counter_threshold);
           function.RestoreICDataMap(ic_data_array);
+          if (FLAG_print_ic_data_map) {
+            for (intptr_t i = 0; i < ic_data_array->length(); i++) {
+              if ((*ic_data_array)[i] != NULL) {
+                OS::Print("%" Pd " ", i);
+                FlowGraphPrinter::PrintICData(*(*ic_data_array)[i]);
+              }
+            }
+          }
         }
 
         // Build the flow graph.
