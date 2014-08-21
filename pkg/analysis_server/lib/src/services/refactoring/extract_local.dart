@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -59,16 +60,16 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     utils = new CorrectionUtils(unit);
   }
 
-  String get declarationKeyword {
+  @override
+  String get refactoringName => 'Extract Local Variable';
+
+  String get _declarationKeyword {
     if (_isPartOfConstantExpression(rootExpression)) {
       return "const";
     } else {
       return "var";
     }
   }
-
-  @override
-  String get refactoringName => 'Extract Local Variable';
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
@@ -87,12 +88,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     RefactoringStatus result = new RefactoringStatus();
     // selection
     result.addStatus(_checkSelection());
-    // occurrences
-    if (!result.hasFatalError) {
-      _prepareOccurrences();
-      _prepareExcludedNames();
+    if (result.hasFatalError) {
+      return new Future.value(result);
     }
-    // suggested names
+    // occurrences
+    _prepareOccurrences();
+    _prepareOffsetsLengths();
+    // names
+    _prepareExcludedNames();
     _prepareNames();
     // done
     return new Future.value(result);
@@ -116,7 +119,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     // If the whole expression of a statement is selected, like '1 + 2',
     // then convert it into a variable declaration statement.
     if (wholeStatementExpression && occurrences.length == 1) {
-      String keyword = declarationKeyword;
+      String keyword = _declarationKeyword;
       String declarationSource = '$keyword $name = ';
       SourceEdit edit =
           new SourceEdit(singleExpression.offset, 0, declarationSource);
@@ -129,7 +132,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
       if (stringLiteralPart != null) {
         declarationSource = "var ${name} = '${stringLiteralPart}';";
       } else {
-        String keyword = declarationKeyword;
+        String keyword = _declarationKeyword;
         String initializerSource = utils.getRangeText(selectionRange);
         declarationSource = "${keyword} ${name} = ${initializerSource};";
       }
@@ -239,8 +242,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   }
 
   /**
-   * @return the [Statement] such that variable declaration added before it will be visible in
-   *         all given occurrences.
+   * Returns the [Statement] such that variable declaration added before it is
+   * visible at all given occurrences.
    */
   Statement _findTargetStatement(List<SourceRange> occurrences) {
     List<AstNode> nodes = _findNodes(occurrences);
@@ -255,7 +258,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   }
 
   /**
-   * @return `true` if it is OK to extract the node with the given [SourceRange].
+   * Checks if it is OK to extract the node with the given [SourceRange].
    */
   bool _isExtractable(SourceRange range) {
     _ExtractExpressionAnalyzer analyzer = new _ExtractExpressionAnalyzer(range);
@@ -285,7 +288,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
 
   void _prepareExcludedNames() {
     excludedVariableNames.clear();
-    // TODO(scheglov) clean up?
     AstNode enclosingNode =
         new NodeLocator.con1(selectionOffset).searchWithin(unit);
     Block enclosingBlock = enclosingNode.getAncestor((node) => node is Block);
@@ -311,23 +313,24 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
 
   void _prepareNames() {
     names.clear();
-    // TODO(scheglov) implement
-//    Set<String> excluded = excludedVariableNames;
-//    if (_stringLiteralPart != null) {
-//      return getVariableNameSuggestions(_stringLiteralPart, excluded);
-//    } else if (_singleExpression != null) {
-//      _guessedNames = CorrectionUtils.getVariableNameSuggestions2(_singleExpression.staticType, _singleExpression, excluded);
-//    } else {
-//      _guessedNames = ArrayUtils.EMPTY_STRING_ARRAY;
-//    }
+    if (stringLiteralPart != null) {
+      names.addAll(
+          getVariableNameSuggestionsForText(stringLiteralPart, excludedVariableNames));
+    } else if (singleExpression != null) {
+      names.addAll(
+          getVariableNameSuggestionsForExpression(
+              singleExpression.staticType,
+              singleExpression,
+              excludedVariableNames));
+    }
   }
 
   /**
-   * @return all occurrences of the source which matches given selection, sorted by offset. First
-   *         [SourceRange] is same as the given selection. May be empty, but not
-   *         <code>null</code>.
+   * Prepares all occurrences of the source which matches given selection,
+   * sorted by offsets.
    */
-  List<SourceRange> _prepareOccurrences() {
+  void _prepareOccurrences() {
+    occurrences.clear();
     // prepare selection
     String selectionSource;
     {
@@ -345,8 +348,15 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     // visit function
     enclosingFunction.accept(
         new _OccurrencesVisitor(this, occurrences, selectionSource));
-    // done
-    return occurrences;
+  }
+
+  void _prepareOffsetsLengths() {
+    offsets.clear();
+    lengths.clear();
+    for (SourceRange occurrence in occurrences) {
+      offsets.add(occurrence.offset);
+      lengths.add(occurrence.length);
+    }
   }
 }
 
@@ -411,7 +421,7 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
     reset();
   }
 
-  bool _isFirstSelectedNode(AstNode node) => identical(firstSelectedNode, node);
+  bool _isFirstSelectedNode(AstNode node) => node == firstSelectedNode;
 }
 
 
@@ -429,10 +439,8 @@ class _HasStatementVisitor extends GeneralizingAstVisitor {
 
 class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   final ExtractLocalRefactoringImpl ref;
-
-  List<SourceRange> occurrences;
-
-  String selectionSource;
+  final List<SourceRange> occurrences;
+  final String selectionSource;
 
   _OccurrencesVisitor(this.ref, this.occurrences, this.selectionSource);
 

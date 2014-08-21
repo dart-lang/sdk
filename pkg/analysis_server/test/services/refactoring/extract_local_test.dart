@@ -469,6 +469,50 @@ main() {
 ''');
   }
 
+  test_guessNames_fragmentExpression() {
+    indexTestUnit('''
+main() {
+  var a = 111 + 222 + 333 + 444;
+}
+''');
+    _createRefactoringForString('222 + 333');
+    // check guesses
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.names, isEmpty);
+    });
+  }
+
+  test_guessNames_singleExpression() {
+    indexTestUnit('''
+class TreeItem {}
+TreeItem getSelectedItem() => null;
+process(my) {}
+main() {
+  process(getSelectedItem()); // marker
+}
+''');
+    _createRefactoringWithSuffix('getSelectedItem()', '); // marker');
+    // check guesses
+    return refactoring.checkInitialConditions().then((_) {
+      expect(
+          refactoring.names,
+          unorderedEquals(['selectedItem', 'item', 'my', 'treeItem']));
+    });
+  }
+
+  test_guessNames_stringPart() {
+    indexTestUnit('''
+main() {
+  var s = 'Hello Bob... welcome to Dart!';
+}
+''');
+    _createRefactoringForString('Hello Bob');
+    // check guesses
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.names, unorderedEquals(['helloBob', 'bob']));
+    });
+  }
+
   test_occurences_disableOccurences() {
     indexTestUnit('''
 int foo() => 42;
@@ -617,7 +661,21 @@ main() {
   }
 
   test_offsets_lengths() {
-    // TODO(scheglov) implement and test
+    indexTestUnit('''
+int foo() => 42;
+main() {
+  int a = 1 + foo(); // marker
+  int b = 2 + foo( );
+}
+''');
+    _createRefactoringWithSuffix('foo()', '; // marker');
+    // apply refactoring
+    return refactoring.checkInitialConditions().then((_) {
+      expect(
+          refactoring.offsets,
+          unorderedEquals([findOffset('foo();'), findOffset('foo( );')]));
+      expect(refactoring.lengths, unorderedEquals([5, 6]));
+    });
   }
 
   test_singleExpression() {
