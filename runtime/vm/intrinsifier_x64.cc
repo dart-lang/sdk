@@ -27,6 +27,111 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
+void Intrinsifier::ObjectArrayAllocate(Assembler* assembler) {
+  Label fall_through;
+  const intptr_t kTypeArgumentsOffset = 2 * kWordSize;
+  const intptr_t kLengthOffset = 1 * kWordSize;
+
+  __ movq(RDI, Address(RSP, kLengthOffset));
+
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+  // Check that length is a positive Smi.
+  __ testq(RDI, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through);
+  __ cmpq(RDI, Immediate(0));
+  __ j(LESS, &fall_through);
+  // Check for maximum allowed length.
+  const Immediate& max_len =
+      Immediate(reinterpret_cast<int64_t>(Smi::New(Array::kMaxElements)));
+  __ cmpq(RDI, max_len);
+  __ j(GREATER, &fall_through);
+  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
+  ASSERT(kSmiTagShift == 1);
+  __ andq(RDI, Immediate(-kObjectAlignment));
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ movq(RAX, Immediate(heap->TopAddress()));
+  __ movq(RAX, Address(RAX, 0));
+
+  // RDI: allocation size.
+  __ movq(RCX, RAX);
+  __ addq(RCX, RDI);
+  __ j(CARRY, &fall_through);
+
+  // Check if the allocation fits into the remaining space.
+  // RAX: potential new object start.
+  // RCX: potential next object start.
+  // RDI: allocation size.
+  __ movq(R13, Immediate(heap->EndAddress()));
+  __ cmpq(RCX, Address(R13, 0));
+  __ j(ABOVE_EQUAL, &fall_through);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(Address(R13, 0), RCX);
+  __ addq(RAX, Immediate(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, RDI);
+  // Initialize the tags.
+  // RAX: new object start as a tagged pointer.
+  // RDI: allocation size.
+  {
+    Label size_tag_overflow, done;
+    __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shlq(RDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    __ movq(RDI, Immediate(0));
+    __ Bind(&done);
+
+    // Get the class index and insert it into the tags.
+    const Class& cls = Class::Handle(isolate->object_store()->array_class());
+    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ movq(FieldAddress(RAX, Array::tags_offset()), RDI);  // Tags.
+  }
+
+  // RAX: new object start as a tagged pointer.
+  // Store the type argument field.
+  __ movq(R13, Address(RSP, kTypeArgumentsOffset));
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::type_arguments_offset()),
+                              R13);
+
+  // Set the length field.
+  __ movq(RDI, Address(RSP, kLengthOffset));
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::length_offset()),
+                              RDI);
+
+  // Initialize all array elements to raw_null.
+  // RAX: new object start as a tagged pointer.
+  // RCX: new object end address.
+  // RDI: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  __ LoadObject(R12, Object::null_object(), PP);
+  __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
+  Label done;
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmpq(RDI, RCX);
+  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+  __ movq(Address(RDI, 0), R12);
+  __ addq(RDI, Immediate(kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+  __ Bind(&done);
+  __ ret();  // returns the newly allocated object in RAX.
+
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::ObjectArrayLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
@@ -1299,6 +1404,49 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   __ movzxw(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ SmiTag(RAX);
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::StringBase_charAt(Assembler* assembler) {
+  Label fall_through, try_two_byte_string;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, String::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ CompareClassId(RAX, kOneByteStringCid);
+  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
+  __ SmiUntag(RCX);
+  __ movzxb(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
+  __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
+  __ j(GREATER_EQUAL, &fall_through);
+  __ movq(RAX,
+          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movq(RAX, Address(RAX,
+                       RCX,
+                       TIMES_8,
+                       Symbols::kNullCharCodeSymbolOffset * kWordSize));
+  __ ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(RAX, kTwoByteStringCid);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  ASSERT(kSmiTagShift == 1);
+  __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
+  __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
+  __ j(GREATER_EQUAL, &fall_through);
+  __ movq(RAX,
+          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movq(RAX, Address(RAX,
+                       RCX,
+                       TIMES_8,
+                       Symbols::kNullCharCodeSymbolOffset * kWordSize));
   __ ret();
 
   __ Bind(&fall_through);

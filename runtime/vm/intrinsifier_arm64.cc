@@ -17,7 +17,120 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 
+
 #define __ assembler->
+
+
+void Intrinsifier::ObjectArrayAllocate(Assembler* assembler) {
+  Label fall_through;
+  const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
+  const intptr_t kLengthOffset = 0 * kWordSize;
+
+  __ ldr(R1, Address(SP, kTypeArgumentsOffset));
+  __ ldr(R2, Address(SP, kLengthOffset));
+
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+  // Assert that length is a Smi.
+  __ tsti(R2, kSmiTagMask);
+  __ b(&fall_through, NE);
+
+  __ cmp(R2, Operand(0));
+  __ b(&fall_through, LT);
+  __ LoadFieldFromOffset(R8, CTX, Context::isolate_offset(), kNoPP);
+  __ LoadFromOffset(R8, R8, Isolate::heap_offset(), kNoPP);
+  __ LoadFromOffset(R8, R8, Heap::new_space_offset(), kNoPP);
+
+  // Calculate and align allocation size.
+  // Load new object start and calculate next object start.
+  // R1: array element type.
+  // R2: array length as Smi.
+  // R8: points to new space object.
+  __ LoadFromOffset(R0, R8, Scavenger::top_offset(), kNoPP);
+  intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(R3, fixed_size, kNoPP);
+  __ add(R3, R3, Operand(R2, LSL, 2));  // R2 is Smi.
+  ASSERT(kSmiTagShift == 1);
+  __ andi(R3, R3, ~(kObjectAlignment - 1));
+  __ adds(R7, R3, Operand(R0));
+  __ b(&fall_through, VS);
+
+  // Check if the allocation fits into the remaining space.
+  // R0: potential new object start.
+  // R1: array element type.
+  // R2: array length as Smi.
+  // R3: array size.
+  // R7: potential next object start.
+  // R8: points to new space object.
+  __ LoadFromOffset(TMP, R8, Scavenger::end_offset(), kNoPP);
+  __ CompareRegisters(R7, TMP);
+  __ b(&fall_through, CS);  // Branch if unsigned higher or equal.
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  // R0: potential new object start.
+  // R3: array size.
+  // R7: potential next object start.
+  // R8: Points to new space object.
+  __ StoreToOffset(R7, R8, Scavenger::top_offset(), kNoPP);
+  __ add(R0, R0, Operand(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, R3, kNoPP);
+
+  // R0: new object start as a tagged pointer.
+  // R1: array element type.
+  // R2: array length as Smi.
+  // R3: array size.
+  // R7: new object end address.
+
+  // Store the type argument field.
+  __ StoreIntoObjectOffsetNoBarrier(
+      R0, Array::type_arguments_offset(), R1, PP);
+
+  // Set the length field.
+  __ StoreIntoObjectOffsetNoBarrier(R0, Array::length_offset(), R2, PP);
+
+  // Calculate the size tag.
+  // R0: new object start as a tagged pointer.
+  // R2: array length as Smi.
+  // R3: array size.
+  // R7: new object end address.
+  const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
+  __ CompareImmediate(R3, RawObject::SizeTag::kMaxSizeTag, kNoPP);
+  // If no size tag overflow, shift R1 left, else set R1 to zero.
+  __ Lsl(TMP, R3, shift);
+  __ csel(R1, TMP, R1, LS);
+  __ csel(R1, ZR, R1, HI);
+
+  // Get the class index and insert it into the tags.
+  __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(kArrayCid), kNoPP);
+  __ orr(R1, R1, Operand(TMP));
+  __ StoreFieldToOffset(R1, R0, Array::tags_offset(), kNoPP);
+
+  // Initialize all array elements to raw_null.
+  // R0: new object start as a tagged pointer.
+  // R7: new object end address.
+  // R2: array length as Smi.
+  __ AddImmediate(R1, R0, Array::data_offset() - kHeapObjectTag, kNoPP);
+  // R1: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  __ LoadObject(TMP, Object::null_object(), PP);
+  Label loop, done;
+  __ Bind(&loop);
+  // TODO(cshapiro): StoreIntoObjectNoBarrier
+  __ CompareRegisters(R1, R7);
+  __ b(&done, CS);
+  __ str(TMP, Address(R1));  // Store if unsigned lower.
+  __ AddImmediate(R1, R1, kWordSize, kNoPP);
+  __ b(&loop);  // Loop until R1 == R7.
+  __ Bind(&done);
+
+  // Done allocating and initializing the array.
+  // R0: new object.
+  // R2: array length as Smi (preserved for the caller.)
+  __ ret();
+  __ Bind(&fall_through);
+}
 
 
 void Intrinsifier::ObjectArrayLength(Assembler* assembler) {
@@ -1288,6 +1401,51 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag, kNoPP);
   __ ldr(R0, Address(R0, R1), kUnsignedHalfword);
   __ SmiTag(R0);
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::StringBase_charAt(Assembler* assembler) {
+  Label fall_through, try_two_byte_string;
+
+  __ ldr(R1, Address(SP, 0 * kWordSize));  // Index.
+  __ ldr(R0, Address(SP, 1 * kWordSize));  // String.
+  __ tsti(R1, kSmiTagMask);
+  __ b(&fall_through, NE);  // Index is not a Smi.
+  // Range check.
+  __ ldr(R2, FieldAddress(R0, String::length_offset()));
+  __ cmp(R1, Operand(R2));
+  __ b(&fall_through, CS);  // Runtime throws exception.
+
+  __ CompareClassId(R0, kOneByteStringCid, kNoPP);
+  __ b(&try_two_byte_string, NE);
+  __ SmiUntag(R1);
+  __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag, kNoPP);
+  __ ldr(R1, Address(R0, R1), kUnsignedByte);
+  __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols, kNoPP);
+  __ b(&fall_through, GE);
+  __ LoadImmediate(
+      R0, reinterpret_cast<uword>(Symbols::PredefinedAddress()), kNoPP);
+  __ AddImmediate(
+      R0, R0, Symbols::kNullCharCodeSymbolOffset * kWordSize, kNoPP);
+  __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
+  __ ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(R0, kTwoByteStringCid, kNoPP);
+  __ b(&fall_through, NE);
+  ASSERT(kSmiTagShift == 1);
+  __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag, kNoPP);
+  __ ldr(R1, Address(R0, R1), kUnsignedHalfword);
+  __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols, kNoPP);
+  __ b(&fall_through, GE);
+  __ LoadImmediate(
+      R0, reinterpret_cast<uword>(Symbols::PredefinedAddress()), kNoPP);
+  __ AddImmediate(
+      R0, R0, Symbols::kNullCharCodeSymbolOffset * kWordSize, kNoPP);
+  __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
   __ ret();
 
   __ Bind(&fall_through);

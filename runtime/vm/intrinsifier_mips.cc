@@ -21,6 +21,121 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
+void Intrinsifier::ObjectArrayAllocate(Assembler* assembler) {
+  Label fall_through;
+  const intptr_t kTypeArgumentsOffset = 1 * kWordSize;
+  const intptr_t kLengthOffset = 0 * kWordSize;
+
+  __ lw(A0, Address(SP, kTypeArgumentsOffset));
+  __ lw(A1, Address(SP, kLengthOffset));
+
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+  __ mov(T3, A1);  // Array length.
+
+  // Check that length is a positive Smi.
+  __ andi(CMPRES1, T3, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);
+  __ bltz(T3, &fall_through);
+
+  // Check for maximum allowed length.
+  const intptr_t max_len =
+      reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements));
+  __ BranchUnsignedGreater(T3, max_len, &fall_through);
+
+  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ LoadImmediate(T2, fixed_size);
+  __ sll(T3, T3, 1);  // T3 is  a Smi.
+  __ addu(T2, T2, T3);
+  ASSERT(kSmiTagShift == 1);
+  __ LoadImmediate(T3, ~(kObjectAlignment - 1));
+  __ and_(T2, T2, T3);
+
+  // T2: Allocation size.
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ LoadImmediate(T3, heap->TopAddress());
+  __ lw(T0, Address(T3, 0));  // Potential new object start.
+
+  __ AdduDetectOverflow(T1, T0, T2, CMPRES1);  // Potential next object start.
+  __ bltz(CMPRES1, &fall_through);  // CMPRES1 < 0 on overflow.
+
+  // Check if the allocation fits into the remaining space.
+  // T0: potential new object start.
+  // T1: potential next object start.
+  // T2: allocation size.
+  __ LoadImmediate(T4, heap->EndAddress());
+  __ lw(T4, Address(T4, 0));
+  __ BranchUnsignedGreaterEqual(T1, T4, &fall_through);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ sw(T1, Address(T3, 0));
+  __ addiu(T0, T0, Immediate(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, T2, T4);
+
+  // Initialize the tags.
+  // T0: new object start as a tagged pointer.
+  // T1: new object end address.
+  // T2: allocation size.
+  {
+    Label overflow, done;
+    const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
+    const Class& cls = Class::Handle(isolate->object_store()->array_class());
+
+    __ BranchUnsignedGreater(T2, RawObject::SizeTag::kMaxSizeTag, &overflow);
+    __ b(&done);
+    __ delay_slot()->sll(T2, T2, shift);
+    __ Bind(&overflow);
+    __ mov(T2, ZR);
+    __ Bind(&done);
+
+    // Get the class index and insert it into the tags.
+    // T2: size and bit tags.
+    __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cls.id()));
+    __ or_(T2, T2, TMP);
+    __ sw(T2, FieldAddress(T0, Array::tags_offset()));  // Store tags.
+  }
+
+  // T0: new object start as a tagged pointer.
+  // T1: new object end address.
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(T0,
+                              FieldAddress(T0, Array::type_arguments_offset()),
+                              A0);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(T0,
+                              FieldAddress(T0, Array::length_offset()),
+                              A1);
+
+  __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+  // Initialize all array elements to raw_null.
+  // T0: new object start as a tagged pointer.
+  // T1: new object end address.
+  // T2: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // T7: null.
+  __ AddImmediate(T2, T0, sizeof(RawArray) - kHeapObjectTag);
+
+  Label done;
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ BranchUnsignedGreaterEqual(T2, T1, &done);
+  __ sw(T7, Address(T2, 0));
+  __ b(&init_loop);
+  __ delay_slot()->addiu(T2, T2, Immediate(kWordSize));
+  __ Bind(&done);
+
+  __ Ret();  // Returns the newly allocated object in V0.
+  __ delay_slot()->mov(V0, T0);
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::ObjectArrayLength(Assembler* assembler) {
   __ lw(V0, Address(SP, 0 * kWordSize));
   __ Ret();
@@ -1439,9 +1554,57 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   __ BranchNotEqual(CMPRES1, kTwoByteStringCid, &fall_through);
   ASSERT(kSmiTagShift == 1);
   __ addu(T2, T0, T1);
-  __ lhu(V0, FieldAddress(T2, OneByteString::data_offset()));
+  __ lhu(V0, FieldAddress(T2, TwoByteString::data_offset()));
   __ Ret();
   __ delay_slot()->SmiTag(V0);
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::StringBase_charAt(Assembler* assembler) {
+  Label fall_through, try_two_byte_string;
+
+  __ lw(T1, Address(SP, 0 * kWordSize));  // Index.
+  __ lw(T0, Address(SP, 1 * kWordSize));  // String.
+
+  // Checks.
+  __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
+  __ bne(T1, ZR, &fall_through);  // Index is not a Smi.
+  __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
+  // Runtime throws exception.
+  __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
+  __ LoadClassId(CMPRES1, T0);  // Class ID check.
+  __ BranchNotEqual(CMPRES1, kOneByteStringCid, &try_two_byte_string);
+
+  // Grab byte and return.
+  __ SmiUntag(T1);
+  __ addu(T2, T0, T1);
+  __ lbu(T2, FieldAddress(T2, OneByteString::data_offset()));
+  __ BranchUnsignedGreaterEqual(
+      T2, Symbols::kNumberOfOneCharCodeSymbols, &fall_through);
+  __ LoadImmediate(
+      V0, reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ AddImmediate(V0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
+  __ sll(T2, T2, 2);
+  __ addu(T2, T2, V0);
+  __ Ret();
+  __ delay_slot()->lw(V0, Address(T2));
+
+  __ Bind(&try_two_byte_string);
+  __ BranchNotEqual(CMPRES1, kTwoByteStringCid, &fall_through);
+  ASSERT(kSmiTagShift == 1);
+  __ addu(T2, T0, T1);
+  __ lhu(T2, FieldAddress(T2, TwoByteString::data_offset()));
+  __ BranchUnsignedGreaterEqual(
+      T2, Symbols::kNumberOfOneCharCodeSymbols, &fall_through);
+  __ LoadImmediate(V0,
+                   reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ AddImmediate(V0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
+  __ sll(T2, T2, 2);
+  __ addu(T2, T2, V0);
+  __ Ret();
+  __ delay_slot()->lw(V0, Address(T2));
 
   __ Bind(&fall_through);
 }

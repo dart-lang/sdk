@@ -29,6 +29,126 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
+void Intrinsifier::ObjectArrayAllocate(Assembler* assembler) {
+  Label fall_through;
+  const intptr_t kTypeArgumentsOffset = 3 * kWordSize;
+  const intptr_t kLengthOffset = 2 * kWordSize;
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+
+  __ pushl(EDX);
+  __ movl(EDX, Address(ESP, kLengthOffset));
+  __ movl(ECX, Address(ESP, kTypeArgumentsOffset));
+
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+  // Assert that length is a Smi.
+  __ testl(EDX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through);
+  __ cmpl(EDX, Immediate(0));
+  __ j(LESS,  &fall_through);
+
+  // Check for maximum allowed length.
+  const Immediate& max_len =
+      Immediate(reinterpret_cast<int32_t>(Smi::New(Array::kMaxElements)));
+  __ cmpl(EDX, max_len);
+  __ j(GREATER, &fall_through);
+
+  const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ leal(EDI, Address(EDX, TIMES_2, fixed_size));  // EDX is Smi.
+  ASSERT(kSmiTagShift == 1);
+  __ andl(EDI, Immediate(-kObjectAlignment));
+
+  // ECX: array element type.
+  // EDX: array length as Smi.
+  // EDI: allocation size.
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ movl(EAX, Address::Absolute(heap->TopAddress()));
+  __ movl(EBX, EAX);
+
+  // EDI: allocation size.
+  __ addl(EBX, EDI);
+  __ j(CARRY, &fall_through);
+
+  // Check if the allocation fits into the remaining space.
+  // EAX: potential new object start.
+  // EBX: potential next object start.
+  // EDI: allocation size.
+  // ECX: array element type.
+  // EDX: array length as Smi).
+  __ cmpl(EBX, Address::Absolute(heap->EndAddress()));
+  __ j(ABOVE_EQUAL, &fall_through);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movl(Address::Absolute(heap->TopAddress()), EBX);
+  __ addl(EAX, Immediate(kHeapObjectTag));
+  __ UpdateAllocationStatsWithSize(kArrayCid, EDI, kNoRegister);
+
+  // Initialize the tags.
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
+  // EDI: allocation size.
+  // ECX: array element type.
+  // EDX: array length as Smi.
+  {
+    Label size_tag_overflow, done;
+    __ cmpl(EDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shll(EDI, Immediate(RawObject::kSizeTagPos - kObjectAlignmentLog2));
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    __ movl(EDI, Immediate(0));
+    __ Bind(&done);
+
+    // Get the class index and insert it into the tags.
+    const Class& cls = Class::Handle(isolate->object_store()->array_class());
+    __ orl(EDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ movl(FieldAddress(EAX, Array::tags_offset()), EDI);  // Tags.
+  }
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
+  // ECX: array element type.
+  // EDX: Array length as Smi (preserved).
+  // Store the type argument field.
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, Array::type_arguments_offset()),
+                              ECX);
+
+  // Set the length field.
+  __ StoreIntoObjectNoBarrier(EAX,
+                              FieldAddress(EAX, Array::length_offset()),
+                              EDX);
+
+  // Initialize all array elements to raw_null.
+  // EAX: new object start as a tagged pointer.
+  // EBX: new object end address.
+  // EDI: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  // ECX: array element type.
+  // EDX: array length as Smi.
+  __ leal(EDI, FieldAddress(EAX, sizeof(RawArray)));
+  Label done;
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmpl(EDI, EBX);
+  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+  __ movl(Address(EDI, 0), raw_null);
+  __ addl(EDI, Immediate(kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+  __ Bind(&done);
+  __ popl(EDX);
+  __ ret();  // returns the newly allocated object in EAX.
+  __ Bind(&fall_through);
+  __ popl(EDX);
+}
+
+
 void Intrinsifier::ObjectArrayLength(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ movl(EAX, FieldAddress(EAX, Array::length_offset()));
@@ -1395,8 +1515,51 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   __ CompareClassId(EAX, kTwoByteStringCid, EDI);
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   ASSERT(kSmiTagShift == 1);
-  __ movzxw(EAX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
+  __ movzxw(EAX, FieldAddress(EAX, EBX, TIMES_1, TwoByteString::data_offset()));
   __ SmiTag(EAX);
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::StringBase_charAt(Assembler* assembler) {
+  Label fall_through, try_two_byte_string;
+  __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // String.
+  __ testl(EBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpl(EBX, FieldAddress(EAX, String::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ CompareClassId(EAX, kOneByteStringCid, EDI);
+  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
+  __ SmiUntag(EBX);
+  __ movzxb(EBX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));
+  __ cmpl(EBX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
+  __ j(GREATER_EQUAL, &fall_through);
+  __ movl(EAX,
+          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movl(EAX, Address(EAX,
+                       EBX,
+                       TIMES_4,
+                       Symbols::kNullCharCodeSymbolOffset * kWordSize));
+  __ ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(EAX, kTwoByteStringCid, EDI);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  ASSERT(kSmiTagShift == 1);
+  __ movzxw(EBX, FieldAddress(EAX, EBX, TIMES_1, TwoByteString::data_offset()));
+  __ cmpl(EBX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
+  __ j(GREATER_EQUAL, &fall_through);
+  __ movl(EAX,
+          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movl(EAX, Address(EAX,
+                       EBX,
+                       TIMES_4,
+                       Symbols::kNullCharCodeSymbolOffset * kWordSize));
   __ ret();
 
   __ Bind(&fall_through);
