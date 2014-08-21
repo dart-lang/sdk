@@ -153,9 +153,8 @@ class Entrypoint {
         _packageGraph = new PackageGraph(this, _lockFile,
             new Map.fromIterable(packages, key: (package) => package.name));
 
-        // TODO(nweiz): don't precompile stuff when the transitive dependencies
-        // haven't changed.
-        return precompileExecutables().catchError((error, stackTrace) {
+        return precompileExecutables(changed: result.changedPackages)
+            .catchError((error, stackTrace) {
           // Just log exceptions here. Since the method is just about acquiring
           // dependencies, it shouldn't fail unless that fails.
           log.exception(error, stackTrace);
@@ -166,18 +165,28 @@ class Entrypoint {
 
   /// Precompiles all executables from dependencies that don't transitively
   /// depend on [this] or on a path dependency.
-  Future precompileExecutables() {
+  Future precompileExecutables({Iterable<String> changed}) {
+    if (changed != null) changed = changed.toSet();
+
+    var binDir = path.join('.pub', 'bin');
+    var sdkVersionPath = path.join(binDir, 'sdk-version');
+
+    // If the existing executable was compiled with a different SDK, we need to
+    // recompile regardless of what changed.
+    var sdkMatches = fileExists(sdkVersionPath) &&
+        readTextFile(sdkVersionPath) == "${sdk.version}\n";
+    if (!sdkMatches) changed = null;
+
     return loadPackageGraph().then((graph) {
       var executables = new Map.fromIterable(root.immediateDependencies,
           key: (dep) => dep.name,
-          value: (dep) => _executablesForPackage(graph, dep.name));
+          value: (dep) => _executablesForPackage(graph, dep.name, changed));
 
       for (var package in executables.keys.toList()) {
         if (executables[package].isEmpty) executables.remove(package);
       }
 
-      var binDir = path.join('.pub', 'bin');
-      deleteEntry(binDir);
+      if (!sdkMatches) deleteEntry(binDir);
       if (executables.isEmpty) return null;
 
       return log.progress("Precompiling executables", () {
@@ -187,7 +196,7 @@ class Entrypoint {
 
         // Make sure there's a trailing newline so our version file matches the
         // SDK's.
-        writeTextFile(path.join(binDir, 'sdk-version'), "${sdk.version}\n");
+        writeTextFile(sdkVersionPath, "${sdk.version}\n");
         return AssetEnvironment.create(this, BarbackMode.RELEASE,
             WatcherType.NONE, useDart2JS: false).then((environment) {
           environment.barback.errors.listen((error) {
@@ -208,7 +217,8 @@ class Entrypoint {
   ///
   /// If [changed] isn't `null`, executables for [packageName] will only be
   /// compiled if they might depend on a package in [changed].
-  List<AssetId> _executablesForPackage(PackageGraph graph, String packageName) {
+  List<AssetId> _executablesForPackage(PackageGraph graph, String packageName,
+      Set<String> changed) {
     var package = graph.packages[packageName];
     var binDir = path.join(package.dir, 'bin');
     if (!dirExists(binDir)) return [];
@@ -216,15 +226,15 @@ class Entrypoint {
     // If the lockfile has a dependency on the entrypoint or on a path
     // dependency, its executables could change at any point, so we
     // shouldn't precompile them.
-    var hasUncachedDependency = graph.transitiveDependencies(packageName)
-        .any((package) {
-      var source = cache.sources[
-          graph.lockFile.packages[package.name].source];
+    var deps = graph.transitiveDependencies(packageName);
+    var hasUncachedDependency = deps.any((package) {
+      var source = cache.sources[graph.lockFile.packages[package.name].source];
       return source is! CachedSource;
     });
     if (hasUncachedDependency) return [];
 
-    return ordered(package.listFiles(beneath: binDir, recursive: false))
+    var executables =
+        ordered(package.listFiles(beneath: binDir, recursive: false))
         .where((executable) => path.extension(executable) == '.dart')
         .map((executable) {
       return new AssetId(
@@ -232,16 +242,36 @@ class Entrypoint {
           path.toUri(path.relative(executable, from: package.dir))
               .toString());
     }).toList();
+
+    // If we don't know which packages were changed, always precompile the
+    // executables.
+    if (changed == null) return executables;
+
+    // If any of the package's dependencies changed, recompile the executables.
+    if (deps.any((package) => changed.contains(package.name))) {
+      return executables;
+    }
+
+    // If any executables doesn't exist, precompile them regardless of what
+    // changed. Since we delete the bin directory before recompiling, we need to
+    // recompile all executables.
+    var executablesExist = executables.every((executable) =>
+        fileExists(path.join('.pub', 'bin', packageName,
+            "${path.url.basename(executable.path)}.snapshot")));
+    if (!executablesExist) return executables;
+
+    // Otherwise, we don't need to recompile.
+    return [];
   }
 
-  /// Precompiles all [executables] for [package].
-  ///
-  /// [executables] is assumed to be a list of Dart executables in [package]'s
+  /// Precompiles all [executables] for [package].	
+  ///	
+  /// [executables] is assumed to be a list of Dart executables in [package]'s	
   /// bin directory.
   Future _precompileExecutablesForPackage(
       AssetEnvironment environment, String package, List<AssetId> executables) {
     var cacheDir = path.join('.pub', 'bin', package);
-    ensureDir(cacheDir);
+    cleanDir(cacheDir);
 
     // TODO(nweiz): Unserve this directory when we're done with it.
     return environment.servePackageBinDirectory(package).then((server) {

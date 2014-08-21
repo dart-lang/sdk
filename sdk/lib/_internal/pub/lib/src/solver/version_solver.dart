@@ -79,6 +79,22 @@ class SolveResult {
   final Package _root;
   final LockFile _previousLockFile;
 
+  /// Returns the names of all packages that were changed.
+  ///
+  /// This includes packages that were added or removed.
+  Set<String> get changedPackages {
+    if (packages == null) return null;
+
+    var changed = packages
+        .where((id) =>
+            !_sources.idsEqual(_previousLockFile.packages[id.name], id))
+        .map((id) => id.name).toSet();
+
+    return changed.union(_previousLockFile.packages.keys
+        .where((package) => !availableVersions.containsKey(package))
+        .toSet());
+  }
+
   SolveResult.success(this._sources, this._root, this._previousLockFile,
       this.packages, this.overrides, this.pubspecs, this.availableVersions,
       this.attemptedSolutions)
