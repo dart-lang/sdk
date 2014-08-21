@@ -77,51 +77,51 @@ class ElementKindTest {
     }, throws);
   }
 
-  void test_valueOfEngine() {
+  void test_fromEngine() {
     expect(
-        elementKindFromEngine(engine.ElementKind.CLASS),
+        new ElementKind.fromEngine(engine.ElementKind.CLASS),
         ElementKind.CLASS);
     expect(
-        elementKindFromEngine(engine.ElementKind.COMPILATION_UNIT),
+        new ElementKind.fromEngine(engine.ElementKind.COMPILATION_UNIT),
         ElementKind.COMPILATION_UNIT);
     expect(
-        elementKindFromEngine(engine.ElementKind.CONSTRUCTOR),
+        new ElementKind.fromEngine(engine.ElementKind.CONSTRUCTOR),
         ElementKind.CONSTRUCTOR);
     expect(
-        elementKindFromEngine(engine.ElementKind.FIELD),
+        new ElementKind.fromEngine(engine.ElementKind.FIELD),
         ElementKind.FIELD);
     expect(
-        elementKindFromEngine(engine.ElementKind.FUNCTION),
+        new ElementKind.fromEngine(engine.ElementKind.FUNCTION),
         ElementKind.FUNCTION);
     expect(
-        elementKindFromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
+        new ElementKind.fromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
         ElementKind.FUNCTION_TYPE_ALIAS);
     expect(
-        elementKindFromEngine(engine.ElementKind.GETTER),
+        new ElementKind.fromEngine(engine.ElementKind.GETTER),
         ElementKind.GETTER);
     expect(
-        elementKindFromEngine(engine.ElementKind.LIBRARY),
+        new ElementKind.fromEngine(engine.ElementKind.LIBRARY),
         ElementKind.LIBRARY);
     expect(
-        elementKindFromEngine(engine.ElementKind.LOCAL_VARIABLE),
+        new ElementKind.fromEngine(engine.ElementKind.LOCAL_VARIABLE),
         ElementKind.LOCAL_VARIABLE);
     expect(
-        elementKindFromEngine(engine.ElementKind.METHOD),
+        new ElementKind.fromEngine(engine.ElementKind.METHOD),
         ElementKind.METHOD);
     expect(
-        elementKindFromEngine(engine.ElementKind.PARAMETER),
+        new ElementKind.fromEngine(engine.ElementKind.PARAMETER),
         ElementKind.PARAMETER);
     expect(
-        elementKindFromEngine(engine.ElementKind.SETTER),
+        new ElementKind.fromEngine(engine.ElementKind.SETTER),
         ElementKind.SETTER);
     expect(
-        elementKindFromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
+        new ElementKind.fromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
         ElementKind.TOP_LEVEL_VARIABLE);
     expect(
-        elementKindFromEngine(engine.ElementKind.TYPE_PARAMETER),
+        new ElementKind.fromEngine(engine.ElementKind.TYPE_PARAMETER),
         ElementKind.TYPE_PARAMETER);
     expect(
-        elementKindFromEngine(engine.ElementKind.ANGULAR_COMPONENT),
+        new ElementKind.fromEngine(engine.ElementKind.ANGULAR_COMPONENT),
         ElementKind.UNKNOWN);
   }
 }

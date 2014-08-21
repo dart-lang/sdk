@@ -77,7 +77,7 @@ class Element {
     String elementParameters = _getParametersString(element);
     String elementReturnType = _getReturnTypeString(element);
     return new Element(
-        elementKindFromEngine(element.kind),
+        new ElementKind.fromEngine(element.kind),
         name,
         new Location.fromElement(element),
         element.isPrivate,
@@ -222,53 +222,6 @@ class Element {
     }
     return false;
   }
-}
-
-
-ElementKind elementKindFromEngine(engine.ElementKind kind) {
-  if (kind == engine.ElementKind.CLASS) {
-    return ElementKind.CLASS;
-  }
-  if (kind == engine.ElementKind.COMPILATION_UNIT) {
-    return ElementKind.COMPILATION_UNIT;
-  }
-  if (kind == engine.ElementKind.CONSTRUCTOR) {
-    return ElementKind.CONSTRUCTOR;
-  }
-  if (kind == engine.ElementKind.FIELD) {
-    return ElementKind.FIELD;
-  }
-  if (kind == engine.ElementKind.FUNCTION) {
-    return ElementKind.FUNCTION;
-  }
-  if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
-    return ElementKind.FUNCTION_TYPE_ALIAS;
-  }
-  if (kind == engine.ElementKind.GETTER) {
-    return ElementKind.GETTER;
-  }
-  if (kind == engine.ElementKind.LIBRARY) {
-    return ElementKind.LIBRARY;
-  }
-  if (kind == engine.ElementKind.LOCAL_VARIABLE) {
-    return ElementKind.LOCAL_VARIABLE;
-  }
-  if (kind == engine.ElementKind.METHOD) {
-    return ElementKind.METHOD;
-  }
-  if (kind == engine.ElementKind.PARAMETER) {
-    return ElementKind.PARAMETER;
-  }
-  if (kind == engine.ElementKind.SETTER) {
-    return ElementKind.SETTER;
-  }
-  if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
-    return ElementKind.TOP_LEVEL_VARIABLE;
-  }
-  if (kind == engine.ElementKind.TYPE_PARAMETER) {
-    return ElementKind.TYPE_PARAMETER;
-  }
-  return ElementKind.UNKNOWN;
 }
 
 

@@ -12,6 +12,8 @@ import 'from_html.dart';
 import 'implied_types.dart';
 import 'to_html.dart';
 
+import 'package:html5lib/dom.dart' as dom;
+
 /**
  * Container for code that can be used to translate a data type from JSON.
  */
@@ -163,6 +165,19 @@ class ToJsonIdentity extends ToJsonSnippet {
 }
 
 /**
+ * Special flags that need to be inserted into the declaration of the Element
+ * class.
+ */
+const Map<String, String> specialElementFlags = const {
+  'abstract': '0x01',
+  'const': '0x02',
+  'final': '0x04',
+  'static': '0x08',
+  'private': '0x10',
+  'deprecated': '0x20'
+};
+
+/**
  * Visitor which produces Dart code representing the API.
  */
 class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
@@ -232,6 +247,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     }));
     writeln('class $className implements HasToJson {');
     indent(() {
+      if (emitSpecialStaticMembers(className)) {
+        writeln();
+      }
       for (TypeObjectField field in type.fields) {
         if (field.value != null) {
           continue;
@@ -249,9 +267,18 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (emitConvenienceConstructor(className, impliedType)) {
         writeln();
       }
+      if (emitSpecialConstructors(className)) {
+        writeln();
+      }
+      if (emitSpecialGetters(className)) {
+        writeln();
+      }
       emitToJsonMember(type);
       writeln();
       if (emitToRequestMember(impliedType)) {
+        writeln();
+      }
+      if (emitSpecialMembers(className)) {
         writeln();
       }
       writeln('@override');
@@ -262,6 +289,115 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       emitObjectHashCode(type);
     });
     writeln('}');
+  }
+
+  /**
+   * If the class named [className] requires special static members, emit them
+   * and return true.
+   */
+  bool emitSpecialStaticMembers(String className) {
+    switch (className) {
+      case 'Element':
+        List<String> makeFlagsArgs = <String>[];
+        List<String> makeFlagsStatements = <String>[];
+        specialElementFlags.forEach((String name, String value) {
+          String flag = 'FLAG_${name.toUpperCase()}';
+          String camelName = camelJoin(['is', name]);
+          writeln('static const int $flag = $value;');
+          makeFlagsArgs.add('$camelName: false');
+          makeFlagsStatements.add('if ($camelName) flags |= $flag;');
+        });
+        writeln();
+        writeln('static int makeFlags({${makeFlagsArgs.join(', ')}}) {');
+        indent(() {
+          writeln('int flags = 0;');
+          for (String statement in makeFlagsStatements) {
+            writeln(statement);
+          }
+          writeln('return flags;');
+        });
+        writeln('}');
+        return true;
+      case 'SourceEdit':
+        docComment([new dom.Text('Get the result of applying a set of ' +
+            '[edits] to the given [code].  Edits are applied in the order ' +
+            'they appear in [edits].')]);
+        writeln(
+            'static String applySequence(String code, Iterable<SourceEdit> edits) =>');
+        writeln('    _applySequence(code, edits);');
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * If the class named [className] requires special constructors, emit them
+   * and return true.
+   */
+  bool emitSpecialConstructors(String className) {
+    switch (className) {
+      case 'AnalysisError':
+        docComment([new dom.Text(
+            'Construct based on error information from the analyzer engine.')]);
+        writeln(
+            'factory AnalysisError.fromEngine(engine.LineInfo lineInfo, engine.AnalysisError error) =>'
+            );
+        writeln('    _analysisErrorFromEngine(lineInfo, error);');
+        return true;
+      case 'ElementKind':
+        docComment([new dom.Text(
+            'Construct based on a value from the analyzer engine.')]);
+        writeln('factory ElementKind.fromEngine(engine.ElementKind kind) =>');
+        writeln('    _elementKindFromEngine(kind);');
+        return true;
+      case 'SourceEdit':
+        docComment([new dom.Text('Construct based on a SourceRange.')]);
+        writeln(
+            'SourceEdit.range(engine.SourceRange range, String replacement, {String id})');
+        writeln('    : this(range.offset, range.length, replacement, id: id);');
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * If  the class named [className] requires special getters, emit them and
+   * return true.
+   */
+  bool emitSpecialGetters(String className) {
+    switch (className) {
+      case 'Element':
+        for (String name in specialElementFlags.keys) {
+          String flag = 'FLAG_${name.toUpperCase()}';
+          writeln('bool get ${camelJoin(['is', name])} => (flags & $flag) != 0;'
+              );
+        }
+        return true;
+      case 'SourceEdit':
+        docComment([new dom.Text('The end of the region to be modified.')]);
+        writeln('int get end => offset + length;');
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * If the class named [className] requires special members, emit them and
+   * return true.
+   */
+  bool emitSpecialMembers(String className) {
+    switch (className) {
+      case 'SourceEdit':
+        docComment([new dom.Text(
+            'Get the result of applying the edit to the given [code].')]);
+        writeln('String apply(String code) => _applyEdit(code, this);');
+        return true;
+      default:
+        return false;
+    }
   }
 
   /**
@@ -401,6 +537,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     }));
     writeln('class $className {');
     indent(() {
+      if (emitSpecialStaticMembers(className)) {
+        writeln();
+      }
       for (TypeEnumValue value in type.values) {
         docComment(toHtmlVisitor.collectHtml(() {
           toHtmlVisitor.translateHtml(value.html);
@@ -418,6 +557,15 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       writeln();
       emitEnumFromJsonConstructor(className, type, impliedType);
       writeln();
+      if (emitSpecialConstructors(className)) {
+        writeln();
+      }
+      if (emitSpecialGetters(className)) {
+        writeln();
+      }
+      if (emitSpecialMembers(className)) {
+        writeln();
+      }
       writeln('@override');
       writeln('String toString() => "$className.\$name";');
       writeln();

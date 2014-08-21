@@ -37,7 +37,7 @@ class RenameRefactoringTest extends RefactoringTest {
     File file = provider.getResource(path);
     Source source = file.createSource();
     String ini = context.getContents(source).data;
-    String actualCode = applySequence(ini, fileEdit.edits);
+    String actualCode = SourceEdit.applySequence(ini, fileEdit.edits);
     expect(actualCode, expectedCode);
   }
 

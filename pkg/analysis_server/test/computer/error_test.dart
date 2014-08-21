@@ -54,7 +54,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_hasCorrection() {
     when(engineError.correction).thenReturn('my correction');
-    AnalysisError error = analysisErrorFromEngine(lineInfo, engineError);
+    AnalysisError error = new AnalysisError.fromEngine(lineInfo, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -72,7 +72,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_noCorrection() {
     when(engineError.correction).thenReturn(null);
-    AnalysisError error = analysisErrorFromEngine(lineInfo, engineError);
+    AnalysisError error = new AnalysisError.fromEngine(lineInfo, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',
@@ -89,7 +89,7 @@ class AnalysisErrorTest {
 
   void test_fromEngine_noLineInfo() {
     when(engineError.correction).thenReturn(null);
-    AnalysisError error = analysisErrorFromEngine(null, engineError);
+    AnalysisError error = new AnalysisError.fromEngine(null, engineError);
     expect(error.toJson(), {
       SEVERITY: 'ERROR',
       TYPE: 'COMPILE_TIME_ERROR',

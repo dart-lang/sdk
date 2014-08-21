@@ -19,7 +19,7 @@ import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
     ServerService, AddContentOverlay, ChangeContentOverlay,
-    RemoveContentOverlay;
+    RemoveContentOverlay, SourceEdit;
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -27,7 +27,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -494,7 +493,7 @@ class AnalysisServer {
           // currently in the content cache.
           TimestampedData<String> oldContents = analysisContext.getContents(
               source);
-          String newContents = applySequence(oldContents.data, change.edits);
+          String newContents = SourceEdit.applySequence(oldContents.data, change.edits);
           // TODO(paulberry): to aid in incremental processing it would be
           // better to use setChangedContents.
           analysisContext.setContents(source, newContents);

@@ -151,7 +151,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
     }
     // replace occurrences with variable reference
     for (SourceRange range in occurrences) {
-      SourceEdit edit = editFromRange(range, occurrenceReplacement);
+      SourceEdit edit = new SourceEdit.range(range, occurrenceReplacement);
       change.addEdit(file, edit);
     }
     // done

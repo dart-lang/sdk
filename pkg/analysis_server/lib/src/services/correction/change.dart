@@ -7,7 +7,6 @@ library services.correction.change;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/json.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 
 /**
@@ -91,32 +90,6 @@ class Change implements HasToJson {
   String toString() =>
       'Change(message=$message, edits=$fileEdits, '
           'linkedEditGroups=$linkedEditGroups, selection=$selection)';
-}
-
-
-/**
- * Convert a SourceRange to a SourceEdit.
- */
-SourceEdit editFromRange(SourceRange range, String replacement, {String id}) =>
-    new SourceEdit(range.offset, range.length, replacement, id: id);
-
-/**
- * Get the result of applying the edit to the given [code].
- */
-String applyEdit(String code, SourceEdit edit) {
-  return code.substring(0, edit.offset) + edit.replacement +
-      code.substring(edit.offset + edit.length);
-}
-
-/**
- * Get the result of applying a set of [edits] to the given [code].  Edits
- * are applied in the order they appear in [edits].
- */
-String applySequence(String code, Iterable<SourceEdit> edits) {
-  edits.forEach((SourceEdit edit) {
-    code = applyEdit(code, edit);
-  });
-  return code;
 }
 
 

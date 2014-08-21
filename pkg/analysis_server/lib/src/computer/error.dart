@@ -24,36 +24,6 @@ List<Map<String, Object>> engineErrorInfoToJson(engine.AnalysisErrorInfo info) {
 List<Map<String, Object>> engineErrorsToJson(engine.LineInfo lineInfo,
     List<engine.AnalysisError> errors) {
   return errors.map((engine.AnalysisError error) {
-    return analysisErrorFromEngine(lineInfo, error).toJson();
+    return new AnalysisError.fromEngine(lineInfo, error).toJson();
   }).toList();
-}
-
-
-AnalysisError analysisErrorFromEngine(engine.LineInfo lineInfo,
-    engine.AnalysisError error) {
-  engine.ErrorCode errorCode = error.errorCode;
-  // prepare location
-  Location location;
-  {
-    String file = error.source.fullName;
-    int offset = error.offset;
-    int length = error.length;
-    int startLine = -1;
-    int startColumn = -1;
-    if (lineInfo != null) {
-      engine.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
-      if (lineLocation != null) {
-        startLine = lineLocation.lineNumber;
-        startColumn = lineLocation.columnNumber;
-      }
-    }
-    location = new Location(file, offset, length, startLine, startColumn);
-  }
-  // done
-  var severity = new ErrorSeverity(errorCode.errorSeverity.name);
-  var type = new ErrorType(errorCode.type.name);
-  String message = error.message;
-  String correction = error.correction;
-  return new AnalysisError(severity, type, location, message,
-      correction: correction);
 }

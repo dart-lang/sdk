@@ -4012,6 +4012,12 @@ class AnalysisError implements HasToJson {
     }
   }
 
+  /**
+   * Construct based on error information from the analyzer engine.
+   */
+  factory AnalysisError.fromEngine(engine.LineInfo lineInfo, engine.AnalysisError error) =>
+      _analysisErrorFromEngine(lineInfo, error);
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["severity"] = severity.toJson();
@@ -4922,6 +4928,24 @@ class DebugService {
  * }
  */
 class Element implements HasToJson {
+  static const int FLAG_ABSTRACT = 0x01;
+  static const int FLAG_CONST = 0x02;
+  static const int FLAG_FINAL = 0x04;
+  static const int FLAG_STATIC = 0x08;
+  static const int FLAG_PRIVATE = 0x10;
+  static const int FLAG_DEPRECATED = 0x20;
+
+  static int makeFlags({isAbstract: false, isConst: false, isFinal: false, isStatic: false, isPrivate: false, isDeprecated: false}) {
+    int flags = 0;
+    if (isAbstract) flags |= FLAG_ABSTRACT;
+    if (isConst) flags |= FLAG_CONST;
+    if (isFinal) flags |= FLAG_FINAL;
+    if (isStatic) flags |= FLAG_STATIC;
+    if (isPrivate) flags |= FLAG_PRIVATE;
+    if (isDeprecated) flags |= FLAG_DEPRECATED;
+    return flags;
+  }
+
   /**
    * The kind of the element.
    */
@@ -5007,6 +5031,13 @@ class Element implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "Element");
     }
   }
+
+  bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
+  bool get isConst => (flags & FLAG_CONST) != 0;
+  bool get isFinal => (flags & FLAG_FINAL) != 0;
+  bool get isStatic => (flags & FLAG_STATIC) != 0;
+  bool get isPrivate => (flags & FLAG_PRIVATE) != 0;
+  bool get isDeprecated => (flags & FLAG_DEPRECATED) != 0;
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
@@ -5171,6 +5202,12 @@ class ElementKind {
     }
     throw jsonDecoder.mismatch(jsonPath, "ElementKind");
   }
+
+  /**
+   * Construct based on a value from the analyzer engine.
+   */
+  factory ElementKind.fromEngine(engine.ElementKind kind) =>
+      _elementKindFromEngine(kind);
 
   @override
   String toString() => "ElementKind.$name";
@@ -7867,6 +7904,13 @@ class SourceChange implements HasToJson {
  */
 class SourceEdit implements HasToJson {
   /**
+   * Get the result of applying a set of [edits] to the given [code]. Edits are
+   * applied in the order they appear in [edits].
+   */
+  static String applySequence(String code, Iterable<SourceEdit> edits) =>
+      _applySequence(code, edits);
+
+  /**
    * The offset of the region to be modified.
    */
   int offset;
@@ -7928,6 +7972,17 @@ class SourceEdit implements HasToJson {
     }
   }
 
+  /**
+   * Construct based on a SourceRange.
+   */
+  SourceEdit.range(engine.SourceRange range, String replacement, {String id})
+      : this(range.offset, range.length, replacement, id: id);
+
+  /**
+   * The end of the region to be modified.
+   */
+  int get end => offset + length;
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["offset"] = offset;
@@ -7938,6 +7993,11 @@ class SourceEdit implements HasToJson {
     }
     return result;
   }
+
+  /**
+   * Get the result of applying the edit to the given [code].
+   */
+  String apply(String code) => _applyEdit(code, this);
 
   @override
   String toString() => JSON.encode(toJson());

@@ -24,7 +24,7 @@ import 'package:analyzer/src/generated/source.dart';
  */
 SourceEdit createReferenceEdit(SourceReference reference, String newText,
     {String id}) {
-  return editFromRange(reference.range, newText, id: id);
+  return new SourceEdit.range(reference.range, newText, id: id);
 }
 
 
@@ -170,7 +170,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
   void addDeclarationEdit(Change change, Element element) {
     if (element != null) {
       String file = getElementFile(element);
-      SourceEdit edit = editFromRange(rangeElementName(element), newName);
+      SourceEdit edit = new SourceEdit.range(rangeElementName(element), newName);
       change.addEdit(file, edit);
     }
   }

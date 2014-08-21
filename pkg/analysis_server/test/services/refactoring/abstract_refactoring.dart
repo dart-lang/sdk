@@ -6,6 +6,7 @@ library test.services.refactoring;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -98,7 +99,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     FileEdit fileEdit = refactoringChange.getFileEdit(testFile);
     expect(fileEdit, isNotNull);
     // validate resulting code
-    String actualCode = applySequence(testCode, fileEdit.edits);
+    String actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(actualCode, expectedCode);
   }
 

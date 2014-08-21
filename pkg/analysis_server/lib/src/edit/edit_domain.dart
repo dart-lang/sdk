@@ -5,7 +5,6 @@
 library edit.domain;
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
@@ -95,7 +94,7 @@ class EditDomainHandler implements RequestHandler {
           List<Fix> fixes = computeFixes(searchEngine, unit, error);
           if (fixes.isNotEmpty) {
             AnalysisError serverError =
-                analysisErrorFromEngine(errorInfo.lineInfo, error);
+                new AnalysisError.fromEngine(errorInfo.lineInfo, error);
             ErrorFixes errorFixes = new ErrorFixes(serverError);
             errorFixesList.add(errorFixes);
             fixes.forEach((fix) {

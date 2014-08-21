@@ -144,7 +144,7 @@ class EditTest {
   void test_applySequence() {
     SourceEdit edit1 = new SourceEdit(5, 2, 'abc');
     SourceEdit edit2 = new SourceEdit(1, 0, '!');
-    expect(applySequence('0123456789', [edit1, edit2]), '0!1234abc789');
+    expect(SourceEdit.applySequence('0123456789', [edit1, edit2]), '0!1234abc789');
   }
 
   void test_eqEq() {
@@ -170,7 +170,7 @@ class EditTest {
 
   void test_editFromRange() {
     SourceRange range = new SourceRange(1, 2);
-    SourceEdit edit = editFromRange(range, 'foo');
+    SourceEdit edit = new SourceEdit.range(range, 'foo');
     expect(edit.offset, 1);
     expect(edit.length, 2);
     expect(edit.replacement, 'foo');

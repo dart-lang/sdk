@@ -58,16 +58,16 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         int uriEnd = element.uriEnd;
         int prefixEnd = element.prefixOffset + prefix.displayName.length;
         SourceRange range = rangeStartEnd(uriEnd, prefixEnd);
-        edit = editFromRange(range, "");
+        edit = new SourceEdit.range(range, "");
       } else {
         if (prefix == null) {
           SourceRange range = rangeStartLength(element.uriEnd, 0);
-          edit = editFromRange(range, " as ${newName}");
+          edit = new SourceEdit.range(range, " as ${newName}");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.displayName.length;
           SourceRange range = rangeStartLength(offset, length);
-          edit = editFromRange(range, newName);
+          edit = new SourceEdit.range(range, newName);
         }
       }
       if (edit != null) {

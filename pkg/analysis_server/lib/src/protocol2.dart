@@ -6,11 +6,137 @@ library protocol2;
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/services/json.dart';
+import 'package:analyzer/src/generated/element.dart' as engine;
+import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/generated/error.dart' as engine;
+import 'package:analyzer/src/generated/source.dart' as engine;
+
 import 'protocol.dart';
 
-import 'package:analysis_server/src/services/json.dart';
-
 part 'generated_protocol.dart';
+
+/**
+ * Translate the input [map], applying [keyCallback] to all its keys, and
+ * [valueCallback] to all its values.
+ */
+mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
+  Map result = {};
+  map.forEach((key, value) {
+    if (keyCallback != null) {
+      key = keyCallback(key);
+    }
+    if (valueCallback != null) {
+      value = valueCallback(value);
+    }
+    result[key] = value;
+  });
+  return result;
+}
+
+/**
+ * Create an AnalysisError based on error information from the analyzer
+ * engine.  Access via AnalysisError.fromEngine().
+ */
+AnalysisError _analysisErrorFromEngine(engine.LineInfo
+    lineInfo, engine.AnalysisError error) {
+  engine.ErrorCode errorCode = error.errorCode;
+  // prepare location
+  Location location;
+  {
+    String file = error.source.fullName;
+    int offset = error.offset;
+    int length = error.length;
+    int startLine = -1;
+    int startColumn = -1;
+    if (lineInfo != null) {
+      engine.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+      if (lineLocation != null) {
+        startLine = lineLocation.lineNumber;
+        startColumn = lineLocation.columnNumber;
+      }
+    }
+    location = new Location(file, offset, length, startLine, startColumn);
+  }
+  // done
+  var severity = new ErrorSeverity(errorCode.errorSeverity.name);
+  var type = new ErrorType(errorCode.type.name);
+  String message = error.message;
+  String correction = error.correction;
+  return new AnalysisError(severity, type, location, message, correction:
+      correction);
+}
+
+/**
+ * Get the result of applying the edit to the given [code].  Access via
+ * SourceEdit.apply().
+ */
+String _applyEdit(String code, SourceEdit edit) {
+  return code.substring(0, edit.offset) + edit.replacement + code.substring(
+      edit.end);
+}
+
+/**
+ * Get the result of applying a set of [edits] to the given [code].  Edits
+ * are applied in the order they appear in [edits].  Access via
+ * SourceEdit.applySequence().
+ */
+String _applySequence(String code, Iterable<SourceEdit> edits) {
+  edits.forEach((SourceEdit edit) {
+    code = edit.apply(code);
+  });
+  return code;
+}
+
+/**
+ * Create an ElementKind based on a value from the analyzer engine.  Access
+ * this function via new ElementKind.fromEngine().
+ */
+ElementKind _elementKindFromEngine(engine.ElementKind kind) {
+  if (kind == engine.ElementKind.CLASS) {
+    return ElementKind.CLASS;
+  }
+  if (kind == engine.ElementKind.COMPILATION_UNIT) {
+    return ElementKind.COMPILATION_UNIT;
+  }
+  if (kind == engine.ElementKind.CONSTRUCTOR) {
+    return ElementKind.CONSTRUCTOR;
+  }
+  if (kind == engine.ElementKind.FIELD) {
+    return ElementKind.FIELD;
+  }
+  if (kind == engine.ElementKind.FUNCTION) {
+    return ElementKind.FUNCTION;
+  }
+  if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
+    return ElementKind.FUNCTION_TYPE_ALIAS;
+  }
+  if (kind == engine.ElementKind.GETTER) {
+    return ElementKind.GETTER;
+  }
+  if (kind == engine.ElementKind.LIBRARY) {
+    return ElementKind.LIBRARY;
+  }
+  if (kind == engine.ElementKind.LOCAL_VARIABLE) {
+    return ElementKind.LOCAL_VARIABLE;
+  }
+  if (kind == engine.ElementKind.METHOD) {
+    return ElementKind.METHOD;
+  }
+  if (kind == engine.ElementKind.PARAMETER) {
+    return ElementKind.PARAMETER;
+  }
+  if (kind == engine.ElementKind.SETTER) {
+    return ElementKind.SETTER;
+  }
+  if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
+    return ElementKind.TOP_LEVEL_VARIABLE;
+  }
+  if (kind == engine.ElementKind.TYPE_PARAMETER) {
+    return ElementKind.TYPE_PARAMETER;
+  }
+  return ElementKind.UNKNOWN;
+}
 
 /**
  * Compare the lists [listA] and [listB], using [itemEqual] to compare
@@ -47,23 +173,6 @@ bool _mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
   return true;
 }
 
-/**
- * Translate the input [map], applying [keyCallback] to all its keys, and
- * [valueCallback] to all its values.
- */
-mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
-  Map result = {};
-  map.forEach((key, value) {
-    if (keyCallback != null) {
-      key = keyCallback(key);
-    }
-    if (valueCallback != null) {
-      value = valueCallback(value);
-    }
-    result[key] = value;
-  });
-  return result;
-}
 
 /**
  * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
@@ -71,7 +180,6 @@ mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
  * the part to decode.
  */
 typedef Object JsonDecoderCallback(String jsonPath, Object value);
-
 
 /**
  * Base class for decoding JSON objects.  The derived class must implement
@@ -124,7 +232,8 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a List.  [decoder] is used to
    * decode the items in the list.
    */
-  List _decodeList(String jsonPath, Object json, [JsonDecoderCallback decoder]) {
+  List _decodeList(String jsonPath, Object json, [JsonDecoderCallback decoder])
+      {
     if (json == null) {
       return [];
     } else if (json is List) {
@@ -142,8 +251,8 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
    * to decode the keys, and [valueDecoder] is used to decode the values.
    */
-  Map _decodeMap(String jsonPath, Object json, {JsonDecoderCallback keyDecoder,
-      JsonDecoderCallback valueDecoder}) {
+  Map _decodeMap(String jsonPath, Object json, {JsonDecoderCallback
+      keyDecoder, JsonDecoderCallback valueDecoder}) {
     if (json == null) {
       return {};
     } else if (json is Map) {
@@ -183,15 +292,14 @@ abstract class JsonDecoder {
    * [decoders] is a map from each possible string in the field to the decoder
    * that should be used to decode the JSON object.
    */
-  Object _decodeUnion(String jsonPath, Map json, String field,
-      Map<String, JsonDecoderCallback> decoders) {
+  Object _decodeUnion(String jsonPath, Map json, String field, Map<String,
+      JsonDecoderCallback> decoders) {
     if (json is Map) {
       if (!json.containsKey(field)) {
         throw missingKey(jsonPath, field);
       }
       var disambiguatorPath = '$jsonPath[${JSON.encode(field)}]';
-      String disambiguator = _decodeString(disambiguatorPath,
-          json[field]);
+      String disambiguator = _decodeString(disambiguatorPath, json[field]);
       if (!decoders.containsKey(disambiguator)) {
         throw mismatch(disambiguatorPath, 'One of: ${decoders.keys.toList()}');
       }
@@ -257,13 +365,13 @@ class _JenkinsSmiHash {
   }
 
   static int finish(int hash) {
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) <<  3));
+    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
     hash = hash ^ (hash >> 11);
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
   static int hash2(a, b) => finish(combine(combine(0, a), b));
 
-  static int hash4(a, b, c, d) =>
-      finish(combine(combine(combine(combine(0, a), b), c), d));
+  static int hash4(a, b, c, d) => finish(combine(combine(combine(combine(0, a),
+      b), c), d));
 }

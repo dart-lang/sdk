@@ -115,7 +115,7 @@ main() {
     for (Change change in changes) {
       if (change.message == message) {
         String resultCode =
-            applySequence(testCode, change.fileEdits[0].edits);
+            SourceEdit.applySequence(testCode, change.fileEdits[0].edits);
         expect(resultCode, expectedCode);
         return;
       }
