@@ -4,6 +4,9 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.12.2+1
+  * Small bug fix for `polymer:new_element`
+
 #### Pub version 0.12.2
   * Fix for [20539](http://dartbug.com/20539). Log widget will now html escape
     messages.
