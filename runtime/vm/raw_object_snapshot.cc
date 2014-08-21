@@ -451,8 +451,8 @@ RawTypeArguments* TypeArguments::ReadFrom(SnapshotReader* reader,
 
   // Set the instantiations field, which is only read from a full snapshot.
   if (kind == Snapshot::kFull) {
-    *reader->ArrayHandle() ^= reader->ReadObjectImpl();
-    type_arguments.set_instantiations(*reader->ArrayHandle());
+    *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();
+    type_arguments.set_instantiations(*(reader->ArrayHandle()));
   } else {
     type_arguments.set_instantiations(Object::zero_array());
   }
@@ -712,7 +712,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
 
   // Initialize all fields that are not part of the snapshot.
   func.ClearCode();
-  func.set_ic_data_array(Array::Handle());
+  func.set_ic_data_array(Object::null_array());
   return func.raw();
 }
 
@@ -1335,7 +1335,7 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   context.set_tags(tags);
 
   // Set the isolate implicitly.
-  context.set_isolate(Isolate::Current());
+  context.set_isolate(reader->isolate());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -1718,7 +1718,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
 
   // Read in the HexCString representation of the bigint.
   intptr_t len = reader->ReadIntptrValue();
-  char* str = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  char* str = reader->isolate()->current_zone()->Alloc<char>(len + 1);
   str[len] = '\0';
   reader->ReadBytes(reinterpret_cast<uint8_t*>(str), len);
 
@@ -1870,9 +1870,10 @@ void String::ReadFromImpl(SnapshotReader* reader,
   ASSERT(reader != NULL);
   if (RawObject::IsCanonical(tags)) {
     // Set up canonical string object.
+    Isolate* isolate = reader->isolate();
     ASSERT(reader != NULL);
     CharacterType* ptr =
-        Isolate::Current()->current_zone()->Alloc<CharacterType>(len);
+        isolate->current_zone()->Alloc<CharacterType>(len);
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }
@@ -2163,12 +2164,10 @@ RawGrowableObjectArray* GrowableObjectArray::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &array, kIsDeserialized);
   intptr_t length = reader->ReadSmiValue();
   array.SetLength(length);
-  Array& contents = Array::Handle(reader->isolate());
-  contents ^= reader->ReadObjectImpl();
-  array.SetData(contents);
-  const TypeArguments& type_arguments =
-      TypeArguments::Handle(reader->isolate(), contents.GetTypeArguments());
-  array.SetTypeArguments(type_arguments);
+  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();
+  array.SetData(*(reader->ArrayHandle()));
+  *(reader->TypeArgumentsHandle()) = reader->ArrayHandle()->GetTypeArguments();
+  array.SetTypeArguments(*(reader->TypeArgumentsHandle()));
   return array.raw();
 }
 
@@ -2209,12 +2208,10 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
     map = LinkedHashMap::New(HEAP_SPACE(kind));
   }
   reader->AddBackRef(object_id, &map, kIsDeserialized);
-  Array& contents = Array::Handle(reader->isolate());
-  contents ^= reader->ReadObjectImpl();
-  map.SetData(contents);
-  const TypeArguments& type_arguments =
-      TypeArguments::Handle(reader->isolate(), contents.GetTypeArguments());
-  map.SetTypeArguments(type_arguments);
+  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();
+  map.SetData(*(reader->ArrayHandle()));
+  *(reader->TypeArgumentsHandle()) = reader->ArrayHandle()->GetTypeArguments();
+  map.SetTypeArguments(*(reader->TypeArgumentsHandle()));
   return map.raw();
 }
 
