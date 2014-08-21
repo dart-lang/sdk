@@ -8,15 +8,52 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
 
+// As of Chrome 37, these all changed from long to double.  This code
+// preserves backwards compatability for the time being.
+$if DART2JS
+  int get __clientX => JS('num', '#.clientX', this).round();
+  int get __clientY => JS('num', '#.clientY', this).round();
+  int get __screenX => JS('num', '#.screenX', this).round();
+  int get __screenY => JS('num', '#.screenY', this).round();
+  int get __pageX => JS('num', '#.pageX', this).round();
+  int get __pageY => JS('num', '#.pageY', this).round();
+  int get __webkitRadiusX => JS('num', '#.webkitRadiusX', this).round();
+  int get __webkitRadiusY => JS('num', '#.webkitRadiusY', this).round();
+$else
+  int get __clientX => _blink.BlinkTouch.$clientX_Getter(this).round();
+  int get __clientY => _blink.BlinkTouch.$clientY_Getter(this).round();
+  int get __screenX => _blink.BlinkTouch.$screenX_Getter(this).round();
+  int get __screenY => _blink.BlinkTouch.$screenY_Getter(this).round();
+  int get __pageX => _blink.BlinkTouch.$pageX_Getter(this).round();
+  int get __pageY => _blink.BlinkTouch.$pageY_Getter(this).round();
+  int get __webkitRadiusX => _blink.BlinkTouch.$webkitRadiusX_Getter(this).round();
+  int get __webkitRadiusY => _blink.BlinkTouch.$webkitRadiusY_Getter(this).round();
+$endif
+
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point(_clientX, _clientY);
+  Point get client => new Point(__clientX, __clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point(_pageX, _pageY);
+  Point get page => new Point(__pageX, __pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point(_screenX, _screenY);
+  Point get screen => new Point(__screenX, __screenY);
+
+  @DomName('Touch.webkitRadiusX')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  int get radiusX => __webkitRadiusX;
+
+  @DomName('Touch.webkitRadiusY')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  int get radiusY => __webkitRadiusY;
+
 }
