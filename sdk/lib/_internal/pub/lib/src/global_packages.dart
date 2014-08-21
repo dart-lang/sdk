@@ -147,40 +147,29 @@ class GlobalPackages {
         lockFile.serialize(cache.rootDir, cache.sources));
 
     var id = lockFile.packages[package];
-    if (id.source == "git") {
-      var url = GitSource.urlFromDescription(id.description);
-      log.message('Activated ${log.bold(id.name)} ${id.version} from Git '
-          'repository "$url".');
-    } else if (id.source == "path") {
-      var path = PathSource.pathFromDescription(id.description);
-      log.message('Activated ${log.bold(id.name)} ${id.version} at path '
-          '"$path".');
-    } else {
-      log.message("Activated ${log.bold(id.name)} ${id.version}.");
-    }
+    log.message('Activated ${_formatPackage(id)}.');
 
     // TODO(rnystrom): Look in "bin" and display list of binaries that
     // user can run.
   }
 
   /// Shows the user the currently active package with [name], if any.
-  void _describeActive(String package) {
+  void _describeActive(String name) {
     try {
-      var lockFile = new LockFile.load(_getLockFilePath(package),
-          cache.sources);
-      var id = lockFile.packages[package];
+      var lockFile = new LockFile.load(_getLockFilePath(name), cache.sources);
+      var id = lockFile.packages[name];
 
-      if (id.source == "git") {
+      if (id.source == 'git') {
         var url = GitSource.urlFromDescription(id.description);
-        log.message('Package ${log.bold(id.name)} is currently active from '
-            'Git repository "${url}".');
-      } else if (id.source == "path") {
+        log.message('Package ${log.bold(name)} is currently active from Git '
+            'repository "${url}".');
+      } else if (id.source == 'path') {
         var path = PathSource.pathFromDescription(id.description);
-        log.message('Package ${log.bold(package)} is currently active at '
-            'path "$path".');
+        log.message('Package ${log.bold(name)} is currently active at path '
+            '"$path".');
       } else {
-        log.message("Package ${log.bold(package)} is currently active at "
-            "version ${log.bold(id.version)}.");
+        log.message('Package ${log.bold(name)} is currently active at version '
+            '${log.bold(id.version)}.');
       }
     } on IOException catch (error) {
       // If we couldn't read the lock file, it's not activated.
@@ -190,7 +179,7 @@ class GlobalPackages {
 
   /// Deactivates a previously-activated package named [name].
   ///
-  /// If [logDeletion] is true, displays to the user when a package is
+  /// If [logDeactivate] is true, displays to the user when a package is
   /// deactivated. Otherwise, deactivates silently.
   ///
   /// Returns `false` if no package with [name] was currently active.
@@ -204,16 +193,7 @@ class GlobalPackages {
     deleteEntry(lockFilePath);
 
     if (logDeactivate) {
-      if (id.source == "git") {
-        var url = GitSource.urlFromDescription(id.description);
-        log.message('Deactivated package ${log.bold(name)} from Git repository '
-            '"$url".');
-      } else if (id.source == "path") {
-        var path = PathSource.pathFromDescription(id.description);
-        log.message('Deactivated package ${log.bold(name)} at path "$path".');
-      } else {
-        log.message("Deactivated package ${log.bold(name)} ${id.version}.");
-      }
+      log.message('Deactivated package ${_formatPackage(id)}.');
     }
 
     return true;
@@ -258,4 +238,38 @@ class GlobalPackages {
   /// Gets the path to the lock file for an activated cached package with
   /// [name].
   String _getLockFilePath(name) => p.join(_directory, name + ".lock");
+
+  /// Shows to the user formatted list of globally activated packages.
+  void listActivePackages() {
+    if (!dirExists(_directory)) return;
+
+    // Loads lock [file] and returns [PackageId] of the activated package.
+    loadPackageId(file) {
+      var name = p.basenameWithoutExtension(file);
+      var lockFile = new LockFile.load(p.join(_directory, file), cache.sources);
+      return lockFile.packages[name];
+    }
+
+    var packages = listDir(_directory, includeDirs: false)
+        .where((file) => p.extension(file) == '.lock')
+        .map(loadPackageId)
+        .toList();
+
+    packages
+        ..sort((id1, id2) => id1.name.compareTo(id2.name))
+        ..forEach((id) => log.message(_formatPackage(id)));
+  }
+
+  /// Returns formatted string representing the package [id].
+  String _formatPackage(PackageId id) {
+    if (id.source == 'git') {
+      var url = GitSource.urlFromDescription(id.description);
+      return '${log.bold(id.name)} ${id.version} from Git repository "$url"';
+    } else if (id.source == 'path') {
+      var path = PathSource.pathFromDescription(id.description);
+      return '${log.bold(id.name)} ${id.version} at path "$path"';
+    } else {
+      return '${log.bold(id.name)} ${id.version}';
+    }
+  }
 }

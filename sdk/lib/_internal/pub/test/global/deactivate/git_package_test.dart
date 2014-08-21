@@ -20,6 +20,6 @@ main() {
     schedulePub(args: ["global", "activate", "-sgit", "../foo.git"]);
 
     schedulePub(args: ["global", "deactivate", "foo"],
-        output: 'Deactivated package foo from Git repository "../foo.git".');
+        output: 'Deactivated package foo 1.0.0 from Git repository "../foo.git".');
   });
 }

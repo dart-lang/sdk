@@ -7,6 +7,7 @@ library pub.command.global;
 import '../command.dart';
 import 'global_activate.dart';
 import 'global_deactivate.dart';
+import 'global_list.dart';
 import 'global_run.dart';
 
 /// Handles the `global` pub command.
@@ -17,6 +18,7 @@ class GlobalCommand extends PubCommand {
   final subcommands = {
     "activate": new GlobalActivateCommand(),
     "deactivate": new GlobalDeactivateCommand(),
+    "list": new GlobalListCommand(),
     "run": new GlobalRunCommand()
   };
 }
