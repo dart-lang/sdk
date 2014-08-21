@@ -943,9 +943,11 @@ class JavaScriptBackend extends Backend {
     enqueueClass(compiler.enqueuer.resolution, compiler.stringClass, registry);
   }
 
-  void enableNoSuchMethod(context, Enqueuer world) {
+  void enableNoSuchMethod(Element context, Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
     world.registerInvocation(compiler.noSuchMethodSelector);
+    // TODO(tyoverby): Send the context element to DumpInfoTask to be
+    // blamed.
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {

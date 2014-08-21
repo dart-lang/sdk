@@ -75,11 +75,10 @@ class GroupedIdMapper {
 }
 
 class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
-  GroupedIdMapper mapper = new GroupedIdMapper();
-  Compiler compiler;
+  final GroupedIdMapper mapper = new GroupedIdMapper();
+  final Compiler compiler;
 
-  Map<Element, Map<String, dynamic>> jsonCache = {};
-  Map<Element, jsAst.Expression> codeCache;
+  final Map<Element, Map<String, dynamic>> jsonCache = {};
 
   int programSize;
   DateTime compilationMoment;
@@ -87,9 +86,9 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   Duration compilationDuration;
   Duration dumpInfoDuration;
 
-  ElementToJsonVisitor(Compiler compiler) {
-    this.compiler = compiler;
+  ElementToJsonVisitor(this.compiler);
 
+  void run() {
     Backend backend = compiler.backend;
     if (backend is JavaScriptBackend) {
       // Add up the sizes of all output-buffers.
@@ -98,7 +97,6 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     } else {
       programSize = compiler.assembledCode.length;
     }
-
 
     compilationMoment = new DateTime.now();
     dart2jsVersion = compiler.hasBuildId ? compiler.buildId : null;
@@ -109,6 +107,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     }
 
     dumpInfoDuration = new DateTime.now().difference(compilationMoment);
+
   }
 
   // If keeping the element is in question (like if a function has a size
@@ -535,7 +534,7 @@ class DumpInfoTask extends CompilerTask {
   }
 
   void collectInfo() {
-    infoCollector = new ElementToJsonVisitor(compiler);
+    infoCollector = new ElementToJsonVisitor(compiler)..run();
   }
 
   void dumpInfo() {
