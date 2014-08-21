@@ -66,16 +66,26 @@ class EditDomainHandler implements RequestHandler {
 
   Response getAvailableRefactorings(Request request) {
     var params = new EditGetAvailableRefactoringsParams.fromRequest(request);
-    // TODO(paulberry): params.length isn't used.  Is this a bug?
+    String file = params.file;
+    int offset = params.offset;
+    int length = params.length;
+    // add refactoring kinds
     List<String> kinds = <String>[];
-    List<Element> elements =
-        server.getElementsAtOffset(params.file, params.offset);
-    if (elements.isNotEmpty) {
-      Element element = elements[0];
-      RenameRefactoring renameRefactoring =
-          new RenameRefactoring(searchEngine, element);
-      if (renameRefactoring != null) {
-        kinds.add(RefactoringKind.RENAME);
+    // try EXTRACT_*
+    if (length != 0) {
+      kinds.add(RefactoringKind.EXTRACT_LOCAL_VARIABLE);
+      kinds.add(RefactoringKind.EXTRACT_METHOD);
+    }
+    // try RENAME
+    {
+      List<Element> elements = server.getElementsAtOffset(file, offset);
+      if (elements.isNotEmpty) {
+        Element element = elements[0];
+        RenameRefactoring renameRefactoring =
+            new RenameRefactoring(searchEngine, element);
+        if (renameRefactoring != null) {
+          kinds.add(RefactoringKind.RENAME);
+        }
       }
     }
     // respond

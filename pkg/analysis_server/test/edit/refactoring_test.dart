@@ -31,21 +31,36 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
   Future assertHasRenameRefactoring(String code, String search) {
     addTestFile(code);
     return waitForTasksFinished().then((_) {
-      List<RefactoringKind> kinds = getAvailableRefactorings(search);
+      List<RefactoringKind> kinds = getRefactoringsAtString(search);
       expect(kinds, contains(RefactoringKind.RENAME));
     });
   }
 
   /**
-   * Returns the list of available refactorings of the offset of [search] with
-   * [length] characters selected.
+   * Returns the list of available refactorings for the given [offset] and
+   * [length].
    */
-  List<RefactoringKind> getAvailableRefactorings(String search, [int length = 0]) {
-    Request request = new EditGetAvailableRefactoringsParams(testFile,
-        findOffset(search), length).toRequest('0');
+  List<RefactoringKind> getRefactorings(int offset, int length) {
+    Request request = new EditGetAvailableRefactoringsParams(
+        testFile,
+        offset,
+        length).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     var result = new EditGetAvailableRefactoringsResult.fromResponse(response);
     return result.kinds;
+  }
+
+  /**
+   * Returns the list of available refactorings at the offset of [search].
+   */
+  List<RefactoringKind> getRefactoringsAtString(String search) {
+    int offset = findOffset(search);
+    return getRefactorings(offset, 0);
+  }
+
+  List<RefactoringKind> getRefactoringsForString(String search) {
+    int offset = findOffset(search);
+    return getRefactorings(offset, search.length);
   }
 
   @override
@@ -53,6 +68,20 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     handler = new EditDomainHandler(server);
+  }
+
+  Future test_extractLocal() {
+    addTestFile('''
+main() {
+  var a = 1 + 2;
+}
+''');
+    return waitForTasksFinished().then((_) {
+      var search = '1 + 2';
+      List<RefactoringKind> kinds = getRefactoringsForString(search);
+      expect(kinds, contains(RefactoringKind.EXTRACT_LOCAL_VARIABLE));
+      expect(kinds, contains(RefactoringKind.EXTRACT_METHOD));
+    });
   }
 
   Future test_rename_hasElement_class() {
@@ -167,7 +196,8 @@ main() {
 }
 ''');
     return waitForTasksFinished().then((_) {
-      List<RefactoringKind> kinds = getAvailableRefactorings('// not an element');
+      List<RefactoringKind> kinds =
+          getRefactoringsAtString('// not an element');
       expect(kinds, isNot(contains(RefactoringKind.RENAME)));
     });
   }
