@@ -10,16 +10,27 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path show absolute, dirname, join, split;
 
+void printUsage(ArgParser parser) {
+  print('pub run polymer:new_element [-o output_dir] [-e super-element] '
+        'element-name');
+  print(parser.getUsage());
+}
+
 void main(List<String> args) {
   var parser = new ArgParser(allowTrailingOptions: true);
   
   parser.addOption('output-dir', abbr: 'o', help: 'Output directory');
   parser.addOption('extends', abbr: 'e', 
       help: 'Extends polymer-element or DOM element (e.g., div, span)');
+  parser.addFlag('help', abbr: 'h');
   
   var options, element;
   try {
     options = parser.parse(args);
+    if (options['help'] != null) {
+      printUsage(parser);
+      return;
+    }
     if (options.rest == null || options.rest.isEmpty) {
       throw new FormatException('No element specified');
     }
@@ -30,10 +41,7 @@ void main(List<String> args) {
     }
   } catch(e) {
     print('$e\n');
-    print('Usage:');
-    print('  pub run polymer:new_element [-o output_dir] [-e super-element] '
-        'element-name');
-    print(parser.getUsage());
+    printUsage(parser);
     exitCode = 1;
     return;
   } 

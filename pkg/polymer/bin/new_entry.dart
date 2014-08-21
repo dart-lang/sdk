@@ -8,12 +8,39 @@
 ///     pub run polymer:new_entry <html_file>
 ///
 import 'dart:io';
+import 'package:args/args.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 import 'package:source_span/source_span.dart';
 
+void printUsage() {
+  print('pub run polymer:new_entry entry_point_file.html');
+}
+
 void main(List<String> args) {
-  var entryPoint = args[0];
+  var parser = new ArgParser(allowTrailingOptions: true);
+  parser.addFlag('help', abbr: 'h');
+  var entryPoint;
+
+  try {
+    var options = parser.parse(args);
+    if (options['help'] != null) {
+      printUsage();
+      return;
+    }
+    entryPoint = options.rest[0];
+  } catch(e) {
+    print('$e\n');
+    printUsage();
+    exitCode = 1;
+    return;
+  }
+
+  // If the entrypoint file has no extension, add .html to it.
+  if (path.extension(entryPoint) == '') {
+    entryPoint = '${entryPoint}.html';
+  }
+
   var outputDir = path.dirname(entryPoint);
   var outputDirLocation = new Directory(outputDir);
 
