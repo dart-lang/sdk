@@ -64,23 +64,33 @@ class WrappedLogger implements TransformLogger {
     });
   }
 
+  // Reads all log files for an Asset into [logs].
+  static Future _readLogFilesForAsset(
+      AssetId id, Transform transform, List<Map> logs, [nextNumber = 1]) {
+    var nextAssetPath = id.addExtension('${common.LOG_EXTENSION}.$nextNumber');
+    return transform.hasInput(nextAssetPath).then((exists) {
+      if (!exists) return null;
+      return transform.readInputAsString(nextAssetPath).then((data) {
+        logs.addAll(JSON.decode(data));
+        return _readLogFilesForAsset(id, transform, logs, ++nextNumber);
+      });
+    });
+  }
+
   // Combines all existing ._buildLogs.* files into a single ._buildLogs file.
-  static Future combineLogFiles(
-      Transform transform, [int nextNumber = 1, List<Map> logs]) {
-    if (logs == null) logs = new List<Map>();
-    var primaryInputId = transform.primaryInput.id;
-    var nextAssetPath =
-        primaryInputId.addExtension('${common.LOG_EXTENSION}.$nextNumber');
-    return transform.readInputAsString(nextAssetPath).then(
-        (data) {
-          logs.addAll(JSON.decode(data));
-          return combineLogFiles(transform, ++nextNumber, logs);
-        },
-        onError: (_) {
-          transform.addOutput(new Asset.fromString(
-              primaryInputId.addExtension(common.LOG_EXTENSION),
-              JSON.encode(logs)));
-        });
+  static Future combineLogFiles(Transform transform) {
+    var logs = new List<Map>();
+    var id = transform.primaryInput.id;
+    return _readLogFilesForAsset(id, transform, logs).then((_) {
+      return transform.addOutput(new Asset.fromString(
+          id.addExtension(common.LOG_EXTENSION),
+          JSON.encode(logs)));
+    });
+  }
+
+  // Reads all logs for an asset and adds them to this loggers log output.
+  Future addLogFilesFromAsset(AssetId id, [int nextNumber = 1]) {
+    return _readLogFilesForAsset(id, _transform, _logs);
   }
 
   void _addLog(AssetId assetId, LogLevel level, String message,

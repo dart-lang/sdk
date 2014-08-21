@@ -5,7 +5,10 @@ package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
 #### Pub version 0.12.2-dev
-  * Fix for [20539](http://dartbug.com/20539).
+  * Fix for [20539](http://dartbug.com/20539). Log widget will now html escape
+    messages.
+  * Fix for [20538](http://dartbug.com/20538). Log widget will now surface lint
+    logs from imported files.
   * Backward compatible change to prepare for upcoming change of the user agent
     in Dartium.
   * `pub run polymer:new_element` now supports specifying a base class.
