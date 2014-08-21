@@ -24,7 +24,7 @@ void main(List<String> args) {
 
   try {
     var options = parser.parse(args);
-    if (options['help'] != null) {
+    if (options['help']) {
       printUsage();
       return;
     }
