@@ -4169,10 +4169,11 @@ TEST_CASE(ToUserCString) {
 }
 
 
-class JSONTypeVerifier : public ObjectVisitor {
+class ObjectAccumulator : public ObjectVisitor {
  public:
-  JSONTypeVerifier() : ObjectVisitor(Isolate::Current()) {}
-  virtual ~JSONTypeVerifier() { }
+  explicit ObjectAccumulator(GrowableArray<Object*>* objects)
+      : ObjectVisitor(Isolate::Current()), objects_(objects) {}
+  virtual ~ObjectAccumulator() { }
   virtual void VisitObject(RawObject* obj) {
     // Free-list elements cannot even be wrapped in handles.
     if (obj->IsFreeListElement()) {
@@ -4185,18 +4186,24 @@ class JSONTypeVerifier : public ObjectVisitor {
         handle.IsLiteralToken()) {
       return;
     }
-    JSONStream js;
-    handle.PrintJSON(&js, false);
-    EXPECT_SUBSTRING("\"type\":", js.ToCString());
+    objects_->Add(&handle);
   }
+ private:
+  GrowableArray<Object*>* objects_;
 };
 
 
 TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
-  JSONTypeVerifier verifier;
-  heap->IterateObjects(&verifier);
+  GrowableArray<Object*> objects;
+  ObjectAccumulator acc(&objects);
+  heap->IterateObjects(&acc);
+  for (intptr_t i = 0; i < objects.length(); ++i) {
+    JSONStream js;
+    objects[i]->PrintJSON(&js, false);
+    EXPECT_SUBSTRING("\"type\":", js.ToCString());
+  }
 }
 
 
