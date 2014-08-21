@@ -6,9 +6,7 @@ library computer.occurrences;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/computer/element.dart' as server;
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/services/json.dart';
+import 'package:analysis_server/src/protocol2.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -27,13 +25,13 @@ class DartUnitOccurrencesComputer {
   /**
    * Returns the computed occurrences, not `null`.
    */
-  List<Occurrences> compute() {
+  List<protocol.Occurrences> compute() {
     _unit.accept(new _DartUnitOccurrencesComputerVisitor(this));
-    List<Occurrences> occurrences = <Occurrences>[];
+    List<protocol.Occurrences> occurrences = <protocol.Occurrences>[];
     _elementsOffsets.forEach((engineElement, offsets) {
-      var serverElement = new server.Element.fromEngine(engineElement);
+      var serverElement = new protocol.Element.fromEngine(engineElement);
       var length = engineElement.displayName.length;
-      occurrences.add(new Occurrences(serverElement, offsets, length));
+      occurrences.add(new protocol.Occurrences(serverElement, offsets, length));
     });
     return occurrences;
   }
@@ -63,33 +61,6 @@ class DartUnitOccurrencesComputer {
     }
     return element;
   }
-}
-
-
-class Occurrences implements HasToJson {
-  final server.Element element;
-  final List<int> offsets;
-  final int length;
-
-  Occurrences(this.element, this.offsets, this.length);
-
-  factory Occurrences.fromJson(Map<String, Object> map) {
-    server.Element element = new server.Element.fromJson(map[ELEMENT]);
-    List<int> offsets = map[OFFSETS];
-    int length = map[LENGTH];
-    return new Occurrences(element, offsets, length);
-  }
-
-  Map<String, Object> toJson() {
-    Map<String, Object> json = new HashMap<String, Object>();
-    json[ELEMENT] = element.toJson();
-    json[OFFSETS] = offsets;
-    json[LENGTH] = length;
-    return json;
-  }
-
-  @override
-  String toString() => toJson().toString();
 }
 
 

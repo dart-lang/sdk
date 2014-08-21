@@ -4,6 +4,7 @@
 
 library services.src.correction.source_buffer;
 
+import 'package:analysis_server/src/protocol2.dart' show Position;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analyzer/src/generated/source.dart';
 

@@ -4,7 +4,8 @@
 
 library test.services.correction.fix;
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
+    SourceFileEdit, Position;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -40,7 +41,7 @@ class FixProcessorTest extends AbstractSingleUnitTest {
     fix = _assertHasFix(kind, error);
     change = fix.change;
     // apply to "file"
-    List<FileEdit> fileEdits = change.fileEdits;
+    List<SourceFileEdit> fileEdits = change.fileEdits;
     expect(fileEdits, hasLength(1));
     resultCode = SourceEdit.applySequence(testCode, change.fileEdits[0].edits);
     // verify

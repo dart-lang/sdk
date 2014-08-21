@@ -6,11 +6,9 @@ library test.domain.analysis.notification.occurrences;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
-    ElementKind;
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -88,14 +86,9 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_OCCURRENCES) {
-      String file = notification.getParameter(FILE);
-      if (file == testFile) {
-        occurrencesList = <Occurrences>[];
-        List<Map<String, Object>> jsonList =
-            notification.getParameter(OCCURRENCES);
-        for (Map<String, Object> json in jsonList) {
-          occurrencesList.add(new Occurrences.fromJson(json));
-        }
+      var params = new AnalysisOccurrencesParams.fromNotification(notification);
+      if (params.file == testFile) {
+        occurrencesList = params.occurrences;
       }
     }
   }

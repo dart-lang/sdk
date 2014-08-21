@@ -4,9 +4,7 @@
 
 library computer.overrides;
 
-import 'package:analysis_server/src/computer/element.dart';
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/services/json.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 
@@ -68,12 +66,15 @@ class DartUnitOverridesComputer {
     // is there any override?
     if (superEngineElement != null || interfaceEngineElements.isNotEmpty) {
       OverriddenMember superMember = superEngineElement != null ?
-          OverriddenMember.fromEngine(superEngineElement) :
+          new OverriddenMember.fromEngine(superEngineElement) :
           null;
       List<OverriddenMember> interfaceMembers =
-          interfaceEngineElements.map(OverriddenMember.fromEngine).toList();
+          interfaceEngineElements.map((engine.Element member) =>
+              new OverriddenMember.fromEngine(member)).toList();
       _overrides.add(
-          new Override(offset, length, superMember, interfaceMembers));
+          new Override(offset, length, superclassMember: superMember,
+              interfaceMembers: interfaceMembers.isNotEmpty ?
+                  interfaceMembers : null));
     }
   }
 
@@ -100,86 +101,5 @@ class DartUnitOverridesComputer {
     }
     // not found
     return null;
-  }
-}
-
-
-class OverriddenMember implements HasToJson {
-  final Element element;
-  final String className;
-
-  OverriddenMember(this.element, this.className);
-
-  Map<String, Object> toJson() {
-    return {
-      ELEMENT: element.toJson(),
-      CLASS_NAME: className
-    };
-  }
-
-  @override
-  String toString() => toJson().toString();
-
-  static OverriddenMember fromEngine(engine.Element member) {
-    Element element = new Element.fromEngine(member);
-    String className = member.enclosingElement.displayName;
-    return new OverriddenMember(element, className);
-  }
-
-  static OverriddenMember fromJson(Map<String, Object> json) {
-    Map<String, Object> elementJson = json[ELEMENT];
-    Element element = new Element.fromJson(elementJson);
-    String className = json[CLASS_NAME];
-    return new OverriddenMember(element, className);
-  }
-}
-
-
-class Override implements HasToJson {
-  final int offset;
-  final int length;
-  final OverriddenMember superclassMember;
-  final List<OverriddenMember> interfaceMembers;
-
-  Override(this.offset, this.length, this.superclassMember,
-      this.interfaceMembers);
-
-  Map<String, Object> toJson() {
-    Map<String, Object> json = <String, Object>{};
-    json[OFFSET] = offset;
-    json[LENGTH] = length;
-    if (superclassMember != null) {
-      json[SUPER_CLASS_MEMBER] = superclassMember.toJson();
-    }
-    if (interfaceMembers != null && interfaceMembers.isNotEmpty) {
-      json[INTERFACE_MEMBERS] = objectToJson(interfaceMembers);
-    }
-    return json;
-  }
-
-  @override
-  String toString() => toJson().toString();
-
-  static Override fromJson(Map<String, Object> map) {
-    int offset = map[OFFSET];
-    int length = map[LENGTH];
-    // super
-    OverriddenMember superclassMember = null;
-    {
-      Map<String, Object> superJson = map[SUPER_CLASS_MEMBER];
-      if (superJson != null) {
-        superclassMember = OverriddenMember.fromJson(superJson);
-      }
-    }
-    // interfaces
-    List<OverriddenMember> interfaceElements = null;
-    {
-      List<Map<String, Object>> jsonList = map[INTERFACE_MEMBERS];
-      if (jsonList != null) {
-        interfaceElements = jsonList.map(OverriddenMember.fromJson).toList();
-      }
-    }
-    // done
-    return new Override(offset, length, superclassMember, interfaceElements);
   }
 }

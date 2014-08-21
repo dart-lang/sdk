@@ -8,9 +8,8 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/computer/element.dart' show
-    engineElementToJson;
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/services/json.dart';
+    elementFromEngine;
+import 'package:analysis_server/src/protocol2.dart' show TypeHierarchyItem;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -25,6 +24,7 @@ class TypeHierarchyComputer {
   String _pivotName;
 
   final List<TypeHierarchyItem> _items = <TypeHierarchyItem>[];
+  final List<ClassElement> _itemClassElements = <ClassElement>[];
   final Map<Element, TypeHierarchyItem> _elementItemMap =
       new HashMap<Element, TypeHierarchyItem>();
 
@@ -43,17 +43,17 @@ class TypeHierarchyComputer {
     if (element is ClassElement) {
       InterfaceType type = element.type;
       _createSuperItem(type);
-      return _createSubclasses(_items[0], type).then((_) {
+      return _createSubclasses(_items[0], 0, type).then((_) {
         return new Future.value(_items);
       });
     }
     return new Future.value(null);
   }
 
-  Future _createSubclasses(TypeHierarchyItem item, InterfaceType type) {
+  Future _createSubclasses(TypeHierarchyItem item, int itemId, InterfaceType type) {
     var future = getDirectSubClasses(_searchEngine, type.element);
     return future.then((Set<ClassElement> subElements) {
-      List<TypeHierarchyItem> subItems = <TypeHierarchyItem>[];
+      List<int> subItemIds = <int>[];
       for (ClassElement subElement in subElements) {
         // check for recursion
         TypeHierarchyItem subItem = _elementItemMap[subElement];
@@ -65,24 +65,28 @@ class TypeHierarchyComputer {
         // create a subclass item
         ExecutableElement subMemberElement = _findMemberElement(subElement);
         subItem = new TypeHierarchyItem(
-            _items.length,
-            subElement,
-            subMemberElement,
-            null,
-            item.id,
+            elementFromEngine(subElement),
             <int>[],
-            <int>[]);
+            <int>[],
+            <int>[],
+            memberElement: subMemberElement != null ?
+                elementFromEngine(subMemberElement) : null,
+            superclass: itemId);
+        int subItemId = _items.length;
         // remember
         _elementItemMap[subElement] = subItem;
         _items.add(subItem);
+        _itemClassElements.add(subElement);
         // add to hierarchy
-        item.subclasses.add(subItem.id);
-        subItems.add(subItem);
+        item.subclasses.add(subItemId);
+        subItemIds.add(subItemId);
       }
       // compute subclasses of subclasses
-      return Future.forEach(subItems, (TypeHierarchyItem subItem) {
-        InterfaceType subType = subItem.classElement.type;
-        return _createSubclasses(subItem, subType);
+      return Future.forEach(subItemIds, (int subItemId) {
+        TypeHierarchyItem subItem = _items[subItemId];
+        ClassElement subItemElement = _itemClassElements[subItemId];
+        InterfaceType subType = subItemElement.type;
+        return _createSubclasses(subItem, subItemId, subType);
       });
     });
   }
@@ -94,6 +98,7 @@ class TypeHierarchyComputer {
       return _items.indexOf(item);
     }
     // create an empty item now
+    int itemId;
     {
       String displayName = null;
       if (type.typeArguments.isNotEmpty) {
@@ -102,15 +107,17 @@ class TypeHierarchyComputer {
       ClassElement classElement = type.element;
       ExecutableElement memberElement = _findMemberElement(classElement);
       item = new TypeHierarchyItem(
-          _items.length,
-          classElement,
-          memberElement,
-          displayName,
-          null,
+          elementFromEngine(classElement),
           <int>[],
-          <int>[]);
+          <int>[],
+          <int>[],
+          displayName: displayName,
+          memberElement: memberElement != null ?
+              elementFromEngine(memberElement) : null);
       _elementItemMap[classElement] = item;
+      itemId = _items.length;
       _items.add(item);
+      _itemClassElements.add(classElement);
     }
     // superclass
     {
@@ -130,7 +137,7 @@ class TypeHierarchyComputer {
       item.interfaces.add(id);
     });
     // done
-    return item.id;
+    return itemId;
   }
 
   ExecutableElement _findMemberElement(ClassElement classElement) {
@@ -144,38 +151,5 @@ class TypeHierarchyComputer {
       return classElement.getSetter(_pivotName);
     }
     return null;
-  }
-}
-
-
-class TypeHierarchyItem implements HasToJson {
-  final int id;
-  final ClassElement classElement;
-  final Element memberElement;
-  final String displayName;
-  int superclass;
-  final List<int> mixins;
-  final List<int> interfaces;
-  final List<int> subclasses = <int>[];
-
-  TypeHierarchyItem(this.id, this.classElement, this.memberElement,
-      this.displayName, this.superclass, this.mixins, this.interfaces);
-
-  Map<String, Object> toJson() {
-    Map<String, Object> json = {};
-    json[CLASS_ELEMENT] = engineElementToJson(classElement);
-    if (memberElement != null) {
-      json[MEMBER_ELEMENT] = engineElementToJson(memberElement);
-    }
-    if (displayName != null) {
-      json[DISPLAY_NAME] = displayName;
-    }
-    if (superclass != null) {
-      json[SUPERCLASS] = objectToJson(superclass);
-    }
-    json[INTERFACES] = objectToJson(interfaces);
-    json[MIXINS] = objectToJson(mixins);
-    json[SUBCLASSES] = objectToJson(subclasses);
-    return json;
   }
 }

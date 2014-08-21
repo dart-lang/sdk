@@ -5,16 +5,12 @@
 library test.search.top_level_declarations;
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show
-    SearchFindTopLevelDeclarationsParams, ElementKind,
-    SearchFindTopLevelDeclarationsResult;
-import 'package:analysis_server/src/search/search_result.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_search_domain.dart';
 import 'dart:async';
-import 'package:analysis_server/src/computer/element.dart';
 
 
 main() {

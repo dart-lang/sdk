@@ -5,7 +5,8 @@
 library test.services.correction.change;
 
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
+    SourceFileEdit, Position;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -35,7 +36,7 @@ class ChangeTest {
     change.addEdit('/a.dart', edit2);
     expect(change.fileEdits, hasLength(1));
     {
-      FileEdit fileEdit = change.getFileEdit('/a.dart');
+      SourceFileEdit fileEdit = change.getFileEdit('/a.dart');
       expect(fileEdit, isNotNull);
       expect(fileEdit.edits, unorderedEquals([edit1, edit2]));
     }
@@ -43,7 +44,7 @@ class ChangeTest {
 
   void test_getFileEdit() {
     Change change = new Change('msg');
-    FileEdit fileEdit = new FileEdit('/a.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/a.dart', <SourceEdit>[]);
     change.addFileEdit(fileEdit);
     expect(change.getFileEdit('/a.dart'), fileEdit);
   }
@@ -55,10 +56,10 @@ class ChangeTest {
 
   void test_toJson() {
     Change change = new Change('msg');
-    change.addFileEdit(new FileEdit('/a.dart')
+    change.addFileEdit(new SourceFileEdit('/a.dart', <SourceEdit>[])
         ..add(new SourceEdit(1, 2, 'aaa'))
         ..add(new SourceEdit(10, 20, 'bbb')));
-    change.addFileEdit(new FileEdit('/b.dart')
+    change.addFileEdit(new SourceFileEdit('/b.dart', <SourceEdit>[])
         ..add(new SourceEdit(21, 22, 'xxx'))
         ..add(new SourceEdit(210, 220, 'yyy')));
     {
@@ -195,7 +196,7 @@ class FileEditTest {
     SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
     SourceEdit edit10 = new SourceEdit(10, 1, 'b');
     SourceEdit edit100 = new SourceEdit(100, 2, 'c');
-    FileEdit fileEdit = new FileEdit('/test.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', <SourceEdit>[]);
     fileEdit.addAll([edit100, edit1a, edit10, edit1b]);
     expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
   }
@@ -205,7 +206,7 @@ class FileEditTest {
     SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
     SourceEdit edit10 = new SourceEdit(10, 1, 'b');
     SourceEdit edit100 = new SourceEdit(100, 2, 'c');
-    FileEdit fileEdit = new FileEdit('/test.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', <SourceEdit>[]);
     fileEdit.add(edit100);
     fileEdit.add(edit1a);
     fileEdit.add(edit1b);
@@ -214,18 +215,18 @@ class FileEditTest {
   }
 
   void test_new() {
-    FileEdit fileEdit = new FileEdit('/test.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', <SourceEdit>[]);
     fileEdit.add(new SourceEdit(1, 2, 'aaa'));
     fileEdit.add(new SourceEdit(10, 20, 'bbb'));
     expect(
         fileEdit.toString(),
-        'FileEdit(file=/test.dart, edits=['
-            '{"offset":10,"length":20,"replacement":"bbb"}, '
-            '{"offset":1,"length":2,"replacement":"aaa"}])');
+        '{"file":"/test.dart","edits":['
+            '{"offset":10,"length":20,"replacement":"bbb"},'
+            '{"offset":1,"length":2,"replacement":"aaa"}]}');
   }
 
   void test_toJson() {
-    FileEdit fileEdit = new FileEdit('/test.dart');
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', <SourceEdit>[]);
     fileEdit.add(new SourceEdit(1, 2, 'aaa'));
     fileEdit.add(new SourceEdit(10, 20, 'bbb'));
     var expectedJson = {
@@ -254,8 +255,8 @@ class LinkedEditGroupTest {
     expect(
         group.toString(),
         'LinkedEditGroup(length=2, positions=['
-            'Position(file=/a.dart, offset=1), '
-            'Position(file=/b.dart, offset=10)], suggestions=[])');
+            '{"file":"/a.dart","offset":1}, '
+            '{"file":"/b.dart","offset":10}], suggestions=[])');
   }
 
   void test_toJson() {
@@ -324,7 +325,7 @@ class PositionTest {
     Position position = new Position('/test.dart', 1);
     expect(position.file, '/test.dart');
     expect(position.offset, 1);
-    expect(position.toString(), 'Position(file=/test.dart, offset=1)');
+    expect(position.toString(), '{"file":"/test.dart","offset":1}');
   }
 
   void test_toJson() {

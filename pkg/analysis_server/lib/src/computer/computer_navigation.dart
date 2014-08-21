@@ -4,12 +4,11 @@
 
 library computer.navigation;
 
+import 'package:analysis_server/src/protocol2.dart' as protocol;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-
-import 'element.dart' as computer;
 
 
 /**
@@ -37,7 +36,7 @@ class DartUnitNavigationComputer {
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }
-    var elementJson = new computer.Element.fromEngine(element).toJson();
+    var elementJson = new protocol.Element.fromEngine(element).toJson();
     _regions.add({
       OFFSET: offset,
       LENGTH: length,

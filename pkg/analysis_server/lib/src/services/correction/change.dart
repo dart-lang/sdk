@@ -21,7 +21,7 @@ class Change implements HasToJson {
   /**
    * A list of the [FileEdit]s used to effect the change. 
    */
-  final List<FileEdit> fileEdits = <FileEdit>[];
+  final List<SourceFileEdit> fileEdits = <SourceFileEdit>[];
 
   /**
    * A list of the [LinkedEditGroup]s in the change. 
@@ -39,9 +39,9 @@ class Change implements HasToJson {
    * Adds [edit] to the [FileEdit] for the given [file].
    */
   void addEdit(String file, SourceEdit edit) {
-    FileEdit fileEdit = getFileEdit(file);
+    SourceFileEdit fileEdit = getFileEdit(file);
     if (fileEdit == null) {
-      fileEdit = new FileEdit(file);
+      fileEdit = new SourceFileEdit(file, <SourceEdit>[]);
       addFileEdit(fileEdit);
     }
     fileEdit.add(edit);
@@ -50,7 +50,7 @@ class Change implements HasToJson {
   /**
    * Adds the given [FileEdit].
    */
-  void addFileEdit(FileEdit edit) {
+  void addFileEdit(SourceFileEdit edit) {
     fileEdits.add(edit);
   }
 
@@ -64,8 +64,8 @@ class Change implements HasToJson {
   /**
    * Returns the [FileEdit] for the given [file], maybe `null`.
    */
-  FileEdit getFileEdit(String file) {
-    for (FileEdit fileEdit in fileEdits) {
+  SourceFileEdit getFileEdit(String file) {
+    for (SourceFileEdit fileEdit in fileEdits) {
       if (fileEdit.file == file) {
         return fileEdit;
       }
@@ -90,56 +90,6 @@ class Change implements HasToJson {
   String toString() =>
       'Change(message=$message, edits=$fileEdits, '
           'linkedEditGroups=$linkedEditGroups, selection=$selection)';
-}
-
-
-/**
- * A description of a set of changes to a single file.
- *
- * [Edit]s are added in the order of decreasing offset, so they are easy to
- * apply to the original file content without correcting offsets.
- */
-class FileEdit implements HasToJson {
-  /**
-   * The file to be modified.
-   */
-  final String file;
-
-  /**
-   * A list of the [Edit]s used to effect the change. 
-   */
-  final List<SourceEdit> edits = <SourceEdit>[];
-
-  FileEdit(this.file);
-
-  /**
-   * Adds the given [Edit] to the list.
-   */
-  void add(SourceEdit edit) {
-    int index = 0;
-    while (index < edits.length && edits[index].offset > edit.offset) {
-      index++;
-    }
-    edits.insert(index, edit);
-  }
-
-  /**
-   * Adds the given [Edit]s.
-   */
-  void addAll(Iterable<SourceEdit> edits) {
-    edits.forEach(add);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    return {
-      FILE: file,
-      EDITS: objectToJson(edits)
-    };
-  }
-
-  @override
-  String toString() => "FileEdit(file=$file, edits=$edits)";
 }
 
 
@@ -221,39 +171,4 @@ class LinkedEditSuggestionKind {
 
   @override
   String toString() => name;
-}
-
-
-/**
- * A position in a file.
- */
-class Position implements HasToJson {
-  final String file;
-  final int offset;
-
-  Position(this.file, this.offset);
-
-  int get hashCode {
-    int hash = file.hashCode;
-    hash = hash * 31 + offset;
-    return hash;
-  }
-
-  bool operator ==(other) {
-    if (other is Position) {
-      return other.file == file && other.offset == offset;
-    }
-    return false;
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    return {
-      FILE: file,
-      OFFSET: offset
-    };
-  }
-
-  @override
-  String toString() => 'Position(file=$file, offset=$offset)';
 }

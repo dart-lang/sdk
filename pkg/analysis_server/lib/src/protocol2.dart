@@ -6,7 +6,13 @@ library protocol2;
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/computer/element.dart' show
+    elementFromEngine;
+import 'package:analysis_server/src/search/search_result.dart' show
+    searchResultFromMatch;
 import 'package:analysis_server/src/services/json.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart' as
+    engine;
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
@@ -32,6 +38,26 @@ mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
     result[key] = value;
   });
   return result;
+}
+
+/**
+ * Adds the given [sourceEdit] to the list in [sourceFileEdit].
+ */
+void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
+  List<SourceEdit> edits = sourceFileEdit.edits;
+  int index = 0;
+  while (index < edits.length && edits[index].offset > sourceEdit.offset) {
+    index++;
+  }
+  edits.insert(index, sourceEdit);
+}
+
+/**
+ * Adds the given [sourceEdits] to the list in [sourceFileEdit].
+ */
+void _addAllEditsForSource(SourceFileEdit sourceFileEdit,
+                          Iterable<SourceEdit> edits) {
+  edits.forEach(sourceFileEdit.add);
 }
 
 /**
@@ -155,6 +181,53 @@ bool _listEqual(List listA, List listB, bool itemEqual(a, b)) {
 }
 
 /**
+ * Create a Location based on an element from the analyzer engine.
+ */
+Location _locationFromElement(engine.Element element) {
+  engine.Source source = element.source;
+  engine.LineInfo lineInfo = element.context.getLineInfo(source);
+  String name = element.displayName;
+  // prepare location
+  int offset = element.nameOffset;
+  int length = name != null ? name.length : 0;
+  engine.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+  int startLine = lineLocation.lineNumber;
+  int startColumn = lineLocation.columnNumber;
+  if (element is engine.CompilationUnitElement) {
+    offset = 0;
+    length = 0;
+    startLine = 1;
+    startColumn = 1;
+  }
+  // done
+  return new Location(
+      source.fullName,
+      offset,
+      length,
+      startLine,
+      startColumn);
+}
+
+/**
+ * Create a Location based on an element and offset from the analyzer engine.
+ */
+Location _locationFromOffset(engine.Element element, int offset, int length) {
+  engine.Source source = element.source;
+  engine.LineInfo lineInfo = element.context.getLineInfo(source);
+  // prepare location
+  engine.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
+  int startLine = lineLocation.lineNumber;
+  int startColumn = lineLocation.columnNumber;
+  // done
+  return new Location(
+      source.fullName,
+      offset,
+      length,
+      startLine,
+      startColumn);
+}
+
+/**
  * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
  * values.
  */
@@ -171,6 +244,40 @@ bool _mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
     }
   }
   return true;
+}
+
+/**
+ * Create an OverriddenMember based on an element from the analyzer engine.
+ */
+OverriddenMember _overriddenMemberFromEngine(engine.Element member) {
+  Element element = elementFromEngine(member);
+  String className = member.enclosingElement.displayName;
+  return new OverriddenMember(element, className);
+}
+
+/**
+ * Create a SearchResultKind based on a value from the search engine.
+ */
+SearchResultKind _searchResultKindFromEngine(engine.MatchKind kind) {
+  if (kind == engine.MatchKind.DECLARATION) {
+    return SearchResultKind.DECLARATION;
+  }
+  if (kind == engine.MatchKind.READ) {
+    return SearchResultKind.READ;
+  }
+  if (kind == engine.MatchKind.READ_WRITE) {
+    return SearchResultKind.READ_WRITE;
+  }
+  if (kind == engine.MatchKind.WRITE) {
+    return SearchResultKind.WRITE;
+  }
+  if (kind == engine.MatchKind.INVOCATION) {
+    return SearchResultKind.INVOCATION;
+  }
+  if (kind == engine.MatchKind.REFERENCE) {
+    return SearchResultKind.REFERENCE;
+  }
+  return SearchResultKind.UNKNOWN;
 }
 
 

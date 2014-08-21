@@ -6,11 +6,9 @@ library test.domain.analysis.notification.navigation;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
-    ElementKind;
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -164,22 +162,9 @@ class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NAVIGATION) {
-      String file = notification.getParameter(FILE);
-      if (file == testFile) {
-        regions = <NavigationRegion>[];
-        List<Map<String, Object>> regionsJson =
-            notification.getParameter(REGIONS);
-        for (Map<String, Object> regionJson in regionsJson) {
-          var regionOffset = regionJson[OFFSET];
-          var regionLength = regionJson[LENGTH];
-          List<Element> targets = <Element>[];
-          for (Map<String, Object> targetJson in regionJson[TARGETS]) {
-            targets.add(new Element.fromJson(targetJson));
-          }
-          var region =
-              new NavigationRegion(regionOffset, regionLength, targets);
-          regions.add(region);
-        }
+      var params = new AnalysisNavigationParams.fromNotification(notification);
+      if (params.file == testFile) {
+        regions = params.regions;
       }
     }
   }
@@ -492,19 +477,5 @@ void main() {
     return prepareNavigation().then((_) {
       assertNoRegionAt('void');
     });
-  }
-}
-
-
-class NavigationRegion {
-  final int offset;
-  final int length;
-  final List<Element> targets;
-
-  NavigationRegion(this.offset, this.length, this.targets);
-
-  @override
-  String toString() {
-    return 'NavigationRegion(offset=$offset; length=$length; targets=$targets';
   }
 }

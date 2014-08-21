@@ -53,9 +53,9 @@ class SocketServer {
   void createAnalysisServer(ServerCommunicationChannel serverChannel) {
     if (analysisServer != null) {
       RequestError error = new RequestError.serverAlreadyStarted();
-      serverChannel.sendResponse(new Response('', error));
+      serverChannel.sendResponse(new Response('', error: error));
       serverChannel.listen((Request request) {
-        serverChannel.sendResponse(new Response(request.id, error));
+        serverChannel.sendResponse(new Response(request.id, error: error));
       });
       return;
     }

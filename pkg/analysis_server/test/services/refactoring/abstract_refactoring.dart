@@ -96,7 +96,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    */
   void assertTestChangeResult(String expectedCode) {
     // prepare FileEdit
-    FileEdit fileEdit = refactoringChange.getFileEdit(testFile);
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(testFile);
     expect(fileEdit, isNotNull);
     // validate resulting code
     String actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);

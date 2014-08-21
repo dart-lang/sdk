@@ -6,10 +6,9 @@ library test.domain.analysis.notification.overrides;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show AnalysisService;
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -115,11 +114,9 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_OVERRIDES) {
-      String file = notification.getParameter(FILE);
-      if (file == testFile) {
-        List<Map<String, Object>> jsonList =
-            notification.getParameter(OVERRIDES);
-        overridesList = jsonList.map(Override.fromJson).toList();
+      var params = new AnalysisOverridesParams.fromNotification(notification);
+      if (params.file == testFile) {
+        overridesList = params.overrides;
       }
     }
   }

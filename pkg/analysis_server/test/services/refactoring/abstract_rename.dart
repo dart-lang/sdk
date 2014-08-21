@@ -6,7 +6,8 @@ library test.services.refactoring.rename;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
+    SourceFileEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -31,7 +32,7 @@ class RenameRefactoringTest extends RefactoringTest {
    */
   void assertFileChangeResult(String path, String expectedCode) {
     // prepare FileEdit
-    FileEdit fileEdit = refactoringChange.getFileEdit(path);
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
     expect(fileEdit, isNotNull);
     // validate resulting code
     File file = provider.getResource(path);
@@ -46,7 +47,7 @@ class RenameRefactoringTest extends RefactoringTest {
    * with the given [path].
    */
   void assertNoFileChange(String path) {
-    FileEdit fileEdit = refactoringChange.getFileEdit(path);
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
     expect(fileEdit, isNull);
   }
 
@@ -109,7 +110,7 @@ class RenameRefactoringTest extends RefactoringTest {
    * Returns the [Edit] with the given [id], maybe `null`.
    */
   SourceEdit findEditById(String id) {
-    for (FileEdit fileEdit in refactoringChange.fileEdits) {
+    for (SourceFileEdit fileEdit in refactoringChange.fileEdits) {
       for (SourceEdit edit in fileEdit.edits) {
         if (edit.id == id) {
           return edit;

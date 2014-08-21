@@ -51,6 +51,10 @@ class ServerGetVersionResult implements HasToJson {
     return result;
   }
 
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -402,6 +406,10 @@ class AnalysisGetErrorsResult implements HasToJson {
     return result;
   }
 
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -547,6 +555,10 @@ class AnalysisGetHoverResult implements HasToJson {
     Map<String, dynamic> result = {};
     result["hovers"] = hovers.map((HoverInformation value) => value.toJson()).toList();
     return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
   }
 
   @override
@@ -1650,6 +1662,10 @@ class CompletionGetSuggestionsResult implements HasToJson {
     return result;
   }
 
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -1958,6 +1974,10 @@ class SearchFindElementReferencesResult implements HasToJson {
     return result;
   }
 
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2088,6 +2108,10 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
     return result;
   }
 
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2214,6 +2238,10 @@ class SearchFindMemberReferencesResult implements HasToJson {
     Map<String, dynamic> result = {};
     result["id"] = id;
     return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
   }
 
   @override
@@ -2343,6 +2371,10 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
     Map<String, dynamic> result = {};
     result["id"] = id;
     return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
   }
 
   @override
@@ -2495,6 +2527,10 @@ class SearchGetTypeHierarchyResult implements HasToJson {
       result["hierarchyItems"] = hierarchyItems.map((TypeHierarchyItem value) => value.toJson()).toList();
     }
     return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
   }
 
   @override
@@ -2748,6 +2784,10 @@ class EditGetAssistsResult implements HasToJson {
     return result;
   }
 
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -2906,6 +2946,10 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
     return result;
   }
 
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -3052,6 +3096,10 @@ class EditGetFixesResult implements HasToJson {
     Map<String, dynamic> result = {};
     result["fixes"] = fixes.map((ErrorFixes value) => value.toJson()).toList();
     return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
   }
 
   @override
@@ -3313,6 +3361,10 @@ class EditGetRefactoringResult implements HasToJson {
     return result;
   }
 
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -3445,6 +3497,10 @@ class DebugCreateContextResult implements HasToJson {
     Map<String, dynamic> result = {};
     result["id"] = id;
     return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
   }
 
   @override
@@ -3684,6 +3740,10 @@ class DebugMapUriResult implements HasToJson {
       result["uri"] = uri;
     }
     return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
   }
 
   @override
@@ -5031,6 +5091,12 @@ class Element implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "Element");
     }
   }
+
+  /**
+   * Construct based on a value from the analyzer engine.
+   */
+  factory Element.fromEngine(engine.Element element) =>
+      elementFromEngine(element);
 
   bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
   bool get isConst => (flags & FLAG_CONST) != 0;
@@ -6555,6 +6621,18 @@ class Location implements HasToJson {
     }
   }
 
+  /**
+   * Construct based on an element from the analyzer engine.
+   */
+  factory Location.fromElement(engine.Element element) =>
+      _locationFromElement(element);
+
+  /**
+   * Create a Location based on an element and offset from the analyzer engine.
+   */
+  factory Location.fromOffset(engine.Element element, int offset, int length) =>
+      _locationFromOffset(element, offset, length);
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
@@ -7022,6 +7100,12 @@ class OverriddenMember implements HasToJson {
       throw jsonDecoder.mismatch(jsonPath, "OverriddenMember");
     }
   }
+
+  /**
+   * Construct based on an element from the analyzer engine.
+   */
+  factory OverriddenMember.fromEngine(engine.Element member) =>
+      _overriddenMemberFromEngine(member);
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
@@ -7625,6 +7709,12 @@ class SearchResult implements HasToJson {
     }
   }
 
+  /**
+   * Construct based on a value from the search engine.
+   */
+  factory SearchResult.fromMatch(engine.SearchMatch match) =>
+      searchResultFromMatch(match);
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["location"] = location.toJson();
@@ -7743,6 +7833,12 @@ class SearchResultKind {
     }
     throw jsonDecoder.mismatch(jsonPath, "SearchResultKind");
   }
+
+  /**
+   * Construct based on a value from the search engine.
+   */
+  factory SearchResultKind.fromEngine(engine.MatchKind kind) =>
+      _searchResultKindFromEngine(kind);
 
   @override
   String toString() => "SearchResultKind.$name";
@@ -8074,6 +8170,17 @@ class SourceFileEdit implements HasToJson {
     result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;
   }
+
+  /**
+   * Adds the given [Edit] to the list.
+   */
+  void add(SourceEdit edit) => _addEditForSource(this, edit);
+
+  /**
+   * Adds the given [Edit]s.
+   */
+  void addAll(Iterable<SourceEdit> edits) =>
+      _addAllEditsForSource(this, edits);
 
   @override
   String toString() => JSON.encode(toJson());

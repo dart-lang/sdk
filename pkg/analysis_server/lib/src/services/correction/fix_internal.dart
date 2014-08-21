@@ -6,7 +6,8 @@ library services.src.correction.fix;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
+    SourceFileEdit, Position;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
@@ -205,7 +206,7 @@ class FixProcessor {
     if (fixFile == null) {
       fixFile = file;
     }
-    FileEdit fileEdit = new FileEdit(file);
+    SourceFileEdit fileEdit = new SourceFileEdit(file, <SourceEdit>[]);
     fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);

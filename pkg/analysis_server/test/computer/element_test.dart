@@ -4,9 +4,7 @@
 
 library test.computer.element;
 
-import 'package:analysis_server/src/computer/element.dart';
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol2.dart' show ElementKind;
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/abstract_context.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -255,65 +253,5 @@ class A {
     expect(element.parameters, '(int a, {String b})');
     expect(element.returnType, 'List<String>');
     expect(element.flags, Element.FLAG_STATIC);
-  }
-
-  void test_fromJson() {
-    var flags =
-        Element.FLAG_DEPRECATED |
-        Element.FLAG_PRIVATE |
-        Element.FLAG_STATIC;
-    var json = {
-      KIND: 'METHOD',
-      NAME: 'my name',
-      LOCATION: {
-        FILE: '/project/file.dart',
-        OFFSET: 1,
-        LENGTH: 2,
-        START_LINE: 3,
-        START_COLUMN: 4,
-      },
-      FLAGS: flags,
-      PARAMETERS: '(int a, String b)',
-      RETURN_TYPE: 'List<String>'
-    };
-    Element element = new Element.fromJson(json);
-    expect(element.kind, ElementKind.METHOD);
-    expect(element.name, 'my name');
-    {
-      Location location = element.location;
-      expect(location.file, '/project/file.dart');
-      expect(location.offset, 1);
-      expect(location.length, 2);
-      expect(location.startLine, 3);
-      expect(location.startColumn, 4);
-    }
-    expect(element.flags, flags);
-    expect(element.isAbstract, isFalse);
-    expect(element.isConst, isFalse);
-    expect(element.isDeprecated, isTrue);
-    expect(element.isFinal, isFalse);
-    expect(element.isPrivate, isTrue);
-    expect(element.isStatic, isTrue);
-  }
-
-  void test_toJson() {
-    var json = {
-      KIND: 'METHOD',
-      NAME: 'my name',
-      LOCATION: {
-        FILE: '/project/file.dart',
-        OFFSET: 1,
-        LENGTH: 2,
-        START_LINE: 3,
-        START_COLUMN: 4,
-      },
-      FLAGS: Element.FLAG_DEPRECATED |
-          Element.FLAG_PRIVATE |
-          Element.FLAG_STATIC,
-      PARAMETERS: '(int a, String b)',
-      RETURN_TYPE: 'List<String>'
-    };
-    Element element = new Element.fromJson(json);
-    expect(element.toJson(), equals(json));
   }
 }

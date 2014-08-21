@@ -4,10 +4,7 @@
 
 library test.search.search_result;
 
-import 'package:analysis_server/src/computer/element.dart';
-import 'package:analysis_server/src/protocol2.dart' show ElementKind;
-import 'package:analysis_server/src/search/search_result.dart';
-import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
@@ -15,7 +12,6 @@ import 'package:unittest/unittest.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(SearchResultTest);
   runReflectiveTests(SearchResultKindTest);
 }
 
@@ -46,70 +42,30 @@ class SearchResultKindTest {
 
   void test_fromName() {
     expect(
-        new SearchResultKind.fromName(SearchResultKind.DECLARATION.name),
+        new SearchResultKind(SearchResultKind.DECLARATION.name),
         SearchResultKind.DECLARATION);
     expect(
-        new SearchResultKind.fromName(SearchResultKind.READ.name),
+        new SearchResultKind(SearchResultKind.READ.name),
         SearchResultKind.READ);
     expect(
-        new SearchResultKind.fromName(SearchResultKind.READ_WRITE.name),
+        new SearchResultKind(SearchResultKind.READ_WRITE.name),
         SearchResultKind.READ_WRITE);
     expect(
-        new SearchResultKind.fromName(SearchResultKind.WRITE.name),
+        new SearchResultKind(SearchResultKind.WRITE.name),
         SearchResultKind.WRITE);
     expect(
-        new SearchResultKind.fromName(SearchResultKind.REFERENCE.name),
+        new SearchResultKind(SearchResultKind.REFERENCE.name),
         SearchResultKind.REFERENCE);
     expect(
-        new SearchResultKind.fromName(SearchResultKind.INVOCATION.name),
+        new SearchResultKind(SearchResultKind.INVOCATION.name),
         SearchResultKind.INVOCATION);
-    expect(new SearchResultKind.fromName(null), SearchResultKind.UNKNOWN);
+    expect(
+        new SearchResultKind(SearchResultKind.UNKNOWN.name),
+        SearchResultKind.UNKNOWN);
   }
 
   void test_toString() {
-    expect(SearchResultKind.DECLARATION.toString(), 'DECLARATION');
-  }
-}
-
-
-@ReflectiveTestCase()
-class SearchResultTest {
-  void test_fromJson() {
-    Map<String, Object> map = {
-      KIND: 'READ',
-      IS_POTENTIAL: true,
-      LOCATION: {
-        FILE: '/test.dart',
-        OFFSET: 1,
-        LENGTH: 2,
-        START_LINE: 3,
-        START_COLUMN: 4
-      },
-      PATH: [
-          new Element(
-              ElementKind.FIELD,
-              'myField',
-              new Location('/lib.dart', 10, 20, 30, 40),
-              false,
-              false).toJson()]
-    };
-    SearchResult result = new SearchResult.fromJson(map);
-    expect(result.kind, SearchResultKind.READ);
-    expect(result.location.file, '/test.dart');
-    expect(result.location.offset, 1);
-    expect(result.location.length, 2);
-    expect(result.location.startLine, 3);
-    expect(result.location.startColumn, 4);
-    expect(result.path, hasLength(1));
-    expect(result.path[0].kind, ElementKind.FIELD);
-    expect(result.path[0].name, 'myField');
-    expect(result.path[0].location.file, '/lib.dart');
-    expect(result.path[0].location.offset, 10);
-    // touch toJson();
-    expect(result.toJson(), hasLength(4));
-    // touch asJson();
-    expect(SearchResult.asJson(result), hasLength(4));
-    // touch toString();
-    expect(result.toString(), hasLength(greaterThan(10)));
+    expect(SearchResultKind.DECLARATION.toString(),
+        'SearchResultKind.DECLARATION');
   }
 }

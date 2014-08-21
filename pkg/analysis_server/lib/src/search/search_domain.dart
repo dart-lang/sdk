@@ -7,15 +7,10 @@ library search.domain;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/computer/element.dart' as se;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show
-    SearchFindElementReferencesParams, SearchFindMemberDeclarationsParams,
-    SearchFindMemberReferencesParams, SearchFindTopLevelDeclarationsParams,
-    SearchGetTypeHierarchyParams;
+import 'package:analysis_server/src/protocol2.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
-import 'package:analysis_server/src/search/search_result.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -49,7 +44,7 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   Response findElementReferences(Request request) {
-    var params = new SearchFindElementReferencesParams.fromRequest(request);
+    var params = new protocol.SearchFindElementReferencesParams.fromRequest(request);
     // prepare elements
     List<Element> elements = server.getElementsAtOffset(params.file,
         params.offset);
@@ -67,7 +62,7 @@ class SearchDomainHandler implements RequestHandler {
     elements.forEach((Element element) {
       var computer = new ElementReferencesComputer(searchEngine);
       var future = computer.compute(element, params.includePotential);
-      future.then((List<SearchResult> results) {
+      future.then((List<protocol.SearchResult> results) {
         bool isLast = identical(element, elements.last);
         _sendSearchNotification(searchId, isLast, results);
       });
@@ -78,17 +73,16 @@ class SearchDomainHandler implements RequestHandler {
       });
     }
     // respond
-    Response response = new Response(request.id);
-    response.setResult(ID, searchId);
+    protocol.Element element;
     if (elements.isNotEmpty) {
-      var serverElement = new se.Element.fromEngine(elements[0]);
-      response.setResult(ELEMENT, serverElement.toJson());
+      element = new protocol.Element.fromEngine(elements[0]);
     }
-    return response;
+    return new protocol.SearchFindElementReferencesResult(searchId,
+        element: element).toResponse(request.id);
   }
 
   Response findMemberDeclarations(Request request) {
-    var params = new SearchFindMemberDeclarationsParams.fromRequest(request);
+    var params = new protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
     {
@@ -98,11 +92,12 @@ class SearchDomainHandler implements RequestHandler {
       });
     }
     // respond
-    return new Response(request.id)..setResult(ID, searchId);
+    return new protocol.SearchFindMemberDeclarationsResult(
+        searchId).toResponse(request.id);
   }
 
   Response findMemberReferences(Request request) {
-    var params = new SearchFindMemberReferencesParams.fromRequest(request);
+    var params = new protocol.SearchFindMemberReferencesParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
     {
@@ -112,11 +107,12 @@ class SearchDomainHandler implements RequestHandler {
       });
     }
     // respond
-    return new Response(request.id)..setResult(ID, searchId);
+    return new protocol.SearchFindMemberReferencesResult(searchId).toResponse(
+        request.id);
   }
 
   Response findTopLevelDeclarations(Request request) {
-    var params = new SearchFindTopLevelDeclarationsParams.fromRequest(request);
+    var params = new protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
     {
@@ -126,32 +122,29 @@ class SearchDomainHandler implements RequestHandler {
       });
     }
     // respond
-    return new Response(request.id)..setResult(ID, searchId);
+    return new protocol.SearchFindTopLevelDeclarationsResult(
+        searchId).toResponse(request.id);
   }
 
   /**
    * Implement the `search.getTypeHierarchy` request.
    */
   Response getTypeHierarchy(Request request) {
-    var params = new SearchGetTypeHierarchyParams.fromRequest(request);
+    var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     // prepare parameters
     // prepare Element
     List<Element> elements = server.getElementsAtOffset(params.file,
         params.offset);
-    Response response = new Response(request.id);
     if (elements.isEmpty) {
-      response.setEmptyResult();
+      Response response = new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
       return response;
     }
     Element element = elements.first;
     // prepare type hierarchy
     TypeHierarchyComputer computer = new TypeHierarchyComputer(searchEngine);
-    computer.compute(element).then((List<TypeHierarchyItem> items) {
-      if (items != null) {
-        response.setResult(HIERARCHY_ITEMS, objectToJson(items));
-      } else {
-        response.setEmptyResult();
-      }
+    computer.compute(element).then((List<protocol.TypeHierarchyItem> items) {
+      Response response = new protocol.SearchGetTypeHierarchyResult(
+          hierarchyItems: items).toResponse(request.id);
       server.sendResponse(response);
     });
     // delay response
@@ -180,7 +173,7 @@ class SearchDomainHandler implements RequestHandler {
   }
 
   void _sendSearchNotification(String searchId, bool isLast,
-      Iterable<SearchResult> results) {
+      Iterable<protocol.SearchResult> results) {
     Notification notification = new Notification(SEARCH_RESULTS);
     notification.setParameter(ID, searchId);
     notification.setParameter(LAST, isLast);
@@ -188,7 +181,7 @@ class SearchDomainHandler implements RequestHandler {
     server.sendNotification(notification);
   }
 
-  static SearchResult toResult(SearchMatch match) {
-    return new SearchResult.fromMatch(match);
+  static protocol.SearchResult toResult(SearchMatch match) {
+    return new protocol.SearchResult.fromMatch(match);
   }
 }

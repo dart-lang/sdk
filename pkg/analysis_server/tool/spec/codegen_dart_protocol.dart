@@ -278,6 +278,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (emitToRequestMember(impliedType)) {
         writeln();
       }
+      if (emitToResponseMember(impliedType)) {
+        writeln();
+      }
       if (emitSpecialMembers(className)) {
         writeln();
       }
@@ -345,11 +348,41 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
             );
         writeln('    _analysisErrorFromEngine(lineInfo, error);');
         return true;
+      case 'Element':
+        docComment([new dom.Text('Construct based on a value from the analyzer engine.')]);
+        writeln('factory Element.fromEngine(engine.Element element) =>');
+        writeln('    elementFromEngine(element);');
+        return true;
       case 'ElementKind':
         docComment([new dom.Text(
             'Construct based on a value from the analyzer engine.')]);
         writeln('factory ElementKind.fromEngine(engine.ElementKind kind) =>');
         writeln('    _elementKindFromEngine(kind);');
+        return true;
+      case 'Location':
+        docComment([new dom.Text(
+            'Construct based on an element from the analyzer engine.')]);
+        writeln('factory Location.fromElement(engine.Element element) =>');
+        writeln('    _locationFromElement(element);');
+        writeln();
+        docComment([new dom.Text('Create a Location based on an element and offset from the analyzer engine.')]);
+        writeln('factory Location.fromOffset(engine.Element element, int offset, int length) =>');
+        writeln('    _locationFromOffset(element, offset, length);');
+        return true;
+      case 'OverriddenMember':
+        docComment([new dom.Text('Construct based on an element from the analyzer engine.')]);
+        writeln('factory OverriddenMember.fromEngine(engine.Element member) =>');
+        writeln('    _overriddenMemberFromEngine(member);');
+        return true;
+      case 'SearchResult':
+        docComment([new dom.Text('Construct based on a value from the search engine.')]);
+        writeln('factory SearchResult.fromMatch(engine.SearchMatch match) =>');
+        writeln('    searchResultFromMatch(match);');
+        return true;
+      case 'SearchResultKind':
+        docComment([new dom.Text('Construct based on a value from the search engine.')]);
+        writeln('factory SearchResultKind.fromEngine(engine.MatchKind kind) =>');
+        writeln('    _searchResultKindFromEngine(kind);');
         return true;
       case 'SourceEdit':
         docComment([new dom.Text('Construct based on a SourceRange.')]);
@@ -363,7 +396,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   /**
-   * If  the class named [className] requires special getters, emit them and
+   * If the class named [className] requires special getters, emit them and
    * return true.
    */
   bool emitSpecialGetters(String className) {
@@ -394,6 +427,14 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         docComment([new dom.Text(
             'Get the result of applying the edit to the given [code].')]);
         writeln('String apply(String code) => _applyEdit(code, this);');
+        return true;
+      case 'SourceFileEdit':
+        docComment([new dom.Text('Adds the given [Edit] to the list.')]);
+        writeln('void add(SourceEdit edit) => _addEditForSource(this, edit);');
+        writeln();
+        docComment([new dom.Text('Adds the given [Edit]s.')]);
+        writeln('void addAll(Iterable<SourceEdit> edits) =>');
+        writeln('    _addAllEditsForSource(this, edits);');
         return true;
       default:
         return false;
@@ -464,6 +505,22 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         String methodString = literalString((impliedType.apiNode as
             Request).longMethod);
         writeln('return new Request(id, $methodString, toJson());');
+      });
+      writeln('}');
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Emit the toResponse() code for a class, if appropriate.  Returns true if
+   * code was emitted.
+   */
+  bool emitToResponseMember(ImpliedType impliedType) {
+    if (impliedType.kind == 'requestResult') {
+      writeln('Response toResponse(String id) {');
+      indent(() {
+        writeln('return new Response(id, result: toJson());');
       });
       writeln('}');
       return true;

@@ -104,36 +104,6 @@ class AnalysisErrorTest {
     });
   }
 
-  void test_fromJson() {
-    var json = {
-      SEVERITY: 'ERROR',
-      TYPE: 'SYNTACTIC_ERROR',
-      LOCATION: {
-        FILE: '/test.dart',
-        OFFSET: 19,
-        LENGTH: 1,
-        START_LINE: 2,
-        START_COLUMN: 11
-      },
-      MESSAGE: 'Expected to find \';\'',
-      CORRECTION: 'my correction'
-    };
-    AnalysisError error =
-        new AnalysisError.fromJson(new ResponseDecoder(), 'json', json);
-    {
-      Location location = error.location;
-      expect(location.file, '/test.dart');
-      expect(location.offset, 19);
-      expect(location.length, 1);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 11);
-    }
-    expect(error.message, "Expected to find ';'");
-    expect(error.severity, ErrorSeverity.ERROR);
-    expect(error.type, ErrorType.SYNTACTIC_ERROR);
-    expect(error.correction, "my correction");
-  }
-
   void test_engineErrorsToJson() {
     var json = engineErrorsToJson(lineInfo, [engineError]);
     expect(json, unorderedEquals([{

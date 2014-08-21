@@ -6,7 +6,8 @@ library services.src.correction.assist;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
+    SourceFileEdit, Position;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -126,7 +127,7 @@ class AssistProcessor {
     if (assistFile == null) {
       assistFile = file;
     }
-    FileEdit fileEdit = new FileEdit(file);
+    SourceFileEdit fileEdit = new SourceFileEdit(file, <SourceEdit>[]);
     fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);

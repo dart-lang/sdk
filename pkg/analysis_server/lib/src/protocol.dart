@@ -155,17 +155,18 @@ class Response {
 
   /**
    * Initialize a newly created instance to represent a response to a request
-   * with the given [id]. If an [error] is provided then the response will
-   * represent an error condition.
+   * with the given [id].  If [result] is provided, it will be used as the
+   * result; otherwise an empty result will be used.  If an [error] is provided
+   * then the response will represent an error condition.
    */
-  Response(this.id, [this.error]);
+  Response(this.id, {this.result, this.error});
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] referencing a context that does not exist.
    */
   Response.contextDoesNotExist(Request request)
-    : this(request.id, new RequestError('NONEXISTENT_CONTEXT', 'Context does not exist'));
+    : this(request.id, error: new RequestError('NONEXISTENT_CONTEXT', 'Context does not exist'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -175,7 +176,7 @@ class Response {
    * [expectation] is a description of the type of data that was expected.
    */
   Response.invalidParameter(Request request, String path, String expectation)
-      : this(request.id, new RequestError('INVALID_PARAMETER',
+      : this(request.id, error: new RequestError('INVALID_PARAMETER',
           "Expected parameter $path to $expectation"));
 
   /**
@@ -183,14 +184,14 @@ class Response {
    * by a malformed request.
    */
   Response.invalidRequestFormat()
-    : this('', new RequestError('INVALID_REQUEST', 'Invalid request'));
+    : this('', error: new RequestError('INVALID_REQUEST', 'Invalid request'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that does not have a required parameter.
    */
   Response.missingRequiredParameter(Request request, String parameterName)
-    : this(request.id, new RequestError('MISSING_PARAMETER', 'Missing required parameter: $parameterName'));
+    : this(request.id, error: new RequestError('MISSING_PARAMETER', 'Missing required parameter: $parameterName'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -198,20 +199,20 @@ class Response {
    * unknown analysis option was provided.
    */
   Response.unknownAnalysisOption(Request request, String optionName)
-    : this(request.id, new RequestError('UNKNOWN_ANALYSIS_OPTION', 'Unknown analysis option: "$optionName"'));
+    : this(request.id, error: new RequestError('UNKNOWN_ANALYSIS_OPTION', 'Unknown analysis option: "$optionName"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that cannot be handled by any known handlers.
    */
   Response.unknownRequest(Request request)
-    : this(request.id, new RequestError('UNKNOWN_REQUEST', 'Unknown request'));
+    : this(request.id, error: new RequestError('UNKNOWN_REQUEST', 'Unknown request'));
 
   Response.contextAlreadyExists(Request request)
-    : this(request.id, new RequestError('CONTENT_ALREADY_EXISTS', 'Context already exists'));
+    : this(request.id, error: new RequestError('CONTENT_ALREADY_EXISTS', 'Context already exists'));
 
   Response.unsupportedFeature(String requestId, String message)
-    : this(requestId, new RequestError('UNSUPPORTED_FEATURE', message));
+    : this(requestId, error: new RequestError('UNSUPPORTED_FEATURE', message));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -219,7 +220,7 @@ class Response {
    * analysis service name.
    */
   Response.unknownAnalysisService(Request request, String name)
-    : this(request.id, new RequestError('UNKNOWN_ANALYSIS_SERVICE', 'Unknown analysis service: "$name"'));
+    : this(request.id, error: new RequestError('UNKNOWN_ANALYSIS_SERVICE', 'Unknown analysis service: "$name"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -227,7 +228,7 @@ class Response {
    * that are not being analyzed.
    */
   Response.unanalyzedPriorityFiles(Request request, String fileNames)
-    : this(request.id, new RequestError('UNANALYZED_PRIORITY_FILES', "Unanalyzed files cannot be a priority: '$fileNames'"));
+    : this(request.id, error: new RequestError('UNANALYZED_PRIORITY_FILES', "Unanalyzed files cannot be a priority: '$fileNames'"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -235,7 +236,7 @@ class Response {
    * option.
    */
   Response.unknownOptionName(Request request, String optionName)
-    : this(request.id, new RequestError('UNKNOWN_OPTION_NAME', 'Unknown analysis option: "$optionName"'));
+    : this(request.id, error: new RequestError('UNKNOWN_OPTION_NAME', 'Unknown analysis option: "$optionName"'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -244,7 +245,7 @@ class Response {
   Response.getErrorsError(Request request, String message)
     : this(
         request.id,
-        new RequestError('GET_ERRORS_ERROR', 'Error during `analysis.getErrors`: $message.'));
+        error: new RequestError('GET_ERRORS_ERROR', 'Error during `analysis.getErrors`: $message.'));
 
   /**
    * Initialize a newly created instance based upon the given JSON data
@@ -259,7 +260,7 @@ class Response {
       Object result = json[Response.RESULT];
       Response response;
       if (error is Map) {
-        response = new Response(id, new RequestError.fromJson(error));
+        response = new Response(id, error: new RequestError.fromJson(error));
       } else {
         response = new Response(id);
       }
