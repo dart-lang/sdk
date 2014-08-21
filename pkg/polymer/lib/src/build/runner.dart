@@ -346,7 +346,7 @@ String _jsonFormatter(LogEntry entry) {
       ? [{'method': kind, 'params': {'message': entry.message}}]
       : [{'method': kind,
           'params': {
-            'file': span.sourceUrl,
+            'file': span.sourceUrl.toString(),
             'message': entry.message,
             'line': span.start.line + 1,
             'charStart': span.start.offset,
