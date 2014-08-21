@@ -4,6 +4,8 @@
 
 part of dart2js.js_emitter;
 
+const USE_NEW_EMITTER = const bool.fromEnvironment("dart2js.use.new.emitter");
+
 /**
  * Generates the code for all used classes in the program. Static fields (even
  * in classes) are ignored, since they can be treated as non-class elements.
@@ -1398,6 +1400,11 @@ class CodeEmitterTask extends CompilerTask {
       typeTestEmitter.computeRequiredTypeChecks();
 
       computeNeededDeclarations();
+
+      if (USE_NEW_EMITTER) {
+        new new_js_emitter.Emitter(compiler, this).emitProgram();
+        return;
+      }
 
       OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
 

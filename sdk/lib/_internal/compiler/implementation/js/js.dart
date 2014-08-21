@@ -8,6 +8,8 @@ import 'precedence.dart';
 import '../util/characters.dart' as charCodes;
 import '../util/util.dart';
 
+import '../js_emitter/js_emitter.dart' show USE_NEW_EMITTER;
+
 // TODO(floitsch): remove this dependency (currently necessary for the
 // CodeBuffer).
 import '../dart2jslib.dart' as leg;
