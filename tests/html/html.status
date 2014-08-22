@@ -122,11 +122,9 @@ indexeddb_5_test: Fail # Issue 12893
 js_test: Fail # Issue 14246
 element_test/click: Fail                # IE does not support firing this event.
 serialized_script_value_test: Fail
-transferables_test: Fail # Issue 9846
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
-worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -170,10 +168,13 @@ websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
 xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
+worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
+transferables_test: Fail # Issue 9846
 
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
+node_validator_test: RuntimeError # Issue 20657.
 
 # IE11 Feature support statuses-
 # These results not yet noted in platform support annotations.
