@@ -23,7 +23,6 @@ import 'package:intl/src/intl_message.dart';
 import 'package:intl/generate_localized.dart';
 import 'package:path/path.dart' as path;
 import 'package:args/args.dart';
-import 'package:petitparser/petitparser.dart';
 
 /**
  * Keeps track of all the messages we have processed so far, keyed by message
@@ -138,7 +137,5 @@ class BasicTranslatedMessage extends TranslatedMessage {
   List<MainMessage> _findOriginals() => originalMessages = messages[id];
 }
 
-final pluralAndGenderParser = 
-    removeDuplicates(removeSetables(new ICUParser().message));
-final plainParser = 
-    removeDuplicates(removeSetables(new ICUParser().nonIcuMessage));
+final pluralAndGenderParser = new ICUParser().message;
+final plainParser = new ICUParser().nonIcuMessage;
