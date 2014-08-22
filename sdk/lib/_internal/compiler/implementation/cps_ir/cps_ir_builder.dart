@@ -1432,13 +1432,13 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       assert(node.arguments.tail.isEmpty);
       return buildNegation(visitDynamicSend(node));
     }
-    if (op.source == "is" || op.source == "as") {
-      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      ir.Primitive receiver = visit(node.receiver);
-      ir.Primitive check = continueWithExpression(
-          (k) => new ir.TypeOperator(op.source, receiver, type, k));
-      return node.isIsNotCheck ? buildNegation(check) : check;
-    }
+    assert(invariant(node, op.source == "is" || op.source == "as",
+           message: "unexpected operator $op"));
+    DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+    ir.Primitive receiver = visit(node.receiver);
+    ir.Primitive check = continueWithExpression(
+        (k) => new ir.TypeOperator(op.source, receiver, type, k));
+    return node.isIsNotCheck ? buildNegation(check) : check;
   }
 
   // Build(StaticSend(f, arguments), C) = C[C'[InvokeStatic(f, xs)]]

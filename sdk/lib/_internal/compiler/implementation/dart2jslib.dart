@@ -23,7 +23,7 @@ import 'elements/modelx.dart'
          VoidElementX,
          AnalyzableElement,
          DeferredLoaderGetterElementX;
-import 'helpers/helpers.dart';
+import 'helpers/helpers.dart';  // Included for debug helpers.
 import 'js_backend/js_backend.dart' as js_backend;
 import 'library_loader.dart'
     show LibraryLoader,

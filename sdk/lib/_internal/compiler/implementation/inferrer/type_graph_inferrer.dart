@@ -624,7 +624,7 @@ class TypeGraphInferrerEngine
         // of this closure call are not a root to trace but an intermediate
         // for some other function.
         Iterable<FunctionElement> elements = info.callees
-            .where((e) => e.isFunction).toList();
+            .where((e) => e.isFunction);
         trace(elements, new ClosureTracerVisitor(elements, info, this));
       } else {
         assert(info is ElementTypeInformation);

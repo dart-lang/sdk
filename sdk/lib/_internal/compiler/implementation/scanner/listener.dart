@@ -1604,6 +1604,7 @@ class NodeListener extends ElementListener {
   Token expectedClassBody(Token token) {
     if (token is ErrorToken) {
       reportErrorToken(token);
+      return skipToEof(token);
     } else {
       reportFatalError(token,
                        "Expected a class body, but got '${token.value}'.");

@@ -41,7 +41,7 @@ import '../js_backend/js_backend.dart' show
     TypeChecks,
     TypeVariableHandler;
 
-import '../helpers/helpers.dart';
+import '../helpers/helpers.dart';  // Included for debug helpers.
 
 import '../source_file.dart' show
     SourceFile,

@@ -25,8 +25,6 @@ import '../universe/universe.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
 
-import '../dump_info.dart';
-
 part 'backend.dart';
 part 'checked_mode_helpers.dart';
 part 'constant_emitter.dart';
