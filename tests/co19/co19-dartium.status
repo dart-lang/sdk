@@ -637,7 +637,7 @@ LayoutTests/fast/css/counters/complex-before_t01: RuntimeError, Pass # co19-roll
 LayoutTests/fast/css/getComputedStyle/computed-style-select-overflow_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/vertical-align-length-copy-bug_t01: RuntimeError # co19-roll r761: Please triage this failure.
 
-[ $compiler == none && $runtime == dartium ]
+[ $compiler == none && $runtime == dartium && ($mode != debug || $system != macos) ]
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/array-bounds-clamping_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: RuntimeError # co19-roll r761: Please triage this failure.
