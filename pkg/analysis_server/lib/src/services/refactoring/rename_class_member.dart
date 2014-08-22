@@ -6,7 +6,7 @@ library services.src.refactoring.rename_class_member;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show Location, SourceEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -149,7 +149,7 @@ class _RenameClassMemberValidator {
               elementClass.displayName,
               getElementKindName(newNameMember),
               newName),
-          createLocation_forElement(newNameMember));
+          new Location.fromElement(newNameMember));
     }
     // do chained computations
     Set<ClassElement> superClasses = getSuperClasses(elementClass);
@@ -172,7 +172,7 @@ class _RenameClassMemberValidator {
                     getElementKindName(element),
                     getElementKindName(nameElement),
                     getElementQualifiedName(nameElement)),
-                createLocation_forElement(nameElement));
+                new Location.fromElement(nameElement));
           }
           // renamed Element is shadowed by member of subclass
           if (subClasses.contains(nameClass)) {
@@ -182,7 +182,7 @@ class _RenameClassMemberValidator {
                     getElementKindName(element),
                     getElementKindName(nameElement),
                     getElementQualifiedName(nameElement)),
-                createLocation_forElement(nameElement));
+                new Location.fromElement(nameElement));
           }
           // renamed Element is shadowed by local
           if (nameElement is LocalElement) {
@@ -199,7 +199,7 @@ class _RenameClassMemberValidator {
                           getElementKindName(element),
                           getElementKindName(localElement),
                           localElement.displayName),
-                      createLocation_forMatch(reference));
+                      new Location.fromMatch(reference));
                 }
               }
             }

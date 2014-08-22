@@ -6,7 +6,7 @@ library services.src.refactoring.rename_constructor;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show Location, SourceEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -78,7 +78,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
               newName);
       result.addError(
           message,
-          createLocation_forElement(newNameMember));
+          new Location.fromElement(newNameMember));
     }
   }
 }

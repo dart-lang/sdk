@@ -6622,16 +6622,28 @@ class Location implements HasToJson {
   }
 
   /**
-   * Construct based on an element from the analyzer engine.
+   * Create a Location based on an [engine.Element].
    */
   factory Location.fromElement(engine.Element element) =>
       _locationFromElement(element);
 
   /**
-   * Create a Location based on an element and offset from the analyzer engine.
+   * Create a Location based on an [engine.SearchMatch].
    */
-  factory Location.fromOffset(engine.Element element, int offset, int length) =>
-      _locationFromOffset(element, offset, length);
+  factory Location.fromMatch(engine.SearchMatch match) =>
+      _locationFromMatch(match);
+
+  /**
+   * Create a Location based on an [engine.AstNode].
+   */
+  factory Location.fromNode(engine.AstNode node) =>
+      _locationFromNode(node);
+
+  /**
+   * Create a Location based on an [engine.CompilationUnit].
+   */
+  factory Location.fromUnit(engine.CompilationUnit unit, engine.SourceRange range) =>
+      _locationFromUnit(unit, range);
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
@@ -7582,6 +7594,12 @@ class RefactoringProblemSeverity {
     }
     throw jsonDecoder.mismatch(jsonPath, "RefactoringProblemSeverity");
   }
+
+  /**
+   * Returns the [RefactoringProblemSeverity] with the maximal severity.
+   */
+  static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>
+      _maxRefactoringProblemSeverity(a, b);
 
   @override
   String toString() => "RefactoringProblemSeverity.$name";

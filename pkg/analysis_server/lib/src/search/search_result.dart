@@ -11,11 +11,7 @@ import 'package:analyzer/src/generated/element.dart' as engine;
 
 SearchResult searchResultFromMatch(SearchMatch match) {
   SearchResultKind kind = new SearchResultKind.fromEngine(match.kind);
-  Location location =
-      new Location.fromOffset(
-          match.element,
-          match.sourceRange.offset,
-          match.sourceRange.length);
+  Location location = new Location.fromMatch(match);
   List<Element> path = _computePath(match.element);
   return new SearchResult(location, kind, !match.isResolved, path);
 }

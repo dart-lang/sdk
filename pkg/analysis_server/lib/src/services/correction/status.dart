@@ -4,107 +4,8 @@
 
 library services.status;
 
-import 'package:analysis_server/src/protocol2.dart' hide Element;
-import 'package:analysis_server/src/services/correction/source_range.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/protocol2.dart';
 
-
-/**
- * Creates a new [Location].
- */
-Location createLocation(AnalysisContext context, Source source,
-    SourceRange range) {
-  int startLine = 0;
-  int startColumn = 0;
-  {
-    LineInfo lineInfo = context.getLineInfo(source);
-    if (lineInfo != null) {
-      LineInfo_Location offsetLocation = lineInfo.getLocation(range.offset);
-      startLine = offsetLocation.lineNumber;
-      startColumn = offsetLocation.columnNumber;
-    }
-  }
-  return new Location(
-      source.fullName,
-      range.offset,
-      range.length,
-      startLine,
-      startColumn);
-}
-
-
-/**
- * Creates a new [Location] for the given [Element].
- */
-Location createLocation_forElement(Element element) {
-  AnalysisContext context = element.context;
-  Source source = element.source;
-  SourceRange range = rangeElementName(element);
-  return createLocation(context, source, range);
-}
-
-
-/**
- * Creates a new [Location] for the given [SearchMatch].
- */
-Location createLocation_forMatch(SearchMatch match) {
-  Element enclosingElement = match.element;
-  return createLocation(
-      enclosingElement.context,
-      enclosingElement.source,
-      match.sourceRange);
-}
-
-
-/**
- * Creates a new [Location] for the given [AstNode].
- */
-Location createLocation_forNode(AstNode node) {
-  CompilationUnit unit = node.getAncestor((node) => node is CompilationUnit);
-  CompilationUnitElement unitElement = unit.element;
-  AnalysisContext context = unitElement.context;
-  Source source = unitElement.source;
-  SourceRange range = rangeNode(node);
-  return createLocation(context, source, range);
-}
-
-
-/**
- * Creates a new [Location] for the given [CompilationUnit].
- */
-Location createLocation_forUnit(CompilationUnit unit, SourceRange range) {
-  CompilationUnitElement unitElement = unit.element;
-  AnalysisContext context = unitElement.context;
-  Source source = unitElement.source;
-  return createLocation(context, source, range);
-}
-
-
-RefactoringProblemSeverity _maxSeverity(RefactoringProblemSeverity a,
-    RefactoringProblemSeverity b) {
-  if (b == null) {
-    return a;
-  }
-  if (a == null) {
-    return b;
-  } else if (a == RefactoringProblemSeverity.INFO) {
-    return b;
-  } else if (a == RefactoringProblemSeverity.WARNING) {
-    if (b == RefactoringProblemSeverity.ERROR ||
-        b == RefactoringProblemSeverity.FATAL) {
-      return b;
-    }
-  } else if (a == RefactoringProblemSeverity.ERROR) {
-    if (b == RefactoringProblemSeverity.FATAL) {
-      return b;
-    }
-  }
-  return a;
-}
 
 /**
  * An outcome of a condition checking operation.
@@ -243,7 +144,7 @@ class RefactoringStatus {
       return;
     }
     problems.addAll(other.problems);
-    _severity = _maxSeverity(_severity, other.severity);
+    _severity = RefactoringProblemSeverity.max(_severity, other.severity);
   }
 
   /**
@@ -285,6 +186,6 @@ class RefactoringStatus {
     problems.add(problem);
     // update maximum severity
     RefactoringProblemSeverity severity = problem.severity;
-    _severity = _maxSeverity(_severity, severity);
+    _severity = RefactoringProblemSeverity.max(_severity, severity);
   }
 }

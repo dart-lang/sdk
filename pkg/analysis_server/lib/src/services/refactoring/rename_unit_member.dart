@@ -6,16 +6,17 @@ library services.src.refactoring.rename_unit_member;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart' show Location;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analysis_server/src/services/search/element_visitors.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 
 
 /**
@@ -171,15 +172,12 @@ class RenameUnitMemberValidator {
         if (refClass != null) {
           visitChildren(refClass, (shadow) {
             if (hasDisplayName(shadow, newName)) {
-              String message =
-                  format(
-                      "Reference to renamed {0} will be shadowed by {1} '{2}'.",
-                      getElementKindName(element),
-                      getElementKindName(shadow),
-                      getElementQualifiedName(shadow));
-              result.addError(
-                  message,
-                  createLocation_forElement(shadow));
+              String message = format(
+                  "Reference to renamed {0} will be shadowed by {1} '{2}'.",
+                  getElementKindName(element),
+                  getElementKindName(shadow),
+                  getElementQualifiedName(shadow));
+              result.addError(message, new Location.fromElement(shadow));
             }
           });
         }
@@ -195,14 +193,11 @@ class RenameUnitMemberValidator {
     LibraryElement library = element.getAncestor((e) => e is LibraryElement);
     visitLibraryTopLevelElements(library, (element) {
       if (hasDisplayName(element, newName)) {
-        String message =
-            format(
-                "Library already declares {0} with name '{1}'.",
-                getElementKindName(element),
-                newName);
-        result.addError(
-            message,
-            createLocation_forElement(element));
+        String message = format(
+            "Library already declares {0} with name '{1}'.",
+            getElementKindName(element),
+            newName);
+        result.addError(message, new Location.fromElement(element));
       }
     });
   }
@@ -233,17 +228,14 @@ class RenameUnitMemberValidator {
               continue;
             }
             // OK, reference will be shadowed be the element being renamed
-            String message =
-                format(
-                    forRename ?
-                        "Renamed {0} will shadow {1} '{2}'." :
-                        "Created {0} will shadow {1} '{2}'.",
-                    getElementKindName(element),
-                    getElementKindName(member),
-                    getElementQualifiedName(member));
-            result.addError(
-                message,
-                createLocation_forMatch(memberReference));
+            String message = format(
+                forRename ?
+                    "Renamed {0} will shadow {1} '{2}'." :
+                    "Created {0} will shadow {1} '{2}'.",
+                getElementKindName(element),
+                getElementKindName(member),
+                getElementQualifiedName(member));
+            result.addError(message, new Location.fromMatch(memberReference));
           }
         });
       });

@@ -361,18 +361,31 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         return true;
       case 'Location':
         docComment([new dom.Text(
-            'Construct based on an element from the analyzer engine.')]);
+            'Create a Location based on an [engine.Element].')]);
         writeln('factory Location.fromElement(engine.Element element) =>');
         writeln('    _locationFromElement(element);');
         writeln();
-        docComment([new dom.Text('Create a Location based on an element and offset from the analyzer engine.')]);
-        writeln('factory Location.fromOffset(engine.Element element, int offset, int length) =>');
-        writeln('    _locationFromOffset(element, offset, length);');
+        docComment([new dom.Text('Create a Location based on an [engine.SearchMatch].')]);
+        writeln('factory Location.fromMatch(engine.SearchMatch match) =>');
+        writeln('    _locationFromMatch(match);');
+        writeln();
+        docComment([new dom.Text('Create a Location based on an [engine.AstNode].')]);
+        writeln('factory Location.fromNode(engine.AstNode node) =>');
+        writeln('    _locationFromNode(node);');
+        writeln();
+        docComment([new dom.Text('Create a Location based on an [engine.CompilationUnit].')]);
+        writeln('factory Location.fromUnit(engine.CompilationUnit unit, engine.SourceRange range) =>');
+        writeln('    _locationFromUnit(unit, range);');
         return true;
       case 'OverriddenMember':
         docComment([new dom.Text('Construct based on an element from the analyzer engine.')]);
         writeln('factory OverriddenMember.fromEngine(engine.Element member) =>');
         writeln('    _overriddenMemberFromEngine(member);');
+        return true;
+      case 'RefactoringProblemSeverity':
+        docComment([new dom.Text('Returns the [RefactoringProblemSeverity] with the maximal severity.')]);
+        writeln('static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>');
+        writeln('    _maxRefactoringProblemSeverity(a, b);');
         return true;
       case 'SearchResult':
         docComment([new dom.Text('Construct based on a value from the search engine.')]);

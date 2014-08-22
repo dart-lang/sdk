@@ -383,7 +383,7 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
     if (_isFirstSelectedNode(lhs)) {
       _invalidSelection(
           'Cannot extract the left-hand side of an assignment.',
-          createLocation_forNode(lhs));
+          new Location.fromNode(lhs));
     }
     return null;
   }

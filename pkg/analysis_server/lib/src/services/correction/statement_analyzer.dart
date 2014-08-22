@@ -189,7 +189,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
       if (_hasTokens(rangeBeforeFirstNode)) {
         invalidSelection2(
             "The beginning of the selection contains characters that do not belong to a statement.",
-            createLocation_forUnit(unit, rangeBeforeFirstNode));
+            new Location.fromUnit(unit, rangeBeforeFirstNode));
       }
     }
     // some tokens after last selected node
@@ -199,7 +199,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
       if (_hasTokens(rangeAfterLastNode)) {
         invalidSelection2(
             "The end of the selection contains characters that do not belong to a statement.",
-            createLocation_forUnit(unit, rangeAfterLastNode));
+            new Location.fromUnit(unit, rangeAfterLastNode));
       }
     }
   }

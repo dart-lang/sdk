@@ -30,7 +30,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     // check
-    Location location = createLocation_forElement(element);
+    Location location = new Location.fromElement(element);
     expect(location.file, '/test.dart');
     expect(location.offset, 6);
     expect(location.length, 7);
@@ -44,7 +44,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     SourceRange range = rangeElementName(element);
     SearchMatch match = new SearchMatch(null, element, range, true, false);
     // check
-    Location location = createLocation_forMatch(match);
+    Location location = new Location.fromMatch(match);
     expect(location.file, '/test.dart');
     expect(location.offset, range.offset);
     expect(location.length, range.length);
@@ -57,7 +57,7 @@ main() {
 ''');
     AstNode node = findNodeAtString('main');
     // check
-    Location location = createLocation_forNode(node);
+    Location location = new Location.fromNode(node);
     expect(location.file, '/test.dart');
     expect(location.offset, node.offset);
     expect(location.length, node.length);
@@ -67,7 +67,7 @@ main() {
     resolveTestUnit('');
     SourceRange range = rangeStartLength(10, 20);
     // check
-    Location location = createLocation_forUnit(testUnit, range);
+    Location location = new Location.fromUnit(testUnit, range);
     expect(location.file, '/test.dart');
     expect(location.offset, range.offset);
     expect(location.length, range.length);

@@ -13,6 +13,7 @@ import 'package:analysis_server/src/search/search_result.dart' show
 import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart' as
     engine;
+import 'package:analyzer/src/generated/ast.dart' as engine;
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
@@ -41,6 +42,14 @@ mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
 }
 
 /**
+ * Adds the given [sourceEdits] to the list in [sourceFileEdit].
+ */
+void _addAllEditsForSource(SourceFileEdit sourceFileEdit,
+    Iterable<SourceEdit> edits) {
+  edits.forEach(sourceFileEdit.add);
+}
+
+/**
  * Adds the given [sourceEdit] to the list in [sourceFileEdit].
  */
 void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
@@ -53,19 +62,11 @@ void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
 }
 
 /**
- * Adds the given [sourceEdits] to the list in [sourceFileEdit].
- */
-void _addAllEditsForSource(SourceFileEdit sourceFileEdit,
-                          Iterable<SourceEdit> edits) {
-  edits.forEach(sourceFileEdit.add);
-}
-
-/**
  * Create an AnalysisError based on error information from the analyzer
  * engine.  Access via AnalysisError.fromEngine().
  */
-AnalysisError _analysisErrorFromEngine(engine.LineInfo
-    lineInfo, engine.AnalysisError error) {
+AnalysisError _analysisErrorFromEngine(engine.LineInfo lineInfo,
+    engine.AnalysisError error) {
   engine.ErrorCode errorCode = error.errorCode;
   // prepare location
   Location location;
@@ -89,8 +90,12 @@ AnalysisError _analysisErrorFromEngine(engine.LineInfo
   var type = new ErrorType(errorCode.type.name);
   String message = error.message;
   String correction = error.correction;
-  return new AnalysisError(severity, type, location, message, correction:
-      correction);
+  return new AnalysisError(
+      severity,
+      type,
+      location,
+      message,
+      correction: correction);
 }
 
 /**
@@ -98,8 +103,9 @@ AnalysisError _analysisErrorFromEngine(engine.LineInfo
  * SourceEdit.apply().
  */
 String _applyEdit(String code, SourceEdit edit) {
-  return code.substring(0, edit.offset) + edit.replacement + code.substring(
-      edit.end);
+  return code.substring(0, edit.offset) +
+      edit.replacement +
+      code.substring(edit.end);
 }
 
 /**
@@ -181,51 +187,83 @@ bool _listEqual(List listA, List listB, bool itemEqual(a, b)) {
 }
 
 /**
- * Create a Location based on an element from the analyzer engine.
+ * Creates a new [Location].
  */
-Location _locationFromElement(engine.Element element) {
-  engine.Source source = element.source;
-  engine.LineInfo lineInfo = element.context.getLineInfo(source);
-  String name = element.displayName;
-  // prepare location
-  int offset = element.nameOffset;
-  int length = name != null ? name.length : 0;
-  engine.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
-  int startLine = lineLocation.lineNumber;
-  int startColumn = lineLocation.columnNumber;
-  if (element is engine.CompilationUnitElement) {
-    offset = 0;
-    length = 0;
-    startLine = 1;
-    startColumn = 1;
+Location _locationForArgs(engine.AnalysisContext context, engine.Source source,
+    engine.SourceRange range) {
+  int startLine = 0;
+  int startColumn = 0;
+  {
+    engine.LineInfo lineInfo = context.getLineInfo(source);
+    if (lineInfo != null) {
+      engine.LineInfo_Location offsetLocation =
+          lineInfo.getLocation(range.offset);
+      startLine = offsetLocation.lineNumber;
+      startColumn = offsetLocation.columnNumber;
+    }
   }
-  // done
   return new Location(
       source.fullName,
-      offset,
-      length,
+      range.offset,
+      range.length,
       startLine,
       startColumn);
 }
 
 /**
- * Create a Location based on an element and offset from the analyzer engine.
+ * Creates a new [Location] for the given [engine.Element].
  */
-Location _locationFromOffset(engine.Element element, int offset, int length) {
+Location _locationFromElement(engine.Element element) {
+  engine.AnalysisContext context = element.context;
   engine.Source source = element.source;
-  engine.LineInfo lineInfo = element.context.getLineInfo(source);
-  // prepare location
-  engine.LineInfo_Location lineLocation = lineInfo.getLocation(offset);
-  int startLine = lineLocation.lineNumber;
-  int startColumn = lineLocation.columnNumber;
-  // done
-  return new Location(
-      source.fullName,
-      offset,
-      length,
-      startLine,
-      startColumn);
+  String name = element.displayName;
+  int offset = element.nameOffset;
+  int length = name != null ? name.length : 0;
+  if (element is engine.CompilationUnitElement) {
+    offset = 0;
+    length = 0;
+  }
+  engine.SourceRange range = new engine.SourceRange(offset, length);
+  return _locationForArgs(context, source, range);
 }
+
+
+/**
+ * Creates a new [Location] for the given [engine.SearchMatch].
+ */
+Location _locationFromMatch(engine.SearchMatch match) {
+  engine.Element enclosingElement = match.element;
+  return _locationForArgs(
+      enclosingElement.context,
+      enclosingElement.source,
+      match.sourceRange);
+}
+
+
+/**
+ * Creates a new [Location] for the given [engine.AstNode].
+ */
+Location _locationFromNode(engine.AstNode node) {
+  engine.CompilationUnit unit =
+      node.getAncestor((node) => node is engine.CompilationUnit);
+  engine.CompilationUnitElement unitElement = unit.element;
+  engine.AnalysisContext context = unitElement.context;
+  engine.Source source = unitElement.source;
+  engine.SourceRange range = new engine.SourceRange(node.offset, node.length);
+  return _locationForArgs(context, source, range);
+}
+
+/**
+ * Creates a new [Location] for the given [engine.CompilationUnit].
+ */
+Location _locationFromUnit(engine.CompilationUnit unit,
+    engine.SourceRange range) {
+  engine.CompilationUnitElement unitElement = unit.element;
+  engine.AnalysisContext context = unitElement.context;
+  engine.Source source = unitElement.source;
+  return _locationForArgs(context, source, range);
+}
+
 
 /**
  * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
@@ -244,6 +282,30 @@ bool _mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
     }
   }
   return true;
+}
+
+
+RefactoringProblemSeverity
+    _maxRefactoringProblemSeverity(RefactoringProblemSeverity a,
+    RefactoringProblemSeverity b) {
+  if (b == null) {
+    return a;
+  }
+  if (a == null) {
+    return b;
+  } else if (a == RefactoringProblemSeverity.INFO) {
+    return b;
+  } else if (a == RefactoringProblemSeverity.WARNING) {
+    if (b == RefactoringProblemSeverity.ERROR ||
+        b == RefactoringProblemSeverity.FATAL) {
+      return b;
+    }
+  } else if (a == RefactoringProblemSeverity.ERROR) {
+    if (b == RefactoringProblemSeverity.FATAL) {
+      return b;
+    }
+  }
+  return a;
 }
 
 /**
@@ -339,8 +401,8 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a List.  [decoder] is used to
    * decode the items in the list.
    */
-  List _decodeList(String jsonPath, Object json, [JsonDecoderCallback decoder])
-      {
+  List _decodeList(String jsonPath, Object json,
+      [JsonDecoderCallback decoder]) {
     if (json == null) {
       return [];
     } else if (json is List) {
@@ -358,8 +420,8 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
    * to decode the keys, and [valueDecoder] is used to decode the values.
    */
-  Map _decodeMap(String jsonPath, Object json, {JsonDecoderCallback
-      keyDecoder, JsonDecoderCallback valueDecoder}) {
+  Map _decodeMap(String jsonPath, Object json, {JsonDecoderCallback keyDecoder,
+      JsonDecoderCallback valueDecoder}) {
     if (json == null) {
       return {};
     } else if (json is Map) {
@@ -431,14 +493,17 @@ class RequestDecoder extends JsonDecoder {
 
   @override
   dynamic mismatch(String jsonPath, String expected) {
-    return new RequestFailure(new Response.invalidParameter(_request, jsonPath,
-        'be $expected'));
+    return new RequestFailure(
+        new Response.invalidParameter(_request, jsonPath, 'be $expected'));
   }
 
   @override
   dynamic missingKey(String jsonPath, String key) {
-    return new RequestFailure(new Response.invalidParameter(_request, jsonPath,
-        'contain key ${JSON.encode(key)}'));
+    return new RequestFailure(
+        new Response.invalidParameter(
+            _request,
+            jsonPath,
+            'contain key ${JSON.encode(key)}'));
   }
 }
 
@@ -479,6 +544,6 @@ class _JenkinsSmiHash {
 
   static int hash2(a, b) => finish(combine(combine(0, a), b));
 
-  static int hash4(a, b, c, d) => finish(combine(combine(combine(combine(0, a),
-      b), c), d));
+  static int hash4(a, b, c, d) =>
+      finish(combine(combine(combine(combine(0, a), b), c), d));
 }

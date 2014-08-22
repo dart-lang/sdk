@@ -6,14 +6,15 @@ library services.src.refactoring.rename_local;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart' show Location;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -119,9 +120,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<Object> {
       if (haveIntersectingRanges(refactoring.element, nodeElement)) {
         String nodeKind = nodeElement.kind.displayName;
         String message = "Duplicate ${nodeKind} '$newName'.";
-        result.addError(
-            message,
-            createLocation_forElement(nodeElement));
+        result.addError(message, new Location.fromElement(nodeElement));
         return null;
       }
       // shadowing referenced element
@@ -134,7 +133,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<Object> {
         String message =
             'Usage of $nodeKind "$nodeName" declared in '
                 '"$nameElementSourceName" will be shadowed by renamed $refKind.';
-        result.addError(message, createLocation_forNode(node));
+        result.addError(message, new Location.fromNode(node));
       }
     }
     return null;
