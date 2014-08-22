@@ -1,3 +1,7 @@
+## 0.11.5
+
+ * Change to work with both petitparser 1.1.x and 1.2.x versions.
+
 ## 0.11.4
 
  * Broaden the pubspec constraints to allow current analyzer versions.
