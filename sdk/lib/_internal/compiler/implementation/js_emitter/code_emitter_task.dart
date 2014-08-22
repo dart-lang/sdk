@@ -1208,7 +1208,7 @@ class CodeEmitterTask extends CompilerTask {
         if (!element.isNative) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
         if (member == null) continue;
-        if (noSuchMethodSelector.applies(member, compiler)) {
+        if (noSuchMethodSelector.applies(member, compiler.world)) {
           nativeEmitter.handleNoSuchMethod = true;
           break;
         }

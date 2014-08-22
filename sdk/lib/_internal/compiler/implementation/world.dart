@@ -36,6 +36,23 @@ class World {
 
   final Set<Element> alreadyPopulated;
 
+  bool get isClosed => compiler.phase > Compiler.PHASE_RESOLVING;
+
+  // Used by selectors.
+  bool isAssertMethod(Element element) {
+    return compiler.backend.isAssertMethod(element);
+  }
+
+  // Used by selectors.
+  bool isForeign(Element element) {
+    return element.isForeign(compiler.backend);
+  }
+
+  // Used by typed selectors.
+  ClassElement get nullImplementation {
+    return compiler.backend.nullImplementation;
+  }
+
   Set<ClassElement> subclassesOf(ClassElement cls) {
     return _subclasses[cls.declaration];
   }
@@ -228,7 +245,7 @@ class World {
     return element.isFinal
         || element.isConst
         || (element.isInstanceMember
-            && !compiler.resolverWorld.hasInvokedSetter(element, compiler));
+            && !compiler.resolverWorld.hasInvokedSetter(element, this));
   }
 
   SideEffects getSideEffectsOfElement(Element element) {

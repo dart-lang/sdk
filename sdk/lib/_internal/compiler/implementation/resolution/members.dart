@@ -1616,7 +1616,7 @@ class InitializerResolver {
           diagnosticNode, kind, {'constructorName': fullConstructorName});
     } else {
       lookedupConstructor.computeSignature(visitor.compiler);
-      if (!call.applies(lookedupConstructor, visitor.compiler)) {
+      if (!call.applies(lookedupConstructor, visitor.compiler.world)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
@@ -2905,7 +2905,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           FunctionElement function = target;
           function.computeSignature(compiler);
         }
-        if (!selector.applies(target, compiler)) {
+        if (!selector.applies(target, compiler.world)) {
           registry.registerThrowNoSuchMethod();
           if (node.isSuperCall) {
             // Similar to what we do when we can't find super via selector
@@ -3280,7 +3280,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return new ElementResult(constructor);
     }
     constructor.computeSignature(compiler);
-    if (!callSelector.applies(constructor, compiler)) {
+    if (!callSelector.applies(constructor, compiler.world)) {
       registry.registerThrowNoSuchMethod();
     }
 
@@ -4234,7 +4234,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         ConstructorElement superConstructor = superMember;
         Selector callToMatch = new Selector.call("", element.library, 0);
         superConstructor.computeSignature(compiler);
-        if (!callToMatch.applies(superConstructor, compiler)) {
+        if (!callToMatch.applies(superConstructor, compiler.world)) {
           MessageKind kind = MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT;
           compiler.reportError(node, kind);
           superMember = new ErroneousElementX(kind, {}, '', element);

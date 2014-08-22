@@ -512,7 +512,7 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   @override
   Selector newTypedSelector(ConcreteType receiver, Selector selector) {
     return new TypedSelector(concreteTypeToTypeMask(receiver), selector,
-        compiler);
+        compiler.world);
   }
 
   @override
@@ -980,7 +980,7 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool canHit(Element element, Selector selector, Compiler compiler) {
+  bool canHit(Element element, Selector selector, World world) {
     throw new UnsupportedError("");
   }
 
@@ -988,7 +988,7 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
+  bool needsNoSuchMethodHandling(Selector selector, World world) {
     throw new UnsupportedError("");
   }
 

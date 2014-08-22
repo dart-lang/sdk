@@ -515,7 +515,7 @@ class CompileTimeConstantEvaluator extends Visitor {
                                                  target,
                                                  compileArgument,
                                                  compileConstant,
-                                                 compiler);
+                                                 compiler.world);
     if (!succeeded) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
@@ -789,7 +789,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
                                                    target,
                                                    compileArgument,
                                                    compileConstant,
-                                                   compiler);
+                                                   compiler.world);
       evaluateSuperOrRedirectSend(compiledArguments, target);
       return;
     }

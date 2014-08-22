@@ -552,7 +552,7 @@ class JavaScriptBackend extends Backend {
 
     if (elements == null) return false;
     if (elements.isEmpty) return false;
-    return elements.any((element) => selector.applies(element, compiler));
+    return elements.any((element) => selector.applies(element, compiler.world));
   }
 
   final Map<String, Set<ClassElement>> interceptedClassesCache =

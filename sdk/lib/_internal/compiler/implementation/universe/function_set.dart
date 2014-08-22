@@ -69,7 +69,7 @@ class FunctionSet {
     selector = (selector.mask == null)
         ? compiler.noSuchMethodSelector
         : new TypedSelector(selector.mask, compiler.noSuchMethodSelector,
-            compiler);
+            compiler.world);
 
     return noSuchMethods.query(selector, compiler, null);
   }
@@ -158,7 +158,7 @@ class FunctionSetNode {
     if (result != null) return result;
     Setlet<Element> functions;
     for (Element element in elements) {
-      if (selector.appliesUnnamed(element, compiler)) {
+      if (selector.appliesUnnamed(element, compiler.world)) {
         if (functions == null) {
           // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
@@ -174,9 +174,10 @@ class FunctionSetNode {
     // add [noSuchMethod] implementations that apply to [mask] as
     // potential targets.
     if (noSuchMethods != null
-        && mask.needsNoSuchMethodHandling(selector, compiler)) {
+        && mask.needsNoSuchMethodHandling(selector, compiler.world)) {
       FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
-          new TypedSelector(mask, compiler.noSuchMethodSelector, compiler),
+          new TypedSelector(
+              mask, compiler.noSuchMethodSelector, compiler.world),
           compiler,
           null);
       if (!noSuchMethodQuery.functions.isEmpty) {

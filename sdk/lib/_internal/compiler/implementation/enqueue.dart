@@ -134,8 +134,8 @@ abstract class Enqueuer {
       if (cls.isNative) {
         compiler.world.registerUsedElement(member);
         nativeEnqueuer.handleFieldAnnotations(member);
-        if (universe.hasInvokedGetter(member, compiler) ||
-            universe.hasInvocation(member, compiler)) {
+        if (universe.hasInvokedGetter(member, compiler.world) ||
+            universe.hasInvocation(member, compiler.world)) {
           nativeEnqueuer.registerFieldLoad(member);
           // In handleUnseenSelector we can't tell if the field is loaded or
           // stored.  We need the basic algorithm to be Church-Rosser, since the
@@ -148,7 +148,7 @@ abstract class Enqueuer {
           addToWorkList(member);
           return;
         }
-        if (universe.hasInvokedSetter(member, compiler)) {
+        if (universe.hasInvokedSetter(member, compiler.world)) {
           nativeEnqueuer.registerFieldStore(member);
           // See comment after registerFieldLoad above.
           nativeEnqueuer.registerFieldLoad(member);
@@ -177,7 +177,7 @@ abstract class Enqueuer {
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
-      if (universe.hasInvokedGetter(function, compiler)) {
+      if (universe.hasInvokedGetter(function, compiler.world)) {
         registerClosurizedMember(function, compiler.globalDependencies);
         addToWorkList(function);
         return;
@@ -187,27 +187,27 @@ abstract class Enqueuer {
       Link<Element> members = instanceFunctionsByName.putIfAbsent(
           memberName, () => const Link<Element>());
       instanceFunctionsByName[memberName] = members.prepend(function);
-      if (universe.hasInvocation(function, compiler)) {
+      if (universe.hasInvocation(function, compiler.world)) {
         addToWorkList(function);
         return;
       }
     } else if (member.kind == ElementKind.GETTER) {
       FunctionElement getter = member;
       getter.computeSignature(compiler);
-      if (universe.hasInvokedGetter(getter, compiler)) {
+      if (universe.hasInvokedGetter(getter, compiler.world)) {
         addToWorkList(getter);
         return;
       }
       // We don't know what selectors the returned closure accepts. If
       // the set contains any selector we have to assume that it matches.
-      if (universe.hasInvocation(getter, compiler)) {
+      if (universe.hasInvocation(getter, compiler.world)) {
         addToWorkList(getter);
         return;
       }
     } else if (member.kind == ElementKind.SETTER) {
       FunctionElement setter = member;
       setter.computeSignature(compiler);
-      if (universe.hasInvokedSetter(setter, compiler)) {
+      if (universe.hasInvokedSetter(setter, compiler.world)) {
         addToWorkList(setter);
         return;
       }
@@ -477,7 +477,7 @@ abstract class Enqueuer {
 
   void handleUnseenSelector(String methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
-      if (selector.appliesUnnamed(member, compiler)) {
+      if (selector.appliesUnnamed(member, compiler.world)) {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member, compiler.globalDependencies);
         }
@@ -506,7 +506,7 @@ abstract class Enqueuer {
     });
     if (selector.isGetter) {
       processInstanceFunctions(methodName, (Element member) {
-        if (selector.appliesUnnamed(member, compiler)) {
+        if (selector.appliesUnnamed(member, compiler.world)) {
           registerClosurizedMember(member, compiler.globalDependencies);
           return true;
         }
