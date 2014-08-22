@@ -9,7 +9,6 @@ part of types;
  * base type.
  */
 class FlatTypeMask implements TypeMask {
-
   static const int EMPTY    = 0;
   static const int EXACT    = 1;
   static const int SUBCLASS = 2;
@@ -40,6 +39,25 @@ class FlatTypeMask implements TypeMask {
 
   FlatTypeMask.internal(this.base, this.flags) {
     assert(base == null || base.isDeclaration);
+  }
+
+  /**
+   * Ensures that the generated mask is normalized, i.e., a call to
+   * [TypeMask.isNormalized] with the factory's result returns `true`.
+   */
+  factory FlatTypeMask.normalized(ClassElement base, int flags, World world) {
+    if ((flags >> 1) == EMPTY || ((flags >> 1) == EXACT)) {
+      return new FlatTypeMask.internal(base, flags);
+    }
+    if ((flags >> 1) == SUBTYPE) {
+      if (!world.hasAnySubtype(base) || world.hasOnlySubclasses(base)) {
+        flags = (flags & 0x1) | (SUBCLASS << 1);
+      }
+    }
+    if (((flags >> 1) == SUBCLASS) && !world.hasAnySubclass(base)) {
+      flags = (flags & 0x1) | (EXACT << 1);
+    }
+    return new FlatTypeMask.internal(base, flags);
   }
 
   bool get isEmpty => (flags >> 1) == EMPTY;
@@ -111,23 +129,35 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool isInMask(TypeMask other, Compiler compiler) {
-    if (isEmpty) {
-      return isNullable ? other.isNullable : true;
-    }
+    // null is treated separately, so the empty mask might still contain it.
+    if (isEmpty) return isNullable ? other.isNullable : true;
+    // The empty type contains no classes.
     if (other.isEmpty) return false;
+    // Quick check whether to handle null.
     if (isNullable && !other.isNullable) return false;
+    other = TypeMask.nonForwardingMask(other);
+    // If other is union, delegate to UnionTypeMask.containsMask.
     if (other is! FlatTypeMask) return other.containsMask(this, compiler);
+    // The other must be flat, so compare base and flags.
     FlatTypeMask flatOther = other;
     ClassElement otherBase = flatOther.base;
+    // If other is exact, it only contains its base.
+    // TODO(herhut): Get rid of isSingleImplementationOf.
     if (flatOther.isExact) {
       return (isExact && base == otherBase)
           || isSingleImplementationOf(otherBase, compiler);
     }
+    // If other is subclass, this has to be subclass, as well. Unless
+    // flatOther.base covers all subtypes of this. Currently, we only
+    // consider object to behave that way.
+    // TODO(herhut): Add check whether flatOther.base is superclass of
+    //               all subclasses of this.base.
     if (flatOther.isSubclass) {
-      if (isSubtype) return false;
+      if (isSubtype) return (otherBase == compiler.objectClass);
       return base == otherBase || isSubclassOf(base, otherBase, compiler);
     }
     assert(flatOther.isSubtype);
+    // Check whether this TypeMask satisfies otherBase's interface.
     return satisfies(otherBase, compiler);
   }
 
@@ -205,6 +235,8 @@ class FlatTypeMask implements TypeMask {
 
   TypeMask union(TypeMask other, Compiler compiler) {
     assert(other != null);
+    assert(TypeMask.isNormalized(this, compiler.world));
+    assert(TypeMask.isNormalized(other, compiler.world));
     if (other is! FlatTypeMask) return other.union(this, compiler);
     FlatTypeMask flatOther = other;
     if (isEmpty) {
@@ -222,15 +254,18 @@ class FlatTypeMask implements TypeMask {
     } else if (isSubtypeOf(base, flatOther.base, compiler)) {
       return flatOther.unionSubtype(this, compiler);
     } else {
-      return new UnionTypeMask._(<FlatTypeMask>[this, flatOther]);
+      return new UnionTypeMask._internal(<FlatTypeMask>[this, flatOther]);
     }
   }
 
   TypeMask unionSame(FlatTypeMask other, Compiler compiler) {
     assert(base == other.base);
+    assert(TypeMask.isNormalized(this, compiler.world));
+    assert(TypeMask.isNormalized(other, compiler.world));
     // The two masks share the base type, so we must chose the least
     // constraining kind (the highest) of the two. If either one of
     // the masks are nullable the result should be nullable too.
+    // As both masks are normalized, the result will be, too.
     int combined = (flags > other.flags)
         ? flags | (other.flags & 1)
         : other.flags | (flags & 1);
@@ -245,6 +280,8 @@ class FlatTypeMask implements TypeMask {
 
   TypeMask unionSubclass(FlatTypeMask other, Compiler compiler) {
     assert(isSubclassOf(other.base, base, compiler));
+    assert(TypeMask.isNormalized(this, compiler.world));
+    assert(TypeMask.isNormalized(other, compiler.world));
     int combined;
     if ((isExact && other.isExact) || base == compiler.objectClass) {
       // Since the other mask is a subclass of this mask, we need the
@@ -259,17 +296,26 @@ class FlatTypeMask implements TypeMask {
           ? flags | (other.flags & 1)
           : other.flags | (flags & 1);
     }
+    // If we weaken the constraint on this type, we have to make sure that
+    // the result is normalized.
     return (flags != combined)
-        ? new FlatTypeMask.internal(base, combined)
+        ? (combined >> 1 == flags >> 1)
+            ? new FlatTypeMask.internal(base, combined)
+            : new FlatTypeMask.normalized(base, combined, compiler.world)
         : this;
   }
 
   TypeMask unionSubtype(FlatTypeMask other, Compiler compiler) {
+    assert(!isSubclassOf(other.base, base, compiler));
     assert(isSubtypeOf(other.base, base, compiler));
+    assert(TypeMask.isNormalized(this, compiler.world));
+    assert(TypeMask.isNormalized(other, compiler.world));
     // Since the other mask is a subtype of this mask, we need the
     // resulting union to be a subtype too. If either one of the masks
     // are nullable the result should be nullable too.
     int combined = (SUBTYPE << 1) | ((flags | other.flags) & 1);
+    // We know there is at least one subtype, [other.base], so no need
+    // to normalize.
     return (flags != combined)
         ? new FlatTypeMask.internal(base, combined)
         : this;
@@ -278,6 +324,8 @@ class FlatTypeMask implements TypeMask {
   TypeMask intersection(TypeMask other, Compiler compiler) {
     assert(other != null);
     if (other is! FlatTypeMask) return other.intersection(this, compiler);
+    assert(TypeMask.isNormalized(this, compiler.world));
+    assert(TypeMask.isNormalized(other, compiler.world));
     FlatTypeMask flatOther = other;
     if (isEmpty) {
       return flatOther.isNullable ? this : nonNullable();
@@ -303,6 +351,7 @@ class FlatTypeMask implements TypeMask {
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
     // are nullable, will the result be nullable too.
+    // The result will be normalized, as the two inputs are normalized, too.
     int combined = (flags < other.flags)
         ? flags & ((other.flags & 1) | ~1)
         : other.flags & ((flags & 1) | ~1);
@@ -323,6 +372,8 @@ class FlatTypeMask implements TypeMask {
     // Only the other mask puts constraints on the intersection mask,
     // so base the combined flags on the other mask. Only if both
     // masks are nullable, will the result be nullable too.
+    // The result is guaranteed to be normalized, as the other type
+    // was normalized.
     int combined = other.flags & ((flags & 1) | ~1);
     if (other.flags == combined) {
       return other;
@@ -337,6 +388,8 @@ class FlatTypeMask implements TypeMask {
     // Only the other mask puts constraints on the intersection mask,
     // so base the combined flags on the other mask. Only if both
     // masks are nullable, will the result be nullable too.
+    // The result is guaranteed to be normalized, as the other type
+    // was normalized.
     int combined = other.flags & ((flags & 1) | ~1);
     if (other.flags == combined) {
       return other;
@@ -384,18 +437,18 @@ class FlatTypeMask implements TypeMask {
       return true;
     });
     // Run through the list of candidates and compute the union. The
-    // result will only be nullable if both masks are nullable.
+    // result will only be nullable if both masks are nullable. We have
+    // to normalize here, as we generate types based on new base classes.
     int combined = (kind << 1) | (flags & other.flags & 1);
-    TypeMask result;
-    for (ClassElement each in candidates) {
-      TypeMask mask = new FlatTypeMask.internal(each, combined);
-      result = (result == null) ? mask : result.union(mask, compiler);
-    }
-    return result;
+    Iterable<TypeMask> masks = candidates.map((ClassElement cls) {
+      return new FlatTypeMask.normalized(cls, combined, compiler.world);
+    });
+    return UnionTypeMask.unionOf(masks, compiler);
   }
 
   TypeMask intersectionEmpty(FlatTypeMask other) {
-    return new TypeMask(null, EMPTY, isNullable && other.isNullable);
+    return isNullable && other.isNullable ? new TypeMask.empty()
+        : new TypeMask.nonNullEmpty();
   }
 
   /**

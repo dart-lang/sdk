@@ -655,7 +655,6 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     Compiler compiler = inferrer.compiler;
     Selector selectorToUse = typedSelector.extendIfReachesAll(compiler);
-
     bool canReachAll = compiler.enabledInvokeOn &&
         (selectorToUse != typedSelector);
 

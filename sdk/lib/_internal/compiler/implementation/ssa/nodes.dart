@@ -1242,7 +1242,8 @@ abstract class HInstruction implements Spannable {
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
-      TypeMask subtype = new TypeMask.subtype(element.declaration);
+      TypeMask subtype = new TypeMask.subtype(element.declaration,
+                                              compiler.world);
       return new HTypeConversion(type, kind, subtype, this);
     }
   }

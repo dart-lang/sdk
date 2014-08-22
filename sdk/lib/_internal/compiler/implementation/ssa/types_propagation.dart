@@ -234,7 +234,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       if (targets.length == 1) {
         Element target = targets.first;
         ClassElement cls = target.enclosingClass;
-        TypeMask type = new TypeMask.nonNullSubclass(cls.declaration);
+        TypeMask type = new TypeMask.nonNullSubclass(cls.declaration,
+                                                     compiler.world);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
         if (!type.satisfies(backend.jsIndexableClass, compiler)

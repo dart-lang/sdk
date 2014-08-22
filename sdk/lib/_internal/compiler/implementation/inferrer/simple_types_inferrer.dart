@@ -46,7 +46,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
       otherType = nullType;
     } else {
       assert(annotation.isInterfaceType);
-      otherType = new TypeMask.nonNullSubtype(annotation.element);
+      otherType = new TypeMask.nonNullSubtype(annotation.element,
+                                              compiler.world);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type == null) return otherType;
@@ -95,9 +96,9 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask stringLiteralType(ast.DartString value) => stringType;
 
   TypeMask nonNullSubtype(ClassElement type)
-      => new TypeMask.nonNullSubtype(type.declaration);
+      => new TypeMask.nonNullSubtype(type.declaration, compiler.world);
   TypeMask nonNullSubclass(ClassElement type)
-      => new TypeMask.nonNullSubclass(type.declaration);
+      => new TypeMask.nonNullSubclass(type.declaration, compiler.world);
   TypeMask nonNullExact(ClassElement type)
       => new TypeMask.nonNullExact(type.declaration);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();

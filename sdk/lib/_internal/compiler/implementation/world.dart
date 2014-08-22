@@ -148,6 +148,13 @@ class World {
     return classes != null && !classes.isEmpty;
   }
 
+  bool hasOnlySubclasses(ClassElement cls) {
+    Set<ClassElement> subtypes = subtypesOf(cls);
+    if (subtypes == null) return true;
+    Set<ClassElement> subclasses = subclassesOf(cls);
+    return subclasses != null && (subclasses.length == subtypes.length);
+  }
+
   bool hasAnyUserDefinedGetter(Selector selector) {
     return allFunctions.filter(selector).any((each) => each.isGetter);
   }
@@ -200,7 +207,7 @@ class World {
 
   Element locateSingleElement(Selector selector) {
     ti.TypeMask mask = selector.mask == null
-        ? new ti.TypeMask.subclass(compiler.objectClass)
+        ? compiler.typesTask.dynamicType
         : selector.mask;
     return mask.locateSingleElement(selector, compiler);
   }

@@ -208,6 +208,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     if (otherType.isNullable && otherType.containsAll(compiler)) {
       return receiver;
     }
+    assert(TypeMask.isNormalized(otherType, compiler.world));
     TypeInformation newType = new NarrowTypeInformation(receiver, otherType);
     allocatedTypes.add(newType);
     return newType;
@@ -229,12 +230,13 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       assert(annotation.isInterfaceType);
       otherType = annotation.element == compiler.objectClass
           ? dynamicType.type.nonNullable()
-          : new TypeMask.nonNullSubtype(annotation.element);
+          : new TypeMask.nonNullSubtype(annotation.element, compiler.world);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type.type.isExact) {
       return type;
     } else {
+      assert(TypeMask.isNormalized(otherType, compiler.world));
       TypeInformation newType = new NarrowTypeInformation(type, otherType);
       allocatedTypes.add(newType);
       return newType;
@@ -269,11 +271,13 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeInformation nonNullSubtype(ClassElement type) {
-    return getConcreteTypeFor(new TypeMask.nonNullSubtype(type.declaration));
+    return getConcreteTypeFor(
+        new TypeMask.nonNullSubtype(type.declaration, compiler.world));
   }
 
   TypeInformation nonNullSubclass(ClassElement type) {
-    return getConcreteTypeFor(new TypeMask.nonNullSubclass(type.declaration));
+    return getConcreteTypeFor(
+        new TypeMask.nonNullSubclass(type.declaration, compiler.world));
   }
 
   TypeInformation nonNullExact(ClassElement type) {
@@ -724,8 +728,9 @@ class TypeGraphInferrerEngine
                 // Although we might find a better type, we have to keep
                 // the old type around to ensure that we get a complete view
                 // of the type graph and do not drop any flow edges.
-                type = new NarrowTypeInformation(type,
-                    value.computeMask(compiler));
+                TypeMask refinedType = value.computeMask(compiler);
+                assert(TypeMask.isNormalized(refinedType, compiler.world));
+                type = new NarrowTypeInformation(type, refinedType);
                 types.allocatedTypes.add(type);
               }
             }

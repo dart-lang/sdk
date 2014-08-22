@@ -431,9 +431,11 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
       final element = classBaseType.element;
       assert(element != null);
       if (element == compiler.backend.numImplementation) {
-        return new TypeMask.nonNullSubclass(compiler.backend.numImplementation);
+        return new TypeMask.nonNullSubclass(compiler.backend.numImplementation,
+                                            compiler.world);
       } else if (element == compiler.backend.intImplementation) {
-        return new TypeMask.nonNullSubclass(compiler.backend.intImplementation);
+        return new TypeMask.nonNullSubclass(compiler.backend.intImplementation,
+                                            compiler.world);
       } else {
         return new TypeMask.nonNullExact(element.declaration);
       }
@@ -1559,7 +1561,8 @@ class ConcreteTypesInferrer
       TypeMask receiverMask =
           (receiverType == compiler.backend.numImplementation
           || receiverType == compiler.backend.intImplementation)
-              ? new TypeMask.nonNullSubclass(receiverType.declaration)
+              ? new TypeMask.nonNullSubclass(receiverType.declaration,
+                  compiler.world)
               : new TypeMask.nonNullExact(receiverType.declaration);
       TypeMask resultMask = types.concreteTypeToTypeMask(result);
       augmentInferredSelectorType(selector, receiverMask, resultMask);

@@ -147,7 +147,7 @@ class FunctionSetNode {
     // to always be a subclass of Object.
     return selector.mask != null
         ? selector.mask
-        : new TypeMask.subclass(compiler.objectClass);
+        : new TypeMask.subclass(compiler.objectClass, compiler.world);
     }
 
   FunctionSetQuery query(Selector selector,
@@ -213,6 +213,7 @@ class FullFunctionSetQuery extends FunctionSetQuery {
    * Compute the type of all potential receivers of this function set.
    */
   TypeMask computeMask(Compiler compiler) {
+    assert(compiler.world.hasAnySubclass(compiler.objectClass));
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(functions
         .expand((element) {
@@ -224,10 +225,10 @@ class FullFunctionSetQuery extends FunctionSetQuery {
         .map((cls) {
           if (compiler.backend.isNullImplementation(cls)) {
             return const TypeMask.empty();
+          } else {
+            return new TypeMask.nonNullSubclass(cls.declaration,
+                compiler.world);
           }
-          return compiler.world.hasSubclasses(cls)
-              ? new TypeMask.nonNullSubclass(cls.declaration)
-              : new TypeMask.nonNullExact(cls.declaration);
         }),
         compiler);
   }

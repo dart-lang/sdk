@@ -632,8 +632,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
       TypeMask typeMask = (element == compiler.nullClass)
-          ? new TypeMask.subtype(element)
-          : new TypeMask.nonNullSubtype(element);
+          ? new TypeMask.subtype(element, compiler.world)
+          : new TypeMask.nonNullSubtype(element, compiler.world);
       if (expressionMask.union(typeMask, compiler) == typeMask) {
         return graph.addConstantBool(true, compiler);
       } else if (expressionMask.intersection(typeMask, compiler).isEmpty) {
@@ -1631,7 +1631,8 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
-    TypeMask convertedType = new TypeMask.nonNullSubtype(element);
+    TypeMask convertedType =
+        new TypeMask.nonNullSubtype(element, compiler.world);
     HInstruction input = instruction.expression;
 
     for (HIf ifUser in ifUsers) {

@@ -1400,9 +1400,9 @@ class SsaBuilder extends ResolvedVisitor {
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
         // simplicity, we mark the type as an interface type.
-        result = new TypeMask.nonNullSubtype(cls.declaration);
+        result = new TypeMask.nonNullSubtype(cls.declaration, compiler.world);
       } else {
-        result = new TypeMask.nonNullSubclass(cls.declaration);
+        result = new TypeMask.nonNullSubclass(cls.declaration, compiler.world);
       }
       cachedTypeOfThis = result;
     }
@@ -2252,7 +2252,7 @@ class SsaBuilder extends ResolvedVisitor {
     type = type.unalias(compiler);
     assert(assertTypeInContext(type, original));
     if (type.isInterfaceType && !type.treatAsRaw) {
-      TypeMask subtype = new TypeMask.subtype(type.element);
+      TypeMask subtype = new TypeMask.subtype(type.element, compiler.world);
       HInstruction representations = buildTypeArgumentRepresentations(type);
       add(representations);
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
@@ -3331,7 +3331,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   HInstruction buildFunctionType(FunctionType type) {
-    type.accept(new TypeBuilder(), this);
+    type.accept(new TypeBuilder(compiler.world), this);
     return pop();
   }
 
@@ -5264,7 +5264,8 @@ class SsaBuilder extends ResolvedVisitor {
     // The instruction type will always be a subtype of the mapLiteralClass, but
     // type inference might discover a more specific type, or find nothing (in
     // dart2js unit tests).
-    TypeMask mapType = new TypeMask.nonNullSubtype(backend.mapLiteralClass);
+    TypeMask mapType =
+        new TypeMask.nonNullSubtype(backend.mapLiteralClass, compiler.world);
     TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
         constructor, compiler);
     TypeMask instructionType = mapType.intersection(returnTypeMask, compiler);
@@ -6358,6 +6359,10 @@ class SsaBranchBuilder {
 }
 
 class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
+  final World world;
+
+  TypeBuilder(this.world);
+
   void visitType(DartType type, _) {
     throw 'Internal error $type';
   }
@@ -6370,7 +6375,7 @@ class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
   void visitTypeVariableType(TypeVariableType type,
                              SsaBuilder builder) {
     ClassElement cls = builder.backend.findHelper('RuntimeType');
-    TypeMask instructionType = new TypeMask.subclass(cls);
+    TypeMask instructionType = new TypeMask.subclass(cls, world);
     if (!builder.sourceElement.enclosingElement.isClosure &&
         builder.sourceElement.isInstanceMember) {
       HInstruction receiver = builder.localsHandler.readThis();

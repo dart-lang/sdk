@@ -664,12 +664,16 @@ class TypedSelector extends Selector {
       => new TypedSelector(new TypeMask.exact(base), selector, compiler);
 
   factory TypedSelector.subclass(ClassElement base, Selector selector,
-      Compiler compiler)
-      => new TypedSelector(new TypeMask.subclass(base), selector, compiler);
+      Compiler compiler) {
+    return new TypedSelector(new TypeMask.subclass(base, compiler.world),
+        selector, compiler);
+  }
 
   factory TypedSelector.subtype(ClassElement base, Selector selector,
-      Compiler compiler)
-      => new TypedSelector(new TypeMask.subtype(base), selector, compiler);
+      Compiler compiler) {
+    return new TypedSelector(new TypeMask.subtype(base, compiler.world),
+        selector, compiler);
+  }
 
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));

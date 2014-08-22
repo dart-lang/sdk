@@ -75,14 +75,16 @@ class TypesTask extends CompilerTask {
 
   TypeMask get dynamicType {
     if (dynamicTypeCache == null) {
-      dynamicTypeCache = new TypeMask.subclass(compiler.objectClass);
+      dynamicTypeCache = new TypeMask.subclass(compiler.objectClass,
+          compiler.world);
     }
     return dynamicTypeCache;
   }
 
   TypeMask get nonNullType {
     if (nonNullTypeCache == null) {
-      nonNullTypeCache = new TypeMask.nonNullSubclass(compiler.objectClass);
+      nonNullTypeCache = new TypeMask.nonNullSubclass(compiler.objectClass,
+          compiler.world);
     }
     return nonNullTypeCache;
   }
@@ -90,7 +92,7 @@ class TypesTask extends CompilerTask {
   TypeMask get intType {
     if (intTypeCache == null) {
       intTypeCache = new TypeMask.nonNullSubclass(
-          compiler.backend.intImplementation);
+          compiler.backend.intImplementation, compiler.world);
     }
     return intTypeCache;
   }
@@ -98,7 +100,7 @@ class TypesTask extends CompilerTask {
   TypeMask get uint32Type {
     if (uint32TypeCache == null) {
       uint32TypeCache = new TypeMask.nonNullSubclass(
-          compiler.backend.uint32Implementation);
+          compiler.backend.uint32Implementation, compiler.world);
     }
     return uint32TypeCache;
   }
@@ -114,7 +116,7 @@ class TypesTask extends CompilerTask {
   TypeMask get positiveIntType {
     if (positiveIntTypeCache == null) {
       positiveIntTypeCache = new TypeMask.nonNullSubclass(
-          compiler.backend.positiveIntImplementation);
+          compiler.backend.positiveIntImplementation, compiler.world);
     }
     return positiveIntTypeCache;
   }
@@ -130,7 +132,7 @@ class TypesTask extends CompilerTask {
   TypeMask get numType {
     if (numTypeCache == null) {
       numTypeCache = new TypeMask.nonNullSubclass(
-          compiler.backend.numImplementation);
+          compiler.backend.numImplementation, compiler.world);
     }
     return numTypeCache;
   }
@@ -146,7 +148,7 @@ class TypesTask extends CompilerTask {
   TypeMask get functionType {
     if (functionTypeCache == null) {
       functionTypeCache = new TypeMask.nonNullSubtype(
-          compiler.backend.functionImplementation);
+          compiler.backend.functionImplementation, compiler.world);
     }
     return functionTypeCache;
   }
@@ -186,7 +188,7 @@ class TypesTask extends CompilerTask {
   TypeMask get mapType {
     if (mapTypeCache == null) {
       mapTypeCache = new TypeMask.nonNullSubtype(
-          compiler.backend.mapImplementation);
+          compiler.backend.mapImplementation, compiler.world);
     }
     return mapTypeCache;
   }
@@ -194,7 +196,7 @@ class TypesTask extends CompilerTask {
   TypeMask get constMapType {
     if (constMapTypeCache == null) {
       constMapTypeCache = new TypeMask.nonNullSubtype(
-          compiler.backend.constMapImplementation);
+          compiler.backend.constMapImplementation, compiler.world);
     }
     return constMapTypeCache;
   }
@@ -247,7 +249,7 @@ class TypesTask extends CompilerTask {
     if (type1 == null) return false;
     if (type2 == null) {
       return (type1 != null) &&
-             (type1 != new TypeMask.subclass(compiler.objectClass));
+             (type1 != dynamicType);
     }
     return (type1 != type2) &&
            type2.containsMask(type1, compiler) &&
