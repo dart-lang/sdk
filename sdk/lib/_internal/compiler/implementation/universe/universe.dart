@@ -195,7 +195,7 @@ class Selector {
     return result;
   }
 
-  factory Selector.fromElement(Element element, Compiler compiler) {
+  factory Selector.fromElement(Element element) {
     String name = element.name;
     if (element.isFunction) {
       if (name == '[]') {
@@ -204,7 +204,7 @@ class Selector {
         return new Selector.indexSet();
       }
       FunctionSignature signature =
-          element.asFunctionElement().computeSignature(compiler);
+          element.asFunctionElement().functionSignature;
       int arity = signature.parameterCount;
       List<String> namedArguments = null;
       if (signature.optionalParametersAreNamed) {
@@ -328,15 +328,15 @@ class Selector {
   }
 
   bool appliesUnnamed(Element element, Compiler compiler) {
-    assert(sameNameHack(element, compiler));
+    assert(sameNameHack(element, compiler.backend));
     return appliesUntyped(element, compiler);
   }
 
   bool appliesUntyped(Element element, Compiler compiler) {
-    assert(sameNameHack(element, compiler));
+    assert(sameNameHack(element, compiler.backend));
     if (Elements.isUnresolved(element)) return false;
     if (isPrivateName(name) && library != element.library) return false;
-    if (element.isForeign(compiler)) return true;
+    if (element.isForeign(compiler.backend)) return true;
     if (element.isSetter) return isSetter;
     if (element.isGetter) return isGetter || isCall;
     if (element.isField) {
@@ -346,11 +346,11 @@ class Selector {
     }
     if (isGetter) return true;
     if (isSetter) return false;
-    return signatureApplies(element, compiler);
+    return signatureApplies(element);
   }
 
-  bool signatureApplies(FunctionElement function, Compiler compiler) {
-    FunctionSignature parameters = function.computeSignature(compiler);
+  bool signatureApplies(FunctionElement function) {
+    FunctionSignature parameters = function.functionSignature;
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
@@ -382,15 +382,15 @@ class Selector {
     }
   }
 
-  bool sameNameHack(Element element, Compiler compiler) {
+  bool sameNameHack(Element element, Backend backend) {
     // TODO(ngeoffray): Remove workaround checks.
     return element.isConstructor ||
            name == element.name ||
-           name == 'assert' && compiler.backend.isAssertMethod(element);
+           name == 'assert' && backend.isAssertMethod(element);
   }
 
   bool applies(Element element, Compiler compiler) {
-    if (!sameNameHack(element, compiler)) return false;
+    if (!sameNameHack(element, compiler.backend)) return false;
     return appliesUnnamed(element, compiler);
   }
 
@@ -676,7 +676,7 @@ class TypedSelector extends Selector {
   }
 
   bool appliesUnnamed(Element element, Compiler compiler) {
-    assert(sameNameHack(element, compiler));
+    assert(sameNameHack(element, compiler.backend));
     // [TypedSelector] are only used after resolution.
     if (!element.isClassMember) return false;
 

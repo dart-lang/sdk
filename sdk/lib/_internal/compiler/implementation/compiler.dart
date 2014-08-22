@@ -1656,11 +1656,6 @@ abstract class Compiler implements DiagnosticListener {
     backend.codegen(work);
   }
 
-  FunctionSignature resolveSignature(FunctionElement element) {
-    return withCurrentElement(element,
-                              () => resolver.resolveSignature(element));
-  }
-
   void reportError(Spannable node,
                    MessageKind messageKind,
                    [Map arguments = const {}]) {

@@ -3052,7 +3052,7 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   void generateGetter(ast.Send send, Element element) {
-    if (element != null && element.isForeign(compiler)) {
+    if (element != null && element.isForeign(backend)) {
       visitForeignGetter(send);
     } else if (Elements.isStaticOrTopLevelField(element)) {
       Constant value;
@@ -4312,7 +4312,7 @@ class SsaBuilder extends ResolvedVisitor {
     if (elements.isAssert(node)) {
       element = backend.assertMethod;
     }
-    if (element.isForeign(compiler) && element.isFunction) {
+    if (element.isForeign(backend) && element.isFunction) {
       visitForeignSend(node);
       return;
     }

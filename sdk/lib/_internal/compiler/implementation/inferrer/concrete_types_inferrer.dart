@@ -232,7 +232,7 @@ class UnionType implements ConcreteType {
     for (BaseType baseType in baseTypes) {
       if (baseType.isClass()) {
         ClassBaseType classBaseType = baseType;
-        if (classBaseType.element.lookupSelector(selector, compiler) != null) {
+        if (classBaseType.element.lookupSelector(selector) != null) {
           newBaseTypes.add(baseType);
         }
       } else {
@@ -1233,7 +1233,7 @@ class ConcreteTypesInferrer
     // TODO(polux): memoize?
     Set<Element> result = new Set<Element>();
     for (ClassElement cls in seenClasses) {
-      Element elem = cls.lookupSelector(selector, compiler);
+      Element elem = cls.lookupSelector(selector);
       if (elem != null) {
         result.add(elem.implementation);
       }
@@ -2127,7 +2127,7 @@ class ConcreteTypesInferrer
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseType = baseReceiverType;
           ClassElement cls = classBaseType.element;
-          Element getterOrField = cls.lookupSelector(selector, compiler);
+          Element getterOrField = cls.lookupSelector(selector);
           if (getterOrField != null) {
             augmentResult(cls, getterOrField.implementation);
           }
@@ -2174,7 +2174,7 @@ class ConcreteTypesInferrer
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseType = baseReceiverType;
           ClassElement cls = classBaseType.element;
-          Element setterOrField = cls.lookupSelector(selector, compiler);
+          Element setterOrField = cls.lookupSelector(selector);
           if (setterOrField != null) {
             augmentField(cls, setterOrField.implementation);
           }
@@ -2216,7 +2216,7 @@ class ConcreteTypesInferrer
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseReceiverType = baseReceiverType;
           ClassElement cls = classBaseReceiverType.element;
-          Element method = cls.lookupSelector(selector, compiler);
+          Element method = cls.lookupSelector(selector);
           if (method != null) {
             if (method.isFunction) {
               assert(method is FunctionElement);

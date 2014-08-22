@@ -1448,7 +1448,9 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
     Element element = elements[node];
     assert(!element.isConstructor);
     // TODO(lry): support foreign functions.
-    if (element.isForeign(compiler)) return giveup(node, 'StaticSend: foreign');
+    if (element.isForeign(compiler.backend)) {
+      return giveup(node, 'StaticSend: foreign');
+    }
 
     Selector selector = elements.getSelector(node);
 
