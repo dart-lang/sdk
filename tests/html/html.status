@@ -174,7 +174,9 @@ transferables_test: Fail # Issue 9846
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
-node_validator_test: RuntimeError # Issue 20657.
+node_validator_test: Pass, RuntimeError # Issues 20657, 20659.
+worker_test/functional: Pass, Fail # Issues 20659.
+transferables_test: Pass, Fail # Issues 20659.
 
 # IE11 Feature support statuses-
 # These results not yet noted in platform support annotations.
