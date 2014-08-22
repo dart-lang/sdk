@@ -39,7 +39,7 @@ Compiler reuseCompiler(
       compiler.hasCrashed ||
       compiler.compilerWasCancelled ||
       compiler.enqueuer.resolution.hasEnqueuedReflectiveElements ||
-      compiler.deferredLoadTask.splitProgram) {
+      compiler.deferredLoadTask.isProgramSplit) {
     if (compiler != null && compiler.hasIncrementalSupport) {
       print('***FLUSH***');
       if (compiler.hasCrashed) {
