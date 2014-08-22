@@ -172,6 +172,17 @@ class Package {
     }
 
     return files.where((file) {
+      // Using substring here is generally problematic in cases where dir has
+      // one or more trailing slashes. If you do listDir("foo"), you'll get back
+      // paths like "foo/bar". If you do listDir("foo/"), you'll get "foo/bar"
+      // (note the trailing slash was dropped. If you do listDir("foo//"),
+      // you'll get "foo//bar".
+      //
+      // This means if you strip off the prefix, the resulting string may have a
+      // leading separator (if the prefix did not have a trailing one) or it may
+      // not. However, since we are only using the results of that to call
+      // contains() on, the leading separator is harmless.
+      assert(file.startsWith(beneath));
       file = file.substring(beneath.length);
       return !_blacklistedFiles.any(file.endsWith) &&
           !_blacklistedDirs.any(file.contains);

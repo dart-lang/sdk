@@ -520,7 +520,7 @@ class AssetEnvironment {
   /// For large packages, listing the contents is a performance bottleneck, so
   /// this is optimized for our needs in here instead of using the more general
   /// but slower [listDir].
-  List<AssetId> _listDirectorySources(Package package, String dir) {
+  Iterable<AssetId> _listDirectorySources(Package package, String dir) {
     var subdirectory = path.join(package.dir, dir);
     if (!dirExists(subdirectory)) return [];
 
@@ -529,29 +529,18 @@ class AssetEnvironment {
     // readability than most code in pub. In particular, it avoids using the
     // path package, since re-parsing a path is very expensive relative to
     // string operations.
-    return package.listFiles(beneath: subdirectory).expand((file) {
-      var relative = file.substring(package.dir.length + 1);
-
-      // Skip files that were (most likely) compiled from nearby ".dart"
-      // files. These are created by the Editor's "Run as JavaScript"
-      // command and are written directly into the package's directory.
-      // When pub's dart2js transformer then tries to create the same file
-      // name, we get a build error. To avoid that, just don't consider
-      // that file to be a source.
-      // TODO(rnystrom): Remove these when the Editor no longer generates
-      // .js files and users have had enough time that they no longer have
-      // these files laying around. See #15859.
-      if (relative.endsWith(".dart.js")) return [];
-      if (relative.endsWith(".dart.js.map")) return [];
-      if (relative.endsWith(".dart.precompiled.js")) return [];
+    return package.listFiles(beneath: subdirectory).map((file) {
+      // From profiling, path.relative here is just as fast as a raw substring
+      // and is correct in the case where package.dir has a trailing slash.
+      var relative = path.relative(file, from: package.dir);
 
       if (Platform.operatingSystem == 'windows') {
         relative = relative.replaceAll("\\", "/");
       }
 
       var uri = new Uri(pathSegments: relative.split("/"));
-      return [new AssetId(package.name, uri.toString())];
-    }).toList();
+      return new AssetId(package.name, uri.toString());
+    });
   }
 
   /// Adds a file watcher for [dir] within [package], if the directory exists
