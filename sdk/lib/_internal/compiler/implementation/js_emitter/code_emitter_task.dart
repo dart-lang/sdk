@@ -1411,7 +1411,7 @@ class CodeEmitterTask extends CompilerTask {
       mainBuffer.add(buildGeneratedBy());
       addComment(HOOKS_API_USAGE, mainBuffer);
 
-      if (!compiler.deferredLoadTask.splitProgram) {
+      if (!compiler.deferredLoadTask.isProgramSplit) {
         mainBuffer.add('(function(${namer.currentIsolate})$_{$n');
       }
 
@@ -1710,7 +1710,7 @@ class CodeEmitterTask extends CompilerTask {
           buildPrecompiledFunction();
       emitInitFunction(mainBuffer);
       emitMain(mainBuffer);
-      if (!compiler.deferredLoadTask.splitProgram) {
+      if (!compiler.deferredLoadTask.isProgramSplit) {
         mainBuffer.add('})()\n');
       } else {
         mainBuffer.add('\n');
