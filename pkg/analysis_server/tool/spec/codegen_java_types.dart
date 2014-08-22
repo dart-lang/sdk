@@ -74,10 +74,15 @@ class CodegenJavaType extends CodegenJavaVisitor {
     writeln('import java.util.Arrays;');
     writeln('import java.util.List;');
     writeln('import java.util.Map;');
+    writeln('import com.google.common.collect.Lists;');
+    writeln('import com.google.dart.server.utilities.general.JsonUtilities;');
     writeln('import com.google.dart.server.utilities.general.ObjectUtilities;');
     writeln('import com.google.gson.JsonArray;');
+    writeln('import com.google.gson.JsonElement;');
     writeln('import com.google.gson.JsonObject;');
     writeln('import com.google.gson.JsonPrimitive;');
+    writeln('import java.util.ArrayList;');
+    writeln('import java.util.Iterator;');
     writeln('import org.apache.commons.lang3.StringUtils;');
     writeln();
     javadocComment(toHtmlVisitor.collectHtml(() {
@@ -95,15 +100,22 @@ class CodegenJavaType extends CodegenJavaVisitor {
       // i.e. "public static final Parameter[] EMPTY_ARRAY = new Parameter[0];"
       //
       publicField(javaName("EMPTY_ARRAY"), () {
-        javadocComment(toHtmlVisitor.collectHtml(() {
-          toHtmlVisitor.write('An empty array of {@link ${className}}s.');
-        }));
         writeln(
             'public static final ${className}[] EMPTY_ARRAY = new ${className}[0];');
       });
 
       //
-      // Extra filds on the Element type such as:
+      // public static final "EMPTY_LIST" field
+      //
+      // i.e. "public static final List<Parameter> EMPTY_LIST = Lists.newArrayList();"
+      //
+      publicField(javaName("EMPTY_LIST"), () {
+        writeln(
+            'public static final List<${className}> EMPTY_LIST = Lists.newArrayList();');
+      });
+
+      //
+      // Extra fields on the Element type such as:
       // private static final int ABSTRACT = 0x01;
       //
       if (className == 'Element') {
@@ -119,8 +131,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       TypeObject typeObject = typeDef.type as TypeObject;
       List<TypeObjectField> fields = typeObject.fields;
-      // TODO (jwren) we need to possibly remove fields such as "type" in these
-      // objects: AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay
+      // TODO we need to possibly remove fields such as "type" in these objects:
+      // AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay
       for (TypeObjectField field in fields) {
         privateField(javaName(field.name), () {
           javadocComment(toHtmlVisitor.collectHtml(() {
@@ -167,6 +179,78 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('}');
         });
       }
+
+      //
+      // fromJson(JsonObject) factory constructor, example:
+//      public JsonObject toJson(JsonObject jsonObject) {
+//          String x = jsonObject.get("x").getAsString();
+//          return new Y(x);
+//        }
+      publicMethod('fromJson', () {
+        writeln('public static ${className} fromJson(JsonObject jsonObject) {');
+        indent(() {
+          for (TypeObjectField field in fields) {
+            write('${javaType(field.type)} ${javaName(field.name)} = ');
+            if (field.optional) {
+              write(
+                  'jsonObject.get("${javaName(field.name)}") == null ? null : ');
+            }
+            if (isDeclaredInSpec(field.type)) {
+              write('${javaType(field.type)}.fromJson(');
+              write(
+                  'jsonObject.get("${javaName(field.name)}").getAsJsonObject())');
+            } else {
+              if (isList(field.type)) {
+                if (javaType(field.type).endsWith('<String>')) {
+                  write(
+                      'JsonUtilities.decodeStringList(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                } else {
+                  write(
+                      '${javaType((field.type as TypeList).itemType)}.fromJsonArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                }
+              } else if (isArray(field.type)) {
+                if (javaType(field.type).startsWith('Integer')) {
+                  write(
+                      'JsonUtilities.decodeIntegerArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                }
+              } else {
+                write(
+                    'jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}()');
+              }
+            }
+            writeln(';');
+          }
+          write('return new ${className}(');
+          List<String> parameters = new List();
+          for (TypeObjectField field in fields) {
+            parameters.add('${javaName(field.name)}');
+          }
+          write(parameters.join(', '));
+          writeln(');');
+        });
+        writeln('}');
+      });
+
+      //
+      // fromJson(JsonArray) factory constructor
+      //
+      publicMethod('fromJsonArray', () {
+        writeln(
+            'public static List<${className}> fromJsonArray(JsonArray jsonArray) {');
+        indent(() {
+          writeln('if (jsonArray == null) {');
+          writeln('  return EMPTY_LIST;');
+          writeln('}');
+          writeln(
+              'ArrayList<${className}> list = new ArrayList<${className}>(jsonArray.size());');
+          writeln('Iterator<JsonElement> iterator = jsonArray.iterator();');
+          writeln('while (iterator.hasNext()) {');
+          writeln('  list.add(fromJson(iterator.next().getAsJsonObject()));');
+          writeln('}');
+          writeln('return list;');
+        });
+        writeln('}');
+      });
 
       //
       // toJson() method, example:
@@ -303,6 +387,22 @@ class CodegenJavaType extends CodegenJavaVisitor {
       return 'Arrays.equals(other.${name}, ${name})';
     } else {
       return 'ObjectUtilities.equals(${other}.${name}, ${name})';
+    }
+  }
+
+  String _getAsTypeMethodName(TypeDecl typeDecl) {
+    String name = javaType(typeDecl);
+    if (name == 'String') {
+      return 'getAsString';
+    } else if (name == 'Boolean') {
+      return 'getAsBoolean';
+    } else if (name == 'Integer') {
+      return 'getAsInt';
+    } else if (name.startsWith('List')) {
+      return 'getAsJsonArray';
+    } else {
+      // TODO (jwren) cleanup
+      return 'getAsJsonArray';
     }
   }
 
