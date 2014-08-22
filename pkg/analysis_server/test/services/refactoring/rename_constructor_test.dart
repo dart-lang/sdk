@@ -4,7 +4,7 @@
 
 library test.services.refactoring.rename_constructor;
 
-import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -34,7 +34,7 @@ class A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Class 'A' already declares constructor with name 'newName'.",
           expectedContextSearch: 'newName() {} // existing');
     });
@@ -53,7 +53,7 @@ class A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Class 'A' already declares method with name 'newName'.",
           expectedContextSearch: 'newName() {} // existing');
     });
@@ -71,13 +71,13 @@ class A {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Constructor name must not be null.");
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.FATAL,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "The new name must be different than the current name.");
     // empty
     refactoring.newName = '';

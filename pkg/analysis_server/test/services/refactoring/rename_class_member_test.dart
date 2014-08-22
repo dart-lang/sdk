@@ -4,7 +4,7 @@
 
 library test.services.refactoring.rename_class_member;
 
-import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -54,7 +54,7 @@ class A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Class 'A' already declares method with name 'newName'.",
           expectedContextSearch: 'newName() {} // existing');
     });
@@ -111,7 +111,7 @@ class A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage:
               "Usage of renamed method will be shadowed by local variable 'newName'.",
           expectedContextSearch: 'test(); // marker');
@@ -136,7 +136,7 @@ class B extends A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage:
               "Usage of renamed method will be shadowed by local variable 'newName'.",
           expectedContextSearch: 'test(); // marker');
@@ -158,7 +158,7 @@ class A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage:
               "Usage of renamed method will be shadowed by parameter 'newName'.",
           expectedContextSearch: 'test(); // marker');
@@ -183,7 +183,7 @@ class B extends A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Renamed method will shadow method 'A.newName'.",
           expectedContextSearch: 'newName() {} // marker');
     });
@@ -207,7 +207,7 @@ class B extends A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Renamed method will be shadowed by method 'B.newName'.",
           expectedContextSearch: 'newName() {} // marker');
     });
@@ -233,7 +233,7 @@ class C extends B {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Renamed method will shadow field 'A.newName'.",
           expectedContextSearch: 'newName; // marker');
     });
@@ -249,7 +249,7 @@ class A {
     // check status
     refactoring.newName = 'newName';
     return refactoring.checkInitialConditions().then((status) {
-      assertRefactoringStatus(status, RefactoringStatusSeverity.FATAL);
+      assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
     });
   }
 
@@ -264,7 +264,7 @@ class A {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Field name must not be null.");
     // OK
     refactoring.newName = 'newName';
@@ -282,13 +282,13 @@ class A {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Constant name must not be null.");
     // not upper case
     refactoring.newName = 'newName';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.WARNING);
+        RefactoringProblemSeverity.WARNING);
     // OK
     refactoring.newName = 'NEW_NAME';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -305,19 +305,19 @@ class A {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Method name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Method name must not be empty.");
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.FATAL,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "The new name must be different than the current name.");
     // OK
     refactoring.newName = 'newName';

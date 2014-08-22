@@ -61,24 +61,24 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    * Asserts that [status] has expected severity and message.
    */
   void assertRefactoringStatus(RefactoringStatus status,
-      RefactoringStatusSeverity expectedSeverity, {String expectedMessage,
+      RefactoringProblemSeverity expectedSeverity, {String expectedMessage,
       SourceRange expectedContextRange, String expectedContextSearch}) {
-    expect(status.severity, expectedSeverity, reason: status.message);
-    if (expectedSeverity != RefactoringStatusSeverity.OK) {
-      RefactoringStatusEntry entry = status.entryWithHighestSeverity;
-      expect(entry.severity, expectedSeverity);
+    expect(status.severity, expectedSeverity, reason: status.toString());
+    if (expectedSeverity != null) {
+      RefactoringProblem problem = status.problem;
+      expect(problem.severity, expectedSeverity);
       if (expectedMessage != null) {
-        expect(entry.message, expectedMessage);
+        expect(problem.message, expectedMessage);
       }
       if (expectedContextRange != null) {
-        expect(entry.context.range, expectedContextRange);
+        expect(problem.location.offset, expectedContextRange.offset);
+        expect(problem.location.length, expectedContextRange.length);
       }
       if (expectedContextSearch != null) {
-        SourceRange contextRange = entry.context.range;
         int expectedOffset = findOffset(expectedContextSearch);
         int expectedLength = findIdentifierLength(expectedContextSearch);
-        expect(contextRange.offset, expectedOffset);
-        expect(contextRange.length, expectedLength);
+        expect(problem.location.offset, expectedOffset);
+        expect(problem.location.length, expectedLength);
       }
     }
   }
@@ -87,7 +87,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    * Asserts that [refactoring] status is OK.
    */
   void assertRefactoringStatusOK(RefactoringStatus status) {
-    assertRefactoringStatus(status, RefactoringStatusSeverity.OK);
+    assertRefactoringStatus(status, null);
   }
 
   /**

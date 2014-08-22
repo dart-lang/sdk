@@ -4,7 +4,7 @@
 
 library test.services.refactoring.rename_library;
 
-import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
@@ -30,19 +30,19 @@ library my.app;
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Library name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Library name must not be blank.");
     // same name
     refactoring.newName = 'my.app';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.FATAL,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "The new name must be different than the current name.");
   }
 

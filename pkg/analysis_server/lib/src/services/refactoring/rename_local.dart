@@ -121,7 +121,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<Object> {
         String message = "Duplicate ${nodeKind} '$newName'.";
         result.addError(
             message,
-            new RefactoringStatusContext.forElement(nodeElement));
+            createLocation_forElement(nodeElement));
         return null;
       }
       // shadowing referenced element
@@ -134,7 +134,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor<Object> {
         String message =
             'Usage of $nodeKind "$nodeName" declared in '
                 '"$nameElementSourceName" will be shadowed by renamed $refKind.';
-        result.addError(message, new RefactoringStatusContext.forNode(node));
+        result.addError(message, createLocation_forNode(node));
       }
     }
     return null;

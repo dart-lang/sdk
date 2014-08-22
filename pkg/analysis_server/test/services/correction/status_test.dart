@@ -12,95 +12,65 @@ import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
+import 'package:analysis_server/src/protocol2.dart' show Location,
+    RefactoringProblem, RefactoringProblemSeverity;
 
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(RefactoringStatusContextTest);
-  runReflectiveTests(RefactoringStatusEntryTest);
+  runReflectiveTests(RefactoringLocationTest);
   runReflectiveTests(RefactoringStatusTest);
 }
 
 
 @ReflectiveTestCase()
-class RefactoringStatusContextTest extends AbstractSingleUnitTest {
-  void test_new_forElement() {
+class RefactoringLocationTest extends AbstractSingleUnitTest {
+  void test_createLocation_forElement() {
     resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
-    var statusContext = new RefactoringStatusContext.forElement(element);
-    // access
-    expect(statusContext.context, context);
-    expect(statusContext.source, testSource);
-    expect(
-        statusContext.range,
-        rangeStartLength(element.nameOffset, 'MyClass'.length));
+    // check
+    Location location = createLocation_forElement(element);
+    expect(location.file, '/test.dart');
+    expect(location.offset, 6);
+    expect(location.length, 7);
+    expect(location.startLine, 1);
+    expect(location.startColumn, 7);
   }
 
-  void test_new_forMatch() {
+  void test_createLocation_forMatch() {
     resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     SourceRange range = rangeElementName(element);
     SearchMatch match = new SearchMatch(null, element, range, true, false);
-    var statusContext = new RefactoringStatusContext.forMatch(match);
-    // access
-    expect(statusContext.context, context);
-    expect(statusContext.source, testSource);
-    expect(statusContext.range, range);
+    // check
+    Location location = createLocation_forMatch(match);
+    expect(location.file, '/test.dart');
+    expect(location.offset, range.offset);
+    expect(location.length, range.length);
   }
 
-  void test_new_forNode() {
+  void test_createLocation_forNode() {
     resolveTestUnit('''
 main() {
 }
 ''');
     AstNode node = findNodeAtString('main');
-    var statusContext = new RefactoringStatusContext.forNode(node);
-    // access
-    expect(statusContext.context, context);
-    expect(statusContext.source, testSource);
-    expect(statusContext.range, rangeNode(node));
+    // check
+    Location location = createLocation_forNode(node);
+    expect(location.file, '/test.dart');
+    expect(location.offset, node.offset);
+    expect(location.length, node.length);
   }
 
-  void test_new_forUnit() {
+  void test_createLocation_forUnit() {
     resolveTestUnit('');
     SourceRange range = rangeStartLength(10, 20);
-    var statusContext = new RefactoringStatusContext.forUnit(testUnit, range);
-    // access
-    expect(statusContext.context, context);
-    expect(statusContext.source, testSource);
-    expect(statusContext.range, range);
-  }
-}
-
-
-@ReflectiveTestCase()
-class RefactoringStatusEntryTest {
-  void test_new_withContext() {
-    RefactoringStatusContext context = new _MockRefactoringStatusContext();
-    RefactoringStatusEntry entry =
-        new RefactoringStatusEntry(
-            RefactoringStatusSeverity.ERROR,
-            "my message",
-            context);
-    // access
-    expect(entry.severity, RefactoringStatusSeverity.ERROR);
-    expect(entry.message, 'my message');
-    expect(entry.context, context);
-  }
-
-  void test_new_withoutContext() {
-    RefactoringStatusEntry entry =
-        new RefactoringStatusEntry(RefactoringStatusSeverity.ERROR, "my message");
-    // access
-    expect(entry.severity, RefactoringStatusSeverity.ERROR);
-    expect(entry.message, 'my message');
-    expect(entry.context, isNull);
-    // isX
-    expect(entry.isFatalError, isFalse);
-    expect(entry.isError, isTrue);
-    expect(entry.isWarning, isFalse);
+    // check
+    Location location = createLocation_forUnit(testUnit, range);
+    expect(location.file, '/test.dart');
+    expect(location.offset, range.offset);
+    expect(location.length, range.length);
   }
 }
 
@@ -110,123 +80,117 @@ class RefactoringStatusTest {
   void test_addError() {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     // initial state
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.OK);
+    expect(refactoringStatus.severity, null);
     // add ERROR
     refactoringStatus.addError('msg');
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.ERROR);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     expect(refactoringStatus.isOK, isFalse);
     expect(refactoringStatus.hasFatalError, isFalse);
     expect(refactoringStatus.hasError, isTrue);
-    // entries
-    List<RefactoringStatusEntry> entries = refactoringStatus.entries;
-    expect(entries, hasLength(1));
-    expect(entries[0].message, 'msg');
+    // problems
+    List<RefactoringProblem> problems = refactoringStatus.problems;
+    expect(problems, hasLength(1));
+    expect(problems[0].message, 'msg');
   }
 
-  void test_addFatalError_withContext() {
-    RefactoringStatusContext context = new _MockRefactoringStatusContext();
+  void test_addFatalError_withLocation() {
+    Location location = new Location('/test.dart', 1, 2, 3, 4);
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     // initial state
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.OK);
+    expect(refactoringStatus.severity, null);
     // add FATAL
-    refactoringStatus.addFatalError('msg', context);
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.FATAL);
+    refactoringStatus.addFatalError('msg', location);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.FATAL);
     expect(refactoringStatus.isOK, isFalse);
     expect(refactoringStatus.hasFatalError, isTrue);
     expect(refactoringStatus.hasError, isTrue);
-    // entries
-    List<RefactoringStatusEntry> entries = refactoringStatus.entries;
-    expect(entries, hasLength(1));
-    expect(entries[0].message, 'msg');
-    expect(entries[0].context, context);
+    // problems
+    List<RefactoringProblem> problems = refactoringStatus.problems;
+    expect(problems, hasLength(1));
+    expect(problems[0].message, 'msg');
+    expect(problems[0].location.file, '/test.dart');
+    expect(problems[0].location.offset, 1);
+    expect(problems[0].location.length, 2);
     // add WARNING, resulting severity is still FATAL
     refactoringStatus.addWarning("warning");
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.FATAL);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.FATAL);
   }
 
   void test_addFatalError_withoutContext() {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     // initial state
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.OK);
+    expect(refactoringStatus.severity, null);
     // add FATAL
     refactoringStatus.addFatalError('msg');
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.FATAL);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.FATAL);
     expect(refactoringStatus.isOK, isFalse);
     expect(refactoringStatus.hasFatalError, isTrue);
     expect(refactoringStatus.hasError, isTrue);
-    // entries
-    List<RefactoringStatusEntry> entries = refactoringStatus.entries;
-    expect(entries, hasLength(1));
-    expect(entries[0].message, 'msg');
-    expect(entries[0].context, isNull);
+    // problems
+    List<RefactoringProblem> problems = refactoringStatus.problems;
+    expect(problems, hasLength(1));
+    expect(problems[0].message, 'msg');
+    expect(problems[0].location, isNull);
   }
 
   void test_addStatus_Error_withWarning() {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     refactoringStatus.addError("err");
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.ERROR);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     // merge with OK
     {
       RefactoringStatus other = new RefactoringStatus();
       other.addWarning("warn");
       refactoringStatus.addStatus(other);
     }
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.ERROR);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     expect(refactoringStatus.message, 'err');
   }
 
   void test_addStatus_Warning_null() {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     refactoringStatus.addWarning("warn");
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.WARNING);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     // merge with "null"
     refactoringStatus.addStatus(null);
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.WARNING);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
   }
 
   void test_addStatus_Warning_withError() {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     refactoringStatus.addWarning("warn");
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.WARNING);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     // merge with OK
     {
       RefactoringStatus other = new RefactoringStatus();
       other.addError("err");
       refactoringStatus.addStatus(other);
     }
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.ERROR);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     expect(refactoringStatus.message, 'err');
   }
 
   void test_addWarning() {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     // initial state
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.OK);
+    expect(refactoringStatus.severity, null);
     // add WARNING
     refactoringStatus.addWarning('msg');
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.WARNING);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     expect(refactoringStatus.isOK, isFalse);
     expect(refactoringStatus.hasFatalError, isFalse);
     expect(refactoringStatus.hasError, isFalse);
     expect(refactoringStatus.hasWarning, isTrue);
-    // entries
-    List<RefactoringStatusEntry> entries = refactoringStatus.entries;
-    expect(entries, hasLength(1));
-    expect(entries[0].message, 'msg');
+    // problems
+    List<RefactoringProblem> problems = refactoringStatus.problems;
+    expect(problems, hasLength(1));
+    expect(problems[0].message, 'msg');
   }
 
-  void test_escalateErrorToFatal() {
-    RefactoringStatus refactoringStatus = new RefactoringStatus.error('msg');
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.ERROR);
-    // escalated
-    RefactoringStatus escalated = refactoringStatus.escalateErrorToFatal();
-    expect(escalated.severity, RefactoringStatusSeverity.FATAL);
-  }
-
-  void test_get_entryWithHighestSeverity() {
+  void test_get_problem() {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     // no entries
-    expect(refactoringStatus.entryWithHighestSeverity, isNull);
+    expect(refactoringStatus.problem, isNull);
     expect(refactoringStatus.message, isNull);
     // add entries
     refactoringStatus.addError('msgError');
@@ -234,38 +198,32 @@ class RefactoringStatusTest {
     refactoringStatus.addFatalError('msgFatalError');
     // get entry
     {
-      RefactoringStatusEntry entry = refactoringStatus.entryWithHighestSeverity;
-      expect(entry.severity, RefactoringStatusSeverity.FATAL);
-      expect(entry.message, 'msgFatalError');
+      RefactoringProblem problem = refactoringStatus.problem;
+      expect(problem.severity, RefactoringProblemSeverity.FATAL);
+      expect(problem.message, 'msgFatalError');
     }
     // get message
-    expect(refactoringStatus.message, 'msgFatalError');
+    expect(refactoringStatus.problem.message, 'msgFatalError');
   }
 
   void test_newError() {
-    RefactoringStatusContext context = new _MockRefactoringStatusContext();
+    Location location = new Location('/test.dart', 1, 2, 3, 4);
     RefactoringStatus refactoringStatus =
-        new RefactoringStatus.error('msg', context);
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.ERROR);
-    expect(refactoringStatus.message, 'msg');
-    expect(refactoringStatus.entryWithHighestSeverity.context, context);
+        new RefactoringStatus.error('msg', location);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
+    expect(refactoringStatus.problem.message, 'msg');
+    expect(refactoringStatus.problem.location.file, '/test.dart');
   }
 
   void test_newFatalError() {
     RefactoringStatus refactoringStatus = new RefactoringStatus.fatal('msg');
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.FATAL);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.FATAL);
     expect(refactoringStatus.message, 'msg');
   }
 
   void test_newWarning() {
     RefactoringStatus refactoringStatus = new RefactoringStatus.warning('msg');
-    expect(refactoringStatus.severity, RefactoringStatusSeverity.WARNING);
+    expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     expect(refactoringStatus.message, 'msg');
   }
-}
-
-
-class _MockRefactoringStatusContext extends TypedMock implements
-    RefactoringStatusContext {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

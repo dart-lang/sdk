@@ -6,8 +6,8 @@ library test.services.refactoring.extract_local;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/correction/change.dart';
-import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
@@ -37,7 +37,7 @@ main() {
     return refactoring.checkAllConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.WARNING,
+          RefactoringProblemSeverity.WARNING,
           expectedMessage:
               "A variable with name 'res' is already defined in the visible scope.");
     });
@@ -55,7 +55,7 @@ main() {
     return refactoring.checkAllConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.WARNING,
+          RefactoringProblemSeverity.WARNING,
           expectedMessage:
               "A variable with name 'res' is already defined in the visible scope.");
     });
@@ -73,7 +73,7 @@ main() {
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage: 'Cannot extract the left-hand side of an assignment.');
     });
   }
@@ -89,7 +89,7 @@ main() {
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage: 'Cannot extract a single method name.');
     });
   }
@@ -105,7 +105,7 @@ main(p) {
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage: 'Cannot extract name part of a property access.');
     });
   }
@@ -122,7 +122,7 @@ String foo() => '';
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage: 'Cannot extract name part of a property access.');
     });
   }
@@ -138,7 +138,7 @@ main() {
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage: 'Cannot extract the name part of a declaration.');
     });
   }
@@ -152,7 +152,7 @@ int a = 1 + 2;
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage:
               'Expression inside of function must be selected to activate this refactoring.');
     });
@@ -169,7 +169,7 @@ main() {
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage:
               'Cannot extract only leading or trailing quote of string literal.');
     });
@@ -186,7 +186,7 @@ main() {
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage:
               'Cannot extract only leading or trailing quote of string literal.');
     });
@@ -204,13 +204,13 @@ main() {
     refactoring.name = null;
     assertRefactoringStatus(
         refactoring.checkName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Variable name must not be null.");
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
         refactoring.checkName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Variable name must not be empty.");
     // OK
     refactoring.name = 'res';
@@ -865,7 +865,7 @@ main() {
     return refactoring.checkInitialConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.FATAL,
+          RefactoringProblemSeverity.FATAL,
           expectedMessage: 'Expression must be selected to activate this refactoring.');
     });
   }

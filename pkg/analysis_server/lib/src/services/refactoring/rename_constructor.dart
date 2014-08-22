@@ -78,7 +78,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
               newName);
       result.addError(
           message,
-          new RefactoringStatusContext.forElement(newNameMember));
+          createLocation_forElement(newNameMember));
     }
   }
 }

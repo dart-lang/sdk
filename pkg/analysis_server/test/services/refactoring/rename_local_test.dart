@@ -4,7 +4,7 @@
 
 library test.services.refactoring.rename_local;
 
-import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -32,7 +32,7 @@ main() {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Duplicate function 'newName'.",
           expectedContextSearch: 'newName() => 1');
     });
@@ -51,7 +51,7 @@ main() {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Duplicate function 'newName'.");
     });
   }
@@ -69,7 +69,7 @@ main() {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Duplicate local variable 'newName'.",
           expectedContextSearch: 'newName = 1;');
     });
@@ -88,7 +88,7 @@ main() {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: "Duplicate local variable 'newName'.",
           expectedContextSearch: 'newName = 1;');
     });
@@ -142,7 +142,7 @@ class A {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedMessage: 'Usage of field "A.newName" declared in "test.dart" '
               'will be shadowed by renamed local variable.',
           expectedContextSearch: 'newName);');
@@ -179,7 +179,7 @@ main() {
     return refactoring.checkFinalConditions().then((status) {
       assertRefactoringStatus(
           status,
-          RefactoringStatusSeverity.ERROR,
+          RefactoringProblemSeverity.ERROR,
           expectedContextSearch: 'newName(); // ref');
     });
   }
@@ -195,7 +195,7 @@ main() {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Function name must not be null.");
     // OK
     refactoring.newName = 'newName';
@@ -213,13 +213,13 @@ main() {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Variable name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Variable name must not be empty.");
     // OK
     refactoring.newName = 'newName';
@@ -237,19 +237,19 @@ main() {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Constant name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Constant name must not be empty.");
     // same
     refactoring.newName = 'TEST';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.FATAL,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "The new name must be different than the current name.");
     // OK
     refactoring.newName = 'NEW_NAME';
@@ -266,7 +266,7 @@ main(test) {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Parameter name must not be null.");
     // OK
     refactoring.newName = 'newName';

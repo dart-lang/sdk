@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analysis_server/src/protocol2.dart';
 
 
 /**
@@ -57,9 +58,9 @@ class StatementAnalyzer extends SelectionAnalyzer {
   }
 
   /**
-   * Records fatal error with given message and [RefactoringStatusContext].
+   * Records fatal error with given message and [Location].
    */
-  void invalidSelection2(String message, RefactoringStatusContext context) {
+  void invalidSelection2(String message, Location context) {
     _status.addFatalError(message, context);
     reset();
   }
@@ -188,7 +189,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
       if (_hasTokens(rangeBeforeFirstNode)) {
         invalidSelection2(
             "The beginning of the selection contains characters that do not belong to a statement.",
-            new RefactoringStatusContext.forUnit(unit, rangeBeforeFirstNode));
+            createLocation_forUnit(unit, rangeBeforeFirstNode));
       }
     }
     // some tokens after last selected node
@@ -198,7 +199,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
       if (_hasTokens(rangeAfterLastNode)) {
         invalidSelection2(
             "The end of the selection contains characters that do not belong to a statement.",
-            new RefactoringStatusContext.forUnit(unit, rangeAfterLastNode));
+            createLocation_forUnit(unit, rangeAfterLastNode));
       }
     }
   }

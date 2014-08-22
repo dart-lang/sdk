@@ -4,7 +4,7 @@
 
 library test.services.refactoring.rename_import;
 
-import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:unittest/unittest.dart';
@@ -28,13 +28,13 @@ class RenameImportTest extends RenameRefactoringTest {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.ERROR,
+        RefactoringProblemSeverity.ERROR,
         expectedMessage: "Import prefix name must not be null.");
     // same
     refactoring.newName = 'test';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringStatusSeverity.FATAL,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "The new name must be different than the current name.");
     // empty
     refactoring.newName = '';
@@ -93,6 +93,31 @@ main() {
 ''');
   }
 
+  test_createChange_change_function() {
+    indexTestUnit('''
+import 'dart:math' as test;
+import 'dart:async' as test;
+main() {
+  test.max(1, 2);
+  test.Future f;
+}
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:math");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRename('''
+import 'dart:math' as newName;
+import 'dart:async' as test;
+main() {
+  newName.max(1, 2);
+  test.Future f;
+}
+''');
+  }
+
   test_createChange_change_onPrefixElement() {
     indexTestUnit('''
 import 'dart:async' as test;
@@ -116,31 +141,6 @@ main() {
   test.Future f;
   newName.PI;
   newName.E;
-}
-''');
-  }
-
-  test_createChange_change_function() {
-    indexTestUnit('''
-import 'dart:math' as test;
-import 'dart:async' as test;
-main() {
-  test.max(1, 2);
-  test.Future f;
-}
-''');
-    // configure refactoring
-    _createRefactoring("import 'dart:math");
-    expect(refactoring.refactoringName, 'Rename Import Prefix');
-    expect(refactoring.oldName, 'test');
-    refactoring.newName = 'newName';
-    // validate change
-    return assertSuccessfulRename('''
-import 'dart:math' as newName;
-import 'dart:async' as test;
-main() {
-  newName.max(1, 2);
-  test.Future f;
 }
 ''');
   }

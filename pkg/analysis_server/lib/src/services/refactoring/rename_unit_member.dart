@@ -179,7 +179,7 @@ class RenameUnitMemberValidator {
                       getElementQualifiedName(shadow));
               result.addError(
                   message,
-                  new RefactoringStatusContext.forElement(shadow));
+                  createLocation_forElement(shadow));
             }
           });
         }
@@ -202,7 +202,7 @@ class RenameUnitMemberValidator {
                 newName);
         result.addError(
             message,
-            new RefactoringStatusContext.forElement(element));
+            createLocation_forElement(element));
       }
     });
   }
@@ -243,7 +243,7 @@ class RenameUnitMemberValidator {
                     getElementQualifiedName(member));
             result.addError(
                 message,
-                new RefactoringStatusContext.forMatch(memberReference));
+                createLocation_forMatch(memberReference));
           }
         });
       });

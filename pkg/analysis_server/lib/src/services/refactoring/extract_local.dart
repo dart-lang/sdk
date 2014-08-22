@@ -6,7 +6,7 @@ library services.src.refactoring.extract_local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show Location, SourceEdit;
 import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
@@ -383,7 +383,7 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
     if (_isFirstSelectedNode(lhs)) {
       _invalidSelection(
           'Cannot extract the left-hand side of an assignment.',
-          new RefactoringStatusContext.forNode(lhs));
+          createLocation_forNode(lhs));
     }
     return null;
   }
@@ -414,10 +414,10 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
   }
 
   /**
-   * Records fatal error with given message and [RefactoringStatusContext].
+   * Records fatal error with given message and [Locatiom].
    */
-  void _invalidSelection(String message, RefactoringStatusContext context) {
-    status.addFatalError(message, context);
+  void _invalidSelection(String message, Location location) {
+    status.addFatalError(message, location);
     reset();
   }
 

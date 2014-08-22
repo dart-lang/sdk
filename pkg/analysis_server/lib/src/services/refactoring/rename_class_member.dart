@@ -41,10 +41,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    _validator = new _RenameClassMemberValidator(
-        searchEngine,
-        element,
-        newName);
+    _validator =
+        new _RenameClassMemberValidator(searchEngine, element, newName);
     return _validator.validate();
   }
 
@@ -108,8 +106,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           }
         }
         // add edit
-        SourceEdit edit = createReferenceEdit(reference, newName,
-            id: _newPotentialId());
+        SourceEdit edit =
+            createReferenceEdit(reference, newName, id: _newPotentialId());
         change.addEdit(reference.file, edit);
       }
     }).then((_) => change);
@@ -151,7 +149,7 @@ class _RenameClassMemberValidator {
               elementClass.displayName,
               getElementKindName(newNameMember),
               newName),
-          new RefactoringStatusContext.forElement(newNameMember));
+          createLocation_forElement(newNameMember));
     }
     // do chained computations
     Set<ClassElement> superClasses = getSuperClasses(elementClass);
@@ -174,7 +172,7 @@ class _RenameClassMemberValidator {
                     getElementKindName(element),
                     getElementKindName(nameElement),
                     getElementQualifiedName(nameElement)),
-                new RefactoringStatusContext.forElement(nameElement));
+                createLocation_forElement(nameElement));
           }
           // renamed Element is shadowed by member of subclass
           if (subClasses.contains(nameClass)) {
@@ -184,7 +182,7 @@ class _RenameClassMemberValidator {
                     getElementKindName(element),
                     getElementKindName(nameElement),
                     getElementQualifiedName(nameElement)),
-                new RefactoringStatusContext.forElement(nameElement));
+                createLocation_forElement(nameElement));
           }
           // renamed Element is shadowed by local
           if (nameElement is LocalElement) {
@@ -201,7 +199,7 @@ class _RenameClassMemberValidator {
                           getElementKindName(element),
                           getElementKindName(localElement),
                           localElement.displayName),
-                      new RefactoringStatusContext.forMatch(reference));
+                      createLocation_forMatch(reference));
                 }
               }
             }
