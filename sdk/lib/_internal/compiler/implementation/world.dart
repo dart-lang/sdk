@@ -52,11 +52,6 @@ class World {
     return _typesImplementedBySubclasses[cls.declaration];
   }
 
-  bool hasSubclasses(ClassElement cls) {
-    Set<ClassElement> subclasses = compiler.world.subclassesOf(cls);
-    return subclasses != null && !subclasses.isEmpty;
-  }
-
   World(Compiler compiler)
       : allFunctions = new FunctionSet(compiler),
         this.compiler = compiler,

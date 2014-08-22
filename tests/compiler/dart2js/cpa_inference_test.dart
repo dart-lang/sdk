@@ -1594,15 +1594,15 @@ testConcreteTypeToTypeMask() {
     }
 
     Expect.equals(convert(singleton(a).union(singleton(b))),
-                  new TypeMask.nonNullSubclass(a));
+                  new TypeMask.nonNullSubclass(a, result.compiler.world));
 
     Expect.equals(
         convert(singleton(a).union(singleton(b)).union(nullSingleton)),
-                  new TypeMask.subclass(a));
+                  new TypeMask.subclass(a, result.compiler.world));
 
     Expect.equals(
         simplify(convert(singleton(b).union(singleton(d))), result.compiler),
-        new TypeMask.nonNullSubtype(a));
+        new TypeMask.nonNullSubtype(a, result.compiler.world));
   });
 }
 

@@ -184,7 +184,7 @@ void main() {
     checkReturn('returnInt4', typesTask.uint31Type);
     checkReturn('returnInt5', typesTask.uint31Type);
     checkReturn('returnInt6',
-        new TypeMask.nonNullSubtype(compiler.intClass));
+        new TypeMask.nonNullSubtype(compiler.intClass, compiler.world));
 
     var subclassOfInterceptor =
         findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');

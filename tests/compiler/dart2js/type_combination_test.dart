@@ -520,9 +520,9 @@ void testIntersection(MockCompiler compiler) {
   rule(jsIndexable, nonPrimitive1, emptyType);
   rule(jsIndexable, nonPrimitive2, emptyType);
   rule(jsIndexable, potentialArray, new TypeMask.nonNullSubtype(
-      backend.jsArrayClass));
+      backend.jsArrayClass, compiler.world));
   rule(jsIndexable, potentialString, new TypeMask.nonNullSubtype(
-      backend.jsStringClass));
+      backend.jsStringClass, compiler.world));
   rule(jsIndexable, jsBooleanOrNull, emptyType);
   rule(jsIndexable, jsNumberOrNull, emptyType);
   rule(jsIndexable, jsIntegerOrNull, emptyType);
@@ -671,7 +671,7 @@ void testIntersection(MockCompiler compiler) {
 
 void testRegressions(MockCompiler compiler) {
   TypeMask nonNullPotentialString = new TypeMask.nonNullSubtype(
-      patternClass);
+      patternClass, compiler.world);
   Expect.equals(
       potentialString, jsStringOrNull.union(nonNullPotentialString, compiler));
 }
@@ -679,6 +679,7 @@ void testRegressions(MockCompiler compiler) {
 void main() {
   asyncTest(() => MockCompiler.create((MockCompiler compiler) {
     JavaScriptBackend backend = compiler.backend;
+    World world = compiler.world;
     backend.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
         compiler.enqueuer.resolution.registerInstantiatedClass(
@@ -694,40 +695,46 @@ void main() {
     patternClass = compiler.coreLibrary.find('Pattern');
 
     nonPrimitive1 = new TypeMask.nonNullSubtype(
-        compiler.mapClass);
+        compiler.mapClass, world);
     nonPrimitive2 = new TypeMask.nonNullSubtype(
-        compiler.functionClass);
+        compiler.functionClass, world);
     potentialArray = new TypeMask.subtype(
-        compiler.listClass);
-    potentialString = new TypeMask.subtype(patternClass);
-    jsInterceptor = new TypeMask.nonNullSubclass(backend.jsInterceptorClass);
-    jsArrayOrNull = new TypeMask.subclass(backend.jsArrayClass);
-    jsReadableArray = new TypeMask.nonNullSubclass(backend.jsArrayClass);
-    jsMutableArrayOrNull = new TypeMask.subclass(backend.jsMutableArrayClass);
-    jsMutableArray = new TypeMask.nonNullSubclass(backend.jsMutableArrayClass);
+        compiler.listClass, world);
+    potentialString = new TypeMask.subtype(patternClass, world);
+    jsInterceptor = new TypeMask.nonNullSubclass(backend.jsInterceptorClass,
+        world);
+    jsArrayOrNull = new TypeMask.subclass(backend.jsArrayClass, world);
+    jsReadableArray = new TypeMask.nonNullSubclass(backend.jsArrayClass,
+        world);
+    jsMutableArrayOrNull = new TypeMask.subclass(backend.jsMutableArrayClass,
+        world);
+    jsMutableArray = new TypeMask.nonNullSubclass(backend.jsMutableArrayClass,
+        world);
     jsFixedArrayOrNull = new TypeMask.exact(backend.jsFixedArrayClass);
     jsFixedArray = new TypeMask.nonNullExact(backend.jsFixedArrayClass);
     jsExtendableArrayOrNull = new TypeMask.exact(backend.jsExtendableArrayClass);
-    jsExtendableArray = new TypeMask.nonNullExact(backend.jsExtendableArrayClass);
-    jsIndexableOrNull = new TypeMask.subtype(backend.jsIndexableClass);
-    jsIndexable = new TypeMask.nonNullSubtype(backend.jsIndexableClass);
-    jsInterceptorOrNull = new TypeMask.subclass(backend.jsInterceptorClass);
+    jsExtendableArray = new TypeMask.nonNullExact(
+        backend.jsExtendableArrayClass);
+    jsIndexableOrNull = new TypeMask.subtype(backend.jsIndexableClass, world);
+    jsIndexable = new TypeMask.nonNullSubtype(backend.jsIndexableClass, world);
+    jsInterceptorOrNull = new TypeMask.subclass(backend.jsInterceptorClass,
+        world);
     jsStringOrNull = new TypeMask.exact(backend.jsStringClass);
     jsString = new TypeMask.nonNullExact(backend.jsStringClass);
     jsBoolean = new TypeMask.nonNullExact(backend.jsBoolClass);
-    jsNumber = new TypeMask.nonNullSubclass(backend.jsNumberClass);
+    jsNumber = new TypeMask.nonNullSubclass(backend.jsNumberClass, world);
     jsInteger = new TypeMask.nonNullExact(backend.jsIntClass);
     jsDouble = new TypeMask.nonNullExact(backend.jsDoubleClass);
     jsBooleanOrNull = new TypeMask.exact(backend.jsBoolClass);
-    jsNumberOrNull = new TypeMask.subclass(backend.jsNumberClass);
+    jsNumberOrNull = new TypeMask.subclass(backend.jsNumberClass, world);
     jsIntegerOrNull = new TypeMask.exact(backend.jsIntClass);
     jsDoubleOrNull = new TypeMask.exact(backend.jsDoubleClass);
     nullType = const TypeMask.empty();
     objectType = new TypeMask.nonNullSubclass(
-        compiler.objectClass);
+        compiler.objectClass, world);
     emptyType = const TypeMask.nonNullEmpty();
     dynamicType = new TypeMask.subclass(
-        compiler.objectClass);
+        compiler.objectClass, world);
 
     testUnion(compiler);
     testIntersection(compiler);
