@@ -3271,7 +3271,7 @@ class EditGetRefactoringParams implements HasToJson {
  * edit.getRefactoring result
  *
  * {
- *   "status": List<RefactoringProblem>
+ *   "problems": List<RefactoringProblem>
  *   "feedback": optional object
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
@@ -3282,7 +3282,7 @@ class EditGetRefactoringResult implements HasToJson {
    * The status of the refactoring. The array will be empty if there are no
    * known problems.
    */
-  List<RefactoringProblem> status;
+  List<RefactoringProblem> problems;
 
   /**
    * Data used to provide feedback to the user. The structure of the data is
@@ -3310,18 +3310,18 @@ class EditGetRefactoringResult implements HasToJson {
    */
   List<String> potentialEdits;
 
-  EditGetRefactoringResult(this.status, {this.feedback, this.change, this.potentialEdits});
+  EditGetRefactoringResult(this.problems, {this.feedback, this.change, this.potentialEdits});
 
   factory EditGetRefactoringResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
-      List<RefactoringProblem> status;
-      if (json.containsKey("status")) {
-        status = jsonDecoder._decodeList(jsonPath + ".status", json["status"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+      List<RefactoringProblem> problems;
+      if (json.containsKey("problems")) {
+        problems = jsonDecoder._decodeList(jsonPath + ".problems", json["problems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "status");
+        throw jsonDecoder.missingKey(jsonPath, "problems");
       }
       Object feedback;
       if (json.containsKey("feedback")) {
@@ -3335,7 +3335,7 @@ class EditGetRefactoringResult implements HasToJson {
       if (json.containsKey("potentialEdits")) {
         potentialEdits = jsonDecoder._decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder._decodeString);
       }
-      return new EditGetRefactoringResult(status, feedback: feedback, change: change, potentialEdits: potentialEdits);
+      return new EditGetRefactoringResult(problems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.getRefactoring result");
     }
@@ -3348,7 +3348,7 @@ class EditGetRefactoringResult implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["status"] = status.map((RefactoringProblem value) => value.toJson()).toList();
+    result["problems"] = problems.map((RefactoringProblem value) => value.toJson()).toList();
     if (feedback != null) {
       result["feedback"] = feedback;
     }
@@ -3371,7 +3371,7 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetRefactoringResult) {
-      return _listEqual(status, other.status, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+      return _listEqual(problems, other.problems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
           feedback == other.feedback &&
           change == other.change &&
           _listEqual(potentialEdits, other.potentialEdits, (String a, String b) => a == b);
@@ -3382,7 +3382,7 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, status.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, problems.hashCode);
     hash = _JenkinsSmiHash.combine(hash, feedback.hashCode);
     hash = _JenkinsSmiHash.combine(hash, change.hashCode);
     hash = _JenkinsSmiHash.combine(hash, potentialEdits.hashCode);

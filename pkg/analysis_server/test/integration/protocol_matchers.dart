@@ -650,7 +650,7 @@ final Matcher isEditGetRefactoringParams = new LazyMatcher(() => new MatchesJson
  * edit.getRefactoring result
  *
  * {
- *   "status": List<RefactoringProblem>
+ *   "problems": List<RefactoringProblem>
  *   "feedback": optional object
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
@@ -658,7 +658,7 @@ final Matcher isEditGetRefactoringParams = new LazyMatcher(() => new MatchesJson
  */
 final Matcher isEditGetRefactoringResult = new LazyMatcher(() => new MatchesJsonObject(
   "edit.getRefactoring result", {
-    "status": isListOf(isRefactoringProblem)
+    "problems": isListOf(isRefactoringProblem)
   }, optionalFields: {
     "feedback": isObject,
     "change": isSourceChange,

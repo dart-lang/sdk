@@ -1133,7 +1133,7 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * status ( List<RefactoringProblem> )
+   * problems ( List<RefactoringProblem> )
    *
    *   The status of the refactoring. The array will be empty if there are no
    *   known problems.
