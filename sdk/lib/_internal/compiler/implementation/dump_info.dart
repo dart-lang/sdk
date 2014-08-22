@@ -81,10 +81,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   final Map<Element, Map<String, dynamic>> jsonCache = {};
 
   int programSize;
-  DateTime compilationMoment;
   String dart2jsVersion;
-  Duration compilationDuration;
-  Duration dumpInfoDuration;
 
   ElementToJsonVisitor(this.compiler);
 
@@ -98,16 +95,11 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       programSize = compiler.assembledCode.length;
     }
 
-    compilationMoment = new DateTime.now();
     dart2jsVersion = compiler.hasBuildId ? compiler.buildId : null;
-    compilationDuration = compiler.totalCompileTime.elapsed;
 
     for (var library in compiler.libraryLoader.libraries.toList()) {
       library.accept(this);
     }
-
-    dumpInfoDuration = new DateTime.now().difference(compilationMoment);
-
   }
 
   // If keeping the element is in question (like if a function has a size
@@ -606,10 +598,10 @@ class DumpInfoTask extends CompilerTask {
     Map<String, dynamic> generalProgramInfo = <String, dynamic> {
       'size': infoCollector.programSize,
       'dart2jsVersion': infoCollector.dart2jsVersion,
-      'compilationMoment': infoCollector.compilationMoment.toString(),
-      'compilationDuration': infoCollector.compilationDuration.toString(),
-      'toJsonDuration': toJsonDuration.toString(),
-      'dumpInfoDuration': infoCollector.dumpInfoDuration.toString(),
+      'compilationMoment': new DateTime.now().toString(),
+      'compilationDuration': compiler.totalCompileTime.elapsed.toString(),
+      'toJsonDuration': 0,
+      'dumpInfoDuration': this.timing.toString(),
       'noSuchMethodEnabled': compiler.enabledNoSuchMethod
     };
 
