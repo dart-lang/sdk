@@ -3529,6 +3529,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } finally {
       _inFunction = wasInFunction;
     }
+    FunctionBody body = node.body;
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element = new ConstructorElementImpl.forNode(constructorName);
     if (node.factoryKeyword != null) {
@@ -3539,6 +3540,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.localVariables = holder.localVariables;
     element.parameters = holder.parameters;
     element.const2 = node.constKeyword != null;
+    if (body.isAsynchronous) {
+      element.asynchronous = true;
+    }
+    if (body.isGenerator) {
+      element.generator = true;
+    }
     _currentHolder.addConstructor(element);
     node.element = element;
     if (constructorName == null) {
@@ -3670,6 +3677,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       } finally {
         _inFunction = wasInFunction;
       }
+      FunctionBody body = expression.body;
       sc.Token property = node.propertyKeyword;
       if (property == null) {
         SimpleIdentifier functionName = node.name;
@@ -3678,6 +3686,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
+        if (body.isAsynchronous) {
+          element.asynchronous = true;
+        }
+        if (body.isGenerator) {
+          element.generator = true;
+        }
         if (_inFunction) {
           Block enclosingBlock = node.getAncestor((node) => node is Block);
           if (enclosingBlock != null) {
@@ -3708,6 +3722,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
+          if (body.isAsynchronous) {
+            getter.asynchronous = true;
+          }
+          if (body.isGenerator) {
+            getter.generator = true;
+          }
           getter.variable = variable;
           getter.getter = true;
           getter.static = true;
@@ -3721,6 +3741,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;
           setter.parameters = holder.parameters;
+          if (body.isAsynchronous) {
+            setter.asynchronous = true;
+          }
+          if (body.isGenerator) {
+            setter.generator = true;
+          }
           setter.variable = variable;
           setter.setter = true;
           setter.static = true;
@@ -3746,11 +3772,18 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } finally {
       _inFunction = wasInFunction;
     }
+    FunctionBody body = node.body;
     FunctionElementImpl element = new FunctionElementImpl.forOffset(node.beginToken.offset);
     element.functions = holder.functions;
     element.labels = holder.labels;
     element.localVariables = holder.localVariables;
     element.parameters = holder.parameters;
+    if (body.isAsynchronous) {
+      element.asynchronous = true;
+    }
+    if (body.isGenerator) {
+      element.generator = true;
+    }
     if (_inFunction) {
       Block enclosingBlock = node.getAncestor((node) => node is Block);
       if (enclosingBlock != null) {
@@ -3834,6 +3867,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       bool isStatic = node.isStatic;
       sc.Token property = node.propertyKeyword;
+      FunctionBody body = node.body;
       if (property == null) {
         SimpleIdentifier methodName = node.name;
         String nameOfMethod = methodName.name;
@@ -3847,6 +3881,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
         element.static = isStatic;
+        if (body.isAsynchronous) {
+          element.asynchronous = true;
+        }
+        if (body.isGenerator) {
+          element.generator = true;
+        }
         _currentHolder.addMethod(element);
         methodName.staticElement = element;
       } else {
@@ -3865,8 +3905,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
+          if (body.isAsynchronous) {
+            getter.asynchronous = true;
+          }
+          if (body.isGenerator) {
+            getter.generator = true;
+          }
           getter.variable = field;
-          getter.abstract = node.body is EmptyFunctionBody && node.externalKeyword == null;
+          getter.abstract = body is EmptyFunctionBody && node.externalKeyword == null;
           getter.getter = true;
           getter.static = isStatic;
           field.getter = getter;
@@ -3878,8 +3924,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;
           setter.parameters = holder.parameters;
+          if (body.isAsynchronous) {
+            setter.asynchronous = true;
+          }
+          if (body.isGenerator) {
+            setter.generator = true;
+          }
           setter.variable = field;
-          setter.abstract = node.body is EmptyFunctionBody && !_matches(node.externalKeyword, sc.Keyword.EXTERNAL);
+          setter.abstract = body is EmptyFunctionBody && !_matches(node.externalKeyword, sc.Keyword.EXTERNAL);
           setter.setter = true;
           setter.static = isStatic;
           field.setter = setter;
@@ -11560,6 +11612,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
    */
   bool _checkForReturnOfInvalidType(Expression returnExpression, DartType expectedReturnType) {
+    if (_enclosingFunction == null) {
+      return false;
+    }
     DartType staticReturnType = getStaticType(returnExpression);
     if (expectedReturnType.isVoid) {
       if (staticReturnType.isVoid || staticReturnType.isDynamic || staticReturnType.isBottom) {
@@ -11571,8 +11626,23 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           _enclosingFunction.displayName]);
       return true;
     }
-    bool isStaticAssignable = staticReturnType.isAssignableTo(expectedReturnType);
-    if (isStaticAssignable) {
+    if (_enclosingFunction.isAsynchronous && !_enclosingFunction.isGenerator) {
+      // TODO(brianwilkerson) Figure out how to get the type "Future" so that we can build the type
+      // we need to test against.
+      //      InterfaceType impliedType = "Future<" + flatten(staticReturnType) + ">"
+      //      if (impliedType.isAssignableTo(expectedReturnType)) {
+      //        return false;
+      //      }
+      //      errorReporter.reportTypeErrorForNode(
+      //          StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+      //          returnExpression,
+      //          impliedType,
+      //          expectedReturnType.getDisplayName(),
+      //          enclosingFunction.getDisplayName());
+      //      return true;
+      return false;
+    }
+    if (staticReturnType.isAssignableTo(expectedReturnType)) {
       return false;
     }
     _errorReporter.reportTypeErrorForNode(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE, returnExpression, [
@@ -12039,6 +12109,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Return the flattened version of the given type, as defined by the specification: <blockquote>
+   * Let <i>flatten(T) = flatten(S)</i> if <i>T = Future&lt;S&gt;</i>, and <i>T</i> otherwise.
+   * </blockquote>
+   *
+   * @param type the type to be flattened
+   * @return the flattened version of the given type
+   */
+  DartType _flatten(DartType type) {
+    while (_isFuture(type)) {
+      List<DartType> arguments = (type as InterfaceType).typeArguments;
+      if (arguments.length != 1) {
+        return type;
+      }
+      type = arguments[0];
+    }
+    return type;
+  }
+
+  /**
    * Return the error code that should be used when the given class references itself directly.
    *
    * @param classElt the class that references itself
@@ -12195,6 +12284,30 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else if (type is InterfaceType) {
       MethodElement callMethod = type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _currentLibrary);
       return callMethod != null;
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given type represents the class `Future` from the
+   * `dart:async` library.
+   *
+   * @param type the type to be tested
+   * @return `true` if the given type represents the class `Future` from the
+   *         `dart:async` library
+   */
+  bool _isFuture(DartType type) {
+    if (type is InterfaceType) {
+      InterfaceType interfaceType = type;
+      if (interfaceType.name == "Future") {
+        ClassElement element = interfaceType.element;
+        if (element != null) {
+          LibraryElement library = element.library;
+          if (library.name == "dart.async") {
+            return true;
+          }
+        }
+      }
     }
     return false;
   }

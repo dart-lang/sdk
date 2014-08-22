@@ -17119,7 +17119,6 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
     _visitNode(node.functionDeclaration);
-    _writer.print(';');
     return null;
   }
 

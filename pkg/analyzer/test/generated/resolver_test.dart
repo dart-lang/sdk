@@ -13691,6 +13691,22 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_returnOfInvalidType_async() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl.con1(analysisContext2.analysisOptions);
+    options.enableAsync = true;
+    resetWithOptions(options);
+    Source source = addSource(EngineTestCase.createSource([
+        "import 'dart:async';",
+        "class A {",
+        "  Future<int> m() async {",
+        "    return 0;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_returnOfInvalidType_dynamic() {
     Source source = addSource(EngineTestCase.createSource([
         "class TypeError {}",
@@ -15628,6 +15644,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_returnInGenerativeConstructor', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_returnInGenerativeConstructor);
+      });
+      _ut.test('test_returnOfInvalidType_async', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_returnOfInvalidType_async);
       });
       _ut.test('test_returnOfInvalidType_dynamic', () {
         final __test = new NonErrorResolverTest();

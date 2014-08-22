@@ -2206,6 +2206,22 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("get f() {}", AstFactory.functionDeclaration(null, Keyword.GET, "f", AstFactory.functionExpression()));
   }
 
+  void test_visitFunctionDeclaration_local_blockBody() {
+    FunctionDeclaration f = AstFactory.functionDeclaration(null, null, "f", AstFactory.functionExpression());
+    FunctionDeclarationStatement fStatement = new FunctionDeclarationStatement(f);
+    _assertSource("main() {f() {} 42;}", AstFactory.functionDeclaration(null, null, "main", AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.blockFunctionBody2([
+        fStatement,
+        AstFactory.expressionStatement(AstFactory.integer(42))]))));
+  }
+
+  void test_visitFunctionDeclaration_local_expressionBody() {
+    FunctionDeclaration f = AstFactory.functionDeclaration(null, null, "f", AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.expressionFunctionBody(AstFactory.integer(1))));
+    FunctionDeclarationStatement fStatement = new FunctionDeclarationStatement(f);
+    _assertSource("main() {f() => 1; 2;}", AstFactory.functionDeclaration(null, null, "main", AstFactory.functionExpression2(AstFactory.formalParameterList([]), AstFactory.blockFunctionBody2([
+        fStatement,
+        AstFactory.expressionStatement(AstFactory.integer(2))]))));
+  }
+
   void test_visitFunctionDeclaration_normal() {
     _assertSource("f() {}", AstFactory.functionDeclaration(null, null, "f", AstFactory.functionExpression()));
   }
@@ -2221,7 +2237,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   }
 
   void test_visitFunctionDeclarationStatement() {
-    _assertSource("f() {};", AstFactory.functionDeclarationStatement(null, null, "f", AstFactory.functionExpression()));
+    _assertSource("f() {}", AstFactory.functionDeclarationStatement(null, null, "f", AstFactory.functionExpression()));
   }
 
   void test_visitFunctionExpression() {
@@ -3385,6 +3401,14 @@ class ToSourceVisitorTest extends EngineTestCase {
       _ut.test('test_visitFunctionDeclaration_getter', () {
         final __test = new ToSourceVisitorTest();
         runJUnitTest(__test, __test.test_visitFunctionDeclaration_getter);
+      });
+      _ut.test('test_visitFunctionDeclaration_local_blockBody', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitFunctionDeclaration_local_blockBody);
+      });
+      _ut.test('test_visitFunctionDeclaration_local_expressionBody', () {
+        final __test = new ToSourceVisitorTest();
+        runJUnitTest(__test, __test.test_visitFunctionDeclaration_local_expressionBody);
       });
       _ut.test('test_visitFunctionDeclaration_normal', () {
         final __test = new ToSourceVisitorTest();

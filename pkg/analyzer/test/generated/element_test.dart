@@ -3496,15 +3496,14 @@ class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   void test_substitute_equal() {
-    ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    TypeParameterElementImpl parameterElement = new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
-    InterfaceTypeImpl type = new InterfaceTypeImpl.con1(classA);
-    TypeParameterTypeImpl parameter = new TypeParameterTypeImpl(parameterElement);
-    type.typeArguments = <DartType> [parameter];
+    ClassElement classAE = ElementFactory.classElement2("A", ["E"]);
+    InterfaceType typeAE = classAE.type;
     InterfaceType argumentType = ElementFactory.classElement2("B", []).type;
-    InterfaceType result = type.substitute2(<DartType> [argumentType], <DartType> [parameter]);
-    JUnitTestCase.assertEquals(classA, result.element);
-    List<DartType> resultArguments = result.typeArguments;
+    List<DartType> args = [argumentType];
+    List<DartType> params = [classAE.typeParameters[0].type];
+    InterfaceType typeAESubbed = typeAE.substitute2(args, params);
+    JUnitTestCase.assertEquals(classAE, typeAESubbed.element);
+    List<DartType> resultArguments = typeAESubbed.typeArguments;
     EngineTestCase.assertLength(1, resultArguments);
     JUnitTestCase.assertEquals(argumentType, resultArguments[0]);
   }
@@ -3521,6 +3520,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   void test_substitute_notEqual() {
+    // The [test_substitute_equals] above has a slightly higher level implementation.
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     TypeParameterElementImpl parameterElement = new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
     InterfaceTypeImpl type = new InterfaceTypeImpl.con1(classA);
@@ -4392,24 +4392,6 @@ class UnionTypeImplTest extends EngineTestCase {
 
   List<DartType> _us;
 
-  void fail_isSubtypeOf_element() {
-    // Elements of union are sub types
-    JUnitTestCase.assertTrue(_typeA.isSubtypeOf(_uAB));
-    JUnitTestCase.assertTrue(_typeB.isSubtypeOf(_uAB));
-  }
-
-  void fail_isSubtypeOf_reflexivity() {
-    for (DartType u in _us) {
-      JUnitTestCase.assertTrue(u.isSubtypeOf(u));
-    }
-  }
-
-  void fail_toString_pair() {
-    DartType u = UnionTypeImpl.union([_typeA, _typeB]);
-    String s = u.toString();
-    JUnitTestCase.assertTrue(s == "{A,B}" || s == "{B,A}");
-  }
-
   void test_emptyUnionsNotAllowed() {
     try {
       UnionTypeImpl.union([]);
@@ -4441,15 +4423,61 @@ class UnionTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(_uA == _typeA);
   }
 
+  void test_isMoreSpecificThan_allElementsOnLHSAreSubtypesOfSomeElementOnRHS() {
+    // Unions are subtypes when all elements are subtypes
+    JUnitTestCase.assertTrue(_uAB.isMoreSpecificThan(_uA));
+    JUnitTestCase.assertTrue(_uAB.isMoreSpecificThan(_typeA));
+  }
+
+  void test_isMoreSpecificThan_element() {
+    // Elements of union are sub types
+    JUnitTestCase.assertTrue(_typeA.isMoreSpecificThan(_uAB));
+    JUnitTestCase.assertTrue(_typeB.isMoreSpecificThan(_uAB));
+  }
+
+  void test_isMoreSpecificThan_notSubtypeOfAnyElement() {
+    // Types that are not subtypes of elements are not subtypes
+    JUnitTestCase.assertFalse(_typeA.isMoreSpecificThan(_uB));
+  }
+
+  void test_isMoreSpecificThan_reflexivity() {
+    for (DartType u in _us) {
+      JUnitTestCase.assertTrue(u.isMoreSpecificThan(u));
+    }
+  }
+
+  void test_isMoreSpecificThan_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS() {
+    // Unions are not subtypes when some element is not a subtype
+    JUnitTestCase.assertFalse(_uAB.isMoreSpecificThan(_uB));
+    JUnitTestCase.assertFalse(_uAB.isMoreSpecificThan(_typeB));
+  }
+
+  void test_isMoreSpecificThan_subtypeOfSomeElement() {
+    // Subtypes of elements are sub types
+    JUnitTestCase.assertTrue(_typeB.isMoreSpecificThan(_uA));
+  }
+
   void test_isSubtypeOf_allElementsOnLHSAreSubtypesOfSomeElementOnRHS() {
     // Unions are subtypes when all elements are subtypes
     JUnitTestCase.assertTrue(_uAB.isSubtypeOf(_uA));
     JUnitTestCase.assertTrue(_uAB.isSubtypeOf(_typeA));
   }
 
+  void test_isSubtypeOf_element() {
+    // Elements of union are sub types
+    JUnitTestCase.assertTrue(_typeA.isSubtypeOf(_uAB));
+    JUnitTestCase.assertTrue(_typeB.isSubtypeOf(_uAB));
+  }
+
   void test_isSubtypeOf_notSubtypeOfAnyElement() {
     // Types that are not subtypes of elements are not subtypes
     JUnitTestCase.assertFalse(_typeA.isSubtypeOf(_uB));
+  }
+
+  void test_isSubtypeOf_reflexivity() {
+    for (DartType u in _us) {
+      JUnitTestCase.assertTrue(u.isSubtypeOf(u));
+    }
   }
 
   void test_isSubtypeOf_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS() {
@@ -4480,9 +4508,44 @@ class UnionTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(elements.length == 2);
   }
 
+  void test_substitute() {
+    // Based on [InterfaceTypeImplTest.test_substitute_equal].
+    ClassElement classAE = ElementFactory.classElement2("A", ["E"]);
+    InterfaceType typeAE = classAE.type;
+    List<DartType> args = [_typeB];
+    List<DartType> params = [classAE.typeParameters[0].type];
+    DartType typeAESubbed = typeAE.substitute2(args, params);
+    JUnitTestCase.assertFalse(typeAE == typeAESubbed);
+    JUnitTestCase.assertEquals(UnionTypeImpl.union([_typeA, typeAE]).substitute2(args, params), UnionTypeImpl.union([_typeA, typeAESubbed]));
+  }
+
+  void test_toString_pair() {
+    String s = _uAB.toString();
+    JUnitTestCase.assertTrue(s == "{A,B}" || s == "{B,A}");
+    JUnitTestCase.assertEquals(s, _uAB.displayName);
+  }
+
   void test_toString_singleton() {
     // Singleton unions collapse to the the single type.
     JUnitTestCase.assertEquals("A", _uA.toString());
+  }
+
+  void test_unionTypeIsLessSpecificThan_function() {
+    // Based on [FunctionTypeImplTest.test_isAssignableTo_normalAndPositionalArgs].
+    ClassElement a = ElementFactory.classElement2("A", []);
+    FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [a]).type;
+    DartType uAT = UnionTypeImpl.union([_uA, t]);
+    JUnitTestCase.assertTrue(t.isMoreSpecificThan(uAT));
+    JUnitTestCase.assertFalse(t.isMoreSpecificThan(_uAB));
+  }
+
+  void test_unionTypeIsSuperTypeOf_function() {
+    // Based on [FunctionTypeImplTest.test_isAssignableTo_normalAndPositionalArgs].
+    ClassElement a = ElementFactory.classElement2("A", []);
+    FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [a]).type;
+    DartType uAT = UnionTypeImpl.union([_uA, t]);
+    JUnitTestCase.assertTrue(t.isSubtypeOf(uAT));
+    JUnitTestCase.assertFalse(t.isSubtypeOf(_uAB));
   }
 
   @override
@@ -4521,13 +4584,45 @@ class UnionTypeImplTest extends EngineTestCase {
         final __test = new UnionTypeImplTest();
         runJUnitTest(__test, __test.test_equality_singletonsCollapse);
       });
+      _ut.test('test_isMoreSpecificThan_allElementsOnLHSAreSubtypesOfSomeElementOnRHS', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_allElementsOnLHSAreSubtypesOfSomeElementOnRHS);
+      });
+      _ut.test('test_isMoreSpecificThan_element', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_element);
+      });
+      _ut.test('test_isMoreSpecificThan_notSubtypeOfAnyElement', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_notSubtypeOfAnyElement);
+      });
+      _ut.test('test_isMoreSpecificThan_reflexivity', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_reflexivity);
+      });
+      _ut.test('test_isMoreSpecificThan_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS);
+      });
+      _ut.test('test_isMoreSpecificThan_subtypeOfSomeElement', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isMoreSpecificThan_subtypeOfSomeElement);
+      });
       _ut.test('test_isSubtypeOf_allElementsOnLHSAreSubtypesOfSomeElementOnRHS', () {
         final __test = new UnionTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_allElementsOnLHSAreSubtypesOfSomeElementOnRHS);
       });
+      _ut.test('test_isSubtypeOf_element', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_element);
+      });
       _ut.test('test_isSubtypeOf_notSubtypeOfAnyElement', () {
         final __test = new UnionTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_notSubtypeOfAnyElement);
+      });
+      _ut.test('test_isSubtypeOf_reflexivity', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_reflexivity);
       });
       _ut.test('test_isSubtypeOf_someElementOnLHSIsNotASubtypeOfAnyElementOnRHS', () {
         final __test = new UnionTypeImplTest();
@@ -4545,9 +4640,25 @@ class UnionTypeImplTest extends EngineTestCase {
         final __test = new UnionTypeImplTest();
         runJUnitTest(__test, __test.test_noLossage);
       });
+      _ut.test('test_substitute', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_substitute);
+      });
+      _ut.test('test_toString_pair', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_toString_pair);
+      });
       _ut.test('test_toString_singleton', () {
         final __test = new UnionTypeImplTest();
         runJUnitTest(__test, __test.test_toString_singleton);
+      });
+      _ut.test('test_unionTypeIsLessSpecificThan_function', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_unionTypeIsLessSpecificThan_function);
+      });
+      _ut.test('test_unionTypeIsSuperTypeOf_function', () {
+        final __test = new UnionTypeImplTest();
+        runJUnitTest(__test, __test.test_unionTypeIsSuperTypeOf_function);
       });
     });
   }
