@@ -1,5 +1,5 @@
 name: args
-version: 0.12.0+1
+version: 0.12.0+2
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
 description: >
@@ -7,7 +7,7 @@ description: >
  a set of options and values using GNU and POSIX style options.
 
 dependencies:
-  collection: ">=0.9.0 <0.10.0"
+  collection: ">=0.9.0 <2.0.0"
 dev_dependencies:
   unittest: ">=0.9.0 <0.11.0"
 environment:
