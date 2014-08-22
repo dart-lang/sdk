@@ -180,7 +180,9 @@ void _createBoilerPlate(String element, String superClass, String directory,
 <polymer-element name="$element"$extendsElementString>
   <template>
     <style>
-      <!-- Template styling here -->
+      :host {
+        display: block;
+      }
     </style>$shadowString
     <!-- Template content here -->
   </template>
