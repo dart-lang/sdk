@@ -41,8 +41,7 @@ class AssistsTest extends AbstractAnalysisTest {
     changes = sourceChangeList.map((SourceChange sourceChange) {
       Change change = new Change(sourceChange.message);
       sourceChange.edits.forEach((SourceFileEdit sourceFileEdit) {
-        SourceFileEdit fileEdit = new SourceFileEdit(sourceFileEdit.file,
-            <SourceEdit>[]);
+        SourceFileEdit fileEdit = new SourceFileEdit(sourceFileEdit.file);
         change.fileEdits.add(fileEdit);
         fileEdit.edits.addAll(sourceFileEdit.edits);
       });

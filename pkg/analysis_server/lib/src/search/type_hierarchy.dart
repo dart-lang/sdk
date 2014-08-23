@@ -66,9 +66,6 @@ class TypeHierarchyComputer {
         ExecutableElement subMemberElement = _findMemberElement(subElement);
         subItem = new TypeHierarchyItem(
             elementFromEngine(subElement),
-            <int>[],
-            <int>[],
-            <int>[],
             memberElement: subMemberElement != null ?
                 elementFromEngine(subMemberElement) : null,
             superclass: itemId);
@@ -108,9 +105,6 @@ class TypeHierarchyComputer {
       ExecutableElement memberElement = _findMemberElement(classElement);
       item = new TypeHierarchyItem(
           elementFromEngine(classElement),
-          <int>[],
-          <int>[],
-          <int>[],
           displayName: displayName,
           memberElement: memberElement != null ?
               elementFromEngine(memberElement) : null);

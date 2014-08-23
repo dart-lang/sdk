@@ -206,7 +206,7 @@ class FixProcessor {
     if (fixFile == null) {
       fixFile = file;
     }
-    SourceFileEdit fileEdit = new SourceFileEdit(file, <SourceEdit>[]);
+    SourceFileEdit fileEdit = new SourceFileEdit(file);
     fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);

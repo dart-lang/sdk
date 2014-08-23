@@ -41,7 +41,7 @@ class Change implements HasToJson {
   void addEdit(String file, SourceEdit edit) {
     SourceFileEdit fileEdit = getFileEdit(file);
     if (fileEdit == null) {
-      fileEdit = new SourceFileEdit(file, <SourceEdit>[]);
+      fileEdit = new SourceFileEdit(file);
       addFileEdit(fileEdit);
     }
     fileEdit.add(edit);

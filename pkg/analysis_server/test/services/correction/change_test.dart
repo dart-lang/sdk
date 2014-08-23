@@ -44,7 +44,7 @@ class ChangeTest {
 
   void test_getFileEdit() {
     Change change = new Change('msg');
-    SourceFileEdit fileEdit = new SourceFileEdit('/a.dart', <SourceEdit>[]);
+    SourceFileEdit fileEdit = new SourceFileEdit('/a.dart');
     change.addFileEdit(fileEdit);
     expect(change.getFileEdit('/a.dart'), fileEdit);
   }
@@ -56,10 +56,10 @@ class ChangeTest {
 
   void test_toJson() {
     Change change = new Change('msg');
-    change.addFileEdit(new SourceFileEdit('/a.dart', <SourceEdit>[])
+    change.addFileEdit(new SourceFileEdit('/a.dart')
         ..add(new SourceEdit(1, 2, 'aaa'))
         ..add(new SourceEdit(10, 20, 'bbb')));
-    change.addFileEdit(new SourceFileEdit('/b.dart', <SourceEdit>[])
+    change.addFileEdit(new SourceFileEdit('/b.dart')
         ..add(new SourceEdit(21, 22, 'xxx'))
         ..add(new SourceEdit(210, 220, 'yyy')));
     {
@@ -196,7 +196,7 @@ class FileEditTest {
     SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
     SourceEdit edit10 = new SourceEdit(10, 1, 'b');
     SourceEdit edit100 = new SourceEdit(100, 2, 'c');
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', <SourceEdit>[]);
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart');
     fileEdit.addAll([edit100, edit1a, edit10, edit1b]);
     expect(fileEdit.edits, [edit100, edit10, edit1b, edit1a]);
   }
@@ -206,7 +206,7 @@ class FileEditTest {
     SourceEdit edit1b = new SourceEdit(1, 0, 'a2');
     SourceEdit edit10 = new SourceEdit(10, 1, 'b');
     SourceEdit edit100 = new SourceEdit(100, 2, 'c');
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', <SourceEdit>[]);
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart');
     fileEdit.add(edit100);
     fileEdit.add(edit1a);
     fileEdit.add(edit1b);
@@ -215,7 +215,7 @@ class FileEditTest {
   }
 
   void test_new() {
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', <SourceEdit>[]);
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart');
     fileEdit.add(new SourceEdit(1, 2, 'aaa'));
     fileEdit.add(new SourceEdit(10, 20, 'bbb'));
     expect(
@@ -226,7 +226,7 @@ class FileEditTest {
   }
 
   void test_toJson() {
-    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart', <SourceEdit>[]);
+    SourceFileEdit fileEdit = new SourceFileEdit('/test.dart');
     fileEdit.add(new SourceEdit(1, 2, 'aaa'));
     fileEdit.add(new SourceEdit(10, 20, 'bbb'));
     var expectedJson = {

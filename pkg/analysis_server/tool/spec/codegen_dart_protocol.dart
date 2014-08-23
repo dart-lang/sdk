@@ -194,6 +194,16 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   };
 
   /**
+   * Class members for which the constructor argument should be optional, even
+   * if the member is not an optional part of the protocol.  For list types,
+   * the constructor will default the member to the empty list.
+   */
+  static const Map<String, List<String>> _optionalConstructorArguments = const {
+    'SourceFileEdit': const ['edits'],
+    'TypeHierarchyItem': const ['interfaces', 'mixins', 'subclasses']
+  };
+
+  /**
    * Visitor used to produce doc comments.
    */
   final ToHtmlVisitor toHtmlVisitor;
@@ -471,7 +481,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         continue;
       }
       String arg = 'this.${field.name}';
-      if (field.optional) {
+      if (isOptionalConstructorArg(className, field)) {
         optionalArgs.add(arg);
         TypeDecl fieldType = field.type;
         if (fieldType is TypeList) {
@@ -502,6 +512,20 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       });
       writeln('}');
     }
+  }
+
+  /**
+   * True if the constructor argument for the given field should be optional.
+   */
+  bool isOptionalConstructorArg(String className, TypeObjectField field) {
+    if (field.optional) {
+      return true;
+    }
+    List<String> forceOptional = _optionalConstructorArguments[className];
+    if (forceOptional != null && forceOptional.contains(field.name)) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -812,7 +836,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
             writeln('}');
             continue;
           }
-          if (field.optional) {
+          if (isOptionalConstructorArg(className, field)) {
             optionalArgs.add('${field.name}: ${field.name}');
           } else {
             args.add(field.name);

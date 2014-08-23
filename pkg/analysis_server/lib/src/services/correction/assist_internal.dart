@@ -127,7 +127,7 @@ class AssistProcessor {
     if (assistFile == null) {
       assistFile = file;
     }
-    SourceFileEdit fileEdit = new SourceFileEdit(file, <SourceEdit>[]);
+    SourceFileEdit fileEdit = new SourceFileEdit(file);
     fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);

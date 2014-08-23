@@ -8194,7 +8194,11 @@ class SourceFileEdit implements HasToJson {
    */
   List<SourceEdit> edits;
 
-  SourceFileEdit(this.file, this.edits);
+  SourceFileEdit(this.file, {this.edits}) {
+    if (edits == null) {
+      edits = <SourceEdit>[];
+    }
+  }
 
   factory SourceFileEdit.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8213,7 +8217,7 @@ class SourceFileEdit implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
-      return new SourceFileEdit(file, edits);
+      return new SourceFileEdit(file, edits: edits);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceFileEdit");
     }
@@ -8318,7 +8322,17 @@ class TypeHierarchyItem implements HasToJson {
    */
   List<int> subclasses;
 
-  TypeHierarchyItem(this.classElement, this.interfaces, this.mixins, this.subclasses, {this.displayName, this.memberElement, this.superclass});
+  TypeHierarchyItem(this.classElement, {this.displayName, this.memberElement, this.superclass, this.interfaces, this.mixins, this.subclasses}) {
+    if (interfaces == null) {
+      interfaces = <int>[];
+    }
+    if (mixins == null) {
+      mixins = <int>[];
+    }
+    if (subclasses == null) {
+      subclasses = <int>[];
+    }
+  }
 
   factory TypeHierarchyItem.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8361,7 +8375,7 @@ class TypeHierarchyItem implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subclasses");
       }
-      return new TypeHierarchyItem(classElement, interfaces, mixins, subclasses, displayName: displayName, memberElement: memberElement, superclass: superclass);
+      return new TypeHierarchyItem(classElement, displayName: displayName, memberElement: memberElement, superclass: superclass, interfaces: interfaces, mixins: mixins, subclasses: subclasses);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "TypeHierarchyItem");
     }
