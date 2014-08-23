@@ -73,8 +73,7 @@ class DartUnitOverridesComputer {
               new OverriddenMember.fromEngine(member)).toList();
       _overrides.add(
           new Override(offset, length, superclassMember: superMember,
-              interfaceMembers: interfaceMembers.isNotEmpty ?
-                  interfaceMembers : null));
+              interfaceMembers: interfaceMembers));
     }
   }
 

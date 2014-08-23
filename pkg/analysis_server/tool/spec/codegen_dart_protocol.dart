@@ -178,6 +178,11 @@ const Map<String, String> specialElementFlags = const {
 };
 
 /**
+ * Callback type used to represent arbitrary code generation.
+ */
+typedef void CodegenCallback();
+
+/**
  * Visitor which produces Dart code representing the API.
  */
 class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
@@ -460,6 +465,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void emitObjectConstructor(TypeObject type, String className) {
     List<String> args = <String>[];
     List<String> optionalArgs = <String>[];
+    List<CodegenCallback> extraInitCode = <CodegenCallback>[];
     for (TypeObjectField field in type.fields) {
       if (field.value != null) {
         continue;
@@ -467,6 +473,16 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       String arg = 'this.${field.name}';
       if (field.optional) {
         optionalArgs.add(arg);
+        TypeDecl fieldType = field.type;
+        if (fieldType is TypeList) {
+          extraInitCode.add(() {
+            writeln('if (${field.name} == null) {');
+            indent(() {
+              writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
+            });
+            writeln('}');
+          });
+        }
       } else {
         args.add(arg);
       }
@@ -474,7 +490,18 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     if (optionalArgs.isNotEmpty) {
       args.add('{${optionalArgs.join(', ')}}');
     }
-    writeln('$className(${args.join(', ')});');
+    write('$className(${args.join(', ')})');
+    if (extraInitCode.isEmpty) {
+      writeln(';');
+    } else {
+      writeln(' {');
+      indent(() {
+        for (CodegenCallback callback in extraInitCode) {
+          callback();
+        }
+      });
+      writeln('}');
+    }
   }
 
   /**
@@ -493,7 +520,13 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         String fieldToJson = toJsonCode(field.type).asSnippet(field.name);
         String populateField = 'result[$fieldNameString] = $fieldToJson;';
         if (field.optional) {
-          writeln('if (${field.name} != null) {');
+          String condition;
+          if (field.type is TypeList) {
+            condition = '${field.name}.isNotEmpty';
+          } else {
+            condition = '${field.name} != null';
+          }
+          writeln('if ($condition) {');
           indent(() {
             writeln(populateField);
           });
@@ -784,11 +817,12 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
           } else {
             args.add(field.name);
           }
-          String fieldDartType = dartType(field.type);
+          TypeDecl fieldType = field.type;
+          String fieldDartType = dartType(fieldType);
           writeln('$fieldDartType ${field.name};');
           writeln('if (json.containsKey($fieldNameString)) {');
           indent(() {
-            String toJson = fromJsonCode(field.type).asSnippet(jsonPath,
+            String toJson = fromJsonCode(fieldType).asSnippet(jsonPath,
                 fieldAccessor);
             writeln('${field.name} = $toJson;');
           });
@@ -798,6 +832,12 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
             indent(() {
               writeln(
                   "throw jsonDecoder.missingKey(jsonPath, $fieldNameString);");
+            });
+            writeln('}');
+          } else if (fieldType is TypeList) {
+            writeln(' else {');
+            indent(() {
+              writeln('${field.name} = <${dartType(fieldType.itemType)}>[];');
             });
             writeln('}');
           } else {

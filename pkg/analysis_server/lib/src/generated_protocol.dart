@@ -2499,7 +2499,11 @@ class SearchGetTypeHierarchyResult implements HasToJson {
    */
   List<TypeHierarchyItem> hierarchyItems;
 
-  SearchGetTypeHierarchyResult({this.hierarchyItems});
+  SearchGetTypeHierarchyResult({this.hierarchyItems}) {
+    if (hierarchyItems == null) {
+      hierarchyItems = <TypeHierarchyItem>[];
+    }
+  }
 
   factory SearchGetTypeHierarchyResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2509,6 +2513,8 @@ class SearchGetTypeHierarchyResult implements HasToJson {
       List<TypeHierarchyItem> hierarchyItems;
       if (json.containsKey("hierarchyItems")) {
         hierarchyItems = jsonDecoder._decodeList(jsonPath + ".hierarchyItems", json["hierarchyItems"], (String jsonPath, Object json) => new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        hierarchyItems = <TypeHierarchyItem>[];
       }
       return new SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
     } else {
@@ -2523,7 +2529,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    if (hierarchyItems != null) {
+    if (hierarchyItems.isNotEmpty) {
       result["hierarchyItems"] = hierarchyItems.map((TypeHierarchyItem value) => value.toJson()).toList();
     }
     return result;
@@ -3310,7 +3316,11 @@ class EditGetRefactoringResult implements HasToJson {
    */
   List<String> potentialEdits;
 
-  EditGetRefactoringResult(this.problems, {this.feedback, this.change, this.potentialEdits});
+  EditGetRefactoringResult(this.problems, {this.feedback, this.change, this.potentialEdits}) {
+    if (potentialEdits == null) {
+      potentialEdits = <String>[];
+    }
+  }
 
   factory EditGetRefactoringResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -3334,6 +3344,8 @@ class EditGetRefactoringResult implements HasToJson {
       List<String> potentialEdits;
       if (json.containsKey("potentialEdits")) {
         potentialEdits = jsonDecoder._decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder._decodeString);
+      } else {
+        potentialEdits = <String>[];
       }
       return new EditGetRefactoringResult(problems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
@@ -3355,7 +3367,7 @@ class EditGetRefactoringResult implements HasToJson {
     if (change != null) {
       result["change"] = change.toJson();
     }
-    if (potentialEdits != null) {
+    if (potentialEdits.isNotEmpty) {
       result["potentialEdits"] = potentialEdits;
     }
     return result;
@@ -4614,7 +4626,14 @@ class CompletionSuggestion implements HasToJson {
    */
   String parameterType;
 
-  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType});
+  CompletionSuggestion(this.kind, this.relevance, this.completion, this.selectionOffset, this.selectionLength, this.isDeprecated, this.isPotential, {this.docSummary, this.docComplete, this.declaringType, this.returnType, this.parameterNames, this.parameterTypes, this.requiredParameterCount, this.positionalParameterCount, this.parameterName, this.parameterType}) {
+    if (parameterNames == null) {
+      parameterNames = <String>[];
+    }
+    if (parameterTypes == null) {
+      parameterTypes = <String>[];
+    }
+  }
 
   factory CompletionSuggestion.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -4682,10 +4701,14 @@ class CompletionSuggestion implements HasToJson {
       List<String> parameterNames;
       if (json.containsKey("parameterNames")) {
         parameterNames = jsonDecoder._decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder._decodeString);
+      } else {
+        parameterNames = <String>[];
       }
       List<String> parameterTypes;
       if (json.containsKey("parameterTypes")) {
         parameterTypes = jsonDecoder._decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder._decodeString);
+      } else {
+        parameterTypes = <String>[];
       }
       int requiredParameterCount;
       if (json.containsKey("requiredParameterCount")) {
@@ -4730,10 +4753,10 @@ class CompletionSuggestion implements HasToJson {
     if (returnType != null) {
       result["returnType"] = returnType;
     }
-    if (parameterNames != null) {
+    if (parameterNames.isNotEmpty) {
       result["parameterNames"] = parameterNames;
     }
-    if (parameterTypes != null) {
+    if (parameterTypes.isNotEmpty) {
       result["parameterTypes"] = parameterTypes;
     }
     if (requiredParameterCount != null) {
@@ -6892,7 +6915,11 @@ class Outline implements HasToJson {
    */
   List<Outline> children;
 
-  Outline(this.element, this.offset, this.length, {this.children});
+  Outline(this.element, this.offset, this.length, {this.children}) {
+    if (children == null) {
+      children = <Outline>[];
+    }
+  }
 
   factory Outline.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -6920,6 +6947,8 @@ class Outline implements HasToJson {
       List<Outline> children;
       if (json.containsKey("children")) {
         children = jsonDecoder._decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        children = <Outline>[];
       }
       return new Outline(element, offset, length, children: children);
     } else {
@@ -6932,7 +6961,7 @@ class Outline implements HasToJson {
     result["element"] = element.toJson();
     result["offset"] = offset;
     result["length"] = length;
-    if (children != null) {
+    if (children.isNotEmpty) {
       result["children"] = children.map((Outline value) => value.toJson()).toList();
     }
     return result;
@@ -6998,7 +7027,11 @@ class Override implements HasToJson {
    */
   List<OverriddenMember> interfaceMembers;
 
-  Override(this.offset, this.length, {this.superclassMember, this.interfaceMembers});
+  Override(this.offset, this.length, {this.superclassMember, this.interfaceMembers}) {
+    if (interfaceMembers == null) {
+      interfaceMembers = <OverriddenMember>[];
+    }
+  }
 
   factory Override.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -7024,6 +7057,8 @@ class Override implements HasToJson {
       List<OverriddenMember> interfaceMembers;
       if (json.containsKey("interfaceMembers")) {
         interfaceMembers = jsonDecoder._decodeList(jsonPath + ".interfaceMembers", json["interfaceMembers"], (String jsonPath, Object json) => new OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        interfaceMembers = <OverriddenMember>[];
       }
       return new Override(offset, length, superclassMember: superclassMember, interfaceMembers: interfaceMembers);
     } else {
@@ -7038,7 +7073,7 @@ class Override implements HasToJson {
     if (superclassMember != null) {
       result["superclassMember"] = superclassMember.toJson();
     }
-    if (interfaceMembers != null) {
+    if (interfaceMembers.isNotEmpty) {
       result["interfaceMembers"] = interfaceMembers.map((OverriddenMember value) => value.toJson()).toList();
     }
     return result;

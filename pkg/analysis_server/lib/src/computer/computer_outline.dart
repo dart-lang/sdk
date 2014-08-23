@@ -164,8 +164,7 @@ class DartUnitOutlineComputer {
             isAbstract: classDeclaration.isAbstract),
         location: _getLocationNode(nameNode));
     return new Outline(element, sourceRegion.offset,
-        sourceRegion.length,
-        children: classContents.isNotEmpty ? classContents : null);
+        sourceRegion.length, children: classContents);
   }
 
   Outline _newClassTypeAlias(ClassTypeAlias alias) {
@@ -204,7 +203,7 @@ class DartUnitOutlineComputer {
         parameters: parametersStr);
     List<Outline> contents = _addLocalFunctionOutlines(constructor.body);
     Outline outline = new Outline(element, sourceRegion.offset,
-        sourceRegion.length, children: contents.isNotEmpty ? contents : null);
+        sourceRegion.length, children: contents);
     return outline;
   }
 
@@ -232,7 +231,7 @@ class DartUnitOutlineComputer {
         returnType: returnTypeStr);
     List<Outline> contents = _addLocalFunctionOutlines(functionExpression.body);
     Outline outline = new Outline(element, sourceRegion.offset,
-        sourceRegion.length, children: contents.isNotEmpty ? contents : null);
+        sourceRegion.length, children: contents);
     return outline;
   }
 
@@ -276,7 +275,7 @@ class DartUnitOutlineComputer {
         parameters: parametersStr, returnType: returnTypeStr);
     List<Outline> contents = _addLocalFunctionOutlines(method.body);
     Outline outline = new Outline(element, sourceRegion.offset,
-        sourceRegion.length, children: contents.isNotEmpty ? contents : null);
+        sourceRegion.length, children: contents);
     return outline;
   }
 
@@ -284,7 +283,7 @@ class DartUnitOutlineComputer {
     Element element = new Element(ElementKind.COMPILATION_UNIT, '<unit>',
         Element.makeFlags(), location: _getLocationNode(_unit));
     return new Outline(element, _unit.offset, _unit.length,
-        children: unitContents.isNotEmpty ? unitContents : null);
+        children: unitContents);
   }
 
   Outline _newVariableOutline(String typeName, ElementKind kind,

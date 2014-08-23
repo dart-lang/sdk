@@ -70,7 +70,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
    * Asserts that there are no overridden members from interfaces.
    */
   void assertNoInterfaceMembers() {
-    expect(override.interfaceMembers, isNull);
+    expect(override.interfaceMembers, isEmpty);
   }
 
   /**
