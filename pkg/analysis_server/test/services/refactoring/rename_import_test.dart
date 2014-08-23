@@ -28,7 +28,7 @@ class RenameImportTest extends RenameRefactoringTest {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Import prefix name must not be null.");
     // same
     refactoring.newName = 'test';

@@ -204,13 +204,13 @@ main() {
     refactoring.name = null;
     assertRefactoringStatus(
         refactoring.checkName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be null.");
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
         refactoring.checkName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be empty.");
     // OK
     refactoring.name = 'res';

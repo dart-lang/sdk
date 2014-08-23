@@ -195,7 +195,7 @@ main() {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not be null.");
     // OK
     refactoring.newName = 'newName';
@@ -213,13 +213,13 @@ main() {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be empty.");
     // OK
     refactoring.newName = 'newName';
@@ -237,13 +237,13 @@ main() {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constant name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constant name must not be empty.");
     // same
     refactoring.newName = 'TEST';
@@ -266,7 +266,7 @@ main(test) {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not be null.");
     // OK
     refactoring.newName = 'newName';

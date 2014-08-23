@@ -128,7 +128,7 @@ class NoResponseException implements Exception {
  */
 class MockServerChannel implements ServerCommunicationChannel {
   StreamController<Request> requestController = new StreamController<Request>();
-  StreamController<Response> responseController = new StreamController<Response>();
+  StreamController<Response> responseController = new StreamController<Response>.broadcast();
   StreamController<Notification> notificationController = new StreamController<Notification>(sync: true);
 
   List<Response> responsesReceived = [];
@@ -193,6 +193,9 @@ class MockServerChannel implements ServerCommunicationChannel {
     return responseController.stream.firstWhere((response) {
       return response.id == id;
     });
+//    return responseController.stream.firstWhere((response) {
+//      return response.id == id;
+//    });
   }
 
   @override

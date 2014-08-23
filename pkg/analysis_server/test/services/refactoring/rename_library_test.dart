@@ -30,13 +30,13 @@ library my.app;
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name must not be null.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name must not be blank.");
     // same name
     refactoring.newName = 'my.app';

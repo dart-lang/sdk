@@ -71,7 +71,7 @@ class A {
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constructor name must not be null.");
     // same
     refactoring.newName = 'test';

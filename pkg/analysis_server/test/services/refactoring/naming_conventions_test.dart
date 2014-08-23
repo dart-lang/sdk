@@ -51,7 +51,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateClassName_empty() {
     assertRefactoringStatus(
         validateClassName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Class name must not be empty.");
   }
 
@@ -80,7 +80,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateClassName_null() {
     assertRefactoringStatus(
         validateClassName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Class name must not be null.");
   }
 
@@ -109,7 +109,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateConstantName_empty() {
     assertRefactoringStatus(
         validateConstantName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constant name must not be empty.");
   }
 
@@ -145,7 +145,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateConstantName_null() {
     assertRefactoringStatus(
         validateConstantName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constant name must not be null.");
   }
 
@@ -200,7 +200,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateConstructorName_null() {
     assertRefactoringStatus(
         validateConstructorName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Constructor name must not be null.");
   }
 
@@ -233,7 +233,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFieldName_empty() {
     assertRefactoringStatus(
         validateFieldName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Field name must not be empty.");
   }
 
@@ -262,7 +262,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFieldName_null() {
     assertRefactoringStatus(
         validateFieldName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Field name must not be null.");
   }
 
@@ -295,7 +295,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionName_empty() {
     assertRefactoringStatus(
         validateFunctionName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not be empty.");
   }
 
@@ -324,7 +324,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionName_null() {
     assertRefactoringStatus(
         validateFunctionName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function name must not be null.");
   }
 
@@ -362,7 +362,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionTypeAliasName_empty() {
     assertRefactoringStatus(
         validateFunctionTypeAliasName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function type alias name must not be empty.");
   }
 
@@ -392,7 +392,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateFunctionTypeAliasName_null() {
     assertRefactoringStatus(
         validateFunctionTypeAliasName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Function type alias name must not be null.");
   }
 
@@ -452,7 +452,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateImportPrefixName_null() {
     assertRefactoringStatus(
         validateImportPrefixName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Import prefix name must not be null.");
   }
 
@@ -474,18 +474,18 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateLibraryName_blank() {
     assertRefactoringStatus(
         validateLibraryName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name must not be blank.");
     assertRefactoringStatus(
         validateLibraryName(" "),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name must not be blank.");
   }
 
   void test_validateLibraryName_blank_identifier() {
     assertRefactoringStatus(
         validateLibraryName("my..name"),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name identifier must not be empty.");
     assertRefactoringStatus(
         validateLibraryName("my. .name"),
@@ -526,7 +526,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateLibraryName_null() {
     assertRefactoringStatus(
         validateLibraryName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Library name must not be null.");
   }
 
@@ -559,7 +559,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateMethodName_empty() {
     assertRefactoringStatus(
         validateMethodName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not be empty.");
   }
 
@@ -588,7 +588,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateMethodName_null() {
     assertRefactoringStatus(
         validateMethodName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Method name must not be null.");
   }
 
@@ -621,7 +621,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateParameterName_empty() {
     assertRefactoringStatus(
         validateParameterName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not be empty.");
   }
 
@@ -650,7 +650,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateParameterName_null() {
     assertRefactoringStatus(
         validateParameterName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Parameter name must not be null.");
   }
 
@@ -687,7 +687,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateVariableName_empty() {
     assertRefactoringStatus(
         validateVariableName(""),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be empty.");
   }
 
@@ -716,7 +716,7 @@ class NamingConventionsTest extends RefactoringTest {
   void test_validateVariableName_null() {
     assertRefactoringStatus(
         validateVariableName(null),
-        RefactoringProblemSeverity.ERROR,
+        RefactoringProblemSeverity.FATAL,
         expectedMessage: "Variable name must not be null.");
   }
 

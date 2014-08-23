@@ -27,7 +27,7 @@ RefactoringStatus validateClassName(String name) {
 RefactoringStatus validateConstantName(String name) {
   // null
   if (name == null) {
-    return new RefactoringStatus.error("Constant name must not be null.");
+    return new RefactoringStatus.fatal("Constant name must not be null.");
   }
   // is not identifier
   RefactoringStatus status =
@@ -117,11 +117,11 @@ RefactoringStatus validateImportPrefixName(String name) {
 RefactoringStatus validateLibraryName(String name) {
   // null
   if (name == null) {
-    return new RefactoringStatus.error("Library name must not be null.");
+    return new RefactoringStatus.fatal("Library name must not be null.");
   }
   // blank
   if (isBlank(name)) {
-    return new RefactoringStatus.error("Library name must not be blank.");
+    return new RefactoringStatus.fatal("Library name must not be blank.");
   }
   // check identifiers
   List<String> identifiers = name.split('.');
@@ -190,7 +190,7 @@ RefactoringStatus _validateIdentifier(String identifier, String desc,
   int length = identifier.length;
   if (length == 0) {
     String message = "$desc must not be empty.";
-    return new RefactoringStatus.error(message);
+    return new RefactoringStatus.fatal(message);
   }
   int currentChar = identifier.codeUnitAt(0);
   if (!isLetter(currentChar) &&
@@ -220,7 +220,7 @@ RefactoringStatus _validateLowerCamelCase(String identifier, String desc) {
   // null
   if (identifier == null) {
     String message = "$desc must not be null.";
-    return new RefactoringStatus.error(message);
+    return new RefactoringStatus.fatal(message);
   }
   // is not identifier
   RefactoringStatus status =
@@ -253,7 +253,7 @@ RefactoringStatus _validateUpperCamelCase(String identifier, String desc) {
   // null
   if (identifier == null) {
     String message = "$desc must not be null.";
-    return new RefactoringStatus.error(message);
+    return new RefactoringStatus.fatal(message);
   }
   // is not identifier
   RefactoringStatus status =
