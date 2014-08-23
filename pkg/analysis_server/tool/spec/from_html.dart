@@ -18,9 +18,13 @@ import 'html_tools.dart';
 /**
  * Check that the given [element] has the given [expectedName].
  */
-void checkName(dom.Element element, String expectedName) {
+void checkName(dom.Element element, String expectedName, [String context]) {
   if (element.localName != expectedName) {
-    throw new Exception('Expected $expectedName, found ${element.localName}');
+    if (context == null) {
+      context = element.localName;
+    }
+    throw new Exception(
+        '$context: Expected $expectedName, found ${element.localName}');
   }
 }
 
@@ -30,37 +34,38 @@ void checkName(dom.Element element, String expectedName) {
  * [optionalAttributes], and no others.
  */
 void checkAttributes(dom.Element element, List<String>
-    requiredAttributes, {List<String> optionalAttributes: const []}) {
+    requiredAttributes, String context, {List<String> optionalAttributes: const []})
+    {
   Set<String> attributesFound = new Set<String>();
   element.attributes.forEach((String name, String value) {
     if (!requiredAttributes.contains(name) && !optionalAttributes.contains(name
         )) {
-      throw new Exception('Unexpected attribute in ${element.localName}: $name'
-          );
+      throw new Exception(
+          '$context: Unexpected attribute in ${element.localName}: $name');
     }
     attributesFound.add(name);
   });
   for (String expectedAttribute in requiredAttributes) {
     if (!attributesFound.contains(expectedAttribute)) {
       throw new Exception(
-          '${element.localName} must contain attribute ${expectedAttribute}');
+          '$context: ${element.localName} must contain attribute ${expectedAttribute}');
     }
   }
 }
 
-const List<String> specialElements = const ['domain', 'feedback',
-    'object', 'refactorings', 'refactoring', 'type', 'types', 'request',
-    'notification', 'params', 'result', 'field', 'list', 'map', 'enum', 'key',
-    'value', 'options', 'ref', 'code', 'version', 'union'];
+const List<String> specialElements = const ['domain', 'feedback', 'object',
+    'refactorings', 'refactoring', 'type', 'types', 'request', 'notification',
+    'params', 'result', 'field', 'list', 'map', 'enum', 'key', 'value', 'options',
+    'ref', 'code', 'version', 'union'];
 
 typedef void ElementProcessor(dom.Element element);
 typedef void TextProcessor(dom.Text text);
 
-void recurse(dom.Element parent, Map<String, ElementProcessor>
+void recurse(dom.Element parent, String context, Map<String, ElementProcessor>
     elementProcessors) {
   for (String key in elementProcessors.keys) {
     if (!specialElements.contains(key)) {
-      throw new Exception('$key is not a special element');
+      throw new Exception('$context: $key is not a special element');
     }
   }
   for (dom.Node node in parent.nodes) {
@@ -68,15 +73,15 @@ void recurse(dom.Element parent, Map<String, ElementProcessor>
       if (elementProcessors.containsKey(node.localName)) {
         elementProcessors[node.localName](node);
       } else if (specialElements.contains(node.localName)) {
-        throw new Exception('Unexpected use of <${node.localName}');
+        throw new Exception('$context: Unexpected use of <${node.localName}');
       } else {
-        recurse(node, elementProcessors);
+        recurse(node, context, elementProcessors);
       }
     }
   }
 }
 
-dom.Element getAncestor(dom.Element html, String name) {
+dom.Element getAncestor(dom.Element html, String name, String context) {
   dom.Element ancestor = html.parent;
   while (ancestor != null) {
     if (ancestor.localName == name) {
@@ -84,7 +89,8 @@ dom.Element getAncestor(dom.Element html, String name) {
     }
     ancestor = ancestor.parent;
   }
-  throw new Exception('<${html.localName}> must be nested within <$name>');
+  throw new Exception(
+      '$context: <${html.localName}> must be nested within <$name>');
 }
 
 /**
@@ -108,7 +114,7 @@ Api apiFromHtml(dom.Element html) {
   List<Domain> domains = <Domain>[];
   Types types = null;
   Refactorings refactorings = null;
-  recurse(html, {
+  recurse(html, 'api', {
     'domain': (dom.Element element) {
       domains.add(domainFromHtml(element));
     },
@@ -138,9 +144,10 @@ Api apiFromHtml(dom.Element html) {
  */
 Refactorings refactoringsFromHtml(dom.Element html) {
   checkName(html, 'refactorings');
-  checkAttributes(html, []);
+  String context = 'refactorings';
+  checkAttributes(html, [], context);
   List<Refactoring> refactorings = <Refactoring>[];
-  recurse(html, {
+  recurse(html, context, {
     'refactoring': (dom.Element child) {
       refactorings.add(refactoringFromHtml(child));
     }
@@ -163,16 +170,17 @@ Refactorings refactoringsFromHtml(dom.Element html) {
  */
 Refactoring refactoringFromHtml(dom.Element html) {
   checkName(html, 'refactoring');
-  checkAttributes(html, ['kind']);
   String kind = html.attributes['kind'];
+  String context = kind != null ? kind : 'refactoring';
+  checkAttributes(html, ['kind'], context);
   TypeDecl feedback;
   TypeDecl options;
-  recurse(html, {
+  recurse(html, context, {
     'feedback': (dom.Element child) {
-      feedback = typeObjectFromHtml(child);
+      feedback = typeObjectFromHtml(child, '$context.feedback');
     },
     'options': (dom.Element child) {
-      options = typeObjectFromHtml(child);
+      options = typeObjectFromHtml(child, '$context.options');
     }
   });
   return new Refactoring(kind, feedback, options, html);
@@ -187,9 +195,10 @@ Refactoring refactoringFromHtml(dom.Element html) {
  */
 Types typesFromHtml(dom.Element html) {
   checkName(html, 'types');
-  checkAttributes(html, []);
+  String context = 'types';
+  checkAttributes(html, [], context);
   Map<String, TypeDefinition> types = <String, TypeDefinition> {};
-  recurse(html, {
+  recurse(html, context, {
     'type': (dom.Element child) {
       TypeDefinition typeDefinition = typeDefinitionFromHtml(child);
       types[typeDefinition.name] = typeDefinition;
@@ -211,9 +220,10 @@ Types typesFromHtml(dom.Element html) {
  */
 TypeDefinition typeDefinitionFromHtml(dom.Element html) {
   checkName(html, 'type');
-  checkAttributes(html, ['name']);
   String name = html.attributes['name'];
-  TypeDecl type = processContentsAsType(html);
+  String context = name != null ? name : 'type';
+  checkAttributes(html, ['name'], context);
+  TypeDecl type = processContentsAsType(html, context);
   return new TypeDefinition(name, type, html);
 }
 
@@ -229,16 +239,17 @@ TypeDefinition typeDefinitionFromHtml(dom.Element html) {
  */
 Domain domainFromHtml(dom.Element html) {
   checkName(html, 'domain');
-  checkAttributes(html, ['name']);
   String name = html.attributes['name'];
+  String context = name != null ? name : 'domain';
+  checkAttributes(html, ['name'], context);
   List<Request> requests = <Request>[];
   List<Notification> notifications = <Notification>[];
-  recurse(html, {
+  recurse(html, context, {
     'request': (dom.Element child) {
-      requests.add(requestFromHtml(child));
+      requests.add(requestFromHtml(child, context));
     },
     'notification': (dom.Element child) {
-      notifications.add(notificationFromHtml(child));
+      notifications.add(notificationFromHtml(child, context));
     }
   });
   return new Domain(name, requests, notifications, html);
@@ -259,19 +270,20 @@ Domain domainFromHtml(dom.Element html) {
  *
  * Child elements can occur in any order.
  */
-Request requestFromHtml(dom.Element html) {
-  String domainName = getAncestor(html, 'domain').attributes['name'];
-  checkName(html, 'request');
-  checkAttributes(html, ['method']);
+Request requestFromHtml(dom.Element html, String context) {
+  String domainName = getAncestor(html, 'domain', context).attributes['name'];
+  checkName(html, 'request', context);
   String method = html.attributes['method'];
+  context = '$context.${method != null ? method : 'method'}';
+  checkAttributes(html, ['method'], context);
   TypeDecl params;
   TypeDecl result;
-  recurse(html, {
+  recurse(html, context, {
     'params': (dom.Element child) {
-      params = typeObjectFromHtml(child);
+      params = typeObjectFromHtml(child, '$context.params');
     },
     'result': (dom.Element child) {
-      result = typeObjectFromHtml(child);
+      result = typeObjectFromHtml(child, '$context.result');
     }
   });
   return new Request(domainName, method, params, result, html);
@@ -290,15 +302,16 @@ Request requestFromHtml(dom.Element html) {
  *
  * Child elements can occur in any order.
  */
-Notification notificationFromHtml(dom.Element html) {
-  String domainName = getAncestor(html, 'domain').attributes['name'];
-  checkName(html, 'notification');
-  checkAttributes(html, ['event']);
+Notification notificationFromHtml(dom.Element html, String context) {
+  String domainName = getAncestor(html, 'domain', context).attributes['name'];
+  checkName(html, 'notification', context);
   String event = html.attributes['event'];
+  context = '$context.${event != null ? event : 'event'}';
+  checkAttributes(html, ['event'], context);
   TypeDecl params;
-  recurse(html, {
+  recurse(html, context, {
     'params': (dom.Element child) {
-      params = typeObjectFromHtml(child);
+      params = typeObjectFromHtml(child, '$context.params');
     }
   });
   return new Notification(domainName, event, params, html);
@@ -307,10 +320,10 @@ Notification notificationFromHtml(dom.Element html) {
  * Create a single of [TypeDecl] corresponding to the type defined inside the
  * given HTML element.
  */
-TypeDecl processContentsAsType(dom.Element html) {
-  List<TypeDecl> types = processContentsAsTypes(html);
+TypeDecl processContentsAsType(dom.Element html, String context) {
+  List<TypeDecl> types = processContentsAsTypes(html, context);
   if (types.length != 1) {
-    throw new Exception('Exactly one type must be specified');
+    throw new Exception('$context: Exactly one type must be specified');
   }
   return types[0];
 }
@@ -344,53 +357,54 @@ TypeDecl processContentsAsType(dom.Element html) {
  *     TYPE <!-- zero or more -->
  *   </union>
  */
-List<TypeDecl> processContentsAsTypes(dom.Element html) {
+List<TypeDecl> processContentsAsTypes(dom.Element html, String context) {
   List<TypeDecl> types = <TypeDecl>[];
-  recurse(html, {
+  recurse(html, context, {
     'object': (dom.Element child) {
-      types.add(typeObjectFromHtml(child));
+      types.add(typeObjectFromHtml(child, context));
     },
     'list': (dom.Element child) {
-      checkAttributes(child, []);
-      types.add(new TypeList(processContentsAsType(child), child));
+      checkAttributes(child, [], context);
+      types.add(new TypeList(processContentsAsType(child, context), child));
     },
     'map': (dom.Element child) {
-      checkAttributes(child, []);
+      checkAttributes(child, [], context);
       TypeDecl keyType;
       TypeDecl valueType;
-      recurse(child, {
+      recurse(child, context, {
         'key': (dom.Element child) {
           if (keyType != null) {
-            throw new Exception('Key type already specified');
+            throw new Exception('$context: Key type already specified');
           }
-          keyType = processContentsAsType(child);
+          keyType = processContentsAsType(child, '$context.key');
         },
         'value': (dom.Element child) {
           if (valueType != null) {
-            throw new Exception('Value type already specified');
+            throw new Exception('$context: Value type already specified');
           }
-          valueType = processContentsAsType(child);
+          valueType = processContentsAsType(child, '$context.value');
         }
       });
       if (keyType == null) {
-        throw new Exception('Key type not specified');
+        throw new Exception('$context: Key type not specified');
       }
       if (valueType == null) {
-        throw new Exception('Value type not specified');
+        throw new Exception('$context: Value type not specified');
       }
       types.add(new TypeMap(keyType, valueType, child));
     },
     'enum': (dom.Element child) {
-      types.add(typeEnumFromHtml(child));
+      types.add(typeEnumFromHtml(child, context));
     },
     'ref': (dom.Element child) {
-      checkAttributes(child, []);
+      checkAttributes(child, [], context);
       types.add(new TypeReference(innerText(child), child));
     },
     'union': (dom.Element child) {
-      checkAttributes(child, ['field']);
+      checkAttributes(child, ['field'], context);
       String field = child.attributes['field'];
-      types.add(new TypeUnion(processContentsAsTypes(child), field, child));
+      types.add(new TypeUnion(processContentsAsTypes(child, context), field,
+          child));
     }
   });
   return types;
@@ -399,13 +413,13 @@ List<TypeDecl> processContentsAsTypes(dom.Element html) {
 /**
  * Create a [TypeEnum] from an HTML description.
  */
-TypeEnum typeEnumFromHtml(dom.Element html) {
-  checkName(html, 'enum');
-  checkAttributes(html, []);
+TypeEnum typeEnumFromHtml(dom.Element html, String context) {
+  checkName(html, 'enum', context);
+  checkAttributes(html, [], context);
   List<TypeEnumValue> values = <TypeEnumValue>[];
-  recurse(html, {
+  recurse(html, context, {
     'value': (dom.Element child) {
-      values.add(typeEnumValueFromHtml(child));
+      values.add(typeEnumValueFromHtml(child, context));
     }
   });
   return new TypeEnum(values, html);
@@ -422,18 +436,18 @@ TypeEnum typeEnumFromHtml(dom.Element html) {
  *
  * Child elements can occur in any order.
  */
-TypeEnumValue typeEnumValueFromHtml(dom.Element html) {
-  checkName(html, 'value');
-  checkAttributes(html, []);
+TypeEnumValue typeEnumValueFromHtml(dom.Element html, String context) {
+  checkName(html, 'value', context);
+  checkAttributes(html, [], context);
   List<String> values = <String>[];
-  recurse(html, {
+  recurse(html, context, {
     'code': (dom.Element child) {
       String text = innerText(child).trim();
       values.add(text);
     }
   });
   if (values.length != 1) {
-    throw new Exception('Exactly one value must be specified');
+    throw new Exception('$context: Exactly one value must be specified');
   }
   return new TypeEnumValue(values[0], html);
 }
@@ -441,12 +455,12 @@ TypeEnumValue typeEnumValueFromHtml(dom.Element html) {
 /**
  * Create a [TypeObject] from an HTML description.
  */
-TypeObject typeObjectFromHtml(dom.Element html) {
-  checkAttributes(html, []);
+TypeObject typeObjectFromHtml(dom.Element html, String context) {
+  checkAttributes(html, [], context);
   List<TypeObjectField> fields = <TypeObjectField>[];
-  recurse(html, {
+  recurse(html, context, {
     'field': (dom.Element child) {
-      fields.add(typeObjectFieldFromHtml(child));
+      fields.add(typeObjectFieldFromHtml(child, context));
     }
   });
   return new TypeObject(fields, html);
@@ -467,10 +481,12 @@ TypeObject typeObjectFromHtml(dom.Element html) {
  *
  * Child elements can occur in any order.
  */
-TypeObjectField typeObjectFieldFromHtml(dom.Element html) {
-  checkName(html, 'field');
-  checkAttributes(html, ['name'], optionalAttributes: ['optional', 'value']);
+TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
+  checkName(html, 'field', context);
   String name = html.attributes['name'];
+  context = '$context.${name != null ? name : 'field'}';
+  checkAttributes(html, ['name'], context, optionalAttributes: ['optional',
+      'value']);
   bool optional = false;
   String optionalString = html.attributes['optional'];
   if (optionalString != null) {
@@ -483,11 +499,11 @@ TypeObjectField typeObjectFieldFromHtml(dom.Element html) {
         break;
       default:
         throw new Exception(
-            'field contains invalid "optional" attribute: "$optionalString"');
+            '$context: field contains invalid "optional" attribute: "$optionalString"');
     }
   }
   String value = html.attributes['value'];
-  TypeDecl type = processContentsAsType(html);
+  TypeDecl type = processContentsAsType(html, context);
   return new TypeObjectField(name, type, html, optional: optional, value: value
       );
 }
