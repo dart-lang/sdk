@@ -97,7 +97,6 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       //
       // public static final "EMPTY_ARRAY" field
-      // i.e. "public static final Parameter[] EMPTY_ARRAY = new Parameter[0];"
       //
       publicField(javaName("EMPTY_ARRAY"), () {
         writeln(
@@ -106,8 +105,6 @@ class CodegenJavaType extends CodegenJavaVisitor {
 
       //
       // public static final "EMPTY_LIST" field
-      //
-      // i.e. "public static final List<Parameter> EMPTY_LIST = Lists.newArrayList();"
       //
       publicField(javaName("EMPTY_LIST"), () {
         writeln(
@@ -131,8 +128,6 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       TypeObject typeObject = typeDef.type as TypeObject;
       List<TypeObjectField> fields = typeObject.fields;
-      // TODO we need to possibly remove fields such as "type" in these objects:
-      // AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay
       for (TypeObjectField field in fields) {
         privateField(javaName(field.name), () {
           javadocComment(toHtmlVisitor.collectHtml(() {
@@ -154,13 +149,24 @@ class CodegenJavaType extends CodegenJavaVisitor {
         // write out parameters to constructor
         List<String> parameters = new List();
         for (TypeObjectField field in fields) {
-          parameters.add('${javaType(field.type)} ${javaName(field.name)}');
+          if (!_isTypeFieldInUpdateContentUnionType(className, field.name)) {
+            parameters.add('${javaType(field.type)} ${javaName(field.name)}');
+          }
         }
         write(parameters.join(', '));
         writeln(') {');
         // write out the assignments in the body of the constructor
         for (TypeObjectField field in fields) {
-          writeln('  this.${javaName(field.name)} = ${javaName(field.name)};');
+          if (!_isTypeFieldInUpdateContentUnionType(className, field.name)) {
+            writeln(
+                '  this.${javaName(field.name)} = ${javaName(field.name)};');
+          } else if (className == 'AddContentOverlay') {
+            writeln('  this.type = "add";');
+          } else if (className == 'ChangeContentOverlay') {
+            writeln('  this.type = "change";');
+          } else if (className == 'RemoveContentOverlay') {
+            writeln('  this.type = "remove";');
+          }
         }
         writeln('}');
       });
@@ -173,8 +179,13 @@ class CodegenJavaType extends CodegenJavaVisitor {
           javadocComment(toHtmlVisitor.collectHtml(() {
             toHtmlVisitor.translateHtml(field.html);
           }));
-          writeln(
-              'public ${javaType(field.type)} get${capitalize(javaName(field.name))}() {');
+          if (javaType(field.type) == 'Boolean') {
+            writeln(
+                'public ${javaType(field.type)} is${capitalize(javaName(field.name))}() {');
+          } else {
+            writeln(
+                'public ${javaType(field.type)} get${capitalize(javaName(field.name))}() {');
+          }
           writeln('  return ${javaName(field.name)};');
           writeln('}');
         });
@@ -223,7 +234,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
           write('return new ${className}(');
           List<String> parameters = new List();
           for (TypeObjectField field in fields) {
-            parameters.add('${javaName(field.name)}');
+            if (!_isTypeFieldInUpdateContentUnionType(className, field.name)) {
+              parameters.add('${javaName(field.name)}');
+            }
           }
           write(parameters.join(', '));
           writeln(');');
@@ -309,6 +322,39 @@ class CodegenJavaType extends CodegenJavaVisitor {
       });
 
       //
+      // containsInclusive(int x)
+      //
+      if (className == 'HighlightRegion' ||
+          className == 'NavigationRegion' ||
+          className == 'Outline') {
+        publicMethod('containsInclusive', () {
+          writeln('public boolean containsInclusive(int x) {');
+          indent(() {
+            writeln('return offset <= x && x <= offset + length;');
+          });
+          writeln('}');
+        });
+      }
+
+      //
+      // contains(int x)
+      //
+      if (className == 'Occurrences') {
+        publicMethod('contains', () {
+          writeln('public boolean contains(int x) {');
+          indent(() {
+            writeln('for (int offset : offsets) {');
+            writeln('  if (offset <= x && x < offset + length) {');
+            writeln('    return true;');
+            writeln('  }');
+            writeln('}');
+            writeln('return false;');
+          });
+          writeln('}');
+        });
+      }
+
+      //
       // hashCode
       //
       // TODO (jwren) have hashCode written out
@@ -387,6 +433,18 @@ class CodegenJavaType extends CodegenJavaVisitor {
       return 'Arrays.equals(other.${name}, ${name})';
     } else {
       return 'ObjectUtilities.equals(${other}.${name}, ${name})';
+    }
+  }
+
+  bool _isTypeFieldInUpdateContentUnionType(String className,
+      String fieldName) {
+    if ((className == 'AddContentOverlay' ||
+        className == 'ChangeContentOverlay' ||
+        className == 'RemoveContentOverlay') &&
+        fieldName == 'type') {
+      return true;
+    } else {
+      return false;
     }
   }
 
