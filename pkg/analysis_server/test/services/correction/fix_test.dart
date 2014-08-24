@@ -4,9 +4,9 @@
 
 library test.services.correction.fix;
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
-    SourceFileEdit, Position;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show LinkedEditGroup,
+    LinkedEditSuggestion, LinkedEditSuggestionKind, Position, SourceChange,
+    SourceEdit, SourceFileEdit;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -33,7 +33,7 @@ class FixProcessorTest extends AbstractSingleUnitTest {
   SearchEngineImpl searchEngine;
 
   Fix fix;
-  Change change;
+  SourceChange change;
   String resultCode;
 
   void assertHasFix(FixKind kind, String expected) {
@@ -41,9 +41,9 @@ class FixProcessorTest extends AbstractSingleUnitTest {
     fix = _assertHasFix(kind, error);
     change = fix.change;
     // apply to "file"
-    List<SourceFileEdit> fileEdits = change.fileEdits;
+    List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
-    resultCode = SourceEdit.applySequence(testCode, change.fileEdits[0].edits);
+    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
     // verify
     expect(resultCode, expected);
   }
@@ -93,7 +93,7 @@ bool test() {
   List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
       List<String> values) {
     return values.map((value) {
-      return new LinkedEditSuggestion(kind, value);
+      return new LinkedEditSuggestion(value, kind);
     }).toList();
   }
 

@@ -30,7 +30,7 @@ class SocketServerTest {
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(channel.notificationsReceived[0].event, SERVER_CONNECTED);
-    expect(channel.notificationsReceived[0].params, isEmpty);
+    expect(channel.notificationsReceived[0].params, isNull);
     return channel.sendRequest(
         new Request('0', SERVER_SHUTDOWN)
     ).then((Response response) {
@@ -46,7 +46,7 @@ class SocketServerTest {
     MockServerChannel channel2 = new MockServerChannel();
     server.createAnalysisServer(channel1);
     expect(channel1.notificationsReceived[0].event, SERVER_CONNECTED);
-    expect(channel1.notificationsReceived[0].params, isEmpty);
+    expect(channel1.notificationsReceived[0].params, isNull);
     server.createAnalysisServer(channel2);
     channel1.expectMsgCount(notificationCount: 1);
     channel2.expectMsgCount(responseCount: 1);

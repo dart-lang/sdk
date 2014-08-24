@@ -9,9 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show
-    CompletionGetSuggestionsParams, CompletionGetSuggestionsResult;
-import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_testing/reflective_tests.dart';
@@ -101,19 +99,16 @@ class CompletionTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == COMPLETION_RESULTS) {
-      String id = notification.getParameter(ID);
+      var params = new CompletionResultsParams.fromNotification(notification);
+      String id = params.id;
       assertValidId(id);
       if (id == completionId) {
         expect(suggestionsDone, isFalse);
-        replacementOffset = notification.getParameter(REPLACEMENT_OFFSET);
-        replacementLength = notification.getParameter(REPLACEMENT_LENGTH);
-        suggestionsDone = notification.getParameter(LAST);
+        replacementOffset = params.replacementOffset;
+        replacementLength = params.replacementLength;
+        suggestionsDone = params.last;
         expect(suggestionsDone, isNotNull);
-        suggestions = [];
-        for (Map<String, Object> json in notification.getParameter(RESULTS)) {
-          expect(json, isNotNull);
-          suggestions.add(new CompletionSuggestion.fromJson(json));
-        }
+        suggestions = params.results;
       }
     }
   }

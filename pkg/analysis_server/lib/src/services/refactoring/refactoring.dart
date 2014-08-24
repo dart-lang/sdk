@@ -6,7 +6,7 @@ library services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
@@ -125,7 +125,7 @@ abstract class Refactoring {
   /**
    * Returns the [Change] to apply to perform this refactoring.
    */
-  Future<Change> createChange();
+  Future<SourceChange> createChange();
 
   /**
    * Returs `true` if the [Change] created by refactoring may be unsafe,

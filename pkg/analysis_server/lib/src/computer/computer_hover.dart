@@ -4,10 +4,7 @@
 
 library computer.hover;
 
-import 'dart:collection';
-
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/services/json.dart';
+import 'package:analysis_server/src/protocol2.dart' show HoverInformation;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -69,10 +66,10 @@ class DartUnitHoverComputer {
   /**
    * Returns the computed hover, maybe `null`.
    */
-  Hover compute() {
+  HoverInformation compute() {
     AstNode node = new NodeLocator.con1(_offset).searchWithin(_unit);
     if (node is Expression) {
-      Hover hover = new Hover(node.offset, node.length);
+      HoverInformation hover = new HoverInformation(node.offset, node.length);
       // element
       Element element = ElementLocator.locateWithOffset(node, _offset);
       if (element != null) {
@@ -95,7 +92,7 @@ class DartUnitHoverComputer {
         // documentation
         String dartDoc = element.computeDocumentationComment();
         dartDoc = _removeDartDocDelimiters(dartDoc);
-        hover.dartDoc = dartDoc;
+        hover.dartdoc = dartDoc;
       }
       // parameter
       hover.parameter = _safeToString(node.bestParameterElement);
@@ -110,66 +107,4 @@ class DartUnitHoverComputer {
   }
 
   static _safeToString(obj) => obj != null ? obj.toString() : null;
-}
-
-
-class Hover implements HasToJson {
-  final int offset;
-  final int length;
-  String containingLibraryName;
-  String containingLibraryPath;
-  String dartDoc;
-  String elementDescription;
-  String elementKind;
-  String parameter;
-  String propagatedType;
-  String staticType;
-
-  Hover(this.offset, this.length);
-
-  factory Hover.fromJson(Map<String, Object> map) {
-    int offset = map[OFFSET];
-    int length = map[LENGTH];
-    Hover hover = new Hover(offset, length);
-    hover.containingLibraryName = map[CONTAINING_LIBRARY_NAME];
-    hover.containingLibraryPath = map[CONTAINING_LIBRARY_PATH];
-    hover.dartDoc = map[DART_DOC];
-    hover.elementDescription = map[ELEMENT_DESCRIPTION];
-    hover.elementKind = map[ELEMENT_KIND];
-    hover.parameter = map[PARAMETER];
-    hover.propagatedType = map[PROPAGATED_TYPE];
-    hover.staticType = map[STATIC_TYPE];
-    return hover;
-  }
-
-  Map<String, Object> toJson() {
-    Map<String, Object> json = new HashMap<String, Object>();
-    json[OFFSET] = offset;
-    json[LENGTH] = length;
-    if (containingLibraryName != null) {
-      json[CONTAINING_LIBRARY_NAME] = containingLibraryName;
-    }
-    if (containingLibraryName != null) {
-      json[CONTAINING_LIBRARY_PATH] = containingLibraryPath;
-    }
-    if (dartDoc != null) {
-      json[DART_DOC] = dartDoc;
-    }
-    if (elementDescription != null) {
-      json[ELEMENT_DESCRIPTION] = elementDescription;
-    }
-    if (elementKind != null) {
-      json[ELEMENT_KIND] = elementKind;
-    }
-    if (parameter != null) {
-      json[PARAMETER] = parameter;
-    }
-    if (propagatedType != null) {
-      json[PROPAGATED_TYPE] = propagatedType;
-    }
-    if (staticType != null) {
-      json[STATIC_TYPE] = staticType;
-    }
-    return json;
-  }
 }

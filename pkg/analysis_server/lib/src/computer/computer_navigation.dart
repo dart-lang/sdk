@@ -5,7 +5,6 @@
 library computer.navigation;
 
 import 'package:analysis_server/src/protocol2.dart' as protocol;
-import 'package:analysis_server/src/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -17,14 +16,14 @@ import 'package:analyzer/src/generated/scanner.dart';
 class DartUnitNavigationComputer {
   final CompilationUnit _unit;
 
-  final List<Map<String, Object>> _regions = <Map<String, Object>>[];
+  final List<protocol.NavigationRegion> _regions = <protocol.NavigationRegion>[];
 
   DartUnitNavigationComputer(this._unit);
 
   /**
    * Returns the computed navigation regions, not `null`.
    */
-  List<Map<String, Object>> compute() {
+  List<protocol.NavigationRegion> compute() {
     _unit.accept(new _DartUnitNavigationComputerVisitor(this));
     return new List.from(_regions);
   }
@@ -36,12 +35,8 @@ class DartUnitNavigationComputer {
     if (element is FieldFormalParameterElement) {
       element = (element as FieldFormalParameterElement).field;
     }
-    var elementJson = new protocol.Element.fromEngine(element).toJson();
-    _regions.add({
-      OFFSET: offset,
-      LENGTH: length,
-      TARGETS: [elementJson]
-    });
+    protocol.Element target = new protocol.Element.fromEngine(element);
+    _regions.add(new protocol.NavigationRegion(offset, length, [target]));
   }
 
   void _addRegionForNode(AstNode node, Element element) {

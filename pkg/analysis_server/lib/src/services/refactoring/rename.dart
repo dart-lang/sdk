@@ -7,8 +7,8 @@ library services.src.refactoring.rename;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show SourceChange,
+    SourceEdit;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -167,7 +167,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
   /**
    * Adds the "Update declaration" [Edit] to [change].
    */
-  void addDeclarationEdit(Change change, Element element) {
+  void addDeclarationEdit(SourceChange change, Element element) {
     if (element != null) {
       String file = getElementFile(element);
       SourceEdit edit = new SourceEdit.range(rangeElementName(element), newName);
@@ -178,7 +178,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl implements
   /**
    * Adds an "Update reference" [Edit] to [change].
    */
-  void addReferenceEdit(Change change, SourceReference reference) {
+  void addReferenceEdit(SourceChange change, SourceReference reference) {
     SourceEdit edit = createReferenceEdit(reference, newName);
     change.addEdit(reference.file, edit);
   }

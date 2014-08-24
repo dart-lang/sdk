@@ -6,8 +6,8 @@ library test.services.completion.suggestion;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';

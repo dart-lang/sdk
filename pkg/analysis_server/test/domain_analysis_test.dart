@@ -421,8 +421,8 @@ class AnalysisTestHelper {
   Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
   Map<String, List<AnalysisError>> filesErrors = {};
-  Map<String, List<Map<String, Object>>> filesHighlights = {};
-  Map<String, List<Map<String, Object>>> filesNavigation = {};
+  Map<String, List<HighlightRegion>> filesHighlights = {};
+  Map<String, List<NavigationRegion>> filesNavigation = {};
 
   String testFile = '/project/bin/test.dart';
   String testCode;
@@ -446,12 +446,12 @@ class AnalysisTestHelper {
         filesErrors[decoded.file] = decoded.errors;
       }
       if (notification.event == ANALYSIS_HIGHLIGHTS) {
-        String file = notification.getParameter(FILE);
-        filesHighlights[file] = notification.getParameter(REGIONS);
+        var params = new AnalysisHighlightsParams.fromNotification(notification);
+        filesHighlights[params.file] = params.regions;
       }
       if (notification.event == ANALYSIS_NAVIGATION) {
-        String file = notification.getParameter(FILE);
-        filesNavigation[file] = notification.getParameter(REGIONS);
+        var params = new AnalysisNavigationParams.fromNotification(notification);
+        filesNavigation[params.file] = params.regions;
       }
     });
   }
@@ -527,8 +527,8 @@ class AnalysisTestHelper {
    * Returns highlights recorded for the given [file].
    * May be empty, but not `null`.
    */
-  List<Map<String, Object>> getHighlights(String file) {
-    List<Map<String, Object>> highlights = filesHighlights[file];
+  List<HighlightRegion> getHighlights(String file) {
+    List<HighlightRegion> highlights = filesHighlights[file];
     if (highlights != null) {
       return highlights;
     }
@@ -539,8 +539,8 @@ class AnalysisTestHelper {
    * Returns navigation regions recorded for the given [file].
    * May be empty, but not `null`.
    */
-  List<Map<String, Object>> getNavigation(String file) {
-    List<Map<String, Object>> navigation = filesNavigation[file];
+  List<NavigationRegion> getNavigation(String file) {
+    List<NavigationRegion> navigation = filesNavigation[file];
     if (navigation != null) {
       return navigation;
     }
@@ -559,7 +559,7 @@ class AnalysisTestHelper {
    * Returns highlights recorded for the given [testFile].
    * May be empty, but not `null`.
    */
-  List<Map<String, Object>> getTestHighlights() {
+  List<HighlightRegion> getTestHighlights() {
     return getHighlights(testFile);
   }
 
@@ -567,7 +567,7 @@ class AnalysisTestHelper {
    * Returns navigation information recorded for the given [testFile].
    * May be empty, but not `null`.
    */
-  List<Map<String, Object>> getTestNavigation() {
+  List<NavigationRegion> getTestNavigation() {
     return getNavigation(testFile);
   }
 

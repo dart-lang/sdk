@@ -6,7 +6,6 @@ library domain.analysis;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart';
@@ -35,23 +34,24 @@ class AnalysisDomainHandler implements RequestHandler {
   Response getErrors(Request request) {
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
     server.onFileAnalysisComplete(file).then((_) {
-      Response response = new Response(request.id);
       engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
+      List<AnalysisError> errors;
       if (errorInfo == null) {
-        response.setResult(ERRORS, []);
+        errors = [];
       } else {
-        response.setResult(ERRORS, engineErrorInfoToJson(errorInfo));
+        errors = AnalysisError.listFromEngine(errorInfo.lineInfo,
+            errorInfo.errors);
       }
-      server.sendResponse(response);
+      server.sendResponse(new AnalysisGetErrorsResult(errors).toResponse(
+          request.id));
     }).catchError((message) {
       if (message is! String) {
         engine.AnalysisEngine.instance.logger.logError(
             'Illegal error message during getErrors: $message');
         message = '';
       }
-      Response response = new Response.getErrorsError(request, message);
-      response.setResult(ERRORS, []);
-      server.sendResponse(response);
+      server.sendResponse(new Response.getErrorsError(request, message,
+          new AnalysisGetErrorsResult([]).toJson()));
     });
     // delay response
     return Response.DELAYED_RESPONSE;
@@ -64,20 +64,18 @@ class AnalysisDomainHandler implements RequestHandler {
     // prepare parameters
     var params = new AnalysisGetHoverParams.fromRequest(request);
     // prepare hovers
-    List<Hover> hovers = <Hover>[];
+    List<HoverInformation> hovers = <HoverInformation>[];
     List<CompilationUnit> units =
         server.getResolvedCompilationUnits(params.file);
     for (CompilationUnit unit in units) {
-      Hover hoverInformation =
+      HoverInformation hoverInformation =
           new DartUnitHoverComputer(unit, params.offset).compute();
       if (hoverInformation != null) {
         hovers.add(hoverInformation);
       }
     }
     // send response
-    Response response = new Response(request.id);
-    response.setResult(HOVERS, hovers);
-    return response;
+    return new AnalysisGetHoverResult(hovers).toResponse(request.id);
   }
 
   @override

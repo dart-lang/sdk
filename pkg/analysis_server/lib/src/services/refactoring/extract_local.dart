@@ -6,8 +6,8 @@ library services.src.refactoring.extract_local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show Location, SourceEdit;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show Location,
+    SourceChange, SourceEdit;
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
@@ -107,8 +107,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl implements
   }
 
   @override
-  Future<Change> createChange() {
-    Change change = new Change(refactoringName);
+  Future<SourceChange> createChange() {
+    SourceChange change = new SourceChange(refactoringName);
     // prepare occurrences
     List<SourceRange> occurrences;
     if (extractAll) {

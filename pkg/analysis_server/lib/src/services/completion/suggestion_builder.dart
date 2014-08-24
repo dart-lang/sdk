@@ -4,7 +4,8 @@
 
 library services.completion.suggestion.builder;
 
-import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
+import 'package:analysis_server/src/protocol2.dart' show
+    CompletionRelevance, CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -133,7 +134,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor {
       if (completion != null && completion.length > 0) {
         request.suggestions.add(
             new CompletionSuggestion(
-                CompletionSuggestionKind.fromElementKind(element.kind),
+                new CompletionSuggestionKind.fromElementKind(element.kind),
                 CompletionRelevance.DEFAULT,
                 completion,
                 completion.length,

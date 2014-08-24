@@ -8,6 +8,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/computer/element.dart' show
     elementFromEngine;
+import 'package:analysis_server/src/services/correction/fix.dart' show Fix;
 import 'package:analysis_server/src/search/search_result.dart' show
     searchResultFromMatch;
 import 'package:analysis_server/src/services/json.dart';
@@ -62,6 +63,30 @@ void _addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
 }
 
 /**
+ * Adds [edit] to the [FileEdit] for the given [file].
+ */
+void _addEditToSourceChange(SourceChange change, String file, SourceEdit edit) {
+  SourceFileEdit fileEdit = change.getFileEdit(file);
+  if (fileEdit == null) {
+    fileEdit = new SourceFileEdit(file);
+    change.addFileEdit(fileEdit);
+  }
+  fileEdit.add(edit);
+}
+
+/**
+ * Returns the [FileEdit] for the given [file], maybe `null`.
+ */
+SourceFileEdit _getChangeFileEdit(SourceChange change, String file) {
+  for (SourceFileEdit fileEdit in change.edits) {
+    if (fileEdit.file == file) {
+      return fileEdit;
+    }
+  }
+  return null;
+}
+
+/**
  * Create an AnalysisError based on error information from the analyzer
  * engine.  Access via AnalysisError.fromEngine().
  */
@@ -99,6 +124,17 @@ AnalysisError _analysisErrorFromEngine(engine.LineInfo lineInfo,
 }
 
 /**
+ * Returns a list of AnalysisErrors correponding to the given list of Engine
+ * errors.  Access via AnalysisError.listFromEngine().
+ */
+List<AnalysisError> _analysisErrorListFromEngine(engine.LineInfo lineInfo,
+    List<engine.AnalysisError> errors) {
+  return errors.map((engine.AnalysisError error) {
+    return new AnalysisError.fromEngine(lineInfo, error);
+  }).toList();
+}
+
+/**
  * Get the result of applying the edit to the given [code].  Access via
  * SourceEdit.apply().
  */
@@ -118,6 +154,49 @@ String _applySequence(String code, Iterable<SourceEdit> edits) {
     code = edit.apply(code);
   });
   return code;
+}
+
+/**
+ * Map an element kind from the analyzer engine to a [CompletionSuggestionKind].
+ */
+CompletionSuggestionKind _completionSuggestionKindFromElementKind(engine.ElementKind kind) {
+  //    ElementKind.ANGULAR_FORMATTER,
+  //    ElementKind.ANGULAR_COMPONENT,
+  //    ElementKind.ANGULAR_CONTROLLER,
+  //    ElementKind.ANGULAR_DIRECTIVE,
+  //    ElementKind.ANGULAR_PROPERTY,
+  //    ElementKind.ANGULAR_SCOPE_PROPERTY,
+  //    ElementKind.ANGULAR_SELECTOR,
+  //    ElementKind.ANGULAR_VIEW,
+  if (kind == engine.ElementKind.CLASS) return CompletionSuggestionKind.CLASS;
+  //    ElementKind.COMPILATION_UNIT,
+  if (kind == engine.ElementKind.CONSTRUCTOR) return CompletionSuggestionKind.CONSTRUCTOR;
+  //    ElementKind.DYNAMIC,
+  //    ElementKind.EMBEDDED_HTML_SCRIPT,
+  //    ElementKind.ERROR,
+  //    ElementKind.EXPORT,
+  //    ElementKind.EXTERNAL_HTML_SCRIPT,
+  if (kind == engine.ElementKind.FIELD) return CompletionSuggestionKind.FIELD;
+  if (kind == engine.ElementKind.FUNCTION) return CompletionSuggestionKind.FUNCTION;
+  if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) return CompletionSuggestionKind.FUNCTION_TYPE_ALIAS;
+  if (kind == engine.ElementKind.GETTER) return CompletionSuggestionKind.GETTER;
+  //    ElementKind.HTML,
+  if (kind == engine.ElementKind.IMPORT) return CompletionSuggestionKind.IMPORT;
+  //    ElementKind.LABEL,
+  //    ElementKind.LIBRARY,
+  if (kind == engine.ElementKind.LOCAL_VARIABLE) return CompletionSuggestionKind.LOCAL_VARIABLE;
+  if (kind == engine.ElementKind.METHOD) return CompletionSuggestionKind.METHOD;
+  //    ElementKind.NAME,
+  if (kind == engine.ElementKind.PARAMETER) return CompletionSuggestionKind.PARAMETER;
+  //    ElementKind.POLYMER_ATTRIBUTE,
+  //    ElementKind.POLYMER_TAG_DART,
+  //    ElementKind.POLYMER_TAG_HTML,
+  //    ElementKind.PREFIX,
+  if (kind == engine.ElementKind.SETTER) return CompletionSuggestionKind.SETTER;
+  if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) return CompletionSuggestionKind.TOP_LEVEL_VARIABLE;
+  //    ElementKind.TYPE_PARAMETER,
+  //    ElementKind.UNIVERSE
+  throw new ArgumentError('Unknown CompletionSuggestionKind for: $kind');
 }
 
 /**

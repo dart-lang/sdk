@@ -4,7 +4,7 @@
 
 library services.correction.assist;
 
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -31,7 +31,7 @@ List<Assist> computeAssists(SearchEngine searchEngine, CompilationUnit unit,
  */
 class Assist {
   final AssistKind kind;
-  final Change change;
+  final SourceChange change;
 
   Assist(this.kind, this.change);
 

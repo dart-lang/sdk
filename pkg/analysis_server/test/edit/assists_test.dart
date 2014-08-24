@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart';
-import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
@@ -24,7 +23,7 @@ main() {
 
 @ReflectiveTestCase()
 class AssistsTest extends AbstractAnalysisTest {
-  List<Change> changes;
+  List<SourceChange> changes;
 
   void prepareAssists(String search, [int length = 0]) {
     int offset = findOffset(search);
@@ -39,10 +38,10 @@ class AssistsTest extends AbstractAnalysisTest {
     List<SourceChange> sourceChangeList = result.assists;
     // TODO(scheglov) consider using generated classes and decoders
     changes = sourceChangeList.map((SourceChange sourceChange) {
-      Change change = new Change(sourceChange.message);
+      SourceChange change = new SourceChange(sourceChange.message);
       sourceChange.edits.forEach((SourceFileEdit sourceFileEdit) {
         SourceFileEdit fileEdit = new SourceFileEdit(sourceFileEdit.file);
-        change.fileEdits.add(fileEdit);
+        change.edits.add(fileEdit);
         fileEdit.edits.addAll(sourceFileEdit.edits);
       });
       return change;
@@ -112,10 +111,10 @@ main() {
   }
 
   void _assertHasChange(String message, String expectedCode) {
-    for (Change change in changes) {
+    for (SourceChange change in changes) {
       if (change.message == message) {
         String resultCode =
-            SourceEdit.applySequence(testCode, change.fileEdits[0].edits);
+            SourceEdit.applySequence(testCode, change.edits[0].edits);
         expect(resultCode, expectedCode);
         return;
       }

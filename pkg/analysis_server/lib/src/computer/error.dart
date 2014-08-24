@@ -13,14 +13,6 @@ import 'package:analyzer/src/generated/source.dart' as engine;
 /**
  * Returns a JSON correponding to the given list of Engine errors.
  */
-List<Map<String, Object>> engineErrorInfoToJson(engine.AnalysisErrorInfo info) {
-  return engineErrorsToJson(info.lineInfo, info.errors);
-}
-
-
-/**
- * Returns a JSON correponding to the given list of Engine errors.
- */
 List<Map<String, Object>> engineErrorsToJson(engine.LineInfo lineInfo,
     List<engine.AnalysisError> errors) {
   return errors.map((engine.AnalysisError error) {

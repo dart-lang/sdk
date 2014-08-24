@@ -5,9 +5,7 @@
 library test.services.correction.change;
 
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
-    SourceFileEdit, Position;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
@@ -27,14 +25,14 @@ main() {
 @ReflectiveTestCase()
 class ChangeTest {
   void test_addEdit() {
-    Change change = new Change('msg');
+    SourceChange change = new SourceChange('msg');
     SourceEdit edit1 = new SourceEdit(1, 2, 'a');
     SourceEdit edit2 = new SourceEdit(1, 2, 'b');
-    expect(change.fileEdits, hasLength(0));
+    expect(change.edits, hasLength(0));
     change.addEdit('/a.dart', edit1);
-    expect(change.fileEdits, hasLength(1));
+    expect(change.edits, hasLength(1));
     change.addEdit('/a.dart', edit2);
-    expect(change.fileEdits, hasLength(1));
+    expect(change.edits, hasLength(1));
     {
       SourceFileEdit fileEdit = change.getFileEdit('/a.dart');
       expect(fileEdit, isNotNull);
@@ -43,19 +41,19 @@ class ChangeTest {
   }
 
   void test_getFileEdit() {
-    Change change = new Change('msg');
+    SourceChange change = new SourceChange('msg');
     SourceFileEdit fileEdit = new SourceFileEdit('/a.dart');
     change.addFileEdit(fileEdit);
     expect(change.getFileEdit('/a.dart'), fileEdit);
   }
 
   void test_getFileEdit_empty() {
-    Change change = new Change('msg');
+    SourceChange change = new SourceChange('msg');
     expect(change.getFileEdit('/some.dart'), isNull);
   }
 
   void test_toJson() {
-    Change change = new Change('msg');
+    SourceChange change = new SourceChange('msg');
     change.addFileEdit(new SourceFileEdit('/a.dart')
         ..add(new SourceEdit(1, 2, 'aaa'))
         ..add(new SourceEdit(10, 20, 'bbb')));
@@ -63,16 +61,16 @@ class ChangeTest {
         ..add(new SourceEdit(21, 22, 'xxx'))
         ..add(new SourceEdit(210, 220, 'yyy')));
     {
-      var group = new LinkedEditGroup();
+      var group = new LinkedEditGroup.empty();
       change.addLinkedEditGroup(group
           ..addPosition(new Position('/ga.dart', 1), 2)
           ..addPosition(new Position('/ga.dart', 10), 2));
       group.addSuggestion(
-          new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'AA'));
+          new LinkedEditSuggestion('AA', LinkedEditSuggestionKind.TYPE));
       group.addSuggestion(
-          new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'BB'));
+          new LinkedEditSuggestion('BB', LinkedEditSuggestionKind.TYPE));
     }
-    change.addLinkedEditGroup(new LinkedEditGroup()
+    change.addLinkedEditGroup(new LinkedEditGroup.empty()
         ..addPosition(new Position('/gb.dart', 10), 5)
         ..addPosition(new Position('/gb.dart', 100), 5));
     change.selection = new Position('/selection.dart', 42);
@@ -249,24 +247,24 @@ class FileEditTest {
 @ReflectiveTestCase()
 class LinkedEditGroupTest {
   void test_new() {
-    LinkedEditGroup group = new LinkedEditGroup();
+    LinkedEditGroup group = new LinkedEditGroup.empty();
     group.addPosition(new Position('/a.dart', 1), 2);
     group.addPosition(new Position('/b.dart', 10), 2);
     expect(
         group.toString(),
-        'LinkedEditGroup(length=2, positions=['
-            '{"file":"/a.dart","offset":1}, '
-            '{"file":"/b.dart","offset":10}], suggestions=[])');
+        '{"positions":['
+            '{"file":"/a.dart","offset":1},'
+            '{"file":"/b.dart","offset":10}],"length":2,"suggestions":[]}');
   }
 
   void test_toJson() {
-    LinkedEditGroup group = new LinkedEditGroup();
+    LinkedEditGroup group = new LinkedEditGroup.empty();
     group.addPosition(new Position('/a.dart', 1), 2);
     group.addPosition(new Position('/b.dart', 10), 2);
     group.addSuggestion(
-        new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'AA'));
+        new LinkedEditSuggestion('AA', LinkedEditSuggestionKind.TYPE));
     group.addSuggestion(
-        new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'BB'));
+        new LinkedEditSuggestion('BB', LinkedEditSuggestionKind.TYPE));
     expect(group.toJson(), {
       'length': 2,
       'positions': [{
@@ -291,10 +289,10 @@ class LinkedEditGroupTest {
 @ReflectiveTestCase()
 class LinkedEditSuggestionTest {
   void test_eqEq() {
-    var a = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'a');
-    var a2 = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'a');
-    var b = new LinkedEditSuggestion(LinkedEditSuggestionKind.TYPE, 'a');
-    var c = new LinkedEditSuggestion(LinkedEditSuggestionKind.METHOD, 'c');
+    var a = new LinkedEditSuggestion('a', LinkedEditSuggestionKind.METHOD);
+    var a2 = new LinkedEditSuggestion('a', LinkedEditSuggestionKind.METHOD);
+    var b = new LinkedEditSuggestion('a', LinkedEditSuggestionKind.TYPE);
+    var c = new LinkedEditSuggestion('c', LinkedEditSuggestionKind.METHOD);
     expect(a == a, isTrue);
     expect(a == a2, isTrue);
     expect(a == this, isFalse);

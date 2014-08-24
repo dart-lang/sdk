@@ -6,8 +6,7 @@ library services.src.refactoring.rename_local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show Location;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show Location, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
@@ -72,8 +71,8 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<Change> createChange() {
-    Change change = new Change(refactoringName);
+  Future<SourceChange> createChange() {
+    SourceChange change = new SourceChange(refactoringName);
     // update declaration
     addDeclarationEdit(change, element);
     // update references

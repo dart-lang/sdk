@@ -211,6 +211,10 @@ class ServerErrorParams implements HasToJson {
     return result;
   }
 
+  Notification toNotification() {
+    return new Notification("server.error", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -276,6 +280,10 @@ class ServerStatusParams implements HasToJson {
       result["analysis"] = analysis.toJson();
     }
     return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("server.status", toJson());
   }
 
   @override
@@ -984,6 +992,10 @@ class AnalysisErrorsParams implements HasToJson {
     return result;
   }
 
+  Notification toNotification() {
+    return new Notification("analysis.errors", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -1046,6 +1058,10 @@ class AnalysisFlushResultsParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["files"] = files;
     return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.flushResults", toJson());
   }
 
   @override
@@ -1121,6 +1137,10 @@ class AnalysisFoldingParams implements HasToJson {
     result["file"] = file;
     result["regions"] = regions.map((FoldingRegion value) => value.toJson()).toList();
     return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.folding", toJson());
   }
 
   @override
@@ -1202,6 +1222,10 @@ class AnalysisHighlightsParams implements HasToJson {
     result["file"] = file;
     result["regions"] = regions.map((HighlightRegion value) => value.toJson()).toList();
     return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.highlights", toJson());
   }
 
   @override
@@ -1286,6 +1310,10 @@ class AnalysisNavigationParams implements HasToJson {
     return result;
   }
 
+  Notification toNotification() {
+    return new Notification("analysis.navigation", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -1361,6 +1389,10 @@ class AnalysisOccurrencesParams implements HasToJson {
     result["file"] = file;
     result["occurrences"] = occurrences.map((Occurrences value) => value.toJson()).toList();
     return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.occurrences", toJson());
   }
 
   @override
@@ -1440,6 +1472,10 @@ class AnalysisOutlineParams implements HasToJson {
     return result;
   }
 
+  Notification toNotification() {
+    return new Notification("analysis.outline", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -1515,6 +1551,10 @@ class AnalysisOverridesParams implements HasToJson {
     result["file"] = file;
     result["overrides"] = overrides.map((Override value) => value.toJson()).toList();
     return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.overrides", toJson());
   }
 
   @override
@@ -1788,6 +1828,10 @@ class CompletionResultsParams implements HasToJson {
     result["results"] = results.map((CompletionSuggestion value) => value.toJson()).toList();
     result["last"] = last;
     return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("completion.results", toJson());
   }
 
   @override
@@ -2626,6 +2670,10 @@ class SearchResultsParams implements HasToJson {
     result["results"] = results.map((SearchResult value) => value.toJson()).toList();
     result["last"] = last;
     return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("search.results", toJson());
   }
 
   @override
@@ -3917,6 +3965,10 @@ class DebugLaunchDataParams implements HasToJson {
     return result;
   }
 
+  Notification toNotification() {
+    return new Notification("debug.launchData", toJson());
+  }
+
   @override
   String toString() => JSON.encode(toJson());
 
@@ -4015,6 +4067,13 @@ class AddContentOverlay implements HasToJson {
  * }
  */
 class AnalysisError implements HasToJson {
+  /**
+   * Returns a list of AnalysisErrors correponding to the given list of Engine
+   * errors.
+   */
+  static List<AnalysisError> listFromEngine(engine.LineInfo lineInfo, List<engine.AnalysisError> errors) =>
+      _analysisErrorListFromEngine(lineInfo, errors);
+
   /**
    * The severity of the error.
    */
@@ -4953,6 +5012,12 @@ class CompletionSuggestionKind {
     throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestionKind");
   }
 
+  /**
+   * Construct from an analyzer engine element kind.
+   */
+  factory CompletionSuggestionKind.fromElementKind(engine.ElementKind kind) =>
+      _completionSuggestionKindFromElementKind(kind);
+
   @override
   String toString() => "CompletionSuggestionKind.$name";
 
@@ -5411,7 +5476,11 @@ class ErrorFixes implements HasToJson {
    */
   List<SourceChange> fixes;
 
-  ErrorFixes(this.error, this.fixes);
+  ErrorFixes(this.error, {this.fixes}) {
+    if (fixes == null) {
+      fixes = <SourceChange>[];
+    }
+  }
 
   factory ErrorFixes.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5430,7 +5499,7 @@ class ErrorFixes implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
-      return new ErrorFixes(error, fixes);
+      return new ErrorFixes(error, fixes: fixes);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ErrorFixes");
     }
@@ -5441,6 +5510,13 @@ class ErrorFixes implements HasToJson {
     result["error"] = error.toJson();
     result["fixes"] = fixes.map((SourceChange value) => value.toJson()).toList();
     return result;
+  }
+
+  /**
+   * Add a [Fix]
+   */
+  void addFix(Fix fix) {
+    fixes.add(fix.change);
   }
 
   @override
@@ -6405,12 +6481,32 @@ class LinkedEditGroup implements HasToJson {
     }
   }
 
+  /**
+   * Construct an empty LinkedEditGroup.
+   */
+  LinkedEditGroup.empty() : this(<Position>[], 0, <LinkedEditSuggestion>[]);
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["positions"] = positions.map((Position value) => value.toJson()).toList();
     result["length"] = length;
     result["suggestions"] = suggestions.map((LinkedEditSuggestion value) => value.toJson()).toList();
     return result;
+  }
+
+  /**
+   * Add a new position and change the length.
+   */
+  void addPosition(Position position, int length) {
+    positions.add(position);
+    this.length = length;
+  }
+
+  /**
+   * Add a new suggestion.
+   */
+  void addSuggestion(LinkedEditSuggestion suggestion) {
+    suggestions.add(suggestion);
   }
 
   @override
@@ -7972,7 +8068,14 @@ class SourceChange implements HasToJson {
    */
   Position selection;
 
-  SourceChange(this.message, this.edits, this.linkedEditGroups, {this.selection});
+  SourceChange(this.message, {this.edits, this.linkedEditGroups, this.selection}) {
+    if (edits == null) {
+      edits = <SourceFileEdit>[];
+    }
+    if (linkedEditGroups == null) {
+      linkedEditGroups = <LinkedEditGroup>[];
+    }
+  }
 
   factory SourceChange.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -8001,7 +8104,7 @@ class SourceChange implements HasToJson {
       if (json.containsKey("selection")) {
         selection = new Position.fromJson(jsonDecoder, jsonPath + ".selection", json["selection"]);
       }
-      return new SourceChange(message, edits, linkedEditGroups, selection: selection);
+      return new SourceChange(message, edits: edits, linkedEditGroups: linkedEditGroups, selection: selection);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "SourceChange");
     }
@@ -8017,6 +8120,32 @@ class SourceChange implements HasToJson {
     }
     return result;
   }
+
+  /**
+   * Adds [edit] to the [FileEdit] for the given [file].
+   */
+  void addEdit(String file, SourceEdit edit) =>
+      _addEditToSourceChange(this, file, edit);
+
+  /**
+   * Adds the given [FileEdit].
+   */
+  void addFileEdit(SourceFileEdit edit) {
+    edits.add(edit);
+  }
+
+  /**
+   * Adds the given [LinkedEditGroup].
+   */
+  void addLinkedEditGroup(LinkedEditGroup linkedEditGroup) {
+    linkedEditGroups.add(linkedEditGroup);
+  }
+
+  /**
+   * Returns the [FileEdit] for the given [file], maybe `null`.
+   */
+  SourceFileEdit getFileEdit(String file) =>
+      _getChangeFileEdit(this, file);
 
   @override
   String toString() => JSON.encode(toJson());

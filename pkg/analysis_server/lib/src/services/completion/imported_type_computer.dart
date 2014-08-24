@@ -6,7 +6,8 @@ library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
+import 'package:analysis_server/src/protocol2.dart' show
+    CompletionRelevance, CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -128,7 +129,7 @@ class _ImportedTypeVisitor extends GeneralizingAstVisitor<Future<bool>> {
                 (hide == null || !hide.contains(completion))) {
               request.suggestions.add(
                   new CompletionSuggestion(
-                      CompletionSuggestionKind.fromElementKind(element.kind),
+                      new CompletionSuggestionKind.fromElementKind(element.kind),
                       visibleLibs.contains(lib) || lib.isDartCore ?
                           CompletionRelevance.DEFAULT :
                           CompletionRelevance.LOW,

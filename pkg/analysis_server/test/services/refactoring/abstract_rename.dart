@@ -6,9 +6,8 @@ library test.services.refactoring.rename;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
-    SourceFileEdit;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show SourceChange,
+    SourceEdit, SourceFileEdit;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -77,7 +76,7 @@ class RenameRefactoringTest extends RefactoringTest {
    */
   Future assertSuccessfulRename(String expectedCode) {
     return assertRefactoringConditionsOK().then((_) {
-      return refactoring.createChange().then((Change refactoringChange) {
+      return refactoring.createChange().then((SourceChange refactoringChange) {
         this.refactoringChange = refactoringChange;
         assertTestChangeResult(expectedCode);
       });
@@ -110,7 +109,7 @@ class RenameRefactoringTest extends RefactoringTest {
    * Returns the [Edit] with the given [id], maybe `null`.
    */
   SourceEdit findEditById(String id) {
-    for (SourceFileEdit fileEdit in refactoringChange.fileEdits) {
+    for (SourceFileEdit fileEdit in refactoringChange.edits) {
       for (SourceEdit edit in fileEdit.edits) {
         if (edit.id == id) {
           return edit;

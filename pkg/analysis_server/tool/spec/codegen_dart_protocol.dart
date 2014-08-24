@@ -199,8 +199,10 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * the constructor will default the member to the empty list.
    */
   static const Map<String, List<String>> _optionalConstructorArguments = const {
+    'ErrorFixes': const ['fixes'],
+    'SourceChange': const ['edits', 'linkedEditGroups'],
     'SourceFileEdit': const ['edits'],
-    'TypeHierarchyItem': const ['interfaces', 'mixins', 'subclasses']
+    'TypeHierarchyItem': const ['interfaces', 'mixins', 'subclasses'],
   };
 
   /**
@@ -250,8 +252,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /**
    * Emit the class to encapsulate an object type.
    */
-  void emitObjectClass(String className, TypeObject type, ImpliedType
-      impliedType) {
+  void emitObjectClass(String className, TypeObject type,
+      ImpliedType impliedType) {
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(impliedType.humanReadableName);
@@ -296,7 +298,10 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (emitToResponseMember(impliedType)) {
         writeln();
       }
-      if (emitSpecialMembers(className)) {
+      if (emitToNotificationMember(impliedType)) {
+        writeln();
+      }
+      if (emitSpecialMethods(className)) {
         writeln();
       }
       writeln('@override');
@@ -315,6 +320,16 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   bool emitSpecialStaticMembers(String className) {
     switch (className) {
+      case 'AnalysisError':
+        docComment(
+            [
+                new dom.Text(
+                    'Returns a list of AnalysisErrors ' +
+                        'correponding to the given list of Engine errors.')]);
+        writeln(
+            'static List<AnalysisError> listFromEngine(engine.LineInfo lineInfo, List<engine.AnalysisError> errors) =>');
+        writeln('    _analysisErrorListFromEngine(lineInfo, errors);');
+        return true;
       case 'Element':
         List<String> makeFlagsArgs = <String>[];
         List<String> makeFlagsStatements = <String>[];
@@ -337,9 +352,12 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         writeln('}');
         return true;
       case 'SourceEdit':
-        docComment([new dom.Text('Get the result of applying a set of ' +
-            '[edits] to the given [code].  Edits are applied in the order ' +
-            'they appear in [edits].')]);
+        docComment(
+            [
+                new dom.Text(
+                    'Get the result of applying a set of ' +
+                        '[edits] to the given [code].  Edits are applied in the order ' +
+                        'they appear in [edits].')]);
         writeln(
             'static String applySequence(String code, Iterable<SourceEdit> edits) =>');
         writeln('    _applySequence(code, edits);');
@@ -356,60 +374,87 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   bool emitSpecialConstructors(String className) {
     switch (className) {
       case 'AnalysisError':
-        docComment([new dom.Text(
-            'Construct based on error information from the analyzer engine.')]);
+        docComment(
+            [
+                new dom.Text(
+                    'Construct based on error information from the analyzer engine.')]);
         writeln(
-            'factory AnalysisError.fromEngine(engine.LineInfo lineInfo, engine.AnalysisError error) =>'
-            );
+            'factory AnalysisError.fromEngine(engine.LineInfo lineInfo, engine.AnalysisError error) =>');
         writeln('    _analysisErrorFromEngine(lineInfo, error);');
         return true;
+      case 'CompletionSuggestionKind':
+        docComment(
+            [new dom.Text('Construct from an analyzer engine element kind.')]);
+        writeln(
+            'factory CompletionSuggestionKind.fromElementKind(engine.ElementKind kind) =>');
+        writeln('    _completionSuggestionKindFromElementKind(kind);');
+        return true;
       case 'Element':
-        docComment([new dom.Text('Construct based on a value from the analyzer engine.')]);
+        docComment(
+            [new dom.Text('Construct based on a value from the analyzer engine.')]);
         writeln('factory Element.fromEngine(engine.Element element) =>');
         writeln('    elementFromEngine(element);');
         return true;
       case 'ElementKind':
-        docComment([new dom.Text(
-            'Construct based on a value from the analyzer engine.')]);
+        docComment(
+            [new dom.Text('Construct based on a value from the analyzer engine.')]);
         writeln('factory ElementKind.fromEngine(engine.ElementKind kind) =>');
         writeln('    _elementKindFromEngine(kind);');
         return true;
+      case 'LinkedEditGroup':
+        docComment([new dom.Text('Construct an empty LinkedEditGroup.')]);
+        writeln(
+            'LinkedEditGroup.empty() : this(<Position>[], 0, <LinkedEditSuggestion>[]);');
+        return true;
       case 'Location':
-        docComment([new dom.Text(
-            'Create a Location based on an [engine.Element].')]);
+        docComment(
+            [new dom.Text('Create a Location based on an [engine.Element].')]);
         writeln('factory Location.fromElement(engine.Element element) =>');
         writeln('    _locationFromElement(element);');
         writeln();
-        docComment([new dom.Text('Create a Location based on an [engine.SearchMatch].')]);
+        docComment(
+            [new dom.Text('Create a Location based on an [engine.SearchMatch].')]);
         writeln('factory Location.fromMatch(engine.SearchMatch match) =>');
         writeln('    _locationFromMatch(match);');
         writeln();
-        docComment([new dom.Text('Create a Location based on an [engine.AstNode].')]);
+        docComment(
+            [new dom.Text('Create a Location based on an [engine.AstNode].')]);
         writeln('factory Location.fromNode(engine.AstNode node) =>');
         writeln('    _locationFromNode(node);');
         writeln();
-        docComment([new dom.Text('Create a Location based on an [engine.CompilationUnit].')]);
-        writeln('factory Location.fromUnit(engine.CompilationUnit unit, engine.SourceRange range) =>');
+        docComment(
+            [new dom.Text('Create a Location based on an [engine.CompilationUnit].')]);
+        writeln(
+            'factory Location.fromUnit(engine.CompilationUnit unit, engine.SourceRange range) =>');
         writeln('    _locationFromUnit(unit, range);');
         return true;
       case 'OverriddenMember':
-        docComment([new dom.Text('Construct based on an element from the analyzer engine.')]);
-        writeln('factory OverriddenMember.fromEngine(engine.Element member) =>');
+        docComment(
+            [new dom.Text('Construct based on an element from the analyzer engine.')]);
+        writeln(
+            'factory OverriddenMember.fromEngine(engine.Element member) =>');
         writeln('    _overriddenMemberFromEngine(member);');
         return true;
       case 'RefactoringProblemSeverity':
-        docComment([new dom.Text('Returns the [RefactoringProblemSeverity] with the maximal severity.')]);
-        writeln('static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>');
+        docComment(
+            [
+                new dom.Text(
+                    'Returns the [RefactoringProblemSeverity] with the maximal severity.')]);
+        writeln(
+            'static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>');
         writeln('    _maxRefactoringProblemSeverity(a, b);');
         return true;
       case 'SearchResult':
-        docComment([new dom.Text('Construct based on a value from the search engine.')]);
+        docComment(
+            [new dom.Text('Construct based on a value from the search engine.')]);
         writeln('factory SearchResult.fromMatch(engine.SearchMatch match) =>');
         writeln('    searchResultFromMatch(match);');
         return true;
       case 'SearchResultKind':
-        docComment([new dom.Text('Construct based on a value from the search engine.')]);
-        writeln('factory SearchResultKind.fromEngine(engine.MatchKind kind) =>');
+        docComment(
+            [new dom.Text('Construct based on a value from the search engine.')]);
+        writeln(
+            'factory SearchResultKind.fromEngine(engine.MatchKind kind) =>');
         writeln('    _searchResultKindFromEngine(kind);');
         return true;
       case 'SourceEdit':
@@ -432,8 +477,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       case 'Element':
         for (String name in specialElementFlags.keys) {
           String flag = 'FLAG_${name.toUpperCase()}';
-          writeln('bool get ${camelJoin(['is', name])} => (flags & $flag) != 0;'
-              );
+          writeln(
+              'bool get ${camelJoin(['is', name])} => (flags & $flag) != 0;');
         }
         return true;
       case 'SourceEdit':
@@ -446,14 +491,63 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   /**
-   * If the class named [className] requires special members, emit them and
+   * If the class named [className] requires special methods, emit them and
    * return true.
    */
-  bool emitSpecialMembers(String className) {
+  bool emitSpecialMethods(String className) {
     switch (className) {
+      case 'ErrorFixes':
+        docComment([new dom.Text('Add a [Fix]')]);
+        writeln('void addFix(Fix fix) {');
+        indent(() {
+          writeln('fixes.add(fix.change);');
+        });
+        writeln('}');
+        return true;
+      case 'LinkedEditGroup':
+        docComment([new dom.Text('Add a new position and change the length.')]);
+        writeln('void addPosition(Position position, int length) {');
+        indent(() {
+          writeln('positions.add(position);');
+          writeln('this.length = length;');
+        });
+        writeln('}');
+        writeln();
+        docComment([new dom.Text('Add a new suggestion.')]);
+        writeln('void addSuggestion(LinkedEditSuggestion suggestion) {');
+        indent(() {
+          writeln('suggestions.add(suggestion);');
+        });
+        writeln('}');
+        return true;
+      case 'SourceChange':
+        docComment(
+            [new dom.Text('Adds [edit] to the [FileEdit] for the given [file].')]);
+        writeln('void addEdit(String file, SourceEdit edit) =>');
+        writeln('    _addEditToSourceChange(this, file, edit);');
+        writeln();
+        docComment([new dom.Text('Adds the given [FileEdit].')]);
+        writeln('void addFileEdit(SourceFileEdit edit) {');
+        indent(() {
+          writeln('edits.add(edit);');
+        });
+        writeln('}');
+        writeln();
+        docComment([new dom.Text('Adds the given [LinkedEditGroup].')]);
+        writeln('void addLinkedEditGroup(LinkedEditGroup linkedEditGroup) {');
+        indent(() {
+          writeln('linkedEditGroups.add(linkedEditGroup);');
+        });
+        writeln('}');
+        writeln();
+        docComment(
+            [new dom.Text('Returns the [FileEdit] for the given [file], maybe `null`.')]);
+        writeln('SourceFileEdit getFileEdit(String file) =>');
+        writeln('    _getChangeFileEdit(this, file);');
+        return true;
       case 'SourceEdit':
-        docComment([new dom.Text(
-            'Get the result of applying the edit to the given [code].')]);
+        docComment(
+            [new dom.Text('Get the result of applying the edit to the given [code].')]);
         writeln('String apply(String code) => _applyEdit(code, this);');
         return true;
       case 'SourceFileEdit':
@@ -572,8 +666,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     if (impliedType.kind == 'requestParams') {
       writeln('Request toRequest(String id) {');
       indent(() {
-        String methodString = literalString((impliedType.apiNode as
-            Request).longMethod);
+        String methodString =
+            literalString((impliedType.apiNode as Request).longMethod);
         writeln('return new Request(id, $methodString, toJson());');
       });
       writeln('}');
@@ -599,6 +693,24 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   /**
+   * Emit the toNotification() code for a class, if appropriate.  Returns true
+   * if code was emitted.
+   */
+  bool emitToNotificationMember(ImpliedType impliedType) {
+    if (impliedType.kind == 'notificationParams') {
+      writeln('Notification toNotification() {');
+      indent(() {
+        String eventString =
+            literalString((impliedType.apiNode as Notification).longEvent);
+        writeln('return new Notification($eventString, toJson());');
+      });
+      writeln('}');
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Emit the operator== code for an object class.
    */
   void emitObjectEqualsMember(TypeObject type, String className) {
@@ -612,8 +724,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
           if (field.value != null) {
             continue;
           }
-          comparisons.add(compareEqualsCode(field.type, field.name,
-              'other.${field.name}'));
+          comparisons.add(
+              compareEqualsCode(field.type, field.name, 'other.${field.name}'));
         }
         if (comparisons.isEmpty) {
           writeln('return true;');
@@ -690,7 +802,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (emitSpecialGetters(className)) {
         writeln();
       }
-      if (emitSpecialMembers(className)) {
+      if (emitSpecialMethods(className)) {
         writeln();
       }
       writeln('@override');
@@ -735,8 +847,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (itemCode.isIdentity) {
         return new ToJsonIdentity(dartType(type));
       } else {
-        return new ToJsonSnippet(dartType(type), (String value) =>
-            '$value.map(${itemCode.asClosure}).toList()');
+        return new ToJsonSnippet(
+            dartType(type),
+            (String value) => '$value.map(${itemCode.asClosure}).toList()');
       }
     } else if (resolvedType is TypeMap) {
       ToJsonCode keyCode;
@@ -768,11 +881,13 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
           throw new Exception('Union types must be unions of objects');
         }
       }
-      return new ToJsonSnippet(dartType(type), (String value) =>
-          '$value.toJson()');
+      return new ToJsonSnippet(
+          dartType(type),
+          (String value) => '$value.toJson()');
     } else if (resolvedType is TypeObject || resolvedType is TypeEnum) {
-      return new ToJsonSnippet(dartType(type), (String value) =>
-          '$value.toJson()');
+      return new ToJsonSnippet(
+          dartType(type),
+          (String value) => '$value.toJson()');
     } else {
       throw new Exception("Can't convert $resolvedType from JSON");
     }
@@ -783,8 +898,10 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   String compareEqualsCode(TypeDecl type, String thisVar, String otherVar) {
     TypeDecl resolvedType = resolveTypeReferenceChain(type);
-    if (resolvedType is TypeReference || resolvedType is TypeEnum ||
-        resolvedType is TypeObject || resolvedType is TypeUnion) {
+    if (resolvedType is TypeReference ||
+        resolvedType is TypeEnum ||
+        resolvedType is TypeObject ||
+        resolvedType is TypeUnion) {
       return '$thisVar == $otherVar';
     } else if (resolvedType is TypeList) {
       String itemTypeName = dartType(resolvedType.itemType);
@@ -793,25 +910,24 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       return '_listEqual($thisVar, $otherVar, $closure)';
     } else if (resolvedType is TypeMap) {
       String valueTypeName = dartType(resolvedType.valueType);
-      String subComparison = compareEqualsCode(resolvedType.valueType, 'a', 'b'
-          );
+      String subComparison =
+          compareEqualsCode(resolvedType.valueType, 'a', 'b');
       String closure = '($valueTypeName a, $valueTypeName b) => $subComparison';
       return '_mapEqual($thisVar, $otherVar, $closure)';
     }
-    throw new Exception("Don't know how to compare for equality: $resolvedType"
-        );
+    throw new Exception(
+        "Don't know how to compare for equality: $resolvedType");
   }
 
   /**
    * Emit the method for decoding an object from JSON.
    */
-  void emitObjectFromJsonConstructor(String className, TypeObject
-      type, ImpliedType impliedType) {
-    String humanReadableNameString = literalString(impliedType.humanReadableName
-        );
+  void emitObjectFromJsonConstructor(String className, TypeObject type,
+      ImpliedType impliedType) {
+    String humanReadableNameString =
+        literalString(impliedType.humanReadableName);
     writeln(
-        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {'
-        );
+        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
     indent(() {
       writeln('if (json == null) {');
       indent(() {
@@ -846,8 +962,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
           writeln('$fieldDartType ${field.name};');
           writeln('if (json.containsKey($fieldNameString)) {');
           indent(() {
-            String toJson = fromJsonCode(fieldType).asSnippet(jsonPath,
-                fieldAccessor);
+            String toJson =
+                fromJsonCode(fieldType).asSnippet(jsonPath, fieldAccessor);
             writeln('${field.name} = $toJson;');
           });
           write('}');
@@ -884,11 +1000,10 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /**
    * Emit the method for decoding an enum from JSON.
    */
-  void emitEnumFromJsonConstructor(String className, TypeEnum type, ImpliedType
-      impliedType) {
+  void emitEnumFromJsonConstructor(String className, TypeEnum type,
+      ImpliedType impliedType) {
     writeln(
-        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {'
-        );
+        'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
     indent(() {
       writeln('if (json is String) {');
       indent(() {
@@ -903,10 +1018,10 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         writeln('}');
       });
       writeln('}');
-      String humanReadableNameString = literalString(
-          impliedType.humanReadableName);
-      writeln('throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString);'
-          );
+      String humanReadableNameString =
+          literalString(impliedType.humanReadableName);
+      writeln(
+          'throw jsonDecoder.mismatch(jsonPath, $humanReadableNameString);');
     });
     writeln('}');
   }
@@ -920,8 +1035,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (referencedDefinition != null) {
         TypeDecl referencedType = referencedDefinition.type;
         if (referencedType is TypeObject || referencedType is TypeEnum) {
-          return new FromJsonSnippet((String jsonPath, String json) =>
-              'new ${dartType(type)}.fromJson(jsonDecoder, $jsonPath, $json)');
+          return new FromJsonSnippet(
+              (String jsonPath, String json) =>
+                  'new ${dartType(type)}.fromJson(jsonDecoder, $jsonPath, $json)');
         } else {
           return fromJsonCode(referencedType);
         }
@@ -968,8 +1084,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       if (itemCode.isIdentity) {
         return new FromJsonFunction('jsonDecoder._decodeList');
       } else {
-        return new FromJsonSnippet((String jsonPath, String json) =>
-            'jsonDecoder._decodeList($jsonPath, $json, ${itemCode.asClosure})');
+        return new FromJsonSnippet(
+            (String jsonPath, String json) =>
+                'jsonDecoder._decodeList($jsonPath, $json, ${itemCode.asClosure})');
       }
     } else if (type is TypeUnion) {
       List<String> decoders = <String>[];
@@ -991,9 +1108,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
           throw new Exception('Union types must be unions of objects.');
         }
       }
-      return new FromJsonSnippet((String jsonPath, String json) =>
-          'jsonDecoder._decodeUnion($jsonPath, $json, ${literalString(type.field)}, {${decoders.join(', ')}})'
-          );
+      return new FromJsonSnippet(
+          (String jsonPath, String json) =>
+              'jsonDecoder._decodeUnion($jsonPath, $json, ${literalString(type.field)}, {${decoders.join(', ')}})');
     } else {
       throw new Exception("Can't convert $type from JSON");
     }
@@ -1105,8 +1222,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 }
 
-final GeneratedFile target = new GeneratedFile(
-    '../../lib/src/generated_protocol.dart', () {
+final GeneratedFile target =
+    new GeneratedFile('../../lib/src/generated_protocol.dart', () {
   CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi());
   return visitor.collectCode(visitor.visitApi);
 });

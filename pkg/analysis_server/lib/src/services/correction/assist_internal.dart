@@ -6,10 +6,10 @@ library services.src.correction.assist;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
-    SourceFileEdit, Position;
+import 'package:analysis_server/src/protocol2.dart' show LinkedEditGroup,
+    LinkedEditSuggestion, LinkedEditSuggestionKind, Position, SourceChange,
+    SourceEdit, SourceFileEdit;
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -131,7 +131,7 @@ class AssistProcessor {
     fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);
-    Change change = new Change(message);
+    SourceChange change = new SourceChange(message);
     change.addFileEdit(fileEdit);
     linkedPositionGroups.values.forEach(
         (group) => change.addLinkedEditGroup(group));
@@ -1485,7 +1485,7 @@ class AssistProcessor {
   LinkedEditGroup _getLinkedPosition(String groupId) {
     LinkedEditGroup group = linkedPositionGroups[groupId];
     if (group == null) {
-      group = new LinkedEditGroup();
+      group = new LinkedEditGroup.empty();
       linkedPositionGroups[groupId] = group;
     }
     return group;

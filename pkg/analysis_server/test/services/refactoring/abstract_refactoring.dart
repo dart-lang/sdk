@@ -7,7 +7,6 @@ library test.services.refactoring;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol2.dart';
-import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -41,7 +40,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   Index index;
   SearchEngineImpl searchEngine;
 
-  Change refactoringChange;
+  SourceChange refactoringChange;
 
   Refactoring get refactoring;
 

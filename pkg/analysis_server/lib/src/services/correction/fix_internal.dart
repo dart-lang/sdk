@@ -6,9 +6,9 @@ library services.src.correction.fix;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
-    SourceFileEdit, Position;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show LinkedEditGroup,
+    LinkedEditSuggestion, LinkedEditSuggestionKind, Position, SourceChange,
+    SourceEdit, SourceFileEdit;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -210,7 +210,7 @@ class FixProcessor {
     fileEdit.addAll(edits);
     // prepare Change
     String message = formatList(kind.message, args);
-    Change change = new Change(message);
+    SourceChange change = new SourceChange(message);
     change.addFileEdit(fileEdit);
     linkedPositionGroups.values.forEach(
         (group) => change.addLinkedEditGroup(group));
@@ -1571,7 +1571,7 @@ class FixProcessor {
   LinkedEditGroup _getLinkedPosition(String groupId) {
     LinkedEditGroup group = linkedPositionGroups[groupId];
     if (group == null) {
-      group = new LinkedEditGroup();
+      group = new LinkedEditGroup.empty();
       linkedPositionGroups[groupId] = group;
     }
     return group;

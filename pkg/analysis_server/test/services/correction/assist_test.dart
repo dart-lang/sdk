@@ -4,10 +4,8 @@
 
 library test.services.correction.assist;
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit,
-    SourceFileEdit, Position;
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -31,7 +29,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   int length;
 
   Assist assist;
-  Change change;
+  SourceChange change;
   String resultCode;
   LinkedEditGroup linkedPositionGroup;
 
@@ -43,9 +41,9 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     assist = _assertHasAssist(kind);
     change = assist.change;
     // apply to "file"
-    List<SourceFileEdit> fileEdits = change.fileEdits;
+    List<SourceFileEdit> fileEdits = change.edits;
     expect(fileEdits, hasLength(1));
-    resultCode = SourceEdit.applySequence(testCode, change.fileEdits[0].edits);
+    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
     // verify
     expect(resultCode, expected);
   }
@@ -96,7 +94,7 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
   List<LinkedEditSuggestion> expectedSuggestions(LinkedEditSuggestionKind kind,
       List<String> values) {
     return values.map((value) {
-      return new LinkedEditSuggestion(kind, value);
+      return new LinkedEditSuggestion(value, kind);
     }).toList();
   }
 

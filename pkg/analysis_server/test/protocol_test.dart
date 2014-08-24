@@ -59,8 +59,7 @@ class NotificationTest {
     Notification original = new Notification('foo');
     Notification notification = new Notification.fromJson(original.toJson());
     expect(notification.event, equals('foo'));
-    expect(notification.params.length, equals(0));
-    expect(notification.getParameter('x'), isNull);
+    expect(notification.params, isNull);
   }
 
   void test_fromJson_withParams() {
@@ -68,16 +67,14 @@ class NotificationTest {
     original.setParameter('x', 'y');
     Notification notification = new Notification.fromJson(original.toJson());
     expect(notification.event, equals('foo'));
-    expect(notification.params.length, equals(1));
-    expect(notification.getParameter('x'), equals('y'));
+    expect(notification.params, equals({'x': 'y'}));
   }
 
-  void test_getParameter_defined() {
+  void test_toJson_withParams() {
     Notification notification = new Notification('foo');
     notification.setParameter('x', 'y');
     expect(notification.event, equals('foo'));
-    expect(notification.params.length, equals(1));
-    expect(notification.getParameter('x'), equals('y'));
+    expect(notification.params, equals({'x': 'y'}));
     expect(notification.toJson(), equals({
       'event': 'foo',
       'params': {
@@ -86,11 +83,10 @@ class NotificationTest {
     }));
   }
 
-  void test_getParameter_undefined() {
+  void test_toJson_noParams() {
     Notification notification = new Notification('foo');
     expect(notification.event, equals('foo'));
-    expect(notification.params.length, equals(0));
-    expect(notification.getParameter('x'), isNull);
+    expect(notification.params, isNull);
     expect(notification.toJson(), equals({
       'event': 'foo'
     }));
@@ -371,26 +367,11 @@ class ResponseTest {
   }
 
   void test_fromJson_withResult() {
-    Response original = new Response('myId');
-    original.setResult('foo', 'bar');
+    Response original = new Response('myId', result: {'foo': 'bar'});
     Response response = new Response.fromJson(original.toJson());
     expect(response.id, equals('myId'));
     Map<String, Object> result = response.result;
     expect(result.length, equals(1));
     expect(result['foo'], equals('bar'));
-  }
-
-  void test_setResult() {
-    String resultName = 'name';
-    String resultValue = 'value';
-    Response response = new Response('0');
-    response.setResult(resultName, resultValue);
-    expect(response.result[resultName], same(resultValue));
-    expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.RESULT: {
-        resultName: resultValue
-      }
-    }));
   }
 }

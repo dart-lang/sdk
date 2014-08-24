@@ -122,9 +122,7 @@ class EchoHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     if (request.method == 'echo') {
-      var response = new Response(request.id);
-      response.setResult('echo', true);
-      return response;
+      return new Response(request.id, result: {'echo': true});
     }
     return null;
   }

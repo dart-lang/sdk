@@ -8,21 +8,17 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/edit/fix.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' as protocol show
-    LinkedEditGroup;
 import 'package:analysis_server/src/protocol2.dart' show AnalysisError,
-    EditGetAssistsParams, EditGetAvailableRefactoringsParams,
-    EditGetAvailableRefactoringsResult, EditGetFixesParams,
-    EditGetRefactoringParams, EditGetRefactoringResult, LinkedEditGroup, Location,
-    RefactoringKind, RefactoringProblem, RefactoringProblemSeverity, RenameOptions,
-    SourceChange;
+    EditGetAssistsParams, EditGetAssistsResult,
+    EditGetAvailableRefactoringsParams, EditGetAvailableRefactoringsResult,
+    EditGetFixesParams, EditGetFixesResult, EditGetRefactoringParams,
+    EditGetRefactoringResult, ErrorFixes, LinkedEditGroup, Location,
+    RefactoringKind, RefactoringProblem, RefactoringProblemSeverity,
+    RenameOptions, SourceChange;
 import 'package:analysis_server/src/services/correction/assist.dart';
-import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -59,7 +55,7 @@ class EditDomainHandler implements RequestHandler {
 
   Response getAssists(Request request) {
     var params = new EditGetAssistsParams.fromRequest(request);
-    List<Change> changes = <Change>[];
+    List<SourceChange> changes = <SourceChange>[];
     List<CompilationUnit> units =
         server.getResolvedCompilationUnits(params.file);
     if (units.isNotEmpty) {
@@ -71,9 +67,7 @@ class EditDomainHandler implements RequestHandler {
       });
     }
     // respond
-    Response response = new Response(request.id);
-    response.setResult(ASSISTS, objectToJson(changes));
-    return response;
+    return new EditGetAssistsResult(changes).toResponse(request.id);
   }
 
   Response getAvailableRefactorings(Request request) {
@@ -134,7 +128,7 @@ class EditDomainHandler implements RequestHandler {
       }
     }
     // respond
-    return new Response(request.id)..setResult(FIXES, errorFixesList);
+    return new EditGetFixesResult(errorFixesList).toResponse(request.id);
   }
 
   @override
@@ -226,8 +220,7 @@ class _RefactoringManager {
         return refactoring.createChange().then((change) {
           result.change = new SourceChange(
               change.message,
-              change.fileEdits,
-              <protocol.LinkedEditGroup>[]);
+              edits: change.edits);
           return _sendResultResponse();
         });
       });

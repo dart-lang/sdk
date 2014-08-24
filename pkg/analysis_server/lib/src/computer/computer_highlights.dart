@@ -4,8 +4,8 @@
 
 library computer.highlights;
 
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/services/json.dart';
+import 'package:analysis_server/src/protocol2.dart' show HighlightRegion,
+    HighlightRegionType;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -35,16 +35,16 @@ class DartUnitHighlightsComputer {
     while (token != null && token.type != TokenType.EOF) {
       Token commentToken = token.precedingComments;
       while (commentToken != null) {
-        HighlightType highlightType = null;
+        HighlightRegionType highlightType = null;
         if (commentToken.type == TokenType.MULTI_LINE_COMMENT) {
           if (commentToken.lexeme.startsWith('/**')) {
-            highlightType = HighlightType.COMMENT_DOCUMENTATION;
+            highlightType = HighlightRegionType.COMMENT_DOCUMENTATION;
           } else {
-            highlightType = HighlightType.COMMENT_BLOCK;
+            highlightType = HighlightRegionType.COMMENT_BLOCK;
           }
         }
         if (commentToken.type == TokenType.SINGLE_LINE_COMMENT) {
-          highlightType = HighlightType.COMMENT_END_OF_LINE;
+          highlightType = HighlightRegionType.COMMENT_END_OF_LINE;
         }
         if (highlightType != null) {
           _addRegion_token(commentToken, highlightType);
@@ -95,19 +95,19 @@ class DartUnitHighlightsComputer {
     if (_addIdentifierRegion_typeParameter(node)) {
       return;
     }
-    _addRegion_node(node, HighlightType.IDENTIFIER_DEFAULT);
+    _addRegion_node(node, HighlightRegionType.IDENTIFIER_DEFAULT);
   }
 
   void _addIdentifierRegion_annotation(Annotation node) {
     ArgumentList arguments = node.arguments;
     if (arguments == null) {
-      _addRegion_node(node, HighlightType.ANNOTATION);
+      _addRegion_node(node, HighlightRegionType.ANNOTATION);
     } else {
       _addRegion_nodeStart_tokenEnd(
           node,
           arguments.beginToken,
-          HighlightType.ANNOTATION);
-      _addRegion_token(arguments.endToken, HighlightType.ANNOTATION);
+          HighlightRegionType.ANNOTATION);
+      _addRegion_token(arguments.endToken, HighlightRegionType.ANNOTATION);
     }
   }
 
@@ -116,7 +116,7 @@ class DartUnitHighlightsComputer {
     if (element is! ClassElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.CLASS);
+    return _addRegion_node(node, HighlightRegionType.CLASS);
   }
 
   bool _addIdentifierRegion_constructor(SimpleIdentifier node) {
@@ -124,7 +124,7 @@ class DartUnitHighlightsComputer {
     if (element is! ConstructorElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.CONSTRUCTOR);
+    return _addRegion_node(node, HighlightRegionType.CONSTRUCTOR);
   }
 
   bool _addIdentifierRegion_dynamicType(SimpleIdentifier node) {
@@ -143,7 +143,7 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // OK
-    return _addRegion_node(node, HighlightType.DYNAMIC_TYPE);
+    return _addRegion_node(node, HighlightRegionType.DYNAMIC_TYPE);
   }
 
   bool _addIdentifierRegion_field(SimpleIdentifier node) {
@@ -156,13 +156,13 @@ class DartUnitHighlightsComputer {
     }
     if (element is FieldElement) {
       if ((element as FieldElement).isStatic) {
-        return _addRegion_node(node, HighlightType.FIELD_STATIC);
+        return _addRegion_node(node, HighlightRegionType.FIELD_STATIC);
       } else {
-        return _addRegion_node(node, HighlightType.FIELD);
+        return _addRegion_node(node, HighlightRegionType.FIELD);
       }
     }
     if (element is TopLevelVariableElement) {
-      return _addRegion_node(node, HighlightType.TOP_LEVEL_VARIABLE);
+      return _addRegion_node(node, HighlightRegionType.TOP_LEVEL_VARIABLE);
     }
     return false;
   }
@@ -172,11 +172,11 @@ class DartUnitHighlightsComputer {
     if (element is! FunctionElement) {
       return false;
     }
-    HighlightType type;
+    HighlightRegionType type;
     if (node.inDeclarationContext()) {
-      type = HighlightType.FUNCTION_DECLARATION;
+      type = HighlightRegionType.FUNCTION_DECLARATION;
     } else {
-      type = HighlightType.FUNCTION;
+      type = HighlightRegionType.FUNCTION;
     }
     return _addRegion_node(node, type);
   }
@@ -186,7 +186,7 @@ class DartUnitHighlightsComputer {
     if (element is! FunctionTypeAliasElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.FUNCTION_TYPE_ALIAS);
+    return _addRegion_node(node, HighlightRegionType.FUNCTION_TYPE_ALIAS);
   }
 
   bool _addIdentifierRegion_getterSetterDeclaration(SimpleIdentifier node) {
@@ -204,9 +204,9 @@ class DartUnitHighlightsComputer {
     PropertyAccessorElement propertyAccessorElement =
         element as PropertyAccessorElement;
     if (propertyAccessorElement.isGetter) {
-      return _addRegion_node(node, HighlightType.GETTER_DECLARATION);
+      return _addRegion_node(node, HighlightRegionType.GETTER_DECLARATION);
     } else {
-      return _addRegion_node(node, HighlightType.SETTER_DECLARATION);
+      return _addRegion_node(node, HighlightRegionType.SETTER_DECLARATION);
     }
   }
 
@@ -215,13 +215,13 @@ class DartUnitHighlightsComputer {
     if (element is! PrefixElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.IMPORT_PREFIX);
+    return _addRegion_node(node, HighlightRegionType.IMPORT_PREFIX);
   }
 
   bool _addIdentifierRegion_keyword(SimpleIdentifier node) {
     String name = node.name;
     if (name == "void") {
-      return _addRegion_node(node, HighlightType.KEYWORD);
+      return _addRegion_node(node, HighlightRegionType.KEYWORD);
     }
     return false;
   }
@@ -232,11 +232,11 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // OK
-    HighlightType type;
+    HighlightRegionType type;
     if (node.inDeclarationContext()) {
-      type = HighlightType.LOCAL_VARIABLE_DECLARATION;
+      type = HighlightRegionType.LOCAL_VARIABLE_DECLARATION;
     } else {
-      type = HighlightType.LOCAL_VARIABLE;
+      type = HighlightRegionType.LOCAL_VARIABLE;
     }
     return _addRegion_node(node, type);
   }
@@ -249,18 +249,18 @@ class DartUnitHighlightsComputer {
     MethodElement methodElement = element as MethodElement;
     bool isStatic = methodElement.isStatic;
     // OK
-    HighlightType type;
+    HighlightRegionType type;
     if (node.inDeclarationContext()) {
       if (isStatic) {
-        type = HighlightType.METHOD_DECLARATION_STATIC;
+        type = HighlightRegionType.METHOD_DECLARATION_STATIC;
       } else {
-        type = HighlightType.METHOD_DECLARATION;
+        type = HighlightRegionType.METHOD_DECLARATION;
       }
     } else {
       if (isStatic) {
-        type = HighlightType.METHOD_STATIC;
+        type = HighlightRegionType.METHOD_STATIC;
       } else {
-        type = HighlightType.METHOD;
+        type = HighlightRegionType.METHOD;
       }
     }
     return _addRegion_node(node, type);
@@ -271,7 +271,7 @@ class DartUnitHighlightsComputer {
     if (element is! ParameterElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.PARAMETER);
+    return _addRegion_node(node, HighlightRegionType.PARAMETER);
   }
 
   bool _addIdentifierRegion_typeParameter(SimpleIdentifier node) {
@@ -279,27 +279,27 @@ class DartUnitHighlightsComputer {
     if (element is! TypeParameterElement) {
       return false;
     }
-    return _addRegion_node(node, HighlightType.TYPE_PARAMETER);
+    return _addRegion_node(node, HighlightRegionType.TYPE_PARAMETER);
   }
 
-  void _addRegion(int offset, int length, HighlightType type) {
-    _regions.add(new HighlightRegion(offset, length, type));
+  void _addRegion(int offset, int length, HighlightRegionType type) {
+    _regions.add(new HighlightRegion(type, offset, length));
   }
 
-  bool _addRegion_node(AstNode node, HighlightType type) {
+  bool _addRegion_node(AstNode node, HighlightRegionType type) {
     int offset = node.offset;
     int length = node.length;
     _addRegion(offset, length, type);
     return true;
   }
 
-  void _addRegion_nodeStart_tokenEnd(AstNode a, Token b, HighlightType type) {
+  void _addRegion_nodeStart_tokenEnd(AstNode a, Token b, HighlightRegionType type) {
     int offset = a.offset;
     int end = b.end;
     _addRegion(offset, end - offset, type);
   }
 
-  void _addRegion_token(Token token, HighlightType type) {
+  void _addRegion_token(Token token, HighlightRegionType type) {
     if (token != null) {
       int offset = token.offset;
       int length = token.length;
@@ -307,146 +307,10 @@ class DartUnitHighlightsComputer {
     }
   }
 
-  void _addRegion_tokenStart_tokenEnd(Token a, Token b, HighlightType type) {
+  void _addRegion_tokenStart_tokenEnd(Token a, Token b, HighlightRegionType type) {
     int offset = a.offset;
     int end = b.end;
     _addRegion(offset, end - offset, type);
-  }
-}
-
-
-class HighlightRegion implements HasToJson {
-  final int offset;
-  final int length;
-  final HighlightType type;
-
-  HighlightRegion(this.offset, this.length, this.type);
-
-  factory HighlightRegion.fromJson(Map<String, Object> map) {
-    HighlightType type = HighlightType.valueOf(map[TYPE]);
-    return new HighlightRegion(map[OFFSET], map[LENGTH], type);
-  }
-
-  Map<String, Object> toJson() {
-    Map<String, Object> json = <String, Object>{};
-    json[OFFSET] = offset;
-    json[LENGTH] = length;
-    json[TYPE] = type.name;
-    return json;
-  }
-
-  @override
-  String toString() => toJson().toString();
-}
-
-
-/**
- * Highlighting kinds constants.
- */
-class HighlightType {
-  static const HighlightType ANNOTATION = const HighlightType('ANNOTATION');
-  static const HighlightType BUILT_IN = const HighlightType('BUILT_IN');
-  static const HighlightType CLASS = const HighlightType('CLASS');
-  static const HighlightType COMMENT_BLOCK =
-      const HighlightType('COMMENT_BLOCK');
-  static const HighlightType COMMENT_DOCUMENTATION =
-      const HighlightType('COMMENT_DOCUMENTATION');
-  static const HighlightType COMMENT_END_OF_LINE =
-      const HighlightType('COMMENT_END_OF_LINE');
-  static const HighlightType CONSTRUCTOR = const HighlightType('CONSTRUCTOR');
-  static const HighlightType DIRECTIVE = const HighlightType('DIRECTIVE');
-  static const HighlightType DYNAMIC_TYPE = const HighlightType('DYNAMIC_TYPE');
-  static const HighlightType FIELD = const HighlightType('FIELD');
-  static const HighlightType FIELD_STATIC = const HighlightType('FIELD_STATIC');
-  static const HighlightType FUNCTION_DECLARATION =
-      const HighlightType('FUNCTION_DECLARATION');
-  static const HighlightType FUNCTION = const HighlightType('FUNCTION');
-  static const HighlightType FUNCTION_TYPE_ALIAS =
-      const HighlightType('FUNCTION_TYPE_ALIAS');
-  static const HighlightType GETTER_DECLARATION =
-      const HighlightType('GETTER_DECLARATION');
-  static const HighlightType KEYWORD = const HighlightType('KEYWORD');
-  static const HighlightType IDENTIFIER_DEFAULT =
-      const HighlightType('IDENTIFIER_DEFAULT');
-  static const HighlightType IMPORT_PREFIX =
-      const HighlightType('IMPORT_PREFIX');
-  static const HighlightType LITERAL_BOOLEAN =
-      const HighlightType('LITERAL_BOOLEAN');
-  static const HighlightType LITERAL_DOUBLE =
-      const HighlightType('LITERAL_DOUBLE');
-  static const HighlightType LITERAL_INTEGER =
-      const HighlightType('LITERAL_INTEGER');
-  static const HighlightType LITERAL_LIST = const HighlightType('LITERAL_LIST');
-  static const HighlightType LITERAL_MAP = const HighlightType('LITERAL_MAP');
-  static const HighlightType LITERAL_STRING =
-      const HighlightType('LITERAL_STRING');
-  static const HighlightType LOCAL_VARIABLE_DECLARATION =
-      const HighlightType('LOCAL_VARIABLE_DECLARATION');
-  static const HighlightType LOCAL_VARIABLE =
-      const HighlightType('LOCAL_VARIABLE');
-  static const HighlightType METHOD_DECLARATION =
-      const HighlightType('METHOD_DECLARATION');
-  static const HighlightType METHOD_DECLARATION_STATIC =
-      const HighlightType('METHOD_DECLARATION_STATIC');
-  static const HighlightType METHOD = const HighlightType('METHOD');
-  static const HighlightType METHOD_STATIC =
-      const HighlightType('METHOD_STATIC');
-  static const HighlightType PARAMETER = const HighlightType('PARAMETER');
-  static const HighlightType SETTER_DECLARATION =
-      const HighlightType('SETTER_DECLARATION');
-  static const HighlightType TOP_LEVEL_VARIABLE =
-      const HighlightType('TOP_LEVEL_VARIABLE');
-  static const HighlightType TYPE_NAME_DYNAMIC =
-      const HighlightType('TYPE_NAME_DYNAMIC');
-  static const HighlightType TYPE_PARAMETER =
-      const HighlightType('TYPE_PARAMETER');
-
-  final String name;
-
-  const HighlightType(this.name);
-
-  @override
-  String toString() => name;
-
-  static HighlightType valueOf(String name) {
-    if (ANNOTATION.name == name) return ANNOTATION;
-    if (BUILT_IN.name == name) return BUILT_IN;
-    if (CLASS.name == name) return CLASS;
-    if (COMMENT_BLOCK.name == name) return COMMENT_BLOCK;
-    if (COMMENT_DOCUMENTATION.name == name) return COMMENT_DOCUMENTATION;
-    if (COMMENT_END_OF_LINE.name == name) return COMMENT_END_OF_LINE;
-    if (CONSTRUCTOR.name == name) return CONSTRUCTOR;
-    if (DIRECTIVE.name == name) return DIRECTIVE;
-    if (DYNAMIC_TYPE.name == name) return DYNAMIC_TYPE;
-    if (FIELD.name == name) return FIELD;
-    if (FIELD_STATIC.name == name) return FIELD_STATIC;
-    if (FUNCTION_DECLARATION.name == name) return FUNCTION_DECLARATION;
-    if (FUNCTION.name == name) return FUNCTION;
-    if (FUNCTION_TYPE_ALIAS.name == name) return FUNCTION_TYPE_ALIAS;
-    if (GETTER_DECLARATION.name == name) return GETTER_DECLARATION;
-    if (KEYWORD.name == name) return KEYWORD;
-    if (IDENTIFIER_DEFAULT.name == name) return IDENTIFIER_DEFAULT;
-    if (IMPORT_PREFIX.name == name) return IMPORT_PREFIX;
-    if (LITERAL_BOOLEAN.name == name) return LITERAL_BOOLEAN;
-    if (LITERAL_DOUBLE.name == name) return LITERAL_DOUBLE;
-    if (LITERAL_INTEGER.name == name) return LITERAL_INTEGER;
-    if (LITERAL_LIST.name == name) return LITERAL_LIST;
-    if (LITERAL_MAP.name == name) return LITERAL_MAP;
-    if (LITERAL_STRING.name == name) return LITERAL_STRING;
-    if (LOCAL_VARIABLE_DECLARATION.name ==
-        name) return LOCAL_VARIABLE_DECLARATION;
-    if (LOCAL_VARIABLE.name == name) return LOCAL_VARIABLE;
-    if (METHOD_DECLARATION.name == name) return METHOD_DECLARATION;
-    if (METHOD_DECLARATION_STATIC.name ==
-        name) return METHOD_DECLARATION_STATIC;
-    if (METHOD.name == name) return METHOD;
-    if (METHOD_STATIC.name == name) return METHOD_STATIC;
-    if (PARAMETER.name == name) return PARAMETER;
-    if (SETTER_DECLARATION.name == name) return SETTER_DECLARATION;
-    if (TOP_LEVEL_VARIABLE.name == name) return TOP_LEVEL_VARIABLE;
-    if (TYPE_NAME_DYNAMIC.name == name) return TYPE_NAME_DYNAMIC;
-    if (TYPE_PARAMETER.name == name) return TYPE_PARAMETER;
-    throw new ArgumentError('Unknown HighlightType: $name');
   }
 }
 
@@ -467,227 +331,227 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitAsExpression(AsExpression node) {
-    computer._addRegion_token(node.asOperator, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.asOperator, HighlightRegionType.BUILT_IN);
     return super.visitAsExpression(node);
   }
 
   @override
   Object visitAssertStatement(AssertStatement node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitAssertStatement(node);
   }
 
   @override
   Object visitBooleanLiteral(BooleanLiteral node) {
-    computer._addRegion_node(node, HighlightType.KEYWORD);
-    computer._addRegion_node(node, HighlightType.LITERAL_BOOLEAN);
+    computer._addRegion_node(node, HighlightRegionType.KEYWORD);
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_BOOLEAN);
     return super.visitBooleanLiteral(node);
   }
 
   @override
   Object visitBreakStatement(BreakStatement node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitBreakStatement(node);
   }
 
   @override
   Object visitCatchClause(CatchClause node) {
-    computer._addRegion_token(node.catchKeyword, HighlightType.KEYWORD);
-    computer._addRegion_token(node.onKeyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.catchKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN);
     return super.visitCatchClause(node);
   }
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegion_token(node.classKeyword, HighlightType.KEYWORD);
-    computer._addRegion_token(node.abstractKeyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.abstractKeyword, HighlightRegionType.BUILT_IN);
     return super.visitClassDeclaration(node);
   }
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    computer._addRegion_token(node.externalKeyword, HighlightType.BUILT_IN);
-    computer._addRegion_token(node.factoryKeyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.externalKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.factoryKeyword, HighlightRegionType.BUILT_IN);
     return super.visitConstructorDeclaration(node);
   }
 
   @override
   Object visitContinueStatement(ContinueStatement node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitContinueStatement(node);
   }
 
   @override
   Object visitDoStatement(DoStatement node) {
-    computer._addRegion_token(node.doKeyword, HighlightType.KEYWORD);
-    computer._addRegion_token(node.whileKeyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.doKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.whileKeyword, HighlightRegionType.KEYWORD);
     return super.visitDoStatement(node);
   }
 
   @override
   Object visitDoubleLiteral(DoubleLiteral node) {
-    computer._addRegion_node(node, HighlightType.LITERAL_DOUBLE);
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_DOUBLE);
     return super.visitDoubleLiteral(node);
   }
 
   @override
   Object visitExportDirective(ExportDirective node) {
-    computer._addRegion_node(node, HighlightType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitExportDirective(node);
   }
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    computer._addRegion_token(node.staticKeyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.staticKeyword, HighlightRegionType.BUILT_IN);
     return super.visitFieldDeclaration(node);
   }
 
   @override
   Object visitForEachStatement(ForEachStatement node) {
-    computer._addRegion_token(node.forKeyword, HighlightType.KEYWORD);
-    computer._addRegion_token(node.inKeyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.inKeyword, HighlightRegionType.KEYWORD);
     return super.visitForEachStatement(node);
   }
 
   @override
   Object visitForStatement(ForStatement node) {
-    computer._addRegion_token(node.forKeyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.forKeyword, HighlightRegionType.KEYWORD);
     return super.visitForStatement(node);
   }
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    computer._addRegion_token(node.externalKeyword, HighlightType.BUILT_IN);
-    computer._addRegion_token(node.propertyKeyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.externalKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.propertyKeyword, HighlightRegionType.BUILT_IN);
     return super.visitFunctionDeclaration(node);
   }
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitFunctionTypeAlias(node);
   }
 
   @override
   Object visitHideCombinator(HideCombinator node) {
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitHideCombinator(node);
   }
 
   @override
   Object visitIfStatement(IfStatement node) {
-    computer._addRegion_token(node.ifKeyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.ifKeyword, HighlightRegionType.KEYWORD);
     return super.visitIfStatement(node);
   }
 
   @override
   Object visitImplementsClause(ImplementsClause node) {
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitImplementsClause(node);
   }
 
   @override
   Object visitImportDirective(ImportDirective node) {
-    computer._addRegion_node(node, HighlightType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
-    computer._addRegion_token(node.deferredToken, HighlightType.BUILT_IN);
-    computer._addRegion_token(node.asToken, HighlightType.BUILT_IN);
+    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.deferredToken, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.asToken, HighlightRegionType.BUILT_IN);
     return super.visitImportDirective(node);
   }
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitInstanceCreationExpression(node);
   }
 
   @override
   Object visitIntegerLiteral(IntegerLiteral node) {
-    computer._addRegion_node(node, HighlightType.LITERAL_INTEGER);
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_INTEGER);
     return super.visitIntegerLiteral(node);
   }
 
   @override
   Object visitIsExpression(IsExpression node) {
-    computer._addRegion_token(node.isOperator, HighlightType.KEYWORD);
+    computer._addRegion_token(node.isOperator, HighlightRegionType.KEYWORD);
     return super.visitIsExpression(node);
   }
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
-    computer._addRegion_node(node, HighlightType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitLibraryDirective(node);
   }
 
   @override
   Object visitListLiteral(ListLiteral node) {
-    computer._addRegion_node(node, HighlightType.LITERAL_LIST);
-    computer._addRegion_token(node.constKeyword, HighlightType.KEYWORD);
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_LIST);
+    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
     return super.visitListLiteral(node);
   }
 
   @override
   Object visitMapLiteral(MapLiteral node) {
-    computer._addRegion_node(node, HighlightType.LITERAL_MAP);
-    computer._addRegion_token(node.constKeyword, HighlightType.KEYWORD);
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_MAP);
+    computer._addRegion_token(node.constKeyword, HighlightRegionType.KEYWORD);
     return super.visitMapLiteral(node);
   }
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
-    computer._addRegion_token(node.externalKeyword, HighlightType.BUILT_IN);
-    computer._addRegion_token(node.modifierKeyword, HighlightType.BUILT_IN);
-    computer._addRegion_token(node.operatorKeyword, HighlightType.BUILT_IN);
-    computer._addRegion_token(node.propertyKeyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.externalKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.modifierKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.operatorKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.propertyKeyword, HighlightRegionType.BUILT_IN);
     return super.visitMethodDeclaration(node);
   }
 
   @override
   Object visitNativeClause(NativeClause node) {
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitNativeClause(node);
   }
 
   @override
   Object visitNativeFunctionBody(NativeFunctionBody node) {
-    computer._addRegion_token(node.nativeToken, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.nativeToken, HighlightRegionType.BUILT_IN);
     return super.visitNativeFunctionBody(node);
   }
 
   @override
   Object visitPartDirective(PartDirective node) {
-    computer._addRegion_node(node, HighlightType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitPartDirective(node);
   }
 
   @override
   Object visitPartOfDirective(PartOfDirective node) {
-    computer._addRegion_node(node, HighlightType.DIRECTIVE);
+    computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_tokenStart_tokenEnd(
         node.partToken,
         node.ofToken,
-        HighlightType.BUILT_IN);
+        HighlightRegionType.BUILT_IN);
     return super.visitPartOfDirective(node);
   }
 
   @override
   Object visitRethrowExpression(RethrowExpression node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitRethrowExpression(node);
   }
 
   @override
   Object visitReturnStatement(ReturnStatement node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitReturnStatement(node);
   }
 
   @override
   Object visitShowCombinator(ShowCombinator node) {
-    computer._addRegion_token(node.keyword, HighlightType.BUILT_IN);
+    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitShowCombinator(node);
   }
 
@@ -699,44 +563,44 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSimpleStringLiteral(SimpleStringLiteral node) {
-    computer._addRegion_node(node, HighlightType.LITERAL_STRING);
+    computer._addRegion_node(node, HighlightRegionType.LITERAL_STRING);
     return super.visitSimpleStringLiteral(node);
   }
 
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitSuperConstructorInvocation(node);
   }
 
   @override
   Object visitSwitchCase(SwitchCase node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitSwitchCase(node);
   }
 
   @override
   Object visitSwitchDefault(SwitchDefault node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitSwitchDefault(node);
   }
 
   @override
   Object visitSwitchStatement(SwitchStatement node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitSwitchStatement(node);
   }
 
   @override
   Object visitThisExpression(ThisExpression node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitThisExpression(node);
   }
 
   @override
   Object visitTryStatement(TryStatement node) {
-    computer._addRegion_token(node.tryKeyword, HighlightType.KEYWORD);
-    computer._addRegion_token(node.finallyKeyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.tryKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(node.finallyKeyword, HighlightRegionType.KEYWORD);
     return super.visitTryStatement(node);
   }
 
@@ -745,7 +609,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
     DartType type = node.type;
     if (type != null) {
       if (type.isDynamic && node.name.name == "dynamic") {
-        computer._addRegion_node(node, HighlightType.TYPE_NAME_DYNAMIC);
+        computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
         return null;
       }
     }
@@ -754,19 +618,19 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitVariableDeclarationList(VariableDeclarationList node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitVariableDeclarationList(node);
   }
 
   @override
   Object visitWhileStatement(WhileStatement node) {
-    computer._addRegion_token(node.keyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     return super.visitWhileStatement(node);
   }
 
   @override
   Object visitWithClause(WithClause node) {
-    computer._addRegion_token(node.withKeyword, HighlightType.KEYWORD);
+    computer._addRegion_token(node.withKeyword, HighlightRegionType.KEYWORD);
     return super.visitWithClause(node);
   }
 }

@@ -6,8 +6,8 @@ library services.src.refactoring.rename_class_member;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show Location, SourceEdit;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show Location,
+    SourceChange, SourceEdit;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -73,8 +73,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<Change> createChange() {
-    Change change = new Change(refactoringName);
+  Future<SourceChange> createChange() {
+    SourceChange change = new SourceChange(refactoringName);
     // update declarations
     for (Element renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {

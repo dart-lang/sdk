@@ -6,8 +6,8 @@ library services.src.refactoring.rename_constructor;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show Location, SourceEdit;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart' show Location,
+    SourceChange, SourceEdit;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -50,8 +50,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<Change> createChange() {
-    Change change = new Change(refactoringName);
+  Future<SourceChange> createChange() {
+    SourceChange change = new SourceChange(refactoringName);
     String replacement = newName.isEmpty ? '' : '.${newName}';
     // update references
     return searchEngine.searchReferences(element).then((refMatches) {

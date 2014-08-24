@@ -7,7 +7,6 @@ library test.services.refactoring.extract_local;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol2.dart';
-import 'package:analysis_server/src/services/correction/change.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
@@ -876,7 +875,7 @@ main() {
    */
   Future _assertSuccessfulRefactoring(String expectedCode) {
     return assertRefactoringConditionsOK().then((_) {
-      return refactoring.createChange().then((Change refactoringChange) {
+      return refactoring.createChange().then((SourceChange refactoringChange) {
         this.refactoringChange = refactoringChange;
         assertTestChangeResult(expectedCode);
       });

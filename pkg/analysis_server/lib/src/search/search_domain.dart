@@ -12,7 +12,6 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
-import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -174,11 +173,8 @@ class SearchDomainHandler implements RequestHandler {
 
   void _sendSearchNotification(String searchId, bool isLast,
       Iterable<protocol.SearchResult> results) {
-    Notification notification = new Notification(SEARCH_RESULTS);
-    notification.setParameter(ID, searchId);
-    notification.setParameter(LAST, isLast);
-    notification.setParameter(RESULTS, objectToJson(results));
-    server.sendNotification(notification);
+    server.sendNotification(new protocol.SearchResultsParams(searchId,
+        results.toList(), isLast).toNotification());
   }
 
   static protocol.SearchResult toResult(SearchMatch match) {

@@ -8,6 +8,8 @@
 library services.completion;
 
 import 'dart:collection';
+import 'package:analysis_server/src/protocol2.dart' show
+    CompletionSuggestionKind;
 import 'package:analyzer/src/generated/java_core.dart' hide StringUtils;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -22,8 +24,6 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'stubs.dart';
 import 'util.dart';
-
-import '../completion/completion_suggestion.dart';
 
 class AstNodeClassifier_CompletionEngine_typeOf extends CompletionEngine_AstNodeClassifier {
   final CompletionEngine CompletionEngine_this;

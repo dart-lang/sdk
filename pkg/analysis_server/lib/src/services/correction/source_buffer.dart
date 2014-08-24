@@ -4,8 +4,7 @@
 
 library services.src.correction.source_buffer;
 
-import 'package:analysis_server/src/protocol2.dart' show Position;
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
@@ -42,7 +41,7 @@ class SourceBuilder {
   int get length => _buffer.length;
 
   void addSuggestion(LinkedEditSuggestionKind kind, String value) {
-    var suggestion = new LinkedEditSuggestion(kind, value);
+    var suggestion = new LinkedEditSuggestion(value, kind);
     _currentLinkedPositionGroup.addSuggestion(suggestion);
   }
 
@@ -81,7 +80,7 @@ class SourceBuilder {
     assert(_currentLinkedPositionGroup == null);
     _currentLinkedPositionGroup = linkedPositionGroups[id];
     if (_currentLinkedPositionGroup == null) {
-      _currentLinkedPositionGroup = new LinkedEditGroup();
+      _currentLinkedPositionGroup = new LinkedEditGroup.empty();
       linkedPositionGroups[id] = _currentLinkedPositionGroup;
     }
     _currentPositionStart = _buffer.length;

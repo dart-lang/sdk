@@ -8,9 +8,9 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show
-    CompletionGetSuggestionsParams, CompletionGetSuggestionsResult;
+    CompletionGetSuggestionsParams, CompletionGetSuggestionsResult,
+    CompletionSuggestion;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/completion_suggestion.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]

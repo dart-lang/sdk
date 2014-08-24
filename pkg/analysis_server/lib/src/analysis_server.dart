@@ -17,9 +17,10 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show AnalysisService,
-    ServerService, AddContentOverlay, ChangeContentOverlay,
-    RemoveContentOverlay, SourceEdit;
+import 'package:analysis_server/src/protocol2.dart' show AddContentOverlay,
+    AnalysisService, AnalysisStatus, ChangeContentOverlay,
+    RemoveContentOverlay, ServerErrorParams, ServerService, ServerStatusParams,
+    SourceEdit;
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -443,11 +444,9 @@ class AnalysisServer {
       return;
     }
     statusAnalyzing = isAnalyzing;
-    Notification notification = new Notification(SERVER_STATUS);
-    Map<String, Object> analysis = new HashMap();
-    analysis['analyzing'] = isAnalyzing;
-    notification.params['analysis'] = analysis;
-    channel.sendNotification(notification);
+    AnalysisStatus analysis = new AnalysisStatus(isAnalyzing);
+    channel.sendNotification(new ServerStatusParams(
+        analysis: analysis).toNotification());
   }
 
   /**
@@ -804,11 +803,8 @@ class AnalysisServer {
       stackTraceString = 'null stackTrace';
     }
     // send the notification
-    Notification notification = new Notification(SERVER_ERROR);
-    notification.setParameter(FATAL, true);
-    notification.setParameter(MESSAGE, exceptionString);
-    notification.setParameter(STACK_TRACE, stackTraceString);
-    channel.sendNotification(notification);
+    channel.sendNotification(new ServerErrorParams(true, exceptionString,
+        stackTraceString).toNotification());
   }
 }
 

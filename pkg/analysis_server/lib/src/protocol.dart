@@ -242,10 +242,12 @@ class Response {
    * Initialize a newly created instance to represent an error condition caused
    * by an error during `analysis.getErrors`.
    */
-  Response.getErrorsError(Request request, String message)
+  Response.getErrorsError(Request request, String message,
+      Map<String, Object> result)
     : this(
         request.id,
-        error: new RequestError('GET_ERRORS_ERROR', 'Error during `analysis.getErrors`: $message.'));
+        error: new RequestError('GET_ERRORS_ERROR', 'Error during `analysis.getErrors`: $message.'),
+        result: result);
 
   /**
    * Initialize a newly created instance based upon the given JSON data
@@ -257,39 +259,20 @@ class Response {
         return null;
       }
       Object error = json[Response.ERROR];
-      Object result = json[Response.RESULT];
-      Response response;
+      RequestError decodedError;
       if (error is Map) {
-        response = new Response(id, error: new RequestError.fromJson(error));
-      } else {
-        response = new Response(id);
+        decodedError = new RequestError.fromJson(error);
       }
+      Object result = json[Response.RESULT];
+      Map<String, Object> decodedResult;
       if (result is Map) {
-        result.forEach((String key, Object value) {
-          response.setResult(key, value);
-        });
+        decodedResult = result;
       }
-      return response;
+      return new Response(id, error: decodedError,
+          result: decodedResult);
     } catch (exception) {
       return null;
     }
-  }
-
-  /**
-   * Set the value of the result field with the given [name] to the given [value].
-   */
-  void setResult(String name, Object value) {
-    if (result == null) {
-      result = new HashMap<String, Object>();
-    }
-    result[name] = _toJson(value);
-  }
-
-  /**
-   * Set the result to be an empty map.
-   */
-  void setEmptyResult() {
-    result = new HashMap<String, Object>();
   }
 
   /**
@@ -505,14 +488,17 @@ class Notification {
   final String event;
 
   /**
-   * A table mapping the names of notification parameters to their values.
+   * A table mapping the names of notification parameters to their values, or
+   * null if there are no notification parameters.
    */
-  final Map<String, Object> params = new HashMap<String, Object>();
+  Map<String, Object> params;
 
   /**
    * Initialize a newly created [Notification] to have the given [event] name.
+   * If [params] is provided, it will be used as the params; otherwise no
+   * params will be used.
    */
-  Notification(this.event);
+  Notification(this.event, [this.params]);
 
   /**
    * Initialize a newly created instance based upon the given JSON data
@@ -534,15 +520,12 @@ class Notification {
   }
 
   /**
-   * Return the value of the parameter with the given [name], or `null` if there
-   * is no such parameter associated with this notification.
-   */
-  Object getParameter(String name) => params[name];
-
-  /**
    * Set the value of the parameter with the given [name] to the given [value].
    */
   void setParameter(String name, Object value) {
+    if (params == null) {
+      params = new HashMap<String, Object>();
+    }
     params[name] = _toJson(value);
   }
 
@@ -553,7 +536,7 @@ class Notification {
   Map<String, Object> toJson() {
     Map<String, Object> jsonObject = {};
     jsonObject[EVENT] = event;
-    if (!params.isEmpty) {
+    if (params != null) {
       jsonObject[PARAMS] = params;
     }
     return jsonObject;

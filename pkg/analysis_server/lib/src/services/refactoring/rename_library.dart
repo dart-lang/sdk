@@ -6,7 +6,7 @@ library services.src.refactoring.rename_library;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/correction/change.dart';
+import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -45,8 +45,8 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<Change> createChange() {
-    Change change = new Change(refactoringName);
+  Future<SourceChange> createChange() {
+    SourceChange change = new SourceChange(refactoringName);
     // update declaration
     addDeclarationEdit(change, element);
     // update references
