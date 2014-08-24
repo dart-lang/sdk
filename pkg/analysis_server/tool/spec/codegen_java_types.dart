@@ -81,6 +81,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     writeln('import com.google.gson.JsonElement;');
     writeln('import com.google.gson.JsonObject;');
     writeln('import com.google.gson.JsonPrimitive;');
+    writeln('import org.apache.commons.lang3.builder.HashCodeBuilder;');
     writeln('import java.util.ArrayList;');
     writeln('import java.util.Iterator;');
     writeln('import org.apache.commons.lang3.StringUtils;');
@@ -357,7 +358,19 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // hashCode
       //
-      // TODO (jwren) have hashCode written out
+      publicMethod('hashCode', () {
+        writeln('@Override');
+        writeln('public int hashCode() {');
+        indent(() {
+          writeln('HashCodeBuilder builder = new HashCodeBuilder();');
+          for (int i = 0; i < fields.length; i++) {
+            writeln("builder.append(${javaName(fields[i].name)});");
+          }
+          writeln('return builder.toHashCode();');
+        });
+        writeln('}');
+      });
+
       //
       // toString
       //
