@@ -70,8 +70,8 @@ class NameValidator extends Validator {
       messages.add("$description may only contain letters, numbers, and "
           "underscores.\n"
           "Using a valid Dart identifier makes the name usable in Dart code.");
-    } else if (!new RegExp(r"^[a-zA-Z]").hasMatch(name)) {
-      messages.add("$description must begin with letter.\n"
+    } else if (!new RegExp(r"^[a-zA-Z_]").hasMatch(name)) {
+      messages.add("$description must begin with a letter or underscore.\n"
           "Using a valid Dart identifier makes the name usable in Dart code.");
     } else if (_RESERVED_WORDS.contains(name.toLowerCase())) {
       messages.add("$description may not be a reserved word in Dart.\n"

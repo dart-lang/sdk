@@ -33,6 +33,16 @@ main() {
       ]).create();
       expectNoValidationError(name);
     });
+
+    integration('has a name that starts with an underscore', () {
+      d.dir(appPath, [
+        d.libPubspec("_test_pkg", "1.0.0"),
+        d.dir("lib", [
+          d.file("_test_pkg.dart", "int i = 1;")
+        ])
+      ]).create();
+      expectNoValidationError(name);
+    });
   });
 
   group('should consider a package invalid if it', () {
