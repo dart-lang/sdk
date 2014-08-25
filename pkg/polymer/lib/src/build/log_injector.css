@@ -5,7 +5,7 @@
   position: fixed;
   bottom: 0;
   right: 0;
-  max-width: 50%;
+  max-width: 50vw;
   z-index: 10000;
   font-family: sans-serif !important;
 }
@@ -59,7 +59,7 @@
   color: white;
 }
 .build-logs .content {
-  max-height: 500px;
+  max-height: 75vh;
   font-size: 1em;
   overflow-y: auto;
 }
