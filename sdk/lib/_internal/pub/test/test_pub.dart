@@ -19,7 +19,7 @@ import 'package:path/path.dart' as path;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
-import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/scheduled_test.dart' hide fail;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:unittest/compact_vm_config.dart';
