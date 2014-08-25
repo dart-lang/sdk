@@ -13,7 +13,7 @@ class MethodTest extends VmServiceRequestHelper {
       super('http://127.0.0.1:$port/$id/$functionId');
   onRequestCompleted(Map reply) {
     Expect.equals('Function', reply['type']);
-    Expect.equals('c', reply['user_name']);
+    Expect.equals('c', reply['name']);
     Expect.equals(false, reply['is_static']);
   }
 }

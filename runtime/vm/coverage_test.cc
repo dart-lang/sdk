@@ -51,7 +51,7 @@ TEST_CASE(Coverage_Empty) {
   OS::SNPrint(buf, sizeof(buf),
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"name\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 }
@@ -88,7 +88,7 @@ TEST_CASE(Coverage_MainWithClass) {
   OS::SNPrint(buf, sizeof(buf),
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"name\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[3,1,5,4,6,3]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 
@@ -96,7 +96,7 @@ TEST_CASE(Coverage_MainWithClass) {
   OS::SNPrint(buf, sizeof(buf),
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"name\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[10,1,11,1]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 }
@@ -134,7 +134,7 @@ TEST_CASE(Coverage_FilterFunction) {
   OS::SNPrint(buf, sizeof(buf),
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"name\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[6,0]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 }

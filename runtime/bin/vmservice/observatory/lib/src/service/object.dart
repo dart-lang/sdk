@@ -1075,8 +1075,8 @@ class ServiceMap extends ServiceObject implements ObservableMap {
     _map.clear();
     _map.addAll(map);
 
-    name = _map['user_name'];
-    vmName = _map['name'];
+    name = _map['name'];
+    vmName = (_map.containsKey('vmName') ? _map['vmName'] : name);
     _upgradeValues();
   }
 
@@ -1216,11 +1216,12 @@ class Library extends ServiceObject with Coverage {
         url.startsWith('http://')) {
       shortUrl = url.substring(url.lastIndexOf('/') + 1);
     }
-    name = map['user_name'];
+    name = map['name'];
     if (name.isEmpty) {
+      // When there is no name for a library, use the shortUrl.
       name = shortUrl;
     }
-    vmName = map['name'];
+    vmName = (map.containsKey('vmName') ? map['vmName'] : name);
     if (mapIsRef) {
       return;
     }
@@ -1316,8 +1317,8 @@ class Class extends ServiceObject with Coverage {
   }
 
   void _update(ObservableMap map, bool mapIsRef) {
-    name = map['user_name'];
-    vmName = map['name'];
+    name = map['name'];
+    vmName = (map.containsKey('vmName') ? map['vmName'] : name);
 
     if (mapIsRef) {
       return;
@@ -1454,8 +1455,8 @@ class ServiceFunction extends ServiceObject with Coverage {
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
 
   void _update(ObservableMap map, bool mapIsRef) {
-    name = map['user_name'];
-    vmName = map['name'];
+    name = map['name'];
+    vmName = (map.containsKey('vmName') ? map['vmName'] : name);
 
     _upgradeCollection(map, isolate);
 
@@ -1991,8 +1992,8 @@ class Code extends ServiceObject {
   }
 
   void _update(ObservableMap m, bool mapIsRef) {
-    name = m['user_name'];
-    vmName = m['name'];
+    name = m['name'];
+    vmName = (m.containsKey('vmName') ? m['vmName'] : name);
     isOptimized = m['isOptimized'] != null ? m['isOptimized'] : false;
     kind = CodeKind.fromString(m['kind']);
     startAddress = int.parse(m['start'], radix:16);

@@ -25,7 +25,7 @@ class CodeCTest extends VmServiceRequestHelper {
 
   onRequestCompleted(Map reply) {
     Expect.equals('Code', reply['type']);
-    Expect.equals('c', reply['function']['user_name']);
+    Expect.equals('c', reply['function']['name']);
     Expect.isTrue(reply['disassembly'].length > 0);
   }
 }

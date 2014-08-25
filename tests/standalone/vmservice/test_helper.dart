@@ -208,22 +208,22 @@ class ClassTableHelper {
     Expect.equals('ClassList', classTable['type'], 'Not a ClassTable.');
   }
 
-  bool classExists(String user_name) {
+  bool classExists(String name) {
     List members = classTable['members'];
     for (var i = 0; i < members.length; i++) {
       Map klass = members[i];
-      if (klass['user_name'] == user_name) {
+      if (klass['name'] == name) {
         return true;
       }
     }
     return false;
   }
 
-  String classId(String user_name) {
+  String classId(String name) {
     List members = classTable['members'];
     for (var i = 0; i < members.length; i++) {
       Map klass = members[i];
-      if (klass['user_name'] == user_name) {
+      if (klass['name'] == name) {
         return klass['id'];
       }
     }
@@ -259,7 +259,7 @@ class ClassFieldRequestHelper extends VmServiceRequestHelper {
     List<Future> requests = new List<Future>();
     fieldNames.forEach((fn) {
       class_fields.forEach((f) {
-        if (f['user_name'] == fn) {
+        if (f['name'] == fn) {
           var request = new FieldRequestHelper(port_, isolate_id_, f['id']);
           requests.add(request.makeRequest());
         }
@@ -267,7 +267,7 @@ class ClassFieldRequestHelper extends VmServiceRequestHelper {
     });
     return Future.wait(requests).then((a) {
       a.forEach((FieldRequestHelper field) {
-        fields[field.field['user_name']] = field.field;
+        fields[field.field['name']] = field.field;
       });
       return this;
     });

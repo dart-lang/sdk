@@ -421,10 +421,10 @@ void PageSpace::PrintToJSONObject(JSONObject* object) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "old");
-  space.AddProperty("type", "PageSpace");
+  space.AddProperty("type", "HeapSpace");
   space.AddProperty("id", "heaps/old");
-  space.AddProperty("name", "PageSpace");
-  space.AddProperty("user_name", "old");
+  space.AddProperty("name", "old");
+  space.AddProperty("vmName", "PageSpace");
   space.AddProperty("collections", collections());
   space.AddProperty("used", UsedInWords() * kWordSize);
   space.AddProperty("capacity", CapacityInWords() * kWordSize);

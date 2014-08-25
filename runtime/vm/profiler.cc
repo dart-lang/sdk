@@ -467,7 +467,6 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("type", "@Code");
     obj.AddProperty("kind", "Native");
     obj.AddProperty("name", name());
-    obj.AddProperty("user_name", name());
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     obj.AddPropertyF("id", "code/native-%" Px "", start());
@@ -477,7 +476,6 @@ class CodeRegion : public ZoneAllocated {
       func.AddProperty("type", "@Function");
       func.AddPropertyF("id", "functions/native-%" Px "", start());
       func.AddProperty("name", name());
-      func.AddProperty("user_name", name());
       func.AddProperty("kind", "Native");
     }
   }
@@ -488,7 +486,6 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("type", "@Code");
     obj.AddProperty("kind", "Collected");
     obj.AddProperty("name", name());
-    obj.AddProperty("user_name", name());
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     obj.AddPropertyF("id", "code/collected-%" Px "", start());
@@ -498,7 +495,6 @@ class CodeRegion : public ZoneAllocated {
       func.AddProperty("type", "@Function");
       obj.AddPropertyF("id", "functions/collected-%" Px "", start());
       func.AddProperty("name", name());
-      func.AddProperty("user_name", name());
       func.AddProperty("kind", "Collected");
     }
   }
@@ -509,7 +505,6 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("type", "@Code");
     obj.AddProperty("kind", "Reused");
     obj.AddProperty("name", name());
-    obj.AddProperty("user_name", name());
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     obj.AddPropertyF("id", "code/reused-%" Px "", start());
@@ -519,7 +514,6 @@ class CodeRegion : public ZoneAllocated {
       func.AddProperty("type", "@Function");
       obj.AddPropertyF("id", "functions/reused-%" Px "", start());
       func.AddProperty("name", name());
-      func.AddProperty("user_name", name());
       func.AddProperty("kind", "Reused");
     }
   }
@@ -531,7 +525,6 @@ class CodeRegion : public ZoneAllocated {
     obj.AddProperty("kind", "Tag");
     obj.AddPropertyF("id", "code/tag-%" Px "", start());
     obj.AddProperty("name", name());
-    obj.AddProperty("user_name", name());
     obj.AddPropertyF("start", "%" Px "", start());
     obj.AddPropertyF("end", "%" Px "", end());
     {
@@ -541,7 +534,6 @@ class CodeRegion : public ZoneAllocated {
       func.AddProperty("kind", "Tag");
       obj.AddPropertyF("id", "functions/tag-%" Px "", start());
       func.AddProperty("name", name());
-      func.AddProperty("user_name", name());
     }
   }
 

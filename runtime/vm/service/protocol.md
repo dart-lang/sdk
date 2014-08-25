@@ -111,8 +111,8 @@ TODO
 | --- | --- | ---
 | type | "@Library" |
 | id | String |
-| user_name | String |
-| name | String
+| name | String |
+| vmName? | String | Internal vm name.  Provided only when different from 'name'.
 | url | String
 
 ### <a name="Library"></a>Library
@@ -121,8 +121,8 @@ TODO
 | --- | --- | ---
 | type | "Library" |
 | id | String |
-| user_name | String |
-| name | String
+| name | String |
+| vmName? | String | Internal vm name.  Provided only when different from 'name'.
 | classes | List of [@Class](#atClass) |
 | imports | List of [@Library](#atLibrary) |
 | variables | List of ... |
@@ -134,8 +134,8 @@ TODO
 | --- | --- | ---
 | type | "@Script" |
 | id | String
-| user_name | String
 | name | String
+| vmName? | String | Internal vm name.  Provided only when different from 'name'.
 | kind | String
 
 ### <a name="Script"></a>Script
@@ -143,8 +143,8 @@ TODO
 | --- | --- | ---
 | type | "@Script" |
 | id | String
-| user_name | String
 | name | String
+| vmName? | String | Internal vm name.  Provided only when different from 'name'.
 | kind | String
 | owningLibrary | [@Library](#atLibrary) |
 | source | String

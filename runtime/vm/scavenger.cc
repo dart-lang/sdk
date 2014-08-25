@@ -832,10 +832,10 @@ void Scavenger::PrintToJSONObject(JSONObject* object) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "new");
-  space.AddProperty("type", "Scavenger");
+  space.AddProperty("type", "HeapSpace");
   space.AddProperty("id", "heaps/new");
-  space.AddProperty("name", "Scavenger");
-  space.AddProperty("user_name", "new");
+  space.AddProperty("name", "new");
+  space.AddProperty("vmName", "Scavenger");
   space.AddProperty("collections", collections());
   if (collections() > 0) {
     int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
