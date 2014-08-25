@@ -5,7 +5,7 @@
 library test.services.correction.change;
 
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';

@@ -8,8 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' as protocol;
+import 'package:analysis_server/src/protocol.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -19,7 +18,7 @@ import 'package:analyzer/src/generated/element.dart';
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
  * that handles requests in the search domain.
  */
-class SearchDomainHandler implements RequestHandler {
+class SearchDomainHandler implements protocol.RequestHandler {
   /**
    * The analysis server that is using this handler to process requests.
    */
@@ -42,7 +41,7 @@ class SearchDomainHandler implements RequestHandler {
     searchEngine = server.searchEngine;
   }
 
-  Response findElementReferences(Request request) {
+  protocol.Response findElementReferences(protocol.Request request) {
     var params = new protocol.SearchFindElementReferencesParams.fromRequest(request);
     // prepare elements
     List<Element> elements = server.getElementsAtOffset(params.file,
@@ -80,7 +79,7 @@ class SearchDomainHandler implements RequestHandler {
         element: element).toResponse(request.id);
   }
 
-  Response findMemberDeclarations(Request request) {
+  protocol.Response findMemberDeclarations(protocol.Request request) {
     var params = new protocol.SearchFindMemberDeclarationsParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
@@ -95,7 +94,7 @@ class SearchDomainHandler implements RequestHandler {
         searchId).toResponse(request.id);
   }
 
-  Response findMemberReferences(Request request) {
+  protocol.Response findMemberReferences(protocol.Request request) {
     var params = new protocol.SearchFindMemberReferencesParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
@@ -110,7 +109,7 @@ class SearchDomainHandler implements RequestHandler {
         request.id);
   }
 
-  Response findTopLevelDeclarations(Request request) {
+  protocol.Response findTopLevelDeclarations(protocol.Request request) {
     var params = new protocol.SearchFindTopLevelDeclarationsParams.fromRequest(request);
     // schedule search
     String searchId = (_nextSearchId++).toString();
@@ -128,30 +127,31 @@ class SearchDomainHandler implements RequestHandler {
   /**
    * Implement the `search.getTypeHierarchy` request.
    */
-  Response getTypeHierarchy(Request request) {
+  protocol.Response getTypeHierarchy(protocol.Request request) {
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     // prepare parameters
     // prepare Element
     List<Element> elements = server.getElementsAtOffset(params.file,
         params.offset);
     if (elements.isEmpty) {
-      Response response = new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
+      protocol.Response response =
+          new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
       return response;
     }
     Element element = elements.first;
     // prepare type hierarchy
     TypeHierarchyComputer computer = new TypeHierarchyComputer(searchEngine);
     computer.compute(element).then((List<protocol.TypeHierarchyItem> items) {
-      Response response = new protocol.SearchGetTypeHierarchyResult(
+      protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
           hierarchyItems: items).toResponse(request.id);
       server.sendResponse(response);
     });
     // delay response
-    return Response.DELAYED_RESPONSE;
+    return protocol.Response.DELAYED_RESPONSE;
   }
 
   @override
-  Response handleRequest(Request request) {
+  protocol.Response handleRequest(protocol.Request request) {
     try {
       String requestName = request.method;
       if (requestName == SEARCH_FIND_ELEMENT_REFERENCES) {
@@ -165,7 +165,7 @@ class SearchDomainHandler implements RequestHandler {
       } else if (requestName == SEARCH_GET_TYPE_HIERARCHY) {
         return getTypeHierarchy(request);
       }
-    } on RequestFailure catch (exception) {
+    } on protocol.RequestFailure catch (exception) {
       return exception.response;
     }
     return null;

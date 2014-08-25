@@ -4,7 +4,7 @@
 
 library services.src.correction.source_buffer;
 
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 

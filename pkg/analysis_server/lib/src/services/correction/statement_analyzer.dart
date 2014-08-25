@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 
 
 /**

@@ -6,9 +6,7 @@ library services.src.correction.assist;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol2.dart' show LinkedEditGroup,
-    LinkedEditSuggestion, LinkedEditSuggestionKind, Position, SourceChange,
-    SourceEdit, SourceFileEdit;
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';

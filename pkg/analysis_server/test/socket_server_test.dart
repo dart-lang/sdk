@@ -30,9 +30,8 @@ class SocketServerTest {
     server.createAnalysisServer(channel);
     channel.expectMsgCount(notificationCount: 1);
     expect(channel.notificationsReceived[0].event, SERVER_CONNECTED);
-    expect(channel.notificationsReceived[0].params, isNull);
     return channel.sendRequest(
-        new Request('0', SERVER_SHUTDOWN)
+        new ServerShutdownParams().toRequest('0')
     ).then((Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNull);
@@ -46,7 +45,6 @@ class SocketServerTest {
     MockServerChannel channel2 = new MockServerChannel();
     server.createAnalysisServer(channel1);
     expect(channel1.notificationsReceived[0].event, SERVER_CONNECTED);
-    expect(channel1.notificationsReceived[0].params, isNull);
     server.createAnalysisServer(channel2);
     channel1.expectMsgCount(notificationCount: 1);
     channel2.expectMsgCount(responseCount: 1);
@@ -54,7 +52,8 @@ class SocketServerTest {
     expect(channel2.responsesReceived[0].error, isNotNull);
     expect(channel2.responsesReceived[0].error.code, equals(
         RequestError.CODE_SERVER_ALREADY_STARTED));
-    channel2.sendRequest(new Request('0', SERVER_SHUTDOWN)).then((Response response) {
+    channel2.sendRequest(new ServerShutdownParams().toRequest('0')).then(
+        (Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
       expect(response.error.code, equals(

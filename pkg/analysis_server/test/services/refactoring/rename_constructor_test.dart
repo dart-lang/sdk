@@ -4,7 +4,7 @@
 
 library test.services.refactoring.rename_constructor;
 
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';

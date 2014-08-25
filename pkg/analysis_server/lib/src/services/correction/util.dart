@@ -6,7 +6,7 @@ library services.src.correction.util;
 
 import 'dart:math';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceEdit;
+import 'package:analysis_server/src/protocol.dart' show SourceEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';

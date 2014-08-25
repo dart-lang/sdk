@@ -7,9 +7,6 @@ library domain.completion;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show
-    CompletionGetSuggestionsParams, CompletionGetSuggestionsResult,
-    CompletionSuggestion;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 
 /**
@@ -75,12 +72,7 @@ class CompletionDomainHandler implements RequestHandler {
    */
   void sendCompletionNotification(String completionId, int replacementOffset,
       int replacementLength, Iterable<CompletionSuggestion> results, bool isLast) {
-    Notification notification = new Notification(COMPLETION_RESULTS);
-    notification.setParameter(ID, completionId);
-    notification.setParameter(REPLACEMENT_OFFSET, replacementOffset);
-    notification.setParameter(REPLACEMENT_LENGTH, replacementLength);
-    notification.setParameter(RESULTS, results);
-    notification.setParameter(LAST, isLast);
-    server.sendNotification(notification);
+    server.sendNotification(new CompletionResultsParams(completionId,
+        replacementOffset, replacementLength, results, isLast).toNotification());
   }
 }

@@ -4,7 +4,7 @@
 
 library computer.overrides;
 
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 
@@ -42,7 +42,7 @@ class DartUnitOverridesComputer {
         }
       }
     }
-    return _overrides.map((override) => override.toJson()).toList();
+    return _overrides;
   }
 
   void _addOverride(int offset, int length, String name) {

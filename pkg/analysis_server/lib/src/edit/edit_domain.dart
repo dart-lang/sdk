@@ -8,13 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show AnalysisError,
-    EditGetAssistsParams, EditGetAssistsResult, EditGetAvailableRefactoringsParams,
-    EditGetAvailableRefactoringsResult, EditGetFixesParams, EditGetFixesResult,
-    EditGetRefactoringParams, EditGetRefactoringResult, ErrorFixes, LinkedEditGroup,
-    Location, RefactoringKind, RefactoringProblem, RefactoringProblemSeverity,
-    RenameOptions, RenameFeedback, SourceChange;
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/status.dart';

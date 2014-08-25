@@ -8,7 +8,7 @@
 library services.completion;
 
 import 'dart:collection';
-import 'package:analysis_server/src/protocol2.dart' show
+import 'package:analysis_server/src/protocol.dart' show
     CompletionSuggestionKind;
 import 'package:analyzer/src/generated/java_core.dart' hide StringUtils;
 import 'package:analyzer/src/generated/java_engine.dart';

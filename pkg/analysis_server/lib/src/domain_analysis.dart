@@ -8,7 +8,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 
@@ -110,7 +109,7 @@ class AnalysisDomainHandler implements RequestHandler {
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     // continue in server
     server.setAnalysisRoots(request.id, params.included, params.excluded);
-    return new Response(request.id);
+    return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
   /**
@@ -119,7 +118,7 @@ class AnalysisDomainHandler implements RequestHandler {
   Response setPriorityFiles(Request request) {
     var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
     server.setPriorityFiles(request, params.files);
-    return new Response(request.id);
+    return new AnalysisSetPriorityFilesResult().toResponse(request.id);
   }
 
   /**
@@ -132,7 +131,7 @@ class AnalysisDomainHandler implements RequestHandler {
         mapMap(params.subscriptions, valueCallback:
           (List<String> subscriptions) => subscriptions.toSet());
     server.setAnalysisSubscriptions(subMap);
-    return new Response(request.id);
+    return new AnalysisSetSubscriptionsResult().toResponse(request.id);
   }
 
   /**
@@ -141,7 +140,7 @@ class AnalysisDomainHandler implements RequestHandler {
   Response updateContent(Request request) {
     var params = new AnalysisUpdateContentParams.fromRequest(request);
     server.updateContent(params.files);
-    return new Response(request.id);
+    return new AnalysisUpdateContentResult().toResponse(request.id);
   }
 
   /**
@@ -189,6 +188,6 @@ class AnalysisDomainHandler implements RequestHandler {
       });
     }
     server.updateOptions(updaters);
-    return new Response(request.id);
+    return new AnalysisUpdateOptionsResult().toResponse(request.id);
   }
 }

@@ -7,11 +7,9 @@ library test.analysis.get_type_hierarhy;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -61,7 +59,7 @@ class B extends A {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('B extends A').then((items) {
-        expect(objectToJson(items), [{
+        expect(items.map((item) => item.toJson()).toList(), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'B',
@@ -116,7 +114,7 @@ class C extends B {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('A {}').then((items) {
-        expect(objectToJson(items), [{
+        expect(items.map((item) => item.toJson()).toList(), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'A',
@@ -175,7 +173,7 @@ class C extends B {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('B extends').then((items) {
-        expect(objectToJson(items), [{
+        expect(items.map((item) => item.toJson()).toList(), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'B',
@@ -234,7 +232,7 @@ class C extends B {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('C extends').then((items) {
-        expect(objectToJson(items), [{
+        expect(items.map((item) => item.toJson()).toList(), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'C',
@@ -293,7 +291,7 @@ class T implements MA, MB {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('T implements').then((items) {
-        expect(objectToJson(items), [{
+        expect(items.map((item) => item.toJson()).toList(), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'T',
@@ -352,7 +350,7 @@ class T extends Object with MA, MB {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('T extends Object').then((items) {
-        expect(objectToJson(items), [{
+        expect(items.map((item) => item.toJson()).toList(), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'T',

@@ -4,8 +4,7 @@
 
 library services.completion.suggestion.builder;
 
-import 'package:analysis_server/src/protocol2.dart' show
-    CompletionRelevance, CompletionSuggestion, CompletionSuggestionKind;
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/element.dart';
 

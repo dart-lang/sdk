@@ -7,8 +7,7 @@ library services.src.refactoring.rename;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceChange,
-    SourceEdit;
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';

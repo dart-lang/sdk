@@ -6,8 +6,7 @@ library services.src.refactoring.rename_constructor;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show Location,
-    SourceChange, SourceEdit;
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';

@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/channel.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 
 /**
@@ -121,7 +120,7 @@ class AnalysisManager {
       return channel.close().then((_) => false);
     }
     return channel
-        .sendRequest(new Request('0', SERVER_SHUTDOWN))
+        .sendRequest(new ServerShutdownParams().toRequest('0'))
         .timeout(new Duration(seconds: 2), onTimeout: () {
           print('Expected shutdown response');
         })

@@ -6,9 +6,8 @@ library services.src.correction.fix;
 
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol2.dart' show LinkedEditGroup,
-    LinkedEditSuggestion, LinkedEditSuggestionKind, Position, SourceChange,
-    SourceEdit, SourceFileEdit;
+import 'package:analysis_server/src/protocol.dart' hide AnalysisError, Element,
+    ElementKind;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';

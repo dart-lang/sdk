@@ -4,7 +4,7 @@
 
 library computer.outline;
 
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart';

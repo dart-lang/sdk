@@ -7,7 +7,7 @@ library search.element_references;
 import 'dart:async';
 
 import 'package:analysis_server/src/collections.dart';
-import 'package:analysis_server/src/protocol2.dart' show SearchResult;
+import 'package:analysis_server/src/protocol.dart' show SearchResult;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';

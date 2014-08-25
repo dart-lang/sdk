@@ -6,8 +6,7 @@ library services.completion.computer.dart.toplevel;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show
-    CompletionRelevance, CompletionSuggestion, CompletionSuggestionKind;
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';

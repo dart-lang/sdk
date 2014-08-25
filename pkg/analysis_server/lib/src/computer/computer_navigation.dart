@@ -4,7 +4,7 @@
 
 library computer.navigation;
 
-import 'package:analysis_server/src/protocol2.dart' as protocol;
+import 'package:analysis_server/src/protocol.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';

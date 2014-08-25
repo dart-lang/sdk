@@ -4,7 +4,7 @@
 
 library services.correction.fix;
 
-import 'package:analysis_server/src/protocol2.dart' show SourceChange;
+import 'package:analysis_server/src/protocol.dart' show SourceChange;
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/generated/ast.dart';

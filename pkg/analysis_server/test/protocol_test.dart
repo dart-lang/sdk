@@ -7,7 +7,6 @@ library test.protocol;
 import 'dart:convert';
 
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -59,22 +58,20 @@ class NotificationTest {
     Notification original = new Notification('foo');
     Notification notification = new Notification.fromJson(original.toJson());
     expect(notification.event, equals('foo'));
-    expect(notification.params, isNull);
+    expect(notification.toJson().keys, isNot(contains('params')));
   }
 
   void test_fromJson_withParams() {
-    Notification original = new Notification('foo');
-    original.setParameter('x', 'y');
+    Notification original = new Notification('foo', {'x': 'y'});
     Notification notification = new Notification.fromJson(original.toJson());
     expect(notification.event, equals('foo'));
-    expect(notification.params, equals({'x': 'y'}));
+    expect(notification.toJson()['params'], equals({'x': 'y'}));
   }
 
   void test_toJson_withParams() {
-    Notification notification = new Notification('foo');
-    notification.setParameter('x', 'y');
+    Notification notification = new Notification('foo', {'x': 'y'});
     expect(notification.event, equals('foo'));
-    expect(notification.params, equals({'x': 'y'}));
+    expect(notification.toJson()['params'], equals({'x': 'y'}));
     expect(notification.toJson(), equals({
       'event': 'foo',
       'params': {
@@ -86,45 +83,11 @@ class NotificationTest {
   void test_toJson_noParams() {
     Notification notification = new Notification('foo');
     expect(notification.event, equals('foo'));
-    expect(notification.params, isNull);
+    expect(notification.toJson().keys, isNot(contains('params')));
     expect(notification.toJson(), equals({
       'event': 'foo'
     }));
   }
-
-  void test_setParameter_HasToJson() {
-    Notification notification = new Notification('foo');
-    notification.setParameter('my', new _MyHasToJsonObject(42));
-    expect(notification.toJson(), equals({
-      'event': 'foo',
-      'params': {
-        'my': {
-          'offset': 42
-        }
-      }
-    }));
-  }
-
-  void test_setParameter_Iterable_HasToJson() {
-    Notification notification = new Notification('foo');
-    notification.setParameter('my', [
-      new _MyHasToJsonObject(1),
-      new _MyHasToJsonObject(2),
-      new _MyHasToJsonObject(3)]);
-    expect(notification.toJson(), equals({
-      'event': 'foo',
-      'params': {
-        'my': [{'offset': 1}, {'offset': 2}, {'offset': 3}]
-      }
-    }));
-  }
-}
-
-
-class _MyHasToJsonObject implements HasToJson {
-  int offset;
-  _MyHasToJsonObject(this.offset);
-  Map<String, Object> toJson() => {'offset': offset};
 }
 
 
@@ -243,7 +206,7 @@ class RequestTest {
     Request request = new Request.fromString(json);
     expect(request.id, equals('one'));
     expect(request.method, equals('aMethod'));
-    expect(request.params, equals({'foo': 'bar'}));
+    expect(request.toJson()['params'], equals({'foo': 'bar'}));
   }
 
   void test_toJson() {
@@ -370,7 +333,7 @@ class ResponseTest {
     Response original = new Response('myId', result: {'foo': 'bar'});
     Response response = new Response.fromJson(original.toJson());
     expect(response.id, equals('myId'));
-    Map<String, Object> result = response.result;
+    Map<String, Object> result = response.toJson()['result'];
     expect(result.length, equals(1));
     expect(result['foo'], equals('bar'));
   }

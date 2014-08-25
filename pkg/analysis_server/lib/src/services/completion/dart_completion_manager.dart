@@ -6,7 +6,7 @@ library test.services.completion.dart;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/completion/imported_type_computer.dart';

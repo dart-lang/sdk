@@ -10,17 +10,12 @@ import 'dart:collection';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
-import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show AddContentOverlay,
-    AnalysisService, AnalysisStatus, ChangeContentOverlay,
-    RemoveContentOverlay, ServerErrorParams, ServerService, ServerStatusParams,
-    SourceEdit;
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -209,7 +204,7 @@ class AnalysisServer {
         this, resourceProvider, packageMapProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    Notification notification = new Notification(SERVER_CONNECTED);
+    Notification notification = new ServerConnectedParams().toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
   }

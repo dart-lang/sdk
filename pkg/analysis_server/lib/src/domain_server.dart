@@ -7,7 +7,6 @@ library domain.server;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart';
 
 /**
  * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
@@ -56,7 +55,7 @@ class ServerDomainHandler implements RequestHandler {
   Response setSubscriptions(Request request) {
     server.serverServices =
         new ServerSetSubscriptionsParams.fromRequest(request).subscriptions.toSet();
-    return new Response(request.id);
+    return new ServerSetSubscriptionsResult().toResponse(request.id);
   }
 
   // TODO(scheglov) remove or move to the 'analysis' domain
@@ -117,7 +116,7 @@ class ServerDomainHandler implements RequestHandler {
    */
   Response shutdown(Request request) {
     server.shutdown();
-    Response response = new Response(request.id);
+    Response response = new ServerShutdownResult().toResponse(request.id);
     return response;
   }
 }

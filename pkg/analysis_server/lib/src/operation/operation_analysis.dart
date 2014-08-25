@@ -10,10 +10,8 @@ import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/operation/operation.dart';
-import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' as protocol;
+import 'package:analysis_server/src/protocol.dart' as protocol;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -45,34 +43,23 @@ void sendAnalysisNotificationNavigation(AnalysisServer server, String file,
 
 void sendAnalysisNotificationOccurrences(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  Notification notification = new Notification(ANALYSIS_OCCURRENCES);
-  notification.setParameter(FILE, file);
-  notification.setParameter(
-      OCCURRENCES,
-      new DartUnitOccurrencesComputer(dartUnit).compute());
-  server.sendNotification(notification);
+  server.sendNotification(new protocol.AnalysisOccurrencesParams(file,
+      new DartUnitOccurrencesComputer(dartUnit).compute()).toNotification());
 }
 
 
 void sendAnalysisNotificationOutline(AnalysisServer server,
     AnalysisContext context, Source source, CompilationUnit dartUnit) {
-  Notification notification = new Notification(ANALYSIS_OUTLINE);
-  notification.setParameter(FILE, source.fullName);
-  notification.setParameter(
-      OUTLINE,
-      new DartUnitOutlineComputer(context, source, dartUnit).compute());
-  server.sendNotification(notification);
+  server.sendNotification(new protocol.AnalysisOutlineParams(source.fullName,
+      new DartUnitOutlineComputer(context, source,
+          dartUnit).compute()).toNotification());
 }
 
 
 void sendAnalysisNotificationOverrides(AnalysisServer server, String file,
     CompilationUnit dartUnit) {
-  Notification notification = new Notification(ANALYSIS_OVERRIDES);
-  notification.setParameter(FILE, file);
-  notification.setParameter(
-      OVERRIDES,
-      new DartUnitOverridesComputer(dartUnit).compute());
-  server.sendNotification(notification);
+  server.sendNotification(new protocol.AnalysisOverridesParams(file,
+      new DartUnitOverridesComputer(dartUnit).compute()).toNotification());
 }
 
 

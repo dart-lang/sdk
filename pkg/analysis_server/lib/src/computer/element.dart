@@ -4,7 +4,7 @@
 
 library computer.element;
 
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 

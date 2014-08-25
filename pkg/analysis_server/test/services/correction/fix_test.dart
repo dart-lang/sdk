@@ -4,9 +4,7 @@
 
 library test.services.correction.fix;
 
-import 'package:analysis_server/src/protocol2.dart' show LinkedEditGroup,
-    LinkedEditSuggestion, LinkedEditSuggestionKind, Position, SourceChange,
-    SourceEdit, SourceFileEdit;
+import 'package:analysis_server/src/protocol.dart' hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';

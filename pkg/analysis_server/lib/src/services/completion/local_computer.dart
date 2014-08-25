@@ -6,7 +6,7 @@ library services.completion.computer.dart.local;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 

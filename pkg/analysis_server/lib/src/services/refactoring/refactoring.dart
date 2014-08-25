@@ -6,7 +6,7 @@ library services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show SourceChange;
+import 'package:analysis_server/src/protocol.dart' show SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';

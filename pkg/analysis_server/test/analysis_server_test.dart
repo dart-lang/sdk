@@ -10,7 +10,6 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -45,15 +44,15 @@ main() {
         // expect at least one notification indicating analysis is in progress
         expect(notifications.any((Notification notification) {
           if (notification.event == SERVER_STATUS) {
-            Map analysisStatus = notification.params['analysis'];
-            return analysisStatus['analyzing'];
+            var params = new ServerStatusParams.fromNotification(notification);
+            return params.analysis.analyzing;
           }
           return false;
         }), isTrue);
         // the last notification should indicate that analysis is complete
         Notification notification = notifications[notifications.length - 1];
-        Map analysisStatus = notification.params['analysis'];
-        expect(analysisStatus['analyzing'], isFalse);
+        var params = new ServerStatusParams.fromNotification(notification);
+        expect(params.analysis.analyzing, isFalse);
       });
     });
 

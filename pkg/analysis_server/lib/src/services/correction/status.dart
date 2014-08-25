@@ -4,7 +4,7 @@
 
 library services.status;
 
-import 'package:analysis_server/src/protocol2.dart';
+import 'package:analysis_server/src/protocol.dart';
 
 
 /**

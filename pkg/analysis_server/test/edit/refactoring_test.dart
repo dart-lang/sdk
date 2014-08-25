@@ -8,11 +8,6 @@ import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart' show
-    EditGetAvailableRefactoringsParams, EditGetAvailableRefactoringsResult,
-    EditGetRefactoringParams, EditGetRefactoringResult, RefactoringKind,
-    RefactoringProblem, RefactoringProblemSeverity, RenameFeedback, RenameOptions,
-    SourceChange, SourceEdit, SourceFileEdit;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_testing/reflective_tests.dart';

@@ -6,7 +6,7 @@ library services.src.refactoring.rename_unit_member;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol2.dart' show Location, SourceChange;
+import 'package:analysis_server/src/protocol.dart' show Location, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';

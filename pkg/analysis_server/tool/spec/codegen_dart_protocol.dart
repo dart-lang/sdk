@@ -226,7 +226,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   visitApi() {
     outputHeader();
     writeln();
-    writeln('part of protocol2;');
+    writeln('part of protocol;');
     emitClasses();
   }
 
@@ -236,17 +236,46 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void emitClasses() {
     for (ImpliedType impliedType in impliedTypes.values) {
       TypeDecl type = impliedType.type;
-      if (type != null) {
-        String dartTypeName = capitalize(impliedType.camelName);
-        if (type is TypeObject) {
-          writeln();
-          emitObjectClass(dartTypeName, type, impliedType);
-        } else if (type is TypeEnum) {
-          writeln();
-          emitEnumClass(dartTypeName, type, impliedType);
-        }
+      String dartTypeName = capitalize(impliedType.camelName);
+      if (type == null) {
+        emitEmptyObjectClass(dartTypeName, impliedType);
+      } else if (type is TypeObject || type == null) {
+        writeln();
+        emitObjectClass(dartTypeName, type, impliedType);
+      } else if (type is TypeEnum) {
+        writeln();
+        emitEnumClass(dartTypeName, type, impliedType);
       }
     }
+  }
+
+  /**
+   * Emit a class representing an data structure that doesn't exist in the
+   * protocol because it is empty (e.g. the "params" object for a request that
+   * doesn't have any parameters).
+   */
+  void emitEmptyObjectClass(String className, ImpliedType impliedType) {
+    docComment(toHtmlVisitor.collectHtml(() {
+      toHtmlVisitor.p(() {
+        toHtmlVisitor.write(impliedType.humanReadableName);
+      });
+    }));
+    writeln('class $className {');
+    indent(() {
+      if (emitToRequestMember(impliedType)) {
+        writeln();
+      }
+      if (emitToResponseMember(impliedType)) {
+        writeln();
+      }
+      if (emitToNotificationMember(impliedType)) {
+        writeln();
+      }
+      emitObjectEqualsMember(null, className);
+      writeln();
+      emitObjectHashCode(null, className);
+    });
+    writeln('}');
   }
 
   /**
@@ -262,7 +291,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         toHtmlVisitor.showType(null, impliedType.type);
       }
     }));
-    writeln('class $className implements HasToJson {');
+    writeln('class $className {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();
@@ -309,7 +338,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       writeln();
       emitObjectEqualsMember(type, className);
       writeln();
-      emitObjectHashCode(type);
+      emitObjectHashCode(type, className);
     });
     writeln('}');
   }
@@ -668,7 +697,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       indent(() {
         String methodString =
             literalString((impliedType.apiNode as Request).longMethod);
-        writeln('return new Request(id, $methodString, toJson());');
+        String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
+        writeln('return new Request(id, $methodString, $jsonPart);');
       });
       writeln('}');
       return true;
@@ -684,7 +714,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     if (impliedType.kind == 'requestResult') {
       writeln('Response toResponse(String id) {');
       indent(() {
-        writeln('return new Response(id, result: toJson());');
+        String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
+        writeln('return new Response(id, result: $jsonPart);');
       });
       writeln('}');
       return true;
@@ -702,7 +733,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       indent(() {
         String eventString =
             literalString((impliedType.apiNode as Notification).longEvent);
-        writeln('return new Notification($eventString, toJson());');
+        String jsonPart = impliedType.type != null ? 'toJson()' : 'null';
+        writeln('return new Notification($eventString, $jsonPart);');
       });
       writeln('}');
       return true;
@@ -720,12 +752,14 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       writeln('if (other is $className) {');
       indent(() {
         var comparisons = <String>[];
-        for (TypeObjectField field in type.fields) {
-          if (field.value != null) {
-            continue;
+        if (type != null) {
+          for (TypeObjectField field in type.fields) {
+            if (field.value != null) {
+              continue;
+            }
+            comparisons.add(
+                compareEqualsCode(field.type, field.name, 'other.${field.name}'));
           }
-          comparisons.add(
-              compareEqualsCode(field.type, field.name, 'other.${field.name}'));
         }
         if (comparisons.isEmpty) {
           writeln('return true;');
@@ -743,21 +777,25 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
   /**
    * Emit the hashCode getter for an object class.
    */
-  void emitObjectHashCode(TypeObject type) {
+  void emitObjectHashCode(TypeObject type, String className) {
     writeln('@override');
     writeln('int get hashCode {');
     indent(() {
-      writeln('int hash = 0;');
-      for (TypeObjectField field in type.fields) {
-        String valueToCombine;
-        if (field.value != null) {
-          valueToCombine = field.value.hashCode.toString();
-        } else {
-          valueToCombine = '${field.name}.hashCode';
+      if (type == null) {
+        writeln('return ${className.hashCode};');
+      } else {
+        writeln('int hash = 0;');
+        for (TypeObjectField field in type.fields) {
+          String valueToCombine;
+          if (field.value != null) {
+            valueToCombine = field.value.hashCode.toString();
+          } else {
+            valueToCombine = '${field.name}.hashCode';
+          }
+          writeln('hash = _JenkinsSmiHash.combine(hash, $valueToCombine);');
         }
-        writeln('hash = _JenkinsSmiHash.combine(hash, $valueToCombine);');
+        writeln('return _JenkinsSmiHash.finish(hash);');
       }
-      writeln('return _JenkinsSmiHash.finish(hash);');
     });
     writeln('}');
   }
@@ -1137,21 +1175,21 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       case 'requestParams':
         inputType = 'Request';
         inputName = 'request';
-        fieldName = 'params';
+        fieldName = '_params';
         makeDecoder = 'new RequestDecoder(request)';
         constructorName = 'fromRequest';
         break;
       case 'requestResult':
         inputType = 'Response';
         inputName = 'response';
-        fieldName = 'result';
+        fieldName = '_result';
         makeDecoder = 'new ResponseDecoder()';
         constructorName = 'fromResponse';
         break;
       case 'notificationParams':
         inputType = 'Notification';
         inputName = 'notification';
-        fieldName = 'params';
+        fieldName = '_params';
         makeDecoder = 'new ResponseDecoder()';
         constructorName = 'fromNotification';
         break;
@@ -1177,7 +1215,8 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     args.addAll(extraArgs);
     writeln('factory $className.$constructorName(${args.join(', ')}) {');
     indent(() {
-      String fieldNameString = literalString(fieldName);
+      String fieldNameString =
+          literalString(fieldName.replaceFirst(new RegExp('^_'), ''));
       writeln('return new $className.fromJson(');
       writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
     });

@@ -9,7 +9,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/protocol2.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:unittest/unittest.dart';
 
@@ -30,7 +29,7 @@ main() {
 
   group('ServerDomainHandler', () {
     test('getVersion', () {
-      var request = new Request('0', SERVER_GET_VERSION);
+      var request = new ServerGetVersionParams().toRequest('0');
       var response = handler.handleRequest(request);
       expect(response.toJson(), equals({
         Response.ID: '0',
@@ -64,7 +63,7 @@ main() {
     test('shutdown', () {
       expect(server.running, isTrue);
       // send request
-      var request = new Request('0', SERVER_SHUTDOWN);
+      var request = new ServerShutdownParams().toRequest('0');
       var response = handler.handleRequest(request);
       expect(response, isResponseSuccess('0'));
       // server is down
