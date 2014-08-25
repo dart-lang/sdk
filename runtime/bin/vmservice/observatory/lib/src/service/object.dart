@@ -683,7 +683,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     rootClasses.clear();
     objectClass = null;
     for (var cls in classes) {
-      if (cls.superClass == null) {
+      if (cls.superclass == null) {
         rootClasses.add(cls);
       }
       if ((cls.vmName == 'Object') && (cls.isPatch == false)) {
@@ -1282,7 +1282,6 @@ class Allocations {
 class Class extends ServiceObject with Coverage {
   @observable Library library;
   @observable Script script;
-  @observable Class superClass;
 
   @observable bool isAbstract;
   @observable bool isConst;
@@ -1301,11 +1300,12 @@ class Class extends ServiceObject with Coverage {
 
   bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
 
-  @reflectable final children = new ObservableList<Class>();
-  @reflectable final subClasses = new ObservableList<Class>();
   @reflectable final fields = new ObservableList<ServiceMap>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
+
+  @observable Class superclass;
   @reflectable final interfaces = new ObservableList<Class>();
+  @reflectable final subclasses = new ObservableList<Class>();
 
   bool get canCache => true;
   bool get immutable => false;
@@ -1348,9 +1348,9 @@ class Class extends ServiceObject with Coverage {
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
 
-    subClasses.clear();
-    subClasses.addAll(map['subclasses']);
-    subClasses.sort(ServiceObject.LexicalSortName);
+    subclasses.clear();
+    subclasses.addAll(map['subclasses']);
+    subclasses.sort(ServiceObject.LexicalSortName);
 
     fields.clear();
     fields.addAll(map['fields']);
@@ -1360,9 +1360,10 @@ class Class extends ServiceObject with Coverage {
     functions.addAll(map['functions']);
     functions.sort(ServiceObject.LexicalSortName);
 
-    superClass = map['super'];
-    if (superClass != null) {
-      superClass._addToChildren(this);
+    superclass = map['super'];
+    // Work-around Object not tracking its subclasses in the VM.
+    if (superclass != null && superclass.name == "Object") {
+      superclass._addSubclass(this);
     }
     error = map['error'];
 
@@ -1375,11 +1376,12 @@ class Class extends ServiceObject with Coverage {
     }
   }
 
-  void _addToChildren(Class cls) {
-    if (children.contains(cls)) {
+  void _addSubclass(Class subclass) {
+    if (subclasses.contains(subclass)) {
       return;
     }
-    children.add(cls);
+    subclasses.add(subclass);
+    subclasses.sort(ServiceObject.LexicalSortName);
   }
 
   Future<ServiceObject> get(String command) {

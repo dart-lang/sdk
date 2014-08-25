@@ -4188,19 +4188,19 @@ hr {
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls.superClass != null }}">
+        <template if="{{ cls.superclass != null }}">
           <div class="memberItem">
             <div class="memberName">extends</div>
             <div class="memberValue">
-              <class-ref ref="{{ cls.superClass }}"></class-ref>
+              <class-ref ref="{{ cls.superclass }}"></class-ref>
             </div>
           </div>
         </template>
-        <template if="{{ cls.subClasses.length > 0 }}">
+        <template if="{{ cls.subclasses.length > 0 }}">
           <div class="memberItem">
             <div class="memberName">extended by</div>
             <div class="memberValue">
-              <template repeat="{{ subclass in cls.subClasses }}">
+              <template repeat="{{ subclass in cls.subclasses }}">
                 <class-ref ref="{{ subclass }}"></class-ref>
               </template>
             </div>

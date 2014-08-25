@@ -4175,13 +4175,11 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
         GrowableObjectArray::Handle(direct_subclasses());
     if (!subclasses.IsNull()) {
       Class& subclass = Class::Handle();
-      if (!subclasses.IsNull()) {
-        for (intptr_t i = 0; i < subclasses.Length(); ++i) {
-          // TODO(turnidge): Use the Type directly once regis has added
-          // types to the vmservice.
-          subclass ^= subclasses.At(i);
-          subclasses_array.AddValue(subclass);
-        }
+      for (intptr_t i = 0; i < subclasses.Length(); ++i) {
+        // TODO(turnidge): Use the Type directly once regis has added
+        // types to the vmservice.
+        subclass ^= subclasses.At(i);
+        subclasses_array.AddValue(subclass);
       }
     }
   }
