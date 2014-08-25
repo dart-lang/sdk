@@ -48,7 +48,7 @@ Compiler reuseCompiler(
         print('Unable to reuse compiler due to cancel.');
       } else if (compiler.enqueuer.resolution.hasEnqueuedReflectiveElements) {
         print('Unable to reuse compiler due to dart:mirrors.');
-      } else if (compiler.deferredLoadTask.splitProgram) {
+      } else if (compiler.deferredLoadTask.isProgramSplit) {
         print('Unable to reuse compiler due to deferred loading.');
       } else {
         print('Unable to reuse compiler.');
