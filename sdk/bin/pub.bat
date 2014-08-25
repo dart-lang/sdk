@@ -1,7 +1,11 @@
 @echo off
-REM Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+REM Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 REM for details. All rights reserved. Use of this source code is governed by a
 REM BSD-style license that can be found in the LICENSE file.
+
+rem Run pub.dart on the Dart VM. This script is only used when running pub from
+rem within the Dart source repo. The shipped SDK instead uses "pub_sdk.bat",
+rem which is renamed to "pub.bat" when the SDK is built.
 
 setlocal
 rem Handle the case where dart-sdk/bin has been symlinked to.
@@ -17,12 +21,6 @@ for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
 rem Remove trailing backslash if there is one
 IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
-set PUB=%SDK_DIR%\lib\_internal\pub\bin\pub.dart
-set DART=%BIN_DIR%\dart
-set SNAPSHOT=%BIN_DIR%\snapshots\pub.dart.snapshot
-set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
-set PACKAGES_DIR=%BUILD_DIR%\pub_packages
-set DART_IN_BUILT_SDK=%BUILD_DIR%\dart-sdk\bin\dart
 set VM_OPTIONS=
 
 rem Give the VM extra memory for dart2js.
@@ -30,11 +28,21 @@ rem # TODO(rnystrom): Remove when #8355 is fixed.
 rem See comments regarding options below in dart2js shell script.
 set VM_OPTIONS=%VM_OPTIONS% --old_gen_heap_size=1024
 
-if exist "%SNAPSHOT%" (
-  "%DART%" %VM_OPTIONS% "%SNAPSHOT%" %*
-) else (
-  "%DART_IN_BUILT_SDK%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
-)
+rem Use the Dart binary in the built SDK so pub can find the version file next
+rem to it.
+set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
+set PACKAGES_DIR=%BUILD_DIR%\pub_packages
+set DART=%BUILD_DIR%\dart-sdk\bin\dart
+
+rem Compile async/await down to vanilla Dart.
+rem TODO(rnystrom): Remove this when #104 is fixed.
+set ASYNC_COMPILER="%SDK_DIR%"\lib\_internal\pub\bin\async_compile.dart
+"%DART%" --package-root="%PACKAGES_DIR%" "%ASYNC_COMPILER%" "%BUILD_DIR%" ^
+    --silent
+
+rem Run the async/await compiled pub.
+set PUB="%BUILD_DIR%\pub_async\bin\pub.dart"
+"%DART%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
 
 endlocal
 

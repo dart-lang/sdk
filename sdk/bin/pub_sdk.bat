@@ -17,24 +17,14 @@ for %%i in ("%BIN_DIR%\..\") do set SDK_DIR=%%~fi
 rem Remove trailing backslash if there is one
 IF %SDK_DIR:~-1%==\ set SDK_DIR=%SDK_DIR:~0,-1%
 
-set PUB=%SDK_DIR%\lib\_internal\pub\bin\pub.dart
-set DART=%BIN_DIR%\dart
-set SNAPSHOT=%BIN_DIR%\snapshots\pub.dart.snapshot
-set BUILD_DIR=%SDK_DIR%\..\build\ReleaseIA32
-set PACKAGES_DIR=%BUILD_DIR%\packages
-set DART_IN_BUILT_SDK=%BUILD_DIR%\dart-sdk\bin\dart
-set VM_OPTIONS=--checked
+set VM_OPTIONS=
 
 rem Give the VM extra memory for dart2js.
 rem # TODO(rnystrom): Remove when #8355 is fixed.
 rem See comments regarding options below in dart2js shell script.
 set VM_OPTIONS=%VM_OPTIONS% --old_gen_heap_size=1024
 
-if exist "%SNAPSHOT%" (
-  "%DART%" %VM_OPTIONS% "%SNAPSHOT%" %*
-) else (
-  "%DART_IN_BUILT_SDK%" %VM_OPTIONS% --package-root="%PACKAGES_DIR%" "%PUB%" %*
-)
+"%BIN_DIR%\dart" %VM_OPTIONS% "%BIN_DIR%\snapshots\pub.dart.snapshot" %*
 
 endlocal
 
