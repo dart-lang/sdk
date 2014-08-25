@@ -6,7 +6,7 @@
 <polymer-element name="field-ref" extends="service-ref">
   <template>
   <link rel="stylesheet" href="css/shared.css">
-    <div>
+    <span>
       <template if="{{ ref['static'] }}">static</template>
       <template if="{{ ref['final'] }}">final</template>
       <template if="{{ ref['const'] }}">const</template>
@@ -18,7 +18,7 @@
         <instance-ref ref="{{ ref['declared_type'] }}"></instance-ref>
       </template>
       <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
-    </div>
+    </span>
   </template>
 </polymer-element>
 

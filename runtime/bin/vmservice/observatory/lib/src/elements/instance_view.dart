@@ -13,6 +13,7 @@ import 'package:polymer/polymer.dart';
 class InstanceViewElement extends ObservatoryElement {
   @published ServiceMap instance;
   @published ServiceMap path;
+  @published ServiceMap inboundReferences;
   @observable int retainedBytes = null;
 
   InstanceViewElement.created() : super.created();
@@ -34,6 +35,13 @@ class InstanceViewElement extends ObservatoryElement {
     return instance.isolate.get(instance.id + "/retaining_path?limit=$arg")
         .then((ServiceObject obj) {
           path = obj;
+        });
+  }
+
+  Future<ServiceObject> fetchInboundReferences(var arg) {
+    return instance.isolate.get(instance.id + "/inbound_references?limit=$arg")
+        .then((ServiceObject obj) {
+           inboundReferences = obj;
         });
   }
 

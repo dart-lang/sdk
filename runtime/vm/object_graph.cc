@@ -301,4 +301,73 @@ intptr_t ObjectGraph::RetainingPath(Object* obj, const Array& path) {
   return visitor.length();
 }
 
+
+class InboundReferencesVisitor : public ObjectVisitor,
+                                 public ObjectPointerVisitor {
+ public:
+  // We cannot use a GrowableObjectArray, since we must not trigger GC.
+  InboundReferencesVisitor(Isolate* isolate,
+                           RawObject* target,
+                           const Array& references,
+                           Object* scratch)
+    : ObjectVisitor(isolate), ObjectPointerVisitor(isolate), source_(NULL),
+      target_(target), references_(references), scratch_(scratch), length_(0) {
+    ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+  }
+
+  intptr_t length() const { return length_; }
+
+  virtual void VisitObject(RawObject* raw_obj) {
+    source_ = raw_obj;
+    raw_obj->VisitPointers(this);
+  }
+
+  virtual void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** current_ptr = first; current_ptr <= last; current_ptr++) {
+      RawObject* current_obj = *current_ptr;
+      if (current_obj == target_) {
+        intptr_t obj_index = length_ * 2;
+        intptr_t offset_index = obj_index + 1;
+        if (!references_.IsNull() && offset_index < references_.Length()) {
+          *scratch_ = source_;
+          references_.SetAt(obj_index, *scratch_);
+
+          *scratch_ = Smi::New(0);
+          uword source_start = RawObject::ToAddr(source_);
+          uword current_ptr_addr = reinterpret_cast<uword>(current_ptr);
+          intptr_t offset = current_ptr_addr - source_start;
+          if (offset > 0 && offset < source_->Size()) {
+            ASSERT(Utils::IsAligned(offset, kWordSize));
+            *scratch_ = Smi::New(offset >> kWordSizeLog2);
+          } else {
+            // Some internal VM objects visit pointers not contained within the
+            // parent. For instance, RawCode::VisitCodePointers visits pointers
+            // in instructions.
+            ASSERT(!source_->IsDartInstance());
+            *scratch_ = Smi::New(-1);
+          }
+          references_.SetAt(offset_index, *scratch_);
+        }
+        ++length_;
+      }
+    }
+  }
+
+ private:
+  RawObject* source_;
+  RawObject* target_;
+  const Array& references_;
+  Object* scratch_;
+  intptr_t length_;
+};
+
+
+intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
+  Object& scratch = Object::Handle();
+  NoGCScope no_gc_scope_;
+  InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
+  isolate()->heap()->IterateObjects(&visitor);
+  return visitor.length();
+}
+
 }  // namespace dart

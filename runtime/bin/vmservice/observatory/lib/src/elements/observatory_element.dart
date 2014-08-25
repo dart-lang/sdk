@@ -158,7 +158,7 @@ class ObservatoryElement extends PolymerElement {
               'Bigint',
               'Bool',
               'String',
-	      'Double',
+              'Double',
               'Instance',
               'GrowableObjectArray',
               'Array',

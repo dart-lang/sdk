@@ -1042,6 +1042,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
         return isolate.reload();
       });
   }
+
+  String toString() => "Isolate($_id)";
 }
 
 /// A [ServiceObject] which implements [ObservableMap].
@@ -1058,8 +1060,6 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   bool get immutable => false;
 
   ServiceMap._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  String toString() => _map.toString();
 
   void _upgradeValues() {
     assert(owner != null);
@@ -1105,6 +1105,8 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   void unobserved() => _map.unobserved();
   Stream<List<ChangeRecord>> get changes => _map.changes;
   bool get hasObservers => _map.hasObservers;
+
+  String toString() => "ServiceMap($_map)";
 }
 
 /// A [DartError] is peered to a Dart Error object.
@@ -1124,6 +1126,8 @@ class DartError extends ServiceObject {
     name = 'DartError $kind';
     vmName = name;
   }
+
+  String toString() => 'DartError($message)';
 }
 
 /// A [ServiceError] is an error that was triggered in the service
@@ -1143,6 +1147,8 @@ class ServiceError extends ServiceObject {
     name = 'ServiceError $kind';
     vmName = name;
   }
+
+  String toString() => 'ServiceError($message)';
 }
 
 /// A [ServiceException] is an exception that was triggered in the service
@@ -1189,7 +1195,7 @@ class ServiceEvent extends ServiceObject {
       data = map['_data'];
     }
   }
-  
+
   String toString() {
     return 'ServiceEvent of type $eventType with '
         '${data == null ? 0 : data.lengthInBytes} bytes of binary data';
@@ -1241,6 +1247,8 @@ class Library extends ServiceObject with Coverage {
     functions.addAll(map['functions']);
     functions.sort(ServiceObject.LexicalSortName);
   }
+
+  String toString() => "Library($url)";
 }
 
 class AllocationCount extends Observable {
@@ -1311,10 +1319,6 @@ class Class extends ServiceObject with Coverage {
   bool get immutable => false;
 
   Class._empty(ServiceObjectOwner owner) : super._empty(owner);
-
-  String toString() {
-    return 'Service Class: $vmName';
-  }
 
   void _update(ObservableMap map, bool mapIsRef) {
     name = map['name'];
@@ -1387,6 +1391,8 @@ class Class extends ServiceObject with Coverage {
   Future<ServiceObject> get(String command) {
     return isolate.get(id + "/$command");
   }
+
+  String toString() => 'Class($vmName)';
 }
 
 // TODO(koda): Sync this with VM.

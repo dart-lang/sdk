@@ -976,6 +976,55 @@ static bool ContainsNonInstance(const Object& obj) {
 }
 
 
+static bool HandleInboundReferences(Isolate* isolate,
+                                    Object* target,
+                                    intptr_t limit,
+                                    JSONStream* js) {
+  ObjectGraph graph(isolate);
+  Array& path = Array::Handle(Array::New(limit * 2));
+  intptr_t length = graph.InboundReferences(target, path);
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "InboundReferences");
+  jsobj.AddProperty("id", "inbound_references");
+  {
+    JSONArray elements(&jsobj, "references");
+    Object& source = Object::Handle();
+    Smi& slot_offset = Smi::Handle();
+    Class& source_class = Class::Handle();
+    Field& field = Field::Handle();
+    Array& parent_field_map = Array::Handle();
+    limit = Utils::Minimum(limit, length);
+    for (intptr_t i = 0; i < limit; ++i) {
+      JSONObject jselement(&elements);
+      source = path.At(i * 2);
+      slot_offset ^= path.At((i * 2) + 1);
+
+      jselement.AddProperty("source", source);
+      jselement.AddProperty("slot", "<unknown>");
+      if (source.IsArray()) {
+        intptr_t element_index = slot_offset.Value() -
+            (Array::element_offset(0) >> kWordSizeLog2);
+        jselement.AddProperty("slot", element_index);
+      } else if (source.IsInstance()) {
+        source_class ^= source.clazz();
+        parent_field_map = source_class.OffsetToFieldMap();
+        intptr_t offset = slot_offset.Value();
+        if (offset > 0 && offset < parent_field_map.Length()) {
+          field ^= parent_field_map.At(offset);
+          jselement.AddProperty("slot", field);
+        }
+      }
+
+      // We nil out the array after generating the response to prevent
+      // reporting suprious references when repeatedly looking for the
+      // references to an object.
+      path.SetAt(i * 2, Object::null_object());
+    }
+  }
+  return true;
+}
+
+
 static bool HandleRetainingPath(Isolate* isolate,
                                 Object* obj,
                                 intptr_t limit,
@@ -1021,6 +1070,14 @@ static bool HandleRetainingPath(Isolate* isolate,
       }
     }
   }
+
+  // We nil out the array after generating the response to prevent
+  // reporting suprious references when looking for inbound references
+  // after looking for a retaining path.
+  for (intptr_t i = 0; i < limit; ++i) {
+    path.SetAt(i * 2, Object::null_object());
+  }
+
   return true;
 }
 
@@ -1083,6 +1140,14 @@ static bool HandleInstanceCommands(Isolate* isolate,
       return true;
     }
     return HandleRetainingPath(isolate, obj, limit, js);
+  } else if (strcmp(action, "inbound_references") == 0) {
+    intptr_t limit;
+    if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
+      PrintError(js, "inbound_references expects a 'limit' option\n",
+                 js->num_arguments());
+      return true;
+    }
+    return HandleInboundReferences(isolate, obj, limit, js);
   }
 
   PrintError(js, "unrecognized action '%s'\n", action);

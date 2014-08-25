@@ -81,6 +81,14 @@ class ObjectGraph : public StackResource {
   // provided handle was the only way to reach the object), zero is returned.
   intptr_t RetainingPath(Object* obj, const Array& path);
 
+  // Find the objects that reference 'obj'. Populates the provided array with
+  // pairs of (object pointing to 'obj', offset of pointer in words), as far as
+  // there is room. Returns the number of objects found.
+  //
+  // An object for which this function answers no inbound references might still
+  // be live due to references from the stack or embedder handles.
+  intptr_t InboundReferences(Object* obj, const Array& references);
+
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);
 };
