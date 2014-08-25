@@ -190,15 +190,18 @@ class Entrypoint {
       if (executables.isEmpty) return null;
 
       return log.progress("Precompiling executables", () {
-        // TODO(nweiz): Only add assets touchable by the executables we're
-        // precompiling.
         ensureDir(binDir);
 
         // Make sure there's a trailing newline so our version file matches the
         // SDK's.
         writeTextFile(sdkVersionPath, "${sdk.version}\n");
+
+        var packagesToLoad =
+            unionAll(executables.keys.map(graph.transitiveDependencies))
+            .map((package) => package.name).toSet();
         return AssetEnvironment.create(this, BarbackMode.RELEASE,
-            WatcherType.NONE, useDart2JS: false).then((environment) {
+            packages: packagesToLoad,
+            useDart2JS: false).then((environment) {
           environment.barback.errors.listen((error) {
             log.error(log.red("Build error:\n$error"));
           });

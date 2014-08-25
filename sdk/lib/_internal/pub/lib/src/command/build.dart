@@ -52,8 +52,8 @@ class BuildCommand extends BarbackCommand {
     // Since this server will only be hit by the transformer loader and isn't
     // user-facing, just use an IPv4 address to avoid a weird bug on the
     // OS X buildbots.
-    return AssetEnvironment.create(entrypoint, mode, WatcherType.NONE,
-        useDart2JS: true).then((environment) {
+    return AssetEnvironment.create(entrypoint, mode, useDart2JS: true)
+        .then((environment) {
       // Show in-progress errors, but not results. Those get handled
       // implicitly by getAllAssets().
       environment.barback.errors.listen((error) {

@@ -48,24 +48,28 @@ class AssetEnvironment {
   /// This will only add the root package's "lib" directory to the environment.
   /// Other directories can be added to the environment using [serveDirectory].
   ///
-  /// If [watcherType] is not [WatcherType.NONE], watches source assets for
-  /// modification.
+  /// If [watcherType] is not [WatcherType.NONE] (the default), watches source
+  /// assets for modification.
+  ///
+  /// If [packages] is passed, only those packages' assets will be loaded and
+  /// served.
   ///
   /// Returns a [Future] that completes to the environment once the inputs,
   /// transformers, and server are loaded and ready.
   static Future<AssetEnvironment> create(Entrypoint entrypoint,
-      BarbackMode mode, WatcherType watcherType,
-      {String hostname, int basePort, bool useDart2JS: true}) {
+      BarbackMode mode, {WatcherType watcherType, String hostname, int basePort,
+      Iterable<String> packages, bool useDart2JS: true}) {
+    if (watcherType == null) watcherType = WatcherType.NONE;
     if (hostname == null) hostname = "localhost";
     if (basePort == null) basePort = 0;
 
     return entrypoint.loadPackageGraph().then((graph) {
       log.fine("Loaded package graph.");
-      var barback = new Barback(new PubPackageProvider(graph));
+      var barback = new Barback(new PubPackageProvider(graph, packages));
       barback.log.listen(_log);
 
       var environment = new AssetEnvironment._(graph, barback, mode,
-          watcherType, hostname, basePort);
+          watcherType, hostname, basePort, packages);
 
       return environment._load(useDart2JS: useDart2JS)
           .then((_) => environment);
@@ -108,6 +112,12 @@ class AssetEnvironment {
   /// numbers will be selected for each server.
   final int _basePort;
 
+  /// The set of all packages that are visible for this environment.
+  ///
+  /// By default, this is all transitive dependencies of the entrypoint, but it
+  /// may be a narrower set if fewer packages are needed.
+  final Set<String> _packages;
+
   /// The modified source assets that have not been sent to barback yet.
   ///
   /// The build environment can be paused (by calling [pauseUpdates]) and
@@ -123,8 +133,12 @@ class AssetEnvironment {
   /// go to barback immediately.
   Set<AssetId> _modifiedSources;
 
-  AssetEnvironment._(this.graph, this.barback, this.mode, this._watcherType,
-      this._hostname, this._basePort);
+  AssetEnvironment._(PackageGraph graph, this.barback, this.mode,
+        this._watcherType, this._hostname, this._basePort,
+        Iterable<String> packages)
+      : graph = graph,
+        _packages = packages == null ? graph.packages.keys.toSet() :
+            packages.toSet();
 
   /// Gets the built-in [Transformer]s that should be added to [package].
   ///
@@ -277,7 +291,7 @@ class AssetEnvironment {
   Future<List<Uri>> _lookUpPathInPackagesDirectory(String assetPath) {
     var components = path.split(path.relative(assetPath));
     if (components.first != "packages") return new Future.value([]);
-    if (!graph.packages.containsKey(components[1])) return new Future.value([]);
+    if (!_packages.contains(components[1])) return new Future.value([]);
     return Future.wait(_directories.values.map((dir) {
       return dir.server.then((server) =>
           server.url.resolveUri(path.toUri(assetPath)));
@@ -287,7 +301,7 @@ class AssetEnvironment {
   /// Look up [assetPath] in the "lib" or "asset" directory of a dependency
   /// package.
   Future<List<Uri>> _lookUpPathInDependency(String assetPath) {
-    for (var package in graph.packages.values) {
+    for (var package in _packages) {
       var libDir = path.join(package.dir, 'lib');
       var assetDir = path.join(package.dir, 'asset');
 
@@ -465,8 +479,9 @@ class AssetEnvironment {
     // Just include the "lib" directory from each package. We'll add the
     // other build directories in the root package by calling
     // [serveDirectory].
-    return Future.wait(graph.packages.values.map(
-        (package) => _provideDirectorySources(package, "lib")));
+    return Future.wait(_packages.map((package) {
+      return _provideDirectorySources(graph.packages[package], "lib");
+    }));
   }
 
   /// Provides all of the source assets within [dir] in [package] to barback.

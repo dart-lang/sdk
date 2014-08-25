@@ -21,9 +21,10 @@ class PubPackageProvider implements PackageProvider {
   final PackageGraph _graph;
   final List<String> packages;
 
-  PubPackageProvider(PackageGraph graph)
+  PubPackageProvider(PackageGraph graph, [Iterable<String> packages])
       : _graph = graph,
-        packages = [r"$pub", r"$sdk"]..addAll(graph.packages.keys);
+        packages = [r"$pub", r"$sdk"]
+            ..addAll(packages == null ? graph.packages.keys : packages);
 
   Future<Asset> getAsset(AssetId id) {
     // "$pub" is a psuedo-package that allows pub's transformer-loading

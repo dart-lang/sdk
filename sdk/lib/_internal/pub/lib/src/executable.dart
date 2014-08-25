@@ -65,8 +65,10 @@ Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
   }
 
   var environment;
+  // TODO(nweiz): Use [packages] to only load assets from packages that the
+  // executable might load.
   return AssetEnvironment.create(entrypoint, BarbackMode.RELEASE,
-      WatcherType.NONE, useDart2JS: false).then((_environment) {
+      useDart2JS: false).then((_environment) {
     environment = _environment;
 
     environment.barback.errors.listen((error) {
