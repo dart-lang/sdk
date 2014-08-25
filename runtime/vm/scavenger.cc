@@ -79,6 +79,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   explicit ScavengerVisitor(Isolate* isolate, Scavenger* scavenger)
       : ObjectPointerVisitor(isolate),
         scavenger_(scavenger),
+        from_start_(scavenger_->from_->start()),
+        from_size_(scavenger_->from_->end() - scavenger_->from_->start()),
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(scavenger->heap_->old_space()),
@@ -152,15 +154,20 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       return;
     }
 
-    uword raw_addr = RawObject::ToAddr(raw_obj);
     // Objects should be contained in the heap.
     // TODO(iposva): Add an appropriate assert here or in the return block
     // below.
+
     // The scavenger is only interested in objects located in the from space.
-    if (!scavenger_->from_->Contains(raw_addr)) {
+    //
+    // We are using address math here and relying on the unsigned underflow
+    // in the code below to avoid having two checks.
+    uword obj_offset = reinterpret_cast<uword>(raw_obj) - from_start_;
+    if (obj_offset > from_size_) {
       return;
     }
 
+    uword raw_addr = RawObject::ToAddr(raw_obj);
     // Read the header word of the object and determine if the object has
     // already been copied.
     uword header = *reinterpret_cast<uword*>(raw_addr);
@@ -233,6 +240,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   }
 
   Scavenger* scavenger_;
+  uword from_start_;
+  uword from_size_;
   Heap* heap_;
   Heap* vm_heap_;
   PageSpace* page_space_;
@@ -780,13 +789,15 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
-  // Setup the visitor and run a scavenge.
-  ScavengerVisitor visitor(isolate, this);
+  // Prepare for a scavenge.
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
   Prologue(isolate, invoke_api_callbacks);
   const bool prologue_weak_are_strong = !invoke_api_callbacks;
+
+  // Setup the visitor and run the scavenge.
+  ScavengerVisitor visitor(isolate, this);
   page_space->AcquireDataLock();
   IterateRoots(isolate, &visitor, prologue_weak_are_strong);
   int64_t start = OS::GetCurrentTimeMicros();
@@ -800,6 +811,8 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   visitor.Finalize();
   ProcessWeakTables();
   page_space->ReleaseDataLock();
+
+  // Scavenge finished. Run accounting and epilogue.
   int64_t end = OS::GetCurrentTimeMicros();
   heap_->RecordTime(kProcessToSpace, middle - start);
   heap_->RecordTime(kIterateWeaks, end - middle);
