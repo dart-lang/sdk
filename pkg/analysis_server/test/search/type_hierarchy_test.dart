@@ -59,7 +59,7 @@ class B extends A {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('B extends A').then((items) {
-        expect(items.map((item) => item.toJson()).toList(), [{
+        expect(_toJson(items), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'B',
@@ -114,7 +114,7 @@ class C extends B {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('A {}').then((items) {
-        expect(items.map((item) => item.toJson()).toList(), [{
+        expect(_toJson(items), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'A',
@@ -173,7 +173,7 @@ class C extends B {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('B extends').then((items) {
-        expect(items.map((item) => item.toJson()).toList(), [{
+        expect(_toJson(items), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'B',
@@ -232,7 +232,7 @@ class C extends B {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('C extends').then((items) {
-        expect(items.map((item) => item.toJson()).toList(), [{
+        expect(_toJson(items), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'C',
@@ -291,7 +291,7 @@ class T implements MA, MB {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('T implements').then((items) {
-        expect(items.map((item) => item.toJson()).toList(), [{
+        expect(_toJson(items), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'T',
@@ -350,7 +350,7 @@ class T extends Object with MA, MB {
 ''');
     return waitForTasksFinished().then((_) {
       return _getTypeHierarchy('T extends Object').then((items) {
-        expect(items.map((item) => item.toJson()).toList(), [{
+        expect(_toJson(items), [{
             'classElement': {
               'kind': 'CLASS',
               'name': 'T',
@@ -551,14 +551,20 @@ class D extends C {
   }
 
   Request _createGetTypeHierarchyRequest(String search) {
-    return new SearchGetTypeHierarchyParams(testFile,
+    return new SearchGetTypeHierarchyParams(
+        testFile,
         findOffset(search)).toRequest(requestId);
   }
 
   Future<List<TypeHierarchyItem>> _getTypeHierarchy(String search) {
     Request request = _createGetTypeHierarchyRequest(search);
     return serverChannel.sendRequest(request).then((Response response) {
-      return new SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
+      return new SearchGetTypeHierarchyResult.fromResponse(
+          response).hierarchyItems;
     });
+  }
+
+  List _toJson(List<TypeHierarchyItem> items) {
+    return items.map((item) => item.toJson()).toList();
   }
 }
