@@ -101,19 +101,24 @@ def CopyShellScript(src_file, dest_dir):
   if HOST_OS == 'win32':
     file_extension = '.bat'
 
+  # If we're copying an SDK-specific shell script, strip off the suffix.
+  dest_file = basename(src_file)
+  if dest_file.endswith('_sdk'):
+    dest_file = dest_file.replace('_sdk', '')
+
   src = src_file + file_extension
-  dest = join(dest_dir, basename(src_file) + file_extension)
+  dest = join(dest_dir, dest_file + file_extension)
   Copy(src, dest)
 
 
 def CopyDartScripts(home, sdk_root):
-  for executable in ['dart2js', 'dartanalyzer', 'dartfmt', 'docgen', 'pub']:
+  for executable in ['dart2js', 'dartanalyzer', 'dartfmt', 'docgen', 'pub_sdk']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
 
 def CopySnapshots(snapshots, sdk_root):
-  for snapshot in ['analysis_server', 'dart2js', 'dartanalyzer', 'dartfmt', 
+  for snapshot in ['analysis_server', 'dart2js', 'dartanalyzer', 'dartfmt',
                    'utils_wrapper', 'pub']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),

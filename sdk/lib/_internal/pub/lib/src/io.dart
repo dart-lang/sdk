@@ -486,8 +486,24 @@ String get repoRoot {
   if (runningFromSdk) {
     throw new StateError("Can't get the repo root from the SDK.");
   }
-  return path.normalize(path.join(
-      path.dirname(libraryPath('pub.io')), '..', '..', '..', '..', '..', '..'));
+
+  // Get the path to the directory containing this very file.
+  var libDir = path.dirname(libraryPath('pub.io'));
+
+  // TODO(rnystrom): Remove this when #104 is fixed.
+  // If we are running from the async/await compiled build directory, walk out
+  // out of that. It will be something like:
+  //
+  //     <repo>/<build>/<config>/pub_async/lib/src
+  if (libDir.contains('pub_async')) {
+    return path.normalize(path.join(libDir, '..', '..', '..', '..', '..'));
+  }
+
+  // Otherwise, assume we're running directly from the source location in the
+  // repo:
+  //
+  //      <repo>/sdk/lib/_internal/pub/lib/src
+  return path.normalize(path.join(libDir, '..', '..', '..', '..', '..', '..'));
 }
 
 /// A line-by-line stream of standard input.

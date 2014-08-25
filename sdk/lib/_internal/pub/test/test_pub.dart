@@ -476,6 +476,39 @@ void confirmPublish(ScheduledProcess pub) {
   pub.writeLine("y");
 }
 
+/// Whether the async/await compiler has already been run.
+///
+/// If a test suite runs pub more than once, we only need to run the compiler
+/// the first time.
+// TODO(rnystrom): Remove this when #104 is fixed.
+bool _compiledAsync = false;
+
+/// Gets the path to the pub entrypoint Dart script to run.
+// TODO(rnystrom): This exists to run the async/await compiler on pub and then
+// get the path to the output of that. Once #104 is fixed, remove this.
+String _getPubPath(String dartBin) {
+  var buildDir = path.join(path.dirname(dartBin), '../../');
+
+  // Ensure the async/await compiler has been run once for this test suite. The
+  // compiler itself will only re-compile source files that have actually
+  // changed, so this is a no-op if everything is already compiled.
+  if (!_compiledAsync) {
+    var result = Process.runSync(dartBin, [
+      '--package-root=$_packageRoot/',
+      path.join(testDirectory, '..', 'bin', 'async_compile.dart'),
+      buildDir,
+      '--silent'
+    ]);
+    stdout.write(result.stdout);
+    stderr.write(result.stderr);
+    if (result.exitCode != 0) fail("Async/await compiler failed.");
+
+    _compiledAsync = true;
+  }
+
+  return path.join(buildDir, 'pub_async/bin/pub.dart');
+}
+
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
 /// interaction with that process.
 ///
@@ -498,7 +531,10 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   }
 
   // Find the main pub entrypoint.
-  var pubPath = path.join(testDirectory, '..', 'bin', 'pub.dart');
+  var pubPath = _getPubPath(dartBin);
+  // TODO(rnystrom): Replace the above line with the following when #104 is
+  // fixed.
+  //var pubPath = path.join(testDirectory, '..', 'bin', 'pub.dart');
 
   var dartArgs = ['--package-root=$_packageRoot/', '--checked', pubPath,
       '--verbose'];
