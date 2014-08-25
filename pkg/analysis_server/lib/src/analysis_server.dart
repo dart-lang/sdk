@@ -669,16 +669,40 @@ class AnalysisServer {
   }
 
   /**
-   * Returns [Element]s of the Dart file with the given [path], at the given
-   * offset.
+   * Returns [AstNode]s at the given [offset] of the given [file].
    *
    * May be empty, but not `null`.
    */
-  List<Element> getElementsAtOffset(String path, int offset) {
-    List<CompilationUnit> units = getResolvedCompilationUnits(path);
-    List<Element> elements = <Element>[];
+  List<AstNode> getNodesAtOffset(String file, int offset) {
+    List<CompilationUnit> units = getResolvedCompilationUnits(file);
+    List<AstNode> nodes = <AstNode>[];
     for (CompilationUnit unit in units) {
       AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+      if (node != null) {
+        nodes.add(node);
+      }
+    }
+    return nodes;
+  }
+
+  /**
+   * Returns [Element]s at the given [offset] of the given [file].
+   *
+   * May be empty if not resolved, but not `null`.
+   */
+  List<Element> getElementsAtOffset(String file, int offset) {
+    List<AstNode> nodes = getNodesAtOffset(file, offset);
+    return getElementsOfNodes(nodes, offset);
+  }
+
+  /**
+   * Returns [Element]s of the given [nodes].
+   *
+   * May be empty if not resolved, but not `null`.
+   */
+  List<Element> getElementsOfNodes(List<AstNode> nodes, int offset) {
+    List<Element> elements = <Element>[];
+    for (AstNode node in nodes) {
       Element element = ElementLocator.locateWithOffset(node, offset);
       if (node is SimpleIdentifier && element is PrefixElement) {
         element = getImportElement(node);

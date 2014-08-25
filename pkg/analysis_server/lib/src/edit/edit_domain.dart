@@ -10,12 +10,11 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show AnalysisError,
-    EditGetAssistsParams, EditGetAssistsResult,
-    EditGetAvailableRefactoringsParams, EditGetAvailableRefactoringsResult,
-    EditGetFixesParams, EditGetFixesResult, EditGetRefactoringParams,
-    EditGetRefactoringResult, ErrorFixes, LinkedEditGroup, Location,
-    RefactoringKind, RefactoringProblem, RefactoringProblemSeverity,
-    RenameOptions, SourceChange;
+    EditGetAssistsParams, EditGetAssistsResult, EditGetAvailableRefactoringsParams,
+    EditGetAvailableRefactoringsResult, EditGetFixesParams, EditGetFixesResult,
+    EditGetRefactoringParams, EditGetRefactoringResult, ErrorFixes, LinkedEditGroup,
+    Location, RefactoringKind, RefactoringProblem, RefactoringProblemSeverity,
+    RenameOptions, RenameFeedback, SourceChange;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -172,6 +171,7 @@ class _RefactoringManager {
   int offset;
   int length;
   Refactoring refactoring;
+  Object feedback;
   RefactoringStatus initStatus;
   RefactoringStatus optionsStatus;
   RefactoringStatus finalStatus;
@@ -218,9 +218,7 @@ class _RefactoringManager {
           return _sendResultResponse();
         }
         return refactoring.createChange().then((change) {
-          result.change = new SourceChange(
-              change.message,
-              edits: change.edits);
+          result.change = new SourceChange(change.message, edits: change.edits);
           return _sendResultResponse();
         });
       });
@@ -248,10 +246,13 @@ class _RefactoringManager {
     this.length = length;
     // create a new Refactoring instance
     if (kind == RefactoringKind.RENAME) {
+      List<AstNode> nodes = server.getNodesAtOffset(file, offset);
       List<Element> elements = server.getElementsAtOffset(file, offset);
-      if (elements.isNotEmpty) {
+      if (nodes.isNotEmpty && elements.isNotEmpty) {
+        AstNode node = nodes[0];
         Element element = elements[0];
         refactoring = new RenameRefactoring(searchEngine, element);
+        feedback = new RenameFeedback(node.offset, node.length);
       }
     }
     if (refactoring == null) {
@@ -268,12 +269,14 @@ class _RefactoringManager {
 
   void _reset() {
     refactoring = null;
+    feedback = null;
     initStatus = new RefactoringStatus();
     optionsStatus = new RefactoringStatus();
     finalStatus = new RefactoringStatus();
   }
 
   void _sendResultResponse() {
+    result.feedback = feedback;
     // set problems
     {
       RefactoringStatus status = new RefactoringStatus();

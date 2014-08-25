@@ -11,8 +11,8 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/protocol2.dart' show
     EditGetAvailableRefactoringsParams, EditGetAvailableRefactoringsResult,
     EditGetRefactoringParams, EditGetRefactoringResult, RefactoringKind,
-    RefactoringProblem, RefactoringProblemSeverity, RenameOptions, SourceChange,
-    SourceEdit, SourceFileEdit;
+    RefactoringProblem, RefactoringProblemSeverity, RenameFeedback, RenameOptions,
+    SourceChange, SourceEdit, SourceFileEdit;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_testing/reflective_tests.dart';
@@ -377,6 +377,23 @@ main() {
   new A.newName();
 }
 ''');
+  }
+
+  test_feedback() {
+    addTestFile('''
+class Test {}
+main() {
+  Test v;
+}
+''');
+    String search = 'st v;';
+    String newName = 'NewName';
+    return getRefactoringResult(search, newName).then((result) {
+      RenameFeedback feedback = result.feedback;
+      expect(feedback, isNotNull);
+      expect(feedback.offset, findOffset('Test v;'));
+      expect(feedback.length, 'Test'.length);
+    });
   }
 
   test_function() {
