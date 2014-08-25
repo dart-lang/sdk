@@ -37,6 +37,7 @@ class String implements Comparable<String> {
 
 class bool extends Object {}
 abstract class num implements Comparable<num> {
+  bool operator <(num other);
   num operator +(num other);
   num operator -(num other);
   num operator *(num other);

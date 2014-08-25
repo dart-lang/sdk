@@ -94,6 +94,26 @@ String getElementQualifiedName(Element element) {
 
 
 /**
+ * Returns a class or an unit member enclosing the given [node].
+ */
+AstNode getEnclosingClassOrUnitMember(AstNode node) {
+  AstNode member = node;
+  while (node != null) {
+    if (node is ClassDeclaration) {
+      return member;
+    }
+    if (node is CompilationUnit) {
+      return member;
+    }
+    member = node;
+    node = node.parent;
+  }
+  return null;
+}
+
+
+
+/**
  * @return the [ExecutableElement] of the enclosing executable [AstNode].
  */
 ExecutableElement getEnclosingExecutableElement(AstNode node) {
@@ -112,11 +132,10 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
   return null;
 }
 
-
 /**
  * @return the enclosing executable [AstNode].
  */
- AstNode getEnclosingExecutableNode(AstNode node) {
+AstNode getEnclosingExecutableNode(AstNode node) {
   while (node != null) {
     if (node is FunctionDeclaration) {
       return node;
@@ -168,6 +187,38 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
   return namespace.definedNames;
 }
 
+
+
+/**
+ * @return the [LocalVariableElement] or [ParameterElement] if given
+ *         [SimpleIdentifier] is the reference to local variable or parameter, or
+ *         <code>null</code> in the other case.
+ */
+VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
+  Element element = node.staticElement;
+  if (element is LocalVariableElement) {
+    return element;
+  }
+  if (element is ParameterElement) {
+    return element;
+  }
+  return null;
+}
+
+
+/**
+ * @return the [LocalVariableElement] if given [SimpleIdentifier] is the reference to
+ *         local variable, or <code>null</code> in the other case.
+ */
+LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
+  Element element = node.staticElement;
+  if (element is LocalVariableElement) {
+    return element;
+  }
+  return null;
+}
+
+
 /**
  * @return the nearest common ancestor [AstNode] of the given [AstNode]s.
  */
@@ -188,13 +239,14 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   }
   // find deepest parent
   int i = 0;
-  for (; i < minLength; i++) {
+  for ( ; i < minLength; i++) {
     if (!allListsIdentical(parents, i)) {
       break;
     }
   }
   return parents[0][i - 1];
 }
+
 
 /**
  * @return parent [AstNode]s from [CompilationUnit] (at index "0") to the given one.
@@ -220,7 +272,6 @@ List<AstNode> getParents(AstNode node) {
   return parents;
 }
 
-
 /**
  * If given [AstNode] is name of qualified property extraction, returns target from which
  * this property is extracted. Otherwise `null`.
@@ -241,7 +292,6 @@ Expression getQualifiedPropertyTarget(AstNode node) {
   }
   return null;
 }
-
 
 /**
  * Returns the given [Statement] if not a [Block], or the first child
@@ -287,6 +337,38 @@ bool hasDisplayName(Element element, String name) {
     return false;
   }
   return element.displayName == name;
+}
+
+
+/**
+ * @return <code>true</code> if given [DartNode] is left hand side of assignment, or
+ *         declaration of the variable.
+ */
+bool isLeftHandOfAssignment(SimpleIdentifier node) {
+  if (node.inSetterContext()) {
+    return true;
+  }
+  return node.parent is VariableDeclaration &&
+      (node.parent as VariableDeclaration).name == node;
+}
+
+
+/**
+ * @return `true` if the given [SimpleIdentifier] is the name of the
+ *         [NamedExpression].
+ */
+bool isNamedExpressionName(SimpleIdentifier node) {
+  AstNode parent = node.parent;
+  if (parent is Label) {
+    Label label = parent;
+    if (identical(label.label, node)) {
+      AstNode parent2 = label.parent;
+      if (parent2 is NamedExpression) {
+        return identical(parent2.name, label);
+      }
+    }
+  }
+  return false;
 }
 
 
@@ -786,8 +868,8 @@ class CorrectionUtils {
     // prepare STRING token ranges
     List<SourceRange> lineRanges = [];
     {
-      var token = unit.beginToken;
-      while (token != null && token.type != TokenType.EOF) {
+      List<Token> tokens = TokenUtils.getTokens(source);
+      for (Token token in tokens) {
         if (token.type == TokenType.STRING) {
           lineRanges.add(rangeToken(token));
         }
@@ -852,7 +934,8 @@ class CorrectionUtils {
   /**
    * @return <code>true</code> if given range of [BinaryExpression] can be extracted.
    */
-  bool validateBinaryExpressionRange(BinaryExpression binaryExpression, SourceRange range) {
+  bool validateBinaryExpressionRange(BinaryExpression binaryExpression,
+      SourceRange range) {
     // only parts of associative expression are safe to extract
     if (!binaryExpression.operator.type.isAssociativeOperator) {
       return false;
@@ -977,8 +1060,11 @@ class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  bool _selectionIncludesNonWhitespaceOutsideOperands(SourceRange selection, List<Expression> operands) {
-    return _selectionIncludesNonWhitespaceOutsideRange(selection, rangeNodes(operands));
+  bool _selectionIncludesNonWhitespaceOutsideOperands(SourceRange selection,
+      List<Expression> operands) {
+    return _selectionIncludesNonWhitespaceOutsideRange(
+        selection,
+        rangeNodes(operands));
   }
 
   /**
@@ -1007,7 +1093,8 @@ class CorrectionUtils {
    * @return [Expression]s from <code>operands</code> which are completely covered by given
    *         [SourceRange]. Range should start and end between given [Expression]s.
    */
-  static List<Expression> _getOperandsForSourceRange(List<Expression> operands, SourceRange range) {
+  static List<Expression> _getOperandsForSourceRange(List<Expression> operands,
+      SourceRange range) {
     assert(!operands.isEmpty);
     List<Expression> subOperands = [];
     // track range enter/exit
@@ -1021,7 +1108,8 @@ class CorrectionUtils {
     for (int i = 0; i < operands.length - 1; i++) {
       Expression operand = operands[i];
       Expression nextOperand = operands[i + 1];
-      SourceRange inclusiveGap = rangeEndStart(operand, nextOperand).getMoveEnd(1);
+      SourceRange inclusiveGap =
+          rangeEndStart(operand, nextOperand).getMoveEnd(1);
       // add operand, if already entered range
       if (entered) {
         subOperands.add(operand);

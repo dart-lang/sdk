@@ -51,16 +51,9 @@ class StatementAnalyzer extends SelectionAnalyzer {
   RefactoringStatus get status => _status;
 
   /**
-   * Records fatal error with given message.
-   */
-  void invalidSelection(String message) {
-    invalidSelection2(message, null);
-  }
-
-  /**
    * Records fatal error with given message and [Location].
    */
-  void invalidSelection2(String message, Location context) {
+  void invalidSelection(String message, [Location context]) {
     _status.addFatalError(message, context);
     reset();
   }
@@ -187,8 +180,9 @@ class StatementAnalyzer extends SelectionAnalyzer {
       AstNode firstNode = nodes[0];
       SourceRange rangeBeforeFirstNode = rangeStartStart(selection, firstNode);
       if (_hasTokens(rangeBeforeFirstNode)) {
-        invalidSelection2(
-            "The beginning of the selection contains characters that do not belong to a statement.",
+        invalidSelection(
+            "The beginning of the selection contains characters that "
+                "do not belong to a statement.",
             new Location.fromUnit(unit, rangeBeforeFirstNode));
       }
     }
@@ -197,8 +191,9 @@ class StatementAnalyzer extends SelectionAnalyzer {
       AstNode lastNode = nodes.last;
       SourceRange rangeAfterLastNode = rangeEndEnd(lastNode, selection);
       if (_hasTokens(rangeAfterLastNode)) {
-        invalidSelection2(
-            "The end of the selection contains characters that do not belong to a statement.",
+        invalidSelection(
+            "The end of the selection contains characters that "
+                "do not belong to a statement.",
             new Location.fromUnit(unit, rangeAfterLastNode));
       }
     }

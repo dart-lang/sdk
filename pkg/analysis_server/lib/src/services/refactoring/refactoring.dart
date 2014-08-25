@@ -6,9 +6,11 @@ library services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' show SourceChange;
+import 'package:analysis_server/src/protocol.dart' show
+    RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
+import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
@@ -72,6 +74,99 @@ abstract class ExtractLocalRefactoring implements Refactoring {
   /**
    * Validates that the [name] is a valid identifier and is appropriate for
    * local variable.
+   *
+   * It does not perform all the checks (such as checking for conflicts with any
+   * existing names in any of the scopes containing the current name), as many
+   * of these checkes require search engine. Use [checkFinalConditions] for this
+   * level of checking.
+   */
+  RefactoringStatus checkName();
+}
+
+
+/**
+ * [Refactoring] to extract an [Expression] or [Statement]s into a new method.
+ */
+abstract class ExtractMethodRefactoring implements Refactoring {
+  /**
+   * Returns a new [ExtractMethodRefactoring] instance.
+   */
+  factory ExtractMethodRefactoring(SearchEngine searchEngine,
+      CompilationUnit unit, int selectionOffset, int selectionLength) {
+    return new ExtractMethodRefactoringImpl(
+        searchEngine,
+        unit,
+        selectionOffset,
+        selectionLength);
+  }
+
+  /**
+   * True if a getter could be created rather than a method.
+   */
+  bool get canCreateGetter;
+
+  /**
+   * True if a getter should be created rather than a method.
+   */
+  void set createGetter(bool createGetter);
+
+  /**
+   * True if all occurrences of the expression or statements should be replaced
+   * by an invocation of the method. The expression or statements used to
+   * initiate the refactoring will always be replaced.
+   */
+  void set extractAll(bool extractAll);
+
+  /**
+   * The lengths of the expressions or statements that would be replaced by an
+   * invocation of the method. The lengths correspond to the offsets.
+   * In other words, for a given expression (or block of statements), if the
+   * offset of that expression is offsets[i], then the length of that expression
+   * is lengths[i].
+   */
+  List<int> get lengths;
+
+  /**
+   * The name that the method should be given.
+   */
+  void set name(String name);
+
+  /**
+   * The proposed names for the method.
+   *
+   * The first proposal should be used as the "best guess" (if it exists).
+   */
+  List<String> get names;
+
+  /**
+   * The offsets of the expressions or statements that would be replaced by an
+   * invocation of the method.
+   */
+  List<int> get offsets;
+
+  /**
+   * The proposed parameters for the method.
+   */
+  List<RefactoringMethodParameter> get parameters;
+
+  /**
+   * The parameters that should be defined for the method.
+   */
+  void set parameters(List<RefactoringMethodParameter> parameters);
+
+  /**
+   * The proposed return type for the method.
+   */
+  String get returnType;
+
+  /**
+   * The return type that should be defined for the method.
+   */
+  void set returnType(String returnType);
+
+  /**
+   * Validates that the [name] is a valid identifier and is appropriate for a
+   * method.
    *
    * It does not perform all the checks (such as checking for conflicts with any
    * existing names in any of the scopes containing the current name), as many
