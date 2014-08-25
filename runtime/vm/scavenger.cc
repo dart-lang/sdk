@@ -82,8 +82,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(scavenger->heap_->old_space()),
-        visited_count_(0),
-        handled_count_(0),
         delayed_weak_stack_(),
         bytes_promoted_(0),
         visiting_old_object_(NULL),
@@ -123,8 +121,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     }
   }
 
-  intptr_t visited_count() const { return visited_count_; }
-  intptr_t handled_count() const { return handled_count_; }
   intptr_t bytes_promoted() const { return bytes_promoted_; }
 
  private:
@@ -149,7 +145,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     BoolScope bs(&in_scavenge_pointer_, true);
 #endif
 
-    visited_count_++;
     RawObject* raw_obj = *p;
 
     // Fast exit if the raw object is a Smi or an old object.
@@ -166,7 +161,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       return;
     }
 
-    handled_count_++;
     // Read the header word of the object and determine if the object has
     // already been copied.
     uword header = *reinterpret_cast<uword*>(raw_addr);
@@ -242,8 +236,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   Heap* heap_;
   Heap* vm_heap_;
   PageSpace* page_space_;
-  intptr_t visited_count_;
-  intptr_t handled_count_;
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
   DelaySet delay_set_;
   GrowableArray<RawObject*> delayed_weak_stack_;
@@ -501,8 +493,6 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
   // Iterating through the store buffers.
   // Grab the deduplication sets out of the store buffer.
   StoreBufferBlock* pending = isolate->store_buffer()->Blocks();
-  intptr_t visited_count_before = visitor->visited_count();
-  intptr_t handled_count_before = visitor->handled_count();
   while (pending != NULL) {
     StoreBufferBlock* next = pending->next();
     intptr_t count = pending->Count();
@@ -516,10 +506,8 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     delete pending;
     pending = next;
   }
-  heap_->RecordData(kStoreBufferVisited,
-                    visitor->visited_count() - visited_count_before);
-  heap_->RecordData(kStoreBufferPointers,
-                    visitor->handled_count() - handled_count_before);
+  heap_->RecordData(kDataUnused1, 0);
+  heap_->RecordData(kDataUnused2, 0);
   // Done iterating through old objects remembered in the store buffers.
   visitor->VisitingOldObject(NULL);
 }

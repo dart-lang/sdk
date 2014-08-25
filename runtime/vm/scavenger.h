@@ -219,8 +219,8 @@ class Scavenger {
     kIterateWeaks = 3,
     // Data
     kStoreBufferEntries = 0,
-    kStoreBufferVisited = 1,
-    kStoreBufferPointers = 2,
+    kDataUnused1 = 1,
+    kDataUnused2 = 2,
     kToKBAfterStoreBuffer = 3
   };
 
