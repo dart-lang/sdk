@@ -10,6 +10,7 @@
 #include "vm/code_generator.h"
 #include "vm/deferred_objects.h"
 #include "vm/growable_array.h"
+#include "vm/locations.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -70,13 +71,6 @@ class DeoptContext {
     return *reinterpret_cast<double*>(&fpu_registers_[reg]);
   }
 
-  int64_t FpuRegisterValueAsInt64(FpuRegister reg) const {
-    ASSERT(fpu_registers_ != NULL);
-    ASSERT(reg >= 0);
-    ASSERT(reg < kNumberOfFpuRegisters);
-    return *reinterpret_cast<int64_t*>(&fpu_registers_[reg]);
-  }
-
   simd128_value_t FpuRegisterValueAsSimd128(FpuRegister reg) const {
     ASSERT(fpu_registers_ != NULL);
     ASSERT(reg >= 0);
@@ -120,7 +114,7 @@ class DeoptContext {
         deferred_slots_);
   }
 
-  void DeferDoubleMaterialization(double value, RawDouble** slot) {
+  void DeferMaterialization(double value, RawDouble** slot) {
     deferred_slots_ = new DeferredDouble(
         value,
         reinterpret_cast<RawInstance**>(slot),
@@ -134,24 +128,21 @@ class DeoptContext {
         deferred_slots_);
   }
 
-  void DeferFloat32x4Materialization(simd128_value_t value,
-                                     RawFloat32x4** slot) {
+  void DeferMaterialization(simd128_value_t value, RawFloat32x4** slot) {
     deferred_slots_ = new DeferredFloat32x4(
         value,
         reinterpret_cast<RawInstance**>(slot),
         deferred_slots_);
   }
 
-  void DeferFloat64x2Materialization(simd128_value_t value,
-                                     RawFloat64x2** slot) {
+  void DeferMaterialization(simd128_value_t value, RawFloat64x2** slot) {
     deferred_slots_ = new DeferredFloat64x2(
         value,
         reinterpret_cast<RawInstance**>(slot),
         deferred_slots_);
   }
 
-  void DeferInt32x4Materialization(simd128_value_t value,
-                                    RawInt32x4** slot) {
+  void DeferMaterialization(simd128_value_t value, RawInt32x4** slot) {
     deferred_slots_ = new DeferredInt32x4(
         value,
         reinterpret_cast<RawInstance**>(slot),
@@ -221,23 +212,15 @@ class DeoptInstr : public ZoneAllocated {
   enum Kind {
     kRetAddress,
     kConstant,
-    kRegister,
-    kFpuRegister,
-    kFloat32x4FpuRegister,
-    kFloat64x2FpuRegister,
-    kInt32x4FpuRegister,
-    kStackSlot,
-    kDoubleStackSlot,
-    kFloat32x4StackSlot,
-    kFloat64x2StackSlot,
-    kInt32x4StackSlot,
+    kWord,
+    kDouble,
+    kFloat32x4,
+    kFloat64x2,
+    kInt32x4,
     // Mints are split into low and high words. Each word can be in a register
     // or stack slot. Note Mints are only used on 32-bit architectures.
-    kMintRegisterPair,
-    kMintStackSlotPair,
-    kMintStackSlotRegister,
-    kUint32Register,
-    kUint32StackSlot,
+    kMintPair,
+    kUint32,
     kPcMarker,
     kPp,
     kCallerFp,
@@ -253,7 +236,15 @@ class DeoptInstr : public ZoneAllocated {
   DeoptInstr() {}
   virtual ~DeoptInstr() {}
 
-  virtual const char* ToCString() const = 0;
+  virtual const char* ToCString() const {
+    const char* args = ArgumentsToCString();
+    if (args != NULL) {
+      return Isolate::Current()->current_zone()->PrintToString(
+          "%s(%s)", KindToCString(kind()), args);
+    } else {
+      return KindToCString(kind());
+    }
+  }
 
   virtual void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) = 0;
 
@@ -285,9 +276,114 @@ class DeoptInstr : public ZoneAllocated {
 
   virtual intptr_t source_index() const = 0;
 
+  virtual const char* ArgumentsToCString() const {
+    return NULL;
+  }
+
  private:
+  static const char* KindToCString(Kind kind);
+
   DISALLOW_COPY_AND_ASSIGN(DeoptInstr);
 };
+
+
+// Helper class that allows to read a value of the given register from
+// the DeoptContext as the specified type.
+// It calls different method depending on which kind of register (cpu/fpu) and
+// destination types are specified.
+template<typename RegisterType, typename DestinationType>
+struct RegisterReader;
+
+template<typename T>
+struct RegisterReader<Register, T> {
+  static intptr_t Read(DeoptContext* context, Register reg) {
+    return context->RegisterValue(reg);
+  }
+};
+
+template<>
+struct RegisterReader<FpuRegister, double> {
+  static double Read(DeoptContext* context, FpuRegister reg) {
+    return context->FpuRegisterValue(reg);
+  }
+};
+
+
+template<>
+struct RegisterReader<FpuRegister, simd128_value_t> {
+  static simd128_value_t Read(DeoptContext* context, FpuRegister reg) {
+    return context->FpuRegisterValueAsSimd128(reg);
+  }
+};
+
+
+// Class that encapsulates reading and writing of values that were either in
+// the registers in the optimized code or were spilled from those registers
+// to the stack.
+template<typename RegisterType>
+class RegisterSource {
+ public:
+  enum Kind {
+    // Spilled register source represented as its spill slot.
+    kStackSlot = 0,
+    // Register source represented as its register index.
+    kRegister = 1
+  };
+
+  explicit RegisterSource(intptr_t source_index)
+      : source_index_(source_index) { }
+
+  RegisterSource(Kind kind, intptr_t index)
+      : source_index_(KindField::encode(kind) | RawIndexField::encode(index)) {
+  }
+
+  template<typename T>
+  T Value(DeoptContext* context) const {
+    if (is_register()) {
+      return static_cast<T>(RegisterReader<RegisterType, T>::Read(
+        context, reg()));
+    } else {
+      return *reinterpret_cast<T*>(context->GetSourceFrameAddressAt(
+          context->source_frame_size() - raw_index() - 1));
+    }
+  }
+
+  intptr_t source_index() const { return source_index_; }
+
+  const char* ToCString() const {
+    if (is_register()) {
+      return Name(reg());
+    } else {
+      return Isolate::Current()->current_zone()->PrintToString(
+          "s%" Pd "", raw_index());
+    }
+  }
+
+ private:
+  class KindField : public BitField<intptr_t, 0, 1> { };
+  class RawIndexField : public BitField<intptr_t, 1, kBitsPerWord - 1> { };
+
+  bool is_register() const {
+    return KindField::decode(source_index_) == kRegister;
+  }
+  intptr_t raw_index() const { return RawIndexField::decode(source_index_); }
+
+  RegisterType reg() const { return static_cast<RegisterType>(raw_index()); }
+
+  static const char* Name(Register reg) {
+    return Assembler::RegisterName(reg);
+  }
+
+  static const char* Name(FpuRegister fpu_reg) {
+    return Assembler::FpuRegisterName(fpu_reg);
+  }
+
+  const intptr_t source_index_;
+};
+
+
+typedef RegisterSource<Register> CpuRegisterSource;
+typedef RegisterSource<FpuRegister> FpuRegisterSource;
 
 
 // Builds a deoptimization info table, one DeoptInfo at a time.  Call AddXXX
@@ -341,6 +437,10 @@ class DeoptInfoBuilder : public ValueObject {
 
  private:
   class TrieNode;
+
+  CpuRegisterSource ToCpuRegisterSource(const Location& loc);
+  FpuRegisterSource ToFpuRegisterSource(const Location& loc,
+                                      Location::Kind expected_stack_slot_kind);
 
   intptr_t FindOrAddObjectInTable(const Object& obj) const;
   intptr_t FindMaterialization(MaterializeObjectInstr* mat) const;

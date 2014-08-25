@@ -185,41 +185,16 @@ void DeoptContext::SetCallerFp(intptr_t caller_fp) {
 static bool IsObjectInstruction(DeoptInstr::Kind kind) {
   switch (kind) {
     case DeoptInstr::kConstant:
-    case DeoptInstr::kStackSlot:
-    case DeoptInstr::kDoubleStackSlot:
-    case DeoptInstr::kMintStackSlotPair:
-    case DeoptInstr::kFloat32x4StackSlot:
-    case DeoptInstr::kInt32x4StackSlot:
-    case DeoptInstr::kFloat64x2StackSlot:
     case DeoptInstr::kPp:
     case DeoptInstr::kCallerPp:
     case DeoptInstr::kMaterializedObjectRef:
+    case DeoptInstr::kFloat32x4:
+    case DeoptInstr::kInt32x4:
+    case DeoptInstr::kFloat64x2:
+    case DeoptInstr::kWord:
+    case DeoptInstr::kDouble:
+    case DeoptInstr::kMintPair:
       return true;
-
-    case DeoptInstr::kRegister:
-    case DeoptInstr::kFpuRegister:
-    case DeoptInstr::kMintRegisterPair:
-    case DeoptInstr::kMintStackSlotRegister:
-    case DeoptInstr::kFloat32x4FpuRegister:
-    case DeoptInstr::kInt32x4FpuRegister:
-    case DeoptInstr::kFloat64x2FpuRegister:
-      // TODO(turnidge): Sometimes we encounter a deopt instruction
-      // with a register source while deoptimizing frames during
-      // debugging but we haven't saved our register set.  This
-      // happens specifically when using the VMService to inspect the
-      // stack.  In that case, the register values will have been
-      // saved before the StackOverflow runtime call but we do not
-      // actually keep track of which registers were saved and
-      // restored.
-      //
-      // It is possible to save this information at the point of the
-      // StackOverflow runtime call but would require a bit of magic
-      // to either make sure that the registers are pushed on the
-      // stack in a predictable fashion or that we save enough
-      // information to recover them after the fact.
-      //
-      // For now, we punt on these instructions.
-      return false;
 
     case DeoptInstr::kRetAddress:
     case DeoptInstr::kPcMarker:
@@ -370,169 +345,6 @@ RawArray* DeoptContext::DestFrameAsArray() {
 }
 
 
-// Deoptimization instruction moving value from optimized frame at
-// 'source_index' to specified slots in the unoptimized frame.
-// 'source_index' represents the slot index of the frame (0 being
-// first argument) and accounts for saved return address, frame
-// pointer, pool pointer and pc marker.
-class DeoptStackSlotInstr : public DeoptInstr {
- public:
-  explicit DeoptStackSlotInstr(intptr_t source_index)
-      : stack_slot_index_(source_index) {
-    ASSERT(stack_slot_index_ >= 0);
-  }
-
-  virtual intptr_t source_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kStackSlot; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "s%" Pd "", stack_slot_index_);
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t source_index =
-       deopt_context->source_frame_size() - stack_slot_index_ - 1;
-    intptr_t* source_addr =
-        deopt_context->GetSourceFrameAddressAt(source_index);
-    *dest_addr = *source_addr;
-  }
-
- private:
-  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptStackSlotInstr);
-};
-
-
-class DeoptDoubleStackSlotInstr : public DeoptInstr {
- public:
-  explicit DeoptDoubleStackSlotInstr(intptr_t source_index)
-      : stack_slot_index_(source_index) {
-    ASSERT(stack_slot_index_ >= 0);
-  }
-
-  virtual intptr_t source_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kDoubleStackSlot; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "ds%" Pd "", stack_slot_index_);
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t source_index =
-       deopt_context->source_frame_size() - stack_slot_index_ - 1;
-    double* source_addr = reinterpret_cast<double*>(
-        deopt_context->GetSourceFrameAddressAt(source_index));
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferDoubleMaterialization(
-        *source_addr, reinterpret_cast<RawDouble**>(dest_addr));
-  }
-
- private:
-  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptDoubleStackSlotInstr);
-};
-
-
-class DeoptFloat32x4StackSlotInstr : public DeoptInstr {
- public:
-  explicit DeoptFloat32x4StackSlotInstr(intptr_t source_index)
-      : stack_slot_index_(source_index) {
-    ASSERT(stack_slot_index_ >= 0);
-  }
-
-  virtual intptr_t source_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kFloat32x4StackSlot; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "f32x4s%" Pd "", stack_slot_index_);
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t source_index =
-       deopt_context->source_frame_size() - stack_slot_index_ - 1;
-    simd128_value_t* source_addr = reinterpret_cast<simd128_value_t*>(
-        deopt_context->GetSourceFrameAddressAt(source_index));
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferFloat32x4Materialization(
-        *source_addr, reinterpret_cast<RawFloat32x4**>(dest_addr));
-  }
-
- private:
-  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptFloat32x4StackSlotInstr);
-};
-
-
-class DeoptFloat64x2StackSlotInstr : public DeoptInstr {
- public:
-  explicit DeoptFloat64x2StackSlotInstr(intptr_t source_index)
-      : stack_slot_index_(source_index) {
-    ASSERT(stack_slot_index_ >= 0);
-  }
-
-  virtual intptr_t source_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kFloat64x2StackSlot; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "f64x2s%" Pd "", stack_slot_index_);
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t source_index =
-       deopt_context->source_frame_size() - stack_slot_index_ - 1;
-    simd128_value_t* source_addr = reinterpret_cast<simd128_value_t*>(
-        deopt_context->GetSourceFrameAddressAt(source_index));
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferFloat64x2Materialization(
-        *source_addr, reinterpret_cast<RawFloat64x2**>(dest_addr));
-  }
-
- private:
-  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptFloat64x2StackSlotInstr);
-};
-
-
-class DeoptInt32x4StackSlotInstr : public DeoptInstr {
- public:
-  explicit DeoptInt32x4StackSlotInstr(intptr_t source_index)
-      : stack_slot_index_(source_index) {
-    ASSERT(stack_slot_index_ >= 0);
-  }
-
-  virtual intptr_t source_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kInt32x4StackSlot; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "ui32x4s%" Pd "", stack_slot_index_);
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t source_index =
-       deopt_context->source_frame_size() - stack_slot_index_ - 1;
-    simd128_value_t* source_addr = reinterpret_cast<simd128_value_t*>(
-        deopt_context->GetSourceFrameAddressAt(source_index));
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferInt32x4Materialization(
-        *source_addr, reinterpret_cast<RawInt32x4**>(dest_addr));
-  }
-
- private:
-  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptInt32x4StackSlotInstr);
-};
-
-
 // Deoptimization instruction creating return address using function and
 // deopt-id stored at 'object_table_index'.
 class DeoptRetAddressInstr : public DeoptInstr {
@@ -555,9 +367,9 @@ class DeoptRetAddressInstr : public DeoptInstr {
 
   virtual DeoptInstr::Kind kind() const { return kRetAddress; }
 
-  virtual const char* ToCString() const {
+  virtual const char* ArgumentsToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "ret oti:%" Pd "(%" Pd ")", object_table_index_, deopt_id_);
+        "%" Pd ", %" Pd "", object_table_index_, deopt_id_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
@@ -611,9 +423,9 @@ class DeoptConstantInstr : public DeoptInstr {
   virtual intptr_t source_index() const { return object_table_index_; }
   virtual DeoptInstr::Kind kind() const { return kConstant; }
 
-  virtual const char* ToCString() const {
+  virtual const char* ArgumentsToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "const oti:%" Pd "", object_table_index_);
+        "%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
@@ -629,417 +441,171 @@ class DeoptConstantInstr : public DeoptInstr {
 };
 
 
+// Deoptimization instruction moving value from optimized frame at
+// 'source_index' to specified slots in the unoptimized frame.
+// 'source_index' represents the slot index of the frame (0 being
+// first argument) and accounts for saved return address, frame
+// pointer, pool pointer and pc marker.
 // Deoptimization instruction moving a CPU register.
-class DeoptRegisterInstr: public DeoptInstr {
+class DeoptWordInstr: public DeoptInstr {
  public:
-  explicit DeoptRegisterInstr(intptr_t reg_as_int)
-      : reg_(static_cast<Register>(reg_as_int)) {}
+  explicit DeoptWordInstr(intptr_t source_index)
+      : source_(source_index) {}
 
-  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kRegister; }
+  explicit DeoptWordInstr(const CpuRegisterSource& source)
+      : source_(source) {}
 
-  virtual const char* ToCString() const {
-    return Assembler::RegisterName(reg_);
+  virtual intptr_t source_index() const { return source_.source_index(); }
+  virtual DeoptInstr::Kind kind() const { return kWord; }
+
+  virtual const char* ArgumentsToCString() const {
+    return source_.ToCString();
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    *dest_addr = deopt_context->RegisterValue(reg_);
+    *dest_addr = source_.Value<intptr_t>(deopt_context);
   }
 
  private:
-  const Register reg_;
+  const CpuRegisterSource source_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptRegisterInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptWordInstr);
 };
 
 
-// Deoptimization instruction moving an XMM register.
-class DeoptFpuRegisterInstr: public DeoptInstr {
+class DeoptIntegerInstrBase: public DeoptInstr {
  public:
-  explicit DeoptFpuRegisterInstr(intptr_t reg_as_int)
-      : reg_(static_cast<FpuRegister>(reg_as_int)) {}
-
-  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kFpuRegister; }
-
-  virtual const char* ToCString() const {
-    return Assembler::FpuRegisterName(reg_);
-  }
+  DeoptIntegerInstrBase() { }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    double value = deopt_context->FpuRegisterValue(reg_);
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferDoubleMaterialization(
-        value, reinterpret_cast<RawDouble**>(dest_addr));
-  }
-
- private:
-  const FpuRegister reg_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptFpuRegisterInstr);
-};
-
-
-class DeoptMintRegisterPairInstr: public DeoptInstr {
- public:
-  DeoptMintRegisterPairInstr(intptr_t lo_reg_as_int, intptr_t hi_reg_as_int)
-      : lo_reg_(static_cast<Register>(lo_reg_as_int)),
-        hi_reg_(static_cast<Register>(hi_reg_as_int)) {}
-
-  virtual intptr_t source_index() const {
-    return EncodeRegisters(static_cast<intptr_t>(lo_reg_),
-                           static_cast<intptr_t>(hi_reg_));
-  }
-  virtual DeoptInstr::Kind kind() const { return kMintRegisterPair; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "int64 register pair: %s,%s", Assembler::RegisterName(hi_reg_),
-                                      Assembler::RegisterName(lo_reg_));
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    uint32_t lo_value = deopt_context->RegisterValue(lo_reg_);
-    int32_t hi_value = deopt_context->RegisterValue(hi_reg_);
-    int64_t value = Utils::LowHighTo64Bits(lo_value, hi_value);
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
+    const int64_t value = GetValue(deopt_context);
     if (Smi::IsValid(value)) {
-      *dest_addr = reinterpret_cast<intptr_t>(
-          Smi::New(static_cast<intptr_t>(value)));
+      *dest_addr = Smi::RawValue(static_cast<intptr_t>(value));
     } else {
+      *dest_addr = Smi::RawValue(0);
       deopt_context->DeferMintMaterialization(
           value, reinterpret_cast<RawMint**>(dest_addr));
     }
   }
 
+  virtual int64_t GetValue(DeoptContext* deopt_context) = 0;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DeoptIntegerInstrBase);
+};
+
+
+class DeoptMintPairInstr: public DeoptIntegerInstrBase {
+ public:
+  explicit DeoptMintPairInstr(intptr_t source_index)
+      : DeoptIntegerInstrBase(),
+        lo_(LoRegister::decode(source_index)),
+        hi_(HiRegister::decode(source_index)) {
+  }
+
+  DeoptMintPairInstr(const CpuRegisterSource& lo, const CpuRegisterSource& hi)
+      : DeoptIntegerInstrBase(), lo_(lo), hi_(hi) {}
+
+  virtual intptr_t source_index() const {
+    return LoRegister::encode(lo_.source_index()) |
+           HiRegister::encode(hi_.source_index());
+  }
+  virtual DeoptInstr::Kind kind() const { return kMintPair; }
+
+  virtual const char* ArgumentsToCString() const {
+    return Isolate::Current()->current_zone()->PrintToString(
+        "%s,%s",
+        lo_.ToCString(),
+        hi_.ToCString());
+  }
+
+  virtual int64_t GetValue(DeoptContext* deopt_context) {
+    return Utils::LowHighTo64Bits(
+        lo_.Value<uint32_t>(deopt_context), hi_.Value<int32_t>(deopt_context));
+  }
+
+ private:
   static const intptr_t kFieldWidth = kBitsPerWord / 2;
   class LoRegister : public BitField<intptr_t, 0, kFieldWidth> { };
   class HiRegister : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
-  static intptr_t EncodeRegisters(intptr_t lo_reg_as_int,
-                                  intptr_t hi_reg_as_int) {
-    return LoRegister::encode(lo_reg_as_int) |
-           HiRegister::encode(hi_reg_as_int);
-  }
 
-  static intptr_t DecodeLoRegister(intptr_t v) {
-    return LoRegister::decode(v);
-  }
+  const CpuRegisterSource lo_;
+  const CpuRegisterSource hi_;
 
-  static intptr_t DecodeHiRegister(intptr_t v) {
-    return HiRegister::decode(v);
-  }
-
- private:
-  const Register lo_reg_;
-  const Register hi_reg_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptMintRegisterPairInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptMintPairInstr);
 };
 
 
-class DeoptMintStackSlotPairInstr: public DeoptInstr {
+class DeoptUint32Instr : public DeoptIntegerInstrBase {
  public:
-  DeoptMintStackSlotPairInstr(intptr_t lo_slot, intptr_t hi_slot)
-      : lo_slot_(static_cast<Register>(lo_slot)),
-        hi_slot_(static_cast<Register>(hi_slot)) {}
-
-  virtual intptr_t source_index() const {
-    return EncodeSlots(static_cast<intptr_t>(lo_slot_),
-                       static_cast<intptr_t>(hi_slot_));
+  explicit DeoptUint32Instr(intptr_t source_index)
+      : DeoptIntegerInstrBase(), source_(source_index) {
   }
-  virtual DeoptInstr::Kind kind() const { return kMintStackSlotPair; }
 
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "int64 stack slots: %" Pd", %" Pd "", lo_slot_, hi_slot_);
+  explicit DeoptUint32Instr(const CpuRegisterSource& source)
+      : DeoptIntegerInstrBase(), source_(source) {
+  }
+
+  virtual intptr_t source_index() const { return source_.source_index(); }
+  virtual DeoptInstr::Kind kind() const { return kUint32; }
+
+  virtual const char* ArgumentsToCString() const {
+    return source_.ToCString();
+  }
+
+  virtual int64_t GetValue(DeoptContext* deopt_context) {
+    return static_cast<int64_t>(source_.Value<uint32_t>(deopt_context));
+  }
+
+ private:
+  const CpuRegisterSource source_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptUint32Instr);
+};
+
+
+template<DeoptInstr::Kind K,
+         typename Type,
+         typename RawObjectType>
+class DeoptFpuInstr: public DeoptInstr {
+ public:
+  explicit DeoptFpuInstr(intptr_t source_index)
+      : source_(source_index) {}
+
+  explicit DeoptFpuInstr(const FpuRegisterSource& source)
+      : source_(source) {}
+
+  virtual intptr_t source_index() const { return source_.source_index(); }
+  virtual DeoptInstr::Kind kind() const { return K; }
+
+  virtual const char* ArgumentsToCString() const {
+    return source_.ToCString();
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t lo_source_index =
-        deopt_context->source_frame_size() - lo_slot_ - 1;
-    int32_t* lo_source_addr = reinterpret_cast<int32_t*>(
-        deopt_context->GetSourceFrameAddressAt(lo_source_index));
-    intptr_t hi_source_index =
-       deopt_context->source_frame_size() - hi_slot_ - 1;
-    int32_t* hi_source_addr = reinterpret_cast<int32_t*>(
-        deopt_context->GetSourceFrameAddressAt(hi_source_index));
-    int64_t value = Utils::LowHighTo64Bits(*lo_source_addr, *hi_source_addr);
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    if (Smi::IsValid(value)) {
-      *dest_addr = reinterpret_cast<intptr_t>(
-          Smi::New(static_cast<intptr_t>(value)));
-    } else {
-      deopt_context->DeferMintMaterialization(
-          value, reinterpret_cast<RawMint**>(dest_addr));
-    }
-  }
-
-  static const intptr_t kFieldWidth = kBitsPerWord / 2;
-  class LoSlot : public BitField<intptr_t, 0, kFieldWidth> { };
-  class HiSlot : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
-  static intptr_t EncodeSlots(intptr_t lo_slot,
-                              intptr_t hi_slot) {
-    return LoSlot::encode(lo_slot) |
-           HiSlot::encode(hi_slot);
-  }
-
-  static intptr_t DecodeLoSlot(intptr_t v) {
-    return LoSlot::decode(v);
-  }
-
-  static intptr_t DecodeHiSlot(intptr_t v) {
-    return HiSlot::decode(v);
+    *dest_addr = Smi::RawValue(0);
+    deopt_context->DeferMaterialization(
+        source_.Value<Type>(deopt_context),
+        reinterpret_cast<RawObjectType**>(dest_addr));
   }
 
  private:
-  const intptr_t lo_slot_;
-  const intptr_t hi_slot_;
+  const FpuRegisterSource source_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptMintStackSlotPairInstr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptFpuInstr);
 };
 
+typedef DeoptFpuInstr<DeoptInstr::kDouble, double, RawDouble> DeoptDoubleInstr;
 
-class DeoptMintStackSlotRegisterInstr : public DeoptInstr {
- public:
-  DeoptMintStackSlotRegisterInstr(intptr_t source_index,
-                                  intptr_t reg_as_int,
-                                  bool flip)
-      : slot_(source_index),
-        reg_(static_cast<Register>(reg_as_int)),
-        flip_(flip) {
-    // when flip_ is false, stack slot is low bits and reg is high bits.
-    // when flip_ is true, stack slot is high bits and reg is low bits.
-  }
-
-  virtual intptr_t source_index() const {
-    return Encode(static_cast<intptr_t>(slot_),
-                  static_cast<intptr_t>(reg_),
-                  flip_ ? 1 : 0);
-  }
-  virtual DeoptInstr::Kind kind() const { return kMintStackSlotRegister; }
-
-  virtual const char* ToCString() const {
-    if (flip_) {
-      return Isolate::Current()->current_zone()->PrintToString(
-          "int64 reg: %s, stack slot:  %" Pd "", Assembler::RegisterName(reg_),
-                                                 slot_);
-    } else {
-      return Isolate::Current()->current_zone()->PrintToString(
-          "int64 stack slot: %" Pd", reg: %s", slot_,
-                                               Assembler::RegisterName(reg_));
-    }
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t slot_source_index =
-        deopt_context->source_frame_size() - slot_ - 1;
-    int32_t* slot_source_addr = reinterpret_cast<int32_t*>(
-        deopt_context->GetSourceFrameAddressAt(slot_source_index));
-    int32_t slot_value = *slot_source_addr;
-    int32_t reg_value = deopt_context->RegisterValue(reg_);
-    int64_t value;
-    if (flip_) {
-      value = Utils::LowHighTo64Bits(reg_value, slot_value);
-    } else {
-      value = Utils::LowHighTo64Bits(slot_value, reg_value);
-    }
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    if (Smi::IsValid(value)) {
-      *dest_addr = reinterpret_cast<intptr_t>(
-          Smi::New(static_cast<intptr_t>(value)));
-    } else {
-      deopt_context->DeferMintMaterialization(
-          value, reinterpret_cast<RawMint**>(dest_addr));
-    }
-  }
-
-  static const intptr_t kFieldWidth = kBitsPerWord / 2;
-  class Slot : public BitField<intptr_t, 0, kFieldWidth> { };
-  class Reg : public BitField<intptr_t, kFieldWidth, kFieldWidth - 1> { };
-  // 1 bit for the flip.
-  class Flip : public BitField<intptr_t, kFieldWidth * 2 - 1, 1> { };
-
-  static intptr_t Encode(intptr_t slot,
-                         intptr_t reg_as_int,
-                         bool flip) {
-    return Slot::encode(slot) |
-           Reg::encode(reg_as_int) |
-           Flip::encode(flip ? 1 : 0);
-  }
-
-  static intptr_t DecodeSlot(intptr_t v) {
-    return Slot::decode(v);
-  }
-
-  static intptr_t DecodeReg(intptr_t v) {
-    return Reg::decode(v);
-  }
-
-  static bool DecodeFlip(intptr_t v) {
-    return Flip::decode(v);
-  }
-
- private:
-  const intptr_t slot_;
-  const Register reg_;
-  const bool flip_;
-  DISALLOW_COPY_AND_ASSIGN(DeoptMintStackSlotRegisterInstr);
-};
-
-
-class DeoptUint32RegisterInstr: public DeoptInstr {
- public:
-  explicit DeoptUint32RegisterInstr(intptr_t reg_as_int)
-      : reg_(static_cast<Register>(reg_as_int)) {}
-
-  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kUint32Register; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "uint32 %s", Assembler::RegisterName(reg_));
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    uint32_t low = static_cast<uint32_t>(deopt_context->RegisterValue(reg_));
-    int64_t value = Utils::LowHighTo64Bits(low, 0);
-    if (Smi::IsValid(value)) {
-      *dest_addr = reinterpret_cast<intptr_t>(
-          Smi::New(static_cast<intptr_t>(value)));
-    } else {
-      *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-      deopt_context->DeferMintMaterialization(
-          value, reinterpret_cast<RawMint**>(dest_addr));
-    }
-  }
-
- private:
-  const Register reg_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptUint32RegisterInstr);
-};
-
-
-class DeoptUint32StackSlotInstr : public DeoptInstr {
- public:
-  explicit DeoptUint32StackSlotInstr(intptr_t source_index)
-      : stack_slot_index_(source_index) {
-    ASSERT(stack_slot_index_ >= 0);
-  }
-
-  virtual intptr_t source_index() const { return stack_slot_index_; }
-  virtual DeoptInstr::Kind kind() const { return kUint32StackSlot; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "uint32 s%" Pd "", stack_slot_index_);
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    intptr_t source_index =
-       deopt_context->source_frame_size() - stack_slot_index_ - 1;
-    uint32_t* source_addr = reinterpret_cast<uint32_t*>(
-        deopt_context->GetSourceFrameAddressAt(source_index));
-    int64_t value = Utils::LowHighTo64Bits(*source_addr, 0);
-    if (Smi::IsValid(value)) {
-      *dest_addr = reinterpret_cast<intptr_t>(
-          Smi::New(static_cast<intptr_t>(value)));
-    } else {
-      *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-      deopt_context->DeferMintMaterialization(
-          value, reinterpret_cast<RawMint**>(dest_addr));
-    }
-  }
-
- private:
-  const intptr_t stack_slot_index_;  // First argument is 0, always >= 0.
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptUint32StackSlotInstr);
-};
-
-
-// Deoptimization instruction moving an XMM register.
-class DeoptFloat32x4FpuRegisterInstr: public DeoptInstr {
- public:
-  explicit DeoptFloat32x4FpuRegisterInstr(intptr_t reg_as_int)
-      : reg_(static_cast<FpuRegister>(reg_as_int)) {}
-
-  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kFloat32x4FpuRegister; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "%s(f32x4)", Assembler::FpuRegisterName(reg_));
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    simd128_value_t value = deopt_context->FpuRegisterValueAsSimd128(reg_);
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferFloat32x4Materialization(
-        value, reinterpret_cast<RawFloat32x4**>(dest_addr));
-  }
-
- private:
-  const FpuRegister reg_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptFloat32x4FpuRegisterInstr);
-};
-
-
-class DeoptFloat64x2FpuRegisterInstr: public DeoptInstr {
- public:
-  explicit DeoptFloat64x2FpuRegisterInstr(intptr_t reg_as_int)
-      : reg_(static_cast<FpuRegister>(reg_as_int)) {}
-
-  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kFloat64x2FpuRegister; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "%s(f64x2)", Assembler::FpuRegisterName(reg_));
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    simd128_value_t value = deopt_context->FpuRegisterValueAsSimd128(reg_);
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferFloat64x2Materialization(
-        value, reinterpret_cast<RawFloat64x2**>(dest_addr));
-  }
-
- private:
-  const FpuRegister reg_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptFloat64x2FpuRegisterInstr);
-};
-
-
-// Deoptimization instruction moving an XMM register.
-class DeoptInt32x4FpuRegisterInstr: public DeoptInstr {
- public:
-  explicit DeoptInt32x4FpuRegisterInstr(intptr_t reg_as_int)
-      : reg_(static_cast<FpuRegister>(reg_as_int)) {}
-
-  virtual intptr_t source_index() const { return static_cast<intptr_t>(reg_); }
-  virtual DeoptInstr::Kind kind() const { return kInt32x4FpuRegister; }
-
-  virtual const char* ToCString() const {
-    return Isolate::Current()->current_zone()->PrintToString(
-        "%s(f32x4)", Assembler::FpuRegisterName(reg_));
-  }
-
-  void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    simd128_value_t value = deopt_context->FpuRegisterValueAsSimd128(reg_);
-    *reinterpret_cast<RawSmi**>(dest_addr) = Smi::New(0);
-    deopt_context->DeferInt32x4Materialization(
-        value, reinterpret_cast<RawInt32x4**>(dest_addr));
-  }
-
- private:
-  const FpuRegister reg_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptInt32x4FpuRegisterInstr);
-};
-
+// Simd128 types.
+typedef DeoptFpuInstr<DeoptInstr::kFloat32x4, simd128_value_t, RawFloat32x4>
+    DeoptFloat32x4Instr;
+typedef DeoptFpuInstr<DeoptInstr::kFloat32x4, simd128_value_t, RawFloat32x4>
+    DeoptFloat32x4Instr;
+typedef DeoptFpuInstr<DeoptInstr::kFloat64x2, simd128_value_t, RawFloat64x2>
+    DeoptFloat64x2Instr;
+typedef DeoptFpuInstr<DeoptInstr::kInt32x4, simd128_value_t, RawInt32x4>
+    DeoptInt32x4Instr;
 
 // Deoptimization instruction creating a PC marker for the code of
 // function at 'object_table_index'.
@@ -1053,9 +619,9 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   virtual intptr_t source_index() const { return object_table_index_; }
   virtual DeoptInstr::Kind kind() const { return kPcMarker; }
 
-  virtual const char* ToCString() const {
+  virtual const char* ArgumentsToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "pcmark oti:%" Pd "", object_table_index_);
+        "%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
@@ -1107,9 +673,9 @@ class DeoptPpInstr : public DeoptInstr {
   virtual intptr_t source_index() const { return object_table_index_; }
   virtual DeoptInstr::Kind kind() const { return kPp; }
 
-  virtual const char* ToCString() const {
+  virtual const char* ArgumentsToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "pp oti:%" Pd "", object_table_index_);
+        "%" Pd "", object_table_index_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
@@ -1135,10 +701,6 @@ class DeoptCallerFpInstr : public DeoptInstr {
   virtual intptr_t source_index() const { return 0; }
   virtual DeoptInstr::Kind kind() const { return kCallerFp; }
 
-  virtual const char* ToCString() const {
-    return "callerfp";
-  }
-
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     *dest_addr = deopt_context->GetCallerFp();
     deopt_context->SetCallerFp(reinterpret_cast<intptr_t>(
@@ -1158,10 +720,6 @@ class DeoptCallerPpInstr : public DeoptInstr {
   virtual intptr_t source_index() const { return 0; }
   virtual DeoptInstr::Kind kind() const { return kCallerPp; }
 
-  virtual const char* ToCString() const {
-    return "callerpp";
-  }
-
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     *dest_addr = deopt_context->GetSourcePp();
   }
@@ -1179,10 +737,6 @@ class DeoptCallerPcInstr : public DeoptInstr {
 
   virtual intptr_t source_index() const { return 0; }
   virtual DeoptInstr::Kind kind() const { return kCallerPc; }
-
-  virtual const char* ToCString() const {
-    return "callerpc";
-  }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     *dest_addr = deopt_context->GetSourcePc();
@@ -1216,9 +770,9 @@ class DeoptSuffixInstr : public DeoptInstr {
   }
   virtual DeoptInstr::Kind kind() const { return kSuffix; }
 
-  virtual const char* ToCString() const {
+  virtual const char* ArgumentsToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "suffix %" Pd ":%" Pd, info_number_, suffix_length_);
+        "%" Pd ":%" Pd, info_number_, suffix_length_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
@@ -1255,9 +809,9 @@ class DeoptMaterializedObjectRefInstr : public DeoptInstr {
   virtual intptr_t source_index() const { return index_; }
   virtual DeoptInstr::Kind kind() const { return kMaterializedObjectRef; }
 
-  virtual const char* ToCString() const {
+  virtual const char* ArgumentsToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "mat ref #%" Pd "", index_);
+        "#%" Pd "", index_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
@@ -1286,9 +840,9 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
   virtual intptr_t source_index() const { return field_count_; }
   virtual DeoptInstr::Kind kind() const { return kMaterializeObject; }
 
-  virtual const char* ToCString() const {
+  virtual const char* ArgumentsToCString() const {
     return Isolate::Current()->current_zone()->PrintToString(
-        "mat obj len:%" Pd "", field_count_);
+        "%" Pd "", field_count_);
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
@@ -1333,60 +887,82 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
 DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
   Kind kind = static_cast<Kind>(kind_as_int);
   switch (kind) {
-    case kStackSlot: return new DeoptStackSlotInstr(source_index);
-    case kDoubleStackSlot: return new DeoptDoubleStackSlotInstr(source_index);
-    case kFloat32x4StackSlot:
-        return new DeoptFloat32x4StackSlotInstr(source_index);
-    case kFloat64x2StackSlot:
-        return new DeoptFloat64x2StackSlotInstr(source_index);
-    case kInt32x4StackSlot:
-        return new DeoptInt32x4StackSlotInstr(source_index);
-    case kRetAddress: return new DeoptRetAddressInstr(source_index);
-    case kConstant: return new DeoptConstantInstr(source_index);
-    case kRegister: return new DeoptRegisterInstr(source_index);
-    case kFpuRegister: return new DeoptFpuRegisterInstr(source_index);
-    case kMintRegisterPair: {
-      intptr_t lo_reg_as_int =
-          DeoptMintRegisterPairInstr::LoRegister::decode(source_index);
-      intptr_t hi_reg_as_int =
-          DeoptMintRegisterPairInstr::HiRegister::decode(source_index);
-      return new DeoptMintRegisterPairInstr(lo_reg_as_int, hi_reg_as_int);
-    }
-    case kMintStackSlotPair: {
-      intptr_t lo_slot =
-          DeoptMintStackSlotPairInstr::LoSlot::decode(source_index);
-      intptr_t hi_slot =
-          DeoptMintStackSlotPairInstr::HiSlot::decode(source_index);
-      return new DeoptMintStackSlotPairInstr(lo_slot, hi_slot);
-    }
-    case kMintStackSlotRegister: {
-      intptr_t slot =
-          DeoptMintStackSlotRegisterInstr::Slot::decode(source_index);
-      intptr_t reg_as_int =
-          DeoptMintStackSlotRegisterInstr::Reg::decode(source_index);
-      bool flip = DeoptMintStackSlotRegisterInstr::Flip::decode(source_index);
-      return new DeoptMintStackSlotRegisterInstr(slot, reg_as_int, flip);
-    }
-    case kUint32Register:
-      return new DeoptUint32RegisterInstr(source_index);
-    case kUint32StackSlot:
-      return new DeoptUint32StackSlotInstr(source_index);
-    case kFloat32x4FpuRegister:
-        return new DeoptFloat32x4FpuRegisterInstr(source_index);
-    case kFloat64x2FpuRegister:
-        return new DeoptFloat64x2FpuRegisterInstr(source_index);
-    case kInt32x4FpuRegister:
-        return new DeoptInt32x4FpuRegisterInstr(source_index);
-    case kPcMarker: return new DeoptPcMarkerInstr(source_index);
-    case kPp: return new DeoptPpInstr(source_index);
-    case kCallerFp: return new DeoptCallerFpInstr();
-    case kCallerPp: return new DeoptCallerPpInstr();
-    case kCallerPc: return new DeoptCallerPcInstr();
-    case kSuffix: return new DeoptSuffixInstr(source_index);
+    case kWord:
+      return new DeoptWordInstr(source_index);
+    case kDouble:
+      return new DeoptDoubleInstr(source_index);
+    case kMintPair:
+      return new DeoptMintPairInstr(source_index);
+    case kUint32:
+      return new DeoptUint32Instr(source_index);
+    case kFloat32x4:
+      return new DeoptFloat32x4Instr(source_index);
+    case kFloat64x2:
+      return new DeoptFloat64x2Instr(source_index);
+    case kInt32x4:
+      return new DeoptInt32x4Instr(source_index);
+    case kRetAddress:
+      return new DeoptRetAddressInstr(source_index);
+    case kConstant:
+      return new DeoptConstantInstr(source_index);
+    case kPcMarker:
+      return new DeoptPcMarkerInstr(source_index);
+    case kPp:
+      return new DeoptPpInstr(source_index);
+    case kCallerFp:
+      return new DeoptCallerFpInstr();
+    case kCallerPp:
+      return new DeoptCallerPpInstr();
+    case kCallerPc:
+      return new DeoptCallerPcInstr();
+    case kSuffix:
+      return new DeoptSuffixInstr(source_index);
     case kMaterializedObjectRef:
-        return new DeoptMaterializedObjectRefInstr(source_index);
+      return new DeoptMaterializedObjectRefInstr(source_index);
     case kMaterializeObject:
       return new DeoptMaterializeObjectInstr(source_index);
+  }
+  UNREACHABLE();
+  return NULL;
+}
+
+
+const char* DeoptInstr::KindToCString(Kind kind) {
+  switch (kind) {
+    case kWord:
+      return "word";
+    case kDouble:
+      return "double";
+    case kMintPair:
+      return "mint";
+    case kUint32:
+      return "uint32";
+    case kFloat32x4:
+      return "float32x4";
+    case kFloat64x2:
+      return "float64x2";
+    case kInt32x4:
+      return "int32x4";
+    case kRetAddress:
+      return "retaddr";
+    case kConstant:
+      return "const";
+    case kPcMarker:
+      return "pc";
+    case kPp:
+      return "pp";
+    case kCallerFp:
+      return "callerfp";
+    case kCallerPp:
+      return "callerpp";
+    case kCallerPc:
+      return "callerpc";
+    case kSuffix:
+      return "suffix";
+    case kMaterializedObjectRef:
+      return "ref";
+    case kMaterializeObject:
+      return "mat";
   }
   UNREACHABLE();
   return NULL;
@@ -1459,6 +1035,31 @@ intptr_t DeoptInfoBuilder::CalculateStackIndex(
 }
 
 
+CpuRegisterSource DeoptInfoBuilder::ToCpuRegisterSource(const Location& loc) {
+  if (loc.IsRegister()) {
+    return CpuRegisterSource(CpuRegisterSource::kRegister, loc.reg());
+  } else {
+    ASSERT(loc.IsStackSlot());
+    return CpuRegisterSource(
+        CpuRegisterSource::kStackSlot, CalculateStackIndex(loc));
+  }
+}
+
+
+FpuRegisterSource DeoptInfoBuilder::ToFpuRegisterSource(
+  const Location& loc,
+  Location::Kind stack_slot_kind) {
+  if (loc.IsFpuRegister()) {
+    return FpuRegisterSource(FpuRegisterSource::kRegister, loc.fpu_reg());
+  } else {
+    ASSERT((stack_slot_kind == Location::kQuadStackSlot) ||
+           (stack_slot_kind == Location::kDoubleStackSlot));
+    ASSERT(loc.kind() == stack_slot_kind);
+    return FpuRegisterSource(
+        FpuRegisterSource::kStackSlot, CalculateStackIndex(loc));
+  }
+}
+
 void DeoptInfoBuilder::AddReturnAddress(const Code& code,
                                         intptr_t deopt_id,
                                         intptr_t dest_index) {
@@ -1498,79 +1099,6 @@ void DeoptInfoBuilder::AddCopy(Value* value,
   if (source_loc.IsConstant()) {
     intptr_t object_table_index = FindOrAddObjectInTable(source_loc.constant());
     deopt_instr = new(isolate()) DeoptConstantInstr(object_table_index);
-  } else if (source_loc.IsRegister()) {
-    if (value->definition()->representation() == kUnboxedUint32) {
-      deopt_instr = new(isolate()) DeoptUint32RegisterInstr(source_loc.reg());
-    } else {
-      ASSERT(value->definition()->representation() == kTagged);
-      deopt_instr = new(isolate()) DeoptRegisterInstr(source_loc.reg());
-    }
-  } else if (source_loc.IsFpuRegister()) {
-    if (value->definition()->representation() == kUnboxedDouble) {
-      deopt_instr = new(isolate()) DeoptFpuRegisterInstr(source_loc.fpu_reg());
-    } else if (value->definition()->representation() == kUnboxedFloat32x4) {
-      deopt_instr =
-          new(isolate()) DeoptFloat32x4FpuRegisterInstr(source_loc.fpu_reg());
-    } else if (value->definition()->representation() == kUnboxedInt32x4) {
-      deopt_instr =
-          new(isolate()) DeoptInt32x4FpuRegisterInstr(source_loc.fpu_reg());
-    } else {
-      ASSERT(value->definition()->representation() == kUnboxedFloat64x2);
-      deopt_instr =
-          new(isolate()) DeoptFloat64x2FpuRegisterInstr(source_loc.fpu_reg());
-    }
-  } else if (source_loc.IsStackSlot()) {
-    if (value->definition()->representation() == kUnboxedUint32) {
-      intptr_t source_index = CalculateStackIndex(source_loc);
-      deopt_instr = new(isolate()) DeoptUint32StackSlotInstr(source_index);
-    } else {
-      ASSERT(value->definition()->representation() == kTagged);
-      intptr_t source_index = CalculateStackIndex(source_loc);
-      deopt_instr = new(isolate()) DeoptStackSlotInstr(source_index);
-    }
-  } else if (source_loc.IsDoubleStackSlot()) {
-    ASSERT(value->definition()->representation() == kUnboxedDouble);
-    intptr_t source_index = CalculateStackIndex(source_loc);
-    deopt_instr = new(isolate()) DeoptDoubleStackSlotInstr(source_index);
-  } else if (source_loc.IsQuadStackSlot()) {
-    intptr_t source_index = CalculateStackIndex(source_loc);
-    if (value->definition()->representation() == kUnboxedFloat32x4) {
-      deopt_instr = new(isolate()) DeoptFloat32x4StackSlotInstr(source_index);
-    } else if (value->definition()->representation() == kUnboxedInt32x4) {
-      deopt_instr = new(isolate()) DeoptInt32x4StackSlotInstr(source_index);
-    } else {
-      ASSERT(value->definition()->representation() == kUnboxedFloat64x2);
-      deopt_instr = new(isolate()) DeoptFloat64x2StackSlotInstr(source_index);
-    }
-  } else if (source_loc.IsPairLocation()) {
-    ASSERT(value->definition()->representation() == kUnboxedMint);
-    // There are four cases to consider here:
-    // (R = Register, S = Stack slot).
-    // 1) R, R.
-    // 2) S, S.
-    // 3) R, S.
-    // 4) S, R.
-    PairLocation* pair = source_loc.AsPairLocation();
-    if (pair->At(0).IsRegister() && pair->At(1).IsRegister()) {
-      deopt_instr =
-          new(isolate()) DeoptMintRegisterPairInstr(pair->At(0).reg(),
-                                                    pair->At(1).reg());
-    } else if (pair->At(0).IsStackSlot() && pair->At(1).IsStackSlot()) {
-      deopt_instr = new(isolate()) DeoptMintStackSlotPairInstr(
-          CalculateStackIndex(pair->At(0)),
-          CalculateStackIndex(pair->At(1)));
-    } else if (pair->At(0).IsRegister() && pair->At(1).IsStackSlot()) {
-      deopt_instr = new(isolate()) DeoptMintStackSlotRegisterInstr(
-          CalculateStackIndex(pair->At(1)),
-          pair->At(0).reg(),
-          true);
-    } else {
-      ASSERT(pair->At(0).IsStackSlot() && pair->At(1).IsRegister());
-      deopt_instr = new(isolate()) DeoptMintStackSlotRegisterInstr(
-          CalculateStackIndex(pair->At(0)),
-          pair->At(1).reg(),
-          false);
-    }
   } else if (source_loc.IsInvalid() &&
              value->definition()->IsMaterializeObject()) {
     const intptr_t index = FindMaterialization(
@@ -1578,7 +1106,44 @@ void DeoptInfoBuilder::AddCopy(Value* value,
     ASSERT(index >= 0);
     deopt_instr = new(isolate()) DeoptMaterializedObjectRefInstr(index);
   } else {
-    UNREACHABLE();
+    ASSERT(!source_loc.IsInvalid());
+    switch (value->definition()->representation()) {
+      case kTagged:
+        deopt_instr = new(isolate()) DeoptWordInstr(
+          ToCpuRegisterSource(source_loc));
+        break;
+      case kUnboxedMint: {
+        ASSERT(source_loc.IsPairLocation());
+        PairLocation* pair = source_loc.AsPairLocation();
+        deopt_instr = new(isolate()) DeoptMintPairInstr(
+            ToCpuRegisterSource(pair->At(0)),
+            ToCpuRegisterSource(pair->At(1)));
+        break;
+      }
+      case kUnboxedUint32:
+        deopt_instr = new(isolate()) DeoptUint32Instr(
+          ToCpuRegisterSource(source_loc));
+        break;
+      case kUnboxedDouble:
+        deopt_instr = new(isolate()) DeoptDoubleInstr(
+            ToFpuRegisterSource(source_loc, Location::kDoubleStackSlot));
+        break;
+      case kUnboxedFloat32x4:
+        deopt_instr = new(isolate()) DeoptFloat32x4Instr(
+            ToFpuRegisterSource(source_loc, Location::kQuadStackSlot));
+        break;
+      case kUnboxedFloat64x2:
+        deopt_instr = new(isolate()) DeoptFloat64x2Instr(
+            ToFpuRegisterSource(source_loc, Location::kQuadStackSlot));
+        break;
+      case kUnboxedInt32x4:
+        deopt_instr = new(isolate()) DeoptInt32x4Instr(
+            ToFpuRegisterSource(source_loc, Location::kQuadStackSlot));
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
   }
   ASSERT(dest_index == FrameSize());
   ASSERT(deopt_instr != NULL);
