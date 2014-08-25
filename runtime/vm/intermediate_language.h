@@ -4082,8 +4082,6 @@ class CreateArrayInstr : public TemplateDefinition<2> {
   Value* element_type() const { return inputs_[kElementTypePos]; }
   Value* num_elements() const { return inputs_[kLengthPos]; }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
   // Throw needs environment, which is created only if instruction can
   // deoptimize.
   virtual bool CanDeoptimize() const { return MayThrow(); }

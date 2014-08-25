@@ -336,6 +336,7 @@ namespace dart {
   V(::, sin, MathSin, 1741396147)                                              \
   V(::, sqrt, MathSqrt, 101545548)                                             \
   V(::, tan, MathTan, 982072809)                                               \
+  V(Lists, copy, ListsCopy, 902244797)
 
 
 // A list of core functions that internally dispatch based on received id.

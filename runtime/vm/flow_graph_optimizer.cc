@@ -3808,17 +3808,20 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
   *cursor = flow_graph()->AppendTo(*cursor, len_in_bytes, call->env(),
                                    FlowGraph::kValue);
 
-  ConstantInstr* length_adjustment =
-      flow_graph()->GetConstant(Smi::Handle(I, Smi::New(
-          Instance::ElementSizeFor(view_cid) - 1)));
   // adjusted_length = len_in_bytes - (element_size - 1).
-  BinarySmiOpInstr* adjusted_length =
-      new(I) BinarySmiOpInstr(Token::kSUB,
-                              new(I) Value(len_in_bytes),
-                              new(I) Value(length_adjustment),
-                              call->deopt_id(), call->token_pos());
-  *cursor = flow_graph()->AppendTo(*cursor, adjusted_length, call->env(),
-                                   FlowGraph::kValue);
+  Definition* adjusted_length = len_in_bytes;
+  intptr_t adjustment = Instance::ElementSizeFor(view_cid) - 1;
+  if (adjustment > 0) {
+    ConstantInstr* length_adjustment =
+        flow_graph()->GetConstant(Smi::Handle(I, Smi::New(adjustment)));
+    adjusted_length =
+        new(I) BinarySmiOpInstr(Token::kSUB,
+                                new(I) Value(len_in_bytes),
+                                new(I) Value(length_adjustment),
+                                call->deopt_id(), call->token_pos());
+    *cursor = flow_graph()->AppendTo(*cursor, adjusted_length, call->env(),
+                                     FlowGraph::kValue);
+  }
 
   // Check adjusted_length > 0.
   ConstantInstr* zero =

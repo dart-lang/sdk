@@ -522,16 +522,6 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void CreateArrayInstr::PrintOperandsTo(BufferFormatter* f) const {
-  for (int i = 0; i < ArgumentCount(); ++i) {
-    if (i != 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
-  }
-  if (ArgumentCount() > 0) f->Print(", ");
-  element_type()->PrintTo(f);
-}
-
-
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", %" Pd, offset_in_bytes());
