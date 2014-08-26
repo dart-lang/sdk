@@ -498,23 +498,33 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       return new Future.value(library);
     }
     return compiler.withCurrentElement(importingLibrary, () {
-      return compiler.readScript(node, readableUri)
-          .then((Script script) {
-            if (script == null) return null;
-            LibraryElement element = new LibraryElementX(script, resolvedUri);
-            compiler.withCurrentElement(element, () {
-              handler.registerNewLibrary(element);
-              native.maybeEnableNative(compiler, element);
-              libraryCanonicalUriMap[resolvedUri] = element;
-              compiler.scanner.scanLibrary(element);
-            });
-            return processLibraryTags(handler, element).then((_) {
-              compiler.withCurrentElement(element, () {
-                handler.registerLibraryExports(element);
-              });
-              return element;
-            });
+      return compiler.readScript(node, readableUri).then((Script script) {
+        if (script == null) return null;
+        LibraryElement element =
+            createLibrarySync(handler, script, resolvedUri);
+        return processLibraryTags(handler, element).then((_) {
+          compiler.withCurrentElement(element, () {
+            handler.registerLibraryExports(element);
           });
+          return element;
+        });
+      });
+    });
+  }
+
+  LibraryElement createLibrarySync(
+      LibraryDependencyHandler handler,
+      Script script,
+      Uri resolvedUri) {
+    LibraryElement element = new LibraryElementX(script, resolvedUri);
+    return compiler.withCurrentElement(element, () {
+      if (handler != null) {
+        handler.registerNewLibrary(element);
+        libraryCanonicalUriMap[resolvedUri] = element;
+      }
+      native.maybeEnableNative(compiler, element);
+      compiler.scanner.scanLibrary(element);
+      return element;
     });
   }
 }

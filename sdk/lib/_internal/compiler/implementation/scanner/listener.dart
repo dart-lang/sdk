@@ -2169,7 +2169,7 @@ class NodeListener extends ElementListener {
   }
 }
 
-abstract class PartialElement implements Element {
+abstract class PartialElement {
   Token get beginToken;
   Token get endToken;
 
@@ -2254,16 +2254,17 @@ class PartialConstructorElement extends ConstructorElementX
   }
 }
 
-class PartialFieldList extends VariableList {
+class PartialFieldList extends VariableList with PartialElement {
   final Token beginToken;
   final Token endToken;
-  final bool hasParseError;
 
   PartialFieldList(this.beginToken,
                    this.endToken,
                    Modifiers modifiers,
-                   this.hasParseError)
-      : super(modifiers);
+                   bool hasParseError)
+      : super(modifiers) {
+    super.hasParseError = hasParseError;
+  }
 
   VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
     if (definitions != null) return definitions;
@@ -2365,7 +2366,8 @@ Node parse(DiagnosticListener diagnosticListener,
     doParse(new Parser(listener));
   } on ParserError catch (e) {
     if (element is PartialElement) {
-      element.hasParseError = true;
+      PartialElement partial = element as PartialElement;
+      partial.hasParseError = true;
     }
     return new ErrorNode(element.position, e.reason);
   }
