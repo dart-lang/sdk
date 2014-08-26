@@ -315,7 +315,6 @@ http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_multi_server/test/http_multi_server_test: Skip # Uses dart:io
 http_server/test/*: Fail, OK # Uses dart:io.
-http_base/test/http_base_io_test: SkipByDesign # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
@@ -420,7 +419,6 @@ polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 http/test/html/*: Skip
-http_base/test/http_base_html_test: SkipByDesign # Uses dart:html.
 
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io
