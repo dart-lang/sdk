@@ -1414,6 +1414,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 
 // TODO(johnniwinther): [FunctionSignature] should be merged with
 // [FunctionType].
+// TODO(karlklose): all these lists should have element type [FormalElement].
 class FunctionSignatureX implements FunctionSignature {
   final Link<Element> requiredParameters;
   final Link<Element> optionalParameters;
@@ -1422,14 +1423,17 @@ class FunctionSignatureX implements FunctionSignature {
   final bool optionalParametersAreNamed;
   final List<Element> orderedOptionalParameters;
   final FunctionType type;
+  final bool hasOptionalParameters;
 
   FunctionSignatureX(this.requiredParameters,
-                     this.optionalParameters,
+                     Link<Element> optionalParameters,
                      this.requiredParameterCount,
                      this.optionalParameterCount,
                      this.optionalParametersAreNamed,
                      this.orderedOptionalParameters,
-                     this.type);
+                     this.type)
+      : optionalParameters = optionalParameters,
+        hasOptionalParameters = !optionalParameters.isEmpty;
 
   void forEachRequiredParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;

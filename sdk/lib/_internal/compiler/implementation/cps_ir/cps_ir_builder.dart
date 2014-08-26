@@ -1525,9 +1525,13 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         (ast.Operator.INCREMENT_OPERATORS.contains(op.source) ? 0 : 1)
             == node.argumentCount());
 
-    ast.Node assignArg = selector.isIndexSet
-        ? node.arguments.tail.head
-        : node.arguments.head;
+    ast.Node getAssignArgument() {
+      assert(invariant(node, !node.arguments.isEmpty,
+                       message: "argument expected"));
+      return selector.isIndexSet
+          ? node.arguments.tail.head
+          : node.arguments.head;
+    }
 
     // Get the value into valueToStore
     if (op.source == "=") {
@@ -1537,7 +1541,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
       } else if (element == null || Elements.isInstanceField(element)) {
         receiver = visitReceiver(node.receiver);
       }
-      valueToStore = visit(assignArg);
+      valueToStore = visit(getAssignArgument());
     } else {
       // Get the original value into getter
       assert(ast.Operator.COMPLEX_OPERATORS.contains(op.source));
@@ -1553,7 +1557,7 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
         arg = makePrimConst(constantSystem.createInt(1));
         add(new ir.LetPrim(arg));
       } else {
-        arg = visit(assignArg);
+        arg = visit(getAssignArgument());
       }
       valueToStore = new ir.Parameter(null);
       ir.Continuation k = new ir.Continuation([valueToStore]);

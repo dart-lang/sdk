@@ -48,9 +48,9 @@ class ValidatorVisitor extends Visitor {
     if (identical(name, '++') || identical(name, '--')) {
       expect(node, node.assignmentOperator is Operator);
       if (node.isIndex) {
-        expect(node.arguments.tail.head, node.arguments.tail.isEmpty);
+        expect(node, node.arguments.tail.isEmpty);
       } else {
-        expect(node.arguments.head, node.arguments.isEmpty);
+        expect(node, node.arguments.isEmpty);
       }
     } else {
       expect(node, !node.arguments.isEmpty);

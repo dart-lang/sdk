@@ -864,7 +864,8 @@ class TypeGraphInferrerEngine
       int parameterIndex = 0;
       bool visitingRequiredParameter = true;
       signature.forEachParameter((Element parameter) {
-        if (parameter == signature.firstOptionalParameter) {
+        if (signature.hasOptionalParameters &&
+            parameter == signature.firstOptionalParameter) {
           visitingRequiredParameter = false;
         }
         TypeInformation type = visitingRequiredParameter

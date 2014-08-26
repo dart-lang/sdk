@@ -2391,7 +2391,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Link<Node> parameterNodes = (node.parameters == null)
         ? const Link<Node>() : node.parameters.nodes;
     functionParameters.forEachParameter((ParameterElement element) {
-      if (element == functionParameters.optionalParameters.head) {
+      // TODO(karlklose): should be a list of [FormalElement]s, but the actual
+      // implementation uses [Element].
+      Link<Element> optionals = functionParameters.optionalParameters;
+      if (!optionals.isEmpty && element == optionals.head) {
         NodeList nodes = parameterNodes.head;
         parameterNodes = nodes.nodes;
       }
@@ -3728,7 +3731,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     Map<String, LabelDefinition> continueLabels = <String, LabelDefinition>{};
 
     Link<Node> cases = node.cases.nodes;
-    SwitchCase switchCase = cases.head;
     CaseMatch firstCase = null;
     DartType firstCaseType = null;
     bool hasReportedProblem = false;
