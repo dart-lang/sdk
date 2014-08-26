@@ -167,6 +167,28 @@ String BASIC_LOOP_IN = """
 
 String BASIC_LOOP_OUT = BASIC_LOOP_IN;
 
+// Ensures that proper scoping is preserved, i.e. that the optimized
+// continuation body does reference out of scope primitives.
+// IR written by hand since this case is currently not being generated.
+
+String SCOPING_IN = """
+(FunctionDefinition main ( return)
+  (LetCont (k0 v1)
+    (InvokeStatic print v1 return))
+  (LetPrim v0 (Constant 0))
+  (LetPrim v2 (Constant null))
+  (InvokeContinuation k0 v0))
+""";
+
+String SCOPING_OUT = """
+(FunctionDefinition main ( return)
+  (LetPrim v0 (Constant 0))
+  (LetCont (k0)
+    (InvokeStatic print v0 return))
+  (LetPrim v1 (Constant null))
+  (InvokeContinuation k0 ))
+""";
+
 // Ensures that continuations which are never invoked are not optimized.
 // IR written by hand.
 
@@ -230,6 +252,7 @@ void main() {
   testRedundantPhi(READ_IN_LOOP_IN, READ_IN_LOOP_OUT);
   testRedundantPhi(INNER_LOOP_IN, INNER_LOOP_OUT);
   testRedundantPhi(BASIC_LOOP_IN, BASIC_LOOP_OUT);
+  testRedundantPhi(SCOPING_IN, SCOPING_OUT);
   testRedundantPhi(NEVER_INVOKED1_IN, NEVER_INVOKED1_OUT);
   testRedundantPhi(NEVER_INVOKED2_IN, NEVER_INVOKED2_OUT);
   testRedundantPhi(AS_ARG_IN, AS_ARG_OUT);

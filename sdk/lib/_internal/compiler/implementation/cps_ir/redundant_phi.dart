@@ -119,6 +119,16 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
       for (InvokeContinuation invoke in invokes) {
         invoke.arguments[src].unlink();
       }
+
+      // Finally, if the substituted definition is not in scope of the affected
+      // continuation, move the continuation binding. This is safe to do since
+      // the continuation is referenced only as the target in continuation
+      // invokes, and all such invokes must be within the scope of
+      // [uniqueDefinition]. Note that this is linear in the depth of
+      // the binding of [uniqueDefinition].
+      LetCont letCont = cont.parent;
+      assert(letCont != null);
+      _moveIntoScopeOf(letCont, uniqueDefinition);
     }
 
     // Remove trailing items from parameter and argument lists.
@@ -133,3 +143,36 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
   }
 }
 
+/// Returns true, iff [letCont] is not scope of [definition].
+/// Linear in the depth of definition within the IR graph.
+bool _isInScopeOf(LetCont letCont, Definition definition) {
+  for (Node node = definition.parent; node != null; node = node.parent) {
+    if (node == letCont) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/// Moves [letCont] below the binding of [definition] within the IR graph.
+/// Does nothing if [letCont] is already within the scope of [definition].
+/// Assumes that one argument is nested within the scope of the other
+/// when this method is called.
+void _moveIntoScopeOf(LetCont letCont, Definition definition) {
+  if (_isInScopeOf(letCont, definition)) return;
+
+  // Remove the continuation binding from its current spot.
+  InteriorNode parent = letCont.parent;
+  parent.body = letCont.body;
+  letCont.body.parent = parent;
+
+  // Insert it just below the binding of definition.
+  InteriorNode binding = definition.parent;
+
+  letCont.body = binding.body;
+  binding.body.parent = letCont;
+
+  binding.body = letCont;
+  letCont.parent = binding;
+}
