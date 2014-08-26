@@ -167,6 +167,43 @@ String BASIC_LOOP_IN = """
 
 String BASIC_LOOP_OUT = BASIC_LOOP_IN;
 
+// Ensures that continuations which are never invoked are not optimized.
+// IR written by hand.
+
+String NEVER_INVOKED1_IN = """
+(FunctionDefinition main ( return) 
+  (LetPrim v0 (Constant 0))
+  (LetCont (k0 v1)
+    (InvokeStatic print v1 return))
+  (InvokeContinuation return v0))
+""";
+
+String NEVER_INVOKED1_OUT = NEVER_INVOKED1_IN;
+
+// As in the previous test, except with the added wrinkle of higher order
+// continuations.
+
+String NEVER_INVOKED2_IN = """
+(FunctionDefinition main ( return)
+  (LetCont (k0 v0)
+    (InvokeStatic print v0 return))
+  (InvokeContinuation return k0))
+""";
+
+String NEVER_INVOKED2_OUT = NEVER_INVOKED2_IN;
+
+// As in the previous test, but the continuation is invoked as well as passed
+// as an argument.
+
+String AS_ARG_IN = """
+(FunctionDefinition main ( return)
+  (LetCont (k0 v0)
+    (InvokeStatic print v0 return))
+  (InvokeContinuation k0 k0))
+""";
+
+String AS_ARG_OUT = AS_ARG_IN;
+
 /// Normalizes whitespace by replacing all whitespace sequences by a single
 /// space and trimming leading and trailing whitespace.
 String normalizeSExpr(String input) {
@@ -193,4 +230,7 @@ void main() {
   testRedundantPhi(READ_IN_LOOP_IN, READ_IN_LOOP_OUT);
   testRedundantPhi(INNER_LOOP_IN, INNER_LOOP_OUT);
   testRedundantPhi(BASIC_LOOP_IN, BASIC_LOOP_OUT);
+  testRedundantPhi(NEVER_INVOKED1_IN, NEVER_INVOKED1_OUT);
+  testRedundantPhi(NEVER_INVOKED2_IN, NEVER_INVOKED2_OUT);
+  testRedundantPhi(AS_ARG_IN, AS_ARG_OUT);
 }
