@@ -7747,11 +7747,13 @@ RawTokenStream* TokenStream::New(intptr_t len) {
   }
   uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
   ASSERT(data != NULL);
+  Isolate* isolate = Isolate::Current();
   const ExternalTypedData& stream = ExternalTypedData::Handle(
+      isolate,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data, len, Heap::kOld));
   stream.AddFinalizer(data, DataFinalizer);
-  const TokenStream& result = TokenStream::Handle(TokenStream::New());
+  const TokenStream& result = TokenStream::Handle(isolate, TokenStream::New());
   result.SetStream(stream);
   return result.raw();
 }
