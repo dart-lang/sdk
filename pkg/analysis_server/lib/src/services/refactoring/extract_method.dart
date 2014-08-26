@@ -15,6 +15,8 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
+import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -23,7 +25,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 
-const String _TOKEN_SEPARATOR = "\uFFFF";
+const String _TOKEN_SEPARATOR = '\uFFFF';
 
 
 /**
@@ -106,50 +108,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     return true;
   }
 
-  /**
-   * @return the selected [DartExpression] source, with applying new parameter names.
-   */
-  String get methodBodySource {
-    String source = utils.getRangeText(selectionRange);
-    // prepare ReplaceEdit operations to replace variables with parameters
-    // TODO: implement parameters
-    List<SourceEdit> replaceEdits = [];
-//    for (Parameter parameter in _parametersMap.values) {
-//      List<SourceRange> ranges = _parameterReferencesMap[parameter.oldName];
-//      if (ranges != null) {
-//        for (SourceRange range in ranges) {
-//          replaceEdits.add(new SourceEdit(range.offset - selectionRange.offset, range.length, parameter.newName));
-//        }
-//      }
-//    }
-    // apply replacements
-    source = SourceEdit.applySequence(source, replaceEdits);
-    // change indentation
-    if (_selectionFunctionExpression != null) {
-      AstNode baseNode =
-          _selectionFunctionExpression.getAncestor((node) => node is Statement);
-      if (baseNode != null) {
-        String baseIndent = utils.getNodePrefix(baseNode);
-        String targetIndent = utils.getNodePrefix(_parentMember);
-        source = utils.replaceSourceIndent(source, baseIndent, targetIndent);
-        source = source.trim();
-      }
-    }
-    if (_selectionStatements != null) {
-      String selectionIndent = utils.getNodePrefix(_selectionStatements[0]);
-      String targetIndent = utils.getNodePrefix(_parentMember) + '  ';
-      source = utils.replaceSourceIndent(source, selectionIndent, targetIndent);
-    }
-    // done
-    return source;
-  }
-
   @override
   List<RefactoringMethodParameter> get parameters => _parameters;
 
   @override
   void set parameters(List<RefactoringMethodParameter> parameters) {
-    // TODO: implement parameters
+    _parameters = parameters.toList();
   }
 
   @override
@@ -165,11 +129,11 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   String get signature {
     StringBuffer sb = new StringBuffer();
     if (createGetter) {
-      sb.write("get ");
+      sb.write('get ');
       sb.write(name);
     } else {
       sb.write(name);
-      sb.write("(");
+      sb.write('(');
       // add all parameters
       bool firstParameter = true;
       for (RefactoringMethodParameter parameter in _parameters) {
@@ -184,13 +148,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           String typeSource = parameter.type;
           if ('dynamic' != typeSource && '' != typeSource) {
             sb.write(typeSource);
-            sb.write(" ");
+            sb.write(' ');
           }
         }
         // name
         sb.write(parameter.name);
       }
-      sb.write(")");
+      sb.write(')');
     }
     // done
     return sb.toString();
@@ -199,9 +163,16 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     RefactoringStatus result = new RefactoringStatus();
-    return new Future.value(result);
+    result.addStatus(validateMethodName(name));
+    result.addStatus(_checkParameterNames());
     // TODO: implement checkFinalConditions
+    return _checkPossibleConflicts().then((status) {
+      result.addStatus(status);
+      return result;
+    });
+    return new Future.value(result);
   }
+
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {
@@ -273,7 +244,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         // invocation itself
         sb.write(name);
         if (!createGetter) {
-          sb.write("(");
+          sb.write('(');
           bool firstParameter = true;
           for (RefactoringMethodParameter parameter in _parameters) {
             // may be comma
@@ -307,7 +278,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       String prefix = utils.getNodePrefix(_parentMember);
       String eol = utils.endOfLine;
       // prepare annotations
-      String annotations = "";
+      String annotations = '';
       {
         // may be "static"
         if (_staticContext) {
@@ -317,10 +288,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       // prepare declaration source
       String declarationSource = null;
       {
-        String returnExpressionSource = methodBodySource;
+        String returnExpressionSource = _getMethodBodySource();
         // closure
         if (_selectionFunctionExpression != null) {
-          declarationSource = "${name}${returnExpressionSource}";
+          declarationSource = '${name}${returnExpressionSource}';
           if (_selectionFunctionExpression.body is ExpressionFunctionBody) {
             declarationSource += ';';
           }
@@ -330,12 +301,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           // add return type
           String returnTypeName =
               utils.getExpressionTypeSource(_selectionExpression);
-          if (returnTypeName != null && returnTypeName != "dynamic") {
-            annotations += "${returnTypeName} ";
+          if (returnTypeName != null && returnTypeName != 'dynamic') {
+            annotations += '${returnTypeName} ';
           }
           // just return expression
           declarationSource =
-              "${annotations}${signature} => ${returnExpressionSource};";
+              '${annotations}${signature} => ${returnExpressionSource};';
         }
         // statements
         if (_selectionStatements != null) {
@@ -346,7 +317,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           } else {
             annotations += 'void ';
           }
-          declarationSource = "${annotations}${signature} {${eol}";
+          declarationSource = '${annotations}${signature} {${eol}';
           declarationSource += returnExpressionSource;
           if (_returnVariableName != null) {
             declarationSource +=
@@ -380,6 +351,46 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       _parameterReferencesMap[name] = references;
     }
     references.add(range);
+  }
+
+  RefactoringStatus _checkParameterNames() {
+    RefactoringStatus result = new RefactoringStatus();
+    for (RefactoringMethodParameter parameter in _parameters) {
+      result.addStatus(validateParameterName(parameter.name));
+      for (RefactoringMethodParameter other in _parameters) {
+        if (!identical(parameter, other) && other.name == parameter.name) {
+          result.addError(
+              format("Parameter '{0}' already exists", parameter.name));
+          return result;
+        }
+      }
+      if (_usedNames.contains(parameter.name)) {
+        result.addError(
+            format("'{0}' is already used as a name in the selected code", parameter.name));
+        return result;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Checks if created method will shadow or will be shadowed by other elements.
+   */
+  Future<RefactoringStatus> _checkPossibleConflicts() {
+    RefactoringStatus result = new RefactoringStatus();
+    AstNode parent = _parentMember.parent;
+    // top-level function
+    if (parent is CompilationUnit) {
+      LibraryElement libraryElement = parent.element.library;
+      return validateCreateFunction(searchEngine, libraryElement, name);
+    }
+    // method of class
+    if (parent is ClassDeclaration) {
+      ClassElement classElement = parent.element;
+      return validateCreateMethod(searchEngine, classElement, name);
+    }
+    // OK
+    return new Future.value(result);
   }
 
   /**
@@ -439,6 +450,48 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         'Can only extract a single expression or a set of statements.');
   }
 
+  /**
+   * @return the selected [DartExpression] source, with applying new parameter names.
+   */
+  String _getMethodBodySource() {
+    String source = utils.getRangeText(selectionRange);
+    // prepare operations to replace variables with parameters
+    List<SourceEdit> replaceEdits = [];
+    for (RefactoringMethodParameter parameter in _parametersMap.values) {
+      List<SourceRange> ranges = _parameterReferencesMap[parameter.id];
+      if (ranges != null) {
+        for (SourceRange range in ranges) {
+          replaceEdits.add(
+              new SourceEdit(
+                  range.offset - selectionRange.offset,
+                  range.length,
+                  parameter.name));
+        }
+      }
+    }
+    replaceEdits.sort((a, b) => b.offset - a.offset);
+    // apply replacements
+    source = SourceEdit.applySequence(source, replaceEdits);
+    // change indentation
+    if (_selectionFunctionExpression != null) {
+      AstNode baseNode =
+          _selectionFunctionExpression.getAncestor((node) => node is Statement);
+      if (baseNode != null) {
+        String baseIndent = utils.getNodePrefix(baseNode);
+        String targetIndent = utils.getNodePrefix(_parentMember);
+        source = utils.replaceSourceIndent(source, baseIndent, targetIndent);
+        source = source.trim();
+      }
+    }
+    if (_selectionStatements != null) {
+      String selectionIndent = utils.getNodePrefix(_selectionStatements[0]);
+      String targetIndent = utils.getNodePrefix(_parentMember) + '  ';
+      source = utils.replaceSourceIndent(source, selectionIndent, targetIndent);
+    }
+    // done
+    return source;
+  }
+
   _SourcePattern _getSourcePattern(SourceRange range) {
     String originalSource = utils.getText(range.offset, range.length);
     _SourcePattern pattern = new _SourcePattern();
@@ -484,6 +537,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
    * Fills [_occurrences] field.
    */
   void _initializeOccurrences() {
+    _occurrences.clear();
     // prepare selection
     _SourcePattern selectionPattern = _getSourcePattern(selectionRange);
     String selectionSource =
@@ -527,8 +581,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       // we cannot both return variable and have explicit return statement
       if (_returnType != null) {
         result.addFatalError(
-            "Ambiguous return value: Selected block contains assignment(s) to "
-                "local variables and return statement.");
+            'Ambiguous return value: Selected block contains assignment(s) to '
+                'local variables and return statement.');
         return result;
       }
       // prepare to return an assigned variable
@@ -541,12 +595,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       StringBuffer sb = new StringBuffer();
       for (VariableElement variable in assignedUsedVariables) {
         sb.write(variable.displayName);
-        sb.write("\n");
+        sb.write('\n');
       }
       result.addFatalError(
           format(
-              "Ambiguous return value: Selected block contains more than one "
-                  "assignment to local variables. Affected variables are:\n\n{0}",
+              'Ambiguous return value: Selected block contains more than one '
+                  'assignment to local variables. Affected variables are:\n\n{0}',
               sb.toString().trim()));
     }
     // done
@@ -617,8 +671,8 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   void handleSelectionEndsIn(AstNode node) {
     super.handleSelectionEndsIn(node);
     invalidSelection(
-        "The selection does not cover a set of statements or an expression. "
-            "Extend selection to a valid range.");
+        'The selection does not cover a set of statements or an expression. '
+            'Extend selection to a valid range.');
   }
 
   @override
@@ -663,17 +717,17 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     if (_isFirstSelectedNode(node)) {
       // name of declaration
       if (node.inDeclarationContext()) {
-        invalidSelection("Cannot extract the name part of a declaration.");
+        invalidSelection('Cannot extract the name part of a declaration.');
       }
       // method name
       Element element = node.bestElement;
       if (element is FunctionElement || element is MethodElement) {
-        invalidSelection("Cannot extract a single method name.");
+        invalidSelection('Cannot extract a single method name.');
       }
       // name in property access
       if (node.parent is PrefixedIdentifier &&
           (node.parent as PrefixedIdentifier).identifier == node) {
-        invalidSelection("Can not extract name part of a property access.");
+        invalidSelection('Can not extract name part of a property access.');
       }
     }
     return null;
@@ -683,7 +737,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   Object visitTypeName(TypeName node) {
     super.visitTypeName(node);
     if (_isFirstSelectedNode(node)) {
-      invalidSelection("Cannot extract a single type reference.");
+      invalidSelection('Cannot extract a single type reference.');
     }
     return null;
   }
@@ -693,8 +747,8 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
     super.visitVariableDeclaration(node);
     if (_isFirstSelectedNode(node)) {
       invalidSelection(
-          "Cannot extract a variable declaration fragment. "
-              "Select whole declaration statement.",
+          'Cannot extract a variable declaration fragment. '
+              'Select whole declaration statement.',
           new Location.fromNode(node));
     }
     return null;
@@ -709,7 +763,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
       }
     } while (node != null);
     invalidSelection(
-        "Not all selected statements are enclosed by the same parent statement.");
+        'Not all selected statements are enclosed by the same parent statement.');
   }
 
   bool _isFirstSelectedNode(AstNode node) => identical(firstSelectedNode, node);

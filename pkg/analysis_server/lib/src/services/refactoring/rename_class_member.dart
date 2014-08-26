@@ -6,23 +6,36 @@ library services.src.refactoring.rename_class_member;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
+import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+
+
+/**
+ * Checks if creating a method with the given [name] in [classElement] will
+ * cause any conflicts.
+ */
+Future<RefactoringStatus> validateCreateMethod(SearchEngine searchEngine,
+    ClassElement classElement, String name) {
+  return new _ClassMemberValidator.forCreate(
+      searchEngine,
+      classElement,
+      name).validate();
+}
 
 
 /**
  * A [Refactoring] for renaming class member [Element]s.
  */
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
-  _RenameClassMemberValidator _validator;
+  _ClassMemberValidator _validator;
 
   RenameClassMemberRefactoringImpl(SearchEngine searchEngine, Element element)
       : super(searchEngine, element);
@@ -41,7 +54,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     _validator =
-        new _RenameClassMemberValidator(searchEngine, element, newName);
+        new _ClassMemberValidator.forRename(searchEngine, element, newName);
     return _validator.validate();
   }
 
@@ -121,33 +134,41 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
 
 
 /**
- * Helper to check if renaming of an [Element] to the given name will cause any
- * problems.
+ * Helper to check if the created or renamed [Element] will cause any conflicts.
  */
-class _RenameClassMemberValidator {
+class _ClassMemberValidator {
   final SearchEngine searchEngine;
   final Element element;
-  final String oldName;
-  final String newName;
+  final ClassElement elementClass;
+  final ElementKind elementKind;
+  final String name;
+  final bool isRename;
 
-  Set<Element> elements = new Set();
-  List<SearchMatch> references = [];
+  Set<Element> elements = new Set<Element>();
+  List<SearchMatch> references = <SearchMatch>[];
 
-  _RenameClassMemberValidator(this.searchEngine, Element element, this.newName)
-      : element = element,
-        oldName = element.displayName;
+  _ClassMemberValidator.forCreate(this.searchEngine, this.elementClass,
+      this.name)
+      : isRename = false,
+        element = null,
+        elementKind = ElementKind.METHOD;
+
+  _ClassMemberValidator.forRename(this.searchEngine, Element element, this.name)
+      : isRename = true,
+        element = element,
+        elementClass = element.enclosingElement,
+        elementKind = element.kind;
 
   Future<RefactoringStatus> validate() {
     RefactoringStatus result = new RefactoringStatus();
-    ClassElement elementClass = element.enclosingElement;
     // check if there is a member with "newName" in the same ClassElement
-    for (Element newNameMember in getChildren(elementClass, newName)) {
+    for (Element newNameMember in getChildren(elementClass, name)) {
       result.addError(
           format(
               "Class '{0}' already declares {1} with name '{2}'.",
               elementClass.displayName,
               getElementKindName(newNameMember),
-              newName),
+              name),
           new Location.fromElement(newNameMember));
     }
     // do chained computations
@@ -159,7 +180,7 @@ class _RenameClassMemberValidator {
       });
     }).then((_) {
       // check shadowing in hierarchy
-      return searchEngine.searchElementDeclarations(newName).then((decls) {
+      return searchEngine.searchElementDeclarations(name).then((decls) {
         for (SearchMatch decl in decls) {
           Element nameElement = getSyntheticAccessorVariable(decl.element);
           Element nameClass = nameElement.enclosingElement;
@@ -167,18 +188,20 @@ class _RenameClassMemberValidator {
           if (superClasses.contains(nameClass)) {
             result.addError(
                 format(
-                    "Renamed {0} will shadow {1} '{2}'.",
-                    getElementKindName(element),
+                    isRename ?
+                        "Renamed {0} will shadow {1} '{2}'." :
+                        "Created {0} will shadow {1} '{2}'.",
+                    elementKind.displayName,
                     getElementKindName(nameElement),
                     getElementQualifiedName(nameElement)),
                 new Location.fromElement(nameElement));
           }
           // renamed Element is shadowed by member of subclass
-          if (subClasses.contains(nameClass)) {
+          if (isRename && subClasses.contains(nameClass)) {
             result.addError(
                 format(
                     "Renamed {0} will be shadowed by {1} '{2}'.",
-                    getElementKindName(element),
+                    elementKind.displayName,
                     getElementKindName(nameElement),
                     getElementQualifiedName(nameElement)),
                 new Location.fromElement(nameElement));
@@ -195,7 +218,7 @@ class _RenameClassMemberValidator {
                   result.addError(
                       format(
                           "Usage of renamed {0} will be shadowed by {1} '{2}'.",
-                          getElementKindName(element),
+                          elementKind.displayName,
                           getElementKindName(localElement),
                           localElement.displayName),
                       new Location.fromMatch(reference));
@@ -228,6 +251,9 @@ class _RenameClassMemberValidator {
    * Fills [references] with all references to [elements].
    */
   Future _prepareReferences() {
+    if (!isRename) {
+      return new Future.value();
+    }
     return _prepareElements().then((_) {
       return Future.forEach(elements, (Element element) {
         return searchEngine.searchReferences(element).then((references) {

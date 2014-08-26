@@ -19,6 +19,33 @@ import 'package:analyzer/src/generated/java_core.dart';
 
 
 /**
+ * Checks if creating a top-level function with the given [name] in [library]
+ * will cause any conflicts.
+ */
+Future<RefactoringStatus> validateCreateFunction(SearchEngine searchEngine,
+    LibraryElement library, String name) {
+  return new _RenameUnitMemberValidator.forCreate(
+      searchEngine,
+      library,
+      ElementKind.FUNCTION,
+      name).validate();
+}
+
+
+/**
+ * Checks if creating a top-level function with the given [name] in [element]
+ * will cause any conflicts.
+ */
+Future<RefactoringStatus> validateRenameTopLevel(SearchEngine searchEngine,
+    Element element, String name) {
+  return new _RenameUnitMemberValidator.forRename(
+      searchEngine,
+      element,
+      name).validate();
+}
+
+
+/**
  * A [Refactoring] for renaming compilation unit member [Element]s.
  */
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
@@ -41,12 +68,7 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
-    return new RenameUnitMemberValidator(
-        searchEngine,
-        element,
-        element.kind,
-        newName,
-        true).validate();
+    return validateRenameTopLevel(searchEngine, element, newName);
   }
 
   @override
@@ -109,24 +131,33 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
 
 /**
- * Helper to check if renaming or creating [Element] with given name will cause any problems.
+ * Helper to check if the created or renamed [Element] will cause any conflicts.
  */
-class RenameUnitMemberValidator {
+class _RenameUnitMemberValidator {
   final SearchEngine searchEngine;
-  final Element element;
-  final ElementKind elementKind;
-  final String newName;
-  final bool forRename;
+  LibraryElement library;
+  Element element;
+  ElementKind elementKind;
+  final String name;
+  final bool isRename;
 
   final RefactoringStatus result = new RefactoringStatus();
 
-  RenameUnitMemberValidator(this.searchEngine, this.element, this.elementKind,
-      this.newName, this.forRename);
+  _RenameUnitMemberValidator.forCreate(this.searchEngine, this.library,
+      this.elementKind, this.name)
+      : isRename = false;
+
+  _RenameUnitMemberValidator.forRename(this.searchEngine, this.element,
+      this.name)
+      : isRename = true {
+    library = element.getAncestor((e) => e is LibraryElement);
+    elementKind = element.kind;
+  }
 
   Future<RefactoringStatus> validate() {
     _validateWillConflict();
     List<Future> futures = <Future>[];
-    if (forRename) {
+    if (isRename) {
       futures.add(_validateWillBeShadowed());
     }
     futures.add(_validateWillShadow());
@@ -139,13 +170,13 @@ class RenameUnitMemberValidator {
    * Returns `true` if [element] is visible at the given [SearchMatch].
    */
   bool _isVisibleAt(Element element, SearchMatch at) {
-    LibraryElement library = at.element.library;
+    LibraryElement atLibrary = at.element.library;
     // may be the same library
-    if (element.library == library) {
+    if (library == atLibrary) {
       return true;
     }
     // check imports
-    for (ImportElement importElement in library.imports) {
+    for (ImportElement importElement in atLibrary.imports) {
       // ignore if imported with prefix
       if (importElement.prefix != null) {
         continue;
@@ -160,9 +191,12 @@ class RenameUnitMemberValidator {
   }
 
   /**
-   * Validates if any usage of [element] renamed to [newName] will be shadowed.
+   * Validates if any usage of [element] renamed to [name] will be shadowed.
    */
   Future _validateWillBeShadowed() {
+    if (!isRename) {
+      return new Future.value();
+    }
     return searchEngine.searchReferences(element).then((references) {
       for (SearchMatch reference in references) {
         Element refElement = reference.element;
@@ -170,7 +204,7 @@ class RenameUnitMemberValidator {
             refElement.getAncestor((e) => e is ClassElement);
         if (refClass != null) {
           visitChildren(refClass, (shadow) {
-            if (hasDisplayName(shadow, newName)) {
+            if (hasDisplayName(shadow, name)) {
               String message = format(
                   "Reference to renamed {0} will be shadowed by {1} '{2}'.",
                   getElementKindName(element),
@@ -185,27 +219,26 @@ class RenameUnitMemberValidator {
   }
 
   /**
-   * Validates if [element] renamed to [newName] will conflict with another
+   * Validates if [element] renamed to [name] will conflict with another
    * top-level [Element] in the same library.
    */
   void _validateWillConflict() {
-    LibraryElement library = element.getAncestor((e) => e is LibraryElement);
     visitLibraryTopLevelElements(library, (element) {
-      if (hasDisplayName(element, newName)) {
+      if (hasDisplayName(element, name)) {
         String message = format(
             "Library already declares {0} with name '{1}'.",
             getElementKindName(element),
-            newName);
+            name);
         result.addError(message, new Location.fromElement(element));
       }
     });
   }
 
   /**
-   * Validates if renamed [element] will shadow any [Element] named [newName].
+   * Validates if renamed [element] will shadow any [Element] named [name].
    */
   Future _validateWillShadow() {
-    return searchEngine.searchMemberDeclarations(newName).then((declarations) {
+    return searchEngine.searchMemberDeclarations(name).then((declarations) {
       return Future.forEach(declarations, (SearchMatch declaration) {
         Element member = declaration.element;
         ClassElement declaringClass = member.enclosingElement;
@@ -222,16 +255,16 @@ class RenameUnitMemberValidator {
             if (refClass == declaringClass) {
               continue;
             }
-            // ignore if not visitble
+            // ignore if not visible
             if (!_isVisibleAt(element, memberReference)) {
               continue;
             }
             // OK, reference will be shadowed be the element being renamed
             String message = format(
-                forRename ?
+                isRename ?
                     "Renamed {0} will shadow {1} '{2}'." :
                     "Created {0} will shadow {1} '{2}'.",
-                getElementKindName(element),
+                elementKind.displayName,
                 getElementKindName(member),
                 getElementQualifiedName(member));
             result.addError(message, new Location.fromMatch(memberReference));

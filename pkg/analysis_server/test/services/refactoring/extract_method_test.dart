@@ -76,8 +76,8 @@ class A {
 }
 ''');
     _createRefactoringForStartEndComments();
-    // TODO(scheglov) implement
-//    return _assertConditionsError("Class 'A' already declares method with name 'res'.");
+    return _assertConditionsError(
+        "Class 'A' already declares method with name 'res'.");
   }
 
   test_bad_conflict_method_shadowsSuperDeclaration() {
@@ -95,12 +95,13 @@ class B extends A {
 }
 ''');
     _createRefactoringForStartEndComments();
-    // TODO(scheglov) implement
-//    return _assertConditionsError("Created method will shadow method 'A.res'.");
+    return _assertConditionsError("Created method will shadow method 'A.res'.");
   }
 
   test_bad_conflict_topLevel_alreadyDeclaresFunction() {
     indexTestUnit('''
+library my.lib;
+
 void res() {}
 main() {
 // start
@@ -109,8 +110,8 @@ main() {
 }
 ''');
     _createRefactoringForStartEndComments();
-    // TODO(scheglov) implement
-//    return _assertConditionsError("Library already declares function with name 'res'.");
+    return _assertConditionsError(
+        "Library already declares function with name 'res'.");
   }
 
   test_bad_conflict_topLevel_willHideInheritedMemberUsage() {
@@ -130,8 +131,7 @@ main() {
 }
 ''');
     _createRefactoringForStartEndComments();
-    // TODO(scheglov) implement
-//    return _assertConditionsError("Created function will shadow method 'A.res'.");
+    return _assertConditionsError("Created function will shadow method 'A.res'.");
   }
 
   test_bad_constructor_initializer() {
@@ -340,8 +340,8 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     refactoring.name = 'bad-name';
-    // TODO(scheglov) implement
-//    return _assertConditionsFatal("Method name must not contain '-'.");
+    // check conditions
+    return _assertConditionsError("Method name must not contain '-'.");
   }
 
   test_bad_notSameParent() {
@@ -371,21 +371,17 @@ main() {
 }
 ''');
     _createRefactoringForStartEndComments();
-    // TODO(scheglov) implement
     // update parameters
-//    {
-//      Parameter[] parameters = refactoring.getParameters();
-//      assertThat(parameters).hasSize(2);
-//      parameters[0].setNewName("dup");
-//      parameters[1].setNewName("dup");
-//      refactoring.setParameters(parameters);
-//    }
-//    // check conditions
-//    refactoringStatus = refactoring.checkFinalConditions(pm);
-//    assertRefactoringStatus(
-//        refactoringStatus,
-//        RefactoringStatusSeverity.ERROR,
-//        "Parameter 'dup' already exists");
+    return refactoring.checkInitialConditions().then((_) {
+      {
+        var parameters = refactoring.parameters.toList();
+        expect(parameters, hasLength(2));
+        parameters[0].name = 'dup';
+        parameters[1].name = 'dup';
+        refactoring.parameters = parameters;
+      }
+      return _assertFinalConditionsError("Parameter 'dup' already exists");
+    });
   }
 
   test_bad_parameterName_inUse() {
@@ -399,20 +395,17 @@ main() {
 }
 ''');
     _createRefactoringForStartEndComments();
-    // TODO(scheglov) implement
     // update parameters
-//    {
-//      Parameter[] parameters = refactoring.getParameters();
-//      assertThat(parameters).hasSize(2);
-//      parameters[0].setNewName("a");
-//      refactoring.setParameters(parameters);
-//    }
-//    // check conditions
-//    refactoringStatus = refactoring.checkFinalConditions(pm);
-//    assertRefactoringStatus(
-//        refactoringStatus,
-//        RefactoringStatusSeverity.ERROR,
-//        "'a' is already used as a name in the selected code");
+    return refactoring.checkInitialConditions().then((_) {
+      {
+        var parameters = refactoring.parameters.toList();
+        expect(parameters, hasLength(2));
+        parameters[0].name = 'a';
+        refactoring.parameters = parameters;
+      }
+      return _assertFinalConditionsError(
+          "'a' is already used as a name in the selected code");
+    });
   }
 
   test_bad_selectionEndsInSomeNode() {
@@ -424,7 +417,7 @@ main() {
 // end
 }
 ''');
-    _createRefactoringForStartEndString('print(0', 'int(1)');
+    _createRefactoringForStartEndString('print(0', 'rint(1)');
     return _assertConditionsFatal(
         "The selection does not cover a set of statements or an expression. "
             "Extend selection to a valid range.");
@@ -582,8 +575,7 @@ main() {
 }
 ''');
     _createRefactoringForString("int");
-    return _assertConditionsFatal(
-        "Cannot extract a single type reference.");
+    return _assertConditionsFatal("Cannot extract a single type reference.");
   }
 
   test_bad_variableDeclarationFragment() {
@@ -1476,11 +1468,81 @@ int res(int v1, int v2) => v1 + v2 + v1;
   }
 
   test_singleExpression_withVariables_doRename() {
-    // TODO(scheglov)
+    indexTestUnit('''
+main() {
+  int v1 = 1;
+  int v2 = 2;
+  int v3 = 3;
+  int a = v1 + v2 + v1; // marker
+  int b = v2 + v3 + v2;
+}
+''');
+    _createRefactoringForString('v1 + v2 + v1');
+    // apply refactoring
+    return refactoring.checkInitialConditions().then((_) {
+      {
+        var parameters = refactoring.parameters.toList();
+        expect(parameters, hasLength(2));
+        expect(parameters[0].name, 'v1');
+        expect(parameters[1].name, 'v2');
+        parameters[0].name = 'par1';
+        parameters[1].name = 'param2';
+        refactoring.parameters = parameters;
+      }
+      return assertRefactoringFinalConditionsOK().then((_) {
+        refactoring.createGetter = false;
+        return _assertRefactoringChange('''
+main() {
+  int v1 = 1;
+  int v2 = 2;
+  int v3 = 3;
+  int a = res(v1, v2); // marker
+  int b = res(v2, v3);
+}
+
+int res(int par1, int param2) => par1 + param2 + par1;
+''');
+      });
+    });
   }
 
   test_singleExpression_withVariables_doReorder() {
-    // TODO(scheglov)
+    indexTestUnit('''
+main() {
+  int v1 = 1;
+  int v2 = 2;
+  int v3 = 3;
+  int a = v1 + v2; // marker
+  int b = v2 + v3;
+}
+''');
+    _createRefactoringForString('v1 + v2');
+    // apply refactoring
+    return refactoring.checkInitialConditions().then((_) {
+      {
+        var parameters = refactoring.parameters.toList();
+        expect(parameters, hasLength(2));
+        expect(parameters[0].name, 'v1');
+        expect(parameters[1].name, 'v2');
+        var parameter = parameters.removeAt(1);
+        parameters.insert(0, parameter);
+        refactoring.parameters = parameters;
+      }
+      return assertRefactoringFinalConditionsOK().then((_) {
+        refactoring.createGetter = false;
+        return _assertRefactoringChange('''
+main() {
+  int v1 = 1;
+  int v2 = 2;
+  int v3 = 3;
+  int a = res(v2, v1); // marker
+  int b = res(v3, v2);
+}
+
+int res(int v2, int v1) => v1 + v2;
+''');
+      });
+    });
   }
 
   test_singleExpression_withVariables_namedExpression() {
@@ -1507,7 +1569,42 @@ process({arg}) {}
   }
 
   test_singleExpression_withVariables_newType() {
-    // TODO(scheglov)
+    indexTestUnit('''
+main() {
+  int v1 = 1;
+  int v2 = 2;
+  int v3 = 3;
+  int a = v1 + v2 + v3;
+}
+''');
+    _createRefactoringForString('v1 + v2 + v3');
+    // apply refactoring
+    return refactoring.checkInitialConditions().then((_) {
+      {
+        var parameters = refactoring.parameters.toList();
+        expect(parameters, hasLength(3));
+        expect(parameters[0].name, 'v1');
+        expect(parameters[1].name, 'v2');
+        expect(parameters[2].name, 'v3');
+        parameters[0].type = 'num';
+        parameters[1].type = 'dynamic';
+        parameters[2].type = '';
+        refactoring.parameters = parameters;
+      }
+      return assertRefactoringFinalConditionsOK().then((_) {
+        refactoring.createGetter = false;
+        return _assertRefactoringChange('''
+main() {
+  int v1 = 1;
+  int v2 = 2;
+  int v3 = 3;
+  int a = res(v1, v2, v3);
+}
+
+int res(num v1, v2, v3) => v1 + v2 + v3;
+''');
+      });
+    });
   }
 
   test_singleExpression_withVariables_useBestType() {
@@ -2063,6 +2160,22 @@ void res() {
     });
   }
 
+  Future _assertFinalConditionsError(String message) {
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatus(
+          status,
+          RefactoringProblemSeverity.ERROR,
+          expectedMessage: message);
+    });
+  }
+
+  Future _assertRefactoringChange(String expectedCode) {
+    return refactoring.createChange().then((SourceChange refactoringChange) {
+      this.refactoringChange = refactoringChange;
+      assertTestChangeResult(expectedCode);
+    });
+  }
+
   /**
    * Checks that all conditions are OK and the result of applying the [Change]
    * to [testUnit] is [expectedCode].
@@ -2070,10 +2183,7 @@ void res() {
   Future _assertSuccessfulRefactoring(String expectedCode) {
     return assertRefactoringConditionsOK().then((_) {
       refactoring.createGetter = false;
-      return refactoring.createChange().then((SourceChange refactoringChange) {
-        this.refactoringChange = refactoringChange;
-        assertTestChangeResult(expectedCode);
-      });
+      return _assertRefactoringChange(expectedCode);
     });
   }
 
@@ -2082,16 +2192,6 @@ void res() {
         new ExtractMethodRefactoringImpl(searchEngine, testUnit, offset, length);
     refactoring.name = 'res';
   }
-
-
-//  Future _assertInitialConditions_fatal_selection() {
-//    return refactoring.checkInitialConditions().then((status) {
-//      assertRefactoringStatus(
-//          status,
-//          RefactoringProblemSeverity.FATAL,
-//          expectedMessage: 'Expression must be selected to activate this refactoring.');
-//    });
-//  }
 
   void _createRefactoringForStartEndComments() {
     int offset = findEnd('// start') + '\n'.length;

@@ -57,6 +57,15 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   }
 
   /**
+   * Asserts that [refactoring] final conditions status is OK.
+   */
+  Future assertRefactoringFinalConditionsOK() {
+    return refactoring.checkFinalConditions().then((status) {
+      assertRefactoringStatusOK(status);
+    });
+  }
+
+  /**
    * Asserts that [status] has expected severity and message.
    */
   void assertRefactoringStatus(RefactoringStatus status,
