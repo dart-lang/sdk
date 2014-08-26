@@ -292,18 +292,30 @@ class RawObject {
     uword value = reinterpret_cast<uword>(this);
     return (value & kSmiTagMask) == kHeapObjectTag;
   }
-
+  // Assumes this is a heap object.
   bool IsNewObject() const {
     ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;
   }
+  // Assumes this is a heap object.
   bool IsOldObject() const {
     ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   }
+  // Assumes this is a heap object.
   bool IsVMHeapObject() const;
+
+  // Like !IsHeapObject() || IsOldObject(), but compiles to a single branch.
+  bool IsSmiOrOldObject() const {
+    COMPILE_ASSERT(kHeapObjectTag == 1);
+    COMPILE_ASSERT(kNewObjectAlignmentOffset == kWordSize);
+    static const uword kNewObjectBits =
+        (kNewObjectAlignmentOffset | kHeapObjectTag);
+    const uword addr = reinterpret_cast<uword>(this);
+    return (addr & kNewObjectBits) != kNewObjectBits;
+  }
 
   // Support for GC marking bit.
   bool IsMarked() const {

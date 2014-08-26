@@ -149,8 +149,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
     RawObject* raw_obj = *p;
 
-    // Fast exit if the raw object is a Smi or an old object.
-    if (!raw_obj->IsHeapObject() || raw_obj->IsOldObject()) {
+    if (raw_obj->IsSmiOrOldObject()) {
       return;
     }
 
