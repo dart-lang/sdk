@@ -69,7 +69,7 @@ Future runHttpClient(int port, result) {
       expect(e is HandshakeException || e is SocketException);
     }));
 
-  return Future.wait(testFutures);
+  return Future.wait(testFutures).then((_) => client.close());
 }
 
 void main(List<String> args) {
