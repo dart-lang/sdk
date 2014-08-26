@@ -1,3 +1,7 @@
+## 0.11.2+1
+
+* Fix a case where a `ScheduledProcess` could fail to log its output.
+
 ## 0.11.2
 
 * Add a `DirectoryDescriptor.fromFilesystem` constructor.
