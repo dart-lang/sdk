@@ -15,7 +15,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:http/testing.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
@@ -106,12 +106,12 @@ final _barbackDeps = {
 /// Populates [_barbackVersions].
 Map<Version, String> _findBarbackVersions() {
   var versions = {};
-  var currentBarback = path.join(repoRoot, 'pkg', 'barback');
+  var currentBarback = p.join(repoRoot, 'pkg', 'barback');
   versions[new Pubspec.load(currentBarback, new SourceRegistry()).version] =
       currentBarback;
 
-  for (var dir in listDir(path.join(repoRoot, 'third_party', 'pkg'))) {
-    var basename = path.basename(dir);
+  for (var dir in listDir(p.join(repoRoot, 'third_party', 'pkg'))) {
+    var basename = p.basename(dir);
     if (!basename.startsWith('barback')) continue;
     versions[new Version.parse(split1(basename, '-').last)] = dir;
   }
@@ -142,7 +142,7 @@ void withBarbackVersions(String versionConstraint, void callback()) {
         _barbackDeps.forEach((constraint, deps) {
           if (!constraint.allows(version)) return;
           deps.forEach((packageName, version) {
-            _packageOverrides[packageName] = path.join(
+            _packageOverrides[packageName] = p.join(
                 repoRoot, 'third_party', 'pkg', '$packageName-$version');
           });
         });
@@ -193,7 +193,7 @@ void serve([List<d.Descriptor> contents]) {
     return _closeServer().then((_) {
       return shelf_io.serve((request) {
         currentSchedule.heartbeat();
-        var path = request.url.path.replaceFirst("/", "");
+        var path = p.posix.fromUri(request.url.path.replaceFirst("/", ""));
         _requestedPaths.add(path);
 
         return validateStream(baseDir.load(path))
@@ -233,9 +233,9 @@ String get sandboxDir => _sandboxDir;
 String _sandboxDir;
 
 /// The path to the Dart repo's packages.
-final String pkgPath = path.absolute(path.join(
-    path.dirname(Platform.executable),
-    '..', '..', '..', '..', 'pkg'));
+final String pkgPath = p.absolute(p.join(
+    p.dirname(Platform.executable),
+    '../../../../pkg'));
 
 /// The path of the package cache directory used for tests, relative to the
 /// sandbox directory.
@@ -379,15 +379,15 @@ void _integration(String description, void body(), [Function testFn]) {
 /// Get the path to the root "pub/test" directory containing the pub
 /// tests.
 String get testDirectory =>
-  path.absolute(path.dirname(libraryPath('test_pub')));
+  p.absolute(p.dirname(libraryPath('test_pub')));
 
 /// Schedules renaming (moving) the directory at [from] to [to], both of which
 /// are assumed to be relative to [sandboxDir].
 void scheduleRename(String from, String to) {
   schedule(
       () => renameDir(
-          path.join(sandboxDir, from),
-          path.join(sandboxDir, to)),
+          p.join(sandboxDir, from),
+          p.join(sandboxDir, to)),
       'renaming $from to $to');
 }
 
@@ -396,8 +396,8 @@ void scheduleRename(String from, String to) {
 void scheduleSymlink(String target, String symlink) {
   schedule(
       () => createSymlink(
-          path.join(sandboxDir, target),
-          path.join(sandboxDir, symlink)),
+          p.join(sandboxDir, target),
+          p.join(sandboxDir, symlink)),
       'symlinking $target to $symlink');
 }
 
@@ -487,7 +487,7 @@ bool _compiledAsync = false;
 // TODO(rnystrom): This exists to run the async/await compiler on pub and then
 // get the path to the output of that. Once #104 is fixed, remove this.
 String _getPubPath(String dartBin) {
-  var buildDir = path.join(path.dirname(dartBin), '../../');
+  var buildDir = p.join(p.dirname(dartBin), '../../');
 
   // Ensure the async/await compiler has been run once for this test suite. The
   // compiler itself will only re-compile source files that have actually
@@ -495,7 +495,7 @@ String _getPubPath(String dartBin) {
   if (!_compiledAsync) {
     var result = Process.runSync(dartBin, [
       '--package-root=$_packageRoot/',
-      path.join(testDirectory, '..', 'bin', 'async_compile.dart'),
+      p.join(testDirectory, '..', 'bin', 'async_compile.dart'),
       buildDir,
       '--silent'
     ]);
@@ -506,7 +506,7 @@ String _getPubPath(String dartBin) {
     _compiledAsync = true;
   }
 
-  return path.join(buildDir, 'pub_async/bin/pub.dart');
+  return p.join(buildDir, 'pub_async/bin/pub.dart');
 }
 
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
@@ -515,7 +515,7 @@ String _getPubPath(String dartBin) {
 /// Any futures in [args] will be resolved before the process is started.
 ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   String pathInSandbox(String relPath) {
-    return path.join(path.absolute(sandboxDir), relPath);
+    return p.join(p.absolute(sandboxDir), relPath);
   }
 
   ensureDir(pathInSandbox(appPath));
@@ -527,14 +527,14 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   // If the executable looks like a path, get its full path. That way we
   // can still find it when we spawn it with a different working directory.
   if (dartBin.contains(Platform.pathSeparator)) {
-    dartBin = path.absolute(dartBin);
+    dartBin = p.absolute(dartBin);
   }
 
   // Find the main pub entrypoint.
   var pubPath = _getPubPath(dartBin);
   // TODO(rnystrom): Replace the above line with the following when #104 is
   // fixed.
-  //var pubPath = path.join(testDirectory, '..', 'bin', 'pub.dart');
+  //var pubPath = p.join(testDirectory, '..', 'bin', 'pub.dart');
 
   var dartArgs = ['--package-root=$_packageRoot/', '--checked', pubPath,
       '--verbose'];
@@ -654,7 +654,7 @@ class PubProcess extends ScheduledProcess {
 }
 
 /// The path to the `packages` directory from which pub loads its dependencies.
-String get _packageRoot => path.absolute(Platform.packageRoot);
+String get _packageRoot => p.absolute(Platform.packageRoot);
 
 /// Fails the current test if Git is not installed.
 ///
@@ -727,7 +727,7 @@ void createLockFile(String package, {Iterable<String> sandbox,
   sources.register(new HostedSource());
   sources.register(new PathSource());
 
-  d.file(path.join(package, 'pubspec.lock'),
+  d.file(p.join(package, 'pubspec.lock'),
       lockFile.serialize(null, sources)).create();
 }
 
@@ -764,12 +764,12 @@ Iterable<String> pkg, Map<String, String> hosted}) {
       if (_packageOverrides.containsKey(package)) {
         packagePath = _packageOverrides[package];
       } else {
-        packagePath = path.join(pkgPath, package);
+        packagePath = p.join(pkgPath, package);
       }
 
       dependencies[package] = packagePath;
       var pubspec = loadYaml(
-          readTextFile(path.join(packagePath, 'pubspec.yaml')));
+          readTextFile(p.join(packagePath, 'pubspec.yaml')));
       var packageDeps = pubspec['dependencies'];
       if (packageDeps == null) return;
       packageDeps.keys.forEach(_addPackage);
@@ -782,7 +782,7 @@ Iterable<String> pkg, Map<String, String> hosted}) {
   dependencies.forEach((name, dependencyPath) {
     var id = new PackageId(name, 'path', new Version(0, 0, 0), {
       'path': dependencyPath,
-      'relative': path.isRelative(dependencyPath)
+      'relative': p.isRelative(dependencyPath)
     });
     lockFile.packages[name] = id;
   });
@@ -952,10 +952,10 @@ typedef Validator ValidatorCreator(Entrypoint entrypoint);
 Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return schedule(() {
-    var cache = new SystemCache.withSources(path.join(sandboxDir, cachePath));
+    var cache = new SystemCache.withSources(p.join(sandboxDir, cachePath));
 
     return syncFuture(() {
-      var validator = fn(new Entrypoint(path.join(sandboxDir, appPath), cache));
+      var validator = fn(new Entrypoint(p.join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);
       });
