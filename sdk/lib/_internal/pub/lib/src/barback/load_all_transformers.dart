@@ -55,8 +55,8 @@ Future loadAllTransformers(AssetEnvironment environment,
   // Add a rewrite transformer for each package, so that we can resolve
   // "package:" imports while loading transformers.
   var rewrite = new RewriteImportTransformer();
-  for (var package in environment.graph.packages.values) {
-    environment.barback.updateTransformers(package.name, [[rewrite]]);
+  for (var package in environment.packages) {
+    environment.barback.updateTransformers(package, [[rewrite]]);
   }
   environment.barback.updateTransformers(r'$pub', [[rewrite]]);
 

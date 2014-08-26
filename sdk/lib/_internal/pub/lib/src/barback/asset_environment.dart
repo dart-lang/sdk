@@ -116,7 +116,7 @@ class AssetEnvironment {
   ///
   /// By default, this is all transitive dependencies of the entrypoint, but it
   /// may be a narrower set if fewer packages are needed.
-  final Set<String> _packages;
+  final Set<String> packages;
 
   /// The modified source assets that have not been sent to barback yet.
   ///
@@ -137,7 +137,7 @@ class AssetEnvironment {
         this._watcherType, this._hostname, this._basePort,
         Iterable<String> packages)
       : graph = graph,
-        _packages = packages == null ? graph.packages.keys.toSet() :
+        packages = packages == null ? graph.packages.keys.toSet() :
             packages.toSet();
 
   /// Gets the built-in [Transformer]s that should be added to [package].
@@ -291,7 +291,7 @@ class AssetEnvironment {
   Future<List<Uri>> _lookUpPathInPackagesDirectory(String assetPath) {
     var components = path.split(path.relative(assetPath));
     if (components.first != "packages") return new Future.value([]);
-    if (!_packages.contains(components[1])) return new Future.value([]);
+    if (!packages.contains(components[1])) return new Future.value([]);
     return Future.wait(_directories.values.map((dir) {
       return dir.server.then((server) =>
           server.url.resolveUri(path.toUri(assetPath)));
@@ -301,7 +301,8 @@ class AssetEnvironment {
   /// Look up [assetPath] in the "lib" or "asset" directory of a dependency
   /// package.
   Future<List<Uri>> _lookUpPathInDependency(String assetPath) {
-    for (var package in _packages) {
+    for (var packageName in packages) {
+      var package = graph.packages[packageName];
       var libDir = path.join(package.dir, 'lib');
       var assetDir = path.join(package.dir, 'asset');
 
@@ -479,7 +480,7 @@ class AssetEnvironment {
     // Just include the "lib" directory from each package. We'll add the
     // other build directories in the root package by calling
     // [serveDirectory].
-    return Future.wait(_packages.map((package) {
+    return Future.wait(packages.map((package) {
       return _provideDirectorySources(graph.packages[package], "lib");
     }));
   }
