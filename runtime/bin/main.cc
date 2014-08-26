@@ -1125,20 +1125,15 @@ void main(int argc, char** argv) {
 
       // Call _startIsolate in the isolate library to enable dispatching the
       // initial startup message.
-      const intptr_t kNumIsolateArgs = 7;
+      const intptr_t kNumIsolateArgs = 2;
       Dart_Handle isolate_args[kNumIsolateArgs];
-      isolate_args[0] = Dart_Null();   // no parent port
-      isolate_args[1] = main_closure;  // entryPoint
-      isolate_args[2] = CreateRuntimeOptions(&dart_options);  // args
-      isolate_args[3] = Dart_Null();   // no message
-      isolate_args[4] = Dart_True();   // isSpawnUri
-      isolate_args[5] = Dart_Null();   // no control port
-      isolate_args[6] = Dart_Null();   // no capabilities
+      isolate_args[0] = main_closure;                         // entryPoint
+      isolate_args[1] = CreateRuntimeOptions(&dart_options);  // args
 
       Dart_Handle isolate_lib = Dart_LookupLibrary(
           Dart_NewStringFromCString("dart:isolate"));
       result = Dart_Invoke(isolate_lib,
-                           Dart_NewStringFromCString("_startIsolate"),
+                           Dart_NewStringFromCString("_startMainIsolate"),
                            kNumIsolateArgs, isolate_args);
       DartExitOnError(result);
 

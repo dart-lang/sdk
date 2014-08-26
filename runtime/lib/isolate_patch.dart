@@ -180,10 +180,29 @@ typedef _MainFunctionArgs(args);
 typedef _MainFunctionArgsMessage(args, message);
 
 /**
+ * Takes the real entry point as argument and invokes it with the
+ * initial message.  Defers execution of the entry point until the
+ * isolate is in the message loop.
+ */
+void _startMainIsolate(Function entryPoint,
+                       List<String> args) {
+  RawReceivePort port = new RawReceivePort();
+  port.handler = (_) {
+    port.close();
+    _startIsolate(null,   // no parent port
+                  entryPoint,
+                  args,
+                  null,   // no message
+                  true,   // isSpawnUri
+                  null,   // no control port
+                  null);  // no capabilities
+  };
+  port.sendPort.send(null);
+}
+
+/**
  * Takes the real entry point as argument and invokes it with the initial
  * message.
- *
- * The initial startup message is received through the control port.
  */
 void _startIsolate(SendPort parentPort,
                    Function entryPoint,

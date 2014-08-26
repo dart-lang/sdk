@@ -27,6 +27,7 @@ var blacklist = [
   'dart.async._scheduleAsyncCallback',
   'dart.async._setTimerFactoryClosure',
 
+  'dart.isolate._startMainIsolate',
   'dart.isolate._startIsolate',
   'dart.io.sleep',
   'dart.io.HttpServer.HttpServer.listenOn',
