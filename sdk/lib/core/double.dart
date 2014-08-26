@@ -162,7 +162,8 @@ abstract class double extends num {
    * Returns "-0.0" for negative zero.
    *
    * For all doubles, `d`, converting to a string and parsing the string back
-   * gives the same value again: `d == double.parse(d.toString())`.
+   * gives the same value again: `d == double.parse(d.toString())` (except when
+   * `d` is NaN).
    */
   String toString();
 
