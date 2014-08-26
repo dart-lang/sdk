@@ -41,9 +41,17 @@ def DumpSteps(build_info):
   with utils.TempDir() as temp_dir:
     normal_compilations = os.path.join(temp_dir, 'normal')
     dump_compilations = os.path.join(temp_dir, 'dump')
-    normal_compilation_command = [sys.executable, './tools/test.py',
-                                  '--mode=' + build_info.mode,
-                                  '-cdart2js', '-rnone'] + tests
+    normal_compilation_command = [sys.executable,
+                                  './tools/test.py',
+                                  '--mode=%s' % build_info.mode,
+                                  '-cdart2js',
+                                  '-rnone',
+                                  '--time',
+                                  '--use-sdk',
+                                  '--report',
+                                  '--progress=buildbot',
+                                  '-v'
+                                  ] + tests
     with bot.BuildStep('Compiling without dump info'):
       Run(normal_compilation_command)
       pass
