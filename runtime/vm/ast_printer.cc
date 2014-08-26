@@ -46,6 +46,12 @@ void AstPrinter::VisitArgumentListNode(ArgumentListNode* arguments) {
 
 void AstPrinter::VisitReturnNode(ReturnNode* node) {
   VisitGenericAstNode(node);
+  OS::Print("(%s %s",
+            node->PrettyName(),
+            (node->return_type() == ReturnNode::kContinuation) ?
+                "continuation" : "");
+  node->VisitChildren(this);
+  OS::Print(")");
 }
 
 
@@ -153,6 +159,11 @@ void AstPrinter::VisitAssignableNode(AssignableNode* node) {
 
 
 void AstPrinter::VisitAwaitNode(AwaitNode* node) {
+  VisitGenericAstNode(node);
+}
+
+
+void AstPrinter::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
   VisitGenericAstNode(node);
 }
 

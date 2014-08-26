@@ -260,7 +260,10 @@ FlowGraphBuilder::FlowGraphBuilder(
         args_pushed_(0),
         nesting_stack_(NULL),
         osr_id_(osr_id),
-        is_optimizing_(is_optimizing) { }
+        is_optimizing_(is_optimizing),
+        jump_cnt_(0),
+        await_joins_(new(I) ZoneGrowableArray<JoinEntryInstr*>()),
+        await_levels_(new(I) ZoneGrowableArray<intptr_t>()) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
@@ -1038,15 +1041,6 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     }
   }
 
-  intptr_t current_context_level = owner()->context_level();
-  ASSERT(current_context_level >= 0);
-  if (owner()->parsed_function()->saved_entry_context_var() != NULL) {
-    // CTX on entry was saved, but not linked as context parent.
-    BuildRestoreContext(*owner()->parsed_function()->saved_entry_context_var());
-  } else {
-    UnchainContexts(current_context_level);
-  }
-
   // Async functions contain two types of return statements:
   // 1) Returns that should complete the completer once all finally blocks have
   //    been inlined (call: :async_completer.complete(return_value)). These
@@ -1056,7 +1050,8 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   //
   // We distinguish those kinds of nodes via is_regular_return().
   //
-  if (function.is_async_closure() && node->is_regular_return()) {
+  if (function.is_async_closure() &&
+      (node->return_type() == ReturnNode::kRegular)) {
     // Temporary store the computed return value.
     Do(BuildStoreExprTemp(return_value));
 
@@ -1082,6 +1077,16 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     // Rebind the return value for the actual return call to be null.
     return_value = BuildNullValue();
   }
+
+  intptr_t current_context_level = owner()->context_level();
+  ASSERT(current_context_level >= 0);
+  if (owner()->parsed_function()->saved_entry_context_var() != NULL) {
+    // CTX on entry was saved, but not linked as context parent.
+    BuildRestoreContext(*owner()->parsed_function()->saved_entry_context_var());
+  } else {
+    UnchainContexts(current_context_level);
+  }
+
 
   AddReturnExit(node->token_pos(), return_value);
 }
@@ -1441,6 +1446,58 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
                                       instantiator_type_arguments,
                                       dst_type,
                                       dst_name);
+}
+
+
+void EffectGraphVisitor::BuildAwaitJump(LocalScope* lookup_scope,
+                                        const intptr_t old_ctx_level,
+                                        JoinEntryInstr* target) {
+  // Building a jump consists of the following actions:
+  // * Record the current continuation result in a temporary.
+  // * Restore the old context.
+  // * Overwrite the old context's continuation result with the temporary.
+  // * Append a Goto to the target's join.
+  LocalVariable* old_ctx = lookup_scope->LookupVariable(
+      Symbols::AwaitContextVar(), false);
+  LocalVariable* continuation_result = lookup_scope->LookupVariable(
+      Symbols::AsyncOperationParam(), false);
+  ASSERT((continuation_result != NULL) && continuation_result->is_captured());
+  ASSERT((old_ctx != NULL) && old_ctx->is_captured());
+  // Before restoring the continuation context we need to temporary save the
+  // current continuation result.
+  Value* continuation_result_value = Bind(BuildLoadLocal(*continuation_result));
+  Do(BuildStoreExprTemp(continuation_result_value));
+
+  // Restore the saved continuation context.
+  BuildRestoreContext(*old_ctx);
+
+  // Pass over the continuation result.
+  Value* saved_continuation_result = Bind(BuildLoadExprTemp());
+  // FlowGraphBuilder is at top context level, but the await target has possibly
+  // been recorded in a nested context (old_ctx_level). We need to unroll
+  // manually here.
+  LocalVariable* tmp_var = EnterTempLocalScope(saved_continuation_result);
+  intptr_t delta = old_ctx_level -
+                   continuation_result->owner()->context_level();
+  ASSERT(delta >= 0);
+  Value* context = Bind(new(I) CurrentContextInstr());
+  while (delta-- > 0) {
+    context = Bind(new(I) LoadFieldInstr(
+        context, Context::parent_offset(), Type::ZoneHandle(I, Type::null()),
+        Scanner::kNoSourcePos));
+  }
+  Value* tmp_val = Bind(new(I) LoadLocalInstr(*tmp_var));
+  StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
+      Context::variable_offset(continuation_result->index()),
+      context,
+      tmp_val,
+      kEmitStoreBarrier,
+      Scanner::kNoSourcePos);
+  Do(store);
+  Do(ExitTempLocalScope(tmp_var));
+
+  // Goto saved join.
+  Goto(target);
 }
 
 
@@ -2116,6 +2173,47 @@ void EffectGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
 
 void EffectGraphVisitor::VisitAwaitNode(AwaitNode* node) {
   // Await nodes are temporary during parsing.
+  UNREACHABLE();
+}
+
+
+void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
+  if (node->marker_type() == AwaitMarkerNode::kNewContinuationState) {
+    // We need to create a new await state which involves:
+    // * Increase the jump counter. Sanity check against the list of targets.
+    // * Save the current context for resuming.
+    ASSERT(node->scope() != NULL);
+    LocalVariable* jump_var = node->scope()->LookupVariable(
+        Symbols::AwaitJumpVar(), false);
+    LocalVariable* ctx_var = node->scope()->LookupVariable(
+        Symbols::AwaitContextVar(), false);
+    ASSERT((jump_var != NULL) && jump_var->is_captured());
+    ASSERT((ctx_var != NULL) && ctx_var->is_captured());
+    const intptr_t jump_cnt = owner()->next_await_counter();
+    ASSERT(jump_cnt >= 0);
+    // Sanity check that we always add a JoinEntryInstr before adding a new
+    // state.
+    ASSERT(jump_cnt == owner()->await_joins()->length());
+    // Store the counter in :await_jump_var.
+    Value* jump_val = Bind(new (I) ConstantInstr(
+        Smi::ZoneHandle(I, Smi::New(jump_cnt))));
+    Do(BuildStoreLocal(*jump_var, jump_val));
+    // Save the current context for resuming.
+    BuildSaveContext(*ctx_var);
+    owner()->await_levels()->Add(owner()->context_level());
+    return;
+  }
+  if (node->marker_type() == AwaitMarkerNode::kTargetForContinuation) {
+    // We need to create a new await target which involves:
+    // * Append a join that is also added to the list that will later result in
+    //   a preamble.
+    JoinEntryInstr* const join = new(I) JoinEntryInstr(
+        owner()->AllocateBlockId(), owner()->try_index());
+    owner()->await_joins()->Add(join);
+    Goto(join);
+    exit_ = join;
+    return;
+  }
   UNREACHABLE();
 }
 
@@ -3638,6 +3736,22 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
+  // Continuation part:
+  // If this node sequence is the body of an async closure leave room for a
+  // preamble. The preamble is generated after visiting the body.
+  GotoInstr* preamble_start = NULL;
+  if ((node == owner()->parsed_function()->node_sequence()) &&
+      (owner()->parsed_function()->function().is_async_closure())) {
+    JoinEntryInstr* preamble_end = new(I) JoinEntryInstr(
+        owner()->AllocateBlockId(), owner()->try_index());
+    ASSERT(exit() != NULL);
+    exit()->Goto(preamble_end);
+    ASSERT(exit()->next()->IsGoto());
+    preamble_start = exit()->next()->AsGoto();
+    ASSERT(preamble_start->IsGoto());
+    exit_ = preamble_end;
+  }
+
   intptr_t i = 0;
   while (is_open() && (i < node->length())) {
     EffectGraphVisitor for_effect(owner());
@@ -3647,6 +3761,62 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       // E.g., because of a JumpNode.
       break;
     }
+  }
+
+  // Continuation part:
+  // After generating the CFG for the body we can create the preamble because we
+  // know exactly how many continuation states we need.
+  if ((node == owner()->parsed_function()->node_sequence()) &&
+      (owner()->parsed_function()->function().is_async_closure())) {
+    ASSERT(preamble_start != NULL);
+    // We are at the top level. Fetch the corresponding scope.
+    LocalScope* top_scope = node->scope();
+    LocalVariable* jump_var = top_scope->LookupVariable(
+        Symbols::AwaitJumpVar(), false);
+    ASSERT(jump_var != NULL && jump_var->is_captured());
+
+    Instruction* saved_entry = entry_;
+    Instruction* saved_exit = exit_;
+    entry_ = NULL;
+    exit_ = NULL;
+
+    LoadLocalNode* load_jump_cnt = new(I) LoadLocalNode(
+        Scanner::kNoSourcePos, jump_var);
+    ComparisonNode* check_jump_cnt;
+    const intptr_t num_await_states = owner()->await_joins()->length();
+    for (intptr_t i = 0; i < num_await_states; i++) {
+      check_jump_cnt = new(I) ComparisonNode(
+          Scanner::kNoSourcePos,
+          Token::kEQ,
+          load_jump_cnt,
+          new(I) LiteralNode(
+              Scanner::kNoSourcePos, Smi::ZoneHandle(I, Smi::New(i))));
+      TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
+      check_jump_cnt->Visit(&for_test);
+      EffectGraphVisitor for_true(owner());
+      EffectGraphVisitor for_false(owner());
+
+      for_true.BuildAwaitJump(top_scope,
+                              (*owner()->await_levels())[i],
+                              (*owner()->await_joins())[i]);
+      Join(for_test, for_true, for_false);
+
+      if (i == 0) {
+        // Manually link up the preamble start.
+        preamble_start->previous()->set_next(for_test.entry());
+        for_test.entry()->set_previous(preamble_start->previous());
+      }
+      if (i == (num_await_states - 1)) {
+        // Link up preamble end.
+        if (exit_ == NULL) {
+          exit_ = preamble_start;
+        } else {
+          exit_->LinkTo(preamble_start);
+        }
+      }
+    }
+    entry_ = saved_entry;
+    exit_ = saved_exit;
   }
 
   if (is_open()) {

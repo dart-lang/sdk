@@ -602,6 +602,27 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
 }
 
 
+void LocalScope::RecursivelyCaptureAllVariables() {
+  bool found = false;
+  for (intptr_t i = 0; i < num_variables(); i++) {
+    if ((VariableAt(i)->name().raw() == Symbols::StackTraceVar().raw()) ||
+        (VariableAt(i)->name().raw() == Symbols::ExceptionVar().raw()) ||
+        (VariableAt(i)->name().raw() == Symbols::SavedTryContextVar().raw())) {
+      // Don't capture those variables because the VM expects them to be on the
+      // stack.
+      continue;
+    }
+    found = CaptureVariable(VariableAt(i)->name());
+    // Also manually set the variable as captured as CaptureVariable() does not
+    // handle capturing variables on the same scope level.
+    VariableAt(i)->set_is_captured();
+    ASSERT(found);
+  }
+  if (sibling() != NULL) { sibling()->RecursivelyCaptureAllVariables(); }
+  if (child() != NULL) { child()->RecursivelyCaptureAllVariables(); }
+}
+
+
 RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
   static const intptr_t kNumCapturedVars = 1;
 

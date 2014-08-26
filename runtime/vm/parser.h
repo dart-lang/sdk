@@ -55,6 +55,8 @@ class ParsedFunction : public ZoneAllocated {
         num_copied_params_(0),
         num_stack_locals_(0),
         have_seen_await_expr_(false),
+        saved_try_ctx_(NULL),
+        async_saved_try_ctx_(NULL),
         isolate_(isolate) {
     ASSERT(function.IsZoneHandle());
   }
@@ -155,6 +157,23 @@ class ParsedFunction : public ZoneAllocated {
   void reset_have_seen_await() { have_seen_await_expr_ = false; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
+  void set_saved_try_ctx(LocalVariable* saved_try_ctx) {
+    ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
+    saved_try_ctx_ = saved_try_ctx;
+  }
+  LocalVariable* saved_try_ctx() const { return saved_try_ctx_; }
+
+  void set_async_saved_try_ctx(LocalVariable* async_saved_try_ctx) {
+    ASSERT((async_saved_try_ctx != NULL) && async_saved_try_ctx->is_captured());
+    async_saved_try_ctx_ = async_saved_try_ctx;
+  }
+  LocalVariable* async_saved_try_ctx() const { return async_saved_try_ctx_; }
+
+  void reset_saved_try_ctx_vars() {
+    saved_try_ctx_ = NULL;
+    async_saved_try_ctx_ = NULL;
+  }
+
   Isolate* isolate() const { return isolate_; }
 
  private:
@@ -175,6 +194,8 @@ class ParsedFunction : public ZoneAllocated {
   int num_copied_params_;
   int num_stack_locals_;
   bool have_seen_await_expr_;
+  LocalVariable* saved_try_ctx_;
+  LocalVariable* async_saved_try_ctx_;
 
   Isolate* isolate_;
 
@@ -705,6 +726,10 @@ class Parser : public ValueObject {
                                   InvocationMirror::Call call,
                                   InvocationMirror::Type type,
                                   const Function* func);
+
+  void SetupSavedTryContext(LocalScope* saved_try_context_scope,
+                            int16_t try_index,
+                            SequenceNode* target);
 
   void CheckOperatorArity(const MemberDesc& member);
 
