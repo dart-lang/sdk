@@ -84,7 +84,7 @@ void HostCPUFeatures::InitOnce() {
   vfp_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "vfp") &&
                    FLAG_use_vfp;
 
-  // Check for ARMv5, ARMv6 or ARMv7. It can be in either the Processor or
+  // Check for ARMv5TE, ARMv6 or ARMv7. It can be in either the Processor or
   // Model information fields.
   if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARM926EJ-S") ||
       CpuInfo::FieldContains(kCpuInfoModel, "ARM926EJ-S")) {
@@ -93,6 +93,13 @@ void HostCPUFeatures::InitOnce() {
     // On ARMv5, the PC read offset in an STR or STM instruction is either 8 or
     // 12 bytes depending on the implementation. On the Mindstorm EV3 it is 12
     // bytes.
+    store_pc_read_offset_ = 12;
+  } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "Feroceon 88FR131") ||
+             CpuInfo::FieldContains(kCpuInfoModel, "Feroceon 88FR131")) {
+    // This is for the DGBox. For the time-being, assume it is similar to the
+    // Lego Mindstorm.
+    arm_version_ = ARMv5TE;
+    // TODO(zra): Verify with DGLogik that this is correct.
     store_pc_read_offset_ = 12;
   } else if (CpuInfo::FieldContains(kCpuInfoProcessor, "ARMv6") ||
              CpuInfo::FieldContains(kCpuInfoModel, "ARMv6")) {
