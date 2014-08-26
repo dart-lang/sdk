@@ -3129,6 +3129,18 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         length_load->set_recognized_kind(MethodRecognizer::kObjectArrayLength);
         return ReturnDefinition(length_load);
       }
+      case MethodRecognizer::kObjectArrayAllocate: {
+        LocalVariable* type_args_parameter =
+            node->scope()->LookupVariable(Symbols::TypeArgumentsParameter(),
+                                          true);
+        Value* element_type = Bind(new(I) LoadLocalInstr(*type_args_parameter));
+        LocalVariable* length_parameter =
+            node->scope()->LookupVariable(Symbols::Length(), true);
+        Value* length = Bind(new(I) LoadLocalInstr(*length_parameter));
+        CreateArrayInstr* create_array =
+            new CreateArrayInstr(node->token_pos(), element_type, length);
+        return ReturnDefinition(create_array);
+      }
       default:
         break;
     }

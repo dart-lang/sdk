@@ -4393,12 +4393,6 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
                                         recognized_kind,
                                         call->token_pos());
     ReplaceCall(call, invoke);
-  } else if (recognized_kind == MethodRecognizer::kObjectArrayAllocate) {
-    Value* type = new(I) Value(call->ArgumentAt(0));
-    Value* num_elements = new(I) Value(call->ArgumentAt(1));
-    CreateArrayInstr* create_array =
-        new(I) CreateArrayInstr(call->token_pos(), type, num_elements);
-    ReplaceCall(call, create_array);
   } else if (recognized_kind == MethodRecognizer::kDoubleFromInteger) {
     if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
       const ICData& ic_data = *call->ic_data();

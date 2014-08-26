@@ -16,6 +16,7 @@ namespace dart {
   V(::, identical, ObjectIdentical, 496869842)                                 \
   V(ClassID, getID, ClassIDgetID, 1322490980)                                  \
   V(Object, Object., ObjectConstructor, 1066669787)                            \
+  V(_List, ., ObjectArrayAllocate, 1595327584)                                 \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 1541411498)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 1032404349)                  \
   V(_TypedList, _getInt16, ByteArrayBaseGetInt16, 381073990)                   \
@@ -162,7 +163,6 @@ namespace dart {
   V(_Double, get:isNegative, Double_getIsNegative, 1637875580)                 \
   V(_Double, _mulFromInteger, Double_mulFromInteger, 1594796483)               \
   V(_Double, .fromInteger, DoubleFromInteger, 999771940)                       \
-  V(_List, ., ObjectArrayAllocate, 1595327584)                                 \
   V(_List, get:length, ObjectArrayLength, 1181352729)                          \
   V(_List, [], ObjectArrayGetIndexed, 795612476)                               \
   V(_List, []=, ObjectArraySetIndexed, 1288827575)                             \
@@ -297,6 +297,7 @@ namespace dart {
   V(ListIterator, moveNext, ListIteratorMoveNext, 210829138)                   \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1812933946)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 2085943947)                  \
+  V(_List, ., ObjectArrayAllocate, 1595327584)                                 \
   V(_List, [], ObjectArrayGetIndexed, 795612476)                               \
   V(_List, []=, ObjectArraySetIndexed, 1288827575)                             \
   V(_List, get:isEmpty, ObjectArrayIsEmpty, 2130247737)                        \
