@@ -18005,7 +18005,7 @@ void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/bool-%s", str);
-  class Class& cls = Class::Handle(this->clazz());
+  const Class& cls = Class::Handle(this->clazz());
   jsobj.AddProperty("class", cls);
   jsobj.AddPropertyF("valueAsString", "%s", str);
 }

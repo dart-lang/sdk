@@ -4450,7 +4450,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
     // executed.
     const Field& field = Field::ZoneHandle(I, instr->field().raw());
     const String& field_name = String::Handle(I, field.name());
-    class Class& owner = Class::Handle(I, field.owner());
+    const Class& owner = Class::Handle(I, field.owner());
     const Function& getter =
         Function::Handle(I, owner.LookupGetterFunction(field_name));
     const Function& setter =

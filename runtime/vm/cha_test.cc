@@ -96,7 +96,7 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT(ContainsCid(cha.leaf_classes(), class_c.id()));
   EXPECT(ContainsCid(cha.leaf_classes(), class_d.id()));
 
-  class Class& function_impl_class =
+  const Class& function_impl_class =
       Class::Handle(Type::Handle(Isolate::Current()->object_store()->
           function_impl_type()).type_class());
   EXPECT(cha.HasSubclasses(function_impl_class.id()));
