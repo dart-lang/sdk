@@ -773,6 +773,10 @@ class Parser : public ValueObject {
   // global variables.
   bool is_top_level_;
 
+  // await_is_keyword_ is true if we are parsing an async function. In this
+  // context async is not treated as identifier but as a keyword.
+  bool await_is_keyword_;
+
   // The member currently being parsed during "top level" parsing.
   MemberDesc* current_member_;
 

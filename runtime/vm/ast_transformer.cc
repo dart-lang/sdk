@@ -49,6 +49,12 @@ AstNode* AwaitTransformer::Transform(AstNode* expr) {
 }
 
 
+LocalScope* AwaitTransformer::NewScope(LocalScope* parent) {
+  return new (I) LocalScope(
+      parent, parent->function_level(), parent->loop_level());
+}
+
+
 LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   const char* await_temp_prefix = ":await_temp_var_";
   const String& cnt_str = String::ZoneHandle(
@@ -113,7 +119,7 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   LoadLocalNode* load_result_param = new(I) LoadLocalNode(
       Scanner::kNoSourcePos, result_param);
   SequenceNode* is_future_branch = new(I) SequenceNode(
-      Scanner::kNoSourcePos, preamble_->scope());
+      Scanner::kNoSourcePos, NewScope(preamble_->scope()));
   AwaitMarkerNode* await_marker =
       new(I) AwaitMarkerNode(AwaitMarkerNode::kNewContinuationState);
   await_marker->set_scope(preamble_->scope());
@@ -180,7 +186,7 @@ AstNode* AwaitTransformer::LazyTransform(const Token::Kind logical_op,
   const Token::Kind compare_logical_op = (logical_op == Token::kAND) ?
       Token::kEQ : Token::kNE;
   SequenceNode* eval = new(I) SequenceNode(
-      Scanner::kNoSourcePos, preamble_->scope());
+      Scanner::kNoSourcePos, NewScope(preamble_->scope()));
   SequenceNode* saved_preamble = preamble_;
   preamble_ = eval;
   result = Transform(right);
@@ -264,12 +270,12 @@ void AwaitTransformer::VisitUnaryOpNode(UnaryOpNode* node) {
 void AwaitTransformer::VisitConditionalExprNode(ConditionalExprNode* node) {
   AstNode* new_condition = Transform(node->condition());
   SequenceNode* new_true = new(I) SequenceNode(
-      Scanner::kNoSourcePos, preamble_->scope());
+      Scanner::kNoSourcePos, NewScope(preamble_->scope()));
   SequenceNode* saved_preamble = preamble_;
   preamble_ = new_true;
   AstNode* new_true_result = Transform(node->true_expr());
   SequenceNode* new_false = new(I) SequenceNode(
-      Scanner::kNoSourcePos, preamble_->scope());
+      Scanner::kNoSourcePos, NewScope(preamble_->scope()));
   preamble_ = new_false;
   AstNode* new_false_result = Transform(node->false_expr());
   preamble_ = saved_preamble;

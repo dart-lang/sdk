@@ -48,6 +48,35 @@ quazz() async {
   }
 }
 
+var result = "";
+
+reset() {
+  result = "";
+}
+
+observe(x) {
+  if (result.length > 0) {
+    result += ",";
+  }
+  result += x;
+}
+
+newTask(x) async => observe(x);
+
+awaitAll(tasks) async {
+  for (var task in tasks) {
+    // This actually opens up a new context level.
+    await task;
+  }
+}
+
+taskTest() async {
+  var tasks = [ newTask('a'), newTask('b'), newTask('c') ];
+  reset();
+  await awaitAll(tasks);
+  Expect.equals('a,b,c', result);
+}
+
 main() async {
   var result;
   for (int i = 0; i < 10; i++) {
@@ -57,5 +86,6 @@ main() async {
     Expect.equals(result, 17);
     result = await quazz();
     Expect.equals(result, 2);
+    await taskTest();
   }
 }
