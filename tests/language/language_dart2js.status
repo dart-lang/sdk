@@ -3,6 +3,8 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js || $compiler == dart2dart ]
+constructor_duplicate_final_test/01: Fail # Issue 13363
+constructor_duplicate_final_test/02: Fail # Issue 13363
 override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 bad_constructor_test/05: CompileTimeError # Issue 13669

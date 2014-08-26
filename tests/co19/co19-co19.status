@@ -28,8 +28,6 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: Fail # co19 issue 687
 LibTest/async/Stream/asBroadcastStream_A02_t01: Fail # co19 issue 687
 
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # co19-roll r587: Please triage this failure
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # co19-roll r587: Please triage this failure
 
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/core/Symbol/Symbol_A01_t04: RuntimeError # co19-roll r607: Please triage this failure

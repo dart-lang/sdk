@@ -2193,10 +2193,15 @@ AstNode* Parser::ParseInitializer(const Class& cls,
     ReportError(field_pos, "unresolved reference to instance field '%s'",
                 field_name.ToCString());
   }
-  CheckDuplicateFieldInit(field_pos, initialized_fields, &field);
-  AstNode* instance = new LoadLocalNode(field_pos, receiver);
   EnsureExpressionTemp();
-  return new StoreInstanceFieldNode(field_pos, instance, field, init_expr);
+  AstNode* instance = new(I) LoadLocalNode(field_pos, receiver);
+  AstNode* initializer = CheckDuplicateFieldInit(field_pos,
+      initialized_fields, instance, &field, init_expr);
+  if (initializer == NULL) {
+    initializer =
+        new(I) StoreInstanceFieldNode(field_pos, instance, field, init_expr);
+  }
+  return initializer;
 }
 
 
@@ -2317,23 +2322,107 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
       current_block_->statements->Add(field_init);
     }
   }
+  initialized_fields->Add(NULL);  // End of inline initializers.
   SetPosition(saved_pos);
 }
 
 
-void Parser::CheckDuplicateFieldInit(intptr_t init_pos,
-                                    GrowableArray<Field*>* initialized_fields,
-                                    Field* field) {
+AstNode* Parser::CheckDuplicateFieldInit(
+    intptr_t init_pos,
+    GrowableArray<Field*>* initialized_fields,
+    AstNode* instance,
+    Field* field,
+    AstNode* init_value) {
   ASSERT(!field->is_static());
-  for (int i = 0; i < initialized_fields->length(); i++) {
-    Field* initialized_field = (*initialized_fields)[i];
+  AstNode* result = NULL;
+
+  // The initializer_list is divided into two sections. The sections
+  // are separated by a NULL entry: [f0, ... fn, NULL, fn+1, ...]
+  // The first fields f0 .. fn are final fields of the class that
+  // have an initializer expression inlined in the class declaration.
+  // The remaining fields are those initialized by the constructor's
+  // initializing formals and initializer list
+  int initializer_idx = 0;
+  while (initializer_idx < initialized_fields->length()) {
+    Field* initialized_field = (*initialized_fields)[initializer_idx];
+    initializer_idx++;
+    if (initialized_field == NULL) {
+      break;
+    }
+    if (initialized_field->raw() == field->raw()) {
+      // This final field has been initialized by an inlined
+      // initializer expression. This is a runtime error.
+      // Throw a NoSuchMethodError for the missing setter.
+      ASSERT(field->is_final());
+
+      // Build a call to NoSuchMethodError::_throwNew(
+      //     Object receiver,
+      //     String memberName,
+      //     int invocation_type,
+      //     List arguments,
+      //     List argumentNames,
+      //     List existingArgumentNames);
+
+      ArgumentListNode* nsm_args = new(I) ArgumentListNode(init_pos);
+      // Object receiver.
+      nsm_args->Add(instance);
+
+      // String memberName.
+      String& setter_name = String::ZoneHandle(field->name());
+      setter_name = Field::SetterSymbol(setter_name);
+      nsm_args->Add(new(I) LiteralNode(init_pos, setter_name));
+
+      // Smi invocation_type.
+      const int invocation_type =
+          InvocationMirror::EncodeType(InvocationMirror::kDynamic,
+                                       InvocationMirror::kSetter);
+      nsm_args->Add(new(I) LiteralNode(
+          init_pos, Smi::ZoneHandle(I, Smi::New(invocation_type))));
+
+      // List arguments.
+      GrowableArray<AstNode*> setter_args;
+      setter_args.Add(init_value);
+      ArrayNode* setter_args_array = new(I) ArrayNode(
+          init_pos,
+          Type::ZoneHandle(I, Type::ArrayType()),
+          setter_args);
+      nsm_args->Add(setter_args_array);
+
+      // List argumentNames.
+      // The missing implicit setter of the field has no argument names.
+      nsm_args->Add(new(I) LiteralNode(init_pos, Array::ZoneHandle(I)));
+
+      // List existingArgumentNames.
+      // There is no setter for the final field, thus there are
+      // no existing names.
+      nsm_args->Add(new(I) LiteralNode(init_pos, Array::ZoneHandle(I)));
+
+      AstNode* nsm_call =
+          MakeStaticCall(Symbols::NoSuchMethodError(),
+          Library::PrivateCoreLibName(Symbols::ThrowNew()),
+          nsm_args);
+
+      LetNode* let = new(I) LetNode(init_pos);
+      let->AddNode(init_value);
+      let->AddNode(nsm_call);
+      result = let;
+    }
+  }
+  // The remaining elements in initialized_fields are fields that
+  // are initialized through initializing formal parameters, or
+  // in the constructor's initializer list. If there is a duplicate,
+  // it is a compile time error.
+  while (initializer_idx < initialized_fields->length()) {
+    Field* initialized_field = (*initialized_fields)[initializer_idx];
+    initializer_idx++;
     if (initialized_field->raw() == field->raw()) {
       ReportError(init_pos,
-                  "duplicate initialization for field %s",
+                  "duplicate initializer for field %s",
                   String::Handle(I, field->name()).ToCString());
     }
   }
   initialized_fields->Add(field);
+  return result;
 }
 
 
@@ -2610,7 +2699,6 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
                       "redirecting constructors may not have "
                       "initializing formal parameters");
         }
-        CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
 
         if (!param.has_explicit_type) {
           const AbstractType& field_type =
@@ -2630,8 +2718,16 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         ASSERT(p->is_invisible());
         AstNode* value = new LoadLocalNode(param.name_pos, p);
         EnsureExpressionTemp();
-        AstNode* initializer = new StoreInstanceFieldNode(
-            param.name_pos, instance, field, value);
+        AstNode* initializer =
+            CheckDuplicateFieldInit(param.name_pos,
+                                    &initialized_fields,
+                                    instance,
+                                    &field,
+                                    value);
+        if (initializer == NULL) {
+          initializer = new(I) StoreInstanceFieldNode(
+              param.name_pos, instance, field, value);
+        }
         current_block_->statements->Add(initializer);
       }
     }

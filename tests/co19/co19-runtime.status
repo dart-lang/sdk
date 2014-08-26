@@ -18,8 +18,6 @@ LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
-Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
 Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
 Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238

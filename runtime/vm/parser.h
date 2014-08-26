@@ -470,9 +470,12 @@ class Parser : public ValueObject {
       const Class& cls,
       LocalVariable* receiver,
       GrowableArray<Field*>* initialized_fields);
-  void CheckDuplicateFieldInit(intptr_t init_pos,
-                               GrowableArray<Field*>* initialized_fields,
-                               Field* field);
+  AstNode* CheckDuplicateFieldInit(
+      intptr_t init_pos,
+      GrowableArray<Field*>* initialized_fields,
+      AstNode* instance,
+      Field* field,
+      AstNode* init_value);
   void GenerateSuperConstructorCall(const Class& cls,
                                     intptr_t supercall_pos,
                                     LocalVariable* receiver,

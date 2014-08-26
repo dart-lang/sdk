@@ -18,6 +18,10 @@ Language/07_Classes/07_Classes_A13_t06: Fail # Missing CT error on member with s
 Language/07_Classes/07_Classes_A13_t08: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t09: Fail # Missing CT error on member with same name a type parameter
 
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A20_t02: fail # 13363
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A12_t02: fail # 13363
+
+
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: Fail, MissingCompileTimeError # co19-roll r607: Please triage this failure
 
 Language/12_Expressions/12_Instance_Creation/1_New_A04_t02: RuntimeError # co19-roll r607: Please triage this failure
