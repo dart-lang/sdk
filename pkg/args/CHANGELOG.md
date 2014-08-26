@@ -1,3 +1,7 @@
+## 0.12.0+2
+
+* Widen the version constraint on the `collection` package.
+
 ## 0.12.0+1
 
 * Remove the documentation link from the pubspec so this is linked to

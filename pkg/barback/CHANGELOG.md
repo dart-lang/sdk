@@ -1,3 +1,7 @@
+## 0.15.0+1
+
+* Widen the version constraint on the `collection` package.
+
 ## 0.15.0
 
 * Fully switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan`
