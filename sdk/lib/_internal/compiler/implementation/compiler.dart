@@ -660,11 +660,13 @@ abstract class Compiler implements DiagnosticListener {
    */
   final bool analyzeSignaturesOnly;
   final bool enableNativeLiveTypeAnalysis;
+
   /**
    * If true, stop compilation after type inference is complete. Used for
    * debugging and testing purposes only.
    */
   bool stopAfterTypeInference = false;
+
   /**
    * If [:true:], comment tokens are collected in [commentMap] during scanning.
    */
@@ -1462,7 +1464,7 @@ abstract class Compiler implements DiagnosticListener {
     log('Inferring types...');
     typesTask.onResolutionComplete(mainFunction);
 
-    if(stopAfterTypeInference) return;
+    if (stopAfterTypeInference) return;
 
     log('Compiling...');
     phase = PHASE_COMPILING;
