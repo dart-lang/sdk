@@ -15,7 +15,7 @@ import "package:async_helper/async_helper.dart";
 // [HttpClient.idleTimeout] and the main script will assert that this happens
 // within +/- 2 <= seconds.
 
-const SECONDS = 10;
+const SECONDS = 4;
 
 void runServerProcess() {
   asyncStart();
@@ -42,7 +42,7 @@ void runServerProcess() {
       // NOTE: There is a slight chance this will cause flakiness, but there is
       // no other good way of testing correctness of timing-dependent code
       // form the outside.
-      if ((SECONDS - seconds).abs() > 2) {
+      if (seconds < SECONDS || (SECONDS + 10) < seconds) {
         throw "Child did exit within $seconds seconds, but expected it to take "
               "roughly $SECONDS seconds.";
       }
