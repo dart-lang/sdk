@@ -778,7 +778,7 @@ void main() {
     checkReturn('testLabeledIf', typesTask.uint31Type.nullable());
     checkReturn('testSwitch1', simplify(
         typesTask.intType
-            .union(typesTask.doubleType, compiler)
+            .union(typesTask.doubleType, compiler.world)
             .nullable(),
         compiler));
     checkReturn('testSwitch2', typesTask.uint31Type);

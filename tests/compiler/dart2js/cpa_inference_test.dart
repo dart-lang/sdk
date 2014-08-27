@@ -1646,7 +1646,8 @@ testSelectors() {
     result.checkSelectorHasType(
         foo,
         new TypeMask.unionOf([a, b, c]
-            .map((cls) => new TypeMask.nonNullExact(cls)), result.compiler));
+            .map((cls) => new TypeMask.nonNullExact(cls)),
+            result.compiler.world));
     result.checkSelectorHasType(
         new TypedSelector.subclass(x, foo, result.compiler.world),
         new TypeMask.nonNullExact(b));
@@ -1659,7 +1660,7 @@ testSelectors() {
     result.checkSelectorHasType(
         new TypedSelector.subclass(xy, foo, result.compiler.world),
         new TypeMask.unionOf([b, c].map((cls) =>
-            new TypeMask.nonNullExact(cls)), result.compiler));
+            new TypeMask.nonNullExact(cls)), result.compiler.world));
 
     result.checkSelectorHasType(new Selector.call("bar", null, 0), null);
   });

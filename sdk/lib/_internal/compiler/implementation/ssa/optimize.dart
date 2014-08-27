@@ -91,12 +91,13 @@ class SsaOptimizerTask extends CompilerTask {
 }
 
 bool isFixedLength(mask, Compiler compiler) {
+  ClassWorld classWorld = compiler.world;
   JavaScriptBackend backend = compiler.backend;
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
     return true;
   } else if (mask.containsOnly(backend.jsFixedArrayClass)
-             || mask.containsOnlyString(compiler)
+             || mask.containsOnlyString(classWorld)
              || backend.isTypedArray(mask)) {
     return true;
   }
@@ -147,7 +148,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // If we can replace [instruction] with [replacement], then
           // [replacement]'s type can be narrowed.
           TypeMask newType = replacement.instructionType.intersection(
-              instruction.instructionType, compiler);
+              instruction.instructionType, compiler.world);
           replacement.instructionType = newType;
         }
 
@@ -186,7 +187,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (input.isBoolean(compiler)) return input;
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
-    if (!mask.contains(backend.jsBoolClass, compiler)) {
+    if (!mask.contains(backend.jsBoolClass, compiler.world)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -503,7 +504,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
-      TypeMask intersection = leftType.intersection(rightType, compiler);
+      TypeMask intersection = leftType.intersection(rightType, compiler.world);
       if (intersection.isEmpty && !intersection.isNullable) {
         return graph.addConstantBool(false, compiler);
       }
@@ -589,6 +590,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return graph.addConstantBool(true, compiler);
     }
 
+    ClassWorld classWorld = compiler.world;
     HInstruction expression = node.expression;
     if (expression.isInteger(compiler)) {
       if (identical(element, compiler.intClass)
@@ -633,11 +635,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
       TypeMask typeMask = (element == compiler.nullClass)
-          ? new TypeMask.subtype(element, compiler.world)
-          : new TypeMask.nonNullSubtype(element, compiler.world);
-      if (expressionMask.union(typeMask, compiler) == typeMask) {
+          ? new TypeMask.subtype(element, classWorld)
+          : new TypeMask.nonNullSubtype(element, classWorld);
+      if (expressionMask.union(typeMask, classWorld) == typeMask) {
         return graph.addConstantBool(true, compiler);
-      } else if (expressionMask.intersection(typeMask, compiler).isEmpty) {
+      } else if (expressionMask.intersection(typeMask,
+                                             compiler.world).isEmpty) {
         return graph.addConstantBool(false, compiler);
       }
     }
@@ -669,10 +672,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction removeIfCheckAlwaysSucceeds(HCheck node, TypeMask checkedType) {
-    if (checkedType.containsAll(compiler)) return node;
+    ClassWorld classWorld = compiler.world;
+    if (checkedType.containsAll(classWorld)) return node;
     HInstruction input = node.checkedInput;
     TypeMask inputType = input.instructionType;
-    return inputType.isInMask(checkedType, compiler) ? input : node;
+    return inputType.isInMask(checkedType, classWorld) ? input : node;
   }
 
   VariableElement findConcreteFieldForDynamicAccess(HInstruction receiver,
@@ -1891,7 +1895,7 @@ class MemorySet {
     // Typed arrays of different types might have a shared buffer.
     if (couldBeTypedArray(first) && couldBeTypedArray(second)) return true;
     TypeMask intersection = first.instructionType.intersection(
-        second.instructionType, compiler);
+        second.instructionType, compiler.world);
     if (intersection.isEmpty) return false;
     return true;
   }
@@ -2061,7 +2065,7 @@ class MemorySet {
     if (first == null || second == null) return null;
     if (first == second) return first;
     TypeMask phiType = second.instructionType.union(
-          first.instructionType, compiler);
+          first.instructionType, compiler.world);
     if (first is HPhi && first.block == block) {
       HPhi phi = first;
       phi.addInput(second);

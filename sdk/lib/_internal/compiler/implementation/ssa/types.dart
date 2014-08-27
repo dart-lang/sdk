@@ -39,12 +39,13 @@ class TypeMaskFactory {
 
   static TypeMask fromNativeBehavior(native.NativeBehavior nativeBehavior,
                                      Compiler compiler) {
+    ClassWorld classWorld = compiler.world;
     JavaScriptBackend backend = compiler.backend;
     if (nativeBehavior.typesReturned.isEmpty) return backend.dynamicType;
 
     TypeMask result = nativeBehavior.typesReturned
         .map((type) => fromNativeType(type, compiler))
-        .reduce((t1, t2) => t1.union(t2, compiler));
+        .reduce((t1, t2) => t1.union(t2, classWorld));
     assert(!(result.isEmpty && !result.isNullable));
     return result;
   }
@@ -52,6 +53,7 @@ class TypeMaskFactory {
   // [type] is either an instance of [DartType] or special objects
   // like [native.SpecialType.JsObject].
   static TypeMask fromNativeType(type, Compiler compiler) {
+    ClassWorld classWorld = compiler.world;
     JavaScriptBackend backend = compiler.backend;
     if (type == native.SpecialType.JsObject) {
       return new TypeMask.nonNullExact(compiler.objectClass);
@@ -62,7 +64,7 @@ class TypeMaskFactory {
     } else if (type.treatAsDynamic) {
       return backend.dynamicType;
     } else {
-      return new TypeMask.nonNullSubtype(type.element, compiler.world);
+      return new TypeMask.nonNullSubtype(type.element, classWorld);
     }
   }
 }

@@ -556,7 +556,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (selector.mask != receiverType) {
       return receiverType == inferrer.compiler.typesTask.dynamicType
           ? selector.asUntyped
-          : new TypedSelector(receiverType, selector, inferrer.compiler.world);
+          : new TypedSelector(receiverType, selector, inferrer.classWorld);
     } else {
       return selector;
     }
@@ -578,26 +578,26 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
    */
   TypeInformation handleIntrisifiedSelector(Selector selector,
                                             TypeGraphInferrerEngine inferrer) {
-    Compiler compiler = inferrer.compiler;
-    if (!compiler.backend.intImplementation.isResolved) return null;
+    ClassWorld classWorld = inferrer.classWorld;
+    if (!classWorld.backend.intImplementation.isResolved) return null;
     TypeMask emptyType = const TypeMask.nonNullEmpty();
     if (selector.mask == null) return null;
-    if (!selector.mask.containsOnlyInt(compiler)) {
+    if (!selector.mask.containsOnlyInt(classWorld)) {
       return null;
     }
     if (!selector.isCall && !selector.isOperator) return null;
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    ClassElement uint31Implementation = compiler.backend.uint31Implementation;
-    bool isInt(info) => info.type.containsOnlyInt(compiler);
+    ClassElement uint31Implementation = classWorld.backend.uint31Implementation;
+    bool isInt(info) => info.type.containsOnlyInt(classWorld);
     bool isEmpty(info) => info.type == emptyType;
     bool isUInt31(info) {
-      return info.type.satisfies(uint31Implementation, compiler);
+      return info.type.satisfies(uint31Implementation, classWorld);
     }
     bool isPositiveInt(info) {
       return info.type.satisfies(
-          compiler.backend.positiveIntImplementation, compiler);
+          classWorld.backend.positiveIntImplementation, classWorld);
     }
 
     String name = selector.name;
@@ -924,10 +924,10 @@ class NarrowTypeInformation extends TypeInformation {
   TypeMask refine(TypeGraphInferrerEngine inferrer) {
     TypeMask input = assignments[0].type;
     TypeMask intersection = input.intersection(typeAnnotation,
-        inferrer.compiler);
+        inferrer.classWorld);
     if (_ANOMALY_WARN) {
-      if (!input.containsMask(intersection, inferrer.compiler) ||
-          !typeAnnotation.containsMask(intersection, inferrer.compiler)) {
+      if (!input.containsMask(intersection, inferrer.classWorld) ||
+          !typeAnnotation.containsMask(intersection, inferrer.classWorld)) {
         print("ANOMALY WARNING: narrowed $input to $intersection via "
             "$typeAnnotation");
       }
@@ -1173,7 +1173,7 @@ class MapTypeInformation extends TypeInformation {
       for (var key in typeInfoMap.keys) {
         TypeInformation value = typeInfoMap[key];
         if (!mask.typeMap.containsKey(key) &&
-            !value.type.containsAll(inferrer.compiler) &&
+            !value.type.containsAll(inferrer.classWorld) &&
             !value.type.isNullable) {
           return toTypeMask(inferrer);
         }

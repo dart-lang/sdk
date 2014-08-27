@@ -11,10 +11,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       new Map<HInstruction, Function>();
 
   final Compiler compiler;
+  final ClassWorld classWorld;
   JavaScriptBackend get backend => compiler.backend;
   String get name => 'type propagator';
 
-  SsaTypePropagator(this.compiler);
+  SsaTypePropagator(Compiler compiler)
+      : this.compiler = compiler,
+        this.classWorld = compiler.world;
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);
@@ -141,7 +144,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     TypeMask candidateType = backend.emptyType;
     for (int i = 0, length = phi.inputs.length; i < length; i++) {
       TypeMask inputType = phi.inputs[i].instructionType;
-      candidateType = candidateType.union(inputType, compiler);
+      candidateType = candidateType.union(inputType, classWorld);
     }
     return candidateType;
   }
@@ -154,25 +157,25 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // We must make sure a type conversion for receiver or argument check
       // does not try to do an int check, because an int check is not enough.
       // We only do an int check if the input is integer or null.
-      if (checkedType.containsOnlyNum(compiler)
-          && !checkedType.containsOnlyDouble(compiler)
+      if (checkedType.containsOnlyNum(classWorld)
+          && !checkedType.containsOnlyDouble(classWorld)
           && input.isIntegerOrNull(compiler)) {
         instruction.checkedType = backend.intType;
-      } else if (checkedType.containsOnlyInt(compiler)
+      } else if (checkedType.containsOnlyInt(classWorld)
                  && !input.isIntegerOrNull(compiler)) {
         instruction.checkedType = backend.numType;
       }
     }
 
-    TypeMask outputType = checkedType.intersection(inputType, compiler);
+    TypeMask outputType = checkedType.intersection(inputType, classWorld);
     if (outputType.isEmpty && !outputType.isNullable) {
       // Intersection of double and integer conflicts (is empty), but JS numbers
       // can be both int and double at the same time.  For example, the input
       // can be a literal double '8.0' that is marked as an integer (because 'is
       // int' will return 'true').  What we really need to do is make the
       // overlap between int and double values explicit in the TypeMask system.
-      if (inputType.containsOnlyInt(compiler)
-          && checkedType.containsOnlyDouble(compiler)) {
+      if (inputType.containsOnlyInt(classWorld)
+          && checkedType.containsOnlyDouble(classWorld)) {
         if (inputType.isNullable && checkedType.isNullable) {
           outputType = backend.doubleType.nullable();
         } else {
@@ -185,7 +188,8 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
   TypeMask visitTypeKnown(HTypeKnown instruction) {
     HInstruction input = instruction.checkedInput;
-    return instruction.knownType.intersection(input.instructionType, compiler);
+    return instruction.knownType.intersection(
+        input.instructionType, classWorld);
   }
 
   void convertInput(HInvokeDynamic instruction,
@@ -206,7 +210,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     // In some cases, we want the receiver to be an integer,
     // but that does not mean we will get a NoSuchMethodError
     // if it's not: the receiver could be a double.
-    if (type.containsOnlyInt(compiler)) {
+    if (type.containsOnlyInt(classWorld)) {
       // If the instruction's type is integer or null, the codegen
       // will emit a null check, which is enough to know if it will
       // hit a noSuchMethod.
@@ -234,13 +238,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       if (targets.length == 1) {
         Element target = targets.first;
         ClassElement cls = target.enclosingClass;
-        TypeMask type = new TypeMask.nonNullSubclass(cls.declaration,
-                                                     compiler.world);
+        TypeMask type = new TypeMask.nonNullSubclass(
+            cls.declaration, classWorld);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
-        if (!type.satisfies(backend.jsIndexableClass, compiler)
-            && !type.containsOnlyNum(compiler)
-            && !type.containsOnlyBool(compiler)) {
+        if (!type.satisfies(backend.jsIndexableClass, classWorld) &&
+            !type.containsOnlyNum(classWorld) &&
+            !type.containsOnlyBool(classWorld)) {
           return false;
         }
         if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
@@ -323,14 +327,14 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction receiver = instruction.getDartReceiver(compiler);
     TypeMask receiverType = receiver.instructionType;
     Selector selector =
-        new TypedSelector(receiverType, instruction.selector, compiler.world);
+        new TypedSelector(receiverType, instruction.selector, classWorld);
     instruction.selector = selector;
 
     // Try to specialize the receiver after this call.
     if (receiver.dominatedUsers(instruction).length != 1
         && !selector.isClosureCall) {
       TypeMask newType = compiler.world.allFunctions.receiverType(selector);
-      newType = newType.intersection(receiverType, compiler);
+      newType = newType.intersection(receiverType, classWorld);
       var next = instruction.next;
       if (next is HTypeKnown && next.checkedInput == receiver) {
         // We already have refined [receiver]. We still update the

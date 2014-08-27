@@ -51,7 +51,7 @@ void testUnionTypeMaskFlatten() {
            FlatTypeMask flattened,
            List<ClassElement> containedClasses}) {
       List<FlatTypeMask> disjoint = <FlatTypeMask>[];
-      UnionTypeMask.unionOfHelper(masks, disjoint, env.compiler);
+      UnionTypeMask.unionOfHelper(masks, disjoint, classWorld);
       Expect.listEquals(disjointMasks, disjoint,
           'Unexpected disjoint masks: $disjoint, expected $disjointMasks.');
       if (flattened == null) {
@@ -65,7 +65,7 @@ void testUnionTypeMaskFlatten() {
             'Unexpected flattening of $disjoint: '
             '$flattenResult, expected $flattened.');
       }
-      var union = UnionTypeMask.unionOf(masks, env.compiler);
+      var union = UnionTypeMask.unionOf(masks, classWorld);
       if (result == null) {
         Expect.isTrue(union is UnionTypeMask,
             'Expected union of $masks to be a union-type: $union.');
@@ -79,10 +79,10 @@ void testUnionTypeMaskFlatten() {
       if (containedClasses != null) {
         for (ClassElement cls in allClasses) {
           if (containedClasses.contains(cls)) {
-            Expect.isTrue(union.contains(cls, env.compiler),
+            Expect.isTrue(union.contains(cls, classWorld),
                 'Expected $union to contain $cls.');
           } else {
-            Expect.isFalse(union.contains(cls, env.compiler),
+            Expect.isFalse(union.contains(cls, classWorld),
                 '$union not expected to contain $cls.');
           }
         }

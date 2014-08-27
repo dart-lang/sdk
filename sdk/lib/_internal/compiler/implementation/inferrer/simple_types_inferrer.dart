@@ -29,7 +29,10 @@ import '../universe/universe.dart' show Selector, SideEffects, TypedSelector;
  */
 class TypeMaskSystem implements TypeSystem<TypeMask> {
   final Compiler compiler;
-  TypeMaskSystem(this.compiler);
+  final ClassWorld classWorld;
+  TypeMaskSystem(Compiler compiler)
+      : this.compiler = compiler,
+        this.classWorld = compiler.world;
 
   TypeMask narrowType(TypeMask type,
                       DartType annotation,
@@ -46,12 +49,11 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
       otherType = nullType;
     } else {
       assert(annotation.isInterfaceType);
-      otherType = new TypeMask.nonNullSubtype(annotation.element,
-                                              compiler.world);
+      otherType = new TypeMask.nonNullSubtype(annotation.element, classWorld);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type == null) return otherType;
-    return type.intersection(otherType, compiler);
+    return type.intersection(otherType, classWorld);
   }
 
   TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
@@ -62,10 +64,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     } else if (firstType == secondType) {
       return firstType;
     } else {
-      TypeMask union = firstType.union(secondType, compiler);
+      TypeMask union = firstType.union(secondType, classWorld);
       // TODO(kasperl): If the union isn't nullable it seems wasteful
       // to use dynamic. Fix that.
-      return union.containsAll(compiler) ? dynamicType : union;
+      return union.containsAll(classWorld) ? dynamicType : union;
     }
   }
 
@@ -96,9 +98,9 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask stringLiteralType(ast.DartString value) => stringType;
 
   TypeMask nonNullSubtype(ClassElement type)
-      => new TypeMask.nonNullSubtype(type.declaration, compiler.world);
+      => new TypeMask.nonNullSubtype(type.declaration, classWorld);
   TypeMask nonNullSubclass(ClassElement type)
-      => new TypeMask.nonNullSubclass(type.declaration, compiler.world);
+      => new TypeMask.nonNullSubclass(type.declaration, classWorld);
   TypeMask nonNullExact(ClassElement type)
       => new TypeMask.nonNullExact(type.declaration);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
@@ -147,7 +149,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
 
   TypeMask refineReceiver(Selector selector, TypeMask receiverType) {
     TypeMask newType = compiler.world.allFunctions.receiverType(selector);
-    return receiverType.intersection(newType, compiler);
+    return receiverType.intersection(newType, classWorld);
   }
 
   TypeMask getConcreteTypeFor(TypeMask mask) => mask;
@@ -161,11 +163,14 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
 abstract class InferrerEngine<T, V extends TypeSystem>
     implements MinimalInferrerEngine<T> {
   final Compiler compiler;
+  final ClassWorld classWorld;
   final V types;
   final Map<ast.Node, T> concreteTypes = new Map<ast.Node, T>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
 
-  InferrerEngine(this.compiler, this.types);
+  InferrerEngine(Compiler compiler, this.types)
+      : this.compiler = compiler,
+        this.classWorld = compiler.world;
 
   /**
    * Records the default type of parameter [parameter].

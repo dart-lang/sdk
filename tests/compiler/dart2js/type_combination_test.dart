@@ -98,7 +98,7 @@ class RuleSet {
 
 void testUnion(MockCompiler compiler) {
   RuleSet ruleSet = new RuleSet('union',
-      (t1, t2) => simplify(t1.union(t2, compiler), compiler));
+      (t1, t2) => simplify(t1.union(t2, compiler.world), compiler));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
   check(type1, type2, predicate) => ruleSet.check(type1, type2, predicate);
 
@@ -386,7 +386,7 @@ void testUnion(MockCompiler compiler) {
 void testIntersection(MockCompiler compiler) {
   JavaScriptBackend backend = compiler.backend;
   RuleSet ruleSet = new RuleSet('intersection',
-                                (t1, t2) => t1.intersection(t2, compiler));
+      (t1, t2) => t1.intersection(t2, compiler.world));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
 
   rule(emptyType, emptyType, emptyType);
@@ -673,7 +673,8 @@ void testRegressions(MockCompiler compiler) {
   TypeMask nonNullPotentialString = new TypeMask.nonNullSubtype(
       patternClass, compiler.world);
   Expect.equals(
-      potentialString, jsStringOrNull.union(nonNullPotentialString, compiler));
+      potentialString, jsStringOrNull.union(
+          nonNullPotentialString, compiler.world));
 }
 
 void main() {

@@ -85,7 +85,7 @@ class FlatTypeMask implements TypeMask {
     return isNullable ? new FlatTypeMask.internal(base, flags & ~1) : this;
   }
 
-  bool contains(ClassElement type, Compiler compiler) {
+  bool contains(ClassElement type, ClassWorld classWorld) {
     assert(type.isDeclaration);
     if (isEmpty) {
       return false;
@@ -94,41 +94,42 @@ class FlatTypeMask implements TypeMask {
     } else if (isExact) {
       return false;
     } else if (isSubclass) {
-      return compiler.world.isSubclassOf(type, base);
+      return classWorld.isSubclassOf(type, base);
     } else {
       assert(isSubtype);
-      return compiler.world.isSubtypeOf(type, base);
+      return classWorld.isSubtypeOf(type, base);
     }
   }
 
-  bool isSingleImplementationOf(ClassElement cls, Compiler compiler) {
+  bool isSingleImplementationOf(ClassElement cls, ClassWorld classWorld) {
     // Special case basic types so that, for example, JSString is the
     // single implementation of String.
     // The general optimization is to realize there is only one class that
     // implements [base] and [base] is not instantiated. We however do
     // not track correctly the list of truly instantiated classes.
-    Backend backend = compiler.backend;
-    if (containsOnlyString(compiler)) {
-      return cls == compiler.stringClass || cls == backend.stringImplementation;
+    Backend backend = classWorld.backend;
+    if (containsOnlyString(classWorld)) {
+      return cls == classWorld.stringClass ||
+             cls == backend.stringImplementation;
     }
-    if (containsOnlyBool(compiler)) {
-      return cls == compiler.boolClass || cls == backend.boolImplementation;
+    if (containsOnlyBool(classWorld)) {
+      return cls == classWorld.boolClass || cls == backend.boolImplementation;
     }
-    if (containsOnlyInt(compiler)) {
-      return cls == compiler.intClass
+    if (containsOnlyInt(classWorld)) {
+      return cls == classWorld.intClass
           || cls == backend.intImplementation
           || cls == backend.positiveIntImplementation
           || cls == backend.uint32Implementation
           || cls == backend.uint31Implementation;
     }
-    if (containsOnlyDouble(compiler)) {
-      return cls == compiler.doubleClass
-          || cls == compiler.backend.doubleImplementation;
+    if (containsOnlyDouble(classWorld)) {
+      return cls == classWorld.doubleClass
+          || cls == backend.doubleImplementation;
     }
     return false;
   }
 
-  bool isInMask(TypeMask other, Compiler compiler) {
+  bool isInMask(TypeMask other, ClassWorld classWorld) {
     // null is treated separately, so the empty mask might still contain it.
     if (isEmpty) return isNullable ? other.isNullable : true;
     // The empty type contains no classes.
@@ -137,7 +138,7 @@ class FlatTypeMask implements TypeMask {
     if (isNullable && !other.isNullable) return false;
     other = TypeMask.nonForwardingMask(other);
     // If other is union, delegate to UnionTypeMask.containsMask.
-    if (other is! FlatTypeMask) return other.containsMask(this, compiler);
+    if (other is! FlatTypeMask) return other.containsMask(this, classWorld);
     // The other must be flat, so compare base and flags.
     FlatTypeMask flatOther = other;
     ClassElement otherBase = flatOther.base;
@@ -145,7 +146,7 @@ class FlatTypeMask implements TypeMask {
     // TODO(herhut): Get rid of isSingleImplementationOf.
     if (flatOther.isExact) {
       return (isExact && base == otherBase)
-          || isSingleImplementationOf(otherBase, compiler);
+          || isSingleImplementationOf(otherBase, classWorld);
     }
     // If other is subclass, this has to be subclass, as well. Unless
     // flatOther.base covers all subtypes of this. Currently, we only
@@ -153,46 +154,51 @@ class FlatTypeMask implements TypeMask {
     // TODO(herhut): Add check whether flatOther.base is superclass of
     //               all subclasses of this.base.
     if (flatOther.isSubclass) {
-      if (isSubtype) return (otherBase == compiler.objectClass);
-      return compiler.world.isSubclassOf(base, otherBase);
+      if (isSubtype) return (otherBase == classWorld.objectClass);
+      return classWorld.isSubclassOf(base, otherBase);
     }
     assert(flatOther.isSubtype);
     // Check whether this TypeMask satisfies otherBase's interface.
-    return satisfies(otherBase, compiler);
+    return satisfies(otherBase, classWorld);
   }
 
-  bool containsMask(TypeMask other, Compiler compiler) {
-    return other.isInMask(this, compiler);
+  bool containsMask(TypeMask other, ClassWorld classWorld) {
+    return other.isInMask(this, classWorld);
   }
 
-  bool containsOnlyInt(Compiler compiler) {
-    return base == compiler.intClass
-        || base == compiler.backend.intImplementation
-        || base == compiler.backend.positiveIntImplementation
-        || base == compiler.backend.uint31Implementation
-        || base == compiler.backend.uint32Implementation;
+  bool containsOnlyInt(ClassWorld classWorld) {
+    Backend backend = classWorld.backend;
+    return base == classWorld.intClass
+        || base == backend.intImplementation
+        || base == backend.positiveIntImplementation
+        || base == backend.uint31Implementation
+        || base == backend.uint32Implementation;
   }
 
-  bool containsOnlyDouble(Compiler compiler) {
-    return base == compiler.doubleClass
-        || base == compiler.backend.doubleImplementation;
+  bool containsOnlyDouble(ClassWorld classWorld) {
+    Backend backend = classWorld.backend;
+    return base == classWorld.doubleClass
+        || base == backend.doubleImplementation;
   }
 
-  bool containsOnlyNum(Compiler compiler) {
-    return containsOnlyInt(compiler)
-        || containsOnlyDouble(compiler)
-        || base == compiler.numClass
-        || base == compiler.backend.numImplementation;
+  bool containsOnlyNum(ClassWorld classWorld) {
+    Backend backend = classWorld.backend;
+    return containsOnlyInt(classWorld)
+        || containsOnlyDouble(classWorld)
+        || base == classWorld.numClass
+        || base == backend.numImplementation;
   }
 
-  bool containsOnlyBool(Compiler compiler) {
-    return base == compiler.boolClass
-        || base == compiler.backend.boolImplementation;
+  bool containsOnlyBool(ClassWorld classWorld) {
+    Backend backend = classWorld.backend;
+    return base == classWorld.boolClass
+        || base == backend.boolImplementation;
   }
 
-  bool containsOnlyString(Compiler compiler) {
-    return base == compiler.stringClass
-        || base == compiler.backend.stringImplementation;
+  bool containsOnlyString(ClassWorld classWorld) {
+    Backend backend = classWorld.backend;
+    return base == classWorld.stringClass
+        || base == backend.stringImplementation;
   }
 
   bool containsOnly(ClassElement cls) {
@@ -200,10 +206,10 @@ class FlatTypeMask implements TypeMask {
     return base == cls;
   }
 
-  bool satisfies(ClassElement cls, Compiler compiler) {
+  bool satisfies(ClassElement cls, ClassWorld classWorld) {
     assert(cls.isDeclaration);
     if (isEmpty) return false;
-    if (compiler.world.isSubtypeOf(base, cls)) return true;
+    if (classWorld.isSubtypeOf(base, cls)) return true;
     return false;
   }
 
@@ -211,13 +217,13 @@ class FlatTypeMask implements TypeMask {
    * Returns the [ClassElement] if this type represents a single class,
    * otherwise returns `null`.  This method is conservative.
    */
-  ClassElement singleClass(Compiler compiler) {
+  ClassElement singleClass(ClassWorld classWorld) {
     if (isEmpty) return null;
     if (isNullable) return null;  // It is Null and some other class.
     if (isExact) {
       return base;
     } else if (isSubclass) {
-      return compiler.world.hasAnyStrictSubclass(base) ? null : base;
+      return classWorld.hasAnyStrictSubclass(base) ? null : base;
     } else {
       assert(isSubtype);
       return null;
@@ -227,17 +233,16 @@ class FlatTypeMask implements TypeMask {
   /**
    * Returns whether or not this type mask contains all types.
    */
-  bool containsAll(Compiler compiler) {
+  bool containsAll(ClassWorld classWorld) {
     if (isEmpty || isExact) return false;
-    return identical(base, compiler.objectClass);
+    return identical(base, classWorld.objectClass);
   }
 
-  TypeMask union(TypeMask other, Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+  TypeMask union(TypeMask other, ClassWorld classWorld) {
     assert(other != null);
     assert(TypeMask.isNormalized(this, classWorld));
     assert(TypeMask.isNormalized(other, classWorld));
-    if (other is! FlatTypeMask) return other.union(this, compiler);
+    if (other is! FlatTypeMask) return other.union(this, classWorld);
     FlatTypeMask flatOther = other;
     if (isEmpty) {
       return isNullable ? flatOther.nullable() : flatOther;
@@ -323,19 +328,18 @@ class FlatTypeMask implements TypeMask {
         : this;
   }
 
-  TypeMask intersection(TypeMask other, Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     assert(other != null);
-    if (other is! FlatTypeMask) return other.intersection(this, compiler);
-    assert(TypeMask.isNormalized(this, compiler.world));
-    assert(TypeMask.isNormalized(other, compiler.world));
+    if (other is! FlatTypeMask) return other.intersection(this, classWorld);
+    assert(TypeMask.isNormalized(this, classWorld));
+    assert(TypeMask.isNormalized(other, classWorld));
     FlatTypeMask flatOther = other;
     if (isEmpty) {
       return flatOther.isNullable ? this : nonNullable();
     } else if (flatOther.isEmpty) {
       return isNullable ? flatOther : other.nonNullable();
     } else if (base == flatOther.base) {
-      return intersectionSame(flatOther, classWorld);
+      return intersectionSame(flatOther);
     } else if (classWorld.isSubclassOf(flatOther.base, base)) {
       return intersectionStrictSubclass(flatOther, classWorld);
     } else if (classWorld.isSubclassOf(base, flatOther.base)) {
@@ -349,7 +353,7 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask intersectionSame(FlatTypeMask other, ClassWorld classWorld) {
+  TypeMask intersectionSame(FlatTypeMask other) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
@@ -449,7 +453,7 @@ class FlatTypeMask implements TypeMask {
     Iterable<TypeMask> masks = candidates.map((ClassElement cls) {
       return new FlatTypeMask.normalized(cls, combined, classWorld);
     });
-    return UnionTypeMask.unionOf(masks, classWorld.compiler);
+    return UnionTypeMask.unionOf(masks, classWorld);
   }
 
   TypeMask intersectionEmpty(FlatTypeMask other) {
@@ -485,12 +489,14 @@ class FlatTypeMask implements TypeMask {
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(Element element, Selector selector, World world) {
-    ClassWorld classWorld = world;
+  bool canHit(Element element, Selector selector, ClassWorld classWorld) {
+    // TODO(johnniwinther): Remove the need for [World].
+    World world = classWorld.compiler.world;
+    Backend backend = classWorld.backend;
     assert(element.name == selector.name);
     if (isEmpty) {
       if (!isNullable) return false;
-      return hasElementIn(world.nullImplementation, selector, element);
+      return hasElementIn(backend.nullImplementation, selector, element);
     }
 
     // TODO(kasperl): Can't we just avoid creating typed selectors
@@ -503,7 +509,7 @@ class FlatTypeMask implements TypeMask {
     }
 
     ClassElement other = element.enclosingClass;
-    if (other == world.nullImplementation) {
+    if (other == backend.nullImplementation) {
       return isNullable;
     } else if (isExact) {
       return hasElementIn(self, selector, element);
@@ -511,22 +517,22 @@ class FlatTypeMask implements TypeMask {
       assert(world.isClosed);
       return hasElementIn(self, selector, element)
           || other.isSubclassOf(self)
-          || world.hasAnySubclassThatMixes(self, other);
+          || classWorld.hasAnySubclassThatMixes(self, other);
     } else {
       assert(isSubtype);
       assert(world.isClosed);
       bool result = hasElementIn(self, selector, element)
           || other.implementsInterface(self)
           || world.hasAnySubclassThatImplements(other, base)
-          || world.hasAnySubclassOfMixinUseThatImplements(other, base);
+          || classWorld.hasAnySubclassOfMixinUseThatImplements(other, base);
       if (result) return true;
       // If the class is used as a mixin, we have to check if the element
       // can be hit from any of the mixin applications.
-      Iterable<ClassElement> mixinUses = world.mixinUsesOf(self);
+      Iterable<ClassElement> mixinUses = classWorld.mixinUsesOf(self);
       return mixinUses.any((mixinApplication) =>
            hasElementIn(mixinApplication, selector, element)
         || other.isSubclassOf(mixinApplication)
-        || world.hasAnySubclassThatMixes(mixinApplication, other));
+        || classWorld.hasAnySubclassThatMixes(mixinApplication, other));
     }
   }
 
@@ -550,7 +556,7 @@ class FlatTypeMask implements TypeMask {
     return selector.appliesUntyped(element, world);
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, World world) {
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld) {
     // A call on an empty type mask is either dead code, or a call on
     // `null`.
     if (isEmpty) return false;
@@ -603,7 +609,7 @@ class FlatTypeMask implements TypeMask {
     bool needsNoSuchMethod(ClassElement cls) {
       // We can skip uninstantiated subclasses.
       // TODO(johnniwinther): Put filtering into the (Class)World.
-      if (!world.compiler.enqueuer.resolution.isInstantiated(cls)) {
+      if (!classWorld.isInstantiated(cls)) {
         return false;
       }
       // We can just skip abstract classes because we know no
@@ -611,7 +617,7 @@ class FlatTypeMask implements TypeMask {
       // therefore there is no instance that will require
       // [noSuchMethod] handling.
       return !cls.isAbstract
-          && !hasConcreteMatch(cls, selector, world);
+          && !hasConcreteMatch(cls, selector, classWorld);
     }
 
     bool baseNeedsNoSuchMethod = needsNoSuchMethod(base);
@@ -621,10 +627,10 @@ class FlatTypeMask implements TypeMask {
 
     Iterable<ClassElement> subclassesToCheck;
     if (isSubtype) {
-      subclassesToCheck = world.subtypesOf(base);
+      subclassesToCheck = classWorld.subtypesOf(base);
     } else {
       assert(isSubclass);
-      subclassesToCheck = world.subclassesOf(base);
+      subclassesToCheck = classWorld.subclassesOf(base);
     }
 
     return subclassesToCheck != null &&

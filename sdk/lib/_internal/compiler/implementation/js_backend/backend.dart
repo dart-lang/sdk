@@ -2010,13 +2010,13 @@ class JavaScriptBackend extends Backend {
     // abstract class any user-defined class can implement. So we also
     // check for the interface [JavaScriptIndexingBehavior].
     return compiler.typedDataClass != null
-        && mask.satisfies(compiler.typedDataClass, compiler)
-        && mask.satisfies(jsIndexingBehaviorInterface, compiler);
+        && mask.satisfies(compiler.typedDataClass, compiler.world)
+        && mask.satisfies(jsIndexingBehaviorInterface, compiler.world);
   }
 
   bool couldBeTypedArray(TypeMask mask) {
     bool intersects(TypeMask type1, TypeMask type2) =>
-        !type1.intersection(type2, compiler).isEmpty;
+        !type1.intersection(type2, compiler.world).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
     return compiler.typedDataClass != null &&

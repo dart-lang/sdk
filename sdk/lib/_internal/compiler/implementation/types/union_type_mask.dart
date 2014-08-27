@@ -14,11 +14,10 @@ class UnionTypeMask implements TypeMask {
     assert(disjointMasks.every((TypeMask mask) => !mask.isUnion));
   }
 
-  static TypeMask unionOf(Iterable<TypeMask> masks, Compiler compiler) {
-    ClassWorld classWorld = compiler.world;
+  static TypeMask unionOf(Iterable<TypeMask> masks, ClassWorld classWorld) {
     assert(masks.every((mask) => TypeMask.isNormalized(mask, classWorld)));
     List<FlatTypeMask> disjoint = <FlatTypeMask>[];
-    unionOfHelper(masks, disjoint, compiler);
+    unionOfHelper(masks, disjoint, classWorld);
     if (disjoint.isEmpty) return new TypeMask.nonNullEmpty();
     if (disjoint.length > MAX_UNION_LENGTH) {
       return flatten(disjoint, classWorld);
@@ -31,12 +30,14 @@ class UnionTypeMask implements TypeMask {
 
   static void unionOfHelper(Iterable<TypeMask> masks,
                             List<FlatTypeMask> disjoint,
-                            Compiler compiler) {
+                            ClassWorld classWorld) {
+    // TODO(johnniwinther): Impose an order on the mask to ensure subclass masks
+    // are preferred to subtype masks.
     for (TypeMask mask in masks) {
       mask = TypeMask.nonForwardingMask(mask);
       if (mask.isUnion) {
         UnionTypeMask union = mask;
-        unionOfHelper(union.disjointMasks, disjoint, compiler);
+        unionOfHelper(union.disjointMasks, disjoint, classWorld);
       } else if (mask.isEmpty && !mask.isNullable) {
         continue;
       } else {
@@ -49,7 +50,7 @@ class UnionTypeMask implements TypeMask {
         for (int i = 0; i < disjoint.length; i++) {
           FlatTypeMask current = disjoint[i];
           if (current == null) continue;
-          TypeMask newMask = mask.union(current, compiler);
+          TypeMask newMask = mask.union(current, classWorld);
           // If we have found a disjoint union, continue iterating.
           if (newMask.isUnion) continue;
           covered = true;
@@ -123,7 +124,7 @@ class UnionTypeMask implements TypeMask {
     return new TypeMask(bestElement, bestKind, isNullable, classWorld);
   }
 
-  TypeMask union(var other, Compiler compiler) {
+  TypeMask union(var other, ClassWorld classWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return this;
 
@@ -135,10 +136,10 @@ class UnionTypeMask implements TypeMask {
       assert(other is UnionTypeMask);
       newList.addAll(other.disjointMasks);
     }
-    return new TypeMask.unionOf(newList, compiler);
+    return new TypeMask.unionOf(newList, classWorld);
   }
 
-  TypeMask intersection(var other, Compiler compiler) {
+  TypeMask intersection(var other, ClassWorld classWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return other;
 
@@ -146,13 +147,13 @@ class UnionTypeMask implements TypeMask {
     for (TypeMask current in disjointMasks) {
       if (other.isUnion) {
         for (FlatTypeMask flatOther in other.disjointMasks) {
-          intersections.add(current.intersection(flatOther, compiler));
+          intersections.add(current.intersection(flatOther, classWorld));
         }
       } else {
-        intersections.add(current.intersection(other, compiler));
+        intersections.add(current.intersection(other, classWorld));
       }
     }
-    return new TypeMask.unionOf(intersections, compiler);
+    return new TypeMask.unionOf(intersections, classWorld);
   }
 
   TypeMask nullable() {
@@ -187,35 +188,34 @@ class UnionTypeMask implements TypeMask {
    * - the cheap test matching against individual members of [disjointMasks]
    *   must have failed.
    */
-  bool slowContainsCheck(TypeMask other, Compiler compiler) {
+  bool slowContainsCheck(TypeMask other, ClassWorld classWorld) {
     // Unions should never make it here.
     assert(!other.isUnion);
     // Ensure the cheap test fails.
-    assert(!disjointMasks.any((mask) => mask.containsMask(other, compiler)));
+    assert(!disjointMasks.any((mask) => mask.containsMask(other, classWorld)));
     // If we cover object, we should never get here.
-    assert(!contains(compiler.objectClass, compiler));
+    assert(!contains(classWorld.objectClass, classWorld));
     // Likewise, nullness should be covered.
     assert(isNullable || !other.isNullable);
     // The fast test is precise for exact types.
     if (other.isExact) return false;
     // We cannot contain object.
-    if (other.contains(compiler.objectClass, compiler)) return false;
+    if (other.contains(classWorld.objectClass, classWorld)) return false;
     FlatTypeMask flat = TypeMask.nonForwardingMask(other);
     // Check we cover the base class.
-    if (!contains(flat.base, compiler)) return false;
+    if (!contains(flat.base, classWorld)) return false;
     // Check for other members.
     Iterable<ClassElement> members;
     if (flat.isSubclass) {
-      members = compiler.world.subclassesOf(flat.base);
+      members = classWorld.subclassesOf(flat.base);
     } else {
       assert(flat.isSubtype);
-      members = compiler.world.subtypesOf(flat.base);
+      members = classWorld.subtypesOf(flat.base);
     }
-    if (members == null) return true;
-    return members.every((ClassElement cls) => this.contains(cls, compiler));
+    return members.every((ClassElement cls) => this.contains(cls, classWorld));
   }
 
-  bool isInMask(TypeMask other, Compiler compiler) {
+  bool isInMask(TypeMask other, ClassWorld classWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (isNullable && !other.isNullable) return false;
     if (other.isUnion) {
@@ -226,76 +226,76 @@ class UnionTypeMask implements TypeMask {
         // context, so we can safely ignore it here.
         FlatTypeMask maskDisregardNull = mask.nonNullable();
         return masks.any((FlatTypeMask other) {
-          return other.containsMask(maskDisregardNull, compiler);
+          return other.containsMask(maskDisregardNull, classWorld);
         });
       }
       return disjointMasks.every((FlatTypeMask disjointMask) {
         bool contained = containedInAnyOf(disjointMask, union.disjointMasks);
-        assert(contained || !union.slowContainsCheck(disjointMask, compiler));
+        assert(contained || !union.slowContainsCheck(disjointMask, classWorld));
         return contained;
       });
     }
-    return disjointMasks.every((mask) => mask.isInMask(other, compiler));
+    return disjointMasks.every((mask) => mask.isInMask(other, classWorld));
   }
 
-  bool containsMask(TypeMask other, Compiler compiler) {
+  bool containsMask(TypeMask other, ClassWorld classWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (other.isNullable && !isNullable) return false;
-    if (other.isUnion) return other.isInMask(this, compiler);
+    if (other.isUnion) return other.isInMask(this, classWorld);
     other = other.nonNullable(); // nullable is not canonicalized, so drop it.
     bool contained =
-        disjointMasks.any((mask) => mask.containsMask(other, compiler));
-    assert(contained || !slowContainsCheck(other, compiler));
+        disjointMasks.any((mask) => mask.containsMask(other, classWorld));
+    assert(contained || !slowContainsCheck(other, classWorld));
     return contained;
   }
 
-  bool containsOnlyInt(Compiler compiler) {
-    return disjointMasks.every((mask) => mask.containsOnlyInt(compiler));
+  bool containsOnlyInt(ClassWorld classWorld) {
+    return disjointMasks.every((mask) => mask.containsOnlyInt(classWorld));
   }
 
-  bool containsOnlyDouble(Compiler compiler) {
-    return disjointMasks.every((mask) => mask.containsOnlyDouble(compiler));
+  bool containsOnlyDouble(ClassWorld classWorld) {
+    return disjointMasks.every((mask) => mask.containsOnlyDouble(classWorld));
   }
 
-  bool containsOnlyNum(Compiler compiler) {
+  bool containsOnlyNum(ClassWorld classWorld) {
     return disjointMasks.every((mask) {
-      return mask.containsOnlyNum(compiler);
+      return mask.containsOnlyNum(classWorld);
     });
   }
 
-  bool containsOnlyBool(Compiler compiler) {
-    return disjointMasks.every((mask) => mask.containsOnlyBool(compiler));
+  bool containsOnlyBool(ClassWorld classWorld) {
+    return disjointMasks.every((mask) => mask.containsOnlyBool(classWorld));
   }
 
-  bool containsOnlyString(Compiler compiler) {
-    return disjointMasks.every((mask) => mask.containsOnlyString(compiler));
+  bool containsOnlyString(ClassWorld classWorld) {
+    return disjointMasks.every((mask) => mask.containsOnlyString(classWorld));
   }
 
   bool containsOnly(ClassElement element) {
     return disjointMasks.every((mask) => mask.containsOnly(element));
   }
 
-  bool satisfies(ClassElement cls, Compiler compiler) {
-    return disjointMasks.every((mask) => mask.satisfies(cls, compiler));
+  bool satisfies(ClassElement cls, ClassWorld classWorld) {
+    return disjointMasks.every((mask) => mask.satisfies(cls, classWorld));
   }
 
-  bool contains(ClassElement type, Compiler compiler) {
-    return disjointMasks.any((e) => e.contains(type, compiler));
+  bool contains(ClassElement type, ClassWorld classWorld) {
+    return disjointMasks.any((e) => e.contains(type, classWorld));
   }
 
-  bool containsAll(Compiler compiler) {
-    return disjointMasks.any((mask) => mask.containsAll(compiler));
+  bool containsAll(ClassWorld classWorld) {
+    return disjointMasks.any((mask) => mask.containsAll(classWorld));
   }
 
-  ClassElement singleClass(Compiler compiler) => null;
+  ClassElement singleClass(ClassWorld classWorld) => null;
 
-  bool needsNoSuchMethodHandling(Selector selector, World world) {
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld) {
     return disjointMasks.any(
-        (e) => e.needsNoSuchMethodHandling(selector, world));
+        (e) => e.needsNoSuchMethodHandling(selector, classWorld));
   }
 
-  bool canHit(Element element, Selector selector, World world) {
-    return disjointMasks.any((e) => e.canHit(element, selector, world));
+  bool canHit(Element element, Selector selector, ClassWorld classWorld) {
+    return disjointMasks.any((e) => e.canHit(element, selector, classWorld));
   }
 
   Element locateSingleElement(Selector selector, Compiler compiler) {

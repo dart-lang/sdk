@@ -3078,7 +3078,8 @@ class SsaBuilder extends ResolvedVisitor {
         // does not look at elements in the list.
         TypeMask type =
             TypeMaskFactory.inferredTypeForElement(element, compiler);
-        if (!type.containsAll(compiler) && !instruction.isConstantNull()) {
+        if (!type.containsAll(compiler.world) &&
+            !instruction.isConstantNull()) {
           // TODO(13429): The inferrer should know that an element
           // cannot be null.
           instruction.instructionType = type.nonNullable();
@@ -4075,13 +4076,13 @@ class SsaBuilder extends ResolvedVisitor {
         isFixedList = true;
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(sourceElement, send, compiler);
-        return inferred.containsAll(compiler)
+        return inferred.containsAll(compiler.world)
             ? backend.fixedArrayType
             : inferred;
       } else if (isGrowableListConstructorCall) {
         TypeMask inferred =
             TypeMaskFactory.inferredForNode(sourceElement, send, compiler);
-        return inferred.containsAll(compiler)
+        return inferred.containsAll(compiler.world)
             ? backend.extendableArrayType
             : inferred;
       } else if (Elements.isConstructorOfTypedArraySubclass(
@@ -4091,7 +4092,7 @@ class SsaBuilder extends ResolvedVisitor {
             TypeMaskFactory.inferredForNode(sourceElement, send, compiler);
         ClassElement cls = element.enclosingClass;
         assert(cls.thisType.element.isNative);
-        return inferred.containsAll(compiler)
+        return inferred.containsAll(compiler.world)
             ? new TypeMask.nonNullExact(cls.thisType.element)
             : inferred;
       } else if (element.isGenerativeConstructor) {
@@ -4539,11 +4540,11 @@ class SsaBuilder extends ResolvedVisitor {
       if (isLength || selector.isIndex) {
         TypeMask type = new TypeMask.nonNullExact(
             element.enclosingClass.declaration);
-        return type.satisfies(backend.jsIndexableClass, compiler);
+        return type.satisfies(backend.jsIndexableClass, compiler.world);
       } else if (selector.isIndexSet) {
         TypeMask type = new TypeMask.nonNullExact(
             element.enclosingClass.declaration);
-        return type.satisfies(backend.jsMutableIndexableClass, compiler);
+        return type.satisfies(backend.jsMutableIndexableClass, compiler.world);
       } else {
         return false;
       }
@@ -5031,7 +5032,7 @@ class SsaBuilder extends ResolvedVisitor {
 
     TypeMask type =
         TypeMaskFactory.inferredForNode(sourceElement, node, compiler);
-    if (!type.containsAll(compiler)) instruction.instructionType = type;
+    if (!type.containsAll(compiler.world)) instruction.instructionType = type;
     stack.add(instruction);
   }
 
@@ -5268,7 +5269,8 @@ class SsaBuilder extends ResolvedVisitor {
         new TypeMask.nonNullSubtype(backend.mapLiteralClass, compiler.world);
     TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
         constructor, compiler);
-    TypeMask instructionType = mapType.intersection(returnTypeMask, compiler);
+    TypeMask instructionType =
+        mapType.intersection(returnTypeMask, compiler.world);
 
     addInlinedInstantiation(expectedType);
     pushInvokeStatic(node, constructor, inputs, instructionType);
@@ -5938,7 +5940,7 @@ class StringBuilderVisitor extends ast.Visitor {
         new TypedSelector(expression.instructionType,
             new Selector.call('toString', null, 0), compiler.world);
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
-    if (type.containsOnlyString(compiler)) {
+    if (type.containsOnlyString(compiler.world)) {
       builder.pushInvokeDynamic(node, selector, <HInstruction>[expression]);
       append(builder.pop());
       return;

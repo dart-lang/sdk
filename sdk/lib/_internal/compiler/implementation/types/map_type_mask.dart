@@ -62,15 +62,15 @@ class MapTypeMask extends ForwardingTypeMask {
         valueType == other.valueType;
   }
 
-  TypeMask intersection(TypeMask other, Compiler compiler) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, compiler);
+  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
+    TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
     if (forwardIntersection.isEmpty) return forwardIntersection;
     return forwardIntersection.isNullable
         ? nullable()
         : nonNullable();
   }
 
-  TypeMask union(other, Compiler compiler) {
+  TypeMask union(other, ClassWorld classWorld) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -83,18 +83,18 @@ class MapTypeMask extends ForwardingTypeMask {
                valueType != null &&
                other.valueType != null) {
       TypeMask newKeyType =
-          keyType.union(other.keyType, compiler);
+          keyType.union(other.keyType, classWorld);
       TypeMask newValueType =
-          valueType.union(other.valueType, compiler);
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, compiler);
+          valueType.union(other.valueType, classWorld);
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);
       return new MapTypeMask(
           newForwardTo, null, null, newKeyType, newValueType);
     } else if (other.isDictionary) {
-      TypeMask newKeyType =
-          keyType.union(compiler.typesTask.stringType, compiler);
+      assert(other.keyType == classWorld.compiler.typesTask.stringType);
+      TypeMask newKeyType = keyType.union(other.keyType, classWorld);
       TypeMask newValueType =
-          other.typeMap.values.fold(keyType, (p,n) => p.union(n, compiler));
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, compiler);
+          other.typeMap.values.fold(keyType, (p,n) => p.union(n, classWorld));
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);
       MapTypeMask newMapTypeMask = new MapTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
@@ -103,7 +103,7 @@ class MapTypeMask extends ForwardingTypeMask {
           newKeyType, newValueType);
       return newMapTypeMask;
     } else {
-      return forwardTo.union(other, compiler);
+      return forwardTo.union(other, classWorld);
     }
   }
 

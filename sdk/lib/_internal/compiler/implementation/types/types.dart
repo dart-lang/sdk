@@ -43,10 +43,13 @@ class TypesTask extends CompilerTask {
   static final bool DUMP_GOOD_CPA_RESULTS = false;
 
   final String name = 'Type inference';
+  final ClassWorld classWorld;
   TypesInferrer typesInferrer;
   ConcreteTypesInferrer concreteTypesInferrer;
 
-  TypesTask(Compiler compiler) : super(compiler) {
+  TypesTask(Compiler compiler)
+      : this.classWorld = compiler.world,
+        super(compiler) {
     typesInferrer = new TypeGraphInferrer(compiler);
     if (compiler.enableConcreteTypeInference) {
       concreteTypesInferrer = new ConcreteTypesInferrer(compiler);
@@ -75,16 +78,16 @@ class TypesTask extends CompilerTask {
 
   TypeMask get dynamicType {
     if (dynamicTypeCache == null) {
-      dynamicTypeCache = new TypeMask.subclass(compiler.objectClass,
-          compiler.world);
+      dynamicTypeCache =
+          new TypeMask.subclass(classWorld.objectClass, classWorld);
     }
     return dynamicTypeCache;
   }
 
   TypeMask get nonNullType {
     if (nonNullTypeCache == null) {
-      nonNullTypeCache = new TypeMask.nonNullSubclass(compiler.objectClass,
-          compiler.world);
+      nonNullTypeCache =
+          new TypeMask.nonNullSubclass(classWorld.objectClass, classWorld);
     }
     return nonNullTypeCache;
   }
@@ -148,7 +151,7 @@ class TypesTask extends CompilerTask {
   TypeMask get functionType {
     if (functionTypeCache == null) {
       functionTypeCache = new TypeMask.nonNullSubtype(
-          compiler.backend.functionImplementation, compiler.world);
+          compiler.backend.functionImplementation, classWorld);
     }
     return functionTypeCache;
   }
@@ -188,7 +191,7 @@ class TypesTask extends CompilerTask {
   TypeMask get mapType {
     if (mapTypeCache == null) {
       mapTypeCache = new TypeMask.nonNullSubtype(
-          compiler.backend.mapImplementation, compiler.world);
+          compiler.backend.mapImplementation, classWorld);
     }
     return mapTypeCache;
   }
@@ -196,7 +199,7 @@ class TypesTask extends CompilerTask {
   TypeMask get constMapType {
     if (constMapTypeCache == null) {
       constMapTypeCache = new TypeMask.nonNullSubtype(
-          compiler.backend.constMapImplementation, compiler.world);
+          compiler.backend.constMapImplementation, classWorld);
     }
     return constMapTypeCache;
   }
@@ -229,7 +232,7 @@ class TypesTask extends CompilerTask {
   TypeMask _intersection(TypeMask type1, TypeMask type2) {
     if (type1 == null) return type2;
     if (type2 == null) return type1;
-    return type1.intersection(type2, compiler);
+    return type1.intersection(type2, classWorld);
   }
 
   /** Computes the intersection of [type1] and [type2] */
@@ -252,8 +255,8 @@ class TypesTask extends CompilerTask {
              (type1 != dynamicType);
     }
     return (type1 != type2) &&
-           type2.containsMask(type1, compiler) &&
-           !type1.containsMask(type2, compiler);
+           type2.containsMask(type1, classWorld) &&
+           !type1.containsMask(type2, classWorld);
   }
 
   /**

@@ -10,9 +10,12 @@ part of types;
  * yield conservative answers that contain too many classes.
  */
 abstract class TypeMask {
-  factory TypeMask(ClassElement base, int kind, bool isNullable, World world) {
-    return new FlatTypeMask.normalized(base, (kind << 1) | (isNullable ? 1 : 0),
-        world);
+  factory TypeMask(ClassElement base,
+                   int kind,
+                   bool isNullable,
+                   ClassWorld classWorld) {
+    return new FlatTypeMask.normalized(
+        base, (kind << 1) | (isNullable ? 1 : 0), classWorld);
   }
 
   const factory TypeMask.empty() = FlatTypeMask.empty;
@@ -63,8 +66,8 @@ abstract class TypeMask {
     }
   }
 
-  factory TypeMask.unionOf(Iterable<TypeMask> masks, Compiler compiler) {
-    return UnionTypeMask.unionOf(masks, compiler);
+  factory TypeMask.unionOf(Iterable<TypeMask> masks, ClassWorld classWorld) {
+    return UnionTypeMask.unionOf(masks, classWorld);
   }
 
   /**
@@ -133,11 +136,11 @@ abstract class TypeMask {
   /// Returns `true` if this mask holds encodes an exact value within a type.
   bool get isValue;
 
-  bool containsOnlyInt(Compiler compiler);
-  bool containsOnlyDouble(Compiler compiler);
-  bool containsOnlyNum(Compiler compiler);
-  bool containsOnlyBool(Compiler compiler);
-  bool containsOnlyString(Compiler compiler);
+  bool containsOnlyInt(ClassWorld classWorld);
+  bool containsOnlyDouble(ClassWorld classWorld);
+  bool containsOnlyNum(ClassWorld classWorld);
+  bool containsOnlyBool(ClassWorld classWorld);
+  bool containsOnlyString(ClassWorld classWorld);
   bool containsOnly(ClassElement element);
 
   /**
@@ -152,61 +155,62 @@ abstract class TypeMask {
    * Returns `true` if [other] is a supertype of this mask, i.e., if
    * this mask is in [other].
    */
-  bool isInMask(TypeMask other, Compiler compiler);
+  bool isInMask(TypeMask other, ClassWorld classWorld);
 
   /**
    * Returns `true` if [other] is a subtype of this mask, i.e., if
    * this mask contains [other].
    */
-  bool containsMask(TypeMask other, Compiler compiler);
+  bool containsMask(TypeMask other, ClassWorld classWorld);
 
   /**
    * Returns whether this type mask is an instance of [cls].
    */
-  bool satisfies(ClassElement cls, Compiler compiler);
+  bool satisfies(ClassElement cls, ClassWorld classWorld);
 
   /**
    * Returns whether or not this type mask contains the given type.
    */
-  bool contains(ClassElement type, Compiler compiler);
+  bool contains(ClassElement type, ClassWorld classWorld);
 
   /**
    * Returns whether or not this type mask contains all types.
    */
-  bool containsAll(Compiler compiler);
+  bool containsAll(ClassWorld classWorld);
 
   /**
    * Returns the [ClassElement] if this type represents a single class,
    * otherwise returns `null`.  This method is conservative.
    */
-  ClassElement singleClass(Compiler compiler);
+  ClassElement singleClass(ClassWorld classWorld);
 
   /**
    * Returns a type mask representing the union of [this] and [other].
    */
-  TypeMask union(TypeMask other, Compiler compiler);
+  TypeMask union(TypeMask other, ClassWorld classWorld);
 
   /**
    * Returns a type mask representing the intersection of [this] and [other].
    */
-  TypeMask intersection(TypeMask other, Compiler compiler);
+  TypeMask intersection(TypeMask other, ClassWorld classWorld);
 
   /**
    * Returns whether this [TypeMask] applied to [selector] can hit a
    * [noSuchMethod].
    */
-  bool needsNoSuchMethodHandling(Selector selector, World world);
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld);
 
   /**
    * Returns whether [element] is a potential target when being
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(Element element, Selector selector, World world);
+  bool canHit(Element element, Selector selector, ClassWorld classWorld);
 
   /**
    * Returns the [element] that is known to always be hit at runtime
    * on this mask. Returns null if there is none.
    */
+  // TODO(johnniwinther): Move this method to [World].
   Element locateSingleElement(Selector selector, Compiler compiler);
 }

@@ -67,7 +67,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   bool canUseSelfForInterceptor(HInstruction receiver,
                                 Set<ClassElement> interceptedClasses) {
     JavaScriptBackend backend = compiler.backend;
-    World world = compiler.world;
+    ClassWorld classWorld = compiler.world;
 
     if (receiver.canBePrimitive(compiler)) {
       // Primitives always need interceptors.
@@ -81,8 +81,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     // All intercepted classes extend `Interceptor`, so if the receiver can't be
     // a class extending `Interceptor` then it can be called directly.
-    return new TypeMask.nonNullSubclass(backend.jsInterceptorClass, world)
-        .intersection(receiver.instructionType, compiler)
+    return new TypeMask.nonNullSubclass(backend.jsInterceptorClass, classWorld)
+        .intersection(receiver.instructionType, classWorld)
         .isEmpty;
   }
 
@@ -97,6 +97,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
 
     ClassElement constantInterceptor;
+    ClassWorld classWorld = compiler.world;
     JavaScriptBackend backend = compiler.backend;
     if (input.canBeNull()) {
       if (input.isNull()) {
@@ -131,7 +132,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // for a subclass or call methods defined on a subclass.  Provided the
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
-      ClassElement element = input.instructionType.singleClass(compiler);
+      ClassElement element = input.instructionType.singleClass(classWorld);
       if (element != null && element.isNative) {
         constantInterceptor = element;
       }

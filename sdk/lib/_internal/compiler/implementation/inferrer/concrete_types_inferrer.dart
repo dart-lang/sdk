@@ -451,7 +451,7 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
     for (BaseType baseType in concreteType.baseTypes) {
       TypeMask baseMask = baseTypeToTypeMask(baseType);
       if (baseMask == const DynamicTypeMask()) return baseMask;
-      typeMask = typeMask.union(baseMask, compiler);
+      typeMask = typeMask.union(baseMask, compiler.world);
     }
     return typeMask;
   }
@@ -930,23 +930,23 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyInt(Compiler compiler) {
+  bool containsOnlyInt(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyDouble(Compiler compiler) {
+  bool containsOnlyDouble(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyNum(Compiler compiler) {
+  bool containsOnlyNum(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyBool(Compiler compiler) {
+  bool containsOnlyBool(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyString(Compiler compiler) {
+  bool containsOnlyString(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
@@ -954,31 +954,31 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool satisfies(ClassElement cls, Compiler compiler) {
+  bool satisfies(ClassElement cls, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool contains(ClassElement type, Compiler compiler) {
+  bool contains(ClassElement type, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsAll(Compiler compiler) {
+  bool containsAll(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  ClassElement singleClass(Compiler compiler) {
+  ClassElement singleClass(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  TypeMask union(TypeMask other, Compiler compiler) {
+  TypeMask union(TypeMask other, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  TypeMask intersection(TypeMask other, Compiler compiler) {
+  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool canHit(Element element, Selector selector, World world) {
+  bool canHit(Element element, Selector selector, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
@@ -986,15 +986,15 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, World world) {
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool isInMask(TypeMask other, Compiler compiler) {
+  bool isInMask(TypeMask other, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsMask(TypeMask other, Compiler compiler) {
+  bool containsMask(TypeMask other, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 }
@@ -1221,7 +1221,7 @@ class ConcreteTypesInferrer
     if (mask1 == const DynamicTypeMask() || mask2 == const DynamicTypeMask()) {
       return const DynamicTypeMask();
     }
-    return mask1.union(mask2, compiler);
+    return mask1.union(mask2, compiler.world);
   }
 
   /**
@@ -1497,7 +1497,7 @@ class ConcreteTypesInferrer
     } else {
       candidates.forEach((TypeMask receiverType, TypeMask returnType) {
         TypeMask intersection =
-            receiverType.intersection(selector.mask, compiler);
+            receiverType.intersection(selector.mask, compiler.world);
         if (!intersection.isEmpty || intersection.isNullable) {
           result = typeMaskUnion(result, returnType);
         }

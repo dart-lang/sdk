@@ -215,6 +215,7 @@ void doTest(String allocation, [String keyElement,
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
+  var classWorld = compiler.world;
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var keyType, valueType;
     var typesTask = compiler.typesTask;
@@ -240,9 +241,9 @@ void doTest(String allocation, [String keyElement,
       Expect.equals(valueType, simplify(mask.valueType, compiler), name);
     }
 
-    K(TypeMask other) => simplify(keyType.union(other, compiler), compiler);
+    K(TypeMask other) => simplify(keyType.union(other, classWorld), compiler);
     V(TypeMask other) =>
-        simplify(valueType.union(other, compiler), compiler).nullable();
+        simplify(valueType.union(other, classWorld), compiler).nullable();
 
     checkType('mapInField', K(aKeyType), V(typesTask.numType));
     checkType('mapPassedToMethod', K(aKeyType), V(typesTask.numType));

@@ -21,6 +21,7 @@ main() {
 main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(CODE, uri);
+  var classWorld = compiler.world;
 
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var classA = findElement(compiler, 'A');
@@ -33,28 +34,29 @@ main() {
     var exactC = new TypeMask.nonNullExact(classC);
     var exactD = new TypeMask.nonNullExact(classD);
 
-    var subclassA = new TypeMask.nonNullSubclass(classA, compiler.world);
-    var subtypeA = new TypeMask.nonNullSubtype(classA, compiler.world);
+    var subclassA = new TypeMask.nonNullSubclass(classA, classWorld);
+    var subtypeA = new TypeMask.nonNullSubtype(classA, classWorld);
 
     var subclassObject = new TypeMask.nonNullSubclass(compiler.objectClass,
-        compiler.world);
+        classWorld);
 
-    var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], compiler);
+    var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], classWorld);
     var unionABnC = UnionTypeMask.unionOf([exactA, exactB.nullable(), exactC],
-        compiler);
-    var unionAB = UnionTypeMask.unionOf([exactA, exactB], compiler);
-    var unionSubtypeAC = UnionTypeMask.unionOf([subtypeA, exactC], compiler);
-    var unionSubclassAC = UnionTypeMask.unionOf([subclassA, exactC], compiler);
-    var unionBCD = UnionTypeMask.unionOf([exactB, exactC, exactD], compiler);
+        classWorld);
+    var unionAB = UnionTypeMask.unionOf([exactA, exactB], classWorld);
+    var unionSubtypeAC = UnionTypeMask.unionOf([subtypeA, exactC], classWorld);
+    var unionSubclassAC = UnionTypeMask.unionOf([subclassA, exactC],
+        classWorld);
+    var unionBCD = UnionTypeMask.unionOf([exactB, exactC, exactD], classWorld);
     var unionBCDn = UnionTypeMask.unionOf([exactB, exactC, exactD.nullable()],
-        compiler);
+        classWorld);
 
     Expect.isFalse(unionABC.isNullable);
     Expect.isTrue(unionABnC.isNullable);
     Expect.isFalse(unionBCD.isNullable);
     Expect.isTrue(unionBCDn.isNullable);
 
-    rule(a, b, c) => Expect.equals(c, a.isInMask(b, compiler));
+    rule(a, b, c) => Expect.equals(c, a.isInMask(b, classWorld));
 
     rule(exactA, exactA, true);
     rule(exactA, exactB, false);
