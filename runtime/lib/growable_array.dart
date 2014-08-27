@@ -102,11 +102,14 @@ class _GrowableList<T> implements List<T> {
     Lists.indicesCheck(this, start, end);
     if (end == null) end = this.length;
     int length = end - start;
-    if (start == end) return <T>[];
-    List list = new _GrowableList<T>.withCapacity(length);
-    list.length = length;
-    Lists.copy(this, start, list, 0, length);
-    return list;
+    if (length == 0) return <T>[];
+    List list = new _List(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = this[start + i];
+    }
+    var result = new _GrowableList<T>.withData(list);
+    result._setLength(length);
+    return result;
   }
 
   static const int _kDefaultCapacity = 2;
@@ -171,9 +174,32 @@ class _GrowableList<T> implements List<T> {
   }
 
   void addAll(Iterable<T> iterable) {
-    for (T elem in iterable) {
-      add(elem);
+    var len = length;
+    if (iterable is EfficientLength) {
+      var cap = _capacity;
+      // Pregrow if we know iterable.length.
+      var iterLen = iterable.length;
+      var newLen = len + iterLen;
+      if (newLen > cap) {
+        do {
+          cap *= 2;
+        } while (newLen > cap);
+        _grow(cap);
+      }
     }
+    Iterator it = iterable.iterator;
+    if (!it.moveNext()) return;
+    do {
+      while (len < _capacity) {
+        int newLen = len + 1;
+        this._setLength(newLen);
+        this[len] = it.current;
+        if (!it.moveNext()) return;
+        if (this.length != newLen) throw new ConcurrentModificationError(this);
+        len = newLen;
+      }
+      _grow(_capacity * 2);
+    } while (true);
   }
 
   T removeLast() {
@@ -336,7 +362,18 @@ class _GrowableList<T> implements List<T> {
   }
 
   List<T> toList({ bool growable: true }) {
-    return new List<T>.from(this, growable: growable);
+    var length = this.length;
+    if (length > 0) {
+      List list = growable ? new _List(length) : new _List<T>(length);
+      for (int i = 0; i < length; i++) {
+        list[i] = this[i];
+      }
+      if (!growable) return list;
+      var result = new _GrowableList<T>.withData(list);
+      result._setLength(length);
+      return result;
+    }
+    return growable ? <T>[] : new List<T>(0);
   }
 
   Set<T> toSet() {

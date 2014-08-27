@@ -101,6 +101,7 @@ null_nosuchmethod_test: Fail # Issue: 7413
 unicode_test: Fail # Issue 14694
 
 [ $compiler == dart2js ]
+growable_list_test: RuntimeError # Fails to detect concurrent modification in addAll.
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
 integer_to_string_test/01: RuntimeError # Issue 1533

@@ -32,6 +32,22 @@ patch class List<E> {
     return result;
   }
 
+  /* patch */ factory List.from(Iterable other, { bool growable: true }) {
+    if (other is EfficientLength) {
+      int length = other.length;
+      var list = growable ? new _GrowableList<E>(length) : new _List<E>(length);
+      int i = 0;
+      for (var element in other) { list[i++] = element; }
+      return list;
+    }
+    List<E> list = new _GrowableList<E>(0);
+    for (E e in other) {
+      list.add(e);
+    }
+    if (growable) return list;
+    return makeListFixedLength(list);
+  }
+
   // Factory constructing a mutable List from a parser generated List literal.
   // [elements] contains elements that are already type checked.
   factory List._fromLiteral(List elements) {
