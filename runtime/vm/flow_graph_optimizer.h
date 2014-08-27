@@ -41,6 +41,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void SelectRepresentations();
 
+  void WidenSmiToInt32();
+
   void InferIntRanges();
 
   void SelectIntegerInstructions();
@@ -268,6 +270,8 @@ class LICM : public ValueObject {
 
   void Optimize();
 
+  void OptimisticallySpecializeSmiPhis();
+
  private:
   FlowGraph* flow_graph() const { return flow_graph_; }
 
@@ -275,10 +279,9 @@ class LICM : public ValueObject {
              BlockEntryInstr* pre_header,
              Instruction* current);
 
-  void TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
-                                  BlockEntryInstr* header,
-                                  BlockEntryInstr* pre_header,
-                                  CheckSmiInstr* current);
+  void TrySpecializeSmiPhi(PhiInstr* phi,
+                           BlockEntryInstr* header,
+                           BlockEntryInstr* pre_header);
 
   FlowGraph* const flow_graph_;
 };

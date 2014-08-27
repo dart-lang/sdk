@@ -42,6 +42,9 @@ DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
+DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
+#endif
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);
@@ -581,6 +584,13 @@ bool FlowGraphOptimizer::Canonicalize() {
 }
 
 
+static bool IsUnboxedInteger(Representation rep) {
+  return (rep == kUnboxedInt32) ||
+         (rep == kUnboxedUint32) ||
+         (rep == kUnboxedMint);
+}
+
+
 void FlowGraphOptimizer::InsertConversion(Representation from,
                                           Representation to,
                                           Value* use,
@@ -607,10 +617,21 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new(I) UnboxIntegerInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
     converted = new(I) BoxIntegerInstr(use->CopyWithType());
-  } else if ((from == kUnboxedMint) && (to == kUnboxedUint32)) {
-    converted = new(I) UnboxedIntConverterInstr(from, to, use->CopyWithType());
-  } else if ((from == kUnboxedUint32) && (to == kUnboxedMint)) {
-    converted = new(I) UnboxedIntConverterInstr(from, to, use->CopyWithType());
+  } else if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
+    const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new(I) UnboxedIntConverterInstr(from,
+                                                to,
+                                                use->CopyWithType(),
+                                                deopt_id);
+  } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
+    converted = new Int32ToDoubleInstr(use->CopyWithType());
+  } else if ((from == kTagged) && (to == kUnboxedInt32)) {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxInt32Instr(use->CopyWithType(), deopt_id);
+  } else if ((from == kUnboxedInt32) && (to == kTagged)) {
+    converted = new BoxInt32Instr(use->CopyWithType());
   } else if ((from == kTagged) && (to == kUnboxedUint32)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
         deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
@@ -691,6 +712,10 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       boxed = new(I) BoxIntegerInstr(use->CopyWithType());
     } else if (from == kUnboxedFloat64x2) {
       boxed = new(I) BoxFloat64x2Instr(use->CopyWithType());
+    } else if (from == kUnboxedInt32) {
+      boxed = new(I) BoxInt32Instr(use->CopyWithType());
+    } else if (from == kUnboxedUint32) {
+      boxed = new(I) BoxUint32Instr(use->CopyWithType());
     } else {
       UNIMPLEMENTED();
     }
@@ -707,6 +732,10 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       converted = new(I) UnboxIntegerInstr(to_value, deopt_id);
     } else if (to == kUnboxedFloat64x2) {
       converted = new(I) UnboxFloat64x2Instr(to_value, deopt_id);
+    } else if (to == kUnboxedInt32) {
+      boxed = new(I) UnboxInt32Instr(use->CopyWithType(), deopt_id);
+    } else if (to == kUnboxedUint32) {
+      boxed = new(I) UnboxUint32Instr(use->CopyWithType(), deopt_id);
     } else {
       UNIMPLEMENTED();
     }
@@ -718,6 +747,12 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     use->BindToEnvironment(converted);
   } else {
     use->BindTo(converted);
+  }
+
+  if ((to == kUnboxedInt32) && (phi != NULL)) {
+    // Int32 phis are unboxed optimistically. Ensure that unboxing
+    // has deoptimization target attached from the goto instruction.
+    flow_graph_->CopyDeoptTarget(converted, insert_before);
   }
 }
 
@@ -765,10 +800,8 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
 }
 
 
-// Returns true if phi's representation was changed.
-static bool UnboxPhi(PhiInstr* phi) {
-  Representation current = phi->representation();
-  Representation unboxed = current;
+static void UnboxPhi(PhiInstr* phi) {
+  Representation unboxed = phi->representation();
 
   switch (phi->Type()->ToCid()) {
     case kDoubleCid:
@@ -793,12 +826,7 @@ static bool UnboxPhi(PhiInstr* phi) {
       break;
   }
 
-  if (unboxed != current) {
-    phi->set_representation(unboxed);
-    return true;
-  }
-
-  return false;
+  phi->set_representation(unboxed);
 }
 
 
@@ -4593,6 +4621,262 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 }
 
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
+// Smi widening pass is only meaningful on platforms where Smi
+// is smaller than 32bit. For now only support it on ARM and ia32.
+
+class DefinitionWorklist {
+ public:
+  DefinitionWorklist(FlowGraph* flow_graph,
+                     intptr_t initial_capacity)
+      : defs_(initial_capacity),
+        contains_(new BitVector(flow_graph->current_ssa_temp_index())) {
+  }
+
+  void Add(Definition* defn) {
+    if (!Contains(defn)) {
+      defs_.Add(defn);
+      contains_->Add(defn->ssa_temp_index());
+    }
+  }
+
+  bool Contains(Definition* defn) const {
+    return (defn->ssa_temp_index() >= 0) &&
+        contains_->Contains(defn->ssa_temp_index());
+  }
+
+  const GrowableArray<Definition*>& definitions() const { return defs_; }
+  BitVector* contains() const { return contains_; }
+
+  void Clear() {
+    defs_.TruncateTo(0);
+    contains_->Clear();
+  }
+
+ private:
+  GrowableArray<Definition*> defs_;
+  BitVector* contains_;
+};
+
+
+static bool CanBeWidened(BinarySmiOpInstr* smi_op) {
+  return BinaryInt32OpInstr::IsSupported(smi_op->op_kind(),
+                                         smi_op->left(),
+                                         smi_op->right());
+}
+
+
+static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
+  // TODO(vegorov): when shifts with non-constants shift count are supported
+  // add them here as we save untagging for the count.
+  switch (smi_op->op_kind()) {
+    case Token::kMUL:
+    case Token::kSHR:
+      // For kMUL we save untagging of the argument for kSHR
+      // we save tagging of the result.
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+
+void FlowGraphOptimizer::WidenSmiToInt32() {
+  GrowableArray<BinarySmiOpInstr*> candidates;
+
+  // Step 1. Collect all instructions that potentially benefit from widening of
+  // their operands (or their result) into int32 range.
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done();
+         instr_it.Advance()) {
+      BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
+      if (smi_op != NULL &&
+          BenefitsFromWidening(smi_op) &&
+          CanBeWidened(smi_op)) {
+        candidates.Add(smi_op);
+      }
+    }
+  }
+
+  if (candidates.length() == 0) {
+    return;
+  }
+
+  // Step 2. For each block in the graph compute which loop it belongs to.
+  // We will use this information later during computation of the widening's
+  // gain: we are going to assume that only conversion occuring inside the
+  // same loop should be counted against the gain, all other conversions
+  // can be hoisted and thus cost nothing compared to the loop cost itself.
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
+    flow_graph()->loop_headers();
+
+  GrowableArray<intptr_t> loops(flow_graph_->preorder().length());
+  for (intptr_t i = 0; i < flow_graph_->preorder().length(); i++) {
+    loops.Add(-1);
+  }
+
+  for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
+    for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
+         !loop_it.Done();
+         loop_it.Advance()) {
+      loops[loop_it.Current()] = loop_id;
+    }
+  }
+
+  // Step 3. For each candidate transitively collect all other BinarySmiOpInstr
+  // and PhiInstr that depend on it and that it depends on and count amount of
+  // untagging operations that we save in assumption that this whole graph of
+  // values is using kUnboxedInt32 representation instead of kTagged.
+  // Convert those graphs that have positive gain to kUnboxedInt32.
+
+  // BitVector containing SSA indexes of all processed definitions. Used to skip
+  // those candidates that belong to dependency graph of another candidate.
+  BitVector* processed = new BitVector(flow_graph_->current_ssa_temp_index());
+
+  // Worklist used to collect dependency graph.
+  DefinitionWorklist worklist(flow_graph_, candidates.length());
+  for (intptr_t i = 0; i < candidates.length(); i++) {
+    BinarySmiOpInstr* op = candidates[i];
+    if (op->WasEliminated() || processed->Contains(op->ssa_temp_index())) {
+      continue;
+    }
+
+    if (FLAG_trace_smi_widening) {
+      OS::Print("analysing candidate: %s\n", op->ToCString());
+    }
+    worklist.Clear();
+    worklist.Add(op);
+
+    // Collect dependency graph. Note: more items are added to worklist
+    // inside this loop.
+    intptr_t gain = 0;
+    for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
+      Definition* defn = worklist.definitions()[j];
+
+      if (FLAG_trace_smi_widening) {
+        OS::Print("> %s\n", defn->ToCString());
+      }
+
+      if (defn->IsBinarySmiOp() &&
+          BenefitsFromWidening(defn->AsBinarySmiOp())) {
+        gain++;
+        if (FLAG_trace_smi_widening) {
+          OS::Print("^ [%d] (o) %s\n", gain, defn->ToCString());
+        }
+      }
+
+      const intptr_t defn_loop = loops[defn->GetBlock()->preorder_number()];
+
+      // Process all inputs.
+      for (intptr_t k = 0; k < defn->InputCount(); k++) {
+        Definition* input = defn->InputAt(k)->definition();
+        if (input->IsBinarySmiOp() &&
+            CanBeWidened(input->AsBinarySmiOp())) {
+          worklist.Add(input);
+        } else if (input->IsPhi() && input->Type()->ToCid() == kSmiCid) {
+          worklist.Add(input);
+        } else if (input->IsBinaryMintOp()) {
+          // Mint operation produces untagged result. We avoid tagging.
+          gain++;
+          if (FLAG_trace_smi_widening) {
+            OS::Print("^ [%d] (i) %s\n", gain, input->ToCString());
+          }
+        } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
+                   (input->Type()->ToCid() == kSmiCid)) {
+          // Input comes from the same loop, is known to be smi and requires
+          // untagging.
+          // TODO(vegorov) this heuristic assumes that values that are not
+          // known to be smi have to be checked and this check can be
+          // coalesced with untagging. Start coalescing them.
+          gain--;
+          if (FLAG_trace_smi_widening) {
+            OS::Print("v [%d] (i) %s\n", gain, input->ToCString());
+          }
+        }
+      }
+
+      // Process all uses.
+      for (Value* use = defn->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Instruction* instr = use->instruction();
+        Definition* use_defn = instr->AsDefinition();
+        if (use_defn == NULL) {
+          // We assume that tagging before returning or pushing argument costs
+          // very little compared to the cost of the return/call itself.
+          if (!instr->IsReturn() && !instr->IsPushArgument()) {
+            gain--;
+            if (FLAG_trace_smi_widening) {
+              OS::Print("v [%d] (u) %s\n",
+                        gain, use->instruction()->ToCString());
+            }
+          }
+          continue;
+        } else if (use_defn->IsBinarySmiOp() &&
+                   CanBeWidened(use_defn->AsBinarySmiOp())) {
+          worklist.Add(use_defn);
+        } else if (use_defn->IsPhi() &&
+                   use_defn->AsPhi()->Type()->ToCid() == kSmiCid) {
+          worklist.Add(use_defn);
+        } else if (use_defn->IsBinaryMintOp()) {
+          // BinaryMintOp requires untagging of its inputs.
+          // Converting kUnboxedInt32 to kUnboxedMint is essentially zero cost
+          // sign extension operation.
+          gain++;
+          if (FLAG_trace_smi_widening) {
+            OS::Print("^ [%d] (u) %s\n", gain, use->instruction()->ToCString());
+          }
+        } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
+          gain--;
+          if (FLAG_trace_smi_widening) {
+            OS::Print("v [%d] (u) %s\n", gain, use->instruction()->ToCString());
+          }
+        }
+      }
+    }
+
+    processed->AddAll(worklist.contains());
+
+    if (FLAG_trace_smi_widening) {
+      OS::Print("~ %s gain %d\n", op->ToCString(), gain);
+    }
+
+    if (gain > 0) {
+      // We have positive gain from widening. Convert all BinarySmiOpInstr into
+      // BinaryInt32OpInstr and set representation of all phis to kUnboxedInt32.
+      for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
+        Definition* defn = worklist.definitions()[j];
+        ASSERT(defn->IsPhi() || defn->IsBinarySmiOp());
+
+        if (defn->IsBinarySmiOp()) {
+          BinarySmiOpInstr* smi_op = defn->AsBinarySmiOp();
+          BinaryInt32OpInstr* int32_op = new(I) BinaryInt32OpInstr(
+            smi_op->op_kind(),
+            smi_op->left()->CopyWithType(),
+            smi_op->right()->CopyWithType(),
+            smi_op->DeoptimizationTarget());
+
+          smi_op->ReplaceWith(int32_op, NULL);
+        } else if (defn->IsPhi()) {
+          defn->AsPhi()->set_representation(kUnboxedInt32);
+        }
+      }
+    }
+  }
+}
+#else
+void FlowGraphOptimizer::WidenSmiToInt32() {
+  // TODO(vegorov) ideally on 64-bit platforms we would like to narrow smi
+  // operations to 32-bit where it saves tagging and untagging and allows
+  // to use shorted (and faster) instructions. But we currently don't
+  // save enough range information in the ICData to drive this decision.
+}
+#endif
+
 void FlowGraphOptimizer::InferIntRanges() {
   RangeAnalysis range_analysis(flow_graph_);
   range_analysis.Analyze();
@@ -4700,7 +4984,11 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   }
   // Move the instruction out of the loop.
   current->RemoveEnvironment();
-  it->RemoveCurrentFromGraph();
+  if (it != NULL) {
+    it->RemoveCurrentFromGraph();
+  } else {
+    current->RemoveFromGraph();
+  }
   GotoInstr* last = pre_header->last_instruction()->AsGoto();
   // Using kind kEffect will not assign a fresh ssa temporary index.
   flow_graph()->InsertBefore(last, current, last->env(), FlowGraph::kEffect);
@@ -4708,17 +4996,10 @@ void LICM::Hoist(ForwardInstructionIterator* it,
 }
 
 
-void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
-                                      BlockEntryInstr* header,
-                                      BlockEntryInstr* pre_header,
-                                      CheckSmiInstr* current) {
-  PhiInstr* phi = current->value()->definition()->AsPhi();
-  if (!header->loop_info()->Contains(phi->block()->preorder_number())) {
-    return;
-  }
-
+void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
+                               BlockEntryInstr* header,
+                               BlockEntryInstr* pre_header) {
   if (phi->Type()->ToCid() == kSmiCid) {
-    it->RemoveCurrentFromGraph();
     return;
   }
 
@@ -4745,11 +5026,22 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
     return;
   }
 
+  CheckSmiInstr* check = NULL;
+  for (Value* use = phi->input_use_list();
+       (use != NULL) && (check == NULL);
+       use = use->next_use()) {
+    check = use->instruction()->AsCheckSmi();
+  }
+
+  if (check == NULL) {
+    return;
+  }
+
   // Host CheckSmi instruction and make this phi smi one.
-  Hoist(it, pre_header, current);
+  Hoist(NULL, pre_header, check);
 
   // Replace value we are checking with phi's input.
-  current->value()->BindTo(phi->InputAt(non_smi_input)->definition());
+  check->value()->BindTo(phi->InputAt(non_smi_input)->definition());
 
   phi->UpdateType(CompileType::FromCid(kSmiCid));
 }
@@ -4772,6 +5064,29 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
       instr->HasPlaceId() &&
       ((*sets)[loop_header_index] != NULL) &&
       (*sets)[loop_header_index]->Contains(instr->place_id());
+}
+
+
+void LICM::OptimisticallySpecializeSmiPhis() {
+  if (!flow_graph()->parsed_function().function().
+          allows_hoisting_check_class()) {
+    // Do not hoist any.
+    return;
+  }
+
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
+      flow_graph()->loop_headers();
+
+  for (intptr_t i = 0; i < loop_headers.length(); ++i) {
+    JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
+    // Skip loop that don't have a pre-header block.
+    BlockEntryInstr* pre_header = FindPreHeader(header);
+    if (pre_header == NULL) continue;
+
+    for (PhiIterator it(header); !it.Done(); it.Advance()) {
+      TrySpecializeSmiPhi(it.Current(), header, pre_header);
+    }
+  }
 }
 
 
@@ -4821,10 +5136,6 @@ void LICM::Optimize() {
             // TODO(fschneider): Enable hoisting of Assert-instructions
             // if it safe to do.
             Hoist(&it, pre_header, current);
-          } else if (current->IsCheckSmi() &&
-                     current->InputAt(0)->definition()->IsPhi()) {
-            TryHoistCheckSmiThroughPhi(
-                &it, header, pre_header, current->AsCheckSmi());
           }
         }
       }
@@ -7937,6 +8248,11 @@ void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitBinaryInt32Op(BinaryInt32OpInstr* instr) {
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
+}
+
+
 void ConstantPropagator::VisitBoxInteger(BoxIntegerInstr* instr) {
   // TODO(kmillikin): Handle box operation.
   SetValue(instr, non_constant_);
@@ -7988,6 +8304,17 @@ void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
 
 
 void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsConstant(value) && value.IsInteger()) {
+    SetValue(instr, Double::Handle(I,
+        Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
+  } else if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitInt32ToDouble(Int32ToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
     SetValue(instr, Double::Handle(I,
@@ -8377,6 +8704,18 @@ void ConstantPropagator::VisitBoxUint32(BoxUint32Instr* instr) {
 
 
 void ConstantPropagator::VisitUnboxUint32(UnboxUint32Instr* instr) {
+  // TODO(kmillikin): Handle unbox operation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitBoxInt32(BoxInt32Instr* instr) {
+  // TODO(kmillikin): Handle box operation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUnboxInt32(UnboxInt32Instr* instr) {
   // TODO(kmillikin): Handle unbox operation.
   SetValue(instr, non_constant_);
 }

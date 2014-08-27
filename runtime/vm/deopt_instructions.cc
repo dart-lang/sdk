@@ -194,6 +194,8 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kWord:
     case DeoptInstr::kDouble:
     case DeoptInstr::kMintPair:
+    case DeoptInstr::kInt32:
+    case DeoptInstr::kUint32:
       return true;
 
     case DeoptInstr::kRetAddress:
@@ -536,32 +538,37 @@ class DeoptMintPairInstr: public DeoptIntegerInstrBase {
 };
 
 
-class DeoptUint32Instr : public DeoptIntegerInstrBase {
+template<DeoptInstr::Kind K, typename T>
+class DeoptIntInstr : public DeoptIntegerInstrBase {
  public:
-  explicit DeoptUint32Instr(intptr_t source_index)
+  explicit DeoptIntInstr(intptr_t source_index)
       : DeoptIntegerInstrBase(), source_(source_index) {
   }
 
-  explicit DeoptUint32Instr(const CpuRegisterSource& source)
+  explicit DeoptIntInstr(const CpuRegisterSource& source)
       : DeoptIntegerInstrBase(), source_(source) {
   }
 
   virtual intptr_t source_index() const { return source_.source_index(); }
-  virtual DeoptInstr::Kind kind() const { return kUint32; }
+  virtual DeoptInstr::Kind kind() const { return K; }
 
   virtual const char* ArgumentsToCString() const {
     return source_.ToCString();
   }
 
   virtual int64_t GetValue(DeoptContext* deopt_context) {
-    return static_cast<int64_t>(source_.Value<uint32_t>(deopt_context));
+    return static_cast<int64_t>(source_.Value<T>(deopt_context));
   }
 
  private:
   const CpuRegisterSource source_;
 
-  DISALLOW_COPY_AND_ASSIGN(DeoptUint32Instr);
+  DISALLOW_COPY_AND_ASSIGN(DeoptIntInstr);
 };
+
+
+typedef DeoptIntInstr<DeoptInstr::kUint32, uint32_t> DeoptUint32Instr;
+typedef DeoptIntInstr<DeoptInstr::kInt32, int32_t> DeoptInt32Instr;
 
 
 template<DeoptInstr::Kind K,
@@ -893,6 +900,8 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
       return new DeoptDoubleInstr(source_index);
     case kMintPair:
       return new DeoptMintPairInstr(source_index);
+    case kInt32:
+      return new DeoptInt32Instr(source_index);
     case kUint32:
       return new DeoptUint32Instr(source_index);
     case kFloat32x4:
@@ -935,6 +944,8 @@ const char* DeoptInstr::KindToCString(Kind kind) {
       return "double";
     case kMintPair:
       return "mint";
+    case kInt32:
+      return "int32";
     case kUint32:
       return "uint32";
     case kFloat32x4:
@@ -1120,6 +1131,10 @@ void DeoptInfoBuilder::AddCopy(Value* value,
             ToCpuRegisterSource(pair->At(1)));
         break;
       }
+      case kUnboxedInt32:
+        deopt_instr = new(isolate()) DeoptInt32Instr(
+          ToCpuRegisterSource(source_loc));
+        break;
       case kUnboxedUint32:
         deopt_instr = new(isolate()) DeoptUint32Instr(
           ToCpuRegisterSource(source_loc));

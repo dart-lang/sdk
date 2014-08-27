@@ -326,6 +326,7 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Isolate* isolate,
 
 
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(representation_ == kUnboxedDouble);
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
     ASSERT(value().IsDouble());
@@ -1122,7 +1123,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
-    locs->set_in(1, Location::Constant(index()->BoundConstant()));
+    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
   } else {
     locs->set_in(1, Location::RequiresRegister());
   }
@@ -1275,7 +1276,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   if (CanBeImmediateIndex(index(), class_id(), IsExternal())) {
-    locs->set_in(1, Location::Constant(index()->BoundConstant()));
+    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
   } else {
     locs->set_in(1, Location::WritableRegister());
   }
@@ -2724,7 +2725,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
     summary->set_in(0, Location::RequiresRegister());
     if (RightIsPowerOfTwoConstant()) {
       ConstantInstr* right_constant = right()->definition()->AsConstant();
-      summary->set_in(1, Location::Constant(right_constant->value()));
+      summary->set_in(1, Location::Constant(right_constant));
     } else {
       summary->set_in(1, Location::RequiresRegister());
     }
@@ -3835,6 +3836,8 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+DEFINE_UNIMPLEMENTED_INSTRUCTION(Int32ToDoubleInstr)
+
 
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
@@ -4558,86 +4561,15 @@ CompileType UnaryUint32OpInstr::ComputeType() const {
 }
 
 
-CompileType BoxUint32Instr::ComputeType() const {
-  return CompileType::Int();
-}
-
-
-CompileType UnboxUint32Instr::ComputeType() const {
-  return CompileType::Int();
-}
-
-
-LocationSummary* BinaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
-                                                          bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* ShiftUint32OpInstr::MakeLocationSummary(Isolate* isolate,
-                                                         bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void ShiftUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* UnaryUint32OpInstr::MakeLocationSummary(Isolate* isolate,
-                                                         bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void UnaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* UnboxUint32Instr::MakeLocationSummary(Isolate* isolate,
-                                                       bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void UnboxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* BoxUint32Instr::MakeLocationSummary(Isolate* isolate,
-                                                     bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void BoxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
-LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Isolate* isolate,
-                                                               bool opt) const {
-  UNIMPLEMENTED();
-  return NULL;
-}
-
-
-void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
+DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryUint32OpInstr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(ShiftUint32OpInstr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(UnaryUint32OpInstr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(BoxInt32Instr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(UnboxInt32Instr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(BinaryInt32OpInstr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(BoxUint32Instr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(UnboxUint32Instr)
+DEFINE_UNIMPLEMENTED_INSTRUCTION(UnboxedIntConverterInstr)
 
 
 LocationSummary* ThrowInstr::MakeLocationSummary(Isolate* isolate,

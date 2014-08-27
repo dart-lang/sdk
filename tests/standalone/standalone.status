@@ -87,6 +87,7 @@ vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 issue14236_test: Skip # dart2js does not deal with Script snapshots.
 javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip
+unboxed_int_converter_test: Skip
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.

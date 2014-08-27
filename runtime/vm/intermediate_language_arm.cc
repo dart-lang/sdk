@@ -305,14 +305,24 @@ LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Isolate* isolate,
 void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
   if (!locs()->out(0).IsInvalid()) {
-    if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0) &&
-        TargetCPUFeatures::neon_supported()) {
-      const QRegister dst = locs()->out(0).fpu_reg();
-      __ veorq(dst, dst, dst);
-    } else {
-      const DRegister dst = EvenDRegisterOf(locs()->out(0).fpu_reg());
-      const Register temp = locs()->temp(0).reg();
-      __ LoadDImmediate(dst, Double::Cast(value()).value(), temp);
+    switch (representation_) {
+      case kUnboxedDouble:
+        if (Utils::DoublesBitEqual(Double::Cast(value()).value(), 0.0) &&
+            TargetCPUFeatures::neon_supported()) {
+          const QRegister dst = locs()->out(0).fpu_reg();
+          __ veorq(dst, dst, dst);
+        } else {
+          const DRegister dst = EvenDRegisterOf(locs()->out(0).fpu_reg());
+          const Register temp = locs()->temp(0).reg();
+          __ LoadDImmediate(dst, Double::Cast(value()).value(), temp);
+        }
+        break;
+      case kUnboxedInt32:
+        __ LoadImmediate(locs()->out(0).reg(), Smi::Cast(value()).Value());
+        break;
+      default:
+        UNREACHABLE();
+        break;
     }
   }
 }
@@ -1186,7 +1196,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Isolate* isolate,
                           true,  // Load.
                           &needs_base)) {
     // CanBeImmediateIndex must return false for unsafe smis.
-    locs->set_in(1, Location::Constant(index()->BoundConstant()));
+    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
   } else {
     locs->set_in(1, Location::RequiresRegister());
   }
@@ -1387,7 +1397,7 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Isolate* isolate,
         isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
     // CanBeImmediateIndex must return false for unsafe smis.
-    locs->set_in(1, Location::Constant(index()->BoundConstant()));
+    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
     if (needs_base) {
       locs->set_temp(0, Location::RequiresRegister());
     }
@@ -2960,7 +2970,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Isolate* isolate,
     summary->set_in(0, Location::RequiresRegister());
     if (RightIsPowerOfTwoConstant()) {
       ConstantInstr* right_constant = right()->definition()->AsConstant();
-      summary->set_in(1, Location::Constant(right_constant->value()));
+      summary->set_in(1, Location::Constant(right_constant));
       summary->set_temp(0, Location::RequiresRegister());
     } else {
       summary->set_in(1, Location::RequiresRegister());
@@ -3066,6 +3076,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
               __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
               __ mul(result, left, IP);
             } else {
+             // TODO(vegorov): never emit this instruction if hardware does not
+             // support it! This will lead to deopt cycle penalizing the code.
               __ b(deopt);
             }
           }
@@ -3206,6 +3218,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ CheckMultSignedOverflow(IP, right, result, dtmp0, dtmp1, deopt);
           __ mul(result, IP, right);
         } else {
+          // TODO(vegorov): never emit this instruction if hardware does not
+          // support it! This will lead to deopt cycle penalizing the code.
           __ b(deopt);
         }
       }
@@ -3239,6 +3253,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiUntag(IP, right);
         __ IntegerDivide(result, temp, IP, dtemp, DTMP);
       } else {
+        // TODO(vegorov): never emit this instruction if hardware does not
+        // support it! This will lead to deopt cycle penalizing the code.
         __ b(deopt);
       }
 
@@ -3262,6 +3278,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ SmiUntag(IP, right);
         __ IntegerDivide(result, temp, IP, dtemp, DTMP);
       } else {
+        // TODO(vegorov): never emit this instruction if hardware does not
+        // support it! This will lead to deopt cycle penalizing the code.
         __ b(deopt);
       }
       __ SmiUntag(IP, right);
@@ -3315,6 +3333,280 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Flow graph builder has dissected this operation to guarantee correct
       // behavior (short-circuit evaluation).
       UNREACHABLE();
+      break;
+    }
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+static void EmitInt32ShiftLeft(FlowGraphCompiler* compiler,
+                               BinaryInt32OpInstr* shift_left) {
+  const bool is_truncating = shift_left->IsTruncating();
+  const LocationSummary& locs = *shift_left->locs();
+  const Register left = locs.in(0).reg();
+  const Register result = locs.out(0).reg();
+  Label* deopt = shift_left->CanDeoptimize() ?
+      compiler->AddDeoptStub(shift_left->deopt_id(), ICData::kDeoptBinarySmiOp)
+      : NULL;
+  ASSERT(locs.in(1).IsConstant());
+  const Object& constant = locs.in(1).constant();
+  ASSERT(constant.IsSmi());
+  // Immediate shift operation takes 5 bits for the count.
+  const intptr_t kCountLimit = 0x1F;
+  const intptr_t value = Smi::Cast(constant).Value();
+  if (value == 0) {
+    __ MoveRegister(result, left);
+  } else if ((value < 0) || (value >= kCountLimit)) {
+    // This condition may not be known earlier in some cases because
+    // of constant propagation, inlining, etc.
+    if ((value >= kCountLimit) && is_truncating) {
+      __ mov(result, Operand(0));
+    } else {
+      // Result is Mint or exception.
+      __ b(deopt);
+    }
+  } else {
+    if (!is_truncating) {
+      // Check for overflow (preserve left).
+      __ Lsl(IP, left, value);
+      __ cmp(left, Operand(IP, ASR, value));
+      __ b(deopt, NE);  // Overflow.
+    }
+    // Shift for result now we know there is no overflow.
+    __ Lsl(result, left, value);
+  }
+}
+
+
+LocationSummary* BinaryInt32OpInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 2;
+  // Calculate number of temporaries.
+  intptr_t num_temps = 0;
+  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+      (op_kind() == Token::kSHR)) {
+    num_temps = 1;
+  } else if ((op_kind() == Token::kMUL) &&
+             (TargetCPUFeatures::arm_version() != ARMv7)) {
+    num_temps = 1;
+  }
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, num_temps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+  if (((op_kind() == Token::kSHL) && !IsTruncating()) ||
+      (op_kind() == Token::kSHR)) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  if (op_kind() == Token::kMUL) {
+    if (TargetCPUFeatures::arm_version() != ARMv7) {
+      summary->set_temp(0, Location::RequiresFpuRegister());
+    }
+  }
+  // We make use of 3-operand instructions by not requiring result register
+  // to be identical to first input register as on Intel.
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void BinaryInt32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (op_kind() == Token::kSHL) {
+    EmitInt32ShiftLeft(compiler, this);
+    return;
+  }
+
+  const Register left = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  Label* deopt = NULL;
+  if (CanDeoptimize()) {
+    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptBinarySmiOp);
+  }
+
+  if (locs()->in(1).IsConstant()) {
+    const Object& constant = locs()->in(1).constant();
+    ASSERT(constant.IsSmi());
+    const int32_t value = Smi::Cast(constant).Value();
+    switch (op_kind()) {
+      case Token::kADD: {
+        if (deopt == NULL) {
+          __ AddImmediate(result, left, value);
+        } else {
+          __ AddImmediateSetFlags(result, left, value);
+          __ b(deopt, VS);
+        }
+        break;
+      }
+      case Token::kSUB: {
+        if (deopt == NULL) {
+          __ AddImmediate(result, left, -value);
+        } else {
+          // Negating value and using AddImmediateSetFlags would not detect the
+          // overflow when value == kMinInt32.
+          __ SubImmediateSetFlags(result, left, value);
+          __ b(deopt, VS);
+        }
+        break;
+      }
+      case Token::kMUL: {
+        if (deopt == NULL) {
+          if (value == 2) {
+            __ mov(result, Operand(left, LSL, 1));
+          } else {
+            __ LoadImmediate(IP, value);
+            __ mul(result, left, IP);
+          }
+        } else {
+          if (value == 2) {
+            __ CompareImmediate(left, 0xC0000000);
+            __ b(deopt, MI);
+            __ mov(result, Operand(left, LSL, 1));
+          } else {
+            if (TargetCPUFeatures::arm_version() == ARMv7) {
+              __ LoadImmediate(IP, value);
+              __ smull(result, IP, left, IP);
+              // IP: result bits 32..63.
+              __ cmp(IP, Operand(result, ASR, 31));
+              __ b(deopt, NE);
+            } else if (TargetCPUFeatures::can_divide()) {
+              const QRegister qtmp = locs()->temp(0).fpu_reg();
+              const DRegister dtmp0 = EvenDRegisterOf(qtmp);
+              const DRegister dtmp1 = OddDRegisterOf(qtmp);
+              __ LoadImmediate(IP, value);
+              __ CheckMultSignedOverflow(left, IP, result, dtmp0, dtmp1, deopt);
+              __ mul(result, left, IP);
+            } else {
+              // TODO(vegorov): never emit this instruction if hardware does not
+              // support it! This will lead to deopt cycle penalizing the code.
+              __ b(deopt);
+            }
+          }
+        }
+        break;
+      }
+      case Token::kBIT_AND: {
+        // No overflow check.
+        Operand o;
+        if (Operand::CanHold(value, &o)) {
+          __ and_(result, left, o);
+        } else if (Operand::CanHold(~value, &o)) {
+          __ bic(result, left, o);
+        } else {
+          __ LoadImmediate(IP, value);
+          __ and_(result, left, Operand(IP));
+        }
+        break;
+      }
+      case Token::kBIT_OR: {
+        // No overflow check.
+        Operand o;
+        if (Operand::CanHold(value, &o)) {
+          __ orr(result, left, o);
+        } else {
+          __ LoadImmediate(IP, value);
+          __ orr(result, left, Operand(IP));
+        }
+        break;
+      }
+      case Token::kBIT_XOR: {
+        // No overflow check.
+        Operand o;
+        if (Operand::CanHold(value, &o)) {
+          __ eor(result, left, o);
+        } else {
+          __ LoadImmediate(IP, value);
+          __ eor(result, left, Operand(IP));
+        }
+        break;
+      }
+      case Token::kSHR: {
+        // sarl operation masks the count to 5 bits.
+        const intptr_t kCountLimit = 0x1F;
+
+        if (value == 0) {
+          // TODO(vegorov): should be handled outside.
+          __ MoveRegister(result, left);
+          break;
+        } else if (value < 0) {
+          // TODO(vegorov): should be handled outside.
+          __ b(deopt);
+          break;
+        }
+
+        if (value >= kCountLimit) {
+          __ Asr(result, left, kCountLimit);
+        } else {
+          __ Asr(result, left, value);
+        }
+        break;
+      }
+
+      default:
+        UNREACHABLE();
+        break;
+    }
+    return;
+  }
+
+  const Register right = locs()->in(1).reg();
+  switch (op_kind()) {
+    case Token::kADD: {
+      if (deopt == NULL) {
+        __ add(result, left, Operand(right));
+      } else {
+        __ adds(result, left, Operand(right));
+        __ b(deopt, VS);
+      }
+      break;
+    }
+    case Token::kSUB: {
+      if (deopt == NULL) {
+        __ sub(result, left, Operand(right));
+      } else {
+        __ subs(result, left, Operand(right));
+        __ b(deopt, VS);
+      }
+      break;
+    }
+    case Token::kMUL: {
+      if (deopt == NULL) {
+        __ mul(result, left, right);
+      } else {
+        if (TargetCPUFeatures::arm_version() == ARMv7) {
+          __ smull(result, IP, left, right);
+          // IP: result bits 32..63.
+          __ cmp(IP, Operand(result, ASR, 31));
+          __ b(deopt, NE);
+        } else if (TargetCPUFeatures::can_divide()) {
+          const QRegister qtmp = locs()->temp(0).fpu_reg();
+          const DRegister dtmp0 = EvenDRegisterOf(qtmp);
+          const DRegister dtmp1 = OddDRegisterOf(qtmp);
+          __ CheckMultSignedOverflow(left, right, result, dtmp0, dtmp1, deopt);
+          __ mul(result, left, right);
+        } else {
+          // TODO(vegorov): never emit this instruction if hardware does not
+          // support it! This will lead to deopt cycle penalizing the code.
+          __ b(deopt);
+        }
+      }
+      break;
+    }
+    case Token::kBIT_AND: {
+      // No overflow check.
+      __ and_(result, left, Operand(right));
+      break;
+    }
+    case Token::kBIT_OR: {
+      // No overflow check.
+      __ orr(result, left, Operand(right));
+      break;
+    }
+    case Token::kBIT_XOR: {
+      // No overflow check.
+      __ eor(result, left, Operand(right));
       break;
     }
     default:
@@ -5039,6 +5331,26 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Int32ToDoubleInstr::MakeLocationSummary(Isolate* isolate,
+                                                         bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresRegister());
+  result->set_out(0, Location::RequiresFpuRegister());
+  return result;
+}
+
+
+void Int32ToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register value = locs()->in(0).reg();
+  const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
+  __ vmovsr(STMP, value);
+  __ vcvtdi(result, STMP);
+}
+
+
 LocationSummary* SmiToDoubleInstr::MakeLocationSummary(Isolate* isolate,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -5482,6 +5794,8 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiUntag(IP, right);
       __ IntegerDivide(result_div, temp, IP, dtemp, DTMP);
     } else {
+      // TODO(vegorov): never emit this instruction if hardware does not
+      // support it! This will lead to deopt cycle penalizing the code.
       __ b(deopt);
     }
 
@@ -6001,6 +6315,8 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ b(deopt, NE);
         __ smull(out_lo, out_hi, left_lo, right_lo);
       } else {
+        // TODO(vegorov): never emit this instruction if hardware does not
+        // support it! This will lead to deopt cycle penalizing the code.
         __ b(deopt);
       }
       break;
@@ -6214,16 +6530,6 @@ CompileType ShiftUint32OpInstr::ComputeType() const {
 
 
 CompileType UnaryUint32OpInstr::ComputeType() const {
-  return CompileType::Int();
-}
-
-
-CompileType BoxUint32Instr::ComputeType() const {
-  return CompileType::Int();
-}
-
-
-CompileType UnboxUint32Instr::ComputeType() const {
   return CompileType::Int();
 }
 
@@ -6480,6 +6786,134 @@ void UnboxUint32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* BoxInt32Instr::MakeLocationSummary(Isolate* isolate,
+                                                     bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = ValueFitsSmi() ? 0 : 1;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate,
+      kNumInputs,
+      kNumTemps,
+      ValueFitsSmi() ? LocationSummary::kNoCall
+                     : LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
+  if (!ValueFitsSmi()) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void BoxInt32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register out = locs()->out(0).reg();
+  ASSERT(value != out);
+
+  __ Lsl(out, value, 1);
+  if (!ValueFitsSmi()) {
+    Register temp = locs()->temp(0).reg();
+    Label done;
+    __ cmp(value, Operand(out, ASR, 1));
+    __ b(&done, EQ);
+    BoxAllocationSlowPath::Allocate(
+        compiler,
+        this,
+        compiler->mint_class(),
+        out,
+        temp);
+    __ Asr(temp, value, kBitsPerWord - 1);
+    __ StoreToOffset(kWord,
+                     value,
+                     out,
+                     Mint::value_offset() - kHeapObjectTag);
+    __ StoreToOffset(kWord,
+                     temp,
+                     out,
+                     Mint::value_offset() - kHeapObjectTag + kWordSize);
+    __ Bind(&done);
+  }
+}
+
+
+
+LocationSummary* UnboxInt32Instr::MakeLocationSummary(Isolate* isolate,
+                                                      bool opt) const {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps =
+      ((value_cid == kMintCid) || (value_cid == kSmiCid)) ? 0 : 1;
+  LocationSummary* summary = new(isolate) LocationSummary(
+      isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  if (kNumTemps > 0) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+static void LoadInt32FromMint(FlowGraphCompiler* compiler,
+                              Register mint,
+                              Register result,
+                              Register temp,
+                              Label* deopt) {
+  __ LoadFromOffset(kWord,
+                    result,
+                    mint,
+                    Mint::value_offset() - kHeapObjectTag);
+  if (deopt != NULL) {
+    __ LoadFromOffset(kWord,
+                      temp,
+                      mint,
+                      Mint::value_offset() - kHeapObjectTag + kWordSize);
+    __ cmp(temp, Operand(result, ASR, kBitsPerWord - 1));
+    __ b(deopt, NE);
+  }
+}
+
+
+void UnboxInt32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  const Register value = locs()->in(0).reg();
+  const Register out = locs()->out(0).reg();
+  ASSERT(value != out);
+
+  if (value_cid == kMintCid) {
+    Register temp = CanDeoptimize() ? locs()->temp(0).reg() : kNoRegister;
+    Label* deopt = CanDeoptimize() ?
+        compiler->AddDeoptStub(deopt_id_, ICData::kDeoptUnboxInteger) : NULL;
+    LoadInt32FromMint(compiler,
+                      value,
+                      out,
+                      temp,
+                      deopt);
+  } else if (value_cid == kSmiCid) {
+    __ SmiUntag(out, value);
+  } else {
+    Register temp = locs()->temp(0).reg();
+    Label* deopt = compiler->AddDeoptStub(deopt_id_,
+                                          ICData::kDeoptUnboxInteger);
+    Label done;
+    __ tst(value, Operand(kSmiTagMask));
+    // Smi case.
+    __ mov(out, Operand(value), EQ);
+    __ SmiUntag(out, EQ);
+    __ b(&done, EQ);
+    // Mint case.
+    __ CompareClassId(value, kMintCid, temp);
+    __ b(deopt, NE);
+    LoadInt32FromMint(compiler,
+                      value,
+                      out,
+                      temp,
+                      deopt);
+    __ Bind(&done);
+  }
+}
+
+
 LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Isolate* isolate,
                                                                bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -6487,36 +6921,71 @@ LocationSummary* UnboxedIntConverterInstr::MakeLocationSummary(Isolate* isolate,
   LocationSummary* summary = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (from() == kUnboxedMint) {
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
     summary->set_in(0, Location::Pair(Location::RequiresRegister(),
                                       Location::RequiresRegister()));
     summary->set_out(0, Location::RequiresRegister());
-  } else {
-    ASSERT(from() == kUnboxedUint32);
+  } else if (to() == kUnboxedMint) {
+    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
     summary->set_in(0, Location::RequiresRegister());
     summary->set_out(0, Location::Pair(Location::RequiresRegister(),
                                        Location::RequiresRegister()));
+  } else {
+    ASSERT((to() == kUnboxedUint32) || (to() == kUnboxedInt32));
+    ASSERT((from() == kUnboxedUint32) || (from() == kUnboxedInt32));
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_out(0, Location::SameAsFirstInput());
   }
   return summary;
 }
 
 
 void UnboxedIntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (from() == kUnboxedMint) {
+  if (from() == kUnboxedInt32 && to() == kUnboxedUint32) {
+    const Register out = locs()->out(0).reg();
+    // Representations are bitwise equivalent.
+    ASSERT(out == locs()->in(0).reg());
+  } else if (from() == kUnboxedUint32 && to() == kUnboxedInt32) {
+    const Register out = locs()->out(0).reg();
+    // Representations are bitwise equivalent.
+    ASSERT(out == locs()->in(0).reg());
+    if (CanDeoptimize()) {
+      Label* deopt =
+          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);
+      __ tst(out, Operand(out));
+      __ b(deopt, MI);
+    }
+  } else if (from() == kUnboxedMint) {
+    ASSERT(to() == kUnboxedUint32 || to() == kUnboxedInt32);
     PairLocation* in_pair = locs()->in(0).AsPairLocation();
     Register in_lo = in_pair->At(0).reg();
+    Register in_hi = in_pair->At(1).reg();
     Register out = locs()->out(0).reg();
     // Copy low word.
     __ mov(out, Operand(in_lo));
-  } else {
-    ASSERT(from() == kUnboxedUint32);
+    if (CanDeoptimize()) {
+      Label* deopt =
+          compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnboxInteger);
+      ASSERT(to() == kUnboxedInt32);
+      __ cmp(in_hi, Operand(in_lo, ASR, kBitsPerWord - 1));
+      __ b(deopt, NE);
+    }
+  } else if (from() == kUnboxedUint32 || from() == kUnboxedInt32) {
+    ASSERT(to() == kUnboxedMint);
     Register in = locs()->in(0).reg();
     PairLocation* out_pair = locs()->out(0).AsPairLocation();
     Register out_lo = out_pair->At(0).reg();
     Register out_hi = out_pair->At(1).reg();
     // Copy low word.
     __ mov(out_lo, Operand(in));
-    // Zero upper word.
-    __ eor(out_hi, out_hi, Operand(out_hi));
+    if (from() == kUnboxedUint32) {
+      __ eor(out_hi, out_hi, Operand(out_hi));
+    } else {
+      ASSERT(from() == kUnboxedInt32);
+      __ mov(out_hi, Operand(in, ASR, kBitsPerWord - 1));
+    }
+  } else {
+    UNREACHABLE();
   }
 }
 

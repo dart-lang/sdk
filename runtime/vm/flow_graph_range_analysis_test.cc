@@ -621,32 +621,41 @@ TEST_CASE(RangeIntersectionMinMax) {
 TEST_CASE(RangeJoinMinMax) {
   // Test IntersectionMin and IntersectionMax methods which for constants are
   // simply defined as Min/Max respectively.
+  const RangeBoundary::RangeSize size = RangeBoundary::kRangeBoundarySmi;
 
   // Constants.
   EXPECT(RangeBoundary::JoinMax(
       RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(1)).ConstantValue() == 1);
+      RangeBoundary::FromConstant(1),
+      size).ConstantValue() == 1);
   EXPECT(RangeBoundary::JoinMax(
       RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(-1)).ConstantValue() == 0);
+      RangeBoundary::FromConstant(-1),
+      size).ConstantValue() == 0);
   EXPECT(RangeBoundary::JoinMax(
       RangeBoundary::FromConstant(1),
-      RangeBoundary::FromConstant(0)).ConstantValue() == 1);
+      RangeBoundary::FromConstant(0),
+      size).ConstantValue() == 1);
   EXPECT(RangeBoundary::JoinMax(
       RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(0)).ConstantValue() == 0);
+      RangeBoundary::FromConstant(0),
+      size).ConstantValue() == 0);
   EXPECT(RangeBoundary::JoinMin(
       RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(1)).ConstantValue() == 0);
+      RangeBoundary::FromConstant(1),
+      size).ConstantValue() == 0);
   EXPECT(RangeBoundary::JoinMin(
       RangeBoundary::FromConstant(0),
-      RangeBoundary::FromConstant(-1)).ConstantValue() == -1);
+      RangeBoundary::FromConstant(-1),
+      size).ConstantValue() == -1);
   EXPECT(RangeBoundary::JoinMin(
       RangeBoundary::FromConstant(1),
-      RangeBoundary::FromConstant(0)).ConstantValue() == 0);
+      RangeBoundary::FromConstant(0),
+      size).ConstantValue() == 0);
   EXPECT(RangeBoundary::JoinMin(
       RangeBoundary::FromConstant(-1),
-      RangeBoundary::FromConstant(0)).ConstantValue() == -1);
+      RangeBoundary::FromConstant(0),
+      size).ConstantValue() == -1);
 
   RangeBoundary n_infinity = RangeBoundary::NegativeInfinity();
   RangeBoundary p_infinity = RangeBoundary::PositiveInfinity();
@@ -654,35 +663,43 @@ TEST_CASE(RangeJoinMinMax) {
   // Constants vs. infinity.
   EXPECT(RangeBoundary::JoinMin(
       n_infinity,
-      RangeBoundary::FromConstant(-1)).IsSmiMinimumOrBelow());
+      RangeBoundary::FromConstant(-1),
+      size).IsMinimumOrBelow(size));
 
   EXPECT(RangeBoundary::JoinMin(
       RangeBoundary::FromConstant(-1),
-      n_infinity).IsSmiMinimumOrBelow());
+      n_infinity,
+      size).IsMinimumOrBelow(size));
 
   EXPECT(RangeBoundary::JoinMin(
       RangeBoundary::FromConstant(1),
-      n_infinity).IsSmiMinimumOrBelow());
+      n_infinity,
+      size).IsMinimumOrBelow(size));
 
   EXPECT(RangeBoundary::JoinMin(
       n_infinity,
-      RangeBoundary::FromConstant(1)).IsSmiMinimumOrBelow());
+      RangeBoundary::FromConstant(1),
+      size).IsMinimumOrBelow(size));
 
   EXPECT(RangeBoundary::JoinMax(
       p_infinity,
-      RangeBoundary::FromConstant(-1)).IsSmiMaximumOrAbove());
+      RangeBoundary::FromConstant(-1),
+      size).IsMaximumOrAbove(size));
 
   EXPECT(RangeBoundary::JoinMax(
       RangeBoundary::FromConstant(-1),
-      p_infinity).IsSmiMaximumOrAbove());
+      p_infinity,
+      size).IsMaximumOrAbove(size));
 
   EXPECT(RangeBoundary::JoinMax(
       RangeBoundary::FromConstant(1),
-      p_infinity).IsSmiMaximumOrAbove());
+      p_infinity,
+      size).IsMaximumOrAbove(size));
 
   EXPECT(RangeBoundary::JoinMax(
       p_infinity,
-      RangeBoundary::FromConstant(1)).IsSmiMaximumOrAbove());
+      RangeBoundary::FromConstant(1),
+      size).IsMaximumOrAbove(size));
 }
 
 }  // namespace dart

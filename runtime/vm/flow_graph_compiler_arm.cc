@@ -1600,7 +1600,11 @@ void ParallelMoveResolver::EmitMove(int index) {
     ASSERT(source.IsConstant());
     const Object& constant = source.constant();
     if (destination.IsRegister()) {
-      __ LoadObject(destination.reg(), constant);
+      if (source.constant_instruction()->representation() == kUnboxedInt32) {
+        __ LoadImmediate(destination.reg(), Smi::Cast(constant).Value());
+      } else {
+        __ LoadObject(destination.reg(), constant);
+      }
     } else if (destination.IsFpuRegister()) {
       const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
       if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0) &&
@@ -1626,7 +1630,11 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadObject(TMP, constant);
+      if (source.constant_instruction()->representation() == kUnboxedInt32) {
+        __ LoadImmediate(TMP, Smi::Cast(constant).Value());
+      } else {
+        __ LoadObject(TMP, constant);
+      }
       __ StoreToOffset(kWord, TMP, FP, dest_offset);
     }
   }

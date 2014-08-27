@@ -411,11 +411,23 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
 
+        // Optimistically convert loop phis that have a single non-smi input
+        // coming from the loop pre-header into smi-phis.
+        if (FLAG_loop_invariant_code_motion) {
+          LICM licm(flow_graph);
+          licm.OptimisticallySpecializeSmiPhis();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
+
         // Propagate types and eliminate even more type tests.
         // Recompute types after constant propagation to infer more precise
         // types for uses that were previously reached by now eliminated phis.
         FlowGraphTypePropagator::Propagate(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+        // Where beneficial convert Smi operations into Int32 operations.
+        // Only meanigful for 32bit platforms right now.
+        optimizer.WidenSmiToInt32();
 
         // Unbox doubles. Performed after constant propagation to minimize
         // interference from phis merging double values and tagged

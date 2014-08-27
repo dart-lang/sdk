@@ -312,6 +312,15 @@ bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool BinaryInt32OpInstr::AttributesEqual(Instruction* other) const {
+  BinaryInt32OpInstr* other_op = other->AsBinaryInt32Op();
+  ASSERT(other_op != NULL);
+  return (op_kind() == other_op->op_kind()) &&
+      (overflow_ == other_op->overflow_) &&
+      (is_truncating_ == other_op->is_truncating_);
+}
+
+
 EffectSet LoadFieldInstr::Dependencies() const {
   return immutable_ ? EffectSet::None() : EffectSet::All();
 }
@@ -388,12 +397,16 @@ bool ConstantInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-UnboxedConstantInstr::UnboxedConstantInstr(const Object& value)
-    : ConstantInstr(value), constant_address_(0) {
-  // Only doubles supported for now.
-  ASSERT(value.IsDouble());
-  constant_address_ =
-      FlowGraphBuilder::FindDoubleConstant(Double::Cast(value).value());
+UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
+                                           Representation representation)
+    : ConstantInstr(value),
+      representation_(representation),
+      constant_address_(0) {
+  if (representation_ == kUnboxedDouble) {
+    ASSERT(value.IsDouble());
+    constant_address_ =
+        FlowGraphBuilder::FindDoubleConstant(Double::Cast(value).value());
+  }
 }
 
 
@@ -678,13 +691,20 @@ void Value::RemoveFromUseList() {
 // True if the definition has a single input use and is used only in
 // environments at the same instruction as that input use.
 bool Definition::HasOnlyUse(Value* use) const {
-  if ((input_use_list() != use) || (use->next_use() != NULL)) return false;
+  if (!HasOnlyInputUse(use)) {
+    return false;
+  }
 
   Instruction* target = use->instruction();
   for (Value::Iterator it(env_use_list()); !it.Done(); it.Advance()) {
     if (it.Current()->instruction() != target) return false;
   }
   return true;
+}
+
+
+bool Definition::HasOnlyInputUse(Value* use) const {
+  return (input_use_list() == use) && (use->next_use() == NULL);
 }
 
 
@@ -1149,6 +1169,49 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 }
 
 
+bool UnboxedIntConverterInstr::CanDeoptimize() const {
+  return (to() == kUnboxedInt32) &&
+      !Range::Fits(value()->definition()->range(),
+                   RangeBoundary::kRangeBoundaryInt32);
+}
+
+
+bool UnboxInt32Instr::CanDeoptimize() const {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  if (value_cid == kSmiCid) {
+    return false;
+  } else if (value_cid == kMintCid) {
+    return !Range::Fits(value()->definition()->range(),
+                        RangeBoundary::kRangeBoundaryInt32);
+  } else {
+    return true;
+  }
+}
+
+
+bool BinaryInt32OpInstr::CanDeoptimize() const {
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+      return false;
+
+    case Token::kSHR:
+      return false;
+
+    case Token::kSHL:
+      return true;
+
+    case Token::kMOD: {
+      UNREACHABLE();
+    }
+
+    default:
+      return overflow_;
+  }
+}
+
+
 bool BinarySmiOpInstr::CanDeoptimize() const {
   if (FLAG_throw_on_javascript_int_overflow && (Smi::kBits > 32)) {
     // If Smi's are bigger than 32-bits, then the instruction could deoptimize
@@ -1425,6 +1488,29 @@ Definition* BinaryUint32OpInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* BinaryInt32OpInstr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* result = NULL;
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kSmiCid,
+                                             left(),
+                                             right());
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kSmiCid,
+                                             right(),
+                                             left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
 // Optimizations that eliminate or simplify individual instructions.
 Instruction* Instruction::Canonicalize(FlowGraph* flow_graph) {
   return this;
@@ -1623,6 +1709,103 @@ Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+bool BoxIntNInstr::ValueFitsSmi() const {
+  Range* range = value()->definition()->range();
+  return Range::Fits(range, RangeBoundary::kRangeBoundarySmi);
+}
+
+
+Definition* BoxIntNInstr::Canonicalize(FlowGraph* flow_graph) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxIntNInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
+
+  // Fold away UnboxInt<N>Instr(BoxInt<N>Instr(v)).
+  BoxIntNInstr* box_defn = value()->definition()->AsBoxIntN();
+  if (box_defn != NULL) {
+    if (box_defn->value()->definition()->representation() == representation()) {
+      return box_defn->value()->definition();
+    } else {
+      UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
+          box_defn->value()->definition()->representation(),
+          representation(),
+          box_defn->value()->CopyWithType(),
+          representation() == kUnboxedInt32 ? deopt_id_ : Isolate::kNoDeoptId);
+      flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
+      return converter;
+    }
+  }
+
+  return this;
+}
+
+
+Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
+
+  UnboxedIntConverterInstr* box_defn =
+      value()->definition()->AsUnboxedIntConverter();
+  if ((box_defn != NULL) && (box_defn->representation() == from())) {
+    if (box_defn->from() == to()) {
+      return box_defn->value()->definition();
+    }
+
+    UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
+        box_defn->from(),
+        representation(),
+        box_defn->value()->CopyWithType(),
+        to() == kUnboxedInt32 ? deopt_id_ : NULL);
+    flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
+    return converter;
+  }
+
+  UnboxIntegerInstr* unbox_defn = value()->definition()->AsUnboxInteger();
+  if (unbox_defn != NULL &&
+      (from() == kUnboxedMint) &&
+      (to() == kUnboxedInt32) &&
+      unbox_defn->HasOnlyInputUse(value())) {
+    // TODO(vegorov): there is a duplication of code between UnboxedIntCoverter
+    // and code path that unboxes Mint into Int32. We should just schedule
+    // these instructions close to each other instead of fusing them.
+    Definition* replacement =
+        new UnboxInt32Instr(unbox_defn->value()->CopyWithType(), deopt_id_);
+    flow_graph->InsertBefore(this,
+                             replacement,
+                             env(),
+                             FlowGraph::kValue);
+    return replacement;
+  }
+
+  return this;
+}
+
+
+Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* replacement = UnboxIntNInstr::Canonicalize(flow_graph);
+  if (replacement != this) {
+    return replacement;
+  }
+
+  ConstantInstr* c = value()->definition()->AsConstant();
+  if ((c != NULL) && c->value().IsSmi()) {
+    UnboxedConstantInstr* uc =
+        new UnboxedConstantInstr(c->value(), kUnboxedInt32);
+    flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
+    return uc;
+  }
+
+  return this;
+}
+
+
 Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
   // Fold away UnboxDouble(BoxDouble(v)).
@@ -1633,11 +1816,55 @@ Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
   ConstantInstr* c = value()->definition()->AsConstant();
   if ((c != NULL) && c->value().IsDouble()) {
-    UnboxedConstantInstr* uc = new UnboxedConstantInstr(c->value());
+    UnboxedConstantInstr* uc =
+        new UnboxedConstantInstr(c->value(), kUnboxedDouble);
     flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
     return uc;
   }
 
+  return this;
+}
+
+
+Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  UnboxedIntConverterInstr* conv =
+      value()->definition()->AsUnboxedIntConverter();
+  if (conv != NULL) {
+    Definition* replacement = this;
+
+    switch (conv->from()) {
+      case kUnboxedInt32:
+        replacement = new BoxInt32Instr(conv->value()->CopyWithType());
+        break;
+      case kUnboxedUint32:
+        replacement = new BoxUint32Instr(conv->value()->CopyWithType());
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+
+    if (replacement != this) {
+      flow_graph->InsertBefore(this,
+                               replacement,
+                               NULL,
+                               FlowGraph::kValue);
+    }
+
+    return replacement;
+  }
+
+  return this;
+}
+
+
+Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   return this;
 }
 

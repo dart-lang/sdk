@@ -623,8 +623,8 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
   } else {
     ConstantInstr* constant = defn->AsConstant();
     ASSERT(constant != NULL);
-    range->set_assigned_location(Location::Constant(constant->value()));
-    range->set_spill_slot(Location::Constant(constant->value()));
+    range->set_assigned_location(Location::Constant(constant));
+    range->set_spill_slot(Location::Constant(constant));
   }
   AssignSafepoints(defn, range);
   range->finger()->Initialize(range);
@@ -734,7 +734,7 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
 
     ConstantInstr* constant = val->definition()->AsConstant();
     if (constant != NULL) {
-      move->set_src(Location::Constant(constant->value()));
+      move->set_src(Location::Constant(constant));
       move_idx++;
       continue;
     }
@@ -849,7 +849,7 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
 
       ConstantInstr* constant = def->AsConstant();
       if (constant != NULL) {
-        locations[i] = Location::Constant(constant->value());
+        locations[i] = Location::Constant(constant);
         continue;
       }
 
@@ -912,7 +912,7 @@ void FlowGraphAllocator::ProcessMaterializationUses(
 
     ConstantInstr* constant = def->AsConstant();
     if (constant != NULL) {
-      locations[i] = Location::Constant(constant->value());
+      locations[i] = Location::Constant(constant);
       continue;
     }
 
@@ -1150,9 +1150,9 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // TODO(vegorov): improve allocation when we have enough registers to keep
     // constants used in the loop in them.
     if (HasOnlyUnconstrainedUses(range)) {
-      const Object& value = def->AsConstant()->value();
-      range->set_assigned_location(Location::Constant(value));
-      range->set_spill_slot(Location::Constant(value));
+      ConstantInstr* constant_instr = def->AsConstant();
+      range->set_assigned_location(Location::Constant(constant_instr));
+      range->set_spill_slot(Location::Constant(constant_instr));
       range->finger()->Initialize(range);
       ConvertAllUses(range);
 

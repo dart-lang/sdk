@@ -242,6 +242,7 @@ void Definition::PrintOperandsTo(BufferFormatter* f) const {
 
 void Value::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *definition());
+
   if ((reaching_type_ != NULL) &&
       (reaching_type_ != definition()->type_)) {
     f->Print(" ");
@@ -595,6 +596,21 @@ void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
 
 
 void BinarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
+void BinaryInt32OpInstr::PrintTo(BufferFormatter* f) const {
+  Definition::PrintTo(f);
+  f->Print(" %co", overflow_ ? '+' : '-');
+  f->Print(" %ct", IsTruncating() ? '+' : '-');
+}
+
+
+void BinaryInt32OpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
   f->Print(", ");
@@ -965,6 +981,39 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+static const char *RepresentationToCString(Representation rep) {
+  switch (rep) {
+    case kTagged:
+      return "tagged";
+    case kUntagged:
+      return "untagged";
+    case kUnboxedDouble:
+      return "double";
+    case kUnboxedInt32:
+      return "int32";
+    case kUnboxedUint32:
+      return "uint32";
+    case kUnboxedMint:
+      return "mint";
+    case kUnboxedFloat32x4:
+      return "float32x4";
+    case kUnboxedInt32x4:
+      return "int32x4";
+    case kUnboxedFloat64x2:
+      return "float64x2";
+    case kPairOfTagged:
+      return "tagged-pair";
+    case kPairOfUnboxedDouble:
+      return "double-pair";
+    case kNoRepresentation:
+      return "none";
+    case kNumRepresentations:
+      UNREACHABLE();
+  }
+  return "?";
+}
+
+
 void PhiInstr::PrintTo(BufferFormatter* f) const {
   f->Print("v%" Pd " <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
@@ -981,10 +1030,24 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" ");
     range_->PrintTo(f);
   }
+
+  if (representation() != kNoRepresentation &&
+      representation() != kTagged) {
+    f->Print(" %s", RepresentationToCString(representation()));
+  }
+
   if (type_ != NULL) {
     f->Print(" ");
     type_->PrintTo(f);
   }
+}
+
+
+void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s->%s, ",
+           RepresentationToCString(from()),
+           RepresentationToCString(to()));
+  Definition::PrintOperandsTo(f);
 }
 
 

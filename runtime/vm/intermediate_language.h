@@ -20,6 +20,7 @@ DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 class BitVector;
 class BlockEntryInstr;
+class BoxIntNInstr;
 class BufferFormatter;
 class CatchBlockEntryInstr;
 class ComparisonInstr;
@@ -35,6 +36,7 @@ class ParsedFunction;
 class Range;
 class RangeAnalysis;
 class RangeBoundary;
+class UnboxIntNInstr;
 
 // CompileType describes type of the value produced by the definition.
 //
@@ -468,10 +470,12 @@ class EmbeddedArray<T, 0> {
   M(AllocateUninitializedContext)                                              \
   M(CloneContext)                                                              \
   M(BinarySmiOp)                                                               \
+  M(BinaryInt32Op)                                                             \
   M(UnarySmiOp)                                                                \
   M(UnaryDoubleOp)                                                             \
   M(CheckStackOverflow)                                                        \
   M(SmiToDouble)                                                               \
+  M(Int32ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
   M(DoubleToSmi)                                                               \
   M(DoubleToDouble)                                                            \
@@ -549,6 +553,8 @@ class EmbeddedArray<T, 0> {
   M(UnaryUint32Op)                                                             \
   M(BoxUint32)                                                                 \
   M(UnboxUint32)                                                               \
+  M(BoxInt32)                                                                  \
+  M(UnboxInt32)                                                                \
   M(UnboxedIntConverter)                                                       \
 
 
@@ -602,6 +608,9 @@ class Instruction : public ZoneAllocated {
 
   bool IsDefinition() { return (AsDefinition() != NULL); }
   virtual Definition* AsDefinition() { return NULL; }
+
+  virtual BoxIntNInstr* AsBoxIntN() { return NULL; }
+  virtual UnboxIntNInstr* AsUnboxIntN() { return NULL; }
 
   virtual intptr_t token_pos() const { return Scanner::kNoSourcePos; }
 
@@ -898,7 +907,11 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class BinaryUint32OpInstr;
   friend class UnaryUint32OpInstr;
   friend class ShiftUint32OpInstr;
+  friend class UnboxIntNInstr;
+  friend class UnboxInt32Instr;
   friend class UnboxUint32Instr;
+  friend class BinaryInt32OpInstr;
+  friend class UnboxedIntConverterInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1627,6 +1640,13 @@ class Definition : public Instruction {
             IsUnboxInteger();
   }
 
+  bool IsInt32Definition() {
+    return IsBinaryInt32Op() ||
+           IsBoxInt32() ||
+           IsUnboxInt32() ||
+           IsUnboxedIntConverter();
+  }
+
   // Compute compile type for this definition. It is safe to use this
   // approximation even before type propagator was run (e.g. during graph
   // building).
@@ -1657,6 +1677,8 @@ class Definition : public Instruction {
     return (input_use_list_ != NULL) || (env_use_list_ != NULL);
   }
   bool HasOnlyUse(Value* use) const;
+  bool HasOnlyInputUse(Value* use) const;
+
 
   Value* input_use_list() const { return input_use_list_; }
   void set_input_use_list(Value* head) { input_use_list_ = head; }
@@ -2415,10 +2437,11 @@ class ConstantInstr : public TemplateDefinition<0> {
 // for other unboxing instructions.
 class UnboxedConstantInstr : public ConstantInstr {
  public:
-  explicit UnboxedConstantInstr(const Object& value);
+  explicit UnboxedConstantInstr(const Object& value,
+                                Representation representation);
 
   virtual Representation representation() const {
-    return kUnboxedDouble;
+    return representation_;
   }
 
   // Either NULL or the address of the unboxed constant.
@@ -2427,6 +2450,7 @@ class UnboxedConstantInstr : public ConstantInstr {
   DECLARE_INSTRUCTION(UnboxedConstant)
 
  private:
+  const Representation representation_;
   uword constant_address_;  // Either NULL or points to the untagged constant.
 
   DISALLOW_COPY_AND_ASSIGN(UnboxedConstantInstr);
@@ -4665,6 +4689,8 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
 
   virtual bool MayThrow() const { return false; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
  private:
   bool is_smi_;
 
@@ -4840,6 +4866,8 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool MayThrow() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
@@ -6876,6 +6904,12 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual bool MayThrow() const { return false; }
 
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
  private:
   const Token::Kind op_kind_;
   bool overflow_;
@@ -6883,6 +6917,97 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(BinarySmiOpInstr);
+};
+
+
+class BinaryInt32OpInstr : public TemplateDefinition<2> {
+ public:
+  BinaryInt32OpInstr(Token::Kind op_kind,
+                     Value* left,
+                     Value* right,
+                     intptr_t deopt_id)
+      : op_kind_(op_kind),
+        overflow_(true),
+        is_truncating_(false) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+    // Override generated deopt-id.
+    deopt_id_ = deopt_id;
+  }
+
+  static bool IsSupported(Token::Kind op, Value* left, Value* right) {
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
+    switch (op) {
+      case Token::kADD:
+      case Token::kSUB:
+      case Token::kMUL:
+      case Token::kBIT_AND:
+      case Token::kBIT_OR:
+      case Token::kBIT_XOR:
+        return true;
+
+      case Token::kSHL:
+      case Token::kSHR:
+        return right->BindsToConstant();
+
+      default:
+        return false;
+    }
+#else
+    return false;
+#endif
+  }
+
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  void set_overflow(bool overflow) { overflow_ = overflow; }
+
+  void set_is_truncating(bool value) { is_truncating_ = value; }
+  bool IsTruncating() const { return is_truncating_ || !overflow_; }
+
+  void PrintTo(BufferFormatter* f) const;
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_INSTRUCTION(BinaryInt32Op)
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const;
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual Representation representation() const {
+    return kUnboxedInt32;
+  }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0 || idx == 1);
+    return kUnboxedInt32;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return deopt_id_;
+  }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  const Token::Kind op_kind_;
+  bool overflow_;
+  bool is_truncating_;
+
+  DISALLOW_COPY_AND_ASSIGN(BinaryInt32OpInstr);
 };
 
 
@@ -7006,6 +7131,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 };
 
 
+// TODO(vegorov): remove this instruction in favor of Int32ToDouble.
 class SmiToDoubleInstr : public TemplateDefinition<1> {
  public:
   SmiToDoubleInstr(Value* value, intptr_t token_pos)
@@ -7038,6 +7164,40 @@ class SmiToDoubleInstr : public TemplateDefinition<1> {
   const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
+};
+
+
+class Int32ToDoubleInstr : public TemplateDefinition<1> {
+ public:
+  explicit Int32ToDoubleInstr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  DECLARE_INSTRUCTION(Int32ToDouble)
+  virtual CompileType ComputeType() const;
+
+  virtual Representation RequiredInputRepresentation(intptr_t index) const {
+    ASSERT(index == 0);
+    return kUnboxedInt32;
+  }
+
+  virtual Representation representation() const {
+    return kUnboxedDouble;
+  }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(Int32ToDoubleInstr);
 };
 
 
@@ -7800,13 +7960,18 @@ class UnaryUint32OpInstr : public TemplateDefinition<1> {
 };
 
 
-class BoxUint32Instr : public TemplateDefinition<1> {
+class BoxIntNInstr : public TemplateDefinition<1> {
  public:
-  explicit BoxUint32Instr(Value* value) {
+  BoxIntNInstr(Representation representation, Value* value)
+      : representation_(representation) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
+  virtual bool ValueFitsSmi() const;
+
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -7816,55 +7981,127 @@ class BoxUint32Instr : public TemplateDefinition<1> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return kUnboxedUint32;
+    return representation_;
   }
-
-  DECLARE_INSTRUCTION(BoxUint32)
-  virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsBoxIntN()->representation_ == representation_;
+  }
 
   virtual bool MayThrow() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual BoxIntNInstr* AsBoxIntN() { return this; }
+
+ private:
+  const Representation representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(BoxIntNInstr);
+};
+
+
+class BoxUint32Instr : public BoxIntNInstr {
+ public:
+  explicit BoxUint32Instr(Value* value)
+      : BoxIntNInstr(kUnboxedUint32, value) { }
+
+  DECLARE_INSTRUCTION(BoxUint32)
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxUint32Instr);
 };
 
 
-class UnboxUint32Instr : public TemplateDefinition<1> {
+class BoxInt32Instr : public BoxIntNInstr {
  public:
-  UnboxUint32Instr(Value* value, intptr_t deopt_id) {
+  explicit BoxInt32Instr(Value* value)
+      : BoxIntNInstr(kUnboxedInt32, value) { }
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  DECLARE_INSTRUCTION(BoxInt32)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BoxInt32Instr);
+};
+
+
+class UnboxIntNInstr : public TemplateDefinition<1> {
+ public:
+  UnboxIntNInstr(Representation representation,
+                 Value* value,
+                 intptr_t deopt_id)
+      : representation_(representation) {
     SetInputAt(0, value);
     deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
 
-  virtual bool CanDeoptimize() const {
-    return (value()->Type()->ToCid() != kSmiCid)
-        && (value()->Type()->ToCid() != kMintCid);
-  }
-
   virtual Representation representation() const {
-    return kUnboxedUint32;
+    return representation_;
   }
 
-
-  DECLARE_INSTRUCTION(UnboxUint32)
   virtual CompileType ComputeType() const;
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    return other->AsUnboxIntN()->representation_ == representation_;
+  }
 
   virtual bool MayThrow() const { return false; }
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual UnboxIntNInstr* AsUnboxIntN() { return this; }
+
+ private:
+  const Representation representation_;
+
+  DISALLOW_COPY_AND_ASSIGN(UnboxIntNInstr);
+};
+
+
+class UnboxUint32Instr : public UnboxIntNInstr {
+ public:
+  UnboxUint32Instr(Value* value, intptr_t deopt_id)
+      : UnboxIntNInstr(kUnboxedUint32, value, deopt_id) {
+  }
+
+  virtual bool CanDeoptimize() const {
+    return (value()->Type()->ToCid() != kSmiCid)
+        && (value()->Type()->ToCid() != kMintCid);
+  }
+
+  DECLARE_INSTRUCTION(UnboxUint32)
+
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxUint32Instr);
+};
+
+
+class UnboxInt32Instr : public UnboxIntNInstr {
+ public:
+  UnboxInt32Instr(Value* value, intptr_t deopt_id)
+      : UnboxIntNInstr(kUnboxedInt32, value, deopt_id) {
+  }
+
+  virtual bool CanDeoptimize() const;
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  DECLARE_INSTRUCTION(UnboxInt32)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(UnboxInt32Instr);
 };
 
 
@@ -7872,13 +8109,20 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
  public:
   UnboxedIntConverterInstr(Representation from,
                            Representation to,
-                           Value* value)
+                           Value* value,
+                           intptr_t deopt_id)
       : from_representation_(from),
         to_representation_(to) {
     ASSERT(from != to);
-    ASSERT((from == kUnboxedMint) || (from == kUnboxedUint32));
-    ASSERT((to == kUnboxedMint) || (to == kUnboxedUint32));
+    ASSERT((from == kUnboxedMint) ||
+           (from == kUnboxedUint32) ||
+           (from == kUnboxedInt32));
+    ASSERT((to == kUnboxedMint) ||
+           (to == kUnboxedUint32) ||
+           (to == kUnboxedInt32));
+    ASSERT((to != kUnboxedInt32) || (deopt_id != Isolate::kNoDeoptId));
     SetInputAt(0, value);
+    deopt_id_ = deopt_id;
   }
 
   Value* value() const { return inputs_[0]; }
@@ -7886,7 +8130,9 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
   Representation from() const { return from_representation_; }
   Representation to() const { return to_representation_; }
 
-  virtual bool CanDeoptimize() const { return false; }
+  Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool CanDeoptimize() const;
 
   virtual Representation representation() const {
     return to();
@@ -7906,6 +8152,10 @@ class UnboxedIntConverterInstr : public TemplateDefinition<1> {
   }
 
   virtual bool MayThrow() const { return false; }
+
+  virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   DECLARE_INSTRUCTION(UnboxedIntConverter);
 
@@ -8141,6 +8391,16 @@ class FlowGraphVisitor : public ValueObject {
  private:
   DISALLOW_COPY_AND_ASSIGN(FlowGraphVisitor);
 };
+
+
+// Helper macros for platform ports.
+#define DEFINE_UNIMPLEMENTED_INSTRUCTION(Name)                                \
+  LocationSummary* Name::MakeLocationSummary(                                 \
+      Isolate* isolate, bool opt) const {                                     \
+    UNIMPLEMENTED();                                                          \
+    return NULL;                                                              \
+  }                                                                           \
+  void Name::EmitNativeCode(FlowGraphCompiler* compiler) { UNIMPLEMENTED(); }
 
 
 }  // namespace dart
