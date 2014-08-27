@@ -182,7 +182,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
           }));
           if (javaType(field.type) == 'Boolean') {
             writeln(
-                'public ${javaType(field.type)} is${capitalize(javaName(field.name))}() {');
+                'public ${javaType(field.type)} ${javaName(field.name)}() {');
           } else {
             writeln(
                 'public ${javaType(field.type)} get${capitalize(javaName(field.name))}() {');
