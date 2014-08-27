@@ -2117,3 +2117,10 @@ class SuppressionInfo {
   int warnings = 0;
   int hints = 0;
 }
+
+class GenericTask extends CompilerTask {
+  final String name;
+
+  GenericTask(this.name, Compiler compiler)
+      : super(compiler);
+}
