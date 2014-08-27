@@ -61,6 +61,10 @@ class SemiSpace {
 
   static SemiSpace* cache_;
   static Mutex* mutex_;
+
+#ifdef DEBUG
+  static const intptr_t kZapValue = 0xf3;
+#endif
 };
 
 

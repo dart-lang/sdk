@@ -323,7 +323,7 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
 SemiSpace::~SemiSpace() {
   if (reserved_ != NULL) {
 #if defined(DEBUG)
-    memset(reserved_->address(), 0xf3, size_in_words() << kWordSizeLog2);
+    memset(reserved_->address(), kZapValue, size_in_words() << kWordSizeLog2);
 #endif  // defined(DEBUG)
     delete reserved_;
   }
@@ -362,7 +362,7 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
       return NULL;
     }
 #if defined(DEBUG)
-    memset(reserved->address(), 0xf3, size_in_bytes);
+    memset(reserved->address(), kZapValue, size_in_bytes);
 #endif  // defined(DEBUG)
     return new SemiSpace(reserved);
   }
@@ -370,6 +370,11 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
 
 
 void SemiSpace::Delete() {
+#ifdef DEBUG
+  if (reserved_ != NULL) {
+    memset(reserved_->address(), kZapValue, size_in_words() << kWordSizeLog2);
+  }
+#endif
   SemiSpace* old_cache = NULL;
   {
     MutexLocker locker(mutex_);
