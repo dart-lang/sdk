@@ -35,6 +35,7 @@ polymer/test/bind_test: Pass, RuntimeError # Issue 18931
 polymer/test/computed_properties_test: Pass, RuntimeError # Issue 18931
 polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_binding_release_handler_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_declarative_test: Pass, RuntimeError, Timeout # Issue 18931
