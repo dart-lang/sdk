@@ -59,10 +59,13 @@ intptr_t RawObject::SizeFromClass() const {
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
-  RawClass* raw_class = isolate->class_table()->At(GetClassId());
+  intptr_t class_id = GetClassId();
+  RawClass* raw_class = isolate->class_table()->At(class_id);
+  ASSERT(raw_class->ptr()->id_ == class_id);
+
+  // Get the instance size out of the class.
   intptr_t instance_size =
       raw_class->ptr()->instance_size_in_words_ << kWordSizeLog2;
-  intptr_t class_id = raw_class->ptr()->id_;
 
   if (instance_size == 0) {
     switch (class_id) {

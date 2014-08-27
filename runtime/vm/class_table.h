@@ -113,6 +113,9 @@ class ClassHeapStats {
 class ClassTable {
  public:
   ClassTable();
+  // Create a copy of the original class table only, without copying any of the
+  // stats data.
+  explicit ClassTable(ClassTable* original);
   ~ClassTable();
 
   RawClass* At(intptr_t index) const {

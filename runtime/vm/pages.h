@@ -296,6 +296,13 @@ class PageSpace {
                                is_protected, is_locked);
   }
 
+  Monitor* tasks_lock() const { return tasks_lock_; }
+  intptr_t tasks() const { return tasks_; }
+  void set_tasks(intptr_t val) {
+    ASSERT(val >= 0);
+    tasks_ = val;
+  }
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -311,10 +318,6 @@ class PageSpace {
     kAllowedGrowth = 3
   };
 
-  Monitor* tasks_lock() const { return tasks_lock_; }
-  intptr_t tasks() const { return tasks_; }
-  void set_tasks(intptr_t val) { tasks_ = val; }
-
   static const intptr_t kAllocatablePageSize = 64 * KB;
 
   uword TryAllocateInternal(intptr_t size,
@@ -329,8 +332,12 @@ class PageSpace {
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
   HeapPage* NextPageAnySize(HeapPage* page) const {
-    ASSERT(pages_tail_ == NULL || pages_tail_->next() == NULL);
-    return page == pages_tail_ ? large_pages_ : page->next();
+    ASSERT((pages_tail_ == NULL) || (pages_tail_->next() == NULL));
+    ASSERT((exec_pages_tail_ == NULL) || (exec_pages_tail_->next() == NULL));
+    if (page == pages_tail_) {
+      return (exec_pages_ != NULL) ? exec_pages_ : large_pages_;
+    }
+    return page == exec_pages_tail_ ? large_pages_ : page->next();
   }
 
   static intptr_t LargePageSizeInWordsFor(intptr_t size);
@@ -344,8 +351,11 @@ class PageSpace {
 
   Heap* heap_;
 
+  Mutex* pages_lock_;
   HeapPage* pages_;
   HeapPage* pages_tail_;
+  HeapPage* exec_pages_;
+  HeapPage* exec_pages_tail_;
   HeapPage* large_pages_;
 
   // Various sizes being tracked for this generation.
@@ -362,6 +372,7 @@ class PageSpace {
   intptr_t collections_;
 
   friend class PageSpaceController;
+  friend class SweeperTask;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

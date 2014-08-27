@@ -33,6 +33,8 @@ DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
+DEFINE_FLAG(bool, concurrent_sweep, true,
+            "Concurrent sweep for old generation.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
@@ -121,8 +123,11 @@ void HeapPage::WriteProtect(bool read_only) {
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
     : freelist_(),
       heap_(heap),
+      pages_lock_(new Mutex()),
       pages_(NULL),
       pages_tail_(NULL),
+      exec_pages_(NULL),
+      exec_pages_tail_(NULL),
       large_pages_(NULL),
       max_capacity_in_words_(max_capacity_in_words),
       tasks_lock_(new Monitor()),
@@ -144,7 +149,9 @@ PageSpace::~PageSpace() {
     }
   }
   FreePages(pages_);
+  FreePages(exec_pages_);
   FreePages(large_pages_);
+  delete pages_lock_;
   delete tasks_lock_;
 }
 
@@ -158,20 +165,31 @@ intptr_t PageSpace::LargePageSizeInWordsFor(intptr_t size) {
 
 HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
   HeapPage* page = HeapPage::Allocate(kPageSizeInWords, type);
-  if (pages_ == NULL) {
-    pages_ = page;
+
+  bool is_exec = (type == HeapPage::kExecutable);
+
+  MutexLocker ml(pages_lock_);
+  if (!is_exec) {
+    if (pages_ == NULL) {
+      pages_ = page;
+    } else {
+      pages_tail_->set_next(page);
+    }
+    pages_tail_ = page;
   } else {
-    const bool is_protected = (pages_tail_->type() == HeapPage::kExecutable)
-        && FLAG_write_protect_code;
-    if (is_protected) {
-      pages_tail_->WriteProtect(false);
+    if (exec_pages_ == NULL) {
+      exec_pages_ = page;
+    } else {
+      if (FLAG_write_protect_code) {
+        exec_pages_tail_->WriteProtect(false);
+      }
+      exec_pages_tail_->set_next(page);
+      if (FLAG_write_protect_code) {
+        exec_pages_tail_->WriteProtect(true);
+      }
     }
-    pages_tail_->set_next(page);
-    if (is_protected) {
-      pages_tail_->WriteProtect(true);
-    }
+    exec_pages_tail_ = page;
   }
-  pages_tail_ = page;
   usage_.capacity_in_words += kPageSizeInWords;
   page->set_object_end(page->memory_->end());
   return page;
@@ -210,15 +228,31 @@ void PageSpace::TruncateLargePage(HeapPage* page,
 
 
 void PageSpace::FreePage(HeapPage* page, HeapPage* previous_page) {
-  usage_.capacity_in_words -= (page->memory_->size() >> kWordSizeLog2);
-  // Remove the page from the list.
-  if (previous_page != NULL) {
-    previous_page->set_next(page->next());
-  } else {
-    pages_ = page->next();
-  }
-  if (page == pages_tail_) {
-    pages_tail_ = previous_page;
+  bool is_exec = (page->type() == HeapPage::kExecutable);
+  {
+    MutexLocker ml(pages_lock_);
+    usage_.capacity_in_words -= (page->memory_->size() >> kWordSizeLog2);
+    if (!is_exec) {
+      // Remove the page from the list of data pages.
+      if (previous_page != NULL) {
+        previous_page->set_next(page->next());
+      } else {
+        pages_ = page->next();
+      }
+      if (page == pages_tail_) {
+        pages_tail_ = previous_page;
+      }
+    } else {
+      // Remove the page from the list of executable pages.
+      if (previous_page != NULL) {
+        previous_page->set_next(page->next());
+      } else {
+        exec_pages_ = page->next();
+      }
+      if (page == exec_pages_tail_) {
+        exec_pages_tail_ = previous_page;
+      }
+    }
   }
   // TODO(iposva): Consider adding to a pool of empty pages.
   page->Deallocate();
@@ -337,6 +371,8 @@ void PageSpace::FreeExternal(intptr_t size) {
 
 
 bool PageSpace::Contains(uword addr) const {
+  MutexLocker ml(pages_lock_);
+  NoGCScope no_gc;
   HeapPage* page = pages_;
   while (page != NULL) {
     if (page->Contains(addr)) {
@@ -349,6 +385,8 @@ bool PageSpace::Contains(uword addr) const {
 
 
 bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
+  MutexLocker ml(pages_lock_);
+  NoGCScope no_gc;
   HeapPage* page = pages_;
   while (page != NULL) {
     if ((page->type() == type) && page->Contains(addr)) {
@@ -361,7 +399,9 @@ bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
 
 
 void PageSpace::StartEndAddress(uword* start, uword* end) const {
-  ASSERT(pages_ != NULL || large_pages_ != NULL);
+  MutexLocker ml(pages_lock_);
+  NoGCScope no_gc;
+  ASSERT((pages_ != NULL) || (exec_pages_ != NULL) || (large_pages_ != NULL));
   *start = static_cast<uword>(~0);
   *end = 0;
   for (HeapPage* page = pages_; page != NULL; page = NextPageAnySize(page)) {
@@ -374,6 +414,8 @@ void PageSpace::StartEndAddress(uword* start, uword* end) const {
 
 
 void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
+  MutexLocker ml(pages_lock_);
+  NoGCScope no_gc;
   HeapPage* page = pages_;
   while (page != NULL) {
     page->VisitObjects(visitor);
@@ -383,6 +425,8 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 
 
 void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+  MutexLocker ml(pages_lock_);
+  NoGCScope no_gc;
   HeapPage* page = pages_;
   while (page != NULL) {
     page->VisitObjectPointers(visitor);
@@ -394,6 +438,8 @@ void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
 RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
                                  HeapPage::PageType type) const {
   ASSERT(Isolate::Current()->no_gc_scope_depth() != 0);
+  MutexLocker ml(pages_lock_);
+  NoGCScope no_gc;
   HeapPage* page = pages_;
   while (page != NULL) {
     if (page->type() == type) {
@@ -409,6 +455,8 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
 
 
 void PageSpace::WriteProtect(bool read_only) {
+  MutexLocker ml(pages_lock_);
+  NoGCScope no_gc;
   HeapPage* page = pages_;
   while (page != NULL) {
     page->WriteProtect(read_only);
@@ -473,8 +521,18 @@ void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate, JSONStream* stream) {
   {
     // "pages" is an array [page0, page1, ..., pageN], each page of the form
     // {"object_start": "0x...", "objects": [size, class id, size, ...]}
+    MutexLocker ml(pages_lock_);
+    NoGCScope no_gc;
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
+      JSONObject page_container(&all_pages);
+      page_container.AddPropertyF("object_start",
+                                  "0x%" Px "", page->object_start());
+      JSONArray page_map(&page_container, "objects");
+      HeapMapAsJSONVisitor printer(&page_map);
+      page->VisitObjects(&printer);
+    }
+    for (HeapPage* page = exec_pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
       page_container.AddPropertyF("object_start",
                                   "0x%" Px "", page->object_start());
@@ -506,12 +564,21 @@ bool PageSpace::ShouldCollectCode() {
 
 void PageSpace::WriteProtectCode(bool read_only) {
   if (FLAG_write_protect_code) {
-    HeapPage* current_page = pages_;
-    while (current_page != NULL) {
-      if (current_page->type() == HeapPage::kExecutable) {
-        current_page->WriteProtect(read_only);
+    MutexLocker ml(pages_lock_);
+    NoGCScope no_gc;
+    // No need to go through all of the data pages first.
+    HeapPage* page = exec_pages_;
+    while (page != NULL) {
+      ASSERT(page->type() == HeapPage::kExecutable);
+      page->WriteProtect(read_only);
+      page = page->next();
+    }
+    page = large_pages_;
+    while (page != NULL) {
+      if (page->type() == HeapPage::kExecutable) {
+        page->WriteProtect(read_only);
       }
-      current_page = NextPageAnySize(current_page);
+      page = page->next();
     }
   }
 }
@@ -569,32 +636,17 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   int64_t mid2 = OS::GetCurrentTimeMicros();
   int64_t mid3 = 0;
 
-  GCSweeper sweeper(heap_);
-
-  // During stop-the-world phases we should use bulk lock when adding elements
-  // to the free list.
   {
+    GCSweeper sweeper(heap_);
+
+    // During stop-the-world phases we should use bulk lock when adding elements
+    // to the free list.
     MutexLocker mld(freelist_[HeapPage::kData].mutex());
     MutexLocker mle(freelist_[HeapPage::kExecutable].mutex());
 
+    // Large and executable pages are always swept immediately.
     HeapPage* prev_page = NULL;
-    HeapPage* page = pages_;
-    while (page != NULL) {
-      HeapPage* next_page = page->next();
-      bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
-      if (page_in_use) {
-        prev_page = page;
-      } else {
-        FreePage(page, prev_page);
-      }
-      // Advance to the next page.
-      page = next_page;
-    }
-
-    mid3 = OS::GetCurrentTimeMicros();
-
-    prev_page = NULL;
-    page = large_pages_;
+    HeapPage* page = large_pages_;
     while (page != NULL) {
       HeapPage* next_page = page->next();
       const intptr_t words_to_end = sweeper.SweepLargePage(page);
@@ -606,6 +658,44 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       }
       // Advance to the next page.
       page = next_page;
+    }
+
+    prev_page = NULL;
+    page = exec_pages_;
+    FreeList* freelist = &freelist_[HeapPage::kExecutable];
+    while (page != NULL) {
+      HeapPage* next_page = page->next();
+      bool page_in_use = sweeper.SweepPage(page, freelist);
+      if (page_in_use) {
+        prev_page = page;
+      } else {
+        FreePage(page, prev_page);
+      }
+      // Advance to the next page.
+      page = next_page;
+    }
+
+    mid3 = OS::GetCurrentTimeMicros();
+
+    if (!FLAG_concurrent_sweep) {
+      // Sweep all regular sized pages now.
+      prev_page = NULL;
+      page = pages_;
+      while (page != NULL) {
+        HeapPage* next_page = page->next();
+        bool page_in_use = sweeper.SweepPage(page, &freelist_[page->type()]);
+        if (page_in_use) {
+          prev_page = page;
+        } else {
+          FreePage(page, prev_page);
+        }
+        // Advance to the next page.
+        page = next_page;
+      }
+    } else {
+      // Start the concurrent sweeper task now.
+      GCSweeper::SweepConcurrent(
+          isolate, pages_, pages_tail_, &freelist_[HeapPage::kData]);
     }
   }
 
@@ -639,7 +729,6 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   // Done, reset the task count.
   {
     MonitorLocker ml(tasks_lock());
-    ASSERT(tasks() == 1);
     set_tasks(tasks() - 1);
     ml.Notify();
   }
@@ -672,8 +761,10 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
     return false;
   }
   intptr_t capacity_increase_in_words =
-    after.capacity_in_words - last_usage_.capacity_in_words;
-  ASSERT(capacity_increase_in_words >= 0);
+      after.capacity_in_words - last_usage_.capacity_in_words;
+  // The concurrent sweeper might have freed more capacity than was allocated.
+  capacity_increase_in_words =
+      Utils::Maximum<intptr_t>(0, capacity_increase_in_words);
   capacity_increase_in_words =
       Utils::RoundUp(capacity_increase_in_words, PageSpace::kPageSizeInWords);
   intptr_t capacity_increase_in_pages =

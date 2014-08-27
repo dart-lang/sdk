@@ -7,7 +7,9 @@
 #include "vm/freelist.h"
 #include "vm/globals.h"
 #include "vm/heap.h"
+#include "vm/lockers.h"
 #include "vm/pages.h"
+#include "vm/thread_pool.h"
 
 namespace dart {
 
@@ -75,6 +77,90 @@ intptr_t GCSweeper::SweepLargePage(HeapPage* page) {
   }
 #endif  // DEBUG
   return words_to_end;
+}
+
+
+class SweeperTask : public ThreadPool::Task {
+ public:
+  SweeperTask(Isolate* isolate,
+              PageSpace* old_space,
+              HeapPage* first,
+              HeapPage* last,
+              FreeList* freelist)
+      : task_isolate_(isolate),
+        old_space_(old_space),
+        first_(first),
+        last_(last),
+        freelist_(freelist) {
+    ASSERT(task_isolate_ != NULL);
+    ASSERT(first_ != NULL);
+    ASSERT(old_space_ != NULL);
+    ASSERT(last_ != NULL);
+    ASSERT(freelist_ != NULL);
+    MonitorLocker ml(old_space_->tasks_lock());
+    old_space_->set_tasks(old_space_->tasks() + 1);
+    ml.Notify();
+  }
+
+  virtual void Run() {
+    Isolate::SetCurrent(task_isolate_);
+    GCSweeper sweeper(NULL);
+
+    HeapPage* page = first_;
+    HeapPage* prev_page = NULL;
+
+    while (page != NULL) {
+      HeapPage* next_page = page->next();
+      ASSERT(page->type() == HeapPage::kData);
+      bool page_in_use = true;
+      {
+        MutexLocker ml(freelist_->mutex());
+        page_in_use = sweeper.SweepPage(page, freelist_);
+      }
+      if (page_in_use) {
+        prev_page = page;
+      } else {
+        old_space_->FreePage(page, prev_page);
+      }
+      {
+        // Notify the mutator thread that we have added elements to the free
+        // list or that more capacity is available.
+        MonitorLocker ml(old_space_->tasks_lock());
+        ml.Notify();
+      }
+      if (page == last_) break;
+      page = next_page;
+    }
+    // This sweeper task is done. Notify the original isolate.
+    {
+      MonitorLocker ml(old_space_->tasks_lock());
+      old_space_->set_tasks(old_space_->tasks() - 1);
+      ml.Notify();
+    }
+    Isolate::SetCurrent(NULL);
+    delete task_isolate_;
+  }
+
+ private:
+  Isolate* task_isolate_;
+  PageSpace* old_space_;
+  HeapPage* first_;
+  HeapPage* last_;
+  FreeList* freelist_;
+};
+
+
+void GCSweeper::SweepConcurrent(Isolate* isolate,
+                                HeapPage* first,
+                                HeapPage* last,
+                                FreeList* freelist) {
+  SweeperTask* task =
+      new SweeperTask(isolate->ShallowCopy(),
+                      isolate->heap()->old_space(),
+                      first, last,
+                      freelist);
+  ThreadPool* pool = Dart::thread_pool();
+  pool->Run(task);
 }
 
 }  // namespace dart

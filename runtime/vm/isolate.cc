@@ -444,9 +444,64 @@ Isolate::Isolate()
   set_vm_tag(VMTag::kIdleTagId);
   set_user_tag(UserTags::kDefaultUserTag);
 }
+
+Isolate::Isolate(Isolate* original)
+    : store_buffer_(true),
+      class_table_(original->class_table()),
+      message_notify_callback_(NULL),
+      name_(NULL),
+      start_time_(OS::GetCurrentTimeMicros()),
+      main_port_(0),
+      pause_capability_(0),
+      terminate_capability_(0),
+      heap_(NULL),
+      object_store_(NULL),
+      top_context_(Context::null()),
+      top_exit_frame_info_(0),
+      init_callback_data_(NULL),
+      environment_callback_(NULL),
+      library_tag_handler_(NULL),
+      api_state_(NULL),
+      stub_code_(NULL),
+      debugger_(NULL),
+      single_step_(false),
+      resume_request_(false),
+      random_(),
+      simulator_(NULL),
+      long_jump_base_(NULL),
+      timer_list_(),
+      deopt_id_(0),
+      mutex_(new Mutex()),
+      stack_limit_(0),
+      saved_stack_limit_(0),
+      stack_overflow_flags_(0),
+      stack_overflow_count_(0),
+      message_handler_(NULL),
+      spawn_state_(NULL),
+      is_runnable_(false),
+      gc_prologue_callback_(NULL),
+      gc_epilogue_callback_(NULL),
+      defer_finalization_count_(0),
+      deopt_context_(NULL),
+      stacktrace_(NULL),
+      stack_frame_index_(-1),
+      last_allocationprofile_accumulator_reset_timestamp_(0),
+      last_allocationprofile_gc_timestamp_(0),
+      cha_(NULL),
+      object_id_ring_(NULL),
+      trace_buffer_(NULL),
+      profiler_data_(NULL),
+      thread_state_(NULL),
+      tag_table_(GrowableObjectArray::null()),
+      current_tag_(UserTag::null()),
+      metrics_list_head_(NULL),
+      next_(NULL),
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
+      reusable_handles_() {
+}
 #undef REUSABLE_HANDLE_SCOPE_INIT
 #undef REUSABLE_HANDLE_INITIALIZERS
-
 
 Isolate::~Isolate() {
   delete [] name_;
@@ -981,6 +1036,11 @@ void Isolate::Shutdown() {
   // as we are shutting down the isolate.
   SetCurrent(NULL);
   Profiler::ShutdownProfilingForIsolate(this);
+}
+
+
+Isolate* Isolate::ShallowCopy() {
+  return new Isolate(this);
 }
 
 

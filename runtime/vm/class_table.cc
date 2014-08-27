@@ -48,6 +48,19 @@ ClassTable::ClassTable()
 }
 
 
+ClassTable::ClassTable(ClassTable* original)
+    : top_(original->top_),
+      capacity_(original->top_),
+      table_(reinterpret_cast<RawClass**>(
+          calloc(original->top_, sizeof(RawClass*)))),
+      class_heap_stats_table_(NULL),
+      predefined_class_heap_stats_table_(NULL) {
+  for (intptr_t i = 1; i < top_; i++) {
+    table_[i] = original->At(i);
+  }
+}
+
+
 ClassTable::~ClassTable() {
   free(table_);
   free(predefined_class_heap_stats_table_);

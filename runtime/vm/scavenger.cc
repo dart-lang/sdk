@@ -52,10 +52,10 @@ static inline uword ForwardedAddr(uword header) {
 }
 
 
-static inline void ForwardTo(uword orignal, uword target) {
+static inline void ForwardTo(uword original, uword target) {
   // Make sure forwarding can be encoded.
   ASSERT((target & kForwardingMask) == 0);
-  *reinterpret_cast<uword*>(orignal) = target | kForwarded;
+  *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
 
 
@@ -487,8 +487,17 @@ void Scavenger::Epilogue(Isolate* isolate,
   }
 
 #if defined(DEBUG)
-  VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
-  heap_->IterateOldPointers(&verify_store_buffer_visitor);
+  // We can only safely verify the store buffers from old space if there is no
+  // concurrent old space task. At the same time we prevent new tasks from
+  // being spawned.
+  {
+    PageSpace* page_space = heap_->old_space();
+    MonitorLocker ml(page_space->tasks_lock());
+    if (page_space->tasks() == 0) {
+      VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
+      heap_->IterateOldPointers(&verify_store_buffer_visitor);
+    }
+  }
 #endif  // defined(DEBUG)
   from_->Delete();
   from_ = NULL;

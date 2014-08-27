@@ -8,6 +8,7 @@
 #include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/object_set.h"
 #include "vm/os.h"
@@ -80,16 +81,44 @@ uword Heap::AllocateNew(intptr_t size) {
 uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   ASSERT(isolate()->no_gc_scope_depth() == 0);
   uword addr = old_space_->TryAllocate(size, type);
-  if (addr == 0) {
-    CollectAllGarbage();
-    addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
-    if (addr == 0) {
-      OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
-                   size);
-      return 0;
+  if (addr != 0) {
+    return addr;
+  }
+  // If we are in the process of running a sweep wait for the sweeper to free
+  // memory.
+  {
+    MonitorLocker ml(old_space_->tasks_lock());
+    addr = old_space_->TryAllocate(size, type);
+    while ((addr == 0) && (old_space_->tasks())) {
+      ml.Wait();
+      addr = old_space_->TryAllocate(size, type);
     }
   }
-  return addr;
+  if (addr != 0) {
+    return addr;
+  }
+  // All GC tasks finished without allocating successfully. Run a full GC.
+  CollectAllGarbage();
+  addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+  if (addr != 0) {
+    return addr;
+  }
+  // Wait for all of the concurrent tasks to finish before giving up.
+  {
+    MonitorLocker ml(old_space_->tasks_lock());
+    addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+    while ((addr == 0) && (old_space_->tasks())) {
+      ml.Wait();
+      addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+    }
+  }
+  if (addr != 0) {
+    return addr;
+  }
+  // Giving up allocating this object.
+  OS::PrintErr(
+      "Exhausted heap space, trying to allocate %" Pd " bytes.\n", size);
+  return 0;
 }
 
 void Heap::AllocateExternal(intptr_t size, Space space) {

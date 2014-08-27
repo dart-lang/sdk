@@ -51,10 +51,14 @@ void Metric::Init(const char* name, const char* description, Unit unit) {
 
 
 Metric::~Metric() {
-  if (isolate_ == NULL) {
-    DeregisterWithVM();
-  } else {
-    DeregisterWithIsolate();
+  // Only deregister metrics which had been registered. Metrics without a name
+  // are from shallow copy isolates.
+  if (name_ != NULL) {
+    if (isolate_ == NULL) {
+      DeregisterWithVM();
+    } else {
+      DeregisterWithIsolate();
+    }
   }
 }
 
