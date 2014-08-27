@@ -410,10 +410,19 @@ void AstPrinter::PrintNode(AstNode* node) {
 }
 
 
+static void IndentN(int count) {
+  for (int i = 0; i < count; i++) {
+    OS::Print(" ");
+  }
+}
+
+
 void AstPrinter::PrintLocalScopeVariable(const LocalScope* scope,
-                                         LocalVariable* var) {
+                                         LocalVariable* var,
+                                         int indent) {
   ASSERT(scope != NULL);
   ASSERT(var != NULL);
+  IndentN(indent);
   OS::Print("(%s%s '%s'",
             var->is_final() ? "final " : "",
             String::Handle(var->type().Name()).ToCString(),
@@ -429,30 +438,33 @@ void AstPrinter::PrintLocalScopeVariable(const LocalScope* scope,
   } else if (var->owner()->function_level() != 0) {
     OS::Print(" lev %d", var->owner()->function_level());
   }
-  OS::Print(" valid %" Pd "-%" Pd ")",
+  OS::Print(" valid %" Pd "-%" Pd ")\n",
             var->token_pos(),
             scope->end_token_pos());
 }
 
 
 void AstPrinter::PrintLocalScope(const LocalScope* scope,
-                                 int start_index) {
+                                 int start_index,
+                                 int indent) {
   ASSERT(scope != NULL);
   for (int i = start_index; i < scope->num_variables(); i++) {
     LocalVariable* var = scope->VariableAt(i);
-    PrintLocalScopeVariable(scope, var);
+    PrintLocalScopeVariable(scope, var, indent);
   }
   const LocalScope* child = scope->child();
   while (child != NULL) {
+    IndentN(indent);
     OS::Print("{scope %p ", child);
     if (child->HasContextLevel()) {
       OS::Print("ctx %d numctxvar %d ",
                 child->context_level(),
                 child->num_context_variables());
     }
-    OS::Print("llev %d ", child->loop_level());
-    PrintLocalScope(child, 0);
-    OS::Print("}");
+    OS::Print("llev %d\n", child->loop_level());
+    PrintLocalScope(child, 0, indent + kScopeIndent);
+    IndentN(indent);
+    OS::Print("}\n");
     child = child->sibling();
   }
 }
@@ -468,21 +480,23 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
   const LocalScope* scope = node_sequence->scope();
   ASSERT(scope != NULL);
   const char* function_name = function.ToFullyQualifiedCString();
-  OS::Print("Scope for function '%s' {scope %p ", function_name, scope);
+  OS::Print("Scope for function '%s'\n{scope %p ", function_name, scope);
   if (scope->HasContextLevel()) {
     OS::Print("ctx %d numctxvar %d ",
               scope->context_level(),
               scope->num_context_variables());
   }
-  OS::Print("llev %d ", scope->loop_level());
+  OS::Print("llev %d\n", scope->loop_level());
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_params = num_fixed_params + function.NumOptionalParameters();
   // Parameters must be listed first and must all appear in the top scope.
   ASSERT(num_params <= scope->num_variables());
   int pos = 0;  // Current position of variable in scope.
+  int indent = kScopeIndent;
   while (pos < num_params) {
     LocalVariable* param = scope->VariableAt(pos);
     ASSERT(param->owner() == scope);  // No aliases should precede parameters.
+    IndentN(indent);
     OS::Print("(param %s%s '%s'",
               param->is_final() ? "final " : "",
               String::Handle(param->type().Name()).ToCString(),
@@ -499,13 +513,13 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
         OS::Print(" ctx %d", param->owner()->context_level());
       }
     }
-    OS::Print(" valid %" Pd "-%" Pd ")",
+    OS::Print(" valid %" Pd "-%" Pd ")\n",
               param->token_pos(),
               scope->end_token_pos());
     pos++;
   }
   // Visit remaining non-parameter variables and children scopes.
-  PrintLocalScope(scope, pos);
+  PrintLocalScope(scope, pos, indent);
   OS::Print("}\n");
 }
 
