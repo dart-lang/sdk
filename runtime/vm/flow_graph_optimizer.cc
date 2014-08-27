@@ -4765,7 +4765,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           BenefitsFromWidening(defn->AsBinarySmiOp())) {
         gain++;
         if (FLAG_trace_smi_widening) {
-          OS::Print("^ [%d] (o) %s\n", gain, defn->ToCString());
+          OS::Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
         }
       }
 
@@ -4783,7 +4783,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // Mint operation produces untagged result. We avoid tagging.
           gain++;
           if (FLAG_trace_smi_widening) {
-            OS::Print("^ [%d] (i) %s\n", gain, input->ToCString());
+            OS::Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
         } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
                    (input->Type()->ToCid() == kSmiCid)) {
@@ -4794,7 +4794,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // coalesced with untagging. Start coalescing them.
           gain--;
           if (FLAG_trace_smi_widening) {
-            OS::Print("v [%d] (i) %s\n", gain, input->ToCString());
+            OS::Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
         }
       }
@@ -4811,8 +4811,9 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           if (!instr->IsReturn() && !instr->IsPushArgument()) {
             gain--;
             if (FLAG_trace_smi_widening) {
-              OS::Print("v [%d] (u) %s\n",
-                        gain, use->instruction()->ToCString());
+              OS::Print("v [%" Pd "] (u) %s\n",
+                        gain,
+                        use->instruction()->ToCString());
             }
           }
           continue;
@@ -4828,12 +4829,16 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // sign extension operation.
           gain++;
           if (FLAG_trace_smi_widening) {
-            OS::Print("^ [%d] (u) %s\n", gain, use->instruction()->ToCString());
+            OS::Print("^ [%" Pd "] (u) %s\n",
+                      gain,
+                      use->instruction()->ToCString());
           }
         } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
           gain--;
           if (FLAG_trace_smi_widening) {
-            OS::Print("v [%d] (u) %s\n", gain, use->instruction()->ToCString());
+            OS::Print("v [%" Pd "] (u) %s\n",
+                      gain,
+                      use->instruction()->ToCString());
           }
         }
       }
@@ -4842,7 +4847,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
     processed->AddAll(worklist.contains());
 
     if (FLAG_trace_smi_widening) {
-      OS::Print("~ %s gain %d\n", op->ToCString(), gain);
+      OS::Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
     }
 
     if (gain > 0) {
