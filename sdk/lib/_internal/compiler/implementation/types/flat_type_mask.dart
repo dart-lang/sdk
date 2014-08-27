@@ -94,10 +94,10 @@ class FlatTypeMask implements TypeMask {
     } else if (isExact) {
       return false;
     } else if (isSubclass) {
-      return isSubclassOf(type, base, compiler);
+      return compiler.world.isSubclassOf(type, base);
     } else {
       assert(isSubtype);
-      return isSubtypeOf(type, base, compiler);
+      return compiler.world.isSubtypeOf(type, base);
     }
   }
 
@@ -154,7 +154,7 @@ class FlatTypeMask implements TypeMask {
     //               all subclasses of this.base.
     if (flatOther.isSubclass) {
       if (isSubtype) return (otherBase == compiler.objectClass);
-      return base == otherBase || isSubclassOf(base, otherBase, compiler);
+      return compiler.world.isSubclassOf(base, otherBase);
     }
     assert(flatOther.isSubtype);
     // Check whether this TypeMask satisfies otherBase's interface.
@@ -203,8 +203,7 @@ class FlatTypeMask implements TypeMask {
   bool satisfies(ClassElement cls, Compiler compiler) {
     assert(cls.isDeclaration);
     if (isEmpty) return false;
-    if (base == cls) return true;
-    if (isSubtypeOf(base, cls, compiler)) return true;
+    if (compiler.world.isSubtypeOf(base, cls)) return true;
     return false;
   }
 
@@ -218,7 +217,7 @@ class FlatTypeMask implements TypeMask {
     if (isExact) {
       return base;
     } else if (isSubclass) {
-      return compiler.world.hasAnySubclass(base) ? null : base;
+      return compiler.world.hasAnyStrictSubclass(base) ? null : base;
     } else {
       assert(isSubtype);
       return null;
@@ -234,9 +233,10 @@ class FlatTypeMask implements TypeMask {
   }
 
   TypeMask union(TypeMask other, Compiler compiler) {
+    ClassWorld classWorld = compiler.world;
     assert(other != null);
-    assert(TypeMask.isNormalized(this, compiler.world));
-    assert(TypeMask.isNormalized(other, compiler.world));
+    assert(TypeMask.isNormalized(this, classWorld));
+    assert(TypeMask.isNormalized(other, classWorld));
     if (other is! FlatTypeMask) return other.union(this, compiler);
     FlatTypeMask flatOther = other;
     if (isEmpty) {
@@ -244,24 +244,24 @@ class FlatTypeMask implements TypeMask {
     } else if (flatOther.isEmpty) {
       return flatOther.isNullable ? nullable() : this;
     } else if (base == flatOther.base) {
-      return unionSame(flatOther, compiler);
-    } else if (isSubclassOf(flatOther.base, base, compiler)) {
-      return unionSubclass(flatOther, compiler);
-    } else if (isSubclassOf(base, flatOther.base, compiler)) {
-      return flatOther.unionSubclass(this, compiler);
-    } else if (isSubtypeOf(flatOther.base, base, compiler)) {
-      return unionSubtype(flatOther, compiler);
-    } else if (isSubtypeOf(base, flatOther.base, compiler)) {
-      return flatOther.unionSubtype(this, compiler);
+      return unionSame(flatOther, classWorld);
+    } else if (classWorld.isSubclassOf(flatOther.base, base)) {
+      return unionStrictSubclass(flatOther, classWorld);
+    } else if (classWorld.isSubclassOf(base, flatOther.base)) {
+      return flatOther.unionStrictSubclass(this, classWorld);
+    } else if (classWorld.isSubtypeOf(flatOther.base, base)) {
+      return unionStrictSubtype(flatOther, classWorld);
+    } else if (classWorld.isSubtypeOf(base, flatOther.base)) {
+      return flatOther.unionStrictSubtype(this, classWorld);
     } else {
       return new UnionTypeMask._internal(<FlatTypeMask>[this, flatOther]);
     }
   }
 
-  TypeMask unionSame(FlatTypeMask other, Compiler compiler) {
+  TypeMask unionSame(FlatTypeMask other, ClassWorld classWorld) {
     assert(base == other.base);
-    assert(TypeMask.isNormalized(this, compiler.world));
-    assert(TypeMask.isNormalized(other, compiler.world));
+    assert(TypeMask.isNormalized(this, classWorld));
+    assert(TypeMask.isNormalized(other, classWorld));
     // The two masks share the base type, so we must chose the least
     // constraining kind (the highest) of the two. If either one of
     // the masks are nullable the result should be nullable too.
@@ -278,12 +278,13 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask unionSubclass(FlatTypeMask other, Compiler compiler) {
-    assert(isSubclassOf(other.base, base, compiler));
-    assert(TypeMask.isNormalized(this, compiler.world));
-    assert(TypeMask.isNormalized(other, compiler.world));
+  TypeMask unionStrictSubclass(FlatTypeMask other, ClassWorld classWorld) {
+    assert(base != other.base);
+    assert(classWorld.isSubclassOf(other.base, base));
+    assert(TypeMask.isNormalized(this, classWorld));
+    assert(TypeMask.isNormalized(other, classWorld));
     int combined;
-    if ((isExact && other.isExact) || base == compiler.objectClass) {
+    if ((isExact && other.isExact) || base == classWorld.objectClass) {
       // Since the other mask is a subclass of this mask, we need the
       // resulting union to be a subclass too. If either one of the
       // masks are nullable the result should be nullable too.
@@ -301,15 +302,16 @@ class FlatTypeMask implements TypeMask {
     return (flags != combined)
         ? (combined >> 1 == flags >> 1)
             ? new FlatTypeMask.internal(base, combined)
-            : new FlatTypeMask.normalized(base, combined, compiler.world)
+            : new FlatTypeMask.normalized(base, combined, classWorld)
         : this;
   }
 
-  TypeMask unionSubtype(FlatTypeMask other, Compiler compiler) {
-    assert(!isSubclassOf(other.base, base, compiler));
-    assert(isSubtypeOf(other.base, base, compiler));
-    assert(TypeMask.isNormalized(this, compiler.world));
-    assert(TypeMask.isNormalized(other, compiler.world));
+  TypeMask unionStrictSubtype(FlatTypeMask other, ClassWorld classWorld) {
+    assert(base != other.base);
+    assert(!classWorld.isSubclassOf(other.base, base));
+    assert(classWorld.isSubtypeOf(other.base, base));
+    assert(TypeMask.isNormalized(this, classWorld));
+    assert(TypeMask.isNormalized(other, classWorld));
     // Since the other mask is a subtype of this mask, we need the
     // resulting union to be a subtype too. If either one of the masks
     // are nullable the result should be nullable too.
@@ -322,6 +324,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
+    ClassWorld classWorld = compiler.world;
     assert(other != null);
     if (other is! FlatTypeMask) return other.intersection(this, compiler);
     assert(TypeMask.isNormalized(this, compiler.world));
@@ -332,21 +335,21 @@ class FlatTypeMask implements TypeMask {
     } else if (flatOther.isEmpty) {
       return isNullable ? flatOther : other.nonNullable();
     } else if (base == flatOther.base) {
-      return intersectionSame(flatOther, compiler);
-    } else if (isSubclassOf(flatOther.base, base, compiler)) {
-      return intersectionSubclass(flatOther, compiler);
-    } else if (isSubclassOf(base, flatOther.base, compiler)) {
-      return flatOther.intersectionSubclass(this, compiler);
-    } else if (isSubtypeOf(flatOther.base, base, compiler)) {
-      return intersectionSubtype(flatOther, compiler);
-    } else if (isSubtypeOf(base, flatOther.base, compiler)) {
-      return flatOther.intersectionSubtype(this, compiler);
+      return intersectionSame(flatOther, classWorld);
+    } else if (classWorld.isSubclassOf(flatOther.base, base)) {
+      return intersectionStrictSubclass(flatOther, classWorld);
+    } else if (classWorld.isSubclassOf(base, flatOther.base)) {
+      return flatOther.intersectionStrictSubclass(this, classWorld);
+    } else if (classWorld.isSubtypeOf(flatOther.base, base)) {
+      return intersectionStrictSubtype(flatOther, classWorld);
+    } else if (classWorld.isSubtypeOf(base, flatOther.base)) {
+      return flatOther.intersectionStrictSubtype(this, classWorld);
     } else {
-      return intersectionDisjoint(flatOther, compiler);
+      return intersectionDisjoint(flatOther, classWorld);
     }
   }
 
-  TypeMask intersectionSame(FlatTypeMask other, Compiler compiler) {
+  TypeMask intersectionSame(FlatTypeMask other, ClassWorld classWorld) {
     assert(base == other.base);
     // The two masks share the base type, so we must chose the most
     // constraining kind (the lowest) of the two. Only if both masks
@@ -364,8 +367,9 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask intersectionSubclass(FlatTypeMask other, Compiler compiler) {
-    assert(isSubclassOf(other.base, base, compiler));
+  TypeMask intersectionStrictSubclass(FlatTypeMask other, ClassWorld world) {
+    assert(base != other.base);
+    assert(world.isSubclassOf(other.base, base));
     // If this mask isn't at least a subclass mask, then the
     // intersection with the other mask is empty.
     if (isExact) return intersectionEmpty(other);
@@ -382,9 +386,11 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask intersectionSubtype(FlatTypeMask other, Compiler compiler) {
-    assert(isSubtypeOf(other.base, base, compiler));
-    if (!isSubtype) return intersectionHelper(other, compiler);
+  TypeMask intersectionStrictSubtype(FlatTypeMask other,
+                                     ClassWorld classWorld) {
+    assert(base != other.base);
+    assert(classWorld.isSubtypeOf(other.base, base));
+    if (!isSubtype) return intersectionHelper(other, classWorld);
     // Only the other mask puts constraints on the intersection mask,
     // so base the combined flags on the other mask. Only if both
     // masks are nullable, will the result be nullable too.
@@ -398,17 +404,17 @@ class FlatTypeMask implements TypeMask {
     }
   }
 
-  TypeMask intersectionDisjoint(FlatTypeMask other, Compiler compiler) {
+  TypeMask intersectionDisjoint(FlatTypeMask other, ClassWorld classWorld) {
     assert(base != other.base);
-    assert(!isSubtypeOf(base, other.base, compiler));
-    assert(!isSubtypeOf(other.base, base, compiler));
-    return intersectionHelper(other, compiler);
+    assert(!classWorld.isSubtypeOf(base, other.base));
+    assert(!classWorld.isSubtypeOf(other.base, base));
+    return intersectionHelper(other, classWorld);
   }
 
-  TypeMask intersectionHelper(FlatTypeMask other, Compiler compiler) {
+  TypeMask intersectionHelper(FlatTypeMask other, ClassWorld classWorld) {
     assert(base != other.base);
-    assert(!isSubclassOf(base, other.base, compiler));
-    assert(!isSubclassOf(other.base, base, compiler));
+    assert(!classWorld.isSubclassOf(base, other.base));
+    assert(!classWorld.isSubclassOf(other.base, base));
     // If one of the masks are exact or if both of them are subclass
     // masks, then the intersection is empty.
     if (isExact || other.isExact) return intersectionEmpty(other);
@@ -416,7 +422,7 @@ class FlatTypeMask implements TypeMask {
     assert(isSubtype || other.isSubtype);
     int kind = (isSubclass || other.isSubclass) ? SUBCLASS : SUBTYPE;
     // Compute the set of classes that are contained in both type masks.
-    Set<ClassElement> common = commonContainedClasses(this, other, compiler);
+    Set<ClassElement> common = commonContainedClasses(this, other, classWorld);
     if (common == null || common.isEmpty) return intersectionEmpty(other);
     // Narrow down the candidates by only looking at common classes
     // that do not have a superclass or supertype that will be a
@@ -441,9 +447,9 @@ class FlatTypeMask implements TypeMask {
     // to normalize here, as we generate types based on new base classes.
     int combined = (kind << 1) | (flags & other.flags & 1);
     Iterable<TypeMask> masks = candidates.map((ClassElement cls) {
-      return new FlatTypeMask.normalized(cls, combined, compiler.world);
+      return new FlatTypeMask.normalized(cls, combined, classWorld);
     });
-    return UnionTypeMask.unionOf(masks, compiler);
+    return UnionTypeMask.unionOf(masks, classWorld.compiler);
   }
 
   TypeMask intersectionEmpty(FlatTypeMask other) {
@@ -480,6 +486,7 @@ class FlatTypeMask implements TypeMask {
    * privacy is taken into account.
    */
   bool canHit(Element element, Selector selector, World world) {
+    ClassWorld classWorld = world;
     assert(element.name == selector.name);
     if (isEmpty) {
       if (!isNullable) return false;
@@ -515,8 +522,7 @@ class FlatTypeMask implements TypeMask {
       if (result) return true;
       // If the class is used as a mixin, we have to check if the element
       // can be hit from any of the mixin applications.
-      Iterable<ClassElement> mixinUses = world.mixinUses[self];
-      if (mixinUses == null) return false;
+      Iterable<ClassElement> mixinUses = world.mixinUsesOf(self);
       return mixinUses.any((mixinApplication) =>
            hasElementIn(mixinApplication, selector, element)
         || other.isSubclassOf(mixinApplication)
@@ -659,28 +665,14 @@ class FlatTypeMask implements TypeMask {
     return "[$buffer]";
   }
 
-  static bool isSubclassOf(ClassElement x, ClassElement y, Compiler compiler) {
-    assert(x.isDeclaration && y.isDeclaration);
-    Set<ClassElement> subclasses = compiler.world.subclassesOf(y);
-    return (subclasses != null) ? subclasses.contains(x) : false;
-  }
-
-  static bool isSubtypeOf(ClassElement x, ClassElement y, Compiler compiler) {
-    assert(x.isDeclaration && y.isDeclaration);
-    Set<ClassElement> subtypes = compiler.world.subtypesOf(y);
-    if (subtypes != null && subtypes.contains(x)) return true;
-    if (y != compiler.functionClass) return false;
-    return x.callType != null;
-  }
-
   static Set<ClassElement> commonContainedClasses(FlatTypeMask x,
                                                   FlatTypeMask y,
-                                                  Compiler compiler) {
-    Set<ClassElement> xSubset = containedSubset(x, compiler);
+                                                  ClassWorld classWorld) {
+    Iterable<ClassElement> xSubset = containedSubset(x, classWorld);
     if (xSubset == null) return null;
-    Set<ClassElement> ySubset = containedSubset(y, compiler);
+    Iterable<ClassElement> ySubset = containedSubset(y, classWorld);
     if (ySubset == null) return null;
-    Set<ClassElement> smallSet, largeSet;
+    Iterable<ClassElement> smallSet, largeSet;
     if (xSubset.length <= ySubset.length) {
       smallSet = xSubset;
       largeSet = ySubset;
@@ -692,15 +684,16 @@ class FlatTypeMask implements TypeMask {
     return result.toSet();
   }
 
-  static Set<ClassElement> containedSubset(FlatTypeMask x, Compiler compiler) {
+  static Iterable<ClassElement> containedSubset(FlatTypeMask x,
+                                                ClassWorld classWorld) {
     ClassElement element = x.base;
     if (x.isExact) {
       return null;
     } else if (x.isSubclass) {
-      return compiler.world.subclassesOf(element);
+      return classWorld.subclassesOf(element);
     } else {
       assert(x.isSubtype);
-      return compiler.world.subtypesOf(element);
+      return classWorld.subtypesOf(element);
     }
   }
 }

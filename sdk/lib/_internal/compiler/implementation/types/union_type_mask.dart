@@ -15,14 +15,17 @@ class UnionTypeMask implements TypeMask {
   }
 
   static TypeMask unionOf(Iterable<TypeMask> masks, Compiler compiler) {
-    assert(masks.every((mask) => TypeMask.isNormalized(mask, compiler.world)));
+    ClassWorld classWorld = compiler.world;
+    assert(masks.every((mask) => TypeMask.isNormalized(mask, classWorld)));
     List<FlatTypeMask> disjoint = <FlatTypeMask>[];
     unionOfHelper(masks, disjoint, compiler);
     if (disjoint.isEmpty) return new TypeMask.nonNullEmpty();
-    if (disjoint.length > MAX_UNION_LENGTH) return flatten(disjoint, compiler);
+    if (disjoint.length > MAX_UNION_LENGTH) {
+      return flatten(disjoint, classWorld);
+    }
     if (disjoint.length == 1) return disjoint[0];
     UnionTypeMask union = new UnionTypeMask._internal(disjoint);
-    assert(TypeMask.isNormalized(union, compiler.world));
+    assert(TypeMask.isNormalized(union, classWorld));
     return union;
   }
 
@@ -78,59 +81,37 @@ class UnionTypeMask implements TypeMask {
     }
   }
 
-  static TypeMask flatten(List<FlatTypeMask> masks, Compiler compiler) {
+  static TypeMask flatten(List<FlatTypeMask> masks, ClassWorld classWorld) {
     assert(masks.length > 1);
     // If either type mask is a subtype type mask, we cannot use a
     // subclass type mask to represent their union.
     bool useSubclass = masks.every((e) => !e.isSubtype);
     bool isNullable = masks.any((e) => e.isNullable);
 
-    // Compute the common supertypes of the two types.
-    ClassElement firstElement = masks[0].base;
-    ClassElement secondElement = masks[1].base;
     Iterable<ClassElement> candidates =
-        compiler.world.commonSupertypesOf(firstElement, secondElement);
-    bool unseenType = false;
-    for (int i = 2; i < masks.length; i++) {
-      ClassElement element = masks[i].base;
-      Set<ClassElement> supertypes = compiler.world.supertypesOf(element);
-      if (supertypes == null) {
-        unseenType = true;
-        break;
-      }
-      candidates = candidates.where((e) => supertypes.contains(e));
-    }
+        classWorld.commonSupertypesOf(masks.map((mask) => mask.base));
 
-    if (candidates.isEmpty || unseenType) {
-      // TODO(kasperl): Get rid of this check. It can only happen when
-      // at least one of the two base types is 'unseen'.
-      return new TypeMask(compiler.objectClass,
-                          FlatTypeMask.SUBCLASS,
-                          isNullable,
-                          compiler.world);
-    }
     // Compute the best candidate and its kind.
     ClassElement bestElement;
     int bestKind;
     int bestSize;
     for (ClassElement candidate in candidates) {
-      Set<ClassElement> subclasses = useSubclass
-          ? compiler.world.subclassesOf(candidate)
-          : null;
+      Iterable<ClassElement> subclasses = useSubclass
+          ? classWorld.subclassesOf(candidate)
+          : const <ClassElement>[];
       int size;
       int kind;
-      if (subclasses != null
-          && masks.every((t) => subclasses.contains(t.base))) {
+      if (masks.every((t) => subclasses.contains(t.base))) {
         // If both [this] and [other] are subclasses of the supertype,
         // then we prefer to construct a subclass type mask because it
         // will always be at least as small as the corresponding
         // subtype type mask.
         kind = FlatTypeMask.SUBCLASS;
         size = subclasses.length;
-        assert(size <= compiler.world.subtypesOf(candidate).length);
+        assert(size <= classWorld.subtypesOf(candidate).length);
       } else {
         kind = FlatTypeMask.SUBTYPE;
-        size = compiler.world.subtypesOf(candidate).length;
+        size = classWorld.subtypesOf(candidate).length;
       }
       // Update the best candidate if the new one is better.
       if (bestElement == null || size < bestSize) {
@@ -139,8 +120,7 @@ class UnionTypeMask implements TypeMask {
         bestKind = kind;
       }
     }
-    if (bestElement == compiler.objectClass) bestKind = FlatTypeMask.SUBCLASS;
-    return new TypeMask(bestElement, bestKind, isNullable, compiler.world);
+    return new TypeMask(bestElement, bestKind, isNullable, classWorld);
   }
 
   TypeMask union(var other, Compiler compiler) {

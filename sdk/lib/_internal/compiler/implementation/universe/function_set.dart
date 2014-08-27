@@ -219,9 +219,7 @@ class FullFunctionSetQuery extends FunctionSetQuery {
     return _mask = new TypeMask.unionOf(functions
         .expand((element) {
           ClassElement cls = element.enclosingClass;
-          return compiler.world.isUsedAsMixin(cls)
-              ? ([cls]..addAll(compiler.world.mixinUses[cls]))
-              : [cls];
+          return [cls]..addAll(compiler.world.mixinUsesOf(cls));
         })
         .map((cls) {
           if (compiler.backend.isNullImplementation(cls)) {

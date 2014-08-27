@@ -36,6 +36,7 @@ import 'cps_ir/cps_ir_builder.dart' show IrBuilderTask;
 import 'universe/universe.dart';
 import 'util/util.dart';
 import 'util/characters.dart' show $_;
+import 'ordered_typeset.dart';
 import '../compiler.dart' as api;
 import 'patch_parser.dart';
 import 'types/types.dart' as ti;

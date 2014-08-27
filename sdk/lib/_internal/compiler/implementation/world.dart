@@ -4,16 +4,278 @@
 
 part of dart2js;
 
-class World {
+abstract class ClassWorld {
+  // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
+  Backend get backend;
+
+  // TODO(johnniwinther): Remove the need for this getter.
+  @deprecated
+  Compiler get compiler;
+
+  /// The [ClassElement] for the [Object] class defined in 'dart:core'.
+  ClassElement get objectClass;
+
+  /// The [ClassElement] for the [Function] class defined in 'dart:core'.
+  ClassElement get functionClass;
+
+  /// The [ClassElement] for the [bool] class defined in 'dart:core'.
+  ClassElement get boolClass;
+
+  /// The [ClassElement] for the [num] class defined in 'dart:core'.
+  ClassElement get numClass;
+
+  /// The [ClassElement] for the [int] class defined in 'dart:core'.
+  ClassElement get intClass;
+
+  /// The [ClassElement] for the [double] class defined in 'dart:core'.
+  ClassElement get doubleClass;
+
+  /// The [ClassElement] for the [String] class defined in 'dart:core'.
+  ClassElement get stringClass;
+
+  /// Returns `true` if [cls] is instantiated.
+  bool isInstantiated(ClassElement cls);
+
+  /// Return `true` if [x] is a subclass of [y].
+  bool isSubclassOf(ClassElement x, ClassElement y);
+
+  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
+  /// instance of [y].
+  bool isSubtypeOf(ClassElement x, ClassElement y);
+
+  /// Returns an iterable over the live classes that extend [cls] including
+  /// [cls] itself.
+  Iterable<ClassElement> subclassesOf(ClassElement cls);
+
+  /// Returns an iterable over the live classes that extend [cls] _not_
+  /// including [cls] itself.
+  Iterable<ClassElement> strictSubclassesOf(ClassElement cls);
+
+  /// Returns an iterable over the live classes that implement [cls] including
+  /// [cls] if it is live.
+  Iterable<ClassElement> subtypesOf(ClassElement cls);
+
+  /// Returns an iterable over the live classes that implement [cls] _not_
+  /// including [cls] if it is live.
+  Iterable<ClassElement> strictSubtypesOf(ClassElement cls);
+
+  /// Returns `true` if any live class extends [cls].
+  bool hasAnySubclass(ClassElement cls);
+
+  /// Returns `true` if any live class other than [cls] extends [cls].
+  bool hasAnyStrictSubclass(ClassElement cls);
+
+  /// Returns `true` if any live class implements [cls].
+  bool hasAnySubtype(ClassElement cls);
+
+  /// Returns `true` if any live class other than [cls] implements [cls].
+  bool hasAnyStrictSubtype(ClassElement cls);
+
+  /// Returns `true` if all live classes that implement [cls] extend it.
+  bool hasOnlySubclasses(ClassElement cls);
+
+  /// Returns an iterable over the common supertypes of the [classes].
+  Iterable<ClassElement> commonSupertypesOf(Iterable<ClassElement> classes);
+
+  /// Returns an iterable over the live mixin applications that mixin [cls].
+  Iterable<MixinApplicationElement> mixinUsesOf(ClassElement cls);
+
+  /// Returns `true` if [cls] is mixed into a live class.
+  bool isUsedAsMixin(ClassElement cls);
+
+  /// Returns `true` if any live class that mixes in [cls] implements [type].
+  bool hasAnySubclassOfMixinUseThatImplements(ClassElement cls,
+                                              ClassElement type);
+
+  /// Returns `true` if any live class that mixes in [mixin] is also a subclass
+  /// of [superclass].
+  bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement mixin);
+}
+
+class World implements ClassWorld {
+  ClassElement get objectClass => compiler.objectClass;
+  ClassElement get functionClass => compiler.functionClass;
+  ClassElement get boolClass => compiler.boolClass;
+  ClassElement get numClass => compiler.numClass;
+  ClassElement get intClass => compiler.intClass;
+  ClassElement get doubleClass => compiler.doubleClass;
+  ClassElement get stringClass => compiler.stringClass;
+
+  bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
+    return
+      invariant(cls, cls.isDeclaration,
+                message: '$cls must be the declaration.') &&
+      invariant(cls, cls.isResolved,
+                message: '$cls must be resolved.');
+    // TODO(johnniwinther): Enable check for instantiation:
+    // (!mustBeInstantiated ||
+    //   invariant(cls, isInstantiated(cls),
+    //             message: '$cls is not instantiated.'));
+ }
+
+  /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
+  /// instance of [y].
+  bool isSubtypeOf(ClassElement x, ClassElement y) {
+    assert(checkInvariants(x, mustBeInstantiated: true));
+    assert(checkInvariants(y));
+
+    if (y == objectClass) return true;
+    if (x == objectClass) return false;
+    if (x.asInstanceOf(y) != null) return true;
+    if (y != functionClass) return false;
+    return x.callType != null;
+  }
+
+  /// Return `true` if [x] is a (non-strict) subclass of [y].
+  bool isSubclassOf(ClassElement x, ClassElement y) {
+    assert(checkInvariants(x));
+    assert(checkInvariants(y));
+
+    if (y == objectClass) return true;
+    if (x == objectClass) return false;
+    while (x != null && x.hierarchyDepth >= y.hierarchyDepth) {
+      if (x == y) return true;
+      x = x.superclass;
+    }
+    return false;
+  }
+
+  /// Returns `true` if [cls] is instantiated.
+  bool isInstantiated(ClassElement cls) {
+    return compiler.enqueuer.resolution.isLive(cls);
+  }
+
+  /// Returns an iterable over the live classes that extend [cls] including
+  /// [cls] itself.
+  Iterable<ClassElement> subclassesOf(ClassElement cls) {
+    Set<ClassElement> subclasses = _subclasses[cls.declaration];
+    if (subclasses == null) return const <ClassElement>[];
+    assert(invariant(cls, isInstantiated(cls.declaration),
+        message: 'Class $cls has not been instantiated.'));
+    return subclasses;
+  }
+
+  /// Returns an iterable over the live classes that extend [cls] _not_
+  /// including [cls] itself.
+  Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
+    return subclassesOf(cls).where((c) => c != cls);
+  }
+
+  /// Returns an iterable over the live classes that implement [cls] including
+  /// [cls] if it is live.
+  Iterable<ClassElement> subtypesOf(ClassElement cls) {
+    Set<ClassElement> subtypes = _subtypes[cls.declaration];
+    return subtypes != null ? subtypes : const <ClassElement>[];
+  }
+
+  /// Returns an iterable over the live classes that implement [cls] _not_
+  /// including [cls] if it is live.
+  Iterable<ClassElement> strictSubtypesOf(ClassElement cls) {
+    return subtypesOf(cls).where((c) => c != cls);
+  }
+
+  /// Returns `true` if any live class extends [cls].
+  bool hasAnySubclass(ClassElement cls) {
+    return !subclassesOf(cls).isEmpty;
+  }
+
+  /// Returns `true` if any live class other than [cls] extends [cls].
+  bool hasAnyStrictSubclass(ClassElement cls) {
+    return !strictSubclassesOf(cls).isEmpty;
+  }
+
+  /// Returns `true` if any live class implements [cls].
+  bool hasAnySubtype(ClassElement cls) {
+    return !subtypesOf(cls).isEmpty;
+  }
+
+  /// Returns `true` if any live class other than [cls] implements [cls].
+  bool hasAnyStrictSubtype(ClassElement cls) {
+    return !strictSubtypesOf(cls).isEmpty;
+  }
+
+  /// Returns `true` if all live classes that implement [cls] extend it.
+  bool hasOnlySubclasses(ClassElement cls) {
+    Iterable<ClassElement> subtypes = subtypesOf(cls);
+    if (subtypes == null) return true;
+    Iterable<ClassElement> subclasses = subclassesOf(cls);
+    return subclasses != null && (subclasses.length == subtypes.length);
+  }
+
+  /// Returns an iterable over the common supertypes of the [classes].
+  Iterable<ClassElement> commonSupertypesOf(Iterable<ClassElement> classes) {
+    Iterator<ClassElement> iterator = classes.iterator;
+    if (!iterator.moveNext()) return const <ClassElement>[];
+
+    ClassElement cls = iterator.current;
+    assert(checkInvariants(cls));
+    OrderedTypeSet typeSet = cls.allSupertypesAndSelf;
+    if (!iterator.moveNext()) return typeSet.types.map((type) => type.element);
+
+    int depth = typeSet.maxDepth;
+    Link<OrderedTypeSet> otherTypeSets = const Link<OrderedTypeSet>();
+    do {
+      ClassElement otherClass = iterator.current;
+      assert(checkInvariants(otherClass));
+      OrderedTypeSet otherTypeSet = otherClass.allSupertypesAndSelf;
+      otherTypeSets = otherTypeSets.prepend(otherTypeSet);
+      if (otherTypeSet.maxDepth < depth) {
+        depth = otherTypeSet.maxDepth;
+      }
+    } while (iterator.moveNext());
+
+    List<ClassElement> commonSupertypes = <ClassElement>[];
+    OUTER: for (Link<DartType> link = typeSet[depth];
+                link.head.element != objectClass;
+                link = link.tail) {
+      ClassElement cls = link.head.element;
+      for (Link<OrderedTypeSet> link = otherTypeSets;
+          !link.isEmpty;
+          link = link.tail) {
+        if (link.head.asInstanceOf(cls) == null) {
+          continue OUTER;
+        }
+      }
+      commonSupertypes.add(cls);
+    }
+    commonSupertypes.add(objectClass);
+    return commonSupertypes;
+  }
+
+  /// Returns an iterable over the live mixin applications that mixin [cls].
+  Iterable<MixinApplicationElement> mixinUsesOf(ClassElement cls) {
+    Iterable<MixinApplicationElement> uses = _mixinUses[cls];
+    return uses != null ? uses : const <MixinApplicationElement>[];
+  }
+
+  /// Returns `true` if [cls] is mixed into a live class.
+  bool isUsedAsMixin(ClassElement cls) {
+    return !mixinUsesOf(cls).isEmpty;
+  }
+
+  /// Returns `true` if any live class that mixes in [cls] implements [type].
+  bool hasAnySubclassOfMixinUseThatImplements(ClassElement cls,
+                                              ClassElement type) {
+    return mixinUsesOf(cls).any(
+        (use) => hasAnySubclassThatImplements(use, type));
+  }
+
+  /// Returns `true` if any live class that mixes in [mixin] is also a subclass
+  /// of [superclass].
+  bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement mixin) {
+    return mixinUsesOf(mixin).any((each) => each.isSubclassOf(superclass));
+  }
+
   final Compiler compiler;
+  Backend get backend => compiler.backend;
   final FunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
   final Set<TypedefElement> allTypedefs = new Set<TypedefElement>();
 
-  final Map<ClassElement, Set<MixinApplicationElement>> mixinUses =
-      new Map<ClassElement, Set<MixinApplicationElement>>();
+  final Map<ClassElement, List<MixinApplicationElement>> _mixinUses =
+      new Map<ClassElement, List<MixinApplicationElement>>();
 
   final Map<ClassElement, Set<ClassElement>> _typesImplementedBySubclasses =
       new Map<ClassElement, Set<ClassElement>>();
@@ -23,8 +285,6 @@ class World {
   final Map<ClassElement, Set<ClassElement>> _subclasses =
       new Map<ClassElement, Set<ClassElement>>();
   final Map<ClassElement, Set<ClassElement>> _subtypes =
-      new Map<ClassElement, Set<ClassElement>>();
-  final Map<ClassElement, Set<ClassElement>> _supertypes =
       new Map<ClassElement, Set<ClassElement>>();
 
   final Set<Element> sideEffectsFreeElements = new Set<Element>();
@@ -53,18 +313,6 @@ class World {
     return compiler.backend.nullImplementation;
   }
 
-  Set<ClassElement> subclassesOf(ClassElement cls) {
-    return _subclasses[cls.declaration];
-  }
-
-  Set<ClassElement> subtypesOf(ClassElement cls) {
-    return _subtypes[cls.declaration];
-  }
-
-  Set<ClassElement> supertypesOf(ClassElement cls) {
-    return _supertypes[cls.declaration];
-  }
-
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
     return _typesImplementedBySubclasses[cls.declaration];
   }
@@ -80,35 +328,31 @@ class World {
         return;
       }
       assert(cls.isDeclaration);
-      if (cls.resolutionState != STATE_DONE) {
+      if (!cls.isResolved) {
         compiler.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
 
       for (DartType type in cls.allSupertypes) {
-        Set<Element> supertypesOfClass =
-            _supertypes.putIfAbsent(cls, () => new Set<ClassElement>());
         Set<Element> subtypesOfSupertype =
             _subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
-        supertypesOfClass.add(type.element);
         subtypesOfSupertype.add(cls);
       }
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
-      DartType type = cls.supertype;
-      while (type != null) {
+      ClassElement superclass = cls.superclass;
+      while (superclass != null) {
         Set<Element> subclassesOfSuperclass =
-            _subclasses.putIfAbsent(type.element, () => new Set<ClassElement>());
+            _subclasses.putIfAbsent(superclass, () => new Set<ClassElement>());
         subclassesOfSuperclass.add(cls);
 
         Set<Element> typesImplementedBySubclassesOfCls =
             _typesImplementedBySubclasses.putIfAbsent(
-                type.element, () => new Set<ClassElement>());
+                superclass, () => new Set<ClassElement>());
         for (DartType current in cls.allSupertypes) {
           typesImplementedBySubclassesOfCls.add(current.element);
         }
-        ClassElement classElement = type.element;
-        type = classElement.supertype;
+        superclass = superclass.superclass;
       }
     }
 
@@ -119,91 +363,27 @@ class World {
     compiler.enqueuer.resolution.seenClasses.forEach(addSubtypes);
   }
 
-  Iterable<ClassElement> commonSupertypesOf(ClassElement x, ClassElement y) {
-    Set<ClassElement> xSet = supertypesOf(x);
-    if (xSet == null) return const <ClassElement>[];
-    Set<ClassElement> ySet = supertypesOf(y);
-    if (ySet == null) return const <ClassElement>[];
-    Set<ClassElement> smallSet, largeSet;
-    if (xSet.length <= ySet.length) {
-      smallSet = xSet;
-      largeSet = ySet;
-    } else {
-      smallSet = ySet;
-      largeSet = xSet;
-    }
-    return smallSet.where((ClassElement each) => largeSet.contains(each));
-  }
-
   void registerMixinUse(MixinApplicationElement mixinApplication,
                         ClassElement mixin) {
+    // TODO(johnniwinther): Add map restricted to live classes.
     // We don't support patch classes as mixin.
     assert(mixin.isDeclaration);
-    Set<MixinApplicationElement> users =
-        mixinUses.putIfAbsent(mixin, () =>
-                              new Set<MixinApplicationElement>());
+    List<MixinApplicationElement> users =
+        _mixinUses.putIfAbsent(mixin, () =>
+                               new List<MixinApplicationElement>());
     users.add(mixinApplication);
-  }
-
-  bool isUsedAsMixin(ClassElement cls) {
-    Set<MixinApplicationElement> uses = mixinUses[cls];
-    return uses != null && !uses.isEmpty;
-  }
-
-  bool hasAnySubclass(ClassElement cls) {
-    Set<ClassElement> classes = subclassesOf(cls);
-    return classes != null && !classes.isEmpty;
-  }
-
-  bool hasAnySubtype(ClassElement cls) {
-    Set<ClassElement> classes = subtypesOf(cls);
-    return classes != null && !classes.isEmpty;
-  }
-
-  bool hasOnlySubclasses(ClassElement cls) {
-    Set<ClassElement> subtypes = subtypesOf(cls);
-    if (subtypes == null) return true;
-    Set<ClassElement> subclasses = subclassesOf(cls);
-    return subclasses != null && (subclasses.length == subtypes.length);
   }
 
   bool hasAnyUserDefinedGetter(Selector selector) {
     return allFunctions.filter(selector).any((each) => each.isGetter);
   }
 
-  // Returns whether a subclass of [superclass] implements [type].
+  /// Returns whether a subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass,
                                     ClassElement type) {
     Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
     if (subclasses == null) return false;
     return subclasses.contains(type);
-  }
-
-  // Returns whether a subclass of any mixin application of [cls] implements
-  // [type].
-  bool hasAnySubclassOfMixinUseThatImplements(ClassElement cls,
-                                              ClassElement type) {
-    Set<MixinApplicationElement> uses = mixinUses[cls];
-    if (uses == null || uses.isEmpty) return false;
-    return uses.any((use) => hasAnySubclassThatImplements(use, type));
-  }
-
-  // Returns whether a subclass of [superclass] mixes in [other].
-  bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement other) {
-    Set<MixinApplicationElement> uses = mixinUses[other];
-    return (uses != null)
-        ? uses.any((each) => each.isSubclassOf(superclass))
-        : false;
-  }
-
-  bool isSubtype(ClassElement supertype, ClassElement test) {
-    Set<ClassElement> subtypes = subtypesOf(supertype);
-    return subtypes != null && subtypes.contains(test.declaration);
-  }
-
-  bool isSubclass(ClassElement superclass, ClassElement test) {
-    Set<ClassElement> subclasses = subclassesOf(superclass);
-    return subclasses != null && subclasses.contains(test.declaration);
   }
 
   void registerUsedElement(Element element) {

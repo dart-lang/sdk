@@ -586,17 +586,14 @@ class JavaScriptBackend extends Backend {
   }
 
   Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
-    Set<MixinApplicationElement> uses = compiler.world.mixinUses[mixin];
-    if (uses == null) return null;
+    Iterable<MixinApplicationElement> uses = compiler.world.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
       Iterable<ClassElement> subclasses = compiler.world.subclassesOf(use);
-      if (subclasses != null) {
-        for (ClassElement subclass in subclasses) {
-          if (Elements.isNativeOrExtendsNative(subclass)) {
-            if (result == null) result = new Set<ClassElement>();
-            result.add(subclass);
-          }
+      for (ClassElement subclass in subclasses) {
+        if (Elements.isNativeOrExtendsNative(subclass)) {
+          if (result == null) result = new Set<ClassElement>();
+          result.add(subclass);
         }
       }
     }

@@ -529,7 +529,7 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
    * Helper method for [nonNullSubtype] and [nonNullSubclass].
    */
   ConcreteType nonNullSubX(ClassElement cls,
-                           Set<ClassElement> extractor(ClassElement cls)) {
+                           Iterable<ClassElement> extractor(ClassElement cls)) {
     if (cls == compiler.objectClass) {
       return dynamicType;
     }
@@ -544,10 +544,8 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
       }
     }
     registerClass(cls);
-    Set<ClassElement> subtypes = extractor(cls);
-    if (subtypes != null) {
-      subtypes.forEach(registerClass);
-    }
+    Iterable<ClassElement> subtypes = extractor(cls);
+    subtypes.forEach(registerClass);
     return result;
   }
 
@@ -1248,7 +1246,7 @@ class ConcreteTypesInferrer
     // TODO(polux): memoize?
     Set<ClassElement> result = new Set<ClassElement>()..add(cls);
     for (ClassElement candidate in seenClasses) {
-      if (compiler.world.isSubtype(cls, candidate)) {
+      if (compiler.world.isSubtypeOf(candidate, cls)) {
         result.add(candidate);
       }
     }

@@ -19,19 +19,20 @@ abstract class TypeMask {
 
   factory TypeMask.exact(ClassElement base)
       => new FlatTypeMask.exact(base);
-  factory TypeMask.subclass(ClassElement base, World world) {
-    if (world.hasAnySubclass(base)) {
+
+  factory TypeMask.subclass(ClassElement base, ClassWorld classWorld) {
+    if (classWorld.hasAnySubclass(base)) {
       return new FlatTypeMask.subclass(base);
     } else {
       return new FlatTypeMask.exact(base);
     }
   }
 
-  factory TypeMask.subtype(ClassElement base, World world) {
-    if (world.hasOnlySubclasses(base)) {
-      return new TypeMask.subclass(base, world);
+  factory TypeMask.subtype(ClassElement base, ClassWorld classWorld) {
+    if (classWorld.hasOnlySubclasses(base)) {
+      return new TypeMask.subclass(base, classWorld);
     }
-    if (world.hasAnySubtype(base)) {
+    if (classWorld.hasAnySubtype(base)) {
       return new FlatTypeMask.subtype(base);
     } else {
       return new FlatTypeMask.exact(base);
@@ -39,21 +40,23 @@ abstract class TypeMask {
   }
 
   const factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
+
   factory TypeMask.nonNullExact(ClassElement base)
       => new FlatTypeMask.nonNullExact(base);
-  factory TypeMask.nonNullSubclass(ClassElement base, World world) {
-    if (world.hasAnySubclass(base)) {
+
+  factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
+    if (classWorld.hasAnySubclass(base)) {
       return new FlatTypeMask.nonNullSubclass(base);
     } else {
       return new FlatTypeMask.nonNullExact(base);
     }
   }
 
-  factory TypeMask.nonNullSubtype(ClassElement base, World world) {
-    if (world.hasOnlySubclasses(base)) {
-      return new TypeMask.nonNullSubclass(base, world);
+  factory TypeMask.nonNullSubtype(ClassElement base, ClassWorld classWorld) {
+    if (classWorld.hasOnlySubclasses(base)) {
+      return new TypeMask.nonNullSubclass(base, classWorld);
     }
-    if (world.hasAnySubtype(base)) {
+    if (classWorld.hasAnySubtype(base)) {
       return new FlatTypeMask.nonNullSubtype(base);
     } else {
       return new FlatTypeMask.nonNullExact(base);
@@ -81,16 +84,16 @@ abstract class TypeMask {
    * subtypes or subclasses are present and subtype to subclass if only
    * subclasses exist.
    */
-  static bool isNormalized(TypeMask mask, World world) {
+  static bool isNormalized(TypeMask mask, ClassWorld classWorld) {
     mask = nonForwardingMask(mask);
     if (mask is FlatTypeMask) {
       if (mask.isExact || mask.isEmpty) return true;
-      if (mask.isSubclass) return world.hasAnySubclass(mask.base);
+      if (mask.isSubclass) return classWorld.hasAnySubclass(mask.base);
       assert(mask.isSubtype);
-      return world.hasAnySubtype(mask.base) &&
-          !world.hasOnlySubclasses(mask.base);
+      return classWorld.hasAnySubtype(mask.base) &&
+             !classWorld.hasOnlySubclasses(mask.base);
     } else if (mask is UnionTypeMask) {
-      return mask.disjointMasks.every((mask) => isNormalized(mask, world));
+      return mask.disjointMasks.every((mask) => isNormalized(mask, classWorld));
     }
     return false;
   }

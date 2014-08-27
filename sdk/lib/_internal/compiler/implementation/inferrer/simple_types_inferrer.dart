@@ -343,17 +343,8 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         mappedType = types.nullType;
       } else if (type.isDynamic) {
         return types.dynamicType;
-      } else if (!compiler.world.hasAnySubtype(type.element)) {
-        mappedType = types.nonNullExact(type.element);
       } else {
-        ClassElement element = type.element;
-        Set<ClassElement> subtypes = compiler.world.subtypesOf(element);
-        Set<ClassElement> subclasses = compiler.world.subclassesOf(element);
-        if (subclasses != null && subtypes.length == subclasses.length) {
-          mappedType = types.nonNullSubclass(element);
-        } else {
-          mappedType = types.nonNullSubtype(element);
-        }
+        mappedType = types.nonNullSubtype(type.element);
       }
       returnType = types.computeLUB(returnType, mappedType);
       if (returnType == types.dynamicType) {
@@ -685,9 +676,9 @@ class SimpleTypeInferrerVisitor<T>
   bool isThisOrSuper(ast.Node node) => node.isThis() || node.isSuper();
 
   bool isInClassOrSubclass(Element element) {
-    ClassElement cls = outermostElement.enclosingClass;
-    ClassElement enclosing = element.enclosingClass;
-    return (enclosing == cls) || compiler.world.isSubclass(cls, enclosing);
+    ClassElement cls = outermostElement.enclosingClass.declaration;
+    ClassElement enclosing = element.enclosingClass.declaration;
+    return compiler.world.isSubclassOf(enclosing, cls);
   }
 
   void checkIfExposesThis(Selector selector) {

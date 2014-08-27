@@ -3305,7 +3305,7 @@ class SsaBuilder extends ResolvedVisitor {
       add(representations);
       String operator = backend.namer.operatorIs(element);
       HInstruction isFieldName = addConstantString(operator);
-      HInstruction asFieldName = compiler.world.hasAnySubtype(element)
+      HInstruction asFieldName = compiler.world.hasAnyStrictSubtype(element)
           ? addConstantString(backend.namer.substitutionName(element))
           : graph.addConstantNull(compiler);
       List<HInstruction> inputs = <HInstruction>[expression,
@@ -3882,8 +3882,8 @@ class SsaBuilder extends ResolvedVisitor {
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
     if (compiler.world.isUsedAsMixin(cls)) return true;
 
-    Set<ClassElement> subclasses = compiler.world.subclassesOf(cls);
-    return subclasses != null && subclasses.any((ClassElement subclass) {
+    Iterable<ClassElement> subclasses = compiler.world.strictSubclassesOf(cls);
+    return subclasses.any((ClassElement subclass) {
       return !rti.isTrivialSubstitution(subclass, cls);
     });
   }

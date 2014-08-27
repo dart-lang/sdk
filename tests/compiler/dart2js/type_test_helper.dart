@@ -32,19 +32,26 @@ class TypeEnvironment {
   static Future<TypeEnvironment> create(
       String source, {bool useMockCompiler: true,
                       bool expectNoErrors: false,
-                      bool expectNoWarningsOrErrors: false}) {
+                      bool expectNoWarningsOrErrors: false,
+                      bool stopAfterTypeInference: false,
+                      String mainSource}) {
     Uri uri;
     Function getErrors;
     Function getWarnings;
     Compiler compiler;
+    bool stopAfterTypeInference = mainSource != null;
+    if (mainSource == null) {
+      source = 'main() {}\n$source';
+    } else {
+      source = '$mainSource\n$source';
+    }
     if (useMockCompiler) {
       uri = new Uri(scheme: 'source');
-      mock.MockCompiler mockCompiler = mock.compilerFor('''
-          main() {}
-          $source''',
+      mock.MockCompiler mockCompiler = mock.compilerFor(
+          source,
           uri,
-          analyzeAll: true,
-          analyzeOnly: true);
+          analyzeAll: !stopAfterTypeInference,
+          analyzeOnly: !stopAfterTypeInference);
       getErrors = () => mockCompiler.errors;
       getWarnings = () => mockCompiler.warnings;
       compiler = mockCompiler;
@@ -54,10 +61,12 @@ class TypeEnvironment {
       compiler = memory.compilerFor(
           {'main.dart': source},
           diagnosticHandler: collector,
-          options: ['--analyze-all', '--analyze-only']);
+          options: stopAfterTypeInference 
+              ? [] : ['--analyze-all', '--analyze-only']);
       getErrors = () => collector.errors;
       getWarnings = () => collector.warnings;
     }
+    compiler.stopAfterTypeInference = stopAfterTypeInference;
     return compiler.runCompiler(uri).then((_) {
       if (expectNoErrors || expectNoWarningsOrErrors) {
         var errors = getErrors();
