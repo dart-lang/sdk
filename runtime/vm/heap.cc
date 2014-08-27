@@ -97,8 +97,8 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   if (addr != 0) {
     return addr;
   }
-  // All GC tasks finished without allocating successfully. Run an old GC.
-  CollectGarbage(kOld);
+  // All GC tasks finished without allocating successfully. Run a full GC.
+  CollectAllGarbage();
   addr = old_space_->TryAllocate(size, type);
   if (addr != 0) {
     return addr;
