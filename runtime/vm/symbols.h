@@ -71,6 +71,7 @@ class ObjectPointerVisitor;
   V(AsyncCompleter, ":async_completer")                                        \
   V(AsyncOperation, ":async_op")                                               \
   V(AsyncOperationParam, ":async_result")                                      \
+  V(Await, "await")                                                            \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Future, "Future")                                                          \

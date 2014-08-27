@@ -342,6 +342,7 @@ class Parser : public ValueObject {
   String* ExpectUserDefinedTypeIdentifier(const char* msg);
   String* ExpectIdentifier(const char* msg);
   bool IsLiteral(const char* literal);
+  bool IsAwaitAsKeyword();
 
   void SkipIf(Token::Kind);
   void SkipBlock();
@@ -772,6 +773,10 @@ class Parser : public ValueObject {
   // that is class definitions, function type aliases, global functions,
   // global variables.
   bool is_top_level_;
+
+  // await_is_keyword_ is true if we are parsing an async function. In this
+  // context async is not treated as identifier but as a keyword.
+  bool await_is_keyword_;
 
   // The member currently being parsed during "top level" parsing.
   MemberDesc* current_member_;
