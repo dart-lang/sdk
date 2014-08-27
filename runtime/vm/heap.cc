@@ -89,7 +89,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   {
     MonitorLocker ml(old_space_->tasks_lock());
     addr = old_space_->TryAllocate(size, type);
-    while ((addr == 0) && (old_space_->tasks())) {
+    while ((addr == 0) && (old_space_->tasks() > 0)) {
       ml.Wait();
       addr = old_space_->TryAllocate(size, type);
     }
@@ -97,25 +97,42 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   if (addr != 0) {
     return addr;
   }
-  // All GC tasks finished without allocating successfully. Run a full GC.
-  CollectAllGarbage();
-  addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+  // All GC tasks finished without allocating successfully. Run an old GC.
+  CollectGarbage(kOld);
+  addr = old_space_->TryAllocate(size, type);
   if (addr != 0) {
     return addr;
   }
   // Wait for all of the concurrent tasks to finish before giving up.
   {
     MonitorLocker ml(old_space_->tasks_lock());
-    addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
-    while ((addr == 0) && (old_space_->tasks())) {
+    addr = old_space_->TryAllocate(size, type);
+    while ((addr == 0) && (old_space_->tasks() > 0)) {
       ml.Wait();
-      addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+      addr = old_space_->TryAllocate(size, type);
     }
   }
   if (addr != 0) {
     return addr;
   }
-  // Giving up allocating this object.
+  // Force growth before attempting a synchronous GC.
+  addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+  if (addr != 0) {
+    return addr;
+  }
+  // Before throwing an out-of-memory error try a synchronous GC.
+  CollectAllGarbage();
+  {
+    MonitorLocker ml(old_space_->tasks_lock());
+    while (old_space_->tasks() > 0) {
+      ml.Wait();
+    }
+  }
+  addr = old_space_->TryAllocate(size, type, PageSpace::kForceGrowth);
+  if (addr != 0) {
+    return addr;
+  }
+  // Give up allocating this object.
   OS::PrintErr(
       "Exhausted heap space, trying to allocate %" Pd " bytes.\n", size);
   return 0;
