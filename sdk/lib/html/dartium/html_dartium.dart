@@ -10413,7 +10413,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * Adds the specified text after the last child of this element.
    */
   void appendText(String text) {
-    this.insertAdjacentText('beforeend', text);
+    this.append(new Text(text));
   }
 
   /**

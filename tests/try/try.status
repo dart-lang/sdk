@@ -9,9 +9,6 @@
 [ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff && $runtime != safari && $runtime != ie11) ]
 web/*: Skip
 
-[ $compiler == dart2js && $runtime == ie11 ]
-web/cursor_position_test: Fail # http://dartbug.com/20593
-
 [ $compiler == dart2js && $runtime == drt ]
 web/end_to_end_test: Fail, Pass # https://code.google.com/p/v8/issues/detail?id=3347
 
