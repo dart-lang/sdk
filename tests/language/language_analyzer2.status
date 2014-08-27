@@ -18,6 +18,8 @@ type_check_const_function_typedef2_test/00: MissingCompileTimeError, Ok # Compil
 external_test/21: Fail
 external_test/24: Fail
 external_test/25: Fail
+constructor_duplicate_final_test/03: Fail
+
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
