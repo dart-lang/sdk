@@ -632,7 +632,7 @@ LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19-rol
 LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-scale-fillPath-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/canvas-scale-fillRect-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
-LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError # co19-roll r761: Please triage this failure.
+LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/counters/complex-before_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/getComputedStyle/computed-style-select-overflow_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/vertical-align-length-copy-bug_t01: RuntimeError # co19-roll r761: Please triage this failure.

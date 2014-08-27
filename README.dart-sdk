@@ -12,10 +12,10 @@ bin/             Binaries/scripts to compile, run, and manage Dart applications.
   pub            Pub, the Dart package manager
   dartfmt        Dart code formatter
 
-lib/             Libraries that are shipped with the Dart runtime. More 
+lib/             Libraries that are shipped with the Dart runtime. More
                  information is available at api.dartlang.org.
 
-packages/        Additional packages that are shipped outside of the Dart 
+packages/        Additional packages that are shipped outside of the Dart
                  runtime. More information is available at api.dartlang.org.
 
 version          The version number of the SDK (ex. 1.5.1).

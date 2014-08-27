@@ -12,7 +12,7 @@ editor/        Eclipse-based standalone Dart IDE.
 lib/           Libraries that ship with the Dart runtime (core, html, etc.).
 pkg/           Packages that are not shipped with the core runtime.
 runtime/       Dart VM and code for running it as a standalone app.
-samples/       Sample Dart programs. 
+samples/       Sample Dart programs.
 tests/         Automated tests.
 third_party/   External dependencies.
 tools/         Build scripts, text editor support files, etc.
