@@ -112,46 +112,51 @@ class ObservatoryElement extends PolymerElement {
 
   int parseInt(String value) => int.parse(value);
 
-  bool isNull(String type) {
-    return type == 'Null';
+  bool isNull(ref) {
+    return ref != null && ref.serviceType == 'Null' && ref.id == 'objects/null';
   }
 
-  bool isError(String type) {
-    return type == 'Error';
+  bool isPsuedoNull(ref) {
+    return ref != null && ref.serviceType == 'Null' && ref.id != 'objects/null';
   }
 
-  bool isInt(String type) {
-    return (type == 'Smi' ||
-            type == 'Mint' ||
-            type == 'Bigint');
+  bool isError(ref) {
+    return ref != null && ref.serviceType == 'Error';
   }
 
-  bool isBool(String type) {
-    return type == 'Bool';
+  bool isInt(ref) {
+    return ref != null && (ref.serviceType == 'Smi' ||
+                           ref.serviceType == 'Mint' ||
+                           ref.serviceType == 'Bigint');
   }
 
-  bool isString(String type) {
-    return type == 'String';
+  bool isBool(ref) {
+    return ref != null && ref.serviceType == 'Bool';
   }
 
-  bool isInstance(String type) {
-    return type == 'Instance';
+  bool isString(ref) {
+    return ref != null && ref.serviceType == 'String';
   }
 
-  bool isDouble(String type) {
-    return type == 'Double';
+  bool isInstance(ref) {
+    return ref != null && ref.serviceType == 'Instance';
   }
 
-  bool isList(String type) {
-    return (type == 'GrowableObjectArray' ||
-            type == 'Array');
+  bool isDouble(ref) {
+    return ref != null && ref.serviceType == 'Double';
   }
 
-  bool isType(String type) {
-    return (type == 'Type');
+  bool isList(ref) {
+    return ref != null && (ref.serviceType == 'GrowableObjectArray' ||
+            ref.serviceType == 'Array');
   }
 
-  bool isUnexpected(String type) {
+  bool isType(ref) {
+    return ref != null && (ref.serviceType == 'Type');
+  }
+
+  bool isUnexpected(ref) {
+    if (ref == null) return false;
     return (!['Null',
               'Smi',
               'Mint',
@@ -163,6 +168,6 @@ class ObservatoryElement extends PolymerElement {
               'GrowableObjectArray',
               'Array',
               'Type',
-              'Error'].contains(type));
+              'Error'].contains(ref.serviceType));
   }
 }

@@ -523,9 +523,9 @@ TEST_CASE(Service_Objects) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   handler.filterMsg("vmName");
-  EXPECT_STREQ(
+  EXPECT_SUBSTRING(
       "{\"type\":\"Null\",\"id\":\"objects\\/null\","
-      "\"valueAsString\":\"null\"}",
+      "\"valueAsString\":\"null\",\"class\":",
       handler.msg());
 
   // not initialized
@@ -1101,7 +1101,8 @@ TEST_CASE(Service_Classes) {
   ExpectSubstringF(handler.msg(), "\"id\":\"objects\\/%" Pd "\",\"length\":2",
                    kInstanceListId);
   Array& list = Array::Handle();
-  list ^= isolate->object_id_ring()->GetObjectForId(kInstanceListId);
+  ObjectIdRing::LookupResult kind;
+  list ^= isolate->object_id_ring()->GetObjectForId(kInstanceListId, &kind);
   EXPECT_EQ(2, list.Length());
   // The list should contain {b0, b1}.
   EXPECT((list.At(0) == b0.raw() && list.At(1) == b1.raw()) ||
@@ -1324,9 +1325,9 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Null\",\"id\":\"objects\\/null\","
-               "\"valueAsString\":\"null\"}",
-               handler.msg());
+  EXPECT_SUBSTRING("{\"type\":\"Null\",\"id\":\"objects\\/null\","
+                   "\"valueAsString\":\"null\"",
+                   handler.msg());
 
   // Request malformed native code.
   service_msg = EvalF(lib, "[0, port, ['code', 'native%" Px "'], [], []]",

@@ -1549,6 +1549,11 @@ void Object::PrintJSON(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/null");
     jsobj.AddProperty("valueAsString", "null");
+    if (!ref) {
+      const Class& cls = Class::Handle(this->clazz());
+      jsobj.AddProperty("class", cls);
+      jsobj.AddProperty("size", raw()->Size());
+    }
   } else {
     PrintJSONImpl(stream, ref);
   }

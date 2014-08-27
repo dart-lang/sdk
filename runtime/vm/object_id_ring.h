@@ -19,6 +19,13 @@ class ObjectPointerVisitor;
 // ids will be invalidated.
 class ObjectIdRing {
  public:
+  enum LookupResult {
+    kValid = 0,
+    kInvalid,    // Malformed ring id (used in service.cc).
+    kCollected,  // Entry was reclaimed due to a full GC (entries are weak).
+    kExpired,    // Entry was evicted during an insertion into a full ring.
+  };
+
   static const int32_t kMaxId = 0x3FFFFFFF;
   static const int32_t kInvalidId = -1;
   static const int32_t kDefaultCapacity = 1024;
@@ -27,10 +34,12 @@ class ObjectIdRing {
 
   ~ObjectIdRing();
 
+  // Adds the argument to the ring and returns its id. Note we do not allow
+  // adding Object::null().
   int32_t GetIdForObject(RawObject* raw_obj);
 
-  // Returns Object::sentinel() when the id is not valid.
-  RawObject* GetObjectForId(int32_t id);
+  // Returns Object::null() when the result is not kValid.
+  RawObject* GetObjectForId(int32_t id, LookupResult* kind);
 
   void VisitPointers(ObjectPointerVisitor* visitor);
 

@@ -86,17 +86,18 @@ class AnyServiceRefElement extends ObservatoryElement {
         ServiceRefElement element = new Element.tag('library-ref');
         element.ref = ref;
         return element;
-      case 'Type':
       case 'Array':
+      case 'Bigint':
       case 'Bool':
       case 'Closure':
       case 'Double':
       case 'GrowableObjectArray':
       case 'Instance':
-      case 'Smi':
       case 'Mint':
-      case 'Bigint':
+      case 'Null':
+      case 'Smi':
       case 'String':
+      case 'Type':
         ServiceRefElement element = new Element.tag('instance-ref');
         element.ref = ref;
         return element;

@@ -6,17 +6,6 @@
 <polymer-element name="inbound-reference" extends="service-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
-    <style>
-      .errorBox {
-        background-color: #f5f5f5;
-        border: 1px solid #ccc;
-        padding: 10px;
-        font-family: consolas, courier, monospace;
-        font-size: 1em;
-        line-height: 1.2em;
-        white-space: pre;
-      }
-    </style>
     <div>
       from <any-service-ref ref="{{ source }}"></any-service-ref>
       <template if="{{ slotIsArrayIndex }}">via [{{ slot }}]</template>

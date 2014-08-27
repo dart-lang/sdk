@@ -920,30 +920,31 @@ hr {
       }
     </style>
     <span>
-      <template if="{{ isError(ref.serviceType) }}">
-        <pre class="errorBox">{{ ref.message }}</pre>
+      <template if="{{ isError(ref) }}">
+         <pre class="errorBox">{{ ref.message }}</pre>
       </template>
 
-      <template if="{{ isUnexpected(ref.serviceType) }}">
+      <template if="{{ isUnexpected(ref) }}">
         unexpected reference type &lt;{{ ref.serviceType }}&gt;
       </template>
 
-      <template if="{{ isNull(ref.serviceType) }}">
+      <template if="{{ isPsuedoNull(ref) }}">
         <div title="{{ hoverText }}">{{ ref['valueAsString'] }}</div>
       </template>
 
-      <template if="{{ (isString(ref.serviceType) ||
-                        isBool(ref.serviceType) ||
-                        isInt(ref.serviceType)) ||
-                        isDouble(ref.serviceType)) }}">
+      <template if="{{ (isString(ref) ||
+                        isBool(ref) ||
+                        isNull(ref) ||
+                        isInt(ref)) ||
+                        isDouble(ref)) }}">
         <a on-click="{{ goto }}" href="{{ url }}">{{ ref['valueAsString'] }}</a>
       </template>
 
-      <template if="{{ (isType(ref.serviceType)) }}">
+      <template if="{{ (isType(ref)) }}">
         <a on-click="{{ goto }}" href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
-      <template if="{{ isInstance(ref.serviceType) &amp;&amp;
+      <template if="{{ isInstance(ref) &amp;&amp;
                        ref['closureFunc'] != null}}">
         <a on-click="{{ goto }}" href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
@@ -951,7 +952,7 @@ hr {
         </a>
       </template>
 
-      <template if="{{ isInstance(ref.serviceType) &amp;&amp;
+      <template if="{{ isInstance(ref) &amp;&amp;
                        ref['closureFunc'] == null}}">
         <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
         <curly-block callback="{{ expander() }}">
@@ -970,7 +971,7 @@ hr {
         </curly-block>
       </template>
 
-      <template if="{{ isList(ref.serviceType) }}">
+      <template if="{{ isList(ref) }}">
         <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
@@ -988,6 +989,7 @@ hr {
     </span>
   </template>
 </polymer-element>
+
 
 <polymer-element name="action-link">
   <template>
@@ -14236,17 +14238,6 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <style>
-      .errorBox {
-        background-color: #f5f5f5;
-        border: 1px solid #ccc;
-        padding: 10px;
-        font-family: consolas, courier, monospace;
-        font-size: 1em;
-        line-height: 1.2em;
-        white-space: pre;
-      }
-    </style>
     <div>
       from <any-service-ref ref="{{ source }}"></any-service-ref>
       <template if="{{ slotIsArrayIndex }}">via [{{ slot }}]</template>

@@ -954,7 +954,7 @@ static bool ContainsNonInstance(const Object& obj) {
     Object& element = Object::Handle();
     for (intptr_t i = 0; i < array.Length(); ++i) {
       element = array.At(i);
-      if (!element.IsInstance()) {
+      if (!(element.IsInstance() || element.IsNull())) {
         return true;
       }
     }
@@ -964,13 +964,13 @@ static bool ContainsNonInstance(const Object& obj) {
     Object& element = Object::Handle();
     for (intptr_t i = 0; i < array.Length(); ++i) {
       element = array.At(i);
-      if (!element.IsInstance()) {
+      if (!(element.IsInstance() || element.IsNull())) {
         return true;
       }
     }
     return false;
   } else {
-    return !obj.IsInstance();
+    return !(obj.IsInstance() || obj.IsNull());
   }
 }
 
@@ -1080,12 +1080,15 @@ static bool HandleRetainingPath(Isolate* isolate,
   return true;
 }
 
+
 // Takes an Object* only because RetainingPath temporarily clears it.
 static bool HandleInstanceCommands(Isolate* isolate,
                                    Object* obj,
+                                   ObjectIdRing::LookupResult kind,
                                    JSONStream* js,
                                    intptr_t arg_pos) {
   ASSERT(js->num_arguments() > arg_pos);
+  ASSERT(kind != ObjectIdRing::kInvalid);
   const char* action = js->GetArgument(arg_pos);
   if (strcmp(action, "eval") == 0) {
     if (js->num_arguments() > (arg_pos + 1)) {
@@ -1094,13 +1097,13 @@ static bool HandleInstanceCommands(Isolate* isolate,
                  js->num_arguments());
       return true;
     }
-    if (obj->IsNull()) {
+    if (kind == ObjectIdRing::kCollected) {
       PrintErrorWithKind(js, "EvalCollected",
                          "attempt to evaluate against collected object\n",
                          js->num_arguments());
       return true;
     }
-    if (obj->raw() == Object::sentinel().raw()) {
+    if (kind == ObjectIdRing::kExpired) {
       PrintErrorWithKind(js, "EvalExpired",
                          "attempt to evaluate against expired object\n",
                          js->num_arguments());
@@ -1126,12 +1129,40 @@ static bool HandleInstanceCommands(Isolate* isolate,
     result.PrintJSON(js, true);
     return true;
   } else if (strcmp(action, "retained") == 0) {
+    if (kind == ObjectIdRing::kCollected) {
+      PrintErrorWithKind(
+          js, "RetainedCollected",
+          "attempt to calculate size retained by a collected object\n",
+          js->num_arguments());
+      return true;
+    }
+    if (kind == ObjectIdRing::kExpired) {
+      PrintErrorWithKind(
+          js, "RetainedExpired",
+          "attempt to calculate size retained by an expired object\n",
+          js->num_arguments());
+      return true;
+    }
     ObjectGraph graph(isolate);
     intptr_t retained_size = graph.SizeRetainedByInstance(*obj);
     const Object& result = Object::Handle(Integer::New(retained_size));
     result.PrintJSON(js, true);
     return true;
   } else if (strcmp(action, "retaining_path") == 0) {
+    if (kind == ObjectIdRing::kCollected) {
+      PrintErrorWithKind(
+          js, "RetainingPathCollected",
+          "attempt to find a retaining path for a collected object\n",
+          js->num_arguments());
+      return true;
+    }
+    if (kind == ObjectIdRing::kExpired) {
+      PrintErrorWithKind(
+          js, "RetainingPathExpired",
+          "attempt to find a retaining path for an expired object\n",
+          js->num_arguments());
+      return true;
+    }
     intptr_t limit;
     if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
       PrintError(js, "retaining_path expects a 'limit' option\n",
@@ -1140,6 +1171,20 @@ static bool HandleInstanceCommands(Isolate* isolate,
     }
     return HandleRetainingPath(isolate, obj, limit, js);
   } else if (strcmp(action, "inbound_references") == 0) {
+    if (kind == ObjectIdRing::kCollected) {
+      PrintErrorWithKind(
+          js, "InboundReferencesCollected",
+          "attempt to find inbound references for a collected object\n",
+          js->num_arguments());
+      return true;
+    }
+    if (kind == ObjectIdRing::kExpired) {
+      PrintErrorWithKind(
+          js, "InboundReferencesExpired",
+          "attempt to find inbound references for an expired object\n",
+          js->num_arguments());
+      return true;
+    }
     intptr_t limit;
     if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
       PrintError(js, "inbound_references expects a 'limit' option\n",
@@ -1335,7 +1380,7 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
     type.PrintJSON(js, false);
     return true;
   }
-  return HandleInstanceCommands(isolate, &type, js, 4);
+  return HandleInstanceCommands(isolate, &type, ObjectIdRing::kValid, js, 4);
 }
 
 
@@ -1639,35 +1684,39 @@ static void PrintPseudoNull(JSONStream* js,
 
 static RawObject* LookupObjectId(Isolate* isolate,
                                  const char* arg,
-                                 bool* error) {
-  *error = false;
+                                 ObjectIdRing::LookupResult* kind) {
+  *kind = ObjectIdRing::kValid;
   if (strncmp(arg, "int-", 4) == 0) {
     arg += 4;
     int64_t value = 0;
     if (!OS::StringToInt64(arg, &value) ||
         !Smi::IsValid(value)) {
-      *error = true;
+      *kind = ObjectIdRing::kInvalid;
       return Object::null();
     }
     const Integer& obj =
         Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
     return obj.raw();
-
   } else if (strcmp(arg, "bool-true") == 0) {
     return Bool::True().raw();
-
   } else if (strcmp(arg, "bool-false") == 0) {
     return Bool::False().raw();
+  } else if (strcmp(arg, "null") == 0) {
+    return Object::null();
+  } else if (strcmp(arg, "not-initialized") == 0) {
+    return Object::sentinel().raw();
+  } else if (strcmp(arg, "being-initialized") == 0) {
+    return Object::transition_sentinel().raw();
   }
 
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   intptr_t id = -1;
   if (!GetIntegerId(arg, &id)) {
-    *error = true;
-    return Instance::null();
+    *kind = ObjectIdRing::kInvalid;
+    return Object::null();
   }
-  return ring->GetObjectForId(id);
+  return ring->GetObjectForId(id, kind);
 }
 
 
@@ -1800,35 +1849,8 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
   }
   const char* arg = js->GetArgument(1);
 
-  // Handle special objects first.
-  if (strcmp(arg, "null") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      Instance::null_instance().PrintJSON(js, false);
-    }
-    return true;
-
-  } else if (strcmp(arg, "not-initialized") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      Object::sentinel().PrintJSON(js, false);
-    }
-    return true;
-
-  } else if (strcmp(arg, "being-initialized") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      Object::transition_sentinel().PrintJSON(js, false);
-    }
-    return true;
-
-  } else if (strcmp(arg, "optimized-out") == 0) {
+  // Handle special non-objects first.
+  if (strcmp(arg, "optimized-out") == 0) {
     if (js->num_arguments() > 2) {
       PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
                  js->num_arguments());
@@ -1858,19 +1880,19 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
 
   // Lookup the object.
   Object& obj = Object::Handle(isolate);
-  bool error = false;
-  obj = LookupObjectId(isolate, arg, &error);
-  if (error) {
+  ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
+  obj = LookupObjectId(isolate, arg, &kind);
+  if (kind == ObjectIdRing::kInvalid) {
     PrintError(js, "unrecognized object id '%s'", arg);
     return true;
   }
   if (js->num_arguments() == 2) {
     // Print.
-    if (obj.IsNull()) {
+    if (kind == ObjectIdRing::kCollected) {
       // The object has been collected by the gc.
       PrintPseudoNull(js, "objects/collected", "<collected>");
       return true;
-    } else if (obj.raw() == Object::sentinel().raw()) {
+    } else if (kind == ObjectIdRing::kExpired) {
       // The object id has expired.
       PrintPseudoNull(js, "objects/expired", "<expired>");
       return true;
@@ -1878,7 +1900,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     obj.PrintJSON(js, false);
     return true;
   }
-  return HandleInstanceCommands(isolate, &obj, js, 2);
+  return HandleInstanceCommands(isolate, &obj, kind, js, 2);
 }
 
 

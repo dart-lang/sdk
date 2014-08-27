@@ -88,6 +88,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Instance':
       case 'Smi':
       case 'Mint':
+      case 'Null':
       case 'Bigint':
       case 'String':
         InstanceViewElement element = new Element.tag('instance-view');

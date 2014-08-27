@@ -18,30 +18,31 @@
       }
     </style>
     <span>
-      <template if="{{ isError(ref.serviceType) }}">
-        <pre class="errorBox">{{ ref.message }}</pre>
+      <template if="{{ isError(ref) }}">
+         <pre class="errorBox">{{ ref.message }}</pre>
       </template>
 
-      <template if="{{ isUnexpected(ref.serviceType) }}">
+      <template if="{{ isUnexpected(ref) }}">
         unexpected reference type &lt;{{ ref.serviceType }}&gt;
       </template>
 
-      <template if="{{ isNull(ref.serviceType) }}">
+      <template if="{{ isPsuedoNull(ref) }}">
         <div title="{{ hoverText }}">{{ ref['valueAsString'] }}</div>
       </template>
 
-      <template if="{{ (isString(ref.serviceType) ||
-                        isBool(ref.serviceType) ||
-                        isInt(ref.serviceType)) ||
-                        isDouble(ref.serviceType)) }}">
+      <template if="{{ (isString(ref) ||
+                        isBool(ref) ||
+                        isNull(ref) ||
+                        isInt(ref)) ||
+                        isDouble(ref)) }}">
         <a on-click="{{ goto }}" href="{{ url }}">{{ ref['valueAsString'] }}</a>
       </template>
 
-      <template if="{{ (isType(ref.serviceType)) }}">
+      <template if="{{ (isType(ref)) }}">
         <a on-click="{{ goto }}" href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
-      <template if="{{ isInstance(ref.serviceType) &&
+      <template if="{{ isInstance(ref) &&
                        ref['closureFunc'] != null}}">
         <a on-click="{{ goto }}" href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
@@ -49,7 +50,7 @@
         </a>
       </template>
 
-      <template if="{{ isInstance(ref.serviceType) &&
+      <template if="{{ isInstance(ref) &&
                        ref['closureFunc'] == null}}">
         <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
         <curly-block callback="{{ expander() }}">
@@ -68,7 +69,7 @@
         </curly-block>
       </template>
 
-      <template if="{{ isList(ref.serviceType) }}">
+      <template if="{{ isList(ref) }}">
         <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
