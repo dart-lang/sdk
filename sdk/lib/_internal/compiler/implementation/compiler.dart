@@ -941,7 +941,7 @@ abstract class Compiler implements DiagnosticListener {
             this.useContentSecurityPolicy: false,
             this.suppressWarnings: false,
             bool hasIncrementalSupport: false,
-            outputProvider,
+            api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
           disableTypeInferenceFlag || !emitJavaScript,

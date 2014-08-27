@@ -124,6 +124,8 @@ void useNode(tree.Node node) {
 
 void useUtil(util.Link link) {
   link.reversePrependAll(link);
+  util.longestCommonPrefixLength(null, null);
+  new util.Pair(null, null);
 }
 
 void useSetlet(util.Setlet setlet) {

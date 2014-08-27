@@ -6,8 +6,51 @@ part of dart2js.helpers;
 
 // Helper methods for statistics.
 
-/// Current stats collector. Use [ActiveStats] for active collection of data.
-final Stats stats = new ActiveStats(new ConsolePrinter());
+/// Current stats collector. Use [enableStatsOutput] to enable recording of
+/// stats.
+Stats get stats {
+  if (_stats == null) {
+    _stats = const Stats();
+  }
+  return _stats;
+}
+
+Stats _stats;
+
+/// Enable recording of stats. Use [Stats.dumpStats] to output the record stats.
+///
+/// Pass the [outputProvider] of [Compiler] to generate stats into a separate
+/// file using [name] and [extension] for the filename. If omitted, stats are
+/// printed on standard out.
+///
+/// If [xml] is `true`, stats output is formatted as XML with a default
+/// extension of 'xml', otherwise the output is indented text with a default
+/// extension of 'log'.
+void enableStatsOutput({CompilerOutputProvider outputProvider,
+                        bool xml: true,
+                        String name: 'stats',
+                        String extension,
+                        int examples: 10}) {
+  if (_stats != null) {
+    throw new StateError('Stats have already been initialized.');
+  }
+  StatsOutput output;
+  if (outputProvider != null) {
+    if (extension == null) {
+      extension = xml ? 'xml' : 'log';
+    }
+    output = new SinkOutput(outputProvider(name, extension));
+  } else {
+    output = const DebugOutput();
+  }
+  StatsPrinter printer;
+  if (xml) {
+    printer = new XMLPrinter(output: output, examples: examples);
+  } else {
+    printer = new ConsolePrinter(output: output, examples: examples);
+  }
+  _stats = new ActiveStats(printer);
+}
 
 /// Interface for gathering and display of statistical information.
 /// This class serves as the noop collector.
@@ -111,6 +154,17 @@ class Stats {
   ///
   void recordCounter(id, [example, data]) {}
 
+  /// Records the current stack trace under the key [id]. Only every
+  /// [sampleFrequency] call with the same id is recorded, and if omitted
+  /// [stackTraceSampleFrequency] is used.
+  void recordTrace(id, {int sampleFrequency}) {}
+
+  /// The default sample frequency used for recording stack traces.
+  int get stackTraceSampleFrequency => 0;
+
+  /// Set the default sample frequency used for recording stack traces.
+  void set stackTraceSampleFrequency(int value) {}
+
   /// Dumps the stats for the recorded frequencies, sets, and counters. If
   /// provided [beforeClose] is called before closing the dump output. This
   /// can be used to include correlations on the collected data through
@@ -148,6 +202,19 @@ class DebugOutput implements StatsOutput {
   const DebugOutput();
 
   void println(String text) => debugPrint(text);
+}
+
+/// Output to an [EventSink]. Used to output to a file through the
+/// [CompilerOutputProvider].
+class SinkOutput implements StatsOutput {
+  EventSink<String> sink;
+
+  SinkOutput(this.sink);
+
+  void println(String text) {
+    sink.add(text);
+    sink.add('\n');
+  }
 }
 
 /// Interface for printing stats collected in [Stats].
@@ -306,6 +373,135 @@ class XMLPrinter extends BasePrinter {
   }
 }
 
+/// A node in a stack trace tree used to store and organize stack traces by
+/// common prefixes.
+class _StackTraceNode implements Comparable<_StackTraceNode> {
+  int count;
+  List<StackTraceLine> commonPrefix;
+  List<_StackTraceNode> subtraces;
+
+  _StackTraceNode(this.commonPrefix, this.count, this.subtraces);
+
+  _StackTraceNode.root() : this([], 0, []);
+
+  _StackTraceNode.leaf(StackTraceLines stackTrace)
+      : this(stackTrace.lines, 1, const []);
+
+  _StackTraceNode.node(List<StackTraceLine> commonPrefix,
+                       _StackTraceNode first,
+                       _StackTraceNode second)
+      : this(commonPrefix, first.count + second.count, [first, second]);
+
+  void add(StackTraceLines stackTrace) {
+    count++;
+    if (!stackTrace.lines.isEmpty) {
+      addSubtrace(stackTrace);
+    }
+  }
+
+  void addSubtrace(StackTraceLines stackTrace) {
+    List<StackTraceLine> lines = stackTrace.lines;
+    for (_StackTraceNode subtrace in subtraces) {
+      int commonPrefixLength =
+          longestCommonPrefixLength(subtrace.commonPrefix, lines);
+      if (commonPrefixLength > 0) {
+        stackTrace = stackTrace.subtrace(commonPrefixLength);
+        if (commonPrefixLength == subtrace.commonPrefix.length) {
+          subtrace.add(stackTrace);
+        } else {
+          subtrace.commonPrefix =
+              subtrace.commonPrefix.sublist(commonPrefixLength);
+          subtraces.remove(subtrace);
+          subtraces.add(new _StackTraceNode.node(
+              lines.sublist(0, commonPrefixLength),
+              subtrace,
+              new _StackTraceNode.leaf(stackTrace)));
+        }
+        return;
+      }
+    }
+    subtraces.add(new _StackTraceNode.leaf(stackTrace));
+  }
+
+  void dumpTraces(StatsPrinter printer) {
+    printer.open('trace', {'count': count, 'line': commonPrefix.first});
+    if (commonPrefix.length > 1) {
+      for (StackTraceLine line in commonPrefix.skip(1)) {
+        printer.child('trace', {'line': line});
+      }
+    }
+    dumpSubtraces(printer);
+    printer.close('trace');
+  }
+
+  void dumpSubtraces(StatsPrinter printer) {
+    if (!subtraces.isEmpty) {
+      subtraces.sort();
+      for (_StackTraceNode step in subtraces) {
+        step.dumpTraces(printer);
+      }
+    }
+  }
+
+  int compareTo(_StackTraceNode other) {
+    // Sorts in decreasing count order.
+    return other.count - count;
+  }
+
+  void printOn(StringBuffer sb, String indentation) {
+    String countText = '$indentation$count  ';
+    sb.write(countText);
+    sb.write('\n');
+    indentation = ''.padLeft(countText.length, ' ');
+    if (commonPrefix != null) {
+      int index = 0;
+      for (String line in commonPrefix) {
+        sb.write(indentation);
+        if (index > 1) {
+          sb.write('...\n');
+          break;
+        }
+        sb.write(line);
+        sb.write('\n');
+        index++;
+      }
+    }
+    subtraces.sort();
+    for (_StackTraceNode subtrace in subtraces) {
+      subtrace.printOn(sb, indentation);
+    }
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    printOn(sb, '');
+    return sb.toString();
+  }
+}
+
+class _StackTraceTree extends _StackTraceNode {
+  final id;
+  int totalCount = 0;
+  final int sampleFrequency;
+
+  _StackTraceTree(this.id, this.sampleFrequency) : super.root();
+
+  void dumpTraces(StatsPrinter printer) {
+    printer.open('trace', {
+      'id': id,
+      'totalCount': totalCount,
+      'sampleFrequency': sampleFrequency});
+    dumpSubtraces(printer);
+    printer.close('trace');
+  }
+
+  void sample() {
+    if (totalCount++ % sampleFrequency == 0) {
+      add(stackTrace(offset: 3));
+    }
+  }
+}
+
 /// Actual implementation of [Stats].
 class ActiveStats implements Stats {
   final StatsPrinter printer;
@@ -314,6 +510,8 @@ class ActiveStats implements Stats {
   Map<dynamic, Map> setsMap = {};
   Map<dynamic, Map<dynamic, List>> countersMap =
       <dynamic, Map<dynamic, List>>{};
+  Map<dynamic, _StackTraceTree> traceMap = {};
+  int stackTraceSampleFrequency = 1;
 
   ActiveStats(StatsPrinter this.printer);
 
@@ -361,6 +559,15 @@ class ActiveStats implements Stats {
     setsMap.putIfAbsent(key, () => new Map())[element] = data;
   }
 
+  void recordTrace(key, {int sampleFrequency}) {
+    if (sampleFrequency == null) {
+      sampleFrequency = stackTraceSampleFrequency;
+    }
+    traceMap.putIfAbsent(key,
+        () => new _StackTraceTree(key, sampleFrequency)).sample();
+
+  }
+
   Iterable getList(String key) {
     Map map = setsMap[key];
     if (map == null) return const [];
@@ -372,6 +579,7 @@ class ActiveStats implements Stats {
     dumpFrequencies();
     dumpSets();
     dumpCounters();
+    dumpTraces();
     if (beforeClose != null) {
       beforeClose();
     }
@@ -463,6 +671,17 @@ class ActiveStats implements Stats {
       printer.endExtra();
     }
     printer.close('counter');
+  }
+
+  void dumpTraces() {
+    printer.group('traces', () {
+      traceMap.keys.forEach(dumpTrace);
+    });
+  }
+
+  void dumpTrace(key) {
+    _StackTraceTree tree = traceMap[key];
+    tree.dumpTraces(printer);
   }
 
   void dumpCorrelation(keyA, Iterable a, keyB, Iterable b,
