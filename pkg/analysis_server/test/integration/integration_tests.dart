@@ -120,7 +120,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends
     subscription = onServerStatus.listen((params) {
       bool analysisComplete = false;
       try {
-        analysisComplete = !params['analysis']['analyzing'];
+        analysisComplete = !params['analysis']['isAnalyzing'];
       } catch (_) {
         // Status message was mal-formed or missing optional parameters.  That's
         // fine, since we'll detect a mal-formed status message below.

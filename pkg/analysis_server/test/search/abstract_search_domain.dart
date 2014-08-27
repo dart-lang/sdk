@@ -77,7 +77,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
       var params = new SearchResultsParams.fromNotification(notification);
       if (params.id == searchId) {
         results.addAll(params.results);
-        searchDone = params.last;
+        searchDone = params.isLast;
       }
     }
   }

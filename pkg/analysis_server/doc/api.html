@@ -253,7 +253,7 @@ dt.typeDefinition {
       </dd><dt class="notification">server.error</dt><dd><div class="box"><pre>notification: {
   "event": "server.error"
   "params": {
-    "<b>fatal</b>": bool
+    "<b>isFatal</b>": bool
     "<b>message</b>": String
     "<b>stackTrace</b>": String
   }
@@ -271,7 +271,7 @@ dt.typeDefinition {
           notification.
         </p>
         
-      <h4>Parameters</h4><dl><dt class="field"><b><i>fatal ( bool )</i></b></dt><dd>
+      <h4>Parameters</h4><dl><dt class="field"><b><i>isFatal ( bool )</i></b></dt><dd>
             
             <p>
               True if the error is a fatal error, meaning that the
@@ -921,7 +921,7 @@ dt.typeDefinition {
     "<b>replacementOffset</b>": int
     "<b>replacementLength</b>": int
     "<b>results</b>": List&lt;<a href="#type_CompletionSuggestion">CompletionSuggestion</a>&gt;
-    "<b>last</b>": bool
+    "<b>isLast</b>": bool
   }
 }</pre></div>
         <p>
@@ -964,7 +964,7 @@ dt.typeDefinition {
               the client to respond to further keystrokes from the
               user without having to make additional requests.
             </p>
-          </dd><dt class="field"><b><i>last ( bool )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>isLast ( bool )</i></b></dt><dd>
             
             <p>
               True if this is that last set of results that will be
@@ -1205,7 +1205,7 @@ dt.typeDefinition {
   "params": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
     "<b>results</b>": List&lt;<a href="#type_SearchResult">SearchResult</a>&gt;
-    "<b>last</b>": bool
+    "<b>isLast</b>": bool
   }
 }</pre></div>
         <p>
@@ -1226,7 +1226,7 @@ dt.typeDefinition {
             <p>
               The search results being reported.
             </p>
-          </dd><dt class="field"><b><i>last ( bool )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>isLast ( bool )</i></b></dt><dd>
             
             <p>
               True if this is that last set of results that will be
@@ -1818,7 +1818,7 @@ dt.typeDefinition {
           An indication of the current state of analysis.
         </p>
         
-      <dl><dt class="field"><b><i>analyzing ( bool )</i></b></dt><dd>
+      <dl><dt class="field"><b><i>isAnalyzing ( bool )</i></b></dt><dd>
             
             <p>True if analysis is currently being performed.</p>
           </dd><dt class="field"><b><i>analysisTarget ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>

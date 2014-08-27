@@ -249,7 +249,7 @@ class ServerConnectedParams {
  * server.error params
  *
  * {
- *   "fatal": bool
+ *   "isFatal": bool
  *   "message": String
  *   "stackTrace": String
  * }
@@ -259,7 +259,7 @@ class ServerErrorParams {
    * True if the error is a fatal error, meaning that the server will shutdown
    * automatically after sending this notification.
    */
-  bool fatal;
+  bool isFatal;
 
   /**
    * The error message indicating what kind of error was encountered.
@@ -272,18 +272,18 @@ class ServerErrorParams {
    */
   String stackTrace;
 
-  ServerErrorParams(this.fatal, this.message, this.stackTrace);
+  ServerErrorParams(this.isFatal, this.message, this.stackTrace);
 
   factory ServerErrorParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
-      bool fatal;
-      if (json.containsKey("fatal")) {
-        fatal = jsonDecoder._decodeBool(jsonPath + ".fatal", json["fatal"]);
+      bool isFatal;
+      if (json.containsKey("isFatal")) {
+        isFatal = jsonDecoder._decodeBool(jsonPath + ".isFatal", json["isFatal"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "fatal");
+        throw jsonDecoder.missingKey(jsonPath, "isFatal");
       }
       String message;
       if (json.containsKey("message")) {
@@ -297,7 +297,7 @@ class ServerErrorParams {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "stackTrace");
       }
-      return new ServerErrorParams(fatal, message, stackTrace);
+      return new ServerErrorParams(isFatal, message, stackTrace);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.error params");
     }
@@ -310,7 +310,7 @@ class ServerErrorParams {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["fatal"] = fatal;
+    result["isFatal"] = isFatal;
     result["message"] = message;
     result["stackTrace"] = stackTrace;
     return result;
@@ -326,7 +326,7 @@ class ServerErrorParams {
   @override
   bool operator==(other) {
     if (other is ServerErrorParams) {
-      return fatal == other.fatal &&
+      return isFatal == other.isFatal &&
           message == other.message &&
           stackTrace == other.stackTrace;
     }
@@ -336,7 +336,7 @@ class ServerErrorParams {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, fatal.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, isFatal.hashCode);
     hash = _JenkinsSmiHash.combine(hash, message.hashCode);
     hash = _JenkinsSmiHash.combine(hash, stackTrace.hashCode);
     return _JenkinsSmiHash.finish(hash);
@@ -1985,7 +1985,7 @@ class CompletionGetSuggestionsResult {
  *   "replacementOffset": int
  *   "replacementLength": int
  *   "results": List<CompletionSuggestion>
- *   "last": bool
+ *   "isLast": bool
  * }
  */
 class CompletionResultsParams {
@@ -2022,9 +2022,9 @@ class CompletionResultsParams {
    * True if this is that last set of results that will be returned for the
    * indicated completion.
    */
-  bool last;
+  bool isLast;
 
-  CompletionResultsParams(this.id, this.replacementOffset, this.replacementLength, this.results, this.last);
+  CompletionResultsParams(this.id, this.replacementOffset, this.replacementLength, this.results, this.isLast);
 
   factory CompletionResultsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2055,13 +2055,13 @@ class CompletionResultsParams {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "results");
       }
-      bool last;
-      if (json.containsKey("last")) {
-        last = jsonDecoder._decodeBool(jsonPath + ".last", json["last"]);
+      bool isLast;
+      if (json.containsKey("isLast")) {
+        isLast = jsonDecoder._decodeBool(jsonPath + ".isLast", json["isLast"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "last");
+        throw jsonDecoder.missingKey(jsonPath, "isLast");
       }
-      return new CompletionResultsParams(id, replacementOffset, replacementLength, results, last);
+      return new CompletionResultsParams(id, replacementOffset, replacementLength, results, isLast);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "completion.results params");
     }
@@ -2078,7 +2078,7 @@ class CompletionResultsParams {
     result["replacementOffset"] = replacementOffset;
     result["replacementLength"] = replacementLength;
     result["results"] = results.map((CompletionSuggestion value) => value.toJson()).toList();
-    result["last"] = last;
+    result["isLast"] = isLast;
     return result;
   }
 
@@ -2096,7 +2096,7 @@ class CompletionResultsParams {
           replacementOffset == other.replacementOffset &&
           replacementLength == other.replacementLength &&
           _listEqual(results, other.results, (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
-          last == other.last;
+          isLast == other.isLast;
     }
     return false;
   }
@@ -2108,7 +2108,7 @@ class CompletionResultsParams {
     hash = _JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
     hash = _JenkinsSmiHash.combine(hash, replacementLength.hashCode);
     hash = _JenkinsSmiHash.combine(hash, results.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, last.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, isLast.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -2860,7 +2860,7 @@ class SearchGetTypeHierarchyResult {
  * {
  *   "id": SearchId
  *   "results": List<SearchResult>
- *   "last": bool
+ *   "isLast": bool
  * }
  */
 class SearchResultsParams {
@@ -2878,9 +2878,9 @@ class SearchResultsParams {
    * True if this is that last set of results that will be returned for the
    * indicated search.
    */
-  bool last;
+  bool isLast;
 
-  SearchResultsParams(this.id, this.results, this.last);
+  SearchResultsParams(this.id, this.results, this.isLast);
 
   factory SearchResultsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2899,13 +2899,13 @@ class SearchResultsParams {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "results");
       }
-      bool last;
-      if (json.containsKey("last")) {
-        last = jsonDecoder._decodeBool(jsonPath + ".last", json["last"]);
+      bool isLast;
+      if (json.containsKey("isLast")) {
+        isLast = jsonDecoder._decodeBool(jsonPath + ".isLast", json["isLast"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "last");
+        throw jsonDecoder.missingKey(jsonPath, "isLast");
       }
-      return new SearchResultsParams(id, results, last);
+      return new SearchResultsParams(id, results, isLast);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "search.results params");
     }
@@ -2920,7 +2920,7 @@ class SearchResultsParams {
     Map<String, dynamic> result = {};
     result["id"] = id;
     result["results"] = results.map((SearchResult value) => value.toJson()).toList();
-    result["last"] = last;
+    result["isLast"] = isLast;
     return result;
   }
 
@@ -2936,7 +2936,7 @@ class SearchResultsParams {
     if (other is SearchResultsParams) {
       return id == other.id &&
           _listEqual(results, other.results, (SearchResult a, SearchResult b) => a == b) &&
-          last == other.last;
+          isLast == other.isLast;
     }
     return false;
   }
@@ -2946,7 +2946,7 @@ class SearchResultsParams {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, id.hashCode);
     hash = _JenkinsSmiHash.combine(hash, results.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, last.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, isLast.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -4670,7 +4670,7 @@ class AnalysisService {
  * AnalysisStatus
  *
  * {
- *   "analyzing": bool
+ *   "isAnalyzing": bool
  *   "analysisTarget": optional String
  * }
  */
@@ -4678,7 +4678,7 @@ class AnalysisStatus {
   /**
    * True if analysis is currently being performed.
    */
-  bool analyzing;
+  bool isAnalyzing;
 
   /**
    * The name of the current target of analysis. This field is omitted if
@@ -4686,24 +4686,24 @@ class AnalysisStatus {
    */
   String analysisTarget;
 
-  AnalysisStatus(this.analyzing, {this.analysisTarget});
+  AnalysisStatus(this.isAnalyzing, {this.analysisTarget});
 
   factory AnalysisStatus.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
       json = {};
     }
     if (json is Map) {
-      bool analyzing;
-      if (json.containsKey("analyzing")) {
-        analyzing = jsonDecoder._decodeBool(jsonPath + ".analyzing", json["analyzing"]);
+      bool isAnalyzing;
+      if (json.containsKey("isAnalyzing")) {
+        isAnalyzing = jsonDecoder._decodeBool(jsonPath + ".isAnalyzing", json["isAnalyzing"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "analyzing");
+        throw jsonDecoder.missingKey(jsonPath, "isAnalyzing");
       }
       String analysisTarget;
       if (json.containsKey("analysisTarget")) {
         analysisTarget = jsonDecoder._decodeString(jsonPath + ".analysisTarget", json["analysisTarget"]);
       }
-      return new AnalysisStatus(analyzing, analysisTarget: analysisTarget);
+      return new AnalysisStatus(isAnalyzing, analysisTarget: analysisTarget);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisStatus");
     }
@@ -4711,7 +4711,7 @@ class AnalysisStatus {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["analyzing"] = analyzing;
+    result["isAnalyzing"] = isAnalyzing;
     if (analysisTarget != null) {
       result["analysisTarget"] = analysisTarget;
     }
@@ -4724,7 +4724,7 @@ class AnalysisStatus {
   @override
   bool operator==(other) {
     if (other is AnalysisStatus) {
-      return analyzing == other.analyzing &&
+      return isAnalyzing == other.isAnalyzing &&
           analysisTarget == other.analysisTarget;
     }
     return false;
@@ -4733,7 +4733,7 @@ class AnalysisStatus {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, analyzing.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
     hash = _JenkinsSmiHash.combine(hash, analysisTarget.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }

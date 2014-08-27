@@ -105,7 +105,7 @@ class CompletionTest extends AbstractAnalysisTest {
         expect(suggestionsDone, isFalse);
         replacementOffset = params.replacementOffset;
         replacementLength = params.replacementLength;
-        suggestionsDone = params.last;
+        suggestionsDone = params.isLast;
         expect(suggestionsDone, isNotNull);
         suggestions = params.results;
       }

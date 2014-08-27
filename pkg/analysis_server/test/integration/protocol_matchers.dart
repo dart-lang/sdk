@@ -69,14 +69,14 @@ final Matcher isServerConnectedParams = isNull;
  * server.error params
  *
  * {
- *   "fatal": bool
+ *   "isFatal": bool
  *   "message": String
  *   "stackTrace": String
  * }
  */
 final Matcher isServerErrorParams = new LazyMatcher(() => new MatchesJsonObject(
   "server.error params", {
-    "fatal": isBool,
+    "isFatal": isBool,
     "message": isString,
     "stackTrace": isString
   }));
@@ -384,7 +384,7 @@ final Matcher isCompletionGetSuggestionsResult = new LazyMatcher(() => new Match
  *   "replacementOffset": int
  *   "replacementLength": int
  *   "results": List<CompletionSuggestion>
- *   "last": bool
+ *   "isLast": bool
  * }
  */
 final Matcher isCompletionResultsParams = new LazyMatcher(() => new MatchesJsonObject(
@@ -393,7 +393,7 @@ final Matcher isCompletionResultsParams = new LazyMatcher(() => new MatchesJsonO
     "replacementOffset": isInt,
     "replacementLength": isInt,
     "results": isListOf(isCompletionSuggestion),
-    "last": isBool
+    "isLast": isBool
   }));
 
 /**
@@ -531,14 +531,14 @@ final Matcher isSearchGetTypeHierarchyResult = new LazyMatcher(() => new Matches
  * {
  *   "id": SearchId
  *   "results": List<SearchResult>
- *   "last": bool
+ *   "isLast": bool
  * }
  */
 final Matcher isSearchResultsParams = new LazyMatcher(() => new MatchesJsonObject(
   "search.results params", {
     "id": isSearchId,
     "results": isListOf(isSearchResult),
-    "last": isBool
+    "isLast": isBool
   }));
 
 /**
@@ -850,13 +850,13 @@ final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
  * AnalysisStatus
  *
  * {
- *   "analyzing": bool
+ *   "isAnalyzing": bool
  *   "analysisTarget": optional String
  * }
  */
 final Matcher isAnalysisStatus = new LazyMatcher(() => new MatchesJsonObject(
   "AnalysisStatus", {
-    "analyzing": isBool
+    "isAnalyzing": isBool
   }, optionalFields: {
     "analysisTarget": isString
   }));

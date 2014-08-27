@@ -115,7 +115,7 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * fatal ( bool )
+   * isFatal ( bool )
    *
    *   True if the error is a fatal error, meaning that the server will
    *   shutdown automatically after sending this notification.
@@ -727,7 +727,7 @@ abstract class IntegrationTestMixin {
    *   client to respond to further keystrokes from the user without having to
    *   make additional requests.
    *
-   * last ( bool )
+   * isLast ( bool )
    *
    *   True if this is that last set of results that will be returned for the
    *   indicated completion.
@@ -960,7 +960,7 @@ abstract class IntegrationTestMixin {
    *
    *   The search results being reported.
    *
-   * last ( bool )
+   * isLast ( bool )
    *
    *   True if this is that last set of results that will be returned for the
    *   indicated search.

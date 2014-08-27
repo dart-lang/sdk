@@ -45,14 +45,14 @@ main() {
         expect(notifications.any((Notification notification) {
           if (notification.event == SERVER_STATUS) {
             var params = new ServerStatusParams.fromNotification(notification);
-            return params.analysis.analyzing;
+            return params.analysis.isAnalyzing;
           }
           return false;
         }), isTrue);
         // the last notification should indicate that analysis is complete
         Notification notification = notifications[notifications.length - 1];
         var params = new ServerStatusParams.fromNotification(notification);
-        expect(params.analysis.analyzing, isFalse);
+        expect(params.analysis.isAnalyzing, isFalse);
       });
     });
 
