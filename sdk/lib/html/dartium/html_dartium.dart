@@ -28752,10 +28752,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_1_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_2_Callback(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream == null)) {
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.$_createObjectURL_3_Callback(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39020,4 +39020,8 @@ get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
 
 void _initializeCustomElement(Element e) {
   _Utils.initializeCustomElement(e);
+}
+
+// Class for unsupported native browser 'DOM' objects.
+class _UnsupportedBrowserObject extends NativeFieldWrapperClass2 {
 }
