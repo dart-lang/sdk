@@ -43,7 +43,7 @@ class BuildCommand extends BarbackCommand {
         defaultsTo: "build");
   }
 
-  Future onRunTransformerCommand() {
+  Future onRunTransformerCommand() async {
     cleanDir(outputDirectory);
 
     var errorsJson = [];
@@ -124,12 +124,10 @@ class BuildCommand extends BarbackCommand {
   ///
   /// If [asset] is in the special "packages" directory, writes it to every
   /// build directory.
-  Future _writeAsset(Asset asset) {
+  Future _writeAsset(Asset asset) async {
     // In release mode, strip out .dart files since all relevant ones have been
     // compiled to JavaScript already.
-    if (mode == BarbackMode.RELEASE && asset.id.extension == ".dart") {
-      return new Future.value();
-    }
+    if (mode == BarbackMode.RELEASE && asset.id.extension == ".dart") return;
 
     var destPath = _idToPath(asset.id);
 

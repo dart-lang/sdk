@@ -20,7 +20,7 @@ class GlobalRunCommand extends PubCommand {
       "NOTE: We are currently optimizing this command's startup time.";
   String get usage => "pub global run <package>:<executable> [args...]";
 
-  Future onRun() {
+  Future onRun() async {
     if (commandOptions.rest.isEmpty) {
       usageError("Must specify an executable to run.");
     }
@@ -38,9 +38,9 @@ class GlobalRunCommand extends PubCommand {
 
     var args = commandOptions.rest.skip(1).toList();
 
-    return globals.find(package).then((entrypoint) {
-      return runExecutable(this, entrypoint, package, executable, args,
-          isGlobal: true);
-    }).then(flushThenExit);
+    var entrypoint = await globals.find(package);
+    var exitCode = await runExecutable(this, entrypoint, package, executable,
+          args, isGlobal: true);
+    await flushThenExit(exitCode);
   }
 }
