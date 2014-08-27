@@ -811,9 +811,11 @@ class SwitchIsolateScope {
 class IsolateSpawnState {
  public:
   IsolateSpawnState(Dart_Port parent_port,
+                    void* init_data,
                     const Function& func,
                     const Instance& message);
   IsolateSpawnState(Dart_Port parent_port,
+                    void* init_data,
                     const char* script_url,
                     const Instance& args,
                     const Instance& message);
@@ -823,6 +825,7 @@ class IsolateSpawnState {
   void set_isolate(Isolate* value) { isolate_ = value; }
 
   Dart_Port parent_port() const { return parent_port_; }
+  void* init_data() const { return init_data_; }
   char* script_url() const { return script_url_; }
   char* library_url() const { return library_url_; }
   char* class_name() const { return class_name_; }
@@ -838,6 +841,7 @@ class IsolateSpawnState {
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
+  void* init_data_;
   char* script_url_;
   char* library_url_;
   char* class_name_;

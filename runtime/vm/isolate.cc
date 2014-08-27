@@ -1415,10 +1415,12 @@ static RawInstance* DeserializeObject(Isolate* isolate,
 
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     void* init_data,
                                      const Function& func,
                                      const Instance& message)
     : isolate_(NULL),
       parent_port_(parent_port),
+      init_data_(init_data),
       script_url_(NULL),
       library_url_(NULL),
       class_name_(NULL),
@@ -1446,11 +1448,13 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     void* init_data,
                                      const char* script_url,
                                      const Instance& args,
                                      const Instance& message)
     : isolate_(NULL),
       parent_port_(parent_port),
+      init_data_(init_data),
       library_url_(NULL),
       class_name_(NULL),
       function_name_(NULL),
