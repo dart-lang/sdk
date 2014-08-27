@@ -69,7 +69,6 @@ class AwaitTransformer : public AstNodeVisitor {
   AstNode* LazyTransform(const Token::Kind kind,
                          AstNode* new_left,
                          AstNode* right);
-  LocalScope* NewScope(LocalScope* parent);
 
   void NextTempVar() { temp_cnt_++; }
 

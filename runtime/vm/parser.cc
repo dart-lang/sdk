@@ -286,7 +286,6 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
-      await_is_keyword_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(NULL),
@@ -313,7 +312,6 @@ Parser::Parser(const Script& script,
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
-      await_is_keyword_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(parsed_function),
@@ -3055,11 +3053,6 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     OpenAsyncClosure();
   }
 
-  // For async functions and their inner closures parse "await" as a keyword.
-  if (func.IsAsyncFunction() || func.is_async_closure()) {
-    await_is_keyword_ = true;
-  }
-
   intptr_t end_token_pos = 0;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
@@ -3128,7 +3121,6 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
   last_used_try_index_ = saved_try_index;
-  await_is_keyword_ = false;
   return CloseBlock();
 }
 
@@ -6359,14 +6351,9 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
 }
 
 
-// Returns true if the current token is
-// * kIDENT,
-// * or a pseudo-keyword,
-// * or is not the literal "await" in an async function.
+// Returns true if the current token is kIDENT or a pseudo-keyword.
 bool Parser::IsIdentifier() {
-  return Token::IsIdentifier(CurrentToken()) &&
-         (!await_is_keyword_ ||
-          (CurrentLiteral()->raw() != Symbols::Await().raw()));
+  return Token::IsIdentifier(CurrentToken());
 }
 
 
@@ -8563,12 +8550,11 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
       // function.
       return expr;
     }
-    OpenBlock();
-    AwaitTransformer at(current_block_->statements,
-                        library_,
-                        parsed_function());
+    SequenceNode* intermediates_block = new(I) SequenceNode(
+        Scanner::kNoSourcePos, current_block_->scope);
+    AwaitTransformer at(intermediates_block, library_, parsed_function());
     AstNode* result = at.Transform(expr);
-    current_block_->statements->Add(CloseBlock());
+    current_block_->statements->Add(intermediates_block);
     parsed_function()->reset_have_seen_await();
     return result;
   }
@@ -10953,7 +10939,7 @@ AstNode* Parser::ParsePrimary() {
     OpenBlock();
     primary = ParseFunctionStatement(true);
     CloseBlock();
-  } else if ((CurrentLiteral()->raw() == Symbols::Await().raw()) &&
+  } else if (IsLiteral("await") &&
              (parsed_function()->function().IsAsyncFunction() ||
               parsed_function()->function().is_async_closure())) {
     // The body of an async function is parsed multiple times. The first time
