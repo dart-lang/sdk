@@ -4882,10 +4882,9 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                         snapshot->length(),
                         snapshot->kind(),
                         isolate);
-  const Object& tmp = Object::Handle(isolate, reader.ReadObject());
-  if (!tmp.IsLibrary()) {
-    return Api::NewError("%s: Unable to deserialize snapshot correctly.",
-                         CURRENT_FUNC);
+  const Object& tmp = Object::Handle(isolate, reader.ReadScriptSnapshot());
+  if (tmp.IsError()) {
+    return Api::NewHandle(isolate, tmp.raw());
   }
   library ^= tmp.raw();
   library.set_debuggable(true);

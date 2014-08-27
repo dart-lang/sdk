@@ -245,7 +245,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
     SnapshotReader reader(snapshot->content(), snapshot->length(),
                           Snapshot::kFull, isolate);
-    reader.ReadFullSnapshot();
+    const Error& error = Error::Handle(reader.ReadFullSnapshot());
+    if (!error.IsNull()) {
+      return error.raw();
+    }
     if (FLAG_trace_isolates) {
       isolate->heap()->PrintSizes();
       isolate->megamorphic_cache_table()->PrintSizes();

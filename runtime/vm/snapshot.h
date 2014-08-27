@@ -272,7 +272,10 @@ class SnapshotReader : public BaseReader {
   Object* GetBackRef(intptr_t id);
 
   // Read a full snap shot.
-  void ReadFullSnapshot();
+  RawApiError* ReadFullSnapshot();
+
+  // Read a script snap shot.
+  RawObject* ReadScriptSnapshot();
 
   // Helper functions for creating uninitialized versions
   // of various object types. These are used when reading a

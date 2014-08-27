@@ -15,6 +15,7 @@
 #include "vm/object_store.h"
 #include "vm/snapshot_ids.h"
 #include "vm/symbols.h"
+#include "vm/version.h"
 
 namespace dart {
 
@@ -404,19 +405,39 @@ class HeapLocker : public StackResource {
 };
 
 
-void SnapshotReader::ReadFullSnapshot() {
+RawApiError* SnapshotReader::ReadFullSnapshot() {
   ASSERT(kind_ == Snapshot::kFull);
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
-  NoGCScope no_gc;
 
   // TODO(asiva): Add a check here to ensure we have the right heap
   // size for the full snapshot being read.
 
   {
+    NoGCScope no_gc;
     HeapLocker hl(isolate, old_space());
+
+    // First read the version string, and check that it matches.
+    obj_ = ReadObject();
+
+    // If the version string doesn't match, return an error.
+    // NB: New things are allocated only if we're going to return an error.
+    if (!obj_.IsString() || !String::Cast(obj_).Equals(Version::String())) {
+      const intptr_t kMessageBufferSize = 128;
+      char message_buffer[kMessageBufferSize];
+      OS::SNPrint(message_buffer,
+                  kMessageBufferSize,
+                  "Wrong full snapshot version. Found %s expected %s",
+                  obj_.ToCString(),
+                  Version::String());
+      const String& msg = String::Handle(String::New(message_buffer));
+      return ApiError::New(msg);
+    }
+
+    // The version string matches. Read the rest of the snapshot.
+
     // Read in all the objects stored in the object store.
     intptr_t num_flds = (object_store->to() - object_store->from());
     for (intptr_t i = 0; i <= num_flds; i++) {
@@ -428,15 +449,54 @@ void SnapshotReader::ReadFullSnapshot() {
         backward_references_[i].set_state(kIsDeserialized);
       }
     }
-  }
 
-  // Validate the class table.
+    // Validate the class table.
 #if defined(DEBUG)
-  isolate->ValidateClassTable();
+    isolate->ValidateClassTable();
 #endif
 
-  // Setup native resolver for bootstrap impl.
-  Bootstrap::SetupNativeResolver();
+    // Setup native resolver for bootstrap impl.
+    Bootstrap::SetupNativeResolver();
+    return ApiError::null();
+  }
+}
+
+
+RawObject* SnapshotReader::ReadScriptSnapshot() {
+  ASSERT(kind_ == Snapshot::kScript);
+
+  // First read the version string, and check that it matches.
+  obj_ = ReadObject();
+
+  // If the version string doesn't match, return an error.
+  // NB: New things are allocated only if we're going to return an error.
+  if (!obj_.IsString() || !String::Cast(obj_).Equals(Version::String())) {
+    const intptr_t kMessageBufferSize = 256;
+    char message_buffer[kMessageBufferSize];
+    OS::SNPrint(message_buffer,
+                kMessageBufferSize,
+                "Wrong script snapshot version. Found %s expected '%s'",
+                obj_.ToCString(),
+                Version::String());
+    const String& msg = String::Handle(String::New(message_buffer));
+    return ApiError::New(msg);
+  }
+
+  // The version string matches. Read the rest of the snapshot.
+  obj_ = ReadObject();
+  if (!obj_.IsLibrary()) {
+    if (!obj_.IsError()) {
+      const intptr_t kMessageBufferSize = 128;
+      char message_buffer[kMessageBufferSize];
+      OS::SNPrint(message_buffer,
+                  kMessageBufferSize,
+                  "Invalid object %s found in script snapshot",
+                  obj_.ToCString());
+      const String& msg = String::Handle(String::New(message_buffer));
+      obj_ = ApiError::New(msg);
+    }
+  }
+  return obj_.raw();
 }
 
 
@@ -1181,26 +1241,31 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   isolate->ValidateClassTable();
 #endif
 
-
   // Setup for long jump in case there is an exception while writing
   // the snapshot.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    NoGCScope no_gc;
-
     // Reserve space in the output buffer for a snapshot header.
     ReserveHeader();
 
-    // Write out all the objects in the object store of the isolate which
-    // is the root set for all dart allocated objects at this point.
-    SnapshotWriterVisitor visitor(this, false);
-    object_store->VisitObjectPointers(&visitor);
+    // Write out the version string.
+    WriteObject(String::New(Version::String()));
 
-    // Write out all forwarded objects.
-    WriteForwardedObjects();
+    // Write out the full snapshot.
+    {
+      NoGCScope no_gc;
 
-    FillHeader(kind());
-    UnmarkAll();
+      // Write out all the objects in the object store of the isolate which
+      // is the root set for all dart allocated objects at this point.
+      SnapshotWriterVisitor visitor(this, false);
+      object_store->VisitObjectPointers(&visitor);
+
+      // Write out all forwarded objects.
+      WriteForwardedObjects();
+
+      FillHeader(kind());
+      UnmarkAll();
+    }
   } else {
     ThrowException(exception_type(), exception_msg());
   }
@@ -1616,12 +1681,22 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   // the snapshot.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    // Write out the library object.
-    NoGCScope no_gc;
+    // Reserve space in the output buffer for a snapshot header.
     ReserveHeader();
-    WriteObject(lib.raw());
-    FillHeader(kind());
-    UnmarkAll();
+
+    // Write out the version string.
+    WriteObject(String::New(Version::String()));
+
+    // Write out the library object.
+    {
+      NoGCScope no_gc;
+
+      // Write out the library object.
+      WriteObject(lib.raw());
+
+      FillHeader(kind());
+      UnmarkAll();
+    }
   } else {
     ThrowException(exception_type(), exception_msg());
   }
