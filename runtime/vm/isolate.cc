@@ -416,6 +416,7 @@ Isolate::Isolate()
       mutex_(new Mutex()),
       stack_limit_(0),
       saved_stack_limit_(0),
+      stack_base_(0),
       stack_overflow_flags_(0),
       stack_overflow_count_(0),
       message_handler_(NULL),
@@ -601,7 +602,7 @@ Isolate* Isolate::Init(const char* name_prefix) {
   // main thread.
   // TODO(5411455): Need to figure out how to set the stack limit for the
   // main thread.
-  result->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(&result));
+  result->SetStackLimitFromStackBase(reinterpret_cast<uword>(&result));
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
   result->set_pause_capability(result->random()->NextUInt64());
   result->set_terminate_capability(result->random()->NextUInt64());
@@ -642,15 +643,18 @@ uword Isolate::GetSpecifiedStackSize() {
 }
 
 
-void Isolate::SetStackLimitFromCurrentTOS(uword stack_top_value) {
+void Isolate::SetStackLimitFromStackBase(uword stack_base) {
 #if defined(USING_SIMULATOR)
   // Ignore passed-in native stack top and use Simulator stack top.
   Simulator* sim = Simulator::Current();  // May allocate a simulator.
   ASSERT(simulator() == sim);  // This isolate's simulator is the current one.
-  stack_top_value = sim->StackTop();
+  stack_base = sim->StackTop();
   // The overflow area is accounted for by the simulator.
 #endif
-  SetStackLimit(stack_top_value - GetSpecifiedStackSize());
+  // Set stack base.
+  stack_base_ = stack_base;
+  // Set stack limit.
+  SetStackLimit(stack_base_ - GetSpecifiedStackSize());
 }
 
 
@@ -666,7 +670,13 @@ void Isolate::SetStackLimit(uword limit) {
 }
 
 
-bool Isolate::GetStackBounds(uword* lower, uword* upper) {
+void Isolate::ClearStackLimit() {
+  SetStackLimit(~static_cast<uword>(0));
+  stack_base_ = 0;
+}
+
+
+bool Isolate::GetProfilerStackBounds(uword* lower, uword* upper) const {
   uword stack_lower = stack_limit();
   if (stack_lower == kUwordMax) {
     stack_lower = saved_stack_limit();

@@ -408,7 +408,7 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
   if (isolate == NULL) {
     return NULL;
   }
-  Isolate::SetCurrent(isolate);
+  StartIsolateScope isolate_scope(isolate);
   {
     // Install the dart:vmservice library.
     StackZone zone(isolate);
@@ -473,7 +473,6 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
     RegisterRunningIsolatesVisitor register_isolates(isolate);
     Isolate::VisitIsolates(&register_isolates);
   }
-  Isolate::SetCurrent(NULL);
   service_isolate_ = reinterpret_cast<Isolate*>(isolate);
   return service_isolate_;
 }

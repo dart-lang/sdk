@@ -240,7 +240,8 @@ class Isolate : public BaseIsolate {
   }
 
   void SetStackLimit(uword value);
-  void SetStackLimitFromCurrentTOS(uword isolate_stack_top);
+  void SetStackLimitFromStackBase(uword stack_base);
+  void ClearStackLimit();
 
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
@@ -255,6 +256,8 @@ class Isolate : public BaseIsolate {
 
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
+
+  uword stack_base() const { return stack_base_; }
 
   // Stack overflow flags
   enum {
@@ -274,8 +277,8 @@ class Isolate : public BaseIsolate {
   // stack overflow is called.
   uword GetAndClearStackOverflowFlags();
 
-  // Retrieve the stack address bounds.
-  bool GetStackBounds(uword* lower, uword* upper);
+  // Retrieve the stack address bounds for profiler.
+  bool GetProfilerStackBounds(uword* lower, uword* upper) const;
 
   static uword GetSpecifiedStackSize();
 
@@ -649,6 +652,7 @@ class Isolate : public BaseIsolate {
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;
   uword saved_stack_limit_;
+  uword stack_base_;
   uword stack_overflow_flags_;
   int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
@@ -749,13 +753,13 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
       Isolate::SetCurrent(new_isolate_);
-      new_isolate_->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(this));
+      new_isolate_->SetStackLimitFromStackBase(reinterpret_cast<uword>(this));
     }
   }
 
   ~StartIsolateScope() {
     if (saved_isolate_ != new_isolate_) {
-      new_isolate_->SetStackLimit(~static_cast<uword>(0));
+      new_isolate_->ClearStackLimit();
       Isolate::SetCurrent(saved_isolate_);
     }
   }

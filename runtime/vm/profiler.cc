@@ -2000,7 +2000,7 @@ void Profiler::RecordSampleInterruptCallback(
 
   uword stack_lower = 0;
   uword stack_upper = 0;
-  isolate->GetStackBounds(&stack_lower, &stack_upper);
+  isolate->GetProfilerStackBounds(&stack_lower, &stack_upper);
   if ((stack_lower == 0) || (stack_upper == 0)) {
     // Could not get stack boundary.
     return;
