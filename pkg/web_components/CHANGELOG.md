@@ -2,6 +2,14 @@
 
 This file contains highlights of what changes on each version of this package.
 
+#### Pub version 0.6.0
+  * Upgrades to platform master as of 8/25/2014 (see lib/build.log for details).
+    This is more recent than the 0.3.5 release as there were multiple breakages
+    that required updating past that.
+  * There is a bug in this version where selecting non-rendered elements doesn't
+    work, but it shouldn't affect most people. See 
+    https://github.com/Polymer/ShadowDOM/issues/495.
+
 #### Pub version 0.5.0+1
   * Backward compatible change to prepare for upcoming change of the user agent
     in Dartium.

@@ -4,6 +4,12 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.13.0
+  * Update to match polymer 0.3.5 ([polymer-dev#5d00e4b][5d00e4b]). There was a
+    breaking change in the web_components package where selecting non-rendered 
+    elements doesn't work, but it shouldn't affect most people. See 
+    https://github.com/Polymer/ShadowDOM/issues/495.
+
 #### Pub version 0.12.2+1
   * Small bug fix for `polymer:new_element`
 

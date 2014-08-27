@@ -58,8 +58,8 @@ main() => initPolymer().run(() {
 
   test('elements can be passed through Node.bind to JS', () {
     var text = querySelector('dart-element2')
-        .shadowRoot.querySelector('js-element2')
-        .shadowRoot.text;
+    .shadowRoot.querySelector('js-element2')
+    .shadowRoot.text;
     expect(text, 'QUX:123');
   });
 

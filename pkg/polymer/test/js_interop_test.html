@@ -47,6 +47,9 @@
   <polymer-element name="dart-element2">
     <template>
      <js-element2 qux="{{quux}}"></js-element2>
+      <!-- TODO(jakemac): remove this once
+          https://github.com/Polymer/ShadowDOM/issues/495 is resolved -->
+      <content hidden></content>
     </template>
   </polymer-element>
 

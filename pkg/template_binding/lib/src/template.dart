@@ -184,7 +184,7 @@ class TemplateBindExtension extends NodeBindExtension {
 
     _refContent = null;
     _iterator._valueChanged(null);
-    _iterator._updateIteratedValue(null);
+    _iterator._updateIteratedValue(this._iterator._getUpdatedValue());
   }
 
   void clear() {
