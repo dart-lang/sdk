@@ -28,6 +28,7 @@ class Heap;
 class LanguageError;
 class Library;
 class Object;
+class PassiveObject;
 class ObjectStore;
 class PageSpace;
 class RawApiError;
@@ -252,7 +253,7 @@ class SnapshotReader : public BaseReader {
   Heap* heap() const { return heap_; }
   ObjectStore* object_store() const { return isolate_->object_store(); }
   ClassTable* class_table() const { return isolate_->class_table(); }
-  Object* ObjectHandle() { return &obj_; }
+  PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
@@ -368,6 +369,7 @@ class SnapshotReader : public BaseReader {
   PageSpace* old_space_;  // Old space of the current isolate.
   Class& cls_;  // Temporary Class handle.
   Object& obj_;  // Temporary Object handle.
+  PassiveObject& pobj_;  // Temporary PassiveObject handle.
   Array& array_;  // Temporary Array handle.
   Field& field_;  // Temporary Field handle.
   String& str_;  // Temporary String handle.

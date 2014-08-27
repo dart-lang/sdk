@@ -692,6 +692,54 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 };
 
 
+class PassiveObject : public Object {
+ public:
+  void operator=(RawObject* value) {
+    raw_ = value;
+  }
+  void operator^=(RawObject* value) {
+    raw_ = value;
+  }
+  static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
+    PassiveObject* obj =
+        reinterpret_cast<PassiveObject*>(VMHandles::AllocateHandle(I));
+    obj->raw_ = raw_ptr;
+    obj->set_vtable(NULL);
+    return *obj;
+  }
+  static PassiveObject& Handle(RawObject* raw_ptr) {
+    return Handle(Isolate::Current(), raw_ptr);
+  }
+  static PassiveObject& Handle() {
+    return Handle(Isolate::Current(), Object::null());
+  }
+  static PassiveObject& Handle(Isolate* I) {
+    return Handle(I, Object::null());
+  }
+  static PassiveObject& ZoneHandle(Isolate* I, RawObject* raw_ptr) {
+    PassiveObject* obj = reinterpret_cast<PassiveObject*>(
+        VMHandles::AllocateZoneHandle(I));
+    obj->raw_ = raw_ptr;
+    obj->set_vtable(NULL);
+    return *obj;
+  }
+  static PassiveObject& ZoneHandle(RawObject* raw_ptr) {
+    return ZoneHandle(Isolate::Current(), raw_ptr);
+  }
+  static PassiveObject& ZoneHandle() {
+    return ZoneHandle(Isolate::Current(), Object::null());
+  }
+  static PassiveObject& ZoneHandle(Isolate* I) {
+    return ZoneHandle(I, Object::null());
+  }
+
+ private:
+  PassiveObject() : Object() {}
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(PassiveObject);
+};
+
+
 class Class : public Object {
  public:
   intptr_t instance_size() const {

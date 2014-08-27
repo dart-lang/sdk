@@ -169,6 +169,7 @@ SnapshotReader::SnapshotReader(const uint8_t* buffer,
       old_space_(isolate->heap()->old_space()),
       cls_(Class::Handle(isolate)),
       obj_(Object::Handle(isolate)),
+      pobj_(PassiveObject::Handle(isolate)),
       array_(Array::Handle(isolate)),
       field_(Field::Handle(isolate)),
       str_(String::Handle(isolate)),
@@ -336,7 +337,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
   switch (class_id) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kClassId: {                                                    \
-      obj_ = clazz::ReadFrom(this, object_id, tags, kind_);                    \
+      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_);                   \
       break;                                                                   \
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
@@ -346,7 +347,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(class_id, tags);
-      obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
+      pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
 #undef SNAPSHOT_READ
@@ -355,16 +356,16 @@ RawObject* SnapshotReader::ReadObjectRef() {
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(class_id, tags);
-      obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
+      pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
 #undef SNAPSHOT_READ
     default: UNREACHABLE(); break;
   }
   if (kind_ == Snapshot::kFull) {
-    obj_.SetCreatedFromSnapshot();
+    pobj_.SetCreatedFromSnapshot();
   }
-  return obj_.raw();
+  return pobj_.raw();
 }
 
 
@@ -888,8 +889,8 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     intptr_t offset = Instance::NextFieldOffset();
     intptr_t result_cid = result->GetClassId();
     while (offset < next_field_offset) {
-      obj_ = ReadObjectRef();
-      result->SetFieldAtOffset(offset, obj_);
+      pobj_ = ReadObjectRef();
+      result->SetFieldAtOffset(offset, pobj_);
       if ((offset != type_argument_field_offset) &&
           (kind_ == Snapshot::kMessage)) {
         // TODO(fschneider): Consider hoisting these lookups out of the loop.
@@ -900,6 +901,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
         field_ ^= array_.At(offset >> kWordSizeLog2);
         ASSERT(!field_.IsNull());
         ASSERT(field_.Offset() == offset);
+        obj_ = pobj_.raw();
         field_.RecordStore(obj_);
       }
       // TODO(fschneider): Verify the guarded cid and length for other kinds of
@@ -926,7 +928,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   switch (cls_.id()) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kClassId: {                                                    \
-      obj_ = clazz::ReadFrom(this, object_id, tags, kind_);                    \
+      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_);                   \
       break;                                                                   \
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
@@ -936,7 +938,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(cls_.id(), tags);
-      obj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
+      pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
 #undef SNAPSHOT_READ
@@ -945,16 +947,16 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(cls_.id(), tags);
-      obj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
+      pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_);
       break;
     }
 #undef SNAPSHOT_READ
     default: UNREACHABLE(); break;
   }
   if (kind_ == Snapshot::kFull) {
-    obj_.SetCreatedFromSnapshot();
+    pobj_.SetCreatedFromSnapshot();
   }
-  return obj_.raw();
+  return pobj_.raw();
 }
 
 
@@ -969,8 +971,8 @@ void SnapshotReader::ArrayReadFrom(const Array& result,
   result.SetTypeArguments(*TypeArgumentsHandle());
 
   for (intptr_t i = 0; i < len; i++) {
-    *ObjectHandle() = ReadObjectRef();
-    result.SetAt(i, *ObjectHandle());
+    *PassiveObjectHandle() = ReadObjectRef();
+    result.SetAt(i, *PassiveObjectHandle());
   }
 }
 

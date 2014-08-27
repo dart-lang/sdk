@@ -149,9 +149,9 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (unresolved_class.raw()->to() -
                        unresolved_class.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
     unresolved_class.StorePointer((unresolved_class.raw()->from() + i),
-                                  reader->ObjectHandle()->raw());
+                                  reader->PassiveObjectHandle()->raw());
   }
   return unresolved_class.raw();
 }
@@ -213,8 +213,9 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (type.raw()->to() - type.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectImpl();
-    type.StorePointer((type.raw()->from() + i), reader->ObjectHandle()->raw());
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectImpl();
+    type.StorePointer((type.raw()->from() + i),
+                      reader->PassiveObjectHandle()->raw());
   }
 
   // If object needs to be a canonical object, Canonicalize it.
@@ -286,9 +287,9 @@ RawTypeRef* TypeRef::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (type_ref.raw()->to() - type_ref.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
     type_ref.StorePointer((type_ref.raw()->from() + i),
-                          reader->ObjectHandle()->raw());
+                          reader->PassiveObjectHandle()->raw());
   }
 
   return type_ref.raw();
@@ -338,9 +339,9 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (type_parameter.raw()->to() -
                        type_parameter.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
     type_parameter.StorePointer((type_parameter.raw()->from() + i),
-                                reader->ObjectHandle()->raw());
+                                reader->PassiveObjectHandle()->raw());
   }
 
   return type_parameter.raw();
@@ -393,9 +394,9 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (bounded_type.raw()->to() -
                        bounded_type.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
     bounded_type.StorePointer((bounded_type.raw()->from() + i),
-                              reader->ObjectHandle()->raw());
+                              reader->PassiveObjectHandle()->raw());
   }
 
   return bounded_type.raw();
@@ -832,8 +833,8 @@ RawLiteralToken* LiteralToken::ReadFrom(SnapshotReader* reader,
   literal_token.set_kind(token_kind);
   *reader->StringHandle() ^= reader->ReadObjectImpl();
   literal_token.set_literal(*reader->StringHandle());
-  *reader->ObjectHandle() = reader->ReadObjectImpl();
-  literal_token.set_value(*reader->ObjectHandle());
+  *reader->PassiveObjectHandle() = reader->ReadObjectImpl();
+  literal_token.set_value(*reader->PassiveObjectHandle());
 
   return literal_token.raw();
 }
@@ -1342,9 +1343,9 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (context.raw()->to(num_vars) - context.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
     context.StorePointer((context.raw()->from() + i),
-                         reader->ObjectHandle()->raw());
+                         reader->PassiveObjectHandle()->raw());
   }
 
   return context.raw();
@@ -1473,9 +1474,9 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (api_error.raw()->to() - api_error.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
     api_error.StorePointer((api_error.raw()->from() + i),
-                           reader->ObjectHandle()->raw());
+                           reader->PassiveObjectHandle()->raw());
   }
 
   return api_error.raw();
@@ -1524,9 +1525,9 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds =
       (language_error.raw()->to() - language_error.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
     language_error.StorePointer((language_error.raw()->from() + i),
-                                reader->ObjectHandle()->raw());
+                                reader->PassiveObjectHandle()->raw());
   }
 
   return language_error.raw();
