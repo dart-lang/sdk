@@ -424,14 +424,15 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
 
     // If the version string doesn't match, return an error.
     // NB: New things are allocated only if we're going to return an error.
-    if (!obj_.IsString() || !String::Cast(obj_).Equals(Version::String())) {
+    if (!obj_.IsString() ||
+        !String::Cast(obj_).Equals(Version::SnapshotString())) {
       const intptr_t kMessageBufferSize = 128;
       char message_buffer[kMessageBufferSize];
       OS::SNPrint(message_buffer,
                   kMessageBufferSize,
                   "Wrong full snapshot version. Found %s expected %s",
                   obj_.ToCString(),
-                  Version::String());
+                  Version::SnapshotString());
       const String& msg = String::Handle(String::New(message_buffer));
       return ApiError::New(msg);
     }
@@ -470,14 +471,15 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
 
   // If the version string doesn't match, return an error.
   // NB: New things are allocated only if we're going to return an error.
-  if (!obj_.IsString() || !String::Cast(obj_).Equals(Version::String())) {
+  if (!obj_.IsString() ||
+      !String::Cast(obj_).Equals(Version::SnapshotString())) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
     OS::SNPrint(message_buffer,
                 kMessageBufferSize,
                 "Wrong script snapshot version. Found %s expected '%s'",
                 obj_.ToCString(),
-                Version::String());
+                Version::SnapshotString());
     const String& msg = String::Handle(String::New(message_buffer));
     return ApiError::New(msg);
   }
@@ -1249,7 +1251,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     ReserveHeader();
 
     // Write out the version string.
-    WriteObject(String::New(Version::String()));
+    WriteObject(String::New(Version::SnapshotString()));
 
     // Write out the full snapshot.
     {
@@ -1685,7 +1687,7 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
     ReserveHeader();
 
     // Write out the version string.
-    WriteObject(String::New(Version::String()));
+    WriteObject(String::New(Version::SnapshotString()));
 
     // Write out the library object.
     {

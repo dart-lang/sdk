@@ -26,6 +26,12 @@ const char* Version::String() {
   return formatted_version;
 }
 
+
+const char* Version::SnapshotString() {
+  return str_;
+}
+
+
 const char* Version::str_ = "{{VERSION_STR}} ({{BUILD_TIME}})";
 
 }  // namespace dart
