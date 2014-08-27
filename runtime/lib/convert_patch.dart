@@ -575,9 +575,3 @@ class _JsonParser {
     throw new FormatException(message, source, position);
   }
 }
-
-// UTF-8 conversion.
-
-patch class _Utf8Encoder {
-  /* patch */ static List<int> _createBuffer(int size) => new Uint8List(size);
-}
