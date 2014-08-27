@@ -1475,18 +1475,18 @@ class ServiceFunction extends ServiceObject with Coverage {
 
     if (mapIsRef) { return; }
 
-    isStatic = map['isStatic'];
-    isConst = map['isConst'];
+    isStatic = map['static'];
+    isConst = map['const'];
     parent = map['parent'];
     script = map['script'];
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
     code = _convertNull(map['code']);
-    unoptimizedCode = _convertNull(map['unoptimized_code']);
-    isOptimizable = map['is_optimizable'];
-    isInlinable = map['is_inlinable'];
+    unoptimizedCode = _convertNull(map['unoptimizedCode']);
+    isOptimizable = map['optimizable'];
+    isInlinable = map['inlinable'];
     deoptimizations = map['deoptimizations'];
-    usageCounter = map['usage_counter'];
+    usageCounter = map['usageCounter'];
 
     if (parent == null) {
       qualifiedName = (owningClass != null) ?
@@ -1594,7 +1594,7 @@ class Script extends ServiceObject with Coverage {
     }
     _processSource(map['source']);
     _parseTokenPosTable(map['tokenPosTable']);
-    owningLibrary = map['owning_library'];
+    owningLibrary = map['owningLibrary'];
   }
 
   void _parseTokenPosTable(List<List<int>> table) {
@@ -2002,12 +2002,12 @@ class Code extends ServiceObject {
   void _update(ObservableMap m, bool mapIsRef) {
     name = m['name'];
     vmName = (m.containsKey('vmName') ? m['vmName'] : name);
-    isOptimized = m['isOptimized'] != null ? m['isOptimized'] : false;
+    isOptimized = m['optimized'] != null ? m['optimized'] : false;
     kind = CodeKind.fromString(m['kind']);
     startAddress = int.parse(m['start'], radix:16);
     endAddress = int.parse(m['end'], radix:16);
     function = isolate.getFromMap(m['function']);
-    objectPool = isolate.getFromMap(m['object_pool']);
+    objectPool = isolate.getFromMap(m['objectPool']);
     var disassembly = m['disassembly'];
     if (disassembly != null) {
       _processDisassembly(disassembly);

@@ -4445,7 +4445,7 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name, vm_name);
   jsobj.AddProperty("length", Length());
-  jsobj.AddProperty("num_instantiations", NumInstantiations());
+  jsobj.AddProperty("numInstantiations", NumInstantiations());
   if (ref) {
     return;
   }
@@ -6813,13 +6813,13 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("is_static", is_static());
-  jsobj.AddProperty("is_const", is_const());
-  jsobj.AddProperty("is_optimizable", is_optimizable());
-  jsobj.AddProperty("is_inlinable", IsInlineable());
-  jsobj.AddProperty("unoptimized_code", Object::Handle(unoptimized_code()));
-  jsobj.AddProperty("usage_counter", usage_counter());
-  jsobj.AddProperty("optimized_call_site_count", optimized_call_site_count());
+  jsobj.AddProperty("static", is_static());
+  jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("optimizable", is_optimizable());
+  jsobj.AddProperty("inlinable", IsInlineable());
+  jsobj.AddProperty("unoptimizedCode", Object::Handle(unoptimized_code()));
+  jsobj.AddProperty("usageCounter", usage_counter());
+  jsobj.AddProperty("optimizedCallSiteCount", optimized_call_site_count());
   jsobj.AddProperty("code", Object::Handle(CurrentCode()));
   jsobj.AddProperty("deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
@@ -7157,36 +7157,36 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   AbstractType& declared_type = AbstractType::Handle(type());
-  jsobj.AddProperty("declared_type", declared_type);
+  jsobj.AddProperty("declaredType", declared_type);
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("final", is_final());
   jsobj.AddProperty("const", is_const());
   if (ref) {
     return;
   }
-  jsobj.AddProperty("guard_nullable", is_nullable());
+  jsobj.AddProperty("guardNullable", is_nullable());
   if (guarded_cid() == kIllegalCid) {
-    jsobj.AddProperty("guard_class", "unknown");
+    jsobj.AddProperty("guardClass", "unknown");
   } else if (guarded_cid() == kDynamicCid) {
-    jsobj.AddProperty("guard_class", "dynamic");
+    jsobj.AddProperty("guardClass", "dynamic");
   } else {
     ClassTable* table = Isolate::Current()->class_table();
     ASSERT(table->IsValidIndex(guarded_cid()));
     cls ^= table->At(guarded_cid());
-    jsobj.AddProperty("guard_class", cls);
+    jsobj.AddProperty("guardClass", cls);
   }
   if (guarded_list_length() == kUnknownFixedLength) {
-    jsobj.AddProperty("guard_length", "unknown");
+    jsobj.AddProperty("guardLength", "unknown");
   } else if (guarded_list_length() == kNoFixedLength) {
-    jsobj.AddProperty("guard_length", "variable");
+    jsobj.AddProperty("guardLength", "variable");
   } else {
-    jsobj.AddProperty("guard_length", guarded_list_length());
+    jsobj.AddProperty("guardLength", guarded_list_length());
   }
   const Class& origin_cls = Class::Handle(origin());
   const Script& script = Script::Handle(origin_cls.script());
   if (!script.IsNull()) {
     jsobj.AddProperty("script", script);
-    jsobj.AddProperty("token_pos", token_pos());
+    jsobj.AddProperty("tokenPos", token_pos());
   }
 }
 
@@ -8473,7 +8473,7 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("owning_library", lib);
+  jsobj.AddProperty("owningLibrary", lib);
   const String& source = String::Handle(Source());
   jsobj.AddProperty("source", source.ToCString());
 
@@ -12270,8 +12270,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
                      EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
-  jsobj.AddProperty("isOptimized", is_optimized());
-  jsobj.AddProperty("isAlive", is_alive());
+  jsobj.AddProperty("optimized", is_optimized());
+  jsobj.AddProperty("alive", is_alive());
   jsobj.AddProperty("kind", "Dart");
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -12292,7 +12292,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
   const Array& array = Array::Handle(ObjectPool());
-  jsobj.AddProperty("object_pool", array);
+  jsobj.AddProperty("objectPool", array);
   {
     JSONArray jsarr(&jsobj, "disassembly");
     if (is_alive()) {
@@ -14675,7 +14675,7 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
     ASSERT(id >= 0);
     intptr_t cid = type_cls.id();
     jsobj.AddPropertyF("id", "classes/%" Pd "/types/%" Pd "", cid, id);
-    jsobj.AddProperty("type_class", type_cls);
+    jsobj.AddProperty("typeClass", type_cls);
   } else {
     ObjectIdRing* ring = Isolate::Current()->object_id_ring();
     const intptr_t id = ring->GetIdForObject(raw());
@@ -14687,7 +14687,7 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("type_arguments", TypeArguments::Handle(arguments()));
+  jsobj.AddProperty("typeArguments", TypeArguments::Handle(arguments()));
 }
 
 
@@ -14850,7 +14850,7 @@ void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("ref_type", AbstractType::Handle(type()));
+  jsobj.AddProperty("refType", AbstractType::Handle(type()));
 }
 
 
@@ -15064,13 +15064,13 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& vm_name = String::Handle(Name());
   AddNameProperties(&jsobj, user_name, vm_name);
   const Class& param_cls = Class::Handle(parameterized_class());
-  jsobj.AddProperty("parameterized_class", param_cls);
+  jsobj.AddProperty("parameterizedClass", param_cls);
   if (ref) {
     return;
   }
   jsobj.AddProperty("index", index());
   const AbstractType& upper_bound = AbstractType::Handle(bound());
-  jsobj.AddProperty("upper_bound", upper_bound);
+  jsobj.AddProperty("upperBound", upper_bound);
 }
 
 
@@ -15269,8 +15269,8 @@ void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("bounded_type", AbstractType::Handle(type()));
-  jsobj.AddProperty("upper_bound", AbstractType::Handle(bound()));
+  jsobj.AddProperty("boundedType", AbstractType::Handle(type()));
+  jsobj.AddProperty("upperBound", AbstractType::Handle(bound()));
 }
 
 

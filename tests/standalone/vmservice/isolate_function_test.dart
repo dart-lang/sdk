@@ -14,7 +14,7 @@ class MethodTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     Expect.equals('Function', reply['type']);
     Expect.equals('c', reply['name']);
-    Expect.equals(false, reply['is_static']);
+    Expect.equals(false, reply['static']);
   }
 }
 
@@ -25,7 +25,7 @@ class FunctionTest extends VmServiceRequestHelper {
   onRequestCompleted(Map reply) {
     Expect.equals('Function', reply['type']);
     Expect.equals('a', reply['name']);
-    Expect.equals(true, reply['is_static']);
+    Expect.equals(true, reply['static']);
   }
 }
 

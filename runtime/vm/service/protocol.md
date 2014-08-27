@@ -121,16 +121,16 @@ TODO: Get rid of Location or else use it more generally.
 | --- | --- | ---
 | type | "@Class" |
 | id | String |
-| user_name | String |
 | name | String |
+| vmName? | String |
 
 ### <a name="Class"></a>Class
 | keys | values | comments
 | --- | --- | ---
 | type | "@Class" |
 | id | String |
-| user_name | String |
 | name | String |
+| vmName? | String |
 | error? | [Error](#Error) | Error encountered during class finalization
 | implemented | bool |
 | abstract | bool |
@@ -177,8 +177,8 @@ TODO: Get rid of Location or else use it more generally.
 | --- | --- | ---
 | type | "@Code" |
 | id | String |
-| user_name | String |
 | name | String |
+| vmName? | String |
 | start | String | starting address of code
 | end | String | ending address of code
 | isOptimized | bool |
@@ -191,8 +191,8 @@ TODO: Get rid of Location or else use it more generally.
 | --- | --- | ---
 | type | "@Code" |
 | id | String |
-| user_name | String |
 | name | String |
+| vmName? | String |
 | start | String | starting address of code
 | end | String | ending address of code
 | isOptimized | bool |
@@ -239,8 +239,8 @@ TODO: Drop id from Error.
 | --- | --- | ---
 | type | "@Field" |
 | id | String |
-| user_name | String |
 | name | String |
+| vmName? | String |
 | value? | Instance | value associated with static field <-- do we want to include this in a field reference?
 | owner | [@Library](#atLibrary),[@Class](#atClass) | Owning library or class <-- handling of owner is inconsistent with Function
 | declared_type | [@AbstractType](#atAbstractType) |
@@ -253,8 +253,8 @@ TODO: Drop id from Error.
 | --- | --- | ---
 | type | "Field" |
 | id | String |
-| user_name | String |
 | name | String |
+| vmName? | String |
 | value? | Instance | value associated with static field
 | owner | [@Library](#atLibrary) | Owning library <-- handling of owner is inconsistent with Function
 | owner | [@Class](#atClass) | Owning class <-- handling of owner is inconsistent with Function
@@ -292,8 +292,8 @@ TODO: Add type and id?<br>
 | --- | --- | ---
 | type | "@Function" |
 | id | String |
-| user_name | String |
 | name | String |
+| vmName? | String |
 | owningLibrary? | [@Library](#atLibrary) | Set for non-top level functions
 | owningClass? | [@Class](#atClass) | Set for non-top level functions
 | parent? | [@Function](#atFunction) | Parent function
@@ -304,16 +304,16 @@ TODO: Add type and id?<br>
 | --- | --- | ---
 | type | "@Function" |
 | id | String |
-| user_name | String |
 | name | String |
+| vmName? | String |
 | owningLibrary | [@Library](#atLibrary) | Set for non-top level functions
 | owningClass | [@Class](#atClass) | Set for non-top level functions
 | parent? | [@Function](#atFunction) | Parent function
 | kind | String |
-| is_static | bool |
-| is_const | bool |
-| is_optimizable | bool |
-| is_inlinable | bool |
+| static | bool |
+| const | bool |
+| optimizable | bool |
+| inlinable | bool |
 | usage_counter | int |
 | optimized_call_site_count | int |
 | deoptimizations | int |
