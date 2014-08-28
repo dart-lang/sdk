@@ -63,7 +63,22 @@ class Driver {
     ChangeSet changeSet = new ChangeSet();
     JavaFile javaFile = new JavaFile(path);
     Source source = new FileBasedSource.con1(javaFile);
-    changeSet.addedSources.add(source);
+    changeSet.addedSource(source);
+    context.applyChanges(changeSet);
+    return source;
+  }
+
+  /**
+   * Add the given file contents as the root of analysis.  For unit testing.
+   */
+  Source setFakeRoot(String contents) {
+    String path = 'root.dart';
+    // Tell the analysis server about the root
+    ChangeSet changeSet = new ChangeSet();
+    JavaFile javaFile = new JavaFile(path);
+    Source source = new FileBasedSource.con1(javaFile);
+    changeSet.addedSource(source);
+    changeSet.changedContent(source, contents);
     context.applyChanges(changeSet);
     return source;
   }
