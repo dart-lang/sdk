@@ -286,7 +286,7 @@ main() {
     expect(refactoring.refactoringName, 'Rename Local Function');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 main() {
   int newName() => 0;
   print(newName);
@@ -317,7 +317,7 @@ main() {
     expect(refactoring.refactoringName, 'Rename Local Function');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 main() {
   {
     int test() => 0;
@@ -349,7 +349,7 @@ main() {
     expect(refactoring.refactoringName, 'Rename Local Variable');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 main() {
   int newName = 0;
   newName = 1;
@@ -381,7 +381,7 @@ main() {
     expect(refactoring.refactoringName, 'Rename Local Variable');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 main() {
   {
     int test = 0;
@@ -415,7 +415,7 @@ main() {
     expect(refactoring.refactoringName, 'Rename Parameter');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 myFunction({int newName}) {
   newName = 1;
   newName += 2;
@@ -444,7 +444,7 @@ main() {
     expect(refactoring.refactoringName, 'Rename Parameter');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 class A {
   A({newName});
 }

@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -131,7 +132,8 @@ main() {
 }
 ''');
     _createRefactoringForStartEndComments();
-    return _assertConditionsError("Created function will shadow method 'A.res'.");
+    return _assertConditionsError(
+        "Created function will shadow method 'A.res'.");
   }
 
   test_bad_constructor_initializer() {
@@ -2189,7 +2191,7 @@ void res() {
 
   void _createRefactoring(int offset, int length) {
     refactoring =
-        new ExtractMethodRefactoringImpl(searchEngine, testUnit, offset, length);
+        new ExtractMethodRefactoring(searchEngine, testUnit, offset, length);
     refactoring.name = 'res';
   }
 

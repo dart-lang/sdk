@@ -165,12 +165,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     RefactoringStatus result = new RefactoringStatus();
     result.addStatus(validateMethodName(name));
     result.addStatus(_checkParameterNames());
-    // TODO: implement checkFinalConditions
     return _checkPossibleConflicts().then((status) {
       result.addStatus(status);
       return result;
     });
-    return new Future.value(result);
   }
 
 

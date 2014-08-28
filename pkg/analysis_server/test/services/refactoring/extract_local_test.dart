@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -883,7 +884,7 @@ main() {
   }
 
   void _createRefactoring(int offset, int length) {
-    refactoring = new ExtractLocalRefactoringImpl(testUnit, offset, length);
+    refactoring = new ExtractLocalRefactoring(testUnit, offset, length);
     refactoring.name = 'res';
   }
 

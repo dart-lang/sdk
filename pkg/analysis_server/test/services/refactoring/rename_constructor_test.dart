@@ -106,7 +106,7 @@ main() {
     expect(refactoring.oldName, '');
     // validate change
     refactoring.newName = 'newName';
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 class A {
   A.newName() {} // marker
 }
@@ -139,7 +139,7 @@ main() {
     expect(refactoring.oldName, 'test');
     // validate change
     refactoring.newName = 'newName';
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 class A {
   A.newName() {} // marker
 }
@@ -172,7 +172,7 @@ main() {
     expect(refactoring.oldName, 'test');
     // validate change
     refactoring.newName = '';
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 class A {
   A() {} // marker
 }
