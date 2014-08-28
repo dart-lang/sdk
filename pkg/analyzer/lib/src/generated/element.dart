@@ -10982,11 +10982,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   static List<TypeParameterType> EMPTY_ARRAY = new List<TypeParameterType>(0);
 
   /**
-   * The name of the type Type from dart.core.
-   */
-  static String _TYPE_CLASS_NAME = "Type";
-
-  /**
    * Return an array containing the type parameter types defined by the given array of type
    * parameter elements.
    *
@@ -11060,14 +11055,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   bool internalIsSubtypeOf(DartType type, Set<TypeImpl_TypePair> visitedTypePairs) => isMoreSpecificThan2(type, true, new HashSet<TypeImpl_TypePair>());
 
   bool _isMoreSpecificThan(DartType s, Set<DartType> visitedTypes, bool withDynamic, Set<TypeImpl_TypePair> visitedTypePairs) {
-    //
-    // If s is of type Type from dart.core, return true
-    //
-    Element sElement = s.element;
-    LibraryElement sLibrary = sElement != null ? sElement.library : null;
-    if (sLibrary != null && sLibrary.isDartCore && s.name == _TYPE_CLASS_NAME) {
-      return true;
-    }
     //
     // T is a type parameter and S is the upper bound of T.
     //

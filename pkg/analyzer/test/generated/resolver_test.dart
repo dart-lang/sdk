@@ -13759,8 +13759,11 @@ class NonErrorResolverTest extends ResolverTestCase {
   }
 
   void test_returnOfInvalidType_typeParameter_18468() {
-    // This test verifies that T << Type where T is a type parameter and Type is the type Type from
-    // core, this particular test case comes from issue 18468 which depends on this fact.
+    // https://code.google.com/p/dart/issues/detail?id=18468
+    //
+    // This test verifies that the type of T is more specific than Type,
+    // where T is a type parameter and Type is the type Type from
+    // core, this particular test case comes from issue 18468.
     //
     // A test cannot be added to TypeParameterTypeImplTest since the types returned out of the
     // TestTypeProvider don't have a mock 'dart.core' enclosing library element.
@@ -20626,6 +20629,14 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_invalidAssignment_regressionInIssue18468Fix() {
+    // https://code.google.com/p/dart/issues/detail?id=18628
+    Source source = addSource(EngineTestCase.createSource(["class C<T> {", "  T t = int;", "}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
   void test_invalidAssignment_staticVariable() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -20935,6 +20946,16 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         "class B {}",
         "class G<E extends A> {}",
         "class C extends G<B>{}"]));
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
+    verify([source]);
+  }
+
+  void test_typeArgumentNotMatchingBounds_extends_regressionInIssue18468Fix() {
+    // https://code.google.com/p/dart/issues/detail?id=18628
+    Source source = addSource(EngineTestCase.createSource([
+        "class X<T extends Type> {}",
+        "class Y<U> extends X<U> {}"]));
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
     verify([source]);
@@ -21752,6 +21773,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidAssignment_localVariable);
       });
+      _ut.test('test_invalidAssignment_regressionInIssue18468Fix', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_invalidAssignment_regressionInIssue18468Fix);
+      });
       _ut.test('test_invalidAssignment_staticVariable', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_invalidAssignment_staticVariable);
@@ -21891,6 +21916,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_typeArgumentNotMatchingBounds_extends', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_extends);
+      });
+      _ut.test('test_typeArgumentNotMatchingBounds_extends_regressionInIssue18468Fix', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeArgumentNotMatchingBounds_extends_regressionInIssue18468Fix);
       });
       _ut.test('test_typeArgumentNotMatchingBounds_fieldFormalParameter', () {
         final __test = new StaticTypeWarningCodeTest();

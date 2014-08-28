@@ -3225,7 +3225,14 @@ class Parser {
     if (afterParameters == null) {
       return false;
     }
-    return afterParameters.matchesAny([TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION]);
+    if (afterParameters.matchesAny([TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
+      return true;
+    }
+    if (_parseAsync) {
+      String lexeme = afterParameters.lexeme;
+      return lexeme == ASYNC || lexeme == SYNC;
+    }
+    return false;
   }
 
   /**

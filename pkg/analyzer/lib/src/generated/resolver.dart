@@ -21654,8 +21654,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (element is ExecutableElement) {
       staticType = element.type;
     } else if (element is TypeParameterElement) {
-      //      if (isTypeName(node)) {
-      staticType = element.type;
+      staticType = _typeProvider.typeType;
     } else if (element is VariableElement) {
       VariableElement variable = element;
       staticType = _promoteManager.getStaticType(variable);
