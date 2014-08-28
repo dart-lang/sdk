@@ -73,7 +73,6 @@ part 'diagnostic_listener.dart';
 part 'enqueue.dart';
 part 'resolved_visitor.dart';
 part 'script.dart';
-part 'tree_validator.dart';
 part 'typechecker.dart';
 part 'warnings.dart';
 part 'world.dart';
