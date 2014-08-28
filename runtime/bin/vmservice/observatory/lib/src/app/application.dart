@@ -75,7 +75,7 @@ class ObservatoryApplication extends Observable {
         removePauseEvents(event.isolate);
         // vm.reload();
         break;
-        
+
       case 'BreakpointResolved':
         event.isolate.reloadBreakpoints();
         break;
@@ -103,6 +103,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new ClassTreePage(this));
     _pageRegistry.add(new VMConnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
+    _pageRegistry.add(new MetricsPage(this));
     // Note that ServiceObjectPage must be the last entry in the list as it is
     // the catch all.
     _pageRegistry.add(new ServiceObjectPage(this));

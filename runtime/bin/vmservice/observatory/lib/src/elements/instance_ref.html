@@ -35,16 +35,16 @@
                         isNull(ref) ||
                         isInt(ref)) ||
                         isDouble(ref)) }}">
-        <a on-click="{{ goto }}" href="{{ url }}">{{ ref['valueAsString'] }}</a>
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref['valueAsString'] }}</a>
       </template>
 
       <template if="{{ (isType(ref)) }}">
-        <a on-click="{{ goto }}" href="{{ url }}">{{ ref['user_name'] }}</a>
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
       <template if="{{ isInstance(ref) &&
                        ref['closureFunc'] != null}}">
-        <a on-click="{{ goto }}" href="{{ url }}">
+        <a on-click="{{ goto }}" _href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
           {{ ref['closureFunc'].name }}
         </a>
@@ -52,7 +52,7 @@
 
       <template if="{{ isInstance(ref) &&
                        ref['closureFunc'] == null}}">
-        <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
             <template repeat="{{ field in ref['fields'] }}">
@@ -70,7 +70,7 @@
       </template>
 
       <template if="{{ isList(ref) }}">
-        <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
             <template repeat="{{ element in ref['elements'] }}">

@@ -596,6 +596,7 @@ hr {
 
 
 
+
 <polymer-element name="curly-block">
   <template>
     <style>
@@ -937,16 +938,16 @@ hr {
                         isNull(ref) ||
                         isInt(ref)) ||
                         isDouble(ref)) }}">
-        <a on-click="{{ goto }}" href="{{ url }}">{{ ref['valueAsString'] }}</a>
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref['valueAsString'] }}</a>
       </template>
 
       <template if="{{ (isType(ref)) }}">
-        <a on-click="{{ goto }}" href="{{ url }}">{{ ref['user_name'] }}</a>
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
       <template if="{{ isInstance(ref) &amp;&amp;
                        ref['closureFunc'] != null}}">
-        <a on-click="{{ goto }}" href="{{ url }}">
+        <a on-click="{{ goto }}" _href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
           {{ ref['closureFunc'].name }}
         </a>
@@ -954,7 +955,7 @@ hr {
 
       <template if="{{ isInstance(ref) &amp;&amp;
                        ref['closureFunc'] == null}}">
-        <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
             <template repeat="{{ field in ref['fields'] }}">
@@ -972,7 +973,7 @@ hr {
       </template>
 
       <template if="{{ isList(ref) }}">
-        <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
             <template repeat="{{ element in ref['elements'] }}">
@@ -1366,7 +1367,7 @@ hr {
     </style>
 
     <li class="menu">
-      <a on-click="{{ goto }}" href="{{ gotoLink(link) }}">{{ anchor }}</a>
+      <a on-click="{{ goto }}" _href="{{ gotoLink(link) }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
     <template if="{{ !last }}">
@@ -1414,7 +1415,7 @@ hr {
         text-decoration: none;
       }
     </style>
-    <li><a on-click="{{ goto }}" href="{{ gotoLink(link) }}">{{ anchor }}</a>
+    <li><a on-click="{{ goto }}" _href="{{ gotoLink(link) }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
   </template>
@@ -1598,7 +1599,7 @@ hr {
                      event.eventType == 'ExceptionThrown' }}">
       <div class="item">
         Isolate
-        <a class="link" on-click="{{ goto }}" href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
+        <a class="link" on-click="{{ goto }}" _href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
         is paused
         <template if="{{ event.breakpoint != null }}">
           at breakpoint
@@ -2162,7 +2163,7 @@ hr {
 .break-wrap {
   word-wrap: break-word;
 }
-</style><span><a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></span></template>
+</style><span><a on-click="{{ goto }}" title="{{ hoverText }}" _href="{{ url }}">{{ name }}</a></span></template>
 </polymer-element>
 
 
@@ -2937,7 +2938,7 @@ hr {
       <template if="{{ (ref['declaredType'].name != 'dynamic') }}">
         <instance-ref ref="{{ ref['declaredType'] }}"></instance-ref>
       </template>
-      <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+      <a on-click="{{ goto }}" title="{{ hoverText }}" _href="{{ url }}">{{ name }}</a>
     </span>
   </template>
 </polymer-element>
@@ -3209,7 +3210,7 @@ hr {
      --><template if="{{ qualified &amp;&amp; ref.parent != null }}"><!--
        --><function-ref ref="{{ ref.parent }}" qualified="{{ true }}">
           </function-ref>.<!--
-     --></template><a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a><!--
+     --></template><a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a><!--
   --></template><template if="{{ !ref.isDart }}"><span> {{ name }}</span></template></template>
 </polymer-element>
 
@@ -3473,10 +3474,10 @@ hr {
 }
 </style>
     <template if="{{ nameIsEmpty }}">
-      <a on-click="{{ goto }}" href="{{ url }}">unnamed</a>
+      <a on-click="{{ goto }}" _href="{{ url }}">unnamed</a>
     </template>
     <template if="{{ !nameIsEmpty }}">
-      <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
+      <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
     </template>
   </template>
 </polymer-element>
@@ -3894,7 +3895,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-  <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+  <a on-click="{{ goto }}" title="{{ hoverText }}" _href="{{ url }}">{{ name }}</a>
 </template>
 </polymer-element>
 
@@ -4597,10 +4598,10 @@ hr {
 </style>
     <template if="{{ code.isDartCode }}">
         <template if="{{ code.isOptimized }}">
-          <a on-click="{{ goto }}" href="{{ url }}">*{{ name }}</a>
+          <a on-click="{{ goto }}" _href="{{ url }}">*{{ name }}</a>
         </template>
         <template if="{{ !code.isOptimized }}">
-          <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
+          <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
         </template>
     </template>
     <template if="{{ !code.isDartCode }}">
@@ -7458,7 +7459,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/http/servers'))}}">HTTP Servers</a>
+          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/http/servers'))}}">HTTP Servers</a>
         </li>
       </ul>
 
@@ -7466,7 +7467,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/sockets'))}}">Sockets</a>
+          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/sockets'))}}">Sockets</a>
         </li>
       </ul>
 
@@ -7474,7 +7475,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/websockets'))}}">WebSockets</a>
+          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/websockets'))}}">WebSockets</a>
         </li>
       </ul>
 
@@ -7482,7 +7483,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/file/randomaccessfiles'))}}">Random Access Files</a>
+          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/file/randomaccessfiles'))}}">Random Access Files</a>
         </li>
       </ul>
 
@@ -7490,7 +7491,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a on-click="{{ goto }}" href="{{gotoLink(io.isolate.relativeLink('io/processes'))}}">Processess</a>
+          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/processes'))}}">Processess</a>
         </li>
       </ul>
 
@@ -8313,7 +8314,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -8882,7 +8883,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a href="{{ url }}">{{ name }}</a>
+    <a _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -9431,7 +9432,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -10323,7 +10324,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -11145,7 +11146,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
+    <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
   </template>
 </polymer-element>
 
@@ -12257,10 +12258,10 @@ hr {
 }
 </style>
     <template if="{{ small }}">
-      <a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a>
+      <a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a>
     </template>
     <template if="{{ !small }}">
-      <a on-click="{{ goto }}" href="{{ url }}">({{ ref['pid'] }}) {{ name }} {{ ref['arguments'] }}</a>
+      <a on-click="{{ goto }}" _href="{{ url }}">({{ ref['pid'] }}) {{ name }} {{ ref['arguments'] }}</a>
     </template>
   </template>
 </polymer-element>
@@ -12856,7 +12857,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-  <a on-click="{{ goto }}" href="{{ url }}">{{ ref.name }}</a>
+  <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.name }}</a>
 </template>
 </polymer-element>
 
@@ -13521,27 +13522,32 @@ hr {
         <br>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('stacktrace')) }}">stack trace</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('stacktrace')) }}">stack trace</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('profile')) }}">cpu profile</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('profile')) }}">cpu profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('allocationprofile')) }}">allocation profile</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('allocationprofile')) }}">allocation profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('metrics')) }}">metrics</a>
           </div>
         </div>
         <!-- Temporarily disabled until UI for dart:io is acceptable.
@@ -13923,7 +13929,7 @@ hr {
         <div class="flex-item-50-percent">
           <div class="memberItem">
             <div class="memberValue">
-              See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('debug/breakpoints')) }}">breakpoints</a>
+              See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('debug/breakpoints')) }}">breakpoints</a>
             </div>
           </div>
         </div>
@@ -13962,6 +13968,7 @@ hr {
     <br><br><br><br>
   </template>
 </polymer-element>
+
 
 
 
@@ -15116,6 +15123,905 @@ hr {
     </div>
     <br><br><br><br>
     <br><br><br><br>
+  </template>
+</polymer-element>
+
+
+
+
+
+
+<polymer-element name="metrics-page" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <style>
+      ul li:hover:not(.selected) {
+        background-color: #FFF3E3;
+      }
+      .selected {
+        background-color: #0489c3;
+      }
+      .graph {
+        min-height: 600px;
+      }
+    </style>
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+    <div class="flex-row">
+      <div class="flex-item-20-percent">
+        <ul>
+          <template repeat="{{ metric in isolate.dartMetrics.values }}">
+            <template if="{{ metric == selectedMetric }}">
+              <li class="selected">
+                {{ metric.name }}
+              </li>
+            </template>
+            <template if="{{ metric != selectedMetric }}">
+              <li on-click="{{ selectMetric }}" data-id="{{ metric.id }}">
+                {{ metric.name }}
+              </li>
+            </template>
+          </template>
+          <template repeat="{{ metric in isolate.vmMetrics.values }}">
+            <template if="{{ metric == selectedMetric }}">
+              <li class="selected">
+                {{ metric.name }}
+              </li>
+            </template>
+            <template if="{{ metric != selectedMetric }}">
+              <li on-click="{{ selectMetric }}" data-id="{{ metric.id }}">
+                {{ metric.name }}
+              </li>
+            </template>
+          </template>
+        </ul>
+      </div>
+      <div class="flex-item-80-percent">
+        <metrics-graph isolate="{{ isolate }}" metric="{{ selectedMetric }}">
+        </metrics-graph>
+        <div>
+          <metric-details page="{{ page }}" metric="{{ selectedMetric }}">
+          </metric-details>
+        </div>
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="metric-details" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <div class="content-centered">
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">name</div>
+          <div class="memberValue">{{ metric.name }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">description</div>
+          <div class="memberValue">{{ metric.description }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">current value</div>
+          <div class="memberValue">{{ metric.value }}</div>
+        </div>
+        <template if="{{ (metric != null) &amp;&amp; (metric.min != null) }}">
+          <div class="memberItem">
+            <div class="memberName">minimum</div>
+            <div class="memberValue">{{ metric.min }}</div>
+          </div>
+        </template>
+        <template if="{{ (metric != null) &amp;&amp; (metric.max != null) }}">
+          <div class="memberItem">
+            <div class="memberName">maximum</div>
+            <div class="memberValue">{{ metric.max }}</div>
+          </div>
+        </template>
+        <div class="memberItem">
+          <div class="memberName">refresh rate</div>
+          <div class="memberValue">
+            <select id="refreshrate" on-change="{{ refreshRateChange }}">
+              <!-- These must be kept in sync with POLL_PERIODS in MetricsPage
+                   in object.dart -->
+              <option value="8000">Every eight seconds</option>
+              <option value="4000">Every four seconds</option>
+              <option value="2000">Every two seconds</option>
+              <option value="1000">Once a second</option>
+              <option value="100">Ten times per second</option>
+              <option value="0" selected="selected">Never</option>
+            </select>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">sample buffer size</div>
+          <div class="memberValue">
+            <select id="buffersize" on-change="{{ sampleBufferSizeChange }}">
+              <option value="10">10</option>
+              <option value="100" selected="selected">100</option>
+              <option value="1000">1000</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="metrics-graph" extends="observatory-element">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <style>
+      .graph {
+        min-height: 600px;
+      }
+    </style>
+    <div id="graph" class="graph">
+    </div>
   </template>
 </polymer-element>
 
@@ -16979,7 +17885,7 @@ hr {
         <br>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink('/flags') }}">flags</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/flags') }}">flags</a>
           </div>
         </div>
       </div>
@@ -18684,10 +19590,10 @@ hr {
 </style>
     <span>
       <template if="{{ isCurrentTarget }}">
-        <a on-click="{{ connectToVm }}" href="{{ gotoLink('/vm') }}">{{ target.name }} (Connected)</a>
+        <a on-click="{{ connectToVm }}" _href="{{ gotoLink('/vm') }}">{{ target.name }} (Connected)</a>
       </template>
       <template if="{{ !isCurrentTarget }}">
-        <a on-click="{{ connectToVm }}" href="{{ gotoLink('/vm') }}">{{ target.name }}</a>
+        <a on-click="{{ connectToVm }}" _href="{{ gotoLink('/vm') }}">{{ target.name }}</a>
       </template>
       <template if="{{ !isChromeTarget }}">
         <button class="delete-button" on-click="{{ deleteVm }}">✖ Remove</button>
@@ -19274,7 +20180,7 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <a on-click="{{ goto }}" href="{{ url }}">{{ ref.name }}</a>
+    <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.name }}</a>
   </template>
 </polymer-element>
 

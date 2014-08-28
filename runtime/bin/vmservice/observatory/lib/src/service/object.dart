@@ -76,11 +76,17 @@ abstract class ServiceObject extends Observable {
       case 'Code':
         obj = new Code._empty(owner);
         break;
+      case 'Counter':
+        obj = new ServiceMetric._empty(owner);
+        break;
       case 'Error':
         obj = new DartError._empty(owner);
         break;
       case 'Function':
         obj = new ServiceFunction._empty(owner);
+        break;
+      case 'Gauge':
+        obj = new ServiceMetric._empty(owner);
         break;
       case 'Isolate':
         obj = new Isolate._empty(owner.vm);
@@ -701,6 +707,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     String id = map['id'];
     var obj = _cache[id];
     if (obj != null) {
+      // Consider calling update when map is not a reference.
       return obj;
     }
     // Build the object from the map directly.
@@ -1013,7 +1020,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future stepInto() {
-    print('isolate.stepInto');
     return get("debug/resume?step=into").then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
@@ -1041,6 +1047,44 @@ class Isolate extends ServiceObjectOwner with Coverage {
         }
         return isolate.reload();
       });
+  }
+
+  final ObservableMap<String, ServiceMetric> dartMetrics =
+      new ObservableMap<String, ServiceMetric>();
+
+  final ObservableMap<String, ServiceMetric> vmMetrics =
+      new ObservableMap<String, ServiceMetric>();
+
+  Future<ObservableMap<String, ServiceMetric>> _refreshMetrics(
+      String id,
+      ObservableMap<String, ServiceMetric> metricsMap) {
+    return get(id).then((result) {
+      if (result is DartError) {
+        // TODO(turnidge): Handle this more gracefully.
+        Logger.root.severe(result.message);
+        return null;
+      }
+      // Clear metrics map.
+      metricsMap.clear();
+      // Repopulate metrics map.
+      var members = result['members'];
+      for (var metric in members) {
+        metricsMap[metric.id] = metric;
+      }
+      return metricsMap;
+    });
+  }
+
+  Future<ObservableMap<String, ServiceMetric>> refreshDartMetrics() {
+    return _refreshMetrics('metrics', dartMetrics);
+  }
+
+  Future<ObservableMap<String, ServiceMetric>> refreshVMMetrics() {
+    return _refreshMetrics('metrics/vm', vmMetrics);
+  }
+
+  Future refreshMetrics() {
+    return refreshDartMetrics().then((_) => refreshVMMetrics());
   }
 
   String toString() => "Isolate($_id)";
@@ -1541,7 +1585,7 @@ class ScriptLine extends Observable {
 
   ScriptLine(this.script, this.line, this.text) {
     possibleBpt = !_isTrivialLine(text);
-    
+
     // TODO(turnidge): This is not so efficient.  Consider improving.
     for (var bpt in this.script.isolate.breakpoints['breakpoints']) {
       var bptScript = bpt['location']['script'];
@@ -2216,6 +2260,97 @@ class Socket extends ServiceObject {
 
     fd = map['fd'];
     socketOwner = map['owner'];
+  }
+}
+
+class MetricSample {
+  final double value;
+  final DateTime time;
+  MetricSample(this.value) : time = new DateTime.now();
+}
+
+class ServiceMetric extends ServiceObject {
+  ServiceMetric._empty(ServiceObjectOwner owner) : super._empty(owner) {
+  }
+
+  bool get canCache => true;
+  bool get immutable => false;
+
+  @observable bool recording = false;
+  MetricPoller poller;
+
+  final ObservableList<MetricSample> samples =
+      new ObservableList<MetricSample>();
+  int _sampleBufferSize = 100;
+  int get sampleBufferSize => _sampleBufferSize;
+  set sampleBufferSize(int size) {
+    _sampleBufferSize = size;
+    _removeOld();
+  }
+
+  void addSample(MetricSample sample) {
+    samples.add(sample);
+    _removeOld();
+  }
+
+  void _removeOld() {
+    // TODO(johnmccutchan): If this becomes hot, consider using a circular
+    // buffer.
+    if (samples.length > _sampleBufferSize) {
+      int count = samples.length - _sampleBufferSize;
+      samples.removeRange(0, count);
+    }
+  }
+
+  @observable String description;
+  @observable double value = 0.0;
+  // Only a guage has a non-null min and max.
+  @observable double min;
+  @observable double max;
+
+  bool get isGauge => (min != null) && (max != null);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    name = map['name'];
+    description = map['description'];
+    vmName = map['name'];
+    value = map['value'];
+    min = map['min'];
+    max = map['max'];
+  }
+
+  String toString() => "ServiceMetric($_id)";
+}
+
+class MetricPoller {
+  // Metrics to be polled.
+  final List<ServiceMetric> metrics = new List<ServiceMetric>();
+  final Duration pollPeriod;
+  Timer _pollTimer;
+
+  MetricPoller(int milliseconds) :
+      pollPeriod = new Duration(milliseconds: milliseconds) {
+    start();
+  }
+
+  void start() {
+    _pollTimer = new Timer.periodic(pollPeriod, _onPoll);
+  }
+
+  void cancel() {
+    if (_pollTimer != null) {
+      _pollTimer.cancel();
+    }
+    _pollTimer = null;
+  }
+
+  void _onPoll(_) {
+    // Reload metrics and add a sample to each.
+    for (var metric in metrics) {
+      metric.reload().then((m) {
+        m.addSample(new MetricSample(m.value));
+      });
+    }
   }
 }
 

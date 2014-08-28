@@ -56,7 +56,7 @@ class DataTable {
   }
 
   /// Add a new column with [type], [label] and [role].
-  /// Roles are used for metadata such as 'interval' or 'annotation'.
+  /// Roles are used for metadata such as 'interval', 'annotation', or 'domain'.
   /// type must be: 'string', 'number', or 'boolean'.
   void addRoleColumn(String type, String label, String role) {
     _table.callMethod('addColumn', [new JsObject.jsify({
@@ -66,9 +66,19 @@ class DataTable {
     })]);
   }
 
-  /// Remove rows [start, end).
-  void removeRows(int start, int end) {
-    _table.callMethod('removeRows', [start, end]);
+  /// Remove [count] columns starting with [start].
+  void removeColumns(int start, int count) {
+    _table.callMethod('removeColumns', [start, count]);
+  }
+
+  /// Remove all columns in the table.
+  void clearColumns() {
+    removeColumns(0, columns);
+  }
+
+  /// Remove [count] rows starting with [start].
+  void removeRows(int start, int count) {
+    _table.callMethod('removeRows', [start, count]);
   }
 
   /// Remove all rows in the table.
@@ -80,6 +90,11 @@ class DataTable {
   /// column in the table.
   void addRow(List row) {
     _table.callMethod('addRow', [new JsArray.from(row)]);
+  }
+
+  void addTimeOfDayValue(DateTime dt, value) {
+    var array = new JsArray.from([dt.hour, dt.minute, dt.second]);
+    addRow([array, value]);
   }
 }
 

@@ -152,27 +152,32 @@
         <br>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/class-tree' + isolate.link) }}">class hierarchy</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('stacktrace')) }}">stack trace</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('stacktrace')) }}">stack trace</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('profile')) }}">cpu profile</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('profile')) }}">cpu profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('allocationprofile')) }}">allocation profile</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('allocationprofile')) }}">allocation profile</a>
           </div>
         </div>
         <div class="memberItem">
           <div class="memberValue">
-            See <a on-click="{{ goto }}" href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('heapmap')) }}">heap map</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink(isolate.relativeLink('metrics')) }}">metrics</a>
           </div>
         </div>
         <!-- Temporarily disabled until UI for dart:io is acceptable.

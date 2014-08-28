@@ -13,11 +13,11 @@ import 'service_ref.dart';
 class InboundReferenceElement extends ServiceRefElement {
   InboundReferenceElement.created() : super.created();
 
-  dynamic get slot => ref['slot'];
+  dynamic get slot => (ref as ServiceMap)['slot'];
   bool get slotIsArrayIndex => slot is num;
   bool get slotIsField => slot is ServiceMap && slot['type'] == '@Field';
 
-  ServiceObject get source => ref['source'];
+  ServiceObject get source => (ref as ServiceMap)['source'];
 
   // I.e., inbound references to 'source' for recursive pointer chasing.
   @observable ObservableList inboundReferences;
@@ -32,7 +32,7 @@ class InboundReferenceElement extends ServiceRefElement {
   dynamic expander() {
     return expandEvent;
   }
- 
+
   void expandEvent(bool expand, var done) {
     assert(ref is ServiceMap);
     if (expand) {

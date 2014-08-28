@@ -10,7 +10,7 @@
      --><template if="{{ qualified && ref.parent != null }}"><!--
        --><function-ref ref="{{ ref.parent }}" qualified="{{ true }}">
           </function-ref>.<!--
-     --></template><a on-click="{{ goto }}" href="{{ url }}">{{ name }}</a><!--
+     --></template><a on-click="{{ goto }}" _href="{{ url }}">{{ name }}</a><!--
   --></template><template if="{{ !ref.isDart }}"><span> {{ name }}</span></template></template>
 </polymer-element>
 

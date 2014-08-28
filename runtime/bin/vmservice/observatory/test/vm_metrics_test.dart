@@ -19,14 +19,14 @@ var tests = [
     expect(members, isList);
     expect(members.length, greaterThan(1));
     var foundOldHeapCapacity = members.any((m) =>
-        m['name'] == 'heap.old.capacity');
+        m.name == 'heap.old.capacity');
     expect(foundOldHeapCapacity, equals(true));
 }),
 
 (Isolate isolate) =>
   isolate.get('metrics/vm/heap.old.used').then((ServiceMap counter) {
-    expect(counter['type'], equals('Counter'));
-    expect(counter['name'], equals('heap.old.used'));
+    expect(counter.serviceType, equals('Counter'));
+    expect(counter.name, equals('heap.old.used'));
 }),
 
 (Isolate isolate) =>

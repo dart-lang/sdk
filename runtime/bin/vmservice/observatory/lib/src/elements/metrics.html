@@ -1,0 +1,137 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+
+<polymer-element name="metrics-page" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      ul li:hover:not(.selected) {
+        background-color: #FFF3E3;
+      }
+      .selected {
+        background-color: #0489c3;
+      }
+      .graph {
+        min-height: 600px;
+      }
+    </style>
+    <nav-bar>
+      <top-nav-menu last="{{ true }}"></top-nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+      <nav-control></nav-control>
+    </nav-bar>
+    <div class="flex-row">
+      <div class="flex-item-20-percent">
+        <ul>
+          <template repeat="{{ metric in isolate.dartMetrics.values }}">
+            <template if="{{ metric == selectedMetric }}">
+              <li class="selected">
+                {{ metric.name }}
+              </li>
+            </template>
+            <template if="{{ metric != selectedMetric }}">
+              <li on-click="{{ selectMetric }}" data-id="{{ metric.id }}">
+                {{ metric.name }}
+              </li>
+            </template>
+          </template>
+          <template repeat="{{ metric in isolate.vmMetrics.values }}">
+            <template if="{{ metric == selectedMetric }}">
+              <li class="selected">
+                {{ metric.name }}
+              </li>
+            </template>
+            <template if="{{ metric != selectedMetric }}">
+              <li on-click="{{ selectMetric }}" data-id="{{ metric.id }}">
+                {{ metric.name }}
+              </li>
+            </template>
+          </template>
+        </ul>
+      </div>
+      <div class="flex-item-80-percent">
+        <metrics-graph isolate="{{ isolate }}" metric="{{ selectedMetric }}">
+        </metrics-graph>
+        <div>
+          <metric-details page="{{ page }}" metric="{{ selectedMetric }}">
+          </metric-details>
+        </div>
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="metric-details" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <div class="content-centered">
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">name</div>
+          <div class="memberValue">{{ metric.name }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">description</div>
+          <div class="memberValue">{{ metric.description }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">current value</div>
+          <div class="memberValue">{{ metric.value }}</div>
+        </div>
+        <template if="{{ (metric != null) && (metric.min != null) }}">
+          <div class="memberItem">
+            <div class="memberName">minimum</div>
+            <div class="memberValue">{{ metric.min }}</div>
+          </div>
+        </template>
+        <template if="{{ (metric != null) && (metric.max != null) }}">
+          <div class="memberItem">
+            <div class="memberName">maximum</div>
+            <div class="memberValue">{{ metric.max }}</div>
+          </div>
+        </template>
+        <div class="memberItem">
+          <div class="memberName">refresh rate</div>
+          <div class="memberValue">
+            <select id="refreshrate" on-change="{{ refreshRateChange }}">
+              <!-- These must be kept in sync with POLL_PERIODS in MetricsPage
+                   in object.dart -->
+              <option value="8000">Every eight seconds</option>
+              <option value="4000">Every four seconds</option>
+              <option value="2000">Every two seconds</option>
+              <option value="1000">Once a second</option>
+              <option value="100">Ten times per second</option>
+              <option value="0" selected="selected">Never</option>
+            </select>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">sample buffer size</div>
+          <div class="memberValue">
+            <select id="buffersize" on-change="{{ sampleBufferSizeChange }}">
+              <option value="10">10</option>
+              <option value="100" selected="selected">100</option>
+              <option value="1000">1000</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+</polymer-element>
+
+<polymer-element name="metrics-graph" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      .graph {
+        min-height: 600px;
+      }
+    </style>
+    <div id="graph" class="graph">
+    </div>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="metrics.dart"></script>

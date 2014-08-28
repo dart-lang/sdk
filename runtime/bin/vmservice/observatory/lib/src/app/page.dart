@@ -141,3 +141,72 @@ class VMConnectPage extends Page {
 
   bool canVisit(String url) => url.startsWith('vm-connect/');
 }
+
+class MetricsPage extends Page {
+  static RegExp _matcher = new RegExp(r'isolates/.*/metrics');
+  static RegExp _isolateMatcher = new RegExp(r'isolates/.*/');
+
+  // Page state, retained as long as ObservatoryApplication.
+  String selectedMetricId;
+
+  final Map<int, MetricPoller> pollers = new Map<int, MetricPoller>();
+
+  // 8 seconds, 4 seconds, 2 seconds, 1 second, and one hundred milliseconds.
+  static final List<int> POLL_PERIODS = [8000,
+                                         4000,
+                                         2000,
+                                         1000,
+                                         100];
+
+  MetricsPage(app) : super(app) {
+    for (var i = 0; i < POLL_PERIODS.length; i++) {
+      pollers[POLL_PERIODS[i]] = new MetricPoller(POLL_PERIODS[i]);
+    }
+  }
+
+  void onInstall() {
+    if (element == null) {
+      element = new Element.tag('metrics-page');
+      (element as MetricsPageElement).page = this;
+    }
+    assert(element != null);
+  }
+
+  void setRefreshPeriod(int refreshPeriod, ServiceMetric metric) {
+    if (metric.poller != null) {
+      if (metric.poller.pollPeriod.inMilliseconds == refreshPeriod) {
+        return;
+      }
+      // Remove from current poller.
+      metric.poller.metrics.remove(metric);
+      metric.poller = null;
+    }
+    if (refreshPeriod == 0) {
+      return;
+    }
+    var poller = pollers[refreshPeriod];
+    if (poller != null) {
+      poller.metrics.add(metric);
+      metric.poller = poller;
+      return;
+    }
+    throw new FallThroughError();
+  }
+
+  String _isolateId(String url) {
+    // Grab isolate prefix.
+    String isolateId = _isolateMatcher.stringMatch(url);
+    // Remove the trailing slash.
+    return isolateId.substring(0, isolateId.length - 1);
+  }
+
+  void _visit(String url) {
+    assert(element != null);
+    assert(canVisit(url));
+    app.vm.get(_isolateId(url)).then((i) {
+      (element as MetricsPageElement).isolate = i;
+    });
+  }
+
+  bool canVisit(String url) => _matcher.hasMatch(url);
+}
