@@ -10,15 +10,16 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('can activate an already cached package', () {
-    servePackages([
-      packageMap("foo", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+    });
 
     schedulePub(args: ["cache", "add", "foo"]);
 
     schedulePub(args: ["global", "activate", "foo"], output: """
-Resolving dependencies...
-Activated foo 1.0.0.""");
+        Resolving dependencies...
+        + foo 1.0.0
+        Activated foo 1.0.0.""");
 
     // Should be in global package cache.
     d.dir(cachePath, [

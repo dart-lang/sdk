@@ -63,7 +63,7 @@ def GetBuildInfo(builder_name, is_buildbot):
   csp = None
   arch = None
   dart2js_full = False
-  batch = False
+  batch = True
   builder_tag = None
 
   dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
@@ -123,9 +123,6 @@ def GetBuildInfo(builder_name, is_buildbot):
       minified = True
     if dart2js_pattern.group(12) == 'x64':
       arch = 'x64'
-    if dart2js_pattern.group(14) == 'batch':
-      batch = True
-
     shard_index = dart2js_pattern.group(15)
     total_shards = dart2js_pattern.group(16)
   elif dartium_pattern:
@@ -143,10 +140,6 @@ def GetBuildInfo(builder_name, is_buildbot):
   # We have both 10.8 and 10.7 bots, functionality is the same.
   if system == 'mac10.8' or system == 'mac10.7':
     system = 'mac'
-
-  # This is temporary, slowly enabling this.
-  if system == 'linux' or system == 'mac':
-    batch = True
 
   if (system == 'windows' and platform.system() != 'Windows') or (
       system == 'mac' and platform.system() != 'Darwin') or (

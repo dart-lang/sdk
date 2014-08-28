@@ -10,12 +10,12 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('chooses the highest version that matches the constraint', () {
-    servePackages([
-      packageMap("foo", "1.0.0"),
-      packageMap("foo", "1.0.1"),
-      packageMap("foo", "1.1.0"),
-      packageMap("foo", "1.2.3")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+      builder.serve("foo", "1.0.1");
+      builder.serve("foo", "1.1.0");
+      builder.serve("foo", "1.2.3");
+    });
 
     schedulePub(args: ["global", "activate", "foo", "<1.1.0"]);
 

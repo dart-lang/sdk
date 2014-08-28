@@ -82,7 +82,7 @@ class VMService extends MessageRouter {
     }
   }
 
-  void _eventMessageHandler(int eventType, String eventMessage) {
+  void _eventMessageHandler(int eventType, dynamic eventMessage) {
     var subscribers = eventMap[eventType];
     if (subscribers == null) {
       return;

@@ -26,18 +26,26 @@ ObjectIdRing::~ObjectIdRing() {
 
 
 int32_t ObjectIdRing::GetIdForObject(RawObject* object) {
+  // We do not allow inserting null because null is how we detect as entry was
+  // reclaimed by the GC.
+  ASSERT(object != Object::null());
   return AllocateNewId(object);
 }
 
 
-RawObject* ObjectIdRing::GetObjectForId(int32_t id) {
+RawObject* ObjectIdRing::GetObjectForId(int32_t id, LookupResult* kind) {
   int32_t index = IndexOfId(id);
   if (index == kInvalidId) {
-    // Return sentinel to allow caller to distinguish expired ids.
-    return Object::sentinel().raw();
+    *kind = kExpired;
+    return Object::null();
   }
   ASSERT(index >= 0);
   ASSERT(index < capacity_);
+  if (table_[index] == Object::null()) {
+    *kind = kCollected;
+    return Object::null();
+  }
+  *kind = kValid;
   return table_[index];
 }
 

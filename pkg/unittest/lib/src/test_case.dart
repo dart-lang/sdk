@@ -15,13 +15,13 @@ class TestCase {
   final String description;
 
   /// The setup function to call before the test, if any.
-  final Function _setUp;
+  Function _setUp;
 
   /// The teardown function to call after the test, if any.
-  final Function _tearDown;
+  Function _tearDown;
 
   /// The body of the test case.
-  final TestFunction _testFunction;
+  TestFunction _testFunction;
 
   /// Remaining number of callbacks functions that must reach a 'done' state
   /// to wait for before the test completes.
@@ -120,7 +120,11 @@ class TestCase {
       } else if (_tearDown != null) {
         return _tearDown();
       }
-    }).catchError(_errorHandler('Teardown'));
+    }).catchError(_errorHandler('Teardown')).whenComplete(() {
+      _setUp = null;
+      _tearDown = null;
+      _testFunction = null;
+    });
   }
 
   // Set the results, notify the config, and return true if this

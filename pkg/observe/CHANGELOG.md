@@ -3,6 +3,13 @@
 This file contains highlights of what changes on each version of the observe
 package.
 
+#### Pub version 0.12.0
+  * Old transform.dart file removed. If you weren't use it it, this change is
+    backwards compatible with version 0.11.0.
+
+#### Pub version 0.11.0+5
+  * Widen the constraint on analyzer.
+
 #### Pub version 0.11.0+4
   * Raise the lower bound on the source_maps constraint to exclude incompatible
     versions.

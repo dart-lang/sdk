@@ -5,8 +5,9 @@
   position: fixed;
   bottom: 0;
   right: 0;
-  max-width: 50%;
+  max-width: 50vw;
   z-index: 10000;
+  font-family: sans-serif !important;
 }
 .build-logs .log {
   padding: 0.6em;
@@ -58,7 +59,7 @@
   color: white;
 }
 .build-logs .content {
-  max-height: 500px;
+  max-height: 75vh;
   font-size: 1em;
   overflow-y: auto;
 }
@@ -73,5 +74,5 @@
   padding: 0.4em 0.2em 0.2em 2em;
   white-space: pre;
   display: block;
-  font-family: monospace;
+  font-family: monospace !important;
 }

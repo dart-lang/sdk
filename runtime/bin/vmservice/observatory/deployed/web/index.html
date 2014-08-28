@@ -648,6 +648,9 @@ hr {
 <polymer-element name="service-ref" extends="observatory-element">
 </polymer-element>
 
+<polymer-element name="any-service-ref" extends="observatory-element">
+</polymer-element>
+
 <polymer-element name="instance-ref" extends="service-ref">
   <template>
     <style>
@@ -917,30 +920,31 @@ hr {
       }
     </style>
     <span>
-      <template if="{{ isError(ref.serviceType) }}">
-        <pre class="errorBox">{{ ref.message }}</pre>
+      <template if="{{ isError(ref) }}">
+         <pre class="errorBox">{{ ref.message }}</pre>
       </template>
 
-      <template if="{{ isUnexpected(ref.serviceType) }}">
+      <template if="{{ isUnexpected(ref) }}">
         unexpected reference type &lt;{{ ref.serviceType }}&gt;
       </template>
 
-      <template if="{{ isNull(ref.serviceType) }}">
+      <template if="{{ isPsuedoNull(ref) }}">
         <div title="{{ hoverText }}">{{ ref['valueAsString'] }}</div>
       </template>
 
-      <template if="{{ (isString(ref.serviceType) ||
-                        isBool(ref.serviceType) ||
-                        isInt(ref.serviceType)) ||
-                        isDouble(ref.serviceType)) }}">
+      <template if="{{ (isString(ref) ||
+                        isBool(ref) ||
+                        isNull(ref) ||
+                        isInt(ref)) ||
+                        isDouble(ref)) }}">
         <a on-click="{{ goto }}" href="{{ url }}">{{ ref['valueAsString'] }}</a>
       </template>
 
-      <template if="{{ (isType(ref.serviceType)) }}">
+      <template if="{{ (isType(ref)) }}">
         <a on-click="{{ goto }}" href="{{ url }}">{{ ref['user_name'] }}</a>
       </template>
 
-      <template if="{{ isInstance(ref.serviceType) &amp;&amp;
+      <template if="{{ isInstance(ref) &amp;&amp;
                        ref['closureFunc'] != null}}">
         <a on-click="{{ goto }}" href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
@@ -948,7 +952,7 @@ hr {
         </a>
       </template>
 
-      <template if="{{ isInstance(ref.serviceType) &amp;&amp;
+      <template if="{{ isInstance(ref) &amp;&amp;
                        ref['closureFunc'] == null}}">
         <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
         <curly-block callback="{{ expander() }}">
@@ -967,7 +971,7 @@ hr {
         </curly-block>
       </template>
 
-      <template if="{{ isList(ref.serviceType) }}">
+      <template if="{{ isList(ref) }}">
         <a on-click="{{ goto }}" href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
@@ -985,6 +989,7 @@ hr {
     </span>
   </template>
 </polymer-element>
+
 
 <polymer-element name="action-link">
   <template>
@@ -2157,7 +2162,7 @@ hr {
 .break-wrap {
   word-wrap: break-word;
 }
-</style><a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></template>
+</style><span><a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a></span></template>
 </polymer-element>
 
 
@@ -2921,19 +2926,19 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <div>
+    <span>
       <template if="{{ ref['static'] }}">static</template>
       <template if="{{ ref['final'] }}">final</template>
       <template if="{{ ref['const'] }}">const</template>
-      <template if="{{ (ref['declared_type']['name'] == 'dynamic' &amp;&amp;
+      <template if="{{ (ref['declaredType'].name == 'dynamic' &amp;&amp;
                         !ref['final'] &amp;&amp; !ref['const']) }}">
         var
       </template>
-      <template if="{{ (ref['declared_type']['name'] != 'dynamic') }}">
-        <instance-ref ref="{{ ref['declared_type'] }}"></instance-ref>
+      <template if="{{ (ref['declaredType'].name != 'dynamic') }}">
+        <instance-ref ref="{{ ref['declaredType'] }}"></instance-ref>
       </template>
       <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
-    </div>
+    </span>
   </template>
 </polymer-element>
 
@@ -4188,19 +4193,19 @@ hr {
 
         <div class="memberItem">&nbsp;</div>
 
-        <template if="{{ cls.superClass != null }}">
+        <template if="{{ cls.superclass != null }}">
           <div class="memberItem">
             <div class="memberName">extends</div>
             <div class="memberValue">
-              <class-ref ref="{{ cls.superClass }}"></class-ref>
+              <class-ref ref="{{ cls.superclass }}"></class-ref>
             </div>
           </div>
         </template>
-        <template if="{{ cls.subClasses.length > 0 }}">
+        <template if="{{ cls.subclasses.length > 0 }}">
           <div class="memberItem">
             <div class="memberName">extended by</div>
             <div class="memberValue">
-              <template repeat="{{ subclass in cls.subClasses }}">
+              <template repeat="{{ subclass in cls.subclasses }}">
                 <class-ref ref="{{ subclass }}"></class-ref>
               </template>
             </div>
@@ -5577,7 +5582,7 @@ hr {
       <template if="{{ field['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="{{ field.link }}" anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ field.link }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
@@ -5587,14 +5592,14 @@ hr {
         <template if="{{ field['static'] }}">static</template>
         <template if="{{ field['final'] }}">final</template>
         <template if="{{ field['const'] }}">const</template>
-        <template if="{{ (field['declared_type']['name'] == 'dynamic' &amp;&amp;
+        <template if="{{ (field['declaredType'].name == 'dynamic' &amp;&amp;
                          !field['final'] &amp;&amp; !field['const']) }}">
           var
         </template>
-        <template if="{{ (field['declared_type']['user_name'] != 'dynamic') }}">
-          {{ field['declared_type']['user_name'] }}
+        <template if="{{ (field['declaredType'].name != 'dynamic') }}">
+          {{ field['declaredType'].name }}
         </template>
-        {{ field['user_name'] }}
+        {{ field.name }}
       </h1>
       <div class="memberList">
         <div class="memberItem">
@@ -5618,19 +5623,19 @@ hr {
           <div class="memberItem" title="The types observed for this field at runtime.  Fields that are observed to have a single type at runtime or to never be null may allow for additional optimization.">
             <div class="memberName">observed types</div>
             <div class="memberValue">
-              <template if="{{ field['guard_class'] == 'dynamic' }}">
+              <template if="{{ field['guardClass'] == 'dynamic' }}">
                 various
               </template>
-              <template if="{{ field['guard_class'] == 'unknown' }}">
+              <template if="{{ field['guardClass'] == 'unknown' }}">
                 none
               </template>
-              <template if="{{ field['guard_class'] != 'unknown' &amp;&amp;
-                            field['guard_class'] != 'dynamic' }}">
-                <class-ref ref="{{ field['guard_class'] }}"></class-ref>
-                <template if="{{ field['guard_nullable'] }}">
+              <template if="{{ field['guardClass'] != 'unknown' &amp;&amp;
+                            field['guardClass'] != 'dynamic' }}">
+                <class-ref ref="{{ field['guardClass'] }}"></class-ref>
+                <template if="{{ field['guardNullable'] }}">
                   — null observed
                 </template>
-                <template if="{{ !field['guard_nullable'] }}">
+                <template if="{{ !field['guardNullable'] }}">
                   — null not observed
                 </template>
               </template>
@@ -5649,6 +5654,7 @@ hr {
     </div>
   </template>
 </polymer-element>
+
 
 
 
@@ -13969,6 +13975,290 @@ hr {
 
 
 
+
+
+
+
+
+
+<polymer-element name="inbound-reference" extends="service-ref">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <div>
+      from <any-service-ref ref="{{ source }}"></any-service-ref>
+      <template if="{{ slotIsArrayIndex }}">via [{{ slot }}]</template>
+      <template if="{{ slotIsField }}">via <field-ref ref="{{ slot }}"></field-ref></template>
+
+      <curly-block callback="{{ expander() }}">
+        <div class="memberList">
+          <div class="memberItem">
+            <div class="memberName">
+              <template repeat="{{ reference in inboundReferences] }}">
+                <inbound-reference ref="{{ reference }}"></inbound-reference>
+              </template>
+            </div>
+          </div>
+        </div>
+      </curly-block>
+    </div>
+  </template>
+</polymer-element>
+
+
 <polymer-element name="instance-view" extends="observatory-element">
   <template>
     <style>
@@ -14291,12 +14581,12 @@ hr {
                 <div class="memberItem">
                   <div class="memberName">[{{ element['index']}}]</div>
                   <div class="memberValue">
-                    <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                    <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
                     <template if="{{ element['parentField'] != null }}">
-                      in <field-ref ref="{{ element['parentField'] }}"></field-ref>
+                      in <field-ref ref="{{ element['parentField'] }}"></field-ref> of
                     </template>
                     <template if="{{ element['parentListIndex'] != null }}">
-                      at list index {{ element['parentListIndex'] }} of
+                      in [{{ element['parentListIndex'] }}] of
                     </template>
                   </div>
                   </div>
@@ -14305,6 +14595,20 @@ hr {
                   showing {{ path['elements'].length }} of {{ path['length'] }}
                   <eval-link callback="{{ retainingPath }}" label="[find more]" expr="{{ path['elements'].length * 2 }}">
                   </eval-link>
+                </template>
+              </template>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">inbound references</div>
+            <div class="memberValue">
+              <template if="{{ inboundReferences == null }}">
+                <eval-link callback="{{ fetchInboundReferences }}" label="[find]" expr="100">
+                </eval-link>
+              </template>
+              <template if="{{ inboundReferences != null }}">
+                <template repeat="{{ reference in inboundReferences['references'] }}">
+                  <inbound-reference ref="{{ reference }}"></inbound-reference>
                 </template>
               </template>
             </div>

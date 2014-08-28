@@ -7192,7 +7192,7 @@ void BusyLoop_start(uword unused) {
   // Tell the other thread that shared_isolate is created.
   Dart_Handle lib;
   {
-    sync->Enter();
+    MonitorLocker ml(sync);
     char* error = NULL;
     shared_isolate = Dart_CreateIsolate(NULL, NULL,
                                         bin::snapshot_buffer,
@@ -7211,8 +7211,7 @@ void BusyLoop_start(uword unused) {
         Dart_SetNativeResolver(lib, &IsolateInterruptTestNativeLookup, NULL);
     DART_CHECK_VALID(result);
 
-    sync->Notify();
-    sync->Exit();
+    ml.Notify();
   }
 
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -7224,12 +7223,12 @@ void BusyLoop_start(uword unused) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 
-  // Tell the other thread that we are done (don't use MonitorLocker
-  // as there is no current isolate any more).
-  sync->Enter();
-  shared_isolate = NULL;
-  sync->Notify();
-  sync->Exit();
+  // Tell the other thread that we are done.
+  {
+    MonitorLocker ml(sync);
+    shared_isolate = NULL;
+    ml.Notify();
+  }
 }
 
 

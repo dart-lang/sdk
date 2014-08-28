@@ -534,7 +534,8 @@ void test() {
   runTest(TEST_15, {'f': (types) {
                             ClassElement cls =
                                 types.compiler.backend.jsIndexableClass;
-                            return new TypeMask.nonNullSubtype(cls);
+                            return new TypeMask.nonNullSubtype(cls,
+                                types.compiler.world);
                          }});
   runTest(TEST_16, {'f': subclassOfInterceptor});
   runTest(TEST_17, {'f': (types) => types.uint31Type.nullable()});

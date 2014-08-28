@@ -11,11 +11,11 @@ main() {
   initConfig();
   forBothPubGetAndUpgrade((command) {
     integration("chooses best version matching override constraint", () {
-      servePackages([
-        packageMap("foo", "1.0.0"),
-        packageMap("foo", "2.0.0"),
-        packageMap("foo", "3.0.0")
-      ]);
+      servePackages((builder) {
+        builder.serve("foo", "1.0.0");
+        builder.serve("foo", "2.0.0");
+        builder.serve("foo", "3.0.0");
+      });
 
       d.dir(appPath, [
         d.pubspec({
@@ -37,9 +37,9 @@ main() {
     });
 
     integration("treats override as implicit dependency", () {
-      servePackages([
-        packageMap("foo", "1.0.0")
-      ]);
+      servePackages((builder) {
+        builder.serve("foo", "1.0.0");
+      });
 
       d.dir(appPath, [
         d.pubspec({
@@ -58,12 +58,14 @@ main() {
     });
 
     integration("ignores other constraints on overridden package", () {
-      servePackages([
-        packageMap("foo", "1.0.0"),
-        packageMap("foo", "2.0.0"),
-        packageMap("foo", "3.0.0"),
-        packageMap("bar", "1.0.0", {"foo": "5.0.0-nonexistent"})
-      ]);
+      servePackages((builder) {
+        builder.serve("foo", "1.0.0");
+        builder.serve("foo", "2.0.0");
+        builder.serve("foo", "3.0.0");
+        builder.serve("bar", "1.0.0", pubspec: {
+          "dependencies": {"foo": "5.0.0-nonexistent"}
+        });
+      });
 
       d.dir(appPath, [
         d.pubspec({
@@ -86,10 +88,10 @@ main() {
     });
 
     integration("warns about overridden dependencies", () {
-      servePackages([
-        packageMap("foo", "1.0.0"),
-        packageMap("bar", "1.0.0")
-      ]);
+      servePackages((builder) {
+        builder.serve("foo", "1.0.0");
+        builder.serve("bar", "1.0.0");
+      });
 
       d.dir("baz", [
         d.libDir("baz"),

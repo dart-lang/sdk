@@ -7,9 +7,7 @@ library domain.completion;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/completion/completion_computer.dart';
-import 'package:analysis_services/completion/completion_suggestion.dart';
-import 'package:analysis_services/constants.dart';
+import 'package:analysis_server/src/services/completion/completion_manager.dart';
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -48,15 +46,14 @@ class CompletionDomainHandler implements RequestHandler {
    * Process a `completion.getSuggestions` request.
    */
   Response processRequest(Request request) {
-    // extract param
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
+    // extract params
+    var params = new CompletionGetSuggestionsParams.fromRequest(request);
     // schedule completion analysis
     String completionId = (_nextCompletionId++).toString();
     CompletionManager.create(
-        server.getAnalysisContext(file),
-        server.getSource(file),
-        offset,
+        server.getAnalysisContext(params.file),
+        server.getSource(params.file),
+        params.offset,
         server.searchEngine).results().listen((CompletionResult result) {
       sendCompletionNotification(
           completionId,
@@ -66,7 +63,8 @@ class CompletionDomainHandler implements RequestHandler {
           result.last);
     });
     // initial response without results
-    return new Response(request.id)..setResult(ID, completionId);
+    return new CompletionGetSuggestionsResult(completionId).toResponse(
+        request.id);
   }
 
   /**
@@ -74,12 +72,7 @@ class CompletionDomainHandler implements RequestHandler {
    */
   void sendCompletionNotification(String completionId, int replacementOffset,
       int replacementLength, Iterable<CompletionSuggestion> results, bool isLast) {
-    Notification notification = new Notification(COMPLETION_RESULTS);
-    notification.setParameter(ID, completionId);
-    notification.setParameter(REPLACEMENT_OFFSET, replacementOffset);
-    notification.setParameter(REPLACEMENT_LENGTH, replacementLength);
-    notification.setParameter(RESULTS, results);
-    notification.setParameter(LAST, isLast);
-    server.sendNotification(notification);
+    server.sendNotification(new CompletionResultsParams(completionId,
+        replacementOffset, replacementLength, results, isLast).toNotification());
   }
 }

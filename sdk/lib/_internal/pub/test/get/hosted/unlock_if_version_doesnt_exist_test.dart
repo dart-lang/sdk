@@ -15,7 +15,7 @@ main() {
   initConfig();
   integration('upgrades a locked pub server package with a nonexistent version',
       () {
-    servePackages([packageMap("foo", "1.0.0")]);
+    servePackages((builder) => builder.serve("foo", "1.0.0"));
 
     d.appDir({"foo": "any"}).create();
     pubGet();
@@ -23,7 +23,7 @@ main() {
 
     schedule(() => deleteEntry(p.join(sandboxDir, cachePath)));
 
-    servePackages([packageMap("foo", "1.0.1")], replace: true);
+    servePackages((builder) => builder.serve("foo", "1.0.1"), replace: true);
     pubGet();
     d.packagesDir({"foo": "1.0.1"}).validate();
   });

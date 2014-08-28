@@ -11,13 +11,14 @@
 
 namespace dart {
 
+class Array;
 class DebuggerEvent;
-class GCEvent;
 class EmbedderServiceHandler;
+class GCEvent;
 class Instance;
 class Isolate;
 class JSONStream;
-class Array;
+class Object;
 class RawInstance;
 class String;
 
@@ -65,6 +66,8 @@ class Service : public AllStatic {
     return isolate == service_isolate_;
   }
 
+  static void SendEchoEvent(Isolate* isolate);
+
  private:
   // These must be kept in sync with service/constants.dart
   static const int kEventFamilyDebug = 0;
@@ -79,7 +82,12 @@ class Service : public AllStatic {
   static Dart_Handle GetSource(const char* name);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
                                        Dart_Handle url);
-  static void SendEvent(intptr_t eventId, const String& eventMessage);
+  static void SendEvent(intptr_t eventId, const Object& eventMessage);
+  // Does not take ownership of 'data'.
+  static void SendEvent(intptr_t eventId,
+                        const String& meta,
+                        const uint8_t* data,
+                        intptr_t size);
 
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;

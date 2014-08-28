@@ -101,6 +101,31 @@ class SimpleLineBreaker extends LinePrinter {
   List<Chunk> breakLine(Line line) {
     List<LineToken> tokens = preprocess(line.tokens);
     List<Chunk> chunks = <Chunk>[new Chunk(line.indentLevel, maxLength, tokens)];
+    // try SINGLE_SPACE_WEIGHT
+    {
+      Chunk chunk = chunks[0];
+      if (chunk.length > maxLength) {
+        for (int i = 0; i < tokens.length; i++) {
+          LineToken token = tokens[i];
+          if (token is SpaceToken && token.breakWeight == SINGLE_SPACE_WEIGHT) {
+            var beforeChunk = chunk.subChunk(chunk.indent, 0, i);
+            var restChunk = chunk.subChunk(chunk.indent + 2, i + 1);
+            // check if 'init' in 'var v = init;' fits a line
+            if (restChunk.length < maxLength) {
+              return [beforeChunk, restChunk];
+            }
+            // check if 'var v = method(' in 'var v = method(args)' does not fit
+            int weight = chunk.findMinSpaceWeight();
+            if (chunk.getLengthToSpaceWithWeight(weight) > maxLength) {
+              chunks = [beforeChunk, restChunk];
+            }
+            // done anyway
+            break;
+          }
+        }
+      }
+    }
+    // other spaces
     while (true) {
       List<Chunk> newChunks = <Chunk>[];
       bool hasChanges = false;
@@ -115,8 +140,8 @@ class SimpleLineBreaker extends LinePrinter {
               int length = 0;
               for (int i = 0; i < tokens.length; i++) {
                 LineToken token = tokens[i];
-                if (token is SpaceToken && token.breakWeight == weight
-                    && i < tokens.length - 1) {
+                if (token is SpaceToken && token.breakWeight == weight &&
+                    i < tokens.length - 1) {
                   LineToken nextToken = tokens[i + 1];
                   if (length + token.length + nextToken.length > maxLength) {
                     newChunks.add(chunk.subChunk(newIndent, start, i));
@@ -211,6 +236,8 @@ bool isWhitespace(String string) => string.codeUnits.every(
 final LINE_START = new SpaceToken(0);
 
 const DEFAULT_SPACE_WEIGHT = UNBREAKABLE_SPACE_WEIGHT - 1;
+/// The weight of a space after '=' in variable declaration or assignment
+const SINGLE_SPACE_WEIGHT = UNBREAKABLE_SPACE_WEIGHT - 2;
 const UNBREAKABLE_SPACE_WEIGHT = 100000000;
 
 /// Simple non-breaking printer
@@ -243,7 +270,20 @@ class Chunk {
     this.tokens.addAll(tokens);
   }
 
-  int get length => tokens.fold(0, (len, token) => len + token.length);
+  int get length {
+    return tokens.fold(0, (len, token) => len + token.length);
+  }
+
+  int getLengthToSpaceWithWeight(int weight) {
+    int length = 0;
+    for (LineToken token in tokens) {
+      if (token is SpaceToken && token.breakWeight == weight) {
+        break;
+      }
+      length += token.length;
+    }
+    return length;
+  }
 
   bool fits(LineToken a, LineToken b) {
     return length + a.length + a.length <= maxLength;
@@ -251,6 +291,12 @@ class Chunk {
 
   void add(LineToken token) {
     tokens.add(token);
+  }
+
+  bool hasInitializerSpace() {
+    return tokens.any((token) {
+      return token is SpaceToken && token.breakWeight == SINGLE_SPACE_WEIGHT;
+    });
   }
 
   bool hasAnySpace() {

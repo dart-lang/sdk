@@ -19,7 +19,7 @@ class RunCommand extends PubCommand {
       "NOTE: We are currently optimizing this command's startup time.";
   String get usage => "pub run <executable> [args...]";
 
-  Future onRun() {
+  Future onRun() async {
     if (commandOptions.rest.isEmpty) {
       usageError("Must specify an executable to run.");
     }
@@ -36,7 +36,8 @@ class RunCommand extends PubCommand {
       executable = components[1];
     }
 
-    return runExecutable(this, entrypoint, package, executable, args)
-        .then(flushThenExit);
+    var exitCode = await runExecutable(this, entrypoint, package, executable,
+        args);
+    await flushThenExit(exitCode);
   }
 }

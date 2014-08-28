@@ -807,7 +807,8 @@ class VariableUse extends VariableReference {
 }
 
 class VariableDeclaration extends VariableReference {
-  VariableDeclaration(String name) : super(name);
+  final bool allowRename;
+  VariableDeclaration(String name, {this.allowRename: true}) : super(name);
 
   accept(NodeVisitor visitor) => visitor.visitVariableDeclaration(this);
   VariableDeclaration _clone() => new VariableDeclaration(name);
@@ -1051,6 +1052,7 @@ class InterpolatedLiteral extends Literal implements InterpolatedNode {
 class InterpolatedParameter extends Expression
     implements Parameter, InterpolatedNode {
   final name;
+  bool get allowRename => false;
 
   InterpolatedParameter(this.name);
 

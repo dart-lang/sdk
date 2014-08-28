@@ -7,7 +7,7 @@ library descriptor.directory;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import '../../descriptor.dart';
@@ -24,9 +24,26 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
       : super(name),
         contents = contents.toList();
 
+  /// Creates a directory descriptor named [name] based on a directory on the
+  /// physical directory at [path].
+  ///
+  /// Note that reading from the filesystem isn't scheduled; it occurs as soon
+  /// as this descriptor is constructed.
+  DirectoryDescriptor.fromFilesystem(String name, String path)
+      : this(name, new Directory(path).listSync().map((entity) {
+          if (entity is Directory) {
+            return new DirectoryDescriptor.fromFilesystem(
+                p.basename(entity.path), entity.path);
+          } else if (entity is File) {
+            return new FileDescriptor.binary(
+                p.basename(entity.path), entity.readAsBytesSync());
+          }
+          // Ignore broken symlinks.
+        }));
+
   Future create([String parent]) => schedule(() {
     if (parent == null) parent = defaultRoot;
-    var fullPath = path.join(parent, name);
+    var fullPath = p.join(parent, name);
     return Chain.track(new Directory(fullPath).create(recursive: true))
         .then((_) {
       return Future.wait(
@@ -39,7 +56,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
 
   Future validateNow([String parent]) {
     if (parent == null) parent = defaultRoot;
-    var fullPath = path.join(parent, name);
+    var fullPath = p.join(parent, name);
     if (!new Directory(fullPath).existsSync()) {
       fail("Directory not found: '$fullPath'.");
     }
@@ -57,11 +74,11 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
 
   Stream<List<int>> load(String pathToLoad) {
     return futureStream(syncFuture(() {
-      if (path.posix.isAbsolute(pathToLoad)) {
+      if (p.posix.isAbsolute(pathToLoad)) {
         throw new ArgumentError("Can't load absolute path '$pathToLoad'.");
       }
 
-      var split = path.posix.split(path.posix.normalize(pathToLoad));
+      var split = p.posix.split(p.posix.normalize(pathToLoad));
       if (split.isEmpty || split.first == '.' || split.first == '..') {
         throw new ArgumentError("Can't load '$pathToLoad' from within "
             "'$name'.");
@@ -87,7 +104,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
           return (matchingEntries.first as ReadableDescriptor).read();
         } else {
           return (matchingEntries.first as LoadableDescriptor)
-              .load(path.posix.joinAll(remainingPath));
+              .load(p.posix.joinAll(remainingPath));
         }
       }
     }));

@@ -13,6 +13,7 @@
 #include "platform/globals.h"
 
 namespace dart {
+namespace bin {
 
 typedef DWORD ThreadLocalKey;
 typedef DWORD ThreadId;
@@ -73,7 +74,7 @@ class MonitorWaitData {
 
   friend class Monitor;
   friend class MonitorData;
-  friend class OS;
+  friend class Thread;
 
 
   DISALLOW_COPY_AND_ASSIGN(MonitorWaitData);
@@ -109,13 +110,14 @@ class MonitorData {
   MonitorWaitData* waiters_tail_;
 
   friend class Monitor;
-  friend class OS;
+  friend class Thread;
   friend unsigned int __stdcall ThreadEntry(void* data_ptr);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MonitorData);
 };
 
+}  // namespace bin
 }  // namespace dart
 
 #endif  // BIN_THREAD_WIN_H_

@@ -99,6 +99,9 @@ testBadName() {
   Expect.throws(() {
     var counter = new Counter('a.b/c', 'description');
   });
+  Expect.throws(() {
+    var counter = new Counter('vm', 'description');
+  });
 }
 
 main() {

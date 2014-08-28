@@ -6,6 +6,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "platform/utils.h"
+#include "vm/ast_transformer.h"
 #include "vm/bootstrap.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
@@ -285,6 +286,7 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
+      await_is_keyword_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(NULL),
@@ -311,6 +313,7 @@ Parser::Parser(const Script& script,
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
+      await_is_keyword_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(parsed_function),
@@ -827,10 +830,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       node_sequence = parser.ParseStaticFinalGetter(func);
       CompilerStats::num_implicit_final_getters++;
       break;
-    case RawFunction::kStaticInitializer:
-      node_sequence = parser.ParseStaticInitializer(func);
-      CompilerStats::num_static_initializer_funcs++;
-      break;
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
       break;
@@ -1002,6 +1001,74 @@ RawArray* Parser::EvaluateMetadata() {
 }
 
 
+SequenceNode* Parser::ParseStaticInitializer() {
+  ExpectIdentifier("field name expected");
+  CheckToken(Token::kASSIGN, "field initialier expected");
+  ConsumeToken();
+  OpenFunctionBlock(parsed_function()->function());
+  intptr_t expr_pos = TokenPos();
+  AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+  ReturnNode* ret = new(I) ReturnNode(expr_pos, expr);
+  current_block_->statements->Add(ret);
+  return CloseBlock();
+}
+
+
+ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
+  ASSERT(field.is_static());
+  ASSERT(field.value() == Object::transition_sentinel().raw());
+  Isolate* isolate = Isolate::Current();
+
+  const Class& script_cls = Class::Handle(isolate, field.origin());
+  const Script& script = Script::Handle(isolate, script_cls.script());
+
+  const String& field_name = String::Handle(isolate, field.name());
+  String& init_name = String::Handle(isolate,
+      String::Concat(Symbols::InitPrefix(), field_name));
+  init_name = Symbols::New(init_name);
+
+  const Function& initializer = Function::ZoneHandle(isolate,
+      Function::New(init_name,
+                    RawFunction::kRegularFunction,
+                    true,   // static
+                    false,  // !const
+                    false,  // !abstract
+                    false,  // !external
+                    false,  // !native
+                    Class::Handle(field.owner()),
+                    field.token_pos()));
+  initializer.set_result_type(AbstractType::Handle(isolate, field.type()));
+  // Static initializer functions are hidden from the user.
+  // Since they are only executed once, we avoid optimizing
+  // and inlining them. After the field is initialized, the
+  // compiler can eliminate the call to the static initializer.
+  initializer.set_is_visible(false);
+  initializer.SetIsOptimizable(false);
+  initializer.set_is_inlinable(false);
+
+  ParsedFunction* parsed_function = new ParsedFunction(isolate, initializer);
+  Parser parser(script, parsed_function, field.token_pos());
+
+  SequenceNode* body = parser.ParseStaticInitializer();
+  parsed_function->SetNodeSequence(body);
+  parsed_function->set_default_parameter_values(Object::null_array());
+
+  if (parsed_function->has_expression_temp_var()) {
+    body->scope()->AddVariable(parsed_function->expression_temp_var());
+  }
+  if (parsed_function->has_saved_current_context_var()) {
+    body->scope()->AddVariable(parsed_function->saved_current_context_var());
+  }
+  if (parsed_function->has_finally_return_temp_var()) {
+    body->scope()->AddVariable(parsed_function->finally_return_temp_var());
+  }
+  // The instantiator is not required in a static expression.
+  ASSERT(!parser.IsInstantiatorRequired());
+
+  return parsed_function;
+}
+
+
 SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
   TRACE_PARSER("ParseStaticFinalGetter");
   ParamList params;
@@ -1038,184 +1105,16 @@ SequenceNode* Parser::ParseStaticFinalGetter(const Function& func) {
     current_block_->statements->Add(return_node);
   } else {
     // This getter may be called each time the static field is accessed.
-    // The following generated code lazily initializes the field:
-    // if (field.value === transition_sentinel) {
-    //   field.value = null;
-    //   throw("circular dependency in field initialization");
-    // }
-    // if (field.value === sentinel) {
-    //   field.value = transition_sentinel;
-    //   field.value = expr;
-    // }
-    // return field.value;  // Type check is executed here in checked mode.
-
-    // Generate code checking for circular dependency in field initialization.
-    AstNode* compare_circular = new ComparisonNode(
-        ident_pos,
-        Token::kEQ_STRICT,
-        new LoadStaticFieldNode(ident_pos, field),
-        new LiteralNode(ident_pos, Object::transition_sentinel()));
-    // Set field to null prior to throwing exception, so that subsequent
-    // accesses to the field do not throw again, since initializers should only
-    // be executed once.
-    SequenceNode* report_circular = new SequenceNode(ident_pos, NULL);
-    report_circular->Add(
-        new StoreStaticFieldNode(
-            ident_pos,
-            field,
-            new LiteralNode(ident_pos, Instance::ZoneHandle(I))));
-    // Call CyclicInitializationError._throwNew(field_name).
-    ArgumentListNode* error_arguments = new ArgumentListNode(ident_pos);
-    error_arguments->Add(new LiteralNode(ident_pos, field_name));
-    report_circular->Add(
-        MakeStaticCall(Symbols::CyclicInitializationError(),
-                       Library::PrivateCoreLibName(Symbols::ThrowNew()),
-                       error_arguments));
-    AstNode* circular_check =
-        new IfNode(ident_pos, compare_circular, report_circular, NULL);
-    current_block_->statements->Add(circular_check);
-
-    // Generate code checking for uninitialized field.
-    AstNode* compare_uninitialized = new ComparisonNode(
-        ident_pos,
-        Token::kEQ_STRICT,
-        new LoadStaticFieldNode(ident_pos, field),
-        new LiteralNode(ident_pos, Object::sentinel()));
-    SequenceNode* initialize_field = new SequenceNode(ident_pos, NULL);
-    initialize_field->Add(
-        new StoreStaticFieldNode(
-            ident_pos,
-            field,
-            new LiteralNode(ident_pos, Object::transition_sentinel())));
-    const String& init_name = String::Handle(I, Symbols::New(
-        String::Handle(I, String::Concat(
-            Symbols::InitPrefix(), String::Handle(I, field.name())))));
-    const Function& init_function = Function::ZoneHandle(I,
-        field_class.LookupStaticFunction(init_name));
-    ASSERT(!init_function.IsNull());
-    ArgumentListNode* arguments = new ArgumentListNode(expr_pos);
-    StaticCallNode* init_call =
-        new StaticCallNode(expr_pos, init_function, arguments);
-    initialize_field->Add(init_call);
-
-    AstNode* uninitialized_check =
-        new IfNode(ident_pos, compare_uninitialized, initialize_field, NULL);
-    current_block_->statements->Add(uninitialized_check);
-
-    // Generate code returning the field value.
+    // Call runtime support to parse and evaluate the initializer expression.
+    // The runtime function will detect circular dependencies in expressions
+    // and handle errors while evaluating the expression.
+    current_block_->statements->Add(
+        new (I) InitStaticFieldNode(ident_pos, field));
     ReturnNode* return_node =
-        new ReturnNode(ident_pos, new LoadStaticFieldNode(ident_pos, field));
+        new ReturnNode(ident_pos,
+                       new LoadStaticFieldNode(ident_pos, field));
     current_block_->statements->Add(return_node);
   }
-  return CloseBlock();
-}
-
-
-SequenceNode* Parser::ParseStaticInitializer(const Function& func) {
-  TRACE_PARSER("ParseStaticInitializer");
-  ParamList params;
-  ASSERT(func.num_fixed_parameters() == 0);  // static.
-  ASSERT(!func.HasOptionalParameters());
-  ASSERT(AbstractType::Handle(I, func.result_type()).IsResolved());
-
-  // Build local scope for function and populate with the formal parameters.
-  OpenFunctionBlock(func);
-  AddFormalParamsToScope(&params, current_block_->scope);
-
-  // Move forward to the start of the initializer expression.
-  intptr_t ident_pos = TokenPos();
-  ExpectIdentifier("identifier expected");
-  ExpectToken(Token::kASSIGN);
-  intptr_t token_pos = TokenPos();
-
-  // Synthesize a try-catch block to wrap the initializer expression.
-  LocalVariable* context_var =
-      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
-  if (context_var == NULL) {
-    context_var = new(I) LocalVariable(
-        token_pos,
-        Symbols::SavedTryContextVar(),
-        Type::ZoneHandle(I, Type::DynamicType()));
-    current_block_->scope->AddVariable(context_var);
-  }
-  LocalVariable* catch_excp_var =
-      current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
-  if (catch_excp_var == NULL) {
-    catch_excp_var = new (I) LocalVariable(
-        token_pos,
-        Symbols::ExceptionVar(),
-        Type::ZoneHandle(I, Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_excp_var);
-  }
-  LocalVariable* catch_trace_var =
-      current_block_->scope->LocalLookupVariable(Symbols::StackTraceVar());
-  if (catch_trace_var == NULL) {
-    catch_trace_var = new (I) LocalVariable(
-        token_pos,
-        Symbols::StackTraceVar(),
-        Type::ZoneHandle(I, Type::DynamicType()));
-    current_block_->scope->AddVariable(catch_trace_var);
-  }
-
-  OpenBlock();  // Start try block.
-  AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
-  const Field& field = Field::ZoneHandle(I, func.saved_static_field());
-  ASSERT(!field.is_const());
-  if (FLAG_enable_type_checks) {
-    expr = new AssignableNode(
-        field.token_pos(),
-        expr,
-        AbstractType::ZoneHandle(I, field.type()),
-        String::ZoneHandle(I, field.name()));
-  }
-  StoreStaticFieldNode* store = new StoreStaticFieldNode(field.token_pos(),
-                                                         field,
-                                                         expr);
-  current_block_->statements->Add(store);
-  SequenceNode* try_block = CloseBlock();  // End try block.
-
-  OpenBlock();  // Start catch handler list.
-  OpenBlock();  // Start catch clause.
-  AstNode* compare_transition_sentinel = new ComparisonNode(
-      token_pos,
-      Token::kEQ_STRICT,
-      new LoadStaticFieldNode(ident_pos, field),
-      new LiteralNode(field.token_pos(), Object::transition_sentinel()));
-
-  SequenceNode* store_null = new SequenceNode(token_pos, NULL);
-  store_null->Add(new StoreStaticFieldNode(
-      field.token_pos(),
-      field,
-      new LiteralNode(token_pos, Instance::ZoneHandle(I))));
-  AstNode* transition_sentinel_check =
-      new IfNode(token_pos, compare_transition_sentinel, store_null, NULL);
-  current_block_->statements->Add(transition_sentinel_check);
-
-  current_block_->statements->Add(
-      new ThrowNode(token_pos,
-                    new LoadLocalNode(token_pos, catch_excp_var),
-                    new LoadLocalNode(token_pos, catch_trace_var)));
-  SequenceNode* catch_clause = CloseBlock();  // End catch clause.
-
-  current_block_->statements->Add(catch_clause);
-  SequenceNode* catch_handler_list = CloseBlock();  // End catch handler list.
-  CatchClauseNode* catch_block =
-      new CatchClauseNode(token_pos,
-                          catch_handler_list,
-                          Array::ZoneHandle(I, Object::empty_array().raw()),
-                          context_var,
-                          catch_excp_var,
-                          catch_trace_var,
-                          CatchClauseNode::kInvalidTryIndex,
-                          false);  // No stack trace needed.
-
-  AstNode* try_catch_node = new TryCatchNode(token_pos,
-                                             try_block,
-                                             context_var,
-                                             catch_block,
-                                             NULL,  // No finally block.
-                                             AllocateTryIndex());
-  current_block_->statements->Add(try_catch_node);
   return CloseBlock();
 }
 
@@ -1625,7 +1524,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
   }
 
   if (params->has_optional_named_parameters &&
-      (parameter.name->CharAt(0) == '_')) {
+      (parameter.name->CharAt(0) == Library::kPrivateIdentifierStart)) {
     ReportError(parameter.name_pos, "named parameter must not be private");
   }
 
@@ -2296,10 +2195,15 @@ AstNode* Parser::ParseInitializer(const Class& cls,
     ReportError(field_pos, "unresolved reference to instance field '%s'",
                 field_name.ToCString());
   }
-  CheckDuplicateFieldInit(field_pos, initialized_fields, &field);
-  AstNode* instance = new LoadLocalNode(field_pos, receiver);
   EnsureExpressionTemp();
-  return new StoreInstanceFieldNode(field_pos, instance, field, init_expr);
+  AstNode* instance = new(I) LoadLocalNode(field_pos, receiver);
+  AstNode* initializer = CheckDuplicateFieldInit(field_pos,
+      initialized_fields, instance, &field, init_expr);
+  if (initializer == NULL) {
+    initializer =
+        new(I) StoreInstanceFieldNode(field_pos, instance, field, init_expr);
+  }
+  return initializer;
 }
 
 
@@ -2420,23 +2324,107 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
       current_block_->statements->Add(field_init);
     }
   }
+  initialized_fields->Add(NULL);  // End of inline initializers.
   SetPosition(saved_pos);
 }
 
 
-void Parser::CheckDuplicateFieldInit(intptr_t init_pos,
-                                    GrowableArray<Field*>* initialized_fields,
-                                    Field* field) {
+AstNode* Parser::CheckDuplicateFieldInit(
+    intptr_t init_pos,
+    GrowableArray<Field*>* initialized_fields,
+    AstNode* instance,
+    Field* field,
+    AstNode* init_value) {
   ASSERT(!field->is_static());
-  for (int i = 0; i < initialized_fields->length(); i++) {
-    Field* initialized_field = (*initialized_fields)[i];
+  AstNode* result = NULL;
+
+  // The initializer_list is divided into two sections. The sections
+  // are separated by a NULL entry: [f0, ... fn, NULL, fn+1, ...]
+  // The first fields f0 .. fn are final fields of the class that
+  // have an initializer expression inlined in the class declaration.
+  // The remaining fields are those initialized by the constructor's
+  // initializing formals and initializer list
+  int initializer_idx = 0;
+  while (initializer_idx < initialized_fields->length()) {
+    Field* initialized_field = (*initialized_fields)[initializer_idx];
+    initializer_idx++;
+    if (initialized_field == NULL) {
+      break;
+    }
+    if (initialized_field->raw() == field->raw()) {
+      // This final field has been initialized by an inlined
+      // initializer expression. This is a runtime error.
+      // Throw a NoSuchMethodError for the missing setter.
+      ASSERT(field->is_final());
+
+      // Build a call to NoSuchMethodError::_throwNew(
+      //     Object receiver,
+      //     String memberName,
+      //     int invocation_type,
+      //     List arguments,
+      //     List argumentNames,
+      //     List existingArgumentNames);
+
+      ArgumentListNode* nsm_args = new(I) ArgumentListNode(init_pos);
+      // Object receiver.
+      nsm_args->Add(instance);
+
+      // String memberName.
+      String& setter_name = String::ZoneHandle(field->name());
+      setter_name = Field::SetterSymbol(setter_name);
+      nsm_args->Add(new(I) LiteralNode(init_pos, setter_name));
+
+      // Smi invocation_type.
+      const int invocation_type =
+          InvocationMirror::EncodeType(InvocationMirror::kDynamic,
+                                       InvocationMirror::kSetter);
+      nsm_args->Add(new(I) LiteralNode(
+          init_pos, Smi::ZoneHandle(I, Smi::New(invocation_type))));
+
+      // List arguments.
+      GrowableArray<AstNode*> setter_args;
+      setter_args.Add(init_value);
+      ArrayNode* setter_args_array = new(I) ArrayNode(
+          init_pos,
+          Type::ZoneHandle(I, Type::ArrayType()),
+          setter_args);
+      nsm_args->Add(setter_args_array);
+
+      // List argumentNames.
+      // The missing implicit setter of the field has no argument names.
+      nsm_args->Add(new(I) LiteralNode(init_pos, Array::ZoneHandle(I)));
+
+      // List existingArgumentNames.
+      // There is no setter for the final field, thus there are
+      // no existing names.
+      nsm_args->Add(new(I) LiteralNode(init_pos, Array::ZoneHandle(I)));
+
+      AstNode* nsm_call =
+          MakeStaticCall(Symbols::NoSuchMethodError(),
+          Library::PrivateCoreLibName(Symbols::ThrowNew()),
+          nsm_args);
+
+      LetNode* let = new(I) LetNode(init_pos);
+      let->AddNode(init_value);
+      let->AddNode(nsm_call);
+      result = let;
+    }
+  }
+  // The remaining elements in initialized_fields are fields that
+  // are initialized through initializing formal parameters, or
+  // in the constructor's initializer list. If there is a duplicate,
+  // it is a compile time error.
+  while (initializer_idx < initialized_fields->length()) {
+    Field* initialized_field = (*initialized_fields)[initializer_idx];
+    initializer_idx++;
     if (initialized_field->raw() == field->raw()) {
       ReportError(init_pos,
-                  "duplicate initialization for field %s",
+                  "duplicate initializer for field %s",
                   String::Handle(I, field->name()).ToCString());
     }
   }
   initialized_fields->Add(field);
+  return result;
 }
 
 
@@ -2713,7 +2701,6 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
                       "redirecting constructors may not have "
                       "initializing formal parameters");
         }
-        CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
 
         if (!param.has_explicit_type) {
           const AbstractType& field_type =
@@ -2733,8 +2720,16 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         ASSERT(p->is_invisible());
         AstNode* value = new LoadLocalNode(param.name_pos, p);
         EnsureExpressionTemp();
-        AstNode* initializer = new StoreInstanceFieldNode(
-            param.name_pos, instance, field, value);
+        AstNode* initializer =
+            CheckDuplicateFieldInit(param.name_pos,
+                                    &initialized_fields,
+                                    instance,
+                                    &field,
+                                    value);
+        if (initializer == NULL) {
+          initializer = new(I) StoreInstanceFieldNode(
+              param.name_pos, instance, field, value);
+        }
         current_block_->statements->Add(initializer);
       }
     }
@@ -2988,13 +2983,25 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // we are compiling a getter this will at most populate the receiver.
     AddFormalParamsToScope(&params, current_block_->scope);
   } else if (func.is_async_closure()) {
+    // Async closures have one optional parameter for continuation results.
+    ParamDesc result_param;
+    result_param.name = &Symbols::AsyncOperationParam();
+    result_param.default_value = &Object::null_instance();
+    result_param.type = &Type::ZoneHandle(I, Type::DynamicType());
+    params.parameters->Add(result_param);
+    params.num_optional_parameters++;
+    params.has_optional_positional_parameters = true;
+    SetupDefaultsForOptionalParams(&params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
     ASSERT(AbstractType::Handle(I, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
     if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
       // Parse away any formal parameters, as they are accessed as as context
       // variables.
-      ParseFormalParameterList(allow_explicit_default_values, false, &params);
+      ParamList parse_away;
+      ParseFormalParameterList(allow_explicit_default_values,
+                               false,
+                               &parse_away);
     }
   } else {
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
@@ -3044,6 +3051,13 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   Function& async_closure = Function::ZoneHandle(I);
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
     async_closure = OpenAsyncFunction(formal_params_pos);
+  } else if (func.is_async_closure()) {
+    OpenAsyncClosure();
+  }
+
+  bool saved_await_is_keyword = await_is_keyword_;
+  if (func.IsAsyncFunction() || func.is_async_closure()) {
+    await_is_keyword_ = true;
   }
 
   intptr_t end_token_pos = 0;
@@ -3114,6 +3128,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
   last_used_try_index_ = saved_try_index;
+  await_is_keyword_ = saved_await_is_keyword;
   return CloseBlock();
 }
 
@@ -3680,13 +3695,6 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                field->name_pos);
         getter.set_result_type(*field->type);
         members->AddFunction(getter);
-
-        // Create initializer function for non-const fields.
-        if (!class_field.is_const()) {
-          const Function& init_function = Function::ZoneHandle(I,
-              Function::NewStaticInitializer(class_field));
-          members->AddFunction(init_function);
-        }
       }
     }
 
@@ -4221,8 +4229,7 @@ void Parser::ParseClassDefinition(const Class& cls) {
   cls.AddFields(members.fields());
 
   // Creating a new array for functions marks the class as parsed.
-  const Array& array = Array::Handle(I,
-                                     Array::MakeArray(members.functions()));
+  const Array& array = Array::Handle(I, Array::MakeArray(members.functions()));
   cls.SetFunctions(array);
 
   // Add an implicit constructor if no explicit constructor is present.
@@ -4845,13 +4852,6 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                                name_pos);
         getter.set_result_type(type);
         top_level->functions.Add(getter);
-
-        // Create initializer function.
-        if (!field.is_const()) {
-          const Function& init_function = Function::ZoneHandle(I,
-              Function::NewStaticInitializer(field));
-          top_level->functions.Add(init_function);
-        }
       }
     } else if (is_final) {
       ReportError(name_pos, "missing initializer for final or const variable");
@@ -5526,7 +5526,14 @@ void Parser::OpenFunctionBlock(const Function& func) {
 }
 
 
+void Parser::OpenAsyncClosure() {
+  TRACE_PARSER("OpenAsyncClosure");
+  parsed_function()->set_await_temps_scope(current_block_->scope);
+}
+
+
 RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
+  TRACE_PARSER("OpenAsyncFunction");
   // Create the closure containing the old body of this function.
   Class& sig_cls = Class::ZoneHandle(I);
   Type& sig_type = Type::ZoneHandle(I);
@@ -5537,6 +5544,13 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
       formal_param_pos,
       &Symbols::ClosureParameter(),
       &Type::ZoneHandle(I, Type::DynamicType()));
+  ParamDesc result_param;
+  result_param.name = &Symbols::AsyncOperationParam();
+  result_param.default_value = &Object::null_instance();
+  result_param.type = &Type::ZoneHandle(I, Type::DynamicType());
+  closure_params.parameters->Add(result_param);
+  closure_params.has_optional_positional_parameters = true;
+  closure_params.num_optional_parameters++;
   closure = Function::NewClosureFunction(
       Symbols::AnonymousClosure(),
       innermost_function(),
@@ -5578,8 +5592,19 @@ SequenceNode* Parser::CloseBlock() {
 }
 
 
+static inline String& BuildAsyncSavedTryContextName(Isolate* isolate,
+                                                    int16_t id) {
+  const char* async_saved_prefix = ":async_saved_try_ctx_var_";
+  // Can be a regular handle since we only use it to build an actual symbol.
+  const String& cnt_str = String::Handle(
+      String::NewFormatted("%s%d", async_saved_prefix, id));
+  return String::ZoneHandle(isolate, Symbols::New(cnt_str));
+}
+
+
 SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
                                          SequenceNode* closure_body) {
+  TRACE_PARSER("CloseAsyncFunction");
   ASSERT(!closure.IsNull());
   ASSERT(closure_body != NULL);
   // The block for the async closure body has already been closed. Close the
@@ -5588,8 +5613,6 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
   // Create and return a new future that executes a closure with the current
   // body.
-
-  bool found = false;
 
   // No need to capture parameters or other variables, since they have already
   // been captured in the corresponding scope as the body has been parsed within
@@ -5607,28 +5630,49 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       completer.LookupFunction(Symbols::CompleterConstructor()));
   ASSERT(!completer_constructor.IsNull());
 
+  bool found = false;
   // Add to AST:
   //   var :async_op;
   //   var :async_completer;
+  //   var :await_jump_var;
+  //   var :await_ctx_var;
+  // Add as many variables to saved the try block ctx as there were try blocks.
+  //   var :async_saved_try_ctx_var_<x>;
+  const Type& dynamic_type = Type::ZoneHandle(I, Type::DynamicType());
   LocalVariable* async_op_var = new (I) LocalVariable(
-      Scanner::kNoSourcePos,
-      Symbols::AsyncOperation(),
-      Type::ZoneHandle(I, Type::DynamicType()));
+      Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
   current_block_->scope->AddVariable(async_op_var);
   found = closure_body->scope()->CaptureVariable(Symbols::AsyncOperation());
   ASSERT(found);
   LocalVariable* async_completer = new (I) LocalVariable(
-      Scanner::kNoSourcePos,
-      Symbols::AsyncCompleter(),
-      Type::ZoneHandle(I, Type::DynamicType()));
+      Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
   current_block_->scope->AddVariable(async_completer);
   found = closure_body->scope()->CaptureVariable(Symbols::AsyncCompleter());
   ASSERT(found);
+  LocalVariable* await_jump_var = new (I) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), dynamic_type);
+  current_block_->scope->AddVariable(await_jump_var);
+  found = closure_body->scope()->CaptureVariable(Symbols::AwaitJumpVar());
+  ASSERT(found);
+  LocalVariable* await_ctx_var = new (I) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AwaitContextVar(), dynamic_type);
+  current_block_->scope->AddVariable(await_ctx_var);
+  found = closure_body->scope()->CaptureVariable(Symbols::AwaitContextVar());
+  ASSERT(found);
+  LocalVariable* async_saved_try_ctx_var;
+  for (int16_t i = 0; i < last_used_try_index_; i++) {
+    String& async_saved_try_ctx_name = BuildAsyncSavedTryContextName(I, i);
+    async_saved_try_ctx_var = new (I) LocalVariable(
+        Scanner::kNoSourcePos, async_saved_try_ctx_name, dynamic_type);
+    current_block_->scope->AddVariable(async_saved_try_ctx_var);
+    found = closure_body->scope()->CaptureVariable(async_saved_try_ctx_name);
+    ASSERT(found);
+  }
 
   // Add to AST:
   //   :async_completer = new Completer();
-  ArgumentListNode* empty_args = new (I) ArgumentListNode(
-      Scanner::kNoSourcePos);
+  ArgumentListNode* empty_args =
+      new (I) ArgumentListNode(Scanner::kNoSourcePos);
   ConstructorCallNode* completer_constructor_node = new (I) ConstructorCallNode(
       Scanner::kNoSourcePos,
       TypeArguments::ZoneHandle(I),
@@ -5676,8 +5720,16 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
 
 void Parser::CloseAsyncClosure(SequenceNode* body) {
+  TRACE_PARSER("CloseAsyncClosure");
   // We need a temporary expression to store intermediate return values.
   parsed_function()->EnsureExpressionTemp();
+  // Implicitly mark those variables below as captured. We currently mark all
+  // variables of all scopes as captured (below), but as soon as we do something
+  // smarter we rely on these internal variables to be available.
+  body->scope()->LookupVariable(Symbols::Completer(), false);
+  body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+  body->scope()->RecursivelyCaptureAllVariables();
 }
 
 
@@ -5878,7 +5930,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     // Variable initialization.
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
-    AstNode* expr = ParseExpr(is_const, kConsumeCascades);
+    AstNode* expr = ParseAwaitableExpr(is_const, kConsumeCascades);
     initialization = new(I) StoreLocalNode(
         assign_pos, variable, expr);
     if (is_const) {
@@ -6309,7 +6361,7 @@ bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
 
 // Returns true if the current token is kIDENT or a pseudo-keyword.
 bool Parser::IsIdentifier() {
-  return Token::IsIdentifier(CurrentToken());
+  return Token::IsIdentifier(CurrentToken()) && !IsAwaitAsKeyword();
 }
 
 
@@ -7212,6 +7264,19 @@ SequenceNode* Parser::ParseFinallyBlock() {
   TRACE_PARSER("ParseFinallyBlock");
   OpenBlock();
   ExpectToken(Token::kLBRACE);
+
+  // In case of async closures we need to restore the saved try index of an
+  // outer try block (if it exists).  The current try block has already been
+  // removed from the stack of try blocks.
+  if (current_function().is_async_closure() && (try_blocks_list_ != NULL)) {
+    // We need two unchain two scopes: finally clause, and the try block level.
+    SetupSavedTryContext(current_block_->scope->parent()->parent(),
+                         try_blocks_list_->try_index(),
+                         current_block_->statements);
+  } else {
+    parsed_function()->reset_saved_try_ctx_vars();
+  }
+
   ParseStatementSequence();
   ExpectToken(Token::kRBRACE);
   SequenceNode* finally_block = CloseBlock();
@@ -7357,6 +7422,21 @@ SequenceNode* Parser::ParseCatchClauses(
     // Add nested block with user-defined code.  This blocks allows
     // declarations in the body to shadow the catch parameters.
     CheckToken(Token::kLBRACE);
+
+    // In case of async closures we need to restore the saved try index of an
+    // outer try block (if it exists).
+    ASSERT(try_blocks_list_ != NULL);
+    if (current_function().is_async_closure() &&
+        (try_blocks_list_->outer_try_block() != NULL)) {
+      // We need to unchain three scope levels: catch clause, catch parameters,
+      // and the general try block.
+      SetupSavedTryContext(current_block_->scope->parent()->parent()->parent(),
+                           try_blocks_list_->outer_try_block()->try_index(),
+                           current_block_->statements);
+    } else {
+      parsed_function()->reset_saved_try_ctx_vars();
+    }
+
     current_block_->statements->Add(ParseNestedStatement(false, NULL));
     catch_blocks.Add(CloseBlock());
 
@@ -7452,6 +7532,33 @@ SequenceNode* Parser::ParseCatchClauses(
 }
 
 
+// Set up the currently relevant :saved_try_context_var on the stack:
+// * Try blocks: Set the context variable for this try block.
+// * Catch/finally blocks: Set the context variable for any outer try block (if
+//   existent).
+//
+// Also save the captured variable and the stack variable to be able to set
+// it after a function continues execution (await).
+void Parser::SetupSavedTryContext(LocalScope* saved_try_context_scope,
+                                  int16_t try_index,
+                                  SequenceNode* target) {
+  LocalVariable* saved_try_ctx = saved_try_context_scope->LookupVariable(
+      Symbols::SavedTryContextVar(), false);
+  ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
+  const String& async_saved_try_ctx_name =
+      BuildAsyncSavedTryContextName(I, try_index);
+  LocalVariable* async_saved_try_ctx =
+      target->scope()->LookupVariable(async_saved_try_ctx_name, false);
+  ASSERT((async_saved_try_ctx != NULL) && async_saved_try_ctx->is_captured());
+  target->Add(new (I) StoreLocalNode(
+      Scanner::kNoSourcePos, saved_try_ctx, new (I) LoadLocalNode(
+          Scanner::kNoSourcePos, async_saved_try_ctx)));
+
+  parsed_function()->set_saved_try_ctx(saved_try_ctx);
+  parsed_function()->set_async_saved_try_ctx(async_saved_try_ctx);
+}
+
+
 AstNode* Parser::ParseTryStatement(String* label_name) {
   TRACE_PARSER("ParseTryStatement");
 
@@ -7510,6 +7617,22 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   OpenBlock();
   PushTryBlock(current_block_);
   ExpectToken(Token::kLBRACE);
+
+  if (current_function().is_async_closure()) {
+    const String& async_saved_try_ctx_name =
+        BuildAsyncSavedTryContextName(I, last_used_try_index_ - 1);
+    LocalVariable* async_saved_try_ctx =
+        current_block_->scope->LookupVariable(
+            async_saved_try_ctx_name, false);
+    ASSERT(async_saved_try_ctx != NULL);
+    ASSERT(context_var != NULL);
+    current_block_->statements->Add(new (I) StoreLocalNode(
+        Scanner::kNoSourcePos, async_saved_try_ctx, new (I) LoadLocalNode(
+            Scanner::kNoSourcePos, context_var)));
+    parsed_function()->set_saved_try_ctx(context_var);
+    parsed_function()->set_async_saved_try_ctx(async_saved_try_ctx);
+  }
+
   ParseStatementSequence();
   ExpectToken(Token::kRBRACE);
   SequenceNode* try_block = CloseBlock();
@@ -7582,6 +7705,21 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     sequence->set_label(try_label);
     try_catch_node = sequence;
   }
+
+  // In case of async closures we need to restore the saved try index of an
+  // outer try block (if it exists).
+  if (current_function().is_async_closure() &&
+      (outer_try_index != CatchClauseNode::kInvalidTryIndex)) {
+    SequenceNode* try_catch_and_restore_try_ctx = new (I) SequenceNode(
+        Scanner::kNoSourcePos, current_block_->scope);
+    try_catch_and_restore_try_ctx->Add(try_catch_node);
+    SetupSavedTryContext(
+        current_block_->scope, outer_try_index, try_catch_and_restore_try_ctx);
+    return try_catch_and_restore_try_ctx;
+  } else {
+    parsed_function()->reset_saved_try_ctx_vars();
+  }
+
   return try_catch_node;
 }
 
@@ -7751,7 +7889,7 @@ AstNode* Parser::ParseStatement() {
         new(I) LoadLocalNode(statement_pos, excp_var),
         new(I) LoadLocalNode(statement_pos, trace_var));
   } else {
-    statement = ParseExpr(kAllowConst, kConsumeCascades);
+    statement = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
     ExpectSemicolon();
   }
   return statement;
@@ -7869,6 +8007,12 @@ String* Parser::ExpectIdentifier(const char* msg) {
 
 bool Parser::IsLiteral(const char* literal) {
   return IsIdentifier() && CurrentLiteral()->Equals(literal);
+}
+
+
+bool Parser::IsAwaitAsKeyword() {
+  return await_is_keyword_ &&
+         (CurrentLiteral()->raw() == Symbols::Await().raw());
 }
 
 
@@ -8402,6 +8546,31 @@ static AstNode* LiteralIfStaticConst(Isolate* iso, AstNode* expr) {
       return new(iso) LiteralNode(expr->token_pos(),
                              Instance::ZoneHandle(iso, field.value()));
     }
+  }
+  return expr;
+}
+
+
+AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
+                                    bool consume_cascades) {
+  TRACE_PARSER("ParseAwaitableExpr");
+  parsed_function()->reset_have_seen_await();
+  AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
+  if (parsed_function()->have_seen_await()) {
+    if (!current_block_->scope->LookupVariable(
+          Symbols::AsyncOperation(), true)) {
+      // Async operations are always encapsulated into a local function. We only
+      // need to transform the expression when generating code for this inner
+      // function.
+      return expr;
+    }
+    SequenceNode* intermediates_block = new(I) SequenceNode(
+        Scanner::kNoSourcePos, current_block_->scope);
+    AwaitTransformer at(intermediates_block, library_, parsed_function());
+    AstNode* result = at.Transform(expr);
+    current_block_->statements->Add(intermediates_block);
+    parsed_function()->reset_have_seen_await();
+    return result;
   }
   return expr;
 }
@@ -9615,6 +9784,15 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
                                            const String& ident) {
   TRACE_PARSER("ResolveIdentInPrefixScope");
   HANDLESCOPE(I);
+  if (ident.CharAt(0) == Library::kPrivateIdentifierStart) {
+    // Private names are not exported by libraries. The name mangling
+    // of private names with a library-specific suffix usually ensures
+    // that _x in library A is not found when looked up from library B.
+    // In the pathological case where a library includes itself with
+    // a prefix, the name mangling would not help in hiding the private
+    // name, so we need to explicitly reject private names here.
+    return NULL;
+  }
   Object& obj = Object::Handle(I);
   if (prefix.is_loaded()) {
     obj = prefix.LookupObject(ident);
@@ -10775,6 +10953,16 @@ AstNode* Parser::ParsePrimary() {
     OpenBlock();
     primary = ParseFunctionStatement(true);
     CloseBlock();
+  } else if (IsAwaitAsKeyword()) {
+    // The body of an async function is parsed multiple times. The first time
+    // when setting up an AsyncFunction() for generating relevant scope
+    // information. The second time the body is parsed for actually generating
+    // code.
+    TRACE_PARSER("ParseAwaitExpr");
+    ConsumeToken();
+    parsed_function()->record_await();
+    primary = new(I) AwaitNode(
+        TokenPos(), ParseExpr(kAllowConst, kConsumeCascades));
   } else if (IsIdentifier()) {
     intptr_t qual_ident_pos = TokenPos();
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(I, ParsePrefix());
@@ -10961,8 +11149,7 @@ const Instance& Parser::EvaluateConstExpr(intptr_t expr_pos, AstNode* expr) {
     // Compile time constant expressions cannot reference anything from a
     // local scope.
     LocalScope* empty_scope = new(I) LocalScope(NULL, 0, 0);
-    SequenceNode* seq = new(I) SequenceNode(expr->token_pos(),
-                                                    empty_scope);
+    SequenceNode* seq = new(I) SequenceNode(expr->token_pos(), empty_scope);
     seq->Add(ret);
 
     Object& result = Object::Handle(I, Compiler::ExecuteOnce(seq));

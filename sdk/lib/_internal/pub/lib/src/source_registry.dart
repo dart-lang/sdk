@@ -6,6 +6,7 @@ library pub.source_registry;
 
 import 'dart:collection';
 
+import 'package.dart';
 import 'source.dart';
 import 'source/unknown.dart';
 
@@ -22,6 +23,22 @@ class SourceRegistry extends IterableBase<Source> {
     var sources = _sources.values.toList();
     sources.sort((a, b) => a.name.compareTo(b.name));
     return sources.iterator;
+  }
+
+  /// Returns whether [id1] and [id2] refer to the same package, including
+  /// validating that their descriptions are equivalent.
+  bool idsEqual(PackageId id1, PackageId id2) {
+    if (id1 != id2) return false;
+    if (id1 == null && id2 == null) return true;
+    return idDescriptionsEqual(id1, id2);
+  }
+
+  /// Returns whether [id1] and [id2] have the same source and description.
+  ///
+  /// This doesn't check whether the name or versions are equal.
+  bool idDescriptionsEqual(PackageId id1, PackageId id2) {
+    if (id1.source != id2.source) return false;
+    return this[id1.source].descriptionsEqual(id1.description, id2.description);
   }
 
   /// Sets the default source.

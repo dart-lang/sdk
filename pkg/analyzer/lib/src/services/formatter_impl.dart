@@ -457,7 +457,7 @@ class SourceVisitor implements AstVisitor {
     space();
     token(node.operator);
     allowContinuedLines((){
-      space();
+      levelSpace(SINGLE_SPACE_WEIGHT);
       visit(node.rightHandSide);
     });
   }
@@ -467,8 +467,6 @@ class SourceVisitor implements AstVisitor {
     token(node.awaitKeyword);
     space();
     visit(node.expression);
-    // TODO(scheglov) a bug in the spec, there sould not be a ';'
-    token(node.semicolon);
   }
 
   visitBinaryExpression(BinaryExpression node) {
@@ -680,7 +678,7 @@ class SourceVisitor implements AstVisitor {
       newlines();
     } else {
       preserveLeadingNewlines();
-      space();
+      levelSpace(lastSpaceWeight++);
     }
     indent(2);
     token(node.separator /* : */);
@@ -1368,14 +1366,9 @@ class SourceVisitor implements AstVisitor {
           levelSpace(lastSpaceWeight);
           visit(initializer);
         });
-      } else if (initializer is ConditionalExpression) {
-        allowContinuedLines(() {
-          space();
-          visit(initializer);
-        });
       } else {
         allowContinuedLines(() {
-          levelSpace(lastSpaceWeight++);
+          levelSpace(SINGLE_SPACE_WEIGHT);
           visit(initializer);
         });
       }

@@ -13,7 +13,7 @@ main() {
   forBothPubGetAndUpgrade((command) {
     integration('upgrades a package using the cache', () {
       // Run the server so that we know what URL to use in the system cache.
-      servePackages([]);
+      serveNoPackages();
 
       d.cacheDir({
         "foo": ["1.2.2", "1.2.3"],
@@ -41,7 +41,7 @@ main() {
 
     integration('fails gracefully if a dependency is not cached', () {
       // Run the server so that we know what URL to use in the system cache.
-      servePackages([]);
+      serveNoPackages();
 
       d.appDir({"foo": "any"}).create();
 
@@ -51,7 +51,7 @@ main() {
 
     integration('fails gracefully no cached versions match', () {
       // Run the server so that we know what URL to use in the system cache.
-      servePackages([]);
+      serveNoPackages();
 
       d.cacheDir({
         "foo": ["1.2.2", "1.2.3"]

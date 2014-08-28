@@ -17,6 +17,7 @@ import 'package:html5lib/dom.dart' as dom;
  */
 abstract class ApiVisitor<T> {
   T visitTypeReference(TypeReference typeReference);
+  T visitTypeUnion(TypeUnion typeUnion);
   T visitTypeObject(TypeObject typeObject);
   T visitTypeList(TypeList typeList);
   T visitTypeMap(TypeMap typeMap);
@@ -116,6 +117,11 @@ class HierarchicalApiVisitor extends ApiVisitor {
 
   @override
   void visitTypeReference(TypeReference typeReference) {
+  }
+
+  @override
+  void visitTypeUnion(TypeUnion typeUnion) {
+    typeUnion.choices.forEach(visitTypeDecl);
   }
 
   /**
@@ -366,6 +372,22 @@ class TypeReference extends TypeDecl {
 }
 
 /**
+ * Type which represents a union among multiple choices.
+ */
+class TypeUnion extends TypeDecl {
+  final List<TypeDecl> choices;
+
+  /**
+   * The field that is used to disambiguate this union
+   */
+  final String field;
+
+  TypeUnion(this.choices, this.field, dom.Element html) : super(html);
+
+  accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
+}
+
+/**
  * Type of a JSON object with specified fields, some of which may be optional.
  */
 class TypeObject extends TypeDecl {
@@ -374,6 +396,18 @@ class TypeObject extends TypeDecl {
   TypeObject(this.fields, dom.Element html) : super(html);
 
   accept(ApiVisitor visitor) => visitor.visitTypeObject(this);
+
+  /**
+   * Return the field with the given [name], or null if there is no such field.
+   */
+  TypeObjectField getField(String name) {
+    for (TypeObjectField field in fields) {
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
+  }
 }
 
 /**

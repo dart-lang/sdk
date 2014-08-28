@@ -5,6 +5,7 @@
 <link rel="import" href="eval_link.html">
 <link rel="import" href="field_ref.html">
 <link rel="import" href="function_ref.html">
+<link rel="import" href="inbound_reference.html">
 <link rel="import" href="instance_ref.html">
 <link rel="import" href="observatory_element.html">
 <link rel="import" href="nav_bar.html">
@@ -80,12 +81,12 @@
                 <div class="memberItem">
                   <div class="memberName">[{{ element['index']}}]</div>
                   <div class="memberValue">
-                    <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                    <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
                     <template if="{{ element['parentField'] != null }}">
-                      in <field-ref ref="{{ element['parentField'] }}"></field-ref>
+                      in <field-ref ref="{{ element['parentField'] }}"></field-ref> of
                     </template>
                     <template if="{{ element['parentListIndex'] != null }}">
-                      at list index {{ element['parentListIndex'] }} of
+                      in [{{ element['parentListIndex'] }}] of
                     </template>
                   </div>
                   </div>
@@ -97,6 +98,22 @@
                     label="[find more]"
                     expr="{{ path['elements'].length * 2 }}">
                   </eval-link>
+                </template>
+              </template>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">inbound references</div>
+            <div class="memberValue">
+              <template if="{{ inboundReferences == null }}">
+                <eval-link callback="{{ fetchInboundReferences }}"
+                           label="[find]"
+                           expr="100">
+                </eval-link>
+              </template>
+              <template if="{{ inboundReferences != null }}">
+                <template repeat="{{ reference in inboundReferences['references'] }}">
+                  <inbound-reference ref="{{ reference }}"></inbound-reference>
                 </template>
               </template>
             </div>

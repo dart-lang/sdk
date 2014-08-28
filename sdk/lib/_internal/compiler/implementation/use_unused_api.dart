@@ -124,6 +124,8 @@ void useNode(tree.Node node) {
 
 void useUtil(util.Link link) {
   link.reversePrependAll(link);
+  util.longestCommonPrefixLength(null, null);
+  new util.Pair(null, null);
 }
 
 void useSetlet(util.Setlet setlet) {
@@ -197,9 +199,9 @@ usedByTests() {
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(compiler).copy(compiler);
-  new universe.TypedSelector.subclass(null, null, compiler);
-  new universe.TypedSelector.subtype(null, null, compiler);
-  new universe.TypedSelector.exact(null, null, compiler);
+  new universe.TypedSelector.subclass(null, null, compiler.world);
+  new universe.TypedSelector.subtype(null, null, compiler.world);
+  new universe.TypedSelector.exact(null, null, compiler.world);
   sourceFileProvider.readStringFromUri(null);
 }
 

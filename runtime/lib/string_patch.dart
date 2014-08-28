@@ -414,23 +414,29 @@ class _StringBase {
     return pattern.allMatches(this.substring(startIndex)).isNotEmpty;
   }
 
-  String replaceFirst(Pattern pattern, String replacement) {
+  String replaceFirst(Pattern pattern,
+                      String replacement,
+                      [int startIndex = 0]) {
     if (pattern is! Pattern) {
       throw new ArgumentError("${pattern} is not a Pattern");
     }
     if (replacement is! String) {
       throw new ArgumentError("${replacement} is not a String");
     }
-    StringBuffer buffer = new StringBuffer();
-    int startIndex = 0;
-    Iterator iterator = pattern.allMatches(this).iterator;
-    if (iterator.moveNext()) {
-      Match match = iterator.current;
-      buffer..write(this.substring(startIndex, match.start))
-            ..write(replacement);
-      startIndex = match.end;
+    if (startIndex is! int) {
+      throw new ArgumentError("${startIndex} is not an int");
     }
-    return (buffer..write(this.substring(startIndex))).toString();
+    if ((startIndex < 0) || (startIndex > this.length)) {
+      throw new RangeError.range(startIndex, 0, this.length);
+    }
+    Iterator iterator =
+        startIndex == 0 ? pattern.allMatches(this).iterator
+                        : pattern.allMatches(this, startIndex).iterator;
+    if (!iterator.moveNext()) return this;
+    Match match = iterator.current;
+    return "${this.substring(0, match.start)}"
+           "$replacement"
+           "${this.substring(match.end)}";
   }
 
   String replaceAll(Pattern pattern, String replacement) {

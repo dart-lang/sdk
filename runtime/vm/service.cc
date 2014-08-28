@@ -27,6 +27,7 @@
 #include "vm/reusable_handles.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/unicode.h"
 #include "vm/version.h"
 
 
@@ -407,7 +408,7 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
   if (isolate == NULL) {
     return NULL;
   }
-  Isolate::SetCurrent(isolate);
+  StartIsolateScope isolate_scope(isolate);
   {
     // Install the dart:vmservice library.
     StackZone zone(isolate);
@@ -472,7 +473,6 @@ Isolate* Service::GetServiceIsolate(void* callback_data) {
     RegisterRunningIsolatesVisitor register_isolates(isolate);
     Isolate::VisitIsolates(&register_isolates);
   }
-  Isolate::SetCurrent(NULL);
   service_isolate_ = reinterpret_cast<Isolate*>(isolate);
   return service_isolate_;
 }
@@ -789,11 +789,36 @@ static bool HandleStackTrace(Isolate* isolate, JSONStream* js) {
 }
 
 
-static bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "message");
-  PrintArgumentsAndOptions(jsobj, js);
+static bool HandleCommonEcho(JSONObject* jsobj, JSONStream* js) {
+  jsobj->AddProperty("type", "message");
+  PrintArgumentsAndOptions(*jsobj, js);
   return true;
+}
+
+
+void Service::SendEchoEvent(Isolate* isolate) {
+  JSONStream js;
+  {
+    JSONObject jsobj(&js);
+    jsobj.AddProperty("type", "ServiceEvent");
+    jsobj.AddPropertyF("id", "_echoEvent");
+    jsobj.AddProperty("eventType", "_Echo");
+    jsobj.AddProperty("isolate", isolate);
+  }
+  const String& message = String::Handle(String::New(js.ToCString()));
+  uint8_t data[] = {0, 128, 255};
+  // TODO(koda): Add 'testing' event family.
+  SendEvent(kEventFamilyDebug, message, data, sizeof(data));
+}
+
+
+bool HandleIsolateEcho(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("id", "_echo");
+  if (js->num_arguments() == 2 && strcmp(js->GetArgument(1), "event") == 0) {
+    Service::SendEchoEvent(isolate);
+  }
+  return HandleCommonEcho(&jsobj, js);
 }
 
 
@@ -929,7 +954,7 @@ static bool ContainsNonInstance(const Object& obj) {
     Object& element = Object::Handle();
     for (intptr_t i = 0; i < array.Length(); ++i) {
       element = array.At(i);
-      if (!element.IsInstance()) {
+      if (!(element.IsInstance() || element.IsNull())) {
         return true;
       }
     }
@@ -939,14 +964,63 @@ static bool ContainsNonInstance(const Object& obj) {
     Object& element = Object::Handle();
     for (intptr_t i = 0; i < array.Length(); ++i) {
       element = array.At(i);
-      if (!element.IsInstance()) {
+      if (!(element.IsInstance() || element.IsNull())) {
         return true;
       }
     }
     return false;
   } else {
-    return !obj.IsInstance();
+    return !(obj.IsInstance() || obj.IsNull());
   }
+}
+
+
+static bool HandleInboundReferences(Isolate* isolate,
+                                    Object* target,
+                                    intptr_t limit,
+                                    JSONStream* js) {
+  ObjectGraph graph(isolate);
+  Array& path = Array::Handle(Array::New(limit * 2));
+  intptr_t length = graph.InboundReferences(target, path);
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "InboundReferences");
+  jsobj.AddProperty("id", "inbound_references");
+  {
+    JSONArray elements(&jsobj, "references");
+    Object& source = Object::Handle();
+    Smi& slot_offset = Smi::Handle();
+    Class& source_class = Class::Handle();
+    Field& field = Field::Handle();
+    Array& parent_field_map = Array::Handle();
+    limit = Utils::Minimum(limit, length);
+    for (intptr_t i = 0; i < limit; ++i) {
+      JSONObject jselement(&elements);
+      source = path.At(i * 2);
+      slot_offset ^= path.At((i * 2) + 1);
+
+      jselement.AddProperty("source", source);
+      jselement.AddProperty("slot", "<unknown>");
+      if (source.IsArray()) {
+        intptr_t element_index = slot_offset.Value() -
+            (Array::element_offset(0) >> kWordSizeLog2);
+        jselement.AddProperty("slot", element_index);
+      } else if (source.IsInstance()) {
+        source_class ^= source.clazz();
+        parent_field_map = source_class.OffsetToFieldMap();
+        intptr_t offset = slot_offset.Value();
+        if (offset > 0 && offset < parent_field_map.Length()) {
+          field ^= parent_field_map.At(offset);
+          jselement.AddProperty("slot", field);
+        }
+      }
+
+      // We nil out the array after generating the response to prevent
+      // reporting suprious references when repeatedly looking for the
+      // references to an object.
+      path.SetAt(i * 2, Object::null_object());
+    }
+  }
+  return true;
 }
 
 
@@ -995,15 +1069,26 @@ static bool HandleRetainingPath(Isolate* isolate,
       }
     }
   }
+
+  // We nil out the array after generating the response to prevent
+  // reporting suprious references when looking for inbound references
+  // after looking for a retaining path.
+  for (intptr_t i = 0; i < limit; ++i) {
+    path.SetAt(i * 2, Object::null_object());
+  }
+
   return true;
 }
+
 
 // Takes an Object* only because RetainingPath temporarily clears it.
 static bool HandleInstanceCommands(Isolate* isolate,
                                    Object* obj,
+                                   ObjectIdRing::LookupResult kind,
                                    JSONStream* js,
                                    intptr_t arg_pos) {
   ASSERT(js->num_arguments() > arg_pos);
+  ASSERT(kind != ObjectIdRing::kInvalid);
   const char* action = js->GetArgument(arg_pos);
   if (strcmp(action, "eval") == 0) {
     if (js->num_arguments() > (arg_pos + 1)) {
@@ -1012,13 +1097,13 @@ static bool HandleInstanceCommands(Isolate* isolate,
                  js->num_arguments());
       return true;
     }
-    if (obj->IsNull()) {
+    if (kind == ObjectIdRing::kCollected) {
       PrintErrorWithKind(js, "EvalCollected",
                          "attempt to evaluate against collected object\n",
                          js->num_arguments());
       return true;
     }
-    if (obj->raw() == Object::sentinel().raw()) {
+    if (kind == ObjectIdRing::kExpired) {
       PrintErrorWithKind(js, "EvalExpired",
                          "attempt to evaluate against expired object\n",
                          js->num_arguments());
@@ -1044,12 +1129,40 @@ static bool HandleInstanceCommands(Isolate* isolate,
     result.PrintJSON(js, true);
     return true;
   } else if (strcmp(action, "retained") == 0) {
+    if (kind == ObjectIdRing::kCollected) {
+      PrintErrorWithKind(
+          js, "RetainedCollected",
+          "attempt to calculate size retained by a collected object\n",
+          js->num_arguments());
+      return true;
+    }
+    if (kind == ObjectIdRing::kExpired) {
+      PrintErrorWithKind(
+          js, "RetainedExpired",
+          "attempt to calculate size retained by an expired object\n",
+          js->num_arguments());
+      return true;
+    }
     ObjectGraph graph(isolate);
     intptr_t retained_size = graph.SizeRetainedByInstance(*obj);
     const Object& result = Object::Handle(Integer::New(retained_size));
     result.PrintJSON(js, true);
     return true;
   } else if (strcmp(action, "retaining_path") == 0) {
+    if (kind == ObjectIdRing::kCollected) {
+      PrintErrorWithKind(
+          js, "RetainingPathCollected",
+          "attempt to find a retaining path for a collected object\n",
+          js->num_arguments());
+      return true;
+    }
+    if (kind == ObjectIdRing::kExpired) {
+      PrintErrorWithKind(
+          js, "RetainingPathExpired",
+          "attempt to find a retaining path for an expired object\n",
+          js->num_arguments());
+      return true;
+    }
     intptr_t limit;
     if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
       PrintError(js, "retaining_path expects a 'limit' option\n",
@@ -1057,6 +1170,28 @@ static bool HandleInstanceCommands(Isolate* isolate,
       return true;
     }
     return HandleRetainingPath(isolate, obj, limit, js);
+  } else if (strcmp(action, "inbound_references") == 0) {
+    if (kind == ObjectIdRing::kCollected) {
+      PrintErrorWithKind(
+          js, "InboundReferencesCollected",
+          "attempt to find inbound references for a collected object\n",
+          js->num_arguments());
+      return true;
+    }
+    if (kind == ObjectIdRing::kExpired) {
+      PrintErrorWithKind(
+          js, "InboundReferencesExpired",
+          "attempt to find inbound references for an expired object\n",
+          js->num_arguments());
+      return true;
+    }
+    intptr_t limit;
+    if (!GetIntegerId(js->LookupOption("limit"), &limit)) {
+      PrintError(js, "inbound_references expects a 'limit' option\n",
+                 js->num_arguments());
+      return true;
+    }
+    return HandleInboundReferences(isolate, obj, limit, js);
   }
 
   PrintError(js, "unrecognized action '%s'\n", action);
@@ -1139,19 +1274,20 @@ static bool HandleClassesFunctionsCoverage(
 
 static bool HandleClassesFunctions(Isolate* isolate, const Class& cls,
                                    JSONStream* js) {
-  intptr_t id;
-  if (js->num_arguments() > 5) {
-    PrintError(js, "Command too long");
+  if (js->num_arguments() != 4 && js->num_arguments() != 5) {
+    PrintError(js, "Command should have 4 or 5 arguments");
     return true;
   }
-  if (!GetIntegerId(js->GetArgument(3), &id)) {
-    PrintError(js, "Must specify collection object id: functions/id");
+  const char* encoded_id = js->GetArgument(3);
+  String& id = String::Handle(isolate, String::New(encoded_id));
+  id = String::DecodeIRI(id);
+  if (id.IsNull()) {
+    PrintError(js, "Function id %s is malformed", encoded_id);
     return true;
   }
-  Function& func = Function::Handle();
-  func ^= cls.FunctionFromIndex(id);
+  Function& func = Function::Handle(cls.LookupFunction(id));
   if (func.IsNull()) {
-    PrintError(js, "Function %" Pd " not found", id);
+    PrintError(js, "Function %s not found", encoded_id);
     return true;
   }
   if (js->num_arguments() == 4) {
@@ -1244,7 +1380,7 @@ static bool HandleClassesTypes(Isolate* isolate, const Class& cls,
     type.PrintJSON(js, false);
     return true;
   }
-  return HandleInstanceCommands(isolate, &type, js, 4);
+  return HandleInstanceCommands(isolate, &type, ObjectIdRing::kValid, js, 4);
 }
 
 
@@ -1548,35 +1684,39 @@ static void PrintPseudoNull(JSONStream* js,
 
 static RawObject* LookupObjectId(Isolate* isolate,
                                  const char* arg,
-                                 bool* error) {
-  *error = false;
+                                 ObjectIdRing::LookupResult* kind) {
+  *kind = ObjectIdRing::kValid;
   if (strncmp(arg, "int-", 4) == 0) {
     arg += 4;
     int64_t value = 0;
     if (!OS::StringToInt64(arg, &value) ||
         !Smi::IsValid(value)) {
-      *error = true;
+      *kind = ObjectIdRing::kInvalid;
       return Object::null();
     }
     const Integer& obj =
         Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
     return obj.raw();
-
   } else if (strcmp(arg, "bool-true") == 0) {
     return Bool::True().raw();
-
   } else if (strcmp(arg, "bool-false") == 0) {
     return Bool::False().raw();
+  } else if (strcmp(arg, "null") == 0) {
+    return Object::null();
+  } else if (strcmp(arg, "not-initialized") == 0) {
+    return Object::sentinel().raw();
+  } else if (strcmp(arg, "being-initialized") == 0) {
+    return Object::transition_sentinel().raw();
   }
 
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   intptr_t id = -1;
   if (!GetIntegerId(arg, &id)) {
-    *error = true;
-    return Instance::null();
+    *kind = ObjectIdRing::kInvalid;
+    return Object::null();
   }
-  return ring->GetObjectForId(id);
+  return ring->GetObjectForId(id, kind);
 }
 
 
@@ -1591,6 +1731,40 @@ static RawClass* GetMetricsClass(Isolate* isolate) {
       Class::Handle(isolate, prof_lib.LookupClass(metrics_cls_name));
   ASSERT(!metrics_cls.IsNull());
   return metrics_cls.raw();
+}
+
+
+static bool HandleIsolateMetricsList(Isolate* isolate, JSONStream* js) {
+  JSONObject obj(js);
+  obj.AddProperty("type", "MetricList");
+  obj.AddProperty("id", "metrics/vm");
+  {
+    JSONArray members(&obj, "members");
+    Metric* current = isolate->metrics_list_head();
+    while (current != NULL) {
+      members.AddValue(current);
+      current = current->next();
+    }
+  }
+  return true;
+}
+
+
+static bool HandleIsolateMetric(Isolate* isolate,
+                                JSONStream* js,
+                                const char* id) {
+  Metric* current = isolate->metrics_list_head();
+  while (current != NULL) {
+    const char* name = current->name();
+    ASSERT(name != NULL);
+    if (strcmp(name, id) == 0) {
+      current->PrintJSON(js);
+      return true;
+    }
+    current = current->next();
+  }
+  PrintError(js, "Metric %s not found\n", id);
+  return true;
 }
 
 
@@ -1645,11 +1819,23 @@ static bool HandleMetrics(Isolate* isolate, JSONStream* js) {
   if (js->num_arguments() == 1) {
     return HandleMetricsList(isolate, js);
   }
+  ASSERT(js->num_arguments() > 1);
+  const char* arg = js->GetArgument(1);
+  if (strcmp(arg, "vm") == 0) {
+    if (js->num_arguments() == 2) {
+      return HandleIsolateMetricsList(isolate, js);
+    } else {
+      if (js->num_arguments() > 3) {
+        PrintError(js, "Command too long");
+        return true;
+      }
+      return HandleIsolateMetric(isolate, js, js->GetArgument(2));
+    }
+  }
   if (js->num_arguments() > 2) {
     PrintError(js, "Command too long");
     return true;
   }
-  const char* arg = js->GetArgument(1);
   return HandleMetric(isolate, js, arg);
 }
 
@@ -1663,35 +1849,8 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
   }
   const char* arg = js->GetArgument(1);
 
-  // Handle special objects first.
-  if (strcmp(arg, "null") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      Instance::null_instance().PrintJSON(js, false);
-    }
-    return true;
-
-  } else if (strcmp(arg, "not-initialized") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      Object::sentinel().PrintJSON(js, false);
-    }
-    return true;
-
-  } else if (strcmp(arg, "being-initialized") == 0) {
-    if (js->num_arguments() > 2) {
-      PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
-                 js->num_arguments());
-    } else {
-      Object::transition_sentinel().PrintJSON(js, false);
-    }
-    return true;
-
-  } else if (strcmp(arg, "optimized-out") == 0) {
+  // Handle special non-objects first.
+  if (strcmp(arg, "optimized-out") == 0) {
     if (js->num_arguments() > 2) {
       PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
                  js->num_arguments());
@@ -1721,19 +1880,19 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
 
   // Lookup the object.
   Object& obj = Object::Handle(isolate);
-  bool error = false;
-  obj = LookupObjectId(isolate, arg, &error);
-  if (error) {
+  ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
+  obj = LookupObjectId(isolate, arg, &kind);
+  if (kind == ObjectIdRing::kInvalid) {
     PrintError(js, "unrecognized object id '%s'", arg);
     return true;
   }
   if (js->num_arguments() == 2) {
     // Print.
-    if (obj.IsNull()) {
+    if (kind == ObjectIdRing::kCollected) {
       // The object has been collected by the gc.
       PrintPseudoNull(js, "objects/collected", "<collected>");
       return true;
-    } else if (obj.raw() == Object::sentinel().raw()) {
+    } else if (kind == ObjectIdRing::kExpired) {
       // The object id has expired.
       PrintPseudoNull(js, "objects/expired", "<expired>");
       return true;
@@ -1741,7 +1900,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     obj.PrintJSON(js, false);
     return true;
   }
-  return HandleInstanceCommands(isolate, &obj, js, 2);
+  return HandleInstanceCommands(isolate, &obj, kind, js, 2);
 }
 
 
@@ -2276,9 +2435,8 @@ void Service::HandleRootMessage(const Instance& msg) {
 
 static bool HandleRootEcho(JSONStream* js) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "message");
-  PrintArgumentsAndOptions(jsobj, js);
-  return true;
+  jsobj.AddProperty("id", "_echo");
+  return HandleCommonEcho(&jsobj, js);
 }
 
 
@@ -2391,7 +2549,7 @@ static RootMessageHandler FindRootMessageHandler(const char* command) {
 }
 
 
-void Service::SendEvent(intptr_t eventId, const String& eventMessage) {
+void Service::SendEvent(intptr_t eventId, const Object& eventMessage) {
   if (!IsRunning()) {
     return;
   }
@@ -2416,6 +2574,33 @@ void Service::SendEvent(intptr_t eventId, const String& eventMessage) {
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
       new Message(port_, data, len, Message::kNormalPriority));
+}
+
+
+void Service::SendEvent(intptr_t eventId,
+                        const String& meta,
+                        const uint8_t* data,
+                        intptr_t size) {
+  // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
+  const intptr_t meta_bytes = Utf8::Length(meta);
+  const intptr_t total_bytes = sizeof(uint64_t) + meta_bytes + size;
+  const TypedData& message = TypedData::Handle(
+      TypedData::New(kTypedDataUint8ArrayCid, total_bytes));
+  intptr_t offset = 0;
+  // TODO(koda): Rename these methods SetHostUint64, etc.
+  message.SetUint64(0, Utils::HostToBigEndian64(meta_bytes));
+  offset += sizeof(uint64_t);
+  {
+    NoGCScope no_gc;
+    meta.ToUTF8(static_cast<uint8_t*>(message.DataAddr(offset)), meta_bytes);
+    offset += meta_bytes;
+  }
+  // TODO(koda): It would be nice to avoid this copy (requires changes to
+  // MessageWriter code).
+  memmove(message.DataAddr(offset), data, size);
+  offset += size;
+  ASSERT(offset == total_bytes);
+  SendEvent(eventId, message);
 }
 
 

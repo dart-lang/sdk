@@ -151,10 +151,7 @@ static void PrintICDataHelper(BufferFormatter* f, const ICData& ic_data) {
           Class::Handle(Isolate::Current()->class_table()->At(class_ids[k]));
       f->Print("%s", String::Handle(cls.Name()).ToCString());
     }
-    if (count > 0) {
-      f->Print(" #%" Pd, count);
-    }
-    f->Print(" <%p>", static_cast<void*>(target.raw()));
+    f->Print(" cnt:%" Pd " trgt:'%s'", count, target.ToQualifiedCString());
   }
   f->Print("]");
 }
@@ -245,6 +242,7 @@ void Definition::PrintOperandsTo(BufferFormatter* f) const {
 
 void Value::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *definition());
+
   if ((reaching_type_ != NULL) &&
       (reaching_type_ != definition()->type_)) {
     f->Print(" ");
@@ -525,16 +523,6 @@ void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void CreateArrayInstr::PrintOperandsTo(BufferFormatter* f) const {
-  for (int i = 0; i < ArgumentCount(); ++i) {
-    if (i != 0) f->Print(", ");
-    PushArgumentAt(i)->value()->PrintTo(f);
-  }
-  if (ArgumentCount() > 0) f->Print(", ");
-  element_type()->PrintTo(f);
-}
-
-
 void LoadFieldInstr::PrintOperandsTo(BufferFormatter* f) const {
   instance()->PrintTo(f);
   f->Print(", %" Pd, offset_in_bytes());
@@ -576,6 +564,12 @@ void AllocateContextInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void AllocateUninitializedContextInstr::PrintOperandsTo(
+    BufferFormatter* f) const {
+  f->Print("%" Pd "", num_context_variables());
+}
+
+
 void MathUnaryInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("'%s', ", MathUnaryInstr::KindToCString(kind()));
   value()->PrintTo(f);
@@ -602,6 +596,21 @@ void BinarySmiOpInstr::PrintTo(BufferFormatter* f) const {
 
 
 void BinarySmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
+void BinaryInt32OpInstr::PrintTo(BufferFormatter* f) const {
+  Definition::PrintTo(f);
+  f->Print(" %co", overflow_ ? '+' : '-');
+  f->Print(" %ct", IsTruncating() ? '+' : '-');
+}
+
+
+void BinaryInt32OpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
   f->Print(", ");
@@ -794,6 +803,19 @@ void Float64x2OneArgInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Int32x4ConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Int32x4(");
+  value0()->PrintTo(f);
+  f->Print(", ");
+  value1()->PrintTo(f);
+  f->Print(", ");
+  value2()->PrintTo(f);
+  f->Print(", ");
+  value3()->PrintTo(f);
+  f->Print(")");
+}
+
+
 void Int32x4BoolConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("Int32x4.bool(");
   value0()->PrintTo(f);
@@ -959,6 +981,39 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+static const char *RepresentationToCString(Representation rep) {
+  switch (rep) {
+    case kTagged:
+      return "tagged";
+    case kUntagged:
+      return "untagged";
+    case kUnboxedDouble:
+      return "double";
+    case kUnboxedInt32:
+      return "int32";
+    case kUnboxedUint32:
+      return "uint32";
+    case kUnboxedMint:
+      return "mint";
+    case kUnboxedFloat32x4:
+      return "float32x4";
+    case kUnboxedInt32x4:
+      return "int32x4";
+    case kUnboxedFloat64x2:
+      return "float64x2";
+    case kPairOfTagged:
+      return "tagged-pair";
+    case kPairOfUnboxedDouble:
+      return "double-pair";
+    case kNoRepresentation:
+      return "none";
+    case kNumRepresentations:
+      UNREACHABLE();
+  }
+  return "?";
+}
+
+
 void PhiInstr::PrintTo(BufferFormatter* f) const {
   f->Print("v%" Pd " <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
@@ -975,10 +1030,24 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" ");
     range_->PrintTo(f);
   }
+
+  if (representation() != kNoRepresentation &&
+      representation() != kTagged) {
+    f->Print(" %s", RepresentationToCString(representation()));
+  }
+
   if (type_ != NULL) {
     f->Print(" ");
     type_->PrintTo(f);
   }
+}
+
+
+void UnboxedIntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s->%s, ",
+           RepresentationToCString(from()),
+           RepresentationToCString(to()));
+  Definition::PrintOperandsTo(f);
 }
 
 

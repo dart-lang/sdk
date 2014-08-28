@@ -20,6 +20,7 @@
 #include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
+#include "bin/thread.h"
 #include "bin/vmservice_impl.h"
 #include "platform/globals.h"
 #include "platform/hashmap.h"
@@ -986,6 +987,8 @@ void main(int argc, char** argv) {
     }
   }
 
+  Thread::InitOnce();
+
   if (!DartUtils::SetOriginalWorkingDirectory()) {
     OSError err;
     fprintf(stderr, "Error determining current directory: %s\n", err.message());
@@ -1122,29 +1125,17 @@ void main(int argc, char** argv) {
 
       // Call _startIsolate in the isolate library to enable dispatching the
       // initial startup message.
-      Dart_Handle isolate_args[2];
-      isolate_args[0] = main_closure;
-      isolate_args[1] = Dart_True();
+      const intptr_t kNumIsolateArgs = 2;
+      Dart_Handle isolate_args[kNumIsolateArgs];
+      isolate_args[0] = main_closure;                         // entryPoint
+      isolate_args[1] = CreateRuntimeOptions(&dart_options);  // args
 
       Dart_Handle isolate_lib = Dart_LookupLibrary(
           Dart_NewStringFromCString("dart:isolate"));
       result = Dart_Invoke(isolate_lib,
-                           Dart_NewStringFromCString("_startIsolate"),
-                           2, isolate_args);
-
-      // Setup the arguments in the initial startup message and leave the
-      // replyTo and message fields empty.
-      Dart_Handle initial_startup_msg = Dart_NewList(3);
-      result = Dart_ListSetAt(initial_startup_msg, 1,
-                              CreateRuntimeOptions(&dart_options));
+                           Dart_NewStringFromCString("_startMainIsolate"),
+                           kNumIsolateArgs, isolate_args);
       DartExitOnError(result);
-      Dart_Port main_port = Dart_GetMainPortId();
-      bool posted = Dart_Post(main_port, initial_startup_msg);
-      if (!posted) {
-        ErrorExit(kErrorExitCode,
-                  "Failed posting startup message to main "
-                  "isolate control port.");
-      }
 
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();

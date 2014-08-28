@@ -257,18 +257,20 @@ class _TemplateIterator extends Bindable {
     _hasIf = directives._if != null;
     _hasRepeat = directives._repeat != null;
 
+    var ifValue = true;
     if (_hasIf) {
       _ifOneTime = directives._if.onlyOneTime;
       _ifValue = _processBinding('if', directives._if, template, model);
+      ifValue = _ifValue;
 
       // oneTime if & predicate is false. nothing else to do.
-      if (_ifOneTime) {
-        if (!_toBoolean(_ifValue)) {
-          _updateIteratedValue(null);
-          return;
-        }
-      } else {
-        (_ifValue as Bindable).open(_updateIteratedValue);
+      if (_ifOneTime && !_toBoolean(ifValue)) {
+        _valueChanged(null);
+        return;
+      }
+
+      if (!_ifOneTime) {
+        ifValue = (ifValue as Bindable).open(_updateIfValue);
       }
     }
 
@@ -280,12 +282,38 @@ class _TemplateIterator extends Bindable {
       _value = _processBinding('bind', directives._bind, template, model);
     }
 
-    if (!_oneTime) _value.open(_updateIteratedValue);
+    var value = _value;
+    if (!_oneTime) {
+      value = _value.open(_updateIteratedValue);
+    }
 
-    _updateIteratedValue(null);
+    if (!_toBoolean(ifValue)) {
+      _valueChanged(null);
+      return;
+    }
+
+    _updateValue(value);
   }
 
-  void _updateIteratedValue(_) {
+  /// Gets the updated value of the bind/repeat. This can potentially call
+  /// user code (if a bindingDelegate is set up) so we try to avoid it if we
+  /// already have the value in hand (from Observer.open).
+  Object _getUpdatedValue() {
+    var value = _value;
+    // Dart note: x.discardChanges() is x.value in Dart.
+    if (!_toBoolean(_oneTime)) value = value.value;
+    return value;
+  }
+
+  void _updateIfValue(ifValue) {
+    if (!_toBoolean(ifValue)) {
+      _valueChanged(null);
+      return;
+    }
+    _updateValue(_getUpdatedValue());
+  }
+
+  void _updateIteratedValue(value) {
     if (_hasIf) {
       var ifValue = _ifValue;
       if (!_ifOneTime) ifValue = (ifValue as Bindable).value;
@@ -295,8 +323,10 @@ class _TemplateIterator extends Bindable {
       }
     }
 
-    var value = _value;
-    if (!_oneTime) value = (value as Bindable).value;
+    _updateValue(value);
+  }
+
+  void _updateValue(Object value) {
     if (!_hasRepeat) value = [value];
     _valueChanged(value);
   }

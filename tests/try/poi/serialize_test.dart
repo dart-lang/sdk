@@ -61,6 +61,26 @@ Future testSubclass(FormattingDiagnosticHandler handler) {
     String scope = poi.scopeInformation(element, position);
     Expect.stringEquals(
         JSON.encode(expectedSubclass), JSON.encode(JSON.decode(scope)), scope);
+
+    return testAbstractField(handler);
+  });
+}
+
+Future testAbstractField(FormattingDiagnosticHandler handler) {
+  int position = 321;
+
+  Uri script = Platform.script.resolve('data/abstract_field.dart');
+
+  Future future = poi.runPoi(script, position, handler.provider, handler);
+  return future.then((Element element) {
+    Uri foundScript = element.compilationUnit.script.resourceUri;
+    Expect.stringEquals('$script', '$foundScript');
+    Expect.stringEquals('method', element.name);
+
+    String scope = poi.scopeInformation(element, position);
+    Expect.stringEquals(
+        JSON.encode(expectedAbstractField), JSON.encode(JSON.decode(scope)),
+        scope);
   });
 }
 
@@ -240,6 +260,69 @@ final expectedSubclass = {
       }
     }
   }
+};
+
+final expectedAbstractField = {
+  "name": "method",
+  "kind": "function",
+  "type": "() -> dynamic",
+  "enclosing": {
+    "name": "A",
+    "kind": "class side",
+    "members": [
+      {
+        "kind": "generative_constructor",
+        "type": "() -> A"
+      }
+    ],
+    "enclosing": {
+      "name": "A",
+      "kind": "instance side",
+      "members": [
+        {
+          "name": "foo",
+          "kind": "getter"
+        },
+        {
+          "name": "foo",
+          "kind": "setter"
+        },
+        {
+          "name": "method",
+          "kind": "function",
+          "type": "() -> dynamic"
+        }
+      ],
+      "enclosing": {
+        "name": "abstract_field",
+        "kind": "library",
+        "members": [
+          {
+            "name": "A",
+            "kind": "class"
+          },
+          {
+            "name": "bar",
+            "kind": "getter"
+          },
+          {
+            "name": "bar",
+            "kind": "getter"
+          },
+          {
+            "name": "main",
+            "kind": "function",
+            "type": "() -> dynamic"
+          }
+        ],
+        "enclosing": {
+          "kind": "imports",
+          "members": coreImports,
+          "enclosing": object
+        },
+      },
+    },
+  },
 };
 
 final coreImports = [

@@ -1462,10 +1462,12 @@ Package mockPackage(PackageId id, Map dependencyStrings, Map overrides) {
     });
   }
 
-  var pubspec = new Pubspec(id.name, id.version, dependencies,
-      devDependencies, dependencyOverrides,
-      new PubspecEnvironment(sdkConstraint), []);
-  return new Package.inMemory(pubspec);
+  return new Package.inMemory(new Pubspec(id.name,
+      version: id.version,
+      dependencies: dependencies,
+      devDependencies: devDependencies,
+      dependencyOverrides: dependencyOverrides,
+      sdkConstraint: sdkConstraint));
 }
 
 /// Creates a new [PackageId] parsed from [text], which looks something like

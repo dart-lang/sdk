@@ -2155,6 +2155,8 @@ class TestUtils {
       "pkg_polymer_e2e_test_good_import_test": "polymer_gi",
       "tests_co19_src_Language_12_Expressions_14_Function_Invocation_":
           "co19_fn_invoke_",
+      "tests_co19_src_LayoutTests_fast_css_getComputedStyle_getComputedStyle-":
+          "co19_css_getComputedStyle_",
       "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
           "caretRangeFromPoint-": "co19_caretrangefrompoint_",
       "tests_co19_src_LayoutTests_fast_dom_Document_CaretRangeFromPoint_"
@@ -2162,6 +2164,7 @@ class TestUtils {
       "tests_co19_src_LayoutTests_fast_dom_HTMLLinkElement_link-onerror-"
           "stylesheet-with-": "co19_dom_link-",
       "tests_co19_src_LayoutTests_fast_dom_": "co19_dom",
+      "tests_co19_src_LayoutTests_fast_canvas_webgl": "co19_canvas_webgl",
       "tests_co19_src_LibTest_core_AbstractClassInstantiationError_"
           "AbstractClassInstantiationError_": "co19_abstract_class_",
       "tests_co19_src_LibTest_core_IntegerDivisionByZeroException_"
@@ -2196,6 +2199,8 @@ class TestUtils {
           "co19_shadowdom_",
       "tests_co19_src_WebPlatformTest_shadow-dom_html-elements-in-"
           "shadow-trees_": "co19_shadow_html_",
+      "tests_co19_src_WebPlatformTest_html_webappapis_system-state-and-"
+          "capabilities_the-navigator-object": "co19_webappapis_navigator_",
       "tests_co19_src_WebPlatformTest_DOMEvents_approved_": "co19_dom_approved_"
     };
 

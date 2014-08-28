@@ -9,7 +9,6 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:unittest/unittest.dart';
 
@@ -30,7 +29,7 @@ main() {
 
   group('ServerDomainHandler', () {
     test('getVersion', () {
-      var request = new Request('0', SERVER_GET_VERSION);
+      var request = new ServerGetVersionParams().toRequest('0');
       var response = handler.handleRequest(request);
       expect(response.toJson(), equals({
         Response.ID: '0',
@@ -41,15 +40,10 @@ main() {
     });
 
     group('setSubscriptions', () {
-      Request request;
-      setUp(() {
-        request = new Request('0', SERVER_SET_SUBSCRIPTIONS);
-      });
-
       test('invalid service name', () {
-        request.setParameter(
-            SUBSCRIPTIONS,
-            ['noSuchService']);
+        Request request = new Request('0', SERVER_SET_SUBSCRIPTIONS, {
+          SUBSCRIPTIONS: ['noSuchService']
+        });
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
       });
@@ -57,9 +51,8 @@ main() {
       test('success', () {
         expect(server.serverServices, isEmpty);
         // send request
-        request.setParameter(
-            SUBSCRIPTIONS,
-            [ServerService.STATUS.name]);
+        Request request = new ServerSetSubscriptionsParams(
+            [ServerService.STATUS]).toRequest('0');
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
         // set of services has been changed
@@ -70,7 +63,7 @@ main() {
     test('shutdown', () {
       expect(server.running, isTrue);
       // send request
-      var request = new Request('0', SERVER_SHUTDOWN);
+      var request = new ServerShutdownParams().toRequest('0');
       var response = handler.handleRequest(request);
       expect(response, isResponseSuccess('0'));
       // server is down

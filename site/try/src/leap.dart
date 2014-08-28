@@ -31,6 +31,19 @@ import 'ui.dart' show
 import 'user_option.dart' show
     UserOption;
 
+import 'settings.dart' show
+    alwaysRunInIframe,
+    communicateViaBlobs;
+
+bool isBrowserIE() {
+  return window.navigator.userAgent.contains(' Trident/7.0;');
+}
+
+initHiddenSettings() {
+  alwaysRunInIframe.setIfNotInitialized(isBrowserIE);
+  communicateViaBlobs.setIfNotInitialized(() => !isBrowserIE());
+}
+
 int count = 0;
 
 main() {
@@ -38,6 +51,8 @@ main() {
   if (currentSource == null) {
     currentSource = EXAMPLE_HELLO;
   }
+
+  initHiddenSettings();
 
   buildUI();
   ReceivePort port = new ReceivePort();

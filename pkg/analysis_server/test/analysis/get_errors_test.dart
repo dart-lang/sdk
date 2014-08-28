@@ -6,11 +6,8 @@ library test.analysis.get_errors;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/computer/error.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:unittest/unittest.dart';
@@ -77,8 +74,8 @@ main() {
       expect(errors, hasLength(1));
       {
         AnalysisError error = errors[0];
-        expect(error.severity, 'ERROR');
-        expect(error.type, 'SYNTACTIC_ERROR');
+        expect(error.severity, ErrorSeverity.ERROR);
+        expect(error.type, ErrorType.SYNTACTIC_ERROR);
         expect(error.location.file, testFile);
         expect(error.location.startLine, 2);
       }
@@ -112,7 +109,8 @@ main() {
     }
     // wait for an error response
     return serverChannel.waitForResponse(request).then((Response response) {
-      expect(response.getResult(ERRORS), isEmpty);
+      var result = new AnalysisGetErrorsResult.fromResponse(response);
+      expect(result.errors, isEmpty);
       RequestError error = response.error;
       expect(error, isNotNull);
       expect(error.code, 'GET_ERRORS_ERROR');
@@ -120,16 +118,13 @@ main() {
   }
 
   Request _createGetErrorsRequest() {
-    Request request = new Request(requestId, ANALYSIS_GET_ERRORS);
-    request.setParameter(FILE, testFile);
-    return request;
+    return new AnalysisGetErrorsParams(testFile).toRequest(requestId);
   }
 
   Future<List<AnalysisError>> _getErrors(String file) {
     Request request = _createGetErrorsRequest();
     return serverChannel.sendRequest(request).then((Response response) {
-      List errorsJsons = response.getResult(ERRORS);
-      return errorsJsons.map(AnalysisError.fromJson).toList();
+      return new AnalysisGetErrorsResult.fromResponse(response).errors;
     });
   }
 }

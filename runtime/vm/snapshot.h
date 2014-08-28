@@ -28,46 +28,49 @@ class Heap;
 class LanguageError;
 class Library;
 class Object;
+class PassiveObject;
 class ObjectStore;
+class PageSpace;
 class RawApiError;
 class RawArray;
 class RawBigint;
 class RawBoundedType;
-class RawMixinAppType;
+class RawCapability;
 class RawClass;
+class RawClosureData;
 class RawContext;
 class RawDouble;
 class RawField;
-class RawClosureData;
-class RawRedirectionData;
-class RawFunction;
-class RawGrowableObjectArray;
-class RawLinkedHashMap;
 class RawFloat32x4;
 class RawFloat64x2;
-class RawInt32x4;
+class RawFunction;
+class RawGrowableObjectArray;
 class RawImmutableArray;
+class RawInt32x4;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
-class RawNamespace;
+class RawLinkedHashMap;
 class RawLiteralToken;
 class RawMint;
+class RawMixinAppType;
+class RawNamespace;
 class RawObject;
 class RawOneByteString;
 class RawPatchClass;
-class RawScript;
-class RawSmi;
-class RawCapability;
 class RawReceivePort;
+class RawRedirectionData;
+class RawScript;
 class RawSendPort;
+class RawSmi;
 class RawStacktrace;
 class RawTokenStream;
-class RawType;
-class RawTypeRef;
-class RawTypeParameter;
-class RawTypeArguments;
 class RawTwoByteString;
+class RawType;
+class RawTypeArguments;
+class RawTypedData;
+class RawTypeParameter;
+class RawTypeRef;
 class RawUnhandledException;
 class RawUnresolvedClass;
 class String;
@@ -247,10 +250,10 @@ class SnapshotReader : public BaseReader {
   ~SnapshotReader() { }
 
   Isolate* isolate() const { return isolate_; }
-  Heap* heap() const { return isolate_->heap(); }
+  Heap* heap() const { return heap_; }
   ObjectStore* object_store() const { return isolate_->object_store(); }
   ClassTable* class_table() const { return isolate_->class_table(); }
-  Object* ObjectHandle() { return &obj_; }
+  PassiveObject* PassiveObjectHandle() { return &pobj_; }
   Array* ArrayHandle() { return &array_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
@@ -269,7 +272,10 @@ class SnapshotReader : public BaseReader {
   Object* GetBackRef(intptr_t id);
 
   // Read a full snap shot.
-  void ReadFullSnapshot();
+  RawApiError* ReadFullSnapshot();
+
+  // Read a script snap shot.
+  RawObject* ReadScriptSnapshot();
 
   // Helper functions for creating uninitialized versions
   // of various object types. These are used when reading a
@@ -285,6 +291,7 @@ class SnapshotReader : public BaseReader {
   RawInstance* NewInstance();
   RawMint* NewMint(int64_t value);
   RawBigint* NewBigint(const char* hex_string);
+  RawTypedData* NewTypedData(intptr_t class_id, intptr_t len);
   RawDouble* NewDouble(double value);
   RawUnresolvedClass* NewUnresolvedClass();
   RawType* NewType();
@@ -332,8 +339,10 @@ class SnapshotReader : public BaseReader {
     DeserializeState state_;
   };
 
+  PageSpace* old_space() const { return old_space_; }
+
   // Allocate uninitialized objects, this is used when reading a full snapshot.
-  RawObject* AllocateUninitialized(const Class& cls, intptr_t size);
+  RawObject* AllocateUninitialized(intptr_t class_id, intptr_t size);
 
   RawClass* ReadClassId(intptr_t object_id);
   RawObject* ReadObjectImpl();
@@ -359,8 +368,11 @@ class SnapshotReader : public BaseReader {
 
   Snapshot::Kind kind_;  // Indicates type of snapshot(full, script, message).
   Isolate* isolate_;  // Current isolate.
+  Heap* heap_;  // Heap of the current isolate.
+  PageSpace* old_space_;  // Old space of the current isolate.
   Class& cls_;  // Temporary Class handle.
   Object& obj_;  // Temporary Object handle.
+  PassiveObject& pobj_;  // Temporary PassiveObject handle.
   Array& array_;  // Temporary Array handle.
   Field& field_;  // Temporary Field handle.
   String& str_;  // Temporary String handle.

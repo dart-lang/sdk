@@ -13,14 +13,14 @@ main() {
   initConfig();
 
   integration('only requests versions that are needed during solving', () {
-    servePackages([
-      packageMap("foo", "1.0.0"),
-      packageMap("foo", "1.1.0"),
-      packageMap("foo", "1.2.0"),
-      packageMap("bar", "1.0.0"),
-      packageMap("bar", "1.1.0"),
-      packageMap("bar", "1.2.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+      builder.serve("foo", "1.1.0");
+      builder.serve("foo", "1.2.0");
+      builder.serve("bar", "1.0.0");
+      builder.serve("bar", "1.1.0");
+      builder.serve("bar", "1.2.0");
+    });
 
     d.appDir({
       "foo": "any"

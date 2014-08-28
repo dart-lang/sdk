@@ -37,10 +37,10 @@ class NsmEmitter extends CodeEmitterHelper {
       for (Selector selector in selectors) {
         TypeMask mask = selector.mask;
         if (mask == null) {
-          mask = new TypeMask.subclass(compiler.objectClass);
+          mask = new TypeMask.subclass(compiler.objectClass, compiler.world);
         }
 
-        if (!mask.needsNoSuchMethodHandling(selector, compiler)) continue;
+        if (!mask.needsNoSuchMethodHandling(selector, compiler.world)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         addedJsNames[jsName] = selector;
         String reflectionName = task.getReflectionName(selector, jsName);

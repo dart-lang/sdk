@@ -13,18 +13,14 @@ part of dart2js.optimizers;
 /// continuation signature, all invocations, and replaced within the
 /// continuation body.
 class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
-  final Map<Continuation, List<InvokeContinuation>> cont2invokes =
-      <Continuation, List<InvokeContinuation>>{};
-  // For each reference r used in a continuation invocation i, stores the
-  // corresponding continuation i.continuation. If required by other passes,
-  // we could consider adding parent pointers to references instead.
-  final Map<Reference, Continuation> ref2cont = <Reference, Continuation>{};
   final Set<Continuation> workSet = new Set<Continuation>();
 
   void rewrite(final FunctionDefinition root) {
+    // Set all parent pointers.
+    new _ParentVisitor().visit(root);
+
     // Traverse the tree once to build the work set.
     visit(root);
-    workSet.addAll(cont2invokes.keys);
 
     // Process each continuation one-by-one.
     while (workSet.isNotEmpty) {
@@ -35,17 +31,30 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
         continue; // Skip function return continuations.
       }
 
-      List<InvokeContinuation> invokes = cont2invokes[cont];
-      assert(invokes != null);
-
-      _processContinuation(cont, invokes);
+      _processContinuation(cont);
     }
   }
 
-  /// Called for each continuation on the work set, together with its
-  /// invocations.
-  void _processContinuation(Continuation cont,
-                            List<InvokeContinuation> invokes) {
+  /// Called for each continuation on the work set. Modifies the IR graph if
+  /// [cont] is a candidate for redundant phi elimination.
+  void _processContinuation(Continuation cont) {
+    // Generate the list of all cont invocations. If cont is used in any other
+    // context (i.e. as a continuation of InvokeMethod), it is not possible to
+    // optimize.
+    List<InvokeContinuation> invokes = <InvokeContinuation>[];
+    for (Reference ref = cont.firstRef; ref != null; ref = ref.next) {
+      Node parent = ref.parent;
+      if (parent is InvokeContinuation && ref == parent.continuation) {
+        invokes.add(parent);
+      } else {
+        return; // Can't optimize.
+      }
+    }
+
+    if (invokes.isEmpty) {
+      return; // Continuation is never invoked, can't optimize.
+    }
+
     /// Returns the unique definition of parameter i if it exists and null
     /// otherwise. A definition is unique if it is the only value used to
     /// invoke the continuation, excluding feedback.
@@ -92,10 +101,12 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
       // we might introduce new optimization opportunities.
       for (Reference ref = oldDefinition.firstRef; ref != null;
            ref = ref.next) {
-        Continuation thatCont = ref2cont[ref];
-        // thatCont is null if ref does not belong to a continuation invocation.
-        if (thatCont != null && thatCont != cont) {
-          workSet.add(thatCont);
+        Node parent = ref.parent;
+        if (parent is InvokeContinuation) {
+          Continuation thatCont = parent.continuation.definition;
+          if (thatCont != cont) {
+            workSet.add(thatCont);
+          }
         }
       }
 
@@ -108,6 +119,16 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
       for (InvokeContinuation invoke in invokes) {
         invoke.arguments[src].unlink();
       }
+
+      // Finally, if the substituted definition is not in scope of the affected
+      // continuation, move the continuation binding. This is safe to do since
+      // the continuation is referenced only as the target in continuation
+      // invokes, and all such invokes must be within the scope of
+      // [uniqueDefinition]. Note that this is linear in the depth of
+      // the binding of [uniqueDefinition].
+      LetCont letCont = cont.parent;
+      assert(letCont != null);
+      _moveIntoScopeOf(letCont, uniqueDefinition);
     }
 
     // Remove trailing items from parameter and argument lists.
@@ -117,18 +138,41 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
     }
   }
 
-  void visitInvokeContinuation(InvokeContinuation node) {
-    // Update the continuation map.
-    Continuation cont = node.continuation.definition;
-    assert(cont != null);
-    cont2invokes.putIfAbsent(cont, () => <InvokeContinuation>[])
-        .add(node);
-
-    // And the reference map.
-    node.arguments.forEach((Reference ref) {
-      assert(!ref2cont.containsKey(ref));
-      ref2cont[ref] = node.continuation.definition;
-    });
+  void processLetCont(LetCont node) {
+    workSet.add(node.continuation);
   }
 }
 
+/// Returns true, iff [letCont] is not scope of [definition].
+/// Linear in the depth of definition within the IR graph.
+bool _isInScopeOf(LetCont letCont, Definition definition) {
+  for (Node node = definition.parent; node != null; node = node.parent) {
+    if (node == letCont) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/// Moves [letCont] below the binding of [definition] within the IR graph.
+/// Does nothing if [letCont] is already within the scope of [definition].
+/// Assumes that one argument is nested within the scope of the other
+/// when this method is called.
+void _moveIntoScopeOf(LetCont letCont, Definition definition) {
+  if (_isInScopeOf(letCont, definition)) return;
+
+  // Remove the continuation binding from its current spot.
+  InteriorNode parent = letCont.parent;
+  parent.body = letCont.body;
+  letCont.body.parent = parent;
+
+  // Insert it just below the binding of definition.
+  InteriorNode binding = definition.parent;
+
+  letCont.body = binding.body;
+  binding.body.parent = letCont;
+
+  binding.body = letCont;
+  letCont.parent = binding;
+}

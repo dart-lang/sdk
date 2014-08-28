@@ -788,6 +788,9 @@ class Assembler : public ValueObject {
   //   call L             (size is 5 bytes)
   //   L:
   static const intptr_t kEntryPointToPcMarkerOffset = 8;
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return kEntryPointToPcMarkerOffset;
+  }
 
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
@@ -812,6 +815,13 @@ class Assembler : public ValueObject {
                    Register instance_reg,
                    Register temp_reg);
 
+  void TryAllocateArray(intptr_t cid,
+                        intptr_t instance_size,
+                        Label* failure,
+                        bool near_jump,
+                        Register instance,
+                        Register end_address);
+
   // Debugging and bringup support.
   void Stop(const char* message);
   void Unimplemented(const char* message);
@@ -829,13 +839,25 @@ class Assembler : public ValueObject {
   static const char* FpuRegisterName(FpuRegister reg);
 
   // Smis that do not fit into 17 bits (16 bits of payload) are unsafe.
-  static bool IsSafe(const Object& object) {
-    return !object.IsSmi() ||
-        Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()));
-  }
   static bool IsSafeSmi(const Object& object) {
-    return object.IsSmi() &&
-        Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()));
+    if (!object.IsSmi()) {
+      return false;
+    }
+
+    if (Utils::IsInt(17, reinterpret_cast<intptr_t>(object.raw()))) {
+      return true;
+    }
+
+    // Single bit smis (powers of two) and corresponding masks are safe.
+    const intptr_t value = Smi::Cast(object).Value();
+    if (Utils::IsPowerOfTwo(value) || Utils::IsPowerOfTwo(value + 1)) {
+      return true;
+    }
+
+    return false;
+  }
+  static bool IsSafe(const Object& object) {
+    return !object.IsSmi() || IsSafeSmi(object);
   }
 
  private:

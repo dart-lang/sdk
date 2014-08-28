@@ -49,6 +49,16 @@ String getText(Element node) {
   return '$buffer';
 }
 
+/// Element.contains(n) doesn't work when n is node(Text) in IE,
+/// so this is a brute-force implementation of contains.
+bool containsNode(parent, child) {
+  var p = child;
+  while (p != null && p != parent) {
+    p = p.parentNode;
+  }
+  return p != null;
+}
+
 /// Position [walker] at the last predecessor (that is, child of child of
 /// child...) of [node]. The next call to walker.nextNode will return the first
 /// node after [node].
@@ -60,7 +70,7 @@ void skip(Node node, TreeWalker walker) {
   for (Node current = walker.nextNode();
        current != null;
        current = walker.nextNode()) {
-    if (!node.contains(current)) {
+    if (!containsNode(node, current)) {
       walker.previousNode();
       return;
     }
@@ -77,18 +87,19 @@ void walkNodes(Node root, int f(Node node)) {
         node is Element &&
         node.getAttribute('try-dart-shadow-root') != null) {
       skip(node, walker);
-    }
-    int action = f(node);
-    switch (action) {
-      case WALKER_RETURN:
-        return;
-      case WALKER_SKIP_NODE:
-        skip(node, walker);
-        break;
-      case WALKER_NEXT:
-        break;
-      default:
-        throw 'Unexpected action returned from [f]: $action';
+    } else {
+      int action = f(node);
+      switch (action) {
+        case WALKER_RETURN:
+          return;
+        case WALKER_SKIP_NODE:
+          skip(node, walker);
+          break;
+        case WALKER_NEXT:
+          break;
+        default:
+          throw 'Unexpected action returned from [f]: $action';
+      }
     }
   }
 }

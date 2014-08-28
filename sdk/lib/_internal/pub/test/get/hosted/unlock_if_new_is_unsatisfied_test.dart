@@ -11,12 +11,12 @@ main() {
   initConfig();
   integration("unlocks dependencies if necessary to ensure that a new "
       "dependency is satisfied", () {
-    servePackages([
-      packageMap("foo", "1.0.0", {"bar": "<2.0.0"}),
-      packageMap("bar", "1.0.0", {"baz": "<2.0.0"}),
-      packageMap("baz", "1.0.0", {"qux": "<2.0.0"}),
-      packageMap("qux", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0", deps: {"bar": "<2.0.0"});
+      builder.serve("bar", "1.0.0", deps: {"baz": "<2.0.0"});
+      builder.serve("baz", "1.0.0", deps: {"qux": "<2.0.0"});
+      builder.serve("qux", "1.0.0");
+    });
 
     d.appDir({"foo": "any"}).create();
 
@@ -29,13 +29,13 @@ main() {
       "qux": "1.0.0"
     }).validate();
 
-    servePackages([
-      packageMap("foo", "2.0.0", {"bar": "<3.0.0"}),
-      packageMap("bar", "2.0.0", {"baz": "<3.0.0"}),
-      packageMap("baz", "2.0.0", {"qux": "<3.0.0"}),
-      packageMap("qux", "2.0.0"),
-      packageMap("newdep", "2.0.0", {"baz": ">=1.5.0"})
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "2.0.0", deps: {"bar": "<3.0.0"});
+      builder.serve("bar", "2.0.0", deps: {"baz": "<3.0.0"});
+      builder.serve("baz", "2.0.0", deps: {"qux": "<3.0.0"});
+      builder.serve("qux", "2.0.0");
+      builder.serve("newdep", "2.0.0", deps: {"baz": ">=1.5.0"});
+    });
 
     d.appDir({"foo": "any", "newdep": "any"}).create();
 

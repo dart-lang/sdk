@@ -35,6 +35,12 @@ class UserOption {
   void set value(newValue) {
     storage[name] = newValue;
   }
+
+  void setIfNotInitialized(newValueEvaluator()) {
+    if (storage[name] == null) {
+      value = newValueEvaluator();
+    }
+  }
 }
 
 class BooleanUserOption extends UserOption {

@@ -18,8 +18,6 @@ LibTest/core/Match/operator_subscript_A01_t01: Fail # Issue 12508
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # Issue 12508
 LibTest/core/int/toRadixString_A01_t01: Fail # co19 issue 492
 
-Language/05_Variables/05_Variables_A05_t01: fail # Dart issue 12539
-Language/05_Variables/05_Variables_A05_t02: fail # Dart issue 12539
 Language/13_Statements/06_For_A01_t11: fail # Dart issue 5675
 Language/13_Statements/09_Switch_A01_t02: fail # Dart issue 12908
 Language/13_Statements/12_Labels_A01_t03: fail # Dart issue 2238
@@ -27,11 +25,6 @@ Language/14_Libraries_and_Scripts/2_Exports_A04_t02: fail # Dart issue 12916
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: fail # Dart issue 12916
 
 LibTest/core/DateTime/parse_A03_t01: fail # Issue 12514
-
-# All isolate are being ignored at the moment as the library will go through some changes.
-LibTest/isolate/IsolateStream/any_A02_t01: fail # co19 issue 668
-LibTest/isolate/IsolateStream/contains_A02_t01: fail # co19 issue 668
-LibTest/isolate/ReceivePort/receive_A01_t02: Fail # VM triage, check spec.
 
 LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Dart issue 15974
 LibTest/isolate/Isolate/spawnUri_A01_t03: Skip # Dart issue 15974
@@ -46,7 +39,6 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
 [ $compiler == none && $runtime == vm ]
-LibTest/typed_data/Int64List/buffer_A01_t01: Fail # co19 issue 694
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 

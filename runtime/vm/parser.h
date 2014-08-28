@@ -48,11 +48,15 @@ class ParsedFunction : public ZoneAllocated {
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
+        await_temps_scope_(NULL),
         deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
         num_stack_locals_(0),
+        have_seen_await_expr_(false),
+        saved_try_ctx_(NULL),
+        async_saved_try_ctx_(NULL),
         isolate_(isolate) {
     ASSERT(function.IsZoneHandle());
   }
@@ -138,6 +142,38 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
 
+  void set_await_temps_scope(LocalScope* scope) {
+    ASSERT(await_temps_scope_ == NULL);
+    await_temps_scope_ = scope;
+  }
+  LocalScope* await_temps_scope() const {
+    ASSERT(await_temps_scope_ != NULL);
+    return await_temps_scope_;
+  }
+
+  void record_await() {
+    have_seen_await_expr_ = true;
+  }
+  void reset_have_seen_await() { have_seen_await_expr_ = false; }
+  bool have_seen_await() const { return have_seen_await_expr_; }
+
+  void set_saved_try_ctx(LocalVariable* saved_try_ctx) {
+    ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
+    saved_try_ctx_ = saved_try_ctx;
+  }
+  LocalVariable* saved_try_ctx() const { return saved_try_ctx_; }
+
+  void set_async_saved_try_ctx(LocalVariable* async_saved_try_ctx) {
+    ASSERT((async_saved_try_ctx != NULL) && async_saved_try_ctx->is_captured());
+    async_saved_try_ctx_ = async_saved_try_ctx;
+  }
+  LocalVariable* async_saved_try_ctx() const { return async_saved_try_ctx_; }
+
+  void reset_saved_try_ctx_vars() {
+    saved_try_ctx_ = NULL;
+    async_saved_try_ctx_ = NULL;
+  }
+
   Isolate* isolate() const { return isolate_; }
 
  private:
@@ -150,12 +186,16 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
+  LocalScope* await_temps_scope_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
 
   int first_parameter_index_;
   int first_stack_local_index_;
   int num_copied_params_;
   int num_stack_locals_;
+  bool have_seen_await_expr_;
+  LocalVariable* saved_try_ctx_;
+  LocalVariable* async_saved_try_ctx_;
 
   Isolate* isolate_;
 
@@ -179,6 +219,10 @@ class Parser : public ValueObject {
   // class namespace of class cls (which can be the implicit toplevel
   // class if the metadata is at the top-level).
   static RawObject* ParseMetadata(const Class& cls, intptr_t token_pos);
+
+  // Build a function containing the initializer expression of the
+  // given static field.
+  static ParsedFunction* ParseStaticFieldInitializer(const Field& field);
 
   // Parse a function to retrieve parameter information that is not retained in
   // the dart::Function object. Returns either an error if the parse fails
@@ -298,6 +342,7 @@ class Parser : public ValueObject {
   String* ExpectUserDefinedTypeIdentifier(const char* msg);
   String* ExpectIdentifier(const char* msg);
   bool IsLiteral(const char* literal);
+  bool IsAwaitAsKeyword();
 
   void SkipIf(Token::Kind);
   void SkipBlock();
@@ -426,9 +471,12 @@ class Parser : public ValueObject {
       const Class& cls,
       LocalVariable* receiver,
       GrowableArray<Field*>* initialized_fields);
-  void CheckDuplicateFieldInit(intptr_t init_pos,
-                               GrowableArray<Field*>* initialized_fields,
-                               Field* field);
+  AstNode* CheckDuplicateFieldInit(
+      intptr_t init_pos,
+      GrowableArray<Field*>* initialized_fields,
+      AstNode* instance,
+      Field* field,
+      AstNode* init_value);
   void GenerateSuperConstructorCall(const Class& cls,
                                     intptr_t supercall_pos,
                                     LocalVariable* receiver,
@@ -488,12 +536,13 @@ class Parser : public ValueObject {
   SequenceNode* ParseInstanceGetter(const Function& func);
   SequenceNode* ParseInstanceSetter(const Function& func);
   SequenceNode* ParseStaticFinalGetter(const Function& func);
-  SequenceNode* ParseStaticInitializer(const Function& func);
+  SequenceNode* ParseStaticInitializer();
   SequenceNode* ParseMethodExtractor(const Function& func);
   SequenceNode* ParseNoSuchMethodDispatcher(const Function& func,
                                             Array* default_values);
   SequenceNode* ParseInvokeFieldDispatcher(const Function& func,
                                            Array* default_values);
+
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc,
                             Array* default_values);
@@ -502,6 +551,7 @@ class Parser : public ValueObject {
   void OpenBlock();
   void OpenLoopBlock();
   void OpenFunctionBlock(const Function& func);
+  void OpenAsyncClosure();
   RawFunction* OpenAsyncFunction(intptr_t formal_param_pos);
   SequenceNode* CloseBlock();
   SequenceNode* CloseAsyncFunction(const Function& closure,
@@ -586,6 +636,8 @@ class Parser : public ValueObject {
   static const bool kAllowConst = false;
   static const bool kConsumeCascades = true;
   static const bool kNoCascades = false;
+  AstNode* ParseAwaitableExpr(bool require_compiletime_const,
+                              bool consume_cascades);
   AstNode* ParseExpr(bool require_compiletime_const, bool consume_cascades);
   AstNode* ParseExprList();
   AstNode* ParseConditionalExpr();
@@ -679,6 +731,10 @@ class Parser : public ValueObject {
                                   InvocationMirror::Type type,
                                   const Function* func);
 
+  void SetupSavedTryContext(LocalScope* saved_try_context_scope,
+                            int16_t try_index,
+                            SequenceNode* target);
+
   void CheckOperatorArity(const MemberDesc& member);
 
   void EnsureExpressionTemp();
@@ -717,6 +773,10 @@ class Parser : public ValueObject {
   // that is class definitions, function type aliases, global functions,
   // global variables.
   bool is_top_level_;
+
+  // await_is_keyword_ is true if we are parsing an async function. In this
+  // context async is not treated as identifier but as a keyword.
+  bool await_is_keyword_;
 
   // The member currently being parsed during "top level" parsing.
   MemberDesc* current_member_;

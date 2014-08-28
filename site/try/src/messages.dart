@@ -8,6 +8,12 @@ const Map<String, dynamic> messages = const <String, dynamic> {
   'alwaysRunInWorker':
     'Always run in Worker thread.',
 
+  'alwaysRunInIframe':
+    'Always run in inline frame.',
+
+  'communicateViaBlobs':
+    'Use blobs to send source code between components.',
+
   'verboseCompiler':
     'Verbose compiler output.',
 

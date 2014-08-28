@@ -189,12 +189,12 @@ class ProcessInfoList {
   static ProcessInfo* active_processes_;
   // Mutex protecting all accesses to the linked list of active
   // processes.
-  static dart::Mutex* mutex_;
+  static Mutex* mutex_;
 };
 
 
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
-dart::Mutex* ProcessInfoList::mutex_ = new dart::Mutex();
+Mutex* ProcessInfoList::mutex_ = new Mutex();
 
 
 // Types of pipes to create.
@@ -332,7 +332,7 @@ static DeleteProcThreadAttrListFn delete_proc_thread_attr_list = NULL;
 
 static bool EnsureInitialized() {
   static bool load_attempted = false;
-  static dart::Mutex* mutex = new dart::Mutex();
+  static Mutex* mutex = new Mutex();
   HMODULE kernel32_module = GetModuleHandleW(L"kernel32.dll");
   if (!load_attempted) {
     MutexLocker locker(mutex);

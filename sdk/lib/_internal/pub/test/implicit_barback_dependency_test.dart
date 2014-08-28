@@ -22,14 +22,14 @@ main() {
 
   forBothPubGetAndUpgrade((command) {
     integration("implicitly constrains barback to versions pub supports", () {
-      servePackages([
-        packageMap("barback", previous),
-        packageMap("barback", current),
-        packageMap("barback", nextPatch),
-        packageMap("barback", max),
-        packageMap("source_span", sourceSpanVersion),
-        packageMap("stack_trace", stackTraceVersion)
-      ]);
+      servePackages((builder) {
+        builder.serve("barback", previous);
+        builder.serve("barback", current);
+        builder.serve("barback", nextPatch);
+        builder.serve("barback", max);
+        builder.serve("source_span", sourceSpanVersion);
+        builder.serve("stack_trace", stackTraceVersion);
+      });
 
       d.appDir({
         "barback": "any"
@@ -43,14 +43,14 @@ main() {
     });
 
     integration("discovers transitive dependency on barback", () {
-      servePackages([
-        packageMap("barback", previous),
-        packageMap("barback", current),
-        packageMap("barback", nextPatch),
-        packageMap("barback", max),
-        packageMap("source_span", sourceSpanVersion),
-        packageMap("stack_trace", stackTraceVersion)
-      ]);
+      servePackages((builder) {
+        builder.serve("barback", previous);
+        builder.serve("barback", current);
+        builder.serve("barback", nextPatch);
+        builder.serve("barback", max);
+        builder.serve("source_span", sourceSpanVersion);
+        builder.serve("stack_trace", stackTraceVersion);
+      });
 
       d.dir("foo", [
         d.libDir("foo", "foo 0.0.1"),
@@ -73,10 +73,10 @@ main() {
 
     integration("pub's implicit constraint uses the same source and "
         "description as a dependency override", () {
-      servePackages([
-        packageMap("source_span", sourceSpanVersion),
-        packageMap("stack_trace", stackTraceVersion)
-      ]);
+      servePackages((builder) {
+        builder.serve("source_span", sourceSpanVersion);
+        builder.serve("stack_trace", stackTraceVersion);
+      });
 
       d.dir('barback', [
         d.libDir('barback', 'barback $current'),
@@ -101,12 +101,12 @@ main() {
   });
 
   integration("unlock if the locked version doesn't meet pub's constraint", () {
-    servePackages([
-      packageMap("barback", previous),
-      packageMap("barback", current),
-      packageMap("source_span", sourceSpanVersion),
-      packageMap("stack_trace", stackTraceVersion)
-    ]);
+    servePackages((builder) {
+      builder.serve("barback", previous);
+      builder.serve("barback", current);
+      builder.serve("source_span", sourceSpanVersion);
+      builder.serve("stack_trace", stackTraceVersion);
+    });
 
     d.appDir({"barback": "any"}).create();
 
@@ -125,11 +125,11 @@ main() {
 
   integration("includes pub in the error if a solve failed because there "
       "is no version available", () {
-    servePackages([
-      packageMap("barback", previous),
-      packageMap("source_span", sourceSpanVersion),
-      packageMap("stack_trace", stackTraceVersion)
-    ]);
+    servePackages((builder) {
+      builder.serve("barback", previous);
+      builder.serve("source_span", sourceSpanVersion);
+      builder.serve("stack_trace", stackTraceVersion);
+    });
 
     d.appDir({"barback": "any"}).create();
 
@@ -141,12 +141,12 @@ Package barback 0.12.0 does not match >=$current <$max derived from:
 
   integration("includes pub in the error if a solve failed because there "
       "is a disjoint constraint", () {
-    servePackages([
-      packageMap("barback", previous),
-      packageMap("barback", current),
-      packageMap("source_span", sourceSpanVersion),
-      packageMap("stack_trace", stackTraceVersion)
-    ]);
+    servePackages((builder) {
+      builder.serve("barback", previous);
+      builder.serve("barback", current);
+      builder.serve("source_span", sourceSpanVersion);
+      builder.serve("stack_trace", stackTraceVersion);
+    });
 
     d.appDir({"barback": previous}).create();
 

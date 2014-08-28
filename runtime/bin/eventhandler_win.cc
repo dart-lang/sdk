@@ -292,7 +292,7 @@ bool Handle::IssueRead() {
   } else {
     // Completing asynchronously through thread.
     pending_read_ = buffer;
-    int result = dart::Thread::Start(ReadFileThread,
+    int result = Thread::Start(ReadFileThread,
                                      reinterpret_cast<uword>(this));
     if (result != 0) {
       FATAL1("Failed to start read file thread %d", result);
@@ -747,7 +747,7 @@ intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
   }
   if (!write_thread_exists_) {
     write_thread_exists_ = true;
-    int result = dart::Thread::Start(WriteFileThread,
+    int result = Thread::Start(WriteFileThread,
                                      reinterpret_cast<uword>(this));
     if (result != 0) {
       FATAL1("Failed to start write file thread %d", result);
@@ -1351,7 +1351,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result = dart::Thread::Start(EventHandlerEntry,
+  int result = Thread::Start(EventHandlerEntry,
                                    reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);

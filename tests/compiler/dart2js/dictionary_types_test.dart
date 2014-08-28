@@ -112,7 +112,7 @@ void main() {
     }));
   asyncTest(() => compileAndTest("Union.dart", (types, getType, compiler) {
     Expect.equals(getType('nullOrInt'), types.uint31Type.nullable());
-    Expect.isTrue(getType('aString').containsOnlyString(compiler));
+    Expect.isTrue(getType('aString').containsOnlyString(compiler.world));
     Expect.equals(getType('doubleOrNull'), types.doubleType.nullable());
   }));
   asyncTest(() =>

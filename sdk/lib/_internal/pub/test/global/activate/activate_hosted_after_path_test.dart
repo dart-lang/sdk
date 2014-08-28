@@ -11,13 +11,13 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('activating a hosted package deactivates the path one', () {
-    servePackages([
-      packageMap("foo", "2.0.0")
-    ], contents: [
-      d.dir("bin", [
-        d.file("foo.dart", "main(args) => print('hosted');")
-      ])
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "2.0.0", contents: [
+        d.dir("bin", [
+          d.file("foo.dart", "main(args) => print('hosted');")
+        ])
+      ]);
+    });
 
     d.dir("foo", [
       d.libPubspec("foo", "1.0.0"),
@@ -31,8 +31,9 @@ main() {
     var path = canonicalize(p.join(sandboxDir, "foo"));
     schedulePub(args: ["global", "activate", "foo"], output: """
         Package foo is currently active at path "$path".
-        Downloading foo 2.0.0...
         Resolving dependencies...
+        + foo 2.0.0
+        Downloading foo 2.0.0...
         Activated foo 2.0.0.""");
 
     // Should now run the hosted one.

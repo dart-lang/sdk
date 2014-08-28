@@ -19,7 +19,7 @@
       <template if="{{ field['owner'].serviceType == 'Library' }}">
         <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
-      <nav-menu link="{{ field.link }}" anchor="{{ field['user_name'] }}" last="{{ true }}"></nav-menu>
+      <nav-menu link="{{ field.link }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
@@ -29,14 +29,14 @@
         <template if="{{ field['static'] }}">static</template>
         <template if="{{ field['final'] }}">final</template>
         <template if="{{ field['const'] }}">const</template>
-        <template if="{{ (field['declared_type']['name'] == 'dynamic' &&
+        <template if="{{ (field['declaredType'].name == 'dynamic' &&
                          !field['final'] && !field['const']) }}">
           var
         </template>
-        <template if="{{ (field['declared_type']['user_name'] != 'dynamic') }}">
-          {{ field['declared_type']['user_name'] }}
+        <template if="{{ (field['declaredType'].name != 'dynamic') }}">
+          {{ field['declaredType'].name }}
         </template>
-        {{ field['user_name'] }}
+        {{ field.name }}
       </h1>
       <div class="memberList">
         <div class="memberItem">
@@ -61,19 +61,19 @@
                title="The types observed for this field at runtime.  Fields that are observed to have a single type at runtime or to never be null may allow for additional optimization.">
             <div class="memberName">observed types</div>
             <div class="memberValue">
-              <template if="{{ field['guard_class'] == 'dynamic' }}">
+              <template if="{{ field['guardClass'] == 'dynamic' }}">
                 various
               </template>
-              <template if="{{ field['guard_class'] == 'unknown' }}">
+              <template if="{{ field['guardClass'] == 'unknown' }}">
                 none
               </template>
-              <template if="{{ field['guard_class'] != 'unknown' &&
-                            field['guard_class'] != 'dynamic' }}">
-                <class-ref ref="{{ field['guard_class'] }}"></class-ref>
-                <template if="{{ field['guard_nullable'] }}">
+              <template if="{{ field['guardClass'] != 'unknown' &&
+                            field['guardClass'] != 'dynamic' }}">
+                <class-ref ref="{{ field['guardClass'] }}"></class-ref>
+                <template if="{{ field['guardNullable'] }}">
                   &mdash; null observed
                 </template>
-                <template if="{{ !field['guard_nullable'] }}">
+                <template if="{{ !field['guardNullable'] }}">
                   &mdash; null not observed
                 </template>
               </template>

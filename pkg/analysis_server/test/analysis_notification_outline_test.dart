@@ -6,12 +6,8 @@ library test.domain.analysis.notification.outline;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/computer/computer_outline.dart';
-import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -34,10 +30,9 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_OUTLINE) {
-      String file = notification.getParameter(FILE);
-      if (file == testFile) {
-        Map<String, Object> json = notification.getParameter(OUTLINE);
-        outline = new Outline.fromJson(json);
+      var params = new AnalysisOutlineParams.fromNotification(notification);
+      if (params.file == testFile) {
+        outline = params.outline;
       }
     }
   }

@@ -3,8 +3,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Run pub.dart on the Dart VM. This script assumes the Dart SDK's directory
-# structure.
+# Run pub.dart on the Dart VM. This script is only used when running pub from
+# within the Dart source repo. The shipped SDK instead uses "pub_sdk", which is
+# renamed to "pub" when the SDK is built.
 
 function follow_links() {
   file="$1"
@@ -38,30 +39,28 @@ if [[ $DART_VM_OPTIONS ]]; then
   VM_OPTIONS+=("${OPTIONS[@]}")
 fi
 
-if test -f "$SNAPSHOT"; then
-  # We are running the snapshot in the built SDK.
-  DART="$BIN_DIR/dart"
-  exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"
-else
-  # We are running pub from source in the development repo.
-  if [ -z "$DART_CONFIGURATION" ];
-  then
-    DART_CONFIGURATION="ReleaseIA32"
-  fi
-
-  if [[ `uname` == 'Darwin' ]];
-  then
-    BUILD_DIR="$SDK_DIR/../xcodebuild/$DART_CONFIGURATION"
-  else
-    BUILD_DIR="$SDK_DIR/../out/$DART_CONFIGURATION"
-  fi
-
-  # Use the Dart binary in the built SDK so pub can find the version file next
-  # to it.
-  DART="$BUILD_DIR/dart-sdk/bin/dart"
-  PACKAGES_DIR="$BUILD_DIR/pub_packages/"
-
-  PUB="$SDK_DIR/lib/_internal/pub/bin/pub.dart"
-
-  exec "$DART" "${VM_OPTIONS[@]}" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DART_CONFIGURATION="ReleaseIA32"
 fi
+
+if [[ `uname` == 'Darwin' ]];
+then
+  BUILD_DIR="$SDK_DIR/../xcodebuild/$DART_CONFIGURATION"
+else
+  BUILD_DIR="$SDK_DIR/../out/$DART_CONFIGURATION"
+fi
+
+# Use the Dart binary in the built SDK so pub can find the version file next
+# to it.
+DART="$BUILD_DIR/dart-sdk/bin/dart"
+PACKAGES_DIR="$BUILD_DIR/pub_packages/"
+
+# Compile async/await down to vanilla Dart.
+# TODO(rnystrom): Remove this when #104 is fixed.
+ASYNC_COMPILER="$SDK_DIR/lib/_internal/pub/bin/async_compile.dart"
+"$DART" "--package-root=$PACKAGES_DIR" "$ASYNC_COMPILER" "$BUILD_DIR" --silent
+
+# Run the async/await compiled pub.
+PUB="$BUILD_DIR/pub_async/bin/pub.dart"
+exec "$DART" "${VM_OPTIONS[@]}" "--package-root=$PACKAGES_DIR" "$PUB" "$@"

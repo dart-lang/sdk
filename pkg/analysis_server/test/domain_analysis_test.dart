@@ -7,15 +7,12 @@ library test.domain.analysis;
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -50,13 +47,12 @@ main() {
 
   group('AnalysisDomainHandler', () {
     group('setAnalysisRoots', () {
-      Request request;
-
-      setUp(() {
-        request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
-        request.setParameter(INCLUDED, []);
-        request.setParameter(EXCLUDED, []);
-      });
+      Response testSetAnalysisRoots(List<String> included,
+          List<String> excluded) {
+        Request request = new AnalysisSetAnalysisRootsParams(included,
+            excluded).toRequest('0');
+        return handler.handleRequest(request);
+      }
 
       group('excluded', () {
         test('excluded folder', () {
@@ -66,9 +62,7 @@ main() {
           resourceProvider.newFolder(project);
           resourceProvider.newFile(fileA, '// a');
           resourceProvider.newFile(fileB, '// b');
-          request.setParameter(INCLUDED, [project]);
-          request.setParameter(EXCLUDED, ['/project/bbb']);
-          var response = handler.handleRequest(request);
+          var response = testSetAnalysisRoots([project], ['/project/bbb']);
           var serverRef = server;
           expect(response, isResponseSuccess('0'));
           // unit "a" is resolved eventually
@@ -85,8 +79,7 @@ main() {
           resourceProvider.newFolder('/project');
           resourceProvider.newFile('/project/pubspec.yaml', 'name: project');
           resourceProvider.newFile('/project/bin/test.dart', 'main() {}');
-          request.setParameter(INCLUDED, ['/project']);
-          var response = handler.handleRequest(request);
+          var response = testSetAnalysisRoots(['/project'], []);
           var serverRef = server;
           expect(response, isResponseSuccess('0'));
           // verify that unit is resolved eventually
@@ -101,8 +94,10 @@ main() {
 
     group('setPriorityFiles', () {
       test('invalid', () {
-        var request = new Request('0', ANALYSIS_SET_PRIORITY_FILES);
-        request.setParameter(FILES, ['/project/lib.dart']);
+        // TODO(paulberry): under the "eventual consistency" model this request
+        // should not be invalid.
+        var request = new AnalysisSetPriorityFilesParams(
+            ['/project/lib.dart']).toRequest('0');
         var response = handler.handleRequest(request);
         expect(response, isResponseFailure('0'));
       });
@@ -114,15 +109,14 @@ main() {
         resourceProvider.newFile('/p2/b.dart', 'library b;');
         resourceProvider.newFile('/p2/c.dart', 'library c;');
 
-        var setRootsRequest = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
-        setRootsRequest.setParameter(INCLUDED, ['/p1', '/p2']);
-        setRootsRequest.setParameter(EXCLUDED, []);
+        var setRootsRequest = new AnalysisSetAnalysisRootsParams(
+            ['/p1', '/p2'], []).toRequest('0');
         var setRootsResponse = handler.handleRequest(setRootsRequest);
         expect(setRootsResponse, isResponseSuccess('0'));
 
         void setPriorityFiles(List<String> fileList) {
-          var request = new Request('0', ANALYSIS_SET_PRIORITY_FILES);
-          request.setParameter(FILES, fileList);
+          var request = new AnalysisSetPriorityFilesParams(
+              fileList).toRequest('0');
           var response = handler.handleRequest(request);
           expect(response, isResponseSuccess('0'));
           // TODO(brianwilkerson) Enable the line below after getPriorityFiles
@@ -138,29 +132,34 @@ main() {
 
     group('updateOptions', () {
       test('invalid', () {
-        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
-        request.setParameter(OPTIONS, {
+        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {OPTIONS: {
           'not-an-option': true
-        });
+        }});
         var response = handler.handleRequest(request);
-        expect(response, isResponseFailure('0'));
+        // Invalid options should be silently ignored.
+        expect(response, isResponseSuccess('0'));
       });
 
-      test('valid', () {
-        AnalysisOptions options = server.contextDirectoryManager.defaultOptions;
-        bool analyzeAngular = !options.analyzeAngular;
-        bool enableDeferredLoading = options.enableDeferredLoading;
-        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS);
-        request.setParameter(OPTIONS, {
-          'analyzeAngular': analyzeAngular,
-          'enableDeferredLoading': enableDeferredLoading,
-          'enableEnums': false
-        });
+      test('null', () {
+        // null is allowed as a synonym for {}.
+        var request = new Request('0', ANALYSIS_UPDATE_OPTIONS, {OPTIONS: null});
         var response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
-        expect(options.analyzeAngular, equals(analyzeAngular));
-        expect(options.enableDeferredLoading, equals(enableDeferredLoading));
       });
+
+      // TODO(paulberry): disabled because analyzeAngular is currently not in the API.
+//      test('valid', () {
+//        engine.AnalysisOptions oldOptions = server.contextDirectoryManager.defaultOptions;
+//        bool analyzeAngular = !oldOptions.analyzeAngular;
+//        bool enableDeferredLoading = oldOptions.enableDeferredLoading;
+//        var newOptions = new AnalysisOptions(analyzeAngular: analyzeAngular,
+//            enableDeferredLoading: enableDeferredLoading, enableEnums: false);
+//        var request = new AnalysisUpdateOptionsParams(newOptions).toRequest('0');
+//        var response = handler.handleRequest(request);
+//        expect(response, isResponseSuccess('0'));
+//        expect(oldOptions.analyzeAngular, equals(analyzeAngular));
+//        expect(oldOptions.enableDeferredLoading, equals(enableDeferredLoading));
+//      });
     });
   });
 }
@@ -171,10 +170,11 @@ testUpdateContent() {
     AnalysisTestHelper helper = new AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
     return helper.waitForOperationsFinished().then((_) {
-      Request request = new Request('0', ANALYSIS_UPDATE_CONTENT);
-      request.setParameter('files', {
-        helper.testFile: {
-          TYPE: 'foo',
+      Request request = new Request('0', ANALYSIS_UPDATE_CONTENT, {
+        'files': {
+          helper.testFile: {
+            TYPE: 'foo',
+          }
         }
       });
       Response response = helper.handler.handleRequest(request);
@@ -190,10 +190,7 @@ testUpdateContent() {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
       // update code
-      helper.sendContentChange({
-        TYPE: ADD,
-        CONTENT: 'library lib'
-      });
+      helper.sendContentChange(new AddContentOverlay('library lib'));
       // wait, there is an error
       return helper.waitForOperationsFinished().then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
@@ -211,17 +208,10 @@ testUpdateContent() {
       List<AnalysisError> errors = helper.getTestErrors();
       expect(errors, isEmpty);
       // Add the file to the cache
-      helper.sendContentChange({
-        TYPE: ADD,
-        CONTENT: initialContent
-      });
+      helper.sendContentChange(new AddContentOverlay(initialContent));
       // update code
-      helper.sendContentChange({
-        TYPE: CHANGE,
-        REPLACEMENT: 'lib',
-        OFFSET: 'library '.length,
-        LENGTH: 'A;'.length,
-      });
+      helper.sendContentChange(new ChangeContentOverlay([
+          new SourceEdit('library '.length, 'A;'.length, 'lib')]));
       // wait, there is an error
       return helper.waitForOperationsFinished().then((_) {
         List<AnalysisError> errors = helper.getTestErrors();
@@ -252,10 +242,7 @@ testUpdateContent() {
     helper.createSingleFileProject('library A;');
     return helper.waitForOperationsFinished().then((_) {
       // update code
-      helper.sendContentChange({
-        TYPE: ADD,
-        CONTENT: 'library B;'
-      });
+      helper.sendContentChange(new AddContentOverlay('library B;'));
       // There should be no errors
       return helper.waitForOperationsFinished().then((_) {
         expect(helper.getTestErrors(), hasLength(0));
@@ -266,9 +253,7 @@ testUpdateContent() {
           expect(helper.getTestErrors(), hasLength(0));
           // Send a content change with a null content param--file should be
           // reread from disk.
-          helper.sendContentChange({
-            TYPE: REMOVE
-          });
+          helper.sendContentChange(new RemoveContentOverlay());
           // There should be errors now.
           return helper.waitForOperationsFinished().then((_) {
             expect(helper.getTestErrors(), hasLength(1));
@@ -359,9 +344,8 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
-      String file = notification.getParameter(FILE);
-      List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-      filesErrors[file] = errorMaps.map(AnalysisError.fromJson).toList();
+      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      filesErrors[decoded.file] = decoded.errors;
     }
   }
 
@@ -433,11 +417,11 @@ class AnalysisTestHelper {
   AnalysisServer server;
   AnalysisDomainHandler handler;
 
-  Map<String, List<String>> analysisSubscriptions = {};
+  Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
   Map<String, List<AnalysisError>> filesErrors = {};
-  Map<String, List<Map<String, Object>>> filesHighlights = {};
-  Map<String, List<Map<String, Object>>> filesNavigation = {};
+  Map<String, List<HighlightRegion>> filesHighlights = {};
+  Map<String, List<NavigationRegion>> filesNavigation = {};
 
   String testFile = '/project/bin/test.dart';
   String testCode;
@@ -457,32 +441,31 @@ class AnalysisTestHelper {
         serverChannel.notificationController.stream;
     notificationStream.listen((Notification notification) {
       if (notification.event == ANALYSIS_ERRORS) {
-        String file = notification.getParameter(FILE);
-        List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-        filesErrors[file] = errorMaps.map(AnalysisError.fromJson).toList();
+        var decoded = new AnalysisErrorsParams.fromNotification(notification);
+        filesErrors[decoded.file] = decoded.errors;
       }
       if (notification.event == ANALYSIS_HIGHLIGHTS) {
-        String file = notification.getParameter(FILE);
-        filesHighlights[file] = notification.getParameter(REGIONS);
+        var params = new AnalysisHighlightsParams.fromNotification(notification);
+        filesHighlights[params.file] = params.regions;
       }
       if (notification.event == ANALYSIS_NAVIGATION) {
-        String file = notification.getParameter(FILE);
-        filesNavigation[file] = notification.getParameter(REGIONS);
+        var params = new AnalysisNavigationParams.fromNotification(notification);
+        filesNavigation[params.file] = params.regions;
       }
     });
   }
 
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
-    var files = analysisSubscriptions[service.name];
+    var files = analysisSubscriptions[service];
     if (files == null) {
       files = <String>[];
-      analysisSubscriptions[service.name] = files;
+      analysisSubscriptions[service] = files;
     }
     files.add(file);
     // set subscriptions
-    Request request = new Request('0', ANALYSIS_SET_SUBSCRIPTIONS);
-    request.setParameter(SUBSCRIPTIONS, analysisSubscriptions);
+    Request request = new AnalysisSetSubscriptionsParams(
+        analysisSubscriptions).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -499,9 +482,8 @@ class AnalysisTestHelper {
    */
   void createEmptyProject() {
     resourceProvider.newFolder('/project');
-    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
-    request.setParameter(INCLUDED, ['/project']);
-    request.setParameter(EXCLUDED, []);
+    Request request = new AnalysisSetAnalysisRootsParams(['/project'],
+        []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -513,9 +495,8 @@ class AnalysisTestHelper {
     this.testCode = _getCodeString(code);
     resourceProvider.newFolder('/project');
     resourceProvider.newFile(testFile, testCode);
-    Request request = new Request('0', ANALYSIS_SET_ANALYSIS_ROOTS);
-    request.setParameter(INCLUDED, ['/project']);
-    request.setParameter(EXCLUDED, []);
+    Request request = new AnalysisSetAnalysisRootsParams(['/project'],
+        []).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
@@ -545,8 +526,8 @@ class AnalysisTestHelper {
    * Returns highlights recorded for the given [file].
    * May be empty, but not `null`.
    */
-  List<Map<String, Object>> getHighlights(String file) {
-    List<Map<String, Object>> highlights = filesHighlights[file];
+  List<HighlightRegion> getHighlights(String file) {
+    List<HighlightRegion> highlights = filesHighlights[file];
     if (highlights != null) {
       return highlights;
     }
@@ -557,8 +538,8 @@ class AnalysisTestHelper {
    * Returns navigation regions recorded for the given [file].
    * May be empty, but not `null`.
    */
-  List<Map<String, Object>> getNavigation(String file) {
-    List<Map<String, Object>> navigation = filesNavigation[file];
+  List<NavigationRegion> getNavigation(String file) {
+    List<NavigationRegion> navigation = filesNavigation[file];
     if (navigation != null) {
       return navigation;
     }
@@ -577,7 +558,7 @@ class AnalysisTestHelper {
    * Returns highlights recorded for the given [testFile].
    * May be empty, but not `null`.
    */
-  List<Map<String, Object>> getTestHighlights() {
+  List<HighlightRegion> getTestHighlights() {
     return getHighlights(testFile);
   }
 
@@ -585,7 +566,7 @@ class AnalysisTestHelper {
    * Returns navigation information recorded for the given [testFile].
    * May be empty, but not `null`.
    */
-  List<Map<String, Object>> getTestNavigation() {
+  List<NavigationRegion> getTestNavigation() {
     return getNavigation(testFile);
   }
 
@@ -600,11 +581,9 @@ class AnalysisTestHelper {
   /**
    * Send an `updateContent` request for [testFile].
    */
-  void sendContentChange(Map contentChange) {
-    Request request = new Request('0', ANALYSIS_UPDATE_CONTENT);
-    request.setParameter('files', {
-      testFile: contentChange
-    });
+  void sendContentChange(dynamic contentChange) {
+    Request request = new AnalysisUpdateContentParams({
+      testFile: contentChange}).toRequest('0');
     handleSuccessfulRequest(request);
   }
 

@@ -334,7 +334,7 @@ void EventHandlerImplementation::Poll(uword args) {
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result = dart::Thread::Start(&EventHandlerImplementation::Poll,
+  int result = Thread::Start(&EventHandlerImplementation::Poll,
                                    reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);

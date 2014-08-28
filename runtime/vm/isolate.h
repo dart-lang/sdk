@@ -12,6 +12,7 @@
 #include "vm/counters.h"
 #include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
+#include "vm/metrics.h"
 #include "vm/random.h"
 #include "vm/store_buffer.h"
 #include "vm/tags.h"
@@ -118,6 +119,8 @@ class Isolate : public BaseIsolate {
   static void InitOnce();
   static Isolate* Init(const char* name_prefix);
   void Shutdown();
+
+  Isolate* ShallowCopy();
 
   // Register a newly introduced class.
   void RegisterClass(const Class& cls);
@@ -237,7 +240,8 @@ class Isolate : public BaseIsolate {
   }
 
   void SetStackLimit(uword value);
-  void SetStackLimitFromCurrentTOS(uword isolate_stack_top);
+  void SetStackLimitFromStackBase(uword stack_base);
+  void ClearStackLimit();
 
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
@@ -252,6 +256,8 @@ class Isolate : public BaseIsolate {
 
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
+
+  uword stack_base() const { return stack_base_; }
 
   // Stack overflow flags
   enum {
@@ -271,8 +277,8 @@ class Isolate : public BaseIsolate {
   // stack overflow is called.
   uword GetAndClearStackOverflowFlags();
 
-  // Retrieve the stack address bounds.
-  bool GetStackBounds(uword* lower, uword* upper);
+  // Retrieve the stack address bounds for profiler.
+  bool GetProfilerStackBounds(uword* lower, uword* upper) const;
 
   static uword GetSpecifiedStackSize();
 
@@ -555,11 +561,26 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, current_tag_);
   }
 
+#define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
+  type* Get##variable##Metric() { return &metric_##variable##_; }
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
+#undef ISOLATE_METRIC_ACCESSOR
+
+  static intptr_t IsolateListLength();
+
   RawGrowableObjectArray* tag_table() const { return tag_table_; }
   void set_tag_table(const GrowableObjectArray& value);
 
   RawUserTag* current_tag() const { return current_tag_; }
   void set_current_tag(const UserTag& tag);
+
+  Metric* metrics_list_head() {
+    return metrics_list_head_;
+  }
+
+  void set_metrics_list_head(Metric* metric) {
+    metrics_list_head_ = metric;
+  }
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -586,6 +607,7 @@ class Isolate : public BaseIsolate {
 
  private:
   Isolate();
+  explicit Isolate(Isolate* original);
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
@@ -630,6 +652,7 @@ class Isolate : public BaseIsolate {
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;
   uword saved_stack_limit_;
+  uword stack_base_;
   uword stack_overflow_flags_;
   int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
@@ -665,6 +688,8 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
   RawUserTag* current_tag_;
 
+  Metric* metrics_list_head_;
+
   Counters counters_;
 
   // Isolate list next pointer.
@@ -682,6 +707,11 @@ class Isolate : public BaseIsolate {
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_VARIABLE);
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
+
+#define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
+  type metric_##variable##_;
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
+#undef ISOLATE_METRIC_VARIABLE
 
   VMHandles reusable_handles_;
 
@@ -723,13 +753,13 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
       Isolate::SetCurrent(new_isolate_);
-      new_isolate_->SetStackLimitFromCurrentTOS(reinterpret_cast<uword>(this));
+      new_isolate_->SetStackLimitFromStackBase(reinterpret_cast<uword>(this));
     }
   }
 
   ~StartIsolateScope() {
     if (saved_isolate_ != new_isolate_) {
-      new_isolate_->SetStackLimit(~static_cast<uword>(0));
+      new_isolate_->ClearStackLimit();
       Isolate::SetCurrent(saved_isolate_);
     }
   }
@@ -780,12 +810,19 @@ class SwitchIsolateScope {
 
 class IsolateSpawnState {
  public:
-  explicit IsolateSpawnState(const Function& func);
-  explicit IsolateSpawnState(const char* script_url);
+  IsolateSpawnState(Dart_Port parent_port,
+                    const Function& func,
+                    const Instance& message);
+  IsolateSpawnState(Dart_Port parent_port,
+                    const char* script_url,
+                    const Instance& args,
+                    const Instance& message);
   ~IsolateSpawnState();
 
   Isolate* isolate() const { return isolate_; }
   void set_isolate(Isolate* value) { isolate_ = value; }
+
+  Dart_Port parent_port() const { return parent_port_; }
   char* script_url() const { return script_url_; }
   char* library_url() const { return library_url_; }
   char* class_name() const { return class_name_; }
@@ -794,15 +831,22 @@ class IsolateSpawnState {
   bool is_spawn_uri() const { return library_url_ == NULL; }
 
   RawObject* ResolveFunction();
+  RawInstance* BuildArgs();
+  RawInstance* BuildMessage();
   void Cleanup();
 
  private:
   Isolate* isolate_;
+  Dart_Port parent_port_;
   char* script_url_;
   char* library_url_;
   char* class_name_;
   char* function_name_;
   char* exception_callback_name_;
+  uint8_t* serialized_args_;
+  intptr_t serialized_args_len_;
+  uint8_t* serialized_message_;
+  intptr_t serialized_message_len_;
 };
 
 }  // namespace dart

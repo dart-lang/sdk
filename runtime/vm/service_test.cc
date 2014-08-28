@@ -292,7 +292,7 @@ TEST_CASE(Service_DebugBreakpoints) {
       "\"location\":{\"type\":\"Location\","
       "\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\",\"kind\":\"script\"},"
+      "\"name\":\"test-lib\",\"kind\":\"script\"},"
       "\"tokenPos\":5}}",
       vmlib.index());
 
@@ -309,7 +309,7 @@ TEST_CASE(Service_DebugBreakpoints) {
       "\"location\":{\"type\":\"Location\","
       "\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\",\"kind\":\"script\"},"
+      "\"name\":\"test-lib\",\"kind\":\"script\"},"
       "\"tokenPos\":5}}]}",
       vmlib.index());
 
@@ -324,7 +324,7 @@ TEST_CASE(Service_DebugBreakpoints) {
       "\"location\":{\"type\":\"Location\","
       "\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\",\"kind\":\"script\"},"
+      "\"name\":\"test-lib\",\"kind\":\"script\"},"
       "\"tokenPos\":5}}",
       vmlib.index());
 
@@ -468,7 +468,7 @@ TEST_CASE(Service_Stepping) {
       "\"location\":{\"type\":\"Location\","
       "\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\",\"kind\":\"script\"},"
+      "\"name\":\"test-lib\",\"kind\":\"script\"},"
       "\"tokenPos\":11}}",
       vmlib.index());
 
@@ -522,17 +522,17 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'null'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
-  EXPECT_STREQ(
+  handler.filterMsg("vmName");
+  EXPECT_SUBSTRING(
       "{\"type\":\"Null\",\"id\":\"objects\\/null\","
-      "\"valueAsString\":\"null\"}",
+      "\"valueAsString\":\"null\",\"class\":",
       handler.msg());
 
   // not initialized
   service_msg = Eval(lib, "[0, port, ['objects', 'not-initialized'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/not-initialized\","
       "\"valueAsString\":\"<not initialized>\"}",
@@ -543,7 +543,7 @@ TEST_CASE(Service_Objects) {
                      "[0, port, ['objects', 'being-initialized'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/being-initialized\","
       "\"valueAsString\":\"<being initialized>\"}",
@@ -553,7 +553,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'optimized-out'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/optimized-out\","
       "\"valueAsString\":\"<optimized out>\"}",
@@ -563,7 +563,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'collected'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/collected\","
       "\"valueAsString\":\"<collected>\"}",
@@ -573,7 +573,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'expired'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
       "\"valueAsString\":\"<expired>\"}",
@@ -583,22 +583,22 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'bool-true'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Bool\",\"id\":\"objects\\/bool-true\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/46\","
-      "\"user_name\":\"bool\"},\"valueAsString\":\"true\"}",
+      "\"name\":\"bool\"},\"valueAsString\":\"true\"}",
       handler.msg());
 
   // int
   service_msg = Eval(lib, "[0, port, ['objects', 'int-123'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"_Smi\"},"
+      "\"name\":\"_Smi\",},"
       "\"fields\":[],"
       "\"id\":\"objects\\/int-123\","
       "\"valueAsString\":\"123\"}",
@@ -608,18 +608,18 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', '$validId'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   handler.filterMsg("size");
   handler.filterMsg("id");
   EXPECT_STREQ(
       "{\"type\":\"Array\","
-      "\"class\":{\"type\":\"@Class\",\"user_name\":\"_List\"},"
+      "\"class\":{\"type\":\"@Class\",\"name\":\"_List\",},"
       "\"fields\":[],"
       "\"length\":1,"
       "\"elements\":[{"
           "\"index\":0,"
           "\"value\":{\"type\":\"@String\","
-          "\"class\":{\"type\":\"@Class\",\"user_name\":\"_OneByteString\"},"
+          "\"class\":{\"type\":\"@Class\",\"name\":\"_OneByteString\",},"
           "\"valueAsString\":\"\\\"value\\\"\"}}]}",
       handler.msg());
 
@@ -627,7 +627,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', '99999999'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
       "\"valueAsString\":\"<expired>\"}",
@@ -637,7 +637,7 @@ TEST_CASE(Service_Objects) {
   service_msg = Eval(lib, "[0, port, ['objects', 'expired', 'eval'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Error\",\"id\":\"\","
       "\"message\":\"expected at most 2 arguments but found 3\\n\","
@@ -651,11 +651,11 @@ TEST_CASE(Service_Objects) {
                      "['expr'], ['this+99']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"_Smi\"},"
+      "\"name\":\"_Smi\",},"
       "\"id\":\"objects\\/int-222\","
       "\"valueAsString\":\"222\"}",
       handler.msg());
@@ -666,7 +666,7 @@ TEST_CASE(Service_Objects) {
                      "['expr'], ['null']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"@Null\",\"id\":\"objects\\/null\","
       "\"valueAsString\":\"null\"}",
@@ -677,7 +677,7 @@ TEST_CASE(Service_Objects) {
                      "['expr'], ['this']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Error\",\"id\":\"\",\"kind\":\"EvalExpired\","
       "\"message\":\"attempt to evaluate against expired object\\n\","
@@ -691,7 +691,7 @@ TEST_CASE(Service_Objects) {
                      "['expr'], ['this+99']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"Error\",\"id\":\"\","
       "\"message\":\"expected at most 3 arguments but found 4\\n\","
@@ -704,7 +704,7 @@ TEST_CASE(Service_Objects) {
                      "[0, port, ['objects', '$validId', 'retained'], [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   ExpectSubstringF(handler.msg(),
                    "\"id\":\"objects\\/int-%" Pd "\"",
                    arr.raw()->Size() + arr.At(0)->Size());
@@ -897,11 +897,11 @@ TEST_CASE(Service_Libraries) {
                       vmlib.index());
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"_Smi\"},\"id\":\"objects\\/int-54320\","
+      "\"name\":\"_Smi\",},\"id\":\"objects\\/int-54320\","
       "\"valueAsString\":\"54320\"}",
       handler.msg());
 }
@@ -976,25 +976,25 @@ TEST_CASE(Service_Classes) {
                       "['expr'], ['cobra + 100000']]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  handler.filterMsg("name");
+  handler.filterMsg("vmName");
   EXPECT_STREQ(
       "{\"type\":\"@Smi\","
       "\"class\":{\"type\":\"@Class\",\"id\":\"classes\\/42\","
-      "\"user_name\":\"_Smi\"},"
+      "\"name\":\"_Smi\",},"
       "\"id\":\"objects\\/int-111235\","
       "\"valueAsString\":\"111235\"}",
       handler.msg());
 
-  // Request function 0 from class A.
+  // Request function 'b' from class A.
   service_msg = EvalF(lib,
-                      "[0, port, ['classes', '%" Pd "', 'functions', '0'],"
+                      "[0, port, ['classes', '%" Pd "', 'functions', 'b'],"
                       "[], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   EXPECT_SUBSTRING("\"type\":\"Function\"", handler.msg());
   ExpectSubstringF(handler.msg(),
-                   "\"id\":\"classes\\/%" Pd "\\/functions\\/0\","
-                   "\"name\":\"get:a\",", cid);
+                   "\"id\":\"classes\\/%" Pd "\\/functions\\/b\","
+                   "\"name\":\"b\",", cid);
 
   // Request field 0 from class A.
   service_msg = EvalF(lib, "[0, port, ['classes', '%" Pd "', 'fields', '0'],"
@@ -1058,21 +1058,22 @@ TEST_CASE(Service_Classes) {
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
-    "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Command too long\","
+    "{\"type\":\"Error\",\"id\":\"\","
+    "\"message\":\"Command should have 4 or 5 arguments\","
     "\"request\":"
     "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"0\",\"x\",\"y\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Invalid function subcommand with valid function id.
   service_msg = EvalF(lib,
-                      "[0, port, ['classes', '%" Pd "', 'functions', '0',"
+                      "[0, port, ['classes', '%" Pd "', 'functions', 'b',"
                       "'x'], [], []]", cid);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   ExpectSubstringF(handler.msg(),
     "{\"type\":\"Error\",\"id\":\"\",\"message\":\"Invalid sub collection x\","
     "\"request\":"
-    "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"0\",\"x\"],"
+    "{\"arguments\":[\"classes\",\"%" Pd "\",\"functions\",\"b\",\"x\"],"
     "\"option_keys\":[],\"option_values\":[]}}", cid);
 
   // Retained size of all instances of class B.
@@ -1100,7 +1101,8 @@ TEST_CASE(Service_Classes) {
   ExpectSubstringF(handler.msg(), "\"id\":\"objects\\/%" Pd "\",\"length\":2",
                    kInstanceListId);
   Array& list = Array::Handle();
-  list ^= isolate->object_id_ring()->GetObjectForId(kInstanceListId);
+  ObjectIdRing::LookupResult kind;
+  list ^= isolate->object_id_ring()->GetObjectForId(kInstanceListId, &kind);
   EXPECT_EQ(2, list.Length());
   // The list should contain {b0, b1}.
   EXPECT((list.At(0) == b0.raw() && list.At(1) == b1.raw()) ||
@@ -1323,9 +1325,9 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"type\":\"Null\",\"id\":\"objects\\/null\","
-               "\"valueAsString\":\"null\"}",
-               handler.msg());
+  EXPECT_SUBSTRING("{\"type\":\"Null\",\"id\":\"objects\\/null\","
+                   "\"valueAsString\":\"null\"",
+                   handler.msg());
 
   // Request malformed native code.
   service_msg = EvalF(lib, "[0, port, ['code', 'native%" Px "'], [], []]",
@@ -1450,10 +1452,10 @@ TEST_CASE(Service_Scripts) {
   OS::SNPrint(buf, sizeof(buf),
       "{\"type\":\"Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"name\":\"test-lib\","
       "\"kind\":\"script\","
-      "\"owning_library\":{\"type\":\"@Library\","
-      "\"id\":\"libraries\\/%" Pd "\",\"user_name\":\"\",\"name\":\"\","
+      "\"owningLibrary\":{\"type\":\"@Library\","
+      "\"id\":\"libraries\\/%" Pd "\",\"name\":\"\","
       "\"url\":\"test-lib\"},"
       "\"source\":\"var port;\\n\\nmain() {\\n}\","
       "\"tokenPosTable\":[[1,0,1,1,5,2,9],[3,5,1,6,5,7,6,8,8],[4,10,1]]}",
@@ -1500,7 +1502,7 @@ TEST_CASE(Service_Coverage) {
   OS::SNPrint(buf, sizeof(buf),
               "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
               "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-              "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+              "\"name\":\"test-lib\","
               "\"kind\":\"script\"},\"hits\":"
               "[5,1,6,1]}",
               vmlib.index());
@@ -1548,7 +1550,7 @@ TEST_CASE(Service_LibrariesScriptsCoverage) {
       "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"name\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}", vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
 }
@@ -1593,7 +1595,7 @@ TEST_CASE(Service_LibrariesCoverage) {
               "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
               "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
               "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-              "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+              "\"name\":\"test-lib\","
               "\"kind\":\"script\"},\"hits\":[5,1,6,1]}]}",
               vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
@@ -1657,7 +1659,7 @@ TEST_CASE(Service_ClassesCoverage) {
               "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
               "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
               "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-              "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+              "\"name\":\"test-lib\","
               "\"kind\":\"script\"},\"hits\":[5,1,7,4,8,3]}]}",
               vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
@@ -1715,14 +1717,11 @@ TEST_CASE(Service_ClassesFunctionsCoverage) {
   const Function& func = Function::Handle(
       cls.LookupFunction(String::Handle(String::New("bar"))));
   ASSERT(!func.IsNull());
-  intptr_t function_id = -1;
-  function_id = cls.FindFunctionIndex(func);
-  ASSERT(function_id != -1);
 
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
               "[0, port, ['classes', '%" Pd "', 'functions',"
-              "'% " Pd "', 'coverage'], [], []]", i,  function_id);
+              "'bar', 'coverage'], [], []]", i);
 
   Array& service_msg = Array::Handle();
   service_msg = Eval(lib, buf);
@@ -1732,7 +1731,7 @@ TEST_CASE(Service_ClassesFunctionsCoverage) {
       "{\"type\":\"CodeCoverage\",\"id\":\"coverage\",\"coverage\":["
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-      "\"name\":\"test-lib\",\"user_name\":\"test-lib\","
+      "\"name\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[7,4,8,3]}]}", vmlib.index());
   EXPECT_STREQ(buf, handler.msg());
 }

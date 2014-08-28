@@ -44,15 +44,15 @@ main() {
         // expect at least one notification indicating analysis is in progress
         expect(notifications.any((Notification notification) {
           if (notification.event == SERVER_STATUS) {
-            Map analysisStatus = notification.params['analysis'];
-            return analysisStatus['analyzing'];
+            var params = new ServerStatusParams.fromNotification(notification);
+            return params.analysis.isAnalyzing;
           }
           return false;
         }), isTrue);
         // the last notification should indicate that analysis is complete
         Notification notification = notifications[notifications.length - 1];
-        Map analysisStatus = notification.params['analysis'];
-        expect(analysisStatus['analyzing'], isFalse);
+        var params = new ServerStatusParams.fromNotification(notification);
+        expect(params.analysis.isAnalyzing, isFalse);
       });
     });
 
@@ -121,9 +121,7 @@ class EchoHandler implements RequestHandler {
   @override
   Response handleRequest(Request request) {
     if (request.method == 'echo') {
-      var response = new Response(request.id);
-      response.setResult('echo', true);
-      return response;
+      return new Response(request.id, result: {'echo': true});
     }
     return null;
   }

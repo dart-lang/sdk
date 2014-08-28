@@ -41,6 +41,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void SelectRepresentations();
 
+  void WidenSmiToInt32();
+
   void InferIntRanges();
 
   void SelectIntegerInstructions();
@@ -62,6 +64,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitStoreInstanceField(StoreInstanceFieldInstr* instr);
+  virtual void VisitAllocateContext(AllocateContextInstr* instr);
 
   void InsertBefore(Instruction* next,
                     Instruction* instr,
@@ -130,8 +133,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool TryReplaceInstanceCallWithInline(InstanceCallInstr* call);
 
-  LoadFieldInstr* BuildLoadStringLength(Definition* str);
-
   Definition* PrepareInlineStringIndexOp(Instruction* call,
                                          intptr_t cid,
                                          Definition* str,
@@ -147,6 +148,11 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                               intptr_t cid,
                               TargetEntryInstr** entry,
                               Definition** last);
+
+  bool InlineDoubleOp(Token::Kind op_kind,
+                      Instruction* call,
+                      TargetEntryInstr** entry,
+                      Definition** last);
 
   bool InlineByteArrayViewLoad(Instruction* call,
                                Definition* receiver,
@@ -214,8 +220,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                         Value* use,
                         bool is_environment_use);
 
-  bool InstanceCallNeedsClassCheck(InstanceCallInstr* call) const;
-  bool MethodExtractorNeedsClassCheck(InstanceCallInstr* call) const;
+  bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
+                                   RawFunction::Kind kind) const;
 
   bool InlineFloat32x4Getter(InstanceCallInstr* call,
                              MethodRecognizer::Kind getter);
@@ -264,6 +270,8 @@ class LICM : public ValueObject {
 
   void Optimize();
 
+  void OptimisticallySpecializeSmiPhis();
+
  private:
   FlowGraph* flow_graph() const { return flow_graph_; }
 
@@ -271,10 +279,9 @@ class LICM : public ValueObject {
              BlockEntryInstr* pre_header,
              Instruction* current);
 
-  void TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
-                                  BlockEntryInstr* header,
-                                  BlockEntryInstr* pre_header,
-                                  CheckSmiInstr* current);
+  void TrySpecializeSmiPhi(PhiInstr* phi,
+                           BlockEntryInstr* header,
+                           BlockEntryInstr* pre_header);
 
   FlowGraph* const flow_graph_;
 };

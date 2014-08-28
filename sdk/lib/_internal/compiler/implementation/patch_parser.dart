@@ -117,7 +117,7 @@ library patchparser;
 import 'dart:async';
 
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
-import "helpers/helpers.dart";
+import "helpers/helpers.dart";  // Included for debug helpers.
 import "scanner/scannerlib.dart";  // Scanner, Parsers, Listeners
 import "elements/elements.dart";
 import "elements/modelx.dart"

@@ -7,25 +7,35 @@
  */
 library codegen.tools;
 
+import 'dart:io';
+
 import 'package:html5lib/dom.dart' as dom;
+import 'package:path/path.dart';
 
 import 'text_formatter.dart';
 import 'html_tools.dart';
 
 /**
- * Join the given strings using camelCase.  If [capitalize] is true, the first
+ * Join the given strings using camelCase.  If [doCapitalize] is true, the first
  * part will be capitalized as well.
  */
-String camelJoin(List<String> parts, {bool capitalize: false}) {
+String camelJoin(List<String> parts, {bool doCapitalize: false}) {
   List<String> upcasedParts = <String>[];
   for (int i = 0; i < parts.length; i++) {
-    if (i == 0 && !capitalize) {
+    if (i == 0 && !doCapitalize) {
       upcasedParts.add(parts[i]);
     } else {
-      upcasedParts.add(parts[i][0].toUpperCase() + parts[i].substring(1));
+      upcasedParts.add(capitalize(parts[i]));
     }
   }
   return upcasedParts.join();
+}
+
+/**
+ * Capitalize and return the passed String.
+ */
+String capitalize(String string) {
+  return string[0].toUpperCase() + string.substring(1);
 }
 
 final RegExp trailingWhitespaceRegExp = new RegExp(r' +$', multiLine: true);
@@ -73,8 +83,8 @@ class CodeGenerator {
   /**
    * Execute [callback], using [additionalIndent] to indent any code it outputs.
    */
-  void indentBy(String additionalIndent, void callback()) => indentSpecial(
-      additionalIndent, additionalIndent, callback);
+  void indentBy(String additionalIndent, void callback()) =>
+      indentSpecial(additionalIndent, additionalIndent, callback);
 
   /**
    * Execute [callback], using [additionalIndent] to indent any code it outputs.
@@ -106,7 +116,11 @@ class CodeGenerator {
    * If [javadocStyle] is true, then the output is compatable with Javadoc,
    * which understands certain HTML constructs.
    */
-  void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle: false}) {
+  void docComment(List<dom.Node> docs, {int width: 79, bool javadocStyle:
+      false}) {
+    if (containsOnlyWhitespace(docs)) {
+      return;
+    }
     writeln('/**');
     indentBy(' * ', () {
       write(nodesToText(docs, width - _state.indent.length, javadocStyle));
@@ -116,7 +130,7 @@ class CodeGenerator {
 
   void outputHeader({bool javaStyle: false}) {
     String header;
-    if(javaStyle) {
+    if (javaStyle) {
       header = '''
 /*
  * Copyright (c) 2014, the Dart project authors.
@@ -134,8 +148,7 @@ class CodeGenerator {
  * This file has been automatically generated.  Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/spec/generate_files".
  */''';
-    }
-    else {
+    } else {
       header = '''
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -288,5 +301,160 @@ class _HtmlCodeGeneratorState {
       buffer.add(new dom.Text(lines.join('\n$indent')));
       indentNeeded = false;
     }
+  }
+}
+
+/**
+ * Type of functions used to compute the contents of a generated file.
+ */
+typedef String FileContentsComputer();
+
+/**
+ * Type of functions used to compute the contents of a set of generated files.
+ */
+typedef Map<String, FileContentsComputer> DirectoryContentsComputer();
+
+abstract class GeneratedContent {
+  FileSystemEntity get outputFile;
+  bool check();
+  void generate();
+}
+
+/**
+ * Class representing a single output file (either generated code or generated
+ * HTML).
+ */
+class GeneratedFile extends GeneratedContent {
+  /**
+   * The output file to which generated output should be written, relative to
+   * the "tool/spec" directory.  This filename uses the posix path separator
+   * ('/') regardless of the OS.
+   */
+  final String outputPath;
+
+  /**
+   * Callback function which computes the file.
+   */
+  final FileContentsComputer computeContents;
+
+  GeneratedFile(this.outputPath, this.computeContents);
+
+  /**
+   * Get a File object representing the output file.
+   */
+  File get outputFile => new File(joinAll(posix.split(outputPath)));
+
+  /**
+   * Check whether the file has the correct contents, and return true if it
+   * does.
+   */
+  @override
+  bool check() {
+    String expectedContents = computeContents();
+    try {
+      return expectedContents == outputFile.readAsStringSync();
+    } catch (e) {
+      // There was a problem reading the file (most likely because it didn't
+      // exist).  Treat that the same as if the file doesn't have the expected
+      // contents.
+      return false;
+    }
+  }
+
+  /**
+   * Replace the file with the correct contents.  [spec] is the "tool/spec"
+   * directory.  If [spec] is unspecified, it is assumed to be the directory
+   * containing Platform.executable.
+   */
+  void generate() {
+    outputFile.writeAsStringSync(computeContents());
+  }
+}
+
+/**
+ * Class representing a single output directory (either generated code or
+ * generated HTML). No other content should exisit in the directory.
+ */
+class GeneratedDirectory extends GeneratedContent {
+
+  /**
+   * The path to the directory that will have the generated content.
+   */
+  final String outputDirPath;
+
+  /**
+   * Callback function which computes the directory contents.
+   */
+  final DirectoryContentsComputer directoryContentsComputer;
+
+  GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
+
+  /**
+   * Get a Directory object representing the output directory.
+   */
+  Directory get outputFile =>
+      new Directory(joinAll(posix.split(outputDirPath)));
+
+  /**
+   * Check whether the directory has the correct contents, and return true if it
+   * does.
+   */
+  @override
+  bool check() {
+    Map<String, FileContentsComputer> map = directoryContentsComputer();
+    try {
+      map.forEach((String file, FileContentsComputer fileContentsComputer) {
+        String expectedContents = fileContentsComputer();
+        File outputFile =
+            new File(joinAll(posix.split(posix.join(outputDirPath, file))));
+        if (expectedContents != outputFile.readAsStringSync()) {
+          return false;
+        }
+      });
+      int nonHiddenFileCount = 0;
+      outputFile.listSync(
+          recursive: false,
+          followLinks: false).forEach((FileSystemEntity fileSystemEntity) {
+         if(fileSystemEntity is File && !basename(fileSystemEntity.path).startsWith('.')) {
+           nonHiddenFileCount++;
+         }
+      });
+      if (nonHiddenFileCount != map.length) {
+        // The number of files generated doesn't match the number we expected to
+        // generate.
+        return false;
+      }
+    } catch (e) {
+      // There was a problem reading the file (most likely because it didn't
+      // exist).  Treat that the same as if the file doesn't have the expected
+      // contents.
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Replace the directory with the correct contents.  [spec] is the "tool/spec"
+   * directory.  If [spec] is unspecified, it is assumed to be the directory
+   * containing Platform.executable.
+   */
+  @override
+  void generate() {
+    try {
+      // delete the contents of the directory (and the directory itself)
+      outputFile.deleteSync(recursive: true);
+    } catch (e) {
+      // Error caught while trying to delete the directory, this can happen if
+      // it didn't yet exist.
+    }
+    // re-create the empty directory
+    outputFile.createSync(recursive: true);
+
+    // generate all of the files in the directory
+    Map<String, FileContentsComputer> map = directoryContentsComputer();
+    map.forEach((String file, FileContentsComputer fileContentsComputer) {
+      File outputFile = new File(joinAll(posix.split(outputDirPath + file)));
+      outputFile.writeAsStringSync(fileContentsComputer());
+    });
   }
 }

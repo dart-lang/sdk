@@ -14,7 +14,7 @@ namespace bin {
 
 class MutexLocker  {
  public:
-  explicit MutexLocker(dart::Mutex* mutex) : mutex_(mutex) {
+  explicit MutexLocker(Mutex* mutex) : mutex_(mutex) {
     ASSERT(mutex != NULL);
     mutex_->Lock();
   }
@@ -24,7 +24,7 @@ class MutexLocker  {
   }
 
  private:
-  dart::Mutex* const mutex_;
+  Mutex* const mutex_;
 
   DISALLOW_COPY_AND_ASSIGN(MutexLocker);
 };
@@ -32,7 +32,7 @@ class MutexLocker  {
 
 class MonitorLocker {
  public:
-  explicit MonitorLocker(dart::Monitor* monitor) : monitor_(monitor) {
+  explicit MonitorLocker(Monitor* monitor) : monitor_(monitor) {
     ASSERT(monitor != NULL);
     monitor_->Enter();
   }
@@ -41,7 +41,7 @@ class MonitorLocker {
     monitor_->Exit();
   }
 
-  dart::Monitor::WaitResult Wait(int64_t millis = dart::Monitor::kNoTimeout) {
+  Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout) {
     return monitor_->Wait(millis);
   }
 
@@ -54,7 +54,7 @@ class MonitorLocker {
   }
 
  private:
-  dart::Monitor* const monitor_;
+  Monitor* const monitor_;
 
   DISALLOW_COPY_AND_ASSIGN(MonitorLocker);
 };

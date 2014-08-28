@@ -42,6 +42,51 @@ class StringReplaceTest {
 
     // Test replacing the empty string.
     Expect.equals("toAtoBtoCto", "AtoBtoCto".replaceFirst("", "to"));
+
+    // Test startIndex.
+    Expect.equals(
+        "foo-AAA-foo-bar", "foo-bar-foo-bar".replaceFirst("bar", "AAA", 4));
+
+    // Test startIndex skipping one case at the begining.
+    Expect.equals(
+        "foo-bar-AAA-bar", "foo-bar-foo-bar".replaceFirst("foo", "AAA", 1));
+
+    // Test startIndex skipping one case at the begining.
+    Expect.equals(
+        "foo-bar-foo-AAA", "foo-bar-foo-bar".replaceFirst("bar", "AAA", 5));
+
+    // Test startIndex replacing with the empty string.
+    Expect.equals(
+        "foo-bar--bar", "foo-bar-foo-bar".replaceFirst("foo", "", 1));
+
+    // Test startIndex with a RegExp with carat
+    Expect.equals(
+        "foo-bar-foo-bar",
+        "foo-bar-foo-bar".replaceFirst(new RegExp(r"^foo"), "", 8));
+
+    // Test startIndex with a RegExp
+    Expect.equals(
+        "aaa{3}X{3}", "aaa{3}aaa{3}".replaceFirst(new RegExp(r"a{3}"), "X", 1));
+
+    // Test startIndex with regexp-looking String
+    Expect.equals(
+        "aaa{3}aaX", "aaa{3}aaa{3}".replaceFirst("a{3}", "X", 3));
+
+    // Test negative startIndex
+    Expect.throws(
+        () => "hello".replaceFirst("h", "X", -1), (e) => e is RangeError);
+
+    // Test startIndex too large
+    Expect.throws(
+        () => "hello".replaceFirst("h", "X", 6), (e) => e is RangeError);
+
+    // Test null startIndex
+    Expect.throws(
+        () => "hello".replaceFirst("h", "X", null), (e) => e is ArgumentError);
+
+    // Test object startIndex
+    Expect.throws(
+        () => "hello".replaceFirst("h", "X", new Object()));
   }
 }
 

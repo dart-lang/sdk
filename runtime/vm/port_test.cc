@@ -25,7 +25,7 @@ class PortMapTestPeer {
     if (index < 0) {
       return false;
     }
-    return PortMap::map_[index].live;
+    return PortMap::map_[index].state == PortMap::kLivePort;
   }
 };
 
@@ -100,16 +100,32 @@ TEST_CASE(PortMap_CreateManyPorts) {
 }
 
 
-TEST_CASE(PortMap_SetLive) {
+TEST_CASE(PortMap_SetPortState) {
   PortTestMessageHandler handler;
+
+  // Regular port.
   Dart_Port port = PortMap::CreatePort(&handler);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
   EXPECT(!PortMapTestPeer::IsLivePort(port));
 
-  PortMap::SetLive(port);
+  PortMap::SetPortState(port, PortMap::kLivePort);
   EXPECT(PortMapTestPeer::IsActivePort(port));
   EXPECT(PortMapTestPeer::IsLivePort(port));
+
+  PortMap::ClosePort(port);
+  EXPECT(!PortMapTestPeer::IsActivePort(port));
+  EXPECT(!PortMapTestPeer::IsLivePort(port));
+
+  // Control port.
+  port = PortMap::CreatePort(&handler);
+  EXPECT_NE(0, port);
+  EXPECT(PortMapTestPeer::IsActivePort(port));
+  EXPECT(!PortMapTestPeer::IsLivePort(port));
+
+  PortMap::SetPortState(port, PortMap::kControlPort);
+  EXPECT(PortMapTestPeer::IsActivePort(port));
+  EXPECT(!PortMapTestPeer::IsLivePort(port));
 
   PortMap::ClosePort(port);
   EXPECT(!PortMapTestPeer::IsActivePort(port));

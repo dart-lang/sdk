@@ -32,32 +32,30 @@ abstract class Navigator {
 }
 ''';
 
-testDart2Dart(String src, {void continuation(String s), bool minify: false,
-    bool stripTypes: false}) {
-  // If continuation is not provided, check that source string remains the same.
-  if (continuation == null) {
-    continuation = (s) { Expect.equals(src, s); };
-  }
-  testDart2DartWithLibrary(src, '', continuation: continuation, minify: minify,
-      stripTypes: stripTypes);
-}
-
 /**
  * Library name is assumed to be 'mylib' in 'mylib.dart' file.
  */
-testDart2DartWithLibrary(
-    String srcMain, String srcLibrary,
-    {void continuation(String s), bool minify: false,
-    bool stripTypes: false}) {
+testDart2Dart(String mainSrc, {String librarySrc,
+                               String expectedResult,
+                               bool minify: false,
+                               bool stripTypes: false}) {
+
+  // If expectedResult is not provided, check that source string remains the
+  // same.
+  if (expectedResult == null) {
+    Expect.equals(null, librarySrc);
+    expectedResult = mainSrc;
+  }
+
   fileUri(path) => new Uri(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
   final libUri = fileUri('mylib.dart');
 
   provider(uri) {
-    if (uri == scriptUri) return new Future.value(srcMain);
+    if (uri == scriptUri) return new Future.value(mainSrc);
     if (uri.toString() == libUri.toString()) {
-      return new Future.value(srcLibrary);
+      return new Future.value(librarySrc);
     }
     if (uri.path.endsWith('/core.dart')) {
       return new Future.value(buildLibrarySource(DEFAULT_CORE_LIBRARY));
@@ -92,13 +90,17 @@ testDart2DartWithLibrary(
   if (minify) options.add('--minify');
   if (stripTypes) options.add('--force-strip=types');
 
-  asyncTest(() => compile(
-      scriptUri,
-      fileUri('libraryRoot/'),
-      fileUri('packageRoot/'),
-      provider,
-      handler,
-      options).then(continuation));
+  asyncTest(() {
+    return compile(
+        scriptUri,
+        fileUri('libraryRoot/'),
+        fileUri('packageRoot/'),
+        provider,
+        handler,
+        options).then((s) {
+      Expect.equals(expectedResult, s);
+    });
+  });
 }
 
 testSimpleFileUnparse() {
@@ -113,15 +115,12 @@ main() {
   should_be_kept();
 }
 ''';
-  testDart2Dart(src, continuation: (String s) {
-    print(s);
-    Expect.equals('''
+  testDart2Dart(src, expectedResult: '''
 should_be_kept() {}
 main() {
   should_be_kept();
 }
-''', s);
-  });
+''');
 }
 testTopLevelField() {
   testDart2Dart('''
@@ -330,6 +329,17 @@ main() {
 }
 ''';
   var expectedResult = '''
+globalfoo_A() {}
+var globalVar_A;
+var globalVarInitialized_A = 6;
+var globalVarInitialized2_A = 7;
+class A_A {
+  A_A() {}
+  A_A.fromFoo_A() {}
+  static staticfoo_A() {}
+  foo() {}
+  static const field_A = 5;
+}
 globalfoo() {}
 var globalVar;
 var globalVarInitialized = 6;
@@ -341,27 +351,7 @@ class A {
   foo() {}
   static const field = 5;
 }
-A_globalfoo() {}
-var A_globalVar;
-var A_globalVarInitialized = 6;
-var A_globalVarInitialized2 = 7;
-class A_A {
-  A_A() {}
-  A_A.A_fromFoo() {}
-  static A_staticfoo() {}
-  foo() {}
-  static const A_field = 5;
-}
 main() {
-  A_globalVar;
-  A_globalVarInitialized;
-  A_globalVarInitialized2;
-  A_globalfoo();
-  A_A.A_field;
-  A_A.A_staticfoo();
-  new A_A();
-  new A_A.A_fromFoo();
-  new A_A().foo();
   globalVar;
   globalVarInitialized;
   globalVarInitialized2;
@@ -371,10 +361,19 @@ main() {
   new A();
   new A.fromFoo();
   new A().foo();
+  globalVar_A;
+  globalVarInitialized_A;
+  globalVarInitialized2_A;
+  globalfoo_A();
+  A_A.field_A;
+  A_A.staticfoo_A();
+  new A_A();
+  new A_A.fromFoo_A();
+  new A_A().foo();
 }
 ''';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(mainSrc, librarySrc: librarySrc,
+      expectedResult: expectedResult);
 }
 
 testNoConflictSendsRename() {
@@ -454,8 +453,8 @@ main() {
   new A().foo();
 }
 ''';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(mainSrc, librarySrc: librarySrc,
+      expectedResult: expectedResult);
 }
 
 testConflictLibraryClassRename() {
@@ -493,11 +492,11 @@ main() {
 }
 ''';
   var expectedResult = '''
-topfoo() {}
+topfoo_A() {}
 class A {
   foo() {}
 }
-A_topfoo() {
+topfoo() {
   var x = 5;
 }
 class A_A {
@@ -515,12 +514,12 @@ main() {
   var GREATVAR = b.myliba;
   b.mylist;
   a = getA();
-  A_topfoo();
   topfoo();
+  topfoo_A();
 }
 ''';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(mainSrc, librarySrc: librarySrc,
+      expectedResult: expectedResult);
 }
 
 testClassExtendsWithArgs() {
@@ -563,19 +562,19 @@ main() {
 }
 ''';
   var expectedResult = '''
-get topgetset => 5;
+get topgetset_A => 5;
+set topgetset_A(arg) {}
+get topgetset => 6;
 set topgetset(arg) {}
-get A_topgetset => 6;
-set A_topgetset(arg) {}
 main() {
-  A_topgetset;
-  A_topgetset = 6;
   topgetset;
-  topgetset = 5;
+  topgetset = 6;
+  topgetset_A;
+  topgetset_A = 5;
 }
 ''';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(mainSrc, librarySrc: librarySrc,
+      expectedResult: expectedResult);
 }
 
 testFieldTypeOutput() {
@@ -657,29 +656,29 @@ main() {
 }
 ''';
   var expectedResult = '''
-typedef void MyFunction<T extends num>(T arg);
-class T {}
-class B<T> {}
-class A<T> extends B<T> {
-  T f;
+typedef void MyFunction_A<T_B extends num>(T_B arg);
+class T_A {}
+class B_A<T_B> {}
+class A_A<T_B> extends B_A<T_B> {
+  T_B f;
 }
-typedef void A_MyFunction<A_T extends num>(A_T arg);
-class A_T {}
-class A_B<A_T> {}
-class A_A<A_T> extends A_B<A_T> {
-  A_T f;
+typedef void MyFunction<T_B extends num>(T_B arg);
+class T {}
+class B<T_B> {}
+class A<T_B> extends B<T_B> {
+  T_B f;
 }
 main() {
-  A_MyFunction myf1;
-  MyFunction myf2;
-  new A_A<int>().f;
-  new A_T();
+  MyFunction myf1;
+  MyFunction_A myf2;
   new A<int>().f;
   new T();
+  new A_A<int>().f;
+  new T_A();
 }
 ''';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(mainSrc, librarySrc: librarySrc,
+      expectedResult: expectedResult);
 }
 
 testClassTypeArgumentBound() {
@@ -702,18 +701,18 @@ main() {
 }
 ''';
   var expectedResult = '''
+class I_A {}
+class A_A<T extends I_A> {}
 class I {}
 class A<T extends I> {}
-class A_I {}
-class A_A<A_T extends A_I> {}
 main() {
-  new A_A();
   new A();
+  new A_A();
 }
 ''';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
-}
+  testDart2Dart(mainSrc, librarySrc: librarySrc,
+      expectedResult: expectedResult);
+  }
 
 testDoubleMains() {
   var librarySrc = '''
@@ -727,13 +726,13 @@ main() {
 }
 ''';
   var expectedResult = '''
-A_main() {}
+main_A() {}
 main() {
-  A_main();
+  main_A();
 }
 ''';
-  testDart2DartWithLibrary(mainSrc, librarySrc,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(mainSrc, librarySrc: librarySrc,
+      expectedResult: expectedResult);
 }
 
 testStaticAccessIoLib() {
@@ -745,13 +744,12 @@ main() {
 }
 ''';
   var expectedResult = '''
-import "dart:io" as p;
+import "dart:io";
 main() {
-  p.Platform.operatingSystem;
+  Platform.operatingSystem;
 }
 ''';
-  testDart2Dart(src,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(src, expectedResult: expectedResult);
 }
 
 testMinification() {
@@ -764,8 +762,7 @@ main() {
   var expectedResult =
       'class A{}'
       'main(){new A();}';
-  testDart2Dart(src, continuation:
-      (String result) { Expect.equals(expectedResult, result); }, minify: true);
+  testDart2Dart(src, expectedResult: expectedResult, minify: true);
 }
 
 testClosureLocalsMinified() {
@@ -783,8 +780,7 @@ main() {
 ''';
   var expectedResult =
       'main(){var A=7; B(A,C){ D(E,F){var G=A;}D(C,A);}B(A,8);}';
-  testDart2Dart(src, continuation:
-      (String result) { Expect.equals(expectedResult, result); }, minify: true);
+  testDart2Dart(src, expectedResult: expectedResult, minify: true);
 }
 
 testParametersMinified() {
@@ -810,8 +806,7 @@ main() {
   var expectedResult =
       'class B{var E;static C(A){A=5;}}D(A,{optionalarg: 7}){A=6;}'
       'main(){new B().E;B.C(8);D(8);}';
-  testDart2Dart(src, continuation:
-      (String result) { Expect.equals(expectedResult, result); }, minify: true);
+  testDart2Dart(src, expectedResult: expectedResult, minify: true);
 }
 
 testDeclarationTypePlaceholders() {
@@ -833,9 +828,7 @@ main() {
   foo("5");
 }
 ''';
-  testDart2Dart(src,
-      continuation: (String result) { Expect.equals(expectedResult, result); },
-      stripTypes: true);
+  testDart2Dart(src, expectedResult: expectedResult, stripTypes: true);
 }
 
 testPlatformLibraryMemberNamesAreFixed() {
@@ -851,16 +844,15 @@ main() {
 }
 ''';
   var expectedResult = '''
-import "dart:html" as p;
+import "dart:html";
 class A {
-  static String get A_userAgent => p.window.navigator.userAgent;
+  static String get userAgent_A => window.navigator.userAgent;
 }
 main() {
-  A.A_userAgent;
+  A.userAgent_A;
 }
 ''';
-  testDart2Dart(src,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(src, expectedResult: expectedResult);
 }
 
 testConflictsWithCoreLib() {
@@ -875,16 +867,15 @@ main() {
 }
 ''';
   var expectedResult = """
-A_print(x) {
+print_A(x) {
   throw 'fisk';
 }
 main() {
   print('corelib');
-  A_print('local');
+  print_A('local');
 }
 """;
-  testDart2Dart(src,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(src, expectedResult: expectedResult);
 }
 
 testUnresolvedNamedConstructor() {
@@ -904,11 +895,10 @@ class A {
 }
 main() {
   new A();
-  new A_Unresolved();
+  new Unresolved_A();
 }
 """;
-  testDart2Dart(src,
-      continuation: (String result) { Expect.equals(expectedResult, result); });
+  testDart2Dart(src, expectedResult: expectedResult);
 }
 
 main() {

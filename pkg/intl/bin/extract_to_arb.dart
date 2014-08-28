@@ -121,4 +121,3 @@ String turnInterpolationIntoICUForm(Message message, chunk,
 String escape(String s) {
   return s.replaceAll("'", "''").replaceAll("{", "'{'").replaceAll("}", "'}'");
 }
-

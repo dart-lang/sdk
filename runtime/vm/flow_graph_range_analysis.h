@@ -22,6 +22,7 @@ class RangeBoundary : public ValueObject {
 
   enum RangeSize {
     kRangeBoundarySmi,
+    kRangeBoundaryInt32,
     kRangeBoundaryInt64,
   };
 
@@ -74,7 +75,7 @@ class RangeBoundary : public ValueObject {
     return FromConstant(Smi::kMaxValue);
   }
 
-    // Construct a RangeBoundary for the constant kMin value.
+  // Construct a RangeBoundary for the constant kMin value.
   static RangeBoundary MinConstant() {
     return FromConstant(kMin);
   }
@@ -84,13 +85,74 @@ class RangeBoundary : public ValueObject {
     return FromConstant(kMax);
   }
 
-  // Calculate the minimum of a and b within the given range.
-  static RangeBoundary Min(RangeBoundary a, RangeBoundary b, RangeSize size);
-  static RangeBoundary Max(RangeBoundary a, RangeBoundary b, RangeSize size);
+  // Construct a RangeBoundary for the constant kMin value.
+  static RangeBoundary MinConstant(RangeSize size) {
+    switch (size) {
+      case kRangeBoundarySmi:
+        return FromConstant(Smi::kMinValue);
+      case kRangeBoundaryInt32:
+        return FromConstant(kMinInt32);
+      case kRangeBoundaryInt64:
+        return FromConstant(kMinInt64);
+    }
+    UNREACHABLE();
+    return FromConstant(kMinInt64);
+  }
+
+  static RangeBoundary MaxConstant(RangeSize size) {
+    switch (size) {
+      case kRangeBoundarySmi:
+        return FromConstant(Smi::kMaxValue);
+      case kRangeBoundaryInt32:
+        return FromConstant(kMaxInt32);
+      case kRangeBoundaryInt64:
+        return FromConstant(kMaxInt64);
+    }
+    UNREACHABLE();
+    return FromConstant(kMaxInt64);
+  }
+
+
+  // Given two boundaries a and b, select one of them as c so that
+  //
+  //   inf {[a, ...) ^ [b, ...)} >= inf {c}
+  //
+  static RangeBoundary IntersectionMin(RangeBoundary a, RangeBoundary b);
+
+  // Given two boundaries a and b, select one of them as c so that
+  //
+  //   sup {(..., a] ^ (..., b]} <= sup {c}
+  //
+  static RangeBoundary IntersectionMax(RangeBoundary a, RangeBoundary b);
+
+  // Given two boundaries a and b compute boundary c such that
+  //
+  //   inf {[a, ...) U  [b, ...)} >= inf {c}
+  //
+  // Try to select c such that it is as close to inf {[a, ...) U [b, ...)}
+  // as possible.
+  static RangeBoundary JoinMin(RangeBoundary a,
+                               RangeBoundary b,
+                               RangeBoundary::RangeSize size);
+
+  // Given two boundaries a and b compute boundary c such that
+  //
+  //   sup {(..., a] U (..., b]} <= sup {c}
+  //
+  // Try to select c such that it is as close to sup {(..., a] U (..., b]}
+  // as possible.
+  static RangeBoundary JoinMax(RangeBoundary a,
+                               RangeBoundary b,
+                               RangeBoundary::RangeSize size);
 
   // Returns true when this is a constant that is outside of Smi range.
   bool OverflowedSmi() const {
     return (IsConstant() && !Smi::IsValid(ConstantValue())) || IsInfinity();
+  }
+
+  bool Overflowed(RangeBoundary::RangeSize size) const {
+    ASSERT(IsConstantOrInfinity());
+    return !Equals(Clamp(size));
   }
 
   // Returns true if this outside mint range.
@@ -101,41 +163,40 @@ class RangeBoundary : public ValueObject {
   // -/+ infinity are clamped to MinConstant/MaxConstant of the given type.
   RangeBoundary Clamp(RangeSize size) const {
     if (IsNegativeInfinity()) {
-      return (size == kRangeBoundaryInt64) ? MinConstant() : MinSmi();
+      return RangeBoundary::MinConstant(size);
     }
+
     if (IsPositiveInfinity()) {
-      return (size == kRangeBoundaryInt64) ? MaxConstant() : MaxSmi();
+      return RangeBoundary::MaxConstant(size);
     }
-    if ((size == kRangeBoundarySmi) && IsConstant()) {
-      if (ConstantValue() <= Smi::kMinValue) {
-        return MinSmi();
+
+    if (IsConstant()) {
+      const RangeBoundary range_min = RangeBoundary::MinConstant(size);
+      const RangeBoundary range_max = RangeBoundary::MaxConstant(size);
+
+      if (ConstantValue() <= range_min.ConstantValue()) {
+        return range_min;
       }
-      if (ConstantValue() >= Smi::kMaxValue) {
-        return MaxSmi();
+      if (ConstantValue() >= range_max.ConstantValue()) {
+        return range_max;
       }
     }
+
     // If this range is a symbolic range, we do not clamp it.
     // This could lead to some imprecision later on.
     return *this;
   }
 
-
-  bool IsSmiMinimumOrBelow() const {
+  bool IsMinimumOrBelow(RangeSize size) const {
     return IsNegativeInfinity() ||
-           (IsConstant() && (ConstantValue() <= Smi::kMinValue));
+        (IsConstant() &&
+         (ConstantValue() <= RangeBoundary::MinConstant(size).ConstantValue()));
   }
 
-  bool IsSmiMaximumOrAbove() const {
+  bool IsMaximumOrAbove(RangeSize size) const {
     return IsPositiveInfinity() ||
-           (IsConstant() && (ConstantValue() >= Smi::kMaxValue));
-  }
-
-  bool IsMinimumOrBelow() const {
-    return IsNegativeInfinity() || (IsConstant() && (ConstantValue() == kMin));
-  }
-
-  bool IsMaximumOrAbove() const {
-    return IsPositiveInfinity() || (IsConstant() && (ConstantValue() == kMax));
+        (IsConstant() &&
+         (ConstantValue() >= RangeBoundary::MaxConstant(size).ConstantValue()));
   }
 
   intptr_t kind() const {
@@ -222,6 +283,22 @@ class RangeBoundary : public ValueObject {
 
   bool Equals(const RangeBoundary& other) const;
 
+  int64_t UpperBound(RangeSize size) const {
+    return UpperBound().Clamp(size).ConstantValue();
+  }
+
+  int64_t LowerBound(RangeSize size) const {
+    return LowerBound().Clamp(size).ConstantValue();
+  }
+
+  int64_t SmiUpperBound() const {
+    return UpperBound(kRangeBoundarySmi);
+  }
+
+  int64_t SmiLowerBound() const {
+    return LowerBound(kRangeBoundarySmi);
+  }
+
  private:
   RangeBoundary(Kind kind, int64_t value, int64_t offset)
       : kind_(kind), value_(value), offset_(offset) { }
@@ -234,51 +311,88 @@ class RangeBoundary : public ValueObject {
 
 class Range : public ZoneAllocated {
  public:
-  Range(RangeBoundary min, RangeBoundary max) : min_(min), max_(max) { }
-
-  static Range* Unknown() {
-    return new Range(RangeBoundary::MinConstant(),
-                     RangeBoundary::MaxConstant());
+  Range() : min_(), max_() { }
+  Range(RangeBoundary min, RangeBoundary max) : min_(min), max_(max) {
+    ASSERT(min_.IsUnknown() == max_.IsUnknown());
   }
 
-  static Range* UnknownSmi() {
-    return new Range(RangeBoundary::MinSmi(),
-                     RangeBoundary::MaxSmi());
+  Range(const Range& other)
+      : ZoneAllocated(),
+        min_(other.min_),
+        max_(other.max_) {
+  }
+
+  Range& operator=(const Range& other) {
+    min_ = other.min_;
+    max_ = other.max_;
+    return *this;
+  }
+
+  static bool IsUnknown(const Range* other) {
+    if (other == NULL) {
+      return true;
+    }
+    return other->min().IsUnknown();
+  }
+
+  static Range Full(RangeBoundary::RangeSize size) {
+    return Range(RangeBoundary::MinConstant(size),
+                 RangeBoundary::MaxConstant(size));
   }
 
   void PrintTo(BufferFormatter* f) const;
   static const char* ToCString(const Range* range);
 
+  bool Equals(const Range* other) {
+    ASSERT(min_.IsUnknown() == max_.IsUnknown());
+    if (other == NULL) {
+      return min_.IsUnknown();
+    }
+    return min_.Equals(other->min_) &&
+        max_.Equals(other->max_);
+  }
+
   const RangeBoundary& min() const { return min_; }
   const RangeBoundary& max() const { return max_; }
+  void set_min(const RangeBoundary& value) {
+    min_ = value;
+  }
+  void set_max(const RangeBoundary& value) {
+    max_ = value;
+  }
 
   static RangeBoundary ConstantMinSmi(const Range* range) {
-    if (range == NULL) {
-      return RangeBoundary::MinSmi();
-    }
-    return range->min().LowerBound().Clamp(RangeBoundary::kRangeBoundarySmi);
+    return ConstantMin(range, RangeBoundary::kRangeBoundarySmi);
   }
 
   static RangeBoundary ConstantMaxSmi(const Range* range) {
-    if (range == NULL) {
-      return RangeBoundary::MaxSmi();
-    }
-    return range->max().UpperBound().Clamp(RangeBoundary::kRangeBoundarySmi);
+    return ConstantMax(range, RangeBoundary::kRangeBoundarySmi);
   }
 
   static RangeBoundary ConstantMin(const Range* range) {
-    if (range == NULL) {
-      return RangeBoundary::MinConstant();
-    }
-    return range->min().LowerBound().Clamp(RangeBoundary::kRangeBoundaryInt64);
+    return ConstantMin(range, RangeBoundary::kRangeBoundaryInt64);
   }
 
   static RangeBoundary ConstantMax(const Range* range) {
-    if (range == NULL) {
-      return RangeBoundary::MaxConstant();
-    }
-    return range->max().UpperBound().Clamp(RangeBoundary::kRangeBoundaryInt64);
+    return ConstantMax(range, RangeBoundary::kRangeBoundaryInt64);
   }
+
+  static RangeBoundary ConstantMin(const Range* range,
+                                   RangeBoundary::RangeSize size) {
+    if (range == NULL) {
+      return RangeBoundary::MinConstant(size);
+    }
+    return range->min().LowerBound().Clamp(size);
+  }
+
+  static RangeBoundary ConstantMax(const Range* range,
+                                   RangeBoundary::RangeSize size) {
+    if (range == NULL) {
+      return RangeBoundary::MaxConstant(size);
+    }
+    return range->max().UpperBound().Clamp(size);
+  }
+
 
   // [0, +inf]
   bool IsPositive() const;
@@ -299,6 +413,20 @@ class Range : public ZoneAllocated {
 
   bool IsFinite() const {
     return !min_.IsInfinity() && !max_.IsInfinity();
+  }
+
+  Range Intersect(const Range* other) const {
+    return Range(RangeBoundary::IntersectionMin(min(), other->min()),
+                 RangeBoundary::IntersectionMax(max(), other->max()));
+  }
+
+  bool Fits(RangeBoundary::RangeSize size) const {
+    return !min().LowerBound().Overflowed(size) &&
+           !max().UpperBound().Overflowed(size);
+  }
+
+  static bool Fits(Range* range, RangeBoundary::RangeSize size) {
+    return !IsUnknown(range) && range->Fits(size);
   }
 
   // Clamp this to be within size.
@@ -345,10 +473,11 @@ class Range : public ZoneAllocated {
   // Return the maximum absolute value included in range.
   static int64_t ConstantAbsMax(const Range* range);
 
-  static Range* BinaryOp(const Token::Kind op,
-                         const Range* left_range,
-                         const Range* right_range,
-                         Definition* left_defn);
+  static void BinaryOp(const Token::Kind op,
+                       const Range* left_range,
+                       const Range* right_range,
+                       Definition* left_defn,
+                       Range* result);
 
  private:
   RangeBoundary min_;
@@ -361,13 +490,26 @@ class RangeAnalysis : public ValueObject {
  public:
   explicit RangeAnalysis(FlowGraph* flow_graph)
       : flow_graph_(flow_graph),
-        marked_defns_(NULL) { }
+        smi_range_(Range::Full(RangeBoundary::kRangeBoundarySmi)) { }
 
   // Infer ranges for all values and remove overflow checks from binary smi
   // operations when proven redundant.
   void Analyze();
 
+  // Helper that should be used to access ranges of inputs during range
+  // inference.
+  // Returns meaningful results for uses of non-smi definitions that have smi
+  // as a reaching type.
+  const Range* GetSmiRange(Value* value) const;
+
  private:
+  enum JoinOperator {
+    NONE,
+    WIDEN,
+    NARROW
+  };
+  static char OpPrefix(JoinOperator op);
+
   // Collect all values that were proven to be smi in smi_values_ array and all
   // CheckSmi instructions in smi_check_ array.
   void CollectValues();
@@ -384,14 +526,13 @@ class RangeAnalysis : public ValueObject {
 
   // Create a constraint for defn, insert it after given instruction and
   // rename all uses that are dominated by it.
-  ConstraintInstr* InsertConstraintFor(Definition* defn,
+  ConstraintInstr* InsertConstraintFor(Value* use,
+                                       Definition* defn,
                                        Range* constraint,
                                        Instruction* after);
 
-  void ConstrainValueAfterBranch(Definition* defn, Value* use);
-  void ConstrainValueAfterCheckArrayBound(Definition* defn,
-                                          CheckArrayBoundInstr* check,
-                                          intptr_t use_index);
+  void ConstrainValueAfterBranch(Value* use, Definition* defn);
+  void ConstrainValueAfterCheckArrayBound(Value* use, Definition* defn);
 
   // Replace uses of the definition def that are dominated by instruction dom
   // with uses of other definition.
@@ -400,62 +541,57 @@ class RangeAnalysis : public ValueObject {
                            Definition* other);
 
 
-  // Walk the dominator tree and infer ranges for smi values.
+  // Infer ranges for integer (smi or mint) definitions.
   void InferRanges();
-  void InferRangesRecursive(BlockEntryInstr* block);
 
-  enum Direction {
-    kUnknown,
-    kPositive,
-    kNegative,
-    kBoth
-  };
+  // Collect integer definition in the reverse postorder.
+  void CollectDefinitions(BlockEntryInstr* block, BitVector* set);
 
-  Range* InferInductionVariableRange(JoinEntryInstr* loop_header,
-                                     PhiInstr* var);
+  // Recompute ranges of all definitions until they stop changing.
+  // Apply the given JoinOperator when computing Phi ranges.
+  void Iterate(JoinOperator op, intptr_t max_iterations);
+  bool InferRange(JoinOperator op, Definition* defn, intptr_t iteration);
 
-  void ResetWorklist();
-  void MarkDefinition(Definition* defn);
+  // Based on computed ranges find and eliminate redundant CheckArrayBound
+  // instructions.
+  void EliminateRedundantBoundsChecks();
 
-  static Direction ToDirection(Value* val);
+  // Find unsatisfiable constraints and mark corresponding blocks unreachable.
+  void MarkUnreachableBlocks();
 
-  static Direction Invert(Direction direction) {
-    return (direction == kPositive) ? kNegative : kPositive;
-  }
-
-  static void UpdateDirection(Direction* direction,
-                              Direction new_direction) {
-    if (*direction != new_direction) {
-      if (*direction != kUnknown) new_direction = kBoth;
-      *direction = new_direction;
-    }
-  }
+  // Convert mint operations that stay within int32 range into Int32 operations.
+  void NarrowMintToInt32();
 
   // Remove artificial Constraint instructions and replace them with actual
   // unconstrained definitions.
   void RemoveConstraints();
 
-  Range* ConstraintRange(Token::Kind op, Definition* boundary);
+  Range* ConstraintSmiRange(Token::Kind op, Definition* boundary);
 
   Isolate* isolate() const { return flow_graph_->isolate(); }
 
   FlowGraph* flow_graph_;
 
+  // Range object representing full Smi range.
+  Range smi_range_;
+
   // Value that are known to be smi or mint.
   GrowableArray<Definition*> values_;
-  // All CheckSmi instructions.
-  GrowableArray<CheckSmiInstr*> smi_checks_;
+
+  GrowableArray<BinaryMintOpInstr*> binary_mint_ops_;
+
+  GrowableArray<ShiftMintOpInstr*> shift_mint_ops_;
+
+  // All CheckArrayBound instructions.
+  GrowableArray<CheckArrayBoundInstr*> bounds_checks_;
 
   // All Constraints inserted during InsertConstraints phase. They are treated
   // as smi values.
   GrowableArray<ConstraintInstr*> constraints_;
 
-  // Bitvector for a quick filtering of known smi or mint values.
-  BitVector* definitions_;
-
-  // Worklist for induction variables analysis.
-  GrowableArray<Definition*> worklist_;
-  BitVector* marked_defns_;
+  // List of integer (smi or mint) definitions including constraints sorted
+  // in the reverse postorder.
+  GrowableArray<Definition*> definitions_;
 
   DISALLOW_COPY_AND_ASSIGN(RangeAnalysis);
 };

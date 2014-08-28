@@ -1,3 +1,17 @@
+## 0.11.7-dev
+
+  * Improved code layout of the package.
+
+## 0.11.6
+
+  * Catch analyzer errors and do not generate messages for that file. Previously
+    this would stop the message extraction on syntax errors and not give error
+    messages as good as the compiler would produce. Just let the compiler do it.
+
+## 0.11.5
+
+ * Change to work with both petitparser 1.1.x and 1.2.x versions.
+
 ## 0.11.4
 
  * Broaden the pubspec constraints to allow current analyzer versions.

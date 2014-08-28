@@ -991,7 +991,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
         __ CodeSize();
     const intptr_t offset =
-        Assembler::kEntryPointToPcMarkerOffset - __ CodeSize();
+        Assembler::EntryPointToPcMarkerOffset() - __ CodeSize();
     __ popq(new_pc);
     if (offset != 0) {
       __ addq(new_pc, Immediate(offset));
@@ -1035,7 +1035,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
         __ CodeSize();
     const intptr_t offset =
-        Assembler::kEntryPointToPcMarkerOffset - __ CodeSize();
+        Assembler::EntryPointToPcMarkerOffset() - __ CodeSize();
     __ popq(new_pc);
     if (offset != 0) {
       __ addq(new_pc, Immediate(offset));
@@ -1215,15 +1215,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     intptr_t token_pos,
     LocationSummary* locs,
     const ICData& ic_data) {
-  uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
-  if (ic_data.NumArgsTested() == 0) {
-    label_address = stub_code->ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.NumArgsTested() == 2) {
-    label_address = stub_code->TwoArgsUnoptimizedStaticCallEntryPoint();
-  } else {
-    UNIMPLEMENTED();
-  }
+  const uword label_address =
+      stub_code->UnoptimizedStaticCallEntryPoint(ic_data.NumArgsTested());
   ExternalLabel target_label(label_address);
   __ LoadObject(RBX, ic_data, PP);
   GenerateDartCall(deopt_id,
@@ -1475,7 +1469,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
   ASSERT(is_optimizing());
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfUsedChecks() > 0));
   Label match_found;
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<CidTarget> sorted(len);

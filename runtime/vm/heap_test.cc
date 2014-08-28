@@ -128,6 +128,8 @@ TEST_CASE(ClassHeapStats) {
   // Verify postconditions:
   EXPECT_EQ(0, class_stats->pre_gc.old_count);
   EXPECT_EQ(0, class_stats->post_gc.old_count);
+  // One promoted instance.
+  EXPECT_EQ(1, class_stats->promoted_count);
   // Promotion counted as an allocation from old space.
   EXPECT_EQ(1, class_stats->recent.old_count);
   // There was one instance allocated before GC.
@@ -144,6 +146,8 @@ TEST_CASE(ClassHeapStats) {
   EXPECT_EQ(0, class_stats->post_gc.new_count);
   // No new allocations.
   EXPECT_EQ(0, class_stats->recent.new_count);
+  // Nothing was promoted.
+  EXPECT_EQ(0, class_stats->promoted_count);
   heap->CollectGarbage(Heap::kOld);
   // Verify postconditions:
   EXPECT_EQ(1, class_stats->pre_gc.old_count);

@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/channel.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol.dart' hide Error;
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -250,7 +250,7 @@ class ByteStreamClientChannelTest {
     int assertCount = 0;
     Request request = new Request('72', 'foo.bar');
     outputLineStream.first
-        .then((line) => new JsonDecoder().convert(line))
+        .then((line) => JSON.decode(line))
         .then((json) {
           expect(json[Request.ID], equals('72'));
           expect(json[Request.METHOD], equals('foo.bar'));

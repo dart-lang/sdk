@@ -91,7 +91,8 @@ abstract class Browser {
     const ['safari', 'ff', 'firefox', 'chrome', 'ie9', 'ie10',
            'ie11', 'dartium'];
 
-  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT = const ['ie11'];
+  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT =
+      const ['ie11', 'ie10'];
 
   // TODO(kustermann): add standard support for chrome on android
   static bool supportedBrowser(String name) {
@@ -1307,9 +1308,11 @@ class BrowserTestingServer {
       if (request.uri.path.startsWith(driverPath)) {
         var browserId = request.uri.path.substring(driverPath.length + 1);
         textResponse = getDriverPage(browserId);
+        request.response.headers.set('Content-Type', 'text/html');
       } else if (request.uri.path.startsWith(nextTestPath)) {
         var browserId = request.uri.path.substring(nextTestPath.length + 1);
         textResponse = getNextTest(browserId);
+        request.response.headers.set('Content-Type', 'text/plain');
       } else {
         // /favicon.ico requests
       }

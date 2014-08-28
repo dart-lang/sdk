@@ -12,7 +12,6 @@ import '../elements/elements.dart';
 import '../universe/universe.dart' show Selector, SelectorKind;
 import '../dart_types.dart' show DartType, GenericType;
 import 'const_expression.dart';
-import '../helpers/helpers.dart';
 
 abstract class Node {
   static int hashCount = 0;
@@ -132,13 +131,13 @@ class LetPrim extends Expression implements InteriorNode {
 /// During one-pass construction a LetCont with an empty continuation body is
 /// used to represent the one-level context 'let cont k(v) = [] in E'.
 class LetCont extends Expression implements InteriorNode {
-  final Continuation continuation;
+  Continuation continuation;
   Expression body;
 
   LetCont(this.continuation, this.body);
 
   Expression plug(Expression expr) {
-    assert(continuation.body == null);
+    assert(continuation != null && continuation.body == null);
     return continuation.body = expr;
   }
 
@@ -387,8 +386,8 @@ class DeclareFunction extends Expression implements InteriorNode {
 
 /// Invoke a continuation in tail position.
 class InvokeContinuation extends Expression {
-  final Reference continuation;
-  final List<Reference> arguments;
+  Reference continuation;
+  List<Reference> arguments;
 
   // An invocation of a continuation is recursive if it occurs in the body of
   // the continuation itself.
@@ -403,6 +402,16 @@ class InvokeContinuation extends Expression {
         cont.parameters.length == args.length);
     if (recursive) cont.isRecursive = true;
   }
+
+  /// A continuation invocation whose target and arguments will be filled
+  /// in later.
+  ///
+  /// Used as a placeholder for a jump whose target is not yet created
+  /// (e.g., in the translation of break and continue).
+  InvokeContinuation.uninitialized({recursive: false})
+      : continuation = null,
+        arguments = null,
+        isRecursive = recursive;
 
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }

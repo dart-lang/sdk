@@ -4,7 +4,7 @@
 
 // Regression test for dart2js that used to have a bogus
 // implementation of var.== and
-// var.hashCode. 
+// var.hashCode.
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
@@ -27,7 +27,7 @@ main() {
 };
 
 main() {
-  var compiler = compilerFor(MEMORY_SOURCE_FILES);  
+  var compiler = compilerFor(MEMORY_SOURCE_FILES);
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     var typesInferrer = compiler.typesTask.typesInferrer;
 
@@ -43,7 +43,7 @@ main() {
     element = compiler.mainApp.find('d');
     var mask4 = typesInferrer.getReturnTypeOfElement(element);
 
-    Expect.notEquals(mask1.union(mask2, compiler),
-                     mask3.union(mask4, compiler));
+    Expect.notEquals(mask1.union(mask2, compiler.world),
+                     mask3.union(mask4, compiler.world));
   }));
 }

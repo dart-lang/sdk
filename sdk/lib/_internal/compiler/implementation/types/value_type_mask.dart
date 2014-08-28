@@ -26,11 +26,11 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   bool equalsDisregardNull(other) {
     if (other is! ValueTypeMask) return false;
-    return value == other.value;
+    return super.equalsDisregardNull(other) && value == other.value;
   }
 
-  TypeMask intersection(TypeMask other, Compiler compiler) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, compiler);
+  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
+    TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
     if (forwardIntersection.isEmpty) return forwardIntersection;
     return forwardIntersection.isNullable
         ? nullable()

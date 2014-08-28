@@ -70,9 +70,13 @@ class JSString extends Interceptor implements String, JSIndexable {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
-  String replaceFirst(Pattern from, String to) {
+  String replaceFirst(Pattern from, String to, [int startIndex = 0]) {
     checkString(to);
-    return stringReplaceFirstUnchecked(this, from, to);
+    checkInt(startIndex);
+    if (startIndex < 0 || startIndex > this.length) {
+      throw new RangeError.range(startIndex, 0, this.length);
+    }
+    return stringReplaceFirstUnchecked(this, from, to, startIndex);
   }
 
   List<String> split(Pattern pattern) {

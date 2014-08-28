@@ -12,6 +12,7 @@
 #include "platform/assert.h"
 
 namespace dart {
+namespace bin {
 
 class ThreadStartData {
  public:
@@ -161,6 +162,12 @@ void Thread::SetThreadLocal(ThreadLocalKey key, uword value) {
   if (!result) {
     FATAL1("TlsSetValue failed %d", GetLastError());
   }
+}
+
+
+void Thread::InitOnce() {
+  MonitorWaitData::monitor_wait_data_key_ = Thread::CreateThreadLocal();
+  MonitorData::GetMonitorWaitDataForThread();
 }
 
 
@@ -434,6 +441,7 @@ void Monitor::NotifyAll() {
   data_.SignalAndRemoveAllWaiters();
 }
 
+}  // namespace bin
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)

@@ -855,6 +855,13 @@ CompileType AllocateContextInstr::ComputeType() const {
 }
 
 
+CompileType AllocateUninitializedContextInstr::ComputeType() const {
+  return CompileType(CompileType::kNonNullable,
+                     kContextCid,
+                     &AbstractType::ZoneHandle(Type::DynamicType()));
+}
+
+
 CompileType StaticCallInstr::ComputeType() const {
   if (result_cid_ != kDynamicCid) {
     return CompileType::FromCid(result_cid_);
@@ -1002,6 +1009,12 @@ CompileType LoadFieldInstr::ComputeType() const {
 }
 
 
+CompileType BinaryInt32OpInstr::ComputeType() const {
+  // TODO(vegorov): range analysis information shall be used here.
+  return CompileType::Int();
+}
+
+
 CompileType BinarySmiOpInstr::ComputeType() const {
   return CompileType::FromCid(kSmiCid);
 }
@@ -1052,6 +1065,21 @@ CompileType BoxIntegerInstr::ComputeType() const {
 
 
 bool BoxIntegerInstr::RecomputeType() {
+  return UpdateType(ComputeType());
+}
+
+
+CompileType BoxIntNInstr::ComputeType() const {
+  return ValueFitsSmi() ? CompileType::FromCid(kSmiCid) : CompileType::Int();
+}
+
+
+CompileType UnboxIntNInstr::ComputeType() const {
+  return CompileType::Int();
+}
+
+
+bool BoxIntNInstr::RecomputeType() {
   return UpdateType(ComputeType());
 }
 
@@ -1208,6 +1236,11 @@ CompileType Float64x2OneArgInstr::ComputeType() const {
 }
 
 
+CompileType Int32x4ConstructorInstr::ComputeType() const {
+  return CompileType::FromCid(kInt32x4Cid);
+}
+
+
 CompileType Int32x4BoolConstructorInstr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
 }
@@ -1290,6 +1323,11 @@ CompileType UnboxInt32x4Instr::ComputeType() const {
 
 CompileType BoxInt32x4Instr::ComputeType() const {
   return CompileType::FromCid(kInt32x4Cid);
+}
+
+
+CompileType Int32ToDoubleInstr::ComputeType() const {
+  return CompileType::FromCid(kDoubleCid);
 }
 
 

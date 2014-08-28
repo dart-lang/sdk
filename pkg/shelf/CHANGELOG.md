@@ -1,3 +1,7 @@
+## 0.5.4+3
+
+* Widen the version constraint on the `collection` package.
+
 ## 0.5.4+2
 
 * Updated headers map to use a more efficient case-insensitive backing store.

@@ -23,19 +23,20 @@ library intl;
 
 import 'dart:collection';
 import 'dart:convert';
-import 'src/intl_helpers.dart';
 import 'dart:math';
-import 'date_symbols.dart';
-import 'src/date_format_internal.dart';
-import "number_symbols.dart";
-import "number_symbols_data.dart";
 
-part 'date_format.dart';
-part 'src/date_format_field.dart';
-part 'src/date_format_helpers.dart';
-part 'bidi_formatter.dart';
-part 'bidi_utils.dart';
-part 'number_format.dart';
+import 'date_symbols.dart';
+import 'number_symbols.dart';
+import 'number_symbols_data.dart';
+import 'src/date_format_internal.dart';
+import 'src/intl_helpers.dart';
+
+part 'src/intl/bidi_formatter.dart';
+part 'src/intl/bidi_utils.dart';
+part 'src/intl/date_format.dart';
+part 'src/intl/date_format_field.dart';
+part 'src/intl/date_format_helpers.dart';
+part 'src/intl/number_format.dart';
 
 /**
  * The Intl class provides a common entry point for internationalization
@@ -65,7 +66,7 @@ part 'number_format.dart';
  * produce "I see 2 other people in Athens." as output in the default locale.
  * If run in a different locale it would produce appropriately translated
  * output.
- * 
+ *
  * For more detailed information on messages and localizing them see
  * the main [package documentation](https://pub.dartlang.org/packages/intl)
  *
@@ -149,7 +150,7 @@ class Intl {
    * the source code and used as additional data for translators. For more
    * information see the "Messages" section of the main [package documentation]
    * (https://pub.dartlang.org/packages/intl).
-   * 
+   *
    * The [name] and [args] arguments are required, and are used at runtime
    * to look up the localized version and pass the appropriate arguments to it.
    * We may in the future modify the code during compilation to make manually

@@ -289,6 +289,16 @@ List<String> listDir(String dir, {bool recursive: false,
     if (entity is Link) return false;
     if (includeHidden) return true;
 
+    // Using substring here is generally problematic in cases where dir has one
+    // or more trailing slashes. If you do listDir("foo"), you'll get back
+    // paths like "foo/bar". If you do listDir("foo/"), you'll get "foo/bar"
+    // (note the trailing slash was dropped. If you do listDir("foo//"), you'll
+    // get "foo//bar".
+    //
+    // This means if you strip off the prefix, the resulting string may have a
+    // leading separator (if the prefix did not have a trailing one) or it may
+    // not. However, since we are only using the results of that to call
+    // contains() on, the leading separator is harmless.
     assert(entity.path.startsWith(dir));
     var pathInDir = entity.path.substring(dir.length);
 
@@ -476,8 +486,24 @@ String get repoRoot {
   if (runningFromSdk) {
     throw new StateError("Can't get the repo root from the SDK.");
   }
-  return path.normalize(path.join(
-      path.dirname(libraryPath('pub.io')), '..', '..', '..', '..', '..', '..'));
+
+  // Get the path to the directory containing this very file.
+  var libDir = path.dirname(libraryPath('pub.io'));
+
+  // TODO(rnystrom): Remove this when #104 is fixed.
+  // If we are running from the async/await compiled build directory, walk out
+  // out of that. It will be something like:
+  //
+  //     <repo>/<build>/<config>/pub_async/lib/src
+  if (libDir.contains('pub_async')) {
+    return path.normalize(path.join(libDir, '..', '..', '..', '..', '..'));
+  }
+
+  // Otherwise, assume we're running directly from the source location in the
+  // repo:
+  //
+  //      <repo>/sdk/lib/_internal/pub/lib/src
+  return path.normalize(path.join(libDir, '..', '..', '..', '..', '..', '..'));
 }
 
 /// A line-by-line stream of standard input.

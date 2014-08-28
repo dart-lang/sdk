@@ -549,6 +549,8 @@ void Assembler::ldm(BlockAddressMode am, Register base, RegList regs,
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, true, base, regs);
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    // On ARMv5, touching a "banked" register after an ldm gives undefined
+    // behavior, so we just add a nop here to make that case easy to avoid.
     nop();
   }
 }
@@ -558,6 +560,11 @@ void Assembler::stm(BlockAddressMode am, Register base, RegList regs,
                     Condition cond) {
   ASSERT(regs != 0);
   EmitMultiMemOp(cond, am, false, base, regs);
+  if (TargetCPUFeatures::arm_version() == ARMv5TE) {
+    // On ARMv5, touching a "banked" register after an stm gives undefined
+    // behavior, so we just add a nop here to make that case easy to avoid.
+    nop();
+  }
 }
 
 
@@ -2810,6 +2817,7 @@ void Assembler::IntegerDivide(Register result, Register left, Register right,
   if (TargetCPUFeatures::integer_division_supported()) {
     sdiv(result, left, right);
   } else {
+    ASSERT(TargetCPUFeatures::vfp_supported());
     SRegister stmpl = static_cast<SRegister>(2 * tmpl);
     SRegister stmpr = static_cast<SRegister>(2 * tmpr);
     vmovsr(stmpl, left);
@@ -3175,6 +3183,49 @@ void Assembler::TryAllocate(const Class& cls,
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     LoadImmediate(IP, tags);
     str(IP, FieldAddress(instance_reg, Object::tags_offset()));
+  } else {
+    b(failure);
+  }
+}
+
+
+void Assembler::TryAllocateArray(intptr_t cid,
+                                 intptr_t instance_size,
+                                 Label* failure,
+                                 Register instance,
+                                 Register end_address,
+                                 Register temp1,
+                                 Register temp2) {
+  if (FLAG_inline_alloc) {
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
+    LoadImmediate(temp1, heap->TopAddress());
+    ldr(instance, Address(temp1, 0));  // Potential new object start.
+    AddImmediate(end_address, instance, instance_size);
+    b(failure, VS);
+
+    // Check if the allocation fits into the remaining space.
+    // instance: potential new object start.
+    // end_address: potential next object start.
+    LoadImmediate(temp2, heap->EndAddress());
+    ldr(temp2, Address(temp2, 0));
+    cmp(end_address, Operand(temp2));
+    b(failure, CS);
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    str(end_address, Address(temp1, 0));
+    add(instance, instance, Operand(kHeapObjectTag));
+    LoadImmediate(temp2, instance_size);
+    UpdateAllocationStatsWithSize(cid, temp2, temp1);
+
+    // Initialize the tags.
+    // instance: new object start as a tagged pointer.
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    LoadImmediate(temp2, tags);
+    str(temp2, FieldAddress(instance, Array::tags_offset()));  // Store tags.
   } else {
     b(failure);
   }

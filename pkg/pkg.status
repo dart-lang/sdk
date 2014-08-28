@@ -24,7 +24,9 @@ polymer/test/build/script_compactor_test: Pass, Slow
 third_party/angular_tests/browser_test/*: Skip # github perf_api.dart issue 5
 third_party/angular_tests/browser_test/core_dom/shadow_root_options: Fail # Issue 19329
 polymer/example/component/news/test/news_index_test: RuntimeError # Issue 18931
-intl/test/date_time_format_http_request_test: Pass, Timeout # Issue 19544
+intl/test/date_time_format_http_request_test: Skip # Times out flakily. Issue 19544
+intl/test/date_time_format_local_even_test: Skip # Times out flakily. Issue 19544
+intl/test/date_time_format_local_odd_test: Skip # Times out flakily. Issue 19544
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 polymer/test/attr_deserialize_test: Pass, RuntimeError # Issue 18931
@@ -33,6 +35,7 @@ polymer/test/bind_test: Pass, RuntimeError # Issue 18931
 polymer/test/computed_properties_test: Pass, RuntimeError # Issue 18931
 polymer/test/custom_event_test: Pass, RuntimeError # Issue 18931
 polymer/test/entered_view_test: Pass, RuntimeError # Issue 18931
+polymer/test/event_binding_release_handler_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_handlers_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_test: Pass, RuntimeError # Issue 18931
 polymer/test/event_path_declarative_test: Pass, RuntimeError, Timeout # Issue 18931
@@ -57,7 +60,8 @@ web_components/test/interop_test: Pass, RuntimeError # Issue 18931
 polymer/test/instance_attrs_test: Skip # Issue 19496
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
-polymer/test/property_observe_test: Pass, Timeout # Issue 19326
+polymer/test/property_observe_test: Skip # Sometimes times out. Issue 19326
+polymer/test/bind_properties_test: Skip # Sometimes times out. Issue 19326
 
 [ $runtime == vm && $mode == debug]
 analysis_server/test/analysis_server_test: Skip  # Times out
@@ -97,7 +101,12 @@ third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
 analysis_server/test/search/element_references_test: Pass, Slow
-analysis_services/test/index/store/codec_test: Pass, Slow
+analysis_server/test/services/index/store/codec_test: Pass, Slow
+
+# Analysis server integration tests don't make sense to run under
+# dart2js, since the code under test always runs in the Dart vm as a
+# subprocess.
+analysis_server/test/integration: Skip
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 http/test/html/client_test: Fail # Issue 19750
@@ -172,6 +181,7 @@ polymer/test/build/log_injector_test: Skip # uses dart:html
 polymer/test/computed_properties_test: Skip # uses dart:html
 polymer/test/custom_event_test: Skip # uses dart:html
 polymer/test/entered_view_test: Skip # uses dart:html
+polymer/test/event_binding_release_handler_test: Skip #uses dart:html
 polymer/test/event_handlers_test: Skip #uses dart:html
 polymer/test/event_path_declarative_test: Skip #uses dart:html
 polymer/test/event_path_test: Skip #uses dart:html
@@ -228,6 +238,7 @@ typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here e
 polymer/e2e_test/*: Pass, RuntimeError # Issue 19265
 polymer_expressions/*: Pass, RuntimeError # Issue 19265
 template_binding/test/template_binding_test: Pass, RuntimeError # Issue 19265
+template_binding/test/custom_element_bindings_test: Pass, RuntimeError # Issue 20714
 polymer/test/event_handlers_test: Pass, Timeout # Issue 19327
 analyzer/test/generated/java_core_test: Pass, Timeout # Issue 19747
 
@@ -299,7 +310,8 @@ intl/test/date_time_format_http_request_test: Fail # TODO(kasperl): Please triag
 
 [ $browser ]
 analysis_server/test/*: Skip # Uses dart:io.
-analysis_services/test/*: Skip # Uses dart:io.
+analysis_server/tool/spec/check_all_test: Skip # Uses dart:io.
+analyzer2dart/*: Skip # Uses dart:io.
 analyzer/test/*: Skip # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
 code_transformers/test/*: Skip # Uses dart:io.
@@ -307,7 +319,6 @@ http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_multi_server/test/http_multi_server_test: Skip # Uses dart:io
 http_server/test/*: Fail, OK # Uses dart:io.
-http_base/test/http_base_io_test: SkipByDesign # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
@@ -412,7 +423,6 @@ polymer_expressions/test/globals_test: Skip
 polymer_expressions/test/bindings_test: Skip
 third_party/html5lib/test/browser/browser_test: Skip
 http/test/html/*: Skip
-http_base/test/http_base_html_test: SkipByDesign # Uses dart:html.
 
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io

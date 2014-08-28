@@ -96,6 +96,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isAbstract => actualElement.isAbstract;
 
   @override
+  bool get isEnum => actualElement.isEnum;
+
+  @override
   bool get isOrInheritsProxy => actualElement.isOrInheritsProxy;
 
   @override
@@ -464,10 +467,19 @@ abstract class ExecutableElementHandle extends ElementHandle implements Executab
   FunctionType get type => actualElement.type;
 
   @override
+  bool get isAsynchronous => actualElement.isAsynchronous;
+
+  @override
+  bool get isGenerator => actualElement.isGenerator;
+
+  @override
   bool get isOperator => actualElement.isOperator;
 
   @override
   bool get isStatic => actualElement.isStatic;
+
+  @override
+  bool get isSynchronous => actualElement.isSynchronous;
 
   @override
   ExecutableElement get actualElement => super.actualElement as ExecutableElement;

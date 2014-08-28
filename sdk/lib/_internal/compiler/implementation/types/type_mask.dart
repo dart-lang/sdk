@@ -10,28 +10,95 @@ part of types;
  * yield conservative answers that contain too many classes.
  */
 abstract class TypeMask {
-  factory TypeMask(ClassElement base, int kind, bool isNullable)
-      => new FlatTypeMask(base, kind, isNullable);
+  factory TypeMask(ClassElement base,
+                   int kind,
+                   bool isNullable,
+                   ClassWorld classWorld) {
+    return new FlatTypeMask.normalized(
+        base, (kind << 1) | (isNullable ? 1 : 0), classWorld);
+  }
 
   const factory TypeMask.empty() = FlatTypeMask.empty;
 
   factory TypeMask.exact(ClassElement base)
       => new FlatTypeMask.exact(base);
-  factory TypeMask.subclass(ClassElement base)
-      => new FlatTypeMask.subclass(base);
-  factory TypeMask.subtype(ClassElement base)
-      => new FlatTypeMask.subtype(base);
+
+  factory TypeMask.subclass(ClassElement base, ClassWorld classWorld) {
+    if (classWorld.hasAnySubclass(base)) {
+      return new FlatTypeMask.subclass(base);
+    } else {
+      return new FlatTypeMask.exact(base);
+    }
+  }
+
+  factory TypeMask.subtype(ClassElement base, ClassWorld classWorld) {
+    if (classWorld.hasOnlySubclasses(base)) {
+      return new TypeMask.subclass(base, classWorld);
+    }
+    if (classWorld.hasAnySubtype(base)) {
+      return new FlatTypeMask.subtype(base);
+    } else {
+      return new FlatTypeMask.exact(base);
+    }
+  }
 
   const factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
+
   factory TypeMask.nonNullExact(ClassElement base)
       => new FlatTypeMask.nonNullExact(base);
-  factory TypeMask.nonNullSubclass(ClassElement base)
-      => new FlatTypeMask.nonNullSubclass(base);
-  factory TypeMask.nonNullSubtype(ClassElement base)
-      => new FlatTypeMask.nonNullSubtype(base);
 
-  factory TypeMask.unionOf(Iterable<TypeMask> masks, Compiler compiler) {
-    return UnionTypeMask.unionOf(masks, compiler);
+  factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
+    if (classWorld.hasAnySubclass(base)) {
+      return new FlatTypeMask.nonNullSubclass(base);
+    } else {
+      return new FlatTypeMask.nonNullExact(base);
+    }
+  }
+
+  factory TypeMask.nonNullSubtype(ClassElement base, ClassWorld classWorld) {
+    if (classWorld.hasOnlySubclasses(base)) {
+      return new TypeMask.nonNullSubclass(base, classWorld);
+    }
+    if (classWorld.hasAnySubtype(base)) {
+      return new FlatTypeMask.nonNullSubtype(base);
+    } else {
+      return new FlatTypeMask.nonNullExact(base);
+    }
+  }
+
+  factory TypeMask.unionOf(Iterable<TypeMask> masks, ClassWorld classWorld) {
+    return UnionTypeMask.unionOf(masks, classWorld);
+  }
+
+  /**
+   * If [mask] is forwarding, returns the first non-forwarding [TypeMask] in
+   * [mask]'s forwarding chain.
+   */
+  static TypeMask nonForwardingMask(mask) {
+    while (mask.isForwarding) {
+      mask = mask.forwardTo;
+    }
+    return mask;
+  }
+
+  /**
+   * Checks whether this mask uses the smallest possible representation for
+   * its types. Currently, we normalize subtype and subclass to exact if no
+   * subtypes or subclasses are present and subtype to subclass if only
+   * subclasses exist.
+   */
+  static bool isNormalized(TypeMask mask, ClassWorld classWorld) {
+    mask = nonForwardingMask(mask);
+    if (mask is FlatTypeMask) {
+      if (mask.isExact || mask.isEmpty) return true;
+      if (mask.isSubclass) return classWorld.hasAnySubclass(mask.base);
+      assert(mask.isSubtype);
+      return classWorld.hasAnySubtype(mask.base) &&
+             !classWorld.hasOnlySubclasses(mask.base);
+    } else if (mask is UnionTypeMask) {
+      return mask.disjointMasks.every((mask) => isNormalized(mask, classWorld));
+    }
+    return false;
   }
 
   /**
@@ -48,77 +115,102 @@ abstract class TypeMask {
   bool get isNullable;
   bool get isExact;
 
+  /// Returns true if this mask is a union type.
   bool get isUnion;
+
+  /// Returns `true` if this mask is a [ContainerTypeMask].
   bool get isContainer;
+
+  /// Returns `true` if this mask is a [MapTypeMask].
   bool get isMap;
+
+  /// Returns `true` if this mask is a [MapTypeMask] in dictionary mode, i.e.,
+  /// all keys are known string values and we have specific type information for
+  /// corresponding values.
   bool get isDictionary;
+
+  /// Returns `true` if this mask is wrapping another mask for the purpose of
+  /// tracing.
   bool get isForwarding;
+
+  /// Returns `true` if this mask holds encodes an exact value within a type.
   bool get isValue;
 
-  bool containsOnlyInt(Compiler compiler);
-  bool containsOnlyDouble(Compiler compiler);
-  bool containsOnlyNum(Compiler compiler);
-  bool containsOnlyBool(Compiler compiler);
-  bool containsOnlyString(Compiler compiler);
+  bool containsOnlyInt(ClassWorld classWorld);
+  bool containsOnlyDouble(ClassWorld classWorld);
+  bool containsOnlyNum(ClassWorld classWorld);
+  bool containsOnlyBool(ClassWorld classWorld);
+  bool containsOnlyString(ClassWorld classWorld);
   bool containsOnly(ClassElement element);
 
   /**
-   * Returns whether this type mask is a subtype of [other].
+   * Compares two [TypeMask] objects for structural equality.
+   *
+   * Note: This may differ from semantic equality in the set containment sense.
+   *   Use [containsMask] and [isInMask] for that, instead.
    */
-  bool isInMask(TypeMask other, Compiler compiler);
+  bool operator==(other);
 
   /**
-   * Returns whether [other] is a subtype of this type mask.
+   * Returns `true` if [other] is a supertype of this mask, i.e., if
+   * this mask is in [other].
    */
-  bool containsMask(TypeMask other, Compiler compiler);
+  bool isInMask(TypeMask other, ClassWorld classWorld);
+
+  /**
+   * Returns `true` if [other] is a subtype of this mask, i.e., if
+   * this mask contains [other].
+   */
+  bool containsMask(TypeMask other, ClassWorld classWorld);
 
   /**
    * Returns whether this type mask is an instance of [cls].
    */
-  bool satisfies(ClassElement cls, Compiler compiler);
+  bool satisfies(ClassElement cls, ClassWorld classWorld);
 
   /**
    * Returns whether or not this type mask contains the given type.
    */
-  bool contains(ClassElement type, Compiler compiler);
+  bool contains(ClassElement type, ClassWorld classWorld);
 
   /**
    * Returns whether or not this type mask contains all types.
    */
-  bool containsAll(Compiler compiler);
+  bool containsAll(ClassWorld classWorld);
 
   /**
    * Returns the [ClassElement] if this type represents a single class,
    * otherwise returns `null`.  This method is conservative.
    */
-  ClassElement singleClass(Compiler compiler);
+  ClassElement singleClass(ClassWorld classWorld);
 
   /**
    * Returns a type mask representing the union of [this] and [other].
    */
-  TypeMask union(TypeMask other, Compiler compiler);
+  TypeMask union(TypeMask other, ClassWorld classWorld);
 
   /**
    * Returns a type mask representing the intersection of [this] and [other].
    */
-  TypeMask intersection(TypeMask other, Compiler compiler);
+  TypeMask intersection(TypeMask other, ClassWorld classWorld);
 
   /**
    * Returns whether this [TypeMask] applied to [selector] can hit a
    * [noSuchMethod].
    */
-  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler);
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld);
 
   /**
    * Returns whether [element] is a potential target when being
    * invoked on this type mask. [selector] is used to ensure library
    * privacy is taken into account.
    */
-  bool canHit(Element element, Selector selector, Compiler compiler);
+  bool canHit(Element element, Selector selector, ClassWorld classWorld);
 
   /**
    * Returns the [element] that is known to always be hit at runtime
    * on this mask. Returns null if there is none.
    */
+  // TODO(johnniwinther): Move this method to [World].
   Element locateSingleElement(Selector selector, Compiler compiler);
 }

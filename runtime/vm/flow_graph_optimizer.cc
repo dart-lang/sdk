@@ -42,6 +42,9 @@ DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
+DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
+#endif
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);
@@ -112,7 +115,7 @@ static bool IsNumberCid(intptr_t cid) {
 // Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
-  if (call->ic_data()->NumberOfChecks() > 0) {
+  if (call->ic_data()->NumberOfUsedChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
     // to megamorphic call.
     return false;
@@ -195,8 +198,7 @@ const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
                                                       intptr_t cid) {
   ASSERT(ic_data.NumArgsTested() == 1);
 
-  if ((ic_data.NumberOfChecks() == 1) &&
-      (ic_data.GetReceiverClassIdAt(0) == cid)) {
+  if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
     return ic_data;  // Nothing to do
   }
 
@@ -582,6 +584,13 @@ bool FlowGraphOptimizer::Canonicalize() {
 }
 
 
+static bool IsUnboxedInteger(Representation rep) {
+  return (rep == kUnboxedInt32) ||
+         (rep == kUnboxedUint32) ||
+         (rep == kUnboxedMint);
+}
+
+
 void FlowGraphOptimizer::InsertConversion(Representation from,
                                           Representation to,
                                           Value* use,
@@ -608,10 +617,25 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     converted = new(I) UnboxIntegerInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kUnboxedMint) && (to == kTagged)) {
     converted = new(I) BoxIntegerInstr(use->CopyWithType());
-  } else if ((from == kUnboxedMint) && (to == kUnboxedUint32)) {
-    converted = new(I) UnboxedIntConverterInstr(from, to, use->CopyWithType());
-  } else if ((from == kUnboxedUint32) && (to == kUnboxedMint)) {
-    converted = new(I) UnboxedIntConverterInstr(from, to, use->CopyWithType());
+  } else if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
+    const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new(I) UnboxedIntConverterInstr(from,
+                                                to,
+                                                use->CopyWithType(),
+                                                deopt_id);
+  } else if ((from == kUnboxedInt32) && (to == kUnboxedDouble)) {
+    converted = new Int32ToDoubleInstr(use->CopyWithType());
+  } else if ((from == kTagged) && (to == kUnboxedInt32)) {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxInt32Instr(use->CopyWithType(), deopt_id);
+  } else if ((from == kUnboxedInt32) && (to == kTagged)) {
+    converted = new BoxInt32Instr(use->CopyWithType());
+  } else if ((from == kTagged) && (to == kUnboxedUint32)) {
+    const intptr_t deopt_id = (deopt_target != NULL) ?
+        deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+    converted = new UnboxUint32Instr(use->CopyWithType(), deopt_id);
   } else if (from == kUnboxedMint && to == kUnboxedDouble) {
     ASSERT(CanUnboxDouble());
     // Convert by boxing/unboxing.
@@ -688,6 +712,10 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       boxed = new(I) BoxIntegerInstr(use->CopyWithType());
     } else if (from == kUnboxedFloat64x2) {
       boxed = new(I) BoxFloat64x2Instr(use->CopyWithType());
+    } else if (from == kUnboxedInt32) {
+      boxed = new(I) BoxInt32Instr(use->CopyWithType());
+    } else if (from == kUnboxedUint32) {
+      boxed = new(I) BoxUint32Instr(use->CopyWithType());
     } else {
       UNIMPLEMENTED();
     }
@@ -704,6 +732,10 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       converted = new(I) UnboxIntegerInstr(to_value, deopt_id);
     } else if (to == kUnboxedFloat64x2) {
       converted = new(I) UnboxFloat64x2Instr(to_value, deopt_id);
+    } else if (to == kUnboxedInt32) {
+      boxed = new(I) UnboxInt32Instr(use->CopyWithType(), deopt_id);
+    } else if (to == kUnboxedUint32) {
+      boxed = new(I) UnboxUint32Instr(use->CopyWithType(), deopt_id);
     } else {
       UNIMPLEMENTED();
     }
@@ -715,6 +747,12 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     use->BindToEnvironment(converted);
   } else {
     use->BindTo(converted);
+  }
+
+  if ((to == kUnboxedInt32) && (phi != NULL)) {
+    // Int32 phis are unboxed optimistically. Ensure that unboxing
+    // has deoptimization target attached from the goto instruction.
+    flow_graph_->CopyDeoptTarget(converted, insert_before);
   }
 }
 
@@ -762,10 +800,8 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
 }
 
 
-// Returns true if phi's representation was changed.
-static bool UnboxPhi(PhiInstr* phi) {
-  Representation current = phi->representation();
-  Representation unboxed = current;
+static void UnboxPhi(PhiInstr* phi) {
+  Representation unboxed = phi->representation();
 
   switch (phi->Type()->ToCid()) {
     case kDoubleCid:
@@ -783,14 +819,14 @@ static bool UnboxPhi(PhiInstr* phi) {
         unboxed = kUnboxedInt32x4;
       }
       break;
+    case kFloat64x2Cid:
+      if (ShouldInlineSimd()) {
+        unboxed = kUnboxedFloat64x2;
+      }
+      break;
   }
 
-  if (unboxed != current) {
-    phi->set_representation(unboxed);
-    return true;
-  }
-
-  return false;
+  phi->set_representation(unboxed);
 }
 
 
@@ -844,31 +880,10 @@ void FlowGraphOptimizer::SelectRepresentations() {
 }
 
 
-static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
-                                              intptr_t receiver_class_id,
-                                              intptr_t argument_class_id) {
-  ASSERT(receiver_class_id != kIllegalCid);
-  ASSERT(argument_class_id != kIllegalCid);
-  if (ic_data.NumArgsTested() != 2) return false;
-
-  Function& target = Function::Handle();
-  const intptr_t len = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < len; i++) {
-    GrowableArray<intptr_t> class_ids;
-    ic_data.GetCheckAt(i, &class_ids, &target);
-    ASSERT(class_ids.length() == 2);
-    if ((class_ids[0] == receiver_class_id) &&
-        (class_ids[1] == argument_class_id)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
 static bool ClassIdIsOneOf(intptr_t class_id,
                            const GrowableArray<intptr_t>& class_ids) {
   for (intptr_t i = 0; i < class_ids.length(); i++) {
+    ASSERT(class_ids[i] != kIllegalCid);
     if (class_ids[i] == class_id) {
       return true;
     }
@@ -883,51 +898,80 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
     const ICData& ic_data,
     const GrowableArray<intptr_t>& receiver_class_ids,
     const GrowableArray<intptr_t>& argument_class_ids) {
-  if (ic_data.NumArgsTested() != 2) return false;
+  if (ic_data.NumArgsTested() != 2) {
+    return false;
+  }
   Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    GrowableArray<intptr_t> class_ids;
-    ic_data.GetCheckAt(i, &class_ids, &target);
-    ASSERT(class_ids.length() == 2);
-    if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
-        !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
-      return false;
+    if (ic_data.IsUsedAt(i)) {
+      GrowableArray<intptr_t> class_ids;
+      ic_data.GetCheckAt(i, &class_ids, &target);
+      ASSERT(class_ids.length() == 2);
+      if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
+          !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
+        return false;
+      }
     }
   }
   return true;
 }
 
 
+static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
+                                              intptr_t receiver_class_id,
+                                              intptr_t argument_class_id) {
+  GrowableArray<intptr_t> receiver_cids(1);
+  receiver_cids.Add(receiver_class_id);
+  GrowableArray<intptr_t> argument_cids(1);
+  argument_cids.Add(argument_class_id);
+  return ICDataHasOnlyReceiverArgumentClassIds(
+      ic_data, receiver_cids, argument_cids);
+}
+
+
 static bool HasOnlyOneSmi(const ICData& ic_data) {
-  return (ic_data.NumberOfChecks() == 1)
+  return (ic_data.NumberOfUsedChecks() == 1)
       && ic_data.HasReceiverClassId(kSmiCid);
 }
 
 
 static bool HasOnlySmiOrMint(const ICData& ic_data) {
-  if (ic_data.NumberOfChecks() == 1) {
+  if (ic_data.NumberOfUsedChecks() == 1) {
     return ic_data.HasReceiverClassId(kSmiCid)
         || ic_data.HasReceiverClassId(kMintCid);
   }
-  return (ic_data.NumberOfChecks() == 2)
+  return (ic_data.NumberOfUsedChecks() == 2)
       && ic_data.HasReceiverClassId(kSmiCid)
       && ic_data.HasReceiverClassId(kMintCid);
 }
 
 
 static bool HasOnlyTwoOf(const ICData& ic_data, intptr_t cid) {
-  return (ic_data.NumberOfChecks() == 1) &&
-      ICDataHasReceiverArgumentClassIds(ic_data, cid, cid);
+  if (ic_data.NumberOfUsedChecks() != 1) {
+    return false;
+  }
+  GrowableArray<intptr_t> first;
+  GrowableArray<intptr_t> second;
+  ic_data.GetUsedCidsForTwoArgs(&first, &second);
+  return (first[0] == cid) && (second[0] == cid);
 }
 
 // Returns false if the ICData contains anything other than the 4 combinations
 // of Mint and Smi for the receiver and argument classes.
 static bool HasTwoMintOrSmi(const ICData& ic_data) {
-  GrowableArray<intptr_t> class_ids(2);
-  class_ids.Add(kSmiCid);
-  class_ids.Add(kMintCid);
-  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
+  GrowableArray<intptr_t> first;
+  GrowableArray<intptr_t> second;
+  ic_data.GetUsedCidsForTwoArgs(&first, &second);
+  for (intptr_t i = 0; i < first.length(); i++) {
+    if ((first[i] != kSmiCid) && (first[i] != kMintCid)) {
+      return false;
+    }
+    if ((second[i] != kSmiCid) && (second[i] != kMintCid)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -942,7 +986,7 @@ static bool HasTwoDoubleOrSmi(const ICData& ic_data) {
 
 
 static bool HasOnlyOneDouble(const ICData& ic_data) {
-  return (ic_data.NumberOfChecks() == 1)
+  return (ic_data.NumberOfUsedChecks() == 1)
       && ic_data.HasReceiverClassId(kDoubleCid);
 }
 
@@ -997,8 +1041,8 @@ Instruction* FlowGraphOptimizer::GetCheckClass(Definition* to_check,
                                                const ICData& unary_checks,
                                                intptr_t deopt_id,
                                                intptr_t token_pos) {
-  if ((unary_checks.NumberOfChecks() == 1) &&
-      (unary_checks.GetReceiverClassIdAt(0) == kSmiCid)) {
+  if ((unary_checks.NumberOfUsedChecks() == 1) &&
+      unary_checks.HasReceiverClassId(kSmiCid)) {
     return new(I) CheckSmiInstr(new(I) Value(to_check),
                                 deopt_id,
                                 token_pos);
@@ -1033,10 +1077,14 @@ static bool ArgIsAlways(intptr_t cid,
                         const ICData& ic_data,
                         intptr_t arg_number) {
   ASSERT(ic_data.NumArgsTested() > arg_number);
+  if (ic_data.NumberOfUsedChecks() == 0) {
+    return false;
+  }
   const intptr_t num_checks = ic_data.NumberOfChecks();
-  if (num_checks == 0) return false;
   for (intptr_t i = 0; i < num_checks; i++) {
-    if (ic_data.GetClassIdAt(i, arg_number) != cid) return false;
+    if (ic_data.IsUsedAt(i) && ic_data.GetClassIdAt(i, arg_number) != cid) {
+      return false;
+    }
   }
   return true;
 }
@@ -1130,7 +1178,10 @@ bool FlowGraphOptimizer::TryReplaceWithStoreIndexed(InstanceCallInstr* call) {
   if (!call->HasICData()) return false;
   const ICData& ic_data =
       ICData::Handle(I, call->ic_data()->AsUnaryClassChecks());
-  if (ic_data.NumberOfChecks() != 1) return false;
+  if (ic_data.NumberOfChecks() != 1) {
+    return false;
+  }
+  ASSERT(ic_data.NumberOfUsedChecks() == 1);
   ASSERT(ic_data.HasOneTarget());
 
   const Function& target = Function::Handle(I, ic_data.GetTargetAt(0));
@@ -1556,6 +1607,14 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       return InlineStringCodeUnitAt(call, receiver_cid, entry, last);
     case MethodRecognizer::kStringBaseCharAt:
       return InlineStringBaseCharAt(call, receiver_cid, entry, last);
+    case MethodRecognizer::kDoubleAdd:
+      return InlineDoubleOp(Token::kADD, call, entry, last);
+    case MethodRecognizer::kDoubleSub:
+      return InlineDoubleOp(Token::kSUB, call, entry, last);
+    case MethodRecognizer::kDoubleMul:
+      return InlineDoubleOp(Token::kMUL, call, entry, last);
+    case MethodRecognizer::kDoubleDiv:
+      return InlineDoubleOp(Token::kDIV, call, entry, last);
     default:
       return false;
   }
@@ -1689,7 +1748,10 @@ bool FlowGraphOptimizer::TryReplaceWithLoadIndexed(InstanceCallInstr* call) {
   if (!call->HasICData()) return false;
   const ICData& ic_data =
       ICData::Handle(I, call->ic_data()->AsUnaryClassChecks());
-  if (ic_data.NumberOfChecks() != 1) return false;
+  if (ic_data.NumberOfChecks() != 1) {
+    return false;
+  }
+  ASSERT(ic_data.NumberOfUsedChecks() == 1);
   ASSERT(ic_data.HasOneTarget());
 
   const Function& target = Function::Handle(I, ic_data.GetTargetAt(0));
@@ -2267,7 +2329,7 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 // receiver is the same as the caller's receiver and there are no overriden
 // callee functions, then no class check is needed.
 bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
-    InstanceCallInstr* call) const {
+    InstanceCallInstr* call, RawFunction::Kind kind) const {
   if (!FLAG_use_cha) return true;
   Definition* callee_receiver = call->ArgumentAt(0);
   ASSERT(callee_receiver != NULL);
@@ -2275,26 +2337,11 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
   if (function.IsDynamicFunction() &&
       callee_receiver->IsParameter() &&
       (callee_receiver->AsParameter()->index() == 0)) {
+    const String& name = (kind == RawFunction::kMethodExtractor)
+        ? String::Handle(I, Field::NameFromGetter(call->function_name()))
+        : call->function_name();
     return isolate()->cha()->HasOverride(Class::Handle(I, function.Owner()),
-                                         call->function_name());
-  }
-  return true;
-}
-
-
-bool FlowGraphOptimizer::MethodExtractorNeedsClassCheck(
-    InstanceCallInstr* call) const {
-  if (!FLAG_use_cha) return true;
-  Definition* callee_receiver = call->ArgumentAt(0);
-  ASSERT(callee_receiver != NULL);
-  const Function& function = flow_graph_->parsed_function().function();
-  if (function.IsDynamicFunction() &&
-      callee_receiver->IsParameter() &&
-      (callee_receiver->AsParameter()->index() == 0)) {
-    const String& field_name =
-      String::Handle(I, Field::NameFromGetter(call->function_name()));
-    return isolate()->cha()->HasOverride(
-        Class::Handle(I, function.Owner()), field_name);
+                                         name);
   }
   return true;
 }
@@ -2315,7 +2362,7 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       Field::ZoneHandle(I, GetField(class_ids[0], field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(call)) {
+  if (InstanceCallNeedsClassCheck(call, RawFunction::kImplicitGetter)) {
     AddReceiverCheck(call);
   }
   LoadFieldInstr* load = new(I) LoadFieldInstr(
@@ -2344,21 +2391,6 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       it.Current()->SetReachingType(NULL);
     }
   }
-}
-
-
-LoadFieldInstr* FlowGraphOptimizer::BuildLoadStringLength(Definition* str) {
-  // Treat length loads as mutable (i.e. affected by side effects) to avoid
-  // hoisting them since we can't hoist the preceding class-check. This
-  // is because of externalization of strings that affects their class-id.
-  LoadFieldInstr* load = new(I) LoadFieldInstr(
-      new(I) Value(str),
-      String::length_offset(),
-      Type::ZoneHandle(I, Type::SmiType()),
-      str->token_pos());
-  load->set_result_cid(kSmiCid);
-  load->set_recognized_kind(MethodRecognizer::kStringBaseLength);
-  return load;
 }
 
 
@@ -2639,7 +2671,7 @@ bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
 bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
-  if (ic_data.NumberOfChecks() == 0) {
+  if (ic_data.NumberOfUsedChecks() == 0) {
     // No type feedback collected.
     return false;
   }
@@ -2722,7 +2754,17 @@ Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
                                   FlowGraph::kEffect);
 
   // Load the length of the string.
-  LoadFieldInstr* length = BuildLoadStringLength(str);
+  // Treat length loads as mutable (i.e. affected by side effects) to avoid
+  // hoisting them since we can't hoist the preceding class-check. This
+  // is because of externalization of strings that affects their class-id.
+  LoadFieldInstr* length = new(I) LoadFieldInstr(
+      new(I) Value(str),
+      String::length_offset(),
+      Type::ZoneHandle(I, Type::SmiType()),
+      str->token_pos());
+  length->set_result_cid(kSmiCid);
+  length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
+
   cursor = flow_graph()->AppendTo(cursor, length, NULL, FlowGraph::kValue);
   // Bounds check.
   cursor = flow_graph()->AppendTo(cursor,
@@ -2801,6 +2843,30 @@ bool FlowGraphOptimizer::InlineStringBaseCharAt(
 }
 
 
+bool FlowGraphOptimizer::InlineDoubleOp(
+    Token::Kind op_kind,
+    Instruction* call,
+    TargetEntryInstr** entry,
+    Definition** last) {
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+
+  *entry = new(I) TargetEntryInstr(flow_graph()->allocate_block_id(),
+                                   call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(I, call);
+  // Arguments are checked. No need for class check.
+  BinaryDoubleOpInstr* double_bin_op =
+      new(I) BinaryDoubleOpInstr(op_kind,
+                                 new(I) Value(left),
+                                 new(I) Value(right),
+                                 call->deopt_id(), call->token_pos());
+  flow_graph()->AppendTo(*entry, double_bin_op, call->env(), FlowGraph::kValue);
+  *last = double_bin_op;
+
+  return true;
+}
+
+
 void FlowGraphOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
@@ -2845,7 +2911,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
 bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
-  if ((ic_data.NumberOfChecks() == 0) || !ic_data.HasOneTarget()) {
+  if ((ic_data.NumberOfUsedChecks() == 0) || !ic_data.HasOneTarget()) {
     // No type feedback collected or multiple targets found.
     return false;
   }
@@ -2971,6 +3037,11 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
           ReplaceCall(call, d2d_instr);
         }
         return true;
+      case MethodRecognizer::kDoubleAdd:
+      case MethodRecognizer::kDoubleSub:
+      case MethodRecognizer::kDoubleMul:
+      case MethodRecognizer::kDoubleDiv:
+        return TryReplaceInstanceCallWithInline(call);
       default:
         // Unsupported method.
         return false;
@@ -3232,6 +3303,16 @@ bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
         new(I) Float32x4ToInt32x4Instr(
             new(I) Value(call->ArgumentAt(1)), call->deopt_id());
     ReplaceCall(call, cast);
+    return true;
+  } else if (recognized_kind == MethodRecognizer::kInt32x4Constructor) {
+    Int32x4ConstructorInstr* con =
+        new(I) Int32x4ConstructorInstr(
+            new(I) Value(call->ArgumentAt(1)),
+            new(I) Value(call->ArgumentAt(2)),
+            new(I) Value(call->ArgumentAt(3)),
+            new(I) Value(call->ArgumentAt(4)),
+            call->deopt_id());
+    ReplaceCall(call, con);
     return true;
   }
   return false;
@@ -3755,17 +3836,20 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayViewOp(
   *cursor = flow_graph()->AppendTo(*cursor, len_in_bytes, call->env(),
                                    FlowGraph::kValue);
 
-  ConstantInstr* length_adjustment =
-      flow_graph()->GetConstant(Smi::Handle(I, Smi::New(
-          Instance::ElementSizeFor(view_cid) - 1)));
   // adjusted_length = len_in_bytes - (element_size - 1).
-  BinarySmiOpInstr* adjusted_length =
-      new(I) BinarySmiOpInstr(Token::kSUB,
-                              new(I) Value(len_in_bytes),
-                              new(I) Value(length_adjustment),
-                              call->deopt_id(), call->token_pos());
-  *cursor = flow_graph()->AppendTo(*cursor, adjusted_length, call->env(),
-                                   FlowGraph::kValue);
+  Definition* adjusted_length = len_in_bytes;
+  intptr_t adjustment = Instance::ElementSizeFor(view_cid) - 1;
+  if (adjustment > 0) {
+    ConstantInstr* length_adjustment =
+        flow_graph()->GetConstant(Smi::Handle(I, Smi::New(adjustment)));
+    adjusted_length =
+        new(I) BinarySmiOpInstr(Token::kSUB,
+                                new(I) Value(len_in_bytes),
+                                new(I) Value(length_adjustment),
+                                call->deopt_id(), call->token_pos());
+    *cursor = flow_graph()->AppendTo(*cursor, adjusted_length, call->env(),
+                                     FlowGraph::kValue);
+  }
 
   // Check adjusted_length > 0.
   ConstantInstr* zero =
@@ -4130,7 +4214,7 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (!instr->HasICData() || (instr->ic_data()->NumberOfChecks() == 0)) {
+  if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
     return;
   }
 
@@ -4149,11 +4233,11 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   const ICData& unary_checks =
       ICData::ZoneHandle(I, instr->ic_data()->AsUnaryClassChecks());
 
-  intptr_t max_checks = (op_kind == Token::kEQ)
+  const intptr_t max_checks = (op_kind == Token::kEQ)
       ? FLAG_max_equality_polymorphic_checks
       : FLAG_max_polymorphic_checks;
   if ((unary_checks.NumberOfChecks() > max_checks) &&
-      InstanceCallNeedsClassCheck(instr)) {
+      InstanceCallNeedsClassCheck(instr, RawFunction::kRegularFunction)) {
     // Too many checks, it will be megamorphic which needs unary checks.
     instr->set_ic_data(&unary_checks);
     return;
@@ -4206,11 +4290,9 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 
   if (has_one_target) {
-    const bool is_method_extraction =
-        Function::Handle(I, unary_checks.GetTargetAt(0)).IsMethodExtractor();
-
-    if ((is_method_extraction && !MethodExtractorNeedsClassCheck(instr)) ||
-        (!is_method_extraction && !InstanceCallNeedsClassCheck(instr))) {
+    RawFunction::Kind function_kind =
+        Function::Handle(I, unary_checks.GetTargetAt(0)).kind();
+    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
       const bool call_with_checks = false;
       PolymorphicInstanceCallInstr* call =
           new(I) PolymorphicInstanceCallInstr(instr, unary_checks,
@@ -4275,7 +4357,8 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
              (recognized_kind == MethodRecognizer::kFloat64x2Splat) ||
              (recognized_kind == MethodRecognizer::kFloat64x2FromFloat32x4)) {
     TryInlineFloat64x2Constructor(call, recognized_kind);
-  } else if (recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) {
+  } else if ((recognized_kind == MethodRecognizer::kInt32x4BoolConstructor) ||
+             (recognized_kind == MethodRecognizer::kInt32x4Constructor)) {
     TryInlineInt32x4Constructor(call, recognized_kind);
   } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
     // Remove the original push arguments.
@@ -4338,12 +4421,23 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
                                         recognized_kind,
                                         call->token_pos());
     ReplaceCall(call, invoke);
-  } else if (recognized_kind == MethodRecognizer::kObjectArrayConstructor) {
-    Value* type = new(I) Value(call->ArgumentAt(0));
-    Value* num_elements = new(I) Value(call->ArgumentAt(1));
-    CreateArrayInstr* create_array =
-        new(I) CreateArrayInstr(call->token_pos(), type, num_elements);
-    ReplaceCall(call, create_array);
+  } else if (recognized_kind == MethodRecognizer::kDoubleFromInteger) {
+    if (call->HasICData() && (call->ic_data()->NumberOfChecks() == 1)) {
+      const ICData& ic_data = *call->ic_data();
+      if (CanUnboxDouble() && ArgIsAlways(kSmiCid, ic_data, 0)) {
+        Definition* arg = call->ArgumentAt(0);
+        InsertBefore(call,
+                     new(I) CheckSmiInstr(
+                         new(I) Value(arg),
+                         call->deopt_id(),
+                         call->token_pos()),
+                     call->env(),
+                     FlowGraph::kEffect);
+        ReplaceCall(call,
+                    new(I) SmiToDoubleInstr(new(I) Value(arg),
+                                            call->token_pos()));
+      }
+    }
   } else if (call->function().IsFactory()) {
     const Class& function_class =
         Class::Handle(I, call->function().Owner());
@@ -4384,7 +4478,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
     // executed.
     const Field& field = Field::ZoneHandle(I, instr->field().raw());
     const String& field_name = String::Handle(I, field.name());
-    class Class& owner = Class::Handle(I, field.owner());
+    const Class& owner = Class::Handle(I, field.owner());
     const Function& getter =
         Function::Handle(I, owner.LookupGetterFunction(field_name));
     const Function& setter =
@@ -4403,6 +4497,37 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
     } else {
       FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
     }
+  }
+}
+
+
+void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
+  // Replace generic allocation with a sequence of inlined allocation and
+  // explicit initalizing stores.
+  AllocateUninitializedContextInstr* replacement =
+      new AllocateUninitializedContextInstr(instr->token_pos(),
+                                            instr->num_context_variables());
+  instr->ReplaceWith(replacement, current_iterator());
+
+  StoreInstanceFieldInstr* store =
+      new(I) StoreInstanceFieldInstr(Context::parent_offset(),
+                                     new Value(replacement),
+                                     new Value(flow_graph_->constant_null()),
+                                     kNoStoreBarrier,
+                                     instr->token_pos());
+  store->set_is_initialization(true);  // Won't be eliminated by DSE.
+  flow_graph_->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
+  Definition* cursor = store;
+  for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
+    store =
+        new(I) StoreInstanceFieldInstr(Context::variable_offset(i),
+                                       new Value(replacement),
+                                       new Value(flow_graph_->constant_null()),
+                                       kNoStoreBarrier,
+                                       instr->token_pos());
+    store->set_is_initialization(true);  // Won't be eliminated by DSE.
+    flow_graph_->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
+    cursor = store;
   }
 }
 
@@ -4441,7 +4566,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       Field::ZoneHandle(I, GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(instr)) {
+  if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
     AddReceiverCheck(instr);
   }
   StoreBarrierType needs_store_barrier = kEmitStoreBarrier;
@@ -4495,6 +4620,267 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   return true;
 }
 
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
+// Smi widening pass is only meaningful on platforms where Smi
+// is smaller than 32bit. For now only support it on ARM and ia32.
+
+class DefinitionWorklist {
+ public:
+  DefinitionWorklist(FlowGraph* flow_graph,
+                     intptr_t initial_capacity)
+      : defs_(initial_capacity),
+        contains_(new BitVector(flow_graph->current_ssa_temp_index())) {
+  }
+
+  void Add(Definition* defn) {
+    if (!Contains(defn)) {
+      defs_.Add(defn);
+      contains_->Add(defn->ssa_temp_index());
+    }
+  }
+
+  bool Contains(Definition* defn) const {
+    return (defn->ssa_temp_index() >= 0) &&
+        contains_->Contains(defn->ssa_temp_index());
+  }
+
+  const GrowableArray<Definition*>& definitions() const { return defs_; }
+  BitVector* contains() const { return contains_; }
+
+  void Clear() {
+    defs_.TruncateTo(0);
+    contains_->Clear();
+  }
+
+ private:
+  GrowableArray<Definition*> defs_;
+  BitVector* contains_;
+};
+
+
+static bool CanBeWidened(BinarySmiOpInstr* smi_op) {
+  return BinaryInt32OpInstr::IsSupported(smi_op->op_kind(),
+                                         smi_op->left(),
+                                         smi_op->right());
+}
+
+
+static bool BenefitsFromWidening(BinarySmiOpInstr* smi_op) {
+  // TODO(vegorov): when shifts with non-constants shift count are supported
+  // add them here as we save untagging for the count.
+  switch (smi_op->op_kind()) {
+    case Token::kMUL:
+    case Token::kSHR:
+      // For kMUL we save untagging of the argument for kSHR
+      // we save tagging of the result.
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+
+void FlowGraphOptimizer::WidenSmiToInt32() {
+  GrowableArray<BinarySmiOpInstr*> candidates;
+
+  // Step 1. Collect all instructions that potentially benefit from widening of
+  // their operands (or their result) into int32 range.
+  for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
+       !block_it.Done();
+       block_it.Advance()) {
+    for (ForwardInstructionIterator instr_it(block_it.Current());
+         !instr_it.Done();
+         instr_it.Advance()) {
+      BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
+      if (smi_op != NULL &&
+          BenefitsFromWidening(smi_op) &&
+          CanBeWidened(smi_op)) {
+        candidates.Add(smi_op);
+      }
+    }
+  }
+
+  if (candidates.length() == 0) {
+    return;
+  }
+
+  // Step 2. For each block in the graph compute which loop it belongs to.
+  // We will use this information later during computation of the widening's
+  // gain: we are going to assume that only conversion occuring inside the
+  // same loop should be counted against the gain, all other conversions
+  // can be hoisted and thus cost nothing compared to the loop cost itself.
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
+    flow_graph()->loop_headers();
+
+  GrowableArray<intptr_t> loops(flow_graph_->preorder().length());
+  for (intptr_t i = 0; i < flow_graph_->preorder().length(); i++) {
+    loops.Add(-1);
+  }
+
+  for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
+    for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
+         !loop_it.Done();
+         loop_it.Advance()) {
+      loops[loop_it.Current()] = loop_id;
+    }
+  }
+
+  // Step 3. For each candidate transitively collect all other BinarySmiOpInstr
+  // and PhiInstr that depend on it and that it depends on and count amount of
+  // untagging operations that we save in assumption that this whole graph of
+  // values is using kUnboxedInt32 representation instead of kTagged.
+  // Convert those graphs that have positive gain to kUnboxedInt32.
+
+  // BitVector containing SSA indexes of all processed definitions. Used to skip
+  // those candidates that belong to dependency graph of another candidate.
+  BitVector* processed = new BitVector(flow_graph_->current_ssa_temp_index());
+
+  // Worklist used to collect dependency graph.
+  DefinitionWorklist worklist(flow_graph_, candidates.length());
+  for (intptr_t i = 0; i < candidates.length(); i++) {
+    BinarySmiOpInstr* op = candidates[i];
+    if (op->WasEliminated() || processed->Contains(op->ssa_temp_index())) {
+      continue;
+    }
+
+    if (FLAG_trace_smi_widening) {
+      OS::Print("analysing candidate: %s\n", op->ToCString());
+    }
+    worklist.Clear();
+    worklist.Add(op);
+
+    // Collect dependency graph. Note: more items are added to worklist
+    // inside this loop.
+    intptr_t gain = 0;
+    for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
+      Definition* defn = worklist.definitions()[j];
+
+      if (FLAG_trace_smi_widening) {
+        OS::Print("> %s\n", defn->ToCString());
+      }
+
+      if (defn->IsBinarySmiOp() &&
+          BenefitsFromWidening(defn->AsBinarySmiOp())) {
+        gain++;
+        if (FLAG_trace_smi_widening) {
+          OS::Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
+        }
+      }
+
+      const intptr_t defn_loop = loops[defn->GetBlock()->preorder_number()];
+
+      // Process all inputs.
+      for (intptr_t k = 0; k < defn->InputCount(); k++) {
+        Definition* input = defn->InputAt(k)->definition();
+        if (input->IsBinarySmiOp() &&
+            CanBeWidened(input->AsBinarySmiOp())) {
+          worklist.Add(input);
+        } else if (input->IsPhi() && input->Type()->ToCid() == kSmiCid) {
+          worklist.Add(input);
+        } else if (input->IsBinaryMintOp()) {
+          // Mint operation produces untagged result. We avoid tagging.
+          gain++;
+          if (FLAG_trace_smi_widening) {
+            OS::Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
+          }
+        } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
+                   (input->Type()->ToCid() == kSmiCid)) {
+          // Input comes from the same loop, is known to be smi and requires
+          // untagging.
+          // TODO(vegorov) this heuristic assumes that values that are not
+          // known to be smi have to be checked and this check can be
+          // coalesced with untagging. Start coalescing them.
+          gain--;
+          if (FLAG_trace_smi_widening) {
+            OS::Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
+          }
+        }
+      }
+
+      // Process all uses.
+      for (Value* use = defn->input_use_list();
+           use != NULL;
+           use = use->next_use()) {
+        Instruction* instr = use->instruction();
+        Definition* use_defn = instr->AsDefinition();
+        if (use_defn == NULL) {
+          // We assume that tagging before returning or pushing argument costs
+          // very little compared to the cost of the return/call itself.
+          if (!instr->IsReturn() && !instr->IsPushArgument()) {
+            gain--;
+            if (FLAG_trace_smi_widening) {
+              OS::Print("v [%" Pd "] (u) %s\n",
+                        gain,
+                        use->instruction()->ToCString());
+            }
+          }
+          continue;
+        } else if (use_defn->IsBinarySmiOp() &&
+                   CanBeWidened(use_defn->AsBinarySmiOp())) {
+          worklist.Add(use_defn);
+        } else if (use_defn->IsPhi() &&
+                   use_defn->AsPhi()->Type()->ToCid() == kSmiCid) {
+          worklist.Add(use_defn);
+        } else if (use_defn->IsBinaryMintOp()) {
+          // BinaryMintOp requires untagging of its inputs.
+          // Converting kUnboxedInt32 to kUnboxedMint is essentially zero cost
+          // sign extension operation.
+          gain++;
+          if (FLAG_trace_smi_widening) {
+            OS::Print("^ [%" Pd "] (u) %s\n",
+                      gain,
+                      use->instruction()->ToCString());
+          }
+        } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
+          gain--;
+          if (FLAG_trace_smi_widening) {
+            OS::Print("v [%" Pd "] (u) %s\n",
+                      gain,
+                      use->instruction()->ToCString());
+          }
+        }
+      }
+    }
+
+    processed->AddAll(worklist.contains());
+
+    if (FLAG_trace_smi_widening) {
+      OS::Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
+    }
+
+    if (gain > 0) {
+      // We have positive gain from widening. Convert all BinarySmiOpInstr into
+      // BinaryInt32OpInstr and set representation of all phis to kUnboxedInt32.
+      for (intptr_t j = 0; j < worklist.definitions().length(); j++) {
+        Definition* defn = worklist.definitions()[j];
+        ASSERT(defn->IsPhi() || defn->IsBinarySmiOp());
+
+        if (defn->IsBinarySmiOp()) {
+          BinarySmiOpInstr* smi_op = defn->AsBinarySmiOp();
+          BinaryInt32OpInstr* int32_op = new(I) BinaryInt32OpInstr(
+            smi_op->op_kind(),
+            smi_op->left()->CopyWithType(),
+            smi_op->right()->CopyWithType(),
+            smi_op->DeoptimizationTarget());
+
+          smi_op->ReplaceWith(int32_op, NULL);
+        } else if (defn->IsPhi()) {
+          defn->AsPhi()->set_representation(kUnboxedInt32);
+        }
+      }
+    }
+  }
+}
+#else
+void FlowGraphOptimizer::WidenSmiToInt32() {
+  // TODO(vegorov) ideally on 64-bit platforms we would like to narrow smi
+  // operations to 32-bit where it saves tagging and untagging and allows
+  // to use shorted (and faster) instructions. But we currently don't
+  // save enough range information in the ICData to drive this decision.
+}
+#endif
 
 void FlowGraphOptimizer::InferIntRanges() {
   RangeAnalysis range_analysis(flow_graph_);
@@ -4603,7 +4989,11 @@ void LICM::Hoist(ForwardInstructionIterator* it,
   }
   // Move the instruction out of the loop.
   current->RemoveEnvironment();
-  it->RemoveCurrentFromGraph();
+  if (it != NULL) {
+    it->RemoveCurrentFromGraph();
+  } else {
+    current->RemoveFromGraph();
+  }
   GotoInstr* last = pre_header->last_instruction()->AsGoto();
   // Using kind kEffect will not assign a fresh ssa temporary index.
   flow_graph()->InsertBefore(last, current, last->env(), FlowGraph::kEffect);
@@ -4611,17 +5001,10 @@ void LICM::Hoist(ForwardInstructionIterator* it,
 }
 
 
-void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
-                                      BlockEntryInstr* header,
-                                      BlockEntryInstr* pre_header,
-                                      CheckSmiInstr* current) {
-  PhiInstr* phi = current->value()->definition()->AsPhi();
-  if (!header->loop_info()->Contains(phi->block()->preorder_number())) {
-    return;
-  }
-
+void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
+                               BlockEntryInstr* header,
+                               BlockEntryInstr* pre_header) {
   if (phi->Type()->ToCid() == kSmiCid) {
-    it->RemoveCurrentFromGraph();
     return;
   }
 
@@ -4648,11 +5031,22 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
     return;
   }
 
+  CheckSmiInstr* check = NULL;
+  for (Value* use = phi->input_use_list();
+       (use != NULL) && (check == NULL);
+       use = use->next_use()) {
+    check = use->instruction()->AsCheckSmi();
+  }
+
+  if (check == NULL) {
+    return;
+  }
+
   // Host CheckSmi instruction and make this phi smi one.
-  Hoist(it, pre_header, current);
+  Hoist(NULL, pre_header, check);
 
   // Replace value we are checking with phi's input.
-  current->value()->BindTo(phi->InputAt(non_smi_input)->definition());
+  check->value()->BindTo(phi->InputAt(non_smi_input)->definition());
 
   phi->UpdateType(CompileType::FromCid(kSmiCid));
 }
@@ -4675,6 +5069,29 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
       instr->HasPlaceId() &&
       ((*sets)[loop_header_index] != NULL) &&
       (*sets)[loop_header_index]->Contains(instr->place_id());
+}
+
+
+void LICM::OptimisticallySpecializeSmiPhis() {
+  if (!flow_graph()->parsed_function().function().
+          allows_hoisting_check_class()) {
+    // Do not hoist any.
+    return;
+  }
+
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
+      flow_graph()->loop_headers();
+
+  for (intptr_t i = 0; i < loop_headers.length(); ++i) {
+    JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
+    // Skip loop that don't have a pre-header block.
+    BlockEntryInstr* pre_header = FindPreHeader(header);
+    if (pre_header == NULL) continue;
+
+    for (PhiIterator it(header); !it.Done(); it.Advance()) {
+      TrySpecializeSmiPhi(it.Current(), header, pre_header);
+    }
+  }
 }
 
 
@@ -4724,10 +5141,6 @@ void LICM::Optimize() {
             // TODO(fschneider): Enable hoisting of Assert-instructions
             // if it safe to do.
             Hoist(&it, pre_header, current);
-          } else if (current->IsCheckSmi() &&
-                     current->InputAt(0)->definition()->IsPhi()) {
-            TryHoistCheckSmiThroughPhi(
-                &it, header, pre_header, current->AsCheckSmi());
           }
         }
       }
@@ -7557,6 +7970,11 @@ void ConstantPropagator::VisitStoreInstanceField(
 }
 
 
+void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
+  // Nothing to do.
+}
+
+
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
   const Field& field = instr->StaticField();
   ASSERT(field.is_static());
@@ -7733,6 +8151,12 @@ void ConstantPropagator::VisitAllocateContext(AllocateContextInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitAllocateUninitializedContext(
+    AllocateUninitializedContextInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
   SetValue(instr, non_constant_);
 }
@@ -7829,6 +8253,11 @@ void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitBinaryInt32Op(BinaryInt32OpInstr* instr) {
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
+}
+
+
 void ConstantPropagator::VisitBoxInteger(BoxIntegerInstr* instr) {
   // TODO(kmillikin): Handle box operation.
   SetValue(instr, non_constant_);
@@ -7880,6 +8309,17 @@ void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
 
 
 void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (IsConstant(value) && value.IsInteger()) {
+    SetValue(instr, Double::Handle(I,
+        Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
+  } else if (IsNonConstant(value)) {
+    SetValue(instr, non_constant_);
+  }
+}
+
+
+void ConstantPropagator::VisitInt32ToDouble(Int32ToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
     SetValue(instr, Double::Handle(I,
@@ -8057,6 +8497,12 @@ void ConstantPropagator::VisitFloat32x4With(Float32x4WithInstr* instr) {
 
 void ConstantPropagator::VisitFloat32x4ToInt32x4(
     Float32x4ToInt32x4Instr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitInt32x4Constructor(
+    Int32x4ConstructorInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -8263,6 +8709,18 @@ void ConstantPropagator::VisitBoxUint32(BoxUint32Instr* instr) {
 
 
 void ConstantPropagator::VisitUnboxUint32(UnboxUint32Instr* instr) {
+  // TODO(kmillikin): Handle unbox operation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitBoxInt32(BoxInt32Instr* instr) {
+  // TODO(kmillikin): Handle box operation.
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUnboxInt32(UnboxInt32Instr* instr) {
   // TODO(kmillikin): Handle unbox operation.
   SetValue(instr, non_constant_);
 }

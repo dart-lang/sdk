@@ -189,6 +189,8 @@ class ScheduledProcess {
   /// along with a [StreamCanceller] controlling it.
   Pair<Stream<String>, StreamCanceller> _lineStreamWithCanceller(
       Future<Stream<List<int>>> streamFuture) {
+    // Ignore errors from the future. They'll be reported through [schedule].
+    streamFuture = streamFuture.catchError((_) => new Stream.fromIterable([]));
     return streamWithCanceller(futureStream(streamFuture)
         .handleError(currentSchedule.signalError)
         .map((chunk) {

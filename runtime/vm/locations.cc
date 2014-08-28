@@ -71,7 +71,7 @@ PairLocation* Location::AsPairLocation() const {
 Location Location::RegisterOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
-      ? Location::Constant(constant->value())
+      ? Location::Constant(constant)
       : Location::RequiresRegister();
 }
 
@@ -79,7 +79,7 @@ Location Location::RegisterOrConstant(Value* value) {
 Location Location::RegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
-      ? Location::Constant(constant->value())
+      ? Location::Constant(constant)
       : Location::RequiresRegister();
 }
 
@@ -87,7 +87,7 @@ Location Location::RegisterOrSmiConstant(Value* value) {
 Location Location::WritableRegisterOrSmiConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
-      ? Location::Constant(constant->value())
+      ? Location::Constant(constant)
       : Location::WritableRegister();
 }
 
@@ -95,7 +95,7 @@ Location Location::WritableRegisterOrSmiConstant(Value* value) {
 Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
-      ? Location::Constant(constant->value())
+      ? Location::Constant(constant)
       : Location::RegisterLocation(reg);
 }
 
@@ -103,7 +103,7 @@ Location Location::FixedRegisterOrConstant(Value* value, Register reg) {
 Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafeSmi(constant->value()))
-      ? Location::Constant(constant->value())
+      ? Location::Constant(constant)
       : Location::RegisterLocation(reg);
 }
 
@@ -111,7 +111,7 @@ Location Location::FixedRegisterOrSmiConstant(Value* value, Register reg) {
 Location Location::AnyOrConstant(Value* value) {
   ConstantInstr* constant = value->definition()->AsConstant();
   return ((constant != NULL) && Assembler::IsSafe(constant->value()))
-      ? Location::Constant(constant->value())
+      ? Location::Constant(constant)
       : Location::Any();
 }
 
@@ -137,6 +137,11 @@ intptr_t Location::ToStackSlotOffset() const {
     const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
     return offset;
   }
+}
+
+
+const Object& Location::constant() const {
+  return constant_instruction()->value();
 }
 
 

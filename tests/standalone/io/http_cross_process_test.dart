@@ -54,6 +54,7 @@ runClient(int port) {
   var client = new HttpClient();
   client.get('127.0.0.1', port, "/")
       .then((request) => request.close())
-      .then((response) => response.listen((data) {},
-                                          onDone: () => print('SUCCESS')));
+      .then((response) => response.drain())
+      .then((_) => client.close())
+      .then((_) => print('SUCCESS'));
 }

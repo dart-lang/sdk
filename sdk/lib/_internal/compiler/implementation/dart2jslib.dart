@@ -23,7 +23,7 @@ import 'elements/modelx.dart'
          VoidElementX,
          AnalyzableElement,
          DeferredLoaderGetterElementX;
-import 'helpers/helpers.dart';
+import 'helpers/helpers.dart';  // Included for debug helpers.
 import 'js_backend/js_backend.dart' as js_backend;
 import 'library_loader.dart'
     show LibraryLoader,
@@ -36,6 +36,7 @@ import 'cps_ir/cps_ir_builder.dart' show IrBuilderTask;
 import 'universe/universe.dart';
 import 'util/util.dart';
 import 'util/characters.dart' show $_;
+import 'ordered_typeset.dart';
 import '../compiler.dart' as api;
 import 'patch_parser.dart';
 import 'types/types.dart' as ti;
@@ -72,7 +73,6 @@ part 'diagnostic_listener.dart';
 part 'enqueue.dart';
 part 'resolved_visitor.dart';
 part 'script.dart';
-part 'tree_validator.dart';
 part 'typechecker.dart';
 part 'warnings.dart';
 part 'world.dart';

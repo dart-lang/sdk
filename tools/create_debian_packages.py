@@ -10,6 +10,7 @@
 # binary packages.
 
 import optparse
+import os
 import sys
 import tarfile
 import subprocess
@@ -31,23 +32,29 @@ def BuildOptions():
                     help="Where to put the packages.")
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
-      metavar='[all,ia32,x64]',
+      metavar='[all,ia32,x64,armel,armhf]',
       default='x64')
+  result.add_option("-t", "--toolchain",
+      help='Cross-compilation toolchain prefix',
+      default=None)
 
   return result
 
-def RunBuildPackage(opt, cwd):
+def RunBuildPackage(opt, cwd, toolchain=None):
+  env = os.environ.copy()
+  if toolchain != None:
+    env["TOOLCHAIN"] = '--toolchain=' + toolchain
   cmd = ['dpkg-buildpackage', '-j%d' % HOST_CPUS]
   cmd.extend(opt)
   process = subprocess.Popen(cmd,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                             cwd=cwd)
+                             cwd=cwd, env=env)
   (stdout, stderr) = process.communicate()
   if process.returncode != 0:
     raise Exception('Command \'%s\' failed: %s\nSTDOUT: %s' %
                     (' '.join(cmd), stderr, stdout))
 
-def BuildDebianPackage(tarball, out_dir, arch):
+def BuildDebianPackage(tarball, out_dir, arch, toolchain):
   version = utils.GetVersion()
   tarroot = 'dart-%s' % version
   origtarname = 'dart_%s.orig.tar.gz' % version
@@ -77,6 +84,18 @@ def BuildDebianPackage(tarball, out_dir, arch):
       print "Building amd64 package"
       RunBuildPackage(['-B', '-aamd64', '-us', '-uc'], join(temp_dir, tarroot))
 
+    # Build armhf binary package.
+    if 'armhf' in arch:
+      print "Building armhf package"
+      RunBuildPackage(
+          ['-B', '-aarmhf', '-us', '-uc'], join(temp_dir, tarroot), toolchain)
+
+    # Build armel binary package.
+    if 'armel' in arch:
+      print "Building armel package"
+      RunBuildPackage(
+          ['-B', '-aarmel', '-us', '-uc'], join(temp_dir, tarroot), toolchain)
+
     # Copy the Debian package files to the build directory.
     debbase = 'dart_%s' % version
     source_package = [
@@ -90,6 +109,12 @@ def BuildDebianPackage(tarball, out_dir, arch):
     amd64_package = [
       '%s-1_amd64.deb' % debbase
     ]
+    armhf_package = [
+      '%s-1_armhf.deb' % debbase
+    ]
+    armel_package = [
+      '%s-1_armel.deb' % debbase
+    ]
 
     for name in source_package:
       copyfile(join(temp_dir, name), join(out_dir, name))
@@ -99,6 +124,13 @@ def BuildDebianPackage(tarball, out_dir, arch):
     if 'x64' in arch:
       for name in amd64_package:
         copyfile(join(temp_dir, name), join(out_dir, name))
+    if ('armhf' in arch):
+      for name in armhf_package:
+        copyfile(join(temp_dir, name), join(out_dir, name))
+    if ('armel' in arch):
+      for name in armel_package:
+        copyfile(join(temp_dir, name), join(out_dir, name))
+
 
 def Main():
   if HOST_OS != 'linux':
@@ -109,7 +141,7 @@ def Main():
   out_dir = options.out_dir
   tar_filename = options.tar_filename
   if options.arch == 'all':
-    options.arch = 'ia32,x64'
+    options.arch = 'ia32,x64,armhf'
   arch = options.arch.split(',')
 
   if not options.out_dir:
@@ -120,7 +152,7 @@ def Main():
                         utils.GetBuildDir(HOST_OS),
                         'dart-%s.tar.gz' % utils.GetVersion())
 
-  BuildDebianPackage(tar_filename, out_dir, arch)
+  BuildDebianPackage(tar_filename, out_dir, arch, options.toolchain)
 
 if __name__ == '__main__':
   sys.exit(Main())

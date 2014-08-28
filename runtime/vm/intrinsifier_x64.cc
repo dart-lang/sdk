@@ -27,19 +27,19 @@ DECLARE_FLAG(bool, enable_type_checks);
 #define __ assembler->
 
 
-void Intrinsifier::Array_getLength(Assembler* assembler) {
+void Intrinsifier::ObjectArrayLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
   __ ret();
 }
 
 
-void Intrinsifier::ImmutableList_getLength(Assembler* assembler) {
-  Array_getLength(assembler);
+void Intrinsifier::ImmutableArrayLength(Assembler* assembler) {
+  ObjectArrayLength(assembler);
 }
 
 
-void Intrinsifier::Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::ObjectArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
@@ -57,12 +57,12 @@ void Intrinsifier::Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::ImmutableList_getIndexed(Assembler* assembler) {
-  Array_getIndexed(assembler);
+void Intrinsifier::ImmutableArrayGetIndexed(Assembler* assembler) {
+  ObjectArrayGetIndexed(assembler);
 }
 
 
-void Intrinsifier::Array_setIndexed(Assembler* assembler) {
+void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -90,7 +90,7 @@ void Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
 // Allocate a GrowableObjectArray using the backing array specified.
 // On stack: type argument (+2), data (+1), return-address (+0).
-void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
+void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   // This snippet of inlined code uses the following registers:
   // RAX, RCX, R13
   // and the newly allocated object is returned in RAX.
@@ -98,40 +98,10 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   const intptr_t kArrayOffset = 1 * kWordSize;
   Label fall_through;
 
-  // Compute the size to be allocated, it is based on the array length
-  // and is computed as:
-  // RoundedAllocationSize(sizeof(RawGrowableObjectArray)) +
-  intptr_t fixed_size = GrowableObjectArray::InstanceSize();
-
-  Isolate* isolate = Isolate::Current();
-  Heap* heap = isolate->heap();
-
-  __ movq(RAX, Immediate(heap->TopAddress()));
-  __ movq(RAX, Address(RAX, 0));
-  __ leaq(RCX, Address(RAX, fixed_size));
-
-  // Check if the allocation fits into the remaining space.
-  // RAX: potential new backing array object start.
-  // RCX: potential next object start.
-  __ movq(R13, Immediate(heap->EndAddress()));
-  __ cmpq(RCX, Address(R13, 0));
-  __ j(ABOVE_EQUAL, &fall_through);
-
-  // Successfully allocated the object(s), now update top to point to
-  // next object start and initialize the object.
-  __ movq(R13, Immediate(heap->TopAddress()));
-  __ movq(Address(R13, 0), RCX);
-  __ addq(RAX, Immediate(kHeapObjectTag));
-
-  // Initialize the tags.
-  // EAX: new growable array object start as a tagged pointer.
+  // Try allocating in new space.
   const Class& cls = Class::Handle(
-      isolate->object_store()->growable_object_array_class());
-  uword tags = 0;
-  tags = RawObject::SizeTag::update(fixed_size, tags);
-  tags = RawObject::ClassIdTag::update(cls.id(), tags);
-  __ movq(FieldAddress(RAX, GrowableObjectArray::tags_offset()),
-          Immediate(tags));
+      Isolate::Current()->object_store()->growable_object_array_class());
+  __ TryAllocate(cls, &fall_through, Assembler::kFarJump, RAX, kNoRegister);
 
   // Store backing array object in growable array object.
   __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
@@ -152,7 +122,6 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
   // Set the length field in the growable array object to 0.
   __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()),
           Immediate(0));
-  __ UpdateAllocationStats(kGrowableObjectArrayCid);
   __ ret();  // returns the newly allocated object in RAX.
 
   __ Bind(&fall_through);
@@ -161,14 +130,14 @@ void Intrinsifier::GrowableList_Allocate(Assembler* assembler) {
 
 // Get length of growable object array.
 // On stack: growable array (+1), return-address (+0).
-void Intrinsifier::GrowableList_getLength(Assembler* assembler) {
+void Intrinsifier::GrowableArrayLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
   __ ret();
 }
 
 
-void Intrinsifier::GrowableList_getCapacity(Assembler* assembler) {
+void Intrinsifier::GrowableArrayCapacity(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, GrowableObjectArray::data_offset()));
   __ movq(RAX, FieldAddress(RAX, Array::length_offset()));
@@ -178,7 +147,7 @@ void Intrinsifier::GrowableList_getCapacity(Assembler* assembler) {
 
 // Access growable object array at specified index.
 // On stack: growable array (+2), index (+1), return-address (+0).
-void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // GrowableArray.
@@ -200,7 +169,7 @@ void Intrinsifier::GrowableList_getIndexed(Assembler* assembler) {
 
 // Set value into growable object array at specified index.
 // On stack: growable array (+3), index (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
+void Intrinsifier::GrowableArraySetIndexed(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -228,7 +197,7 @@ void Intrinsifier::GrowableList_setIndexed(Assembler* assembler) {
 // Set length of growable object array. The length cannot
 // be greater than the length of the data container.
 // On stack: growable array (+2), length (+1), return-address (+0).
-void Intrinsifier::GrowableList_setLength(Assembler* assembler) {
+void Intrinsifier::GrowableArraySetLength(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Growable array.
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Length value.
@@ -242,7 +211,7 @@ void Intrinsifier::GrowableList_setLength(Assembler* assembler) {
 
 // Set data of growable object array.
 // On stack: growable array (+2), data (+1), return-address (+0).
-void Intrinsifier::GrowableList_setData(Assembler* assembler) {
+void Intrinsifier::GrowableArraySetData(Assembler* assembler) {
   if (FLAG_enable_type_checks) {
     return;
   }
@@ -264,7 +233,7 @@ void Intrinsifier::GrowableList_setData(Assembler* assembler) {
 // Add an element to growable array if it doesn't need to grow, otherwise
 // call into regular code.
 // On stack: growable array (+2), value (+1), return-address (+0).
-void Intrinsifier::GrowableList_add(Assembler* assembler) {
+void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
   if (FLAG_enable_type_checks) return;
   Label fall_through;
@@ -390,14 +359,14 @@ void Intrinsifier::GrowableList_add(Assembler* assembler) {
 
 
 // Gets the length of a TypedData.
-void Intrinsifier::TypedData_getLength(Assembler* assembler) {
+void Intrinsifier::TypedDataLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ movq(RAX, FieldAddress(RAX, TypedData::length_offset()));
   __ ret();
 }
 
 
-void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::Uint8ArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
@@ -416,7 +385,7 @@ void Intrinsifier::Uint8Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::ExternalUint8ArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
@@ -436,7 +405,7 @@ void Intrinsifier::ExternalUint8Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
+void Intrinsifier::Float64ArrayGetIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
@@ -469,7 +438,7 @@ void Intrinsifier::Float64Array_getIndexed(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Float64Array_setIndexed(Assembler* assembler) {
+void Intrinsifier::Float64ArraySetIndexed(Assembler* assembler) {
   Label fall_through;
   __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
@@ -1136,7 +1105,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
 
 
 // Left is double right is integer (Bigint, Mint or Smi)
-void Intrinsifier::Double_fromInteger(Assembler* assembler) {
+void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
@@ -1195,7 +1164,7 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Double_toInt(Assembler* assembler) {
+void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
   __ cvttsd2siq(RAX, XMM0);
@@ -1211,7 +1180,7 @@ void Intrinsifier::Double_toInt(Assembler* assembler) {
 }
 
 
-void Intrinsifier::Math_sqrt(Assembler* assembler) {
+void Intrinsifier::MathSqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Argument is double and is in RAX.
@@ -1272,7 +1241,7 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
 }
 
 // Identity comparison.
-void Intrinsifier::Object_equal(Assembler* assembler) {
+void Intrinsifier::ObjectEquals(Assembler* assembler) {
   Label is_true;
   const intptr_t kReceiverOffset = 2;
   const intptr_t kArgumentOffset = 1;
@@ -1300,14 +1269,14 @@ void Intrinsifier::String_getHashCode(Assembler* assembler) {
 }
 
 
-void Intrinsifier::String_getLength(Assembler* assembler) {
+void Intrinsifier::StringBaseLength(Assembler* assembler) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
   __ movq(RAX, FieldAddress(RAX, String::length_offset()));
   __ ret();
 }
 
 
-void Intrinsifier::String_codeUnitAt(Assembler* assembler) {
+void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
@@ -1336,7 +1305,50 @@ void Intrinsifier::String_codeUnitAt(Assembler* assembler) {
 }
 
 
-void Intrinsifier::String_getIsEmpty(Assembler* assembler) {
+void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
+  Label fall_through, try_two_byte_string;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, String::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ CompareClassId(RAX, kOneByteStringCid);
+  __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
+  __ SmiUntag(RCX);
+  __ movzxb(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
+  __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
+  __ j(GREATER_EQUAL, &fall_through);
+  __ movq(RAX,
+          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movq(RAX, Address(RAX,
+                       RCX,
+                       TIMES_8,
+                       Symbols::kNullCharCodeSymbolOffset * kWordSize));
+  __ ret();
+
+  __ Bind(&try_two_byte_string);
+  __ CompareClassId(RAX, kTwoByteStringCid);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  ASSERT(kSmiTagShift == 1);
+  __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
+  __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
+  __ j(GREATER_EQUAL, &fall_through);
+  __ movq(RAX,
+          Immediate(reinterpret_cast<uword>(Symbols::PredefinedAddress())));
+  __ movq(RAX, Address(RAX,
+                       RCX,
+                       TIMES_8,
+                       Symbols::kNullCharCodeSymbolOffset * kWordSize));
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::StringBaseIsEmpty(Assembler* assembler) {
   Label is_true;
   // Get length.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
@@ -1548,7 +1560,7 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
 }
 
 
-void Intrinsifier::OneByteString_setAt(Assembler* assembler) {
+void Intrinsifier::OneByteStringSetAt(Assembler* assembler) {
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Value.
   __ movq(RBX, Address(RSP, + 2 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 3 * kWordSize));  // OneByteString.

@@ -9,14 +9,24 @@ else
 PARALLEL_JOBS := 1
 endif
 
-DEB_HOST_ARCH_CPU := $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU)
 ifeq (amd64,$(DEB_HOST_ARCH_CPU))
 BUILD_TYPE += ReleaseX64
+ARCH += x64
 else
 ifeq (i386,$(DEB_HOST_ARCH_CPU))
 BUILD_TYPE += ReleaseIA32
+ARCH += ia32
 else
-$(warning unsupported target arch $(DEB_HOST_ARCH_CPU) - continuing anyway)
+ifeq (arm,$(DEB_HOST_ARCH_CPU))
+ifeq ($(DEB_BUILD_ARCH_CPU),$(DEB_HOST_ARCH_CPU))
+BUILD_TYPE += ReleaseARM
+else
+BUILD_TYPE += ReleaseXARM
+endif
+ARCH += arm
+else
+$(error unsupported target arch '$(DEB_HOST_ARCH_CPU)')
+endif
 endif
 endif
 
@@ -40,11 +50,17 @@ override_dh_auto_configure:
 	GYP_GENERATORS=make python dart/tools/gyp_dart.py all
 
 override_dh_auto_build:
-	make -C dart -j$(PARALLEL_JOBS) \
-		BUILDTYPE=$(BUILD_TYPE) $(BUILD_ARGS) create_sdk
+	cd dart; \
+	python tools/build.py -v -m release -a $(ARCH) $(TOOLCHAIN) create_sdk; \
+	cd ..
 
 # Building the Dart SDK will already strip all binaries.
 override_dh_strip:
+
+# This override allows us to ignore spurious missing library errors when
+# cross-compiling.
+override_dh_shlibdeps:
+	dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
 
 override_dh_auto_install:
 	mkdir -p debian/tmp/out

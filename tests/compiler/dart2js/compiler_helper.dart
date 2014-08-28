@@ -22,7 +22,8 @@ export 'package:compiler/implementation/dart2jslib.dart'
             MessageKind,
             Selector,
             TypedSelector,
-            SourceSpan;
+            SourceSpan,
+            World;
 
 import 'package:compiler/implementation/ssa/ssa.dart' as ssa;
 
@@ -179,10 +180,18 @@ types.TypeMask findTypeMask(compiler, String name,
   switch (how) {
     case 'exact': return new types.TypeMask.exact(element);
     case 'nonNullExact': return new types.TypeMask.nonNullExact(element);
-    case 'subclass': return new types.TypeMask.subclass(element);
-    case 'nonNullSubclass': return new types.TypeMask.nonNullSubclass(element);
-    case 'subtype': return new types.TypeMask.subtype(element);
-    case 'nonNullSubtype': return new types.TypeMask.nonNullSubtype(element);
+    case 'subclass': {
+      return new types.TypeMask.subclass(element, compiler.world);
+    }
+    case 'nonNullSubclass': {
+      return new types.TypeMask.nonNullSubclass(element, compiler.world);
+    }
+    case 'subtype': {
+      return new types.TypeMask.subtype(element, compiler.world);
+    }
+    case 'nonNullSubtype': {
+      return new types.TypeMask.nonNullSubtype(element, compiler.world);
+    }
   }
   Expect.fail('Unknown TypeMask constructor $how');
 }

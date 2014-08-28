@@ -80,6 +80,9 @@ iterable_return_type_test/02: RuntimeError # Issue 13646
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 main_test: Fail  # Dartium needs to check for both main() and main(args).
 
+[ $compiler == none && $runtime == ContentShellOnAndroid ]
+core_runtime_types_test: Pass, Fail # Issue 20525
+
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 
@@ -98,6 +101,7 @@ null_nosuchmethod_test: Fail # Issue: 7413
 unicode_test: Fail # Issue 14694
 
 [ $compiler == dart2js ]
+growable_list_test: RuntimeError # Fails to detect concurrent modification in addAll.
 error_stack_trace1_test: RuntimeError # Issue 12399
 hash_set_test/01: RuntimeError # Issue 11551
 integer_to_string_test/01: RuntimeError # Issue 1533

@@ -1296,15 +1296,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     intptr_t token_pos,
     LocationSummary* locs,
     const ICData& ic_data) {
-  uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
-  if (ic_data.NumArgsTested() == 0) {
-    label_address = stub_code->ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.NumArgsTested() == 2) {
-    label_address = stub_code->TwoArgsUnoptimizedStaticCallEntryPoint();
-  } else {
-    UNIMPLEMENTED();
-  }
+  const uword label_address =
+      stub_code->UnoptimizedStaticCallEntryPoint(ic_data.NumArgsTested());
   ExternalLabel target_label(label_address);
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id,
@@ -1486,7 +1480,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
   ASSERT(is_optimizing());
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfUsedChecks() > 0));
   Label match_found;
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<CidTarget> sorted(len);
@@ -1606,7 +1600,11 @@ void ParallelMoveResolver::EmitMove(int index) {
     ASSERT(source.IsConstant());
     const Object& constant = source.constant();
     if (destination.IsRegister()) {
-      __ LoadObject(destination.reg(), constant);
+      if (source.constant_instruction()->representation() == kUnboxedInt32) {
+        __ LoadImmediate(destination.reg(), Smi::Cast(constant).Value());
+      } else {
+        __ LoadObject(destination.reg(), constant);
+      }
     } else if (destination.IsFpuRegister()) {
       const DRegister dst = EvenDRegisterOf(destination.fpu_reg());
       if (Utils::DoublesBitEqual(Double::Cast(constant).value(), 0.0) &&
@@ -1632,7 +1630,11 @@ void ParallelMoveResolver::EmitMove(int index) {
     } else {
       ASSERT(destination.IsStackSlot());
       const intptr_t dest_offset = destination.ToStackSlotOffset();
-      __ LoadObject(TMP, constant);
+      if (source.constant_instruction()->representation() == kUnboxedInt32) {
+        __ LoadImmediate(TMP, Smi::Cast(constant).Value());
+      } else {
+        __ LoadObject(TMP, constant);
+      }
       __ StoreToOffset(kWord, TMP, FP, dest_offset);
     }
   }

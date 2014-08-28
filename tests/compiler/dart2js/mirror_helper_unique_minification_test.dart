@@ -37,7 +37,7 @@ void testUniqueMinification() {
       then((Compiler compiler) {
     DartBackend backend = compiler.backend;
     MirrorRenamer mirrorRenamer = backend.mirrorRenamer;
-    Map<Node, String> renames = backend.renames;
+    Map<Node, String> renames = backend.placeholderRenamer.renames;
     Map<String, String> symbols = mirrorRenamer.symbols;
 
     // Check that no two different source code names get the same mangled name,
@@ -63,7 +63,7 @@ void testNoUniqueMinification() {
   asyncTest(() => runCompiler(useMirrorHelperLibrary: false, minify: true).
       then((Compiler compiler) {
     DartBackend backend = compiler.backend;
-    Map<Node, String> renames = backend.renames;
+    Map<Node, String> renames = backend.placeholderRenamer.renames;
 
     // 'Foo' appears twice and 'invocation' and 'hest' get the same mangled
     // name.

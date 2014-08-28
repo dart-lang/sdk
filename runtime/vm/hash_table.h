@@ -87,10 +87,16 @@ class HashTable : public ValueObject {
   // Uses 'isolate' for handle allocation. 'Release' must be called at the end
   // to obtain the final table after potential growth/shrinkage.
   HashTable(Isolate* isolate, RawArray* data)
-      : isolate_(isolate), data_(&Array::Handle(isolate_, data)) {}
+      : isolate_(isolate),
+        key_handle_(Object::Handle(isolate_)),
+        smi_handle_(Smi::Handle(isolate_)),
+        data_(&Array::Handle(isolate_, data)) {}
   // Like above, except uses current isolate.
   explicit HashTable(RawArray* data)
-      : isolate_(Isolate::Current()), data_(&Array::Handle(isolate_, data)) {}
+      : isolate_(Isolate::Current()),
+        key_handle_(Object::Handle(isolate_)),
+        smi_handle_(Smi::Handle(isolate_)),
+        data_(&Array::Handle(isolate_, data)) {}
 
   Array& Release() {
     ASSERT(data_ != NULL);
@@ -117,9 +123,9 @@ class HashTable : public ValueObject {
   // Initializes an empty table.
   void Initialize() const {
     ASSERT(data_->Length() >= ArrayLengthForNumOccupied(0));
-    Smi& zero = Smi::Handle(isolate(), Smi::New(0));
-    data_->SetAt(kOccupiedEntriesIndex, zero);
-    data_->SetAt(kDeletedEntriesIndex, zero);
+    smi_handle_ = Smi::New(0);
+    data_->SetAt(kOccupiedEntriesIndex, smi_handle_);
+    data_->SetAt(kDeletedEntriesIndex, smi_handle_);
     for (intptr_t i = kHeaderSize; i < data_->Length(); ++i) {
       data_->SetAt(i, Object::sentinel());
     }
@@ -137,7 +143,6 @@ class HashTable : public ValueObject {
     ASSERT(NumOccupied() < NumEntries());
     // TODO(koda): Add salt.
     intptr_t probe = static_cast<uword>(KeyTraits::Hash(key)) % NumEntries();
-    Object& obj = Object::Handle(isolate());
     // TODO(koda): Consider quadratic probing.
     for (; ; probe = (probe + 1) % NumEntries()) {
       if (IsUnused(probe)) {
@@ -145,8 +150,8 @@ class HashTable : public ValueObject {
       } else if (IsDeleted(probe)) {
         continue;
       } else {
-        obj = GetKey(probe);
-        if (KeyTraits::IsMatch(key, obj)) {
+        key_handle_ = GetKey(probe);
+        if (KeyTraits::IsMatch(key, key_handle_)) {
           return probe;
         }
       }
@@ -164,7 +169,6 @@ class HashTable : public ValueObject {
     ASSERT(entry != NULL);
     ASSERT(NumOccupied() < NumEntries());
     intptr_t probe = static_cast<uword>(KeyTraits::Hash(key)) % NumEntries();
-    Object& obj = Object::Handle(isolate());
     intptr_t deleted = -1;
     // TODO(koda): Consider quadratic probing.
     for (; ; probe = (probe + 1) % NumEntries()) {
@@ -176,8 +180,8 @@ class HashTable : public ValueObject {
           deleted = probe;
         }
       } else {
-        obj = GetKey(probe);
-        if (KeyTraits::IsMatch(key, obj)) {
+        key_handle_ = GetKey(probe);
+        if (KeyTraits::IsMatch(key, key_handle_)) {
           *entry = probe;
           return true;
         }
@@ -249,6 +253,12 @@ class HashTable : public ValueObject {
   intptr_t NumDeleted() const {
     return GetSmiValueAt(kDeletedEntriesIndex);
   }
+  Object& KeyHandle() const {
+    return key_handle_;
+  }
+  Smi& SmiHandle() const {
+    return smi_handle_;
+  }
 
  protected:
   static const intptr_t kOccupiedEntriesIndex = 0;
@@ -282,8 +292,8 @@ class HashTable : public ValueObject {
   }
 
   void SetSmiValueAt(intptr_t index, intptr_t value) const {
-    const Smi& smi = Smi::Handle(isolate(), Smi::New(value));
-    data_->SetAt(index, smi);
+    smi_handle_ = Smi::New(value);
+    data_->SetAt(index, smi_handle_);
   }
 
   void AdjustSmiValueAt(intptr_t index, intptr_t delta) const {
@@ -293,6 +303,8 @@ class HashTable : public ValueObject {
   Isolate* isolate() const { return isolate_; }
 
   Isolate* isolate_;
+  Object& key_handle_;
+  Smi& smi_handle_;
   // This is a pointer rather than a reference, to enable Release nulling it,
   // preventing post-Release modification.
   Array* data_;
@@ -391,9 +403,9 @@ class EnumIndexHashTable
 
   void InsertKey(intptr_t entry, const Object& key) const {
     BaseTable::InsertKey(entry, key);
-    const Smi& next_enum_index = Smi::Handle(BaseTable::isolate(),
-        Smi::New(BaseTable::GetSmiValueAt(kNextEnumIndex)));
-    BaseTable::UpdatePayload(entry, kPayloadSize, next_enum_index);
+    BaseTable::SmiHandle() =
+        Smi::New(BaseTable::GetSmiValueAt(kNextEnumIndex));
+    BaseTable::UpdatePayload(entry, kPayloadSize, BaseTable::SmiHandle());
     // TODO(koda): Handle possible Smi overflow from repeated insert/delete.
     BaseTable::AdjustSmiValueAt(kNextEnumIndex, 1);
   }
@@ -529,9 +541,9 @@ class HashMap : public BaseIterTable {
     EnsureCapacity();
     intptr_t entry = -1;
     if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
-      Object& new_key = Object::Handle(BaseIterTable::isolate(),
-          BaseIterTable::BaseTable::Traits::NewKey(key));
-      BaseIterTable::InsertKey(entry, new_key);
+      BaseIterTable::KeyHandle() =
+          BaseIterTable::BaseTable::Traits::NewKey(key);
+      BaseIterTable::InsertKey(entry, BaseIterTable::KeyHandle());
       BaseIterTable::UpdatePayload(entry, 0, value_if_absent);
       return value_if_absent.raw();
     } else {
@@ -610,10 +622,10 @@ class HashSet : public BaseIterTable {
     EnsureCapacity();
     intptr_t entry = -1;
     if (!BaseIterTable::FindKeyOrDeletedOrUnused(key, &entry)) {
-      Object& new_key = Object::Handle(BaseIterTable::isolate(),
-          BaseIterTable::BaseTable::Traits::NewKey(key));
-      BaseIterTable::InsertKey(entry, new_key);
-      return new_key.raw();
+      BaseIterTable::KeyHandle() =
+          BaseIterTable::BaseTable::Traits::NewKey(key);
+      BaseIterTable::InsertKey(entry, BaseIterTable::KeyHandle());
+      return BaseIterTable::KeyHandle().raw();
     } else {
       return BaseIterTable::GetKey(entry);
     }

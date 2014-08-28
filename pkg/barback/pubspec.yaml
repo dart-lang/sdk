@@ -7,7 +7,12 @@ name: barback
 #
 # When the minor or patch version of this is upgraded, you *must* update that
 # version constraint in pub to stay in sync with this.
-version: 0.15.0
+#
+# Additional note: a stable version of pub was erroneously released with a
+# constraint on barback that includes 0.15.1 before version 0.15.1 was actually
+# released. As such, next time the patch version is bumped it should skip 0.15.1
+# and go directly to 0.15.2.
+version: 0.15.0+1
 
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
@@ -26,7 +31,7 @@ dependencies:
   pool: ">=1.0.0 <2.0.0"
   source_span: ">=1.0.0 <2.0.0"
   stack_trace: ">=0.9.1 <2.0.0"
-  collection: ">=0.9.1 <0.10.0"
+  collection: ">=0.9.1 <2.0.0"
 dev_dependencies:
   scheduled_test: ">=0.9.0 <0.11.0"
   unittest: ">=0.9.0 <0.10.0"

@@ -24,9 +24,6 @@ import '../util/util.dart';
 import '../scanner/scannerlib.dart'
     show PartialFunctionElement, Token, PLUS_TOKEN;
 
-import '../elements/visitor.dart'
-    show ElementVisitor;
-
 import '../elements/modelx.dart'
     show ElementX,
          VariableElementX,

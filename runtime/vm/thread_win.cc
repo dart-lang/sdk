@@ -10,6 +10,7 @@
 #include <process.h>  // NOLINT
 
 #include "platform/assert.h"
+#include "vm/isolate.h"
 
 namespace dart {
 
@@ -170,11 +171,19 @@ Mutex::Mutex() {
   if (data_.semaphore_ == NULL) {
     FATAL1("Mutex allocation failed %d", GetLastError());
   }
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  owner_ = NULL;
+#endif  // defined(DEBUG)
 }
 
 
 Mutex::~Mutex() {
   CloseHandle(data_.semaphore_);
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  ASSERT(owner_ == NULL);
+#endif  // defined(DEBUG)
 }
 
 
@@ -183,6 +192,10 @@ void Mutex::Lock() {
   if (result != WAIT_OBJECT_0) {
     FATAL1("Mutex lock failed %d", GetLastError());
   }
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  owner_ = Isolate::Current();
+#endif  // defined(DEBUG)
 }
 
 
@@ -190,6 +203,10 @@ bool Mutex::TryLock() {
   // Attempt to pass the semaphore but return immediately.
   DWORD result = WaitForSingleObject(data_.semaphore_, 0);
   if (result == WAIT_OBJECT_0) {
+    // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+    owner_ = Isolate::Current();
+#endif  // defined(DEBUG)
     return true;
   }
   if (result == WAIT_ABANDONED || result == WAIT_FAILED) {
@@ -201,6 +218,11 @@ bool Mutex::TryLock() {
 
 
 void Mutex::Unlock() {
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  ASSERT(owner_ == Isolate::Current());
+  owner_ = NULL;
+#endif  // defined(DEBUG)
   BOOL result = ReleaseSemaphore(data_.semaphore_, 1, NULL);
   if (result == 0) {
     FATAL1("Mutex unlock failed %d", GetLastError());

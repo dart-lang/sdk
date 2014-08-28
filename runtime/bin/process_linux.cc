@@ -104,12 +104,12 @@ class ProcessInfoList {
   static ProcessInfo* active_processes_;
   // Mutex protecting all accesses to the linked list of active
   // processes.
-  static dart::Mutex* mutex_;
+  static Mutex* mutex_;
 };
 
 
 ProcessInfo* ProcessInfoList::active_processes_ = NULL;
-dart::Mutex* ProcessInfoList::mutex_ = new dart::Mutex();
+Mutex* ProcessInfoList::mutex_ = new Mutex();
 
 
 // The exit code handler sets up a separate thread which waits for child
@@ -132,7 +132,7 @@ class ExitCodeHandler {
     }
 
     // Start thread that handles process exits when wait returns.
-    int result = dart::Thread::Start(ExitCodeHandlerEntry, 0);
+    int result = Thread::Start(ExitCodeHandlerEntry, 0);
     if (result != 0) {
       FATAL1("Failed to start exit code handler worker thread %d", result);
     }
@@ -159,7 +159,7 @@ class ExitCodeHandler {
     monitor_->Notify();
 
     while (!terminate_done_) {
-      monitor_->Wait(dart::Monitor::kNoTimeout);
+      monitor_->Wait(Monitor::kNoTimeout);
     }
   }
 
@@ -173,7 +173,7 @@ class ExitCodeHandler {
       {
         MonitorLocker locker(monitor_);
         while (running_ && process_count_ == 0) {
-          monitor_->Wait(dart::Monitor::kNoTimeout);
+          monitor_->Wait(Monitor::kNoTimeout);
         }
         if (!running_) {
           terminate_done_ = true;
@@ -219,14 +219,14 @@ class ExitCodeHandler {
   static bool terminate_done_;
   static int process_count_;
   static bool running_;
-  static dart::Monitor* monitor_;
+  static Monitor* monitor_;
 };
 
 
 bool ExitCodeHandler::running_ = false;
 int ExitCodeHandler::process_count_ = 0;
 bool ExitCodeHandler::terminate_done_ = false;
-dart::Monitor* ExitCodeHandler::monitor_ = new dart::Monitor();
+Monitor* ExitCodeHandler::monitor_ = new Monitor();
 
 
 static void SetChildOsErrorMessage(char** os_error_message) {

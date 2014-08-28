@@ -1549,6 +1549,11 @@ void Object::PrintJSON(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("type", ref ? "@Null" : "Null");
     jsobj.AddProperty("id", "objects/null");
     jsobj.AddProperty("valueAsString", "null");
+    if (!ref) {
+      const Class& cls = Class::Handle(this->clazz());
+      jsobj.AddProperty("class", cls);
+      jsobj.AddProperty("size", raw()->Size());
+    }
   } else {
     PrintJSONImpl(stream, ref);
   }
@@ -2781,7 +2786,7 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   new_list = Array::New(patch_len + orig_len);
   for (intptr_t i = 0; i < patch_len; i++) {
     field ^= patch_list.At(i);
-    field.set_owner(*this);
+    field.set_owner(patch_class);
     member_name = field.name();
     // TODO(iposva): Verify non-public fields only.
 
@@ -4085,19 +4090,27 @@ const char* Class::ToCString() const {
 }
 
 
+static void AddNameProperties(JSONObject* jsobj,
+                              const String& name,
+                              const String& vm_name) {
+  jsobj->AddProperty("name", name.ToCString());
+  if (!name.Equals(vm_name)) {
+    jsobj->AddProperty("vmName", vm_name.ToCString());
+  }
+}
+
+
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   if ((raw() == Class::null()) || (id() == kFreeListElement)) {
     jsobj.AddProperty("type", "Null");
     return;
   }
-  const char* internal_class_name = String::Handle(Name()).ToCString();
-  const char* pretty_class_name =
-      String::Handle(PrettyName()).ToCString();
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "classes/%" Pd "", id());
-  jsobj.AddProperty("name", internal_class_name);
-  jsobj.AddProperty("user_name", pretty_class_name);
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   if (ref) {
     return;
   }
@@ -4167,22 +4180,13 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
         GrowableObjectArray::Handle(direct_subclasses());
     if (!subclasses.IsNull()) {
       Class& subclass = Class::Handle();
-      if (!subclasses.IsNull()) {
-        for (intptr_t i = 0; i < subclasses.Length(); ++i) {
-          // TODO(turnidge): Use the Type directly once regis has added
-          // types to the vmservice.
-          subclass ^= subclasses.At(i);
-          subclasses_array.AddValue(subclass);
-        }
+      for (intptr_t i = 0; i < subclasses.Length(); ++i) {
+        // TODO(turnidge): Use the Type directly once regis has added
+        // types to the vmservice.
+        subclass ^= subclasses.At(i);
+        subclasses_array.AddValue(subclass);
       }
     }
-  }
-  {
-    JSONObject typesRef(&jsobj, "canonicalTypes");
-    typesRef.AddProperty("type", "@TypeList");
-    typesRef.AddPropertyF("id", "classes/%" Pd "/types", id());
-    jsobj.AddPropertyF("name", "canonical types of %s", internal_class_name);
-    jsobj.AddPropertyF("user_name", "canonical types of %s", pretty_class_name);
   }
   {
     ClassTable* class_table = Isolate::Current()->class_table();
@@ -4442,12 +4446,11 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  const char* name = String::Handle(Name()).ToCString();
-  const char* pretty_name = String::Handle(PrettyName()).ToCString();
-  jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", pretty_name);
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   jsobj.AddProperty("length", Length());
-  jsobj.AddProperty("num_instantiations", NumInstantiations());
+  jsobj.AddProperty("numInstantiations", NumInstantiations());
   if (ref) {
     return;
   }
@@ -5207,21 +5210,6 @@ void Function::set_saved_args_desc(const Array& value) const {
 }
 
 
-RawField* Function::saved_static_field() const {
-  ASSERT(kind() == RawFunction::kStaticInitializer);
-  const Object& obj = Object::Handle(raw_ptr()->data_);
-  ASSERT(obj.IsField());
-  return Field::Cast(obj).raw();
-}
-
-
-void Function::set_saved_static_field(const Field& value) const {
-  ASSERT(kind() == RawFunction::kStaticInitializer);
-  ASSERT(raw_ptr()->data_ == Object::null());
-  set_data(value);
-}
-
-
 RawFunction* Function::parent_function() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);
@@ -5246,7 +5234,6 @@ void Function::set_parent_function(const Function& value) const {
 RawFunction* Function::implicit_closure_function() const {
   if (IsClosureFunction() ||
       IsSignatureFunction() ||
-      IsStaticInitializerFunction() ||
       IsFactory()) {
     return Function::null();
   }
@@ -5339,9 +5326,6 @@ const char* Function::KindToCString(RawFunction::Kind kind) {
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       return "kImplicitStaticFinalGetter";
-      break;
-    case RawFunction::kStaticInitializer:
-      return "kStaticInitializer";
       break;
     case RawFunction::kMethodExtractor:
       return "kMethodExtractor";
@@ -5499,8 +5483,10 @@ void Function::set_is_intrinsic(bool value) const {
 }
 
 
-void Function::set_is_recognized(bool value) const {
-  set_kind_tag(RecognizedBit::update(value, raw_ptr()->kind_tag_));
+void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
+  // Prevent multiple settings of kind.
+  ASSERT((value == MethodRecognizer::kUnknown) || !IsRecognized());
+  set_kind_tag(RecognizedBits::update(value, raw_ptr()->kind_tag_));
 }
 
 
@@ -5526,7 +5512,8 @@ void Function::set_is_external(bool value) const {
 
 void Function::set_is_async_closure(bool value) const {
   set_kind_tag(AsyncClosureBit::update(value, raw_ptr()->kind_tag_));
-  set_is_optimizable(false);
+  // Prohibit inlining as the closure is used for implementing a continuation.
+  set_is_inlinable(false);
 }
 
 
@@ -5830,10 +5817,19 @@ bool Function::AreValidArguments(const ArgumentsDescriptor& args_desc,
 // name of a function in it, and replacing ':' by '_' to make sure the
 // constructed name is a valid C++ identifier for debugging purpose.
 // Set 'chars' to allocated buffer and return number of written characters.
-static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
-                                                       char** chars,
-                                                       intptr_t reserve_len,
-                                                       bool with_lib) {
+
+enum QualifiedFunctionLibKind {
+  kQualifiedFunctionLibKindLibUrl,
+  kQualifiedFunctionLibKindLibName
+};
+
+
+static intptr_t ConstructFunctionFullyQualifiedCString(
+    const Function& function,
+    char** chars,
+    intptr_t reserve_len,
+    bool with_lib,
+    QualifiedFunctionLibKind lib_kind) {
   const char* name = String::Handle(function.name()).ToCString();
   const char* function_format = (reserve_len == 0) ? "%s" : "%s_";
   reserve_len += OS::SNPrint(NULL, 0, function_format, name);
@@ -5849,7 +5845,16 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     const char* library_name = NULL;
     const char* lib_class_format = NULL;
     if (with_lib) {
-      library_name = String::Handle(library.url()).ToCString();
+      switch (lib_kind) {
+        case kQualifiedFunctionLibKindLibUrl:
+          library_name = String::Handle(library.url()).ToCString();
+          break;
+        case kQualifiedFunctionLibKindLibName:
+          library_name = String::Handle(library.name()).ToCString();
+          break;
+        default:
+          UNREACHABLE();
+      }
       ASSERT(library_name != NULL);
       lib_class_format = (library_name[0] == '\0') ? "%s%s_" : "%s_%s_";
     } else {
@@ -5866,7 +5871,8 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     written = ConstructFunctionFullyQualifiedCString(parent,
                                                      chars,
                                                      reserve_len,
-                                                     with_lib);
+                                                     with_lib,
+                                                     lib_kind);
   }
   ASSERT(*chars != NULL);
   char* next = *chars + written;
@@ -5883,14 +5889,24 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
 
 const char* Function::ToFullyQualifiedCString() const {
   char* chars = NULL;
-  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true);
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true,
+                                         kQualifiedFunctionLibKindLibUrl);
+  return chars;
+}
+
+
+const char* Function::ToLibNamePrefixedQualifiedCString() const {
+  char* chars = NULL;
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, true,
+                                         kQualifiedFunctionLibKindLibName);
   return chars;
 }
 
 
 const char* Function::ToQualifiedCString() const {
   char* chars = NULL;
-  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, false);
+  ConstructFunctionFullyQualifiedCString(*this, &chars, 0, false,
+                                         kQualifiedFunctionLibKindLibUrl);
   return chars;
 }
 
@@ -6127,6 +6143,7 @@ RawFunction* Function::New(const String& name,
   result.set_parameter_names(Object::empty_array());
   result.set_name(name);
   result.set_kind(kind);
+  result.set_recognized_kind(MethodRecognizer::kUnknown);
   result.set_modifier(RawFunction::kNoModifier);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
@@ -6135,9 +6152,10 @@ RawFunction* Function::New(const String& name,
   result.set_is_native(is_native);
   result.set_is_visible(true);  // Will be computed later.
   result.set_is_intrinsic(false);
-  result.set_is_recognized(false);
   result.set_is_redirecting(false);
   result.set_is_async_closure(false);
+  result.set_always_inline(false);
+  result.set_is_polymorphic_target(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
@@ -6633,7 +6651,7 @@ void Function::RestoreICDataMap(
   const Array& saved_icd = Array::Handle(isolate, ic_data_array());
   if (saved_icd.Length() == 0) {
     deopt_id_to_ic_data->Clear();
-    return;;
+    return;
   }
   ICData& icd = ICData::Handle();
   icd ^= saved_icd.At(saved_icd.Length() - 1);
@@ -6687,36 +6705,6 @@ bool Function::CheckSourceFingerprint(int32_t fp) const {
 }
 
 
-RawFunction* Function::NewStaticInitializer(const Field& field) {
-  ASSERT(field.is_static());
-  const String& field_name = String::Handle(field.name());
-  const String& init_name =
-      String::Handle(Symbols::New(String::Handle(
-          String::Concat(Symbols::InitPrefix(), field_name))));
-  const Function& init_function = Function::ZoneHandle(
-      Function::New(init_name,
-                    RawFunction::kStaticInitializer,
-                    true,  // static
-                    false,  // !const
-                    false,  // !abstract
-                    false,  // !external
-                    false,  // !native
-                    Class::Handle(field.owner()),
-                    field.token_pos()));
-  init_function.set_result_type(AbstractType::Handle(field.type()));
-  // Static initializer functions are generated by the VM and are therfore
-  // hidden from the user. Since they are only executed once, we avoid
-  // optimizing and inlining them. After the field is initialized, the
-  // optimizing compiler can eliminate the call to the static initializer
-  // via constant folding.
-  init_function.set_is_visible(false);
-  init_function.SetIsOptimizable(false);
-  init_function.set_is_inlinable(false);
-  init_function.set_saved_static_field(field);
-  return init_function.raw();
-}
-
-
 const char* Function::ToCString() const {
   const char* static_str = is_static() ? " static" : "";
   const char* abstract_str = is_abstract() ? " abstract" : "";
@@ -6740,9 +6728,6 @@ const char* Function::ToCString() const {
       break;
     case RawFunction::kImplicitSetter:
       kind_str = " setter";
-      break;
-    case RawFunction::kStaticInitializer:
-      kind_str = " static-initializer";
       break;
     case RawFunction::kImplicitStaticFinalGetter:
       kind_str = " static-final-getter";
@@ -6770,45 +6755,54 @@ const char* Function::ToCString() const {
 }
 
 
+const char* GetFunctionServiceId(const Function& f, const Class& cls) {
+  Zone* zone = Isolate::Current()->current_zone();
+  // Special kinds of functions use indices in their respective lists.
+  intptr_t id = -1;
+  const char* selector = NULL;
+  if (f.IsNonImplicitClosureFunction()) {
+    id = cls.FindClosureIndex(f);
+    selector = "closures";
+  } else if (f.IsImplicitClosureFunction()) {
+    id = cls.FindImplicitClosureFunctionIndex(f);
+    selector = "implicit_closures";
+  } else if (f.IsNoSuchMethodDispatcher() || f.IsInvokeFieldDispatcher()) {
+    id = cls.FindInvocationDispatcherFunctionIndex(f);
+    selector = "dispatchers";
+  }
+  if (id != -1) {
+    ASSERT(selector != NULL);
+    return zone->PrintToString("classes/%" Pd "/%s/%" Pd "",
+                               cls.id(), selector, id);
+  }
+  // Regular functions known to their owner use their name (percent-encoded).
+  String& name = String::Handle(f.name());
+  if (cls.LookupFunction(name) == f.raw()) {
+    name = String::EncodeIRI(name);
+    return zone->PrintToString("classes/%" Pd "/functions/%s",
+                               cls.id(), name.ToCString());
+  }
+  // Oddball functions (not known to their owner) fall back to use the object
+  // id ring. Current known examples are signature functions of closures
+  // and stubs like 'megamorphic_miss'.
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  id = ring->GetIdForObject(f.raw());
+  return zone->PrintToString("objects/%" Pd "", id);
+}
+
+
 void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  const char* internal_name = String::Handle(name()).ToCString();
-  const char* pretty_name =
-      String::Handle(PrettyName()).ToCString();
   Class& cls = Class::Handle(Owner());
   ASSERT(!cls.IsNull());
   Error& err = Error::Handle();
   err ^= cls.EnsureIsFinalized(Isolate::Current());
   ASSERT(err.IsNull());
-  intptr_t id = -1;
-  const char* selector = NULL;
-  if (IsNonImplicitClosureFunction()) {
-    id = cls.FindClosureIndex(*this);
-    selector = "closures";
-  } else if (IsImplicitClosureFunction()) {
-    id = cls.FindImplicitClosureFunctionIndex(*this);
-    selector = "implicit_closures";
-  } else if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher()) {
-    id = cls.FindInvocationDispatcherFunctionIndex(*this);
-    selector = "dispatchers";
-  } else {
-    id = cls.FindFunctionIndex(*this);
-    selector = "functions";
-  }
-  intptr_t cid = cls.id();
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
-  // TODO(17697): Oddball functions (functions without owners) use the object
-  // id ring. Current known examples are signature functions of closures
-  // and stubs like 'megamorphic_miss'.
-  if (id < 0) {
-    ObjectIdRing* ring = Isolate::Current()->object_id_ring();
-    id = ring->GetIdForObject(raw());
-    jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  } else {
-    jsobj.AddPropertyF("id", "classes/%" Pd "/%s/%" Pd "", cid, selector, id);
-  }
-  jsobj.AddProperty("name", internal_name);
-  jsobj.AddProperty("user_name", pretty_name);
+  jsobj.AddProperty("id", GetFunctionServiceId(*this, cls));
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   if (cls.IsTopLevel()) {
     const Library& library = Library::Handle(cls.library());
     jsobj.AddProperty("owningLibrary", library);
@@ -6824,13 +6818,13 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("is_static", is_static());
-  jsobj.AddProperty("is_const", is_const());
-  jsobj.AddProperty("is_optimizable", is_optimizable());
-  jsobj.AddProperty("is_inlinable", IsInlineable());
-  jsobj.AddProperty("unoptimized_code", Object::Handle(unoptimized_code()));
-  jsobj.AddProperty("usage_counter", usage_counter());
-  jsobj.AddProperty("optimized_call_site_count", optimized_call_site_count());
+  jsobj.AddProperty("static", is_static());
+  jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("optimizable", is_optimizable());
+  jsobj.AddProperty("inlinable", IsInlineable());
+  jsobj.AddProperty("unoptimizedCode", Object::Handle(unoptimized_code()));
+  jsobj.AddProperty("usageCounter", usage_counter());
+  jsobj.AddProperty("optimizedCallSiteCount", optimized_call_site_count());
   jsobj.AddProperty("code", Object::Handle(CurrentCode()));
   jsobj.AddProperty("deoptimizations",
                     static_cast<intptr_t>(deoptimization_counter()));
@@ -7146,16 +7140,15 @@ const char* Field::ToCString() const {
 
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  const char* internal_field_name = String::Handle(name()).ToCString();
-  const char* field_name = String::Handle(PrettyName()).ToCString();
   Class& cls = Class::Handle(owner());
   intptr_t id = cls.FindFieldIndex(*this);
   ASSERT(id >= 0);
   intptr_t cid = cls.id();
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "classes/%" Pd "/fields/%" Pd "", cid, id);
-  jsobj.AddProperty("name", internal_field_name);
-  jsobj.AddProperty("user_name", field_name);
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   if (is_static()) {
     const Instance& valueObj = Instance::Handle(value());
     jsobj.AddProperty("value", valueObj);
@@ -7169,36 +7162,36 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   AbstractType& declared_type = AbstractType::Handle(type());
-  jsobj.AddProperty("declared_type", declared_type);
+  jsobj.AddProperty("declaredType", declared_type);
   jsobj.AddProperty("static", is_static());
   jsobj.AddProperty("final", is_final());
   jsobj.AddProperty("const", is_const());
   if (ref) {
     return;
   }
-  jsobj.AddProperty("guard_nullable", is_nullable());
+  jsobj.AddProperty("guardNullable", is_nullable());
   if (guarded_cid() == kIllegalCid) {
-    jsobj.AddProperty("guard_class", "unknown");
+    jsobj.AddProperty("guardClass", "unknown");
   } else if (guarded_cid() == kDynamicCid) {
-    jsobj.AddProperty("guard_class", "dynamic");
+    jsobj.AddProperty("guardClass", "dynamic");
   } else {
     ClassTable* table = Isolate::Current()->class_table();
     ASSERT(table->IsValidIndex(guarded_cid()));
     cls ^= table->At(guarded_cid());
-    jsobj.AddProperty("guard_class", cls);
+    jsobj.AddProperty("guardClass", cls);
   }
   if (guarded_list_length() == kUnknownFixedLength) {
-    jsobj.AddProperty("guard_length", "unknown");
+    jsobj.AddProperty("guardLength", "unknown");
   } else if (guarded_list_length() == kNoFixedLength) {
-    jsobj.AddProperty("guard_length", "variable");
+    jsobj.AddProperty("guardLength", "variable");
   } else {
-    jsobj.AddProperty("guard_length", guarded_list_length());
+    jsobj.AddProperty("guardLength", guarded_list_length());
   }
   const Class& origin_cls = Class::Handle(origin());
   const Script& script = Script::Handle(origin_cls.script());
   if (!script.IsNull()) {
     jsobj.AddProperty("script", script);
-    jsobj.AddProperty("token_pos", token_pos());
+    jsobj.AddProperty("tokenPos", token_pos());
   }
 }
 
@@ -7265,6 +7258,33 @@ bool Field::IsUninitialized() const {
   const Instance& value = Instance::Handle(raw_ptr()->value_);
   ASSERT(value.raw() != Object::transition_sentinel().raw());
   return value.raw() == Object::sentinel().raw();
+}
+
+
+void Field::EvaluateInitializer() const {
+  ASSERT(is_static());
+  if (value() == Object::sentinel().raw()) {
+    set_value(Object::transition_sentinel());
+    Object& value = Object::Handle(Compiler::EvaluateStaticInitializer(*this));
+    if (value.IsError()) {
+      set_value(Object::null_instance());
+      Exceptions::PropagateError(Error::Cast(value));
+      UNREACHABLE();
+    }
+    ASSERT(value.IsNull() || value.IsInstance());
+    set_value(value.IsNull() ? Instance::null_instance()
+                             : Instance::Cast(value));
+    return;
+  } else if (value() == Object::transition_sentinel().raw()) {
+    set_value(Object::null_instance());
+    const Array& ctor_args = Array::Handle(Array::New(1));
+    const String& field_name = String::Handle(name());
+    ctor_args.SetAt(0, field_name);
+    Exceptions::ThrowByType(Exceptions::kCyclicInitializationError, ctor_args);
+    UNREACHABLE();
+    return;
+  }
+  UNREACHABLE();
 }
 
 
@@ -7732,11 +7752,13 @@ RawTokenStream* TokenStream::New(intptr_t len) {
   }
   uint8_t* data = reinterpret_cast<uint8_t*>(::malloc(len));
   ASSERT(data != NULL);
+  Isolate* isolate = Isolate::Current();
   const ExternalTypedData& stream = ExternalTypedData::Handle(
+      isolate,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data, len, Heap::kOld));
   stream.AddFinalizer(data, DataFinalizer);
-  const TokenStream& result = TokenStream::Handle(TokenStream::New());
+  const TokenStream& result = TokenStream::Handle(isolate, TokenStream::New());
   result.SetStream(stream);
   return result.raw();
 }
@@ -8452,12 +8474,11 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "libraries/%" Pd "/scripts/%s",
       lib_index, encoded_url.ToCString());
   jsobj.AddProperty("name", name.ToCString());
-  jsobj.AddProperty("user_name", name.ToCString());
   jsobj.AddProperty("kind", GetKindAsCString());
   if (ref) {
     return;
   }
-  jsobj.AddProperty("owning_library", lib);
+  jsobj.AddProperty("owningLibrary", lib);
   const String& source = String::Handle(Source());
   jsobj.AddProperty("source", source.ToCString());
 
@@ -9738,7 +9759,6 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
-  jsobj.AddProperty("user_name", library_name);
   jsobj.AddProperty("name", library_name);
   const char* library_url = String::Handle(url()).ToCString();
   jsobj.AddProperty("url", library_url);
@@ -10333,7 +10353,7 @@ void Library::CheckFunctionFingerprints() {
 
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  RECOGNIZED_LIST(CHECK_FINGERPRINTS);
+  OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
   POLYMORPHIC_TARGET_LIST(CHECK_FINGERPRINTS);
 
@@ -10344,6 +10364,10 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Clear();
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   TYPED_DATA_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+
+  all_libs.Clear();
+  all_libs.Add(&Library::ZoneHandle(Library::ProfilerLibrary()));
+  PROFILER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
 #undef CHECK_FINGERPRINTS
 
@@ -11292,6 +11316,22 @@ intptr_t ICData::NumberOfChecks() const {
 }
 
 
+// Discounts any checks with usage of zero.
+intptr_t ICData::NumberOfUsedChecks() const {
+  intptr_t n = NumberOfChecks();
+  if (n == 0) {
+    return 0;
+  }
+  intptr_t count = 0;
+  for (intptr_t i = 0; i < n; i++) {
+    if (GetCountAt(i) > 0) {
+      count++;
+    }
+  }
+  return count;
+}
+
+
 void ICData::WriteSentinel(const Array& data) const {
   ASSERT(!data.IsNull());
   for (intptr_t i = 1; i <= TestEntryLength(); i++) {
@@ -11329,14 +11369,18 @@ void ICData::AddTarget(const Function& target) const {
   ASSERT(!target.IsNull());
   if (NumArgsTested() > 0) {
     // Create a fake cid entry, so that we can store the target.
-    GrowableArray<intptr_t> class_ids(NumArgsTested());
-    for (intptr_t i = 0; i < NumArgsTested(); i++) {
-      class_ids.Add(kObjectCid);
+    if (NumArgsTested() == 1) {
+      AddReceiverCheck(kObjectCid, target, 1);
+    } else {
+      GrowableArray<intptr_t> class_ids(NumArgsTested());
+      for (intptr_t i = 0; i < NumArgsTested(); i++) {
+        class_ids.Add(kObjectCid);
+      }
+      AddCheck(class_ids, target);
     }
-    AddCheck(class_ids, target);
     return;
   }
-  ASSERT(NumArgsTested() >= 0);
+  ASSERT(NumArgsTested() == 0);
   // Can add only once.
   const intptr_t old_num = NumberOfChecks();
   ASSERT(old_num == 0);
@@ -11348,6 +11392,8 @@ void ICData::AddTarget(const Function& target) const {
   intptr_t data_pos = old_num * TestEntryLength();
   ASSERT(!target.IsNull());
   data.SetAt(data_pos++, target);
+  // Set count to 0 as this is called during compilation, before the
+  // call has been executed.
   const Smi& value = Smi::Handle(Smi::New(0));
   data.SetAt(data_pos, value);
 }
@@ -11356,6 +11402,7 @@ void ICData::AddTarget(const Function& target) const {
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
   ASSERT(!target.IsNull());
+  ASSERT(target.name() == target_name());
   DEBUG_ASSERT(!HasCheck(class_ids));
   ASSERT(NumArgsTested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == NumArgsTested());
@@ -11567,6 +11614,9 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);
     const intptr_t count = GetCountAt(i);
+    if (count == 0) {
+      continue;
+    }
     intptr_t duplicate_class_id = -1;
     const intptr_t result_len = result.NumberOfChecks();
     for (intptr_t k = 0; k < result_len; k++) {
@@ -11599,9 +11649,11 @@ bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
   Class& cls = Class::Handle();
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    cls = Function::Handle(GetTargetAt(i)).Owner();
-    if (cls.id() != owner_cid) {
-      return false;
+    if (IsUsedAt(i)) {
+      cls = Function::Handle(GetTargetAt(i)).Owner();
+      if (cls.id() != owner_cid) {
+        return false;
+      }
     }
   }
   return true;
@@ -11613,13 +11665,15 @@ bool ICData::AllReceiversAreNumbers() const {
   Class& cls = Class::Handle();
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    cls = Function::Handle(GetTargetAt(i)).Owner();
-    const intptr_t cid = cls.id();
-    if ((cid != kSmiCid) &&
-        (cid != kMintCid) &&
-        (cid != kBigintCid) &&
-        (cid != kDoubleCid)) {
-      return false;
+    if (IsUsedAt(i)) {
+      cls = Function::Handle(GetTargetAt(i)).Owner();
+      const intptr_t cid = cls.id();
+      if ((cid != kSmiCid) &&
+          (cid != kMintCid) &&
+          (cid != kBigintCid) &&
+          (cid != kDoubleCid)) {
+        return false;
+      }
     }
   }
   return true;
@@ -11630,9 +11684,11 @@ bool ICData::HasReceiverClassId(intptr_t class_id) const {
   ASSERT(NumArgsTested() > 0);
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
-    const intptr_t test_class_id = GetReceiverClassIdAt(i);
-    if (test_class_id == class_id) {
-      return true;
+    if (IsUsedAt(i)) {
+      const intptr_t test_class_id = GetReceiverClassIdAt(i);
+      if (test_class_id == class_id) {
+        return true;
+      }
     }
   }
   return false;
@@ -11646,9 +11702,45 @@ bool ICData::HasOneTarget() const {
   const Function& first_target = Function::Handle(GetTargetAt(0));
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 1; i < len; i++) {
-    if (GetTargetAt(i) != first_target.raw()) {
+    if (IsUsedAt(i) && (GetTargetAt(i) != first_target.raw())) {
       return false;
     }
+  }
+  return true;
+}
+
+
+void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
+                                   GrowableArray<intptr_t>* second) const {
+  ASSERT(NumArgsTested() == 2);
+  first->Clear();
+  second->Clear();
+  Function& target = Function::Handle();
+  GrowableArray<intptr_t> class_ids;
+  const intptr_t len = NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    if (GetCountAt(i) > 0) {
+      GetCheckAt(i, &class_ids, &target);
+      ASSERT(class_ids.length() == 2);
+      first->Add(class_ids[0]);
+      second->Add(class_ids[1]);
+    }
+  }
+}
+
+
+bool ICData::IsUsedAt(intptr_t i) const {
+  if (GetCountAt(i) <= 0) {
+    // Do not mistake unoptimized static call ICData for unused.
+    // See ICData::AddTarget.
+    // TODO(srdjan): Make this test more robust.
+    if (NumArgsTested() > 0) {
+      const intptr_t cid = GetReceiverClassIdAt(i);
+      if (cid == kObjectCid) {
+        return true;
+      }
+    }
+    return false;
   }
   return true;
 }
@@ -12022,9 +12114,10 @@ RawCode* Code::FinalizeCode(const char* name,
 RawCode* Code::FinalizeCode(const Function& function,
                             Assembler* assembler,
                             bool optimized) {
-  // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
+  // Calling ToLibNamePrefixedQualifiedCString is very expensive,
+  // try to avoid it.
   if (CodeObservers::AreActive()) {
-    return FinalizeCode(function.ToFullyQualifiedCString(),
+    return FinalizeCode(function.ToLibNamePrefixedQualifiedCString(),
                         assembler,
                         optimized);
   } else {
@@ -12182,13 +12275,12 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
                      EntryPoint());
   jsobj.AddPropertyF("start", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("end", "%" Px "", EntryPoint() + Size());
-  jsobj.AddProperty("isOptimized", is_optimized());
-  jsobj.AddProperty("isAlive", is_alive());
+  jsobj.AddProperty("optimized", is_optimized());
+  jsobj.AddProperty("alive", is_alive());
   jsobj.AddProperty("kind", "Dart");
-  const String& name = String::Handle(Name());
-  const String& pretty_name = String::Handle(PrettyName());
-  jsobj.AddProperty("name", name.ToCString());
-  jsobj.AddProperty("user_name", pretty_name.ToCString());
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
     jsobj.AddProperty("function", obj);
@@ -12198,14 +12290,14 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     func.AddProperty("type", "@Function");
     func.AddProperty("kind", "Stub");
     func.AddPropertyF("id", "functions/stub-%" Pd "", EntryPoint());
-    func.AddProperty("user_name", pretty_name.ToCString());
-    func.AddProperty("name", name.ToCString());
+    func.AddProperty("name", user_name.ToCString());
+    AddNameProperties(&func, user_name, vm_name);
   }
   if (ref) {
     return;
   }
   const Array& array = Array::Handle(ObjectPool());
-  jsobj.AddProperty("object_pool", array);
+  jsobj.AddProperty("objectPool", array);
   {
     JSONArray jsarr(&jsobj, "disassembly");
     if (is_alive()) {
@@ -14588,20 +14680,19 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
     ASSERT(id >= 0);
     intptr_t cid = type_cls.id();
     jsobj.AddPropertyF("id", "classes/%" Pd "/types/%" Pd "", cid, id);
-    jsobj.AddProperty("type_class", type_cls);
+    jsobj.AddProperty("typeClass", type_cls);
   } else {
     ObjectIdRing* ring = Isolate::Current()->object_id_ring();
     const intptr_t id = ring->GetIdForObject(raw());
     jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   }
-  const char* name = String::Handle(Name()).ToCString();
-  const char* pretty_name = String::Handle(PrettyName()).ToCString();
-  jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", pretty_name);
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   if (ref) {
     return;
   }
-  jsobj.AddProperty("type_arguments", TypeArguments::Handle(arguments()));
+  jsobj.AddProperty("typeArguments", TypeArguments::Handle(arguments()));
 }
 
 
@@ -14758,14 +14849,13 @@ void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  const char* name = String::Handle(Name()).ToCString();
-  const char* pretty_name = String::Handle(PrettyName()).ToCString();
-  jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", pretty_name);
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   if (ref) {
     return;
   }
-  jsobj.AddProperty("ref_type", AbstractType::Handle(type()));
+  jsobj.AddProperty("refType", AbstractType::Handle(type()));
 }
 
 
@@ -14975,18 +15065,17 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  const char* name = String::Handle(Name()).ToCString();
-  const char* pretty_name = String::Handle(PrettyName()).ToCString();
-  jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", pretty_name);
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   const Class& param_cls = Class::Handle(parameterized_class());
-  jsobj.AddProperty("parameterized_class", param_cls);
+  jsobj.AddProperty("parameterizedClass", param_cls);
   if (ref) {
     return;
   }
   jsobj.AddProperty("index", index());
   const AbstractType& upper_bound = AbstractType::Handle(bound());
-  jsobj.AddProperty("upper_bound", upper_bound);
+  jsobj.AddProperty("upperBound", upper_bound);
 }
 
 
@@ -15179,15 +15268,14 @@ void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ObjectIdRing* ring = Isolate::Current()->object_id_ring();
   const intptr_t id = ring->GetIdForObject(raw());
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
-  const char* name = String::Handle(Name()).ToCString();
-  const char* pretty_name = String::Handle(PrettyName()).ToCString();
-  jsobj.AddProperty("name", name);
-  jsobj.AddProperty("user_name", pretty_name);
+  const String& user_name = String::Handle(PrettyName());
+  const String& vm_name = String::Handle(Name());
+  AddNameProperties(&jsobj, user_name, vm_name);
   if (ref) {
     return;
   }
-  jsobj.AddProperty("bounded_type", AbstractType::Handle(type()));
-  jsobj.AddProperty("upper_bound", AbstractType::Handle(bound()));
+  jsobj.AddProperty("boundedType", AbstractType::Handle(type()));
+  jsobj.AddProperty("upperBound", AbstractType::Handle(bound()));
 }
 
 
@@ -15943,6 +16031,21 @@ RawDouble* Double::NewCanonical(const String& str) {
     return Double::Handle().raw();
   }
   return NewCanonical(double_value);
+}
+
+
+RawString* Number::ToString(Heap::Space space) const {
+  // Refactoring can avoid Zone::Alloc and strlen, but gains are insignificant.
+  const char* cstr = ToCString();
+  intptr_t len = strlen(cstr);
+  // Resulting string is ASCII ...
+#ifdef DEBUG
+  for (intptr_t i = 0; i < len; ++i) {
+    ASSERT(static_cast<uint8_t>(cstr[i]) < 128);
+  }
+#endif  // DEBUG
+  // ... which is a subset of Latin-1.
+  return String::FromLatin1(reinterpret_cast<const uint8_t*>(cstr), len, space);
 }
 
 
@@ -17907,7 +18010,7 @@ void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", JSONType(ref));
   jsobj.AddPropertyF("id", "objects/bool-%s", str);
-  class Class& cls = Class::Handle(this->clazz());
+  const Class& cls = Class::Handle(this->clazz());
   jsobj.AddProperty("class", cls);
   jsobj.AddPropertyF("valueAsString", "%s", str);
 }
@@ -18806,7 +18909,9 @@ void Capability::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-RawReceivePort* ReceivePort::New(Dart_Port id, Heap::Space space) {
+RawReceivePort* ReceivePort::New(Dart_Port id,
+                                 bool is_control_port,
+                                 Heap::Space space) {
   Isolate* isolate = Isolate::Current();
   const SendPort& send_port = SendPort::Handle(isolate, SendPort::New(id));
 
@@ -18819,7 +18924,11 @@ RawReceivePort* ReceivePort::New(Dart_Port id, Heap::Space space) {
     result ^= raw;
     result.raw_ptr()->send_port_ = send_port.raw();
   }
-  PortMap::SetLive(id);
+  if (is_control_port) {
+    PortMap::SetPortState(id, PortMap::kControlPort);
+  } else {
+    PortMap::SetPortState(id, PortMap::kLivePort);
+  }
   return result.raw();
 }
 

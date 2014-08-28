@@ -201,6 +201,8 @@ def main():
     status = ProcessBot(name, 'functional_testing')
   elif name.startswith('version-checker'):
     status = ProcessBot(name, 'version_checker')
+  elif name.startswith('dart2js-dump-info'):
+    status = ProcessBot(name, 'dart2js_dump_info')
   else:
     status = ProcessBot(name, 'compiler')
 

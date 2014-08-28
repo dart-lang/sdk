@@ -29,9 +29,14 @@ class AstPrinter : public AstNodeVisitor {
   AstPrinter();
   ~AstPrinter();
 
+  static const int kScopeIndent = 2;
+
   static void PrintLocalScopeVariable(const LocalScope* scope,
-                                      LocalVariable* var);
-  static void PrintLocalScope(const LocalScope* scope, int variable_index);
+                                      LocalVariable* var,
+                                      int indent = 0);
+  static void PrintLocalScope(const LocalScope* scope,
+                              int variable_index,
+                              int indent = 0);
 
   void VisitGenericAstNode(AstNode* node);
   void VisitGenericLocalNode(AstNode* node, const LocalVariable& local);

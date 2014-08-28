@@ -4,16 +4,12 @@
 
 library test.search.top_level_declarations;
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/search/search_result.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_search_domain.dart';
 import 'dart:async';
-import 'package:analysis_server/src/computer/element.dart';
 
 
 main() {
@@ -26,10 +22,11 @@ main() {
 class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
   Future findTopLevelDeclarations(String pattern) {
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', SEARCH_FIND_TOP_LEVEL_DECLARATIONS);
-      request.setParameter(PATTERN, pattern);
+      Request request = new SearchFindTopLevelDeclarationsParams(
+          pattern).toRequest('0');
       Response response = handleSuccessfulRequest(request);
-      searchId = response.getResult(ID);
+      searchId = new SearchFindTopLevelDeclarationsResult.fromResponse(
+          response).id;
       results.clear();
       return waitForSearchResults();
     });

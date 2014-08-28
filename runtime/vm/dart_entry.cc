@@ -38,6 +38,32 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 }
 
 
+class ScopedIsolateStackLimits : public ValueObject {
+ public:
+  explicit ScopedIsolateStackLimits(Isolate* isolate)
+      : isolate_(isolate) {
+    ASSERT(isolate_ != NULL);
+    ASSERT(isolate_ == Isolate::Current());
+    uword stack_base = reinterpret_cast<uword>(this);
+    if (stack_base >= isolate_->stack_base()) {
+      isolate_->SetStackLimitFromStackBase(stack_base);
+    }
+  }
+
+  ~ScopedIsolateStackLimits() {
+    ASSERT(isolate_ == Isolate::Current());
+    uword stack_base = reinterpret_cast<uword>(this);
+    if (isolate_->stack_base() == stack_base) {
+      // Bottomed out.
+      isolate_->ClearStackLimit();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+};
+
+
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments,
                                      const Array& arguments_descriptor,
@@ -59,6 +85,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   const Code& code = Code::Handle(isolate, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
+  ScopedIsolateStackLimits stack_limit(isolate);
 #if defined(USING_SIMULATOR)
 #if defined(ARCH_IS_64_BIT)
   // TODO(zra): Change to intptr_t so we have only one case.

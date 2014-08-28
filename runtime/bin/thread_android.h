@@ -15,6 +15,7 @@
 #include "platform/globals.h"
 
 namespace dart {
+namespace bin {
 
 typedef pthread_key_t ThreadLocalKey;
 typedef pthread_t ThreadId;
@@ -70,6 +71,7 @@ class MonitorData {
   DISALLOW_COPY_AND_ASSIGN(MonitorData);
 };
 
+}  // namespace bin
 }  // namespace dart
 
 #endif  // BIN_THREAD_ANDROID_H_

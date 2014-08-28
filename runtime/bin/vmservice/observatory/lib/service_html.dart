@@ -7,6 +7,7 @@ library service_html;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
+import 'dart:typed_data';
 
 import 'package:observatory/service_common.dart';
 
@@ -36,6 +37,14 @@ class _HtmlWebSocket implements CommonWebSocket {
   
   void close() {
     _webSocket.close();
+  }
+  
+  Future<ByteData> nonStringToByteData(dynamic data) {
+    assert(data is Blob);
+    FileReader fileReader = new FileReader();
+    fileReader.readAsArrayBuffer(data);
+    return fileReader.onLoadEnd.first.then((e)
+        => new ByteData.view(fileReader.result));
   }
 }
 

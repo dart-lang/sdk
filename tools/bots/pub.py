@@ -50,6 +50,8 @@ def PubSteps(build_info):
   # There are a number of big/integration tests in pkg, run with bigger timeout
   common_args.append('--timeout=120')
 
+  if build_info.system == 'windows':
+    common_args.append('-j1')
   opt_threshold = '--vm-options=--optimization-counter-threshold=5'
   if build_info.mode == 'release':
     bot.RunTest('pub and pkg ', build_info,
@@ -80,8 +82,6 @@ def PubSteps(build_info):
     # Experiment with not running concurrent calls.
     public_args = (common_args +
                    ['--append_logs', '--use-public-packages', 'pkgbuild'])
-    if build_info.system == 'windows':
-      public_args.append('-j1')
     bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info, public_args)
 
 if __name__ == '__main__':

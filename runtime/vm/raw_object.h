@@ -72,7 +72,7 @@ namespace dart {
     V(JSRegExp)                                                                \
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
-    V(LinkedHashMap)                                                         \
+    V(LinkedHashMap)                                                           \
     V(UserTag)                                                                 \
 
 #define CLASS_LIST_ARRAYS(V)                                                   \
@@ -292,18 +292,30 @@ class RawObject {
     uword value = reinterpret_cast<uword>(this);
     return (value & kSmiTagMask) == kHeapObjectTag;
   }
-
+  // Assumes this is a heap object.
   bool IsNewObject() const {
     ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kNewObjectAlignmentOffset;
   }
+  // Assumes this is a heap object.
   bool IsOldObject() const {
     ASSERT(IsHeapObject());
     uword addr = reinterpret_cast<uword>(this);
     return (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
   }
+  // Assumes this is a heap object.
   bool IsVMHeapObject() const;
+
+  // Like !IsHeapObject() || IsOldObject(), but compiles to a single branch.
+  bool IsSmiOrOldObject() const {
+    COMPILE_ASSERT(kHeapObjectTag == 1);
+    COMPILE_ASSERT(kNewObjectAlignmentOffset == kWordSize);
+    static const uword kNewObjectBits =
+        (kNewObjectAlignmentOffset | kHeapObjectTag);
+    const uword addr = reinterpret_cast<uword>(this);
+    return (addr & kNewObjectBits) != kNewObjectBits;
+  }
 
   // Support for GC marking bit.
   bool IsMarked() const {
@@ -610,7 +622,6 @@ class RawFunction : public RawObject {
     kImplicitSetter,     // represents an implicit setter for fields.
     kImplicitStaticFinalGetter,  // represents an implicit getter for static
                                  // final fields (incl. static const fields).
-    kStaticInitializer,  // used in implicit static getters.
     kMethodExtractor,  // converts method into implicit closure on the receiver.
     kNoSuchMethodDispatcher,  // invokes noSuchMethod.
     kInvokeFieldDispatcher,  // invokes a field as a closure.
@@ -970,6 +981,14 @@ class RawPcDescriptors : public RawObject {
     int32_t deopt_id_and_kind_;  // Bits 31..8 -> deopt_id, bits 7..0 kind.
     int32_t token_pos_;  // Bits 31..1 -> token_pos, bit 1 -> compressed flag;
     int16_t try_index_;
+  };
+
+  // This structure is only used to compute what the size of PcDescriptorRec
+  // should be when the try_index_ field is omitted.
+  struct CompressedPcDescriptorRec {
+    uword pc_;
+    int32_t deopt_id_and_kind_;
+    int32_t token_pos_;
   };
 
   static intptr_t RecordSize(bool has_try_index);
@@ -1619,6 +1638,7 @@ class RawTypedData : public RawInstance {
   friend class Api;
   friend class Object;
   friend class Instance;
+  friend class SnapshotReader;
 };
 
 

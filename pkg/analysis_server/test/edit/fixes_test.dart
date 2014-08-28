@@ -6,10 +6,8 @@ library test.edit.fixes;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
@@ -33,24 +31,47 @@ class FixesTest extends AbstractAnalysisTest {
 
   Future test_hasFixes() {
     addTestFile('''
-main() {
-  print(42)
+foo() {
+  print(1)
+}
+bar() {
+  print(10) print(20)
 }
 ''');
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', EDIT_GET_FIXES);
-      request.setParameter(FILE, testFile);
-      request.setParameter(OFFSET, findOffset('print'));
-      Response response = handleSuccessfulRequest(request);
-      List<Map<String, Object>> errorFixesJsonList = response.getResult(FIXES);
-      expect(errorFixesJsonList, hasLength(1));
+      // print(1)
       {
-        Map<String, Object> fixes = errorFixesJsonList[0];
-        Map<String, Object> error = fixes[ERROR];
-        expect(error[SEVERITY], 'ERROR');
-        expect(error[TYPE], 'SYNTACTIC_ERROR');
-        expect(fixes[FIXES], hasLength(1));
+        List<ErrorFixes> errorFixes = _getFixesAt('print(1)');
+        expect(errorFixes, hasLength(1));
+        _isSyntacticErrorWithSingleFix(errorFixes[0]);
+      }
+      // print(10)
+      {
+        List<ErrorFixes> errorFixes = _getFixesAt('print(10)');
+        expect(errorFixes, hasLength(2));
+        _isSyntacticErrorWithSingleFix(errorFixes[0]);
+        _isSyntacticErrorWithSingleFix(errorFixes[1]);
       }
     });
+  }
+
+  void _isSyntacticErrorWithSingleFix(ErrorFixes fixes) {
+    AnalysisError error = fixes.error;
+    expect(error.severity, ErrorSeverity.ERROR);
+    expect(error.type, ErrorType.SYNTACTIC_ERROR);
+    expect(fixes.fixes, hasLength(1));
+  }
+
+  List<ErrorFixes> _getFixesAt(String search) {
+    int offset = findOffset(search);
+    return _getFixes(offset);
+  }
+
+
+  List<ErrorFixes> _getFixes(int offset) {
+    Request request = new EditGetFixesParams(testFile, offset).toRequest('0');
+    Response response = handleSuccessfulRequest(request);
+    var result = new EditGetFixesResult.fromResponse(response);
+    return result.fixes;
   }
 }

@@ -21,6 +21,7 @@
 #include "platform/assert.h"
 
 namespace dart {
+namespace bin {
 
 #define VALIDATE_PTHREAD_RESULT(result)         \
   if (result != 0) { \
@@ -182,6 +183,11 @@ void Thread::GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage) {
 }
 
 
+void Thread::InitOnce() {
+  // Nothing to be done.
+}
+
+
 Mutex::Mutex() {
   pthread_mutexattr_t attr;
   int result = pthread_mutexattr_init(&attr);
@@ -330,6 +336,7 @@ void Monitor::NotifyAll() {
   VALIDATE_PTHREAD_RESULT(result);
 }
 
+}  // namespace bin
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)

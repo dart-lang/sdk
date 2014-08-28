@@ -16,48 +16,44 @@ class BananaClassTest {
 
   _testFieldA(Map field) {
     Expect.equals('Field', field['type']);
-    Expect.equals('a', field['user_name']);
     Expect.equals('a', field['name']);
     Expect.equals(false, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals('dynamic', field['guard_class']);
-    Expect.equals(true, field['guard_nullable']);
-    Expect.equals('variable', field['guard_length']);
+    Expect.equals('dynamic', field['guardClass']);
+    Expect.equals(true, field['guardNullable']);
+    Expect.equals('variable', field['guardLength']);
   }
 
   _testFieldFinalFixedLengthList(Map field) {
     Expect.equals('Field', field['type']);
-    Expect.equals('final_fixed_length_list', field['user_name']);
     Expect.equals('final_fixed_length_list', field['name']);
-    Expect.equals('_Float32Array', field['guard_class']['user_name']);
+    Expect.equals('_Float32Array', field['guardClass']['name']);
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals(4, field['guard_length']);
+    Expect.equals(4, field['guardLength']);
   }
 
   _testFieldFixedLengthList(Map field) {
     Expect.equals('Field', field['type']);
-    Expect.equals('fixed_length_list', field['user_name']);
     Expect.equals('fixed_length_list', field['name']);
     Expect.equals(false, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals('_Float32Array', field['guard_class']['user_name']);
-    Expect.equals('variable', field['guard_length']);
+    Expect.equals('_Float32Array', field['guardClass']['name']);
+    Expect.equals('variable', field['guardLength']);
   }
 
   _testFieldName(Map field) {
     Expect.equals('Field', field['type']);
-    Expect.equals('name', field['user_name']);
     Expect.equals('name', field['name']);
     Expect.equals(false, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals('_OneByteString', field['guard_class']['user_name']);
-    Expect.equals(false, field['guard_nullable']);
-    Expect.equals('variable', field['guard_length']);
+    Expect.equals('_OneByteString', field['guardClass']['name']);
+    Expect.equals(false, field['guardNullable']);
+    Expect.equals('variable', field['guardLength']);
   }
 
   Future makeRequest() {
@@ -81,48 +77,44 @@ class BadBananaClassTest {
 
   _testFieldV(Map field) {
     Expect.equals('Field', field['type']);
-    Expect.equals('v', field['user_name']);
     Expect.equals('v', field['name']);
     Expect.equals(false, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals('_Double', field['guard_class']['user_name']);
-    Expect.equals(true, field['guard_nullable']);
-    Expect.equals('variable', field['guard_length']);
+    Expect.equals('_Double', field['guardClass']['name']);
+    Expect.equals(true, field['guardNullable']);
+    Expect.equals('variable', field['guardLength']);
   }
 
   _testFieldC(Map field) {
     Expect.equals('Field', field['type']);
-    Expect.equals('c', field['user_name']);
     Expect.equals('c', field['name']);
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(true, field['final']);
-    Expect.equals('_Smi', field['guard_class']['user_name']);
-    Expect.equals(false, field['guard_nullable']);
-    Expect.equals('variable', field['guard_length']);
+    Expect.equals('_Smi', field['guardClass']['name']);
+    Expect.equals(false, field['guardNullable']);
+    Expect.equals('variable', field['guardLength']);
   }
 
   _testFieldFinalFixedLengthList(Map field) {
     Expect.equals('Field', field['type']);
-    Expect.equals('final_fixed_length_list', field['user_name']);
     Expect.equals('final_fixed_length_list', field['name']);
-    Expect.equals('_Float32Array', field['guard_class']['user_name']);
+    Expect.equals('_Float32Array', field['guardClass']['name']);
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals('variable', field['guard_length']);
+    Expect.equals('variable', field['guardLength']);
   }
 
   _testFieldFixedLengthArray(Map field) {
     Expect.equals('Field', field['type']);
-    Expect.equals('fixed_length_array', field['user_name']);
     Expect.equals('fixed_length_array', field['name']);
-    Expect.equals('_List', field['guard_class']['user_name']);
+    Expect.equals('_List', field['guardClass']['name']);
     Expect.equals(true, field['final']);
     Expect.equals(false, field['static']);
     Expect.equals(false, field['const']);
-    Expect.equals(3, field['guard_length']);
+    Expect.equals(3, field['guardLength']);
   }
 
   Future makeRequest() {

@@ -6,6 +6,7 @@ library service_common;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:logging/logging.dart';
 import 'package:observatory/service.dart';
@@ -69,6 +70,7 @@ abstract class CommonWebSocket {
   bool get isOpen;
   void send(dynamic data);
   void close();
+  Future<ByteData> nonStringToByteData(dynamic data);
 }
 
 /// A [CommonWebSocketVM] communicates with a Dart VM over a CommonWebSocket.
@@ -85,6 +87,7 @@ abstract class CommonWebSocketVM extends VM {
       new Map<String, _WebSocketRequest>();
   int _requestSerial = 0;
   bool _hasInitiatedConnect = false;
+  Utf8Decoder _utf8Decoder = new Utf8Decoder();
 
   CommonWebSocket _webSocket;
 
@@ -160,7 +163,23 @@ abstract class CommonWebSocketVM extends VM {
 
   // WebSocket message event handler.
   void _onMessage(dynamic data) {
-    assert(data is String);  // We don't handle binary data, yet.
+    if (data is! String) {
+      _webSocket.nonStringToByteData(data).then((ByteData bytes) {
+        // See format spec. in VMs Service::SendEvent.
+        int offset = 0;
+        int metaSize = bytes.getUint64(offset, Endianness.BIG_ENDIAN);
+        offset += 8;
+        var meta = _utf8Decoder.convert(new Uint8List.view(
+            bytes.buffer, bytes.offsetInBytes + offset, metaSize));
+        offset += metaSize;
+        var data = new ByteData.view(
+            bytes.buffer,
+            bytes.offsetInBytes + offset,
+            bytes.lengthInBytes - offset);
+        postEventMessage(meta, data);
+      });
+      return;
+    }
     var map = JSON.decode(data);
     if (map == null) {
       Logger.root.severe('WebSocketVM got empty message');

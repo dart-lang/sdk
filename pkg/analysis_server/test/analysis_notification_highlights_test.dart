@@ -6,11 +6,8 @@ library test.domain.analysis.notification.highlights;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -27,7 +24,7 @@ main() {
 class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   List<HighlightRegion> regions;
 
-  void assertHasRawRegion(HighlightType type, int offset, int length) {
+  void assertHasRawRegion(HighlightRegionType type, int offset, int length) {
     for (HighlightRegion region in regions) {
       if (region.offset == offset &&
           region.length == length &&
@@ -40,19 +37,19 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
             '${regions.join('\n')}');
   }
 
-  void assertHasRegion(HighlightType type, String search, [int length = -1]) {
+  void assertHasRegion(HighlightRegionType type, String search, [int length = -1]) {
     int offset = findOffset(search);
     length = findRegionLength(search, length);
     assertHasRawRegion(type, offset, length);
   }
 
-  void assertHasStringRegion(HighlightType type, String str) {
+  void assertHasStringRegion(HighlightRegionType type, String str) {
     int offset = findOffset(str);
     int length = str.length;
     assertHasRawRegion(type, offset, length);
   }
 
-  void assertNoRawRegion(HighlightType type, int offset, int length) {
+  void assertNoRawRegion(HighlightRegionType type, int offset, int length) {
     for (HighlightRegion region in regions) {
       if (region.offset == offset &&
           region.length == length &&
@@ -65,7 +62,7 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
   }
 
 
-  void assertNoRegion(HighlightType type, String search, [int length = -1]) {
+  void assertNoRegion(HighlightRegionType type, String search, [int length = -1]) {
     int offset = findOffset(search);
     length = findRegionLength(search, length);
     assertNoRawRegion(type, offset, length);
@@ -98,14 +95,9 @@ class AnalysisNotificationHighlightsTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_HIGHLIGHTS) {
-      String file = notification.getParameter(FILE);
-      if (file == testFile) {
-        regions = [];
-        List<Map<String, Object>> regionsJson =
-            notification.getParameter(REGIONS);
-        for (Map<String, Object> regionJson in regionsJson) {
-          regions.add(new HighlightRegion.fromJson(regionJson));
-        }
+      var params = new AnalysisHighlightsParams.fromNotification(notification);
+      if (params.file == testFile) {
+        regions = params.regions;
       }
     }
   }
@@ -124,8 +116,8 @@ class AAA {
 @AAA(1, 2, 3) main() {}
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.ANNOTATION, '@AAA(', '@AAA('.length);
-      assertHasRegion(HighlightType.ANNOTATION, ') main', ')'.length);
+      assertHasRegion(HighlightRegionType.ANNOTATION, '@AAA(', '@AAA('.length);
+      assertHasRegion(HighlightRegionType.ANNOTATION, ') main', ')'.length);
     });
   }
 
@@ -135,7 +127,7 @@ const AAA = 42;
 @AAA main() {}
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.ANNOTATION, '@AAA');
+      assertHasRegion(HighlightRegionType.ANNOTATION, '@AAA');
     });
   }
 
@@ -146,8 +138,8 @@ main() {
   var abstract = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'abstract class');
-      assertNoRegion(HighlightType.BUILT_IN, 'abstract = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'abstract class');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'abstract = 42');
     });
   }
 
@@ -159,9 +151,9 @@ main() {
   var as = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'as math');
-      assertHasRegion(HighlightType.BUILT_IN, 'as int');
-      assertNoRegion(HighlightType.BUILT_IN, 'as = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'as math');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'as int');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'as = 42');
     });
   }
 
@@ -172,8 +164,8 @@ main() {
   var deferred = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'deferred as math');
-      assertNoRegion(HighlightType.BUILT_IN, 'deferred = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'deferred as math');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'deferred = 42');
     });
   }
 
@@ -184,8 +176,8 @@ main() {
   var export = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'export "dart:');
-      assertNoRegion(HighlightType.BUILT_IN, 'export = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'export "dart:');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'export = 42');
     });
   }
 
@@ -199,10 +191,10 @@ external main() {
   var external = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'external A()');
-      assertHasRegion(HighlightType.BUILT_IN, 'external aaa()');
-      assertHasRegion(HighlightType.BUILT_IN, 'external main()');
-      assertNoRegion(HighlightType.BUILT_IN, 'external = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'external A()');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'external aaa()');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'external main()');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'external = 42');
     });
   }
 
@@ -215,8 +207,8 @@ main() {
   var factory = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'factory A()');
-      assertNoRegion(HighlightType.BUILT_IN, 'factory = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'factory A()');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'factory = 42');
     });
   }
 
@@ -230,9 +222,9 @@ main() {
   var get = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'get aaa =>');
-      assertHasRegion(HighlightType.BUILT_IN, 'get bbb =>');
-      assertNoRegion(HighlightType.BUILT_IN, 'get = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'get aaa =>');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'get bbb =>');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'get = 42');
     });
   }
 
@@ -243,8 +235,8 @@ main() {
   var hide = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'hide Foo');
-      assertNoRegion(HighlightType.BUILT_IN, 'hide = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'hide Foo');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'hide = 42');
     });
   }
 
@@ -256,8 +248,8 @@ main() {
   var implements = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'implements A {}');
-      assertNoRegion(HighlightType.BUILT_IN, 'implements = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'implements A {}');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'implements = 42');
     });
   }
 
@@ -268,8 +260,8 @@ main() {
   var import = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'import "');
-      assertNoRegion(HighlightType.BUILT_IN, 'import = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'import "');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'import = 42');
     });
   }
 
@@ -280,8 +272,8 @@ main() {
   var library = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'library lib;');
-      assertNoRegion(HighlightType.BUILT_IN, 'library = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'library lib;');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'library = 42');
     });
   }
 
@@ -295,9 +287,9 @@ main() {
   var native = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'native "A_');
-      assertHasRegion(HighlightType.BUILT_IN, 'native "bbb_');
-      assertNoRegion(HighlightType.BUILT_IN, 'native = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'native "A_');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'native "bbb_');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'native = 42');
     });
   }
 
@@ -310,8 +302,8 @@ main() {
   var on = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'on int');
-      assertNoRegion(HighlightType.BUILT_IN, 'on = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'on int');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'on = 42');
     });
   }
 
@@ -324,8 +316,8 @@ main() {
   var operator = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'operator +(');
-      assertNoRegion(HighlightType.BUILT_IN, 'operator = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'operator +(');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'operator = 42');
     });
   }
 
@@ -337,8 +329,8 @@ main() {
 }''');
     addFile('/project/bin/my_part.dart', 'part of lib;');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'part "my_');
-      assertNoRegion(HighlightType.BUILT_IN, 'part = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'part "my_');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 42');
     });
   }
 
@@ -351,9 +343,9 @@ main() {
 }''');
     _addLibraryForTestPart();
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'part of', 'part of'.length);
-      assertNoRegion(HighlightType.BUILT_IN, 'part = 1');
-      assertNoRegion(HighlightType.BUILT_IN, 'of = 2');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'part of', 'part of'.length);
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 1');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'of = 2');
     });
   }
 
@@ -367,9 +359,9 @@ main() {
   var set = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'set aaa(');
-      assertHasRegion(HighlightType.BUILT_IN, 'set bbb(');
-      assertNoRegion(HighlightType.BUILT_IN, 'set = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'set aaa(');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'set bbb(');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'set = 42');
     });
   }
 
@@ -380,8 +372,8 @@ main() {
   var show = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'show Foo');
-      assertNoRegion(HighlightType.BUILT_IN, 'show = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'show Foo');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'show = 42');
     });
   }
 
@@ -395,9 +387,9 @@ main() {
   var static = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'static aaa;');
-      assertHasRegion(HighlightType.BUILT_IN, 'static bbb()');
-      assertNoRegion(HighlightType.BUILT_IN, 'static = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'static aaa;');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'static bbb()');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'static = 42');
     });
   }
 
@@ -408,8 +400,8 @@ main() {
   var typedef = 42;
 }''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.BUILT_IN, 'typedef A();');
-      assertNoRegion(HighlightType.BUILT_IN, 'typedef = 42');
+      assertHasRegion(HighlightRegionType.BUILT_IN, 'typedef A();');
+      assertNoRegion(HighlightRegionType.BUILT_IN, 'typedef = 42');
     });
   }
 
@@ -419,8 +411,8 @@ class AAA {}
 AAA aaa;
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.CLASS, 'AAA {}');
-      assertHasRegion(HighlightType.CLASS, 'AAA aaa');
+      assertHasRegion(HighlightRegionType.CLASS, 'AAA {}');
+      assertHasRegion(HighlightRegionType.CLASS, 'AAA aaa');
     });
   }
 
@@ -429,7 +421,7 @@ AAA aaa;
 dynamic f() {}
 ''');
     return prepareHighlights().then((_) {
-      assertNoRegion(HighlightType.CLASS, 'dynamic f()');
+      assertNoRegion(HighlightRegionType.CLASS, 'dynamic f()');
     });
   }
 
@@ -438,7 +430,7 @@ dynamic f() {}
 void f() {}
 ''');
     return prepareHighlights().then((_) {
-      assertNoRegion(HighlightType.CLASS, 'void f()');
+      assertNoRegion(HighlightRegionType.CLASS, 'void f()');
     });
   }
 
@@ -457,9 +449,9 @@ void my_function(String a) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.COMMENT_DOCUMENTATION, '/**', 32);
-      assertHasRegion(HighlightType.COMMENT_END_OF_LINE, '//', 22);
-      assertHasRegion(HighlightType.COMMENT_BLOCK, '/* b', 19);
+      assertHasRegion(HighlightRegionType.COMMENT_DOCUMENTATION, '/**', 32);
+      assertHasRegion(HighlightRegionType.COMMENT_END_OF_LINE, '//', 22);
+      assertHasRegion(HighlightRegionType.COMMENT_BLOCK, '/* b', 19);
     });
   }
 
@@ -475,10 +467,10 @@ main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.CONSTRUCTOR, 'name(p)');
-      assertHasRegion(HighlightType.CONSTRUCTOR, 'name(42)');
-      assertNoRegion(HighlightType.CONSTRUCTOR, 'AAA() {}');
-      assertNoRegion(HighlightType.CONSTRUCTOR, 'AAA();');
+      assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(p)');
+      assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
+      assertNoRegion(HighlightRegionType.CONSTRUCTOR, 'AAA() {}');
+      assertNoRegion(HighlightRegionType.CONSTRUCTOR, 'AAA();');
     });
   }
 
@@ -490,10 +482,10 @@ export 'dart:math';
 part 'part.dart';
 ''');
     return prepareHighlights().then((_) {
-      assertHasStringRegion(HighlightType.DIRECTIVE, "library lib;");
-      assertHasStringRegion(HighlightType.DIRECTIVE, "import 'dart:math';");
-      assertHasStringRegion(HighlightType.DIRECTIVE, "export 'dart:math';");
-      assertHasStringRegion(HighlightType.DIRECTIVE, "part 'part.dart';");
+      assertHasStringRegion(HighlightRegionType.DIRECTIVE, "library lib;");
+      assertHasStringRegion(HighlightRegionType.DIRECTIVE, "import 'dart:math';");
+      assertHasStringRegion(HighlightRegionType.DIRECTIVE, "export 'dart:math';");
+      assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part 'part.dart';");
     });
   }
 
@@ -503,7 +495,7 @@ part of lib;
 ''');
     _addLibraryForTestPart();
     return prepareHighlights().then((_) {
-      assertHasStringRegion(HighlightType.DIRECTIVE, "part of lib;");
+      assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part of lib;");
     });
   }
 
@@ -518,10 +510,10 @@ main(p) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.DYNAMIC_TYPE, 'p)');
-      assertHasRegion(HighlightType.DYNAMIC_TYPE, 'v1 =');
-      assertNoRegion(HighlightType.DYNAMIC_TYPE, 'v2;');
-      assertNoRegion(HighlightType.DYNAMIC_TYPE, 'v3 =');
+      assertHasRegion(HighlightRegionType.DYNAMIC_TYPE, 'p)');
+      assertHasRegion(HighlightRegionType.DYNAMIC_TYPE, 'v1 =');
+      assertNoRegion(HighlightRegionType.DYNAMIC_TYPE, 'v2;');
+      assertNoRegion(HighlightRegionType.DYNAMIC_TYPE, 'v3 =');
     });
   }
 
@@ -538,11 +530,11 @@ main(A a) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.FIELD, 'aaa = 1');
-      assertHasRegion(HighlightType.FIELD, 'bbb = 2');
-      assertHasRegion(HighlightType.FIELD, 'bbb = 3');
-      assertHasRegion(HighlightType.FIELD, 'aaa = 4');
-      assertHasRegion(HighlightType.FIELD, 'bbb = 5');
+      assertHasRegion(HighlightRegionType.FIELD, 'aaa = 1');
+      assertHasRegion(HighlightRegionType.FIELD, 'bbb = 2');
+      assertHasRegion(HighlightRegionType.FIELD, 'bbb = 3');
+      assertHasRegion(HighlightRegionType.FIELD, 'aaa = 4');
+      assertHasRegion(HighlightRegionType.FIELD, 'bbb = 5');
     });
   }
 
@@ -560,10 +552,10 @@ main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.FIELD_STATIC, 'aaa = 1');
-      assertHasRegion(HighlightType.FIELD_STATIC, 'aaa = 2');
-      assertHasRegion(HighlightType.FIELD_STATIC, 'bbb;');
-      assertHasRegion(HighlightType.FIELD_STATIC, 'ccc = 3');
+      assertHasRegion(HighlightRegionType.FIELD_STATIC, 'aaa = 1');
+      assertHasRegion(HighlightRegionType.FIELD_STATIC, 'aaa = 2');
+      assertHasRegion(HighlightRegionType.FIELD_STATIC, 'bbb;');
+      assertHasRegion(HighlightRegionType.FIELD_STATIC, 'ccc = 3');
     });
   }
 
@@ -575,8 +567,8 @@ main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.FUNCTION_DECLARATION, 'fff(p) {}');
-      assertHasRegion(HighlightType.FUNCTION, 'fff(42)');
+      assertHasRegion(HighlightRegionType.FUNCTION_DECLARATION, 'fff(p) {}');
+      assertHasRegion(HighlightRegionType.FUNCTION, 'fff(42)');
     });
   }
 
@@ -587,8 +579,8 @@ main(FFF fff) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.FUNCTION_TYPE_ALIAS, 'FFF(p)');
-      assertHasRegion(HighlightType.FUNCTION_TYPE_ALIAS, 'FFF fff)');
+      assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'FFF(p)');
+      assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'FFF fff)');
     });
   }
 
@@ -604,10 +596,10 @@ main(A a) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.GETTER_DECLARATION, 'aaa => null');
-      assertHasRegion(HighlightType.GETTER_DECLARATION, 'bbb => null');
-      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'aaa;');
-      assertHasRegion(HighlightType.FIELD, 'bbb;');
+      assertHasRegion(HighlightRegionType.GETTER_DECLARATION, 'aaa => null');
+      assertHasRegion(HighlightRegionType.GETTER_DECLARATION, 'bbb => null');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'aaa;');
+      assertHasRegion(HighlightRegionType.FIELD, 'bbb;');
     });
   }
 
@@ -620,9 +612,9 @@ main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.IDENTIFIER_DEFAULT, 'aaa = 42');
-      assertHasRegion(HighlightType.IDENTIFIER_DEFAULT, 'bbb(84)');
-      assertHasRegion(HighlightType.IDENTIFIER_DEFAULT, 'CCC ccc');
+      assertHasRegion(HighlightRegionType.IDENTIFIER_DEFAULT, 'aaa = 42');
+      assertHasRegion(HighlightRegionType.IDENTIFIER_DEFAULT, 'bbb(84)');
+      assertHasRegion(HighlightRegionType.IDENTIFIER_DEFAULT, 'CCC ccc');
     });
   }
 
@@ -634,8 +626,8 @@ main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.IMPORT_PREFIX, 'ma;');
-      assertHasRegion(HighlightType.IMPORT_PREFIX, 'ma.max');
+      assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma;');
+      assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma.max');
     });
   }
 
@@ -673,34 +665,34 @@ class B extends A {
 class C = Object with A;
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.KEYWORD, 'assert(true)');
-      assertHasRegion(HighlightType.KEYWORD, 'for (;;)');
-      assertHasRegion(HighlightType.KEYWORD, 'for (var v4 in');
-      assertHasRegion(HighlightType.KEYWORD, 'break;');
-      assertHasRegion(HighlightType.KEYWORD, 'case 0:');
-      assertHasRegion(HighlightType.KEYWORD, 'catch (e) {}');
-      assertHasRegion(HighlightType.KEYWORD, 'class A {}');
-      assertHasRegion(HighlightType.KEYWORD, 'const v1');
-      assertHasRegion(HighlightType.KEYWORD, 'continue;');
-      assertHasRegion(HighlightType.KEYWORD, 'default:');
-      assertHasRegion(HighlightType.KEYWORD, 'do {} while');
-      assertHasRegion(HighlightType.KEYWORD, 'if (true)');
-      assertHasRegion(HighlightType.KEYWORD, 'false;');
-      assertHasRegion(HighlightType.KEYWORD, 'final v3 =');
-      assertHasRegion(HighlightType.KEYWORD, 'finally {}');
-      assertHasRegion(HighlightType.KEYWORD, 'in []');
-      assertHasRegion(HighlightType.KEYWORD, 'is int');
-      assertHasRegion(HighlightType.KEYWORD, 'new A();');
-      assertHasRegion(HighlightType.KEYWORD, 'rethrow;');
-      assertHasRegion(HighlightType.KEYWORD, 'return this');
-      assertHasRegion(HighlightType.KEYWORD, 'super();');
-      assertHasRegion(HighlightType.KEYWORD, 'switch (0)');
-      assertHasRegion(HighlightType.KEYWORD, 'this;');
-      assertHasRegion(HighlightType.KEYWORD, 'true;');
-      assertHasRegion(HighlightType.KEYWORD, 'try {');
-      assertHasRegion(HighlightType.KEYWORD, 'while (true) {}');
-      assertHasRegion(HighlightType.KEYWORD, 'while (true);');
-      assertHasRegion(HighlightType.KEYWORD, 'with A;');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'assert(true)');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'for (;;)');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'for (var v4 in');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'break;');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'case 0:');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'catch (e) {}');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'class A {}');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'const v1');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'continue;');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'default:');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'do {} while');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'if (true)');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'false;');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'final v3 =');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'finally {}');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'in []');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'is int');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'new A();');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'rethrow;');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'return this');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'super();');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'switch (0)');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'this;');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'true;');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'try {');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'while (true) {}');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'while (true);');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
     });
   }
 
@@ -710,35 +702,35 @@ void main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.KEYWORD, 'void main()');
+      assertHasRegion(HighlightRegionType.KEYWORD, 'void main()');
     });
   }
 
   test_LITERAL_BOOLEAN() {
     addTestFile('var V = true;');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.LITERAL_BOOLEAN, 'true;');
+      assertHasRegion(HighlightRegionType.LITERAL_BOOLEAN, 'true;');
     });
   }
 
   test_LITERAL_DOUBLE() {
     addTestFile('var V = 4.2;');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.LITERAL_DOUBLE, '4.2;', '4.2'.length);
+      assertHasRegion(HighlightRegionType.LITERAL_DOUBLE, '4.2;', '4.2'.length);
     });
   }
 
   test_LITERAL_INTEGER() {
     addTestFile('var V = 42;');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.LITERAL_INTEGER, '42;');
+      assertHasRegion(HighlightRegionType.LITERAL_INTEGER, '42;');
     });
   }
 
   test_LITERAL_LIST() {
     addTestFile('var V = <int>[1, 2, 3];');
     return prepareHighlights().then((_) {
-      assertHasStringRegion(HighlightType.LITERAL_LIST, '<int>[1, 2, 3]');
+      assertHasStringRegion(HighlightRegionType.LITERAL_LIST, '<int>[1, 2, 3]');
     });
   }
 
@@ -746,7 +738,7 @@ void main() {
     addTestFile("var V = const <int, String>{1: 'a', 2: 'b', 3: 'c'};");
     return prepareHighlights().then((_) {
       assertHasStringRegion(
-          HighlightType.LITERAL_MAP,
+          HighlightRegionType.LITERAL_MAP,
           "const <int, String>{1: 'a', 2: 'b', 3: 'c'}");
     });
   }
@@ -754,7 +746,7 @@ void main() {
   test_LITERAL_STRING() {
     addTestFile('var V = "abc";');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.LITERAL_STRING, '"abc";', '"abc"'.length);
+      assertHasRegion(HighlightRegionType.LITERAL_STRING, '"abc";', '"abc"'.length);
     });
   }
 
@@ -767,9 +759,9 @@ main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.LOCAL_VARIABLE_DECLARATION, 'vvv = 0');
-      assertHasRegion(HighlightType.LOCAL_VARIABLE, 'vvv;');
-      assertHasRegion(HighlightType.LOCAL_VARIABLE, 'vvv = 1;');
+      assertHasRegion(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, 'vvv = 0');
+      assertHasRegion(HighlightRegionType.LOCAL_VARIABLE, 'vvv;');
+      assertHasRegion(HighlightRegionType.LOCAL_VARIABLE, 'vvv = 1;');
     });
   }
 
@@ -787,12 +779,12 @@ main(A a) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.METHOD_DECLARATION, 'aaa() {}');
-      assertHasRegion(HighlightType.METHOD_DECLARATION_STATIC, 'bbb() {}');
-      assertHasRegion(HighlightType.METHOD, 'aaa();');
-      assertHasRegion(HighlightType.METHOD, 'aaa;');
-      assertHasRegion(HighlightType.METHOD_STATIC, 'bbb();');
-      assertHasRegion(HighlightType.METHOD_STATIC, 'bbb;');
+      assertHasRegion(HighlightRegionType.METHOD_DECLARATION, 'aaa() {}');
+      assertHasRegion(HighlightRegionType.METHOD_DECLARATION_STATIC, 'bbb() {}');
+      assertHasRegion(HighlightRegionType.METHOD, 'aaa();');
+      assertHasRegion(HighlightRegionType.METHOD, 'aaa;');
+      assertHasRegion(HighlightRegionType.METHOD_STATIC, 'bbb();');
+      assertHasRegion(HighlightRegionType.METHOD_STATIC, 'bbb;');
     });
   }
 
@@ -805,7 +797,7 @@ main(p) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.METHOD, 'add(null)');
+      assertHasRegion(HighlightRegionType.METHOD, 'add(null)');
     });
   }
 
@@ -817,9 +809,9 @@ main(int p) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.PARAMETER, 'p) {');
-      assertHasRegion(HighlightType.PARAMETER, 'p;');
-      assertHasRegion(HighlightType.PARAMETER, 'p = 42');
+      assertHasRegion(HighlightRegionType.PARAMETER, 'p) {');
+      assertHasRegion(HighlightRegionType.PARAMETER, 'p;');
+      assertHasRegion(HighlightRegionType.PARAMETER, 'p = 42');
     });
   }
 
@@ -835,10 +827,10 @@ main(A a) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.SETTER_DECLARATION, 'aaa(x)');
-      assertHasRegion(HighlightType.SETTER_DECLARATION, 'bbb(x)');
-      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'aaa = 1');
-      assertHasRegion(HighlightType.FIELD, 'bbb = 2');
+      assertHasRegion(HighlightRegionType.SETTER_DECLARATION, 'aaa(x)');
+      assertHasRegion(HighlightRegionType.SETTER_DECLARATION, 'bbb(x)');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'aaa = 1');
+      assertHasRegion(HighlightRegionType.FIELD, 'bbb = 2');
     });
   }
 
@@ -852,10 +844,10 @@ main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV = 0');
-      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV // annotation');
-      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV);');
-      assertHasRegion(HighlightType.TOP_LEVEL_VARIABLE, 'VVV = 1');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 0');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV // annotation');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV);');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 1');
     });
   }
 
@@ -866,9 +858,9 @@ dynamic main() {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.TYPE_NAME_DYNAMIC, 'dynamic main()');
-      assertNoRegion(HighlightType.IDENTIFIER_DEFAULT, 'dynamic main()');
-      assertNoRegion(HighlightType.TYPE_NAME_DYNAMIC, 'dynamic = 42');
+      assertHasRegion(HighlightRegionType.TYPE_NAME_DYNAMIC, 'dynamic main()');
+      assertNoRegion(HighlightRegionType.IDENTIFIER_DEFAULT, 'dynamic main()');
+      assertNoRegion(HighlightRegionType.TYPE_NAME_DYNAMIC, 'dynamic = 42');
     });
   }
 
@@ -880,10 +872,10 @@ class A<T> {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightType.TYPE_PARAMETER, 'T> {');
-      assertHasRegion(HighlightType.TYPE_PARAMETER, 'T fff;');
-      assertHasRegion(HighlightType.TYPE_PARAMETER, 'T mmm(');
-      assertHasRegion(HighlightType.TYPE_PARAMETER, 'T p)');
+      assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T> {');
+      assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T fff;');
+      assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T mmm(');
+      assertHasRegion(HighlightRegionType.TYPE_PARAMETER, 'T p)');
     });
   }
 
@@ -899,18 +891,18 @@ part 'test.dart';
 @ReflectiveTestCase()
 class HighlightTypeTest {
   void test_toString() {
-    expect(HighlightType.CLASS.toString(), HighlightType.CLASS.name);
+    expect(HighlightRegionType.CLASS.toString(), 'HighlightRegionType.CLASS');
   }
 
-  void test_valueOf() {
+  void test_constructor() {
     expect(
-        HighlightType.CLASS,
-        HighlightType.valueOf(HighlightType.CLASS.name));
+        HighlightRegionType.CLASS,
+        new HighlightRegionType(HighlightRegionType.CLASS.name));
   }
 
   void test_valueOf_unknown() {
     expect(() {
-      HighlightType.valueOf('no-such-type');
+      new HighlightRegionType('no-such-type');
     }, throws);
   }
 }

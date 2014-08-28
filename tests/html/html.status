@@ -14,6 +14,9 @@ form_data_test/functional: Skip # Issue 19726
 indexeddb_4_test: Skip # Issue 19726
 mouse_event_test: Fail # Issue 20437
 
+[ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+datalistelement_test: Skip # Issue 20540
+
 [ $compiler == dart2js && $csp ]
 custom/js_custom_test: Fail # Issue 14643
 custom/element_upgrade_test: Fail # Issue 17298
@@ -46,6 +49,8 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 1766
 audiobuffersourcenode_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
 audiocontext_test/functional: Skip # Causes the following (next) test to time out.  Issue 19127
 canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issue 20524
+
 element_offset_test/offset: RuntimeError # Issue 17550
 request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
 fileapi_test/fileEntry: RuntimeError # Issue 20488
@@ -117,11 +122,9 @@ indexeddb_5_test: Fail # Issue 12893
 js_test: Fail # Issue 14246
 element_test/click: Fail                # IE does not support firing this event.
 serialized_script_value_test: Fail
-transferables_test: Fail # Issue 9846
 websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
-worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -165,10 +168,15 @@ websql_test/supported: Fail
 xhr_test/json: Fail # IE10 returns string, not JSON object
 xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
+worker_test/functional: Fail # IE uses incorrect security context for Blob URIs.
+transferables_test: Fail # Issue 9846
 
 [ $runtime == ie11 ]
 custom/document_register_type_extensions_test/single-parameter: Fail # Issue 13193.
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
+node_validator_test: Pass, RuntimeError # Issues 20657, 20659.
+worker_test/functional: Pass, Fail # Issues 20659.
+transferables_test: Pass, Fail # Issues 20659.
 
 # IE11 Feature support statuses-
 # These results not yet noted in platform support annotations.

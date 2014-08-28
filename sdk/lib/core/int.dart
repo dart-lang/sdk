@@ -262,7 +262,7 @@ abstract class int extends num {
    * optionally prefixed with a minus or plus sign ('-' or '+').
    *
    * It must always be the case for an int [:n:] and radix [:r:] that
-   * [:n == parseRadix(n.toRadixString(r), r):].
+   * [:n == int.parse(n.toRadixString(r), radix: r):].
    *
    * If the [source] is not a valid integer literal, optionally prefixed by a
    * sign, the [onError] is called with the [source] as argument, and its return

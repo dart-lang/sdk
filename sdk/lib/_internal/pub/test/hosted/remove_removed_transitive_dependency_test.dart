@@ -13,17 +13,17 @@ main() {
   forBothPubGetAndUpgrade((command) {
     integration("removes a transitive dependency that's no longer depended "
         "on", () {
-      servePackages([
-        packageMap("foo", "1.0.0", {
+      servePackages((builder) {
+        builder.serve("foo", "1.0.0", deps: {
           "shared-dep": "any"
-        }),
-        packageMap("bar", "1.0.0", {
+        });
+        builder.serve("bar", "1.0.0", deps: {
           "shared-dep": "any",
           "bar-dep": "any"
-        }),
-        packageMap("shared-dep", "1.0.0"),
-        packageMap("bar-dep", "1.0.0")
-      ]);
+        });
+        builder.serve("shared-dep", "1.0.0");
+        builder.serve("bar-dep", "1.0.0");
+      });
 
       d.appDir({
         "foo": "any",

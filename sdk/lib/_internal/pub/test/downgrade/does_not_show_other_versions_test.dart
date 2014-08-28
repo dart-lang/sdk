@@ -12,11 +12,11 @@ import '../test_pub.dart';
 main() {
   initConfig();
   integration("does not show how many other versions are available", () {
-    servePackages([
-      packageMap("downgraded", "1.0.0"),
-      packageMap("downgraded", "2.0.0"),
-      packageMap("downgraded", "3.0.0-dev")
-    ]);
+    servePackages((builder) {
+      builder.serve("downgraded", "1.0.0");
+      builder.serve("downgraded", "2.0.0");
+      builder.serve("downgraded", "3.0.0-dev");
+    });
 
     d.appDir({
       "downgraded": "3.0.0-dev"

@@ -664,11 +664,12 @@ void main() {
         'a|web/test.html._buildLogs.1':
           '[{'
             '"level":"Warning",'
-            '"message":${JSON.encode(usePolymerHtmlMessage(0))},'
+            '"message":${JSON.encode(const HtmlEscape().convert(
+                usePolymerHtmlMessage(0)))},'
             '"span":{'
               '"location":"web/test.html:2:1",'
               '"text":'
-                '"${new HtmlEscape().convert('<polymer-element name="x-a">')}"'
+                '"${const HtmlEscape().convert('<polymer-element name="x-a">')}"'
             '}'
           '}]',
     }, [

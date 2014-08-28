@@ -1106,8 +1106,8 @@ void DbgMsgQueue::MessageLoop() {
     }
 
     // Wait for more debug or vm service messages.
-    dart::Monitor::WaitResult res = ml.Wait();
-    ASSERT(res == dart::Monitor::kNotified);
+    Monitor::WaitResult res = ml.Wait();
+    ASSERT(res == Monitor::kNotified);
   }
   Dart_SetMessageNotifyCallback(NULL);
   is_interrupted_ = false;
@@ -1207,7 +1207,7 @@ void DbgMsgQueue::SendIsolateEvent(Dart_IsolateId isolate_id,
 
 
 DbgMsgQueue* DbgMsgQueueList::list_ = NULL;
-dart::Mutex* DbgMsgQueueList::msg_queue_list_lock_ = new dart::Mutex();
+Mutex* DbgMsgQueueList::msg_queue_list_lock_ = new Mutex();
 
 
 void DbgMsgQueueList::Initialize() {

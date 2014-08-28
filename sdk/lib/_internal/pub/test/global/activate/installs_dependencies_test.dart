@@ -8,12 +8,12 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('activating a package installs its dependencies too', () {
-    servePackages([
-      packageMap("foo", "1.0.0", {"bar": "any"}),
-      packageMap("bar", "1.0.0", {"baz": "any"}),
-      packageMap("baz", "1.0.0")
-    ]);
+  integration('activating a package installs its dependencies', () {
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0", deps: {"bar": "any"});
+      builder.serve("bar", "1.0.0", deps: {"baz": "any"});
+      builder.serve("baz", "1.0.0");
+    });
 
     schedulePub(args: ["global", "activate", "foo"], output: allOf([
       contains("Downloading bar 1.0.0..."),

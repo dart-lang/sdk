@@ -9,10 +9,8 @@ import 'dart:async';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/completion/completion_suggestion.dart';
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/index/index.dart' show Index;
-import 'package:analysis_services/index/local_memory_index.dart';
+import 'package:analysis_server/src/services/index/index.dart' show Index;
+import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -86,11 +84,11 @@ class CompletionTest extends AbstractAnalysisTest {
 
   Future getSuggestions() {
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', COMPLETION_GET_SUGGESTIONS);
-      request.setParameter(FILE, testFile);
-      request.setParameter(OFFSET, completionOffset);
+      Request request = new CompletionGetSuggestionsParams(testFile,
+          completionOffset).toRequest('0');
       Response response = handleSuccessfulRequest(request);
-      completionId = response.getResult(ID);
+      var result = new CompletionGetSuggestionsResult.fromResponse(response);
+      completionId = response.id;
       assertValidId(completionId);
       return pumpEventQueue().then((_) {
         expect(suggestionsDone, isTrue);
@@ -100,19 +98,16 @@ class CompletionTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == COMPLETION_RESULTS) {
-      String id = notification.getParameter(ID);
+      var params = new CompletionResultsParams.fromNotification(notification);
+      String id = params.id;
       assertValidId(id);
       if (id == completionId) {
         expect(suggestionsDone, isFalse);
-        replacementOffset = notification.getParameter(REPLACEMENT_OFFSET);
-        replacementLength = notification.getParameter(REPLACEMENT_LENGTH);
-        suggestionsDone = notification.getParameter(LAST);
+        replacementOffset = params.replacementOffset;
+        replacementLength = params.replacementLength;
+        suggestionsDone = params.isLast;
         expect(suggestionsDone, isNotNull);
-        suggestions = [];
-        for (Map<String, Object> json in notification.getParameter(RESULTS)) {
-          expect(json, isNotNull);
-          suggestions.add(new CompletionSuggestion.fromJson(json));
-        }
+        suggestions = params.results;
       }
     }
   }
@@ -165,6 +160,17 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_keyword() {
+    addTestFile('^');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'library');
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'import');
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'class');
+    });
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}}');
     return getSuggestions().then((_) {
@@ -174,6 +180,15 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(CompletionSuggestionKind.FIELD, 'a');
       assertHasResult(CompletionSuggestionKind.LOCAL_VARIABLE, 'b');
       assertHasResult(CompletionSuggestionKind.METHOD_NAME, 'x');
+    });
+  }
+
+  test_invocation() {
+    addTestFile('class A {b() {}} main() {A a; a.^}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.METHOD, 'b');
     });
   }
 

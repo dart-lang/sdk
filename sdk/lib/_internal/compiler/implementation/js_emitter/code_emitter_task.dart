@@ -4,6 +4,8 @@
 
 part of dart2js.js_emitter;
 
+const USE_NEW_EMITTER = const bool.fromEnvironment("dart2js.use.new.emitter");
+
 /**
  * Generates the code for all used classes in the program. Static fields (even
  * in classes) are ignored, since they can be treated as non-class elements.
@@ -597,8 +599,7 @@ class CodeEmitterTask extends CompilerTask {
                 // Use try-finally, not try-catch/throw as it destroys the
                 // stack trace.
                 if (result === sentinelUndefined)
-                  if ($isolate[fieldName] === sentinelInProgress)
-                    $isolate[fieldName] = null;
+                  $isolate[fieldName] = null;
               }
             } else {
               if (result === sentinelInProgress)
@@ -1207,7 +1208,7 @@ class CodeEmitterTask extends CompilerTask {
         if (!element.isNative) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
         if (member == null) continue;
-        if (noSuchMethodSelector.applies(member, compiler)) {
+        if (noSuchMethodSelector.applies(member, compiler.world)) {
           nativeEmitter.handleNoSuchMethod = true;
           break;
         }
@@ -1336,7 +1337,7 @@ class CodeEmitterTask extends CompilerTask {
 
     for (OutputUnit outputUnit in compiler.deferredLoadTask.allOutputUnits) {
       if (!descriptors.containsKey(outputUnit)) continue;
- 
+
       ClassBuilder descriptor = descriptors[outputUnit];
 
       jsAst.Fun metadata = metadataEmitter.buildMetadataFunction(library);
@@ -1400,12 +1401,17 @@ class CodeEmitterTask extends CompilerTask {
 
       computeNeededDeclarations();
 
+      if (USE_NEW_EMITTER) {
+        new new_js_emitter.Emitter(compiler, this).emitProgram();
+        return;
+      }
+
       OutputUnit mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
 
       mainBuffer.add(buildGeneratedBy());
       addComment(HOOKS_API_USAGE, mainBuffer);
 
-      if (!compiler.deferredLoadTask.splitProgram) {
+      if (!compiler.deferredLoadTask.isProgramSplit) {
         mainBuffer.add('(function(${namer.currentIsolate})$_{$n');
       }
 
@@ -1704,7 +1710,7 @@ class CodeEmitterTask extends CompilerTask {
           buildPrecompiledFunction();
       emitInitFunction(mainBuffer);
       emitMain(mainBuffer);
-      if (!compiler.deferredLoadTask.splitProgram) {
+      if (!compiler.deferredLoadTask.isProgramSplit) {
         mainBuffer.add('})()\n');
       } else {
         mainBuffer.add('\n');

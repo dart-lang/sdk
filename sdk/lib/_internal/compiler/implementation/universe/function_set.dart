@@ -53,7 +53,7 @@ class FunctionSet {
   }
 
   TypeMask receiverType(Selector selector) {
-    return query(selector).computeMask(compiler);
+    return query(selector).computeMask(compiler.world);
   }
 
   FunctionSetQuery query(Selector selector) {
@@ -69,7 +69,7 @@ class FunctionSet {
     selector = (selector.mask == null)
         ? compiler.noSuchMethodSelector
         : new TypedSelector(selector.mask, compiler.noSuchMethodSelector,
-            compiler);
+            compiler.world);
 
     return noSuchMethods.query(selector, compiler, null);
   }
@@ -147,18 +147,19 @@ class FunctionSetNode {
     // to always be a subclass of Object.
     return selector.mask != null
         ? selector.mask
-        : new TypeMask.subclass(compiler.objectClass);
+        : new TypeMask.subclass(compiler.objectClass, compiler.world);
     }
 
   FunctionSetQuery query(Selector selector,
                          Compiler compiler,
                          FunctionSetNode noSuchMethods) {
+    ClassWorld classWorld = compiler.world;
     assert(selector.name == name);
     FunctionSetQuery result = cache[selector];
     if (result != null) return result;
     Setlet<Element> functions;
     for (Element element in elements) {
-      if (selector.appliesUnnamed(element, compiler)) {
+      if (selector.appliesUnnamed(element, classWorld)) {
         if (functions == null) {
           // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
@@ -174,9 +175,10 @@ class FunctionSetNode {
     // add [noSuchMethod] implementations that apply to [mask] as
     // potential targets.
     if (noSuchMethods != null
-        && mask.needsNoSuchMethodHandling(selector, compiler)) {
+        && mask.needsNoSuchMethodHandling(selector, classWorld)) {
       FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
-          new TypedSelector(mask, compiler.noSuchMethodSelector, compiler),
+          new TypedSelector(
+              mask, compiler.noSuchMethodSelector, classWorld),
           compiler,
           null);
       if (!noSuchMethodQuery.functions.isEmpty) {
@@ -202,7 +204,7 @@ class FunctionSetNode {
 
 class FunctionSetQuery {
   final Iterable<Element> functions;
-  TypeMask computeMask(Compiler compiler) => const TypeMask.nonNullEmpty();
+  TypeMask computeMask(ClassWorld classWorld) => const TypeMask.nonNullEmpty();
   const FunctionSetQuery(this.functions);
 }
 
@@ -212,24 +214,22 @@ class FullFunctionSetQuery extends FunctionSetQuery {
   /**
    * Compute the type of all potential receivers of this function set.
    */
-  TypeMask computeMask(Compiler compiler) {
+  TypeMask computeMask(ClassWorld classWorld) {
+    assert(classWorld.hasAnySubclass(classWorld.objectClass));
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(functions
         .expand((element) {
           ClassElement cls = element.enclosingClass;
-          return compiler.world.isUsedAsMixin(cls)
-              ? ([cls]..addAll(compiler.world.mixinUses[cls]))
-              : [cls];
+          return [cls]..addAll(classWorld.mixinUsesOf(cls));
         })
         .map((cls) {
-          if (compiler.backend.isNullImplementation(cls)) {
+          if (classWorld.backend.isNullImplementation(cls)) {
             return const TypeMask.empty();
+          } else {
+            return new TypeMask.nonNullSubclass(cls.declaration, classWorld);
           }
-          return compiler.world.hasSubclasses(cls)
-              ? new TypeMask.nonNullSubclass(cls.declaration)
-              : new TypeMask.nonNullExact(cls.declaration);
         }),
-        compiler);
+        classWorld);
   }
 
   FullFunctionSetQuery(functions) : super(functions);

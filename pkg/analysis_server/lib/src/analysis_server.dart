@@ -10,14 +10,12 @@ import 'dart:collection';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/package_map_provider.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -25,10 +23,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analysis_services/constants.dart';
-import 'package:analysis_services/index/index.dart';
-import 'package:analysis_services/search/search_engine.dart';
+import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analysis_server/src/services/correction/namespace.dart';
 
 
 class ServerContextManager extends ContextManager {
@@ -206,7 +204,7 @@ class AnalysisServer {
         this, resourceProvider, packageMapProvider);
     AnalysisEngine.instance.logger = new AnalysisLogger();
     running = true;
-    Notification notification = new Notification(SERVER_CONNECTED);
+    Notification notification = new ServerConnectedParams().toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
   }
@@ -441,11 +439,9 @@ class AnalysisServer {
       return;
     }
     statusAnalyzing = isAnalyzing;
-    Notification notification = new Notification(SERVER_STATUS);
-    Map<String, Object> analysis = new HashMap();
-    analysis['analyzing'] = isAnalyzing;
-    notification.params['analysis'] = analysis;
-    channel.sendNotification(notification);
+    AnalysisStatus analysis = new AnalysisStatus(isAnalyzing);
+    channel.sendNotification(new ServerStatusParams(
+        analysis: analysis).toNotification());
   }
 
   /**
@@ -475,7 +471,7 @@ class AnalysisServer {
   /**
    * Implementation for `analysis.updateContent`.
    */
-  void updateContent(Map<String, ContentChange> changes) {
+  void updateContent(Map<String, dynamic> changes) {
     changes.forEach((file, change) {
       AnalysisContext analysisContext = getAnalysisContext(file);
       // TODO(paulberry): handle the case where a file is referred to by more
@@ -484,18 +480,22 @@ class AnalysisServer {
       // and user modifies a file in package B).
       if (analysisContext != null) {
         Source source = getSource(file);
-        if (change.offset == null) {
-          analysisContext.setContents(source, change.contentOrReplacement);
-        } else {
+        if (change is AddContentOverlay) {
+          analysisContext.setContents(source, change.content);
+        } else if (change is ChangeContentOverlay) {
           // TODO(paulberry): an error should be generated if source is not
           // currently in the content cache.
           TimestampedData<String> oldContents = analysisContext.getContents(
               source);
-          int offsetEnd = change.offset + change.length;
-          String newContents = oldContents.data.substring(0, change.offset) +
-              change.contentOrReplacement + oldContents.data.substring(offsetEnd);
-          analysisContext.setChangedContents(source, newContents, change.offset,
-              change.length, change.contentOrReplacement.length);
+          String newContents = SourceEdit.applySequence(oldContents.data, change.edits);
+          // TODO(paulberry): to aid in incremental processing it would be
+          // better to use setChangedContents.
+          analysisContext.setContents(source, newContents);
+        } else if (change is RemoveContentOverlay) {
+          analysisContext.setContents(source, null);
+        } else {
+          // Protocol parsing should have ensured that we never get here.
+          throw new AnalysisException('Illegal change type');
         }
         schedulePerformAnalysisOperation(analysisContext);
       }
@@ -664,17 +664,44 @@ class AnalysisServer {
   }
 
   /**
-   * Returns [Element]s of the Dart file with the given [path], at the given
-   * offset.
+   * Returns [AstNode]s at the given [offset] of the given [file].
    *
    * May be empty, but not `null`.
    */
-  List<Element> getElementsAtOffset(String path, int offset) {
-    List<CompilationUnit> units = getResolvedCompilationUnits(path);
-    List<Element> elements = <Element>[];
+  List<AstNode> getNodesAtOffset(String file, int offset) {
+    List<CompilationUnit> units = getResolvedCompilationUnits(file);
+    List<AstNode> nodes = <AstNode>[];
     for (CompilationUnit unit in units) {
       AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+      if (node != null) {
+        nodes.add(node);
+      }
+    }
+    return nodes;
+  }
+
+  /**
+   * Returns [Element]s at the given [offset] of the given [file].
+   *
+   * May be empty if not resolved, but not `null`.
+   */
+  List<Element> getElementsAtOffset(String file, int offset) {
+    List<AstNode> nodes = getNodesAtOffset(file, offset);
+    return getElementsOfNodes(nodes, offset);
+  }
+
+  /**
+   * Returns [Element]s of the given [nodes].
+   *
+   * May be empty if not resolved, but not `null`.
+   */
+  List<Element> getElementsOfNodes(List<AstNode> nodes, int offset) {
+    List<Element> elements = <Element>[];
+    for (AstNode node in nodes) {
       Element element = ElementLocator.locateWithOffset(node, offset);
+      if (node is SimpleIdentifier && element is PrefixElement) {
+        element = getImportElement(node);
+      }
       if (element != null) {
         elements.add(element);
       }
@@ -795,41 +822,10 @@ class AnalysisServer {
       stackTraceString = 'null stackTrace';
     }
     // send the notification
-    Notification notification = new Notification(SERVER_ERROR);
-    notification.setParameter(FATAL, true);
-    notification.setParameter(MESSAGE, exceptionString);
-    notification.setParameter(STACK_TRACE, stackTraceString);
-    channel.sendNotification(notification);
+    channel.sendNotification(new ServerErrorParams(true, exceptionString,
+        stackTraceString).toNotification());
   }
 }
 
 
-/**
- * An enumeration of the services provided by the analysis domain.
- */
-class AnalysisService extends Enum2<AnalysisService> {
-  static const HIGHLIGHTS = const AnalysisService('HIGHLIGHTS', 1);
-  static const NAVIGATION = const AnalysisService('NAVIGATION', 2);
-  static const OCCURRENCES = const AnalysisService('OCCURRENCES', 3);
-  static const OUTLINE = const AnalysisService('OUTLINE', 4);
-  static const OVERRIDES = const AnalysisService('OVERRIDES', 5);
-
-  static const List<AnalysisService> VALUES =
-      const [HIGHLIGHTS, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
-
-  const AnalysisService(String name, int ordinal) : super(name, ordinal);
-}
-
-
 typedef void OptionUpdater(AnalysisOptionsImpl options);
-
-/**
- * An enumeration of the services provided by the server domain.
- */
-class ServerService extends Enum2<ServerService> {
-  static const ServerService STATUS = const ServerService('STATUS', 0);
-
-  static const List<ServerService> VALUES = const [STATUS];
-
-  const ServerService(String name, int ordinal) : super(name, ordinal);
-}

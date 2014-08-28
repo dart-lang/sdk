@@ -5,11 +5,12 @@
 #include "vm/freelist.h"
 
 #include <map>
-#include <utility>
 
 #include "vm/bit_set.h"
+#include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -49,17 +50,24 @@ intptr_t FreeListElement::HeaderSizeFor(intptr_t size) {
 }
 
 
-FreeList::FreeList() {
+FreeList::FreeList() : mutex_(new Mutex()) {
   Reset();
 }
 
 
 FreeList::~FreeList() {
-  // Nothing to release.
+  delete mutex_;
 }
 
 
 uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
+  MutexLocker ml(mutex_);
+  return TryAllocateLocked(size, is_protected);
+}
+
+
+uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
+  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
   // Precondition: is_protected is false or else all free list elements are
   // in non-writable pages.
 
@@ -166,6 +174,13 @@ uword FreeList::TryAllocate(intptr_t size, bool is_protected) {
 
 
 void FreeList::Free(uword addr, intptr_t size) {
+  MutexLocker ml(mutex_);
+  FreeLocked(addr, size);
+}
+
+
+void FreeList::FreeLocked(uword addr, intptr_t size) {
+  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
   // Precondition required by AsElement and EnqueueElement: the (page
   // containing the) header of the freed block should be writable.  This is
   // the case when called for newly allocated pages because they are
@@ -179,6 +194,7 @@ void FreeList::Free(uword addr, intptr_t size) {
 
 
 void FreeList::Reset() {
+  MutexLocker ml(mutex_);
   free_map_.Reset();
   for (int i = 0; i < (kNumLists + 1); i++) {
     free_lists_[i] = NULL;
@@ -220,6 +236,7 @@ FreeListElement* FreeList::DequeueElement(intptr_t index) {
 
 
 intptr_t FreeList::Length(int index) const {
+  MutexLocker ml(mutex_);
   ASSERT(index >= 0);
   ASSERT(index < kNumLists);
   intptr_t result = 0;
@@ -290,6 +307,7 @@ void FreeList::PrintLarge() const {
 
 
 void FreeList::Print() const {
+  MutexLocker ml(mutex_);
   PrintSmall();
   PrintLarge();
 }

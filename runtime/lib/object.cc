@@ -46,6 +46,7 @@ DEFINE_NATIVE_ENTRY(Object_setHash, 2) {
 
 DEFINE_NATIVE_ENTRY(Object_toString, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  ASSERT(!instance.IsString());  // See issue 20583.
   const char* c_str = instance.ToCString();
   return String::New(c_str);
 }

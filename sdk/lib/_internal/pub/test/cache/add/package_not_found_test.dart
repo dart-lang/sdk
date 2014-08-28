@@ -10,7 +10,7 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration('fails if the package cound not be found on the source', () {
-    servePackages([]);
+    serveNoPackages();
 
     schedulePub(args: ["cache", "add", "foo"],
         error: new RegExp(r"Could not find package foo at http://.*"),

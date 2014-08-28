@@ -187,7 +187,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
     // Mark the object and push it on the marking stack.
     ASSERT(!raw_obj->IsMarked());
-    RawClass* raw_class = isolate()->class_table()->At(raw_obj->GetClassId());
     raw_obj->SetMarkBit();
     raw_obj->ClearRememberedBit();
     if (raw_obj->IsWatched()) {
@@ -205,9 +204,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
       raw_obj->ClearWatchedBit();
     }
     marking_stack_->Push(raw_obj);
-
-    // TODO(iposva): Should we mark the classes early?
-    MarkObject(raw_class, NULL);
   }
 
   void MarkObject(RawObject* raw_obj, RawObject** p) {
@@ -418,7 +414,11 @@ void GCMarker::DrainMarkingStack(Isolate* isolate,
   while (!visitor->marking_stack()->IsEmpty()) {
     RawObject* raw_obj = visitor->marking_stack()->Pop();
     visitor->VisitingOldObject(raw_obj);
-    if (raw_obj->GetClassId() != kWeakPropertyCid) {
+    const intptr_t class_id = raw_obj->GetClassId();
+    // Currently, classes are considered roots (see issue 18284), so at this
+    // point, they should all be marked.
+    ASSERT(isolate->class_table()->At(class_id)->IsMarked());
+    if (class_id != kWeakPropertyCid) {
       marked_bytes_ += raw_obj->VisitPointers(visitor);
     } else {
       RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);

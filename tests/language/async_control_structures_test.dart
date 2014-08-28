@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--enable_async
+// VMOptions=--enable_async --optimization-counter-threshold=10
 
 import 'package:expect/expect.dart';
 
@@ -69,27 +69,29 @@ asyncImplicitReturn() async {
 main() {
   var asyncReturn;
 
-  asyncReturn = asyncIf(true);
-  expectThenValue(asyncReturn, 1);
-  asyncReturn = asyncIf(false);
-  expectThenValue(asyncReturn, 2);
+  for (int i = 0; i < 10; i++) {
+    asyncReturn = asyncIf(true);
+    expectThenValue(asyncReturn, 1);
+    asyncReturn = asyncIf(false);
+    expectThenValue(asyncReturn, 2);
 
-  asyncReturn = asyncFor(true);
-  expectThenValue(asyncReturn, 1);
-  asyncReturn = asyncFor(false);
-  expectThenValue(asyncReturn, 2);
+    asyncReturn = asyncFor(true);
+    expectThenValue(asyncReturn, 1);
+    asyncReturn = asyncFor(false);
+    expectThenValue(asyncReturn, 2);
 
-  asyncReturn = asyncTryCatchFinally(true, false);
-  expectThenValue(asyncReturn, 3);
-  asyncReturn = asyncTryCatchFinally(false, false);
-  expectThenValue(asyncReturn, 1);
-  asyncReturn = asyncTryCatchFinally(true, true);
-  expectThenValue(asyncReturn, 3);
-  asyncReturn = asyncTryCatchFinally(false, true);
-  expectThenValue(asyncReturn, 444);
-  asyncReturn = asyncTryCatchLoop();
-  expectThenValue(asyncReturn, 13);
+    asyncReturn = asyncTryCatchFinally(true, false);
+    expectThenValue(asyncReturn, 3);
+    asyncReturn = asyncTryCatchFinally(false, false);
+    expectThenValue(asyncReturn, 1);
+    asyncReturn = asyncTryCatchFinally(true, true);
+    expectThenValue(asyncReturn, 3);
+    asyncReturn = asyncTryCatchFinally(false, true);
+    expectThenValue(asyncReturn, 444);
+    asyncReturn = asyncTryCatchLoop();
+    expectThenValue(asyncReturn, 13);
 
-  asyncReturn = asyncImplicitReturn();
-  expectThenValue(asyncReturn, null);
+    asyncReturn = asyncImplicitReturn();
+    expectThenValue(asyncReturn, null);
+  }
 }

@@ -21,7 +21,7 @@ class Test extends AbstractAnalysisServerIntegrationTest {
     Completer analysisFinished = new Completer();
     onServerStatus.listen((params) {
       if (params['analysis'] != null) {
-        if (params['analysis']['analyzing']) {
+        if (params['analysis']['isAnalyzing']) {
           expect(analysisBegun.isCompleted, isFalse);
           analysisBegun.complete();
         } else {

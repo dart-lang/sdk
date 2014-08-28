@@ -6,10 +6,7 @@ library test.domain.analysis.hover;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -24,21 +21,18 @@ main() {
 
 @ReflectiveTestCase()
 class AnalysisHoverTest extends AbstractAnalysisTest {
-  Future<Hover> prepareHover(String search) {
+  Future<HoverInformation> prepareHover(String search) {
     int offset = findOffset(search);
     return prepareHoverAt(offset);
   }
 
-  Future<Hover> prepareHoverAt(int offset) {
+  Future<HoverInformation> prepareHoverAt(int offset) {
     return waitForTasksFinished().then((_) {
-      Request request = new Request('0', ANALYSIS_GET_HOVER);
-      request.setParameter(FILE, testFile);
-      request.setParameter(OFFSET, offset);
+      Request request = new AnalysisGetHoverParams(testFile,
+          offset).toRequest('0');
       Response response = handleSuccessfulRequest(request);
-      List<Map<String, Object>> hoverJsons = response.getResult(HOVERS);
-      List<Hover> hovers = hoverJsons.map((json) {
-        return new Hover.fromJson(json);
-      }).toList();
+      var result = new AnalysisGetHoverResult.fromResponse(response);
+      List<HoverInformation> hovers = result.hovers;
       return hovers.isNotEmpty ? hovers.first : null;
     });
   }
@@ -49,7 +43,7 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_dartDoc_clunky() {
+  test_dartdoc_clunky() {
     addTestFile('''
 library my.library;
 /**
@@ -59,12 +53,12 @@ library my.library;
 main() {
 }
 ''');
-    return prepareHover('main() {').then((Hover hover) {
-      expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
+    return prepareHover('main() {').then((HoverInformation hover) {
+      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     });
   }
 
-  test_dartDoc_elegant() {
+  test_dartdoc_elegant() {
     addTestFile('''
 library my.library;
 /// doc aaa
@@ -72,8 +66,8 @@ library my.library;
 main() {
 }
 ''');
-    return prepareHover('main() {').then((Hover hover) {
-      expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
+    return prepareHover('main() {').then((HoverInformation hover) {
+      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
     });
   }
 
@@ -85,11 +79,11 @@ library my.library;
 List<String> fff(int a, String b) {
 }
 ''');
-    return prepareHover('fff(int a').then((Hover hover) {
+    return prepareHover('fff(int a').then((HoverInformation hover) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
-      expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
+      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'fff(int a, String b) → List<String>');
       expect(hover.elementKind, 'function');
       // types
@@ -107,7 +101,7 @@ main() {
 }
 foo(Object myParameter) {}
 ''');
-    return prepareHover('123').then((Hover hover) {
+    return prepareHover('123').then((HoverInformation hover) {
       // literal, no Element
       expect(hover.elementDescription, isNull);
       expect(hover.elementKind, isNull);
@@ -129,11 +123,11 @@ class A {
   }
 }
 ''');
-    return prepareHover('mmm(int a').then((Hover hover) {
+    return prepareHover('mmm(int a').then((HoverInformation hover) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
-      expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
+      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'A.mmm(int a, String b) → List<String>');
       expect(hover.elementKind, 'method');
       // types
@@ -155,7 +149,7 @@ main(A a) {
   a.mmm(42, 'foo');
 }
 ''');
-    return prepareHover('mm(42, ').then((Hover hover) {
+    return prepareHover('mm(42, ').then((HoverInformation hover) {
       // range
       expect(hover.offset, findOffset('mmm(42, '));
       expect(hover.length, 'mmm'.length);
@@ -184,11 +178,11 @@ main(A a) {
   print(a.fff);
 }
 ''');
-    return prepareHover('fff);').then((Hover hover) {
+    return prepareHover('fff);').then((HoverInformation hover) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
-      expect(hover.dartDoc, '''doc aaa\ndoc bbb''');
+      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
       expect(hover.elementDescription, 'String fff');
       expect(hover.elementKind, 'field');
       // types
@@ -205,11 +199,11 @@ main() {
   print(vvv);
 }
 ''');
-    return prepareHover('vvv);').then((Hover hover) {
+    return prepareHover('vvv);').then((HoverInformation hover) {
       // element
       expect(hover.containingLibraryName, 'my.library');
       expect(hover.containingLibraryPath, testFile);
-      expect(hover.dartDoc, isNull);
+      expect(hover.dartdoc, isNull);
       expect(hover.elementDescription, 'dynamic vvv');
       expect(hover.elementKind, 'local variable');
       // types
@@ -225,7 +219,7 @@ main() {
   // nothing
 }
 ''');
-    return prepareHover('nothing').then((Hover hover) {
+    return prepareHover('nothing').then((HoverInformation hover) {
       expect(hover, isNull);
     });
   }

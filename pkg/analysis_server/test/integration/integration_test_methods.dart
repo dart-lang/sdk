@@ -115,7 +115,7 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * fatal ( bool )
+   * isFatal ( bool )
    *
    *   True if the error is a fatal error, meaning that the server will
    *   shutdown automatically after sending this notification.
@@ -402,13 +402,13 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * files ( Map<FilePath, object> )
+   * files ( Map<FilePath, AddContentOverlay | ChangeContentOverlay |
+   * RemoveContentOverlay> )
    *
    *   A table mapping the files whose content has changed to a description of
-   *   the content change. Each value should be one of the following types:
-   *   AddContentOverlay, ChangeContentOverlay, or RemoveContentOverlay.
+   *   the content change.
    */
-  Future sendAnalysisUpdateContent(Map<String, Map<String, dynamic>> files, {bool checkTypes: true}) {
+  Future sendAnalysisUpdateContent(Map<String, Object> files, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};
     params["files"] = files;
     if (checkTypes) {
@@ -426,9 +426,8 @@ abstract class IntegrationTestMixin {
   /**
    * Update the options controlling analysis based on the given set of options.
    * Any options that are not included in the analysis options will not be
-   * changed. If there are options in the analysis options that are not valid
-   * an error will be reported but the values of the valid options will still
-   * be updated.
+   * changed. If there are options in the analysis options that are not valid,
+   * they will be silently ignored.
    *
    * Parameters
    *
@@ -636,10 +635,7 @@ abstract class IntegrationTestMixin {
   StreamController _onAnalysisOutline;
 
   /**
-   * Reports the overridding members in a file. This notification currently
-   * includes only members that override a member from a superclass. In
-   * particular, it does not include members that override members from
-   * interfaces.
+   * Reports the overridding members in a file.
    *
    * This notification is not subscribed to by default. Clients can subscribe
    * by including the value "OVERRIDES" in the list of services passed in an
@@ -725,9 +721,13 @@ abstract class IntegrationTestMixin {
    *
    * results ( List<CompletionSuggestion> )
    *
-   *   The completion suggestions being reported.
+   *   The completion suggestions being reported. The notification contains all
+   *   possible completions at the requested cursor position, even those that
+   *   do not match the characters the user has already typed. This allows the
+   *   client to respond to further keystrokes from the user without having to
+   *   make additional requests.
    *
-   * last ( bool )
+   * isLast ( bool )
    *
    *   True if this is that last set of results that will be returned for the
    *   indicated completion.
@@ -768,10 +768,13 @@ abstract class IntegrationTestMixin {
    *
    *   The identifier used to associate results with this search request.
    *
-   * element ( Element )
+   * element ( optional Element )
    *
    *   The element referenced or defined at the given offset and whose
    *   references will be returned in the search results.
+   *
+   *   If no element was found at the given location, this field will be
+   *   absent.
    */
   Future sendSearchFindElementReferences(String file, int offset, bool includePotential, {bool checkTypes: true}) {
     Map<String, dynamic> params = {};
@@ -957,7 +960,7 @@ abstract class IntegrationTestMixin {
    *
    *   The search results being reported.
    *
-   * last ( bool )
+   * isLast ( bool )
    *
    *   True if this is that last set of results that will be returned for the
    *   indicated search.
@@ -1099,9 +1102,9 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * kindId ( RefactoringKind )
+   * kind ( RefactoringKind )
    *
-   *   The identifier of the kind of refactoring to be performed.
+   *   The kind of refactoring to be performed.
    *
    * file ( FilePath )
    *
@@ -1130,7 +1133,7 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * status ( List<RefactoringProblem> )
+   * problems ( List<RefactoringProblem> )
    *
    *   The status of the refactoring. The array will be empty if there are no
    *   known problems.
@@ -1145,13 +1148,23 @@ abstract class IntegrationTestMixin {
    * change ( optional SourceChange )
    *
    *   The changes that are to be applied to affect the refactoring. This field
-   *   will be omitted if there are problems that prevent a set of changed from
+   *   will be omitted if there are problems that prevent a set of changes from
    *   being computed, such as having no options specified for a refactoring
    *   that requires them, or if only validation was requested.
+   *
+   * potentialEdits ( optional List<String> )
+   *
+   *   The ids of source edits that are not known to be valid. An edit is not
+   *   known to be valid if there was insufficient type information for the
+   *   server to be able to determine whether or not the code needs to be
+   *   modified, such as when a member is being renamed and there is a
+   *   reference to a member from an unknown type. This field will be omitted
+   *   if the change field is omitted or if there are no potential edits for
+   *   the refactoring.
    */
-  Future sendEditGetRefactoring(String kindId, String file, int offset, int length, bool validateOnly, {Map<String, dynamic> options, bool checkTypes: true}) {
+  Future sendEditGetRefactoring(String kind, String file, int offset, int length, bool validateOnly, {Map<String, dynamic> options, bool checkTypes: true}) {
     Map<String, dynamic> params = {};
-    params["kindId"] = kindId;
+    params["kind"] = kind;
     params["file"] = file;
     params["offset"] = offset;
     params["length"] = length;

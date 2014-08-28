@@ -108,7 +108,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     TypeMask receiverType =
         instruction.getDartReceiver(compiler).instructionType;
     Selector refined = new TypedSelector(receiverType, instruction.selector,
-        compiler);
+        compiler.world);
     TypeMask type = TypeMaskFactory.inferredTypeForSelector(refined, compiler);
     return new HIndex(
         instruction.inputs[1], instruction.inputs[2],
@@ -234,7 +234,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
         selector.argumentCount);
     return selector.mask == null
         ? newSelector
-        : new TypedSelector(selector.mask, newSelector, compiler);
+        : new TypedSelector(selector.mask, newSelector, compiler.world);
   }
 }
 
@@ -636,9 +636,9 @@ class EqualsSpecializer extends RelationalSpecializer {
     if (right.isConstantNull() || left.isPrimitiveOrNull(compiler)) {
       return newBuiltinVariant(instruction, compiler);
     }
-    Selector selector =
-        new TypedSelector(instructionType, instruction.selector, compiler);
     World world = compiler.world;
+    Selector selector =
+        new TypedSelector(instructionType, instruction.selector, world);
     JavaScriptBackend backend = compiler.backend;
     Iterable<Element> matches = world.allFunctions.filter(selector);
     // This test relies the on `Object.==` and `Interceptor.==` always being

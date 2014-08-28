@@ -1362,6 +1362,7 @@ main() {
     final SP_1 = new SpaceToken(1, breakWeight: DEFAULT_SPACE_WEIGHT);
     final SP_w1 = new SpaceToken(1, breakWeight: 1);
     final SP_w2 = new SpaceToken(1, breakWeight: 2);
+    final SP_i = new SpaceToken(1, breakWeight: SINGLE_SPACE_WEIGHT);
 
     // 'foo|1|bar|1|baz|1|foo|1|bar|1|baz'
     final LINE_1 = line(['foo', SP_1, 'bar', SP_1, 'baz', SP_1,
@@ -1435,6 +1436,31 @@ main() {
                       '555555', SP_w2, '666666']);
       var result = printLine(source, 20);
       expect(result, '111111 222222\n    333333 444444\n    555555 666666');
+    });
+
+    test('printLine - use weight - initializer - success', () {
+      var source = line(
+                     ['111111', SP_i, '2222', SP_w1,
+                      '3333', SP_w1, '4444']);
+      var result = printLine(source, 20);
+      expect(result, '111111\n    2222 3333 4444');
+    });
+
+    test('printLine - use weight - initializer - rest too long', () {
+      var source = line(
+                     ['111', SP_i, '222', SP_w1,
+                      '333', SP_w1, '444', SP_w1, '555', SP_w1, '666']);
+      var result = printLine(source, 15);
+      expect(result, '111 222\n    333\n    444\n    555\n    666');
+    });
+
+    test('printLine - use weight - initializer - decl/rest too long', () {
+      var source = line(
+                     ['111', SP_i, '2222222222222', SP_w1,
+                      '333', SP_w1, '444', SP_w1, '555', SP_w1, '666']);
+      var result = printLine(source, 15);
+      expect(result, '111\n    2222222222222\n'
+          '        333\n        444\n        555\n        666');
     });
 
     test('isWhitespace', () {
@@ -1579,8 +1605,7 @@ expectStmtFormatsTo(src, expected, {transforms: true}) =>
       new FormatterOptions(codeTransforms: transforms)), equals(expected));
 
 
-runTests(testFileName, expectClause(input, output)) {
-
+runTests(testFileName, expectClause(String input, String output)) {
   var testIndex = 1;
   var testFile = new File(join(TEST_DATA_DIR, testFileName));
   var lines = testFile.readAsLinesSync();

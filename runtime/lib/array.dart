@@ -102,11 +102,12 @@ class _List<E> implements List<E> {
     Lists.indicesCheck(this, start, end);
     if (end == null) end = this.length;
     int length = end - start;
-    if (start == end) return [];
-    List list = new _GrowableList<E>.withCapacity(length);
-    list.length = length;
-    Lists.copy(this, start, list, 0, length);
-    return list;
+    if (start == end) return <E>[];
+    List list = new _List(length);
+    list._copyFromObjectArray(this, start, 0, length);
+    var result = new _GrowableList<E>.withData(list);
+    result._setLength(length);
+    return result;
   }
 
   // Iterable interface.
@@ -249,8 +250,19 @@ class _List<E> implements List<E> {
     throw IterableElementError.tooMany();
   }
 
-  List<E> toList({ bool growable: true}) {
-    return new List<E>.from(this, growable: growable);
+  List<E> toList({ bool growable: true }) {
+    var length = this.length;
+    if (length > 0) {
+      var result = growable ? new _List(length) : new _List<E>(length);
+      result._copyFromObjectArray(this, 0, 0, length);
+      if (growable) {
+        result = new _GrowableList<E>.withData(result);
+        result._setLength(length);
+      }
+      return result;
+    }
+    // _GrowableList.withData must not be called with empty list.
+    return growable ? <E>[] : new List<E>(0);
   }
 
   Set<E> toSet() {
@@ -340,11 +352,14 @@ class _ImmutableList<E> implements List<E> {
     Lists.indicesCheck(this, start, end);
     if (end == null) end = this.length;
     int length = end - start;
-    if (start == end) return [];
-    List list = new List<E>();
-    list.length = length;
-    Lists.copy(this, start, list, 0, length);
-    return list;
+    if (length == 0) return <E>[];
+    List list = new _List(length);
+    for (int i = 0; i < length; i++) {
+      list[i] = this[start + i];
+    }
+    var result = new _GrowableList<E>.withData(list);
+    result._setLength(length);
+    return result;
   }
 
   Iterable<E> getRange(int start, int end) {
@@ -496,7 +511,18 @@ class _ImmutableList<E> implements List<E> {
   }
 
   List<E> toList({ bool growable: true }) {
-    return new List<E>.from(this, growable: growable);
+    var length = this.length;
+    if (length > 0) {
+      List list = growable ? new _List(length) : new _List<E>(length);
+      for (int i = 0; i < length; i++) {
+        list[i] = this[i];
+      }
+      if (!growable) return list;
+      var result = new _GrowableList<E>.withData(list);
+      result._setLength(length);
+      return result;
+    }
+    return growable ? <E>[] : new _List<E>(0);
   }
 
   Set<E> toSet() {

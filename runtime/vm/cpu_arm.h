@@ -53,6 +53,10 @@ class HostCPUFeatures: public AllStatic {
     DEBUG_ASSERT(initialized_);
     return arm_version_;
   }
+  static intptr_t store_pc_read_offset() {
+    DEBUG_ASSERT(initialized_);
+    return store_pc_read_offset_;
+  }
 
 #if !defined(HOST_ARCH_ARM)
   static void set_integer_division_supported(bool supported) {
@@ -80,6 +84,7 @@ class HostCPUFeatures: public AllStatic {
   static bool neon_supported_;
   static bool hardfp_supported_;
   static ARMVersion arm_version_;
+  static intptr_t store_pc_read_offset_;
 #if defined(DEBUG)
   static bool initialized_;
 #endif
@@ -102,6 +107,9 @@ class TargetCPUFeatures : public AllStatic {
   static bool vfp_supported() {
     return HostCPUFeatures::vfp_supported();
   }
+  static bool can_divide() {
+    return integer_division_supported() || vfp_supported();
+  }
   static bool neon_supported() {
     return HostCPUFeatures::neon_supported();
   }
@@ -113,6 +121,9 @@ class TargetCPUFeatures : public AllStatic {
   }
   static ARMVersion arm_version() {
     return HostCPUFeatures::arm_version();
+  }
+  static intptr_t store_pc_read_offset() {
+    return HostCPUFeatures::store_pc_read_offset();
   }
 };
 

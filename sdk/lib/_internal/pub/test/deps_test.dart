@@ -11,31 +11,21 @@ main() {
   initConfig();
 
   setUp(() {
-    servePackages([
-      packageMap("normal", "1.2.3", {
+    servePackages((builder) {
+      builder.serve("normal", "1.2.3", deps: {
         "transitive": "any",
         "circular_a": "any"
-      }),
-      packageMap("transitive", "1.2.3", {
-        "shared": "any"
-      }),
-      packageMap("shared", "1.2.3", {
-        "other": "any"
-      }),
-      packageMap("unittest", "1.2.3", {
-        "shared": "any"
-      }),
-      packageMap("other", "1.0.0"),
-      packageMap("overridden", "1.0.0"),
-      packageMap("overridden", "2.0.0"),
-      packageMap("override_only", "1.2.3"),
-      packageMap("circular_a", "1.2.3", {
-        "circular_b": "any"
-      }),
-      packageMap("circular_b", "1.2.3", {
-        "circular_a": "any"
-      })
-    ]);
+      });
+      builder.serve("transitive", "1.2.3", deps: {"shared": "any"});
+      builder.serve("shared", "1.2.3", deps: {"other": "any"});
+      builder.serve("unittest", "1.2.3", deps: {"shared": "any"});
+      builder.serve("other", "1.0.0");
+      builder.serve("overridden", "1.0.0");
+      builder.serve("overridden", "2.0.0");
+      builder.serve("override_only", "1.2.3");
+      builder.serve("circular_a", "1.2.3", deps: {"circular_b": "any"});
+      builder.serve("circular_b", "1.2.3", deps: {"circular_a": "any"});
+    });
 
     d.dir("from_path", [
       d.libDir("from_path"),

@@ -292,15 +292,14 @@ class JsBuilder {
 
   /// Creates a literal js string from [value].
   LiteralString escapedString(String value) {
+   // Start by escaping the backslashes.
+    String escaped = value.replaceAll('\\', '\\\\');
     // Do not escape unicode characters and ' because they are allowed in the
     // string literal anyway.
-    String escaped =
-        value.replaceAllMapped(new RegExp('\n|"|\\|\0|\b|\t|\v'), (match) {
+    escaped = escaped.replaceAllMapped(new RegExp('\n|"|\b|\t|\v'), (match) {
       switch (match.group(0)) {
         case "\n" : return r"\n";
-        case "\\" : return r"\\";
         case "\"" : return r'\"';
-        case "\0" : return r"\0";
         case "\b" : return r"\b";
         case "\t" : return r"\t";
         case "\f" : return r"\f";

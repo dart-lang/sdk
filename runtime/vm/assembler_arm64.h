@@ -452,6 +452,9 @@ class Assembler : public ValueObject {
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
   static const intptr_t kEntryPointToPcMarkerOffset = 0;
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return kEntryPointToPcMarkerOffset;
+  }
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.
   void Emit(int32_t value);
@@ -1220,6 +1223,14 @@ class Assembler : public ValueObject {
                    Register instance_reg,
                    Register temp_reg,
                    Register pp);
+
+  void TryAllocateArray(intptr_t cid,
+                        intptr_t instance_size,
+                        Label* failure,
+                        Register instance,
+                        Register end_address,
+                        Register temp1,
+                        Register temp2);
 
   Address ElementAddressForIntIndex(bool is_external,
                                     intptr_t cid,

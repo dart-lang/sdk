@@ -45,12 +45,14 @@ TEST_CASE(ObjectIdRingSerialWrapTest) {
   ObjectIdRing* ring = isolate->object_id_ring();
   ObjectIdRingTestHelper::SetCapacityAndMaxSerial(ring, 2, 4);
   intptr_t id;
+  ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("0"));
   EXPECT_EQ(0, id);
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("1"));
   EXPECT_EQ(1, id);
   // Test that id 1 gives us the "1" string.
-  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id), "1");
+  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "1");
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 1);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 2);
@@ -69,14 +71,16 @@ TEST_CASE(ObjectIdRingSerialWrapTest) {
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 3);
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("4"));
   EXPECT_EQ(0, id);
-  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id), "4");
+  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "4");
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 1);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 2);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 3);
   id = ring->GetIdForObject(ObjectIdRingTestHelper::MakeString("5"));
   EXPECT_EQ(1, id);
-  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id), "5");
+  ObjectIdRingTestHelper::ExpectString(ring->GetObjectForId(id, &kind), "5");
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 0);
   ObjectIdRingTestHelper::ExpectIdIsValid(ring, 1);
   ObjectIdRingTestHelper::ExpectIdIsInvalid(ring, 2);
@@ -101,6 +105,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
+  ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   RawObject* raw_obj = Api::UnwrapHandle(result);
   // Located in new heap.
   EXPECT(raw_obj->IsNewObject());
@@ -109,23 +114,22 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_EQ(0, raw_obj_id1);
   intptr_t raw_obj_id2 = ring->GetIdForObject(raw_obj);
   EXPECT_EQ(1, raw_obj_id2);
-  intptr_t raw_obj_id3 = ring->GetIdForObject(Object::null());
-  RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1);
-  RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2);
-  RawObject* raw_obj3 = ring->GetObjectForId(raw_obj_id3);
+  RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
+  RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
   EXPECT_NE(Object::null(), raw_obj1);
   EXPECT_NE(Object::null(), raw_obj2);
-  EXPECT_EQ(Object::null(), raw_obj3);
   EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
   EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
   // Force a scavenge.
   heap->CollectGarbage(Heap::kNew);
-  RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1);
-  RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2);
-  RawObject* raw_object_moved3 = ring->GetObjectForId(raw_obj_id3);
+  RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
+  RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
   EXPECT_NE(Object::null(), raw_object_moved1);
   EXPECT_NE(Object::null(), raw_object_moved2);
-  EXPECT_EQ(Object::null(), raw_object_moved3);
   EXPECT_EQ(RawObject::ToAddr(raw_object_moved1),
             RawObject::ToAddr(raw_object_moved2));
   // Test that objects have moved.
@@ -147,6 +151,7 @@ TEST_CASE(ObjectIdRingOldGCTest) {
   Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
 
+  ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
   intptr_t raw_obj_id1 = -1;
   intptr_t raw_obj_id2 = -1;
   {
@@ -169,8 +174,10 @@ TEST_CASE(ObjectIdRingOldGCTest) {
     EXPECT_EQ(0, raw_obj_id1);
     raw_obj_id2 = ring->GetIdForObject(raw_obj);
     EXPECT_EQ(1, raw_obj_id2);
-    RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1);
-    RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2);
+    RawObject* raw_obj1 = ring->GetObjectForId(raw_obj_id1, &kind);
+    EXPECT_EQ(ObjectIdRing::kValid, kind);
+    RawObject* raw_obj2 = ring->GetObjectForId(raw_obj_id2, &kind);
+    EXPECT_EQ(ObjectIdRing::kValid, kind);
     EXPECT_NE(Object::null(), raw_obj1);
     EXPECT_NE(Object::null(), raw_obj2);
     EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
@@ -182,11 +189,45 @@ TEST_CASE(ObjectIdRingOldGCTest) {
   // collected and the object id ring will now return the null object for
   // those ids.
   heap->CollectGarbage(Heap::kOld);
-  RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1);
-  RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2);
-  // Objects should now be null.
+  RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
+  EXPECT_EQ(ObjectIdRing::kCollected, kind);
   EXPECT_EQ(Object::null(), raw_object_moved1);
+  RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
+  EXPECT_EQ(ObjectIdRing::kCollected, kind);
   EXPECT_EQ(Object::null(), raw_object_moved2);
+}
+
+
+// Test that the ring table correctly reports an entry as expired when it is
+// overridden by new entries.
+TEST_CASE(ObjectIdRingExpiredEntryTest) {
+  Isolate* isolate = Isolate::Current();
+  ObjectIdRing* ring = isolate->object_id_ring();
+
+  // Insert an object and check we can look it up.
+  String& obj = String::Handle(String::New("I will expire"));
+  intptr_t obj_id = ring->GetIdForObject(obj.raw());
+  ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
+  RawObject* obj_lookup = ring->GetObjectForId(obj_id, &kind);
+  EXPECT_EQ(ObjectIdRing::kValid, kind);
+  EXPECT_EQ(obj.raw(), obj_lookup);
+
+  // Insert as many new objects as the ring size to bump out our first entry.
+  Object& new_obj = Object::Handle();
+  for (intptr_t i = 0; i < ObjectIdRing::kDefaultCapacity; i++) {
+    new_obj = String::New("Bump");
+    intptr_t new_obj_id = ring->GetIdForObject(new_obj.raw());
+    ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
+    RawObject* new_obj_lookup = ring->GetObjectForId(new_obj_id, &kind);
+    EXPECT_EQ(ObjectIdRing::kValid, kind);
+    EXPECT_EQ(new_obj.raw(), new_obj_lookup);
+  }
+
+  // Check our first entry reports it has expired.
+  obj_lookup = ring->GetObjectForId(obj_id, &kind);
+  EXPECT_EQ(ObjectIdRing::kExpired, kind);
+  EXPECT_NE(obj.raw(), obj_lookup);
+  EXPECT_EQ(Object::null(), obj_lookup);
 }
 
 }  // namespace dart

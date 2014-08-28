@@ -14,6 +14,7 @@
 #include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/locations.h"
+#include "vm/method_recognizer.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -28,6 +29,8 @@ namespace dart {
 
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
+DEFINE_FLAG(bool, two_args_smi_icd, true,
+    "Generate special IC stubs for two args Smi operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, enable_type_checks);
@@ -309,6 +312,15 @@ bool BinarySmiOpInstr::AttributesEqual(Instruction* other) const {
 }
 
 
+bool BinaryInt32OpInstr::AttributesEqual(Instruction* other) const {
+  BinaryInt32OpInstr* other_op = other->AsBinaryInt32Op();
+  ASSERT(other_op != NULL);
+  return (op_kind() == other_op->op_kind()) &&
+      (overflow_ == other_op->overflow_) &&
+      (is_truncating_ == other_op->is_truncating_);
+}
+
+
 EffectSet LoadFieldInstr::Dependencies() const {
   return immutable_ ? EffectSet::None() : EffectSet::All();
 }
@@ -323,6 +335,14 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   }
   return (other_load->field() == NULL) &&
       (offset_in_bytes() == other_load->offset_in_bytes());
+}
+
+
+Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
+  const bool is_initialized =
+      (field_.value() != Object::sentinel().raw()) &&
+      (field_.value() != Object::transition_sentinel().raw());
+  return is_initialized ? NULL : this;
 }
 
 
@@ -377,12 +397,16 @@ bool ConstantInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-UnboxedConstantInstr::UnboxedConstantInstr(const Object& value)
-    : ConstantInstr(value), constant_address_(0) {
-  // Only doubles supported for now.
-  ASSERT(value.IsDouble());
-  constant_address_ =
-      FlowGraphBuilder::FindDoubleConstant(Double::Cast(value).value());
+UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
+                                           Representation representation)
+    : ConstantInstr(value),
+      representation_(representation),
+      constant_address_(0) {
+  if (representation_ == kUnboxedDouble) {
+    ASSERT(value.IsDouble());
+    constant_address_ =
+        FlowGraphBuilder::FindDoubleConstant(Double::Cast(value).value());
+  }
 }
 
 
@@ -476,174 +500,6 @@ CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
   return NULL;
 }
 
-
-static bool StartsWith(const String& name, const char* prefix, intptr_t n) {
-  ASSERT(name.IsOneByteString());
-
-  if (name.Length() < n) {
-    return false;
-  }
-
-  for (intptr_t i = 0; i < n; i++) {
-    if (name.CharAt(i) != prefix[i]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-
-static bool CompareNames(const Library& lib,
-                         const char* test_name,
-                         const String& name) {
-  ASSERT(Library::kPrivateIdentifierStart == '_');
-  const char* kPrivateGetterPrefix = "get:_";
-  const char* kPrivateSetterPrefix = "set:_";
-
-  if (test_name[0] == Library::kPrivateIdentifierStart) {
-    if (name.CharAt(0) != Library::kPrivateIdentifierStart) {
-      return false;
-    }
-  } else if (strncmp(test_name,
-                     kPrivateGetterPrefix,
-                     strlen(kPrivateGetterPrefix)) == 0) {
-    if (!StartsWith(name, kPrivateGetterPrefix, strlen(kPrivateGetterPrefix))) {
-      return false;
-    }
-  } else if (strncmp(test_name,
-                     kPrivateSetterPrefix,
-                     strlen(kPrivateSetterPrefix)) == 0) {
-    if (!StartsWith(name, kPrivateSetterPrefix, strlen(kPrivateSetterPrefix))) {
-      return false;
-    }
-  } else {
-    // Compare without mangling.
-    return name.Equals(test_name);
-  }
-
-  // Both names are private. Mangle test_name before comparison.
-  // Check if this is a constructor (e.g., List,), in which case the mangler
-  // needs some help (see comment in Library::PrivateName).
-  String& test_name_symbol = String::Handle();
-  if (test_name[strlen(test_name) - 1] == '.') {
-    test_name_symbol = Symbols::New(test_name, strlen(test_name) - 1);
-    test_name_symbol = lib.PrivateName(test_name_symbol);
-    test_name_symbol = String::Concat(test_name_symbol, Symbols::Dot());
-  } else {
-    test_name_symbol = Symbols::New(test_name);
-    test_name_symbol = lib.PrivateName(test_name_symbol);
-  }
-  return test_name_symbol.Equals(name);
-}
-
-
-static bool IsRecognizedLibrary(const Library& library) {
-  // List of libraries where methods can be recognized.
-  return (library.raw() == Library::CoreLibrary())
-      || (library.raw() == Library::MathLibrary())
-      || (library.raw() == Library::TypedDataLibrary())
-      || (library.raw() == Library::InternalLibrary());
-}
-
-
-MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
-    const Function& function) {
-  if (!function.is_recognized()) {
-    return kUnknown;
-  }
-
-  const Class& function_class = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(function_class.library());
-  const String& function_name = String::Handle(function.name());
-  const String& class_name = String::Handle(function_class.Name());
-
-#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
-  if (CompareNames(lib, #test_function_name, function_name) &&                 \
-      CompareNames(lib, #test_class_name, class_name)) {                       \
-    ASSERT(function.CheckSourceFingerprint(fp));                               \
-    return k##enum_name;                                                       \
-  }
-RECOGNIZED_LIST(RECOGNIZE_FUNCTION)
-#undef RECOGNIZE_FUNCTION
-  UNREACHABLE();
-  return kUnknown;
-}
-
-
-bool MethodRecognizer::AlwaysInline(const Function& function) {
-  const Class& function_class = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(function_class.library());
-  if (!IsRecognizedLibrary(lib)) {
-    return false;
-  }
-
-  const String& function_name = String::Handle(function.name());
-  const String& class_name = String::Handle(function_class.Name());
-
-#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
-  if (CompareNames(lib, #test_function_name, function_name) &&                 \
-      CompareNames(lib, #test_class_name, class_name)) {                       \
-    ASSERT(function.CheckSourceFingerprint(fp));                               \
-    return true;                                                               \
-  }
-INLINE_WHITE_LIST(RECOGNIZE_FUNCTION)
-#undef RECOGNIZE_FUNCTION
-  return false;
-}
-
-
-bool MethodRecognizer::PolymorphicTarget(const Function& function) {
-  const Class& function_class = Class::Handle(function.Owner());
-  const Library& lib = Library::Handle(function_class.library());
-  if (!IsRecognizedLibrary(lib)) {
-    return false;
-  }
-
-  const String& function_name = String::Handle(function.name());
-  const String& class_name = String::Handle(function_class.Name());
-
-#define RECOGNIZE_FUNCTION(test_class_name, test_function_name, enum_name, fp) \
-  if (CompareNames(lib, #test_function_name, function_name) &&                 \
-      CompareNames(lib, #test_class_name, class_name)) {                       \
-    ASSERT(function.CheckSourceFingerprint(fp));                               \
-    return true;                                                               \
-  }
-POLYMORPHIC_TARGET_LIST(RECOGNIZE_FUNCTION)
-#undef RECOGNIZE_FUNCTION
-  return false;
-}
-
-
-const char* MethodRecognizer::KindToCString(Kind kind) {
-#define KIND_TO_STRING(class_name, function_name, enum_name, fp)               \
-  if (kind == k##enum_name) return #enum_name;
-RECOGNIZED_LIST(KIND_TO_STRING)
-#undef KIND_TO_STRING
-  return "?";
-}
-
-
-void MethodRecognizer::InitializeState() {
-  GrowableArray<Library*> libs(3);
-  libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
-  libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
-  Function& func = Function::Handle();
-
-#define SET_IS_RECOGNIZED(class_name, function_name, dest, fp)                 \
-  func = Library::GetFunction(libs, #class_name, #function_name);              \
-  if (func.IsNull()) {                                                         \
-    OS::PrintErr("Missing %s::%s\n", #class_name, #function_name);             \
-    UNREACHABLE();                                                             \
-  }                                                                            \
-  ASSERT(func.CheckSourceFingerprint(fp));                                     \
-  func.set_is_recognized(true);                                                \
-
-  RECOGNIZED_LIST(SET_IS_RECOGNIZED);
-
-#undef SET_IS_RECOGNIZED
-}
 
 // ==== Support for visiting flow graphs.
 
@@ -835,13 +691,20 @@ void Value::RemoveFromUseList() {
 // True if the definition has a single input use and is used only in
 // environments at the same instruction as that input use.
 bool Definition::HasOnlyUse(Value* use) const {
-  if ((input_use_list() != use) || (use->next_use() != NULL)) return false;
+  if (!HasOnlyInputUse(use)) {
+    return false;
+  }
 
   Instruction* target = use->instruction();
   for (Value::Iterator it(env_use_list()); !it.Done(); it.Advance()) {
     if (it.Current()->instruction() != target) return false;
   }
   return true;
+}
+
+
+bool Definition::HasOnlyInputUse(Value* use) const {
+  return (input_use_list() == use) && (use->next_use() == NULL);
 }
 
 
@@ -1306,6 +1169,49 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 }
 
 
+bool UnboxedIntConverterInstr::CanDeoptimize() const {
+  return (to() == kUnboxedInt32) &&
+      !Range::Fits(value()->definition()->range(),
+                   RangeBoundary::kRangeBoundaryInt32);
+}
+
+
+bool UnboxInt32Instr::CanDeoptimize() const {
+  const intptr_t value_cid = value()->Type()->ToCid();
+  if (value_cid == kSmiCid) {
+    return false;
+  } else if (value_cid == kMintCid) {
+    return !Range::Fits(value()->definition()->range(),
+                        RangeBoundary::kRangeBoundaryInt32);
+  } else {
+    return true;
+  }
+}
+
+
+bool BinaryInt32OpInstr::CanDeoptimize() const {
+  switch (op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+      return false;
+
+    case Token::kSHR:
+      return false;
+
+    case Token::kSHL:
+      return true;
+
+    case Token::kMOD: {
+      UNREACHABLE();
+    }
+
+    default:
+      return overflow_;
+  }
+}
+
+
 bool BinarySmiOpInstr::CanDeoptimize() const {
   if (FLAG_throw_on_javascript_int_overflow && (Smi::kBits > 32)) {
     // If Smi's are bigger than 32-bits, then the instruction could deoptimize
@@ -1582,6 +1488,29 @@ Definition* BinaryUint32OpInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+Definition* BinaryInt32OpInstr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* result = NULL;
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kSmiCid,
+                                             left(),
+                                             right());
+  if (result != NULL) {
+    return result;
+  }
+
+  result = CanonicalizeCommutativeArithmetic(op_kind(),
+                                             kSmiCid,
+                                             right(),
+                                             left());
+  if (result != NULL) {
+    return result;
+  }
+
+  return this;
+}
+
+
 // Optimizations that eliminate or simplify individual instructions.
 Instruction* Instruction::Canonicalize(FlowGraph* flow_graph) {
   return this;
@@ -1780,6 +1709,103 @@ Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+bool BoxIntNInstr::ValueFitsSmi() const {
+  Range* range = value()->definition()->range();
+  return Range::Fits(range, RangeBoundary::kRangeBoundarySmi);
+}
+
+
+Definition* BoxIntNInstr::Canonicalize(FlowGraph* flow_graph) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  return this;
+}
+
+
+Definition* UnboxIntNInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
+
+  // Fold away UnboxInt<N>Instr(BoxInt<N>Instr(v)).
+  BoxIntNInstr* box_defn = value()->definition()->AsBoxIntN();
+  if (box_defn != NULL) {
+    if (box_defn->value()->definition()->representation() == representation()) {
+      return box_defn->value()->definition();
+    } else {
+      UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
+          box_defn->value()->definition()->representation(),
+          representation(),
+          box_defn->value()->CopyWithType(),
+          representation() == kUnboxedInt32 ? deopt_id_ : Isolate::kNoDeoptId);
+      flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
+      return converter;
+    }
+  }
+
+  return this;
+}
+
+
+Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
+
+  UnboxedIntConverterInstr* box_defn =
+      value()->definition()->AsUnboxedIntConverter();
+  if ((box_defn != NULL) && (box_defn->representation() == from())) {
+    if (box_defn->from() == to()) {
+      return box_defn->value()->definition();
+    }
+
+    UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
+        box_defn->from(),
+        representation(),
+        box_defn->value()->CopyWithType(),
+        to() == kUnboxedInt32 ? deopt_id_ : NULL);
+    flow_graph->InsertBefore(this, converter, env(), FlowGraph::kValue);
+    return converter;
+  }
+
+  UnboxIntegerInstr* unbox_defn = value()->definition()->AsUnboxInteger();
+  if (unbox_defn != NULL &&
+      (from() == kUnboxedMint) &&
+      (to() == kUnboxedInt32) &&
+      unbox_defn->HasOnlyInputUse(value())) {
+    // TODO(vegorov): there is a duplication of code between UnboxedIntCoverter
+    // and code path that unboxes Mint into Int32. We should just schedule
+    // these instructions close to each other instead of fusing them.
+    Definition* replacement =
+        new UnboxInt32Instr(unbox_defn->value()->CopyWithType(), deopt_id_);
+    flow_graph->InsertBefore(this,
+                             replacement,
+                             env(),
+                             FlowGraph::kValue);
+    return replacement;
+  }
+
+  return this;
+}
+
+
+Definition* UnboxInt32Instr::Canonicalize(FlowGraph* flow_graph) {
+  Definition* replacement = UnboxIntNInstr::Canonicalize(flow_graph);
+  if (replacement != this) {
+    return replacement;
+  }
+
+  ConstantInstr* c = value()->definition()->AsConstant();
+  if ((c != NULL) && c->value().IsSmi()) {
+    UnboxedConstantInstr* uc =
+        new UnboxedConstantInstr(c->value(), kUnboxedInt32);
+    flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
+    return uc;
+  }
+
+  return this;
+}
+
+
 Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
   // Fold away UnboxDouble(BoxDouble(v)).
@@ -1790,11 +1816,55 @@ Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
   ConstantInstr* c = value()->definition()->AsConstant();
   if ((c != NULL) && c->value().IsDouble()) {
-    UnboxedConstantInstr* uc = new UnboxedConstantInstr(c->value());
+    UnboxedConstantInstr* uc =
+        new UnboxedConstantInstr(c->value(), kUnboxedDouble);
     flow_graph->InsertBefore(this, uc, NULL, FlowGraph::kValue);
     return uc;
   }
 
+  return this;
+}
+
+
+Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
+  if ((input_use_list() == NULL) && !HasTryBlockUse(env_use_list())) {
+    // Environments can accomodate any representation. No need to box.
+    return value()->definition();
+  }
+
+  UnboxedIntConverterInstr* conv =
+      value()->definition()->AsUnboxedIntConverter();
+  if (conv != NULL) {
+    Definition* replacement = this;
+
+    switch (conv->from()) {
+      case kUnboxedInt32:
+        replacement = new BoxInt32Instr(conv->value()->CopyWithType());
+        break;
+      case kUnboxedUint32:
+        replacement = new BoxUint32Instr(conv->value()->CopyWithType());
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+
+    if (replacement != this) {
+      flow_graph->InsertBefore(this,
+                               replacement,
+                               NULL,
+                               FlowGraph::kValue);
+    }
+
+    return replacement;
+  }
+
+  return this;
+}
+
+
+Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   return this;
 }
 
@@ -2391,23 +2461,38 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary(Isolate* isolate,
 }
 
 
+static uword TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
+  if (!FLAG_two_args_smi_icd) {
+    return 0;
+  }
+  StubCode* stub_code = Isolate::Current()->stub_code();
+  switch (kind) {
+    case Token::kADD: return stub_code->SmiAddInlineCacheEntryPoint();
+    case Token::kSUB: return stub_code->SmiSubInlineCacheEntryPoint();
+    case Token::kEQ:  return stub_code->SmiEqualInlineCacheEntryPoint();
+    default:          return 0;
+  }
+}
+
+
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Isolate* isolate = compiler->isolate();
   const ICData* call_ic_data = NULL;
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
     const Array& arguments_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
-                                               argument_names()));
+        Array::Handle(isolate, ArgumentsDescriptor::New(ArgumentCount(),
+                                                        argument_names()));
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
         checked_argument_count());
   } else {
-    call_ic_data = &ICData::ZoneHandle(ic_data()->raw());
+    call_ic_data = &ICData::ZoneHandle(isolate, ic_data()->raw());
   }
   if (compiler->is_optimizing()) {
     ASSERT(HasICData());
-    if (ic_data()->NumberOfChecks() > 0) {
+    if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =
-          ICData::ZoneHandle(ic_data()->AsUnaryClassChecks());
+          ICData::ZoneHandle(isolate, ic_data()->AsUnaryClassChecks());
       compiler->GenerateInstanceCall(deopt_id(),
                                      token_pos(),
                                      ArgumentCount(),
@@ -2427,11 +2512,46 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    deopt_id(),
                                    token_pos());
-    compiler->GenerateInstanceCall(deopt_id(),
-                                   token_pos(),
-                                   ArgumentCount(),
-                                   locs(),
-                                   *call_ic_data);
+    bool is_smi_two_args_op = false;
+    const uword label_address = TwoArgsSmiOpInlineCacheEntry(token_kind());
+    if (label_address != 0) {
+      // We have a dedicated inline cache stub for this operation, add an
+      // an initial Smi/Smi check with count 0.
+      ASSERT(call_ic_data->NumArgsTested() == 2);
+      const String& name = String::Handle(isolate, call_ic_data->target_name());
+      const Class& smi_class = Class::Handle(isolate, Smi::Class());
+      const Function& smi_op_target =
+          Function::Handle(Resolver::ResolveDynamicAnyArgs(smi_class, name));
+      if (call_ic_data->NumberOfChecks() == 0) {
+        GrowableArray<intptr_t> class_ids(2);
+        class_ids.Add(kSmiCid);
+        class_ids.Add(kSmiCid);
+        call_ic_data->AddCheck(class_ids, smi_op_target);
+        // 'AddCheck' sets the initial count to 1.
+        call_ic_data->SetCountAt(0, 0);
+        is_smi_two_args_op = true;
+      } else if (call_ic_data->NumberOfChecks() == 1) {
+        GrowableArray<intptr_t> class_ids(2);
+        Function& target = Function::Handle(isolate);
+        call_ic_data->GetCheckAt(0, &class_ids, &target);
+        if ((target.raw() == smi_op_target.raw()) &&
+            (class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
+          is_smi_two_args_op = true;
+        }
+      }
+    }
+    if (is_smi_two_args_op) {
+      ASSERT(ArgumentCount() == 2);
+      ExternalLabel target_label(label_address);
+      compiler->EmitInstanceCall(&target_label, *call_ic_data, ArgumentCount(),
+                                 deopt_id(), token_pos(), locs());
+    } else {
+      compiler->GenerateInstanceCall(deopt_id(),
+                                     token_pos(),
+                                     ArgumentCount(),
+                                     locs(),
+                                     *call_ic_data);
+    }
   }
 }
 
@@ -2468,13 +2588,19 @@ void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Array& arguments_descriptor =
         Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
                                                argument_names()));
-    // TODO(srdjan): Improve performance of function recognition.
     MethodRecognizer::Kind recognized_kind =
         MethodRecognizer::RecognizeKind(function());
     int num_args_checked = 0;
-    if ((recognized_kind == MethodRecognizer::kMathMin) ||
-        (recognized_kind == MethodRecognizer::kMathMax)) {
-      num_args_checked = 2;
+    switch (recognized_kind) {
+      case MethodRecognizer::kDoubleFromInteger:
+        num_args_checked = 1;
+        break;
+      case MethodRecognizer::kMathMin:
+      case MethodRecognizer::kMathMax:
+        num_args_checked = 2;
+        break;
+      default:
+        break;
     }
     call_ic_data = compiler->GetOrAddStaticCallICData(deopt_id(),
                                                       function(),

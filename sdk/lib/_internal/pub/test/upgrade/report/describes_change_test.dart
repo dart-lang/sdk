@@ -10,12 +10,12 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration("shows how package changed from previous lockfile", () {
-    servePackages([
-      packageMap("unchanged", "1.0.0"),
-      packageMap("version_changed", "1.0.0"),
-      packageMap("version_changed", "2.0.0"),
-      packageMap("source_changed", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("unchanged", "1.0.0");
+      builder.serve("version_changed", "1.0.0");
+      builder.serve("version_changed", "2.0.0");
+      builder.serve("source_changed", "1.0.0");
+    });
 
     d.dir("source_changed", [
       d.libDir("source_changed"),

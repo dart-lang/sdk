@@ -53,20 +53,21 @@ class ContainerTypeMask extends ForwardingTypeMask {
 
   bool equalsDisregardNull(other) {
     if (other is! ContainerTypeMask) return false;
-    return allocationNode == other.allocationNode
-        && elementType == other.elementType
-        && length == other.length;
+    return super.equalsDisregardNull(other) &&
+        allocationNode == other.allocationNode &&
+        elementType == other.elementType &&
+        length == other.length;
   }
 
-  TypeMask intersection(TypeMask other, Compiler compiler) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, compiler);
+  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
+    TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
     if (forwardIntersection.isEmpty) return forwardIntersection;
     return forwardIntersection.isNullable
         ? nullable()
         : nonNullable();
   }
 
-  TypeMask union(other, Compiler compiler) {
+  TypeMask union(other, ClassWorld classWorld) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -77,13 +78,17 @@ class ContainerTypeMask extends ForwardingTypeMask {
                && elementType != null
                && other.elementType != null) {
       TypeMask newElementType =
-          elementType.union(other.elementType, compiler);
+          elementType.union(other.elementType, classWorld);
       int newLength = (length == other.length) ? length : null;
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, compiler);
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);
       return new ContainerTypeMask(
-          newForwardTo, null, null, newElementType, newLength);
+          newForwardTo,
+          allocationNode == other.allocationNode ? allocationNode : null,
+          allocationElement == other.allocationElement ? allocationElement
+                                                       : null,
+          newElementType, newLength);
     } else {
-      return forwardTo.union(other, compiler);
+      return forwardTo.union(other, classWorld);
     }
   }
 

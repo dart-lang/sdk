@@ -87,7 +87,7 @@ class ServeCommand extends BarbackCommand {
     var watcherType = commandOptions['force-poll'] ?
         WatcherType.POLLING : WatcherType.AUTO;
 
-    return AssetEnvironment.create(entrypoint, mode, watcherType,
+    return AssetEnvironment.create(entrypoint, mode, watcherType: watcherType,
         hostname: hostname, basePort: port, useDart2JS: useDart2JS)
         .then((environment) {
 

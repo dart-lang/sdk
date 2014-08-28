@@ -13,7 +13,7 @@ main() {
   initConfig();
 
   integration('does not request a pubspec for a cached package', () {
-    servePackages([packageMap("foo", "1.2.3")]);
+    servePackages((builder) => builder.serve("foo", "1.2.3"));
 
     d.appDir({"foo": "1.2.3"}).create();
 

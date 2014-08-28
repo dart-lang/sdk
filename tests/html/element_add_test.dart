@@ -74,6 +74,18 @@ main() {
       expect(el.nodes.length, equals(1));
     });
 
+    test('htmlelement', () {
+      var el = new DivElement();
+      var twoNewLines = "\n\n";
+      el.appendText(twoNewLines);
+      // No children were created.
+      expect(el.children.length, equals(0));
+      // One text node was added.
+      expect(el.nodes.length, equals(1));
+      expect(el.nodes[0], isText);
+      expect(el.nodes[0].text, equals(twoNewLines));
+    });
+
     test('documentFragment', () {
       var fragment = new DocumentFragment();
       fragment.appendText('foo');

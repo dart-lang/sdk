@@ -4,16 +4,12 @@
 
 library domain.analysis;
 
-import 'dart:collection';
-
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' as engine;
 
 
 /**
@@ -35,25 +31,26 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the `analysis.getErrors` request.
    */
   Response getErrors(Request request) {
-    String file = request.getRequiredParameter(FILE).asString();
+    String file = new AnalysisGetErrorsParams.fromRequest(request).file;
     server.onFileAnalysisComplete(file).then((_) {
-      Response response = new Response(request.id);
-      AnalysisErrorInfo errorInfo = server.getErrors(file);
+      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
+      List<AnalysisError> errors;
       if (errorInfo == null) {
-        response.setResult(ERRORS, []);
+        errors = [];
       } else {
-        response.setResult(ERRORS, engineErrorInfoToJson(errorInfo));
+        errors = AnalysisError.listFromEngine(errorInfo.lineInfo,
+            errorInfo.errors);
       }
-      server.sendResponse(response);
+      server.sendResponse(new AnalysisGetErrorsResult(errors).toResponse(
+          request.id));
     }).catchError((message) {
       if (message is! String) {
-        AnalysisEngine.instance.logger.logError(
+        engine.AnalysisEngine.instance.logger.logError(
             'Illegal error message during getErrors: $message');
         message = '';
       }
-      Response response = new Response.getErrorsError(request, message);
-      response.setResult(ERRORS, []);
-      server.sendResponse(response);
+      server.sendResponse(new Response.getErrorsError(request, message,
+          new AnalysisGetErrorsResult([]).toJson()));
     });
     // delay response
     return Response.DELAYED_RESPONSE;
@@ -64,22 +61,20 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response getHover(Request request) {
     // prepare parameters
-    String file = request.getRequiredParameter(FILE).asString();
-    int offset = request.getRequiredParameter(OFFSET).asInt();
+    var params = new AnalysisGetHoverParams.fromRequest(request);
     // prepare hovers
-    List<Hover> hovers = <Hover>[];
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+    List<HoverInformation> hovers = <HoverInformation>[];
+    List<CompilationUnit> units =
+        server.getResolvedCompilationUnits(params.file);
     for (CompilationUnit unit in units) {
-      Hover hoverInformation =
-          new DartUnitHoverComputer(unit, offset).compute();
+      HoverInformation hoverInformation =
+          new DartUnitHoverComputer(unit, params.offset).compute();
       if (hoverInformation != null) {
         hovers.add(hoverInformation);
       }
     }
     // send response
-    Response response = new Response(request.id);
-    response.setResult(HOVERS, hovers);
-    return response;
+    return new AnalysisGetHoverResult(hovers).toResponse(request.id);
   }
 
   @override
@@ -111,82 +106,41 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the 'analysis.setAnalysisRoots' request.
    */
   Response setAnalysisRoots(Request request) {
-    // included
-    RequestDatum includedDatum = request.getRequiredParameter(INCLUDED);
-    List<String> includedPaths = includedDatum.asStringList();
-    // excluded
-    RequestDatum excludedDatum = request.getRequiredParameter(EXCLUDED);
-    List<String> excludedPaths = excludedDatum.asStringList();
+    var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
     // continue in server
-    server.setAnalysisRoots(request.id, includedPaths, excludedPaths);
-    return new Response(request.id);
+    server.setAnalysisRoots(request.id, params.included, params.excluded);
+    return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
   /**
    * Implement the 'analysis.setPriorityFiles' request.
    */
   Response setPriorityFiles(Request request) {
-    // files
-    RequestDatum filesDatum = request.getRequiredParameter(FILES);
-    List<String> files = filesDatum.asStringList();
-    server.setPriorityFiles(request, files);
-    return new Response(request.id);
+    var params = new AnalysisSetPriorityFilesParams.fromRequest(request);
+    server.setPriorityFiles(request, params.files);
+    return new AnalysisSetPriorityFilesResult().toResponse(request.id);
   }
 
   /**
    * Implement the 'analysis.setSubscriptions' request.
    */
   Response setSubscriptions(Request request) {
+    var params = new AnalysisSetSubscriptionsParams.fromRequest(request);
     // parse subscriptions
-    Map<AnalysisService, Set<String>> subMap;
-    {
-      RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
-      Map<String, List<String>> subStringMap = subDatum.asStringListMap();
-      subMap = new HashMap<AnalysisService, Set<String>>();
-      subStringMap.forEach((String serviceName, List<String> paths) {
-        AnalysisService service =
-            Enum2.valueOf(AnalysisService.VALUES, serviceName);
-        if (service == null) {
-          throw new RequestFailure(
-              new Response.unknownAnalysisService(request, serviceName));
-        }
-        subMap[service] = new HashSet.from(paths);
-      });
-    }
+    Map<AnalysisService, Set<String>> subMap =
+        mapMap(params.subscriptions, valueCallback:
+          (List<String> subscriptions) => subscriptions.toSet());
     server.setAnalysisSubscriptions(subMap);
-    return new Response(request.id);
+    return new AnalysisSetSubscriptionsResult().toResponse(request.id);
   }
 
   /**
    * Implement the 'analysis.updateContent' request.
    */
   Response updateContent(Request request) {
-    var changes = new HashMap<String, ContentChange>();
-    RequestDatum filesDatum = request.getRequiredParameter(FILES);
-    for (String file in filesDatum.keys) {
-      RequestDatum changeDatum = filesDatum[file];
-      ContentChange change = new ContentChange();
-      switch (changeDatum[TYPE].asString()) {
-        case ADD:
-          change.contentOrReplacement = changeDatum[CONTENT].asString();
-          break;
-        case CHANGE:
-          change.offset = changeDatum[OFFSET].asInt();
-          change.length = changeDatum[LENGTH].asInt();
-          change.contentOrReplacement = changeDatum[REPLACEMENT].asString();
-          break;
-        case REMOVE:
-          break;
-        default:
-          return new Response.invalidParameter(
-              request,
-              changeDatum[TYPE].path,
-              'be one of "add", "change", or "remove"');
-      }
-      changes[file] = change;
-    }
-    server.updateContent(changes);
-    return new Response(request.id);
+    var params = new AnalysisUpdateContentParams.fromRequest(request);
+    server.updateContent(params.files);
+    return new AnalysisUpdateContentResult().toResponse(request.id);
   }
 
   /**
@@ -194,70 +148,46 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response updateOptions(Request request) {
     // options
-    RequestDatum optionsDatum = request.getRequiredParameter(OPTIONS);
+    var params = new AnalysisUpdateOptionsParams.fromRequest(request);
+    AnalysisOptions newOptions = params.options;
     List<OptionUpdater> updaters = new List<OptionUpdater>();
-    optionsDatum.forEachMap((String optionName, RequestDatum optionDatum) {
-      if (optionName == ANALYZE_ANGULAR) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.analyzeAngular = optionValue;
-        });
-      } else if (optionName == ANALYZE_POLYMER) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.analyzePolymer = optionValue;
-        });
-      } else if (optionName == ENABLE_ASYNC) {
-        // TODO(brianwilkerson) Uncomment this when the option is supported.
-//        bool optionValue = optionDatum.asBool();
-//        updaters.add((AnalysisOptionsImpl options) {
-//          options.enableAsync = optionValue;
-//        });
-      } else if (optionName == ENABLE_DEFERRED_LOADING) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.enableDeferredLoading = optionValue;
-        });
-      } else if (optionName == ENABLE_ENUMS) {
-        // TODO(brianwilkerson) Uncomment this when the option is supported.
-//        bool optionValue = optionDatum.asBool();
-//        updaters.add((AnalysisOptionsImpl options) {
-//          options.enableEnums = optionValue;
-//        });
-      } else if (optionName == GENERATE_DART2JS_HINTS) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.dart2jsHint = optionValue;
-        });
-      } else if (optionName == GENERATE_HINTS) {
-        bool optionValue = optionDatum.asBool();
-        updaters.add((AnalysisOptionsImpl options) {
-          options.hint = optionValue;
-        });
-      } else {
-        throw new RequestFailure(
-            new Response.unknownOptionName(request, optionName));
-      }
-    });
+    // TODO(paulberry): analyzeAngular and analyzePolymer are not in the API.
+//    if (newOptions.analyzeAngular != null) {
+//      updaters.add((engine.AnalysisOptionsImpl options) {
+//        options.analyzeAngular = newOptions.analyzeAngular;
+//      });
+//    }
+//    if (newOptions.analyzePolymer != null) {
+//      updaters.add((engine.AnalysisOptionsImpl options) {
+//        options.analyzePolymer = newOptions.analyzePolymer;
+//      });
+//    }
+    if (newOptions.enableAsync != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.enableAsync = newOptions.enableAsync;
+      });
+    }
+    if (newOptions.enableDeferredLoading != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.enableDeferredLoading = newOptions.enableDeferredLoading;
+      });
+    }
+    if (newOptions.enableEnums != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.enableEnum = newOptions.enableEnums;
+      });
+    }
+    if (newOptions.generateDart2jsHints != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.dart2jsHint = newOptions.generateDart2jsHints;
+      });
+    }
+    if (newOptions.generateHints != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.hint = newOptions.generateHints;
+      });
+    }
     server.updateOptions(updaters);
-    return new Response(request.id);
+    return new AnalysisUpdateOptionsResult().toResponse(request.id);
   }
-}
-
-
-/**
- * A description of the change to the content of a file.
- */
-class ContentChange {
-  /**
-   * If [offset] and [length] are null, the full content of the file (or null
-   * if the file should be read from the filesystem).
-   *
-   * If [offset] and [length] are non-null, the replacement text which should
-   * take the place of the [length] characters of the file starting at [offset].
-   */
-  String contentOrReplacement;
-
-  int offset;
-  int length;
 }

@@ -110,6 +110,9 @@ class Package {
   Package.inMemory(this.pubspec)
     : dir = null;
 
+  /// Creates a package with [pubspec] located at [dir].
+  Package(this.pubspec, this.dir);
+
   /// The basenames of files that are included in [list] despite being hidden.
   static final _WHITELISTED_FILES = const ['.htaccess'];
 
@@ -124,8 +127,10 @@ class Package {
   /// If this is a Git repository, this will respect .gitignore; otherwise, it
   /// will return all non-hidden, non-blacklisted files.
   ///
-  /// If [beneath] is passed, this will only return files beneath that path.
-  List<String> listFiles({String beneath}) {
+  /// If [beneath] is passed, this will only return files beneath that path. If
+  /// [recursive] is true, this will return all files beneath that path;
+  /// otherwise, it will only return files one level beneath it.
+  List<String> listFiles({String beneath, recursive: true}) {
     if (beneath == null) beneath = dir;
 
     // This is used in some performance-sensitive paths and can list many, many
@@ -145,6 +150,12 @@ class Package {
           ["ls-files", "--cached", "--others", "--exclude-standard",
            relativeBeneath],
           workingDir: dir);
+
+      // If we're not listing recursively, strip out paths that contain
+      // separators. Since git always prints forward slashes, we always detect
+      // them.
+      if (!recursive) files = files.where((file) => !file.contains('/'));
+
       // Git always prints files relative to the repository root, but we want
       // them relative to the working directory. It also prints forward slashes
       // on Windows which we normalize away for easier testing.
@@ -156,11 +167,22 @@ class Package {
         return fileExists(file);
       });
     } else {
-      files = listDir(beneath, recursive: true, includeDirs: false,
+      files = listDir(beneath, recursive: recursive, includeDirs: false,
           whitelist: _WHITELISTED_FILES);
     }
 
     return files.where((file) {
+      // Using substring here is generally problematic in cases where dir has
+      // one or more trailing slashes. If you do listDir("foo"), you'll get back
+      // paths like "foo/bar". If you do listDir("foo/"), you'll get "foo/bar"
+      // (note the trailing slash was dropped. If you do listDir("foo//"),
+      // you'll get "foo//bar".
+      //
+      // This means if you strip off the prefix, the resulting string may have a
+      // leading separator (if the prefix did not have a trailing one) or it may
+      // not. However, since we are only using the results of that to call
+      // contains() on, the leading separator is harmless.
+      assert(file.startsWith(beneath));
       file = file.substring(beneath.length);
       return !_blacklistedFiles.any(file.endsWith) &&
           !_blacklistedDirs.any(file.contains);

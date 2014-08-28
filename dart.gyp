@@ -8,6 +8,7 @@
       'target_name': 'most',
       'type': 'none',
       'dependencies': [
+        'analysis_server',
         'analyzer_java',
         'create_sdk',
         'dart2js',
@@ -67,6 +68,13 @@
       'type': 'none',
       'dependencies': [
         'utils/dartfmt/dartfmt.gyp:dartfmt',
+      ],
+    },
+    {
+      'target_name': 'analysis_server',
+      'type': 'none',
+      'dependencies': [
+        'utils/analysis_server/analysis_server.gyp:analysis_server',
       ],
     },
     {

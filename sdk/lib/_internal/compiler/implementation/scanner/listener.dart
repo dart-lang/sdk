@@ -634,13 +634,13 @@ class Listener {
     return skipToEof(token);
   }
 
-  Link<Token> expectedDeclaration(Token token) {
+  Token expectedDeclaration(Token token) {
     if (token is ErrorToken) {
       reportErrorToken(token);
     } else {
       error("expected a declaration, but got '${token.value}'", token);
     }
-    return const Link<Token>();
+    return skipToEof(token);
   }
 
   Token unmatched(Token token) {
@@ -1213,14 +1213,14 @@ class ElementListener extends Listener {
     return unexpected(token);
   }
 
-  Link<Token> expectedDeclaration(Token token) {
+  Token expectedDeclaration(Token token) {
     if (token is ErrorToken) {
       reportErrorToken(token);
     } else {
       reportFatalError(token,
                        "Expected a declaration, but got '${token.value}'.");
     }
-    return const Link<Token>();
+    return skipToEof(token);
   }
 
   Token unmatched(Token token) {
@@ -1604,6 +1604,7 @@ class NodeListener extends ElementListener {
   Token expectedClassBody(Token token) {
     if (token is ErrorToken) {
       reportErrorToken(token);
+      return skipToEof(token);
     } else {
       reportFatalError(token,
                        "Expected a class body, but got '${token.value}'.");
@@ -2168,7 +2169,7 @@ class NodeListener extends ElementListener {
   }
 }
 
-abstract class PartialElement implements Element {
+abstract class PartialElement {
   Token get beginToken;
   Token get endToken;
 
@@ -2253,16 +2254,17 @@ class PartialConstructorElement extends ConstructorElementX
   }
 }
 
-class PartialFieldList extends VariableList {
+class PartialFieldList extends VariableList with PartialElement {
   final Token beginToken;
   final Token endToken;
-  final bool hasParseError;
 
   PartialFieldList(this.beginToken,
                    this.endToken,
                    Modifiers modifiers,
-                   this.hasParseError)
-      : super(modifiers);
+                   bool hasParseError)
+      : super(modifiers) {
+    super.hasParseError = hasParseError;
+  }
 
   VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
     if (definitions != null) return definitions;
@@ -2364,7 +2366,8 @@ Node parse(DiagnosticListener diagnosticListener,
     doParse(new Parser(listener));
   } on ParserError catch (e) {
     if (element is PartialElement) {
-      element.hasParseError = true;
+      PartialElement partial = element as PartialElement;
+      partial.hasParseError = true;
     }
     return new ErrorNode(element.position, e.reason);
   }

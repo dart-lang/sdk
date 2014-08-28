@@ -11,6 +11,7 @@
 #include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
+#include "vm/isolate.h"
 
 namespace dart {
 
@@ -192,6 +193,11 @@ Mutex::Mutex() {
 
   result = pthread_mutexattr_destroy(&attr);
   VALIDATE_PTHREAD_RESULT(result);
+
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  owner_ = NULL;
+#endif  // defined(DEBUG)
 }
 
 
@@ -199,6 +205,11 @@ Mutex::~Mutex() {
   int result = pthread_mutex_destroy(data_.mutex());
   // Verify that the pthread_mutex was destroyed.
   VALIDATE_PTHREAD_RESULT(result);
+
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  ASSERT(owner_ == NULL);
+#endif  // defined(DEBUG)
 }
 
 
@@ -207,7 +218,10 @@ void Mutex::Lock() {
   // Specifically check for dead lock to help debugging.
   ASSERT(result != EDEADLK);
   ASSERT(result == 0);  // Verify no other errors.
-  // TODO(iposva): Do we need to track lock owners?
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  owner_ = Isolate::Current();
+#endif  // defined(DEBUG)
 }
 
 
@@ -218,13 +232,20 @@ bool Mutex::TryLock() {
     return false;
   }
   ASSERT(result == 0);  // Verify no other errors.
-  // TODO(iposva): Do we need to track lock owners?
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  owner_ = Isolate::Current();
+#endif  // defined(DEBUG)
   return true;
 }
 
 
 void Mutex::Unlock() {
-  // TODO(iposva): Do we need to track lock owners?
+  // When running with assertions enabled we do track the owner.
+#if defined(DEBUG)
+  ASSERT(owner_ == Isolate::Current());
+  owner_ = NULL;
+#endif  // defined(DEBUG)
   int result = pthread_mutex_unlock(data_.mutex());
   // Specifically check for wrong thread unlocking to aid debugging.
   ASSERT(result != EPERM);

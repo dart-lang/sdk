@@ -3207,6 +3207,20 @@ class ParserTestCase extends EngineTestCase {
   static bool parseFunctionBodies = true;
 
   /**
+   * Create a parser.
+   *
+   * @param listener the listener to be passed to the parser
+   * @return the parser that was created
+   */
+  static Parser createParser(GatheringErrorListener listener) {
+    Parser parser = new Parser(null, listener);
+    parser.parseAsync = true;
+    parser.parseDeferredLibraries = true;
+    parser.parseEnum = true;
+    return parser;
+  }
+
+  /**
    * Invoke a parse method in [Parser]. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
    *
@@ -3298,10 +3312,7 @@ class ParserTestCase extends EngineTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
-    parser.parseAsync = true;
-    parser.parseDeferredLibraries = true;
-    parser.parseEnum = true;
+    Parser parser = createParser(listener);
     CompilationUnit unit = parser.parseCompilationUnit(token);
     JUnitTestCase.assertNotNull(unit);
     listener.assertErrorsWithCodes(errorCodes);
@@ -3322,7 +3333,7 @@ class ParserTestCase extends EngineTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = createParser(listener);
     Expression expression = parser.parseExpression(token);
     JUnitTestCase.assertNotNull(expression);
     listener.assertErrorsWithCodes(errorCodes);
@@ -3343,7 +3354,7 @@ class ParserTestCase extends EngineTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = createParser(listener);
     Statement statement = parser.parseStatement(token);
     JUnitTestCase.assertNotNull(statement);
     listener.assertErrorsWithCodes(errorCodes);
@@ -3366,7 +3377,7 @@ class ParserTestCase extends EngineTestCase {
     Scanner scanner = new Scanner(null, new CharSequenceReader(source), listener);
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     Token token = scanner.tokenize();
-    Parser parser = new Parser(null, listener);
+    Parser parser = createParser(listener);
     List<Statement> statements = parser.parseStatements(token);
     EngineTestCase.assertSizeOfList(expectedCount, statements);
     listener.assertErrorsWithCodes(errorCodes);
@@ -3399,7 +3410,7 @@ class ParserTestCase extends EngineTestCase {
     //
     // Parse the source.
     //
-    Parser parser = new Parser(null, listener);
+    Parser parser = createParser(listener);
     parser.parseFunctionBodies = parseFunctionBodies;
     parser.parseDeferredLibraries = true;
     parser.parseAsync = true;
@@ -3833,6 +3844,108 @@ class RecoveryParserTest extends ParserTestCase {
     EngineTestCase.assertSizeOfList(1, variables);
     SimpleIdentifier name = variables[0].name;
     JUnitTestCase.assertTrue(name.isSynthetic);
+  }
+
+  void test_incomplete_topLevelVariable_const() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("const ", [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSizeOfList(1, declarations);
+    CompilationUnitMember member = declarations[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
+    NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
+    EngineTestCase.assertSizeOfList(1, variables);
+    SimpleIdentifier name = variables[0].name;
+    JUnitTestCase.assertTrue(name.isSynthetic);
+  }
+
+  void test_incomplete_topLevelVariable_final() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("final ", [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSizeOfList(1, declarations);
+    CompilationUnitMember member = declarations[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
+    NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
+    EngineTestCase.assertSizeOfList(1, variables);
+    SimpleIdentifier name = variables[0].name;
+    JUnitTestCase.assertTrue(name.isSynthetic);
+  }
+
+  void test_incomplete_topLevelVariable_var() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit("var ", [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSizeOfList(1, declarations);
+    CompilationUnitMember member = declarations[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableDeclaration, TopLevelVariableDeclaration, member);
+    NodeList<VariableDeclaration> variables = (member as TopLevelVariableDeclaration).variables.variables;
+    EngineTestCase.assertSizeOfList(1, variables);
+    SimpleIdentifier name = variables[0].name;
+    JUnitTestCase.assertTrue(name.isSynthetic);
+  }
+
+  void test_incompleteField_const() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class C {", "  const", "}"]), [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSizeOfList(1, declarations);
+    CompilationUnitMember unitMember = declarations[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, unitMember);
+    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    EngineTestCase.assertSizeOfList(1, members);
+    ClassMember classMember = members[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
+    VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
+    JUnitTestCase.assertEquals(Keyword.CONST, (fieldList.keyword as KeywordToken).keyword);
+    NodeList<VariableDeclaration> fields = fieldList.variables;
+    EngineTestCase.assertSizeOfList(1, fields);
+    VariableDeclaration field = fields[0];
+    JUnitTestCase.assertTrue(field.name.isSynthetic);
+  }
+
+  void test_incompleteField_final() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class C {", "  final", "}"]), [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSizeOfList(1, declarations);
+    CompilationUnitMember unitMember = declarations[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, unitMember);
+    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    EngineTestCase.assertSizeOfList(1, members);
+    ClassMember classMember = members[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
+    VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
+    JUnitTestCase.assertEquals(Keyword.FINAL, (fieldList.keyword as KeywordToken).keyword);
+    NodeList<VariableDeclaration> fields = fieldList.variables;
+    EngineTestCase.assertSizeOfList(1, fields);
+    VariableDeclaration field = fields[0];
+    JUnitTestCase.assertTrue(field.name.isSynthetic);
+  }
+
+  void test_incompleteField_var() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(EngineTestCase.createSource(["class C {", "  var", "}"]), [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPECTED_TOKEN]);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    EngineTestCase.assertSizeOfList(1, declarations);
+    CompilationUnitMember unitMember = declarations[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is ClassDeclaration, ClassDeclaration, unitMember);
+    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    EngineTestCase.assertSizeOfList(1, members);
+    ClassMember classMember = members[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is FieldDeclaration, FieldDeclaration, classMember);
+    VariableDeclarationList fieldList = (classMember as FieldDeclaration).fields;
+    JUnitTestCase.assertEquals(Keyword.VAR, (fieldList.keyword as KeywordToken).keyword);
+    NodeList<VariableDeclaration> fields = fieldList.variables;
+    EngineTestCase.assertSizeOfList(1, fields);
+    VariableDeclaration field = fields[0];
+    JUnitTestCase.assertTrue(field.name.isSynthetic);
   }
 
   void test_isExpression_noType() {
@@ -4289,9 +4402,33 @@ class RecoveryParserTest extends ParserTestCase {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_functionExpression_in_ConstructorFieldInitializer);
       });
+      _ut.test('test_incompleteField_const', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_incompleteField_const);
+      });
+      _ut.test('test_incompleteField_final', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_incompleteField_final);
+      });
+      _ut.test('test_incompleteField_var', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_incompleteField_var);
+      });
       _ut.test('test_incomplete_topLevelVariable', () {
         final __test = new RecoveryParserTest();
         runJUnitTest(__test, __test.test_incomplete_topLevelVariable);
+      });
+      _ut.test('test_incomplete_topLevelVariable_const', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_incomplete_topLevelVariable_const);
+      });
+      _ut.test('test_incomplete_topLevelVariable_final', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_incomplete_topLevelVariable_final);
+      });
+      _ut.test('test_incomplete_topLevelVariable_var', () {
+        final __test = new RecoveryParserTest();
+        runJUnitTest(__test, __test.test_incomplete_topLevelVariable_var);
       });
       _ut.test('test_isExpression_noType', () {
         final __test = new RecoveryParserTest();
@@ -5666,7 +5803,26 @@ class SimpleParserTest extends ParserTestCase {
     AwaitExpression expression = ParserTestCase.parse4("parseAwaitExpression", "await x;", []);
     JUnitTestCase.assertNotNull(expression.awaitKeyword);
     JUnitTestCase.assertNotNull(expression.expression);
-    JUnitTestCase.assertNotNull(expression.semicolon);
+  }
+
+  void test_parseAwaitExpression_asStatement_inAsync() {
+    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], EngineTestCase.createSource(["m() async { await x; }"]));
+    FunctionBody body = method.body;
+    EngineTestCase.assertInstanceOf((obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is ExpressionStatement, ExpressionStatement, statement);
+    Expression expression = (statement as ExpressionStatement).expression;
+    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression, AwaitExpression, expression);
+    JUnitTestCase.assertNotNull((expression as AwaitExpression).awaitKeyword);
+    JUnitTestCase.assertNotNull((expression as AwaitExpression).expression);
+  }
+
+  void test_parseAwaitExpression_asStatement_inSync() {
+    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], EngineTestCase.createSource(["m() { await x; }"]));
+    FunctionBody body = method.body;
+    EngineTestCase.assertInstanceOf((obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is VariableDeclarationStatement, VariableDeclarationStatement, statement);
   }
 
   void test_parseBitwiseAndExpression_normal() {
@@ -10351,6 +10507,14 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseAwaitExpression', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseAwaitExpression);
+      });
+      _ut.test('test_parseAwaitExpression_asStatement_inAsync', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseAwaitExpression_asStatement_inAsync);
+      });
+      _ut.test('test_parseAwaitExpression_asStatement_inSync', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseAwaitExpression_asStatement_inSync);
       });
       _ut.test('test_parseBitwiseAndExpression_normal', () {
         final __test = new SimpleParserTest();

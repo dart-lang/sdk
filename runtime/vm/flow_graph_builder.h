@@ -179,6 +179,13 @@ class FlowGraphBuilder: public ValueObject {
   void set_catch_try_index(intptr_t value) { catch_try_index_ = value; }
   intptr_t catch_try_index() const { return catch_try_index_; }
 
+  intptr_t next_await_counter() { return jump_cnt_++; }
+
+  ZoneGrowableArray<intptr_t>* await_levels() const { return await_levels_; }
+  ZoneGrowableArray<JoinEntryInstr*>* await_joins() const {
+    return await_joins_;
+  }
+
   void AddCatchEntry(CatchBlockEntryInstr* entry);
 
   intptr_t num_copied_params() const {
@@ -266,6 +273,10 @@ class FlowGraphBuilder: public ValueObject {
   // The graph is being rebuilt for the optimizing compiler.
   // Do not generate a different graph based on this flag.
   const bool is_optimizing_;
+
+  intptr_t jump_cnt_;
+  ZoneGrowableArray<JoinEntryInstr*>* await_joins_;
+  ZoneGrowableArray<intptr_t>* await_levels_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -456,6 +467,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* ExitTempLocalScope(LocalVariable* var);
 
   void BuildLetTempExpressions(LetNode* node);
+
+  void BuildAwaitJump(LocalScope* lookup_scope,
+                      const intptr_t old_ctx_level,
+                      JoinEntryInstr* target);
 
   Isolate* isolate() const { return owner()->isolate(); }
 

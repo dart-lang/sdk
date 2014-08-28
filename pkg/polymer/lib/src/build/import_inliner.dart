@@ -170,6 +170,11 @@ class _HtmlInliner extends PolymerTransformer {
         var imported = new DocumentFragment();
         imported.nodes..addAll(doc.head.nodes)..addAll(doc.body.nodes);
         link.replaceWith(imported);
+
+        // Make sure to grab any logs from the inlined import.
+        if (logger is WrappedLogger) {
+          return (logger as WrappedLogger).addLogFilesFromAsset(id);
+        }
       });
     });
   }
@@ -183,7 +188,7 @@ class _HtmlInliner extends PolymerTransformer {
           "Failed to inline stylesheet: $error", asset: id,
           span: link.sourceSpan);
     }).then((css) {
-      if (css == null) return;
+      if (css == null) return null;
       css = new _UrlNormalizer(transform, id, logger).visitCss(css);
       var styleElement = new Element.tag('style')..text = css;
       // Copy over the extra attributes from the link tag to the style tag.
@@ -217,6 +222,7 @@ class _HtmlInliner extends PolymerTransformer {
           scriptIds.add(srcId);
           return true;
         }
+
         return transform.hasInput(srcId).then((exists) {
           if (!exists) {
             logger.warning('Script file at "$src" not found.',

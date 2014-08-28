@@ -20,7 +20,7 @@ class GlobalActivateCommand extends PubCommand {
     commandParser.addOption("source",
         abbr: "s",
         help: "The source used to find the package.",
-        allowed: ["hosted", "path"],
+        allowed: ["git", "hosted", "path"],
         defaultsTo: "hosted");
   }
 
@@ -41,10 +41,16 @@ class GlobalActivateCommand extends PubCommand {
       usageError("Unexpected $arguments ${toSentence(unexpected)}.");
     }
 
-    var package = readArg("No package to activate given.");
-
     switch (commandOptions["source"]) {
+      case "git":
+        var repo = readArg("No Git repository given.");
+        // TODO(rnystrom): Allow passing in a Git ref too.
+        validateNoExtraArgs();
+        return globals.activateGit(repo);
+
       case "hosted":
+        var package = readArg("No package to activate given.");
+
         // Parse the version constraint, if there is one.
         var constraint = VersionConstraint.any;
         if (args.isNotEmpty) {
@@ -59,8 +65,9 @@ class GlobalActivateCommand extends PubCommand {
         return globals.activateHosted(package, constraint);
 
       case "path":
+        var path = readArg("No package to activate given.");
         validateNoExtraArgs();
-        return globals.activatePath(package);
+        return globals.activatePath(path);
     }
 
     throw "unreachable";

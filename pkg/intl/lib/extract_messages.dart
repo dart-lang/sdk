@@ -52,7 +52,13 @@ bool get hasWarnings => warnings.isNotEmpty;
  * message names to [IntlMessage] instances.
  */
 Map<String, MainMessage> parseFile(File file) {
-  _root = parseDartFile(file.path);
+  try {
+    _root = parseDartFile(file.path);
+  } on AnalyzerErrorGroup catch (e) {
+    print("Error in parsing ${file.path}, no messages extracted.");
+    print("  $e");
+    return {};
+  }
   _origin = file.path;
   var visitor = new MessageFindingVisitor();
   _root.accept(visitor);

@@ -1,8 +1,16 @@
 <html><head>
     <meta charset="UTF-8">
     <title>Analysis Server API Specification</title>
-  <style>h1 {
+  <style>body {
+  font-family: sans-serif, serif;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+h1 {
   text-align: center;
+}
+h2.domain {
+  border-bottom: 3px solid rgb(160, 160, 160);
 }
 pre {
   margin: 0px;
@@ -12,13 +20,25 @@ div.box {
   background-color: rgb(207, 226, 243);
   padding: 0.5em;
 }
+div.hangingIndent {
+  padding-left: 3em;
+  text-indent: -3em;
+}
 dt {
   margin-top: 1em;
   margin-bottom: 1em;
 }
-div.hangingIndent {
-  padding-left: 3em;
-  text-indent: -3em;
+dt.notification {
+  font-weight: bold;
+}
+dt.refactoring {
+  font-weight: bold;
+}
+dt.request {
+  font-weight: bold;
+}
+dt.typeDefinition {
+  font-weight: bold;
 }
 </style></head>
   <body>
@@ -153,7 +173,7 @@ div.hangingIndent {
       flag is not specified then notifications will be sent for all
       errors produced for all files in the actual analysis roots.
     </p>
-    <h2><a name="domain_server">Domain: server</a></h2>
+    <h2 class="domain"><a name="domain_server">Domain: server</a></h2>
       <p>
         The server domain contains API’s related to the execution of
         the server.
@@ -233,7 +253,7 @@ div.hangingIndent {
       </dd><dt class="notification">server.error</dt><dd><div class="box"><pre>notification: {
   "event": "server.error"
   "params": {
-    "<b>fatal</b>": bool
+    "<b>isFatal</b>": bool
     "<b>message</b>": String
     "<b>stackTrace</b>": String
   }
@@ -251,7 +271,7 @@ div.hangingIndent {
           notification.
         </p>
         
-      <h4>Parameters</h4><dl><dt class="field"><b><i>fatal ( bool )</i></b></dt><dd>
+      <h4>Parameters</h4><dl><dt class="field"><b><i>isFatal ( bool )</i></b></dt><dd>
             
             <p>
               True if the error is a fatal error, meaning that the
@@ -296,7 +316,7 @@ div.hangingIndent {
               analyzed.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_analysis">Domain: analysis</a></h2>
+    <h2 class="domain"><a name="domain_analysis">Domain: analysis</a></h2>
       <p>
         The analysis domain contains API’s related to the analysis of
         files.
@@ -565,7 +585,7 @@ div.hangingIndent {
   "id": String
   "method": "analysis.updateContent"
   "params": {
-    "<b>files</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, object&gt;
+    "<b>files</b>": Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_AddContentOverlay">AddContentOverlay</a> | <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a> | <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>&gt;
   }
 }</pre><br><pre>response: {
   "id": String
@@ -582,13 +602,11 @@ div.hangingIndent {
           filesystem.
         </p>
         
-      <h4>Parameters</h4><dl><dt class="field"><b><i>files ( Map&lt;<a href="#type_FilePath">FilePath</a>, object&gt; )</i></b></dt><dd>
+      <h4>Parameters</h4><dl><dt class="field"><b><i>files ( Map&lt;<a href="#type_FilePath">FilePath</a>, <a href="#type_AddContentOverlay">AddContentOverlay</a> | <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a> | <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>&gt; )</i></b></dt><dd>
             
             <p>
               A table mapping the files whose content has changed to a
-              description of the content change.  Each value should be
-              one of the following types: <a href="#type_AddContentOverlay">AddContentOverlay</a>, <a href="#type_ChangeContentOverlay">ChangeContentOverlay</a>,
-              or <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
+              description of the content change.
             </p>
           </dd></dl></dd><dt class="request">analysis.updateOptions</dt><dd><div class="box"><pre>request: {
   "id": String
@@ -604,9 +622,8 @@ div.hangingIndent {
           Update the options controlling analysis based on the given
           set of options. Any options that are not included in the
           analysis options will not be changed. If there are options
-          in the analysis options that are not valid an error will be
-          reported but the values of the valid options will still be
-          updated.
+          in the analysis options that are not valid, they will be
+          silently ignored.
         </p>
         
       <h4>Parameters</h4><dl><dt class="field"><b><i>options ( <a href="#type_AnalysisOptions">AnalysisOptions</a> )</i></b></dt><dd>
@@ -832,10 +849,7 @@ div.hangingIndent {
   }
 }</pre></div>
         <p>
-          Reports the overridding members in a file. This notification
-          currently includes only members that override a member from
-          a superclass. In particular, it does not include members
-          that override members from interfaces.
+          Reports the overridding members in a file.
         </p>
         <p>
           This notification is not subscribed to by default. Clients
@@ -855,7 +869,7 @@ div.hangingIndent {
               The overrides associated with the file.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_completion">Domain: completion</a></h2>
+    <h2 class="domain"><a name="domain_completion">Domain: completion</a></h2>
       <p>
         The code completion domain contains commands related to
         getting code completion suggestions.
@@ -907,7 +921,7 @@ div.hangingIndent {
     "<b>replacementOffset</b>": int
     "<b>replacementLength</b>": int
     "<b>results</b>": List&lt;<a href="#type_CompletionSuggestion">CompletionSuggestion</a>&gt;
-    "<b>last</b>": bool
+    "<b>isLast</b>": bool
   }
 }</pre></div>
         <p>
@@ -943,16 +957,21 @@ div.hangingIndent {
           </dd><dt class="field"><b><i>results ( List&lt;<a href="#type_CompletionSuggestion">CompletionSuggestion</a>&gt; )</i></b></dt><dd>
             
             <p>
-              The completion suggestions being reported.
+              The completion suggestions being reported.  The
+              notification contains all possible completions at the
+              requested cursor position, even those that do not match
+              the characters the user has already typed.  This allows
+              the client to respond to further keystrokes from the
+              user without having to make additional requests.
             </p>
-          </dd><dt class="field"><b><i>last ( bool )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>isLast ( bool )</i></b></dt><dd>
             
             <p>
               True if this is that last set of results that will be
               returned for the indicated completion.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_search">Domain: search</a></h2>
+    <h2 class="domain"><a name="domain_search">Domain: search</a></h2>
       <p>
         The search domain contains commands related to searches that
         can be performed against the code base.
@@ -976,7 +995,7 @@ div.hangingIndent {
   "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
   "result": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
-    "<b>element</b>": <a href="#type_Element">Element</a>
+    "<b>element</b>": <span style="color:#999999">optional</span> <a href="#type_Element">Element</a>
   }
 }</pre></div>
         <p>
@@ -1014,12 +1033,16 @@ div.hangingIndent {
               The identifier used to associate results with this
               search request.
             </p>
-          </dd><dt class="field"><b><i>element ( <a href="#type_Element">Element</a> )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>element ( <span style="color:#999999">optional</span> <a href="#type_Element">Element</a> )</i></b></dt><dd>
             
             <p>
               The element referenced or defined at the given offset
               and whose references will be returned in the search
               results.
+            </p>
+            <p>
+              If no element was found at the given location, this
+              field will be absent.
             </p>
           </dd></dl></dd><dt class="request">search.findMemberDeclarations</dt><dd><div class="box"><pre>request: {
   "id": String
@@ -1182,7 +1205,7 @@ div.hangingIndent {
   "params": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
     "<b>results</b>": List&lt;<a href="#type_SearchResult">SearchResult</a>&gt;
-    "<b>last</b>": bool
+    "<b>isLast</b>": bool
   }
 }</pre></div>
         <p>
@@ -1203,14 +1226,14 @@ div.hangingIndent {
             <p>
               The search results being reported.
             </p>
-          </dd><dt class="field"><b><i>last ( bool )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>isLast ( bool )</i></b></dt><dd>
             
             <p>
               True if this is that last set of results that will be
               returned for the indicated search.
             </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_edit">Domain: edit</a></h2>
+    <h2 class="domain"><a name="domain_edit">Domain: edit</a></h2>
       <p>
         The edit domain contains commands related to edits that can be
         applied to the code.
@@ -1358,7 +1381,7 @@ div.hangingIndent {
   "id": String
   "method": "edit.getRefactoring"
   "params": {
-    "<b>kindId</b>": <a href="#type_RefactoringKind">RefactoringKind</a>
+    "<b>kind</b>": <a href="#type_RefactoringKind">RefactoringKind</a>
     "<b>file</b>": <a href="#type_FilePath">FilePath</a>
     "<b>offset</b>": int
     "<b>length</b>": int
@@ -1369,9 +1392,10 @@ div.hangingIndent {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
   "result": {
-    "<b>status</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
+    "<b>problems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
     "<b>feedback</b>": <span style="color:#999999">optional</span> object
     "<b>change</b>": <span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>
+    "<b>potentialEdits</b>": <span style="color:#999999">optional</span> List&lt;String&gt;
   }
 }</pre></div>
         <p>
@@ -1379,11 +1403,10 @@ div.hangingIndent {
         </p>
         
         
-      <h4>Parameters</h4><dl><dt class="field"><b><i>kindId ( <a href="#type_RefactoringKind">RefactoringKind</a> )</i></b></dt><dd>
+      <h4>Parameters</h4><dl><dt class="field"><b><i>kind ( <a href="#type_RefactoringKind">RefactoringKind</a> )</i></b></dt><dd>
             
             <p>
-              The identifier of the kind of refactoring to be
-              performed.
+              The kind of refactoring to be performed.
             </p>
           </dd><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
             
@@ -1418,7 +1441,7 @@ div.hangingIndent {
               does not require any options or if the values of those
               options are not known.
             </p>
-          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>status ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
+          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>problems ( List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt; )</i></b></dt><dd>
             
             <p>
               The status of the refactoring. The array will be empty
@@ -1438,13 +1461,24 @@ div.hangingIndent {
             <p>
               The changes that are to be applied to affect the
               refactoring. This field will be omitted if there are
-              problems that prevent a set of changed from being
+              problems that prevent a set of changes from being
               computed, such as having no options specified for a
               refactoring that requires them, or if only validation
               was requested.
             </p>
+          </dd><dt class="field"><b><i>potentialEdits ( <span style="color:#999999">optional</span> List&lt;String&gt; )</i></b></dt><dd>
+            
+            <p>
+              The ids of source edits that are not known to be valid. An edit is
+              not known to be valid if there was insufficient type information
+              for the server to be able to determine whether or not the code
+              needs to be modified, such as when a member is being renamed and
+              there is a reference to a member from an unknown type. This field
+              will be omitted if the change field is omitted or if there are no
+              potential edits for the refactoring.
+            </p>
           </dd></dl></dd></dl>
-    <h2><a name="domain_debug">Domain: debug</a></h2>
+    <h2 class="domain"><a name="domain_debug">Domain: debug</a></h2>
       <p>
         The debugging domain contains commands related to providing a
         debugging experience.
@@ -1682,6 +1716,7 @@ div.hangingIndent {
       
       
       
+      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -1741,21 +1776,8 @@ div.hangingIndent {
           performed. If the value of a field is omitted the value of the
           option will not be changed.
         </p>
-        <p>
-          NOTE: These options need to change.
-        </p>
         
-      <dl><dt class="field"><b><i>analyzeAngular ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
-            
-            <p>
-              True if the client wants Angular code to be analyzed.
-            </p>
-          </dd><dt class="field"><b><i>analyzePolymer ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
-            
-            <p>
-              True if the client wants Polymer code to be analyzed.
-            </p>
-          </dd><dt class="field"><b><i>enableAsync ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
+      <dl><dt class="field"><b><i>enableAsync ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
             <p>
               True if the client wants to enable support for the
@@ -1777,15 +1799,13 @@ div.hangingIndent {
             
             <p>
               True if hints that are specific to dart2js should be
-              generated. This option is ignored if either provideErrors
-              or generateHints is false.
+              generated. This option is ignored if generateHints is false.
             </p>
           </dd><dt class="field"><b><i>generateHints ( <span style="color:#999999">optional</span> bool )</i></b></dt><dd>
             
             <p>
               True is hints should be generated as part of generating
-              errors and warnings. This option is ignored if
-              provideErrors is false.
+              errors and warnings.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisService">AnalysisService: String</a></dt><dd>
         <p>
@@ -1798,7 +1818,7 @@ div.hangingIndent {
           An indication of the current state of analysis.
         </p>
         
-      <dl><dt class="field"><b><i>analyzing ( bool )</i></b></dt><dd>
+      <dl><dt class="field"><b><i>isAnalyzing ( bool )</i></b></dt><dd>
             
             <p>True if analysis is currently being performed.</p>
           </dd><dt class="field"><b><i>analysisTarget ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
@@ -1809,33 +1829,25 @@ div.hangingIndent {
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_ChangeContentOverlay">ChangeContentOverlay: object</a></dt><dd>
         <p>
-          A directive to modify an existing file content overlay.  A
-          range of text is deleted from the old file content overlay
-          and replaced with new text.
+          A directive to modify an existing file content overlay. One or more
+          ranges of text are deleted from the old file content overlay and
+          replaced with new text.
         </p>
         <p>
-          It is an error to use this directive is used on a file that
-          does not yet have a file content overlay (or that has had
-          its overlay removed via <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>).
+        The edits are applied in the order in which they occur in the list.
+        This means that the offset of each edit must be correct under the
+        assumption that all previous edits have been applied.
+        </p>
+        <p>
+          It is an error to use this overlay on a file that does not yet have
+          a file content overlay or that has had its overlay removed via
+          <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
         </p>
         
-      <dl><dt class="field"><b><i>type = "change"</i></b></dt><dd></dd><dt class="field"><b><i>offset ( int )</i></b></dt><dd>
+      <dl><dt class="field"><b><i>type = "change"</i></b></dt><dd></dd><dt class="field"><b><i>edits ( List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt; )</i></b></dt><dd>
             
             <p>
-              The offset of the text to be remove from the file
-              content overlay.
-            </p>
-          </dd><dt class="field"><b><i>length ( int )</i></b></dt><dd>
-            
-            <p>
-              The length of the text to be removed from the file
-              content overlay, or 0 if no text should be removed.
-            </p>
-          </dd><dt class="field"><b><i>replacement ( String )</i></b></dt><dd>
-            
-            <p>
-              The new text which should be inserted in place of the
-              removed text.
+              The edits to be applied to the file.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_CompletionId">CompletionId: String</a></dt><dd>
         
@@ -1973,7 +1985,7 @@ div.hangingIndent {
           in a completion suggestion.
         </p>
         
-      <dl><dt class="value">ARGUMENT_LIST</dt><dt class="value">CLASS</dt><dt class="value">CLASS_ALIAS</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">IMPORT</dt><dt class="value">LIBRARY_PREFIX</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">METHOD_NAME</dt><dt class="value">NAMED_ARGUMENT</dt><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_DebugContextId">DebugContextId: String</a></dt><dd>
+      <dl><dt class="value">ARGUMENT_LIST</dt><dt class="value">CLASS</dt><dt class="value">CLASS_ALIAS</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">IMPORT</dt><dt class="value">KEYWORD</dt><dt class="value">LIBRARY_PREFIX</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">METHOD_NAME</dt><dt class="value">NAMED_ARGUMENT</dt><dt class="value">OPTIONAL_ARGUMENT</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt></dl></dd><dt class="typeDefinition"><a name="type_DebugContextId">DebugContextId: String</a></dt><dd>
         
         <p>
           The identifier for a debug context.
@@ -2041,7 +2053,7 @@ div.hangingIndent {
           An enumeration of the kinds of elements.
         </p>
         
-      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">GETTER</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNKNOWN</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt></dl></dd><dt class="typeDefinition"><a name="type_Error">Error: object</a></dt><dd>
+      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_Error">Error: object</a></dt><dd>
         <p>
           An indication of a problem with the execution of the server,
           typically in response to a request. The error codes that can
@@ -2450,21 +2462,6 @@ div.hangingIndent {
             <p>
               The name of the class in which the member is defined.
             </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_Parameter">Parameter: object</a></dt><dd>
-        <p>
-          A description of a parameter.
-        </p>
-        
-      <dl><dt class="field"><b><i>type ( String )</i></b></dt><dd>
-            
-            <p>
-              The type that should be given to the parameter.
-            </p>
-          </dd><dt class="field"><b><i>name ( String )</i></b></dt><dd>
-            
-            <p>
-              The name that should be given to the parameter.
-            </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_Position">Position: object</a></dt><dd>
         <p>
           A position within a file.
@@ -2486,7 +2483,47 @@ div.hangingIndent {
           created.
         </p>
         
-      <dl><dt class="value">CONVERT_GETTER_TO_METHOD</dt><dt class="value">CONVERT_METHOD_TO_GETTER</dt><dt class="value">EXTRACT_LOCAL_VARIABLE</dt><dt class="value">EXTRACT_METHOD</dt><dt class="value">INLINE_LOCAL_VARIABLE</dt><dt class="value">INLINE_METHOD</dt><dt class="value">RENAME</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringProblem">RefactoringProblem: object</a></dt><dd>
+      <dl><dt class="value">CONVERT_GETTER_TO_METHOD</dt><dt class="value">CONVERT_METHOD_TO_GETTER</dt><dt class="value">EXTRACT_LOCAL_VARIABLE</dt><dt class="value">EXTRACT_METHOD</dt><dt class="value">INLINE_LOCAL_VARIABLE</dt><dt class="value">INLINE_METHOD</dt><dt class="value">RENAME</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameter">RefactoringMethodParameter: object</a></dt><dd>
+        <p>
+          A description of a parameter in a method refactoring.
+        </p>
+        
+      <dl><dt class="field"><b><i>id ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
+            
+            <p>
+              The unique identifier of the parameter.
+              Clients may omit this field for the parameters they want to add.
+            </p>
+          </dd><dt class="field"><b><i>kind ( <a href="#type_RefactoringMethodParameterKind">RefactoringMethodParameterKind</a> )</i></b></dt><dd>
+            
+            <p>
+              The kind of the parameter.
+            </p>
+          </dd><dt class="field"><b><i>type ( String )</i></b></dt><dd>
+            
+            <p>
+              The type that should be given to the parameter, or the return type
+              of the parameter's function type.
+            </p>
+          </dd><dt class="field"><b><i>name ( String )</i></b></dt><dd>
+            
+            <p>
+              The name that should be given to the parameter.
+            </p>
+          </dd><dt class="field"><b><i>parameters ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
+            
+            <p>
+              The parameter list of the parameter's function type.
+              If the parameter is not of a function type, this field will
+              not be defined. If the function type has zero parameters, this
+              field will have a value of "()".
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameterKind">RefactoringMethodParameterKind: String</a></dt><dd>
+        <p>
+          An enumeration of the kinds of parameters.
+        </p>
+        
+      <dl><dt class="value">REQUIRED</dt><dt class="value">POSITIONAL</dt><dt class="value">NAMED</dt></dl></dd><dt class="typeDefinition"><a name="type_RefactoringProblem">RefactoringProblem: object</a></dt><dd>
         <p>
           A description of a problem related to a refactoring.
         </p>
@@ -2502,10 +2539,13 @@ div.hangingIndent {
               A human-readable description of the problem being
               represented.
             </p>
-          </dd><dt class="field"><b><i>location ( <a href="#type_Location">Location</a> )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>location ( <span style="color:#999999">optional</span> <a href="#type_Location">Location</a> )</i></b></dt><dd>
             
             <p>
               The location of the problem being represented.
+              This field is omitted unless there is a specific location
+              associated with the problem (such as a location where an element
+              being renamed will be shadowed).
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringProblemSeverity">RefactoringProblemSeverity: String</a></dt><dd>
         <p>
@@ -2593,6 +2633,11 @@ div.hangingIndent {
             <p>
               A reference to an element.
             </p>
+          </dd><dt class="value">UNKNOWN</dt><dd>
+            
+            <p>
+              Some other kind of search result.
+            </p>
           </dd><dt class="value">WRITE</dt><dd>
             
             <p>
@@ -2652,6 +2697,21 @@ div.hangingIndent {
             <p>
               The code that is to replace the specified region in the
               original code.
+            </p>
+          </dd><dt class="field"><b><i>id ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
+            
+            <p>
+              An identifier that uniquely identifies this source edit from other
+              edits in the same response. This field is omitted unless a
+              containing structure needs to be able to identify the edit for
+              some reason.
+            </p>
+            <p>
+              For example, some refactoring operations can produce edits that
+              might not be appropriate (referred to as potential edits). Such
+              edits will have an id so that they can be referenced. Edits in
+              the same response that do not need to be referenced will not have
+              an id.
             </p>
           </dd></dl></dd><dt class="typeDefinition"><a name="type_SourceFileEdit">SourceFileEdit: object</a></dt><dd>
         <p>
@@ -2848,7 +2908,7 @@ div.hangingIndent {
             <p>
               True if a getter could be created rather than a method.
             </p>
-          </dd><dt class="field"><b><i>parameters ( List&lt;<a href="#type_Parameter">Parameter</a>&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>parameters ( List&lt;<a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a>&gt; )</i></b></dt><dd>
             
             <p>
               The proposed parameters for the method.
@@ -2891,11 +2951,25 @@ div.hangingIndent {
             <p>
               The name that the method should be given.
             </p>
-          </dd><dt class="field"><b><i>parameters ( List&lt;<a href="#type_Parameter">Parameter</a>&gt; )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>parameters ( List&lt;<a href="#type_RefactoringMethodParameter">RefactoringMethodParameter</a>&gt; )</i></b></dt><dd>
             
             <p>
               The parameters that should be defined for the method.
-            </p>
+              </p><p>
+                It is an error if a REQUIRED or NAMED parameter follows a
+                POSITIONAL parameter.
+                It is an error if a REQUIRED or POSITIONAL parameter follows a
+                NAMED parameter.
+              </p>
+              <ul>
+                <li>
+                  To change the order and/or update proposed paramerers, add
+                  parameters with the same identifiers as proposed.
+                </li>
+                <li>To add new parameters, omit their identifier.</li>
+                <li>To remove some parameters, omit them in this list.</li>
+              </ul>
+            <p></p>
           </dd><dt class="field"><b><i>extractAll ( bool )</i></b></dt><dd>
             
             <p>

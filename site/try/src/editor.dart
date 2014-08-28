@@ -161,14 +161,15 @@ addDiagnostic(String kind, String message, int begin, int end) {
         } else {
           alert = info(message);
         }
-        Element parent = node.parent;
+        Element parent = node.parentNode;
         if (parent.classes.contains("diagnostic") &&
             !interaction.oldDiagnostics.contains(parent)) {
           Element other = parent.firstChild;
           other.remove();
-          SpanElement wrapper = new SpanElement();
-          wrapper.style
-              ..fontWeight = 'normal';
+          SpanElement wrapper = new SpanElement()
+            ..classes.add('diagnostic')
+            ..style.fontWeight = 'normal';
+
           var root = getShadowRoot(wrapper);
           if (root is ShadowRoot) {
             // When https://code.google.com/p/chromium/issues/detail?id=313458

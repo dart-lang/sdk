@@ -1178,15 +1178,9 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     intptr_t token_pos,
     LocationSummary* locs,
     const ICData& ic_data) {
-  uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
-  if (ic_data.NumArgsTested() == 0) {
-    label_address = stub_code->ZeroArgsUnoptimizedStaticCallEntryPoint();
-  } else if (ic_data.NumArgsTested() == 2) {
-    label_address = stub_code->TwoArgsUnoptimizedStaticCallEntryPoint();
-  } else {
-    UNIMPLEMENTED();
-  }
+  const uword label_address =
+      stub_code->UnoptimizedStaticCallEntryPoint(ic_data.NumArgsTested());
   ExternalLabel target_label(label_address);
   __ LoadObject(ECX, ic_data);
   GenerateDartCall(deopt_id,
@@ -1482,7 +1476,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
   ASSERT(is_optimizing());
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfUsedChecks() > 0));
   Label match_found;
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<CidTarget> sorted(len);
@@ -1582,6 +1576,9 @@ void ParallelMoveResolver::EmitMove(int index) {
       const Object& constant = source.constant();
       if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
         __ xorl(destination.reg(), destination.reg());
+      } else if (constant.IsSmi() &&
+          source.constant_instruction()->representation() == kUnboxedInt32) {
+        __ movl(destination.reg(), Immediate(Smi::Cast(constant).Value()));
       } else {
         __ LoadObjectSafely(destination.reg(), constant);
       }
@@ -1615,7 +1612,14 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movsd(destination.ToStackSlotAddress(), XMM0);
     } else {
       ASSERT(destination.IsStackSlot());
-      StoreObject(destination.ToStackSlotAddress(), source.constant());
+      const Object& constant = source.constant();
+      if (constant.IsSmi() &&
+          source.constant_instruction()->representation() == kUnboxedInt32) {
+        __ movl(destination.ToStackSlotAddress(),
+                Immediate(Smi::Cast(constant).Value()));
+      } else {
+        StoreObject(destination.ToStackSlotAddress(), source.constant());
+      }
     }
   }
 

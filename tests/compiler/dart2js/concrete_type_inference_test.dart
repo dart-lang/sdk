@@ -74,7 +74,8 @@ void testBasicTypes() {
   });
   checkPrintType('"foo"', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
-    Expect.isTrue(compiler.typesTask.stringType.containsOnlyString(compiler));
+    Expect.isTrue(
+        compiler.typesTask.stringType.containsOnlyString(compiler.world));
   });
 }
 

@@ -2934,7 +2934,7 @@ TEST_CASE(ICData) {
   Function& function = Function::Handle(GetDummyTarget("Bern"));
   const intptr_t id = 12;
   const intptr_t num_args_tested = 1;
-  const String& target_name = String::Handle(String::New("Thun"));
+  const String& target_name = String::Handle(Symbols::New("Thun"));
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
   ICData& o1 = ICData::Handle();
@@ -2949,6 +2949,7 @@ TEST_CASE(ICData) {
   const Function& target1 = Function::Handle(GetDummyTarget("Thun"));
   o1.AddReceiverCheck(kSmiCid, target1);
   EXPECT_EQ(1, o1.NumberOfChecks());
+  EXPECT_EQ(1, o1.NumberOfUsedChecks());
   intptr_t test_class_id = -1;
   Function& test_target = Function::Handle();
   o1.GetOneClassCheckAt(0, &test_class_id, &test_target);
@@ -2964,10 +2965,16 @@ TEST_CASE(ICData) {
   const Function& target2 = Function::Handle(GetDummyTarget("Thun"));
   o1.AddReceiverCheck(kDoubleCid, target2);
   EXPECT_EQ(2, o1.NumberOfChecks());
+  EXPECT_EQ(2, o1.NumberOfUsedChecks());
   o1.GetOneClassCheckAt(1, &test_class_id, &test_target);
   EXPECT_EQ(kDoubleCid, test_class_id);
   EXPECT_EQ(target2.raw(), test_target.raw());
   EXPECT_EQ(kDoubleCid, o1.GetCidAt(1));
+
+  o1.AddReceiverCheck(kMintCid, target2);
+  EXPECT_EQ(3, o1.NumberOfUsedChecks());
+  o1.SetCountAt(o1.NumberOfChecks() - 1, 0);
+  EXPECT_EQ(2, o1.NumberOfUsedChecks());
 
   ICData& o2 = ICData::Handle();
   o2 = ICData::New(function, target_name, args_descriptor, 57, 2);
@@ -4169,10 +4176,11 @@ TEST_CASE(ToUserCString) {
 }
 
 
-class JSONTypeVerifier : public ObjectVisitor {
+class ObjectAccumulator : public ObjectVisitor {
  public:
-  JSONTypeVerifier() : ObjectVisitor(Isolate::Current()) {}
-  virtual ~JSONTypeVerifier() { }
+  explicit ObjectAccumulator(GrowableArray<Object*>* objects)
+      : ObjectVisitor(Isolate::Current()), objects_(objects) {}
+  virtual ~ObjectAccumulator() { }
   virtual void VisitObject(RawObject* obj) {
     // Free-list elements cannot even be wrapped in handles.
     if (obj->IsFreeListElement()) {
@@ -4185,18 +4193,24 @@ class JSONTypeVerifier : public ObjectVisitor {
         handle.IsLiteralToken()) {
       return;
     }
-    JSONStream js;
-    handle.PrintJSON(&js, false);
-    EXPECT_SUBSTRING("\"type\":", js.ToCString());
+    objects_->Add(&handle);
   }
+ private:
+  GrowableArray<Object*>* objects_;
 };
 
 
 TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
-  JSONTypeVerifier verifier;
-  heap->IterateObjects(&verifier);
+  GrowableArray<Object*> objects;
+  ObjectAccumulator acc(&objects);
+  heap->IterateObjects(&acc);
+  for (intptr_t i = 0; i < objects.length(); ++i) {
+    JSONStream js;
+    objects[i]->PrintJSON(&js, false);
+    EXPECT_SUBSTRING("\"type\":", js.ToCString());
+  }
 }
 
 

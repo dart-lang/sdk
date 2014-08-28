@@ -10,17 +10,17 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration("the character before each package describes the change", () {
-    servePackages([
-      packageMap("added", "1.0.0"),
-      packageMap("downgraded", "1.0.0"),
-      packageMap("downgraded", "2.0.0"),
-      packageMap("overridden", "1.0.0"),
-      packageMap("removed", "1.0.0"),
-      packageMap("source_changed", "1.0.0"),
-      packageMap("upgraded", "1.0.0"),
-      packageMap("upgraded", "2.0.0"),
-      packageMap("unchanged", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("added", "1.0.0");
+      builder.serve("downgraded", "1.0.0");
+      builder.serve("downgraded", "2.0.0");
+      builder.serve("overridden", "1.0.0");
+      builder.serve("removed", "1.0.0");
+      builder.serve("source_changed", "1.0.0");
+      builder.serve("upgraded", "1.0.0");
+      builder.serve("upgraded", "2.0.0");
+      builder.serve("unchanged", "1.0.0");
+    });
 
     d.dir("description_changed_1", [
       d.libDir("description_changed"),

@@ -94,7 +94,7 @@ bool VmService::Start(const char *server_ip, intptr_t server_port) {
     return r;
   }
   // Start processing messages in a new thread.
-  dart::Thread::Start(ThreadMain, static_cast<uword>(NULL));
+  Thread::Start(ThreadMain, static_cast<uword>(NULL));
   return true;
 }
 

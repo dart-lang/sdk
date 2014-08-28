@@ -29,7 +29,10 @@ import '../universe/universe.dart' show Selector, SideEffects, TypedSelector;
  */
 class TypeMaskSystem implements TypeSystem<TypeMask> {
   final Compiler compiler;
-  TypeMaskSystem(this.compiler);
+  final ClassWorld classWorld;
+  TypeMaskSystem(Compiler compiler)
+      : this.compiler = compiler,
+        this.classWorld = compiler.world;
 
   TypeMask narrowType(TypeMask type,
                       DartType annotation,
@@ -46,11 +49,11 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
       otherType = nullType;
     } else {
       assert(annotation.isInterfaceType);
-      otherType = new TypeMask.nonNullSubtype(annotation.element);
+      otherType = new TypeMask.nonNullSubtype(annotation.element, classWorld);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type == null) return otherType;
-    return type.intersection(otherType, compiler);
+    return type.intersection(otherType, classWorld);
   }
 
   TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
@@ -61,10 +64,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     } else if (firstType == secondType) {
       return firstType;
     } else {
-      TypeMask union = firstType.union(secondType, compiler);
+      TypeMask union = firstType.union(secondType, classWorld);
       // TODO(kasperl): If the union isn't nullable it seems wasteful
       // to use dynamic. Fix that.
-      return union.containsAll(compiler) ? dynamicType : union;
+      return union.containsAll(classWorld) ? dynamicType : union;
     }
   }
 
@@ -95,9 +98,9 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask stringLiteralType(ast.DartString value) => stringType;
 
   TypeMask nonNullSubtype(ClassElement type)
-      => new TypeMask.nonNullSubtype(type.declaration);
+      => new TypeMask.nonNullSubtype(type.declaration, classWorld);
   TypeMask nonNullSubclass(ClassElement type)
-      => new TypeMask.nonNullSubclass(type.declaration);
+      => new TypeMask.nonNullSubclass(type.declaration, classWorld);
   TypeMask nonNullExact(ClassElement type)
       => new TypeMask.nonNullExact(type.declaration);
   TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
@@ -119,7 +122,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 
   Selector newTypedSelector(TypeMask receiver, Selector selector) {
-    return new TypedSelector(receiver, selector, compiler);
+    return new TypedSelector(receiver, selector, compiler.world);
   }
 
   TypeMask addPhiInput(Local variable,
@@ -140,9 +143,13 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return phiType;
   }
 
+  bool selectorNeedsUpdate(TypeMask type, Selector selector) {
+    return type != selector.mask;
+  }
+
   TypeMask refineReceiver(Selector selector, TypeMask receiverType) {
     TypeMask newType = compiler.world.allFunctions.receiverType(selector);
-    return receiverType.intersection(newType, compiler);
+    return receiverType.intersection(newType, classWorld);
   }
 
   TypeMask getConcreteTypeFor(TypeMask mask) => mask;
@@ -156,11 +163,14 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
 abstract class InferrerEngine<T, V extends TypeSystem>
     implements MinimalInferrerEngine<T> {
   final Compiler compiler;
+  final ClassWorld classWorld;
   final V types;
   final Map<ast.Node, T> concreteTypes = new Map<ast.Node, T>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
 
-  InferrerEngine(this.compiler, this.types);
+  InferrerEngine(Compiler compiler, this.types)
+      : this.compiler = compiler,
+        this.classWorld = compiler.world;
 
   /**
    * Records the default type of parameter [parameter].
@@ -338,17 +348,8 @@ abstract class InferrerEngine<T, V extends TypeSystem>
         mappedType = types.nullType;
       } else if (type.isDynamic) {
         return types.dynamicType;
-      } else if (!compiler.world.hasAnySubtype(type.element)) {
-        mappedType = types.nonNullExact(type.element);
       } else {
-        ClassElement element = type.element;
-        Set<ClassElement> subtypes = compiler.world.subtypesOf(element);
-        Set<ClassElement> subclasses = compiler.world.subclassesOf(element);
-        if (subclasses != null && subtypes.length == subclasses.length) {
-          mappedType = types.nonNullSubclass(element);
-        } else {
-          mappedType = types.nonNullSubtype(element);
-        }
+        mappedType = types.nonNullSubtype(type.element);
       }
       returnType = types.computeLUB(returnType, mappedType);
       if (returnType == types.dynamicType) {
@@ -680,9 +681,9 @@ class SimpleTypeInferrerVisitor<T>
   bool isThisOrSuper(ast.Node node) => node.isThis() || node.isSuper();
 
   bool isInClassOrSubclass(Element element) {
-    ClassElement cls = outermostElement.enclosingClass;
-    ClassElement enclosing = element.enclosingClass;
-    return (enclosing == cls) || compiler.world.isSubclass(cls, enclosing);
+    ClassElement cls = outermostElement.enclosingClass.declaration;
+    ClassElement enclosing = element.enclosingClass.declaration;
+    return compiler.world.isSubclassOf(enclosing, cls);
   }
 
   void checkIfExposesThis(Selector selector) {
@@ -928,7 +929,7 @@ class SimpleTypeInferrerVisitor<T>
     // are calling does not expose this.
     isThisExposed = true;
     if (Elements.isUnresolved(element)
-        || !selector.applies(element, compiler)) {
+        || !selector.applies(element, compiler.world)) {
       // Ensure we create a node, to make explicit the call to the
       // `noSuchMethod` handler.
       return handleDynamicSend(node, selector, superType, arguments);
@@ -978,14 +979,14 @@ class SimpleTypeInferrerVisitor<T>
         analyzeSuperConstructorCall(element, arguments);
       }
     }
-    if (element.isForeign(compiler)) {
+    if (element.isForeign(compiler.backend)) {
       return handleForeignSend(node);
     }
     Selector selector = elements.getSelector(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn't break anything
-    if (!selector.applies(element, compiler)) return types.dynamicType;
+    if (!selector.applies(element, compiler.world)) return types.dynamicType;
 
     T returnType = handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
@@ -1129,7 +1130,7 @@ class SimpleTypeInferrerVisitor<T>
                       T receiverType,
                       ArgumentsTypes arguments) {
     assert(receiverType != null);
-    if (selector.mask != receiverType) {
+    if (types.selectorNeedsUpdate(receiverType, selector)) {
       selector = (receiverType == types.dynamicType)
           ? selector.asUntyped
           : types.newTypedSelector(receiverType, selector);

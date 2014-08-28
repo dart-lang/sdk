@@ -266,11 +266,23 @@ class Pubspec {
         expectedName: expectedName, location: pubspecUri);
   }
 
-  Pubspec(this._name, this._version, this._dependencies, this._devDependencies,
-          this._dependencyOverrides, this._environment, this._transformers,
-          [Map fields])
-    : this.fields = fields == null ? new YamlMap() : fields,
-      _sources = null;
+  Pubspec(this._name, {Version version, Iterable<PackageDep> dependencies,
+          Iterable<PackageDep> devDependencies,
+          Iterable<PackageDep> dependencyOverrides,
+          VersionConstraint sdkConstraint,
+          Iterable<Iterable<TransformerConfig>> transformers,
+           Map fields, SourceRegistry sources})
+      : _version = version,
+        _dependencies = dependencies == null ? null : dependencies.toList(),
+        _devDependencies = devDependencies == null ? null :
+            devDependencies.toList(),
+        _dependencyOverrides = dependencyOverrides == null ? null :
+            dependencyOverrides.toList(),
+        _environment = new PubspecEnvironment(sdkConstraint),
+        _transformers = transformers == null ? [] :
+            transformers.map((phase) => phase.toSet()).toList(),
+        fields = fields == null ? new YamlMap() : new YamlMap.wrap(fields),
+        _sources = sources;
 
   Pubspec.empty()
     : _sources = null,

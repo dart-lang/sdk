@@ -20,12 +20,18 @@ class PortMapTestPeer;
 
 class PortMap: public AllStatic {
  public:
+  enum PortState {
+    kNewPort = 0,      // a newly allocated port
+    kLivePort = 1,     // a regular port (has a ReceivePort)
+    kControlPort = 2,  // a special control port (has a ReceivePort)
+  };
+
   // Allocate a port for the provided handler and return its VM-global id.
   static Dart_Port CreatePort(MessageHandler* handler);
 
   // Indicates that a port has had a ReceivePort created for it at the
   // dart language level.  The port remains live until it is closed.
-  static void SetLive(Dart_Port id);
+  static void SetPortState(Dart_Port id, PortState kind);
 
   // Close the port with id. All pending messages will be dropped.
   //
@@ -59,8 +65,10 @@ class PortMap: public AllStatic {
   typedef struct {
     Dart_Port port;
     MessageHandler* handler;
-    bool live;
+    PortState state;
   } Entry;
+
+  static const char* PortStateString(PortState state);
 
   // Allocate a new unique port.
   static Dart_Port AllocatePort();

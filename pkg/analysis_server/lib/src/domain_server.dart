@@ -7,7 +7,6 @@ library domain.server;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 
 /**
  * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
@@ -28,9 +27,7 @@ class ServerDomainHandler implements RequestHandler {
    * Return the version number of the analysis server.
    */
   Response getVersion(Request request) {
-    Response response = new Response(request.id);
-    response.setResult(VERSION, '0.0.1');
-    return response;
+    return new ServerGetVersionResult('0.0.1').toResponse(request.id);
   }
 
   @override
@@ -56,9 +53,9 @@ class ServerDomainHandler implements RequestHandler {
    * All previous subscriptions are replaced by the given set of subscriptions.
    */
   Response setSubscriptions(Request request) {
-    RequestDatum subDatum = request.getRequiredParameter(SUBSCRIPTIONS);
-    server.serverServices = subDatum.asEnumSet(ServerService.VALUES);
-    return new Response(request.id);
+    server.serverServices =
+        new ServerSetSubscriptionsParams.fromRequest(request).subscriptions.toSet();
+    return new ServerSetSubscriptionsResult().toResponse(request.id);
   }
 
   // TODO(scheglov) remove or move to the 'analysis' domain
@@ -119,7 +116,7 @@ class ServerDomainHandler implements RequestHandler {
    */
   Response shutdown(Request request) {
     server.shutdown();
-    Response response = new Response(request.id);
+    Response response = new ServerShutdownResult().toResponse(request.id);
     return response;
   }
 }

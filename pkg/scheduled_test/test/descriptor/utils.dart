@@ -41,3 +41,29 @@ Future<List<int>> byteStreamToList(Stream<List<int>> stream) {
 Future<String> byteStreamToString(Stream<List<int>> stream) =>
   byteStreamToList(stream).then((bytes) => new String.fromCharCodes(bytes));
 
+Matcher isDirectoryDescriptor(String name, List contents) {
+  return predicate((object) {
+    try {
+      expect(object, new isInstanceOf<d.DirectoryDescriptor>());
+      expect(object.name, equals(name));
+      expect(object.contents, unorderedMatches(contents));
+      return true;
+    } on TestFailure catch (_) {
+      return false;
+    }
+  }, "a directory descriptor named $name containing $contents");
+}
+
+Matcher isFileDescriptor(String name, contents) {
+  return predicate((object) {
+    try {
+      expect(object, new isInstanceOf<d.FileDescriptor>());
+      expect(object.name, equals(name));
+      expect(object.textContents, contents);
+      return true;
+    } on TestFailure catch (_) {
+      return false;
+    }
+  }, "a file descriptor named $name containing $contents");
+}
+

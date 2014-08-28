@@ -477,7 +477,7 @@ class ClassEmitter extends CodeEmitterHelper {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
     return backend.shouldRetainGetter(field)
-        || compiler.codegenWorld.hasInvokedGetter(field, compiler);
+        || compiler.codegenWorld.hasInvokedGetter(field, compiler.world);
   }
 
   bool fieldNeedsSetter(VariableElement field) {
@@ -485,7 +485,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (fieldAccessNeverThrows(field)) return false;
     return (!field.isFinal && !field.isConst)
         && (backend.shouldRetainSetter(field)
-            || compiler.codegenWorld.hasInvokedSetter(field, compiler));
+            || compiler.codegenWorld.hasInvokedSetter(field, compiler.world));
   }
 
   // We never access a field in a closure (a captured variable) without knowing

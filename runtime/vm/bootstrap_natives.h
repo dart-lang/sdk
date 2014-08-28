@@ -286,10 +286,9 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
-  V(Isolate_mainPort, 0)                                                       \
-  V(Isolate_spawnFunction, 1)                                                  \
-  V(Isolate_spawnUri, 1)                                                       \
-  V(Isolate_sendOOB, 2)                                                       \
+  V(Isolate_spawnFunction, 3)                                                  \
+  V(Isolate_spawnUri, 4)                                                       \
+  V(Isolate_sendOOB, 2)                                                        \
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
@@ -370,6 +369,7 @@ namespace dart {
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
   V(ClassID_getID, 1)                                                          \
+  V(Num_toString, 1)                                                           \
 
 
 class BootstrapNatives : public AllStatic {

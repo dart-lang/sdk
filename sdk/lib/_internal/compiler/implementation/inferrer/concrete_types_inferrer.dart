@@ -232,7 +232,7 @@ class UnionType implements ConcreteType {
     for (BaseType baseType in baseTypes) {
       if (baseType.isClass()) {
         ClassBaseType classBaseType = baseType;
-        if (classBaseType.element.lookupSelector(selector, compiler) != null) {
+        if (classBaseType.element.lookupSelector(selector) != null) {
           newBaseTypes.add(baseType);
         }
       } else {
@@ -431,9 +431,11 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
       final element = classBaseType.element;
       assert(element != null);
       if (element == compiler.backend.numImplementation) {
-        return new TypeMask.nonNullSubclass(compiler.backend.numImplementation);
+        return new TypeMask.nonNullSubclass(compiler.backend.numImplementation,
+                                            compiler.world);
       } else if (element == compiler.backend.intImplementation) {
-        return new TypeMask.nonNullSubclass(compiler.backend.intImplementation);
+        return new TypeMask.nonNullSubclass(compiler.backend.intImplementation,
+                                            compiler.world);
       } else {
         return new TypeMask.nonNullExact(element.declaration);
       }
@@ -449,7 +451,7 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
     for (BaseType baseType in concreteType.baseTypes) {
       TypeMask baseMask = baseTypeToTypeMask(baseType);
       if (baseMask == const DynamicTypeMask()) return baseMask;
-      typeMask = typeMask.union(baseMask, compiler);
+      typeMask = typeMask.union(baseMask, compiler.world);
     }
     return typeMask;
   }
@@ -510,7 +512,7 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   @override
   Selector newTypedSelector(ConcreteType receiver, Selector selector) {
     return new TypedSelector(concreteTypeToTypeMask(receiver), selector,
-        compiler);
+        compiler.world);
   }
 
   @override
@@ -527,7 +529,7 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
    * Helper method for [nonNullSubtype] and [nonNullSubclass].
    */
   ConcreteType nonNullSubX(ClassElement cls,
-                           Set<ClassElement> extractor(ClassElement cls)) {
+                           Iterable<ClassElement> extractor(ClassElement cls)) {
     if (cls == compiler.objectClass) {
       return dynamicType;
     }
@@ -542,10 +544,8 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
       }
     }
     registerClass(cls);
-    Set<ClassElement> subtypes = extractor(cls);
-    if (subtypes != null) {
-      subtypes.forEach(registerClass);
-    }
+    Iterable<ClassElement> subtypes = extractor(cls);
+    subtypes.forEach(registerClass);
     return result;
   }
 
@@ -564,6 +564,11 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
                            Local variable,
                            ConcreteType phiType) {
     return phiType;
+  }
+
+  @override
+  bool selectorNeedsUpdate(ConcreteType type, Selector selector) {
+    return concreteTypeToTypeMask(type) != selector.mask;
   }
 
   @override
@@ -925,23 +930,23 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyInt(Compiler compiler) {
+  bool containsOnlyInt(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyDouble(Compiler compiler) {
+  bool containsOnlyDouble(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyNum(Compiler compiler) {
+  bool containsOnlyNum(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyBool(Compiler compiler) {
+  bool containsOnlyBool(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsOnlyString(Compiler compiler) {
+  bool containsOnlyString(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
@@ -949,31 +954,31 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool satisfies(ClassElement cls, Compiler compiler) {
+  bool satisfies(ClassElement cls, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool contains(ClassElement type, Compiler compiler) {
+  bool contains(ClassElement type, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsAll(Compiler compiler) {
+  bool containsAll(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  ClassElement singleClass(Compiler compiler) {
+  ClassElement singleClass(ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  TypeMask union(TypeMask other, Compiler compiler) {
+  TypeMask union(TypeMask other, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  TypeMask intersection(TypeMask other, Compiler compiler) {
+  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool canHit(Element element, Selector selector, Compiler compiler) {
+  bool canHit(Element element, Selector selector, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
@@ -981,15 +986,15 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, Compiler compiler) {
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool isInMask(TypeMask other, Compiler compiler) {
+  bool isInMask(TypeMask other, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 
-  bool containsMask(TypeMask other, Compiler compiler) {
+  bool containsMask(TypeMask other, ClassWorld classWorld) {
     throw new UnsupportedError("");
   }
 }
@@ -1216,7 +1221,7 @@ class ConcreteTypesInferrer
     if (mask1 == const DynamicTypeMask() || mask2 == const DynamicTypeMask()) {
       return const DynamicTypeMask();
     }
-    return mask1.union(mask2, compiler);
+    return mask1.union(mask2, compiler.world);
   }
 
   /**
@@ -1226,7 +1231,7 @@ class ConcreteTypesInferrer
     // TODO(polux): memoize?
     Set<Element> result = new Set<Element>();
     for (ClassElement cls in seenClasses) {
-      Element elem = cls.lookupSelector(selector, compiler);
+      Element elem = cls.lookupSelector(selector);
       if (elem != null) {
         result.add(elem.implementation);
       }
@@ -1241,7 +1246,7 @@ class ConcreteTypesInferrer
     // TODO(polux): memoize?
     Set<ClassElement> result = new Set<ClassElement>()..add(cls);
     for (ClassElement candidate in seenClasses) {
-      if (compiler.world.isSubtype(cls, candidate)) {
+      if (compiler.world.isSubtypeOf(candidate, cls)) {
         result.add(candidate);
       }
     }
@@ -1492,7 +1497,7 @@ class ConcreteTypesInferrer
     } else {
       candidates.forEach((TypeMask receiverType, TypeMask returnType) {
         TypeMask intersection =
-            receiverType.intersection(selector.mask, compiler);
+            receiverType.intersection(selector.mask, compiler.world);
         if (!intersection.isEmpty || intersection.isNullable) {
           result = typeMaskUnion(result, returnType);
         }
@@ -1554,7 +1559,8 @@ class ConcreteTypesInferrer
       TypeMask receiverMask =
           (receiverType == compiler.backend.numImplementation
           || receiverType == compiler.backend.intImplementation)
-              ? new TypeMask.nonNullSubclass(receiverType.declaration)
+              ? new TypeMask.nonNullSubclass(receiverType.declaration,
+                  compiler.world)
               : new TypeMask.nonNullExact(receiverType.declaration);
       TypeMask resultMask = types.concreteTypeToTypeMask(result);
       augmentInferredSelectorType(selector, receiverMask, resultMask);
@@ -2119,7 +2125,7 @@ class ConcreteTypesInferrer
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseType = baseReceiverType;
           ClassElement cls = classBaseType.element;
-          Element getterOrField = cls.lookupSelector(selector, compiler);
+          Element getterOrField = cls.lookupSelector(selector);
           if (getterOrField != null) {
             augmentResult(cls, getterOrField.implementation);
           }
@@ -2166,7 +2172,7 @@ class ConcreteTypesInferrer
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseType = baseReceiverType;
           ClassElement cls = classBaseType.element;
-          Element setterOrField = cls.lookupSelector(selector, compiler);
+          Element setterOrField = cls.lookupSelector(selector);
           if (setterOrField != null) {
             augmentField(cls, setterOrField.implementation);
           }
@@ -2208,7 +2214,7 @@ class ConcreteTypesInferrer
         if (!baseReceiverType.isNull()) {
           ClassBaseType classBaseReceiverType = baseReceiverType;
           ClassElement cls = classBaseReceiverType.element;
-          Element method = cls.lookupSelector(selector, compiler);
+          Element method = cls.lookupSelector(selector);
           if (method != null) {
             if (method.isFunction) {
               assert(method is FunctionElement);

@@ -5,7 +5,7 @@
 part of dart2js.util;
 
 class Link<T> {
-  T get head => null;
+  T get head => throw new StateError("no elements");
   Link<T> get tail => null;
 
   const Link();

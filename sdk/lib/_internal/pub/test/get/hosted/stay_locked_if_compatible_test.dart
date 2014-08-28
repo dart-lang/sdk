@@ -11,7 +11,7 @@ main() {
   initConfig();
   integration("doesn't upgrade a locked pub server package with a new "
       "compatible constraint", () {
-    servePackages([packageMap("foo", "1.0.0")]);
+    servePackages((builder) => builder.serve("foo", "1.0.0"));
 
     d.appDir({"foo": "any"}).create();
 
@@ -19,7 +19,7 @@ main() {
 
     d.packagesDir({"foo": "1.0.0"}).validate();
 
-    servePackages([packageMap("foo", "1.0.1")]);
+    servePackages((builder) => builder.serve("foo", "1.0.1"));
 
     d.appDir({"foo": ">=1.0.0"}).create();
 

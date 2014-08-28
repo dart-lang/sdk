@@ -4,9 +4,9 @@
 
 library test.computer.error;
 
-import 'package:analysis_server/src/computer/element.dart';
 import 'package:analysis_server/src/computer/error.dart';
-import 'package:analysis_services/constants.dart';
+import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_testing/mocks.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:analyzer/src/generated/error.dart' as engine;
@@ -102,35 +102,6 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message'
     });
-  }
-
-  void test_fromJson() {
-    var json = {
-      SEVERITY: 'ERROR',
-      TYPE: 'SYNTACTIC_ERROR',
-      LOCATION: {
-        FILE: '/test.dart',
-        OFFSET: 19,
-        LENGTH: 1,
-        START_LINE: 2,
-        START_COLUMN: 11
-      },
-      MESSAGE: 'Expected to find \';\'',
-      CORRECTION: 'my correction'
-    };
-    AnalysisError error = AnalysisError.fromJson(json);
-    {
-      Location location = error.location;
-      expect(location.file, '/test.dart');
-      expect(location.offset, 19);
-      expect(location.length, 1);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 11);
-    }
-    expect(error.message, "Expected to find ';'");
-    expect(error.severity, 'ERROR');
-    expect(error.type, 'SYNTACTIC_ERROR');
-    expect(error.correction, "my correction");
   }
 
   void test_engineErrorsToJson() {

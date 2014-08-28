@@ -38,7 +38,7 @@ namespace bin {
 
 bool SSLFilter::library_initialized_ = false;
 // To protect library initialization.
-dart::Mutex* SSLFilter::mutex_ = new dart::Mutex();
+Mutex* SSLFilter::mutex_ = new Mutex();
 // The password is needed when creating secure server sockets.  It can
 // be null if only secure client sockets are used.
 const char* SSLFilter::password_ = NULL;

@@ -854,12 +854,18 @@ class Assembler : public ValueObject {
   //   call L             (size is 5 bytes)
   //   L:
   static const intptr_t kEntryPointToPcMarkerOffset = 9;
+  static intptr_t EntryPointToPcMarkerOffset() {
+    return kEntryPointToPcMarkerOffset;
+  }
 
   void UpdateAllocationStats(intptr_t cid,
                              Heap::Space space = Heap::kNew);
 
   void UpdateAllocationStatsWithSize(intptr_t cid,
                                      Register size_reg,
+                                     Heap::Space space = Heap::kNew);
+  void UpdateAllocationStatsWithSize(intptr_t cid,
+                                     intptr_t instance_size,
                                      Heap::Space space = Heap::kNew);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
@@ -873,6 +879,13 @@ class Assembler : public ValueObject {
                    bool near_jump,
                    Register instance_reg,
                    Register pp);
+
+  void TryAllocateArray(intptr_t cid,
+                        intptr_t instance_size,
+                        Label* failure,
+                        bool near_jump,
+                        Register instance,
+                        Register end_address);
 
   // Debugging and bringup support.
   void Stop(const char* message);
@@ -1021,6 +1034,10 @@ class Assembler : public ValueObject {
                                   Register value,
                                   Label* no_update);
 
+  void ComputeCounterAddressesForCid(intptr_t cid,
+                                     Heap::Space space,
+                                     Address* count_address,
+                                     Address* size_address);
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);
 };

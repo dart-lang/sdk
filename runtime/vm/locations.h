@@ -14,6 +14,7 @@ namespace dart {
 class BufferFormatter;
 class Value;
 class PairLocation;
+class ConstantInstr;
 
 
 enum Representation {
@@ -21,6 +22,7 @@ enum Representation {
   kTagged,
   kUntagged,
   kUnboxedDouble,
+  kUnboxedInt32,
   kUnboxedUint32,
   kUnboxedMint,
   kUnboxedFloat32x4,
@@ -143,16 +145,18 @@ class Location : public ValueObject {
     return (value_ & kLocationTagMask) == kConstantTag;
   }
 
-  static Location Constant(const Object& obj) {
-    Location loc(reinterpret_cast<uword>(&obj) | kConstantTag);
-    ASSERT(&obj == &loc.constant());
+  static Location Constant(ConstantInstr* obj) {
+    Location loc(reinterpret_cast<uword>(obj) | kConstantTag);
+    ASSERT(obj == loc.constant_instruction());
     return loc;
   }
 
-  const Object& constant() const {
+  ConstantInstr* constant_instruction() const {
     ASSERT(IsConstant());
-    return *reinterpret_cast<const Object*>(value_ & ~kLocationTagMask);
+    return reinterpret_cast<ConstantInstr*>(value_ & ~kLocationTagMask);
   }
+
+  const Object& constant() const;
 
   bool IsPairLocation() const {
     return (value_ & kLocationTagMask) == kPairLocationTag;

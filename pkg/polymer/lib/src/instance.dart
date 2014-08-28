@@ -352,10 +352,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
           'incorrect binding types.');
     }
     prepareElement();
-
-    // TODO(sorvell): replace when ShadowDOMPolyfill issue is corrected
-    // https://github.com/Polymer/ShadowDOM/issues/420
-    if (!isTemplateStagingDocument(ownerDocument) || _hasShadowDomPolyfill) {
+    if (!isTemplateStagingDocument(ownerDocument)) {
       makeElementReady();
     }
   }
@@ -374,7 +371,6 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     _element = _getDeclaration(_name);
     // install property storage
     createPropertyObserver();
-    // TODO (sorvell): temporarily open observer when created
     openPropertyObserver();
     // install boilerplate attributes
     copyInstanceAttributes();
@@ -524,11 +520,6 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
   void shadowRootReady(Node root) {
     // locate nodes with id and store references to them in this.$ hash
     marshalNodeReferences(root);
-
-    // set up polymer gestures
-    if (_PolymerGestures != null) {
-      _PolymerGestures.callMethod('register', [root]);
-    }
   }
 
   /// Locate nodes with id and store references to them in [$] hash.
@@ -1026,7 +1017,10 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
     // by default supports 1 thing being bound.
     events.forEach((type, methodName) {
       // Dart note: the getEventHandler method is on our PolymerExpressions.
-      on[type].listen(element.syntax.getEventHandler(this, this, methodName));
+      _PolymerGestures.callMethod(
+          'addEventListener',
+          [this, type, Zone.current.bindUnaryCallback(
+              element.syntax.getEventHandler(this, this, methodName))]);
     });
   }
 
@@ -1173,7 +1167,7 @@ abstract class Polymer implements Element, Observable, NodeBindExtension {
 
     if (scope == null) return;
 
-    if (_ShadowCss != null) {
+    if (_hasShadowDomPolyfill) {
       cssText = _shimCssText(cssText, scope is ShadowRoot ? scope.host : null);
     }
     var style = element.cssTextToScopeStyle(cssText,

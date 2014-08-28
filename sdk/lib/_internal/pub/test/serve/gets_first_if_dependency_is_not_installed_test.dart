@@ -15,7 +15,7 @@ import 'utils.dart';
 main() {
   initConfig();
   integration("gets first if a dependency is not installed", () {
-    servePackages([packageMap("foo", "1.2.3")]);
+    servePackages((builder) => builder.serve("foo", "1.2.3"));
 
     d.appDir({"foo": "1.2.3"}).create();
 

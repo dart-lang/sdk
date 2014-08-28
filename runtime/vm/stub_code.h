@@ -57,11 +57,15 @@ class RawCode;
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(ThreeArgsCheckInlineCache)                                                 \
+  V(SmiAddInlineCache)                                                         \
+  V(SmiSubInlineCache)                                                         \
+  V(SmiEqualInlineCache)                                                       \
   V(OneArgOptimizedCheckInlineCache)                                           \
   V(TwoArgsOptimizedCheckInlineCache)                                          \
   V(ThreeArgsOptimizedCheckInlineCache)                                        \
   V(ClosureCallInlineCache)                                                    \
   V(ZeroArgsUnoptimizedStaticCall)                                             \
+  V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
@@ -162,6 +166,8 @@ class StubCode {
 
   static RawCode* GetAllocationStubForClass(const Class& cls);
 
+  uword UnoptimizedStaticCallEntryPoint(intptr_t num_args_tested);
+
   static const intptr_t kNoInstantiator = 0;
 
  private:
@@ -199,7 +205,8 @@ class StubCode {
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,
-      const RuntimeEntry& handle_ic_miss);
+      const RuntimeEntry& handle_ic_miss,
+      Token::Kind kind);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

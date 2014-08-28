@@ -18,7 +18,6 @@ testIntIterable(iterable) {
 void testIterable(Iterable<int> iterable, [int depth = 3]) {
   testIntIterable(iterable);
   if (depth > 0) {
-    testIterable(iterable, depth - 1);
     testIterable(iterable.where((x) => true), depth - 1);
     testIterable(iterable.skip(1), depth - 1);
     testIterable(iterable.take(1), depth - 1);

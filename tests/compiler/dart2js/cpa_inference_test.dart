@@ -1594,15 +1594,15 @@ testConcreteTypeToTypeMask() {
     }
 
     Expect.equals(convert(singleton(a).union(singleton(b))),
-                  new TypeMask.nonNullSubclass(a));
+                  new TypeMask.nonNullSubclass(a, result.compiler.world));
 
     Expect.equals(
         convert(singleton(a).union(singleton(b)).union(nullSingleton)),
-                  new TypeMask.subclass(a));
+                  new TypeMask.subclass(a, result.compiler.world));
 
     Expect.equals(
         simplify(convert(singleton(b).union(singleton(d))), result.compiler),
-        new TypeMask.nonNullSubtype(a));
+        new TypeMask.nonNullSubtype(a, result.compiler.world));
   });
 }
 
@@ -1646,20 +1646,21 @@ testSelectors() {
     result.checkSelectorHasType(
         foo,
         new TypeMask.unionOf([a, b, c]
-            .map((cls) => new TypeMask.nonNullExact(cls)), result.compiler));
+            .map((cls) => new TypeMask.nonNullExact(cls)),
+            result.compiler.world));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(x, foo, result.compiler),
+        new TypedSelector.subclass(x, foo, result.compiler.world),
         new TypeMask.nonNullExact(b));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(y, foo, result.compiler),
+        new TypedSelector.subclass(y, foo, result.compiler.world),
         new TypeMask.nonNullExact(c));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(z, foo, result.compiler),
+        new TypedSelector.subclass(z, foo, result.compiler.world),
         new TypeMask.nonNullExact(a));
     result.checkSelectorHasType(
-        new TypedSelector.subclass(xy, foo, result.compiler),
+        new TypedSelector.subclass(xy, foo, result.compiler.world),
         new TypeMask.unionOf([b, c].map((cls) =>
-            new TypeMask.nonNullExact(cls)), result.compiler));
+            new TypeMask.nonNullExact(cls)), result.compiler.world));
 
     result.checkSelectorHasType(new Selector.call("bar", null, 0), null);
   });

@@ -6,7 +6,7 @@
 # dart2js-drt (Content Shell --dump-render-tree)
 # dart2js-chrome
 # dart2js-ff (Firefox)
-[ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff && $runtime != safari) ]
+[ $compiler != dart2js || ($runtime != drt && $runtime != chrome && $runtime != ff && $runtime != safari && $runtime != ie11) ]
 web/*: Skip
 
 [ $compiler == dart2js && $runtime == drt ]

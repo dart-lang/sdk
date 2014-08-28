@@ -10,23 +10,23 @@ import '../../test_pub.dart';
 main() {
   initConfig();
   integration("shows how many newer versions are available", () {
-    servePackages([
-      packageMap("multiple_newer", "1.0.0"),
-      packageMap("multiple_newer", "1.0.1-unstable.1"),
-      packageMap("multiple_newer", "1.0.1"),
-      packageMap("multiple_newer", "1.0.2-unstable.1"),
-      packageMap("multiple_newer_stable", "1.0.0"),
-      packageMap("multiple_newer_stable", "1.0.1"),
-      packageMap("multiple_newer_stable", "1.0.2"),
-      packageMap("multiple_newer_unstable", "1.0.0"),
-      packageMap("multiple_newer_unstable", "1.0.1-unstable.1"),
-      packageMap("multiple_newer_unstable", "1.0.1-unstable.2"),
-      packageMap("no_newer", "1.0.0"),
-      packageMap("one_newer_unstable", "1.0.0"),
-      packageMap("one_newer_unstable", "1.0.1-unstable.1"),
-      packageMap("one_newer_stable", "1.0.0"),
-      packageMap("one_newer_stable", "1.0.1")
-    ]);
+    servePackages((builder) {
+      builder.serve("multiple_newer", "1.0.0");
+      builder.serve("multiple_newer", "1.0.1-unstable.1");
+      builder.serve("multiple_newer", "1.0.1");
+      builder.serve("multiple_newer", "1.0.2-unstable.1");
+      builder.serve("multiple_newer_stable", "1.0.0");
+      builder.serve("multiple_newer_stable", "1.0.1");
+      builder.serve("multiple_newer_stable", "1.0.2");
+      builder.serve("multiple_newer_unstable", "1.0.0");
+      builder.serve("multiple_newer_unstable", "1.0.1-unstable.1");
+      builder.serve("multiple_newer_unstable", "1.0.1-unstable.2");
+      builder.serve("no_newer", "1.0.0");
+      builder.serve("one_newer_unstable", "1.0.0");
+      builder.serve("one_newer_unstable", "1.0.1-unstable.1");
+      builder.serve("one_newer_stable", "1.0.0");
+      builder.serve("one_newer_stable", "1.0.1");
+    });
 
     // Constraint everything to the first version.
     d.appDir({

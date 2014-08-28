@@ -4,6 +4,28 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.13.0
+  * Update to match polymer 0.3.5 ([polymer-dev#5d00e4b][5d00e4b]). There was a
+    breaking change in the web_components package where selecting non-rendered 
+    elements doesn't work, but it shouldn't affect most people. See 
+    https://github.com/Polymer/ShadowDOM/issues/495.
+
+#### Pub version 0.12.2+1
+  * Small bug fix for `polymer:new_element`
+
+#### Pub version 0.12.2
+  * Fix for [20539](http://dartbug.com/20539). Log widget will now html escape
+    messages.
+  * Fix for [20538](http://dartbug.com/20538). Log widget will now surface lint
+    logs from imported files.
+  * Backward compatible change to prepare for upcoming change of the user agent
+    in Dartium.
+  * `pub run polymer:new_element` now supports specifying a base class.
+    **Note**: only native DOM types and custom elements written in Dart can be
+    extended. Elements adapted from Javascript (like core- and paper- elements)
+    cannot be extended.
+  * other bug fixes in `polymer:new_entry`.
+
 #### Pub version 0.12.1
   * **New**: When running in pub-serve, any warnings and errors detected by the
     polymer transformers will be displayed in the lower-right corner of your

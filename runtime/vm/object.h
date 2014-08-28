@@ -15,6 +15,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/method_recognizer.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/report.h"
@@ -262,6 +263,7 @@ class Object {
 
   bool IsNull() const { return raw_ == null_; }
 
+  // Matches Object.toString on instances (except String::ToCString, bug 20583).
   virtual const char* ToCString() const {
     if (IsNull()) {
       return "null";
@@ -687,6 +689,54 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);
+};
+
+
+class PassiveObject : public Object {
+ public:
+  void operator=(RawObject* value) {
+    raw_ = value;
+  }
+  void operator^=(RawObject* value) {
+    raw_ = value;
+  }
+  static PassiveObject& Handle(Isolate* I, RawObject* raw_ptr) {
+    PassiveObject* obj =
+        reinterpret_cast<PassiveObject*>(VMHandles::AllocateHandle(I));
+    obj->raw_ = raw_ptr;
+    obj->set_vtable(0);
+    return *obj;
+  }
+  static PassiveObject& Handle(RawObject* raw_ptr) {
+    return Handle(Isolate::Current(), raw_ptr);
+  }
+  static PassiveObject& Handle() {
+    return Handle(Isolate::Current(), Object::null());
+  }
+  static PassiveObject& Handle(Isolate* I) {
+    return Handle(I, Object::null());
+  }
+  static PassiveObject& ZoneHandle(Isolate* I, RawObject* raw_ptr) {
+    PassiveObject* obj = reinterpret_cast<PassiveObject*>(
+        VMHandles::AllocateZoneHandle(I));
+    obj->raw_ = raw_ptr;
+    obj->set_vtable(0);
+    return *obj;
+  }
+  static PassiveObject& ZoneHandle(RawObject* raw_ptr) {
+    return ZoneHandle(Isolate::Current(), raw_ptr);
+  }
+  static PassiveObject& ZoneHandle() {
+    return ZoneHandle(Isolate::Current(), Object::null());
+  }
+  static PassiveObject& ZoneHandle(Isolate* I) {
+    return ZoneHandle(I, Object::null());
+  }
+
+ private:
+  PassiveObject() : Object() {}
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(PassiveObject);
 };
 
 
@@ -1627,9 +1677,6 @@ class Function : public Object {
   void set_saved_args_desc(const Array& array) const;
   RawArray* saved_args_desc() const;
 
-  void set_saved_static_field(const Field& array) const;
-  RawField* saved_static_field() const;
-
   bool IsMethodExtractor() const {
     return kind() == RawFunction::kMethodExtractor;
   }
@@ -1702,7 +1749,6 @@ class Function : public Object {
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kImplicitStaticFinalGetter:
-      case RawFunction::kStaticInitializer:
         return false;
       default:
         UNREACHABLE();
@@ -1720,7 +1766,6 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kImplicitStaticFinalGetter:
-      case RawFunction::kStaticInitializer:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
@@ -1843,10 +1888,14 @@ class Function : public Object {
   }
   void set_is_intrinsic(bool value) const;
 
-  bool is_recognized() const {
-    return RecognizedBit::decode(raw_ptr()->kind_tag_);
+  MethodRecognizer::Kind recognized_kind() const {
+    return RecognizedBits::decode(raw_ptr()->kind_tag_);
   }
-  void set_is_recognized(bool value) const;
+  void set_recognized_kind(MethodRecognizer::Kind value) const;
+
+  bool IsRecognized() const {
+    return recognized_kind() != MethodRecognizer::kUnknown;
+  }
 
   bool is_redirecting() const {
     return RedirectingBit::decode(raw_ptr()->kind_tag_);
@@ -1857,6 +1906,21 @@ class Function : public Object {
     return AllowsHoistingCheckClassBit::decode(raw_ptr()->kind_tag_);
   }
   void set_allows_hoisting_check_class(bool value) const;
+
+  bool always_inline() const {
+    return AlwaysInlineBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_always_inline(bool value) const {
+    set_kind_tag(AlwaysInlineBit::update(value, raw_ptr()->kind_tag_));
+  }
+
+  bool is_polymorphic_target() const {
+    return PolymorphicTargetBit::decode(raw_ptr()->kind_tag_);
+  }
+  void set_is_polymorphic_target(bool value) const {
+    set_kind_tag(PolymorphicTargetBit::update(value, raw_ptr()->kind_tag_));
+  }
+
 
   bool HasOptimizedCode() const;
 
@@ -1878,6 +1942,8 @@ class Function : public Object {
   // Fully qualified name uniquely identifying the function under gdb and during
   // ast printing. The special ':' character, if present, is replaced by '_'.
   const char* ToFullyQualifiedCString() const;
+
+  const char* ToLibNamePrefixedQualifiedCString() const;
 
   const char* ToQualifiedCString() const;
 
@@ -1931,11 +1997,6 @@ class Function : public Object {
   // Returns true if this function represents an implicit setter function.
   bool IsImplicitSetterFunction() const {
     return kind() == RawFunction::kImplicitSetter;
-  }
-
-  // Returns true if this function represents an static initializer function.
-  bool IsStaticInitializerFunction() const {
-    return kind() == RawFunction::kStaticInitializer;
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -2004,10 +2065,6 @@ class Function : public Object {
                                       const Script& script,
                                       bool is_static);
 
-  // Creates a new static initializer function which is invoked in the implicit
-  // static getter function.
-  static RawFunction* NewStaticInitializer(const Field& field);
-
   // Allocate new function object, clone values from this function. The
   // owner of the clone is new_owner.
   RawFunction* Clone(const Class& new_owner) const;
@@ -2040,23 +2097,38 @@ class Function : public Object {
   enum KindTagBits {
     kKindTagPos = 0,
     kKindTagSize = 4,
-    kStaticBit = kKindTagPos + kKindTagSize,  // = 4
-    kConstBit = 5,
-    kAbstractBit = 6,
-    kVisibleBit = 7,
-    kOptimizableBit = 8,
-    kInlinableBit = 9,
-    kIntrinsicBit = 10,
-    kRecognizedBit = 11,
-    kNativeBit = 12,
-    kRedirectingBit = 13,
-    kExternalBit = 14,
-    kAllowsHoistingCheckClassBit = 15,
-    kModifierPos = 16,
-    kAsyncClosureBit = 17,
+    kRecognizedTagPos = kKindTagPos + kKindTagSize,
+    kRecognizedTagSize = 8,
+    // Single bit sized fields start here.
+    kStaticBit = kRecognizedTagPos + kRecognizedTagSize,
+    kConstBit,
+    kAbstractBit,
+    kVisibleBit,
+    kOptimizableBit,
+    kInlinableBit,
+    kIntrinsicBit,
+    kNativeBit,
+    kRedirectingBit,
+    kExternalBit,
+    kAllowsHoistingCheckClassBit,
+    kModifierPos,
+    kAsyncClosureBit,
+    kAlwaysInlineBit,
+    kPolymorphicTargetBit,
+    kNumTagBits
   };
+
+  COMPILE_ASSERT(
+      MethodRecognizer::kNumRecognizedMethods < (1 << kRecognizedTagSize));
+  COMPILE_ASSERT(
+      kNumTagBits <=
+      (kBitsPerByte * sizeof(static_cast<RawFunction*>(0)->kind_tag_)));
+
   class KindBits :
     public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
+  class RecognizedBits : public BitField<MethodRecognizer::Kind,
+                                         kRecognizedTagPos,
+                                         kRecognizedTagSize> {};
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
@@ -2064,7 +2136,6 @@ class Function : public Object {
   class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
   class InlinableBit : public BitField<bool, kInlinableBit, 1> {};
   class IntrinsicBit : public BitField<bool, kIntrinsicBit, 1> {};
-  class RecognizedBit : public BitField<bool, kRecognizedBit, 1> {};
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class RedirectingBit : public BitField<bool, kRedirectingBit, 1> {};
@@ -2073,6 +2144,9 @@ class Function : public Object {
   class ModifierBits :
       public BitField<RawFunction::AsyncModifier, kModifierPos, 1> {};  // NOLINT
   class AsyncClosureBit : public BitField<bool, kAsyncClosureBit, 1> {};
+  class AlwaysInlineBit : public BitField<bool, kAlwaysInlineBit, 1> {};
+  class PolymorphicTargetBit :
+      public BitField<bool, kPolymorphicTargetBit, 1> {};  // NOLINT
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
@@ -2341,6 +2415,8 @@ class Field : public Object {
   void DeoptimizeDependentCode() const;
 
   bool IsUninitialized() const;
+
+  void EvaluateInitializer() const;
 
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);
@@ -3423,6 +3499,9 @@ class ICData : public Object {
 
   intptr_t NumberOfChecks() const;
 
+  // Discounts any checks with usage of zero.
+  intptr_t NumberOfUsedChecks() const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawICData));
   }
@@ -3472,6 +3551,7 @@ class ICData : public Object {
 
   // Retrieving checks.
 
+  // TODO(srdjan): GetCheckAt without target.
   void GetCheckAt(intptr_t index,
                   GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
@@ -3495,11 +3575,13 @@ class ICData : public Object {
 
   // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
   // returns a new ICData object containing only unique arg_nr checks.
+  // Returns only used entries.
   RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
   RawICData* AsUnaryClassChecks() const {
     return AsUnaryClassChecksForArgNr(0);
   }
 
+  // Consider only used entries.
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
@@ -3520,6 +3602,11 @@ class ICData : public Object {
   static intptr_t CountIndexFor(intptr_t num_args) {
     return (num_args + 1);
   }
+
+  bool IsUsedAt(intptr_t i) const;
+
+  void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
+                             GrowableArray<intptr_t>* second) const;
 
  private:
   RawArray* ic_data() const {
@@ -5004,7 +5091,8 @@ class MixinAppType : public AbstractType {
 
 class Number : public Instance {
  public:
-  // TODO(iposva): Fill in a useful Number interface.
+  // TODO(iposva): Add more useful Number methods.
+  RawString* ToString(Heap::Space space) const;
 
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
@@ -6925,7 +7013,9 @@ class ReceivePort : public Instance {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawReceivePort));
   }
-  static RawReceivePort* New(Dart_Port id, Heap::Space space = Heap::kNew);
+  static RawReceivePort* New(Dart_Port id,
+                             bool is_control_port,
+                             Heap::Space space = Heap::kNew);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ReceivePort, Instance);

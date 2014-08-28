@@ -63,8 +63,7 @@ class SolveReport {
       if (newId == null) return true;
 
       // The dependency existed before, so see if it was modified.
-      return !_descriptionsEqual(oldId, newId) ||
-          oldId.version != newId.version;
+      return !_sources.idsEqual(oldId, newId);
     }).length;
 
     if (dryRun) {
@@ -169,7 +168,7 @@ class SolveReport {
     } else if (oldId == null) {
       icon = log.green("+ ");
       addedOrRemoved = true;
-    } else if (!_descriptionsEqual(oldId, newId)) {
+    } else if (!_sources.idDescriptionsEqual(oldId, newId)) {
       icon = log.cyan("* ");
       changed = true;
     } else if (oldId.version < newId.version) {
@@ -234,13 +233,6 @@ class SolveReport {
     }
 
     _output.writeln();
-  }
-
-  /// Returns `true` if [a] and [b] are from the same source and have the same
-  /// description.
-  bool _descriptionsEqual(PackageId a, PackageId b) {
-    if (a.source != b.source) return false;
-    return _sources[a.source].descriptionsEqual(a.description, b.description);
   }
 
   /// Writes a terse description of [id] (not including its name) to the output.

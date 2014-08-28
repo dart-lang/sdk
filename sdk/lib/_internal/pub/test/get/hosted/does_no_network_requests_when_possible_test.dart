@@ -13,11 +13,11 @@ main() {
   initConfig();
 
   integration('does not request versions if the lockfile is up to date', () {
-    servePackages([
-      packageMap("foo", "1.0.0"),
-      packageMap("foo", "1.1.0"),
-      packageMap("foo", "1.2.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0");
+      builder.serve("foo", "1.1.0");
+      builder.serve("foo", "1.2.0");
+    });
 
     d.appDir({
       "foo": "any"

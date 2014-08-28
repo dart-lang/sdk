@@ -19,7 +19,7 @@ import '../dart2jslib.dart'
          MessageKind,
          invariant,
          isPrivateName;
-import '../helpers/helpers.dart';
+import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../util/util.dart';
 
 part 'member_impl.dart';

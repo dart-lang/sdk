@@ -61,6 +61,10 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return ElementLocator.locate(node);
   }
 
+  int findEnd(String search) {
+    return findOffset(search) + search.length;
+  }
+
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
     expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");

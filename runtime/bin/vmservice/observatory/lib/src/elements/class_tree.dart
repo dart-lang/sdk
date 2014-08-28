@@ -24,11 +24,11 @@ class ClassTreeRow extends TableTreeRow {
       // Child rows already created.
       return;
     }
-    for (var subClass in cls.children) {
-      if (subClass.isPatch) {
+    for (var subclass in cls.subclasses) {
+      if (subclass.isPatch) {
         continue;
       }
-      var row = new ClassTreeRow(isolate, subClass, this);
+      var row = new ClassTreeRow(isolate, subclass, this);
       children.add(row);
     }
   }
@@ -37,7 +37,7 @@ class ClassTreeRow extends TableTreeRow {
   }
 
   bool hasChildren() {
-    return cls.children.length > 0;
+    return cls.subclasses.length > 0;
   }
 }
 

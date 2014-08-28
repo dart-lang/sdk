@@ -337,10 +337,3 @@ class _JsonMap implements LinkedHashMap {
   static _newJavaScriptObject()
       => JS('=Object', 'Object.create(null)');
 }
-
-@patch
-class _Utf8Encoder {
-  // Use Uint8List when supported on all platforms.
-  @patch
-  static List<int> _createBuffer(int size) => new List<int>(size);
-}

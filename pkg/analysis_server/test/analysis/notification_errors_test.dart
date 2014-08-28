@@ -4,11 +4,9 @@
 
 library test.analysis.notification_errors;
 
-import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_services/constants.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -27,9 +25,8 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
 
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
-      String file = notification.getParameter(FILE);
-      List<Map<String, Object>> errorMaps = notification.getParameter(ERRORS);
-      filesErrors[file] = errorMaps.map(AnalysisError.fromJson).toList();
+      var decoded = new AnalysisErrorsParams.fromNotification(notification);
+      filesErrors[decoded.file] = decoded.errors;
     }
   }
 
@@ -49,8 +46,8 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
       expect(error.location.file, '/project/bin/test.dart');
       expect(error.location.offset, isPositive);
       expect(error.location.length, isNonNegative);
-      expect(error.severity, 'ERROR');
-      expect(error.type, 'SYNTACTIC_ERROR');
+      expect(error.severity, ErrorSeverity.ERROR);
+      expect(error.type, ErrorType.SYNTACTIC_ERROR);
       expect(error.message, isNotNull);
     });
   }
@@ -66,8 +63,8 @@ main() {
       List<AnalysisError> errors = filesErrors[testFile];
       expect(errors, hasLength(1));
       AnalysisError error = errors[0];
-      expect(error.severity, 'WARNING');
-      expect(error.type, 'STATIC_WARNING');
+      expect(error.severity, ErrorSeverity.WARNING);
+      expect(error.type, ErrorType.STATIC_WARNING);
     });
   }
 

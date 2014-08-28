@@ -61,6 +61,10 @@ class SemiSpace {
 
   static SemiSpace* cache_;
   static Mutex* mutex_;
+
+#ifdef DEBUG
+  static const intptr_t kZapValue = 0xf3;
+#endif
 };
 
 
@@ -219,8 +223,8 @@ class Scavenger {
     kIterateWeaks = 3,
     // Data
     kStoreBufferEntries = 0,
-    kStoreBufferVisited = 1,
-    kStoreBufferPointers = 2,
+    kDataUnused1 = 1,
+    kDataUnused2 = 2,
     kToKBAfterStoreBuffer = 3
   };
 

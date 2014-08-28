@@ -1,0 +1,41 @@
+#!/bin/bash
+# Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Run pub.dart on the Dart VM. This script assumes the Dart SDK's directory
+# structure.
+
+function follow_links() {
+  file="$1"
+  while [ -h "$file" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    file="$(readlink "$file")"
+  done
+  echo "$file"
+}
+
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+BIN_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
+
+SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
+
+unset VM_OPTIONS
+declare -a VM_OPTIONS
+
+# Give the VM extra memory for dart2js.
+# TODO(rnystrom): Remove when #8355 is fixed.
+VM_OPTIONS+=("--old_gen_heap_size=1024")
+
+# Allow extra VM options to be passed in through an environment variable.
+if [[ $DART_VM_OPTIONS ]]; then
+  read -a OPTIONS <<< "$DART_VM_OPTIONS"
+  VM_OPTIONS+=("${OPTIONS[@]}")
+fi
+
+# Run the pub snapshot.
+DART="$BIN_DIR/dart"
+exec "$DART" "${VM_OPTIONS[@]}" "$SNAPSHOT" "$@"

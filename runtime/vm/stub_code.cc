@@ -133,6 +133,21 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
 }
 
 
+uword StubCode::UnoptimizedStaticCallEntryPoint(intptr_t num_args_tested) {
+  switch (num_args_tested) {
+    case 0:
+      return ZeroArgsUnoptimizedStaticCallEntryPoint();
+    case 1:
+      return OneArgUnoptimizedStaticCallEntryPoint();
+    case 2:
+      return TwoArgsUnoptimizedStaticCallEntryPoint();
+    default:
+      UNIMPLEMENTED();
+      return 0;
+  }
+}
+
+
 RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler;

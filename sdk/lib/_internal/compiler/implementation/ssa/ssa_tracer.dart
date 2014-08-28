@@ -145,7 +145,7 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 'd';
     } else if (instruction.isNumber(compiler)) {
       prefix = 'n';
-    } else if (instruction.instructionType.containsAll(compiler)) {
+    } else if (instruction.instructionType.containsAll(compiler.world)) {
       prefix = 'v';
     } else {
       prefix = 'U';

@@ -159,7 +159,7 @@ void FlowGraphCompiler::InitCompiler() {
           ic_data = current->AsInstanceCall()->ic_data();
           ASSERT(ic_data != NULL);
         }
-        if ((ic_data != NULL) && (ic_data->NumberOfChecks() == 0)) {
+        if ((ic_data != NULL) && (ic_data->NumberOfUsedChecks() == 0)) {
           may_reoptimize_ = true;
         }
         if (is_leaf &&
@@ -462,7 +462,7 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
-    slow_path_code_[i]->EmitNativeCode(this);
+    slow_path_code_[i]->GenerateCode(this);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
     deopt_infos_[i]->GenerateCode(this, i);
@@ -836,10 +836,10 @@ void FlowGraphCompiler::GenerateInstanceCall(
     LocationSummary* locs,
     const ICData& ic_data) {
   ASSERT(!ic_data.IsNull());
-  ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfChecks() == 0));
+  ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfUsedChecks() == 0));
   uword label_address = 0;
   StubCode* stub_code = isolate()->stub_code();
-  if (is_optimizing() && (ic_data.NumberOfChecks() == 0)) {
+  if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
     if (ic_data.IsClosureCall()) {
       // This IC call may be closure call only.
       label_address = stub_code->ClosureCallInlineCacheEntryPoint();

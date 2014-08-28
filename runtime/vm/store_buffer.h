@@ -52,6 +52,11 @@ class StoreBufferBlock {
 class StoreBuffer {
  public:
   StoreBuffer() : blocks_(new StoreBufferBlock(NULL)), full_count_(0) {}
+  explicit StoreBuffer(bool shallow_copy) : blocks_(NULL), full_count_(0) {
+    // The value shallow_copy is only used to select this non-allocating
+    // constructor. It is always expected to be true.
+    ASSERT(shallow_copy);
+  }
   ~StoreBuffer();
 
   intptr_t Count() const {

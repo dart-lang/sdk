@@ -213,8 +213,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       Parameter toParameter(item) {
         if (item is Parameter) return item;
         if (item is String) return new Parameter(item);
-        error('Interpolated value #$position is not a Parameter or '
-            'List of Parameters: $value');
+        return error('Interpolated value #$position is not a Parameter or '
+                     'List of Parameters: $value');
       }
       if (value is Iterable) return value.map(toParameter);
       return toParameter(value);
@@ -251,8 +251,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Statement toStatement(item) {
           if (item is Statement) return item;
           if (item is Expression) return item.toStatement();;
-          error('Interpolated value #$position is not '
-              'a Statement or List of Statements: $value');
+          return error('Interpolated value #$position is not '
+                       'a Statement or List of Statements: $value');
         }
         if (value is Iterable) return value.map(toStatement);
         return toStatement(value);

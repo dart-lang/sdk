@@ -366,6 +366,7 @@ class TestingServers {
     } else if (path.filename.endsWith('.dart')) {
       response.headers.set('Content-Type', 'application/dart');
     }
+    response.headers.removeAll("X-Frame-Options");
     file.openRead().pipe(response).catchError((e) {
       DebugLogger.warning(
           'HttpServer: error while closing the response stream', e);

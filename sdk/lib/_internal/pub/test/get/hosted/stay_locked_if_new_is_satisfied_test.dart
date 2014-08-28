@@ -11,11 +11,11 @@ main() {
   initConfig();
   integration("doesn't unlock dependencies if a new dependency is already "
       "satisfied", () {
-    servePackages([
-      packageMap("foo", "1.0.0", {"bar": "<2.0.0"}),
-      packageMap("bar", "1.0.0", {"baz": "<2.0.0"}),
-      packageMap("baz", "1.0.0")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.0.0", deps: {"bar": "<2.0.0"});
+      builder.serve("bar", "1.0.0", deps: {"baz": "<2.0.0"});
+      builder.serve("baz", "1.0.0");
+    });
 
     d.appDir({"foo": "any"}).create();
 
@@ -27,12 +27,12 @@ main() {
       "baz": "1.0.0"
     }).validate();
 
-    servePackages([
-      packageMap("foo", "2.0.0", {"bar": "<3.0.0"}),
-      packageMap("bar", "2.0.0", {"baz": "<3.0.0"}),
-      packageMap("baz", "2.0.0"),
-      packageMap("newdep", "2.0.0", {"baz": ">=1.0.0"})
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "2.0.0", deps: {"bar": "<3.0.0"});
+      builder.serve("bar", "2.0.0", deps: {"baz": "<3.0.0"});
+      builder.serve("baz", "2.0.0");
+      builder.serve("newdep", "2.0.0", deps: {"baz": ">=1.0.0"});
+    });
 
     d.appDir({"foo": "any", "newdep": "any"}).create();
 

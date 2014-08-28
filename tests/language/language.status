@@ -32,14 +32,20 @@ deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
 deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
 [ $runtime != vm ]
-# Async tests are currently only supported by the vm.
+# Async/await is currently only supported by the vm.
 async_test/*: Skip
 async_control_structures_test: Skip
+await_test: Skip
+await_future_test: Skip
+await_backwards_compatibility_test/*: Skip
 
 [ $compiler == dart2dart]
-# Async tests are not yet supported in dart2dart.
+# Async/await not yet supported in dart2dart.
 async_test/*: Skip
 async_control_structures_test: Skip
+await_test: Skip
+await_future_test: Skip
+await_backwards_compatibility_test/*: Skip
 deferred_load_library_wrong_args_test/none: Fail # Issue 17523
 deferred_load_inval_code_test: Fail # Issue 17523
 deferred_not_loaded_check_test: Fail # Issue 17523
@@ -100,9 +106,6 @@ dynamic_prefix_core_test/01: RuntimeError # Issue 12478
 dynamic_prefix_core_test/none: Fail # Issue 12478
 export_ambiguous_main_negative_test: Fail # Issue 14763
 
-[ $compiler == dart2js && $runtime == ie9 ]
-lazy_static3_test: Fail # Issue 13469
-
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assertion_test: Fail # Issue 13719: Please triage this failure.
 generic_test: Fail # Issue 13719: Please triage this failure.
@@ -139,6 +142,9 @@ generic_instanceof3_test: Pass, Crash # Issue 17440.
 [ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
 stack_overflow_test: Skip # Crashes. Issue 17440.
 stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
+large_class_declaration_test: Skip # Times out. Issue 20352
+
+[ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) && $mode == debug ]
 large_class_declaration_test: Skip # Times out. Issue 20352
 
 

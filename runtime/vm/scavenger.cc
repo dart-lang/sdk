@@ -13,12 +13,12 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
+#include "vm/object_id_ring.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 #include "vm/weak_table.h"
-#include "vm/object_id_ring.h"
 
 namespace dart {
 
@@ -52,10 +52,10 @@ static inline uword ForwardedAddr(uword header) {
 }
 
 
-static inline void ForwardTo(uword orignal, uword target) {
+static inline void ForwardTo(uword original, uword target) {
   // Make sure forwarding can be encoded.
   ASSERT((target & kForwardingMask) == 0);
-  *reinterpret_cast<uword*>(orignal) = target | kForwarded;
+  *reinterpret_cast<uword*>(original) = target | kForwarded;
 }
 
 
@@ -79,10 +79,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   explicit ScavengerVisitor(Isolate* isolate, Scavenger* scavenger)
       : ObjectPointerVisitor(isolate),
         scavenger_(scavenger),
+        from_start_(scavenger_->from_->start()),
+        from_size_(scavenger_->from_->end() - scavenger_->from_->start()),
         heap_(scavenger->heap_),
         vm_heap_(Dart::vm_isolate()->heap()),
-        visited_count_(0),
-        handled_count_(0),
+        page_space_(scavenger->heap_->old_space()),
         delayed_weak_stack_(),
         bytes_promoted_(0),
         visiting_old_object_(NULL),
@@ -122,8 +123,6 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     }
   }
 
-  intptr_t visited_count() const { return visited_count_; }
-  intptr_t handled_count() const { return handled_count_; }
   intptr_t bytes_promoted() const { return bytes_promoted_; }
 
  private:
@@ -148,24 +147,26 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     BoolScope bs(&in_scavenge_pointer_, true);
 #endif
 
-    visited_count_++;
     RawObject* raw_obj = *p;
 
-    // Fast exit if the raw object is a Smi or an old object.
-    if (!raw_obj->IsHeapObject() || raw_obj->IsOldObject()) {
+    if (raw_obj->IsSmiOrOldObject()) {
+      return;
+    }
+
+    // Objects should be contained in the heap.
+    // TODO(iposva): Add an appropriate assert here or in the return block
+    // below.
+
+    // The scavenger is only interested in objects located in the from space.
+    //
+    // We are using address math here and relying on the unsigned underflow
+    // in the code below to avoid having two checks.
+    uword obj_offset = reinterpret_cast<uword>(raw_obj) - from_start_;
+    if (obj_offset > from_size_) {
       return;
     }
 
     uword raw_addr = RawObject::ToAddr(raw_obj);
-    // Objects should be contained in the heap.
-    // TODO(iposva): Add an appropriate assert here or in the return block
-    // below.
-    // The scavenger is only interested in objects located in the from space.
-    if (!scavenger_->from_->Contains(raw_addr)) {
-      return;
-    }
-
-    handled_count_++;
     // Read the header word of the object and determine if the object has
     // already been copied.
     uword header = *reinterpret_cast<uword*>(raw_addr);
@@ -204,8 +205,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
         //
         // This object is a survivor of a previous scavenge. Attempt to promote
         // the object.
-        new_addr =
-            heap_->TryAllocate(size, Heap::kOld, PageSpace::kForceGrowth);
+        new_addr = page_space_->TryAllocateDataLocked(size,
+                                                      PageSpace::kForceGrowth);
         if (new_addr != 0) {
           // If promotion succeeded then we need to remember it so that it can
           // be traversed later.
@@ -238,10 +239,11 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   }
 
   Scavenger* scavenger_;
+  uword from_start_;
+  uword from_size_;
   Heap* heap_;
   Heap* vm_heap_;
-  intptr_t visited_count_;
-  intptr_t handled_count_;
+  PageSpace* page_space_;
   typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
   DelaySet delay_set_;
   GrowableArray<RawObject*> delayed_weak_stack_;
@@ -321,7 +323,7 @@ SemiSpace::SemiSpace(VirtualMemory* reserved)
 SemiSpace::~SemiSpace() {
   if (reserved_ != NULL) {
 #if defined(DEBUG)
-    memset(reserved_->address(), 0xf3, size_in_words() << kWordSizeLog2);
+    memset(reserved_->address(), kZapValue, size_in_words() << kWordSizeLog2);
 #endif  // defined(DEBUG)
     delete reserved_;
   }
@@ -360,7 +362,7 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
       return NULL;
     }
 #if defined(DEBUG)
-    memset(reserved->address(), 0xf3, size_in_bytes);
+    memset(reserved->address(), kZapValue, size_in_bytes);
 #endif  // defined(DEBUG)
     return new SemiSpace(reserved);
   }
@@ -368,6 +370,11 @@ SemiSpace* SemiSpace::New(intptr_t size_in_words) {
 
 
 void SemiSpace::Delete() {
+#ifdef DEBUG
+  if (reserved_ != NULL) {
+    memset(reserved_->address(), kZapValue, size_in_words() << kWordSizeLog2);
+  }
+#endif
   SemiSpace* old_cache = NULL;
   {
     MutexLocker locker(mutex_);
@@ -480,8 +487,17 @@ void Scavenger::Epilogue(Isolate* isolate,
   }
 
 #if defined(DEBUG)
-  VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
-  heap_->IterateOldPointers(&verify_store_buffer_visitor);
+  // We can only safely verify the store buffers from old space if there is no
+  // concurrent old space task. At the same time we prevent new tasks from
+  // being spawned.
+  {
+    PageSpace* page_space = heap_->old_space();
+    MonitorLocker ml(page_space->tasks_lock());
+    if (page_space->tasks() == 0) {
+      VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
+      heap_->IterateOldPointers(&verify_store_buffer_visitor);
+    }
+  }
 #endif  // defined(DEBUG)
   from_->Delete();
   from_ = NULL;
@@ -499,8 +515,6 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
   // Iterating through the store buffers.
   // Grab the deduplication sets out of the store buffer.
   StoreBufferBlock* pending = isolate->store_buffer()->Blocks();
-  intptr_t visited_count_before = visitor->visited_count();
-  intptr_t handled_count_before = visitor->handled_count();
   while (pending != NULL) {
     StoreBufferBlock* next = pending->next();
     intptr_t count = pending->Count();
@@ -514,10 +528,8 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     delete pending;
     pending = next;
   }
-  heap_->RecordData(kStoreBufferVisited,
-                    visitor->visited_count() - visited_count_before);
-  heap_->RecordData(kStoreBufferPointers,
-                    visitor->handled_count() - handled_count_before);
+  heap_->RecordData(kDataUnused1, 0);
+  heap_->RecordData(kDataUnused2, 0);
   // Done iterating through old objects remembered in the store buffers.
   visitor->VisitingOldObject(NULL);
 }
@@ -781,6 +793,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   ASSERT(!scavenging_);
   scavenging_ = true;
   Isolate* isolate = heap_->isolate();
+  PageSpace* page_space = heap_->old_space();
   NoHandleScope no_handles(isolate);
 
   if (FLAG_verify_before_gc) {
@@ -789,13 +802,16 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
-  // Setup the visitor and run a scavenge.
-  ScavengerVisitor visitor(isolate, this);
+  // Prepare for a scavenge.
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words =
       (survivor_end_ - FirstObjectStart()) / kWordSize;
   Prologue(isolate, invoke_api_callbacks);
   const bool prologue_weak_are_strong = !invoke_api_callbacks;
+
+  // Setup the visitor and run the scavenge.
+  ScavengerVisitor visitor(isolate, this);
+  page_space->AcquireDataLock();
   IterateRoots(isolate, &visitor, prologue_weak_are_strong);
   int64_t start = OS::GetCurrentTimeMicros();
   ProcessToSpace(&visitor);
@@ -807,6 +823,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   IterateWeakRoots(isolate, &weak_visitor, visit_prologue_weak_handles);
   visitor.Finalize();
   ProcessWeakTables();
+  page_space->ReleaseDataLock();
+
+  // Scavenge finished. Run accounting and epilogue.
   int64_t end = OS::GetCurrentTimeMicros();
   heap_->RecordTime(kProcessToSpace, middle - start);
   heap_->RecordTime(kIterateWeaks, end - middle);
@@ -839,10 +858,10 @@ void Scavenger::PrintToJSONObject(JSONObject* object) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "new");
-  space.AddProperty("type", "Scavenger");
+  space.AddProperty("type", "HeapSpace");
   space.AddProperty("id", "heaps/new");
-  space.AddProperty("name", "Scavenger");
-  space.AddProperty("user_name", "new");
+  space.AddProperty("name", "new");
+  space.AddProperty("vmName", "Scavenger");
   space.AddProperty("collections", collections());
   if (collections() > 0) {
     int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();

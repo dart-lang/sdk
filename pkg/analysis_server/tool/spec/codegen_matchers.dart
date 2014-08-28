@@ -8,11 +8,11 @@
 library codegen.matchers;
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'api.dart';
 import 'codegen_tools.dart';
 import 'from_html.dart';
+import 'implied_types.dart';
 import 'to_html.dart';
 
 class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
@@ -36,27 +36,21 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * clarified by [nameSuffix].  The matcher should verify that its input
    * matches the given [type].
    */
-  void makeMatcher(String name, String nameSuffix, TypeDecl type) {
-    context = name;
-    List<String> nameParts = ['is'];
-    nameParts.addAll(name.split('.'));
-    if (nameSuffix != null) {
-      context += ' $nameSuffix';
-      nameParts.add(nameSuffix);
-    }
+  void makeMatcher(ImpliedType impliedType) {
+    context = impliedType.humanReadableName;
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(context);
       });
-      if (type != null) {
-        toHtmlVisitor.showType(null, type);
+      if (impliedType.type != null) {
+        toHtmlVisitor.showType(null, impliedType.type);
       }
     }));
-    write('final Matcher ${camelJoin(nameParts)} = ');
-    if (type == null) {
+    write('final Matcher ${camelJoin(['is', impliedType.camelName])} = ');
+    if (impliedType.type == null) {
       write('isNull');
     } else {
-      visitTypeDecl(type);
+      visitTypeDecl(impliedType.type);
     }
     writeln(';');
     writeln();
@@ -76,30 +70,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln("import 'integration_tests.dart';");
     writeln();
     writeln();
-    super.visitApi();
-  }
-
-  @override
-  visitNotification(Notification notification) {
-    makeMatcher(notification.longEvent, 'params', notification.params);
-  }
-
-  @override
-  visitRequest(Request request) {
-    makeMatcher(request.longMethod, 'params', request.params);
-    makeMatcher(request.longMethod, 'result', request.result);
-  }
-
-  @override
-  visitRefactoring(Refactoring refactoring) {
-    String camelKind = camelJoin(refactoring.kind.toLowerCase().split('_'));
-    makeMatcher(camelKind, 'feedback', refactoring.feedback);
-    makeMatcher(camelKind, 'options', refactoring.options);
-  }
-
-  @override
-  visitTypeDefinition(TypeDefinition typeDefinition) {
-    makeMatcher(typeDefinition.name, null, typeDefinition.type);
+    for (ImpliedType impliedType in computeImpliedTypes(api).values) {
+      makeMatcher(impliedType);
+    }
   }
 
   @override
@@ -137,7 +110,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   void visitTypeObject(TypeObject typeObject) {
-    writeln('new MatchesJsonObject(');
+    writeln('new LazyMatcher(() => new MatchesJsonObject(');
     indent(() {
       write('${JSON.encode(context)}, ');
       Iterable<TypeObjectField> requiredFields = typeObject.fields.where(
@@ -150,7 +123,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
         outputObjectFields(optionalFields);
       }
     });
-    write(')');
+    write('))');
   }
 
   /**
@@ -187,14 +160,31 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void visitTypeReference(TypeReference typeReference) {
     write(camelJoin(['is', typeReference.typeName]));
   }
+
+  @override
+  void visitTypeUnion(TypeUnion typeUnion) {
+    bool commaNeeded = false;
+    write('isOneOf([');
+    for (TypeDecl choice in typeUnion.choices) {
+      if (commaNeeded) {
+        write(', ');
+      }
+      visitTypeDecl(choice);
+      commaNeeded = true;
+    }
+    write('])');
+  }
 }
+
+final GeneratedFile target = new GeneratedFile(
+    '../../test/integration/protocol_matchers.dart', () {
+  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi());
+  return visitor.collectCode(visitor.visitApi);
+});
 
 /**
  * Translate spec_input.html into protocol_matchers.dart.
  */
 main() {
-  CodegenMatchersVisitor visitor = new CodegenMatchersVisitor(readApi());
-  String code = visitor.collectCode(visitor.visitApi);
-  File outputFile = new File('../../test/integration/protocol_matchers.dart');
-  outputFile.writeAsStringSync(code);
+  target.generate();
 }

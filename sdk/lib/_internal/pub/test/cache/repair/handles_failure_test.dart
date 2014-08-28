@@ -14,10 +14,10 @@ main() {
   initConfig();
   integration('handles failure to reinstall some packages', () {
     // Only serve two packages so repairing will have a failure.
-    servePackages([
-      packageMap("foo", "1.2.3"),
-      packageMap("foo", "1.2.5")
-    ]);
+    servePackages((builder) {
+      builder.serve("foo", "1.2.3");
+      builder.serve("foo", "1.2.5");
+    });
 
     // Set up a cache with some packages.
     d.dir(cachePath, [

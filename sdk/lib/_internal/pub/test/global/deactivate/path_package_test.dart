@@ -22,6 +22,6 @@ main() {
 
     var path = canonicalize(p.join(sandboxDir, "foo"));
     schedulePub(args: ["global", "deactivate", "foo"],
-        output: 'Deactivated package foo at path "$path".');
+        output: 'Deactivated package foo 1.0.0 at path "$path".');
   });
 }

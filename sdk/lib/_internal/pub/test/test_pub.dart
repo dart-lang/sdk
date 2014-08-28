@@ -15,11 +15,11 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:http/testing.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:scheduled_test/scheduled_process.dart';
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_stream.dart';
-import 'package:scheduled_test/scheduled_test.dart';
+import 'package:scheduled_test/scheduled_test.dart' hide fail;
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:unittest/compact_vm_config.dart';
@@ -45,6 +45,9 @@ import '../lib/src/utils.dart';
 import '../lib/src/validator.dart';
 import '../lib/src/version.dart';
 import 'descriptor.dart' as d;
+import 'serve_packages.dart';
+
+export 'serve_packages.dart';
 
 /// This should be called at the top of a test file to set up an appropriate
 /// test configuration for the machine running the tests.
@@ -103,12 +106,12 @@ final _barbackDeps = {
 /// Populates [_barbackVersions].
 Map<Version, String> _findBarbackVersions() {
   var versions = {};
-  var currentBarback = path.join(repoRoot, 'pkg', 'barback');
+  var currentBarback = p.join(repoRoot, 'pkg', 'barback');
   versions[new Pubspec.load(currentBarback, new SourceRegistry()).version] =
       currentBarback;
 
-  for (var dir in listDir(path.join(repoRoot, 'third_party', 'pkg'))) {
-    var basename = path.basename(dir);
+  for (var dir in listDir(p.join(repoRoot, 'third_party', 'pkg'))) {
+    var basename = p.basename(dir);
     if (!basename.startsWith('barback')) continue;
     versions[new Version.parse(split1(basename, '-').last)] = dir;
   }
@@ -139,7 +142,7 @@ void withBarbackVersions(String versionConstraint, void callback()) {
         _barbackDeps.forEach((constraint, deps) {
           if (!constraint.allows(version)) return;
           deps.forEach((packageName, version) {
-            _packageOverrides[packageName] = path.join(
+            _packageOverrides[packageName] = p.join(
                 repoRoot, 'third_party', 'pkg', '$packageName-$version');
           });
         });
@@ -190,7 +193,7 @@ void serve([List<d.Descriptor> contents]) {
     return _closeServer().then((_) {
       return shelf_io.serve((request) {
         currentSchedule.heartbeat();
-        var path = request.url.path.replaceFirst("/", "");
+        var path = p.posix.fromUri(request.url.path.replaceFirst("/", ""));
         _requestedPaths.add(path);
 
         return validateStream(baseDir.load(path))
@@ -222,106 +225,6 @@ Future _closeServer() {
 /// `true` if the current test spins up an HTTP server.
 bool _hasServer = false;
 
-/// The [d.DirectoryDescriptor] describing the server layout of `/api/packages`
-/// on the test server.
-///
-/// This contains metadata for packages that are being served via
-/// [servePackages]. It's `null` if [servePackages] has not yet been called for
-/// this test.
-d.DirectoryDescriptor _servedApiPackageDir;
-
-/// The [d.DirectoryDescriptor] describing the server layout of `/packages` on
-/// the test server.
-///
-/// This contains the tarballs for packages that are being served via
-/// [servePackages]. It's `null` if [servePackages] has not yet been called for
-/// this test.
-d.DirectoryDescriptor _servedPackageDir;
-
-/// A map from package names to parsed pubspec maps for those packages.
-///
-/// This represents the packages currently being served by [servePackages], and
-/// is `null` if [servePackages] has not yet been called for this test.
-Map<String, List<Map>> _servedPackages;
-
-/// Creates an HTTP server that replicates the structure of pub.dartlang.org.
-///
-/// [pubspecs] is a list of unserialized pubspecs representing the packages to
-/// serve.
-///
-/// If [replace] is false, subsequent calls to [servePackages] will add to the
-/// set of packages that are being served. Previous packages will continue to be
-/// served. Otherwise, the previous packages will no longer be served.
-///
-/// If [contents] is given, its contents are added to every served
-/// package.
-void servePackages(List<Map> pubspecs, {bool replace: false,
-    Iterable<d.Descriptor> contents}) {
-  if (_servedPackages == null || _servedPackageDir == null) {
-    _servedPackages = <String, List<Map>>{};
-    _servedApiPackageDir = d.dir('packages', []);
-    _servedPackageDir = d.dir('packages', []);
-    serve([
-      d.dir('api', [_servedApiPackageDir]),
-      _servedPackageDir
-    ]);
-
-    currentSchedule.onComplete.schedule(() {
-      _servedPackages = null;
-      _servedApiPackageDir = null;
-      _servedPackageDir = null;
-    }, 'cleaning up served packages');
-  }
-
-  schedule(() {
-    return awaitObject(pubspecs).then((resolvedPubspecs) {
-      if (replace) _servedPackages.clear();
-
-      for (var pubspec in resolvedPubspecs) {
-        var name = pubspec['name'];
-        var version = pubspec['version'];
-        var versions = _servedPackages.putIfAbsent(name, () => []);
-        versions.add(pubspec);
-      }
-
-      _servedApiPackageDir.contents.clear();
-      _servedPackageDir.contents.clear();
-      for (var name in _servedPackages.keys) {
-        _servedApiPackageDir.contents.addAll([
-          d.file('$name', JSON.encode({
-            'name': name,
-            'uploaders': ['nweiz@google.com'],
-            'versions': _servedPackages[name].map(packageVersionApiMap).toList()
-          })),
-          d.dir(name, [
-            d.dir('versions', _servedPackages[name].map((pubspec) {
-              return d.file(pubspec['version'], JSON.encode(
-                  packageVersionApiMap(pubspec, full: true)));
-            }))
-          ])
-        ]);
-
-        _servedPackageDir.contents.add(d.dir(name, [
-          d.dir('versions', _servedPackages[name].map((pubspec) {
-            var version = pubspec['version'];
-
-            var archiveContents = [
-                d.file('pubspec.yaml', JSON.encode(pubspec)),
-                d.libDir(name, '$name $version')
-            ];
-
-            if (contents != null) {
-              archiveContents.addAll(contents);
-            }
-
-            return d.tar('$version.tar.gz', archiveContents);
-          }))
-        ]));
-      }
-    });
-  }, 'initializing the package server');
-}
-
 /// Converts [value] into a YAML string.
 String yaml(value) => JSON.encode(value);
 
@@ -330,9 +233,9 @@ String get sandboxDir => _sandboxDir;
 String _sandboxDir;
 
 /// The path to the Dart repo's packages.
-final String pkgPath = path.absolute(path.join(
-    path.dirname(Platform.executable),
-    '..', '..', '..', '..', 'pkg'));
+final String pkgPath = p.absolute(p.join(
+    p.dirname(Platform.executable),
+    '../../../../pkg'));
 
 /// The path of the package cache directory used for tests, relative to the
 /// sandbox directory.
@@ -476,15 +379,15 @@ void _integration(String description, void body(), [Function testFn]) {
 /// Get the path to the root "pub/test" directory containing the pub
 /// tests.
 String get testDirectory =>
-  path.absolute(path.dirname(libraryPath('test_pub')));
+  p.absolute(p.dirname(libraryPath('test_pub')));
 
 /// Schedules renaming (moving) the directory at [from] to [to], both of which
 /// are assumed to be relative to [sandboxDir].
 void scheduleRename(String from, String to) {
   schedule(
       () => renameDir(
-          path.join(sandboxDir, from),
-          path.join(sandboxDir, to)),
+          p.join(sandboxDir, from),
+          p.join(sandboxDir, to)),
       'renaming $from to $to');
 }
 
@@ -493,8 +396,8 @@ void scheduleRename(String from, String to) {
 void scheduleSymlink(String target, String symlink) {
   schedule(
       () => createSymlink(
-          path.join(sandboxDir, target),
-          path.join(sandboxDir, symlink)),
+          p.join(sandboxDir, target),
+          p.join(sandboxDir, symlink)),
       'symlinking $target to $symlink');
 }
 
@@ -573,13 +476,46 @@ void confirmPublish(ScheduledProcess pub) {
   pub.writeLine("y");
 }
 
+/// Whether the async/await compiler has already been run.
+///
+/// If a test suite runs pub more than once, we only need to run the compiler
+/// the first time.
+// TODO(rnystrom): Remove this when #104 is fixed.
+bool _compiledAsync = false;
+
+/// Gets the path to the pub entrypoint Dart script to run.
+// TODO(rnystrom): This exists to run the async/await compiler on pub and then
+// get the path to the output of that. Once #104 is fixed, remove this.
+String _getPubPath(String dartBin) {
+  var buildDir = p.join(p.dirname(dartBin), '../../');
+
+  // Ensure the async/await compiler has been run once for this test suite. The
+  // compiler itself will only re-compile source files that have actually
+  // changed, so this is a no-op if everything is already compiled.
+  if (!_compiledAsync) {
+    var result = Process.runSync(dartBin, [
+      '--package-root=$_packageRoot/',
+      p.join(testDirectory, '..', 'bin', 'async_compile.dart'),
+      buildDir,
+      '--silent'
+    ]);
+    stdout.write(result.stdout);
+    stderr.write(result.stderr);
+    if (result.exitCode != 0) fail("Async/await compiler failed.");
+
+    _compiledAsync = true;
+  }
+
+  return p.join(buildDir, 'pub_async/bin/pub.dart');
+}
+
 /// Starts a Pub process and returns a [ScheduledProcess] that supports
 /// interaction with that process.
 ///
 /// Any futures in [args] will be resolved before the process is started.
 ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   String pathInSandbox(String relPath) {
-    return path.join(path.absolute(sandboxDir), relPath);
+    return p.join(p.absolute(sandboxDir), relPath);
   }
 
   ensureDir(pathInSandbox(appPath));
@@ -591,11 +527,14 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   // If the executable looks like a path, get its full path. That way we
   // can still find it when we spawn it with a different working directory.
   if (dartBin.contains(Platform.pathSeparator)) {
-    dartBin = path.absolute(dartBin);
+    dartBin = p.absolute(dartBin);
   }
 
   // Find the main pub entrypoint.
-  var pubPath = path.join(testDirectory, '..', 'bin', 'pub.dart');
+  var pubPath = _getPubPath(dartBin);
+  // TODO(rnystrom): Replace the above line with the following when #104 is
+  // fixed.
+  //var pubPath = p.join(testDirectory, '..', 'bin', 'pub.dart');
 
   var dartArgs = ['--package-root=$_packageRoot/', '--checked', pubPath,
       '--verbose'];
@@ -715,7 +654,7 @@ class PubProcess extends ScheduledProcess {
 }
 
 /// The path to the `packages` directory from which pub loads its dependencies.
-String get _packageRoot => path.absolute(Platform.packageRoot);
+String get _packageRoot => p.absolute(Platform.packageRoot);
 
 /// Fails the current test if Git is not installed.
 ///
@@ -745,7 +684,7 @@ void makeGlobalPackage(String package, String version,
     Iterable<d.Descriptor> contents, {Iterable<String> pkg,
     Map<String, String> hosted}) {
   // Start the server so we know what port to use in the cache directory name.
-  servePackages([]);
+  serveNoPackages();
 
   // Create the package in the hosted cache.
   d.hostedCache([
@@ -788,7 +727,7 @@ void createLockFile(String package, {Iterable<String> sandbox,
   sources.register(new HostedSource());
   sources.register(new PathSource());
 
-  d.file(path.join(package, 'pubspec.lock'),
+  d.file(p.join(package, 'pubspec.lock'),
       lockFile.serialize(null, sources)).create();
 }
 
@@ -825,12 +764,12 @@ Iterable<String> pkg, Map<String, String> hosted}) {
       if (_packageOverrides.containsKey(package)) {
         packagePath = _packageOverrides[package];
       } else {
-        packagePath = path.join(pkgPath, package);
+        packagePath = p.join(pkgPath, package);
       }
 
       dependencies[package] = packagePath;
       var pubspec = loadYaml(
-          readTextFile(path.join(packagePath, 'pubspec.yaml')));
+          readTextFile(p.join(packagePath, 'pubspec.yaml')));
       var packageDeps = pubspec['dependencies'];
       if (packageDeps == null) return;
       packageDeps.keys.forEach(_addPackage);
@@ -843,7 +782,7 @@ Iterable<String> pkg, Map<String, String> hosted}) {
   dependencies.forEach((name, dependencyPath) {
     var id = new PackageId(name, 'path', new Version(0, 0, 0), {
       'path': dependencyPath,
-      'relative': path.isRelative(dependencyPath)
+      'relative': p.isRelative(dependencyPath)
     });
     lockFile.packages[name] = id;
   });
@@ -1013,10 +952,10 @@ typedef Validator ValidatorCreator(Entrypoint entrypoint);
 Future<Pair<List<String>, List<String>>> schedulePackageValidation(
     ValidatorCreator fn) {
   return schedule(() {
-    var cache = new SystemCache.withSources(path.join(sandboxDir, cachePath));
+    var cache = new SystemCache.withSources(p.join(sandboxDir, cachePath));
 
     return syncFuture(() {
-      var validator = fn(new Entrypoint(path.join(sandboxDir, appPath), cache));
+      var validator = fn(new Entrypoint(p.join(sandboxDir, appPath), cache));
       return validator.validate().then((_) {
         return new Pair(validator.errors, validator.warnings);
       });

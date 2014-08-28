@@ -5,7 +5,7 @@
 library elements.modelx;
 
 import 'elements.dart';
-import '../helpers/helpers.dart';
+import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -24,6 +24,7 @@ import '../dart2jslib.dart' show invariant,
                                  Selector,
                                  Constant,
                                  Compiler,
+                                 Backend,
                                  isPrivateName;
 
 import '../dart_types.dart';
@@ -245,7 +246,7 @@ abstract class ElementX extends Element {
   FunctionElement asFunctionElement() => null;
 
   bool get isAbstract => modifiers.isAbstract;
-  bool isForeign(Compiler compiler) => compiler.backend.isForeign(this);
+  bool isForeign(Backend backend) => backend.isForeign(this);
 
   void diagnose(Element context, DiagnosticListener listener) {}
 
@@ -299,7 +300,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   computeEffectiveTargetType(InterfaceType newType) => unsupported();
 
-  get definingConstructor => this;
+  get definingConstructor => null;
 
   FunctionElement asFunctionElement() => this;
 
@@ -1413,6 +1414,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 
 // TODO(johnniwinther): [FunctionSignature] should be merged with
 // [FunctionType].
+// TODO(karlklose): all these lists should have element type [FormalElement].
 class FunctionSignatureX implements FunctionSignature {
   final Link<Element> requiredParameters;
   final Link<Element> optionalParameters;
@@ -1421,14 +1423,17 @@ class FunctionSignatureX implements FunctionSignature {
   final bool optionalParametersAreNamed;
   final List<Element> orderedOptionalParameters;
   final FunctionType type;
+  final bool hasOptionalParameters;
 
   FunctionSignatureX(this.requiredParameters,
-                     this.optionalParameters,
+                     Link<Element> optionalParameters,
                      this.requiredParameterCount,
                      this.optionalParameterCount,
                      this.optionalParametersAreNamed,
                      this.orderedOptionalParameters,
-                     this.type);
+                     this.type)
+      : optionalParameters = optionalParameters,
+        hasOptionalParameters = !optionalParameters.isEmpty;
 
   void forEachRequiredParameter(void function(Element parameter)) {
     for (Link<Element> link = requiredParameters;
@@ -1530,7 +1535,7 @@ abstract class BaseFunctionElementX
   FunctionSignature computeSignature(Compiler compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
     compiler.withCurrentElement(this, () {
-      functionSignatureCache = compiler.resolveSignature(this);
+      functionSignatureCache = compiler.resolver.resolveSignature(this);
     });
     return functionSignatureCache;
   }
@@ -1683,7 +1688,7 @@ class DeferredLoaderGetterElementX extends FunctionElementX {
 
   bool get isClassMember => false;
 
-  bool isForeign(Compiler compiler) => true;
+  bool isForeign(Backend backend) => true;
 
   bool get isSynthesized => true;
 
@@ -2036,16 +2041,15 @@ abstract class BaseClassElementX extends ElementX
    * When called on the implementation element both members declared in the
    * origin and the patch class are returned.
    */
-  Element lookupSelector(Selector selector, Compiler compiler) {
-    return internalLookupSelector(selector, compiler, false);
+  Element lookupSelector(Selector selector) {
+    return internalLookupSelector(selector, false);
   }
 
-  Element lookupSuperSelector(Selector selector, Compiler compiler) {
-    return internalLookupSelector(selector, compiler, true);
+  Element lookupSuperSelector(Selector selector) {
+    return internalLookupSelector(selector, true);
   }
 
   Element internalLookupSelector(Selector selector,
-                                 Compiler compiler,
                                  bool isSuperLookup) {
     String name = selector.name;
     bool isPrivate = isPrivateName(name);

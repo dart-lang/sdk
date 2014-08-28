@@ -331,6 +331,32 @@ Future<Map> mapFromIterableAsync(Iterable iter, {key(element),
   })).then((_) => map);
 }
 
+/// Returns the transitive closure of [graph].
+///
+/// This assumes [graph] represents a graph with a vertex for each key and an
+/// edge betweek each key and the values for that key.
+Map<dynamic, Set> transitiveClosure(Map<dynamic, Iterable> graph) {
+  // This uses the Floyd-Warshall algorithm
+  // (https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm).
+  var result = {};
+  graph.forEach((vertex, edges) {
+    result[vertex] = new Set.from(edges)..add(vertex);
+  });
+
+  for (var vertex1 in graph.keys) {
+    for (var vertex2 in graph.keys) {
+      for (var vertex3 in graph.keys) {
+        if (result[vertex2].contains(vertex1) &&
+            result[vertex1].contains(vertex3)) {
+          result[vertex2].add(vertex3);
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
 /// Given a list of filenames, returns a set of patterns that can be used to
 /// filter for those filenames.
 ///

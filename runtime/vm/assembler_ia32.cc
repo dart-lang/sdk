@@ -2443,6 +2443,7 @@ static void ComputeCounterAddressesForCid(intptr_t cid,
       class_heap_stats_table_address + class_offset + size_field_offset);
 }
 
+
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
                                       Heap::Space space) {
@@ -2523,6 +2524,45 @@ void Assembler::TryAllocate(const Class& cls,
 }
 
 
+void Assembler::TryAllocateArray(intptr_t cid,
+                                 intptr_t instance_size,
+                                 Label* failure,
+                                 bool near_jump,
+                                 Register instance,
+                                 Register end_address) {
+  ASSERT(failure != NULL);
+  if (FLAG_inline_alloc) {
+    Isolate* isolate = Isolate::Current();
+    Heap* heap = isolate->heap();
+    movl(instance, Address::Absolute(heap->TopAddress()));
+    movl(end_address, instance);
+
+    addl(end_address, Immediate(instance_size));
+    j(CARRY, failure);
+
+    // Check if the allocation fits into the remaining space.
+    // EAX: potential new object start.
+    // EBX: potential next object start.
+    cmpl(end_address, Address::Absolute(heap->EndAddress()));
+    j(ABOVE_EQUAL, failure);
+
+    // Successfully allocated the object(s), now update top to point to
+    // next object start and initialize the object.
+    movl(Address::Absolute(heap->TopAddress()), end_address);
+    addl(instance, Immediate(kHeapObjectTag));
+    UpdateAllocationStatsWithSize(cid, instance_size, kNoRegister);
+
+    // Initialize the tags.
+    uword tags = 0;
+    tags = RawObject::ClassIdTag::update(cid, tags);
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    movl(FieldAddress(instance, Object::tags_offset()), Immediate(tags));
+  } else {
+    jmp(failure);
+  }
+}
+
+
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   EnterFrame(0);
   Label dart_entry;
@@ -2531,7 +2571,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   // The runtime system assumes that the code marker address is
   // kEntryPointToPcMarkerOffset bytes from the entry.  If there is any code
   // generated before entering the frame, the address needs to be adjusted.
-  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
   if (offset != 0) {
     addl(Address(ESP, 0), Immediate(offset));
   }
@@ -2554,7 +2594,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   // The runtime system assumes that the code marker address is
   // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
   // code to set up the frame pointer, the address needs to be adjusted.
-  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
   if (offset != 0) {
     addl(Address(ESP, 0), Immediate(offset));
   }

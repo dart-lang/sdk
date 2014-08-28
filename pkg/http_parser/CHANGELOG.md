@@ -1,3 +1,7 @@
+## 0.0.2+5
+
+* Widen the version constraint on the `collection` package.
+
 ## 0.0.2+4
 
 * Widen the `string_scanner` version constraint.

@@ -13,6 +13,7 @@
 #include "vm/handles.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"
+#include "vm/metrics.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/object_id_ring.h"
@@ -108,6 +109,7 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
   ThreadInterrupter::InitOnce();
   Profiler::InitOnce();
   SemiSpace::InitOnce();
+  Metric::InitOnce();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
@@ -243,7 +245,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
     SnapshotReader reader(snapshot->content(), snapshot->length(),
                           Snapshot::kFull, isolate);
-    reader.ReadFullSnapshot();
+    const Error& error = Error::Handle(reader.ReadFullSnapshot());
+    if (!error.IsNull()) {
+      return error.raw();
+    }
     if (FLAG_trace_isolates) {
       isolate->heap()->PrintSizes();
       isolate->megamorphic_cache_table()->PrintSizes();

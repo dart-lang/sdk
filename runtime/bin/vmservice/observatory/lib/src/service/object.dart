@@ -253,10 +253,14 @@ abstract class VM extends ServiceObjectOwner {
   final StreamController<ServiceEvent> events =
       new StreamController.broadcast();
 
-  void postEventMessage(String eventMessage) {
+  void postEventMessage(String eventMessage, [dynamic data]) {
       var map;
       try {
         map = _parseJSON(eventMessage);
+        assert(!map.containsKey('_data'));
+        if (data != null) {
+          map['_data'] = data;
+        }
       } catch (e, st) {
         Logger.root.severe('Ignoring malformed event message: ${eventMessage}');
         return;
@@ -679,7 +683,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     rootClasses.clear();
     objectClass = null;
     for (var cls in classes) {
-      if (cls.superClass == null) {
+      if (cls.superclass == null) {
         rootClasses.add(cls);
       }
       if ((cls.vmName == 'Object') && (cls.isPatch == false)) {
@@ -1038,6 +1042,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
         return isolate.reload();
       });
   }
+
+  String toString() => "Isolate($_id)";
 }
 
 /// A [ServiceObject] which implements [ObservableMap].
@@ -1055,8 +1061,6 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 
   ServiceMap._empty(ServiceObjectOwner owner) : super._empty(owner);
 
-  String toString() => _map.toString();
-
   void _upgradeValues() {
     assert(owner != null);
     _upgradeCollection(_map, owner);
@@ -1071,8 +1075,8 @@ class ServiceMap extends ServiceObject implements ObservableMap {
     _map.clear();
     _map.addAll(map);
 
-    name = _map['user_name'];
-    vmName = _map['name'];
+    name = _map['name'];
+    vmName = (_map.containsKey('vmName') ? _map['vmName'] : name);
     _upgradeValues();
   }
 
@@ -1101,6 +1105,8 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   void unobserved() => _map.unobserved();
   Stream<List<ChangeRecord>> get changes => _map.changes;
   bool get hasObservers => _map.hasObservers;
+
+  String toString() => "ServiceMap($_map)";
 }
 
 /// A [DartError] is peered to a Dart Error object.
@@ -1120,6 +1126,8 @@ class DartError extends ServiceObject {
     name = 'DartError $kind';
     vmName = name;
   }
+
+  String toString() => 'DartError($message)';
 }
 
 /// A [ServiceError] is an error that was triggered in the service
@@ -1139,6 +1147,8 @@ class ServiceError extends ServiceObject {
     name = 'ServiceError $kind';
     vmName = name;
   }
+
+  String toString() => 'ServiceError($message)';
 }
 
 /// A [ServiceException] is an exception that was triggered in the service
@@ -1167,6 +1177,7 @@ class ServiceEvent extends ServiceObject {
   @observable String eventType;
   @observable ServiceMap breakpoint;
   @observable ServiceMap exception;
+  @observable ByteData data;
 
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
@@ -1180,6 +1191,14 @@ class ServiceEvent extends ServiceObject {
     if (map['exception'] != null) {
       exception = map['exception'];
     }
+    if (map['_data'] != null) {
+      data = map['_data'];
+    }
+  }
+
+  String toString() {
+    return 'ServiceEvent of type $eventType with '
+        '${data == null ? 0 : data.lengthInBytes} bytes of binary data';
   }
 }
 
@@ -1203,11 +1222,12 @@ class Library extends ServiceObject with Coverage {
         url.startsWith('http://')) {
       shortUrl = url.substring(url.lastIndexOf('/') + 1);
     }
-    name = map['user_name'];
+    name = map['name'];
     if (name.isEmpty) {
+      // When there is no name for a library, use the shortUrl.
       name = shortUrl;
     }
-    vmName = map['name'];
+    vmName = (map.containsKey('vmName') ? map['vmName'] : name);
     if (mapIsRef) {
       return;
     }
@@ -1227,6 +1247,8 @@ class Library extends ServiceObject with Coverage {
     functions.addAll(map['functions']);
     functions.sort(ServiceObject.LexicalSortName);
   }
+
+  String toString() => "Library($url)";
 }
 
 class AllocationCount extends Observable {
@@ -1268,7 +1290,6 @@ class Allocations {
 class Class extends ServiceObject with Coverage {
   @observable Library library;
   @observable Script script;
-  @observable Class superClass;
 
   @observable bool isAbstract;
   @observable bool isConst;
@@ -1283,27 +1304,25 @@ class Class extends ServiceObject with Coverage {
 
   final Allocations newSpace = new Allocations();
   final Allocations oldSpace = new Allocations();
+  final AllocationCount promotedByLastNewGC = new AllocationCount();
 
   bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
 
-  @reflectable final children = new ObservableList<Class>();
-  @reflectable final subClasses = new ObservableList<Class>();
   @reflectable final fields = new ObservableList<ServiceMap>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
+
+  @observable Class superclass;
   @reflectable final interfaces = new ObservableList<Class>();
+  @reflectable final subclasses = new ObservableList<Class>();
 
   bool get canCache => true;
   bool get immutable => false;
 
   Class._empty(ServiceObjectOwner owner) : super._empty(owner);
 
-  String toString() {
-    return 'Service Class: $vmName';
-  }
-
   void _update(ObservableMap map, bool mapIsRef) {
-    name = map['user_name'];
-    vmName = map['name'];
+    name = map['name'];
+    vmName = (map.containsKey('vmName') ? map['vmName'] : name);
 
     if (mapIsRef) {
       return;
@@ -1333,9 +1352,9 @@ class Class extends ServiceObject with Coverage {
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
 
-    subClasses.clear();
-    subClasses.addAll(map['subclasses']);
-    subClasses.sort(ServiceObject.LexicalSortName);
+    subclasses.clear();
+    subclasses.addAll(map['subclasses']);
+    subclasses.sort(ServiceObject.LexicalSortName);
 
     fields.clear();
     fields.addAll(map['fields']);
@@ -1345,9 +1364,10 @@ class Class extends ServiceObject with Coverage {
     functions.addAll(map['functions']);
     functions.sort(ServiceObject.LexicalSortName);
 
-    superClass = map['super'];
-    if (superClass != null) {
-      superClass._addToChildren(this);
+    superclass = map['super'];
+    // Work-around Object not tracking its subclasses in the VM.
+    if (superclass != null && superclass.name == "Object") {
+      superclass._addSubclass(this);
     }
     error = map['error'];
 
@@ -1355,21 +1375,27 @@ class Class extends ServiceObject with Coverage {
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
       oldSpace.update(allocationStats['old']);
+      promotedByLastNewGC.instances = allocationStats['promotedInstances'];
+      promotedByLastNewGC.bytes = allocationStats['promotedBytes'];
     }
   }
 
-  void _addToChildren(Class cls) {
-    if (children.contains(cls)) {
+  void _addSubclass(Class subclass) {
+    if (subclasses.contains(subclass)) {
       return;
     }
-    children.add(cls);
+    subclasses.add(subclass);
+    subclasses.sort(ServiceObject.LexicalSortName);
   }
 
   Future<ServiceObject> get(String command) {
     return isolate.get(id + "/$command");
   }
+
+  String toString() => 'Class($vmName)';
 }
 
+// TODO(koda): Sync this with VM.
 class FunctionKind {
   final String _strValue;
   FunctionKind._internal(this._strValue);
@@ -1383,8 +1409,8 @@ class FunctionKind {
       case 'kGetterFunction': return kGetterFunction;
       case 'kSetterFunction': return kSetterFunction;
       case 'kConstructor': return kConstructor;
-      case 'kImplicitGetterFunction': return kImplicitGetterFunction;
-      case 'kImplicitSetterFunction': return kImplicitSetterFunction;
+      case 'kImplicitGetter': return kImplicitGetterFunction;
+      case 'kImplicitSetter': return kImplicitSetterFunction;
       case 'kStaticInitializer': return kStaticInitializer;
       case 'kMethodExtractor': return kMethodExtractor;
       case 'kNoSuchMethodDispatcher': return kNoSuchMethodDispatcher;
@@ -1437,8 +1463,8 @@ class ServiceFunction extends ServiceObject with Coverage {
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
 
   void _update(ObservableMap map, bool mapIsRef) {
-    name = map['user_name'];
-    vmName = map['name'];
+    name = map['name'];
+    vmName = (map.containsKey('vmName') ? map['vmName'] : name);
 
     _upgradeCollection(map, isolate);
 
@@ -1449,18 +1475,18 @@ class ServiceFunction extends ServiceObject with Coverage {
 
     if (mapIsRef) { return; }
 
-    isStatic = map['isStatic'];
-    isConst = map['isConst'];
+    isStatic = map['static'];
+    isConst = map['const'];
     parent = map['parent'];
     script = map['script'];
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
     code = _convertNull(map['code']);
-    unoptimizedCode = _convertNull(map['unoptimized_code']);
-    isOptimizable = map['is_optimizable'];
-    isInlinable = map['is_inlinable'];
+    unoptimizedCode = _convertNull(map['unoptimizedCode']);
+    isOptimizable = map['optimizable'];
+    isInlinable = map['inlinable'];
     deoptimizations = map['deoptimizations'];
-    usageCounter = map['usage_counter'];
+    usageCounter = map['usageCounter'];
 
     if (parent == null) {
       qualifiedName = (owningClass != null) ?
@@ -1568,7 +1594,7 @@ class Script extends ServiceObject with Coverage {
     }
     _processSource(map['source']);
     _parseTokenPosTable(map['tokenPosTable']);
-    owningLibrary = map['owning_library'];
+    owningLibrary = map['owningLibrary'];
   }
 
   void _parseTokenPosTable(List<List<int>> table) {
@@ -1974,14 +2000,14 @@ class Code extends ServiceObject {
   }
 
   void _update(ObservableMap m, bool mapIsRef) {
-    name = m['user_name'];
-    vmName = m['name'];
-    isOptimized = m['isOptimized'] != null ? m['isOptimized'] : false;
+    name = m['name'];
+    vmName = (m.containsKey('vmName') ? m['vmName'] : name);
+    isOptimized = m['optimized'] != null ? m['optimized'] : false;
     kind = CodeKind.fromString(m['kind']);
     startAddress = int.parse(m['start'], radix:16);
     endAddress = int.parse(m['end'], radix:16);
     function = isolate.getFromMap(m['function']);
-    objectPool = isolate.getFromMap(m['object_pool']);
+    objectPool = isolate.getFromMap(m['objectPool']);
     var disassembly = m['disassembly'];
     if (disassembly != null) {
       _processDisassembly(disassembly);

@@ -13,11 +13,9 @@
 
 namespace dart {
 
-class MutexLocker : public StackResource {
+class MutexLocker : public ValueObject {
  public:
-  explicit MutexLocker(Mutex* mutex) :
-    StackResource(Isolate::Current()),
-    mutex_(mutex) {
+  explicit MutexLocker(Mutex* mutex) : mutex_(mutex) {
     ASSERT(mutex != NULL);
     // TODO(iposva): Consider adding a no GC scope here.
     mutex_->Lock();
@@ -35,11 +33,9 @@ class MutexLocker : public StackResource {
 };
 
 
-class MonitorLocker : public StackResource {
+class MonitorLocker : public ValueObject {
  public:
-  explicit MonitorLocker(Monitor* monitor)
-      : StackResource(Isolate::Current()),
-        monitor_(monitor) {
+  explicit MonitorLocker(Monitor* monitor) : monitor_(monitor) {
     ASSERT(monitor != NULL);
     // TODO(iposva): Consider adding a no GC scope here.
     monitor_->Enter();
@@ -54,7 +50,7 @@ class MonitorLocker : public StackResource {
     return monitor_->Wait(millis);
   }
 
-  Monitor::WaitResult WaitMicros(int64_t micros = dart::Monitor::kNoTimeout) {
+  Monitor::WaitResult WaitMicros(int64_t micros = Monitor::kNoTimeout) {
     return monitor_->WaitMicros(micros);
   }
 
