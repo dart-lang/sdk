@@ -218,14 +218,17 @@ class PolymerDeclaration {
         // default, unless a superclass has already chosen one
         if (attr == '') continue;
 
+        var decl, path;
         var property = smoke.nameToSymbol(attr);
-        var path = new PropertyPath([property]);
-        if (_publish != null && _publish.containsKey(path)) {
-          continue;
+        if (property != null) {
+          path = new PropertyPath([property]);
+          if (_publish != null && _publish.containsKey(path)) {
+            continue;
+          }
+          decl = smoke.getDeclaration(type, property);
         }
 
-        var decl = smoke.getDeclaration(type, property);
-        if (decl == null || decl.isMethod || decl.isFinal) {
+        if (property == null || decl == null || decl.isMethod || decl.isFinal) {
           window.console.warn('property for attribute $attr of polymer-element '
               'name=$name not found.');
           continue;
