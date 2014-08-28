@@ -23,7 +23,6 @@ lib/_internal/compiler/samples/compile_loop/compile_loop: CompileTimeError  # Is
 
 # Pub is starting to use the new async syntax, which isn't supported on the
 # analyzer bots yet.
-lib/_internal/pub/bin/async_compile: CompileTimeError
 lib/_internal/pub/bin/pub: CompileTimeError
 lib/_internal/pub/lib/src/command: CompileTimeError
 lib/_internal/pub/lib/src/command/barback: CompileTimeError
