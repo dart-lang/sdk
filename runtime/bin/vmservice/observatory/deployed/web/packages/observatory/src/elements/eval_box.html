@@ -1,5 +1,6 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="instance_ref.html">
+<link rel="import" href="error_ref.html">
 <link rel="import" href="observatory_element.html">
 
 <polymer-element name="eval-box" extends="observatory-element">
@@ -74,7 +75,7 @@
               <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
             </template>
             <template if="{{ result['value'] != null }}">
-              <instance-ref ref="{{ result['value'] }}"></instance-ref>
+              <any-service-ref ref="{{ result['value'] }}"></any-service-ref>
             </template>
           </td>
         </tr>

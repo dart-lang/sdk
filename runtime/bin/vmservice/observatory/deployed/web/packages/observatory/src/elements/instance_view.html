@@ -17,44 +17,43 @@
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
       <!-- TODO(turnidge): Add library nav menu here. -->
-      <class-nav-menu cls="{{ instance['class'] }}"></class-nav-menu>
+      <class-nav-menu cls="{{ instance.clazz }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
 
-    <template if="{{ instance['error'] != null }}">
+    <template if="{{ instance.isError }}">
       <error-view error_obj="{{ instance['error'] }}"></error-view>
     </template>
 
-    <template if="{{ instance['error'] == null }}">
+    <template if="{{ !instance.isError }}">
       <div class="content">
-        <!-- TODO(turnidge): Handle null instances. -->
-        <template if="{{ isType(instance) }}">
+        <template if="{{ instance.isType }}">
           <h1>type {{ instance.name }}</h1>
         </template>
-        <template if="{{ !isType(instance) }}">
-          <h1>instance of {{ instance['class'].name }}</h1>
+        <template if="{{ !instance.isType }}">
+          <h1>instance of {{ instance.clazz.name }}</h1>
         </template>
         <div class="memberList">
           <div class="memberItem">
             <div class="memberName">class</div>
             <div class="memberValue">
-              <class-ref ref="{{ instance['class'] }}">
+              <class-ref ref="{{ instance.clazz }}">
               </class-ref>
             </div>
           </div>
-          <template if="{{ instance['valueAsString'] != null }}">
+          <template if="{{ instance.valueAsString != null }}">
             <div class="memberItem">
               <div class="memberName">value</div>
-              <div class="memberValue">{{ instance['valueAsString'] }}</div>
+              <div class="memberValue">{{ instance.valueAsString }}</div>
             </div>
           </template>
-          <div class="memberItem">
+          <div class="memberItem" title="Space for this object in memory">
             <div class="memberName">size</div>
-            <div class="memberValue">{{ instance['size'] | formatSize }}</div>
+            <div class="memberValue">{{ instance.size | formatSize }}</div>
           </div>
-          <div class="memberItem">
+          <div class="memberItem" title="Space that would be reclaimed if references to this object were replaced with null">
             <div class="memberName">retained size</div>
             <div class="memberValue">
               <template if="{{ retainedBytes == null }}">
@@ -102,7 +101,7 @@
               </template>
             </div>
           </div>
-          <div class="memberItem">
+          <div class="memberItem" title="Objects which directly reference this object">
             <div class="memberName">inbound references</div>
             <div class="memberValue">
               <template if="{{ inboundReferences == null }}">
@@ -118,20 +117,20 @@
               </template>
             </div>
           </div>
-          <template if="{{ instance['type_class'] != null }}">
+          <template if="{{ instance.typeClass != null }}">
             <div class="memberItem">
               <div class="memberName">type class</div>
               <div class="memberValue">
-                <class-ref ref="{{ instance['type_class'] }}">
+                <class-ref ref="{{ instance.typeClass }}">
                 </class-ref>
               </div>
             </div>
           </template>
-          <template if="{{ instance['closureFunc'] != null }}">
+          <template if="{{ instance.isClosure }}">
             <div class="memberItem">
               <div class="memberName">closure function</div>
               <div class="memberValue">
-                <function-ref ref="{{ instance['closureFunc'] }}">
+                <function-ref ref="{{ instance.closureFunc }}">
                 </function-ref>
               </div>
             </div>
@@ -151,17 +150,17 @@
       <hr>
 
       <div class="content">
-        <template if="{{ instance['fields'].isNotEmpty }}">
-          fields ({{ instance['fields'].length }})
-          <curly-block expand="{{ instance['fields'].length <= 8 }}">
+        <template if="{{ instance.fields.isNotEmpty }}">
+          fields ({{ instance.fields.length }})
+          <curly-block expand="{{ instance.fields.length <= 8 }}">
             <div class="memberList">
-              <template repeat="{{ field in instance['fields'] }}">
+              <template repeat="{{ field in instance.fields }}">
                 <div class="memberItem">
                   <div class="memberName">
                     <field-ref ref="{{ field['decl'] }}"></field-ref>
                   </div>
                   <div class="memberValue">
-                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
                   </div>
                 </div>
               </template>
@@ -169,11 +168,11 @@
           </curly-block><br><br>
         </template>
 
-        <template if="{{ instance['nativeFields'].isNotEmpty }}">
-          native fields ({{ instance['nativeFields'].length }})
-          <curly-block expand="{{ instance['nativeFields'].length <= 8 }}">
+        <template if="{{ instance.nativeFields.isNotEmpty }}">
+          native fields ({{ instance.nativeFields.length }})
+          <curly-block expand="{{ instance.nativeFields.length <= 8 }}">
             <div class="memberList">
-              <template repeat="{{ field in instance['nativeFields'] }}">
+              <template repeat="{{ field in instance.nativeFields }}">
                 <div class="memberItem">
                   <div class="memberName">[{{ field['index']}}]</div>
                   <div class="memberValue">[{{ field['value']}}]</div>
@@ -183,15 +182,15 @@
           </curly-block><br><br>
         </template>
 
-        <template if="{{ instance['elements'].isNotEmpty }}">
-          elements ({{ instance['elements'].length }})
-          <curly-block expand="{{ instance['elements'].length <= 8 }}">
+        <template if="{{ instance.elements.isNotEmpty }}">
+          elements ({{ instance.elements.length }})
+          <curly-block expand="{{ instance.elements.length <= 8 }}">
             <div class="memberList">
-              <template repeat="{{ element in instance['elements'] }}">
+              <template repeat="{{ element in instance.elements }}">
                 <div class="memberItem">
                   <div class="memberName">[{{ element['index']}}]</div>
                   <div class="memberValue">
-                    <instance-ref ref="{{ element['value'] }}">
+                    <any-service-ref ref="{{ element['value'] }}">
                     </instance-ref>
                   </div>
                 </div>
