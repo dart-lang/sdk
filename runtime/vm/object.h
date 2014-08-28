@@ -704,7 +704,7 @@ class PassiveObject : public Object {
     PassiveObject* obj =
         reinterpret_cast<PassiveObject*>(VMHandles::AllocateHandle(I));
     obj->raw_ = raw_ptr;
-    obj->set_vtable(NULL);
+    obj->set_vtable(0);
     return *obj;
   }
   static PassiveObject& Handle(RawObject* raw_ptr) {
@@ -720,7 +720,7 @@ class PassiveObject : public Object {
     PassiveObject* obj = reinterpret_cast<PassiveObject*>(
         VMHandles::AllocateZoneHandle(I));
     obj->raw_ = raw_ptr;
-    obj->set_vtable(NULL);
+    obj->set_vtable(0);
     return *obj;
   }
   static PassiveObject& ZoneHandle(RawObject* raw_ptr) {
