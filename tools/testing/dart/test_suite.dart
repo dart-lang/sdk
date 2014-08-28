@@ -2041,6 +2041,7 @@ class TestUtils {
     }
     if (compiler == "dartanalyzer" || compiler == "dart2analyzer") {
       args.add("--show-package-warnings");
+      args.add("--enable-async");
     }
     return args;
   }
