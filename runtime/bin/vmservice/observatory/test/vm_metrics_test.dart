@@ -24,7 +24,7 @@ var tests = [
 }),
 
 (Isolate isolate) =>
-  isolate.get('metrics/vm/heap.old.used').then((ServiceMap counter) {
+  isolate.get('metrics/vm/heap.old.used').then((ServiceMetric counter) {
     expect(counter.serviceType, equals('Counter'));
     expect(counter.name, equals('heap.old.used'));
 }),
