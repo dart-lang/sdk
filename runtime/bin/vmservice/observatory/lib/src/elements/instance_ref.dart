@@ -37,20 +37,20 @@ class InstanceRefElement extends ServiceRefElement {
   }
 
   void expandEvent(bool expand, var done) {
-    assert(ref is Instance);
+    assert(ref is ServiceMap);
     if (expand) {
       ref.reload().then((result) {
-        if (result.valueAsString != null) {
-          result.name = result.valueAsString;
-          result.vmName = result.valueAsString;
+        if (result['valueAsString'] != null) {
+          result.name = result['valueAsString'];
+          result.vmName = result['valueAsString'];
         }
         ref = result;
         notifyPropertyChange(#ref, 0, 1);
       }).whenComplete(done);
     } else {
-      Instance refMap = ref;
-      refMap.fields = null;
-      refMap.elements = null;
+      ServiceMap refMap = ref;
+      refMap['fields'] = null;
+      refMap['elements'] = null;
       done();
     }
   }

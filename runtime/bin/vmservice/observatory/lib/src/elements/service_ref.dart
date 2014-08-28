@@ -66,16 +66,12 @@ class AnyServiceRefElement extends ObservatoryElement {
   Element _constructElementForRef() {
     var type = ref.serviceType;
     switch (type) {
-     case 'Class':
+      case 'Class':
         ServiceRefElement element = new Element.tag('class-ref');
         element.ref = ref;
         return element;
       case 'Code':
         ServiceRefElement element = new Element.tag('code-ref');
-        element.ref = ref;
-        return element;
-      case 'Error':
-        ServiceRefElement element = new Element.tag('error-ref');
         element.ref = ref;
         return element;
       case 'Field':
@@ -99,7 +95,6 @@ class AnyServiceRefElement extends ObservatoryElement {
       case 'Instance':
       case 'Mint':
       case 'Null':
-      case 'Sentinel':  // TODO(rmacnak): Separate this out.
       case 'Smi':
       case 'String':
       case 'Type':

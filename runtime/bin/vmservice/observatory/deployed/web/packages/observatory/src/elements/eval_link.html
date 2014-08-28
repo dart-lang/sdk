@@ -1,6 +1,5 @@
 <link rel="import" href="../../../../packages/polymer/polymer.html">
 <link rel="import" href="instance_ref.html">
-<link rel="import" href="error_ref.html">
 
 <polymer-element name="eval-link">
   <template>
@@ -22,7 +21,7 @@
       <span class="idle"><a on-click="{{ evalNow }}">{{ label }}</a></span>
     </template>
     <template if="{{ result != null }}">
-      = <any-service-ref ref="{{ result }}"></any-service-ref>
+      = <instance-ref ref="{{ result }}"></instance-ref>
     </template>
   </template>
 </polymer-element>

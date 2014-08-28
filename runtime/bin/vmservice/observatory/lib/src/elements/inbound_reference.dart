@@ -11,7 +11,6 @@ import 'service_ref.dart';
 
 @CustomTag('inbound-reference')
 class InboundReferenceElement extends ServiceRefElement {
-  @published ObservableMap ref;
   InboundReferenceElement.created() : super.created();
 
   dynamic get slot => (ref as ServiceMap)['slot'];
@@ -41,7 +40,9 @@ class InboundReferenceElement extends ServiceRefElement {
         notifyPropertyChange(#ref, 0, 1);
       }).whenComplete(done);
     } else {
-      inboundReferences = null;
+      ServiceMap refMap = ref;
+      refMap['fields'] = null;
+      refMap['elements'] = null;
       done();
     }
   }

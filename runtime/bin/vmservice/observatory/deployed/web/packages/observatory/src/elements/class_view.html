@@ -92,7 +92,8 @@
     </div>
 
     <template if="{{ cls.error != null }}">
-      <error-ref ref="{{ cls.error }}"></error>
+      <!-- TODO(turnidge): Don't use instance-ref for error display here -->
+      <instance-ref ref="{{ cls.error }}"></instance-ref>
     </template>
 
     <hr>
@@ -109,7 +110,7 @@
                 </div>
                 <div class="memberValue">
                   <template if="{{ field['value'] != null }}">
-                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
+                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
                   </template>
                 </div>
               </div>
@@ -154,7 +155,7 @@
               </template>
               <template if="{{ instances != null }}">
                 sample
-                <any-service-ref ref="{{ instances['sample'] }}"></any-service-ref>
+                <instance-ref ref="{{ instances['sample'] }}"></instance-ref>
                 <template if="{{ instances['totalCount'] > instances['sampleCount'] }}">
                   <eval-link callback="{{ reachable }}"
                            label="[more]"
