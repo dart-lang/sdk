@@ -14,6 +14,10 @@ export 'maplet.dart';
 part 'indentation.dart';
 part 'link.dart';
 
+/// If an integer is masked by this constant, the result is guaranteed to be in
+/// Smi range.
+const int SMI_MASK = 0x3fffffff;
+
 /**
  * Tagging interface for classes from which source spans can be generated.
  */
