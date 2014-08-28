@@ -229,8 +229,10 @@ class DartBackend extends Backend {
       } else {
         cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
         // Transformations on the CPS IR.
+        compiler.tracer.traceCompilation(element.name, null, compiler); 
+        new ConstantPropagator(compiler, constantSystem).rewrite(function);
+        compiler.tracer.traceGraph("Sparse constant propagation", function);
         new RedundantPhiEliminator().rewrite(function);
-        compiler.tracer.traceCompilation(element.name, null, compiler);
         compiler.tracer.traceGraph("Redundant phi elimination", function);
         new ShrinkingReducer().rewrite(function);
         compiler.tracer.traceGraph("Shrinking reductions", function);
