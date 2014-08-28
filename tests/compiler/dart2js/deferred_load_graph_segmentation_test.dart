@@ -14,6 +14,8 @@ import "dart:async";
 import 'package:compiler/implementation/dart2jslib.dart'
        as dart2js;
 
+import 'package:compiler/implementation/deferred_load.dart';
+
 class FakeOutputStream<T> extends EventSink<T> {
   void add(T event) {}
   void addError(T event, [StackTrace stackTrace]) {}
@@ -61,12 +63,19 @@ void main() {
     var bar2 = lib4.find("bar2");
     var outputClassLists = backend.emitter.outputClassLists;
 
+    OutputUnit ou_lib1 = outputUnitForElement(foo1);
+    OutputUnit ou_lib2 = outputUnitForElement(foo2);
+    OutputUnit ou_lib1_lib2 = outputUnitForElement(foo3);
+    OutputUnit ou_lib4_1 = outputUnitForElement(bar1);
+    OutputUnit ou_lib4_2 = outputUnitForElement(bar2);
+
     Expect.equals(mainOutputUnit, outputUnitForElement(main));
     Expect.notEquals(mainOutputUnit, outputUnitForElement(foo1));
-    Expect.notEquals(outputUnitForElement(foo1), outputUnitForElement(foo3));
-    Expect.notEquals(outputUnitForElement(foo2), outputUnitForElement(foo3));
-    Expect.notEquals(outputUnitForElement(foo1), outputUnitForElement(foo2));
-    Expect.notEquals(outputUnitForElement(bar1), outputUnitForElement(bar2));
+    Expect.notEquals(ou_lib1, ou_lib1_lib2);
+    Expect.notEquals(ou_lib2, ou_lib1_lib2);
+    Expect.notEquals(ou_lib1, ou_lib2);
+    Expect.notEquals(ou_lib4_1, ou_lib4_2);
+    Expect.notEquals(ou_lib1, ou_lib4_2);
     // InputElement is native, so it should not appear on a classList
     Expect.isFalse(outputClassLists[outputUnitForElement(inputElement)]
         .contains(inputElement));
@@ -74,33 +83,26 @@ void main() {
     var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
 
     mapToNames(id) {
-      return hunksToLoad[id].map((l) {
-        return new Set.from(l.map((o) => o.name));
-      }).toList();
+      return hunksToLoad[id];
     }
 
-    var hunksLib1 = mapToNames("lib1");
-    var hunksLib2 = mapToNames("lib2");
-    var hunksLib4_1 = mapToNames("lib4_1");
-    var hunksLib4_2 = mapToNames("lib4_2");
+    var hunksLib1 = hunksToLoad["lib1"];
+    var hunksLib2 = hunksToLoad["lib2"];
+    var hunksLib4_1 = hunksToLoad["lib4_1"];
+    var hunksLib4_2 = hunksToLoad["lib4_2"];
     Expect.equals(hunksLib1.length, 2);
-    Expect.equals(hunksLib1[0].length, 1);
-    Expect.equals(hunksLib1[1].length, 1);
-    Expect.isTrue(hunksLib1[0].contains("lib1_lib2") ||
-                  hunksLib1[0].contains("lib2_lib1"));
-    Expect.isTrue(hunksLib1[1].contains("lib1"));
+    print(hunksToLoad);
+    Expect.listEquals([ou_lib1_lib2], hunksLib1[0]);
+    Expect.listEquals([ou_lib1], hunksLib1[1]);
+
     Expect.equals(hunksLib2.length, 2);
-    Expect.equals(hunksLib2[0].length, 1);
-    Expect.equals(hunksLib2[1].length, 1);
-    Expect.isTrue(hunksLib2[0].contains("lib1_lib2") ||
-                  hunksLib2[0].contains("lib2_lib1"));
-    Expect.isTrue(hunksLib2[1].contains("lib2"));
+    Expect.listEquals([ou_lib1_lib2], hunksLib2[0]);
+    Expect.listEquals([ou_lib2], hunksLib2[1]);
+
     Expect.equals(hunksLib4_1.length, 1);
-    Expect.equals(hunksLib4_1[0].length, 1);
-    Expect.isTrue(hunksLib4_1[0].contains("lib4_1"));
+    Expect.listEquals([ou_lib4_1], hunksLib4_1[0]);
     Expect.equals(hunksLib4_2.length, 1);
-    Expect.equals(hunksLib4_2[0].length, 1);
-    Expect.isTrue(hunksLib4_2[0].contains("lib4_2"));
+    Expect.listEquals([ou_lib4_2], hunksLib4_2[0]);
     Expect.equals(hunksToLoad["main"], null);
   }));
 }
