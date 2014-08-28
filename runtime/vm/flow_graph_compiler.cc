@@ -6,6 +6,7 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "vm/bit_vector.h"
 #include "vm/cha.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -313,8 +314,32 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
 }
 
 
+static void LoopInfoComment(
+    Assembler* assembler,
+    const BlockEntryInstr& block,
+    const ZoneGrowableArray<BlockEntryInstr*>& loop_headers) {
+  if (Assembler::EmittingComments()) {
+    for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
+      for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
+           !loop_it.Done();
+           loop_it.Advance()) {
+        if (loop_it.Current() == block.preorder_number()) {
+           assembler->Comment("  Loop %" Pd "", loop_id);
+        }
+      }
+    }
+  }
+}
+
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
+  const ZoneGrowableArray<BlockEntryInstr*>* loop_headers = NULL;
+  if (Assembler::EmittingComments()) {
+    // 'loop_headers' were cleared, recompute.
+    loop_headers = flow_graph().ComputeLoops();
+    ASSERT(loop_headers != NULL);
+  }
 
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
@@ -325,6 +350,8 @@ void FlowGraphCompiler::VisitBlocks() {
     if (WasCompacted(entry)) {
       continue;
     }
+
+    LoopInfoComment(assembler(), *entry, *loop_headers);
 
     entry->EmitNativeCode(this);
     // Compile all successors until an exit, branch, or a block entry.

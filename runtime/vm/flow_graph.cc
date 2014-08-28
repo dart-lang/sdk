@@ -1063,7 +1063,7 @@ void FlowGraph::RemoveRedefinitions() {
 // Find the natural loop for the back edge m->n and attach loop information
 // to block n (loop header). The algorithm is described in "Advanced Compiler
 // Design & Implementation" (Muchnick) p192.
-BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) {
+BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const {
   GrowableArray<BlockEntryInstr*> stack;
   BitVector* loop = new(isolate()) BitVector(preorder_.length());
 
@@ -1087,7 +1087,7 @@ BitVector* FlowGraph::FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) {
 }
 
 
-ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
+ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() const {
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers =
       new(isolate()) ZoneGrowableArray<BlockEntryInstr*>();
 
@@ -1128,7 +1128,7 @@ ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
            !it.Done();
            it.Advance()) {
         OS::Print("  B%" Pd "\n", preorder_[it.Current()]->block_id());
-       }
+      }
     }
   }
   return loop_headers;

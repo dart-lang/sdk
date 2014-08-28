@@ -4712,7 +4712,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
   // same loop should be counted against the gain, all other conversions
   // can be hoisted and thus cost nothing compared to the loop cost itself.
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-    flow_graph()->loop_headers();
+      flow_graph()->LoopHeaders();
 
   GrowableArray<intptr_t> loops(flow_graph_->preorder().length());
   for (intptr_t i = 0; i < flow_graph_->preorder().length(); i++) {
@@ -5080,7 +5080,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->loop_headers();
+      flow_graph()->LoopHeaders();
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
@@ -5103,7 +5103,7 @@ void LICM::Optimize() {
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->loop_headers();
+      flow_graph()->LoopHeaders();
 
   ZoneGrowableArray<BitVector*>* loop_invariant_loads =
       flow_graph()->loop_invariant_loads();
@@ -6630,7 +6630,7 @@ class LoadOptimizer : public ValueObject {
 
   void MarkLoopInvariantLoads() {
     const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-        graph_->loop_headers();
+        graph_->LoopHeaders();
 
     ZoneGrowableArray<BitVector*>* invariant_loads =
         new(I) ZoneGrowableArray<BitVector*>(loop_headers.length());

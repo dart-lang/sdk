@@ -222,12 +222,20 @@ class FlowGraph : public ZoneAllocated {
   // after this point.
   void disallow_licm() { licm_allowed_ = false; }
 
-  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers() {
+  const ZoneGrowableArray<BlockEntryInstr*>& LoopHeaders() {
     if (loop_headers_ == NULL) {
       loop_headers_ = ComputeLoops();
     }
     return *loop_headers_;
   }
+
+  const ZoneGrowableArray<BlockEntryInstr*>* loop_headers() const {
+    return loop_headers_;
+  }
+
+  // Finds natural loops in the flow graph and attaches a list of loop
+  // body blocks for each loop header.
+  ZoneGrowableArray<BlockEntryInstr*>* ComputeLoops() const;
 
   // Per loop header invariant loads sets. Each set contains load id for
   // those loads that are not affected by anything in the loop and can be
@@ -295,11 +303,7 @@ class FlowGraph : public ZoneAllocated {
   // "Advanced Compiler Design & Implementation" (Muchnick) p192.
   // Returns a BitVector indexed by block pre-order number where each bit
   // indicates membership in the loop.
-  BitVector* FindLoop(BlockEntryInstr* m, BlockEntryInstr* n);
-
-  // Finds natural loops in the flow graph and attaches a list of loop
-  // body blocks for each loop header.
-  ZoneGrowableArray<BlockEntryInstr*>* ComputeLoops();
+  BitVector* FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const;
 
   Isolate* isolate_;
 
