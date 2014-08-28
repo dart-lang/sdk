@@ -845,7 +845,6 @@ abstract class Compiler implements DiagnosticListener {
   ParserTask parser;
   PatchParserTask patchParser;
   LibraryLoaderTask libraryLoader;
-  TreeValidatorTask validator;
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
@@ -977,9 +976,6 @@ abstract class Compiler implements DiagnosticListener {
       closureNamer = new closureMapping.ClosureNamer();
       backend = new dart_backend.DartBackend(this, strips);
     }
-
-    // No-op in production mode.
-    validator = new TreeValidatorTask(this);
 
     tasks = [
       libraryLoader = new LibraryLoaderTask(this),
@@ -1614,7 +1610,6 @@ abstract class Compiler implements DiagnosticListener {
     assert(parser != null);
     Node tree = parser.parse(element);
     assert(invariant(element, !element.isSynthesized || tree == null));
-    if (tree != null) validator.validate(tree);
     TreeElements elements = resolver.resolve(element);
     if (elements != null) {
       if (tree != null && !analyzeSignaturesOnly &&
