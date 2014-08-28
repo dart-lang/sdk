@@ -411,6 +411,11 @@ class CorrectionUtils {
   }
 
   /**
+   * Returns the [AstNode] that encloses the given offset.
+   */
+  AstNode findNode(int offset) => new NodeLocator.con1(offset).searchWithin(unit);
+
+  /**
    * Returns the actual type source of the given [Expression], may be `null`
    * if can not be resolved, should be treated as the `dynamic` type.
    */

@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol.dart' show
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
+import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
@@ -174,6 +175,25 @@ abstract class ExtractMethodRefactoring implements Refactoring {
    * level of checking.
    */
   RefactoringStatus checkName();
+}
+
+
+/**
+ * [Refactoring] to inline a local [VariableElement].
+ */
+abstract class InlineLocalRefactoring implements Refactoring {
+  /**
+   * Returns a new [InlineLocalRefactoring] instance.
+   */
+  factory InlineLocalRefactoring(SearchEngine searchEngine,
+      CompilationUnit unit, LocalVariableElement element) {
+    return new InlineLocalRefactoringImpl(searchEngine, unit, element);
+  }
+
+  /**
+   * Returns the number of references to the [VariableElement].
+   */
+  int get referenceCount;
 }
 
 
