@@ -113,29 +113,27 @@ class CodegenJavaType extends CodegenJavaVisitor {
       });
 
       //
-      // Extra fields on the Element type such as:
-      // private static final int ABSTRACT = 0x01;
-      //
-      if (className == 'Element') {
-        _extraFieldsOnElement.forEach((String name, String value) {
-          publicField(javaName(name), () {
-            writeln('private static final int ${name} = ${value};');
-          });
-        });
-      }
-
-      //
       // "private static String name;" fields:
       //
       TypeObject typeObject = typeDef.type as TypeObject;
       List<TypeObjectField> fields = typeObject.fields;
       for (TypeObjectField field in fields) {
-        privateField(javaName(field.name), () {
-          javadocComment(toHtmlVisitor.collectHtml(() {
-            toHtmlVisitor.translateHtml(field.html);
-          }));
-          writeln(
-              'private final ${javaType(field.type)} ${javaName(field.name)};');
+        if (!(className == 'Outline' && javaName(field.name) == 'children')) {
+          privateField(javaName(field.name), () {
+            javadocComment(toHtmlVisitor.collectHtml(() {
+              toHtmlVisitor.translateHtml(field.html);
+            }));
+            writeln(
+                'private final ${javaType(field.type)} ${javaName(field.name)};');
+          });
+        }
+      }
+      if (className == 'Outline') {
+        privateField(javaName('parent'), () {
+          writeln('private final Outline parent;');
+        });
+        privateField(javaName('children'), () {
+          writeln('private List<Outline> children;');
         });
       }
 
@@ -149,26 +147,36 @@ class CodegenJavaType extends CodegenJavaVisitor {
         write('public ${className}(');
         // write out parameters to constructor
         List<String> parameters = new List();
+        if (className == 'Outline') {
+          parameters.add('Outline parent');
+        }
         for (TypeObjectField field in fields) {
-          if (!_isTypeFieldInUpdateContentUnionType(className, field.name)) {
+          if (!_isTypeFieldInUpdateContentUnionType(className, field.name) &&
+              !(className == 'Outline' && javaName(field.name) == 'children')) {
             parameters.add('${javaType(field.type)} ${javaName(field.name)}');
           }
         }
         write(parameters.join(', '));
         writeln(') {');
         // write out the assignments in the body of the constructor
-        for (TypeObjectField field in fields) {
-          if (!_isTypeFieldInUpdateContentUnionType(className, field.name)) {
-            writeln(
-                '  this.${javaName(field.name)} = ${javaName(field.name)};');
-          } else if (className == 'AddContentOverlay') {
-            writeln('  this.type = "add";');
-          } else if (className == 'ChangeContentOverlay') {
-            writeln('  this.type = "change";');
-          } else if (className == 'RemoveContentOverlay') {
-            writeln('  this.type = "remove";');
+        indent(() {
+          if (className == 'Outline') {
+            writeln('this.parent = parent;');
           }
-        }
+          for (TypeObjectField field in fields) {
+            if (!_isTypeFieldInUpdateContentUnionType(className, field.name) &&
+                !(className == 'Outline' && javaName(field.name) == 'children')) {
+              writeln(
+                  'this.${javaName(field.name)} = ${javaName(field.name)};');
+            } else if (className == 'AddContentOverlay') {
+              writeln('this.type = "add";');
+            } else if (className == 'ChangeContentOverlay') {
+              writeln('this.type = "change";');
+            } else if (className == 'RemoveContentOverlay') {
+              writeln('this.type = "remove";');
+            }
+          }
+        });
         writeln('}');
       });
 
@@ -198,73 +206,111 @@ class CodegenJavaType extends CodegenJavaVisitor {
 //          String x = jsonObject.get("x").getAsString();
 //          return new Y(x);
 //        }
-      publicMethod('fromJson', () {
-        writeln('public static ${className} fromJson(JsonObject jsonObject) {');
-        indent(() {
-          for (TypeObjectField field in fields) {
-            write('${javaType(field.type)} ${javaName(field.name)} = ');
-            if (field.optional) {
-              write(
-                  'jsonObject.get("${javaName(field.name)}") == null ? null : ');
-            }
-            if (isDeclaredInSpec(field.type)) {
-              write('${javaType(field.type)}.fromJson(');
-              write(
-                  'jsonObject.get("${javaName(field.name)}").getAsJsonObject())');
-            } else {
-              if (isList(field.type)) {
-                if (javaType(field.type).endsWith('<String>')) {
-                  write(
-                      'JsonUtilities.decodeStringList(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+      if (className != 'Outline') {
+        publicMethod('fromJson', () {
+          writeln(
+              'public static ${className} fromJson(JsonObject jsonObject) {');
+          indent(() {
+            for (TypeObjectField field in fields) {
+              write('${javaType(field.type)} ${javaName(field.name)} = ');
+              if (field.optional) {
+                write(
+                    'jsonObject.get("${javaName(field.name)}") == null ? null : ');
+              }
+              if (isDeclaredInSpec(field.type)) {
+                write('${javaType(field.type)}.fromJson(');
+                write(
+                    'jsonObject.get("${javaName(field.name)}").getAsJsonObject())');
+              } else {
+                if (isList(field.type)) {
+                  if (javaType(field.type).endsWith('<String>')) {
+                    write(
+                        'JsonUtilities.decodeStringList(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                  } else {
+                    write(
+                        '${javaType((field.type as TypeList).itemType)}.fromJsonArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                  }
+                } else if (isArray(field.type)) {
+                  if (javaType(field.type).startsWith('Integer')) {
+                    write(
+                        'JsonUtilities.decodeIntegerArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                  }
                 } else {
                   write(
-                      '${javaType((field.type as TypeList).itemType)}.fromJsonArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
+                      'jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}()');
                 }
-              } else if (isArray(field.type)) {
-                if (javaType(field.type).startsWith('Integer')) {
-                  write(
-                      'JsonUtilities.decodeIntegerArray(jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}())');
-                }
-              } else {
-                write(
-                    'jsonObject.get("${javaName(field.name)}").${_getAsTypeMethodName(field.type)}()');
+              }
+              writeln(';');
+            }
+            write('return new ${className}(');
+            List<String> parameters = new List();
+            for (TypeObjectField field in fields) {
+              if (!_isTypeFieldInUpdateContentUnionType(
+                  className,
+                  field.name)) {
+                parameters.add('${javaName(field.name)}');
               }
             }
-            writeln(';');
-          }
-          write('return new ${className}(');
-          List<String> parameters = new List();
-          for (TypeObjectField field in fields) {
-            if (!_isTypeFieldInUpdateContentUnionType(className, field.name)) {
-              parameters.add('${javaName(field.name)}');
-            }
-          }
-          write(parameters.join(', '));
-          writeln(');');
+            write(parameters.join(', '));
+            writeln(');');
+          });
+          writeln('}');
         });
-        writeln('}');
-      });
+      } else {
+        publicMethod('fromJson', () {
+          writeln(
+              '''private Outline fromJson(Outline parent, JsonObject outlineObject) {
+    JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
+    Element element = Element.fromJson(elementObject);
+    int offset = outlineObject.get("offset").getAsInt();
+    int length = outlineObject.get("length").getAsInt();
+
+    // create outline object
+    Outline outline = new Outline(parent, element, offset, length);
+
+    // compute children recursively
+    List<Outline> childrenList = Lists.newArrayList();
+    JsonElement childrenJsonArray = outlineObject.get("children");
+    if (childrenJsonArray instanceof JsonArray) {
+      Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
+      while (childrenElementIterator.hasNext()) {
+        JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
+        childrenList.add(fromJson(outline, childObject));
+      }
+    }
+    outline.setChildren(childrenList);
+    return outline;
+  }''');
+        });
+        publicMethod('setChildren', () {
+          writeln('''public void setChildren(List<Outline> children) {
+    this.children = children;
+  }''');
+        });
+      }
 
       //
       // fromJson(JsonArray) factory constructor
       //
-      publicMethod('fromJsonArray', () {
-        writeln(
-            'public static List<${className}> fromJsonArray(JsonArray jsonArray) {');
-        indent(() {
-          writeln('if (jsonArray == null) {');
-          writeln('  return EMPTY_LIST;');
-          writeln('}');
+      if (className != 'Outline') {
+        publicMethod('fromJsonArray', () {
           writeln(
-              'ArrayList<${className}> list = new ArrayList<${className}>(jsonArray.size());');
-          writeln('Iterator<JsonElement> iterator = jsonArray.iterator();');
-          writeln('while (iterator.hasNext()) {');
-          writeln('  list.add(fromJson(iterator.next().getAsJsonObject()));');
+              'public static List<${className}> fromJsonArray(JsonArray jsonArray) {');
+          indent(() {
+            writeln('if (jsonArray == null) {');
+            writeln('  return EMPTY_LIST;');
+            writeln('}');
+            writeln(
+                'ArrayList<${className}> list = new ArrayList<${className}>(jsonArray.size());');
+            writeln('Iterator<JsonElement> iterator = jsonArray.iterator();');
+            writeln('while (iterator.hasNext()) {');
+            writeln('  list.add(fromJson(iterator.next().getAsJsonObject()));');
+            writeln('}');
+            writeln('return list;');
+          });
           writeln('}');
-          writeln('return list;');
         });
-        writeln('}');
-      });
+      }
 
       //
       // toJson() method, example:
@@ -274,27 +320,29 @@ class CodegenJavaType extends CodegenJavaVisitor {
 //          jsonObject.addProperty("y", y);
 //          return jsonObject;
 //        }
-      publicMethod('toJson', () {
-        writeln('public JsonObject toJson() {');
-        indent(() {
-          writeln('JsonObject jsonObject = new JsonObject();');
-          for (TypeObjectField field in fields) {
-            if (!isObject(field.type)) {
-              if (field.optional) {
-                writeln('if (${javaName(field.name)} != null) {');
-                indent(() {
+      if (className != 'Outline') {
+        publicMethod('toJson', () {
+          writeln('public JsonObject toJson() {');
+          indent(() {
+            writeln('JsonObject jsonObject = new JsonObject();');
+            for (TypeObjectField field in fields) {
+              if (!isObject(field.type)) {
+                if (field.optional) {
+                  writeln('if (${javaName(field.name)} != null) {');
+                  indent(() {
+                    _writeOutJsonObjectAddStatement(field);
+                  });
+                  writeln('}');
+                } else {
                   _writeOutJsonObjectAddStatement(field);
-                });
-                writeln('}');
-              } else {
-                _writeOutJsonObjectAddStatement(field);
+                }
               }
             }
-          }
-          writeln('return jsonObject;');
+            writeln('return jsonObject;');
+          });
+          writeln('}');
         });
-        writeln('}');
-      });
+      }
 
       //
       // equals() method
@@ -310,7 +358,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
             indent(() {
               List<String> equalsForField = new List<String>();
               for (TypeObjectField field in fields) {
-                equalsForField.add(_equalsLogicForField(field, 'other'));
+                equalsForField.add(_getEqualsLogicForField(field, 'other'));
               }
               write(equalsForField.join(' && \n'));
             });
@@ -382,7 +430,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('builder.append(\"[\");');
           for (int i = 0; i < fields.length; i++) {
             writeln("builder.append(\"${javaName(fields[i].name)}=\");");
-            write("builder.append(${_toStringForField(fields[i])}");
+            write("builder.append(${_getToStringForField(fields[i])}");
             if (i + 1 != fields.length) {
               // this is not the last field
               write(' + \", \"');
@@ -395,20 +443,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
         writeln('}');
       });
 
-      //
-      // Extra methods for the Element type such as:
-      // public boolean isFinal() {
-      //   return (flags & FINAL) != 0;
-      // }
-      //
       if (className == 'Element') {
-        _extraMethodsOnElement.forEach((String methodName, String fieldName) {
-          publicMethod(methodName, () {
-            writeln('public boolean ${methodName}() {');
-            writeln('  return (flags & ${fieldName}) != 0;');
-            writeln('}');
-          });
-        });
+        _writeExtraContentInElementType();
       }
 
     });
@@ -438,7 +474,36 @@ class CodegenJavaType extends CodegenJavaVisitor {
     });
   }
 
-  String _equalsLogicForField(TypeObjectField field, String other) {
+  /**
+   * This method writes extra fields and methods to the Element type.
+   */
+  void _writeExtraContentInElementType() {
+    //
+    // Extra fields on the Element type such as:
+    // private static final int ABSTRACT = 0x01;
+    //
+    _extraFieldsOnElement.forEach((String name, String value) {
+      publicField(javaName(name), () {
+        writeln('private static final int ${name} = ${value};');
+      });
+    });
+
+    //
+    // Extra methods for the Element type such as:
+    // public boolean isFinal() {
+    //   return (flags & FINAL) != 0;
+    // }
+    //
+    _extraMethodsOnElement.forEach((String methodName, String fieldName) {
+      publicMethod(methodName, () {
+        writeln('public boolean ${methodName}() {');
+        writeln('  return (flags & ${fieldName}) != 0;');
+        writeln('}');
+      });
+    });
+  }
+
+  String _getEqualsLogicForField(TypeObjectField field, String other) {
     String name = javaName(field.name);
     if (isPrimitive(field.type)) {
       return '${other}.${name} == ${name}';
@@ -477,7 +542,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }
   }
 
-  String _toStringForField(TypeObjectField field) {
+  /**
+   * For some [TypeObjectField] return the [String] source for the field value
+   * for the toString generation.
+   */
+  String _getToStringForField(TypeObjectField field) {
     String name = javaName(field.name);
     if (isArray(field.type) || isList(field.type)) {
       return 'StringUtils.join(${name}, ", ")';
@@ -486,6 +555,10 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }
   }
 
+  /**
+   * For some [TypeObjectField] write out the source that adds the field
+   * information to the 'jsonObject'.
+   */
   void _writeOutJsonObjectAddStatement(TypeObjectField field) {
     String name = javaName(field.name);
     if (isDeclaredInSpec(field.type)) {
