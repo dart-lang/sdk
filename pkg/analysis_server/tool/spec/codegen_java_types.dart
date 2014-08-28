@@ -259,34 +259,39 @@ class CodegenJavaType extends CodegenJavaVisitor {
       } else {
         publicMethod('fromJson', () {
           writeln(
-              '''private Outline fromJson(Outline parent, JsonObject outlineObject) {
-    JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
-    Element element = Element.fromJson(elementObject);
-    int offset = outlineObject.get("offset").getAsInt();
-    int length = outlineObject.get("length").getAsInt();
+              '''public static Outline fromJson(Outline parent, JsonObject outlineObject) {
+  JsonObject elementObject = outlineObject.get("element").getAsJsonObject();
+  Element element = Element.fromJson(elementObject);
+  int offset = outlineObject.get("offset").getAsInt();
+  int length = outlineObject.get("length").getAsInt();
 
-    // create outline object
-    Outline outline = new Outline(parent, element, offset, length);
+  // create outline object
+  Outline outline = new Outline(parent, element, offset, length);
 
-    // compute children recursively
-    List<Outline> childrenList = Lists.newArrayList();
-    JsonElement childrenJsonArray = outlineObject.get("children");
-    if (childrenJsonArray instanceof JsonArray) {
-      Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
-      while (childrenElementIterator.hasNext()) {
-        JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
-        childrenList.add(fromJson(outline, childObject));
-      }
+  // compute children recursively
+  List<Outline> childrenList = Lists.newArrayList();
+  JsonElement childrenJsonArray = outlineObject.get("children");
+  if (childrenJsonArray instanceof JsonArray) {
+    Iterator<JsonElement> childrenElementIterator = ((JsonArray) childrenJsonArray).iterator();
+    while (childrenElementIterator.hasNext()) {
+      JsonObject childObject = childrenElementIterator.next().getAsJsonObject();
+      childrenList.add(fromJson(outline, childObject));
     }
-    outline.setChildren(childrenList);
-    return outline;
-  }''');
+  }
+  outline.setChildren(childrenList);
+  return outline;
+}''');
         });
         publicMethod('setChildren', () {
           writeln('''public void setChildren(List<Outline> children) {
-    this.children = children;
-  }''');
+  this.children = children;
+}''');
         });
+        publicMethod('getParent', () {
+                  writeln('''public Outline getParent() {
+  return parent;
+}''');
+                });
       }
 
       //
