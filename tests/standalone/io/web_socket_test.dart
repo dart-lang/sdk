@@ -43,9 +43,14 @@ class SecurityConfiguration {
 
   void testRequestResponseClientCloses(int totalConnections,
                                        int closeStatus,
-                                       String closeReason) {
+                                       String closeReason,
+                                       int numberOfMessages) {
+    assert (numberOfMessages >= 1);
+
+    asyncStart();
     createServer().then((server) {
       server.transform(new WebSocketTransformer()).listen((webSocket) {
+        asyncStart();
         webSocket.listen(
             webSocket.add,
             onDone: () {
@@ -55,20 +60,24 @@ class SecurityConfiguration {
               Expect.equals(
                   closeReason == null ? ""
                                       : closeReason, webSocket.closeReason);
+              asyncEnd();
             });
+        }, onDone: () {
+          asyncEnd();
         });
 
       int closeCount = 0;
       String messageText = "Hello, world!";
       for (int i = 0; i < totalConnections; i++) {
-        int messageCount = 0;
+        asyncStart();
         createClient(server.port).then((webSocket) {
           webSocket.add(messageText);
           webSocket.listen(
               (message) {
-                messageCount++;
-                if (messageCount < 1 ) {
-                  Expect.equals(messageText, message);
+                numberOfMessages--;
+                Expect.equals(messageText, message);
+
+                if (numberOfMessages > 0) {
                   webSocket.add(message);
                 } else {
                   webSocket.close(closeStatus, closeReason);
@@ -83,6 +92,7 @@ class SecurityConfiguration {
                 if (closeCount == totalConnections) {
                   server.close();
                 }
+                asyncEnd();
               });
           });
       }
@@ -423,9 +433,9 @@ class SecurityConfiguration {
   }
 
   void runTests() {
-    testRequestResponseClientCloses(2, null, null);
-    testRequestResponseClientCloses(2, 3001, null);
-    testRequestResponseClientCloses(2, 3002, "Got tired");
+    testRequestResponseClientCloses(2, null, null, 1);
+    testRequestResponseClientCloses(2, 3001, null, 2);
+    testRequestResponseClientCloses(2, 3002, "Got tired", 3);
     testRequestResponseServerCloses(2, null, null);
     testRequestResponseServerCloses(2, 3001, null);
     testRequestResponseServerCloses(2, 3002, "Got tired");
@@ -455,9 +465,7 @@ void initializeSSL() {
 
 
 main() {
-  asyncStart();
   new SecurityConfiguration(secure: false).runTests();
   initializeSSL();
   new SecurityConfiguration(secure: true).runTests();
-  asyncEnd();
 }
