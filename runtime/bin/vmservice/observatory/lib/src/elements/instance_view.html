@@ -30,11 +30,11 @@
     <template if="{{ instance['error'] == null }}">
       <div class="content">
         <!-- TODO(turnidge): Handle null instances. -->
-        <template if="{{ isType(instance.serviceType) }}">
-          <h1>type {{ instance['user_name'] }}</h1>
+        <template if="{{ isType(instance) }}">
+          <h1>type {{ instance.name }}</h1>
         </template>
-        <template if="{{ !isType(instance.serviceType) }}">
-          <h1>instance of {{ instance['class']['user_name'] }}</h1>
+        <template if="{{ !isType(instance) }}">
+          <h1>instance of {{ instance['class'].name }}</h1>
         </template>
         <div class="memberList">
           <div class="memberItem">

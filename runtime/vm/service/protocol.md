@@ -429,6 +429,17 @@ TODO: Split Null from the other Sentinel types.
 | 1 + (2 * k) | int | kth token position
 | 2 + (2 * k) | int | kth column number
 
+### <a name="Sentinel"></a>Sentinel
+
+TODO: Enumerate known Sentinels
+TODO: Should this even have an id?  Maybe a *kind* instead.
+
+| keys | values | comments
+| --- | --- | ---
+| type | "Sentinel" |
+| id | String | |
+| valueAsString | String |
+
 ### <a name="VM"></a>VM
 
 | keys | values | comments

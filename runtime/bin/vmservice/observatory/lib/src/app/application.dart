@@ -87,6 +87,10 @@ class ObservatoryApplication extends Observable {
         notifications.add(event);
         break;
 
+      case 'GC':
+        // Ignore GC events for now.
+        break;
+
       default:
         // Ignore unrecognized events.
         Logger.root.severe('Unrecognized event: $event');

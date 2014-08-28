@@ -105,7 +105,7 @@ class ObservatoryElement extends PolymerElement {
   String formatSize(int bytes) => Utils.formatSize(bytes);
 
   String fileAndLine(Map frame) {
-    var file = frame['script']['user_name'];
+    var file = frame['script'].name;
     var shortFile = file.substring(file.lastIndexOf('/') + 1);
     return "${shortFile}:${frame['line']}";
   }
@@ -113,11 +113,11 @@ class ObservatoryElement extends PolymerElement {
   int parseInt(String value) => int.parse(value);
 
   bool isNull(ref) {
-    return ref != null && ref.serviceType == 'Null' && ref.id == 'objects/null';
+    return ref != null && ref.serviceType == 'Null';
   }
 
-  bool isPsuedoNull(ref) {
-    return ref != null && ref.serviceType == 'Null' && ref.id != 'objects/null';
+  bool isSentinel(ref) {
+    return ref != null && ref.serviceType == 'Sentinel';
   }
 
   bool isError(ref) {
@@ -158,6 +158,7 @@ class ObservatoryElement extends PolymerElement {
   bool isUnexpected(ref) {
     if (ref == null) return false;
     return (!['Null',
+              'Sentinel',
               'Smi',
               'Mint',
               'Bigint',
