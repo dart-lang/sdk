@@ -31,10 +31,10 @@ abstract class Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
   final ItemCompilationContextCreator itemCompilationContextCreator;
-  final Map<String, Link<Element>> instanceMembersByName
-      = new Map<String, Link<Element>>();
-  final Map<String, Link<Element>> instanceFunctionsByName
-      = new Map<String, Link<Element>>();
+  final Map<String, Set<Element>> instanceMembersByName
+      = new Map<String, Set<Element>>();
+  final Map<String, Set<Element>> instanceFunctionsByName
+      = new Map<String, Set<Element>>();
   final Set<ClassElement> seenClasses = new Set<ClassElement>();
   Set<ClassElement> recentClasses = new Setlet<ClassElement>();
   final Universe universe = new Universe();
@@ -184,9 +184,8 @@ abstract class Enqueuer {
       }
       // Store the member in [instanceFunctionsByName] to catch
       // getters on the function.
-      Link<Element> members = instanceFunctionsByName.putIfAbsent(
-          memberName, () => const Link<Element>());
-      instanceFunctionsByName[memberName] = members.prepend(function);
+      instanceFunctionsByName.putIfAbsent(memberName, () => new Set<Element>())
+          .add(member);
       if (universe.hasInvocation(function, compiler.world)) {
         addToWorkList(function);
         return;
@@ -215,9 +214,8 @@ abstract class Enqueuer {
 
     // The element is not yet used. Add it to the list of instance
     // members to still be processed.
-    Link<Element> members = instanceMembersByName.putIfAbsent(
-        memberName, () => const Link<Element>());
-    instanceMembersByName[memberName] = members.prepend(member);
+    instanceMembersByName.putIfAbsent(memberName, () => new Set<Element>())
+        .add(member);
   }
 
   void enableNoSuchMethod(Element element) {}
@@ -450,29 +448,29 @@ abstract class Enqueuer {
     }
   }
 
-  processLink(Map<String, Link<Element>> map,
-              String memberName,
-              bool f(Element e)) {
-    Link<Element> members = map[memberName];
-    if (members != null) {
-      // [f] might add elements to [: map[memberName] :] during the loop below
-      // so we create a new list for [: map[memberName] :] and prepend the
-      // [remaining] members after the loop.
-      map[memberName] = const Link<Element>();
-      LinkBuilder<Element> remaining = new LinkBuilder<Element>();
-      for (; !members.isEmpty; members = members.tail) {
-        if (!f(members.head)) remaining.addLast(members.head);
-      }
-      map[memberName] = remaining.toLink(map[memberName]);
+  void processSet(
+      Map<String, Set<Element>> map,
+      String memberName,
+      bool f(Element e)) {
+    Set<Element> members = map[memberName];
+    if (members == null) return;
+    // [f] might add elements to [: map[memberName] :] during the loop below
+    // so we create a new list for [: map[memberName] :] and prepend the
+    // [remaining] members after the loop.
+    map[memberName] = new Set<Element>();
+    Set<Element> remaining = new Set<Element>();
+    for (Element member in members) {
+      if (!f(member)) remaining.add(member);
     }
+    map[memberName].addAll(remaining);
   }
 
   processInstanceMembers(String n, bool f(Element e)) {
-    processLink(instanceMembersByName, n, f);
+    processSet(instanceMembersByName, n, f);
   }
 
   processInstanceFunctions(String n, bool f(Element e)) {
-    processLink(instanceFunctionsByName, n, f);
+    processSet(instanceFunctionsByName, n, f);
   }
 
   void handleUnseenSelector(String methodName, Selector selector) {
