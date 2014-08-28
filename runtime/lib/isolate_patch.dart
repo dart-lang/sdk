@@ -253,7 +253,18 @@ patch class Isolate {
       // The VM will invoke [_startIsolate] with entryPoint as argument.
       readyPort = new RawReceivePort();
       _spawnFunction(readyPort.sendPort, entryPoint, message);
-      return spawnCommon(readyPort);
+      Completer completer = new Completer<Isolate>.sync();
+      readyPort.handler = (readyMessage) {
+        readyPort.close();
+        assert(readyMessage is List);
+        assert(readyMessage.length == 2);
+        SendPort controlPort = readyMessage[0];
+        List capabilities = readyMessage[1];
+        completer.complete(new Isolate(controlPort,
+                                       pauseCapability: capabilities[0],
+                                       terminateCapability: capabilities[1]));
+      };
+      return completer.future;
     } catch (e, st) {
       if (readyPort != null) {
         readyPort.close();
@@ -270,34 +281,23 @@ patch class Isolate {
       // The VM will invoke [_startIsolate] and not `main`.
       readyPort = new RawReceivePort();
       _spawnUri(readyPort.sendPort, uri.toString(), args, message);
-      return spawnCommon(readyPort);
-    } catch (e, st) {
-      if (readyPort != null) {
+      Completer completer = new Completer<Isolate>.sync();
+      readyPort.handler = (readyMessage) {
         readyPort.close();
-      }
-      return new Future<Isolate>.error(e, st);
-    };
-  }
-
-  static Future<Isolate> spawnCommon(RawReceivePort readyPort) {
-    Completer completer = new Completer<Isolate>.sync();
-    readyPort.handler = (readyMessage) {
-      readyPort.close();
-      if (readyMessage is String) {
-        // We encountered an error starting the new isolate.
-        completer.completeError(new IsolateSpawnException(
-            "Unable to spawn child isolate:\n${readyMessage}"));
-      } else if (readyMessage is List &&
-            readyMessage.length == 2) {
+        assert(readyMessage is List);
+        assert(readyMessage.length == 2);
         SendPort controlPort = readyMessage[0];
         List capabilities = readyMessage[1];
         completer.complete(new Isolate(controlPort,
                                        pauseCapability: capabilities[0],
                                        terminateCapability: capabilities[1]));
-      } else {
-        completer.completeError(new IsolateSpawnException(
-            "Internal error: received unexpected message $readyMessage"));
+      };
+      return completer.future;
+    } catch (e, st) {
+      if (readyPort != null) {
+        readyPort.close();
       }
+      return new Future<Isolate>.error(e, st);
     };
     return completer.future;
   }
