@@ -2,6 +2,10 @@
 
 This file contains highlights of what changes on each version of this package.
 
+#### Pub version 0.6.0+1
+  * Cherry pick https://github.com/Polymer/ShadowDOM/pull/500 to fix
+    http://dartbug.com/20141. Fixes getDefaultComputedStyle in firefox.
+
 #### Pub version 0.6.0
   * Upgrades to platform master as of 8/25/2014 (see lib/build.log for details).
     This is more recent than the 0.3.5 release as there were multiple breakages
