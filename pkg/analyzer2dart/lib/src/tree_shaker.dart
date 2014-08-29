@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:compiler/implementation/universe/universe.dart';
 
 import 'closed_world.dart';
 
@@ -16,32 +17,64 @@ class TreeShaker {
   List<Element> _queue = <Element>[];
   Set<Element> _alreadyEnqueued = new HashSet<Element>();
   ClosedWorld _world = new ClosedWorld();
+  Set<Selector> _selectors = new HashSet<Selector>();
 
-  void add(Element e) {
-    if (_alreadyEnqueued.add(e)) {
-      _queue.add(e);
+  void addElement(Element element) {
+    if (_alreadyEnqueued.add(element)) {
+      _queue.add(element);
+    }
+  }
+
+  void addSelector(Selector selector) {
+    if (_selectors.add(selector)) {
+      // New selector, so match it against all class methods.
+      _world.elements.forEach((Element element, AstNode node) {
+        if (element is ClassElement) {
+          matchClassToSelector(element, selector);
+        }
+      });
+    }
+  }
+
+  void matchClassToSelector(ClassElement classElement, Selector selector) {
+    // TODO(paulberry): walk through superclasses and mixins as well.  Consider
+    // using InheritanceManager to do this.
+    for (MethodElement method in classElement.methods) {
+      // TODO(paulberry): account for arity and named arguments when matching
+      // the selector against the method.
+      if (selector.name == method.name) {
+        addElement(method);
+      }
     }
   }
 
   ClosedWorld shake(AnalysisContext context) {
     while (_queue.isNotEmpty) {
-      Element e = _queue.removeLast();
-      print('Tree shaker handling $e');
+      Element element = _queue.removeLast();
+      print('Tree shaker handling $element');
       CompilationUnit compilationUnit =
-          context.getResolvedCompilationUnit(e.source, e.library);
+          context.getResolvedCompilationUnit(element.source, element.library);
       AstNode identifier =
-          new NodeLocator.con1(e.nameOffset).searchWithin(compilationUnit);
-      if (e is FunctionElement) {
+          new NodeLocator.con1(element.nameOffset).searchWithin(compilationUnit);
+      if (element is FunctionElement) {
         FunctionDeclaration declaration =
             identifier.getAncestor((node) => node is FunctionDeclaration);
-        _world.elements[e] = declaration;
+        _world.elements[element] = declaration;
         declaration.accept(new TreeShakingVisitor(this));
-      } else if (e is ClassElement) {
+      } else if (element is ClassElement) {
         ClassDeclaration declaration =
             identifier.getAncestor((node) => node is ClassDeclaration);
-        _world.elements[e] = declaration;
-        // TODO(paulberry): visit any members of the class that match active
-        // selectors.
+        _world.elements[element] = declaration;
+        for (Selector selector in _selectors) {
+          matchClassToSelector(element, selector);
+        }
+      } else if (element is MethodElement) {
+        MethodDeclaration declaration =
+            identifier.getAncestor((node) => node is MethodDeclaration);
+        _world.elements[element] = declaration;
+        declaration.accept(new TreeShakingVisitor(this));
+      } else {
+        throw new Exception('Unexpected element type while tree shaking');
       }
     }
     print('Tree shaking done');
@@ -66,7 +99,7 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
       // TODO(paulberry): Really we should enqueue the constructor, and then
       // when we visit it add the class to the class bucket.
       ClassElement classElement = staticElement.enclosingElement;
-      treeShaker.add(classElement);
+      treeShaker.addElement(classElement);
     } else {
       // TODO(paulberry): deal with this situation.  This can happen, for
       // example, in the case "main() => new Unresolved();" (which is a
@@ -77,15 +110,110 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     Element staticElement = node.methodName.staticElement;
-    if (staticElement != null) {
-      // TODO(paulberry): deal with the case where staticElement is
-      // not necessarily the exact target.  (Dart2js calls this a
-      // "dynamic invocation").  We need a notion of "selector".  Maybe
-      // we can use Dart2js selectors.
-      treeShaker.add(staticElement);
-    } else {
+    if (staticElement == null) {
+      // Calling a method that has no known element, e.g.:
+      //   dynamic x;
+      //   x.foo();
+      // or:
+      //   foo();
       // TODO(paulberry): deal with this case.
+    } else if (staticElement is FieldElement) {
+      // Invoking a callable field, e.g.:
+      //   typedef FunctionType();
+      //   class A {
+      //     FunctionType f;
+      //   }
+      //   main() {
+      //     new A().f();
+      //   }
+      // or via implicit this, i.e.:
+      //   typedef FunctonType();
+      //   class A {
+      //     FunctionType f;
+      //     foo() {
+      //       f();
+      //     }
+      //   }
+      // TODO(paulberry): deal with this case.
+      // TODO(paulberry): if user-provided types are wrong, this may actually
+      // be the MethodElement or PropertyAccessorElement case.
+    } else if (staticElement is MethodElement) {
+      // Invoking a method, e.g.:
+      //   class A {
+      //     f() {}
+      //   }
+      //   main() {
+      //     new A().f();
+      //   }
+      // or via implicit this, i.e.:
+      //   class A {
+      //     f() {}
+      //     foo() {
+      //       f();
+      //     }
+      //   }
+      // TODO(paulberry): if user-provided types are wrong, this may actually
+      // be the FieldElement or PropertyAccessorElement case.
+      // TODO(paulberry): do we need to do something different for static
+      // methods?
+      int arity = 0;
+      List<String> namedArguments = <String>[];
+      for (var x in node.argumentList.arguments) {
+        if (x is NamedExpression) {
+          namedArguments.add(x.name.label.name);
+        } else {
+          arity++;
+        }
+      }
+      treeShaker.addSelector(
+          new Selector.call(node.methodName.name, null, arity, namedArguments));
+    } else if (staticElement is PropertyAccessorElement) {
+      // Invoking a callable getter, e.g.:
+      //   typedef FunctionType();
+      //   class A {
+      //     FunctionType get f { ... }
+      //   }
+      //   main() {
+      //     new A().f();
+      //   }
+      // or via implicit this, i.e.:
+      //   typedef FunctionType();
+      //   class A {
+      //     FunctionType get f { ... }
+      //     foo() {
+      //       f();
+      //     }
+      //   }
+      // TODO(paulberry): deal with this case.
+      // TODO(paulberry): if user-provided types are wrong, this may actually
+      // be the FieldElement or MethodElement case.
+    } else if (staticElement is MultiplyInheritedExecutableElement) {
+      // TODO(paulberry): deal with this case.
+    } else if (staticElement is LocalElement) {
+      // Invoking a callable local, e.g.:
+      //   typedef FunctionType();
+      //   main() {
+      //     FunctionType f = ...;
+      //     f();
+      //   }
+      // or:
+      //   main() {
+      //     f() { ... }
+      //     f();
+      //   }
+      // or:
+      //   f() {}
+      //   main() {
+      //     f();
+      //   }
+      // TODO(paulberry): for the moment we are assuming it's a toplevel
+      // function.
+      treeShaker.addElement(staticElement);
+    } else if (staticElement is MultiplyDefinedElement) {
+      // TODO(paulberry): do we have to deal with this case?
     }
+    // TODO(paulberry): I believe all the other possibilities are errors, but
+    // we should double check.
     super.visitMethodInvocation(node);
   }
 }

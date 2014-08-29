@@ -33,6 +33,26 @@ class B {}
     expect(helper.instantiatedClasses['A'], isNotNull);
     expect(helper.instantiatedClasses['B'], isNull);
   });
+
+  test('Method invocation', () {
+    var helper = new TreeShakerTestHelper('''
+main() {
+  var x = new A().foo();
+}
+class A {
+  foo() {}
+  bar() {}
+}
+class B {
+  foo() {}
+  bar() {}
+}
+''');
+    expect(helper.methods['A.foo'], isNotNull);
+    expect(helper.methods['A.bar'], isNull);
+    expect(helper.methods['B.foo'], isNull);
+    expect(helper.methods['B.bar'], isNull);
+  });
 }
 
 class TreeShakerTestHelper {
@@ -45,6 +65,11 @@ class TreeShakerTestHelper {
    * Functions contained in [world], indexed by name.
    */
   Map<String, FunctionDeclaration> functions = <String, FunctionDeclaration>{};
+
+  /**
+   * Methods contained in [world], indexed by className.methodName.
+   */
+  Map<String, MethodDeclaration> methods = <String, MethodDeclaration>{};
 
   /**
    * Classes instantiated in [world], indexed by name.
@@ -70,6 +95,12 @@ class TreeShakerTestHelper {
         expect(declaration, isNotNull);
         expect(declaration.element, equals(element));
         instantiatedClasses[element.name] = declaration;
+      } else if (element is MethodElement) {
+        MethodDeclaration declaration = node as MethodDeclaration;
+        expect(declaration, isNotNull);
+        expect(declaration.element, equals(element));
+        methods['${element.enclosingElement.name}.${element.name}'] =
+            declaration;
       }
     });
   }

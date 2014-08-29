@@ -35,7 +35,7 @@ class Driver {
    */
   ClosedWorld computeWorld(FunctionElement entryPointElement) {
     TreeShaker treeShaker = new TreeShaker();
-    treeShaker.add(entryPointElement);
+    treeShaker.addElement(entryPointElement);
     return treeShaker.shake(entryPointElement.context);
   }
 
