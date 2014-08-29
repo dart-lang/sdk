@@ -1442,6 +1442,10 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and
 // FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
+#if defined(DEBUG)
+  locs->CheckWritableInputs();
+#endif
+
   // TODO(vegorov): avoid saving non-volatile registers.
   __ PushRegisters(locs->live_registers()->cpu_registers(),
                    locs->live_registers()->fpu_registers());

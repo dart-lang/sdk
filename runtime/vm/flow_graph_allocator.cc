@@ -158,6 +158,9 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       // Initialize location summary for instruction.
       current->InitializeLocationSummary(Isolate::Current(), true);  // opt
       LocationSummary* locs = current->locs();
+#if DEBUG
+      locs->DiscoverWritableInputs();
+#endif
 
       // Handle definitions.
       Definition* current_def = current->AsDefinition();

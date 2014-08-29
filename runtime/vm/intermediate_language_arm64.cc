@@ -1744,6 +1744,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register temp = locs()->temp(0).reg();
     const Register temp2 = locs()->temp(1).reg();
 
+    if (ShouldEmitStoreBarrier()) {
+      // Value input is a writable register and should be manually preserved
+      // across allocation slow-path.
+      locs()->live_registers()->Add(locs()->in(1), kTagged);
+    }
+
     Label store_pointer;
     Label store_double;
     Label store_float32x4;

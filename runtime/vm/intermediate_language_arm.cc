@@ -2014,6 +2014,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register temp2 = locs()->temp(1).reg();
     const DRegister fpu_temp = EvenDRegisterOf(locs()->temp(2).fpu_reg());
 
+    if (ShouldEmitStoreBarrier()) {
+      // Value input is a writable register and should be manually preserved
+      // across allocation slow-path.
+      locs()->live_registers()->Add(locs()->in(1), kTagged);
+    }
+
     Label store_pointer;
     Label store_double;
     Label store_float32x4;
