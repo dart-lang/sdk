@@ -14,6 +14,21 @@ import 'package:analyzer/src/generated/element.dart';
 class ClosedWorld {
   // TODO(paulberry): is it a problem to hold on to all the AST's for the
   // duration of tree shaking & CPS generation?
-  Map<Element, AstNode> elements = <Element, AstNode>{};
+
+  /**
+   * Methods, toplevel functions, etc. that are reachable.
+   */
+  Map<ExecutableElement, Declaration> executableElements = <ExecutableElement,
+      Declaration>{};
+
+  /**
+   * Classes that are instantiated from reachable code.
+   *
+   * TODO(paulberry): Also keep track of classes that are reachable but not
+   * instantiated (because they are extended or mixed in)
+   */
+  Map<ClassElement, ClassDeclaration> instantiatedClasses = <ClassElement,
+      ClassDeclaration>{};
+
   ClosedWorld();
 }

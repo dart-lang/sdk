@@ -42,7 +42,7 @@ bar() {
     FunctionElement entryPoint =
         driver.resolveEntryPoint(driver.setFakeRoot(contents));
     ClosedWorld world = driver.computeWorld(entryPoint);
-    expect(world.elements, hasLength(2));
+    expect(world.executableElements, hasLength(2));
     CompilationUnitElement compilationUnit =
         entryPoint.getAncestor((e) => e is CompilationUnitElement);
     Map<String, FunctionElement> functions = {};
@@ -50,14 +50,16 @@ bar() {
       functions[functionElement.name] = functionElement;
     }
     FunctionElement mainElement = functions['main'];
-    expect(world.elements.keys, contains(mainElement));
-    FunctionDeclaration mainAst = world.elements[mainElement];
+    expect(world.executableElements.keys, contains(mainElement));
+    FunctionDeclaration mainAst = world.executableElements[mainElement];
     expect(mainAst.element, equals(mainElement));
     FunctionElement fooElement = functions['foo'];
-    expect(world.elements.keys, contains(fooElement));
-    FunctionDeclaration fooAst = world.elements[fooElement];
+    expect(world.executableElements.keys, contains(fooElement));
+    FunctionDeclaration fooAst = world.executableElements[fooElement];
     expect(fooAst.element, equals(fooElement));
     FunctionElement barElement = functions['bar'];
-    expect(world.elements.keys, isNot(contains(functions[barElement])));
+    expect(
+        world.executableElements.keys,
+        isNot(contains(functions[barElement])));
   });
 }

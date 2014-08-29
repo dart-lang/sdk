@@ -53,6 +53,40 @@ class B {
     expect(helper.methods['B.foo'], isNull);
     expect(helper.methods['B.bar'], isNull);
   });
+
+  test('Method invocation on dynamic', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  m1() {}
+  m2() {}
+}
+foo(dynamic x) {
+  x.m1();
+}
+main() {
+  foo(new A());
+}
+''');
+    expect(helper.methods['A.m1'], isNotNull);
+    expect(helper.methods['A.m2'], isNull);
+  });
+
+  test('Method invocation on dynamic via cascade', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  m1() {}
+  m2() {}
+}
+foo(dynamic x) {
+  x..m1()..m2();
+}
+main() {
+  foo(new A());
+}
+''');
+    expect(helper.methods['A.m1'], isNotNull);
+    expect(helper.methods['A.m2'], isNotNull);
+  });
 }
 
 class TreeShakerTestHelper {
@@ -84,17 +118,13 @@ class TreeShakerTestHelper {
     Driver driver = new Driver();
     world =
         driver.computeWorld(driver.resolveEntryPoint(driver.setFakeRoot(contents)));
-    world.elements.forEach((Element element, AstNode node) {
+    world.executableElements.forEach(
+        (ExecutableElement element, Declaration node) {
       if (element is FunctionElement) {
         FunctionDeclaration declaration = node as FunctionDeclaration;
         expect(declaration, isNotNull);
         expect(declaration.element, equals(element));
         functions[element.name] = declaration;
-      } else if (element is ClassElement) {
-        ClassDeclaration declaration = node as ClassDeclaration;
-        expect(declaration, isNotNull);
-        expect(declaration.element, equals(element));
-        instantiatedClasses[element.name] = declaration;
       } else if (element is MethodElement) {
         MethodDeclaration declaration = node as MethodDeclaration;
         expect(declaration, isNotNull);
@@ -102,6 +132,12 @@ class TreeShakerTestHelper {
         methods['${element.enclosingElement.name}.${element.name}'] =
             declaration;
       }
+    });
+    world.instantiatedClasses.forEach(
+        (ClassElement element, ClassDeclaration declaration) {
+      expect(declaration, isNotNull);
+      expect(declaration.element, equals(element));
+      instantiatedClasses[element.name] = declaration;
     });
   }
 }

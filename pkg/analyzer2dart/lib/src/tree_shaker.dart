@@ -28,10 +28,8 @@ class TreeShaker {
   void addSelector(Selector selector) {
     if (_selectors.add(selector)) {
       // New selector, so match it against all class methods.
-      _world.elements.forEach((Element element, AstNode node) {
-        if (element is ClassElement) {
-          matchClassToSelector(element, selector);
-        }
+      _world.instantiatedClasses.forEach((ClassElement element, AstNode node) {
+        matchClassToSelector(element, selector);
       });
     }
   }
@@ -59,19 +57,19 @@ class TreeShaker {
       if (element is FunctionElement) {
         FunctionDeclaration declaration =
             identifier.getAncestor((node) => node is FunctionDeclaration);
-        _world.elements[element] = declaration;
+        _world.executableElements[element] = declaration;
         declaration.accept(new TreeShakingVisitor(this));
       } else if (element is ClassElement) {
         ClassDeclaration declaration =
             identifier.getAncestor((node) => node is ClassDeclaration);
-        _world.elements[element] = declaration;
+        _world.instantiatedClasses[element] = declaration;
         for (Selector selector in _selectors) {
           matchClassToSelector(element, selector);
         }
       } else if (element is MethodElement) {
         MethodDeclaration declaration =
             identifier.getAncestor((node) => node is MethodDeclaration);
-        _world.elements[element] = declaration;
+        _world.executableElements[element] = declaration;
         declaration.accept(new TreeShakingVisitor(this));
       } else {
         throw new Exception('Unexpected element type while tree shaking');
@@ -111,32 +109,19 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
   void visitMethodInvocation(MethodInvocation node) {
     Element staticElement = node.methodName.staticElement;
     if (staticElement == null) {
-      // Calling a method that has no known element, e.g.:
-      //   dynamic x;
-      //   x.foo();
-      // or:
-      //   foo();
-      // TODO(paulberry): deal with this case.
-    } else if (staticElement is FieldElement) {
-      // Invoking a callable field, e.g.:
-      //   typedef FunctionType();
-      //   class A {
-      //     FunctionType f;
-      //   }
-      //   main() {
-      //     new A().f();
-      //   }
-      // or via implicit this, i.e.:
-      //   typedef FunctonType();
-      //   class A {
-      //     FunctionType f;
-      //     foo() {
-      //       f();
-      //     }
-      //   }
-      // TODO(paulberry): deal with this case.
-      // TODO(paulberry): if user-provided types are wrong, this may actually
-      // be the MethodElement or PropertyAccessorElement case.
+      if (node.realTarget != null) {
+        // Calling a method that has no known element, e.g.:
+        //   dynamic x;
+        //   x.foo();
+        handleMethodCall(node);
+      } else {
+        // Calling a toplevel function which has no known element, e.g.
+        //   main() {
+        //     foo();
+        //   }
+        // TODO(paulberry): deal with this case.
+        throw new UnimplementedError();
+      }
     } else if (staticElement is MethodElement) {
       // Invoking a method, e.g.:
       //   class A {
@@ -153,20 +138,10 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
       //     }
       //   }
       // TODO(paulberry): if user-provided types are wrong, this may actually
-      // be the FieldElement or PropertyAccessorElement case.
+      // be the PropertyAccessorElement case.
       // TODO(paulberry): do we need to do something different for static
       // methods?
-      int arity = 0;
-      List<String> namedArguments = <String>[];
-      for (var x in node.argumentList.arguments) {
-        if (x is NamedExpression) {
-          namedArguments.add(x.name.label.name);
-        } else {
-          arity++;
-        }
-      }
-      treeShaker.addSelector(
-          new Selector.call(node.methodName.name, null, arity, namedArguments));
+      handleMethodCall(node);
     } else if (staticElement is PropertyAccessorElement) {
       // Invoking a callable getter, e.g.:
       //   typedef FunctionType();
@@ -184,11 +159,15 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
       //       f();
       //     }
       //   }
+      // This also covers the case where the getter is synthetic, because we
+      // are getting a field (TODO(paulberry): verify that this is the case).
       // TODO(paulberry): deal with this case.
       // TODO(paulberry): if user-provided types are wrong, this may actually
-      // be the FieldElement or MethodElement case.
+      // be the MethodElement case.
+      throw new UnimplementedError();
     } else if (staticElement is MultiplyInheritedExecutableElement) {
       // TODO(paulberry): deal with this case.
+      throw new UnimplementedError();
     } else if (staticElement is LocalElement) {
       // Invoking a callable local, e.g.:
       //   typedef FunctionType();
@@ -211,9 +190,28 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
       treeShaker.addElement(staticElement);
     } else if (staticElement is MultiplyDefinedElement) {
       // TODO(paulberry): do we have to deal with this case?
+      throw new UnimplementedError();
     }
     // TODO(paulberry): I believe all the other possibilities are errors, but
     // we should double check.
     super.visitMethodInvocation(node);
+  }
+
+  /**
+   * Handle a true method call (a MethodInvocation that represents a call to
+   * a non-static method).
+   */
+  void handleMethodCall(MethodInvocation node) {
+    int arity = 0;
+    List<String> namedArguments = <String>[];
+    for (var x in node.argumentList.arguments) {
+      if (x is NamedExpression) {
+        namedArguments.add(x.name.label.name);
+      } else {
+        arity++;
+      }
+    }
+    treeShaker.addSelector(
+        new Selector.call(node.methodName.name, null, arity, namedArguments));
   }
 }
