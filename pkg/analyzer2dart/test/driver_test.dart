@@ -39,11 +39,12 @@ foo() {
 bar() {
 }
 ''';
-    FunctionElement entryPoint = driver.resolveEntryPoint(driver.setFakeRoot(contents));
-    ClosedWorld world =
-        driver.computeWorld(entryPoint);
+    FunctionElement entryPoint =
+        driver.resolveEntryPoint(driver.setFakeRoot(contents));
+    ClosedWorld world = driver.computeWorld(entryPoint);
     expect(world.elements, hasLength(2));
-    CompilationUnitElement compilationUnit = entryPoint.getAncestor((e) => e is CompilationUnitElement);
+    CompilationUnitElement compilationUnit =
+        entryPoint.getAncestor((e) => e is CompilationUnitElement);
     Map<String, FunctionElement> functions = {};
     for (FunctionElement functionElement in compilationUnit.functions) {
       functions[functionElement.name] = functionElement;

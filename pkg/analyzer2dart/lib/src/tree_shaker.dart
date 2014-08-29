@@ -30,10 +30,18 @@ class TreeShaker {
           context.getResolvedCompilationUnit(e.source, e.library);
       AstNode identifier =
           new NodeLocator.con1(e.nameOffset).searchWithin(compilationUnit);
-      FunctionDeclaration declaration =
-          identifier.getAncestor((node) => node is FunctionDeclaration);
-      _world.elements[e] = declaration;
-      declaration.accept(new TreeShakingVisitor(this));
+      if (e is FunctionElement) {
+        FunctionDeclaration declaration =
+            identifier.getAncestor((node) => node is FunctionDeclaration);
+        _world.elements[e] = declaration;
+        declaration.accept(new TreeShakingVisitor(this));
+      } else if (e is ClassElement) {
+        ClassDeclaration declaration =
+            identifier.getAncestor((node) => node is ClassDeclaration);
+        _world.elements[e] = declaration;
+        // TODO(paulberry): visit any members of the class that match active
+        // selectors.
+      }
     }
     print('Tree shaking done');
     return _world;
@@ -47,13 +55,26 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    print('Visiting function ${node.name.name}');
     super.visitFunctionDeclaration(node);
   }
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorElement staticElement = node.staticElement;
+    if (staticElement != null) {
+      // TODO(paulberry): Really we should enqueue the constructor, and then
+      // when we visit it add the class to the class bucket.
+      ClassElement classElement = staticElement.enclosingElement;
+      treeShaker.add(classElement);
+    } else {
+      // TODO(paulberry): deal with this situation.  This can happen, for
+      // example, in the case "main() => new Unresolved();" (which is a
+      // warning, not an error).
+    }
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
-    print('Visiting invocation of ${node.methodName.name}');
     Element staticElement = node.methodName.staticElement;
     if (staticElement != null) {
       // TODO(paulberry): deal with the case where staticElement is
@@ -66,6 +87,4 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
     }
     super.visitMethodInvocation(node);
   }
-
 }
-
