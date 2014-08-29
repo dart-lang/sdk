@@ -25,8 +25,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, enable_simd_inline);
 
@@ -994,16 +992,13 @@ void FlowGraphCompiler::EmitFrameEntry() {
     // Patch point is after the eventually inlined function object.
     entry_patch_pc_offset_ = assembler()->CodeSize();
 
-    if (is_optimizing()) {
-      // Reoptimization of an optimized function is triggered by counting in
-      // IC stubs, but not at the entry of the function.
-      __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
-              Immediate(FLAG_reoptimization_counter_threshold));
-    } else {
+    // Reoptimization of an optimized function is triggered by counting in
+    // IC stubs, but not at the entry of the function.
+    if (!is_optimizing()) {
       __ incl(FieldAddress(function_reg, Function::usage_counter_offset()));
-      __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
-              Immediate(FLAG_optimization_counter_threshold));
     }
+    __ cmpl(FieldAddress(function_reg, Function::usage_counter_offset()),
+            Immediate(GetOptimizationThreshold()));
     ASSERT(function_reg == EDI);
     __ j(GREATER_EQUAL, &stub_code->OptimizeFunctionLabel());
   } else if (!flow_graph().IsCompiledForOsr()) {

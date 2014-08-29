@@ -23,8 +23,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_simd_inline);
 
 
@@ -976,19 +974,16 @@ void FlowGraphCompiler::EmitFrameEntry() {
     // Patch point is after the eventually inlined function object.
     entry_patch_pc_offset_ = assembler()->CodeSize();
 
-    intptr_t threshold = FLAG_optimization_counter_threshold;
     __ LoadFieldFromOffset(
         R7, function_reg, Function::usage_counter_offset(), new_pp, kWord);
-    if (is_optimizing()) {
-      // Reoptimization of an optimized function is triggered by counting in
-      // IC stubs, but not at the entry of the function.
-      threshold = FLAG_reoptimization_counter_threshold;
-    } else {
+    // Reoptimization of an optimized function is triggered by counting in
+    // IC stubs, but not at the entry of the function.
+    if (!is_optimizing()) {
       __ add(R7, R7, Operand(1));
       __ StoreFieldToOffset(
           R7, function_reg, Function::usage_counter_offset(), new_pp, kWord);
     }
-    __ CompareImmediate(R7, threshold, new_pp);
+    __ CompareImmediate(R7, GetOptimizationThreshold(), new_pp);
     ASSERT(function_reg == R6);
     Label dont_optimize;
     __ b(&dont_optimize, LT);
