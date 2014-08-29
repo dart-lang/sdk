@@ -1879,12 +1879,11 @@
       <type name="Error">
         <p>
           An indication of a problem with the execution of the server,
-          typically in response to a request. The error codes that can
-          be returned are documented in the section titled Errors.
+          typically in response to a request.
         </p>
         <object>
           <field name="code">
-            <ref>String</ref>
+            <ref>RequestErrorCode</ref>
             <p>
               A code that uniquely identifies the error that occurred.
             </p>
@@ -2571,6 +2570,70 @@
         <object>
           <field name="type" value="remove"><ref>String</ref></field>
         </object>
+      </type>
+      <type name="RequestErrorCode">
+        <p>
+          An enumeration of the types of errors that can occur in the
+          execution of the server.
+        </p>
+        <enum>
+          <value>
+            <code>GET_ERRORS_ERROR</code>
+            <p>
+              An error occurred during the processing of an
+              "analysis.getErrors" request.
+            </p>
+            <!-- TODO(paulberry): this is vague.  We should be more
+                 specific about the nature of the error if we can. -->
+          </value>
+          <value>
+            <code>INVALID_PARAMETER</code>
+            <p>
+              One of the method parameters was invalid.
+            </p>
+          </value>
+          <value>
+            <code>INVALID_REQUEST</code>
+            <p>
+              A malformed request was received.
+            </p>
+          </value>
+          <value>
+            <code>SERVER_ALREADY_STARTED</code>
+            <!-- TODO(paulberry): this error code doesn't make sense
+                 anymore. -->
+            <p>
+              The analysis server has already been started (and hence
+              won't accept new connections).
+            </p>
+          </value>
+          <value>
+            <code>UNANALYZED_PRIORITY_FILES</code>
+            <!-- TODO(paulberry): this error shouldn't be issued under
+                 our new "eventual consistency" model. -->
+            <p>
+              An "analysis.setPriorityFiles" request includes one or
+              more files that are not being analyzed.
+            </p>
+          </value>
+          <value>
+            <code>UNKNOWN_REQUEST</code>
+            <p>
+              A request was received which the analysis server does
+              not recognize, or cannot handle in its current
+              configuation.
+            </p>
+          </value>
+          <value>
+            <code>UNSUPPORTED_FEATURE</code>
+            <p>
+              The analysis server was requested to perform an action
+              which is not supported.
+            </p>
+            <!-- TODO(paulberry): how does this differ from
+                 UNKNOWN_REQUEST?  Do we really need both? -->
+          </value>
+        </enum>
       </type>
       <type name="SearchId">
         <ref>String</ref>

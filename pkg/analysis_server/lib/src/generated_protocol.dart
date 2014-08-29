@@ -5667,7 +5667,7 @@ class ElementKind {
  * Error
  *
  * {
- *   "code": String
+ *   "code": RequestErrorCode
  *   "message": String
  *   "data": optional object
  * }
@@ -5676,7 +5676,7 @@ class Error {
   /**
    * A code that uniquely identifies the error that occurred.
    */
-  String code;
+  RequestErrorCode code;
 
   /**
    * A short description of the error.
@@ -5696,9 +5696,9 @@ class Error {
       json = {};
     }
     if (json is Map) {
-      String code;
+      RequestErrorCode code;
       if (json.containsKey("code")) {
-        code = jsonDecoder._decodeString(jsonPath + ".code", json["code"]);
+        code = new RequestErrorCode.fromJson(jsonDecoder, jsonPath + ".code", json["code"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "code");
       }
@@ -5720,7 +5720,7 @@ class Error {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["code"] = code;
+    result["code"] = code.toJson();
     result["message"] = message;
     if (data != null) {
       result["data"] = data;
@@ -8079,6 +8079,101 @@ class RemoveContentOverlay {
     hash = _JenkinsSmiHash.combine(hash, 114870849);
     return _JenkinsSmiHash.finish(hash);
   }
+}
+
+/**
+ * RequestErrorCode
+ *
+ * enum {
+ *   GET_ERRORS_ERROR
+ *   INVALID_PARAMETER
+ *   INVALID_REQUEST
+ *   SERVER_ALREADY_STARTED
+ *   UNANALYZED_PRIORITY_FILES
+ *   UNKNOWN_REQUEST
+ *   UNSUPPORTED_FEATURE
+ * }
+ */
+class RequestErrorCode {
+  /**
+   * An error occurred during the processing of an "analysis.getErrors"
+   * request.
+   */
+  static const GET_ERRORS_ERROR = const RequestErrorCode._("GET_ERRORS_ERROR");
+
+  /**
+   * One of the method parameters was invalid.
+   */
+  static const INVALID_PARAMETER = const RequestErrorCode._("INVALID_PARAMETER");
+
+  /**
+   * A malformed request was received.
+   */
+  static const INVALID_REQUEST = const RequestErrorCode._("INVALID_REQUEST");
+
+  /**
+   * The analysis server has already been started (and hence won't accept new
+   * connections).
+   */
+  static const SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
+
+  /**
+   * An "analysis.setPriorityFiles" request includes one or more files that are
+   * not being analyzed.
+   */
+  static const UNANALYZED_PRIORITY_FILES = const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
+
+  /**
+   * A request was received which the analysis server does not recognize, or
+   * cannot handle in its current configuation.
+   */
+  static const UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
+
+  /**
+   * The analysis server was requested to perform an action which is not
+   * supported.
+   */
+  static const UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
+
+  final String name;
+
+  const RequestErrorCode._(this.name);
+
+  factory RequestErrorCode(String name) {
+    switch (name) {
+      case "GET_ERRORS_ERROR":
+        return GET_ERRORS_ERROR;
+      case "INVALID_PARAMETER":
+        return INVALID_PARAMETER;
+      case "INVALID_REQUEST":
+        return INVALID_REQUEST;
+      case "SERVER_ALREADY_STARTED":
+        return SERVER_ALREADY_STARTED;
+      case "UNANALYZED_PRIORITY_FILES":
+        return UNANALYZED_PRIORITY_FILES;
+      case "UNKNOWN_REQUEST":
+        return UNKNOWN_REQUEST;
+      case "UNSUPPORTED_FEATURE":
+        return UNSUPPORTED_FEATURE;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory RequestErrorCode.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new RequestErrorCode(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "RequestErrorCode");
+  }
+
+  @override
+  String toString() => "RequestErrorCode.$name";
+
+  String toJson() => name;
 }
 
 /**

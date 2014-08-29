@@ -113,7 +113,7 @@ main() {
       expect(result.errors, isEmpty);
       RequestError error = response.error;
       expect(error, isNotNull);
-      expect(error.code, 'GET_ERRORS_ERROR');
+      expect(error.code, RequestErrorCode.GET_ERRORS_ERROR);
     });
   }
 

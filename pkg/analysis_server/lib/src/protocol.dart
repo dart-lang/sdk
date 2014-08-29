@@ -757,40 +757,6 @@ class RequestError {
   static const String MESSAGE = 'message';
 
   /**
-   * An error code indicating a parse error. Invalid JSON was received by the
-   * server. An error occurred on the server while parsing the JSON text.
-   */
-  static const String CODE_PARSE_ERROR = 'PARSE_ERROR';
-
-  /**
-   * An error code indicating that the analysis server has already been
-   * started (and hence won't accept new connections).
-   */
-  static const String CODE_SERVER_ALREADY_STARTED = 'SERVER_ALREADY_STARTED';
-
-  /**
-   * An error code indicating an invalid request. The JSON sent is not a valid
-   * [Request] object.
-   */
-  static const String CODE_INVALID_REQUEST = 'INVALID_REQUEST';
-
-  /**
-   * An error code indicating a method not found. The method does not exist or
-   * is not currently available.
-   */
-  static const String CODE_METHOD_NOT_FOUND = 'METHOD_NOT_FOUND';
-
-  /**
-   * An error code indicating one or more invalid parameters.
-   */
-  static const String CODE_INVALID_PARAMS = 'INVALID_PARAMS';
-
-  /**
-   * An error code indicating an internal error.
-   */
-  static const String CODE_INTERNAL_ERROR = 'INTERNAL_ERROR';
-
-  /**
    * An error code indicating a problem using the specified Dart SDK.
    */
   static const String CODE_SDK_ERROR = 'SDK_ERROR';
@@ -803,7 +769,7 @@ class RequestError {
   /**
    * The code that uniquely identifies the error that occurred.
    */
-  final String code;
+  final RequestErrorCode code;
 
   /**
    * A short description of the error.
@@ -825,7 +791,7 @@ class RequestError {
    */
   factory RequestError.fromJson(Map<String, Object> json) {
     try {
-      String code = json[RequestError.CODE];
+      RequestErrorCode code = new RequestErrorCode(json[RequestError.CODE]);
       String message = json[RequestError.MESSAGE];
       Map<String, Object> data = json[RequestError.DATA];
       RequestError requestError = new RequestError(code, message);
@@ -841,41 +807,11 @@ class RequestError {
   }
 
   /**
-   * Initialize a newly created [Error] to indicate an internal error.
-   */
-  RequestError.internalError() : this(CODE_INTERNAL_ERROR, "Internal error");
-
-  /**
-   * Initialize a newly created [Error] to indicate one or more invalid
-   * parameters.
-   */
-  RequestError.invalidParameters() : this(CODE_INVALID_PARAMS, "Invalid parameters");
-
-  /**
-   * Initialize a newly created [Error] to indicate an invalid request. The
-   * JSON sent is not a valid [Request] object.
-   */
-  RequestError.invalidRequest() : this(CODE_INVALID_REQUEST, "Invalid request");
-
-  /**
-   * Initialize a newly created [Error] to indicate that a method was not found.
-   * Either the method does not exist or is not currently available.
-   */
-  RequestError.methodNotFound() : this(CODE_METHOD_NOT_FOUND, "Method not found");
-
-  /**
-   * Initialize a newly created [Error] to indicate a parse error. Invalid JSON
-   * was received by the server. An error occurred on the server while parsing
-   * the JSON text.
-   */
-  RequestError.parseError() : this(CODE_PARSE_ERROR, "Parse error");
-
-  /**
    * Initialize a newly created [Error] to indicate that the analysis server
    * has already been started (and hence won't accept new connections).
    */
   RequestError.serverAlreadyStarted()
-    : this(CODE_SERVER_ALREADY_STARTED, "Server already started");
+    : this(RequestErrorCode.SERVER_ALREADY_STARTED, "Server already started");
 
   /**
    * Return the value of the data with the given [name], or `null` if there is
@@ -896,7 +832,7 @@ class RequestError {
    */
   Map<String, Object> toJson() {
     Map<String, Object> jsonObject = new HashMap<String, Object>();
-    jsonObject[CODE] = code;
+    jsonObject[CODE] = code.name;
     jsonObject[MESSAGE] = message;
     if (!data.isEmpty) {
       jsonObject[DATA] = data;
@@ -993,16 +929,6 @@ class Response {
   Response(this.id, {Map<String, Object> result, this.error})
       : _result = result;
 
-  Response.contextAlreadyExists(Request request)
-    : this(request.id, error: new RequestError('CONTENT_ALREADY_EXISTS', 'Context already exists'));
-
-  /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a [request] referencing a context that does not exist.
-   */
-  Response.contextDoesNotExist(Request request)
-    : this(request.id, error: new RequestError('NONEXISTENT_CONTEXT', 'Context does not exist'));
-
   /**
    * Initialize a newly created instance based upon the given JSON data
    */
@@ -1037,7 +963,7 @@ class Response {
       Map<String, Object> result)
     : this(
         request.id,
-        error: new RequestError('GET_ERRORS_ERROR', 'Error during `analysis.getErrors`: $message.'),
+        error: new RequestError(RequestErrorCode.GET_ERRORS_ERROR, 'Error during `analysis.getErrors`: $message.'),
         result: result);
 
   /**
@@ -1048,7 +974,7 @@ class Response {
    * [expectation] is a description of the type of data that was expected.
    */
   Response.invalidParameter(Request request, String path, String expectation)
-      : this(request.id, error: new RequestError('INVALID_PARAMETER',
+      : this(request.id, error: new RequestError(RequestErrorCode.INVALID_PARAMETER,
           "Expected parameter $path to $expectation"));
 
   /**
@@ -1056,14 +982,7 @@ class Response {
    * by a malformed request.
    */
   Response.invalidRequestFormat()
-    : this('', error: new RequestError('INVALID_REQUEST', 'Invalid request'));
-
-  /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a [request] that does not have a required parameter.
-   */
-  Response.missingRequiredParameter(Request request, String parameterName)
-    : this(request.id, error: new RequestError('MISSING_PARAMETER', 'Missing required parameter: $parameterName'));
+    : this('', error: new RequestError(RequestErrorCode.INVALID_REQUEST, 'Invalid request'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
@@ -1071,41 +990,17 @@ class Response {
    * that are not being analyzed.
    */
   Response.unanalyzedPriorityFiles(Request request, String fileNames)
-    : this(request.id, error: new RequestError('UNANALYZED_PRIORITY_FILES', "Unanalyzed files cannot be a priority: '$fileNames'"));
-
-  /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a [request] that takes a set of analysis options but for which an
-   * unknown analysis option was provided.
-   */
-  Response.unknownAnalysisOption(Request request, String optionName)
-    : this(request.id, error: new RequestError('UNKNOWN_ANALYSIS_OPTION', 'Unknown analysis option: "$optionName"'));
-
-  /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a `analysis.setSubscriptions` [request] that includes an unknown
-   * analysis service name.
-   */
-  Response.unknownAnalysisService(Request request, String name)
-    : this(request.id, error: new RequestError('UNKNOWN_ANALYSIS_SERVICE', 'Unknown analysis service: "$name"'));
-
-  /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by a `analysis.updateOptions` [request] that includes an unknown analysis
-   * option.
-   */
-  Response.unknownOptionName(Request request, String optionName)
-    : this(request.id, error: new RequestError('UNKNOWN_OPTION_NAME', 'Unknown analysis option: "$optionName"'));
+    : this(request.id, error: new RequestError(RequestErrorCode.UNANALYZED_PRIORITY_FILES, "Unanalyzed files cannot be a priority: '$fileNames'"));
 
   /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that cannot be handled by any known handlers.
    */
   Response.unknownRequest(Request request)
-    : this(request.id, error: new RequestError('UNKNOWN_REQUEST', 'Unknown request'));
+    : this(request.id, error: new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'Unknown request'));
 
   Response.unsupportedFeature(String requestId, String message)
-    : this(requestId, error: new RequestError('UNSUPPORTED_FEATURE', message));
+    : this(requestId, error: new RequestError(RequestErrorCode.UNSUPPORTED_FEATURE, message));
 
   /**
    * Return a table representing the structure of the Json object that will be

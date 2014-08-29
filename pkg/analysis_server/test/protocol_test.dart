@@ -94,72 +94,42 @@ class NotificationTest {
 @ReflectiveTestCase()
 class RequestErrorTest {
   void test_create() {
-    RequestError error = new RequestError('ERROR_CODE', 'msg');
-    expect(error.code, 'ERROR_CODE');
+    RequestError error = new RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
+    expect(error.code, RequestErrorCode.INVALID_REQUEST);
     expect(error.message, "msg");
     expect(error.toJson(), equals({
-      RequestError.CODE: 'ERROR_CODE',
+      RequestError.CODE: 'INVALID_REQUEST',
       RequestError.MESSAGE: "msg"
     }));
   }
 
-  void test_create_internalError() {
-    RequestError error = new RequestError.internalError();
-    expect(error.code, RequestError.CODE_INTERNAL_ERROR);
-    expect(error.message, "Internal error");
-  }
-
-  void test_create_invalidParameters() {
-    RequestError error = new RequestError.invalidParameters();
-    expect(error.code, RequestError.CODE_INVALID_PARAMS);
-    expect(error.message, "Invalid parameters");
-  }
-
-  void test_create_invalidRequest() {
-    RequestError error = new RequestError.invalidRequest();
-    expect(error.code, RequestError.CODE_INVALID_REQUEST);
-    expect(error.message, "Invalid request");
-  }
-
-  void test_create_methodNotFound() {
-    RequestError error = new RequestError.methodNotFound();
-    expect(error.code, RequestError.CODE_METHOD_NOT_FOUND);
-    expect(error.message, "Method not found");
-  }
-
-  void test_create_parseError() {
-    RequestError error = new RequestError.parseError();
-    expect(error.code, RequestError.CODE_PARSE_ERROR);
-    expect(error.message, "Parse error");
-  }
-
   void test_create_serverAlreadyStarted() {
     RequestError error = new RequestError.serverAlreadyStarted();
-    expect(error.code, RequestError.CODE_SERVER_ALREADY_STARTED);
+    expect(error.code, RequestErrorCode.SERVER_ALREADY_STARTED);
     expect(error.message, "Server already started");
   }
 
   void test_fromJson() {
     var json = {
-      RequestError.CODE: RequestError.CODE_PARSE_ERROR,
+      RequestError.CODE: RequestErrorCode.INVALID_PARAMETER.name,
       RequestError.MESSAGE: 'foo',
       RequestError.DATA: {
         'ints': [1, 2, 3]
       }
     };
     RequestError error = new RequestError.fromJson(json);
-    expect(error.code, RequestError.CODE_PARSE_ERROR);
+    expect(error.code, RequestErrorCode.INVALID_PARAMETER);
     expect(error.message, "foo");
     expect(error.data['ints'], [1, 2, 3]);
     expect(error.getData('ints'), [1, 2, 3]);
   }
 
   void test_toJson() {
-    RequestError error = new RequestError('ERROR_CODE', 'msg');
+    RequestError error = new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'msg');
     error.setData('answer', 42);
     error.setData('question', 'unknown');
     expect(error.toJson(), {
-      RequestError.CODE: 'ERROR_CODE',
+      RequestError.CODE: 'UNKNOWN_REQUEST',
       RequestError.MESSAGE: 'msg',
       RequestError.DATA: {
         'answer': 42,
@@ -232,19 +202,6 @@ class RequestTest {
 
 @ReflectiveTestCase()
 class ResponseTest {
-  void test_create_contextDoesNotExist() {
-    Response response = new Response.contextDoesNotExist(new Request('0', ''));
-    expect(response.id, equals('0'));
-    expect(response.error, isNotNull);
-    expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: {
-        'code': 'NONEXISTENT_CONTEXT',
-        'message': 'Context does not exist'
-      }
-    }));
-  }
-
   void test_create_invalidRequestFormat() {
     Response response = new Response.invalidRequestFormat();
     expect(response.id, equals(''));
@@ -254,20 +211,6 @@ class ResponseTest {
       Response.ERROR: {
         'code': 'INVALID_REQUEST',
         'message': 'Invalid request'
-      }
-    }));
-  }
-
-  void test_create_missingRequiredParameter() {
-    Response response = new Response.missingRequiredParameter(new Request('0',
-        ''), 'x');
-    expect(response.id, equals('0'));
-    expect(response.error, isNotNull);
-    expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: {
-        'code': 'MISSING_PARAMETER',
-        'message': 'Missing required parameter: x'
       }
     }));
   }
@@ -282,20 +225,6 @@ class ResponseTest {
       Response.ERROR: {
         'code': 'UNANALYZED_PRIORITY_FILES',
         'message': "Unanalyzed files cannot be a priority: 'file list'"
-      }
-    }));
-  }
-
-  void test_create_unknownAnalysisOption() {
-    Response response = new Response.unknownAnalysisOption(new Request('0', ''),
-        'x');
-    expect(response.id, equals('0'));
-    expect(response.error, isNotNull);
-    expect(response.toJson(), equals({
-      Response.ID: '0',
-      Response.ERROR: {
-        'code': 'UNKNOWN_ANALYSIS_OPTION',
-        'message': 'Unknown analysis option: "x"'
       }
     }));
   }
@@ -325,7 +254,7 @@ class ResponseTest {
     expect(response.id, equals(''));
     expect(response.error, isNotNull);
     RequestError error = response.error;
-    expect(error.code, equals('INVALID_REQUEST'));
+    expect(error.code, equals(RequestErrorCode.INVALID_REQUEST));
     expect(error.message, equals('Invalid request'));
   }
 

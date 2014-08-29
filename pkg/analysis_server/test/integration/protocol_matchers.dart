@@ -1081,14 +1081,14 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
  * Error
  *
  * {
- *   "code": String
+ *   "code": RequestErrorCode
  *   "message": String
  *   "data": optional object
  * }
  */
 final Matcher isError = new LazyMatcher(() => new MatchesJsonObject(
   "Error", {
-    "code": isString,
+    "code": isRequestErrorCode,
     "message": isString
   }, optionalFields: {
     "data": isObject
@@ -1610,6 +1610,29 @@ final Matcher isRemoveContentOverlay = new LazyMatcher(() => new MatchesJsonObje
   "RemoveContentOverlay", {
     "type": equals("remove")
   }));
+
+/**
+ * RequestErrorCode
+ *
+ * enum {
+ *   GET_ERRORS_ERROR
+ *   INVALID_PARAMETER
+ *   INVALID_REQUEST
+ *   SERVER_ALREADY_STARTED
+ *   UNANALYZED_PRIORITY_FILES
+ *   UNKNOWN_REQUEST
+ *   UNSUPPORTED_FEATURE
+ * }
+ */
+final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
+  "GET_ERRORS_ERROR",
+  "INVALID_PARAMETER",
+  "INVALID_REQUEST",
+  "SERVER_ALREADY_STARTED",
+  "UNANALYZED_PRIORITY_FILES",
+  "UNKNOWN_REQUEST",
+  "UNSUPPORTED_FEATURE"
+]);
 
 /**
  * SearchId

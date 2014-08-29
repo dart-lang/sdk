@@ -1717,6 +1717,7 @@ dt.typeDefinition {
       
       
       
+      
     <dl><dt class="typeDefinition"><a name="type_AddContentOverlay">AddContentOverlay: object</a></dt><dd>
         <p>
           A directive to begin overlaying the contents of a file.  The
@@ -2056,11 +2057,10 @@ dt.typeDefinition {
       <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_Error">Error: object</a></dt><dd>
         <p>
           An indication of a problem with the execution of the server,
-          typically in response to a request. The error codes that can
-          be returned are documented in the section titled Errors.
+          typically in response to a request.
         </p>
         
-      <dl><dt class="field"><b><i>code ( String )</i></b></dt><dd>
+      <dl><dt class="field"><b><i>code ( <a href="#type_RequestErrorCode">RequestErrorCode</a> )</i></b></dt><dd>
             
             <p>
               A code that uniquely identifies the error that occurred.
@@ -2564,7 +2564,58 @@ dt.typeDefinition {
           have a content overlay, it has no effect.
         </p>
         
-      <dl><dt class="field"><b><i>type = "remove"</i></b></dt><dd></dd></dl></dd><dt class="typeDefinition"><a name="type_SearchId">SearchId: String</a></dt><dd>
+      <dl><dt class="field"><b><i>type = "remove"</i></b></dt><dd></dd></dl></dd><dt class="typeDefinition"><a name="type_RequestErrorCode">RequestErrorCode: String</a></dt><dd>
+        <p>
+          An enumeration of the types of errors that can occur in the
+          execution of the server.
+        </p>
+        
+      <dl><dt class="value">GET_ERRORS_ERROR</dt><dd>
+            
+            <p>
+              An error occurred during the processing of an
+              "analysis.getErrors" request.
+            </p>
+            
+          </dd><dt class="value">INVALID_PARAMETER</dt><dd>
+            
+            <p>
+              One of the method parameters was invalid.
+            </p>
+          </dd><dt class="value">INVALID_REQUEST</dt><dd>
+            
+            <p>
+              A malformed request was received.
+            </p>
+          </dd><dt class="value">SERVER_ALREADY_STARTED</dt><dd>
+            
+            
+            <p>
+              The analysis server has already been started (and hence
+              won't accept new connections).
+            </p>
+          </dd><dt class="value">UNANALYZED_PRIORITY_FILES</dt><dd>
+            
+            
+            <p>
+              An "analysis.setPriorityFiles" request includes one or
+              more files that are not being analyzed.
+            </p>
+          </dd><dt class="value">UNKNOWN_REQUEST</dt><dd>
+            
+            <p>
+              A request was received which the analysis server does
+              not recognize, or cannot handle in its current
+              configuation.
+            </p>
+          </dd><dt class="value">UNSUPPORTED_FEATURE</dt><dd>
+            
+            <p>
+              The analysis server was requested to perform an action
+              which is not supported.
+            </p>
+            
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_SearchId">SearchId: String</a></dt><dd>
         
         <p>
           An identifier used to associate search results with a search

@@ -51,13 +51,13 @@ class SocketServerTest {
     expect(channel2.responsesReceived[0].id, equals(''));
     expect(channel2.responsesReceived[0].error, isNotNull);
     expect(channel2.responsesReceived[0].error.code, equals(
-        RequestError.CODE_SERVER_ALREADY_STARTED));
+        RequestErrorCode.SERVER_ALREADY_STARTED));
     channel2.sendRequest(new ServerShutdownParams().toRequest('0')).then(
         (Response response) {
       expect(response.id, equals('0'));
       expect(response.error, isNotNull);
       expect(response.error.code, equals(
-          RequestError.CODE_SERVER_ALREADY_STARTED));
+          RequestErrorCode.SERVER_ALREADY_STARTED));
       channel2.expectMsgCount(responseCount: 2);
     });
   }
