@@ -15,7 +15,8 @@ Compiler reuseCompiler(
      Uri libraryRoot,
      Uri packageRoot,
      bool packagesAreImmutable: false,
-     Map<String, dynamic> environment}) {
+     Map<String, dynamic> environment,
+     bool reuseLibrary(LibraryElement library)}) {
   UserTag oldTag = new UserTag('_reuseCompiler').makeCurrent();
   if (libraryRoot == null) {
     throw 'Missing libraryRoot';
@@ -63,6 +64,11 @@ Compiler reuseCompiler(
         options,
         environment);
   } else {
+    for (final task in compiler.tasks) {
+      if (task.watch != null) {
+        task.watch.reset();
+      }
+    }
     compiler
         ..outputProvider = outputProvider
         ..provider = inputProvider
@@ -130,10 +136,14 @@ Compiler reuseCompiler(
     backend
         ..preMirrorsMethodCount = 0;
 
-    compiler.libraryLoader.reset(reuseLibrary: (LibraryElement library) {
-      return library.isPlatformLibrary ||
-             (packagesAreImmutable && library.isPackageLibrary);
-    });
+    if (reuseLibrary == null) {
+      reuseLibrary = (LibraryElement library) {
+        return
+            library.isPlatformLibrary ||
+            (packagesAreImmutable && library.isPackageLibrary);
+      };
+    }
+    compiler.libraryLoader.reset(reuseLibrary: reuseLibrary);
   }
   oldTag.makeCurrent();
   return compiler;
