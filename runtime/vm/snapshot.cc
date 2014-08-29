@@ -412,32 +412,19 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
 
+  // First read the version string, and check that it matches.
+  RawApiError* error = VerifyVersion();
+  if (error != ApiError::null()) {
+    return error;
+  }
+
+  // The version string matches. Read the rest of the snapshot.
+
   // TODO(asiva): Add a check here to ensure we have the right heap
   // size for the full snapshot being read.
-
   {
     NoGCScope no_gc;
     HeapLocker hl(isolate, old_space());
-
-    // First read the version string, and check that it matches.
-    obj_ = ReadObject();
-
-    // If the version string doesn't match, return an error.
-    // NB: New things are allocated only if we're going to return an error.
-    if (!obj_.IsString() ||
-        !String::Cast(obj_).Equals(Version::SnapshotString())) {
-      const intptr_t kMessageBufferSize = 128;
-      char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer,
-                  kMessageBufferSize,
-                  "Wrong full snapshot version. Found %s expected %s",
-                  obj_.ToCString(),
-                  Version::SnapshotString());
-      const String& msg = String::Handle(String::New(message_buffer));
-      return ApiError::New(msg);
-    }
-
-    // The version string matches. Read the rest of the snapshot.
 
     // Read in all the objects stored in the object store.
     intptr_t num_flds = (object_store->to() - object_store->from());
@@ -467,21 +454,9 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
   ASSERT(kind_ == Snapshot::kScript);
 
   // First read the version string, and check that it matches.
-  obj_ = ReadObject();
-
-  // If the version string doesn't match, return an error.
-  // NB: New things are allocated only if we're going to return an error.
-  if (!obj_.IsString() ||
-      !String::Cast(obj_).Equals(Version::SnapshotString())) {
-    const intptr_t kMessageBufferSize = 256;
-    char message_buffer[kMessageBufferSize];
-    OS::SNPrint(message_buffer,
-                kMessageBufferSize,
-                "Wrong script snapshot version. Found %s expected '%s'",
-                obj_.ToCString(),
-                Version::SnapshotString());
-    const String& msg = String::Handle(String::New(message_buffer));
-    return ApiError::New(msg);
+  RawApiError* error = VerifyVersion();
+  if (error != ApiError::null()) {
+    return error;
   }
 
   // The version string matches. Read the rest of the snapshot.
@@ -499,6 +474,44 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
     }
   }
   return obj_.raw();
+}
+
+
+RawApiError* SnapshotReader::VerifyVersion() {
+  // If the version string doesn't match, return an error.
+  // Note: New things are allocated only if we're going to return an error.
+
+  const char* expected_version = Version::SnapshotString();
+  ASSERT(expected_version != NULL);
+  const intptr_t version_len = strlen(expected_version);
+  if (PendingBytes() < version_len) {
+    const intptr_t kMessageBufferSize = 128;
+    char message_buffer[kMessageBufferSize];
+    OS::SNPrint(message_buffer,
+                kMessageBufferSize,
+                "No full snapshot version found, expected '%s'",
+                Version::SnapshotString());
+    const String& msg = String::Handle(String::New(message_buffer));
+    return ApiError::New(msg);
+  }
+
+  const char* version = reinterpret_cast<const char*>(CurrentBufferAddress());
+  ASSERT(version != NULL);
+  if (strncmp(version, expected_version, version_len)) {
+    const intptr_t kMessageBufferSize = 256;
+    char message_buffer[kMessageBufferSize];
+    char* actual_version = strndup(version, version_len);
+    OS::SNPrint(message_buffer,
+                kMessageBufferSize,
+                "Wrong full snapshot version, expected '%s' found '%s'",
+                Version::SnapshotString(),
+                actual_version);
+    free(actual_version);
+    const String& msg = String::Handle(String::New(message_buffer));
+    return ApiError::New(msg);
+  }
+  Advance(version_len);
+  return ApiError::null();
 }
 
 
@@ -1251,7 +1264,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     ReserveHeader();
 
     // Write out the version string.
-    WriteObject(String::New(Version::SnapshotString()));
+    WriteVersion();
 
     // Write out the full snapshot.
     {
@@ -1673,6 +1686,14 @@ void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
 }
 
 
+void SnapshotWriter::WriteVersion() {
+  const char* expected_version = Version::SnapshotString();
+  ASSERT(expected_version != NULL);
+  const intptr_t version_len = strlen(expected_version);
+  WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
+}
+
+
 void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   ASSERT(kind() == Snapshot::kScript);
   Isolate* isolate = Isolate::Current();
@@ -1687,7 +1708,7 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
     ReserveHeader();
 
     // Write out the version string.
-    WriteObject(String::New(Version::SnapshotString()));
+    WriteVersion();
 
     // Write out the library object.
     {

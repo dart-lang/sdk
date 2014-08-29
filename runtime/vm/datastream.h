@@ -98,6 +98,11 @@ class ReadStream : public ValueObject {
     current_ = current_ + value;
   }
 
+  intptr_t PendingBytes() const {
+    ASSERT(end_ >= current_);
+    return (end_ - current_);
+  }
+
  private:
   template<typename T>
   T Read() {

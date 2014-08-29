@@ -223,6 +223,10 @@ class BaseReader {
     stream_.Advance(value);
   }
 
+  intptr_t PendingBytes() const {
+    return stream_.PendingBytes();
+  }
+
   RawSmi* ReadAsSmi();
   intptr_t ReadSmiValue();
 
@@ -276,6 +280,9 @@ class SnapshotReader : public BaseReader {
 
   // Read a script snap shot.
   RawObject* ReadScriptSnapshot();
+
+  // Read version number of snapshot and verify.
+  RawApiError* VerifyVersion();
 
   // Helper functions for creating uninitialized versions
   // of various object types. These are used when reading a
@@ -593,6 +600,9 @@ class SnapshotWriter : public BaseWriter {
     exception_msg_ = msg;
   }
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
+
+  // Write a version string for the snapshot.
+  void WriteVersion();
 
  protected:
   void UnmarkAll() {
