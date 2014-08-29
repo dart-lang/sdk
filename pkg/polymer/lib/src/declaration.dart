@@ -492,7 +492,7 @@ PolymerDeclaration _getDeclaration(String name) => _declarations[name];
 /// Using Polymer's platform/src/ShadowCSS.js passing the style tag's content.
 void _shimShadowDomStyling(DocumentFragment template, String name,
     String extendee) {
-  if (template == null || _ShadowCss == null ||!_hasShadowDomPolyfill) return;
+  if (_ShadowCss == null ||!_hasShadowDomPolyfill) return;
 
   _ShadowCss.callMethod('shimStyling', [template, name, extendee]);
 }
