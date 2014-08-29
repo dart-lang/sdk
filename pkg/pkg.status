@@ -79,6 +79,7 @@ template_binding/test/template_binding_test: Skip  # Times out
 third_party/html5lib/test/tokenizer_test: Skip  # Times out
 barback/test/package_graph/repetition_test: Skip  # Times out
 scheduled_test/test/scheduled_server_test: Pass, Fail, Slow # 13524
+analyzer2dart/*: Pass, Timeout
 
 [ $runtime == vm && ( $arch == simarm || $arch == simmips ) ]
 barback/test/too_many_open_files_test: Skip # 14220
