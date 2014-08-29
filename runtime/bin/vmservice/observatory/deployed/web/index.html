@@ -926,7 +926,7 @@ hr {
       </template>
 
       <template if="{{ isUnexpected(ref) }}">
-        unexpected reference type &lt;{{ ref.serviceType }}&gt;
+        unexpected reference type &lt;{{ ref.vmType }}&gt;
       </template>
 
       <template if="{{ isSentinel(ref) }}">
@@ -961,7 +961,7 @@ hr {
             <template repeat="{{ field in ref['fields'] }}">
               <div class="memberItem">
                 <div class="memberName">
-                  {{ field['decl']['user_name'] }}
+                  {{ field['decl'].name }}
                 </div>
                 <div class="memberValue">
                   <instance-ref ref="{{ field['value'] }}"></instance-ref>
@@ -5576,11 +5576,11 @@ hr {
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
-      <template if="{{ field['owner'].serviceType == 'Class' }}">
+      <template if="{{ field['owner'].type == 'Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
         <class-nav-menu cls="{{ field['owner'] }}"></class-nav-menu>
       </template>
-      <template if="{{ field['owner'].serviceType == 'Library' }}">
+      <template if="{{ field['owner'].type == 'Library' }}">
         <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
       <nav-menu link="{{ field.link }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
@@ -5606,10 +5606,10 @@ hr {
         <div class="memberItem">
           <div class="memberName">owner</div>
           <div class="memberValue">
-            <template if="{{ field['owner'].serviceType == 'Class' }}">
+            <template if="{{ field['owner'].type == 'Class' }}">
               <class-ref ref="{{ field['owner'] }}"></class-ref>
             </template>
-            <template if="{{ field['owner'].serviceType != 'Class' }}">
+            <template if="{{ field['owner'].type != 'Class' }}">
               <library-ref ref="{{ field['owner'] }}"></library-ref>
             </template>
           </div>
@@ -7491,7 +7491,7 @@ hr {
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/processes'))}}">Processess</a>
+          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/processes'))}}">Processes</a>
         </li>
       </ul>
 
@@ -7758,19 +7758,19 @@ hr {
   word-wrap: break-word;
 }
 </style>
-    <template if="{{ ref.serviceType == 'Socket' }}">
+    <template if="{{ ref.type == 'Socket' }}">
       <io-socket-ref ref="{{ ref }}"></io-socket-ref>
     </template>
-    <template if="{{ ref.serviceType == 'HttpServerConnection' }}">
+    <template if="{{ ref.type == 'HttpServerConnection' }}">
       <io-http-server-connection-ref ref="{{ ref }}"></io-http-server-connection-ref>
     </template>
-    <template if="{{ ref.serviceType == 'HttpServer' }}">
+    <template if="{{ ref.type == 'HttpServer' }}">
       <io-http-server-ref ref="{{ ref }}"></io-http-server-ref>
     </template>
-    <template if="{{ ref.serviceType == 'WebSocket' }}">
+    <template if="{{ ref.type == 'WebSocket' }}">
       <io-web-socket-ref ref="{{ ref }}"></io-web-socket-ref>
     </template>
-    <template if="{{ ref.serviceType == 'Process' }}">
+    <template if="{{ ref.type == 'Process' }}">
       <io-process-ref ref="{{ ref }}"></io-process-ref>
     </template>
   </template>

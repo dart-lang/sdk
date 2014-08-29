@@ -12,11 +12,11 @@
     <nav-bar>
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ field.isolate }}"></isolate-nav-menu>
-      <template if="{{ field['owner'].serviceType == 'Class' }}">
+      <template if="{{ field['owner'].type == 'Class' }}">
         <!-- TODO(turnidge): Add library nav menu here. -->
         <class-nav-menu cls="{{ field['owner'] }}"></class-nav-menu>
       </template>
-      <template if="{{ field['owner'].serviceType == 'Library' }}">
+      <template if="{{ field['owner'].type == 'Library' }}">
         <library-nav-menu library="{{ field['owner'] }}"></library-nav-menu>
       </template>
       <nav-menu link="{{ field.link }}" anchor="{{ field.name }}" last="{{ true }}"></nav-menu>
@@ -42,10 +42,10 @@
         <div class="memberItem">
           <div class="memberName">owner</div>
           <div class="memberValue">
-            <template if="{{ field['owner'].serviceType == 'Class' }}">
+            <template if="{{ field['owner'].type == 'Class' }}">
               <class-ref ref="{{ field['owner'] }}"></class-ref>
             </template>
-            <template if="{{ field['owner'].serviceType != 'Class' }}">
+            <template if="{{ field['owner'].type != 'Class' }}">
               <library-ref ref="{{ field['owner'] }}"></library-ref>
             </template>
           </div>

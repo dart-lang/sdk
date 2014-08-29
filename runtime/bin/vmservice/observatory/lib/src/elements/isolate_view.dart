@@ -134,7 +134,7 @@ class IsolateViewElement extends ObservatoryElement {
     return isolate.get("debug/pause").then((result) {
         // TODO(turnidge): Instead of asserting here, handle errors
         // properly.
-        assert(result.serviceType == 'Success');
+        assert(result.type == 'Success');
         return isolate.reload();
       });
   }
@@ -143,7 +143,7 @@ class IsolateViewElement extends ObservatoryElement {
     return isolate.get("resume").then((result) {
         // TODO(turnidge): Instead of asserting here, handle errors
         // properly.
-        assert(result.serviceType == 'Success');
+        assert(result.type == 'Success');
         return isolate.reload();
       });
   }

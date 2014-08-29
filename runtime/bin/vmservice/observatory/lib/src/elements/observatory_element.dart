@@ -113,46 +113,46 @@ class ObservatoryElement extends PolymerElement {
   int parseInt(String value) => int.parse(value);
 
   bool isNull(ref) {
-    return ref != null && ref.serviceType == 'Null';
+    return ref != null && ref.vmType == 'Null';
   }
 
   bool isSentinel(ref) {
-    return ref != null && ref.serviceType == 'Sentinel';
+    return ref != null && ref.vmType == 'Sentinel';
   }
 
   bool isError(ref) {
-    return ref != null && ref.serviceType == 'Error';
+    return ref != null && ref.vmType == 'Error';
   }
 
   bool isInt(ref) {
-    return ref != null && (ref.serviceType == 'Smi' ||
-                           ref.serviceType == 'Mint' ||
-                           ref.serviceType == 'Bigint');
+    return ref != null && (ref.vmType == 'Smi' ||
+                           ref.vmType == 'Mint' ||
+                           ref.vmType == 'Bigint');
   }
 
   bool isBool(ref) {
-    return ref != null && ref.serviceType == 'Bool';
+    return ref != null && ref.vmType == 'Bool';
   }
 
   bool isString(ref) {
-    return ref != null && ref.serviceType == 'String';
+    return ref != null && ref.vmType == 'String';
   }
 
   bool isInstance(ref) {
-    return ref != null && ref.serviceType == 'Instance';
+    return ref != null && ref.vmType == 'Instance';
   }
 
   bool isDouble(ref) {
-    return ref != null && ref.serviceType == 'Double';
+    return ref != null && ref.vmType == 'Double';
   }
 
   bool isList(ref) {
-    return ref != null && (ref.serviceType == 'GrowableObjectArray' ||
-            ref.serviceType == 'Array');
+    return ref != null && (ref.vmType == 'GrowableObjectArray' ||
+            ref.vmType == 'Array');
   }
 
   bool isType(ref) {
-    return ref != null && (ref.serviceType == 'Type');
+    return ref != null && (ref.vmType == 'Type');
   }
 
   bool isUnexpected(ref) {
@@ -169,6 +169,6 @@ class ObservatoryElement extends PolymerElement {
               'GrowableObjectArray',
               'Array',
               'Type',
-              'Error'].contains(ref.serviceType));
+              'Error'].contains(ref.vmType));
   }
 }

@@ -14,7 +14,7 @@ class InstanceRefElement extends ServiceRefElement {
 
   String get hoverText {
     if (ref != null) {
-      if (ref.serviceType == 'Null') {
+      if (ref.type == 'Sentinel') {
         if (ref.id == 'objects/optimized-out') {
           return 'This object is no longer needed and has been removed by the optimizing compiler.';
         } else if (ref.id == 'objects/collected') {

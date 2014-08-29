@@ -30,9 +30,13 @@ abstract class ServiceObject extends Observable {
   @reflectable String get id => _id;
   String _id;
 
-  /// The service type of this object.
-  @reflectable String get serviceType => _serviceType;
-  String _serviceType;
+  /// The user-level type of this object.
+  @reflectable String get type => _type;
+  String _type;
+
+  /// The vm type of this object.
+  @reflectable String get vmType => _vmType;
+  String _vmType;
 
   /// The complete service url of this object.
   @reflectable String get link => _owner.relativeLink(_id);
@@ -133,7 +137,7 @@ abstract class ServiceObject extends Observable {
   Future<ServiceObject> reload() {
     if (id == '') {
       // Errors don't have ids.
-      assert(serviceType == 'Error');
+      assert(type == 'Error');
       return new Future.value(this);
     }
     if (loaded && immutable) {
@@ -142,9 +146,11 @@ abstract class ServiceObject extends Observable {
     if (_inProgressReload == null) {
       _inProgressReload = vm.getAsMap(link).then((ObservableMap map) {
           var mapType = _stripRef(map['type']);
-          if (mapType != _serviceType) {
+          if (mapType != _type) {
             // If the type changes, return a new object instead of
             // updating the existing one.
+            //
+            // TODO(turnidge): Check for vmType changing as well?
             assert(mapType == 'Error' || mapType == 'Null');
             return new ServiceObject._fromMap(owner, map);
           }
@@ -166,7 +172,7 @@ abstract class ServiceObject extends Observable {
     // TODO(turnidge): Make this a ServiceError?
     var mapIsRef = _hasRef(map['type']);
     var mapType = _stripRef(map['type']);
-    assert(_serviceType == null || _serviceType == mapType);
+    assert(_type == null || _type == mapType);
 
     if (_id != null && _id != map['id']) {
       // It is only safe to change an id when the object isn't cacheable.
@@ -174,7 +180,17 @@ abstract class ServiceObject extends Observable {
     }
     _id = map['id'];
 
-    _serviceType = mapType;
+    _type = mapType;
+
+    // When the response specifies a specific vmType, use it.
+    // Otherwise the vmType of the response is the same as the 'user'
+    // type.
+    if (map.containsKey('vmType')) {
+      _vmType = _stripRef(map['vmType']);
+    } else {
+      _vmType = _type;
+    }
+
     _update(map, mapIsRef);
   }
 
@@ -190,7 +206,7 @@ abstract class ServiceObject extends Observable {
 abstract class Coverage {
   // Following getters and functions will be provided by [ServiceObject].
   ServiceObjectOwner get owner;
-  String get serviceType;
+  String get type;
   VM get vm;
   String relativeLink(String id);
 
@@ -204,9 +220,9 @@ abstract class Coverage {
 
   Future refreshCoverage() {
     return vm.getAsMap(relativeLink('coverage')).then((ObservableMap map) {
-      var coverageOwner = (serviceType == 'Isolate') ? this : owner;
+      var coverageOwner = (type == 'Isolate') ? this : owner;
       var coverage = new ServiceObject._fromMap(coverageOwner, map);
-      assert(coverage.serviceType == 'CodeCoverage');
+      assert(coverage.type == 'CodeCoverage');
       var coverageList = coverage['coverage'];
       assert(coverageList != null);
       processCoverageData(coverageList);
@@ -631,7 +647,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void processProfile(ServiceMap profile) {
-    assert(profile.serviceType == 'Profile');
+    assert(profile.type == 'Profile');
     var codeTable = new List<Code>();
     var codeRegions = profile['codes'];
     for (var codeRegion in codeRegions) {
@@ -673,7 +689,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   /// Given the class list, loads each class.
   Future<List<Class>> _loadClasses(ServiceMap classList) {
-    assert(classList.serviceType == 'ClassList');
+    assert(classList.type == 'ClassList');
     var futureClasses = [];
     for (var cls in classList['members']) {
       // Skip over non-class classes.
@@ -774,18 +790,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
     loading = false;
 
     reloadBreakpoints();
-
-    // Remap DebuggerEvent to ServiceEvent so that the observatory can
-    // work against 1.5 vms in the short term.
-    //
-    // TODO(turnidge): Remove this when no longer needed.
-    var pause = map['pauseEvent'];
-    if (pause != null) {
-      if (pause['type'] == 'DebuggerEvent') {
-        pause['type'] = 'ServiceEvent';
-      }
-    }
-
     _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
@@ -1096,9 +1100,9 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   static String objectIdRingPrefix = 'objects/';
 
   bool get canCache {
-    return (_serviceType == 'Class' ||
-            _serviceType == 'Function' ||
-            _serviceType == 'Field') &&
+    return (_type == 'Class' ||
+            _type == 'Function' ||
+            _type == 'Field') &&
            !_id.startsWith(objectIdRingPrefix);
   }
   bool get immutable => false;
@@ -2357,7 +2361,7 @@ class MetricPoller {
 // Convert any ServiceMaps representing a null instance into an actual null.
 _convertNull(obj) {
   if (obj is ServiceMap &&
-      obj.serviceType == 'Null') {
+      obj.type == 'Null') {
     return null;
   }
   return obj;

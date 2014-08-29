@@ -52,7 +52,7 @@
 
       <ul class="list-group">
         <li class="list-group-item">
-          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/processes'))}}">Processess</a>
+          <a on-click="{{ goto }}" _href="{{gotoLink(io.isolate.relativeLink('io/processes'))}}">Processes</a>
         </li>
       </ul>
 
@@ -65,19 +65,19 @@
 <polymer-element name="io-ref" extends="service-ref">
   <template>
     <link rel="stylesheet" href="css/shared.css">
-    <template if="{{ ref.serviceType == 'Socket' }}">
+    <template if="{{ ref.type == 'Socket' }}">
       <io-socket-ref ref="{{ ref }}"></io-socket-ref>
     </template>
-    <template if="{{ ref.serviceType == 'HttpServerConnection' }}">
+    <template if="{{ ref.type == 'HttpServerConnection' }}">
       <io-http-server-connection-ref ref="{{ ref }}"></io-http-server-connection-ref>
     </template>
-    <template if="{{ ref.serviceType == 'HttpServer' }}">
+    <template if="{{ ref.type == 'HttpServer' }}">
       <io-http-server-ref ref="{{ ref }}"></io-http-server-ref>
     </template>
-    <template if="{{ ref.serviceType == 'WebSocket' }}">
+    <template if="{{ ref.type == 'WebSocket' }}">
       <io-web-socket-ref ref="{{ ref }}"></io-web-socket-ref>
     </template>
-    <template if="{{ ref.serviceType == 'Process' }}">
+    <template if="{{ ref.type == 'Process' }}">
       <io-process-ref ref="{{ ref }}"></io-process-ref>
     </template>
   </template>

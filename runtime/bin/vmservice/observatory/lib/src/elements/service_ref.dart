@@ -64,7 +64,7 @@ class AnyServiceRefElement extends ObservatoryElement {
   AnyServiceRefElement.created() : super.created();
 
   Element _constructElementForRef() {
-    var type = ref.serviceType;
+    var type = ref.vmType;
     switch (type) {
       case 'Class':
         ServiceRefElement element = new Element.tag('class-ref');
@@ -115,7 +115,7 @@ class AnyServiceRefElement extends ObservatoryElement {
       Logger.root.info('Viewing null object.');
       return;
     }
-    var type = ref.serviceType;
+    var type = ref.vmType;
     var element = _constructElementForRef();
     if (element == null) {
       Logger.root.info('Unable to find a ref element for \'${type}\'');

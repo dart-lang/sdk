@@ -23,7 +23,7 @@
       </template>
 
       <template if="{{ isUnexpected(ref) }}">
-        unexpected reference type &lt;{{ ref.serviceType }}&gt;
+        unexpected reference type &lt;{{ ref.vmType }}&gt;
       </template>
 
       <template if="{{ isSentinel(ref) }}">
@@ -58,7 +58,7 @@
             <template repeat="{{ field in ref['fields'] }}">
               <div class="memberItem">
                 <div class="memberName">
-                  {{ field['decl']['user_name'] }}
+                  {{ field['decl'].name }}
                 </div>
                 <div class="memberValue">
                   <instance-ref ref="{{ field['value'] }}"></instance-ref>
