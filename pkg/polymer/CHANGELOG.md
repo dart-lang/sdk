@@ -4,6 +4,12 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.13.0+1
+  * Bug fix for http://dartbug.com/18171. Elements that extend other elements
+    but don't have a template will still inherit styles from those elements.
+  * Bug fix for http://dartbug.com/20544. Better runtime logging when attributes
+    are defined on an element but have no corresponding property on the class.
+
 #### Pub version 0.13.0
   * Update to match polymer 0.3.5 ([polymer-dev#5d00e4b][5d00e4b]). There was a
     breaking change in the web_components package where selecting non-rendered 
