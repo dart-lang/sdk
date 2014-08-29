@@ -99,13 +99,13 @@ TODO
 
 ## Catalog of Types
 
-### <a name="atAbstractType"></a>@AbstractType
-
 ### <a name="AbstractType"></a>AbstractType
 
 ### <a name="Breakpoint"></a>Breakpoint
 
 TODO: Get rid of Location or else use it more generally.
+
+Object properties:
 
 | keys | values | comments
 | --- | --- | ---
@@ -116,51 +116,55 @@ TODO: Get rid of Location or else use it more generally.
 | resolved | bool |
 | location | [Location](#Location) |
 
-### <a name="atClass"></a>@Class
+### <a name="Class"></a>Class
+
+Reference properties:
+
 | keys | values | comments
 | --- | --- | ---
-| type | "@Class" |
+| type | "@Class", "Class" |
 | id | String |
 | name | String |
 | vmName? | String |
 
-### <a name="Class"></a>Class
+Object properties:
+
 | keys | values | comments
 | --- | --- | ---
-| type | "@Class" |
-| id | String |
-| name | String |
-| vmName? | String |
 | error? | [Error](#Error) | Error encountered during class finalization
 | implemented | bool |
 | abstract | bool |
 | patch | bool |
 | finalized | bool |
 | const | bool |
-| super? | [@Class](#atClass) | Super class
-| library | [@Library](#atLibrary) | Owning library
-| script? | [@Script](#atScript) | Script containing class source
+| super? | [@Class](#Class) | Super class
+| library | [@Library](#Library) | Owning library
+| script? | [@Script](#Script) | Script containing class source
 | tokenPos? | int | starting token position of class source in script
 | endTokenPos? | int | end token position of class source in script
-| interfaces | List of [@Class](#atClass) | interfaces this class has implemented
-| fields | List of [@Field](#atField) |
-| functions | List of [@Function](#atFunction) |
-| subclasses | List of [@Class](#atClass) | classes which extend this class.
+| interfaces | List of [@Class](#Class) | interfaces this class has implemented
+| fields | List of [@Field](#Field) |
+| functions | List of [@Function](#Function) |
+| subclasses | List of [@Class](#Class) | classes which extend this class.
 | canonicalTypes | [@TypeList] | kill?
 | allocationStats | ClassHeapStats |
 
 ### <a name="ClassHeapStats"></a>ClassHeapStats
+
+Object properties:
+
 | keys | values | comments
 | --- | --- | ---
 | type | "ClassHeapStats" |
 | id | String |
-| class | [@Class](#atClass) |
+| class | [@Class](#Class) |
 | new | List of int | Allocation statistics for new space. See note below on allocation statistics list format.
 | old | List of int | Allocation statistics for old space. See note below on allocation statistics list format.
 | promotedInstances | int | number of instances promoted at last new-space GC.
 | promotedBytes | int | number of bytes promoted at last new-space GC.
 
 *Allocation statistics list format*
+
 | index | value | description
 | --- | --- | --- |
 | 0 | int | Instances allocated before last GC |
@@ -172,24 +176,13 @@ TODO: Get rid of Location or else use it more generally.
 | 6 | int | Instances allocated since last accumulator reset |
 | 7 | int | Bytes allocated since last accumulator reset |
 
-### <a name="atCode"></a>@Code
-| keys | values | comments
-| --- | --- | ---
-| type | "@Code" |
-| id | String |
-| name | String |
-| vmName? | String |
-| start | String | starting address of code
-| end | String | ending address of code
-| isOptimized | bool |
-| isAlive | bool |
-| kind | String
-| function | [@Function](#atFunction) |
-
 ### <a name="Code"></a>Code
+
+Reference properties:
+
 | keys | values | comments
 | --- | --- | ---
-| type | "@Code" |
+| type | "@Code", "Code"|
 | id | String |
 | name | String |
 | vmName? | String |
@@ -198,11 +191,23 @@ TODO: Get rid of Location or else use it more generally.
 | isOptimized | bool |
 | isAlive | bool |
 | kind | String
-| function | [@Function](#atFunction) |
-| object_pool | List of [@Object](Object) |
+| function | [@Function](#Function) |
+
+Object properties:
+
+| keys | values | comments
+| --- | --- | ---
+| start | String | starting address of code
+| end | String | ending address of code
+| isOptimized | bool |
+| isAlive | bool |
+| kind | String
+| function | [@Function](#Function) |
+| object_pool | List of [@Object](#Object) |
 | disassembly | List of String | See note below on disassembly list format
 
 *Disassembly list format*
+
 | index | value | description
 | --- | --- | --- |
 | 0 | String | Address of instruction
@@ -214,18 +219,22 @@ TODO: Get rid of Location or else use it more generally.
 
 ### <a name="DebuggerEvent"></a>DebuggerEvent
 
+Object properties:
+
 | keys | values | comments
 | --- | --- | ---
 | type | "DebuggerEvent" |
 | id | String | TODO: Remove |
-| eventType | String | "BreakpointReached", "BreakpointResolved", "ExceptionThrown", "IsolateCreated", "IsolateShutdown", or "IsolateInterrupted" |
-| isolate | [@Isolate](#atIsolate) |
-| breakpoint? | [Breakpoint](#atBreakpoint) | for eventTypes "BreakpointResolved" and "BreakpointReached<br><br>TODO: Maybe make this @Breakpoint?
-| exception? | [@Instance](#atInstance) | for eventType "ExceptionThrown"
+| eventType | String | "BreakpointReached", "BreakpointResolved", "ExceptionThrown", "IsolateCreated", "IsolateShutdown", "IsolateInterrupted" |
+| isolate | [@Isolate](#Isolate) |
+| breakpoint? | [Breakpoint](#Breakpoint) | for eventTypes "BreakpointResolved" and "BreakpointReached<br><br>TODO: Maybe make this @Breakpoint?
+| exception? | [@Instance](#Instance) | for eventType "ExceptionThrown"
 
 ### <a name="Error"></a>Error
 
-TODO: Drop id from Error.
+TODO: Drop id from Error.<br>
+
+Object properties:
 
 | keys | values | comments
 | --- | --- | ---
@@ -234,192 +243,187 @@ TODO: Drop id from Error.
 | kind | String |
 | message | String |
 
-### <a name="atField"></a>@Field
+### <a name="Field"></a>Field
+
+Reference properties:
+
 | keys | values | comments
 | --- | --- | ---
-| type | "@Field" |
+| type | "@Field", "Field" |
 | id | String |
 | name | String |
 | vmName? | String |
 | value? | Instance | value associated with static field <-- do we want to include this in a field reference?
-| owner | [@Library](#atLibrary),[@Class](#atClass) | Owning library or class <-- handling of owner is inconsistent with Function
-| declared_type | [@AbstractType](#atAbstractType) |
+| owner | [@Library](#Library),[@Class](#Class) | Owning library or class <-- handling of owner is inconsistent with Function
+| declared_type | [@AbstractType](#AbstractType) |
 | static | bool |
 | final | bool |
 | const | bool |
 
-### <a name="Field"></a>Field
+Object properties:
+
 | keys | values | comments
 | --- | --- | ---
-| type | "Field" |
-| id | String |
-| name | String |
-| vmName? | String |
-| value? | Instance | value associated with static field
-| owner | [@Library](#atLibrary) | Owning library <-- handling of owner is inconsistent with Function
-| owner | [@Class](#atClass) | Owning class <-- handling of owner is inconsistent with Function
-| declared_type | [@AbstractType](#atAbstractType) |
-| static | bool |
-| final | bool |
-| const | bool |
 | guard_nullable | bool | can this field hold a null?
-| guard_class | String OR [@Class](#atClass) | "unknown", "dynamic", or a class
+| guard_class | String OR [@Class](#Class) | "unknown", "dynamic", or a class
 | guard_length | String OR int | "unknown", "variable", or length of array
-| script? | [@Script](#atScript) | Script containing field source
+| script? | [@Script](#Script) | Script containing field source
 | tokenPos? | int | starting token position of field source in script
 
 ### <a name="Frame"></a>Frame
 
 TODO: Add type and id?<br>
 
+Object properties:
+
 | keys | values | comments
 | --- | --- | ---
-| script | [@Script](#atScript) |
+| script | [@Script](#Script) |
 | tokenPos | int |
-| function | [@Function](#atFunction) |
-| code | [@Code](#atCode) |
+| function | [@Function](#Function) |
+| code | [@Code](#Code) |
 | vars | List of [FrameVar](#FrameVar) |
 
 ### <a name="FrameVar"></a>FrameVar
 
-| keys | values | comments
-| --- | --- | ---
-| name | String |
-| value | [@Instance](#atInstance) |
+Object properties:
 
-### <a name="atFunction"></a>@Function
 | keys | values | comments
 | --- | --- | ---
-| type | "@Function" |
-| id | String |
 | name | String |
-| vmName? | String |
-| owningLibrary? | [@Library](#atLibrary) | Set for non-top level functions
-| owningClass? | [@Class](#atClass) | Set for non-top level functions
-| parent? | [@Function](#atFunction) | Parent function
-| kind | String |
+| value | [@Instance](#Instance) |
 
 ### <a name="Function"></a>Function
+
+Reference properties:
+
 | keys | values | comments
 | --- | --- | ---
-| type | "@Function" |
+| type | "@Function", "Function" |
 | id | String |
 | name | String |
 | vmName? | String |
-| owningLibrary | [@Library](#atLibrary) | Set for non-top level functions
-| owningClass | [@Class](#atClass) | Set for non-top level functions
-| parent? | [@Function](#atFunction) | Parent function
+| owningLibrary? | [@Library](#Library) | Set for non-top level functions
+| owningClass? | [@Class](#Class) | Set for non-top level functions
+| parent? | [@Function](#Function) | Parent function
 | kind | String |
-| static | bool |
+
+Object properties:
+
+| keys | values | comments
+| --- | --- | ---
+| static | bool | TODO: not consistent with Field 
 | const | bool |
 | optimizable | bool |
 | inlinable | bool |
 | usage_counter | int |
 | optimized_call_site_count | int |
 | deoptimizations | int |
-| script? | [@Script](#atScript) | Script containing function source
+| script? | [@Script](#Script) | Script containing function source
 | tokenPos? | int | starting token position of function source in script
 | endTokenPos? | int | end token position of function source in script
-| unoptimized_code | [@Code](#atCode) |
-| code | [@Code](#atCode) | Current code
+| unoptimized_code | [@Code](#Code) |
+| code | [@Code](#Code) | Current code
 
-### <a name="atIsolate"></a>@Isolate
+### <a name="Isolate"></a>Isolate
+
+Reference properties:
 
 | keys | values | comments
 | --- | --- | ---
-| type | "@Isolate" |
+| type | "@Isolate", "Isolate" |
 | id | String |
 | mainPort | String | kill? |
 | name | String |
 
-### Isolate
+Object properties:
 
 | keys | values | comments
 | --- | --- | ---
-| type | "Isolate" |
-| id | String |
-| mainPort | String | kill? |
-| name | String |
-| entry? | [@Function](#atFunction) |
+| entry? | [@Function](#Function) |
 | heaps | ??? |
 | topFrame? | [Frame](#Frame) |
 | livePorts | int |
 | pauseOnExit | bool |
 | pauseEvent? | [DebuggerEvent](#DebuggerEvent) |
-| rootLib | [@Library](#atLibrary) |
+| rootLib | [@Library](#Library) |
 | timers | ??? |
 | tagCounters | ??? |
 | error? | [Error](#Error) |
 | canonicalTypeArguments | | kill? |
-| libs | List of [@Library](#atLibrary) |
+| libs | List of [@Library](#Library) |
 | features | List of String |
 
-### <a name="atLibrary"></a>@Library
+### <a name="Library"></a>Library
+
+Reference properties:
 
 | keys | values | comments
 | --- | --- | ---
-| type | "@Library" |
+| type | "@Library", "Library" |
 | id | String |
 | name | String |
 | vmName? | String | Internal vm name.  Provided only when different from 'name'.
 | url | String
 
-### <a name="Library"></a>Library
+Object properties:
 
 | keys | values | comments
 | --- | --- | ---
-| type | "Library" |
-| id | String |
-| name | String |
-| vmName? | String | Internal vm name.  Provided only when different from 'name'.
-| classes | List of [@Class](#atClass) |
-| imports | List of [@Library](#atLibrary) |
+| classes | List of [@Class](#Class) |
+| imports | List of [@Library](#Library) |
 | variables | List of ... |
-| functions | List of [@Function](#atFunction) |
-| scripts | List of [@Script](#atScript) |
+| functions | List of [@Function](#Function) |
+| scripts | List of [@Script](#Script) |
 
 ### <a name="Location"></a>Location
+
+Object properties:
 
 | keys | values | comments
 | --- | --- | ---
 | type | "Location" |
-| script | [@Script](#atScript) |
+| script | [@Script](#Script) |
 | tokenPos | int |
 
-### <a name="@Null"></a>@Null
+### <a name="Null"></a>Null
 
-TODO: Split Null from the other Sentinel types.
+Reference properties:
 
 | keys | values | comments
 | --- | --- | ---
-| type | "@Null" |
+| type | "@Null", "Null" |
 | id | String | |
 | valueAsString | String |
 
+Object properties:<br>
+
+TODO.
+
 ### <a name="PcDescriptor"></a>PcDescriptor
 
-### <a name="atScript"></a>@Script
+### <a name="Script"></a>Script
+
+Reference properties:
+
 | keys | values | comments | example |
 | --- | --- | ---
-| type | "@Script" |
+| type | "@Script", "Script" |
 | id | String
 | name | String
 | vmName? | String | Internal vm name.  Provided only when different from 'name'.
 | kind | String
 
-### <a name="Script"></a>Script
+Object properties:
+
 | keys | values | comments
 | --- | --- | ---
-| type | "@Script" |
-| id | String
-| name | String
-| vmName? | String | Internal vm name.  Provided only when different from 'name'.
-| kind | String
-| owningLibrary | [@Library](#atLibrary) |
+| owningLibrary | [@Library](#Library)
 | source | String
 | tokenPosTable | List of list of int. See note below about token line format.
 
 *Token line format*
+
 | index | value | comments
 | --- | --- | ---
 | 0   | int | line number
@@ -431,8 +435,10 @@ TODO: Split Null from the other Sentinel types.
 
 ### <a name="Sentinel"></a>Sentinel
 
-TODO: Enumerate known Sentinels
-TODO: Should this even have an id?  Maybe a *kind* instead.
+TODO: Enumerate known Sentinels<br>
+TODO: Should this even have an id?  Maybe a *kind* instead.<br><br>
+
+Object properties:
 
 | keys | values | comments
 | --- | --- | ---
@@ -441,6 +447,8 @@ TODO: Should this even have an id?  Maybe a *kind* instead.
 | valueAsString | String |
 
 ### <a name="VM"></a>VM
+
+Object properties:
 
 | keys | values | comments
 | --- | --- | ---
@@ -454,5 +462,5 @@ TODO: Should this even have an id?  Maybe a *kind* instead.
 | assertsEnabled | bool | TODO: move to features? |
 | typeChecksEnabled | bool | TODO: move to features? |
 | uptime | double | seconds since vm started |
-| "isolates"    | List of [@Isolate](#atIsolate)  |
+| "isolates"    | List of [@Isolate](#Isolate)  |
 
