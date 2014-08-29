@@ -1577,7 +1577,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       if (constant.IsSmi() && (Smi::Cast(constant).Value() == 0)) {
         __ xorl(destination.reg(), destination.reg());
       } else if (constant.IsSmi() &&
-          source.constant_instruction()->representation() == kUnboxedInt32) {
+          (source.constant_instruction()->representation() == kUnboxedInt32)) {
         __ movl(destination.reg(), Immediate(Smi::Cast(constant).Value()));
       } else {
         __ LoadObjectSafely(destination.reg(), constant);
@@ -1614,7 +1614,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       ASSERT(destination.IsStackSlot());
       const Object& constant = source.constant();
       if (constant.IsSmi() &&
-          source.constant_instruction()->representation() == kUnboxedInt32) {
+          (source.constant_instruction()->representation() == kUnboxedInt32)) {
         __ movl(destination.ToStackSlotAddress(),
                 Immediate(Smi::Cast(constant).Value()));
       } else {

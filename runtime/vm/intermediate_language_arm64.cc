@@ -2487,7 +2487,7 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
                                         Range* range,
                                         Label* overflow,
                                         Register result) {
-  if (!range->IsWithin(-0x20000000000000LL, 0x20000000000000LL)) {
+  if (!RangeUtils::IsWithin(range, -0x20000000000000LL, 0x20000000000000LL)) {
     ASSERT(overflow != NULL);
     __ LoadImmediate(TMP, 0x20000000000000LL, PP);
     __ add(TMP2, result, Operand(TMP));
@@ -2556,8 +2556,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, max_right - 1);
+          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
       if (right_needs_check) {
         __ CompareImmediate(right,
             reinterpret_cast<int64_t>(Smi::New(max_right)), PP);
@@ -2573,7 +2572,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+      !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
   if (is_truncating) {
     if (right_needs_check) {
       const bool right_may_be_negative =

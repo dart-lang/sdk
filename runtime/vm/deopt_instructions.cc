@@ -1133,11 +1133,11 @@ void DeoptInfoBuilder::AddCopy(Value* value,
       }
       case kUnboxedInt32:
         deopt_instr = new(isolate()) DeoptInt32Instr(
-          ToCpuRegisterSource(source_loc));
+            ToCpuRegisterSource(source_loc));
         break;
       case kUnboxedUint32:
         deopt_instr = new(isolate()) DeoptUint32Instr(
-          ToCpuRegisterSource(source_loc));
+            ToCpuRegisterSource(source_loc));
         break;
       case kUnboxedDouble:
         deopt_instr = new(isolate()) DeoptDoubleInstr(

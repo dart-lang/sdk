@@ -2712,8 +2712,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, max_right - 1);
+          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
       if (right_needs_check) {
         __ cmpl(right,
             Immediate(reinterpret_cast<int32_t>(Smi::New(max_right))));
@@ -2726,7 +2725,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+      !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
   ASSERT(right == ECX);  // Count must be in ECX
   if (is_truncating) {
     if (right_needs_check) {
@@ -5994,8 +5993,8 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
 static const intptr_t kMintShiftCountLimit = 63;
 
 bool ShiftMintOpInstr::has_shift_count_check() const {
-  return (right()->definition()->range() == NULL)
-      || !right()->definition()->range()->IsWithin(0, kMintShiftCountLimit);
+  return !RangeUtils::IsWithin(
+      right()->definition()->range(), 0, kMintShiftCountLimit);
 }
 
 

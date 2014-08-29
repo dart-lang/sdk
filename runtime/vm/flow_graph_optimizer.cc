@@ -4625,37 +4625,37 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 // Smi widening pass is only meaningful on platforms where Smi
 // is smaller than 32bit. For now only support it on ARM and ia32.
 
-class DefinitionWorklist {
+class DefinitionWorklist : public ValueObject {
  public:
   DefinitionWorklist(FlowGraph* flow_graph,
                      intptr_t initial_capacity)
       : defs_(initial_capacity),
-        contains_(new BitVector(flow_graph->current_ssa_temp_index())) {
+        contains_vector_(new BitVector(flow_graph->current_ssa_temp_index())) {
   }
 
   void Add(Definition* defn) {
     if (!Contains(defn)) {
       defs_.Add(defn);
-      contains_->Add(defn->ssa_temp_index());
+      contains_vector_->Add(defn->ssa_temp_index());
     }
   }
 
   bool Contains(Definition* defn) const {
     return (defn->ssa_temp_index() >= 0) &&
-        contains_->Contains(defn->ssa_temp_index());
+        contains_vector_->Contains(defn->ssa_temp_index());
   }
 
   const GrowableArray<Definition*>& definitions() const { return defs_; }
-  BitVector* contains() const { return contains_; }
+  BitVector* contains_vector() const { return contains_vector_; }
 
   void Clear() {
     defs_.TruncateTo(0);
-    contains_->Clear();
+    contains_vector_->Clear();
   }
 
  private:
   GrowableArray<Definition*> defs_;
-  BitVector* contains_;
+  BitVector* contains_vector_;
 };
 
 
@@ -4694,7 +4694,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
          !instr_it.Done();
          instr_it.Advance()) {
       BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
-      if (smi_op != NULL &&
+      if ((smi_op != NULL) &&
           BenefitsFromWidening(smi_op) &&
           CanBeWidened(smi_op)) {
         candidates.Add(smi_op);
@@ -4702,7 +4702,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
     }
   }
 
-  if (candidates.length() == 0) {
+  if (candidates.is_empty()) {
     return;
   }
 
@@ -4777,7 +4777,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
         if (input->IsBinarySmiOp() &&
             CanBeWidened(input->AsBinarySmiOp())) {
           worklist.Add(input);
-        } else if (input->IsPhi() && input->Type()->ToCid() == kSmiCid) {
+        } else if (input->IsPhi() && (input->Type()->ToCid() == kSmiCid)) {
           worklist.Add(input);
         } else if (input->IsBinaryMintOp()) {
           // Mint operation produces untagged result. We avoid tagging.
@@ -4844,7 +4844,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
       }
     }
 
-    processed->AddAll(worklist.contains());
+    processed->AddAll(worklist.contains_vector());
 
     if (FLAG_trace_smi_widening) {
       OS::Print("~ %s gain %" Pd "\n", op->ToCString(), gain);

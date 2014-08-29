@@ -425,10 +425,6 @@ class Range : public ZoneAllocated {
            !max().UpperBound().Overflowed(size);
   }
 
-  static bool Fits(Range* range, RangeBoundary::RangeSize size) {
-    return !IsUnknown(range) && range->Fits(size);
-  }
-
   // Clamp this to be within size.
   void Clamp(RangeBoundary::RangeSize size);
 
@@ -482,6 +478,18 @@ class Range : public ZoneAllocated {
  private:
   RangeBoundary min_;
   RangeBoundary max_;
+};
+
+
+class RangeUtils : public AllStatic  {
+ public:
+  static bool Fits(Range* range, RangeBoundary::RangeSize size) {
+    return !Range::IsUnknown(range) && range->Fits(size);
+  }
+
+  static bool IsWithin(Range* range, int64_t min, int64_t max) {
+    return !Range::IsUnknown(range) && range->IsWithin(min, max);
+  }
 };
 
 

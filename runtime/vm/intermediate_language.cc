@@ -1171,8 +1171,8 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 
 bool UnboxedIntConverterInstr::CanDeoptimize() const {
   return (to() == kUnboxedInt32) &&
-      !Range::Fits(value()->definition()->range(),
-                   RangeBoundary::kRangeBoundaryInt32);
+      !RangeUtils::Fits(value()->definition()->range(),
+                        RangeBoundary::kRangeBoundaryInt32);
 }
 
 
@@ -1181,8 +1181,8 @@ bool UnboxInt32Instr::CanDeoptimize() const {
   if (value_cid == kSmiCid) {
     return false;
   } else if (value_cid == kMintCid) {
-    return !Range::Fits(value()->definition()->range(),
-                        RangeBoundary::kRangeBoundaryInt32);
+    return !RangeUtils::Fits(value()->definition()->range(),
+                             RangeBoundary::kRangeBoundaryInt32);
   } else {
     return true;
   }
@@ -1711,7 +1711,7 @@ Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
 
 bool BoxIntNInstr::ValueFitsSmi() const {
   Range* range = value()->definition()->range();
-  return Range::Fits(range, RangeBoundary::kRangeBoundarySmi);
+  return RangeUtils::Fits(range, RangeBoundary::kRangeBoundarySmi);
 }
 
 
