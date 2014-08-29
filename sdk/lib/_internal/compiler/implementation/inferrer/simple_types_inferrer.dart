@@ -990,6 +990,15 @@ class SimpleTypeInferrerVisitor<T>
         analyzeSuperConstructorCall(element, arguments);
       }
     }
+    // If we are looking at a new expression on a forwarding factory,
+    // we have to forward the call to the effective target of the
+    // factory.
+    if (element.isFactoryConstructor) {
+      ConstructorElement constructor = element;
+      if (constructor.isRedirectingFactory) {
+        element = constructor.effectiveTarget.implementation;
+      }
+    }
     if (element.isForeign(compiler.backend)) {
       return handleForeignSend(node);
     }
@@ -1126,6 +1135,8 @@ class SimpleTypeInferrerVisitor<T>
                      Selector selector,
                      Element element,
                      ArgumentsTypes arguments) {
+    assert(!element.isFactoryConstructor ||
+           !(element as ConstructorElement).isRedirectingFactory);
     // Erroneous elements may be unresolved, for example missing getters.
     if (Elements.isUnresolved(element)) return types.dynamicType;
     // TODO(herhut): should we follow redirecting constructors here? We would
