@@ -500,7 +500,7 @@ RawApiError* SnapshotReader::VerifyVersion() {
   if (strncmp(version, expected_version, version_len)) {
     const intptr_t kMessageBufferSize = 256;
     char message_buffer[kMessageBufferSize];
-    char* actual_version = strndup(version, version_len);
+    char* actual_version = OS::StrNDup(version, version_len);
     OS::SNPrint(message_buffer,
                 kMessageBufferSize,
                 "Wrong full snapshot version, expected '%s' found '%s'",
