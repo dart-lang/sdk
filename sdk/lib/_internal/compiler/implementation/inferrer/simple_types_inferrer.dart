@@ -480,7 +480,18 @@ class SimpleTypeInferrerVisitor<T>
     FunctionSignature signature = function.functionSignature;
     signature.forEachOptionalParameter((ParameterElement element) {
       ast.Expression defaultValue = element.initializer;
-      T type = (defaultValue == null) ? types.nullType : visit(defaultValue);
+      // If this is a default value from a different context (because
+      // the current function is synthetic, e.g., a constructor from
+      // a mixin application), we have to start a new inferrer visitor
+      // with the correct context.
+      // TODO(johnniwinther): Remove once function signatures are fixed.
+      SimpleTypeInferrerVisitor visitor = this;
+      if (element.enclosingElement != analyzedElement) {
+        visitor = new SimpleTypeInferrerVisitor(element.enclosingElement,
+            compiler, inferrer);
+      }
+      T type =
+          (defaultValue == null) ? types.nullType : visitor.visit(defaultValue);
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
