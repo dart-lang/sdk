@@ -191,7 +191,7 @@ RawObject* SnapshotReader::ReadObject() {
   // Setup for long jump in case there is an exception while reading.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Object& obj = Object::Handle(ReadObjectImpl());
+    PassiveObject& obj = PassiveObject::Handle(isolate(), ReadObjectImpl());
     for (intptr_t i = 0; i < backward_references_.length(); i++) {
       if (!backward_references_[i].is_deserialized()) {
         ReadObjectImpl();

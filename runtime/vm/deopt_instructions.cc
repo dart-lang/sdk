@@ -337,8 +337,8 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
 RawArray* DeoptContext::DestFrameAsArray() {
   ASSERT(dest_frame_ != NULL && dest_frame_is_allocated_);
   const Array& dest_array =
-      Array::Handle(Array::New(dest_frame_size_));
-  Object& obj = Object::Handle();
+      Array::Handle(isolate(), Array::New(dest_frame_size_));
+  PassiveObject& obj = PassiveObject::Handle(isolate());
   for (intptr_t i = 0; i < dest_frame_size_; i++) {
     obj = reinterpret_cast<RawObject*>(dest_frame_[i]);
     dest_array.SetAt(i, obj);
@@ -431,7 +431,7 @@ class DeoptConstantInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    const Object& obj = Object::Handle(
+    const PassiveObject& obj = PassiveObject::Handle(
         deopt_context->isolate(), deopt_context->ObjectAt(object_table_index_));
     *reinterpret_cast<RawObject**>(dest_addr) = obj.raw();
   }

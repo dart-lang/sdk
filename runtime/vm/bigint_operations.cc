@@ -222,7 +222,8 @@ RawBigint* BigintOperations::NewFromDouble(double d, Heap::Space space) {
   if (internals.IsSpecial()) {
     const Array& exception_arguments = Array::Handle(Array::New(1));
     exception_arguments.SetAt(
-        0, Object::Handle(String::New("BigintOperations::NewFromDouble")));
+        0,
+        PassiveObject::Handle(String::New("BigintOperations::NewFromDouble")));
     Exceptions::ThrowByType(Exceptions::kInternalError, exception_arguments);
   }
   uint64_t significand = internals.Significand();

@@ -13101,15 +13101,13 @@ RawObject* Instance::Evaluate(const String& expr,
   const Function& eval_func =
       Function::Handle(EvaluateHelper(cls, expr, param_names, false));
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
-  Object& param = Object::Handle();
+  PassiveObject& param = PassiveObject::Handle();
   args.SetAt(0, *this);
   for (intptr_t i = 0; i < param_values.Length(); i++) {
     param = param_values.At(i);
     args.SetAt(i + 1, param);
   }
-  const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(eval_func, args));
-  return result.raw();
+  return DartEntry::InvokeFunction(eval_func, args);
 }
 
 
@@ -13340,9 +13338,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 bool Instance::OperatorEquals(const Instance& other) const {
   // TODO(koda): Optimize for all builtin classes and all classes
   // that do not override operator==.
-  const Object& result =
-      Object::Handle(DartLibraryCalls::Equals(*this, other));
-  return result.raw() == Object::bool_true().raw();
+  return DartLibraryCalls::Equals(*this, other) == Object::bool_true().raw();
 }
 
 
@@ -18121,15 +18117,17 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
 RawArray* Array::Grow(const Array& source,
                       intptr_t new_length,
                       Heap::Space space) {
-  const Array& result = Array::Handle(Array::New(new_length, space));
+  Isolate* isolate = Isolate::Current();
+  const Array& result = Array::Handle(isolate, Array::New(new_length, space));
   intptr_t len = 0;
   if (!source.IsNull()) {
     len = source.Length();
-    result.SetTypeArguments(TypeArguments::Handle(source.GetTypeArguments()));
+    result.SetTypeArguments(
+        TypeArguments::Handle(isolate, source.GetTypeArguments()));
   }
   ASSERT(new_length >= len);  // Cannot copy 'source' into new array.
   ASSERT(new_length != len);  // Unnecessary copying of array.
-  Object& obj = Object::Handle();
+  PassiveObject& obj = PassiveObject::Handle(isolate);
   for (int i = 0; i < len; i++) {
     obj = source.At(i);
     result.SetAt(i, obj);
@@ -18249,7 +18247,7 @@ RawObject* GrowableObjectArray::RemoveLast() const {
   ASSERT(Length() > 0);
   intptr_t index = Length() - 1;
   const Array& contents = Array::Handle(data());
-  const Object& obj = Object::Handle(contents.At(index));
+  const PassiveObject& obj = PassiveObject::Handle(contents.At(index));
   contents.SetAt(index, Object::null_object());
   SetLength(index);
   return obj.raw();
@@ -18411,9 +18409,12 @@ void LinkedHashMap::InsertOrUpdate(const Object& key,
 RawObject* LinkedHashMap::LookUp(const Object& key) const {
   ASSERT(!IsNull());
   EnumIndexDefaultMap map(data());
-  const Object& result = Object::Handle(map.GetOrNull(key));
-  ASSERT(map.Release().raw() == data());
-  return result.raw();
+  {
+    NoGCScope no_gc;
+    RawObject* result = map.GetOrNull(key);
+    ASSERT(map.Release().raw() == data());
+    return result;
+  }
 }
 
 
@@ -18430,7 +18431,7 @@ RawObject* LinkedHashMap::Remove(const Object& key) const {
   ASSERT(!IsNull());
   EnumIndexDefaultMap map(data());
   // TODO(koda): Make 'Remove' also return the old value.
-  const Object& result = Object::Handle(map.GetOrNull(key));
+  const PassiveObject& result = PassiveObject::Handle(map.GetOrNull(key));
   if (map.Remove(key)) {
     SetModified();
   }
@@ -19106,15 +19107,16 @@ void Stacktrace::Append(const Array& code_list,
 
   // Grow the arrays for code, pc_offset pairs to accommodate the new stack
   // frames.
-  Array& code_array = Array::Handle(raw_ptr()->code_array_);
-  Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
+  Isolate* isolate = Isolate::Current();
+  Array& code_array = Array::Handle(isolate, raw_ptr()->code_array_);
+  Array& pc_offset_array = Array::Handle(isolate, raw_ptr()->pc_offset_array_);
   code_array = Array::Grow(code_array, new_length);
   pc_offset_array = Array::Grow(pc_offset_array, new_length);
   set_code_array(code_array);
   set_pc_offset_array(pc_offset_array);
   // Now append the new function and code list to the existing arrays.
   intptr_t j = start_index;
-  Object& obj = Object::Handle();
+  PassiveObject& obj = PassiveObject::Handle(isolate);
   for (intptr_t i = old_length; i < new_length; i++, j++) {
     obj = code_list.At(j);
     code_array.SetAt(i, obj);

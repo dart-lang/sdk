@@ -1986,7 +1986,7 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
   }
 
   *negated = false;
-  Object& constant = Object::Handle();
+  PassiveObject& constant = PassiveObject::Handle();
   Value* other = NULL;
   if (compare->right()->BindsToConstant()) {
     constant = compare->right()->BoundConstant().raw();

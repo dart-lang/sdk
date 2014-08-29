@@ -265,8 +265,10 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   const Context& ctx = Context::CheckedHandle(arguments.ArgAt(0));
   Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));
   cloned_ctx.set_parent(Context::Handle(ctx.parent()));
+  Instance& inst = Instance::Handle(isolate);
   for (int i = 0; i < ctx.num_variables(); i++) {
-    cloned_ctx.SetAt(i, Instance::Handle(ctx.At(i)));
+    inst = ctx.At(i);
+    cloned_ctx.SetAt(i, inst);
   }
   arguments.SetReturn(cloned_ctx);
 }
