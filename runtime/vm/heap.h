@@ -33,6 +33,7 @@ class Heap {
     kNew,
     kOld,
     kCode,
+    kPretenured,
   };
 
   enum WeakSelector {
@@ -78,6 +79,8 @@ class Heap {
         return AllocateOld(size, HeapPage::kData);
       case kCode:
         return AllocateOld(size, HeapPage::kExecutable);
+      case kPretenured:
+        return AllocatePretenured(size);
       default:
         UNREACHABLE();
     }
@@ -236,6 +239,8 @@ class Heap {
 
   Isolate* isolate() const { return isolate_; }
 
+  bool ShouldPretenure(intptr_t class_id) const;
+
  private:
   class GCStats : public ValueObject {
    public:
@@ -275,12 +280,14 @@ class Heap {
 
   uword AllocateNew(intptr_t size);
   uword AllocateOld(intptr_t size, HeapPage::PageType type);
+  uword AllocatePretenured(intptr_t size);
 
   // GC stats collection.
   void RecordBeforeGC(Space space, GCReason reason);
   void RecordAfterGC();
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
+  void UpdatePretenurePolicy();
 
   // If this heap is non-empty, updates start and end to the smallest range that
   // contains both the original [start, end) and the [lowest, highest) addresses
@@ -304,6 +311,8 @@ class Heap {
 
   // GC on the heap is in progress.
   bool gc_in_progress_;
+
+  int pretenure_policy_;
 
   friend class GCEvent;
   friend class GCTestHelper;

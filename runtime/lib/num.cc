@@ -11,7 +11,9 @@ namespace dart {
 
 DEFINE_NATIVE_ENTRY(Num_toString, 1) {
   const Number& number = Number::CheckedHandle(arguments->NativeArgAt(0));
-  return number.ToString(Heap::kNew);
+  Heap::Space space = isolate->heap()->ShouldPretenure(kOneByteStringCid) ?
+      Heap::kPretenured : Heap::kNew;
+  return number.ToString(space);
 }
 
 }  // namespace dart

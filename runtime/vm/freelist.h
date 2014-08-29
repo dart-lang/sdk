@@ -92,12 +92,15 @@ class FreeList {
   uword TryAllocateLocked(intptr_t size, bool is_protected);
   void FreeLocked(uword addr, intptr_t size);
 
+  // Returns a large element, at least 'minimum_size', or NULL if none exists.
+  FreeListElement* TryAllocateLarge(intptr_t minimum_size);
+
  private:
   static const int kNumLists = 128;
 
   static intptr_t IndexForSize(intptr_t size);
 
-  intptr_t Length(int index) const;
+  intptr_t LengthLocked(int index) const;
 
   void EnqueueElement(FreeListElement* element, intptr_t index);
   FreeListElement* DequeueElement(intptr_t index);

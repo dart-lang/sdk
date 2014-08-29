@@ -303,6 +303,9 @@ class PageSpace {
     tasks_ = val;
   }
 
+  // Attempt to allocate from bump block rather than normal freelist.
+  uword TryAllocateDataBump(intptr_t size, GrowthPolicy growth_policy);
+
  private:
   // Ids for time and data records in Heap::GCStats.
   enum {
@@ -325,6 +328,10 @@ class PageSpace {
                             GrowthPolicy growth_policy,
                             bool is_protected,
                             bool is_locked);
+  uword TryAllocateInFreshPage(intptr_t size,
+                               HeapPage::PageType type,
+                               GrowthPolicy growth_policy,
+                               bool is_locked);
   HeapPage* AllocatePage(HeapPage::PageType type);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
@@ -357,6 +364,11 @@ class PageSpace {
   HeapPage* exec_pages_;
   HeapPage* exec_pages_tail_;
   HeapPage* large_pages_;
+
+  // A block of memory in a data page, managed by bump allocation. The remainder
+  // is kept formatted as a FreeListElement, but is not in any freelist.
+  uword bump_top_;
+  uword bump_end_;
 
   // Various sizes being tracked for this generation.
   intptr_t max_capacity_in_words_;

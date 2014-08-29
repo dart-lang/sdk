@@ -19,7 +19,7 @@ DEFINE_FLAG(int, heap_growth_space_ratio, 20,
             "The desired maximum percentage of free space after GC");
 DEFINE_FLAG(int, heap_growth_time_ratio, 3,
             "The desired maximum percentage of time spent in GC");
-DEFINE_FLAG(int, heap_growth_rate, 256,
+DEFINE_FLAG(int, heap_growth_rate, 280,
             "The max number of pages the heap can grow at a time");
 DEFINE_FLAG(bool, print_free_list_before_gc, false,
             "Print free list statistics before a GC");
@@ -35,6 +35,7 @@ DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
 DEFINE_FLAG(bool, concurrent_sweep, false,
             "Concurrent sweep for old generation.");
+DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
@@ -129,6 +130,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       exec_pages_(NULL),
       exec_pages_tail_(NULL),
       large_pages_(NULL),
+      bump_top_(0),
+      bump_end_(0),
       max_capacity_in_words_(max_capacity_in_words),
       tasks_lock_(new Monitor()),
       tasks_(0),
@@ -281,6 +284,39 @@ void PageSpace::FreePages(HeapPage* pages) {
 }
 
 
+uword PageSpace::TryAllocateInFreshPage(intptr_t size,
+                                        HeapPage::PageType type,
+                                        GrowthPolicy growth_policy,
+                                        bool is_locked) {
+  ASSERT(size < kAllocatablePageSize);
+  uword result = 0;
+  SpaceUsage after_allocation = usage_;
+  after_allocation.used_in_words += size >> kWordSizeLog2;
+  // Can we grow by one page?
+  after_allocation.capacity_in_words += kPageSizeInWords;
+  if ((growth_policy == kForceGrowth ||
+       !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
+      CanIncreaseCapacityInWords(kPageSizeInWords)) {
+    HeapPage* page = AllocatePage(type);
+    ASSERT(page != NULL);
+    // Start of the newly allocated page is the allocated object.
+    result = page->object_start();
+    usage_ = after_allocation;
+    // Enqueue the remainder in the free list.
+    uword free_start = result + size;
+    intptr_t free_size = page->object_end() - free_start;
+    if (free_size > 0) {
+      if (is_locked) {
+        freelist_[type].FreeLocked(free_start, free_size);
+      } else {
+        freelist_[type].Free(free_start, free_size);
+      }
+    }
+  }
+  return result;
+}
+
+
 uword PageSpace::TryAllocateInternal(intptr_t size,
                             HeapPage::PageType type,
                             GrowthPolicy growth_policy,
@@ -289,8 +325,6 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
-  SpaceUsage after_allocation = usage_;
-  after_allocation.used_in_words += size >> kWordSizeLog2;
   if (size < kAllocatablePageSize) {
     if (is_locked) {
       result = freelist_[type].TryAllocateLocked(size, is_protected);
@@ -298,26 +332,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       result = freelist_[type].TryAllocate(size, is_protected);
     }
     if (result == 0) {
-      // Can we grow by one page?
-      after_allocation.capacity_in_words += kPageSizeInWords;
-      if ((!page_space_controller_.NeedsGarbageCollection(after_allocation) ||
-           growth_policy == kForceGrowth) &&
-          CanIncreaseCapacityInWords(kPageSizeInWords)) {
-        HeapPage* page = AllocatePage(type);
-        ASSERT(page != NULL);
-        // Start of the newly allocated page is the allocated object.
-        result = page->object_start();
-        // Enqueue the remainder in the free list.
-        uword free_start = result + size;
-        intptr_t free_size = page->object_end() - free_start;
-        if (free_size > 0) {
-          if (is_locked) {
-            freelist_[type].FreeLocked(free_start, free_size);
-          } else {
-            freelist_[type].Free(free_start, free_size);
-          }
-        }
-      }
+      result = TryAllocateInFreshPage(size, type, growth_policy, is_locked);
     }
   } else {
     // Large page allocation.
@@ -326,18 +341,20 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       // On overflow we fail to allocate.
       return 0;
     }
+    SpaceUsage after_allocation = usage_;
+    after_allocation.used_in_words += size >> kWordSizeLog2;
     after_allocation.capacity_in_words += page_size_in_words;
-    if ((!page_space_controller_.NeedsGarbageCollection(after_allocation) ||
-         growth_policy == kForceGrowth) &&
+    if ((growth_policy == kForceGrowth ||
+         !page_space_controller_.NeedsGarbageCollection(after_allocation)) &&
         CanIncreaseCapacityInWords(page_size_in_words)) {
       HeapPage* page = AllocateLargePage(size, type);
       if (page != NULL) {
         result = page->object_start();
+        usage_ = after_allocation;
       }
     }
   }
   if (result != 0) {
-    usage_ = after_allocation;
     if (FLAG_compiler_stats && (type == HeapPage::kExecutable)) {
       CompilerStats::code_allocated += size;
     }
@@ -628,7 +645,9 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   int64_t mid1 = OS::GetCurrentTimeMicros();
 
-  // Reset the bump allocation page to unused.
+  // Abandon the remainder of the bump allocation block.
+  bump_top_ = 0;
+  bump_end_ = 0;
   // Reset the freelists and setup sweeping.
   freelist_[HeapPage::kData].Reset();
   freelist_[HeapPage::kExecutable].Reset();
@@ -735,6 +754,44 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 }
 
 
+uword PageSpace::TryAllocateDataBump(intptr_t size,
+                                     GrowthPolicy growth_policy) {
+  ASSERT(size >= kObjectAlignment);
+  ASSERT(Utils::IsAligned(size, kObjectAlignment));
+  intptr_t remaining = bump_end_ - bump_top_;
+  if (remaining < size) {
+    // Checking this first would be logical, but needlessly slow.
+    if (size >= kAllocatablePageSize) {
+      return TryAllocate(size, HeapPage::kData, growth_policy);
+    }
+    FreeListElement* block = freelist_[HeapPage::kData].TryAllocateLarge(size);
+    if (block == NULL) {
+      // Allocating from a new page (if growth policy allows) will have the
+      // side-effect of populating the freelist with a large block. The next
+      // bump allocation request will have a chance to consume that block.
+      // TODO(koda): Could take freelist lock just once instead of twice.
+      return TryAllocateInFreshPage(size,
+                                    HeapPage::kData,
+                                    growth_policy,
+                                    /* is_locked = */ false);
+    }
+    intptr_t block_size = block->Size();
+    bump_top_ = reinterpret_cast<uword>(block);
+    bump_end_ = bump_top_ + block_size;
+    remaining = block_size;
+  }
+  ASSERT(remaining >= size);
+  uword result = bump_top_;
+  bump_top_ += size;
+  usage_.used_in_words += size >> kWordSizeLog2;
+  remaining -= size;
+  if (remaining > 0) {
+    FreeListElement::AsElement(bump_top_, remaining);
+  }
+  return result;
+}
+
+
 PageSpaceController::PageSpaceController(Heap* heap,
                                          int heap_growth_ratio,
                                          int heap_growth_max,
@@ -780,7 +837,16 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
       multiplier *= seconds_since_init / kInitialTimeoutSeconds;
     }
   }
-  return capacity_increase_in_pages * multiplier > grow_heap_;
+  bool needs_gc = capacity_increase_in_pages * multiplier > grow_heap_;
+  if (FLAG_log_growth) {
+    OS::PrintErr("%s: %" Pd " * %f %s %" Pd "\n",
+                 needs_gc ? "NEEDS GC" : "grow",
+                 capacity_increase_in_pages,
+                 multiplier,
+                 needs_gc ? ">" : "<=",
+                 grow_heap_);
+  }
+  return needs_gc;
 }
 
 
