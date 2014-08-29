@@ -136,6 +136,33 @@ class _Double extends _Num implements double {
   int toInt() native "Double_toInt";
   double toDouble() { return this; }
 
+  static const int CACHE_SIZE_LOG2 = 3;
+  static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
+  static const int CACHE_MASK = CACHE_LENGTH - 1;
+  // Each key (double) followed by its toString result.
+  static final List _cache = new List(CACHE_LENGTH);
+  static int _cacheEvictIndex = 0;
+
+  String toString() {
+    // TODO(koda): Consider starting at most recently inserted.
+    for (int i = 0; i < CACHE_LENGTH; i += 2) {
+      // Need 'identical' to handle negative zero, etc.
+      if (identical(_cache[i], this)) {
+        return _cache[i + 1];
+      }
+    }
+    // TODO(koda): Consider optimizing all small integral values.
+    if (identical(0.0, this)) {
+      return "0.0";
+    }
+    String result = super.toString();
+    // Replace the least recently inserted entry.
+    _cache[_cacheEvictIndex] = this;
+    _cache[_cacheEvictIndex + 1] = result;
+    _cacheEvictIndex = (_cacheEvictIndex + 2) & CACHE_MASK;
+    return result;
+  }
+
   String toStringAsFixed(int fractionDigits) {
     // See ECMAScript-262, 15.7.4.5 for details.
 
