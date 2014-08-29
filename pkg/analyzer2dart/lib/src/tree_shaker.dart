@@ -4,6 +4,8 @@
 
 library analyzer2dart.treeShaker;
 
+import 'dart:collection';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -12,19 +14,18 @@ import 'closed_world.dart';
 
 class TreeShaker {
   List<Element> _queue = <Element>[];
-  Set<Element> _alreadyEnqueued = new Set<Element>();
+  Set<Element> _alreadyEnqueued = new HashSet<Element>();
   ClosedWorld _world = new ClosedWorld();
 
   void add(Element e) {
-    if (!_alreadyEnqueued.contains(e)) {
+    if (_alreadyEnqueued.add(e)) {
       _queue.add(e);
-      _alreadyEnqueued.add(e);
     }
   }
 
   ClosedWorld shake(AnalysisContext context) {
     while (_queue.isNotEmpty) {
-      Element e = _queue.removeAt(0);
+      Element e = _queue.removeLast();
       print('Tree shaker handling $e');
       CompilationUnit compilationUnit =
           context.getResolvedCompilationUnit(e.source, e.library);
