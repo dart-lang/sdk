@@ -45,7 +45,9 @@ class Compiler extends leg.Compiler {
             enableMinification: hasOption(options, '--minify'),
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),
-            emitJavaScript: !hasOption(options, '--output-type=dart'),
+            emitJavaScript: !(hasOption(options, '--output-type=dart') ||
+                              hasOption(options, '--output-type=dart-multi')),
+            dart2dartMultiFile: hasOption(options, '--output-type=dart-multi'),
             generateSourceMap: !hasOption(options, '--no-source-maps'),
             analyzeAllFlag: hasOption(options, '--analyze-all'),
             analyzeOnly: hasOption(options, '--analyze-only'),

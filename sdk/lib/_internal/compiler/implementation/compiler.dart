@@ -924,6 +924,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableMinification: false,
             this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
+            bool dart2dartMultiFile: false,
             bool generateSourceMap: true,
             bool analyzeAllFlag: false,
             bool analyzeOnly: false,
@@ -974,7 +975,8 @@ abstract class Compiler implements DiagnosticListener {
       backend = jsBackend;
     } else {
       closureNamer = new closureMapping.ClosureNamer();
-      backend = new dart_backend.DartBackend(this, strips);
+      backend = new dart_backend.DartBackend(this, strips,
+                                             multiFile: dart2dartMultiFile);
     }
 
     tasks = [

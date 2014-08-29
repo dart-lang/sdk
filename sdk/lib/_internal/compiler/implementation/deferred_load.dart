@@ -36,7 +36,7 @@ import 'elements/elements.dart' show
     AstElement;
 
 import 'util/util.dart' show
-    Link;
+    Link, makeUnique;
 
 import 'util/setlet.dart' show
     Setlet;
@@ -526,22 +526,6 @@ class DeferredLoadTask extends CompilerTask {
   /// Also sets up the [hunksToLoad] mapping.
   void _assignNamesToOutputUnits(Set<OutputUnit> allOutputUnits) {
     Set<String> usedImportNames = new Set<String>();
-
-    // Returns suggestedName if it is not in usedNames. Otherwise concatenates
-    // the smallest number that makes it not appear in usedNames.
-    // Adds the result to usedNames.
-    String makeUnique(String suggestedName, Set<String> usedNames) {
-      String result = suggestedName;
-      if (usedNames.contains(suggestedName)) {
-        int counter = 0;
-        while (usedNames.contains(result)) {
-          counter++;
-          result = "$suggestedName$counter";
-        }
-      }
-      usedNames.add(result);
-      return result;
-    }
 
     // Finds the first argument to the [DeferredLibrary] annotation
     void computeImportDeferName(Import import) {

@@ -641,9 +641,19 @@ class Unparser extends Indentation implements Visitor {
     indentLess();
   }
 
-  unparseImportTag(String uri, [String prefix]) {
-    final suffix = prefix == null ? '' : ' as $prefix';
-    write('import "$uri"$suffix;');
+  unparseImportTag(String uri, {String prefix,
+                                List<String> shows: const <String>[],
+                                bool isDeferred: false}) {
+    String deferredString = isDeferred ? ' deferred' : '';
+    String prefixString = prefix == null ? '' : ' as $prefix';
+    String showString = shows.isEmpty ? '' : ' show ${shows.join(", ")}';
+    write('import "$uri"$deferredString$prefixString$showString;');
+    newline();
+  }
+
+  unparseExportTag(String uri, {List<String> shows: const []}) {
+    String suffix = shows.isEmpty ? '' : ' show ${shows.join(", ")}';
+    write('export "$uri"$suffix;');
     newline();
   }
 

@@ -198,3 +198,20 @@ int longestCommonPrefixLength(List a, List b) {
   }
   return index;
 }
+
+/// Returns [suggestedName] if it is not in [usedNames]. Otherwise concatenates
+/// the smallest number that makes it not appear in [usedNames].
+///
+/// Adds the result to [usedNames].
+String makeUnique(String suggestedName, Set<String> usedNames) {
+  String result = suggestedName;
+  if (usedNames.contains(suggestedName)) {
+    int counter = 0;
+    while (usedNames.contains(result)) {
+      counter++;
+      result = "$suggestedName$counter";
+    }
+  }
+  usedNames.add(result);
+  return result;
+}
