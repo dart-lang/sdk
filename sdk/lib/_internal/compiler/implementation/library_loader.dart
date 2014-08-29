@@ -264,17 +264,20 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   }
 
   void reset({bool reuseLibrary(LibraryElement library)}) {
-    assert(currentHandler == null);
-    Iterable<LibraryElement> libraries =
-        new List.from(libraryCanonicalUriMap.values);
+    measure(() {
+      assert(currentHandler == null);
+      Iterable<LibraryElement> libraries =
+          new List.from(libraryCanonicalUriMap.values);
 
-    libraryCanonicalUriMap.clear();
-    libraryResourceUriMap.clear();
-    libraryNames.clear();
+      libraryCanonicalUriMap.clear();
+      libraryResourceUriMap.clear();
+      libraryNames.clear();
 
-    if (reuseLibrary == null) return;
+      if (reuseLibrary == null) return;
 
-    libraries.where(reuseLibrary).forEach(mapLibrary);
+      compiler.reuseLibraryTask.measure(
+          () => libraries.where(reuseLibrary).toList()).forEach(mapLibrary);
+    });
   }
 
   /// Insert [library] in the internal maps. Used for compiler reuse.

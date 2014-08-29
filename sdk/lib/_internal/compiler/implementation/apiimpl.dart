@@ -285,8 +285,11 @@ class Compiler extends leg.Compiler {
     return super.run(uri).then((bool success) {
       int cumulated = 0;
       for (final task in tasks) {
-        cumulated += task.timing;
-        log('${task.name} took ${task.timing}msec');
+        int elapsed = task.timing;
+        if (elapsed != 0) {
+          cumulated += elapsed;
+          log('${task.name} took ${elapsed}msec');
+        }
       }
       int total = totalCompileTime.elapsedMilliseconds;
       log('Total compile-time ${total}msec;'

@@ -852,6 +852,8 @@ abstract class Compiler implements DiagnosticListener {
   ti.TypesTask typesTask;
   Backend backend;
 
+  GenericTask reuseLibraryTask;
+
   /// The constant environment for the frontend interpretation of compile-time
   /// constants.
   ConstantEnvironment constants;
@@ -994,7 +996,9 @@ abstract class Compiler implements DiagnosticListener {
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       enqueuer = new EnqueueTask(this),
-      dumpInfoTask = new DumpInfoTask(this)];
+      dumpInfoTask = new DumpInfoTask(this),
+      reuseLibraryTask = new GenericTask('Reuse library', this),
+    ];
 
     tasks.addAll(backend.tasks);
   }
