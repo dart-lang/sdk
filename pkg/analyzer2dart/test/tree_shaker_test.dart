@@ -21,8 +21,8 @@ main() {
 foo() {
 }
 ''');
-    expect(helper.functions['main'], isNotNull);
-    expect(helper.functions['foo'], isNotNull);
+    helper.assertHasFunction('main');
+    helper.assertHasFunction('foo');
   });
 
   test('Class instantiation', () {
@@ -33,8 +33,8 @@ main() {
 class A {}
 class B {}
 ''');
-    expect(helper.instantiatedClasses['A'], isNotNull);
-    expect(helper.instantiatedClasses['B'], isNull);
+    helper.assertHasInstantiatedClass('A');
+    helper.assertNoInstantiatedClass('B');
   });
 
   test('Method invocation', () {
@@ -51,10 +51,10 @@ class B {
   bar() {}
 }
 ''');
-    expect(helper.methods['A.foo'], isNotNull);
-    expect(helper.methods['A.bar'], isNull);
-    expect(helper.methods['B.foo'], isNull);
-    expect(helper.methods['B.bar'], isNull);
+    helper.assertHasMethod('A.foo');
+    helper.assertNoMethod('A.bar');
+    helper.assertNoMethod('B.foo');
+    helper.assertNoMethod('B.bar');
   });
 
   test('Method invocation on dynamic', () {
@@ -70,8 +70,8 @@ main() {
   foo(new A());
 }
 ''');
-    expect(helper.methods['A.m1'], isNotNull);
-    expect(helper.methods['A.m2'], isNull);
+    helper.assertHasMethod('A.m1');
+    helper.assertNoMethod('A.m2');
   });
 
   test('Method invocation on dynamic via cascade', () {
@@ -87,8 +87,8 @@ main() {
   foo(new A());
 }
 ''');
-    expect(helper.methods['A.m1'], isNotNull);
-    expect(helper.methods['A.m2'], isNotNull);
+    helper.assertHasMethod('A.m1');
+    helper.assertHasMethod('A.m2');
   });
 }
 
@@ -144,5 +144,49 @@ class TreeShakerTestHelper {
       expect(declaration.element, equals(element));
       instantiatedClasses[element.name] = declaration;
     });
+  }
+
+  /**
+   * Asserts that [world] contains a top-level function with the given name.
+   */
+  void assertHasFunction(String name) {
+    expect(functions, contains(name));
+  }
+
+  /**
+   * Asserts that [world] instantiates a class with the given name.
+   */
+  void assertHasInstantiatedClass(String name) {
+    expect(instantiatedClasses, contains(name));
+  }
+
+  /**
+   * Asserts that [world] contains a method with the given qualified name.
+   *
+   * [qualifiedName] - the qualified name in form 'className.methodName'.
+   */
+  void assertHasMethod(String qualifiedName) {
+    expect(methods, contains(qualifiedName));
+  }
+
+  void assertNoFunction(String name) {
+    expect(functions[name], isNull);
+  }
+
+  /**
+   * Asserts that [world] doesn't instantiate a class with the given name.
+   */
+  void assertNoInstantiatedClass(String name) {
+    expect(instantiatedClasses, isNot(contains(name)));
+  }
+
+  /**
+   * Asserts that [world] doesn't contain a method with the given qualified
+   * name.
+   *
+   * [qualifiedName] - the qualified name in form 'className.methodName'.
+   */
+  void assertNoMethod(String qualifiedName) {
+    expect(methods, isNot(contains(qualifiedName)));
   }
 }
