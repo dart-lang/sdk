@@ -7,7 +7,7 @@ library analyzer2dart.driver;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
 import 'closed_world.dart';
@@ -19,12 +19,12 @@ import 'tree_shaker.dart';
 class Driver {
   AnalysisContext context;
 
-  Driver() : context = AnalysisEngine.instance.createAnalysisContext() {
+  Driver(DartSdk sdk) : context = AnalysisEngine.instance.createAnalysisContext() {
     // Set up the source factory.
     // TODO(paulberry): do we want to use ExplicitPackageUriResolver?
     List<UriResolver> uriResolvers = [
         new FileUriResolver(),
-        new DartUriResolver(DirectoryBasedDartSdk.defaultSdk) /* ,
+        new DartUriResolver(sdk) /* ,
         new PackageUriResolver(packagesDirectories) */
     ];
     context.sourceFactory = new SourceFactory(uriResolvers);

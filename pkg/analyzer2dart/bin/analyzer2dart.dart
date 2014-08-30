@@ -7,6 +7,8 @@ library analyzer2dart.cmdline;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
 import '../lib/src/closed_world.dart';
@@ -16,7 +18,8 @@ void main(List<String> args) {
   // TODO(paulberry): hacky
   String path = args[0];
 
-  Driver analyzer2Dart = new Driver();
+  DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+  Driver analyzer2Dart = new Driver(sdk);
 
   // Tell the analysis server about the root
   Source source = analyzer2Dart.setRealRoot(path);

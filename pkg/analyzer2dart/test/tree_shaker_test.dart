@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_testing/mock_sdk.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../lib/src/closed_world.dart';
@@ -115,9 +118,11 @@ class TreeShakerTestHelper {
    * Create a TreeShakerTestHelper based on the given file contents.
    */
   TreeShakerTestHelper(String contents) {
-    Driver driver = new Driver();
-    world =
-        driver.computeWorld(driver.resolveEntryPoint(driver.setFakeRoot(contents)));
+    DartSdk sdk = new MockSdk();
+    Driver driver = new Driver(sdk);
+    Source rootSource = driver.setFakeRoot(contents);
+    FunctionElement entryPoint = driver.resolveEntryPoint(rootSource);
+    world = driver.computeWorld(entryPoint);
     world.executableElements.forEach(
         (ExecutableElement element, Declaration node) {
       if (element is FunctionElement) {

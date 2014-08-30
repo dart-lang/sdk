@@ -2,24 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_testing/mock_sdk.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
-import 'package:analyzer/src/generated/ast.dart';
 
 import '../lib/src/closed_world.dart';
 import '../lib/src/driver.dart';
 
 main() {
+  Driver driver;
+  setUp(() {
+    DartSdk sdk = new MockSdk();
+    driver = new Driver(sdk);
+  });
+
   test('setFakeRoot', () {
-    Driver driver = new Driver();
     var contents = 'main() {}';
     Source source = driver.setFakeRoot(contents);
     expect(driver.context.getContents(source).data, equals(contents));
   });
 
   test('resolveEntryPoint', () {
-    Driver driver = new Driver();
     String contents = 'main() {}';
     FunctionElement element =
         driver.resolveEntryPoint(driver.setFakeRoot(contents));
@@ -27,7 +33,6 @@ main() {
   });
 
   test('computeWorld', () {
-    Driver driver = new Driver();
     String contents = '''
 main() {
   foo();
