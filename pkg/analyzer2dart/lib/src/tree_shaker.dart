@@ -50,25 +50,18 @@ class TreeShaker {
     while (_queue.isNotEmpty) {
       Element element = _queue.removeLast();
       print('Tree shaker handling $element');
-      CompilationUnit compilationUnit =
-          context.getResolvedCompilationUnit(element.source, element.library);
-      AstNode identifier =
-          new NodeLocator.con1(element.nameOffset).searchWithin(compilationUnit);
       if (element is FunctionElement) {
-        FunctionDeclaration declaration =
-            identifier.getAncestor((node) => node is FunctionDeclaration);
+        FunctionDeclaration declaration = element.node;
         _world.executableElements[element] = declaration;
         declaration.accept(new TreeShakingVisitor(this));
       } else if (element is ClassElement) {
-        ClassDeclaration declaration =
-            identifier.getAncestor((node) => node is ClassDeclaration);
+        ClassDeclaration declaration = element.node;
         _world.instantiatedClasses[element] = declaration;
         for (Selector selector in _selectors) {
           matchClassToSelector(element, selector);
         }
       } else if (element is MethodElement) {
-        MethodDeclaration declaration =
-            identifier.getAncestor((node) => node is MethodDeclaration);
+        MethodDeclaration declaration = element.node;
         _world.executableElements[element] = declaration;
         declaration.accept(new TreeShakingVisitor(this));
       } else {
