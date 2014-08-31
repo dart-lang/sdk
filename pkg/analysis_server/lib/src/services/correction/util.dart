@@ -419,13 +419,11 @@ bool hasDisplayName(Element element, String name) {
 }
 
 /**
- * Checks if the given [PropertyAccessorElement] is an accessor of a class
+ * Checks if the given [PropertyAccessorElement] is an accessor of a
  * [FieldElement].
  */
-bool isClassFieldAccessorElement(PropertyAccessorElement accessor) {
-  return accessor != null &&
-      accessor.variable is FieldElement &&
-      accessor.variable.enclosingElement is ClassElement;
+bool isFieldAccessorElement(PropertyAccessorElement accessor) {
+  return accessor != null && accessor.variable is FieldElement;
 }
 
 

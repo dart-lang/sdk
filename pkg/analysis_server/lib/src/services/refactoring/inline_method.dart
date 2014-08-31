@@ -763,7 +763,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
 
   void _addInstanceFieldQualifier(SimpleIdentifier node) {
     PropertyAccessorElement accessor = getPropertyAccessorElement(node);
-    if (isClassFieldAccessorElement(accessor)) {
+    if (isFieldAccessorElement(accessor)) {
       AstNode qualifier = getNodeQualifier(node);
       if (qualifier == null || qualifier is ThisExpression) {
         if (accessor.isStatic) {
