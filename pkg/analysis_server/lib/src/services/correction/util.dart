@@ -94,6 +94,21 @@ String getElementQualifiedName(Element element) {
 
 
 /**
+ * If the given [AstNode] is in a [ClassDeclaration], returns the
+ * [ClassElement]. Otherwise returns `null`.
+ */
+ClassElement getEnclosingClassElement(AstNode node) {
+  ClassDeclaration enclosingClassNode =
+      node.getAncestor((node) => node is ClassDeclaration);
+  if (enclosingClassNode != null) {
+    return enclosingClassNode.element;
+  }
+  return null;
+}
+
+
+
+/**
  * Returns a class or an unit member enclosing the given [node].
  */
 AstNode getEnclosingClassOrUnitMember(AstNode node) {
@@ -110,8 +125,6 @@ AstNode getEnclosingClassOrUnitMember(AstNode node) {
   }
   return null;
 }
-
-
 
 /**
  * @return the [ExecutableElement] of the enclosing executable [AstNode].
@@ -131,6 +144,7 @@ ExecutableElement getEnclosingExecutableElement(AstNode node) {
   }
   return null;
 }
+
 
 /**
  * @return the enclosing executable [AstNode].
@@ -178,6 +192,7 @@ int getExpressionPrecedence(AstNode node) {
 }
 
 
+
 /**
  * Returns the namespace of the given [ImportElement].
  */
@@ -187,6 +202,22 @@ Map<String, Element> getImportNamespace(ImportElement imp) {
   return namespace.definedNames;
 }
 
+
+/**
+ * Returns the line prefix from the given source, i.e. basically just a
+ * whitespace prefix of the given [String].
+ */
+String getLinePrefix(String line) {
+  int index = 0;
+  while (index < line.length) {
+    int c = line.codeUnitAt(index);
+    if (!isWhitespace(c)) {
+      break;
+    }
+    index++;
+  }
+  return line.substring(0, index);
+}
 
 
 /**
@@ -218,7 +249,6 @@ LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
   return null;
 }
 
-
 /**
  * @return the nearest common ancestor [AstNode] of the given [AstNode]s.
  */
@@ -247,6 +277,40 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
   return parents[0][i - 1];
 }
 
+/**
+ * Returns the [Expression] qualifier if given node is the name part of a
+ * [PropertyAccess] or a [PrefixedIdentifier]. Maybe `null`.
+ */
+Expression getNodeQualifier(SimpleIdentifier node) {
+  AstNode parent = node.parent;
+  if (parent is PropertyAccess) {
+    PropertyAccess propertyAccess = parent;
+    if (identical(propertyAccess.propertyName, node)) {
+      return propertyAccess.target;
+    }
+  }
+  if (parent is PrefixedIdentifier) {
+    PrefixedIdentifier prefixed = parent;
+    if (identical(prefixed.identifier, node)) {
+      return prefixed.prefix;
+    }
+  }
+  return null;
+}
+
+
+/**
+ * Returns the [ParameterElement] if the given [SimpleIdentifier] is a reference
+ * to a parameter, or `null` in the other case.
+ */
+ParameterElement getParameterElement(SimpleIdentifier node) {
+  Element element = node.staticElement;
+  if (element is ParameterElement) {
+    return element;
+  }
+  return null;
+}
+
 
 /**
  * @return parent [AstNode]s from [CompilationUnit] (at index "0") to the given one.
@@ -272,6 +336,20 @@ List<AstNode> getParents(AstNode node) {
   return parents;
 }
 
+
+/**
+ * Returns a [PropertyAccessorElement] if the given [SimpleIdentifier] is a
+ * reference to a property, or `null` in the other case.
+ */
+PropertyAccessorElement getPropertyAccessorElement(SimpleIdentifier node) {
+  Element element = node.staticElement;
+  if (element is PropertyAccessorElement) {
+    return element;
+  }
+  return null;
+}
+
+
 /**
  * If given [AstNode] is name of qualified property extraction, returns target from which
  * this property is extracted. Otherwise `null`.
@@ -292,6 +370,7 @@ Expression getQualifiedPropertyTarget(AstNode node) {
   }
   return null;
 }
+
 
 /**
  * Returns the given [Statement] if not a [Block], or the first child
@@ -339,10 +418,20 @@ bool hasDisplayName(Element element, String name) {
   return element.displayName == name;
 }
 
+/**
+ * Checks if the given [PropertyAccessorElement] is an accessor of a class
+ * [FieldElement].
+ */
+bool isClassFieldAccessorElement(PropertyAccessorElement accessor) {
+  return accessor != null &&
+      accessor.variable is FieldElement &&
+      accessor.variable.enclosingElement is ClassElement;
+}
+
 
 /**
- * @return <code>true</code> if given [DartNode] is left hand side of assignment, or
- *         declaration of the variable.
+ * Checks if given [DartNode] is the left hand side of an assignment, or a
+ * declaration of a variable.
  */
 bool isLeftHandOfAssignment(SimpleIdentifier node) {
   if (node.inSetterContext()) {
@@ -413,7 +502,8 @@ class CorrectionUtils {
   /**
    * Returns the [AstNode] that encloses the given offset.
    */
-  AstNode findNode(int offset) => new NodeLocator.con1(offset).searchWithin(unit);
+  AstNode findNode(int offset) =>
+      new NodeLocator.con1(offset).searchWithin(unit);
 
   /**
    * Returns the actual type source of the given [Expression], may be `null`
@@ -1225,6 +1315,7 @@ class TokenUtils {
   static bool hasOnly(List<Token> tokens, TokenType type) =>
       tokens.length == 1 && tokens[0].type == type;
 }
+
 
 /**
  * A container with a source and its precedence.

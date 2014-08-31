@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_local.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
+import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_constructor.dart';
 import 'package:analysis_server/src/services/refactoring/rename_import.dart';
@@ -194,6 +195,32 @@ abstract class InlineLocalRefactoring implements Refactoring {
    * Returns the number of references to the [VariableElement].
    */
   int get referenceCount;
+}
+
+
+/**
+ * [Refactoring] to inline an [ExecutableElement].
+ */
+abstract class InlineMethodRefactoring implements Refactoring {
+  /**
+   * Returns a new [InlineMethodRefactoring] instance.
+   */
+  factory InlineMethodRefactoring(SearchEngine searchEngine,
+      CompilationUnit unit, int offset) {
+    return new InlineMethodRefactoringImpl(searchEngine, unit, offset);
+  }
+
+  /**
+   * True if the method being inlined should be removed.
+   * It is an error if this field is `true` and [inlineAll] is `false`.
+   */
+  void set deleteSource(bool deleteSource);
+
+  /**
+   * True if all invocations of the method should be inlined, or false if only
+   * the invocation site used to create this refactoring should be inlined.
+   */
+  void set inlineAll(bool inlineAll);
 }
 
 
