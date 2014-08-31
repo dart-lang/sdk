@@ -8,7 +8,6 @@ import 'dart:collection';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:compiler/implementation/universe/universe.dart';
 
 import 'closed_world.dart';
@@ -46,7 +45,7 @@ class TreeShaker {
     }
   }
 
-  ClosedWorld shake(AnalysisContext context) {
+  ClosedWorld shake() {
     while (_queue.isNotEmpty) {
       Element element = _queue.removeLast();
       print('Tree shaker handling $element');
