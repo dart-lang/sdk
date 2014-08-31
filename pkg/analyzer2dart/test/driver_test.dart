@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_testing/mock_sdk.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -13,22 +14,24 @@ import '../lib/src/closed_world.dart';
 import '../lib/src/driver.dart';
 
 main() {
+  MemoryResourceProvider provider;
   Driver driver;
   setUp(() {
+    provider = new MemoryResourceProvider();
     DartSdk sdk = new MockSdk();
-    driver = new Driver(sdk);
+    driver = new Driver(provider, sdk);
   });
 
-  test('setFakeRoot', () {
-    var contents = 'main() {}';
-    Source source = driver.setFakeRoot(contents);
-    expect(driver.context.getContents(source).data, equals(contents));
-  });
+  Source setFakeRoot(String contents) {
+    String path = '/root.dart';
+    provider.newFile(path, contents);
+    return driver.setRoot(path);
+  }
 
   test('resolveEntryPoint', () {
     String contents = 'main() {}';
-    FunctionElement element =
-        driver.resolveEntryPoint(driver.setFakeRoot(contents));
+    Source source = setFakeRoot(contents);
+    FunctionElement element = driver.resolveEntryPoint(source);
     expect(element.name, equals('main'));
   });
 
@@ -44,8 +47,8 @@ foo() {
 bar() {
 }
 ''';
-    FunctionElement entryPoint =
-        driver.resolveEntryPoint(driver.setFakeRoot(contents));
+    Source source = setFakeRoot(contents);
+    FunctionElement entryPoint = driver.resolveEntryPoint(source);
     ClosedWorld world = driver.computeWorld(entryPoint);
     expect(world.executableElements, hasLength(2));
     CompilationUnitElement compilationUnit =

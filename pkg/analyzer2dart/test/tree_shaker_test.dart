@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_testing/mock_sdk.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -94,6 +95,11 @@ main() {
 
 class TreeShakerTestHelper {
   /**
+   * The name of the root file.
+   */
+  String rootFile = '/root.dart';
+
+  /**
    * ClosedWorld that resulted from tree shaking.
    */
   ClosedWorld world;
@@ -118,9 +124,11 @@ class TreeShakerTestHelper {
    * Create a TreeShakerTestHelper based on the given file contents.
    */
   TreeShakerTestHelper(String contents) {
+    MemoryResourceProvider provider = new MemoryResourceProvider();
     DartSdk sdk = new MockSdk();
-    Driver driver = new Driver(sdk);
-    Source rootSource = driver.setFakeRoot(contents);
+    Driver driver = new Driver(provider, sdk);
+    provider.newFile(rootFile, contents);
+    Source rootSource = driver.setRoot(rootFile);
     FunctionElement entryPoint = driver.resolveEntryPoint(rootSource);
     world = driver.computeWorld(entryPoint);
     world.executableElements.forEach(
