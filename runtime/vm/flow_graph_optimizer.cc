@@ -921,12 +921,23 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
 static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
                                               intptr_t receiver_class_id,
                                               intptr_t argument_class_id) {
-  GrowableArray<intptr_t> receiver_cids(1);
-  receiver_cids.Add(receiver_class_id);
-  GrowableArray<intptr_t> argument_cids(1);
-  argument_cids.Add(argument_class_id);
-  return ICDataHasOnlyReceiverArgumentClassIds(
-      ic_data, receiver_cids, argument_cids);
+  if (ic_data.NumArgsTested() != 2) {
+    return false;
+  }
+  Function& target = Function::Handle();
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    if (ic_data.IsUsedAt(i)) {
+      GrowableArray<intptr_t> class_ids;
+      ic_data.GetCheckAt(i, &class_ids, &target);
+      ASSERT(class_ids.length() == 2);
+      if ((class_ids[0] == receiver_class_id) &&
+          (class_ids[1] == argument_class_id)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 
@@ -1003,10 +1014,7 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
   }
 
   // Check that it have seen only smis and doubles.
-  GrowableArray<intptr_t> class_ids(2);
-  class_ids.Add(kSmiCid);
-  class_ids.Add(kDoubleCid);
-  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
+  return HasTwoDoubleOrSmi(ic_data);
 }
 
 
