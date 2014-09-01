@@ -16,7 +16,7 @@
 namespace dart {
 
 
-uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
+inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
   return __sync_fetch_and_add(p, 1);
 }
 
