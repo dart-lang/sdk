@@ -2276,8 +2276,13 @@ abstract class BaseClassElementX extends ElementX
   bool get isNative => nativeTagInfo != null;
 
   void setNative(String name) {
-    assert(invariant(this, nativeTagInfo == null,
-        message: "Native tag info set twice on $this."));
+    // TODO(johnniwinther): Assert that this is only called once. The memory
+    // compiler copies pre-processed elements into a new compiler through
+    // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
+    // method.
+    assert(invariant(this, nativeTagInfo == null || nativeTagInfo == name,
+        message: "Native tag info set inconsistently on $this: "
+                 "Existing name '$nativeTagInfo', new name '$name'."));
     nativeTagInfo = name;
   }
 

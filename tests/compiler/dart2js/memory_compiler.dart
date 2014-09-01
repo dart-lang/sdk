@@ -213,7 +213,6 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     cachedCompiler.parser = null;
     cachedCompiler.patchParser = null;
     cachedCompiler.libraryLoader = null;
-    cachedCompiler.validator = null;
     cachedCompiler.resolver = null;
     cachedCompiler.closureToClassMapper = null;
     cachedCompiler.checker = null;
