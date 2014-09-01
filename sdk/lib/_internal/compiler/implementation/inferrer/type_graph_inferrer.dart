@@ -896,21 +896,24 @@ class TypeGraphInferrerEngine
     }
   }
 
+  /**
+   * Sets the type of a parameter's default value to [type]. If the global
+   * mapping in [defaultTypeOfParameter] already contains a type, it must be
+   * a [PlaceholderTypeInformation], which will be replaced. All its uses are
+   * updated.
+   */
   void setDefaultTypeOfParameter(ParameterElement parameter,
                                  TypeInformation type) {
     assert(parameter.functionDeclaration.isImplementation);
     TypeInformation existing = defaultTypeOfParameter[parameter];
     defaultTypeOfParameter[parameter] = type;
     TypeInformation info = types.getInferredTypeOf(parameter);
-    if (!info.abandonInferencing && existing != null && existing != type) {
+    if (existing != null && existing is PlaceholderTypeInformation) {
       // Replace references to [existing] to use [type] instead.
       if (parameter.functionDeclaration.isInstanceMember) {
         ParameterAssignments assignments = info.assignments;
-        int count = assignments.assignments[existing];
-        if (count == null) return;
+        assignments.replace(existing, type);
         type.addUser(info);
-        assignments.assignments[type] = count;
-        assignments.assignments.remove(existing);
       } else {
         List<TypeInformation> assignments = info.assignments;
         for (int i = 0; i < assignments.length; i++) {
@@ -920,12 +923,24 @@ class TypeGraphInferrerEngine
           }
         }
       }
+    } else {
+      assert(existing == null);
     }
   }
 
+  /**
+   * Returns the [TypeInformation] node for the default value of a parameter.
+   * If this is queried before it is set by [setDefaultTypeOfParameter], a
+   * [PlaceholderTypeInformation] is returned, which will later be replaced
+   * by the actual node when [setDefaultTypeOfParameter] is called.
+   *
+   * Invariant: After graph construction, no [PlaceholderTypeInformation] nodes
+   *            should be present and a default type for each parameter should
+   *            exist.
+   */
   TypeInformation getDefaultTypeOfParameter(Element parameter) {
     return defaultTypeOfParameter.putIfAbsent(parameter, () {
-      return new ConcreteTypeInformation(types.dynamicType.type);
+      return new PlaceholderTypeInformation();
     });
   }
 
