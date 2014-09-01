@@ -330,13 +330,7 @@ class RawObject {
   void ClearMarkBit() {
     ASSERT(IsMarked());
     uword tags = ptr()->tags_;
-    uword old_tags;
-    do {
-      old_tags = tags;
-      uword new_tags = MarkBit::update(false, old_tags);
-      tags = AtomicOperations::CompareAndSwapWord(
-          &ptr()->tags_, old_tags, new_tags);
-    } while (tags != old_tags);
+    ptr()->tags_ = MarkBit::update(false, tags);
   }
 
   // Support for GC watched bit.
@@ -389,23 +383,11 @@ class RawObject {
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
     uword tags = ptr()->tags_;
-    uword old_tags;
-    do {
-      old_tags = tags;
-      uword new_tags = RememberedBit::update(true, old_tags);
-      tags = AtomicOperations::CompareAndSwapWord(
-          &ptr()->tags_, old_tags, new_tags);
-    } while (tags != old_tags);
+    ptr()->tags_ = RememberedBit::update(true, tags);
   }
   void ClearRememberedBit() {
     uword tags = ptr()->tags_;
-    uword old_tags;
-    do {
-      old_tags = tags;
-      uword new_tags = RememberedBit::update(false, old_tags);
-      tags = AtomicOperations::CompareAndSwapWord(
-          &ptr()->tags_, old_tags, new_tags);
-    } while (tags != old_tags);
+    ptr()->tags_ = RememberedBit::update(false, tags);
   }
 
   bool IsDartInstance() {
