@@ -36,6 +36,9 @@ abstract class ClassWorld {
   /// Returns `true` if [cls] is instantiated.
   bool isInstantiated(ClassElement cls);
 
+  /// Returns `true` if the class world is closed.
+  bool get isClosed;
+
   /// Return `true` if [x] is a subclass of [y].
   bool isSubclassOf(ClassElement x, ClassElement y);
 
@@ -90,6 +93,9 @@ abstract class ClassWorld {
   /// Returns `true` if any live class that mixes in [mixin] is also a subclass
   /// of [superclass].
   bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement mixin);
+
+  /// Returns `true` if any subclass of [superclass] implements [type].
+  bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
 }
 
 class World implements ClassWorld {
@@ -266,6 +272,14 @@ class World implements ClassWorld {
     return mixinUsesOf(mixin).any((each) => each.isSubclassOf(superclass));
   }
 
+  /// Returns `true` if any subclass of [superclass] implements [type].
+  bool hasAnySubclassThatImplements(ClassElement superclass,
+                                    ClassElement type) {
+    Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
+    if (subclasses == null) return false;
+    return subclasses.contains(type);
+  }
+
   final Compiler compiler;
   Backend get backend => compiler.backend;
   final FunctionSet allFunctions;
@@ -306,11 +320,6 @@ class World implements ClassWorld {
   // Used by selectors.
   bool isForeign(Element element) {
     return element.isForeign(compiler.backend);
-  }
-
-  // Used by typed selectors.
-  ClassElement get nullImplementation {
-    return compiler.backend.nullImplementation;
   }
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
@@ -376,14 +385,6 @@ class World implements ClassWorld {
 
   bool hasAnyUserDefinedGetter(Selector selector) {
     return allFunctions.filter(selector).any((each) => each.isGetter);
-  }
-
-  /// Returns whether a subclass of [superclass] implements [type].
-  bool hasAnySubclassThatImplements(ClassElement superclass,
-                                    ClassElement type) {
-    Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
-    if (subclasses == null) return false;
-    return subclasses.contains(type);
   }
 
   void registerUsedElement(Element element) {

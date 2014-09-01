@@ -490,8 +490,6 @@ class FlatTypeMask implements TypeMask {
    * privacy is taken into account.
    */
   bool canHit(Element element, Selector selector, ClassWorld classWorld) {
-    // TODO(johnniwinther): Remove the need for [World].
-    World world = classWorld.compiler.world;
     Backend backend = classWorld.backend;
     assert(element.name == selector.name);
     if (isEmpty) {
@@ -514,16 +512,16 @@ class FlatTypeMask implements TypeMask {
     } else if (isExact) {
       return hasElementIn(self, selector, element);
     } else if (isSubclass) {
-      assert(world.isClosed);
+      assert(classWorld.isClosed);
       return hasElementIn(self, selector, element)
           || other.isSubclassOf(self)
           || classWorld.hasAnySubclassThatMixes(self, other);
     } else {
       assert(isSubtype);
-      assert(world.isClosed);
+      assert(classWorld.isClosed);
       bool result = hasElementIn(self, selector, element)
           || other.implementsInterface(self)
-          || world.hasAnySubclassThatImplements(other, base)
+          || classWorld.hasAnySubclassThatImplements(other, base)
           || classWorld.hasAnySubclassOfMixinUseThatImplements(other, base);
       if (result) return true;
       // If the class is used as a mixin, we have to check if the element
