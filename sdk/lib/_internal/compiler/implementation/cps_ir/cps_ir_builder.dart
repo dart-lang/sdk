@@ -1252,11 +1252,12 @@ class IrBuilder extends ResolvedVisitor<ir.Primitive> {
                Elements.isInstanceField(element) ||
                Elements.isInstanceMethod(element) ||
                selector.isIndex ||
+               // TODO(johnniwinther): clean up semantics of resultion.
                node.isSuperCall) {
-    // Dynamic dispatch to a getter. Sometimes resolution will suggest a target
-    // element, but in these cases we must still emit a dynamic dispatch. The
-    // target element may be an instance method in case we are converting a
-    // method to a function object.
+      // Dynamic dispatch to a getter. Sometimes resolution will suggest a
+      // target element, but in these cases we must still emit a dynamic
+      // dispatch. The target element may be an instance method in case we are
+      // converting a method to a function object.
 
       receiver = visitReceiver(node.receiver);
       List<ir.Primitive> arguments = new List<ir.Primitive>();

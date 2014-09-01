@@ -117,7 +117,7 @@ class Emitter {
     List<Method> methods = [];
     void visitMember(ClassElement enclosing, Element member) {
       assert(invariant(element, member.isDeclaration));
-      if (!member.isAbstract && member.isInstanceMember && member.isFunction) {
+      if (Elements.isNonAbstractInstanceMethod(member)) {
         js.Expression code = backend.generatedCode[member];
         // TODO(kasperl): Figure out under which conditions code is null.
         if (code != null) methods.add(_buildMethod(member, code));
