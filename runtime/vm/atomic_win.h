@@ -33,14 +33,14 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword new_value) {
 #if defined(TARGET_ARCH_X64)
   return static_cast<uword>(
-      InterlockedCompareExchange64(reinterpret_cast<LONG*>(ptr),
-                                   static_cast<LONG>(new_value),
-                                   static_cast<LONG>(old_value)));
+      InterlockedCompareExchange64(reinterpret_cast<LONGLONG*>(ptr),
+                                   static_cast<LONGLONG>(new_value),
+                                   static_cast<LONGLONG>(old_value)));
 #elif defined(TARGET_ARCH_IA32)
   return static_cast<uword>(
-      InterlockedCompareExchange(reinterpret_cast<LONGLONG*>(ptr),
-                                 static_cast<LONGLONG>(new_value),
-                                 static_cast<LONGLONG>(old_value)));
+      InterlockedCompareExchange(reinterpret_cast<LONG*>(ptr),
+                                 static_cast<LONG>(new_value),
+                                 static_cast<LONG>(old_value)));
 #else
   UNIMPLEMENTED();
 #endif
