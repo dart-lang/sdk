@@ -6,6 +6,7 @@
 #define VM_RAW_OBJECT_H_
 
 #include "platform/assert.h"
+#include "vm/atomic.h"
 #include "vm/globals.h"
 #include "vm/token.h"
 #include "vm/snapshot.h"
@@ -329,7 +330,13 @@ class RawObject {
   void ClearMarkBit() {
     ASSERT(IsMarked());
     uword tags = ptr()->tags_;
-    ptr()->tags_ = MarkBit::update(false, tags);
+    uword old_tags;
+    do {
+      old_tags = tags;
+      uword new_tags = MarkBit::update(false, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
   }
 
   // Support for GC watched bit.
@@ -353,14 +360,26 @@ class RawObject {
   }
   void SetCanonical() {
     uword tags = ptr()->tags_;
-    ptr()->tags_ = CanonicalObjectTag::update(true, tags);
+    uword old_tags;
+    do {
+      old_tags = tags;
+      uword new_tags = CanonicalObjectTag::update(true, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
   }
   bool IsCreatedFromSnapshot() const {
     return CreatedFromSnapshotTag::decode(ptr()->tags_);
   }
   void SetCreatedFromSnapshot() {
     uword tags = ptr()->tags_;
-    ptr()->tags_ = CreatedFromSnapshotTag::update(true, tags);
+    uword old_tags;
+    do {
+      old_tags = tags;
+      uword new_tags = CreatedFromSnapshotTag::update(true, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
   }
 
   // Support for GC remembered bit.
@@ -370,11 +389,23 @@ class RawObject {
   void SetRememberedBit() {
     ASSERT(!IsRemembered());
     uword tags = ptr()->tags_;
-    ptr()->tags_ = RememberedBit::update(true, tags);
+    uword old_tags;
+    do {
+      old_tags = tags;
+      uword new_tags = RememberedBit::update(true, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
   }
   void ClearRememberedBit() {
     uword tags = ptr()->tags_;
-    ptr()->tags_ = RememberedBit::update(false, tags);
+    uword old_tags;
+    do {
+      old_tags = tags;
+      uword new_tags = RememberedBit::update(false, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
   }
 
   bool IsDartInstance() {

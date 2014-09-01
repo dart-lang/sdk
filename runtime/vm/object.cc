@@ -813,13 +813,20 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
     uword addr = RawObject::ToAddr(obj.raw()) + used_size;
     if (leftover_size >= TypedData::InstanceSize(0)) {
-      // Update the leftover space as an TypedDataInt8Array object.
+      // Update the leftover space as a TypedDataInt8Array object.
       RawTypedData* raw =
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, tags);
-      raw->ptr()->tags_ = tags;
+      uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
+      new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
+      uword tags = raw->ptr()->tags_;
+      uword old_tags;
+      // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
+      do {
+        old_tags = tags;
+        tags = AtomicOperations::CompareAndSwapWord(
+            &raw->ptr()->tags_, old_tags, new_tags);
+      } while (tags != old_tags);
+
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
       raw->ptr()->length_ = Smi::New(leftover_len);
@@ -827,10 +834,16 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
-      raw->ptr()->tags_ = tags;
+      uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
+      new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
+      uword tags = raw->ptr()->tags_;
+      uword old_tags;
+      // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
+      do {
+        old_tags = tags;
+        tags = AtomicOperations::CompareAndSwapWord(
+            &raw->ptr()->tags_, old_tags, new_tags);
+      } while (tags != old_tags);
     }
   }
 }
@@ -17194,14 +17207,11 @@ RawString* String::MakeExternal(void* array,
     intptr_t str_length = this->Length();
     ASSERT(length >= (str_length * this->CharSize()));
     intptr_t class_id = raw()->GetClassId();
-    intptr_t used_size = 0;
-    intptr_t original_size = 0;
-    uword tags = raw_ptr()->tags_;
 
     ASSERT(!InVMHeap());
     if (class_id == kOneByteStringCid) {
-      used_size = ExternalOneByteString::InstanceSize();
-      original_size = OneByteString::InstanceSize(str_length);
+      intptr_t used_size = ExternalOneByteString::InstanceSize();
+      intptr_t original_size = OneByteString::InstanceSize(str_length);
       ASSERT(original_size >= used_size);
 
       // Copy the data into the external array.
@@ -17209,11 +17219,22 @@ RawString* String::MakeExternal(void* array,
         memmove(array, OneByteString::CharAddr(*this, 0), str_length);
       }
 
+      // If there is any left over space fill it with either an Array object or
+      // just a plain object (depending on the amount of left over space) so
+      // that it can be traversed over successfully during garbage collection.
+      Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
+
       // Update the class information of the object.
       const intptr_t class_id = kExternalOneByteStringCid;
-      tags = RawObject::SizeTag::update(used_size, tags);
-      tags = RawObject::ClassIdTag::update(class_id, tags);
-      raw_ptr()->tags_ = tags;
+      uword tags = raw_ptr()->tags_;
+      uword old_tags;
+      do {
+        old_tags = tags;
+        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
+        tags = AtomicOperations::CompareAndSwapWord(
+            &raw_ptr()->tags_, old_tags, new_tags);
+      } while (tags != old_tags);
       result = this->raw();
       const uint8_t* ext_array = reinterpret_cast<const uint8_t*>(array);
       ExternalStringData<uint8_t>* ext_data = new ExternalStringData<uint8_t>(
@@ -17226,8 +17247,8 @@ RawString* String::MakeExternal(void* array,
       finalizer = ExternalOneByteString::Finalize;
     } else {
       ASSERT(class_id == kTwoByteStringCid);
-      used_size = ExternalTwoByteString::InstanceSize();
-      original_size = TwoByteString::InstanceSize(str_length);
+      intptr_t used_size = ExternalTwoByteString::InstanceSize();
+      intptr_t original_size = TwoByteString::InstanceSize(str_length);
       ASSERT(original_size >= used_size);
 
       // Copy the data into the external array.
@@ -17237,11 +17258,22 @@ RawString* String::MakeExternal(void* array,
                 (str_length * kTwoByteChar));
       }
 
+      // If there is any left over space fill it with either an Array object or
+      // just a plain object (depending on the amount of left over space) so
+      // that it can be traversed over successfully during garbage collection.
+      Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
+
       // Update the class information of the object.
       const intptr_t class_id = kExternalTwoByteStringCid;
-      tags = RawObject::SizeTag::update(used_size, tags);
-      tags = RawObject::ClassIdTag::update(class_id, tags);
-      raw_ptr()->tags_ = tags;
+      uword tags = raw_ptr()->tags_;
+      uword old_tags;
+      do {
+        old_tags = tags;
+        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
+        tags = AtomicOperations::CompareAndSwapWord(
+            &raw_ptr()->tags_, old_tags, new_tags);
+      } while (tags != old_tags);
       result = this->raw();
       const uint16_t* ext_array = reinterpret_cast<const uint16_t*>(array);
       ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
@@ -17253,11 +17285,6 @@ RawString* String::MakeExternal(void* array,
       external_data = ext_data;
       finalizer = ExternalTwoByteString::Finalize;
     }
-
-    // If there is any left over space fill it with either an Array object or
-    // just a plain object (depending on the amount of left over space) so
-    // that it can be traversed over successfully during garbage collection.
-    Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
   }  // NoGCScope
   AddFinalizer(result, external_data, finalizer);
   return this->raw();
@@ -18073,8 +18100,14 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
 void Array::MakeImmutable() const {
   NoGCScope no_gc;
   uword tags = raw_ptr()->tags_;
-  tags = RawObject::ClassIdTag::update(kImmutableArrayCid, tags);
-  raw_ptr()->tags_ = tags;
+  uword old_tags;
+  do {
+    old_tags = tags;
+    uword new_tags = RawObject::ClassIdTag::update(kImmutableArrayCid,
+                                                   old_tags);
+    tags = AtomicOperations::CompareAndSwapWord(
+        &raw_ptr()->tags_, old_tags, new_tags);
+  } while (tags != old_tags);
 }
 
 
@@ -18155,21 +18188,26 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   intptr_t used_size = Array::InstanceSize(used_len);
   NoGCScope no_gc;
 
+  // If there is any left over space fill it with either an Array object or
+  // just a plain object (depending on the amount of left over space) so
+  // that it can be traversed over successfully during garbage collection.
+  Object::MakeUnusedSpaceTraversable(array, capacity_size, used_size);
+
   // Update the size in the header field and length of the array object.
   uword tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
-  tags = RawObject::SizeTag::update(used_size, tags);
-  array.raw_ptr()->tags_ = tags;
+  uword old_tags;
+  do {
+    old_tags = tags;
+    uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+    tags = AtomicOperations::CompareAndSwapWord(
+        &array.raw_ptr()->tags_, old_tags, new_tags);
+  } while (tags != old_tags);
   array.SetLength(used_len);
 
   // Null the GrowableObjectArray, we are removing it's backing array.
   growable_array.SetLength(0);
   growable_array.SetData(Object::empty_array());
-
-  // If there is any left over space fill it with either an Array object or
-  // just a plain object (depending on the amount of left over space) so
-  // that it can be traversed over successfully during garbage collection.
-  Object::MakeUnusedSpaceTraversable(array, capacity_size, used_size);
 
   return array.raw();
 }

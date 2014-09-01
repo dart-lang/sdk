@@ -10,6 +10,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
+#include "vm/lockers.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -1058,8 +1059,9 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
                                intptr_t initial_size)
     : BaseWriter(buffer, alloc, initial_size),
       kind_(kind),
-      object_store_(Isolate::Current()->object_store()),
-      class_table_(Isolate::Current()->class_table()),
+      isolate_(Isolate::Current()),
+      object_store_(isolate_->object_store()),
+      class_table_(isolate_->class_table()),
       forward_list_(kMaxPredefinedObjectIds),
       exception_type_(Exceptions::kNone),
       exception_msg_(NULL) {
@@ -1245,15 +1247,14 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 
 
 void FullSnapshotWriter::WriteFullSnapshot() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  ObjectStore* object_store = isolate->object_store();
+  ASSERT(isolate() != NULL);
+  ObjectStore* object_store = isolate()->object_store();
   ASSERT(object_store != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Ensure the class table is valid.
 #if defined(DEBUG)
-  isolate->ValidateClassTable();
+  isolate()->ValidateClassTable();
 #endif
 
   // Setup for long jump in case there is an exception while writing
@@ -1295,6 +1296,30 @@ uword SnapshotWriter::GetObjectTags(RawObject* raw) {
   } else {
     return tags;
   }
+}
+
+
+ForwardList::ForwardList(intptr_t first_object_id)
+    : first_object_id_(first_object_id),
+      nodes_(),
+      first_unprocessed_object_id_(first_object_id) {
+  // The ForwardList encodes information in the header tag word. There cannot
+  // be any concurrent GC tasks while it is in use.
+  PageSpace* page_space = Isolate::Current()->heap()->old_space();
+  MonitorLocker ml(page_space->tasks_lock());
+  while (page_space->tasks() > 0) {
+    ml.Wait();
+  }
+  page_space->set_tasks(1);
+}
+
+
+ForwardList::~ForwardList() {
+  PageSpace* page_space = Isolate::Current()->heap()->old_space();
+  MonitorLocker ml(page_space->tasks_lock());
+  ASSERT(page_space->tasks() == 1);
+  page_space->set_tasks(0);
+  ml.Notify();
 }
 
 
@@ -1607,7 +1632,7 @@ void SnapshotWriter::SetWriteException(Exceptions::ExceptionType type,
   set_exception_type(type);
   set_exception_msg(msg);
   // The more specific error is set up in SnapshotWriter::ThrowException().
-  Isolate::Current()->long_jump_base()->
+  isolate()->long_jump_base()->
       Jump(1, Object::snapshot_writer_error());
 }
 
@@ -1672,7 +1697,7 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
 
 void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
-  Isolate::Current()->object_store()->clear_sticky_error();
+  isolate()->object_store()->clear_sticky_error();
   UnmarkAll();
   if (msg != NULL) {
     const String& msg_obj = String::Handle(String::New(msg));
@@ -1696,8 +1721,7 @@ void SnapshotWriter::WriteVersion() {
 
 void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   ASSERT(kind() == Snapshot::kScript);
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate() != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Setup for long jump in case there is an exception while writing
@@ -1740,8 +1764,7 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
 
 void MessageWriter::WriteMessage(const Object& obj) {
   ASSERT(kind() == Snapshot::kMessage);
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate() != NULL);
 
   // Setup for long jump in case there is an exception while writing
   // the message.

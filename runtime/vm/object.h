@@ -230,11 +230,18 @@ class Object {
   }
 
   void set_tags(intptr_t value) const {
+    ASSERT(!IsNull());
     // TODO(asiva): Remove the capability of setting tags in general. The mask
     // here only allows for canonical and from_snapshot flags to be set.
-    ASSERT(!IsNull());
-    uword tags = raw()->ptr()->tags_ & ~0x0000000c;
-    raw()->ptr()->tags_ = tags | (value & 0x0000000c);
+    value = value & 0x0000000c;
+    uword tags = raw()->ptr()->tags_;
+    uword old_tags;
+    do {
+      old_tags = tags;
+      uword new_tags = (old_tags & ~0x0000000c) | value;
+      tags = AtomicOperations::CompareAndSwapWord(
+          &raw()->ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
   }
   void SetCreatedFromSnapshot() const {
     ASSERT(!IsNull());

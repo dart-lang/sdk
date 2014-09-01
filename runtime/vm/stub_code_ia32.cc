@@ -1021,6 +1021,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ popl(EDX);
   __ ret();
 
+  // Update the tags that this object has been remembered.
+  // EAX: Address being stored
+  // ECX: Current tag value
   __ Bind(&add_to_buffer);
   __ orl(ECX, Immediate(1 << RawObject::kRememberedBit));
   __ movl(FieldAddress(EAX, Object::tags_offset()), ECX);
