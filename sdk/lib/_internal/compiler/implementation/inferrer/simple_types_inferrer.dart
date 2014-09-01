@@ -178,6 +178,16 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   void setDefaultTypeOfParameter(ParameterElement parameter, T type);
 
   /**
+   * This helper breaks abstractions but is currently required to work around
+   * the wrong modelling of default values of optional parameters of
+   * synthetic constructors.
+   *
+   * TODO(johnniwinther): Remove once default values of synthetic parameters
+   * are fixed.
+   */
+  bool hasAlreadyComputedTypeOfParameterDefault(ParameterElement paramemter);
+
+  /**
    * Returns the type of [element].
    */
   T typeOfElement(Element element);
@@ -486,6 +496,7 @@ class SimpleTypeInferrerVisitor<T>
       // with the correct context.
       // TODO(johnniwinther): Remove once function signatures are fixed.
       SimpleTypeInferrerVisitor visitor = this;
+      if (inferrer.hasAlreadyComputedTypeOfParameterDefault(element)) return;
       if (element.enclosingElement != analyzedElement) {
         visitor = new SimpleTypeInferrerVisitor(element.enclosingElement,
             compiler, inferrer);

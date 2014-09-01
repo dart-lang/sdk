@@ -944,6 +944,16 @@ class TypeGraphInferrerEngine
     });
   }
 
+  /**
+   * Helper to inspect the [TypeGraphInferrer]'s state. To be removed by
+   * TODO(johnniwinther) once synthetic parameters get their own default
+   * values.
+   */
+  bool hasAlreadyComputedTypeOfParameterDefault(Element parameter) {
+    TypeInformation seen = defaultTypeOfParameter[parameter];
+    return (seen != null && seen is! PlaceholderTypeInformation);
+  }
+
   TypeInformation typeOfElement(Element element) {
     if (element is FunctionElement) return types.functionType;
     return types.getInferredTypeOf(element);
