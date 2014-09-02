@@ -9202,7 +9202,6 @@ class ExtractLocalVariableOptions {
  *   "names": List<String>
  *   "canCreateGetter": bool
  *   "parameters": List<RefactoringMethodParameter>
- *   "occurrences": int
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
@@ -9240,11 +9239,6 @@ class ExtractMethodFeedback {
   List<RefactoringMethodParameter> parameters;
 
   /**
-   * The number of times the expression or statements occurs.
-   */
-  int occurrences;
-
-  /**
    * The offsets of the expressions or statements that would be replaced by an
    * invocation of the method.
    */
@@ -9259,7 +9253,7 @@ class ExtractMethodFeedback {
    */
   List<int> lengths;
 
-  ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names, this.canCreateGetter, this.parameters, this.occurrences, this.offsets, this.lengths);
+  ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names, this.canCreateGetter, this.parameters, this.offsets, this.lengths);
 
   factory ExtractMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -9302,12 +9296,6 @@ class ExtractMethodFeedback {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "parameters");
       }
-      int occurrences;
-      if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder._decodeInt(jsonPath + ".occurrences", json["occurrences"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "occurrences");
-      }
       List<int> offsets;
       if (json.containsKey("offsets")) {
         offsets = jsonDecoder._decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder._decodeInt);
@@ -9320,7 +9308,7 @@ class ExtractMethodFeedback {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
-      return new ExtractMethodFeedback(offset, length, returnType, names, canCreateGetter, parameters, occurrences, offsets, lengths);
+      return new ExtractMethodFeedback(offset, length, returnType, names, canCreateGetter, parameters, offsets, lengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback");
     }
@@ -9339,7 +9327,6 @@ class ExtractMethodFeedback {
     result["names"] = names;
     result["canCreateGetter"] = canCreateGetter;
     result["parameters"] = parameters.map((RefactoringMethodParameter value) => value.toJson()).toList();
-    result["occurrences"] = occurrences;
     result["offsets"] = offsets;
     result["lengths"] = lengths;
     return result;
@@ -9357,7 +9344,6 @@ class ExtractMethodFeedback {
           _listEqual(names, other.names, (String a, String b) => a == b) &&
           canCreateGetter == other.canCreateGetter &&
           _listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
-          occurrences == other.occurrences &&
           _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
           _listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
@@ -9373,7 +9359,6 @@ class ExtractMethodFeedback {
     hash = _JenkinsSmiHash.combine(hash, names.hashCode);
     hash = _JenkinsSmiHash.combine(hash, canCreateGetter.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, occurrences.hashCode);
     hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
     hash = _JenkinsSmiHash.combine(hash, lengths.hashCode);
     return _JenkinsSmiHash.finish(hash);

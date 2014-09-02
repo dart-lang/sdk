@@ -1830,7 +1830,6 @@ final Matcher isExtractLocalVariableOptions = new LazyMatcher(() => new MatchesJ
  *   "names": List<String>
  *   "canCreateGetter": bool
  *   "parameters": List<RefactoringMethodParameter>
- *   "occurrences": int
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
@@ -1843,7 +1842,6 @@ final Matcher isExtractMethodFeedback = new LazyMatcher(() => new MatchesJsonObj
     "names": isListOf(isString),
     "canCreateGetter": isBool,
     "parameters": isListOf(isRefactoringMethodParameter),
-    "occurrences": isInt,
     "offsets": isListOf(isInt),
     "lengths": isListOf(isInt)
   }));
