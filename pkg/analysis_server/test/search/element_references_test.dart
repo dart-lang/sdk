@@ -26,7 +26,9 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
   Future findElementReferences(String search, bool includePotential) {
     int offset = findOffset(search);
     return waitForTasksFinished().then((_) {
-      Request request = new SearchFindElementReferencesParams(testFile, offset,
+      Request request = new SearchFindElementReferencesParams(
+          testFile,
+          offset,
           includePotential).toRequest('0');
       Response response = handleSuccessfulRequest(request);
       var result = new SearchFindElementReferencesResult.fromResponse(response);
@@ -296,6 +298,17 @@ main() {
       expect(results, hasLength(2));
       assertHasResult(SearchResultKind.INVOCATION, 'mmm(10);');
       assertHasResult(SearchResultKind.REFERENCE, 'mmm);');
+    });
+  }
+
+  test_noElement() {
+    addTestFile('''
+main() {
+  print(noElement);
+}
+''');
+    return findElementReferences('noElement', false).then((_) {
+      expect(searchId, isNull);
     });
   }
 

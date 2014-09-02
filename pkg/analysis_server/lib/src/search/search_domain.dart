@@ -64,14 +64,12 @@ class SearchDomainHandler implements protocol.RequestHandler {
       });
     });
     // respond
-    if (elements.isEmpty) {
-      return new protocol.SearchFindElementReferencesResult().toResponse(
-          request.id);
-    } else {
-      protocol.Element element = new protocol.Element.fromEngine(elements[0]);
-      return new protocol.SearchFindElementReferencesResult(id: searchId,
-          element: element).toResponse(request.id);
+    var result = new protocol.SearchFindElementReferencesResult();
+    if (elements.isNotEmpty) {
+      result.id = searchId;
+      result.element = new protocol.Element.fromEngine(elements[0]);
     }
+    return result.toResponse(request.id);
   }
 
   protocol.Response findMemberDeclarations(protocol.Request request) {
