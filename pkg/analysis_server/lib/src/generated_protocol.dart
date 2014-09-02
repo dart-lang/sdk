@@ -5867,7 +5867,7 @@ class ElementKind {
  *
  * {
  *   "file": FilePath
- *   "offset": ExecutableKind
+ *   "kind": ExecutableKind
  * }
  */
 class ExecutableFile implements HasToJson {
@@ -5877,11 +5877,11 @@ class ExecutableFile implements HasToJson {
   String file;
 
   /**
-   * The offset of the region to be highlighted.
+   * The kind of the executable file.
    */
-  ExecutableKind offset;
+  ExecutableKind kind;
 
-  ExecutableFile(this.file, this.offset);
+  ExecutableFile(this.file, this.kind);
 
   factory ExecutableFile.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5894,13 +5894,13 @@ class ExecutableFile implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
-      ExecutableKind offset;
-      if (json.containsKey("offset")) {
-        offset = new ExecutableKind.fromJson(jsonDecoder, jsonPath + ".offset", json["offset"]);
+      ExecutableKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ExecutableKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "offset");
+        throw jsonDecoder.missingKey(jsonPath, "kind");
       }
-      return new ExecutableFile(file, offset);
+      return new ExecutableFile(file, kind);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ExecutableFile");
     }
@@ -5909,7 +5909,7 @@ class ExecutableFile implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["offset"] = offset.toJson();
+    result["kind"] = kind.toJson();
     return result;
   }
 
@@ -5920,7 +5920,7 @@ class ExecutableFile implements HasToJson {
   bool operator==(other) {
     if (other is ExecutableFile) {
       return file == other.file &&
-          offset == other.offset;
+          kind == other.kind;
     }
     return false;
   }
@@ -5929,7 +5929,7 @@ class ExecutableFile implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

@@ -1131,13 +1131,13 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
  *
  * {
  *   "file": FilePath
- *   "offset": ExecutableKind
+ *   "kind": ExecutableKind
  * }
  */
 final Matcher isExecutableFile = new LazyMatcher(() => new MatchesJsonObject(
   "ExecutableFile", {
     "file": isFilePath,
-    "offset": isExecutableKind
+    "kind": isExecutableKind
   }));
 
 /**
