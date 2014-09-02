@@ -324,6 +324,9 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
                             bool is_locked) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
+#ifdef DEBUG
+  SpaceUsage usage_before = usage_;
+#endif
   uword result = 0;
   if (size < kAllocatablePageSize) {
     if (is_locked) {
@@ -333,6 +336,9 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
     }
     if (result == 0) {
       result = TryAllocateInFreshPage(size, type, growth_policy, is_locked);
+      // usage_ is updated by the call above.
+    } else {
+      usage_.used_in_words += size >> kWordSizeLog2;
     }
   } else {
     // Large page allocation.
@@ -355,9 +361,19 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
     }
   }
   if (result != 0) {
+#ifdef DEBUG
+    // A successful allocation should increase usage_.
+    ASSERT(usage_before.used_in_words < usage_.used_in_words);
+#endif
     if (FLAG_compiler_stats && (type == HeapPage::kExecutable)) {
       CompilerStats::code_allocated += size;
     }
+  } else {
+#ifdef DEBUG
+    // A failed allocation should not change usage_.
+    ASSERT(usage_before.used_in_words == usage_.used_in_words);
+    ASSERT(usage_before.capacity_in_words == usage_.capacity_in_words);
+#endif
   }
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;

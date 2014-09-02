@@ -77,7 +77,6 @@ dart/inline_stack_frame_test: RuntimeError # Issue 7953
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
 cc/Sdc1Ldc1: Crash # Issue 20182
 cc/JSON_JSONStream_Options: Crash, Pass # Issue 19328
-cc/EvalExpressionExhaustCIDs: Skip # Takes almost 1 GB memory. Issue 20056
 
 [ $arch == mips && $mode == debug ]
 cc/FindCodeObject: Skip # Takes more than 8 minutes. Issue 17440
