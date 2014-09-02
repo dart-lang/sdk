@@ -764,9 +764,13 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * id ( SearchId )
+   * id ( optional SearchId )
    *
    *   The identifier used to associate results with this search request.
+   *
+   *   If no element was found at the given location, this field will be
+   *   absent, and no results will be reported via the search.results
+   *   notification.
    *
    * element ( optional Element )
    *

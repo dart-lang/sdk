@@ -994,7 +994,7 @@ dt.typeDefinition {
   "<b>id</b>": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
-    "<b>id</b>": <a href="#type_SearchId">SearchId</a>
+    "<b>id</b>": <span style="color:#999999">optional</span> <a href="#type_SearchId">SearchId</a>
     "<b>element</b>": <span style="color:#999999">optional</span> <a href="#type_Element">Element</a>
   }
 }</pre></div>
@@ -1027,11 +1027,16 @@ dt.typeDefinition {
               True if potential matches are to be included in the
               results.
             </p>
-          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>id ( <a href="#type_SearchId">SearchId</a> )</i></b></dt><dd>
+          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>id ( <span style="color:#999999">optional</span> <a href="#type_SearchId">SearchId</a> )</i></b></dt><dd>
             
             <p>
               The identifier used to associate results with this
               search request.
+            </p>
+            <p>
+              If no element was found at the given location, this
+              field will be absent, and no results will be reported
+              via the search.results notification.
             </p>
           </dd><dt class="field"><b><i>element ( <span style="color:#999999">optional</span> <a href="#type_Element">Element</a> )</i></b></dt><dd>
             

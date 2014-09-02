@@ -33,7 +33,11 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
       searchId = result.id;
       searchElement = result.element;
       results.clear();
-      return waitForSearchResults();
+      if (searchId == null) {
+        return null;
+      } else {
+        return waitForSearchResults();
+      }
     });
   }
 

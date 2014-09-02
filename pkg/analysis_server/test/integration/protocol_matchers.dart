@@ -416,14 +416,13 @@ final Matcher isSearchFindElementReferencesParams = new LazyMatcher(() => new Ma
  * search.findElementReferences result
  *
  * {
- *   "id": SearchId
+ *   "id": optional SearchId
  *   "element": optional Element
  * }
  */
 final Matcher isSearchFindElementReferencesResult = new LazyMatcher(() => new MatchesJsonObject(
-  "search.findElementReferences result", {
-    "id": isSearchId
-  }, optionalFields: {
+  "search.findElementReferences result", null, optionalFields: {
+    "id": isSearchId,
     "element": isElement
   }));
 

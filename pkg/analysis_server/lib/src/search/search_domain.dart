@@ -4,8 +4,6 @@
 
 library search.domain;
 
-import 'dart:async';
-
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart' as protocol;
@@ -65,18 +63,15 @@ class SearchDomainHandler implements protocol.RequestHandler {
         _sendSearchNotification(searchId, isLast, results);
       });
     });
-    if (elements.isEmpty) {
-      new Future.microtask(() {
-        _sendSearchNotification(searchId, true, []);
-      });
-    }
     // respond
-    protocol.Element element;
-    if (elements.isNotEmpty) {
-      element = new protocol.Element.fromEngine(elements[0]);
+    if (elements.isEmpty) {
+      return new protocol.SearchFindElementReferencesResult().toResponse(
+          request.id);
+    } else {
+      protocol.Element element = new protocol.Element.fromEngine(elements[0]);
+      return new protocol.SearchFindElementReferencesResult(id: searchId,
+          element: element).toResponse(request.id);
     }
-    return new protocol.SearchFindElementReferencesResult(searchId,
-        element: element).toResponse(request.id);
   }
 
   protocol.Response findMemberDeclarations(protocol.Request request) {
