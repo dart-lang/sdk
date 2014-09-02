@@ -21,6 +21,15 @@ void main() {
 void testTypeRepresentations() {
   asyncTest(() => TypeEnvironment.create(r"""
       typedef void Typedef();
+      typedef int Typedef2();
+      typedef List<int> Typedef3();
+      typedef Typedef4();
+      typedef Typedef5(int a, String b);
+      typedef Typedef6(int a, [String b]);
+      typedef Typedef7(int a, String b, [List<int> c, d]);
+      typedef Typedef8(int a, {String b});
+      typedef Typedef9(int a, String b, {List<int> c, d});
+      typedef Typedef10(void f(int a, [b]));
 
       void m1() {}
       int m2() => 0;
@@ -44,13 +53,26 @@ void testTypeRepresentations() {
       return prettyPrint(expression, env.compiler).buffer.toString();
     }
 
-    void expect(String expectedRepresentation, DartType type) {
+    void expect(DartType type,
+                String expectedRepresentation,
+                [String expectedTypedefRepresentation]) {
+      bool encodeTypedefName = false;
       Expression expression =
-          typeRepresentation.getTypeRepresentation(type, onVariable);
+            typeRepresentation.getTypeRepresentation(type, onVariable,
+                                                    (x) => encodeTypedefName);
       Expect.stringEquals(expectedRepresentation, stringify(expression));
+
+      encodeTypedefName = true;
+      expression =
+            typeRepresentation.getTypeRepresentation(type, onVariable,
+                                                    (x) => encodeTypedefName);
+      if (expectedTypedefRepresentation == null) {
+        expectedTypedefRepresentation = expectedRepresentation;
+      }
+      Expect.stringEquals(expectedTypedefRepresentation, stringify(expression));
     }
 
-    String getJsName(ClassElement cls) {
+    String getJsName(Element cls) {
       Expression name = typeRepresentation.getJavaScriptClassName(cls);
       return stringify(name);
     }
@@ -74,6 +96,15 @@ void testTypeRepresentations() {
     DartType String_ = env['String'];
     DartType dynamic_ = env['dynamic'];
     DartType Typedef_ = env['Typedef'];
+    DartType Typedef2_ = env['Typedef2'];
+    DartType Typedef3_ = env['Typedef3'];
+    DartType Typedef4_ = env['Typedef4'];
+    DartType Typedef5_ = env['Typedef5'];
+    DartType Typedef6_ = env['Typedef6'];
+    DartType Typedef7_ = env['Typedef7'];
+    DartType Typedef8_ = env['Typedef8'];
+    DartType Typedef9_ = env['Typedef9'];
+    DartType Typedef10_ = env['Typedef10'];
 
     String List_rep = getJsName(List_);
     String List_E_rep = stringify(onVariable(List_E));
@@ -85,80 +116,138 @@ void testTypeRepresentations() {
     String int_rep = getJsName(int_.element);
     String String_rep = getJsName(String_.element);
 
-    expect('$int_rep', int_);
-    expect('$String_rep', String_);
-    expect('null', dynamic_);
+    String Typedef_rep = getJsName(Typedef_.element);
+    String Typedef2_rep = getJsName(Typedef2_.element);
+    String Typedef3_rep = getJsName(Typedef3_.element);
+    String Typedef4_rep = getJsName(Typedef4_.element);
+    String Typedef5_rep = getJsName(Typedef5_.element);
+    String Typedef6_rep = getJsName(Typedef6_.element);
+    String Typedef7_rep = getJsName(Typedef7_.element);
+    String Typedef8_rep = getJsName(Typedef8_.element);
+    String Typedef9_rep = getJsName(Typedef9_.element);
+    String Typedef10_rep = getJsName(Typedef10_.element);
+
+    expect(int_, '$int_rep');
+    expect(String_, '$String_rep');
+    expect(dynamic_, 'null');
 
     // List<E>
-    expect('[$List_rep, $List_E_rep]', List_.computeType(env.compiler));
+    expect(List_.computeType(env.compiler), '[$List_rep, $List_E_rep]');
     // List
-    expect('$List_rep', List_.rawType);
+    expect(List_.rawType, '$List_rep');
     // List<dynamic>
-    expect('$List_rep', instantiate(List_, [dynamic_]));
+    expect(instantiate(List_, [dynamic_]), '$List_rep');
     // List<int>
-    expect('[$List_rep, $int_rep]', instantiate(List_, [int_]));
+    expect(instantiate(List_, [int_]), '[$List_rep, $int_rep]');
     // List<Typedef>
-    expect('[$List_rep, {$func: "void_", $retvoid: true}]',
-        instantiate(List_, [Typedef_]));
+    expect(instantiate(List_, [Typedef_]),
+        '[$List_rep, {$func: "void_", $retvoid: true}]',
+        '[$List_rep, {$func: "void_", $retvoid: true, typedef: $Typedef_rep}]');
+    expect(instantiate(List_, [Typedef2_]),
+        '[$List_rep, {$func: "int_", $ret: $int_rep}]',
+        '[$List_rep, {$func: "int_", $ret: $int_rep, typedef: $Typedef2_rep}]');
+    expect(instantiate(List_, [Typedef3_]),
+        '[$List_rep, {$func: "List_", $ret: [$List_rep, $int_rep]}]',
+        '[$List_rep, {$func: "List_", $ret: [$List_rep, $int_rep],'
+          ' typedef: $Typedef3_rep}]');
+    expect(instantiate(List_, [Typedef4_]),
+        '[$List_rep, {$func: "args0"}]',
+        '[$List_rep, {$func: "args0", typedef: $Typedef4_rep}]');
+    expect(instantiate(List_, [Typedef5_]),
+        '[$List_rep, {$func: "dynamic__int_String",'
+          ' $args: [$int_rep, $String_rep]}]',
+        '[$List_rep, {$func: "dynamic__int_String",'
+          ' $args: [$int_rep, $String_rep], typedef: $Typedef5_rep}]');
+    expect(instantiate(List_, [Typedef6_]),
+        '[$List_rep, {$func: "dynamic__int__String",'
+          ' $args: [$int_rep], $opt: [$String_rep]}]',
+        '[$List_rep, {$func: "dynamic__int__String",'
+          ' $args: [$int_rep], $opt: [$String_rep], typedef: $Typedef6_rep}]');
+    expect(instantiate(List_, [Typedef7_]),
+        '[$List_rep, {$func: "dynamic__int_String__List_dynamic", $args: '
+          '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep], null]}]',
+        '[$List_rep, {$func: "dynamic__int_String__List_dynamic", $args: '
+          '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep], null], '
+          'typedef: $Typedef7_rep}]');
+    expect(instantiate(List_, [Typedef8_]),
+        '[$List_rep, {$func: "dynamic__int__String0", $args: [$int_rep],'
+          ' $named: {b: $String_rep}}]',
+        '[$List_rep, {$func: "dynamic__int__String0", $args: [$int_rep],'
+          ' $named: {b: $String_rep}, typedef: $Typedef8_rep}]');
+    expect(instantiate(List_, [Typedef9_]),
+        '[$List_rep, {$func: "dynamic__int_String__List_dynamic0", '
+          '$args: [$int_rep, $String_rep], $named: '
+          '{c: [$List_rep, $int_rep], d: null}}]',
+        '[$List_rep, {$func: "dynamic__int_String__List_dynamic0", '
+          '$args: [$int_rep, $String_rep], $named: {c: [$List_rep, $int_rep],'
+          ' d: null}, typedef: $Typedef9_rep}]');
+    expect(instantiate(List_, [Typedef10_]),
+        '[$List_rep, {$func: "dynamic__void__int__dynamic", '
+          '$args: [{$func: "void__int__dynamic", $retvoid: true, '
+          '$args: [$int_rep], $opt: [null]}]}]',
+        '[$List_rep, {$func: "dynamic__void__int__dynamic", '
+          '$args: [{$func: "void__int__dynamic", $retvoid: true, '
+          '$args: [$int_rep], $opt: [null]}], typedef: $Typedef10_rep}]');
 
     // Map<K,V>
-    expect('[$Map_rep, $Map_K_rep, $Map_V_rep]',
-           Map_.computeType(env.compiler));
+    expect(Map_.computeType(env.compiler),
+           '[$Map_rep, $Map_K_rep, $Map_V_rep]');
     // Map
-    expect('$Map_rep', Map_.rawType);
+    expect(Map_.rawType, '$Map_rep');
     // Map<dynamic,dynamic>
-    expect('$Map_rep', instantiate(Map_, [dynamic_, dynamic_]));
+    expect(instantiate(Map_, [dynamic_, dynamic_]), '$Map_rep');
     // Map<int,String>
-    expect('[$Map_rep, $int_rep, $String_rep]',
-        instantiate(Map_, [int_, String_]));
+    expect(instantiate(Map_, [int_, String_]),
+           '[$Map_rep, $int_rep, $String_rep]');
+
 
     // void m1() {}
-    expect('{$func: "void_", $retvoid: true}',
-        env.getElement('m1').computeType(env.compiler));
+    expect(env.getElement('m1').computeType(env.compiler),
+           '{$func: "void_", $retvoid: true}');
 
     // int m2() => 0;
-    expect('{$func: "int_", $ret: $int_rep}',
-        env.getElement('m2').computeType(env.compiler));
+    expect(env.getElement('m2').computeType(env.compiler),
+           '{$func: "int_", $ret: $int_rep}');
 
     // List<int> m3() => null;
-    expect('{$func: "List_", $ret: [$List_rep, $int_rep]}',
-        env.getElement('m3').computeType(env.compiler));
+    expect(env.getElement('m3').computeType(env.compiler),
+           '{$func: "List_", $ret: [$List_rep, $int_rep]}');
 
     // m4() {}
-    expect('{$func: "args0"}',
-        env.getElement('m4').computeType(env.compiler));
+    expect(env.getElement('m4').computeType(env.compiler),
+           '{$func: "args0"}');
 
     // m5(int a, String b) {}
-    expect('{$func: "dynamic__int_String", $args: [$int_rep, $String_rep]}',
-        env.getElement('m5').computeType(env.compiler));
+    expect(env.getElement('m5').computeType(env.compiler),
+           '{$func: "dynamic__int_String", $args: [$int_rep, $String_rep]}');
 
     // m6(int a, [String b]) {}
-    expect('{$func: "dynamic__int__String", $args: [$int_rep],'
-           ' $opt: [$String_rep]}',
-        env.getElement('m6').computeType(env.compiler));
+    expect(env.getElement('m6').computeType(env.compiler),
+           '{$func: "dynamic__int__String", $args: [$int_rep],'
+           ' $opt: [$String_rep]}');
 
     // m7(int a, String b, [List<int> c, d]) {}
-    expect('{$func: "dynamic__int_String__List_dynamic",'
+    expect(env.getElement('m7').computeType(env.compiler),
+           '{$func: "dynamic__int_String__List_dynamic",'
            ' $args: [$int_rep, $String_rep],'
-           ' $opt: [[$List_rep, $int_rep], null]}',
-        env.getElement('m7').computeType(env.compiler));
+           ' $opt: [[$List_rep, $int_rep], null]}');
 
     // m8(int a, {String b}) {}
-    expect('{$func: "dynamic__int__String0",'
-           ' $args: [$int_rep], $named: {b: $String_rep}}',
-        env.getElement('m8').computeType(env.compiler));
+    expect(env.getElement('m8').computeType(env.compiler),
+           '{$func: "dynamic__int__String0",'
+           ' $args: [$int_rep], $named: {b: $String_rep}}');
 
     // m9(int a, String b, {List<int> c, d}) {}
-    expect('{$func: "dynamic__int_String__List_dynamic0",'
+    expect(env.getElement('m9').computeType(env.compiler),
+           '{$func: "dynamic__int_String__List_dynamic0",'
            ' $args: [$int_rep, $String_rep],'
-           ' $named: {c: [$List_rep, $int_rep], d: null}}',
-        env.getElement('m9').computeType(env.compiler));
+           ' $named: {c: [$List_rep, $int_rep], d: null}}');
 
     // m10(void f(int a, [b])) {}
-    expect('{$func: "dynamic__void__int__dynamic", $args:'
+    expect(env.getElement('m10').computeType(env.compiler),
+           '{$func: "dynamic__void__int__dynamic", $args:'
            ' [{$func: "void__int__dynamic",'
-           ' $retvoid: true, $args: [$int_rep], $opt: [null]}]}',
-        env.getElement('m10').computeType(env.compiler));
+           ' $retvoid: true, $args: [$int_rep], $opt: [null]}]}');
   }));
 }
 

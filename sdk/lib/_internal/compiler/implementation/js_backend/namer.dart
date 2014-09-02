@@ -822,6 +822,7 @@ class Namer implements ClosureNamer {
         // other elements, such as bound closures also live in [currentIsolate].
         !element.isAccessor &&
         !element.isClass &&
+        !element.isTypedef &&
         !element.isConstructor &&
         !element.isFunction &&
         !element.isLibrary;
@@ -882,6 +883,8 @@ class Namer implements ClosureNamer {
   String operatorAsPrefix() => r'$as';
 
   String operatorSignature() => r'$signature';
+
+  String typedefTag() => r'typedef';
 
   String functionTypeTag() => r'func';
 

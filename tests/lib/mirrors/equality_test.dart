@@ -97,11 +97,9 @@ main() {
     {'reflect("foo")' : reflect("foo"),
      'reflect("foo"), again' : reflect("foo")},
 
-    {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType},  /// 01: ok
-
-    {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType,   /// 02: ok
-     'thisLibrary.declarations[#subroutine].returnType' :                    /// 02: ok
-          (thisLibrary.declarations[#subroutine] as MethodMirror).returnType},  /// 02: ok
+    {'currentMirrorSystem().voidType' : currentMirrorSystem().voidType,
+     'thisLibrary.declarations[#subroutine].returnType' :
+          (thisLibrary.declarations[#subroutine] as MethodMirror).returnType},
 
     {'currentMirrorSystem().dynamicType' : currentMirrorSystem().dynamicType,
      'thisLibrary.declarations[#main].returnType' :
@@ -136,13 +134,13 @@ main() {
      'reflect(new BadEqualityHash()).type.declarations[#count]'
         : reflect(new BadEqualityHash()).type.declarations[#count]},
 
-    {'reflectType(Predicate)' : reflectType(Predicate),  /// 02: ok
-     'thisLibrary.declarations[#somePredicate].type'  /// 02: ok
-        : (thisLibrary.declarations[#somePredicate] as VariableMirror).type},  /// 02: ok
+    {'reflectType(Predicate)' : reflectType(Predicate),
+     'thisLibrary.declarations[#somePredicate].type'
+        : (thisLibrary.declarations[#somePredicate] as VariableMirror).type},
 
-    {'reflectType(Predicate).referent' : (reflectType(Predicate) as TypedefMirror).referent,  /// 02: ok
-     'thisLibrary.declarations[#somePredicate].type.referent'  /// 02: ok
-        : ((thisLibrary.declarations[#somePredicate] as VariableMirror).type as TypedefMirror).referent},  /// 02: ok
+    {'reflectType(Predicate).referent' : (reflectType(Predicate) as TypedefMirror).referent,
+     'thisLibrary.declarations[#somePredicate].type.referent'
+        : ((thisLibrary.declarations[#somePredicate] as VariableMirror).type as TypedefMirror).referent},
 
     {'reflectClass(A).typeVariables.single'
         : reflectClass(A).typeVariables.single,

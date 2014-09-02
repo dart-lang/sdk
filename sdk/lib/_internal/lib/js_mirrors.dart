@@ -2693,6 +2693,8 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
   String representation;
   if (type == null) {
     return JsMirrorSystem._dynamicType;
+  } else if (type is Type) {
+    return reflectType(type);
   } else if (ownerClass == null) {
     representation = runtimeTypeToString(type);
   } else if (ownerClass.isOriginalDeclaration) {
@@ -2747,6 +2749,12 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
   if (representation != null) {
     return reflectClassByMangledName(
         getMangledTypeName(createRuntimeType(representation)));
+  }
+  if (type != null && JS('Object|Null', '#.typedef', type) != null) {
+    return typeMirrorFromRuntimeTypeRepresentation(
+        owner, JS('Object', '#.typedef', type));
+  } else if (type != null && JS('Object|Null', '#.func', type) != null) {
+    return new JsFunctionTypeMirror(type, owner);
   }
   return reflectClass(Function);
 }

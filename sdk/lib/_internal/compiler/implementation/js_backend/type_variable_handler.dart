@@ -137,8 +137,7 @@ class TypeVariableHandler {
 
   /**
    * Returns the index pointing to the constant in [emitter.globalMetadata]
-   * representing this type variable
-   *.
+   * representing this type variable.
    *
    * If the constant has not yet been constructed, an entry is  allocated in
    * the global metadata list and the index pointing to this entry is returned.
