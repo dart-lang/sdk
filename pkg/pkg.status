@@ -99,6 +99,7 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
+math/test/bigint_test: RuntimeError # Requires bigint support.
 
 analysis_server/test/search/element_references_test: Pass, Slow
 analysis_server/test/services/index/store/codec_test: Pass, Slow
