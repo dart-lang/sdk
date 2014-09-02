@@ -91,6 +91,46 @@ main() {
     helper.assertHasMethod('A.m1');
     helper.assertHasMethod('A.m2');
   });
+
+  test('Getter usage', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  get g1 => null;
+  get g2 => null;
+}
+class B {
+  get g1 => null;
+  get g2 => null;
+}
+main() {
+  new A().g1;
+}
+''');
+    helper.assertHasGetter('A.g1');
+    helper.assertNoGetter('A.g2');
+    helper.assertNoGetter('B.g1');
+    helper.assertNoGetter('B.g2');
+  });
+
+  test('Field access', () {
+    var helper = new TreeShakerTestHelper('''
+class A {
+  var f1;
+  var f2;
+}
+class B {
+  var f1;
+  var f2;
+}
+main() {
+  new A().f1;
+}
+''');
+    helper.assertHasField('A.f1');
+    helper.assertNoField('A.f2');
+    helper.assertNoField('B.f1');
+    helper.assertNoField('B.f2');
+  });
 }
 
 class TreeShakerTestHelper {
@@ -113,6 +153,16 @@ class TreeShakerTestHelper {
    * Methods contained in [world], indexed by className.methodName.
    */
   Map<String, MethodDeclaration> methods = <String, MethodDeclaration>{};
+
+  /**
+   * Getters contained in [world], indexed by className.propertyName.
+   */
+  Map<String, MethodDeclaration> getters = <String, MethodDeclaration>{};
+
+  /**
+   * Fields contained in [world], indexed by className.fieldName.
+   */
+  Map<String, VariableDeclaration> fields = <String, VariableDeclaration>{};
 
   /**
    * Classes instantiated in [world], indexed by name.
@@ -144,6 +194,17 @@ class TreeShakerTestHelper {
         expect(declaration.element, equals(element));
         methods['${element.enclosingElement.name}.${element.name}'] =
             declaration;
+      } else if (element is PropertyAccessorElement) {
+        MethodDeclaration declaration = node as MethodDeclaration;
+        expect(declaration, isNotNull);
+        expect(declaration.element, equals(element));
+        if (declaration.isGetter) {
+          getters['${element.enclosingElement.name}.${element.name}'] =
+              declaration;
+        } else {
+          // TODO(paulberry): handle setters.
+          throw new UnimplementedError();
+        }
       }
     });
     world.instantiatedClasses.forEach(
@@ -152,6 +213,19 @@ class TreeShakerTestHelper {
       expect(declaration.element, equals(element));
       instantiatedClasses[element.name] = declaration;
     });
+    world.fields.forEach(
+        (FieldElement element, VariableDeclaration declaration) {
+      expect(declaration, isNotNull);
+      expect(declaration.element, equals(element));
+      fields['${element.enclosingElement.name}.${element.name}'] = declaration;
+    });
+  }
+
+  /**
+   * Asserts that [world] contains a field with the given qualified name.
+   */
+  void assertHasField(String qualifiedName) {
+    expect(fields, contains(qualifiedName));
   }
 
   /**
@@ -159,6 +233,13 @@ class TreeShakerTestHelper {
    */
   void assertHasFunction(String name) {
     expect(functions, contains(name));
+  }
+
+  /**
+   * Asserts that [world] contains a getter with the given qualified name.
+   */
+  void assertHasGetter(String qualifiedName) {
+    expect(getters, contains(qualifiedName));
   }
 
   /**
@@ -177,8 +258,28 @@ class TreeShakerTestHelper {
     expect(methods, contains(qualifiedName));
   }
 
+  /**
+   * Asserts that [world] doesn't contain a field with the given qualified
+   * name.
+   */
+  void assertNoField(String qualifiedName) {
+    expect(fields, isNot(contains(qualifiedName)));
+  }
+
+  /**
+   * Asserts that [world] doesn't contain a top-level function with the given
+   * name.
+   */
   void assertNoFunction(String name) {
-    expect(functions[name], isNull);
+    expect(functions, isNot(contains(name)));
+  }
+
+  /**
+   * Asserts that [world] doesn't contain a getter with the given qualified
+   * name.
+   */
+  void assertNoGetter(String qualifiedName) {
+    expect(getters, isNot(contains(qualifiedName)));
   }
 
   /**

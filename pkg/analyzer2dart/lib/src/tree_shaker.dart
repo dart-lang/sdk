@@ -43,6 +43,18 @@ class TreeShaker {
         addElement(method);
       }
     }
+    if (selector.kind == SelectorKind.GETTER) {
+      for (PropertyAccessorElement accessor in classElement.accessors) {
+        if (accessor.isGetter && selector.name == accessor.name) {
+          if (accessor.isSynthetic) {
+            // This accessor is implied by the corresponding field declaration.
+            addElement(accessor.variable);
+          } else {
+            addElement(accessor);
+          }
+        }
+      }
+    }
   }
 
   ClosedWorld shake() {
@@ -63,6 +75,18 @@ class TreeShaker {
         MethodDeclaration declaration = element.node;
         _world.executableElements[element] = declaration;
         declaration.accept(new TreeShakingVisitor(this));
+      } else if (element is PropertyAccessorElement) {
+        if (element.isGetter) {
+          MethodDeclaration declaration = element.node;
+          _world.executableElements[element] = declaration;
+          declaration.accept(new TreeShakingVisitor(this));
+        } else {
+          // TODO(paulberry): handle setters.
+          throw new UnimplementedError();
+        }
+      } else if (element is FieldElement) {
+        VariableDeclaration declaration = element.node;
+        _world.fields[element] = declaration;
       } else {
         throw new Exception('Unexpected element type while tree shaking');
       }
@@ -76,6 +100,24 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
   final TreeShaker treeShaker;
 
   TreeShakingVisitor(this.treeShaker);
+
+  /**
+   * Handle a true method call (a MethodInvocation that represents a call to
+   * a non-static method).
+   */
+  void handleMethodCall(MethodInvocation node) {
+    int arity = 0;
+    List<String> namedArguments = <String>[];
+    for (var x in node.argumentList.arguments) {
+      if (x is NamedExpression) {
+        namedArguments.add(x.name.label.name);
+      } else {
+        arity++;
+      }
+    }
+    treeShaker.addSelector(
+        new Selector.call(node.methodName.name, null, arity, namedArguments));
+  }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
@@ -95,10 +137,12 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
       // example, in the case "main() => new Unresolved();" (which is a
       // warning, not an error).
     }
+    super.visitInstanceCreationExpression(node);
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
+    super.visitMethodInvocation(node);
     Element staticElement = node.methodName.staticElement;
     if (staticElement == null) {
       if (node.realTarget != null) {
@@ -111,7 +155,8 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
         //   main() {
         //     foo();
         //   }
-        // TODO(paulberry): deal with this case.
+        // TODO(paulberry): deal with this case.  May need to notify the back
+        // end in case this makes it want to drag in some helper code.
         throw new UnimplementedError();
       }
     } else if (staticElement is MethodElement) {
@@ -186,24 +231,21 @@ class TreeShakingVisitor extends RecursiveAstVisitor {
     }
     // TODO(paulberry): I believe all the other possibilities are errors, but
     // we should double check.
-    super.visitMethodInvocation(node);
   }
 
-  /**
-   * Handle a true method call (a MethodInvocation that represents a call to
-   * a non-static method).
-   */
-  void handleMethodCall(MethodInvocation node) {
-    int arity = 0;
-    List<String> namedArguments = <String>[];
-    for (var x in node.argumentList.arguments) {
-      if (x is NamedExpression) {
-        namedArguments.add(x.name.label.name);
-      } else {
-        arity++;
-      }
-    }
-    treeShaker.addSelector(
-        new Selector.call(node.methodName.name, null, arity, namedArguments));
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    // Accessing a getter or setter, e.g.:
+    //   class A {
+    //     get g() => ...;
+    //   }
+    //   main() {
+    //     new A().g;
+    //   }
+    // TODO(paulberry): do setters go through this path as well?
+    // TODO(paulberry): handle cases where the property access is represented
+    // as a PrefixedIdentifier.
+    super.visitPropertyAccess(node);
+    treeShaker.addSelector(new Selector.getter(node.propertyName.name, null));
   }
 }
