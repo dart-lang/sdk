@@ -51,6 +51,9 @@ client/tests/drt
 packages
 pubspec.lock
 
+# Local pub storage
+.pub
+
 # Vim temporary swap files.
 *.swp
 
