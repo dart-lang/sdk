@@ -642,10 +642,15 @@ class StandardTestSuite extends TestSuite {
   factory StandardTestSuite.forDirectory(Map configuration, Path directory) {
     final name = directory.filename;
 
+    var status_paths = ['$directory/$name.status',
+                        '$directory/.status',
+                        '$directory/${name}_dart2js.status',
+                        '$directory/${name}_analyzer.status',
+                        '$directory/${name}_analyzer2.status'];
+
     return new StandardTestSuite(configuration,
         name, directory,
-        ['$directory/$name.status', '$directory/${name}_dart2js.status',
-         '$directory/${name}_analyzer.status', '$directory/${name}_analyzer2.status'],
+        status_paths,
         isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
         recursive: true);
   }
@@ -728,15 +733,8 @@ class StandardTestSuite extends TestSuite {
    */
   Future<TestExpectations> readExpectations() {
     var statusFiles = statusFilePaths.where((String statusFilePath) {
-      // [forDirectory] adds name_$compiler.status for all tests suites.
-      // Use it if it exists, but otherwise skip it and don't fail.
-      if (statusFilePath.endsWith('_dart2js.status') ||
-          statusFilePath.endsWith('_analyzer.status') ||
-          statusFilePath.endsWith('_analyzer2.status')) {
-        var file = new File(dartDir.append(statusFilePath).toNativePath());
-        return file.existsSync();
-      }
-      return true;
+      var file = new File(dartDir.append(statusFilePath).toNativePath());
+      return file.existsSync();
     }).map((statusFilePath) {
       return dartDir.append(statusFilePath).toNativePath();
     }).toList();
