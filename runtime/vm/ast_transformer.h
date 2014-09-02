@@ -41,8 +41,18 @@ class AwaitTransformer : public AstNodeVisitor {
  public:
   AwaitTransformer(SequenceNode* preamble,
                    const Library& library,
-                   ParsedFunction* const parsed_function,
-                   LocalScope* function_top);
+                   ParsedFunction* const parsed_function)
+    : preamble_(preamble),
+      temp_cnt_(0),
+      library_(library),
+      parsed_function_(parsed_function),
+      isolate_(Isolate::Current()) {
+    // We later on save the continuation context and modify the jump counter
+    // from within the preamble context (in the FlowGraphBuilder). Look up the
+    // needed variables to get their corresponding aliases.
+    preamble->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+    preamble->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  }
 
 #define DECLARE_VISIT(BaseName)                                                \
   virtual void Visit##BaseName##Node(BaseName##Node* node);
@@ -59,8 +69,6 @@ class AwaitTransformer : public AstNodeVisitor {
   AstNode* LazyTransform(const Token::Kind kind,
                          AstNode* new_left,
                          AstNode* right);
-  LocalScope* ChainNewScope(LocalScope* parent);
-  LocalVariable* GetVariableInScope(LocalScope* scope, const String& symbol);
 
   void NextTempVar() { temp_cnt_++; }
 
@@ -71,7 +79,6 @@ class AwaitTransformer : public AstNodeVisitor {
   AstNode* result_;
   const Library& library_;
   ParsedFunction* const parsed_function_;
-  LocalScope* function_top_;
 
   Isolate* isolate_;
 
