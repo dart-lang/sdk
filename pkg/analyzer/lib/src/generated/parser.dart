@@ -1505,6 +1505,11 @@ class Parser {
   bool _inAsync = false;
 
   /**
+   * A flag indicating whether the parser is currently in a function body marked as being 'async'.
+   */
+  bool _inGenerator = false;
+
+  /**
    * A flag indicating whether the parser is currently in the body of a loop.
    */
   bool _inLoop = false;
@@ -4931,9 +4936,11 @@ class Parser {
    */
   FunctionBody _parseFunctionBody(bool mayBeEmpty, ParserErrorCode emptyErrorCode, bool inExpression) {
     bool wasInAsync = _inAsync;
+    bool wasInGenerator = _inGenerator;
     bool wasInLoop = _inLoop;
     bool wasInSwitch = _inSwitch;
     _inAsync = false;
+    _inGenerator = false;
     _inLoop = false;
     _inSwitch = false;
     try {
@@ -4957,12 +4964,14 @@ class Parser {
           keyword = andAdvance;
           if (_matches(TokenType.STAR)) {
             star = andAdvance;
+            _inGenerator = true;
           }
           _inAsync = true;
         } else if (_matchesString(SYNC)) {
           keyword = andAdvance;
           if (_matches(TokenType.STAR)) {
             star = andAdvance;
+            _inGenerator = true;
           }
         }
       }
@@ -5003,6 +5012,7 @@ class Parser {
       }
     } finally {
       _inAsync = wasInAsync;
+      _inGenerator = wasInGenerator;
       _inLoop = wasInLoop;
       _inSwitch = wasInSwitch;
     }
@@ -5786,13 +5796,20 @@ class Parser {
         _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT, []);
         return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
       }
-    } else if (_inAsync && _matchesString(_YIELD)) {
+    } else if (_inGenerator && _matchesString(_YIELD)) {
       return _parseYieldStatement();
     } else if (_inAsync && _matchesString(_AWAIT)) {
       if (_tokenMatchesKeyword(_peek(), Keyword.FOR)) {
         return _parseForStatement();
       }
       return new ExpressionStatement(parseExpression2(), _expect(TokenType.SEMICOLON));
+    } else if (_matchesString(_AWAIT) && _tokenMatchesKeyword(_peek(), Keyword.FOR)) {
+      Token awaitToken = _currentToken;
+      Statement statement = _parseForStatement();
+      if (statement is! ForStatement) {
+        _reportErrorForToken(CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT, awaitToken, []);
+      }
+      return statement;
     } else if (_matches(TokenType.SEMICOLON)) {
       return _parseEmptyStatement();
     } else if (_isInitializedVariableDeclaration()) {
@@ -6608,7 +6625,7 @@ class Parser {
     } else if (_matches(TokenType.PLUS)) {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER, []);
       return _createSyntheticIdentifier();
-    } else if (_inAsync && _matchesString(_AWAIT)) {
+    } else if (_matchesString(_AWAIT)) {
       return _parseAwaitExpression();
     }
     return _parsePostfixExpression();
@@ -6835,7 +6852,7 @@ class Parser {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void _reportErrorForToken(ParserErrorCode errorCode, Token token, List<Object> arguments) {
+  void _reportErrorForToken(ErrorCode errorCode, Token token, List<Object> arguments) {
     if (token.type == TokenType.EOF) {
       token = token.previous;
     }

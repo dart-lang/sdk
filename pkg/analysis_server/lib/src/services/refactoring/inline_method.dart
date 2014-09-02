@@ -17,42 +17,7 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-
-/**
- * Resolver sets [ParameterElement] for the most cases, but not for setter invocation.
- *
- * Returns the best available [ParameterElement] for which the given [Expression] is used.
- */
-ParameterElement _getBestParameterElement(Expression expr) {
-  // TODO(scheglov) investigate why AssignmentExpression "f = 0" doesn't have
-  // an element.
-  // setter invocation
-  if (expr.parent is AssignmentExpression) {
-    AssignmentExpression assignment = expr.parent as AssignmentExpression;
-    if (assignment.rightHandSide == expr &&
-        assignment.operator.type == TokenType.EQ) {
-      Expression lhs = assignment.leftHandSide;
-      Element lhsElement = null;
-      if (lhs is Identifier) {
-        lhsElement = lhs.bestElement;
-      }
-      if (lhs is PropertyAccess) {
-        lhsElement = lhs.propertyName.bestElement;
-      }
-      if (lhsElement is PropertyAccessorElement) {
-        List<ParameterElement> parameters = lhsElement.parameters;
-        if (parameters.length != 0) {
-          return parameters[0];
-        }
-      }
-    }
-  }
-  // use resolver
-  return expr.bestParameterElement;
-}
 
 
 /**
@@ -89,7 +54,7 @@ String _getMethodSourceForInvocation(_SourcePart part, CorrectionUtils utils,
     // prepare argument
     Expression argument = null;
     for (Expression arg in arguments) {
-      if (_getBestParameterElement(arg) == parameter) {
+      if (arg.bestParameterElement == parameter) {
         argument = arg;
         break;
       }

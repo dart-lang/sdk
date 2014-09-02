@@ -7321,6 +7321,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _isEnclosingConstructorConst = false;
 
   /**
+   * A flag indicating whether we are currently within a function body marked as being asynchronous.
+   */
+  bool _inAsync = false;
+
+  /**
+   * A flag indicating whether we are currently within a function body marked as being a generator.
+   */
+  bool _inGenerator = false;
+
+  /**
    * This is set to `true` iff the visitor is currently visiting children nodes of a
    * [CatchClause].
    *
@@ -7549,10 +7559,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForInvalidCompoundAssignment(node, lhs, rhs);
+      _checkForArgumentTypeNotAssignableForArgument(rhs);
     }
     _checkForAssignmentToFinal(lhs);
-    _checkForArgumentTypeNotAssignableForArgument(rhs);
     return super.visitAssignmentExpression(node);
+  }
+
+  @override
+  Object visitAwaitExpression(AwaitExpression node) {
+    if (!_inAsync) {
+      _errorReporter.reportErrorForToken(CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT, node.awaitKeyword, []);
+    }
+    return super.visitAwaitExpression(node);
   }
 
   @override
@@ -7571,16 +7589,22 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
+    bool wasInAsync = _inAsync;
+    bool wasInGenerator = _inGenerator;
     bool previousHasReturnWithoutValue = _hasReturnWithoutValue;
     _hasReturnWithoutValue = false;
     List<ReturnStatement> previousReturnsWith = _returnsWith;
     List<ReturnStatement> previousReturnsWithout = _returnsWithout;
     try {
+      _inAsync = node.isAsynchronous;
+      _inGenerator = node.isGenerator;
       _returnsWith = new List<ReturnStatement>();
       _returnsWithout = new List<ReturnStatement>();
       super.visitBlockFunctionBody(node);
       _checkForMixedReturns(node);
     } finally {
+      _inAsync = wasInAsync;
+      _inGenerator = wasInGenerator;
       _returnsWith = previousReturnsWith;
       _returnsWithout = previousReturnsWithout;
       _hasReturnWithoutValue = previousHasReturnWithoutValue;
@@ -7713,6 +7737,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _enclosingFunction = constructorElement;
       _isEnclosingConstructorConst = node.constKeyword != null;
       _isInFactory = node.factoryKeyword != null;
+      _checkForInvalidModifierOnBody(node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR);
       _checkForConstConstructorWithNonFinalField(node, constructorElement);
       _checkForConstConstructorWithNonConstSuper(node);
       _checkForConflictingConstructorNameAndMember(node, constructorElement);
@@ -7787,10 +7812,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    FunctionType functionType = _enclosingFunction == null ? null : _enclosingFunction.type;
-    DartType expectedReturnType = functionType == null ? DynamicTypeImpl.instance : functionType.returnType;
-    _checkForReturnOfInvalidType(node.expression, expectedReturnType);
-    return super.visitExpressionFunctionBody(node);
+    bool wasInAsync = _inAsync;
+    bool wasInGenerator = _inGenerator;
+    try {
+      _inAsync = node.isAsynchronous;
+      _inGenerator = node.isGenerator;
+      FunctionType functionType = _enclosingFunction == null ? null : _enclosingFunction.type;
+      DartType expectedReturnType = functionType == null ? DynamicTypeImpl.instance : functionType.returnType;
+      _checkForReturnOfInvalidType(node.expression, expectedReturnType);
+      return super.visitExpressionFunctionBody(node);
+    } finally {
+      _inAsync = wasInAsync;
+      _inGenerator = wasInGenerator;
+    }
   }
 
   @override
@@ -7842,6 +7876,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           }
           _checkForNonVoidReturnTypeForSetter(returnType);
         }
+      }
+      if (node.isSetter) {
+        _checkForInvalidModifierOnBody(node.functionExpression.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       return super.visitFunctionDeclaration(node);
@@ -8003,6 +8040,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _checkForVoidReturnType(node);
         _checkForConflictingStaticGetterAndInstanceSetter(node);
       } else if (node.isSetter) {
+        _checkForInvalidModifierOnBody(node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
         _checkForNonVoidReturnTypeForSetter(returnTypeName);
         _checkForConflictingStaticSetterAndInstanceMember(node);
@@ -8234,6 +8272,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitWhileStatement(WhileStatement node) {
     _checkForNonBoolCondition(node.condition);
     return super.visitWhileStatement(node);
+  }
+
+  @override
+  Object visitYieldStatement(YieldStatement node) {
+    if (!_inGenerator) {
+      CompileTimeErrorCode errorCode;
+      if (node.star != null) {
+        errorCode = CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR;
+      } else {
+        errorCode = CompileTimeErrorCode.YIELD_IN_NON_GENERATOR;
+      }
+      _errorReporter.reportErrorForNode(errorCode, node, []);
+    }
+    return super.visitYieldStatement(node);
   }
 
   /**
@@ -8786,6 +8838,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _hasReturnWithoutValue = true;
       _errorReporter.reportErrorForNode(StaticWarningCode.RETURN_WITHOUT_VALUE, node, []);
       return true;
+    } else if (_inGenerator) {
+      // RETURN_IN_GENERATOR
+      _errorReporter.reportErrorForNode(CompileTimeErrorCode.RETURN_IN_GENERATOR, node, []);
     }
     // RETURN_OF_INVALID_TYPE
     return _checkForReturnOfInvalidType(returnExpression, expectedReturnType);
@@ -10606,6 +10661,23 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD, node, [fieldName]);
       return;
     }
+  }
+
+  /**
+   * Check to see whether the given function body has a modifier associated with it, and report it
+   * as an error if it does.
+   *
+   * @param body the function body being checked
+   * @param errorCode the error code to be reported if a modifier is found
+   * @return `true` if an error was reported
+   */
+  bool _checkForInvalidModifierOnBody(FunctionBody body, CompileTimeErrorCode errorCode) {
+    sc.Token keyword = body.keyword;
+    if (keyword != null) {
+      _errorReporter.reportErrorForToken(errorCode, keyword, [keyword.lexeme]);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -21329,6 +21401,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     if (needPropagatedType) {
       Element propagatedElement = methodNameNode.propagatedElement;
+      // HACK: special case for object methods ([toString]) on dynamic expressions.
+      // More special cases in [visitPrefixedIdentfier].
+      if (propagatedElement == null) {
+        propagatedElement = _typeProvider.objectType.getMethod(methodNameNode.name);
+      }
       if (!identical(propagatedElement, staticMethodElement)) {
         // Record static return type of the propagated element.
         DartType propagatedStaticType = _computeStaticReturnType(propagatedElement);
@@ -21449,25 +21526,30 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _recordStaticType(prefixedIdentifier, staticType);
     _recordStaticType(node, staticType);
     Element propagatedElement = prefixedIdentifier.propagatedElement;
+    // HACK: special case for object getters ([hashCode] and [runtimeType]) on dynamic expressions.
+    // More special cases in [visitMethodInvocation].
+    if (propagatedElement == null) {
+      propagatedElement = _typeProvider.objectType.getGetter(prefixedIdentifier.name);
+    }
     if (propagatedElement is ClassElement) {
       if (_isNotTypeLiteral(node)) {
-        propagatedType = propagatedElement.type;
+        propagatedType = (propagatedElement as ClassElement).type;
       } else {
         propagatedType = _typeProvider.typeType;
       }
     } else if (propagatedElement is FunctionTypeAliasElement) {
-      propagatedType = propagatedElement.type;
+      propagatedType = (propagatedElement as FunctionTypeAliasElement).type;
     } else if (propagatedElement is MethodElement) {
-      propagatedType = propagatedElement.type;
+      propagatedType = (propagatedElement as MethodElement).type;
     } else if (propagatedElement is PropertyAccessorElement) {
-      propagatedType = _getTypeOfProperty(propagatedElement, node.prefix.staticType);
+      propagatedType = _getTypeOfProperty(propagatedElement as PropertyAccessorElement, node.prefix.staticType);
       propagatedType = _getPropertyPropagatedType(propagatedElement, propagatedType);
     } else if (propagatedElement is ExecutableElement) {
-      propagatedType = propagatedElement.type;
+      propagatedType = (propagatedElement as ExecutableElement).type;
     } else if (propagatedElement is TypeParameterElement) {
-      propagatedType = propagatedElement.type;
+      propagatedType = (propagatedElement as TypeParameterElement).type;
     } else if (propagatedElement is VariableElement) {
-      propagatedType = propagatedElement.type;
+      propagatedType = (propagatedElement as VariableElement).type;
     }
     DartType overriddenType = _overrideManager.getType(propagatedElement);
     if (propagatedType == null || (overriddenType != null && overriddenType.isMoreSpecificThan(propagatedType))) {

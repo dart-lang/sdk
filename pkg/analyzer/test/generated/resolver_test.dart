@@ -330,6 +330,48 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void fail_invalidIdentifierInAsync_async() {
+    // TODO(brianwilkerson) Report this error.
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m() async {",
+        "    int async;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
+  void fail_invalidIdentifierInAsync_await() {
+    // TODO(brianwilkerson) Report this error.
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m() async {",
+        "    int await;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
+  void fail_invalidIdentifierInAsync_yield() {
+    // TODO(brianwilkerson) Report this error.
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m() async {",
+        "    int yield;",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC]);
+    verify([source]);
+  }
+
   void fail_mixinDeclaresConstructor() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -381,6 +423,42 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void fail_yieldEachInNonGenerator_async() {
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a binary expression.
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() async {", "  yield* 0;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  void fail_yieldEachInNonGenerator_sync() {
+    // TODO(brianwilkerson) We are currently parsing the yield statement as a binary expression.
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  yield* 0;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  void fail_yieldInNonGenerator_async() {
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement as a binary expression.
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() async {", "  yield 0;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
+  void fail_yieldInNonGenerator_sync() {
+    // TODO(brianwilkerson) We are currently trying to parse the yield statement as a binary expression.
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  yield 0;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR]);
+    verify([source]);
+  }
+
   void test_accessPrivateEnumField() {
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.enableEnum = true;
@@ -403,6 +481,29 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     addNamedSource("/lib2.dart", EngineTestCase.createSource(["library lib2;", "class N {}"]));
     resolve(source);
     assertErrors(source, [CompileTimeErrorCode.AMBIGUOUS_EXPORT]);
+    verify([source]);
+  }
+
+  void test_asyncForInWrongContext() {
+    Source source = addSource(EngineTestCase.createSource(["f(list) {", "  await for (var e in list) {", "  }", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT]);
+    verify([source]);
+  }
+
+  void test_awaitInWrongContext_sync() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f(x) {", "  return await x;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
+    verify([source]);
+  }
+
+  void test_awaitInWrongContext_syncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f(x) sync* {", "  yield await x;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
     verify([source]);
   }
 
@@ -2384,6 +2485,78 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors(source, [CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS]);
   }
 
+  void test_invalidModifierOnConstructor_async() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  A() async {}", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  void test_invalidModifierOnConstructor_asyncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  A() async* {}", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  void test_invalidModifierOnConstructor_syncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  A() sync* {}", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  void test_invalidModifierOnSetter_member_async() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  set x(v) async {}", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    verify([source]);
+  }
+
+  void test_invalidModifierOnSetter_member_asyncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  set x(v) async* {}", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    verify([source]);
+  }
+
+  void test_invalidModifierOnSetter_member_syncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  set x(v) sync* {}", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    verify([source]);
+  }
+
+  void test_invalidModifierOnSetter_topLevel_async() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["set x(v) async {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    verify([source]);
+  }
+
+  void test_invalidModifierOnSetter_topLevel_asyncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["set x(v) async* {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    verify([source]);
+  }
+
+  void test_invalidModifierOnSetter_topLevel_syncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["set x(v) sync* {}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER]);
+    verify([source]);
+  }
+
   void test_invalidReferenceToThis_factoryConstructor() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  factory A() { return this; }", "}"]));
     resolve(source);
@@ -3759,6 +3932,22 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_returnInGenerator_asyncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() async* {", "  return 0;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
+    verify([source]);
+  }
+
+  void test_returnInGenerator_syncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() sync* {", "  return 0;", "}"]));
+    resolve(source);
+    assertErrors(source, [CompileTimeErrorCode.RETURN_IN_GENERATOR]);
+    verify([source]);
+  }
+
   void test_sharedDeferredPrefix() {
     resolveWithAndWithoutExperimental(<String> [
         EngineTestCase.createSource(["library lib1;", "f1() {}"]),
@@ -4234,6 +4423,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_ambiguousExport', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_ambiguousExport);
+      });
+      _ut.test('test_asyncForInWrongContext', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_asyncForInWrongContext);
+      });
+      _ut.test('test_awaitInWrongContext_sync', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_awaitInWrongContext_sync);
+      });
+      _ut.test('test_awaitInWrongContext_syncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_awaitInWrongContext_syncStar);
       });
       _ut.test('test_builtInIdentifierAsMixinName_classTypeAlias', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -5035,6 +5236,42 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_invalidFactoryNameNotAClass_notEnclosingClassName);
       });
+      _ut.test('test_invalidModifierOnConstructor_async', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnConstructor_async);
+      });
+      _ut.test('test_invalidModifierOnConstructor_asyncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnConstructor_asyncStar);
+      });
+      _ut.test('test_invalidModifierOnConstructor_syncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnConstructor_syncStar);
+      });
+      _ut.test('test_invalidModifierOnSetter_member_async', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnSetter_member_async);
+      });
+      _ut.test('test_invalidModifierOnSetter_member_asyncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnSetter_member_asyncStar);
+      });
+      _ut.test('test_invalidModifierOnSetter_member_syncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnSetter_member_syncStar);
+      });
+      _ut.test('test_invalidModifierOnSetter_topLevel_async', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnSetter_topLevel_async);
+      });
+      _ut.test('test_invalidModifierOnSetter_topLevel_asyncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnSetter_topLevel_asyncStar);
+      });
+      _ut.test('test_invalidModifierOnSetter_topLevel_syncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_invalidModifierOnSetter_topLevel_syncStar);
+      });
       _ut.test('test_invalidReferenceToThis_factoryConstructor', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_invalidReferenceToThis_factoryConstructor);
@@ -5610,6 +5847,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_returnInGenerativeConstructor_expressionFunctionBody', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_returnInGenerativeConstructor_expressionFunctionBody);
+      });
+      _ut.test('test_returnInGenerator_asyncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_returnInGenerator_asyncStar);
+      });
+      _ut.test('test_returnInGenerator_syncStar', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_returnInGenerator_syncStar);
       });
       _ut.test('test_sharedDeferredPrefix', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -10638,6 +10883,46 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_asyncForInWrongContext_async() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource([
+        "f(list) async {",
+        "  await for (var e in list) {",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_asyncForInWrongContext_asyncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource([
+        "f(list) async* {",
+        "  await for (var e in list) {",
+        "  }",
+        "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_awaitInWrongContext_async() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f(x, y) async {", "  return await x + await y;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_awaitInWrongContext_asyncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f(x, y) async* {", "  yield await x + await y;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_breakWithoutLabelInSwitch() {
     Source source = addSource(EngineTestCase.createSource([
         "class A {",
@@ -12143,6 +12428,20 @@ class NonErrorResolverTest extends ResolverTestCase {
 
   void test_invalidFactoryNameNotAClass() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  factory A() {}", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_invalidIdentifierInAsync() {
+    Source source = addSource(EngineTestCase.createSource([
+        "class A {",
+        "  m() {",
+        "    int async;",
+        "    int await;",
+        "    int yield;",
+        "  }",
+        "}"]));
     resolve(source);
     assertNoErrors(source);
     verify([source]);
@@ -13691,6 +13990,21 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_returnInGenerator_async() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() async {", "  return 0;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_returnInGenerator_sync() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  return 0;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_returnOfInvalidType_async() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl.con1(analysisContext2.analysisOptions);
     options.enableAsync = true;
@@ -14542,6 +14856,38 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
 
+  void test_yieldEachInNonGenerator_asyncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() async* {", "  yield* 0;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yieldEachInNonGenerator_syncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() sync* {", "  yield* 0;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yieldInNonGenerator_asyncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() async* {", "  yield 0;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_yieldInNonGenerator_syncStar() {
+    resetWithAsync();
+    Source source = addSource(EngineTestCase.createSource(["f() sync* {", "  yield 0;", "}"]));
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void _check_wrongNumberOfParametersForOperator(String name, String parameters) {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  operator ${name}(${parameters}) {}", "}"]));
     resolve(source);
@@ -14623,6 +14969,22 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_assignmentToFinals_importWithPrefix', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_assignmentToFinals_importWithPrefix);
+      });
+      _ut.test('test_asyncForInWrongContext_async', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_asyncForInWrongContext_async);
+      });
+      _ut.test('test_asyncForInWrongContext_asyncStar', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_asyncForInWrongContext_asyncStar);
+      });
+      _ut.test('test_awaitInWrongContext_async', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_awaitInWrongContext_async);
+      });
+      _ut.test('test_awaitInWrongContext_asyncStar', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_awaitInWrongContext_asyncStar);
       });
       _ut.test('test_breakWithoutLabelInSwitch', () {
         final __test = new NonErrorResolverTest();
@@ -15131,6 +15493,10 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_invalidFactoryNameNotAClass', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_invalidFactoryNameNotAClass);
+      });
+      _ut.test('test_invalidIdentifierInAsync', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_invalidIdentifierInAsync);
       });
       _ut.test('test_invalidMethodOverrideNamedParamType', () {
         final __test = new NonErrorResolverTest();
@@ -15648,6 +16014,14 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_returnInGenerativeConstructor);
       });
+      _ut.test('test_returnInGenerator_async', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_returnInGenerator_async);
+      });
+      _ut.test('test_returnInGenerator_sync', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_returnInGenerator_sync);
+      });
       _ut.test('test_returnOfInvalidType_async', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_returnOfInvalidType_async);
@@ -15935,6 +16309,22 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_wrongNumberOfParametersForSetter', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_wrongNumberOfParametersForSetter);
+      });
+      _ut.test('test_yieldEachInNonGenerator_asyncStar', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_yieldEachInNonGenerator_asyncStar);
+      });
+      _ut.test('test_yieldEachInNonGenerator_syncStar', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_yieldEachInNonGenerator_syncStar);
+      });
+      _ut.test('test_yieldInNonGenerator_asyncStar', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_yieldInNonGenerator_asyncStar);
+      });
+      _ut.test('test_yieldInNonGenerator_syncStar', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_yieldInNonGenerator_syncStar);
       });
     });
   }
@@ -17463,10 +17853,18 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * In the rare cases we want to group several tests into single "test_" method, so need a way to
-   * reset test instance to reuse it.
+   * Reset the analysis context to have the 'enableAsync' option set to true.
+   */
+  void resetWithAsync() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableAsync = true;
+    analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(options);
+  }
+
+  /**
+   * Reset the analysis context to have the given options applied.
    *
-   * @param options the analysis options for the context
+   * @param options the analysis options to be applied to the context
    */
   void resetWithOptions(AnalysisOptions options) {
     analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(options);
@@ -18012,6 +18410,140 @@ class SimpleResolverTest extends ResolverTestCase {
         "  void g(a, b, [c]) {}",
         "}"]));
     _validateArgumentResolution(source, [0, 1, 2, -1]);
+  }
+
+  void test_argumentResolution_setter_propagated() {
+    Source source = addSource(EngineTestCase.createSource([
+        "main() {",
+        "  var a = new A();",
+        "  a.sss = 0;",
+        "}",
+        "class A {",
+        "  set sss(x) {}",
+        "}"]));
+    LibraryElement library = resolve(source);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    // find "a.sss = 0"
+    AssignmentExpression assignment;
+    {
+      FunctionElement mainElement = unit.functions[0];
+      FunctionBody mainBody = mainElement.node.functionExpression.body;
+      Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
+      ExpressionStatement expressionStatement = statement as ExpressionStatement;
+      assignment = expressionStatement.expression as AssignmentExpression;
+    }
+    // get parameter
+    Expression rhs = assignment.rightHandSide;
+    JUnitTestCase.assertNull(rhs.staticParameterElement);
+    ParameterElement parameter = rhs.propagatedParameterElement;
+    JUnitTestCase.assertNotNull(parameter);
+    JUnitTestCase.assertEquals("x", parameter.displayName);
+    // validate
+    ClassElement classA = unit.types[0];
+    PropertyAccessorElement setter = classA.accessors[0];
+    JUnitTestCase.assertSame(parameter, setter.parameters[0]);
+  }
+
+  void test_argumentResolution_setter_propagated_propertyAccess() {
+    Source source = addSource(EngineTestCase.createSource([
+        "main() {",
+        "  var a = new A();",
+        "  a.b.sss = 0;",
+        "}",
+        "class A {",
+        "  B b = new B();",
+        "}",
+        "class B {",
+        "  set sss(x) {}",
+        "}"]));
+    LibraryElement library = resolve(source);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    // find "a.b.sss = 0"
+    AssignmentExpression assignment;
+    {
+      FunctionElement mainElement = unit.functions[0];
+      FunctionBody mainBody = mainElement.node.functionExpression.body;
+      Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
+      ExpressionStatement expressionStatement = statement as ExpressionStatement;
+      assignment = expressionStatement.expression as AssignmentExpression;
+    }
+    // get parameter
+    Expression rhs = assignment.rightHandSide;
+    JUnitTestCase.assertNull(rhs.staticParameterElement);
+    ParameterElement parameter = rhs.propagatedParameterElement;
+    JUnitTestCase.assertNotNull(parameter);
+    JUnitTestCase.assertEquals("x", parameter.displayName);
+    // validate
+    ClassElement classB = unit.types[1];
+    PropertyAccessorElement setter = classB.accessors[0];
+    JUnitTestCase.assertSame(parameter, setter.parameters[0]);
+  }
+
+  void test_argumentResolution_setter_static() {
+    Source source = addSource(EngineTestCase.createSource([
+        "main() {",
+        "  A a = new A();",
+        "  a.sss = 0;",
+        "}",
+        "class A {",
+        "  set sss(x) {}",
+        "}"]));
+    LibraryElement library = resolve(source);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    // find "a.sss = 0"
+    AssignmentExpression assignment;
+    {
+      FunctionElement mainElement = unit.functions[0];
+      FunctionBody mainBody = mainElement.node.functionExpression.body;
+      Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
+      ExpressionStatement expressionStatement = statement as ExpressionStatement;
+      assignment = expressionStatement.expression as AssignmentExpression;
+    }
+    // get parameter
+    Expression rhs = assignment.rightHandSide;
+    JUnitTestCase.assertNull(rhs.propagatedParameterElement);
+    ParameterElement parameter = rhs.staticParameterElement;
+    JUnitTestCase.assertNotNull(parameter);
+    JUnitTestCase.assertEquals("x", parameter.displayName);
+    // validate
+    ClassElement classA = unit.types[0];
+    PropertyAccessorElement setter = classA.accessors[0];
+    JUnitTestCase.assertSame(parameter, setter.parameters[0]);
+  }
+
+  void test_argumentResolution_setter_static_propertyAccess() {
+    Source source = addSource(EngineTestCase.createSource([
+        "main() {",
+        "  A a = new A();",
+        "  a.b.sss = 0;",
+        "}",
+        "class A {",
+        "  B b = new B();",
+        "}",
+        "class B {",
+        "  set sss(x) {}",
+        "}"]));
+    LibraryElement library = resolve(source);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    // find "a.b.sss = 0"
+    AssignmentExpression assignment;
+    {
+      FunctionElement mainElement = unit.functions[0];
+      FunctionBody mainBody = mainElement.node.functionExpression.body;
+      Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
+      ExpressionStatement expressionStatement = statement as ExpressionStatement;
+      assignment = expressionStatement.expression as AssignmentExpression;
+    }
+    // get parameter
+    Expression rhs = assignment.rightHandSide;
+    JUnitTestCase.assertNull(rhs.propagatedParameterElement);
+    ParameterElement parameter = rhs.staticParameterElement;
+    JUnitTestCase.assertNotNull(parameter);
+    JUnitTestCase.assertEquals("x", parameter.displayName);
+    // validate
+    ClassElement classB = unit.types[1];
+    PropertyAccessorElement setter = classB.accessors[0];
+    JUnitTestCase.assertSame(parameter, setter.parameters[0]);
   }
 
   void test_class_definesCall() {
@@ -18762,6 +19294,22 @@ class SimpleResolverTest extends ResolverTestCase {
       _ut.test('test_argumentResolution_required_tooMany', () {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_argumentResolution_required_tooMany);
+      });
+      _ut.test('test_argumentResolution_setter_propagated', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_argumentResolution_setter_propagated);
+      });
+      _ut.test('test_argumentResolution_setter_propagated_propertyAccess', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_argumentResolution_setter_propagated_propertyAccess);
+      });
+      _ut.test('test_argumentResolution_setter_static', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_argumentResolution_setter_static);
+      });
+      _ut.test('test_argumentResolution_setter_static_propertyAccess', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_argumentResolution_setter_static_propertyAccess);
       });
       _ut.test('test_class_definesCall', () {
         final __test = new SimpleResolverTest();
@@ -27792,6 +28340,47 @@ class TypePropagationTest extends ResolverTestCase {
         "}"]), null, typeProvider.intType);
   }
 
+  void test_objectMethodOnDynamicExpression_doubleEquals() {
+    // https://code.google.com/p/dart/issues/detail?id=20342
+    //
+    // This was not actually part of Issue 20342, since the spec specifies a
+    // static type of [bool] for [==] comparison and the implementation
+    // was already consistent with the spec there. But, it's another
+    // [Object] method, so it's included here.
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f1(x) {",
+        "  var v = (x == x);",
+        "  return v; // marker",
+        "}"]), null, typeProvider.boolType);
+  }
+
+  void test_objectMethodOnDynamicExpression_hashCode() {
+    // https://code.google.com/p/dart/issues/detail?id=20342
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f1(x) {",
+        "  var v = x.hashCode;",
+        "  return v; // marker",
+        "}"]), null, typeProvider.intType);
+  }
+
+  void test_objectMethodOnDynamicExpression_runtimeType() {
+    // https://code.google.com/p/dart/issues/detail?id=20342
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f1(x) {",
+        "  var v = x.runtimeType;",
+        "  return v; // marker",
+        "}"]), null, typeProvider.typeType);
+  }
+
+  void test_objectMethodOnDynamicExpression_toString() {
+    // https://code.google.com/p/dart/issues/detail?id=20342
+    _assertTypeOfMarkedExpression(EngineTestCase.createSource([
+        "f1(x) {",
+        "  var v = x.toString();",
+        "  return v; // marker",
+        "}"]), null, typeProvider.stringType);
+  }
+
   void test_propagatedReturnType_function_hasReturnType_returnsNull() {
     String code = EngineTestCase.createSource(["String f() => null;", "main() {", "  var v = f();", "}"]);
     _assertPropagatedReturnType(code, typeProvider.dynamicType, typeProvider.stringType);
@@ -28106,6 +28695,22 @@ class TypePropagationTest extends ResolverTestCase {
       _ut.test('test_mergePropagatedTypesAtJoinPoint_4', () {
         final __test = new TypePropagationTest();
         runJUnitTest(__test, __test.test_mergePropagatedTypesAtJoinPoint_4);
+      });
+      _ut.test('test_objectMethodOnDynamicExpression_doubleEquals', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_objectMethodOnDynamicExpression_doubleEquals);
+      });
+      _ut.test('test_objectMethodOnDynamicExpression_hashCode', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_objectMethodOnDynamicExpression_hashCode);
+      });
+      _ut.test('test_objectMethodOnDynamicExpression_runtimeType', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_objectMethodOnDynamicExpression_runtimeType);
+      });
+      _ut.test('test_objectMethodOnDynamicExpression_toString', () {
+        final __test = new TypePropagationTest();
+        runJUnitTest(__test, __test.test_objectMethodOnDynamicExpression_toString);
       });
       _ut.test('test_propagatedReturnType_function_hasReturnType_returnsNull', () {
         final __test = new TypePropagationTest();

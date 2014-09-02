@@ -5825,6 +5825,18 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf((obj) => obj is VariableDeclarationStatement, VariableDeclarationStatement, statement);
   }
 
+  void test_parseAwaitExpression_inSync() {
+    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], EngineTestCase.createSource(["m() { return await x + await y; }"]));
+    FunctionBody body = method.body;
+    EngineTestCase.assertInstanceOf((obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is ReturnStatement, ReturnStatement, statement);
+    Expression expression = (statement as ReturnStatement).expression;
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression);
+    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression, AwaitExpression, (expression as BinaryExpression).leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression, AwaitExpression, (expression as BinaryExpression).rightOperand);
+  }
+
   void test_parseBitwiseAndExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "x & y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
@@ -10541,6 +10553,10 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseAwaitExpression_asStatement_inSync', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseAwaitExpression_asStatement_inSync);
+      });
+      _ut.test('test_parseAwaitExpression_inSync', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseAwaitExpression_inSync);
       });
       _ut.test('test_parseBitwiseAndExpression_normal', () {
         final __test = new SimpleParserTest();
