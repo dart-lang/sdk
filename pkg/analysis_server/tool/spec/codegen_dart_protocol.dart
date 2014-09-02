@@ -199,7 +199,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * the constructor will default the member to the empty list.
    */
   static const Map<String, List<String>> _optionalConstructorArguments = const {
-    'ErrorFixes': const ['fixes'],
+    'AnalysisErrorFixes': const ['fixes'],
     'SourceChange': const ['edits', 'linkedEditGroups'],
     'SourceFileEdit': const ['edits'],
     'TypeHierarchyItem': const ['interfaces', 'mixins', 'subclasses'],
@@ -525,7 +525,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    */
   bool emitSpecialMethods(String className) {
     switch (className) {
-      case 'ErrorFixes':
+      case 'AnalysisErrorFixes':
         docComment([new dom.Text('Add a [Fix]')]);
         writeln('void addFix(Fix fix) {');
         indent(() {

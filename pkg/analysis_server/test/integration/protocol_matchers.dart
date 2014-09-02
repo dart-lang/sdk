@@ -615,12 +615,12 @@ final Matcher isEditGetFixesParams = new LazyMatcher(() => new MatchesJsonObject
  * edit.getFixes result
  *
  * {
- *   "fixes": List<ErrorFixes>
+ *   "fixes": List<AnalysisErrorFixes>
  * }
  */
 final Matcher isEditGetFixesResult = new LazyMatcher(() => new MatchesJsonObject(
   "edit.getFixes result", {
-    "fixes": isListOf(isErrorFixes)
+    "fixes": isListOf(isAnalysisErrorFixes)
   }));
 
 /**
@@ -788,8 +788,8 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  * AnalysisError
  *
  * {
- *   "severity": ErrorSeverity
- *   "type": ErrorType
+ *   "severity": AnalysisErrorSeverity
+ *   "type": AnalysisErrorType
  *   "location": Location
  *   "message": String
  *   "correction": optional String
@@ -797,13 +797,63 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  */
 final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
   "AnalysisError", {
-    "severity": isErrorSeverity,
-    "type": isErrorType,
+    "severity": isAnalysisErrorSeverity,
+    "type": isAnalysisErrorType,
     "location": isLocation,
     "message": isString
   }, optionalFields: {
     "correction": isString
   }));
+
+/**
+ * AnalysisErrorFixes
+ *
+ * {
+ *   "error": AnalysisError
+ *   "fixes": List<SourceChange>
+ * }
+ */
+final Matcher isAnalysisErrorFixes = new LazyMatcher(() => new MatchesJsonObject(
+  "AnalysisErrorFixes", {
+    "error": isAnalysisError,
+    "fixes": isListOf(isSourceChange)
+  }));
+
+/**
+ * AnalysisErrorSeverity
+ *
+ * enum {
+ *   INFO
+ *   WARNING
+ *   ERROR
+ * }
+ */
+final Matcher isAnalysisErrorSeverity = new MatchesEnum("AnalysisErrorSeverity", [
+  "INFO",
+  "WARNING",
+  "ERROR"
+]);
+
+/**
+ * AnalysisErrorType
+ *
+ * enum {
+ *   COMPILE_TIME_ERROR
+ *   HINT
+ *   STATIC_TYPE_WARNING
+ *   STATIC_WARNING
+ *   SYNTACTIC_ERROR
+ *   TODO
+ * }
+ */
+final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
+  "COMPILE_TIME_ERROR",
+  "HINT",
+  "STATIC_TYPE_WARNING",
+  "STATIC_WARNING",
+  "SYNTACTIC_ERROR",
+  "TODO"
+]);
 
 /**
  * AnalysisOptions
@@ -1075,56 +1125,6 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "UNIT_TEST_GROUP",
   "UNIT_TEST_TEST",
   "UNKNOWN"
-]);
-
-/**
- * ErrorFixes
- *
- * {
- *   "error": AnalysisError
- *   "fixes": List<SourceChange>
- * }
- */
-final Matcher isErrorFixes = new LazyMatcher(() => new MatchesJsonObject(
-  "ErrorFixes", {
-    "error": isAnalysisError,
-    "fixes": isListOf(isSourceChange)
-  }));
-
-/**
- * ErrorSeverity
- *
- * enum {
- *   INFO
- *   WARNING
- *   ERROR
- * }
- */
-final Matcher isErrorSeverity = new MatchesEnum("ErrorSeverity", [
-  "INFO",
-  "WARNING",
-  "ERROR"
-]);
-
-/**
- * ErrorType
- *
- * enum {
- *   COMPILE_TIME_ERROR
- *   HINT
- *   STATIC_TYPE_WARNING
- *   STATIC_WARNING
- *   SYNTACTIC_ERROR
- *   TODO
- * }
- */
-final Matcher isErrorType = new MatchesEnum("ErrorType", [
-  "COMPILE_TIME_ERROR",
-  "HINT",
-  "STATIC_TYPE_WARNING",
-  "STATIC_WARNING",
-  "SYNTACTIC_ERROR",
-  "TODO"
 ]);
 
 /**

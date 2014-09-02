@@ -1151,7 +1151,7 @@
         </params>
         <result>
           <field name="fixes">
-            <list><ref>ErrorFixes</ref></list>
+            <list><ref>AnalysisErrorFixes</ref></list>
             <p>
               The fixes that are available for each of the analysis
               errors. There is a one-to-one correspondence between the
@@ -1455,13 +1455,13 @@
         </p>
         <object>
           <field name="severity">
-            <ref>ErrorSeverity</ref>
+            <ref>AnalysisErrorSeverity</ref>
             <p>
               The severity of the error.
             </p>
           </field>
           <field name="type">
-            <ref>ErrorType</ref>
+            <ref>AnalysisErrorType</ref>
             <p>
               The type of the error.
             </p>
@@ -1490,6 +1490,49 @@
             </p>
           </field>
         </object>
+      </type>
+      <type name="AnalysisErrorFixes">
+        <p>
+          A list of fixes associated with a specific error
+        </p>
+        <object>
+          <field name="error">
+            <ref>AnalysisError</ref>
+            <p>
+              The error with which the fixes are associated.
+            </p>
+          </field>
+          <field name="fixes">
+            <list><ref>SourceChange</ref></list>
+            <p>
+              The fixes associated with the error.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="AnalysisErrorSeverity">
+        <p>
+          An enumeration of the possible severities of analysis
+          errors.
+        </p>
+        <enum>
+          <value><code>INFO</code></value>
+          <value><code>WARNING</code></value>
+          <value><code>ERROR</code></value>
+        </enum>
+      </type>
+      <type name="AnalysisErrorType">
+        <p>
+          An enumeration of the possible types of analysis errors.
+        </p>
+        <enum>
+          <value><code>COMPILE_TIME_ERROR</code></value>
+          <value><code>HINT</code></value>
+          <value><code>STATIC_TYPE_WARNING</code></value>
+          <value><code>STATIC_WARNING</code></value>
+          <value><code>SYNTACTIC_ERROR</code></value>
+          <value><code>TODO</code></value>
+        </enum>
       </type>
       <type name="AnalysisOptions">
         <p>
@@ -1874,49 +1917,6 @@
           <value><code>UNIT_TEST_GROUP</code></value>
           <value><code>UNIT_TEST_TEST</code></value>
           <value><code>UNKNOWN</code></value>
-        </enum>
-      </type>
-      <type name="ErrorFixes">
-        <p>
-          A list of fixes associated with a specific error
-        </p>
-        <object>
-          <field name="error">
-            <ref>AnalysisError</ref>
-            <p>
-              The error with which the fixes are associated.
-            </p>
-          </field>
-          <field name="fixes">
-            <list><ref>SourceChange</ref></list>
-            <p>
-              The fixes associated with the error.
-            </p>
-          </field>
-        </object>
-      </type>
-      <type name="ErrorSeverity">
-        <p>
-          An enumeration of the possible severities of analysis
-          errors.
-        </p>
-        <enum>
-          <value><code>INFO</code></value>
-          <value><code>WARNING</code></value>
-          <value><code>ERROR</code></value>
-        </enum>
-      </type>
-      <type name="ErrorType">
-        <p>
-          An enumeration of the possible types of analysis errors.
-        </p>
-        <enum>
-          <value><code>COMPILE_TIME_ERROR</code></value>
-          <value><code>HINT</code></value>
-          <value><code>STATIC_TYPE_WARNING</code></value>
-          <value><code>STATIC_WARNING</code></value>
-          <value><code>SYNTACTIC_ERROR</code></value>
-          <value><code>TODO</code></value>
         </enum>
       </type>
       <type name="ExecutableFile">

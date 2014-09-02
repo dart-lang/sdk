@@ -41,13 +41,13 @@ bar() {
     return waitForTasksFinished().then((_) {
       // print(1)
       {
-        List<ErrorFixes> errorFixes = _getFixesAt('print(1)');
+        List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
         expect(errorFixes, hasLength(1));
         _isSyntacticErrorWithSingleFix(errorFixes[0]);
       }
       // print(10)
       {
-        List<ErrorFixes> errorFixes = _getFixesAt('print(10)');
+        List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(10)');
         expect(errorFixes, hasLength(2));
         _isSyntacticErrorWithSingleFix(errorFixes[0]);
         _isSyntacticErrorWithSingleFix(errorFixes[1]);
@@ -55,20 +55,20 @@ bar() {
     });
   }
 
-  void _isSyntacticErrorWithSingleFix(ErrorFixes fixes) {
+  void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {
     AnalysisError error = fixes.error;
-    expect(error.severity, ErrorSeverity.ERROR);
-    expect(error.type, ErrorType.SYNTACTIC_ERROR);
+    expect(error.severity, AnalysisErrorSeverity.ERROR);
+    expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
     expect(fixes.fixes, hasLength(1));
   }
 
-  List<ErrorFixes> _getFixesAt(String search) {
+  List<AnalysisErrorFixes> _getFixesAt(String search) {
     int offset = findOffset(search);
     return _getFixes(offset);
   }
 
 
-  List<ErrorFixes> _getFixes(int offset) {
+  List<AnalysisErrorFixes> _getFixes(int offset) {
     Request request = new EditGetFixesParams(testFile, offset).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     var result = new EditGetFixesResult.fromResponse(response);

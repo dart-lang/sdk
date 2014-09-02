@@ -1072,7 +1072,7 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * fixes ( List<ErrorFixes> )
+   * fixes ( List<AnalysisErrorFixes> )
    *
    *   The fixes that are available for each of the analysis errors. There is a
    *   one-to-one correspondence between the analysis errors in the request and

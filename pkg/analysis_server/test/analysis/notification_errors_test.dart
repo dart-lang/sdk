@@ -46,8 +46,8 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
       expect(error.location.file, '/project/bin/test.dart');
       expect(error.location.offset, isPositive);
       expect(error.location.length, isNonNegative);
-      expect(error.severity, ErrorSeverity.ERROR);
-      expect(error.type, ErrorType.SYNTACTIC_ERROR);
+      expect(error.severity, AnalysisErrorSeverity.ERROR);
+      expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
       expect(error.message, isNotNull);
     });
   }
@@ -63,8 +63,8 @@ main() {
       List<AnalysisError> errors = filesErrors[testFile];
       expect(errors, hasLength(1));
       AnalysisError error = errors[0];
-      expect(error.severity, ErrorSeverity.WARNING);
-      expect(error.type, ErrorType.STATIC_WARNING);
+      expect(error.severity, AnalysisErrorSeverity.WARNING);
+      expect(error.type, AnalysisErrorType.STATIC_WARNING);
     });
   }
 

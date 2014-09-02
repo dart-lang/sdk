@@ -98,8 +98,8 @@ AnalysisError _analysisErrorFromEngine(engine.LineInfo lineInfo,
     location = new Location(file, offset, length, startLine, startColumn);
   }
   // done
-  var severity = new ErrorSeverity(errorCode.errorSeverity.name);
-  var type = new ErrorType(errorCode.type.name);
+  var severity = new AnalysisErrorSeverity(errorCode.errorSeverity.name);
+  var type = new AnalysisErrorType(errorCode.type.name);
   String message = error.message;
   String correction = error.correction;
   return new AnalysisError(

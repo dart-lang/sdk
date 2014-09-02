@@ -1344,7 +1344,7 @@ dt.typeDefinition {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
-    "<b>fixes</b>": List&lt;<a href="#type_ErrorFixes">ErrorFixes</a>&gt;
+    "<b>fixes</b>": List&lt;<a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a>&gt;
   }
 }</pre></div>
         <p>
@@ -1365,7 +1365,7 @@ dt.typeDefinition {
               The offset used to select the errors for which fixes
               will be returned.
             </p>
-          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>fixes ( List&lt;<a href="#type_ErrorFixes">ErrorFixes</a>&gt; )</i></b></dt><dd>
+          </dd></dl><h4>Returns</h4><dl><dt class="field"><b><i>fixes ( List&lt;<a href="#type_AnalysisErrorFixes">AnalysisErrorFixes</a>&gt; )</i></b></dt><dd>
             
             <p>
               The fixes that are available for each of the analysis
@@ -1741,12 +1741,12 @@ dt.typeDefinition {
           by the analysis.
         </p>
         
-      <dl><dt class="field"><b><i>severity ( <a href="#type_ErrorSeverity">ErrorSeverity</a> )</i></b></dt><dd>
+      <dl><dt class="field"><b><i>severity ( <a href="#type_AnalysisErrorSeverity">AnalysisErrorSeverity</a> )</i></b></dt><dd>
             
             <p>
               The severity of the error.
             </p>
-          </dd><dt class="field"><b><i>type ( <a href="#type_ErrorType">ErrorType</a> )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>type ( <a href="#type_AnalysisErrorType">AnalysisErrorType</a> )</i></b></dt><dd>
             
             <p>
               The type of the error.
@@ -1771,7 +1771,33 @@ dt.typeDefinition {
               the error. The field is omitted if there is no correction
               message associated with the error code.
             </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisOptions">AnalysisOptions: object</a></dt><dd>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisErrorFixes">AnalysisErrorFixes: object</a></dt><dd>
+        <p>
+          A list of fixes associated with a specific error
+        </p>
+        
+      <dl><dt class="field"><b><i>error ( <a href="#type_AnalysisError">AnalysisError</a> )</i></b></dt><dd>
+            
+            <p>
+              The error with which the fixes are associated.
+            </p>
+          </dd><dt class="field"><b><i>fixes ( List&lt;<a href="#type_SourceChange">SourceChange</a>&gt; )</i></b></dt><dd>
+            
+            <p>
+              The fixes associated with the error.
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_AnalysisErrorSeverity">AnalysisErrorSeverity: String</a></dt><dd>
+        <p>
+          An enumeration of the possible severities of analysis
+          errors.
+        </p>
+        
+      <dl><dt class="value">INFO</dt><dt class="value">WARNING</dt><dt class="value">ERROR</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisErrorType">AnalysisErrorType: String</a></dt><dd>
+        <p>
+          An enumeration of the possible types of analysis errors.
+        </p>
+        
+      <dl><dt class="value">COMPILE_TIME_ERROR</dt><dt class="value">HINT</dt><dt class="value">STATIC_TYPE_WARNING</dt><dt class="value">STATIC_WARNING</dt><dt class="value">SYNTACTIC_ERROR</dt><dt class="value">TODO</dt></dl></dd><dt class="typeDefinition"><a name="type_AnalysisOptions">AnalysisOptions: object</a></dt><dd>
         <p>
           A set of options controlling what kind of analysis is to be
           performed. If the value of a field is omitted the value of the
@@ -2054,33 +2080,7 @@ dt.typeDefinition {
           An enumeration of the kinds of elements.
         </p>
         
-      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ErrorFixes">ErrorFixes: object</a></dt><dd>
-        <p>
-          A list of fixes associated with a specific error
-        </p>
-        
-      <dl><dt class="field"><b><i>error ( <a href="#type_AnalysisError">AnalysisError</a> )</i></b></dt><dd>
-            
-            <p>
-              The error with which the fixes are associated.
-            </p>
-          </dd><dt class="field"><b><i>fixes ( List&lt;<a href="#type_SourceChange">SourceChange</a>&gt; )</i></b></dt><dd>
-            
-            <p>
-              The fixes associated with the error.
-            </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_ErrorSeverity">ErrorSeverity: String</a></dt><dd>
-        <p>
-          An enumeration of the possible severities of analysis
-          errors.
-        </p>
-        
-      <dl><dt class="value">INFO</dt><dt class="value">WARNING</dt><dt class="value">ERROR</dt></dl></dd><dt class="typeDefinition"><a name="type_ErrorType">ErrorType: String</a></dt><dd>
-        <p>
-          An enumeration of the possible types of analysis errors.
-        </p>
-        
-      <dl><dt class="value">COMPILE_TIME_ERROR</dt><dt class="value">HINT</dt><dt class="value">STATIC_TYPE_WARNING</dt><dt class="value">STATIC_WARNING</dt><dt class="value">SYNTACTIC_ERROR</dt><dt class="value">TODO</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
+      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ExecutableFile">ExecutableFile: object</a></dt><dd>
         <p>
           A description of an executable file.
         </p>

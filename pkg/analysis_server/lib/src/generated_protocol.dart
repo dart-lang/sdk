@@ -3360,7 +3360,7 @@ class EditGetFixesParams implements HasToJson {
  * edit.getFixes result
  *
  * {
- *   "fixes": List<ErrorFixes>
+ *   "fixes": List<AnalysisErrorFixes>
  * }
  */
 class EditGetFixesResult implements HasToJson {
@@ -3372,7 +3372,7 @@ class EditGetFixesResult implements HasToJson {
    * for the error in errors[i]. The list of changes corresponding to an error
    * can be empty if there are no fixes available for that error.
    */
-  List<ErrorFixes> fixes;
+  List<AnalysisErrorFixes> fixes;
 
   EditGetFixesResult(this.fixes);
 
@@ -3381,9 +3381,9 @@ class EditGetFixesResult implements HasToJson {
       json = {};
     }
     if (json is Map) {
-      List<ErrorFixes> fixes;
+      List<AnalysisErrorFixes> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new ErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
@@ -3400,7 +3400,7 @@ class EditGetFixesResult implements HasToJson {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["fixes"] = fixes.map((ErrorFixes value) => value.toJson()).toList();
+    result["fixes"] = fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
     return result;
   }
 
@@ -3414,7 +3414,7 @@ class EditGetFixesResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetFixesResult) {
-      return _listEqual(fixes, other.fixes, (ErrorFixes a, ErrorFixes b) => a == b);
+      return _listEqual(fixes, other.fixes, (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b);
     }
     return false;
   }
@@ -4353,8 +4353,8 @@ class AddContentOverlay implements HasToJson {
  * AnalysisError
  *
  * {
- *   "severity": ErrorSeverity
- *   "type": ErrorType
+ *   "severity": AnalysisErrorSeverity
+ *   "type": AnalysisErrorType
  *   "location": Location
  *   "message": String
  *   "correction": optional String
@@ -4371,12 +4371,12 @@ class AnalysisError implements HasToJson {
   /**
    * The severity of the error.
    */
-  ErrorSeverity severity;
+  AnalysisErrorSeverity severity;
 
   /**
    * The type of the error.
    */
-  ErrorType type;
+  AnalysisErrorType type;
 
   /**
    * The location associated with the error.
@@ -4403,15 +4403,15 @@ class AnalysisError implements HasToJson {
       json = {};
     }
     if (json is Map) {
-      ErrorSeverity severity;
+      AnalysisErrorSeverity severity;
       if (json.containsKey("severity")) {
-        severity = new ErrorSeverity.fromJson(jsonDecoder, jsonPath + ".severity", json["severity"]);
+        severity = new AnalysisErrorSeverity.fromJson(jsonDecoder, jsonPath + ".severity", json["severity"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "severity");
       }
-      ErrorType type;
+      AnalysisErrorType type;
       if (json.containsKey("type")) {
-        type = new ErrorType.fromJson(jsonDecoder, jsonPath + ".type", json["type"]);
+        type = new AnalysisErrorType.fromJson(jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "type");
       }
@@ -4480,6 +4480,202 @@ class AnalysisError implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, correction.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
+}
+
+/**
+ * AnalysisErrorFixes
+ *
+ * {
+ *   "error": AnalysisError
+ *   "fixes": List<SourceChange>
+ * }
+ */
+class AnalysisErrorFixes implements HasToJson {
+  /**
+   * The error with which the fixes are associated.
+   */
+  AnalysisError error;
+
+  /**
+   * The fixes associated with the error.
+   */
+  List<SourceChange> fixes;
+
+  AnalysisErrorFixes(this.error, {this.fixes}) {
+    if (fixes == null) {
+      fixes = <SourceChange>[];
+    }
+  }
+
+  factory AnalysisErrorFixes.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      AnalysisError error;
+      if (json.containsKey("error")) {
+        error = new AnalysisError.fromJson(jsonDecoder, jsonPath + ".error", json["error"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "error");
+      }
+      List<SourceChange> fixes;
+      if (json.containsKey("fixes")) {
+        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "fixes");
+      }
+      return new AnalysisErrorFixes(error, fixes: fixes);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorFixes");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["error"] = error.toJson();
+    result["fixes"] = fixes.map((SourceChange value) => value.toJson()).toList();
+    return result;
+  }
+
+  /**
+   * Add a [Fix]
+   */
+  void addFix(Fix fix) {
+    fixes.add(fix.change);
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisErrorFixes) {
+      return error == other.error &&
+          _listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, error.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * AnalysisErrorSeverity
+ *
+ * enum {
+ *   INFO
+ *   WARNING
+ *   ERROR
+ * }
+ */
+class AnalysisErrorSeverity {
+  static const INFO = const AnalysisErrorSeverity._("INFO");
+
+  static const WARNING = const AnalysisErrorSeverity._("WARNING");
+
+  static const ERROR = const AnalysisErrorSeverity._("ERROR");
+
+  final String name;
+
+  const AnalysisErrorSeverity._(this.name);
+
+  factory AnalysisErrorSeverity(String name) {
+    switch (name) {
+      case "INFO":
+        return INFO;
+      case "WARNING":
+        return WARNING;
+      case "ERROR":
+        return ERROR;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory AnalysisErrorSeverity.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new AnalysisErrorSeverity(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorSeverity");
+  }
+
+  @override
+  String toString() => "AnalysisErrorSeverity.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * AnalysisErrorType
+ *
+ * enum {
+ *   COMPILE_TIME_ERROR
+ *   HINT
+ *   STATIC_TYPE_WARNING
+ *   STATIC_WARNING
+ *   SYNTACTIC_ERROR
+ *   TODO
+ * }
+ */
+class AnalysisErrorType {
+  static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
+
+  static const HINT = const AnalysisErrorType._("HINT");
+
+  static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
+
+  static const STATIC_WARNING = const AnalysisErrorType._("STATIC_WARNING");
+
+  static const SYNTACTIC_ERROR = const AnalysisErrorType._("SYNTACTIC_ERROR");
+
+  static const TODO = const AnalysisErrorType._("TODO");
+
+  final String name;
+
+  const AnalysisErrorType._(this.name);
+
+  factory AnalysisErrorType(String name) {
+    switch (name) {
+      case "COMPILE_TIME_ERROR":
+        return COMPILE_TIME_ERROR;
+      case "HINT":
+        return HINT;
+      case "STATIC_TYPE_WARNING":
+        return STATIC_TYPE_WARNING;
+      case "STATIC_WARNING":
+        return STATIC_WARNING;
+      case "SYNTACTIC_ERROR":
+        return SYNTACTIC_ERROR;
+      case "TODO":
+        return TODO;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory AnalysisErrorType.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new AnalysisErrorType(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorType");
+  }
+
+  @override
+  String toString() => "AnalysisErrorType.$name";
+
+  String toJson() => name;
 }
 
 /**
@@ -5659,202 +5855,6 @@ class ElementKind {
 
   @override
   String toString() => "ElementKind.$name";
-
-  String toJson() => name;
-}
-
-/**
- * ErrorFixes
- *
- * {
- *   "error": AnalysisError
- *   "fixes": List<SourceChange>
- * }
- */
-class ErrorFixes implements HasToJson {
-  /**
-   * The error with which the fixes are associated.
-   */
-  AnalysisError error;
-
-  /**
-   * The fixes associated with the error.
-   */
-  List<SourceChange> fixes;
-
-  ErrorFixes(this.error, {this.fixes}) {
-    if (fixes == null) {
-      fixes = <SourceChange>[];
-    }
-  }
-
-  factory ErrorFixes.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      AnalysisError error;
-      if (json.containsKey("error")) {
-        error = new AnalysisError.fromJson(jsonDecoder, jsonPath + ".error", json["error"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "error");
-      }
-      List<SourceChange> fixes;
-      if (json.containsKey("fixes")) {
-        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "fixes");
-      }
-      return new ErrorFixes(error, fixes: fixes);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath, "ErrorFixes");
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    result["error"] = error.toJson();
-    result["fixes"] = fixes.map((SourceChange value) => value.toJson()).toList();
-    return result;
-  }
-
-  /**
-   * Add a [Fix]
-   */
-  void addFix(Fix fix) {
-    fixes.add(fix.change);
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator==(other) {
-    if (other is ErrorFixes) {
-      return error == other.error &&
-          _listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, error.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return _JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
- * ErrorSeverity
- *
- * enum {
- *   INFO
- *   WARNING
- *   ERROR
- * }
- */
-class ErrorSeverity {
-  static const INFO = const ErrorSeverity._("INFO");
-
-  static const WARNING = const ErrorSeverity._("WARNING");
-
-  static const ERROR = const ErrorSeverity._("ERROR");
-
-  final String name;
-
-  const ErrorSeverity._(this.name);
-
-  factory ErrorSeverity(String name) {
-    switch (name) {
-      case "INFO":
-        return INFO;
-      case "WARNING":
-        return WARNING;
-      case "ERROR":
-        return ERROR;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory ErrorSeverity.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new ErrorSeverity(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "ErrorSeverity");
-  }
-
-  @override
-  String toString() => "ErrorSeverity.$name";
-
-  String toJson() => name;
-}
-
-/**
- * ErrorType
- *
- * enum {
- *   COMPILE_TIME_ERROR
- *   HINT
- *   STATIC_TYPE_WARNING
- *   STATIC_WARNING
- *   SYNTACTIC_ERROR
- *   TODO
- * }
- */
-class ErrorType {
-  static const COMPILE_TIME_ERROR = const ErrorType._("COMPILE_TIME_ERROR");
-
-  static const HINT = const ErrorType._("HINT");
-
-  static const STATIC_TYPE_WARNING = const ErrorType._("STATIC_TYPE_WARNING");
-
-  static const STATIC_WARNING = const ErrorType._("STATIC_WARNING");
-
-  static const SYNTACTIC_ERROR = const ErrorType._("SYNTACTIC_ERROR");
-
-  static const TODO = const ErrorType._("TODO");
-
-  final String name;
-
-  const ErrorType._(this.name);
-
-  factory ErrorType(String name) {
-    switch (name) {
-      case "COMPILE_TIME_ERROR":
-        return COMPILE_TIME_ERROR;
-      case "HINT":
-        return HINT;
-      case "STATIC_TYPE_WARNING":
-        return STATIC_TYPE_WARNING;
-      case "STATIC_WARNING":
-        return STATIC_WARNING;
-      case "SYNTACTIC_ERROR":
-        return SYNTACTIC_ERROR;
-      case "TODO":
-        return TODO;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory ErrorType.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new ErrorType(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "ErrorType");
-  }
-
-  @override
-  String toString() => "ErrorType.$name";
 
   String toJson() => name;
 }

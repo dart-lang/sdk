@@ -97,7 +97,7 @@ class EditDomainHandler implements RequestHandler {
     String file = params.file;
     int offset = params.offset;
     // add fixes
-    List<ErrorFixes> errorFixesList = <ErrorFixes>[];
+    List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
     List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
     for (CompilationUnit unit in units) {
       engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
@@ -111,7 +111,7 @@ class EditDomainHandler implements RequestHandler {
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   new AnalysisError.fromEngine(lineInfo, error);
-              ErrorFixes errorFixes = new ErrorFixes(serverError);
+              AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
               errorFixesList.add(errorFixes);
               fixes.forEach((fix) {
                 errorFixes.addFix(fix);
