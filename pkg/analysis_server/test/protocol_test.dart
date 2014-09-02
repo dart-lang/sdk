@@ -6,6 +6,7 @@ library test.protocol;
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
@@ -98,40 +99,35 @@ class RequestErrorTest {
     expect(error.code, RequestErrorCode.INVALID_REQUEST);
     expect(error.message, "msg");
     expect(error.toJson(), equals({
-      RequestError.CODE: 'INVALID_REQUEST',
-      RequestError.MESSAGE: "msg"
+      CODE: 'INVALID_REQUEST',
+      MESSAGE: "msg"
     }));
-  }
-
-  void test_create_serverAlreadyStarted() {
-    RequestError error = new RequestError.serverAlreadyStarted();
-    expect(error.code, RequestErrorCode.SERVER_ALREADY_STARTED);
-    expect(error.message, "Server already started");
   }
 
   void test_fromJson() {
     var json = {
-      RequestError.CODE: RequestErrorCode.INVALID_PARAMETER.name,
-      RequestError.MESSAGE: 'foo',
-      RequestError.DATA: {
+      CODE: RequestErrorCode.INVALID_PARAMETER.name,
+      MESSAGE: 'foo',
+      DATA: {
         'ints': [1, 2, 3]
       }
     };
-    RequestError error = new RequestError.fromJson(json);
+    RequestError error = new RequestError.fromJson(new ResponseDecoder(), '',
+        json);
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
     expect(error.message, "foo");
     expect(error.data['ints'], [1, 2, 3]);
-    expect(error.getData('ints'), [1, 2, 3]);
   }
 
   void test_toJson() {
-    RequestError error = new RequestError(RequestErrorCode.UNKNOWN_REQUEST, 'msg');
-    error.setData('answer', 42);
-    error.setData('question', 'unknown');
+    RequestError error = new RequestError(
+        RequestErrorCode.UNKNOWN_REQUEST, 'msg', data: {});
+    error.data['answer'] = 42;
+    error.data['question'] = 'unknown';
     expect(error.toJson(), {
-      RequestError.CODE: 'UNKNOWN_REQUEST',
-      RequestError.MESSAGE: 'msg',
-      RequestError.DATA: {
+      CODE: 'UNKNOWN_REQUEST',
+      MESSAGE: 'msg',
+      DATA: {
         'answer': 42,
         'question': 'unknown'
       }

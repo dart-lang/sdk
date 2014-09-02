@@ -1876,33 +1876,6 @@
           <value><code>UNKNOWN</code></value>
         </enum>
       </type>
-      <type name="Error">
-        <p>
-          An indication of a problem with the execution of the server,
-          typically in response to a request.
-        </p>
-        <object>
-          <field name="code">
-            <ref>RequestErrorCode</ref>
-            <p>
-              A code that uniquely identifies the error that occurred.
-            </p>
-          </field>
-          <field name="message">
-            <ref>String</ref>
-            <p>
-              A short description of the error.
-            </p>
-          </field>
-          <field name="data" optional="true">
-            <ref>object</ref>
-            <p>
-              Additional data related to the error. This field is
-              omitted if there is no additional data available.
-            </p>
-          </field>
-        </object>
-      </type>
       <type name="ErrorFixes">
         <p>
           A list of fixes associated with a specific error
@@ -2569,6 +2542,33 @@
         </p>
         <object>
           <field name="type" value="remove"><ref>String</ref></field>
+        </object>
+      </type>
+      <type name="RequestError">
+        <p>
+          An indication of a problem with the execution of the server,
+          typically in response to a request.
+        </p>
+        <object>
+          <field name="code">
+            <ref>RequestErrorCode</ref>
+            <p>
+              A code that uniquely identifies the error that occurred.
+            </p>
+          </field>
+          <field name="message">
+            <ref>String</ref>
+            <p>
+              A short description of the error.
+            </p>
+          </field>
+          <field name="data" optional="true">
+            <ref>object</ref>
+            <p>
+              Additional data related to the error. This field is
+              omitted if there is no additional data available.
+            </p>
+          </field>
         </object>
       </type>
       <type name="RequestErrorCode">

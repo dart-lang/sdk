@@ -5664,94 +5664,6 @@ class ElementKind {
 }
 
 /**
- * Error
- *
- * {
- *   "code": RequestErrorCode
- *   "message": String
- *   "data": optional object
- * }
- */
-class Error implements HasToJson {
-  /**
-   * A code that uniquely identifies the error that occurred.
-   */
-  RequestErrorCode code;
-
-  /**
-   * A short description of the error.
-   */
-  String message;
-
-  /**
-   * Additional data related to the error. This field is omitted if there is no
-   * additional data available.
-   */
-  Map data;
-
-  Error(this.code, this.message, {this.data});
-
-  factory Error.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      RequestErrorCode code;
-      if (json.containsKey("code")) {
-        code = new RequestErrorCode.fromJson(jsonDecoder, jsonPath + ".code", json["code"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "code");
-      }
-      String message;
-      if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "message");
-      }
-      Map data;
-      if (json.containsKey("data")) {
-        data = json["data"];
-      }
-      return new Error(code, message, data: data);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath, "Error");
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    result["code"] = code.toJson();
-    result["message"] = message;
-    if (data != null) {
-      result["data"] = data;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator==(other) {
-    if (other is Error) {
-      return code == other.code &&
-          message == other.message &&
-          data == other.data;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, code.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, data.hashCode);
-    return _JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
  * ErrorFixes
  *
  * {
@@ -8077,6 +7989,94 @@ class RemoveContentOverlay implements HasToJson {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, 114870849);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * RequestError
+ *
+ * {
+ *   "code": RequestErrorCode
+ *   "message": String
+ *   "data": optional object
+ * }
+ */
+class RequestError implements HasToJson {
+  /**
+   * A code that uniquely identifies the error that occurred.
+   */
+  RequestErrorCode code;
+
+  /**
+   * A short description of the error.
+   */
+  String message;
+
+  /**
+   * Additional data related to the error. This field is omitted if there is no
+   * additional data available.
+   */
+  Map data;
+
+  RequestError(this.code, this.message, {this.data});
+
+  factory RequestError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      RequestErrorCode code;
+      if (json.containsKey("code")) {
+        code = new RequestErrorCode.fromJson(jsonDecoder, jsonPath + ".code", json["code"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "code");
+      }
+      String message;
+      if (json.containsKey("message")) {
+        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "message");
+      }
+      Map data;
+      if (json.containsKey("data")) {
+        data = json["data"];
+      }
+      return new RequestError(code, message, data: data);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "RequestError");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["code"] = code.toJson();
+    result["message"] = message;
+    if (data != null) {
+      result["data"] = data;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is RequestError) {
+      return code == other.code &&
+          message == other.message &&
+          data == other.data;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, data.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

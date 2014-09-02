@@ -1078,23 +1078,6 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
 ]);
 
 /**
- * Error
- *
- * {
- *   "code": RequestErrorCode
- *   "message": String
- *   "data": optional object
- * }
- */
-final Matcher isError = new LazyMatcher(() => new MatchesJsonObject(
-  "Error", {
-    "code": isRequestErrorCode,
-    "message": isString
-  }, optionalFields: {
-    "data": isObject
-  }));
-
-/**
  * ErrorFixes
  *
  * {
@@ -1609,6 +1592,23 @@ final Matcher isRefactoringProblemSeverity = new MatchesEnum("RefactoringProblem
 final Matcher isRemoveContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
   "RemoveContentOverlay", {
     "type": equals("remove")
+  }));
+
+/**
+ * RequestError
+ *
+ * {
+ *   "code": RequestErrorCode
+ *   "message": String
+ *   "data": optional object
+ * }
+ */
+final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
+  "RequestError", {
+    "code": isRequestErrorCode,
+    "message": isString
+  }, optionalFields: {
+    "data": isObject
   }));
 
 /**

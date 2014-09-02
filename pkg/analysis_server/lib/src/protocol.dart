@@ -735,116 +735,6 @@ class RequestDecoder extends JsonDecoder {
   }
 }
 
-/**
- * Instances of the class [RequestError] represent information about an error
- * that occurred while attempting to respond to a [Request].
- */
-class RequestError {
-  /**
-   * The name of the JSON attribute containing the code that uniquely identifies
-   * the error that occurred.
-   */
-  static const String CODE = 'code';
-
-  /**
-   * The name of the JSON attribute containing an object with additional data
-   * related to the error.
-   */
-  static const String DATA = 'data';
-
-  /**
-   * The name of the JSON attribute containing a short description of the error.
-   */
-  static const String MESSAGE = 'message';
-
-  /**
-   * An error code indicating a problem using the specified Dart SDK.
-   */
-  static const String CODE_SDK_ERROR = 'SDK_ERROR';
-
-  /**
-   * An error code indicating a problem during 'analysis.getErrors'.
-   */
-  static const String CODE_ANALISYS_GET_ERRORS_ERROR = 'ANALYSIS_GET_ERRORS_ERROR';
-
-  /**
-   * The code that uniquely identifies the error that occurred.
-   */
-  final RequestErrorCode code;
-
-  /**
-   * A short description of the error.
-   */
-  final String message;
-
-  /**
-   * A table mapping the names of notification parameters to their values.
-   */
-  final Map<String, Object> data = new HashMap<String, Object>();
-
-  /**
-   * Initialize a newly created [Error] to have the given [code] and [message].
-   */
-  RequestError(this.code, this.message);
-
-  /**
-   * Initialize a newly created [Error] from the given JSON.
-   */
-  factory RequestError.fromJson(Map<String, Object> json) {
-    try {
-      RequestErrorCode code = new RequestErrorCode(json[RequestError.CODE]);
-      String message = json[RequestError.MESSAGE];
-      Map<String, Object> data = json[RequestError.DATA];
-      RequestError requestError = new RequestError(code, message);
-      if (data != null) {
-        data.forEach((String key, Object value) {
-          requestError.setData(key, value);
-        });
-      }
-      return requestError;
-    } catch (exception) {
-      return null;
-    }
-  }
-
-  /**
-   * Initialize a newly created [Error] to indicate that the analysis server
-   * has already been started (and hence won't accept new connections).
-   */
-  RequestError.serverAlreadyStarted()
-    : this(RequestErrorCode.SERVER_ALREADY_STARTED, "Server already started");
-
-  /**
-   * Return the value of the data with the given [name], or `null` if there is
-   * no such data associated with this error.
-   */
-  Object getData(String name) => data[name];
-
-  /**
-   * Set the value of the data with the given [name] to the given [value].
-   */
-  void setData(String name, Object value) {
-    data[name] = value;
-  }
-
-  /**
-   * Return a table representing the structure of the Json object that will be
-   * sent to the client to represent this response.
-   */
-  Map<String, Object> toJson() {
-    Map<String, Object> jsonObject = new HashMap<String, Object>();
-    jsonObject[CODE] = code.name;
-    jsonObject[MESSAGE] = message;
-    if (!data.isEmpty) {
-      jsonObject[DATA] = data;
-    }
-    return jsonObject;
-  }
-
-  @override
-  String toString() => toJson().toString();
-}
-
 
 /**
  * Instances of the class [RequestFailure] represent an exception that occurred
@@ -942,7 +832,8 @@ class Response {
       Object error = json[Response.ERROR];
       RequestError decodedError;
       if (error is Map) {
-        decodedError = new RequestError.fromJson(error);
+        decodedError = new RequestError.fromJson(new ResponseDecoder(),
+            '.error', error);
       }
       Object result = json[Response.RESULT];
       Map<String, Object> decodedResult;

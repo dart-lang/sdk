@@ -189,7 +189,7 @@ dt.typeDefinition {
   "method": "server.getVersion"
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>version</b>": String
   }
@@ -204,7 +204,7 @@ dt.typeDefinition {
   "method": "server.shutdown"
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Cleanly shutdown the analysis server. Requests that are
@@ -222,7 +222,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Subscribe for services. All previous subscriptions are
@@ -345,7 +345,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>errors</b>": List&lt;<a href="#type_AnalysisError">AnalysisError</a>&gt;
   }
@@ -389,7 +389,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>hovers</b>": List&lt;<a href="#type_HoverInformation">HoverInformation</a>&gt;
   }
@@ -429,7 +429,7 @@ dt.typeDefinition {
   "method": "analysis.reanalyze"
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Force the re-analysis of everything contained in the
@@ -446,7 +446,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Sets the root paths used to determine which files to
@@ -498,7 +498,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Set the priority files to the files in the given list. A
@@ -539,7 +539,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Subscribe for services. All previous subscriptions are
@@ -589,7 +589,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Update the content of one or more files. Files that were
@@ -616,7 +616,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Update the options controlling analysis based on the given
@@ -885,7 +885,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "<b>id</b>": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>id</b>": <a href="#type_CompletionId">CompletionId</a>
   }
@@ -992,7 +992,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "<b>id</b>": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
     "<b>element</b>": <span style="color:#999999">optional</span> <a href="#type_Element">Element</a>
@@ -1052,7 +1052,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "<b>id</b>": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
   }
@@ -1087,7 +1087,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "<b>id</b>": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
   }
@@ -1124,7 +1124,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "<b>id</b>": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>id</b>": <a href="#type_SearchId">SearchId</a>
   }
@@ -1162,7 +1162,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>hierarchyItems</b>": <span style="color:#999999">optional</span> List&lt;<a href="#type_TypeHierarchyItem">TypeHierarchyItem</a>&gt;
   }
@@ -1252,7 +1252,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>assists</b>": List&lt;<a href="#type_SourceChange">SourceChange</a>&gt;
   }
@@ -1298,7 +1298,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>kinds</b>": List&lt;<a href="#type_RefactoringKind">RefactoringKind</a>&gt;
   }
@@ -1342,7 +1342,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>fixes</b>": List&lt;<a href="#type_ErrorFixes">ErrorFixes</a>&gt;
   }
@@ -1390,7 +1390,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>problems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
     "<b>feedback</b>": <span style="color:#999999">optional</span> object
@@ -1496,7 +1496,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "<b>id</b>": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>id</b>": <a href="#type_DebugContextId">DebugContextId</a>
   }
@@ -1529,7 +1529,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Delete the debugging context with the given identifier. The
@@ -1553,7 +1553,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>file</b>": <span style="color:#999999">optional</span> <a href="#type_FilePath">FilePath</a>
     "<b>uri</b>": <span style="color:#999999">optional</span> String
@@ -1605,7 +1605,7 @@ dt.typeDefinition {
   }
 }</pre><br><pre>response: {
   "id": String
-  "error": <span style="color:#999999">optional</span> <a href="#type_Error">Error</a>
+  "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
 }</pre></div>
         <p>
           Subscribe for services. All previous subscriptions are
@@ -2054,29 +2054,7 @@ dt.typeDefinition {
           An enumeration of the kinds of elements.
         </p>
         
-      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_Error">Error: object</a></dt><dd>
-        <p>
-          An indication of a problem with the execution of the server,
-          typically in response to a request.
-        </p>
-        
-      <dl><dt class="field"><b><i>code ( <a href="#type_RequestErrorCode">RequestErrorCode</a> )</i></b></dt><dd>
-            
-            <p>
-              A code that uniquely identifies the error that occurred.
-            </p>
-          </dd><dt class="field"><b><i>message ( String )</i></b></dt><dd>
-            
-            <p>
-              A short description of the error.
-            </p>
-          </dd><dt class="field"><b><i>data ( <span style="color:#999999">optional</span> object )</i></b></dt><dd>
-            
-            <p>
-              Additional data related to the error. This field is
-              omitted if there is no additional data available.
-            </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_ErrorFixes">ErrorFixes: object</a></dt><dd>
+      <dl><dt class="value">CLASS</dt><dt class="value">CLASS_TYPE_ALIAS</dt><dt class="value">COMPILATION_UNIT</dt><dt class="value">CONSTRUCTOR</dt><dt class="value">FIELD</dt><dt class="value">FUNCTION</dt><dt class="value">FUNCTION_TYPE_ALIAS</dt><dt class="value">GETTER</dt><dt class="value">LIBRARY</dt><dt class="value">LOCAL_VARIABLE</dt><dt class="value">METHOD</dt><dt class="value">PARAMETER</dt><dt class="value">SETTER</dt><dt class="value">TOP_LEVEL_VARIABLE</dt><dt class="value">TYPE_PARAMETER</dt><dt class="value">UNIT_TEST_GROUP</dt><dt class="value">UNIT_TEST_TEST</dt><dt class="value">UNKNOWN</dt></dl></dd><dt class="typeDefinition"><a name="type_ErrorFixes">ErrorFixes: object</a></dt><dd>
         <p>
           A list of fixes associated with a specific error
         </p>
@@ -2564,7 +2542,29 @@ dt.typeDefinition {
           have a content overlay, it has no effect.
         </p>
         
-      <dl><dt class="field"><b><i>type = "remove"</i></b></dt><dd></dd></dl></dd><dt class="typeDefinition"><a name="type_RequestErrorCode">RequestErrorCode: String</a></dt><dd>
+      <dl><dt class="field"><b><i>type = "remove"</i></b></dt><dd></dd></dl></dd><dt class="typeDefinition"><a name="type_RequestError">RequestError: object</a></dt><dd>
+        <p>
+          An indication of a problem with the execution of the server,
+          typically in response to a request.
+        </p>
+        
+      <dl><dt class="field"><b><i>code ( <a href="#type_RequestErrorCode">RequestErrorCode</a> )</i></b></dt><dd>
+            
+            <p>
+              A code that uniquely identifies the error that occurred.
+            </p>
+          </dd><dt class="field"><b><i>message ( String )</i></b></dt><dd>
+            
+            <p>
+              A short description of the error.
+            </p>
+          </dd><dt class="field"><b><i>data ( <span style="color:#999999">optional</span> object )</i></b></dt><dd>
+            
+            <p>
+              Additional data related to the error. This field is
+              omitted if there is no additional data available.
+            </p>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_RequestErrorCode">RequestErrorCode: String</a></dt><dd>
         <p>
           An enumeration of the types of errors that can occur in the
           execution of the server.
