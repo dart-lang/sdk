@@ -48,7 +48,6 @@ class ParsedFunction : public ZoneAllocated {
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
         finally_return_temp_var_(NULL),
-        await_temps_scope_(NULL),
         deferred_prefixes_(new ZoneGrowableArray<const LibraryPrefix*>()),
         first_parameter_index_(0),
         first_stack_local_index_(0),
@@ -56,7 +55,7 @@ class ParsedFunction : public ZoneAllocated {
         num_stack_locals_(0),
         have_seen_await_expr_(false),
         saved_try_ctx_(NULL),
-        async_saved_try_ctx_(NULL),
+        async_saved_try_ctx_name_(String::ZoneHandle(isolate, String::null())),
         isolate_(isolate) {
     ASSERT(function.IsZoneHandle());
   }
@@ -142,15 +141,6 @@ class ParsedFunction : public ZoneAllocated {
 
   void AllocateVariables();
 
-  void set_await_temps_scope(LocalScope* scope) {
-    ASSERT(await_temps_scope_ == NULL);
-    await_temps_scope_ = scope;
-  }
-  LocalScope* await_temps_scope() const {
-    ASSERT(await_temps_scope_ != NULL);
-    return await_temps_scope_;
-  }
-
   void record_await() {
     have_seen_await_expr_ = true;
   }
@@ -158,20 +148,21 @@ class ParsedFunction : public ZoneAllocated {
   bool have_seen_await() const { return have_seen_await_expr_; }
 
   void set_saved_try_ctx(LocalVariable* saved_try_ctx) {
-    ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
+    ASSERT((saved_try_ctx == NULL) || !saved_try_ctx->is_captured());
     saved_try_ctx_ = saved_try_ctx;
   }
   LocalVariable* saved_try_ctx() const { return saved_try_ctx_; }
 
-  void set_async_saved_try_ctx(LocalVariable* async_saved_try_ctx) {
-    ASSERT((async_saved_try_ctx != NULL) && async_saved_try_ctx->is_captured());
-    async_saved_try_ctx_ = async_saved_try_ctx;
+  void set_async_saved_try_ctx_name(const String& async_saved_try_ctx_name) {
+    async_saved_try_ctx_name_ = async_saved_try_ctx_name.raw();
   }
-  LocalVariable* async_saved_try_ctx() const { return async_saved_try_ctx_; }
+  RawString* async_saved_try_ctx_name() const {
+    return async_saved_try_ctx_name_.raw();
+  }
 
   void reset_saved_try_ctx_vars() {
     saved_try_ctx_ = NULL;
-    async_saved_try_ctx_ = NULL;
+    async_saved_try_ctx_name_ = String::null();
   }
 
   Isolate* isolate() const { return isolate_; }
@@ -186,7 +177,6 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
   LocalVariable* finally_return_temp_var_;
-  LocalScope* await_temps_scope_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
 
   int first_parameter_index_;
@@ -195,7 +185,7 @@ class ParsedFunction : public ZoneAllocated {
   int num_stack_locals_;
   bool have_seen_await_expr_;
   LocalVariable* saved_try_ctx_;
-  LocalVariable* async_saved_try_ctx_;
+  String& async_saved_try_ctx_name_;
 
   Isolate* isolate_;
 
@@ -557,6 +547,7 @@ class Parser : public ValueObject {
   SequenceNode* CloseAsyncFunction(const Function& closure,
                                    SequenceNode* closure_node);
   void CloseAsyncClosure(SequenceNode* body);
+  void AddAsyncClosureVariables();
 
 
   LocalVariable* LookupPhaseParameter();
@@ -731,9 +722,10 @@ class Parser : public ValueObject {
                                   InvocationMirror::Type type,
                                   const Function* func);
 
-  void SetupSavedTryContext(LocalScope* saved_try_context_scope,
-                            int16_t try_index,
-                            SequenceNode* target);
+  void SetupSavedTryContext(LocalVariable* saved_try_context);
+  void RestoreSavedTryContext(LocalScope* saved_try_context_scope,
+                              int16_t try_index,
+                              SequenceNode* target);
 
   void CheckOperatorArity(const MemberDesc& member);
 
@@ -816,6 +808,8 @@ class Parser : public ValueObject {
   int16_t last_used_try_index_;
 
   bool unregister_pending_function_;
+
+  LocalScope* async_temp_scope_;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };
