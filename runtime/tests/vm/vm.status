@@ -81,9 +81,6 @@ cc/EvalExpressionExhaustCIDs: Skip # Takes almost 1 GB memory. Issue 20056
 
 [ $arch == mips && $mode == debug ]
 cc/FindCodeObject: Skip # Takes more than 8 minutes. Issue 17440
-cc/SerializeNull: Skip # Memory leak. Issue 20767
-cc/SerializeSmi: Skip # Memory leak. Issue 20767
-cc/SimpleMessage: Skip # Memory leak. Issue 20767
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning
