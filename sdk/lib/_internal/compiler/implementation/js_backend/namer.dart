@@ -502,7 +502,8 @@ class Namer implements ClosureNamer {
     // If a class is used anywhere as a mixin, we must make the name unique so
     // that it does not accidentally shadow.  Also, the mixin name must be
     // constant over all mixins.
-    if (compiler.world.isUsedAsMixin(element.enclosingClass) ||
+    ClassWorld classWorld = compiler.world;
+    if (classWorld.isUsedAsMixin(element.enclosingClass) ||
         shadowingAnotherField(element)) {
       // Construct a new name for the element based on the library and class it
       // is in.  The name here is not important, we just need to make sure it is

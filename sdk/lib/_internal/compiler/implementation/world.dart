@@ -248,9 +248,24 @@ class World implements ClassWorld {
     return commonSupertypes;
   }
 
+  /// Returns an iterable over all mixin applications that mixin [cls].
+  Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls) {
+    Iterable<MixinApplicationElement> uses = _mixinUses[cls];
+    return uses != null ? uses : const <MixinApplicationElement>[];
+  }
+
   /// Returns an iterable over the live mixin applications that mixin [cls].
   Iterable<MixinApplicationElement> mixinUsesOf(ClassElement cls) {
-    Iterable<MixinApplicationElement> uses = _mixinUses[cls];
+    assert(isClosed);
+    if (_liveMixinUses == null) {
+      _liveMixinUses = new Map<ClassElement, List<MixinApplicationElement>>();
+      for (ClassElement mixin in _mixinUses.keys) {
+        Iterable<MixinApplicationElement> uses =
+            _mixinUses[mixin].where(isInstantiated);
+        if (uses.isNotEmpty) _liveMixinUses[mixin] = uses.toList();
+      }
+    }
+    Iterable<MixinApplicationElement> uses = _liveMixinUses[cls];
     return uses != null ? uses : const <MixinApplicationElement>[];
   }
 
@@ -290,6 +305,7 @@ class World implements ClassWorld {
 
   final Map<ClassElement, List<MixinApplicationElement>> _mixinUses =
       new Map<ClassElement, List<MixinApplicationElement>>();
+  Map<ClassElement, List<MixinApplicationElement>> _liveMixinUses;
 
   final Map<ClassElement, Set<ClassElement>> _typesImplementedBySubclasses =
       new Map<ClassElement, Set<ClassElement>>();
