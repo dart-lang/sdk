@@ -7,6 +7,7 @@ library services.src.refactoring.extract_method;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
@@ -17,6 +18,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename_class_member.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
+import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -72,6 +74,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   final List<int> lengths = <int>[];
 
   Set<String> _usedNames = new Set<String>();
+  Set<String> _excludedNames = new Set<String>();
   List<RefactoringMethodParameter> _parameters = <RefactoringMethodParameter>[];
   Map<String, RefactoringMethodParameter> _parametersMap = <String,
       RefactoringMethodParameter>{};
@@ -183,8 +186,13 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     // prepare parts
     result.addStatus(_initializeParameters());
     _initializeReturnType();
-    _initializeOccurrences();
     _initializeGetter();
+    // occurrences
+    _initializeOccurrences();
+    _prepareOffsetsLengths();
+    // names
+    _prepareExcludedNames();
+    _prepareNames();
     // closure cannot have parameters
     if (_selectionFunctionExpression != null && !_parameters.isEmpty) {
       String message = format(
@@ -449,7 +457,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   /**
-   * @return the selected [DartExpression] source, with applying new parameter names.
+   * Returns the selected [Expression] source, with applying new parameter
+   * names.
    */
   String _getMethodBodySource() {
     String source = utils.getRangeText(selectionRange);
@@ -639,6 +648,47 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     var visitor = new _IsUsedAfterSelectionVisitor(this, element);
     _parentMember.accept(visitor);
     return visitor.result;
+  }
+
+  /**
+   * Prepare names that are used in the enclosing function, so should not be
+   * proposed as names of the extracted method.
+   */
+  void _prepareExcludedNames() {
+    _excludedNames.clear();
+    ExecutableElement enclosingExecutable =
+        getEnclosingExecutableElement(_parentMember);
+    if (enclosingExecutable != null) {
+      visitChildren(enclosingExecutable, (Element element) {
+        if (element is LocalElement) {
+          SourceRange elementRange = element.visibleRange;
+          if (elementRange != null) {
+            _excludedNames.add(element.displayName);
+          }
+        }
+        return true;
+      });
+    }
+  }
+
+  void _prepareNames() {
+    names.clear();
+    if (_selectionExpression != null) {
+      names.addAll(
+          getVariableNameSuggestionsForExpression(
+              _selectionExpression.staticType,
+              _selectionExpression,
+              _excludedNames));
+    }
+  }
+
+  void _prepareOffsetsLengths() {
+    offsets.clear();
+    lengths.clear();
+    for (_Occurrence occurrence in _occurrences) {
+      offsets.add(occurrence.range.offset);
+      lengths.add(occurrence.range.length);
+    }
   }
 
   /**

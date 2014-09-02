@@ -1010,6 +1010,44 @@ class A {
     expect(refactoring.refactoringName, 'Extract Method');
   }
 
+  test_names_singleExpression() {
+    indexTestUnit('''
+class TreeItem {}
+TreeItem getSelectedItem() => null;
+process(my) {}
+main() {
+  process(getSelectedItem()); // marker
+  int treeItem = 0;
+}
+''');
+    _createRefactoringWithSuffix('getSelectedItem()', '); // marker');
+    // check names
+    return refactoring.checkInitialConditions().then((_) {
+      expect(
+          refactoring.names,
+          unorderedEquals(['selectedItem', 'item', 'my', 'treeItem2']));
+    });
+  }
+
+  test_offsets_lengths() {
+    indexTestUnit('''
+main() {
+main() {
+  int a = 1 + 2;
+  int b = 1 +  2;
+}
+}
+''');
+    _createRefactoringForString('1 +  2');
+    // apply refactoring
+    return refactoring.checkInitialConditions().then((_) {
+      expect(
+          refactoring.offsets,
+          unorderedEquals([findOffset('1 + 2'), findOffset('1 +  2')]));
+      expect(refactoring.lengths, unorderedEquals([5, 6]));
+    });
+  }
+
   test_setExtractGetter() {
     indexTestUnit('''
 main() {
