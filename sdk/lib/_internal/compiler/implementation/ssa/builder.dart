@@ -1313,6 +1313,9 @@ class SsaBuilder extends ResolvedVisitor {
 
     if (meetsHardConstraints() && heuristicSayGoodToGo()) {
       doInlining();
+      registry.registerInlining(
+          element,
+          compiler.currentElement);
       return true;
     }
 

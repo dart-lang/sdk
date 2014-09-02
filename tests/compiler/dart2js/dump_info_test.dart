@@ -9,7 +9,7 @@ import 'memory_compiler.dart';
 import 'package:compiler/implementation/dump_info.dart';
 import 'dart:convert';
 
-const String TEST_ONE = r"""
+const String TEST_BASIC= r"""
 library main;
 
 int a = 2;
@@ -42,7 +42,7 @@ main() {
 }
 """;
 
-const String TEST_TWO = r"""
+const String TEST_CLOSURES = r"""
 main() {
   print(bar);
   print(bar());
@@ -56,6 +56,36 @@ bar() => [() => [() => [() => [() => [() => [() => [() => [() => [() => [() =>
 class X {
   foo() => [() => [() => [() => [() => [() => [() => [() => [() => [() =>
 [() => []]]]]]]]]]];
+}
+""";
+
+const String TEST_STATICS = r"""
+class ContainsStatics {
+  static int does_something() {
+    try {
+      print('hello');
+      return 1;
+    } finally {
+      print('world');
+      return 2;
+    }
+  }
+}
+
+void main() {
+  print(ContainsStatics.does_something());
+}
+""";
+
+const String TEST_INLINED = r"""
+class Doubler {
+  int double(int x) {
+    return x + 2;
+  }
+}
+void main() {
+  var f = new Doubler();
+  print(f.double(4));
 }
 """;
 
@@ -80,11 +110,10 @@ void jsonTest(String program, JsonTaking testFn) {
 }
 
 main() {
-  jsonTest(TEST_ONE, (map) {
+  jsonTest(TEST_BASIC, (map) {
     Expect.isTrue(map['elements'].isNotEmpty);
     Expect.isTrue(map['elements']['function'].isNotEmpty);
     Expect.isTrue(map['elements']['library'].isNotEmpty);
-
     Expect.isTrue(map['elements']['library'].values.any((lib) {
       return lib['name'] == "main";
     }));
@@ -96,13 +125,38 @@ main() {
     }));
   });
 
-  jsonTest(TEST_TWO, (map) {
+  jsonTest(TEST_CLOSURES, (map) {
     var functions = map['elements']['function'].values;
     Expect.isTrue(functions.any((fn) {
       return fn['name'] == 'bar' && fn['children'].length == 11;
     }));
     Expect.isTrue(functions.any((fn) {
       return fn['name'] == 'foo' && fn['children'].length == 10;
+    }));
+  });
+
+  jsonTest(TEST_STATICS, (map) {
+    var functions = map['elements']['function'].values;
+    var classes = map['elements']['class'].values;
+    Expect.isTrue(functions.any((fn) {
+      return fn['name'] == 'does_something';
+    }));
+    Expect.isTrue(classes.any((cls) {
+      return cls['name'] == 'ContainsStatics' &&
+          cls['children'].length >= 1;
+    }));
+  });
+
+  jsonTest(TEST_INLINED, (map) {
+    var functions = map['elements']['function'].values;
+    var classes = map['elements']['class'].values;
+    Expect.isTrue(functions.any((fn) {
+      return fn['name'] == 'double' &&
+          fn['inlinedCount'] == 1;
+    }));
+    Expect.isTrue(classes.any((cls) {
+      return cls['name'] == 'Doubler' &&
+          cls['children'].length >= 1;
     }));
   });
 }
