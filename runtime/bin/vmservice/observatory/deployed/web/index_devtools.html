@@ -921,50 +921,36 @@ hr {
       }
     </style>
     <span>
-      <template if="{{ isError(ref) }}">
-         <pre class="errorBox">{{ ref.message }}</pre>
+      <template if="{{ ref.isSentinel }}">
+        <div title="{{ hoverText }}">{{ ref.valueAsString }}</div>
       </template>
 
-      <template if="{{ isUnexpected(ref) }}">
-        unexpected reference type &lt;{{ ref.vmType }}&gt;
+      <template if="{{ ref.isString || ref.isBool || ref.isInt || ref.isDouble || ref.isNull }}">
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.valueAsString }}</a>
       </template>
 
-      <template if="{{ isSentinel(ref) }}">
-        <div title="{{ hoverText }}">{{ ref['valueAsString'] }}</div>
+      <template if="{{ ref.isType }}">
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.name }}</a>
       </template>
 
-      <template if="{{ (isString(ref) ||
-                        isBool(ref) ||
-                        isNull(ref) ||
-                        isInt(ref)) ||
-                        isDouble(ref)) }}">
-        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref['valueAsString'] }}</a>
-      </template>
-
-      <template if="{{ (isType(ref)) }}">
-        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref['user_name'] }}</a>
-      </template>
-
-      <template if="{{ isInstance(ref) &amp;&amp;
-                       ref['closureFunc'] != null}}">
+      <template if="{{ ref.isClosure }}">
         <a on-click="{{ goto }}" _href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
-          {{ ref['closureFunc'].name }}
+          {{ ref.closureFunc.name }}
         </a>
       </template>
 
-      <template if="{{ isInstance(ref) &amp;&amp;
-                       ref['closureFunc'] == null}}">
-        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
+      <template if="{{ ref.isInstance &amp;&amp; !ref.isClosure }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
-            <template repeat="{{ field in ref['fields'] }}">
+            <template repeat="{{ field in ref.fields }}">
               <div class="memberItem">
                 <div class="memberName">
                   {{ field['decl'].name }}
                 </div>
                 <div class="memberValue">
-                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                  <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
                 </div>
               </div>
             </template>
@@ -972,16 +958,16 @@ hr {
         </curly-block>
       </template>
 
-      <template if="{{ isList(ref) }}">
-        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
+      <template if="{{ ref.isList }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
-            <template repeat="{{ element in ref['elements'] }}">
+            <template repeat="{{ element in ref.elements }}">
               <div class="memberItem">
                 <div class="memberName">[{{ element['index']}}]</div>
                 <div class="memberValue">
-                  <instance-ref ref="{{ element['value'] }}"></instance-ref>
-                </div>
+                  <any-service-ref ref="{{ element['value'] }}">
+                </any-service-ref></div>
               </div>
             </template>
           </div>
@@ -2556,6 +2542,286 @@ hr {
 
 
 
+
+
+
+
+
+
+<polymer-element name="error-ref" extends="service-ref">
+  <template>
+    <style>
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  font: 400 14px 'Montserrat', sans-serif;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.content {
+  padding-left: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered {
+  padding-left: 10%;
+  padding-right: 10%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.content-centered-big {
+  padding-left: 5%;
+  padding-right: 5%;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+h1 {
+  font: 400 18px 'Montserrat', sans-serif;
+}
+
+.memberList {
+  display: table;
+}
+
+.memberItem {
+  display: table-row;
+}
+
+.memberName, .memberValue {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 14px 'Montserrat', sans-serif;
+}
+
+.memberSmall {
+  display: table-cell;
+  vertical-align: top;
+  padding: 3px 0 3px 1em;
+  font: 400 12px 'Montserrat', sans-serif;
+}
+
+.monospace {
+  font-family: consolas, courier, monospace;
+  font-size: 1em;
+  line-height: 1.2em;
+  white-space: nowrap;
+}
+
+a {
+  color: #0489c3;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+em {
+  color: inherit;
+  font-style: italic;
+}
+
+b {
+  color: inherit;
+  font-weight: bold;
+}
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eee;
+  height: 0;
+  box-sizing: content-box;
+}
+
+.list-group {
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+  margin-bottom: -1px;
+  background-color: #fff;
+}
+
+.list-group-item:first-child {
+  /* rounded top corners */
+  border-top-right-radius:4px;
+  border-top-left-radius:4px;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+  /* rounded bottom corners */
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius:4px;
+}
+
+/* Flex row container */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* Flex column container */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-item-fit {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+}
+
+.flex-item-no-shrink {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+
+.flex-item-fill {
+  flex-grow: 0;
+  flex-shrink: 1;  /* shrink when pressured */
+  flex-basis: 100%;  /* try and take 100% */
+}
+
+.flex-item-fixed-1-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 8.3%;
+}
+
+.flex-item-fixed-2-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 16.6%;
+}
+
+.flex-item-fixed-4-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 33.3333%;
+}
+
+.flex-item-fixed-6-12, .flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-fixed-8-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 66.6666%;
+}
+
+.flex-item-fixed-9-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 75%;
+}
+
+
+.flex-item-fixed-12-12 {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
+}
+
+.flex-item-10-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 10%;
+}
+
+.flex-item-15-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 15%;
+}
+
+.flex-item-20-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 20%;
+}
+
+.flex-item-30-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 30%;
+}
+
+.flex-item-40-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 40%;
+}
+
+.flex-item-50-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 50%;
+}
+
+.flex-item-60-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 60%;
+}
+
+.flex-item-70-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 70%;
+}
+
+.flex-item-80-percent {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 80%;
+}
+
+.well {
+  min-height: 20px;
+  padding: 19px;
+  margin-bottom: 20px;
+  background-color: #f5f5f5;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.break-wrap {
+  word-wrap: break-word;
+}
+</style>
+    <style>
+      .errorBox {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: pre;
+      }
+    </style>
+    <span>
+      <pre class="errorBox">{{ ref.kind }}: {{ ref.message }}</pre>
+    </span>
+  </template>
+</polymer-element>
+
 <polymer-element name="eval-box" extends="observatory-element">
   <template>
     <style>
@@ -2626,7 +2892,7 @@ hr {
               <div style="color:#aaa;cursor:wait;">&lt;pending&gt;</div>
             </template>
             <template if="{{ result['value'] != null }}">
-              <instance-ref ref="{{ result['value'] }}"></instance-ref>
+              <any-service-ref ref="{{ result['value'] }}"></any-service-ref>
             </template>
           </td>
         </tr>
@@ -2634,6 +2900,7 @@ hr {
     </template>
   </template>
 </polymer-element>
+
 
 
 
@@ -2659,7 +2926,7 @@ hr {
       <span class="idle"><a on-click="{{ evalNow }}">{{ label }}</a></span>
     </template>
     <template if="{{ result != null }}">
-      = <instance-ref ref="{{ result }}"></instance-ref>
+      = <any-service-ref ref="{{ result }}"></any-service-ref>
     </template>
   </template>
 </polymer-element>
@@ -4235,9 +4502,8 @@ hr {
     </div>
 
     <template if="{{ cls.error != null }}">
-      <!-- TODO(turnidge): Don't use instance-ref for error display here -->
-      <instance-ref ref="{{ cls.error }}"></instance-ref>
-    </template>
+      <error-ref ref="{{ cls.error }}">
+    </error-ref></template>
 
     <hr>
 
@@ -4253,7 +4519,7 @@ hr {
                 </div>
                 <div class="memberValue">
                   <template if="{{ field['value'] != null }}">
-                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
                   </template>
                 </div>
               </div>
@@ -4296,7 +4562,7 @@ hr {
               </template>
               <template if="{{ instances != null }}">
                 sample
-                <instance-ref ref="{{ instances['sample'] }}"></instance-ref>
+                <any-service-ref ref="{{ instances['sample'] }}"></any-service-ref>
                 <template if="{{ instances['totalCount'] > instances['sampleCount'] }}">
                   <eval-link callback="{{ reachable }}" label="[more]" expr="{{ instances['sampleCount'] * 2 }}">
                   </eval-link>
@@ -4963,7 +5229,7 @@ hr {
         <div class="memberItem">
           <div class="memberName">Constant object pool</div>
           <div class="memberValue">
-            <instance-ref ref="{{ code.objectPool }}"></instance-ref>
+            <any-service-ref ref="{{ code.objectPool }}"></any-service-ref>
           </div>
         </div>
       </div>
@@ -5647,7 +5913,7 @@ hr {
           <div class="memberItem">
             <div class="memberName">static value</div>
             <div class="memberValue">
-              <instance-ref ref="{{ field['value'] }}"></instance-ref>
+              <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
             </div>
           </div>
         </template>
@@ -5943,7 +6209,7 @@ hr {
                 <div class="memberItem">
                   <div class="memberName">{{ v['name']}}</div>
                   <div class="memberValue">
-                    <instance-ref ref="{{ v['value'] }}"></instance-ref>
+                    <any-service-ref ref="{{ v['value'] }}"></any-service-ref>
                   </div>
                 </div>
               </template>
@@ -14527,44 +14793,43 @@ hr {
       <top-nav-menu></top-nav-menu>
       <isolate-nav-menu isolate="{{ instance.isolate }}"></isolate-nav-menu>
       <!-- TODO(turnidge): Add library nav menu here. -->
-      <class-nav-menu cls="{{ instance['class'] }}"></class-nav-menu>
+      <class-nav-menu cls="{{ instance.clazz }}"></class-nav-menu>
       <nav-menu link="." anchor="instance" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
       <nav-control></nav-control>
     </nav-bar>
 
-    <template if="{{ instance['error'] != null }}">
+    <template if="{{ instance.isError }}">
       <error-view error_obj="{{ instance['error'] }}"></error-view>
     </template>
 
-    <template if="{{ instance['error'] == null }}">
+    <template if="{{ !instance.isError }}">
       <div class="content">
-        <!-- TODO(turnidge): Handle null instances. -->
-        <template if="{{ isType(instance) }}">
+        <template if="{{ instance.isType }}">
           <h1>type {{ instance.name }}</h1>
         </template>
-        <template if="{{ !isType(instance) }}">
-          <h1>instance of {{ instance['class'].name }}</h1>
+        <template if="{{ !instance.isType }}">
+          <h1>instance of {{ instance.clazz.name }}</h1>
         </template>
         <div class="memberList">
           <div class="memberItem">
             <div class="memberName">class</div>
             <div class="memberValue">
-              <class-ref ref="{{ instance['class'] }}">
+              <class-ref ref="{{ instance.clazz }}">
               </class-ref>
             </div>
           </div>
-          <template if="{{ instance['valueAsString'] != null }}">
+          <template if="{{ instance.valueAsString != null }}">
             <div class="memberItem">
               <div class="memberName">value</div>
-              <div class="memberValue">{{ instance['valueAsString'] }}</div>
+              <div class="memberValue">{{ instance.valueAsString }}</div>
             </div>
           </template>
-          <div class="memberItem">
+          <div class="memberItem" title="Space for this object in memory">
             <div class="memberName">size</div>
-            <div class="memberValue">{{ instance['size'] | formatSize }}</div>
+            <div class="memberValue">{{ instance.size | formatSize }}</div>
           </div>
-          <div class="memberItem">
+          <div class="memberItem" title="Space that would be reclaimed if references to this object were replaced with null">
             <div class="memberName">retained size</div>
             <div class="memberValue">
               <template if="{{ retainedBytes == null }}">
@@ -14606,7 +14871,7 @@ hr {
               </template>
             </div>
           </div>
-          <div class="memberItem">
+          <div class="memberItem" title="Objects which directly reference this object">
             <div class="memberName">inbound references</div>
             <div class="memberValue">
               <template if="{{ inboundReferences == null }}">
@@ -14620,20 +14885,20 @@ hr {
               </template>
             </div>
           </div>
-          <template if="{{ instance['type_class'] != null }}">
+          <template if="{{ instance.typeClass != null }}">
             <div class="memberItem">
               <div class="memberName">type class</div>
               <div class="memberValue">
-                <class-ref ref="{{ instance['type_class'] }}">
+                <class-ref ref="{{ instance.typeClass }}">
                 </class-ref>
               </div>
             </div>
           </template>
-          <template if="{{ instance['closureFunc'] != null }}">
+          <template if="{{ instance.isClosure }}">
             <div class="memberItem">
               <div class="memberName">closure function</div>
               <div class="memberValue">
-                <function-ref ref="{{ instance['closureFunc'] }}">
+                <function-ref ref="{{ instance.closureFunc }}">
                 </function-ref>
               </div>
             </div>
@@ -14653,17 +14918,17 @@ hr {
       <hr>
 
       <div class="content">
-        <template if="{{ instance['fields'].isNotEmpty }}">
-          fields ({{ instance['fields'].length }})
-          <curly-block expand="{{ instance['fields'].length <= 8 }}">
+        <template if="{{ instance.fields.isNotEmpty }}">
+          fields ({{ instance.fields.length }})
+          <curly-block expand="{{ instance.fields.length <= 8 }}">
             <div class="memberList">
-              <template repeat="{{ field in instance['fields'] }}">
+              <template repeat="{{ field in instance.fields }}">
                 <div class="memberItem">
                   <div class="memberName">
                     <field-ref ref="{{ field['decl'] }}"></field-ref>
                   </div>
                   <div class="memberValue">
-                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
                   </div>
                 </div>
               </template>
@@ -14671,11 +14936,11 @@ hr {
           </curly-block><br><br>
         </template>
 
-        <template if="{{ instance['nativeFields'].isNotEmpty }}">
-          native fields ({{ instance['nativeFields'].length }})
-          <curly-block expand="{{ instance['nativeFields'].length <= 8 }}">
+        <template if="{{ instance.nativeFields.isNotEmpty }}">
+          native fields ({{ instance.nativeFields.length }})
+          <curly-block expand="{{ instance.nativeFields.length <= 8 }}">
             <div class="memberList">
-              <template repeat="{{ field in instance['nativeFields'] }}">
+              <template repeat="{{ field in instance.nativeFields }}">
                 <div class="memberItem">
                   <div class="memberName">[{{ field['index']}}]</div>
                   <div class="memberValue">[{{ field['value']}}]</div>
@@ -14685,17 +14950,17 @@ hr {
           </curly-block><br><br>
         </template>
 
-        <template if="{{ instance['elements'].isNotEmpty }}">
-          elements ({{ instance['elements'].length }})
-          <curly-block expand="{{ instance['elements'].length <= 8 }}">
+        <template if="{{ instance.elements.isNotEmpty }}">
+          elements ({{ instance.elements.length }})
+          <curly-block expand="{{ instance.elements.length <= 8 }}">
             <div class="memberList">
-              <template repeat="{{ element in instance['elements'] }}">
+              <template repeat="{{ element in instance.elements }}">
                 <div class="memberItem">
                   <div class="memberName">[{{ element['index']}}]</div>
                   <div class="memberValue">
-                    <instance-ref ref="{{ element['value'] }}">
-                    </instance-ref>
-                  </div>
+                    <any-service-ref ref="{{ element['value'] }}">
+                    
+                  </any-service-ref></div>
                 </div>
               </template>
             </div>
@@ -15089,7 +15354,7 @@ hr {
                 </div>
                 <div class="memberValue">
                   <template if="{{ field['value'] != null }}">
-                    <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                    <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
                   </template>
                 </div>
               </div>

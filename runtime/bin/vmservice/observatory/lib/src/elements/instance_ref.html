@@ -18,50 +18,36 @@
       }
     </style>
     <span>
-      <template if="{{ isError(ref) }}">
-         <pre class="errorBox">{{ ref.message }}</pre>
+      <template if="{{ ref.isSentinel }}">
+        <div title="{{ hoverText }}">{{ ref.valueAsString }}</div>
       </template>
 
-      <template if="{{ isUnexpected(ref) }}">
-        unexpected reference type &lt;{{ ref.vmType }}&gt;
+      <template if="{{ ref.isString || ref.isBool || ref.isInt || ref.isDouble || ref.isNull }}">
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.valueAsString }}</a>
       </template>
 
-      <template if="{{ isSentinel(ref) }}">
-        <div title="{{ hoverText }}">{{ ref['valueAsString'] }}</div>
+      <template if="{{ ref.isType }}">
+        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref.name }}</a>
       </template>
 
-      <template if="{{ (isString(ref) ||
-                        isBool(ref) ||
-                        isNull(ref) ||
-                        isInt(ref)) ||
-                        isDouble(ref)) }}">
-        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref['valueAsString'] }}</a>
-      </template>
-
-      <template if="{{ (isType(ref)) }}">
-        <a on-click="{{ goto }}" _href="{{ url }}">{{ ref['user_name'] }}</a>
-      </template>
-
-      <template if="{{ isInstance(ref) &&
-                       ref['closureFunc'] != null}}">
+      <template if="{{ ref.isClosure }}">
         <a on-click="{{ goto }}" _href="{{ url }}">
           <!-- TODO(turnidge): Switch this to fully-qualified function -->
-          {{ ref['closureFunc'].name }}
+          {{ ref.closureFunc.name }}
         </a>
       </template>
 
-      <template if="{{ isInstance(ref) &&
-                       ref['closureFunc'] == null}}">
-        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref['class'].name }}</em></a>
+      <template if="{{ ref.isInstance && !ref.isClosure }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
-            <template repeat="{{ field in ref['fields'] }}">
+            <template repeat="{{ field in ref.fields }}">
               <div class="memberItem">
                 <div class="memberName">
                   {{ field['decl'].name }}
                 </div>
                 <div class="memberValue">
-                  <instance-ref ref="{{ field['value'] }}"></instance-ref>
+                  <any-service-ref ref="{{ field['value'] }}"></any-service-ref>
                 </div>
               </div>
             </template>
@@ -69,15 +55,15 @@
         </curly-block>
       </template>
 
-      <template if="{{ isList(ref) }}">
-        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref['class'].name }}</em> ({{ ref['length']}})</a>
+      <template if="{{ ref.isList }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
-            <template repeat="{{ element in ref['elements'] }}">
+            <template repeat="{{ element in ref.elements }}">
               <div class="memberItem">
                 <div class="memberName">[{{ element['index']}}]</div>
                 <div class="memberValue">
-                  <instance-ref ref="{{ element['value'] }}"></instance-ref>
+                  <any-service-ref ref="{{ element['value'] }}"></instance-ref>
                 </div>
               </div>
             </template>

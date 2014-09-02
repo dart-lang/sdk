@@ -38,6 +38,17 @@ abstract class ServiceObject extends Observable {
   @reflectable String get vmType => _vmType;
   String _vmType;
 
+  bool get isBool => vmType == 'Bool';
+  bool get isDouble => vmType == 'Double';
+  bool get isError => vmType == 'Error';
+  bool get isInstance => vmType == 'Instance';
+  bool get isInt => vmType == 'Smi' || vmType == 'Mint' || vmType == 'Bigint';
+  bool get isList => vmType == 'GrowableObjectArray' || vmType == 'Array';
+  bool get isNull => vmType == 'Null';
+  bool get isSentinel => vmType == 'Sentinel';
+  bool get isString => vmType == 'String';
+  bool get isType => vmType == 'Type';
+
   /// The complete service url of this object.
   @reflectable String get link => _owner.relativeLink(_id);
 
@@ -91,6 +102,20 @@ abstract class ServiceObject extends Observable {
         break;
       case 'Gauge':
         obj = new ServiceMetric._empty(owner);
+        break;
+      case 'Array':
+      case 'Bigint':
+      case 'Bool':
+      case 'Double':
+      case 'GrowableObjectArray':
+      case 'Instance':
+      case 'Mint':
+      case 'Null':
+      case 'Sentinel':  // TODO(rmacnak): Separate this out.
+      case 'Smi':
+      case 'String':
+      case 'Type':
+        obj = new Instance._empty(owner);
         break;
       case 'Isolate':
         obj = new Isolate._empty(owner.vm);
@@ -1163,7 +1188,7 @@ class DartError extends ServiceObject {
 
   @observable String kind;
   @observable String message;
-  @observable ServiceMap exception;
+  @observable Instance exception;
   @observable ServiceMap stacktrace;
 
   void _update(ObservableMap map, bool mapIsRef) {
@@ -1441,6 +1466,54 @@ class Class extends ServiceObject with Coverage {
   }
 
   String toString() => 'Class($vmName)';
+}
+
+class Instance extends ServiceObject {
+  @observable Class clazz;
+  @observable String valueAsString;
+  @observable int size;
+  @observable ServiceFunction closureFunc;  // If a closure.
+  @observable String name;  // If a Type.
+
+  @observable var typeClass;
+  @observable var length;
+  @observable var fields;
+  @observable var nativeFields;
+  @observable var elements;
+  @observable var userName;
+
+  bool get isClosure => closureFunc != null;
+
+  Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    clazz = map['class'];
+    valueAsString = map['valueAsString'];
+    size = map['size'];
+    closureFunc = map['closureFunc'];
+    name = map['name'];
+
+    if (mapIsRef) {
+      return;
+    }
+
+    nativeFields = map['nativeFields'];
+    fields = map['fields'];
+    length = map['length'];
+    elements = map['elements'];
+    typeClass = map['type_class'];
+    userName = map['user_name'];
+
+    // We are fully loaded.
+    _loaded = true;
+  }
+
+  String get shortName => valueAsString != null ? valueAsString : 'a ${clazz.name}';
+
+  String toString() => 'Instance($shortName)';
 }
 
 // TODO(koda): Sync this with VM.
@@ -2360,8 +2433,7 @@ class MetricPoller {
 
 // Convert any ServiceMaps representing a null instance into an actual null.
 _convertNull(obj) {
-  if (obj is ServiceMap &&
-      obj.type == 'Null') {
+  if (obj.isNull) {
     return null;
   }
   return obj;

@@ -11,7 +11,7 @@ import 'package:observatory/service.dart';
 /// Displays an Error ServiceObject.
 @CustomTag('error-view')
 class ErrorViewElement extends ObservatoryElement {
-  @published ServiceObject error;
+  @published DartError error;
 
   ErrorViewElement.created() : super.created();
 }

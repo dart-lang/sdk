@@ -30,8 +30,8 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceMap e = lib.variables.where((v) => v.name == 'e').single['value'];
-    var id = e['id'];
+    Instance e = lib.variables.where((v) => v.name == 'e').single['value'];
+    var id = e.id;
     return isolate.get('/$id/inbound_references?limit=100').then(
         (ServiceMap response) {
           List references = response['references'];
@@ -44,10 +44,10 @@ var tests = [
           hasReferenceSuchThat((r) => r['slot'] is Map &&
                                       r['slot']['type']=='@Field' &&
                                       r['slot']['name']=='edge' &&
-                                      r['source']['type']=='@Instance' &&
-                                      r['source']['class'].name=='Node');
-          hasReferenceSuchThat((r) => r['slot']==1 &&
-                                      r['source']['type']=='@Array');
+                                      r['source'].isInstance &&
+                                      r['source'].clazz.name=='Node');
+          hasReferenceSuchThat((r) => r['slot'] == 1 &&
+                                      r['source'].isList);
           hasReferenceSuchThat((r) => r['slot']=='<unknown>' &&
                                       r['source']['type']=='@Field');
     });
