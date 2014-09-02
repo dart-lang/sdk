@@ -190,7 +190,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
    * Type references in the spec that are named something else in Dart.
    */
   static const Map<String, String> _typeRenames = const {
-    'object': 'Object',
+    'object': 'Map',
   };
 
   /**
@@ -291,7 +291,7 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         toHtmlVisitor.showType(null, impliedType.type);
       }
     }));
-    writeln('class $className {');
+    writeln('class $className implements HasToJson {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();

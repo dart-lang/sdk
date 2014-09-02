@@ -12,6 +12,7 @@ import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -165,7 +166,7 @@ class _RefactoringManager {
   int offset;
   int length;
   Refactoring refactoring;
-  Object feedback;
+  HasToJson feedback;
   RefactoringStatus initStatus;
   RefactoringStatus optionsStatus;
   RefactoringStatus finalStatus;
@@ -197,7 +198,7 @@ class _RefactoringManager {
       if (params.options == null) {
         return _sendResultResponse();
       }
-      optionsStatus = _setOptions(params.options);
+      optionsStatus = _setOptions(params, request);
       if (_hasFatalError) {
         return _sendResultResponse();
       }
@@ -284,7 +285,7 @@ class _RefactoringManager {
   }
 
   void _sendResultResponse() {
-    result.feedback = feedback;
+    result.feedback = feedback.toJson();
     // set problems
     {
       RefactoringStatus status = new RefactoringStatus();
@@ -300,17 +301,20 @@ class _RefactoringManager {
     result = null;
   }
 
-  RefactoringStatus _setOptions(Object options) {
+  RefactoringStatus _setOptions(EditGetRefactoringParams params,
+                                Request request) {
     if (refactoring is ExtractLocalRefactoring) {
       ExtractLocalRefactoring extractRefactoring = refactoring;
-      ExtractLocalVariableOptions extractOptions = options;
+      ExtractLocalVariableOptions extractOptions =
+          new ExtractLocalVariableOptions.fromRefactoringParams(params, request);
       extractRefactoring.name = extractOptions.name;
       extractRefactoring.extractAll = extractOptions.extractAll;
       return extractRefactoring.checkName();
     }
     if (refactoring is RenameRefactoring) {
       RenameRefactoring renameRefactoring = refactoring;
-      RenameOptions renameOptions = options;
+      RenameOptions renameOptions =
+          new RenameOptions.fromRefactoringParams(params, request);
       renameRefactoring.newName = renameOptions.newName;
       return renameRefactoring.checkNewName();
     }

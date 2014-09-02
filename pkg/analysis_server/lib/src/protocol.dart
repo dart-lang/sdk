@@ -12,6 +12,7 @@ import 'package:analysis_server/src/computer/element.dart' show
 import 'package:analysis_server/src/search/search_result.dart' show
     searchResultFromMatch;
 import 'package:analysis_server/src/services/correction/fix.dart' show Fix;
+import 'package:analysis_server/src/services/json.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart' as
     engine;
 import 'package:analyzer/src/generated/ast.dart' as engine;

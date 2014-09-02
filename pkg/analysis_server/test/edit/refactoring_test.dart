@@ -29,7 +29,8 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendExtractRequest(int offset, int length, String name,
       bool extractAll) {
     RefactoringKind kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
-    Object options = new ExtractLocalVariableOptions(name, extractAll);
+    Map options = name != null ? new ExtractLocalVariableOptions(name,
+        extractAll).toJson() : null;
     return sendRequest(kind, offset, length, options, false);
   }
 
@@ -116,7 +117,8 @@ main() {
     return getRefactoringResult(() {
       return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
     }).then((result) {
-      ExtractLocalVariableFeedback feedback = result.feedback;
+      ExtractLocalVariableFeedback feedback =
+          new ExtractLocalVariableFeedback.fromRefactoringResult(result);
       expect(
           feedback.names,
           unorderedEquals(['treeItem', 'item', 'selectedItem']));
@@ -134,7 +136,8 @@ main() {
     return getRefactoringResult(() {
       return sendStringRequest('1 + 2', 'res', true);
     }).then((result) {
-      ExtractLocalVariableFeedback feedback = result.feedback;
+      ExtractLocalVariableFeedback feedback =
+          new ExtractLocalVariableFeedback.fromRefactoringResult(result);
       expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
       expect(feedback.lengths, [5, 6]);
     });
@@ -333,7 +336,7 @@ class RenameTest extends _AbstractGetRefactoring_Test {
         findOffset(search),
         0,
         validateOnly,
-        options: new RenameOptions(newName)).toRequest('0');
+        options: new RenameOptions(newName).toJson()).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 
@@ -518,7 +521,8 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('st v;', 'NewName');
     }).then((result) {
-      RenameFeedback feedback = result.feedback;
+      RenameFeedback feedback =
+          new RenameFeedback.fromRefactoringResult(result);
       expect(feedback, isNotNull);
       expect(feedback.offset, findOffset('Test v;'));
       expect(feedback.length, 'Test'.length);
@@ -694,7 +698,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future<Response> sendRequest(RefactoringKind kind, int offset, int length,
-      Object options, [bool validateOnly = false]) {
+      Map options, [bool validateOnly = false]) {
     Request request = new EditGetRefactoringParams(
         kind,
         testFile,
