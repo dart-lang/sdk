@@ -100,22 +100,6 @@ def InRunhooks():
   return 'runhooks' in sys.argv
 
 
-def EnsureConfig():
-  # If ~/.boto doesn't exist, tell the user to run "gsutil config"
-  if not HasBotoConfig():
-    print >>sys.stderr, '''
-*******************************************************************************
-* WARNING: Can't download content shell! This is required to test client apps.
-* You need to do a one-time configuration step to access Google Storage.
-* Please run this command and follow the instructions:
-*     %s config
-*
-* NOTE: When prompted you can leave "project-id" blank. Just hit enter.
-*******************************************************************************
-''' % GSUTIL
-    sys.exit(1)
-
-
 def GetDartiumRevision(name, bot, directory, version_file, latest_pattern,
     permanent_prefix, revision_num=None):
   """Get the latest binary that is stored in the dartium archive.
@@ -234,8 +218,6 @@ def GetFromGsutil(name, directory, version_file, latest_pattern,
     print >>sys.stderr, ('WARNING: platform "%s" does not support'
         '%s.') % (system, name)
     return 0
-
-  EnsureConfig()
 
   # Query for the latest version
   pattern = latest_pattern  % { 'osname' : osname, 'bot' : bot }
