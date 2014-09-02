@@ -152,6 +152,60 @@ class DartBackend extends Backend {
         || element.library == mirrorHelperLibrary;
   }
 
+  /// Create an [ElementAst] from the CPS IR.
+  static ElementAst createElementAst(Compiler compiler,
+                                     Tracer tracer,
+                                     ConstantSystem constantSystem,
+                                     Element element,
+                                     cps_ir.FunctionDefinition function) {
+    // Transformations on the CPS IR.
+    if (tracer != null) {
+      tracer.traceCompilation(element.name, null);
+    }
+
+    void traceGraph(String title, var irObject) {
+      if (tracer != null) {
+        tracer.traceGraph(title, irObject);
+      }
+    }
+
+    new ConstantPropagator(compiler, constantSystem).rewrite(function);
+    traceGraph("Sparse constant propagation", function);
+    new RedundantPhiEliminator().rewrite(function);
+    traceGraph("Redundant phi elimination", function);
+    new ShrinkingReducer().rewrite(function);
+    traceGraph("Shrinking reductions", function);
+
+    // Do not rewrite the IR after variable allocation.  Allocation
+    // makes decisions based on an approximation of IR variable live
+    // ranges that can be invalidated by transforming the IR.
+    new cps_ir.RegisterAllocator().visit(function);
+
+    tree_builder.Builder builder = new tree_builder.Builder(compiler);
+    tree_ir.FunctionDefinition definition = builder.build(function);
+    assert(definition != null);
+    traceGraph('Tree builder', definition);
+
+    // Transformations on the Tree IR.
+    new StatementRewriter().rewrite(definition);
+    traceGraph('Statement rewriter', definition);
+    new CopyPropagator().rewrite(definition);
+    traceGraph('Copy propagation', definition);
+    new LoopRewriter().rewrite(definition);
+    traceGraph('Loop rewriter', definition);
+    new LogicalRewriter().rewrite(definition);
+    traceGraph('Logical rewriter', definition);
+    new backend_ast_emitter.UnshadowParameters().unshadow(definition);
+    traceGraph('Unshadow parameters', definition);
+
+    TreeElementMapping treeElements = new TreeElementMapping(element);
+    backend_ast.Node backendAst =
+        backend_ast_emitter.emit(definition);
+    Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
+    return new ElementAst.internal(frontend_ast, treeElements);
+
+  }
+
   void assembleProgram() {
     // Conservatively traverse all platform libraries and collect member names.
     // TODO(antonm): ideally we should only collect names of used members,
@@ -231,41 +285,8 @@ class DartBackend extends Backend {
         return new ElementAst(element);
       } else {
         cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
-        // Transformations on the CPS IR.
-        compiler.tracer.traceCompilation(element.name, null, compiler);
-        new ConstantPropagator(compiler, constantSystem).rewrite(function);
-        compiler.tracer.traceGraph("Sparse constant propagation", function);
-        new RedundantPhiEliminator().rewrite(function);
-        compiler.tracer.traceGraph("Redundant phi elimination", function);
-        new ShrinkingReducer().rewrite(function);
-        compiler.tracer.traceGraph("Shrinking reductions", function);
-        // Do not rewrite the IR after variable allocation.  Allocation
-        // makes decisions based on an approximation of IR variable live
-        // ranges that can be invalidated by transforming the IR.
-        new cps_ir.RegisterAllocator().visit(function);
-
-        tree_builder.Builder builder = new tree_builder.Builder(compiler);
-        tree_ir.FunctionDefinition definition = builder.build(function);
-        assert(definition != null);
-        compiler.tracer.traceGraph('Tree builder', definition);
-
-        // Transformations on the Tree IR.
-        new StatementRewriter().rewrite(definition);
-        compiler.tracer.traceGraph('Statement rewriter', definition);
-        new CopyPropagator().rewrite(definition);
-        compiler.tracer.traceGraph('Copy propagation', definition);
-        new LoopRewriter().rewrite(definition);
-        compiler.tracer.traceGraph('Loop rewriter', definition);
-        new LogicalRewriter().rewrite(definition);
-        compiler.tracer.traceGraph('Logical rewriter', definition);
-        new backend_ast_emitter.UnshadowParameters().unshadow(definition);
-        compiler.tracer.traceGraph('Unshadow parameters', definition);
-
-        TreeElementMapping treeElements = new TreeElementMapping(element);
-        backend_ast.Node backendAst =
-            backend_ast_emitter.emit(definition);
-        Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
-        return new ElementAst.internal(frontend_ast, treeElements);
+        return createElementAst(compiler,
+            compiler.tracer, constantSystem, element, function);
       }
     }
 

@@ -388,11 +388,8 @@ class TreePrinter {
       if (beginStmt && exp.name != null) {
         needParen = true; // Do not mistake for function declaration.
       }
-      // exp.element can only be null in tests.
-      tree.Node body = exp.element != null &&
-          exp.element.node.body is tree.EmptyStatement
-        ? exp.element.node.body
-        : makeFunctionBody(exp.body);
+
+      tree.Node body = makeFunctionBody(exp.body);
       result = new tree.FunctionExpression(
           functionName(exp),
           makeParameters(exp.parameters),
@@ -596,9 +593,9 @@ class TreePrinter {
 
   /// Produces a statement in a context where only blocks are allowed.
   tree.Node makeBlock(Statement stmt) {
-    if (stmt is Block)
+    if (stmt is Block || stmt is EmptyStatement) {
       return makeStatement(stmt);
-    else {
+    } else {
       return new tree.Block(braceList('', [makeStatement(stmt)]));
     }
   }
@@ -928,8 +925,7 @@ class TreePrinter {
   tree.Modifiers makeFunctionModifiers(FunctionExpression exp) {
     if (exp.element == null) return makeEmptyModifiers();
     List<tree.Node> modifiers = new List<tree.Node>();
-    if (exp.element is elements.ConstructorElement &&
-        exp.element.isFactoryConstructor) {
+    if (exp.element.isFactoryConstructor) {
       modifiers.add(makeIdentifier("factory"));
     }
     if (exp.element.isStatic) {

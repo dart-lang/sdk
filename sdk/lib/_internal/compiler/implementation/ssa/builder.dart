@@ -77,7 +77,7 @@ class SsaBuilderTask extends CompilerTask {
             name = "${element.name}";
           }
           compiler.tracer.traceCompilation(
-              name, work.compilationContext, compiler);
+              name, work.compilationContext);
           compiler.tracer.traceGraph('builder', graph);
         }
         return graph;

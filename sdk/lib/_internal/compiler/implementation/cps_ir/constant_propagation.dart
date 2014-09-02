@@ -24,6 +24,8 @@ class ConstantPropagator implements Pass {
   ConstantPropagator(this._compiler, this._constantSystem);
 
   void rewrite(FunctionDefinition root) {
+    if (root.isAbstract) return;
+
     // Set all parent pointers.
 
     new _ParentVisitor().visit(root);

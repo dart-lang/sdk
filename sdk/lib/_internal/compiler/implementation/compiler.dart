@@ -958,7 +958,7 @@ abstract class Compiler implements DiagnosticListener {
             : outputProvider {
     world = new World(this);
     types = new Types(this);
-    tracer = new Tracer(this.outputProvider);
+    tracer = new Tracer(this, this.outputProvider);
 
     if (verbose) {
       progress = new Stopwatch()..start();

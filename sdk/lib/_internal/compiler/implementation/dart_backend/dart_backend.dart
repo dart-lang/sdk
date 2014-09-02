@@ -7,7 +7,6 @@ library dart_backend;
 import 'dart:async' show Future;
 import 'dart:math' show max;
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show SynthesizedConstructorElementX;
 import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../tree/tree.dart';
@@ -24,7 +23,7 @@ import 'statement_rewriter.dart' show StatementRewriter;
 import 'backend_ast_emitter.dart' as backend_ast_emitter;
 import 'backend_ast_nodes.dart' as backend_ast;
 import 'backend_ast_to_frontend_ast.dart' as backend2frontend;
-import '../../compiler.dart' show CompilerOutputProvider;
+import '../tracer.dart';
 
 import '../scanner/scannerlib.dart' show StringToken,
                                          Keyword,

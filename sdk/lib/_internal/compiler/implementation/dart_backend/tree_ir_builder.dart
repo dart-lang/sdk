@@ -242,8 +242,10 @@ class Builder extends cps_ir.Visitor<Node> {
       ++parameter.writeCount; // Being a parameter counts as a write.
       parameters.add(parameter);
     }
-    phiTempVar = new Variable(function, null);
-    function.body = visit(node.body);
+    if (!node.isAbstract) {
+      phiTempVar = new Variable(function, null);
+      function.body = visit(node.body);
+    }
     return null;
   }
 
