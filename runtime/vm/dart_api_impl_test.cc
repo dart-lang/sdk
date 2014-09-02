@@ -1417,6 +1417,29 @@ TEST_CASE(TypedDataViewListGetAsBytes) {
 }
 
 
+TEST_CASE(TypedDataViewListIsTypedData) {
+  const int kSize = 1000;
+
+  const char* kScriptChars =
+      "import 'dart:typed_data';\n"
+      "List main(int size) {\n"
+      "  var a = new Int8List(size);\n"
+      "  var view = new Int8List.view(a.buffer, 0, size);\n"
+      "  return view;\n"
+      "}\n";
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Create a typed data view object.
+  Dart_Handle dart_args[1];
+  dart_args[0] = Dart_NewInteger(kSize);
+  Dart_Handle view_obj = Dart_Invoke(lib, NewString("main"), 1, dart_args);
+  EXPECT_VALID(view_obj);
+  // Test that the API considers it a TypedData object.
+  EXPECT(Dart_IsTypedData(view_obj));
+}
+
+
 TEST_CASE(TypedDataAccess) {
   EXPECT_EQ(Dart_TypedData_kInvalid,
             Dart_GetTypeOfTypedData(Dart_True()));

@@ -1861,7 +1861,8 @@ DART_EXPORT bool Dart_IsTypedData(Dart_Handle handle) {
   TRACE_API_CALL(CURRENT_FUNC);
   intptr_t cid = Api::ClassId(handle);
   return RawObject::IsTypedDataClassId(cid) ||
-      RawObject::IsExternalTypedDataClassId(cid);
+         RawObject::IsExternalTypedDataClassId(cid) ||
+         RawObject::IsTypedDataViewClassId(cid);
 }
 
 
