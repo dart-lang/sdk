@@ -239,6 +239,13 @@ class _RefactoringManager {
     this.offset = offset;
     this.length = length;
     // create a new Refactoring instance
+    if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
+      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+      if (units.isNotEmpty) {
+        refactoring = new ExtractLocalRefactoring(units[0], offset, length);
+        feedback = new ExtractLocalVariableFeedback([], [], []);
+      }
+    }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
       List<Element> elements = server.getElementsAtOffset(file, offset);
@@ -257,6 +264,13 @@ class _RefactoringManager {
     // check initial conditions
     return refactoring.checkInitialConditions().then((status) {
       initStatus = status;
+      if (refactoring is ExtractLocalRefactoring) {
+        ExtractLocalRefactoring refactoring = this.refactoring;
+        ExtractLocalVariableFeedback feedback = this.feedback;
+        feedback.names = refactoring.names;
+        feedback.offsets = refactoring.offsets;
+        feedback.lengths = refactoring.lengths;
+      }
       return initStatus;
     });
   }
@@ -287,11 +301,17 @@ class _RefactoringManager {
   }
 
   RefactoringStatus _setOptions(Object options) {
+    if (refactoring is ExtractLocalRefactoring) {
+      ExtractLocalRefactoring extractRefactoring = refactoring;
+      ExtractLocalVariableOptions extractOptions = options;
+      extractRefactoring.name = extractOptions.name;
+      extractRefactoring.extractAll = extractOptions.extractAll;
+      return extractRefactoring.checkName();
+    }
     if (refactoring is RenameRefactoring) {
       RenameRefactoring renameRefactoring = refactoring;
       RenameOptions renameOptions = options;
-      String newName = renameOptions.newName;
-      renameRefactoring.newName = newName;
+      renameRefactoring.newName = renameOptions.newName;
       return renameRefactoring.checkNewName();
     }
     return new RefactoringStatus();

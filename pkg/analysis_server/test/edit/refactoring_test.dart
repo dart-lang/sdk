@@ -18,8 +18,127 @@ import '../analysis_abstract.dart';
 
 main() {
   groupSep = ' | ';
+  runReflectiveTests(ExtractLocalVariableTest);
   runReflectiveTests(GetAvailableRefactoringsTest);
-  runReflectiveTests(GetRefactoring_Rename_Test);
+  runReflectiveTests(RenameTest);
+}
+
+
+@ReflectiveTestCase()
+class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
+  Future<Response> sendExtractRequest(int offset, int length, String name,
+      bool extractAll) {
+    RefactoringKind kind = RefactoringKind.EXTRACT_LOCAL_VARIABLE;
+    Object options = new ExtractLocalVariableOptions(name, extractAll);
+    return sendRequest(kind, offset, length, options, false);
+  }
+
+  Future<Response> sendStringRequest(String search, String name,
+      bool extractAll) {
+    int offset = findOffset(search);
+    int length = search.length;
+    return sendExtractRequest(offset, length, name, extractAll);
+  }
+
+  Future<Response> sendStringSuffixRequest(String search, String suffix,
+      String name, bool extractAll) {
+    int offset = findOffset(search + suffix);
+    int length = search.length;
+    return sendExtractRequest(offset, length, name, extractAll);
+  }
+
+  test_extractAll() {
+    addTestFile('''
+main() {
+  print(1 + 2);
+  print(1 + 2);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendStringRequest('1 + 2', 'res', true);
+    }, '''
+main() {
+  var res = 1 + 2;
+  print(res);
+  print(res);
+}
+''');
+  }
+
+  test_extractOne() {
+    addTestFile('''
+main() {
+  print(1 + 2);
+  print(1 + 2); // marker
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendStringSuffixRequest('1 + 2', '); // marker', 'res', false);
+    }, '''
+main() {
+  print(1 + 2);
+  var res = 1 + 2;
+  print(res); // marker
+}
+''');
+  }
+
+  test_nameWarning() {
+    addTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    return getRefactoringResult(() {
+      return sendStringRequest('1 + 2', 'Name', true);
+    }).then((result) {
+      assertResultProblemsWarning(
+          result,
+          'Variable name should start with a lowercase letter.');
+      // ...but there is still a change
+      assertTestRefactoringResult(result, '''
+main() {
+  var Name = 1 + 2;
+  print(Name);
+}
+''');
+    });
+  }
+
+  test_names() {
+    addTestFile('''
+class TreeItem {}
+TreeItem getSelectedItem() => null;
+main() {
+  var a = getSelectedItem();
+}
+''');
+    return getRefactoringResult(() {
+      return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
+    }).then((result) {
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(
+          feedback.names,
+          unorderedEquals(['treeItem', 'item', 'selectedItem']));
+      expect(result.change, isNull);
+    });
+  }
+
+  test_offsetsLengths() {
+    addTestFile('''
+main() {
+  print(1 + 2);
+  print(1 +  2);
+}
+''');
+    return getRefactoringResult(() {
+      return sendStringRequest('1 + 2', 'res', true);
+    }).then((result) {
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
+      expect(feedback.lengths, [5, 6]);
+    });
+  }
 }
 
 
@@ -205,7 +324,19 @@ main() {
 
 
 @ReflectiveTestCase()
-class GetRefactoring_Rename_Test extends _AbstractGetRefactoring_Test {
+class RenameTest extends _AbstractGetRefactoring_Test {
+  Future<Response> sendRenameRequest(String search, String newName,
+      [bool validateOnly = false]) {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.RENAME,
+        testFile,
+        findOffset(search),
+        0,
+        validateOnly,
+        options: new RenameOptions(newName)).toRequest('0');
+    return serverChannel.sendRequest(request);
+  }
+
   test_class() {
     addTestFile('''
 class Test {}
@@ -213,9 +344,9 @@ main() {
   Test v;
 }
 ''');
-    String search = 'Test {}';
-    String newName = 'NewName';
-    return assertSuccessfulRefactoring(search, newName, '''
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test {}', 'NewName');
+    }, '''
 class NewName {}
 main() {
   NewName v;
@@ -232,9 +363,9 @@ class A {
   }
 }
 ''');
-    String search = 'test = 0';
-    String newName = 'newName';
-    return assertSuccessfulRefactoring(search, newName, '''
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test = 0', 'newName');
+    }, '''
 class A {
   var newName = 0;
   main() {
@@ -253,9 +384,9 @@ class A {
   }
 }
 ''');
-    String search = 'test =>';
-    String newName = 'newName';
-    return assertSuccessfulRefactoring(search, newName, '''
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test =>', 'newName');
+    }, '''
 class A {
   get newName => 0;
   main() {
@@ -274,9 +405,9 @@ class A {
   }
 }
 ''');
-    String search = 'test = 0';
-    String newName = 'newName';
-    return assertSuccessfulRefactoring(search, newName, '''
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test = 0', 'newName');
+    }, '''
 class A {
   set newName(x) {}
   main() {
@@ -293,14 +424,12 @@ main() {
   Test v;
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      String search = 'Test {}';
-      return sendRenameRequest(search, '').then((Response response) {
-        var result = new EditGetRefactoringResult.fromResponse(response);
-        assertResultProblemsFatal(result, 'Class name must not be empty.');
-        // ...there is no any change
-        expect(result.change, isNull);
-      });
+    return getRefactoringResult(() {
+      return sendRenameRequest('Test {}', '');
+    }).then((result) {
+      assertResultProblemsFatal(result, 'Class name must not be empty.');
+      // ...there is no any change
+      expect(result.change, isNull);
     });
   }
 
@@ -311,12 +440,9 @@ main() {
   Test v;
 }
 ''');
-    String search = 'Test {}';
-    String newName = 'NewName';
-    return getRefactoringResult(
-        search,
-        newName,
-        validateOnly: true).then((result) {
+    return getRefactoringResult(() {
+      return sendRenameRequest('Test {}', 'NewName', true);
+    }).then((result) {
       assertResultProblemsOK(result);
       expect(result.change, isNull);
     });
@@ -329,26 +455,32 @@ main() {
   Test v;
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      String search = 'Test {}';
-      return sendRenameRequest(search, 'newName').then((Response response) {
-        var result = new EditGetRefactoringResult.fromResponse(response);
-        assertResultProblemsWarning(
-            result,
-            'Class name should start with an uppercase letter.');
-        // ...but there is still a change
-        assertTestRefactoringResult(result, '''
+    return getRefactoringResult(() {
+      return sendRenameRequest('Test {}', 'newName');
+    }).then((result) {
+      assertResultProblemsWarning(
+          result,
+          'Class name should start with an uppercase letter.');
+      // ...but there is still a change
+      assertTestRefactoringResult(result, '''
 class newName {}
 main() {
   newName v;
 }
 ''');
-      }).then((_) {
-        return sendRenameRequest(search, 'NewName').then((Response response) {
-          var result = new EditGetRefactoringResult.fromResponse(response);
-          // OK
-          assertResultProblemsOK(result);
-        });
+    }).then((_) {
+      // "NewName" is a perfectly valid name
+      return getRefactoringResult(() {
+        return sendRenameRequest('Test {}', 'NewName');
+      }).then((result) {
+        assertResultProblemsOK(result);
+        // ...and there is a new change
+        assertTestRefactoringResult(result, '''
+class NewName {}
+main() {
+  NewName v;
+}
+''');
       });
     });
   }
@@ -364,7 +496,9 @@ main() {
 ''');
     String search = 'test();';
     String newName = 'newName';
-    return assertSuccessfulRefactoring(search, newName, '''
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test();', 'newName');
+    }, '''
 class A {
   A.newName() {}
 }
@@ -381,9 +515,9 @@ main() {
   Test v;
 }
 ''');
-    String search = 'st v;';
-    String newName = 'NewName';
-    return getRefactoringResult(search, newName).then((result) {
+    return getRefactoringResult(() {
+      return sendRenameRequest('st v;', 'NewName');
+    }).then((result) {
       RenameFeedback feedback = result.feedback;
       expect(feedback, isNotNull);
       expect(feedback.offset, findOffset('Test v;'));
@@ -399,9 +533,9 @@ main() {
   print(test);
 }
 ''');
-    String search = 'test() {}';
-    String newName = 'newName';
-    return assertSuccessfulRefactoring(search, newName, '''
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }, '''
 newName() {}
 main() {
   newName();
@@ -412,8 +546,9 @@ main() {
 
   test_init_fatalError_noElement() {
     addTestFile('// nothing to rename');
-    String search = '// nothing';
-    return getRefactoringResult(search, null).then((result) {
+    return getRefactoringResult(() {
+      return sendRenameRequest('// nothing', null);
+    }).then((result) {
       assertResultProblemsFatal(result, 'Unable to create a refactoring');
       // ...there is no any change
       expect(result.change, isNull);
@@ -429,9 +564,9 @@ main() {
   print(test);
 }
 ''');
-    String search = 'test = 1';
-    String newName = 'newName';
-    return assertSuccessfulRefactoring(search, newName, '''
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test = 1', 'newName');
+    }, '''
 main() {
   int newName = 0;
   newName = 1;
@@ -449,9 +584,9 @@ main() {
   print(test);
 }
 ''');
-    String search = 'test = 0';
-    String newName = 'newName';
-    return getRefactoringResult(search, newName).then((result) {
+    return getRefactoringResult(() {
+      return sendRenameRequest('test = 0', 'newName');
+    }).then((result) {
       assertResultProblemsError(result, "Duplicate local variable 'newName'.");
     });
   }
@@ -518,9 +653,9 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     }
   }
 
-  Future assertSuccessfulRefactoring(String search, String newName,
+  Future assertSuccessfulRefactoring(Future<Response> requestSender(),
       String expectedCode) {
-    return getRefactoringResult(search, newName).then((result) {
+    return getRefactoringResult(requestSender).then((result) {
       assertResultProblemsOK(result);
       assertTestRefactoringResult(result, expectedCode);
     });
@@ -549,27 +684,24 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     return createLocalMemoryIndex();
   }
 
-  Future<EditGetRefactoringResult> getRefactoringResult(String search,
-      String newName, {bool validateOnly: false}) {
+  Future<EditGetRefactoringResult> getRefactoringResult(Future<Response>
+      requestSender()) {
     return waitForTasksFinished().then((_) {
-      return sendRenameRequest(
-          search,
-          newName,
-          validateOnly: validateOnly).then((Response response) {
+      return requestSender().then((Response response) {
         return new EditGetRefactoringResult.fromResponse(response);
       });
     });
   }
 
-  Future sendRenameRequest(String search, String newName, {bool validateOnly:
-      false}) {
+  Future<Response> sendRequest(RefactoringKind kind, int offset, int length,
+      Object options, [bool validateOnly = false]) {
     Request request = new EditGetRefactoringParams(
-        RefactoringKind.RENAME,
+        kind,
         testFile,
-        findOffset(search),
-        0,
+        offset,
+        length,
         validateOnly,
-        options: new RenameOptions(newName)).toRequest('0');
+        options: options).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 
