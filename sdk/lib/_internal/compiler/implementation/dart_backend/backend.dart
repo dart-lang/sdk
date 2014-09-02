@@ -346,51 +346,9 @@ class DartBackend extends Backend {
       }
     });
 
-    // Add synthesized constructors to classes with no resolved constructors,
-    // but which originally had any constructor.  That should prevent
-    // those classes from being instantiable with default constructor.
-    Identifier synthesizedIdentifier = new Identifier(
-        new StringToken.fromString(IDENTIFIER_INFO, '', -1));
-
-    NextClassElement:
-    for (ClassElement classElement in classMembers.keys) {
-      if (emitNoMembersFor.contains(classElement)) continue;
-      for (Element member in classMembers[classElement]) {
-        if (member.isConstructor) continue NextClassElement;
-      }
-      if (classElement.constructors.isEmpty) continue NextClassElement;
-
-      // TODO(antonm): check with AAR team if there is better approach.
-      // As an idea: provide template as a Dart code---class C { C.name(); }---
-      // and then overwrite necessary parts.
-      var classNode = classElement.node;
-      SynthesizedConstructorElementX constructor =
-          new SynthesizedConstructorElementX(
-              classElement.name, null, classElement, false);
-      constructor.typeCache =
-          new FunctionType(constructor, const VoidType());
-      if (!constructor.isSynthesized) {
-        classMembers[classElement].add(constructor);
-      }
-      FunctionExpression node = new FunctionExpression(
-          new Send(classNode.name, synthesizedIdentifier),
-          new NodeList(new StringToken.fromString(OPEN_PAREN_INFO, '(', -1),
-                       const Link<Node>(),
-                       new StringToken.fromString(CLOSE_PAREN_INFO, ')', -1)),
-          new EmptyStatement(
-              new StringToken.fromString(SEMICOLON_INFO, ';', -1)),
-          null, Modifiers.EMPTY, null, null);
-
-      elementAsts[constructor] =
-          new ElementAst.internal(node, new TreeElementMapping(null));
-    }
-
     // Create all necessary placeholders.
     PlaceholderCollector collector =
         new PlaceholderCollector(compiler, fixedMemberNames, elementAsts);
-    // Add synthesizedIdentifier to set of unresolved names to rename it to
-    // some unused identifier.
-    collector.unresolvedNodes.add(synthesizedIdentifier);
     makePlaceholders(element) {
       bool oldUseHelper = useMirrorHelperLibrary;
       useMirrorHelperLibrary = (useMirrorHelperLibrary
