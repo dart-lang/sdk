@@ -106,7 +106,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       }
     }
     if (_selectionStatements != null) {
-      return returnType != null;
+      return returnType != 'void';
     }
     return true;
   }
@@ -226,7 +226,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       } else {
         StringBuffer sb = new StringBuffer();
         // may be returns value
-        if (returnType != null) {
+        if (_selectionStatements != null && returnType != 'void') {
           // single variable assignment / return statement
           if (_returnVariableName != null) {
             String occurrenceName =
@@ -316,12 +316,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
         }
         // statements
         if (_selectionStatements != null) {
-          if (returnType != null) {
-            if (returnType.isNotEmpty) {
-              annotations += returnType + ' ';
-            }
-          } else {
-            annotations += 'void ';
+          if (returnType.isNotEmpty) {
+            annotations += returnType + ' ';
           }
           declarationSource = '${annotations}${signature} {${eol}';
           declarationSource += returnExpressionSource;
@@ -572,6 +568,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     RefactoringStatus result = new RefactoringStatus();
     List<VariableElement> assignedUsedVariables = [];
     unit.accept(new _InitializeParametersVisitor(this, assignedUsedVariables));
+    // single expression
+    if (_selectionExpression != null) {
+      _returnType = _selectionExpression.bestType;
+    }
     // may be ends with "return" statement
     if (_selectionStatements != null) {
       Statement lastStatement =
@@ -616,12 +616,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
 
   void _initializeReturnType() {
     if (_returnType == null) {
-      returnType = null;
+      returnType = 'void';
     } else {
       returnType = utils.getTypeSource(_returnType);
-      if (returnType == 'dynamic') {
-        returnType = '';
-      }
+    }
+    if (returnType == 'dynamic') {
+      returnType = '';
     }
   }
 

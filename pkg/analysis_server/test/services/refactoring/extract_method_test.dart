@@ -1032,10 +1032,8 @@ main() {
   test_offsets_lengths() {
     indexTestUnit('''
 main() {
-main() {
   int a = 1 + 2;
   int b = 1 +  2;
-}
 }
 ''');
     _createRefactoringForString('1 +  2');
@@ -1045,6 +1043,50 @@ main() {
           refactoring.offsets,
           unorderedEquals([findOffset('1 + 2'), findOffset('1 +  2')]));
       expect(refactoring.lengths, unorderedEquals([5, 6]));
+    });
+  }
+
+  test_returnType_expression() {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // do check
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.returnType, 'int');
+    });
+  }
+
+  test_returnType_statements() {
+    indexTestUnit('''
+main() {
+// start
+  double v = 5.0;
+// end
+  print(v);
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.returnType, 'double');
+    });
+  }
+
+  test_returnType_statements_void() {
+    indexTestUnit('''
+main() {
+// start
+  print(42);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.returnType, 'void');
     });
   }
 
