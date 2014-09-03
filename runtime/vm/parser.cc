@@ -6697,7 +6697,7 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
   }
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
-  AstNode* cond_expr = ParseExpr(kAllowConst, kConsumeCascades);
+  AstNode* cond_expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body = false;
   SequenceNode* true_branch = ParseNestedStatement(parsing_loop_body, NULL);
@@ -6870,7 +6870,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
   const intptr_t expr_pos = TokenPos();
-  AstNode* switch_expr = ParseExpr(kAllowConst, kConsumeCascades);
+  AstNode* switch_expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
   ExpectToken(Token::kRPAREN);
   ExpectToken(Token::kLBRACE);
   OpenBlock();
@@ -7849,7 +7849,7 @@ AstNode* Parser::ParseStatement() {
         ReportError(return_pos,
                     "return of a value not allowed in constructors");
       }
-      AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+      AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
       statement = new(I) ReturnNode(statement_pos, expr);
     } else {
       statement = new(I) ReturnNode(statement_pos);

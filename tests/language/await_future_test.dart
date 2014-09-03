@@ -70,6 +70,55 @@ nesting() async {
   }
 }
 
+awaitIf(p) async {
+  if (p < (await bar(5))) {
+    return "p<5";
+  } else {
+    return "p>=5";
+  }
+}
+
+awaitNestedIf(p,q) async {
+  if (p == (await bar(5))) {
+    if (q < (await bar(7))) {
+      return "q<7";
+    } else {
+      return "q>=7";
+    }
+  } else {
+    return "p!=5";
+  }
+  return "!";
+}
+
+awaitElseIf(p) async {
+  if (p > (await bar(5))) {
+    return "p>5";
+  } else if (p < (await bar(5))) {
+    return "p<5";
+  } else {
+    return "p==5";
+  }
+  return "!";
+}
+
+awaitReturn() async {
+  return await bar(17);
+}
+
+awaitSwitch() async {
+  switch(await bar(3)) {
+    case 1:
+      return 1;
+      break;
+    case 3:
+      return 3;
+      break;
+    default:
+      return -1;
+  }
+}
+
 main() async {
   var result;
   for (int i = 0; i < 10; i++) {
@@ -81,5 +130,25 @@ main() async {
     Expect.equals(result, 2);
     result = await nesting();
     Expect.equals(result, 5);
+    result = await awaitIf(3);
+    Expect.equals(result, "p<5");
+    result = await awaitIf(5);
+    Expect.equals(result, "p>=5");
+    result = await awaitNestedIf(5,3);
+    Expect.equals(result, "q<7");
+    result = await awaitNestedIf(5,8);
+    Expect.equals(result, "q>=7");
+    result = await awaitNestedIf(3,8);
+    Expect.equals(result, "p!=5");
+    result = await awaitReturn();
+    Expect.equals(result, 17);
+    result = await awaitSwitch();
+    Expect.equals(result, 3);
+    result = await awaitElseIf(6);
+    Expect.equals(result, "p>5");
+    result = await awaitElseIf(4);
+    Expect.equals(result, "p<5");
+    result = await awaitElseIf(5);
+    Expect.equals(result, "p==5");
   }
 }
