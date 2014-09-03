@@ -43,7 +43,7 @@ void set onlyAnalyze(bool b) {
 }
 
 const BooleanUserOption _enableDartMind =
-    const BooleanUserOption('enableDartMind');
+    const BooleanUserOption('enableDartMind', isHidden: true);
 
 bool get enableDartMind => _enableDartMind.value;
 
