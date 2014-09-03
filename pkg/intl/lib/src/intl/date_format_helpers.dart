@@ -32,6 +32,37 @@ class _DateBuilder {
   void setSecond(x) { second = x; }
   void setFractionalSecond(x) { fractionalSecond = x; }
 
+  get hour24 => pm ? hour + 12 : hour;
+
+  /**
+   * Verify that we correspond to a valid date. This will reject out of
+   * range values, even if the DateTime constructor would accept them. An
+   * invalid message will result in throwing a [FormatException].
+   */
+   verify(String s) {
+     _verify(month, 1, 12, "month", s);
+     _verify(hour24, 0, 23, "hour", s);
+     _verify(minute, 0, 59, "minute", s);
+     _verify(second, 0, 59, "second", s);
+     _verify(fractionalSecond, 0, 999, "fractional second", s);
+     // Verifying the day is tricky, because it depends on the month. Create
+     // our resulting date and then verify that our values agree with it
+     // as an additional verification. And since we're doing that, also
+     // check the year, which we otherwise can't verify, and the hours,
+     // which will catch cases like "14:00:00 PM".
+     var date = asDate();
+     _verify(hour24, date.hour, date.hour, "hour", s);
+     _verify(day, date.day, date.day, "day", s);
+     _verify(year, date.year, date.year, "year", s);
+   }
+
+   _verify(int value, int min, int max, String desc, String originalInput) {
+     if (value < min || value > max) {
+       throw new FormatException(
+           "Error parsing $originalInput, invalid $desc value: $value");
+     }
+   }
+
   /**
    * Return a date built using our values. If no date portion is set,
    * use the "Epoch" of January 1, 1970.
@@ -45,7 +76,7 @@ class _DateBuilder {
           year,
           month,
           day,
-          pm ? hour + 12 : hour,
+          hour24,
           minute,
           second,
           fractionalSecond);
@@ -54,12 +85,12 @@ class _DateBuilder {
           year,
           month,
           day,
-          pm ? hour + 12 : hour,
+          hour24,
           minute,
           second,
           fractionalSecond);
       // TODO(alanknight): Issue 15560 means non-UTC dates occasionally come
-      // out in UTC. If that happens, retry once. This will always happen if 
+      // out in UTC. If that happens, retry once. This will always happen if
       // the local time zone is UTC, but that's ok.
       if (result.toUtc() == result) {
         result = asDate(retry: false);

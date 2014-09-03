@@ -2,6 +2,9 @@
 
   * Improved code layout of the package.
 
+  * Added a DateFormat.parseStrict method that rejects DateTimes with invalid
+    values and requires it to be the whole string.
+
 ## 0.11.6
 
   * Catch analyzer errors and do not generate messages for that file. Previously
