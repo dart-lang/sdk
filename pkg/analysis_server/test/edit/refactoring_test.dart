@@ -21,6 +21,7 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(ExtractLocalVariableTest);
   runReflectiveTests(ExtractMethodTest);
+  runReflectiveTests(InlineMethodTest);
   runReflectiveTests(GetAvailableRefactoringsTest);
   runReflectiveTests(RenameTest);
 }
@@ -516,6 +517,111 @@ main() {
           getRefactoringsAtString('// not an element');
       expect(kinds, isNot(contains(RefactoringKind.RENAME)));
     });
+  }
+}
+
+
+@ReflectiveTestCase()
+class InlineMethodTest extends _AbstractGetRefactoring_Test {
+  InlineMethodOptions options = new InlineMethodOptions(true, true);
+
+  test_init_fatalError_noMethod() {
+    addTestFile('// nothing to inline');
+    return getRefactoringResult(() {
+      return _sendInlineRequest('// nothing');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result,
+          'Method declaration or reference must be selected to activate this refactoring.');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  test_method() {
+    addTestFile('''
+class A {
+  int f;
+  test(int p) {
+    print(f + p);
+  }
+  main() {
+    test(1);
+  }
+}
+main(A a) {
+  a.test(2);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test(int p)');
+    }, '''
+class A {
+  int f;
+  main() {
+    print(f + 1);
+  }
+}
+main(A a) {
+  print(a.f + 2);
+}
+''');
+  }
+
+  test_topLevelFunction() {
+    addTestFile('''
+test(a, b) {
+  print(a + b);
+}
+main() {
+  test(1, 2);
+  test(10, 20);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test(a');
+    }, '''
+main() {
+  print(1 + 2);
+  print(10 + 20);
+}
+''');
+  }
+
+  test_topLevelFunction_oneInvocation() {
+    addTestFile('''
+test(a, b) {
+  print(a + b);
+}
+main() {
+  test(1, 2);
+  test(10, 20);
+}
+''');
+    options.deleteSource = false;
+    options.inlineAll = false;
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test(10,');
+    }, '''
+test(a, b) {
+  print(a + b);
+}
+main() {
+  test(1, 2);
+  print(10 + 20);
+}
+''');
+  }
+
+  Future<Response> _sendInlineRequest(String search) {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.INLINE_METHOD,
+        testFile,
+        findOffset(search),
+        0,
+        false,
+        options: options.toJson()).toRequest('0');
+    return serverChannel.sendRequest(request);
   }
 }
 

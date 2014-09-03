@@ -257,6 +257,12 @@ class _RefactoringManager {
             new ExtractMethodFeedback(offset, length, null, [], false, [], [], []);
       }
     }
+    if (kind == RefactoringKind.INLINE_METHOD) {
+      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+      if (units.isNotEmpty) {
+        refactoring = new InlineMethodRefactoring(searchEngine, units[0], offset);
+      }
+    }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
       List<Element> elements = server.getElementsAtOffset(file, offset);
@@ -305,7 +311,9 @@ class _RefactoringManager {
   }
 
   void _sendResultResponse() {
-    result.feedback = feedback.toJson();
+    if (feedback != null) {
+      result.feedback = feedback.toJson();
+    }
     // set problems
     {
       RefactoringStatus status = new RefactoringStatus();
@@ -343,6 +351,14 @@ class _RefactoringManager {
       }
       extractRefactoring.returnType = extractOptions.returnType;
       return extractRefactoring.checkName();
+    }
+    if (refactoring is InlineMethodRefactoring) {
+      InlineMethodRefactoring inlineRefactoring = this.refactoring;
+      InlineMethodOptions inlineOptions =
+          new InlineMethodOptions.fromRefactoringParams(params, request);
+      inlineRefactoring.deleteSource = inlineOptions.deleteSource;
+      inlineRefactoring.inlineAll = inlineOptions.inlineAll;
+      return new RefactoringStatus();
     }
     if (refactoring is RenameRefactoring) {
       RenameRefactoring renameRefactoring = refactoring;
