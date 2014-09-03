@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
@@ -227,7 +225,7 @@ void main() {
 
   test("a relative path can be matched by an absolute glob", () {
     var pattern = p.absolute('foo/bar');
-    if (Platform.isWindows) pattern = pattern.replaceAll('\\', '/');
+    if (p.style == p.Style.windows) pattern = pattern.replaceAll('\\', '/');
     expect('foo/bar', contains(new Glob(pattern)));
   });
 
