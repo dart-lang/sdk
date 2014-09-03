@@ -296,7 +296,8 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       library_(Library::Handle(isolate_, library.raw())),
       try_blocks_list_(NULL),
       last_used_try_index_(0),
-      unregister_pending_function_(false) {
+      unregister_pending_function_(false),
+      async_temp_scope_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
 }
@@ -327,7 +328,8 @@ Parser::Parser(const Script& script,
           parsed_function->function().origin()).library())),
       try_blocks_list_(NULL),
       last_used_try_index_(0),
-      unregister_pending_function_(false) {
+      unregister_pending_function_(false),
+      async_temp_scope_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!current_function().IsNull());
   if (FLAG_enable_type_checks) {
@@ -2942,6 +2944,15 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   intptr_t formal_params_pos = TokenPos();
   // TODO(12455) : Need better validation mechanism.
 
+  // In case of nested async functions we also need to save the currently saved
+  // try context, the corresponding stack variable, and the scope where
+  // temporaries are added.
+  LocalVariable* saved_saved_try_ctx = parsed_function()->saved_try_ctx();
+  const String& saved_async_saved_try_ctx_name =
+      String::Handle(I, parsed_function()->async_saved_try_ctx_name());
+  parsed_function()->reset_saved_try_ctx_vars();
+  LocalScope* saved_async_temp_scope = async_temp_scope_;
+
   if (func.IsConstructor()) {
     SequenceNode* statements = ParseConstructor(func, default_parameter_values);
     innermost_function_ = saved_innermost_function.raw();
@@ -3051,8 +3062,10 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   Function& async_closure = Function::ZoneHandle(I);
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
     async_closure = OpenAsyncFunction(formal_params_pos);
+    async_temp_scope_ = current_block_->scope;
   } else if (func.is_async_closure()) {
     OpenAsyncClosure();
+    async_temp_scope_ = current_block_->scope;
   }
 
   bool saved_await_is_keyword = await_is_keyword_;
@@ -3129,6 +3142,10 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   innermost_function_ = saved_innermost_function.raw();
   last_used_try_index_ = saved_try_index;
   await_is_keyword_ = saved_await_is_keyword;
+  async_temp_scope_ = saved_async_temp_scope;
+  parsed_function()->set_saved_try_ctx(saved_saved_try_ctx);
+  parsed_function()->set_async_saved_try_ctx_name(
+      saved_async_saved_try_ctx_name);
   return CloseBlock();
 }
 
@@ -5528,12 +5545,14 @@ void Parser::OpenFunctionBlock(const Function& func) {
 
 void Parser::OpenAsyncClosure() {
   TRACE_PARSER("OpenAsyncClosure");
-  parsed_function()->set_await_temps_scope(current_block_->scope);
 }
 
 
 RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   TRACE_PARSER("OpenAsyncFunction");
+
+  AddAsyncClosureVariables();
+
   // Create the closure containing the old body of this function.
   Class& sig_cls = Class::ZoneHandle(I);
   Type& sig_type = Type::ZoneHandle(I);
@@ -5579,6 +5598,36 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
 }
 
 
+void Parser::AddAsyncClosureVariables() {
+  // Add to AST:
+  //   var :await_jump_var;
+  //   var :await_ctx_var;
+  //   var :async_op;
+  //   var :async_completer;
+  const Type& dynamic_type = Type::ZoneHandle(I, Type::DynamicType());
+  LocalVariable* await_jump_var = new (I) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), dynamic_type);
+  current_block_->scope->AddVariable(await_jump_var);
+  current_block_->scope->CaptureVariable(Symbols::AwaitJumpVar());
+  await_jump_var->set_is_captured();
+  LocalVariable* await_ctx_var = new (I) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AwaitContextVar(), dynamic_type);
+  current_block_->scope->AddVariable(await_ctx_var);
+  current_block_->scope->CaptureVariable(Symbols::AwaitContextVar());
+  await_ctx_var->set_is_captured();
+  LocalVariable* async_op_var = new (I) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
+  current_block_->scope->AddVariable(async_op_var);
+  current_block_->scope->CaptureVariable(Symbols::AsyncOperation());
+  async_op_var->set_is_captured();
+  LocalVariable* async_completer = new (I) LocalVariable(
+      Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
+  current_block_->scope->AddVariable(async_completer);
+  current_block_->scope->CaptureVariable(Symbols::AsyncCompleter());
+  async_completer->set_is_captured();
+}
+
+
 SequenceNode* Parser::CloseBlock() {
   SequenceNode* statements = current_block_->statements;
   if (current_block_->scope != NULL) {
@@ -5611,6 +5660,9 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
   // corresponding function block.
   CloseBlock();
 
+  closure_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  closure_body->scope()->CaptureVariable(Symbols::AsyncCompleter());
+
   // Create and return a new future that executes a closure with the current
   // body.
 
@@ -5630,44 +5682,8 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
       completer.LookupFunction(Symbols::CompleterConstructor()));
   ASSERT(!completer_constructor.IsNull());
 
-  bool found = false;
-  // Add to AST:
-  //   var :async_op;
-  //   var :async_completer;
-  //   var :await_jump_var;
-  //   var :await_ctx_var;
-  // Add as many variables to saved the try block ctx as there were try blocks.
-  //   var :async_saved_try_ctx_var_<x>;
-  const Type& dynamic_type = Type::ZoneHandle(I, Type::DynamicType());
-  LocalVariable* async_op_var = new (I) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
-  current_block_->scope->AddVariable(async_op_var);
-  found = closure_body->scope()->CaptureVariable(Symbols::AsyncOperation());
-  ASSERT(found);
-  LocalVariable* async_completer = new (I) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
-  current_block_->scope->AddVariable(async_completer);
-  found = closure_body->scope()->CaptureVariable(Symbols::AsyncCompleter());
-  ASSERT(found);
-  LocalVariable* await_jump_var = new (I) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), dynamic_type);
-  current_block_->scope->AddVariable(await_jump_var);
-  found = closure_body->scope()->CaptureVariable(Symbols::AwaitJumpVar());
-  ASSERT(found);
-  LocalVariable* await_ctx_var = new (I) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AwaitContextVar(), dynamic_type);
-  current_block_->scope->AddVariable(await_ctx_var);
-  found = closure_body->scope()->CaptureVariable(Symbols::AwaitContextVar());
-  ASSERT(found);
-  LocalVariable* async_saved_try_ctx_var;
-  for (int16_t i = 0; i < last_used_try_index_; i++) {
-    String& async_saved_try_ctx_name = BuildAsyncSavedTryContextName(I, i);
-    async_saved_try_ctx_var = new (I) LocalVariable(
-        Scanner::kNoSourcePos, async_saved_try_ctx_name, dynamic_type);
-    current_block_->scope->AddVariable(async_saved_try_ctx_var);
-    found = closure_body->scope()->CaptureVariable(async_saved_try_ctx_name);
-    ASSERT(found);
-  }
+  LocalVariable* async_completer = current_block_->scope->LookupVariable(
+      Symbols::AsyncCompleter(), false);
 
   // Add to AST:
   //   :async_completer = new Completer();
@@ -5686,6 +5702,8 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 
   // Add to AST:
   //   :async_op = <closure>;  (containing the original body)
+  LocalVariable* async_op_var = current_block_->scope->LookupVariable(
+      Symbols::AsyncOperation(), false);
   ClosureNode* cn = new(I) ClosureNode(
       Scanner::kNoSourcePos, closure, NULL, closure_body->scope());
   StoreLocalNode* store_async_op = new (I) StoreLocalNode(
@@ -5726,9 +5744,9 @@ void Parser::CloseAsyncClosure(SequenceNode* body) {
   // Implicitly mark those variables below as captured. We currently mark all
   // variables of all scopes as captured (below), but as soon as we do something
   // smarter we rely on these internal variables to be available.
-  body->scope()->LookupVariable(Symbols::Completer(), false);
   body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
   body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+  body->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
   body->scope()->RecursivelyCaptureAllVariables();
 }
 
@@ -7268,11 +7286,13 @@ SequenceNode* Parser::ParseFinallyBlock() {
   // In case of async closures we need to restore the saved try index of an
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
-  if (current_function().is_async_closure() && (try_blocks_list_ != NULL)) {
+  if ((innermost_function().is_async_closure() ||
+       innermost_function().IsAsyncFunction()) &&
+      (try_blocks_list_ != NULL)) {
     // We need two unchain two scopes: finally clause, and the try block level.
-    SetupSavedTryContext(current_block_->scope->parent()->parent(),
-                         try_blocks_list_->try_index(),
-                         current_block_->statements);
+    RestoreSavedTryContext(current_block_->scope->parent()->parent(),
+                           try_blocks_list_->try_index(),
+                           current_block_->statements);
   } else {
     parsed_function()->reset_saved_try_ctx_vars();
   }
@@ -7426,15 +7446,21 @@ SequenceNode* Parser::ParseCatchClauses(
     // In case of async closures we need to restore the saved try index of an
     // outer try block (if it exists).
     ASSERT(try_blocks_list_ != NULL);
-    if (current_function().is_async_closure() &&
-        (try_blocks_list_->outer_try_block() != NULL)) {
-      // We need to unchain three scope levels: catch clause, catch parameters,
-      // and the general try block.
-      SetupSavedTryContext(current_block_->scope->parent()->parent()->parent(),
-                           try_blocks_list_->outer_try_block()->try_index(),
-                           current_block_->statements);
-    } else {
-      parsed_function()->reset_saved_try_ctx_vars();
+    if (innermost_function().is_async_closure() ||
+        innermost_function().IsAsyncFunction()) {
+      if ((try_blocks_list_->outer_try_block() != NULL) &&
+          (try_blocks_list_->outer_try_block()->try_block()
+              ->scope->function_level() ==
+           current_block_->scope->function_level())) {
+        // We need to unchain three scope levels: catch clause, catch
+        // parameters, and the general try block.
+        RestoreSavedTryContext(
+            current_block_->scope->parent()->parent()->parent(),
+            try_blocks_list_->outer_try_block()->try_index(),
+            current_block_->statements);
+      } else {
+        parsed_function()->reset_saved_try_ctx_vars();
+      }
     }
 
     current_block_->statements->Add(ParseNestedStatement(false, NULL));
@@ -7532,6 +7558,27 @@ SequenceNode* Parser::ParseCatchClauses(
 }
 
 
+void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
+  const String& async_saved_try_ctx_name =
+      BuildAsyncSavedTryContextName(I, last_used_try_index_ - 1);
+  LocalVariable* async_saved_try_ctx = new (I) LocalVariable(
+      Scanner::kNoSourcePos,
+      async_saved_try_ctx_name,
+      Type::ZoneHandle(I, Type::DynamicType()));
+  async_temp_scope_->AddVariable(async_saved_try_ctx);
+  async_saved_try_ctx->set_is_captured();
+  async_saved_try_ctx = current_block_->scope->LookupVariable(
+      async_saved_try_ctx_name, false);
+  ASSERT(async_saved_try_ctx != NULL);
+  ASSERT(saved_try_context != NULL);
+  current_block_->statements->Add(new (I) StoreLocalNode(
+      Scanner::kNoSourcePos, async_saved_try_ctx, new (I) LoadLocalNode(
+          Scanner::kNoSourcePos, saved_try_context)));
+  parsed_function()->set_saved_try_ctx(saved_try_context);
+  parsed_function()->set_async_saved_try_ctx_name(async_saved_try_ctx_name);
+}
+
+
 // Set up the currently relevant :saved_try_context_var on the stack:
 // * Try blocks: Set the context variable for this try block.
 // * Catch/finally blocks: Set the context variable for any outer try block (if
@@ -7539,9 +7586,9 @@ SequenceNode* Parser::ParseCatchClauses(
 //
 // Also save the captured variable and the stack variable to be able to set
 // it after a function continues execution (await).
-void Parser::SetupSavedTryContext(LocalScope* saved_try_context_scope,
-                                  int16_t try_index,
-                                  SequenceNode* target) {
+void Parser::RestoreSavedTryContext(LocalScope* saved_try_context_scope,
+                                    int16_t try_index,
+                                    SequenceNode* target) {
   LocalVariable* saved_try_ctx = saved_try_context_scope->LookupVariable(
       Symbols::SavedTryContextVar(), false);
   ASSERT((saved_try_ctx != NULL) && !saved_try_ctx->is_captured());
@@ -7549,13 +7596,15 @@ void Parser::SetupSavedTryContext(LocalScope* saved_try_context_scope,
       BuildAsyncSavedTryContextName(I, try_index);
   LocalVariable* async_saved_try_ctx =
       target->scope()->LookupVariable(async_saved_try_ctx_name, false);
-  ASSERT((async_saved_try_ctx != NULL) && async_saved_try_ctx->is_captured());
+  ASSERT(async_saved_try_ctx != NULL);
+  ASSERT(async_saved_try_ctx->is_captured());
   target->Add(new (I) StoreLocalNode(
-      Scanner::kNoSourcePos, saved_try_ctx, new (I) LoadLocalNode(
-          Scanner::kNoSourcePos, async_saved_try_ctx)));
+      Scanner::kNoSourcePos,
+      saved_try_ctx,
+      new (I) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx)));
 
   parsed_function()->set_saved_try_ctx(saved_try_ctx);
-  parsed_function()->set_async_saved_try_ctx(async_saved_try_ctx);
+  parsed_function()->set_async_saved_try_ctx_name(async_saved_try_ctx_name);
 }
 
 
@@ -7618,19 +7667,9 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   PushTryBlock(current_block_);
   ExpectToken(Token::kLBRACE);
 
-  if (current_function().is_async_closure()) {
-    const String& async_saved_try_ctx_name =
-        BuildAsyncSavedTryContextName(I, last_used_try_index_ - 1);
-    LocalVariable* async_saved_try_ctx =
-        current_block_->scope->LookupVariable(
-            async_saved_try_ctx_name, false);
-    ASSERT(async_saved_try_ctx != NULL);
-    ASSERT(context_var != NULL);
-    current_block_->statements->Add(new (I) StoreLocalNode(
-        Scanner::kNoSourcePos, async_saved_try_ctx, new (I) LoadLocalNode(
-            Scanner::kNoSourcePos, context_var)));
-    parsed_function()->set_saved_try_ctx(context_var);
-    parsed_function()->set_async_saved_try_ctx(async_saved_try_ctx);
+  if (innermost_function().is_async_closure() ||
+      innermost_function().IsAsyncFunction()) {
+    SetupSavedTryContext(context_var);
   }
 
   ParseStatementSequence();
@@ -7704,20 +7743,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     SequenceNode* sequence = CloseBlock();
     sequence->set_label(try_label);
     try_catch_node = sequence;
-  }
-
-  // In case of async closures we need to restore the saved try index of an
-  // outer try block (if it exists).
-  if (current_function().is_async_closure() &&
-      (outer_try_index != CatchClauseNode::kInvalidTryIndex)) {
-    SequenceNode* try_catch_and_restore_try_ctx = new (I) SequenceNode(
-        Scanner::kNoSourcePos, current_block_->scope);
-    try_catch_and_restore_try_ctx->Add(try_catch_node);
-    SetupSavedTryContext(
-        current_block_->scope, outer_try_index, try_catch_and_restore_try_ctx);
-    return try_catch_and_restore_try_ctx;
-  } else {
-    parsed_function()->reset_saved_try_ctx_vars();
   }
 
   return try_catch_node;
@@ -8557,18 +8582,18 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
   parsed_function()->reset_have_seen_await();
   AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
   if (parsed_function()->have_seen_await()) {
-    if (!current_block_->scope->LookupVariable(
-          Symbols::AsyncOperation(), true)) {
-      // Async operations are always encapsulated into a local function. We only
-      // need to transform the expression when generating code for this inner
-      // function.
-      return expr;
-    }
-    SequenceNode* intermediates_block = new(I) SequenceNode(
-        Scanner::kNoSourcePos, current_block_->scope);
-    AwaitTransformer at(intermediates_block, library_, parsed_function());
+    // Make sure we do not reuse the scope to avoid creating contexts that we
+    // are unaware of, i.e, creating contexts that have already been covered.
+    // See FlowGraphBuilder::VisitSequenceNode() for details on when contexts
+    // are created.
+    OpenBlock();
+    AwaitTransformer at(current_block_->statements,
+                        library_,
+                        parsed_function(),
+                        async_temp_scope_);
     AstNode* result = at.Transform(expr);
-    current_block_->statements->Add(intermediates_block);
+    AstNode* await_preamble = CloseBlock();
+    current_block_->statements->Add(await_preamble);
     parsed_function()->reset_have_seen_await();
     return result;
   }

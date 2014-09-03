@@ -42,6 +42,19 @@ void AwaitTransformer::Visit##BaseName##Node(BaseName##Node* node) {           \
 FOR_EACH_UNREACHABLE_NODE(DEFINE_UNREACHABLE)
 #undef DEFINE_UNREACHABLE
 
+AwaitTransformer::AwaitTransformer(SequenceNode* preamble,
+                                   const Library& library,
+                                   ParsedFunction* const parsed_function,
+                                   LocalScope* function_top)
+    : preamble_(preamble),
+      temp_cnt_(0),
+      library_(library),
+      parsed_function_(parsed_function),
+      function_top_(function_top),
+      isolate_(Isolate::Current()) {
+  ASSERT(function_top_ != NULL);
+}
+
 
 AstNode* AwaitTransformer::Transform(AstNode* expr) {
   expr->Visit(this);
@@ -55,16 +68,26 @@ LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
       I, String::NewFormatted("%s%d", await_temp_prefix, temp_cnt_));
   const String& symbol = String::ZoneHandle(I, Symbols::New(cnt_str));
   ASSERT(!symbol.IsNull());
-  LocalVariable* await_tmp =
-      parsed_function_->await_temps_scope()->LookupVariable(symbol, false);
+  // Look up the variable through the preamble scope.
+  LocalVariable* await_tmp = preamble_->scope()->LookupVariable(symbol, false);
   if (await_tmp == NULL) {
-    await_tmp = new(I) LocalVariable(
-        Scanner::kNoSourcePos,
-        symbol,
-        Type::ZoneHandle(I, Type::DynamicType()));
-    parsed_function_->await_temps_scope()->AddVariable(await_tmp);
+    // If we need a new temp variable, we add it to the function's top scope.
+    await_tmp = new (I) LocalVariable(
+        Scanner::kNoSourcePos, symbol, Type::ZoneHandle(Type::DynamicType()));
+    function_top_->AddVariable(await_tmp);
+    // After adding it to the top scope, we can look it up from the preamble.
+    // The following call includes an ASSERT check.
+    await_tmp = GetVariableInScope(preamble_->scope(), symbol);
   }
   return await_tmp;
+}
+
+
+LocalVariable* AwaitTransformer::GetVariableInScope(LocalScope* scope,
+                                                    const String& symbol) {
+  LocalVariable* var = scope->LookupVariable(symbol, false);
+  ASSERT(var != NULL);
+  return var;
 }
 
 
@@ -100,23 +123,24 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   //   :saved_try_ctx_var = :await_saved_try_ctx_var_y;
   //   :await_temp_var_(X+1) = :result_param;
 
-  LocalVariable* async_op = preamble_->scope()->LookupVariable(
-      Symbols::AsyncOperation(), false);
-  ASSERT(async_op != NULL);
-  LocalVariable* result_param = preamble_->scope()->LookupVariable(
-      Symbols::AsyncOperationParam(), false);
-  ASSERT(result_param != NULL);
+  LocalVariable* async_op = GetVariableInScope(
+      preamble_->scope(), Symbols::AsyncOperation());
+  LocalVariable* result_param = GetVariableInScope(
+      preamble_->scope(), Symbols::AsyncOperationParam());
 
   node->expr()->Visit(this);
   preamble_->Add(new(I) StoreLocalNode(
       Scanner::kNoSourcePos, result_param, result_));
   LoadLocalNode* load_result_param = new(I) LoadLocalNode(
       Scanner::kNoSourcePos, result_param);
-  SequenceNode* is_future_branch = new(I) SequenceNode(
-      Scanner::kNoSourcePos, preamble_->scope());
-  AwaitMarkerNode* await_marker =
-      new(I) AwaitMarkerNode(AwaitMarkerNode::kNewContinuationState);
-  await_marker->set_scope(preamble_->scope());
+  LocalScope* is_future_scope = ChainNewScope(preamble_->scope());
+  SequenceNode* is_future_branch = new (I) SequenceNode(
+      Scanner::kNoSourcePos, is_future_scope);
+  AwaitMarkerNode* await_marker = new (I) AwaitMarkerNode(
+      AwaitMarkerNode::kNewContinuationState);
+  await_marker->set_scope(is_future_scope);
+  GetVariableInScope(is_future_scope, Symbols::AwaitJumpVar());
+  GetVariableInScope(is_future_scope, Symbols::AwaitContextVar());
   is_future_branch->Add(await_marker);
   ArgumentListNode* args = new(I) ArgumentListNode(Scanner::kNoSourcePos);
   args->Add(new(I) LoadLocalNode(Scanner::kNoSourcePos, async_op));
@@ -141,14 +165,18 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       NULL));
   preamble_->Add(new (I) AwaitMarkerNode(
       AwaitMarkerNode::kTargetForContinuation));
+
   // If this expression is part of a try block, also append the code for
   // restoring the saved try context that lives on the stack.
-  if (parsed_function_->saved_try_ctx() != NULL) {
+  const String& async_saved_try_ctx_name =
+      String::Handle(I, parsed_function_->async_saved_try_ctx_name());
+  if (!async_saved_try_ctx_name.IsNull()) {
+    LocalVariable* async_saved_try_ctx =
+        GetVariableInScope(preamble_->scope(), async_saved_try_ctx_name);
     preamble_->Add(new (I) StoreLocalNode(
         Scanner::kNoSourcePos,
         parsed_function_->saved_try_ctx(),
-        new (I) LoadLocalNode(
-            Scanner::kNoSourcePos, parsed_function_->async_saved_try_ctx())));
+        new (I) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx)));
   }
 
   LocalVariable* result = AddToPreambleNewTempVar(new(I) LoadLocalNode(
@@ -179,8 +207,8 @@ AstNode* AwaitTransformer::LazyTransform(const Token::Kind logical_op,
   AstNode* result = NULL;
   const Token::Kind compare_logical_op = (logical_op == Token::kAND) ?
       Token::kEQ : Token::kNE;
-  SequenceNode* eval = new(I) SequenceNode(
-      Scanner::kNoSourcePos, preamble_->scope());
+  SequenceNode* eval = new (I) SequenceNode(
+      Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
   SequenceNode* saved_preamble = preamble_;
   preamble_ = eval;
   result = Transform(right);
@@ -196,6 +224,12 @@ AstNode* AwaitTransformer::LazyTransform(const Token::Kind logical_op,
       NULL);
   preamble_->Add(right_body);
   return result;
+}
+
+
+LocalScope* AwaitTransformer::ChainNewScope(LocalScope* parent) {
+  return new (I) LocalScope(
+      parent, parent->function_level(), parent->loop_level());
 }
 
 
@@ -263,13 +297,13 @@ void AwaitTransformer::VisitUnaryOpNode(UnaryOpNode* node) {
 //
 void AwaitTransformer::VisitConditionalExprNode(ConditionalExprNode* node) {
   AstNode* new_condition = Transform(node->condition());
-  SequenceNode* new_true = new(I) SequenceNode(
-      Scanner::kNoSourcePos, preamble_->scope());
+  SequenceNode* new_true = new (I) SequenceNode(
+      Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
   SequenceNode* saved_preamble = preamble_;
   preamble_ = new_true;
   AstNode* new_true_result = Transform(node->true_expr());
-  SequenceNode* new_false = new(I) SequenceNode(
-      Scanner::kNoSourcePos, preamble_->scope());
+  SequenceNode* new_false = new (I) SequenceNode(
+      Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
   preamble_ = new_false;
   AstNode* new_false_result = Transform(node->false_expr());
   preamble_ = saved_preamble;

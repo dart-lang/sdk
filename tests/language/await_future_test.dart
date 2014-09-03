@@ -48,6 +48,28 @@ quazz() async {
   }
 }
 
+nesting() async {
+  try {
+    try {
+      var x = 1;
+      var y = () async {
+        try {
+          var z = (await bar(3)) + x;
+          throw z;
+        }  catch (e1) {
+          return e1;
+        }
+      };
+      var a = await y();
+      throw a;
+    } catch (e2) {
+      throw e2 + 1;
+    }
+  } catch (e3) {
+    return e3;
+  }
+}
+
 main() async {
   var result;
   for (int i = 0; i < 10; i++) {
@@ -57,5 +79,7 @@ main() async {
     Expect.equals(result, 17);
     result = await quazz();
     Expect.equals(result, 2);
+    result = await nesting();
+    Expect.equals(result, 5);
   }
 }
