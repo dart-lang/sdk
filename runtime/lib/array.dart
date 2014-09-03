@@ -21,7 +21,20 @@ class _List<E> implements List<E> {
   void _copyFromObjectArray(_List src,
                             int srcStart,
                             int dstStart,
-                            int count)
+                            int count) {
+    if (count < 128) {
+      for (int i = 0; i < count; i++) {
+        this[dstStart + i] = src[srcStart + i];
+      }
+    } else {
+      _copyFromObjectArrayInternal(src, srcStart, dstStart, count);
+    }
+  }
+
+  void _copyFromObjectArrayInternal(_List src,
+                                    int srcStart,
+                                    int dstStart,
+                                    int count)
       native "List_copyFromObjectArray";
 
   void insert(int index, E element) {
@@ -66,22 +79,21 @@ class _List<E> implements List<E> {
     }
     int length = end - start;
     if (length == 0) return;
-
-    if (ClassID.getID(iterable) == ClassID.cidOneByteString) {
+    if (identical(this, iterable)) {
+      Lists.copy(iterable, skipCount, this, start, length);
+    } else if (ClassID.getID(iterable) == ClassID.cidArray) {
       _copyFromObjectArray(iterable, skipCount, start, length);
+    } else if (iterable is List) {
+      Lists.copy(iterable, skipCount, this, start, length);
     } else {
-      if (iterable is List) {
-        Lists.copy(iterable, skipCount, this, start, length);
-      } else {
-        Iterator it = iterable.iterator;
-        while (skipCount > 0) {
-          if (!it.moveNext()) return;
-          skipCount--;
-        }
-        for (int i = start; i < end; i++) {
-          if (!it.moveNext()) return;
-          this[i] = it.current;
-        }
+      Iterator it = iterable.iterator;
+      while (skipCount > 0) {
+        if (!it.moveNext()) return;
+        skipCount--;
+      }
+      for (int i = start; i < end; i++) {
+        if (!it.moveNext()) return;
+        this[i] = it.current;
       }
     }
   }
