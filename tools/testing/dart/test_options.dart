@@ -823,7 +823,13 @@ Note: currently only implemented for dart2js.''',
    * Print out usage information.
    */
   void _printHelp() {
-    print('usage: dart test.dart [options]\n');
+    print('usage: dart test.dart [options] [selector]');
+    print('');
+    print('The optional selector limits the tests that will be run.');
+    print('For example, the selector "language/issue", or equivalently');
+    print('"language/*issue*", limits to test files matching the regexp');
+    print('".*issue.*\\.dart" in the "tests/language" directory.');
+    print('');
     print('Options:\n');
     for (var option in _options) {
       print('${option.name}: ${option.description}.');

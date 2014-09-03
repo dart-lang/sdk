@@ -18,8 +18,12 @@
  * and passses along all command line arguments to this script.)
  *
  * The command line args of this script are documented in
- * "tools/testing/test_options.dart".
+ * "tools/testing/dart/test_options.dart"; they are printed
+ * when this script is run with "--help".
  *
+ * The default test directory layout is documented in
+ * "tools/testing/dart/test_suite.dart", above
+ * "factory StandardTestSuite.forDirectory".
  */
 
 library test;
