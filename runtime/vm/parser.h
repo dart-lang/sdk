@@ -667,7 +667,7 @@ class Parser : public ValueObject {
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
   bool ParsingStaticMember() const;
-  static const AbstractType* ReceiverType(const Class& cls);
+  const AbstractType* ReceiverType(const Class& cls);
   bool IsInstantiatorRequired() const;
   bool ResolveIdentInLocalScope(intptr_t ident_pos,
                                 const String &ident,
