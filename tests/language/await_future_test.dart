@@ -119,36 +119,75 @@ awaitSwitch() async {
   }
 }
 
+awaitNestedWhile(int i, int j) async {
+  int savedJ = j;
+  var decI = () async {
+    return i--;
+  };
+  var decJ = () async {
+    return j--;
+  };
+  var k = 0;
+  while ((await decI()) > 0) {
+    j = savedJ;
+    while(0 < (await decJ())) {
+      k++;
+    }
+  }
+  return k;
+}
+
+awaitNestedDoWhile(int i, int j) async {
+  int savedJ = j;
+  var decI = () async {
+    return i--;
+  };
+  var decJ = () async {
+    return j--;
+  };
+  var k = 0;
+  do {
+    do {
+      k++;
+    } while (0 < (await decI()));
+  } while((await decJ()) > 0);
+  return k;
+}
+
 main() async {
   var result;
   for (int i = 0; i < 10; i++) {
     result = await foo();
-    Expect.equals(result, 30);
+    Expect.equals(30, result);
     result = await quaz(17);
-    Expect.equals(result, 17);
+    Expect.equals(17, result);
     result = await quazz();
-    Expect.equals(result, 2);
+    Expect.equals(2, result);
     result = await nesting();
-    Expect.equals(result, 5);
+    Expect.equals(5, result);
     result = await awaitIf(3);
-    Expect.equals(result, "p<5");
+    Expect.equals("p<5", result);
     result = await awaitIf(5);
-    Expect.equals(result, "p>=5");
+    Expect.equals("p>=5", result);
     result = await awaitNestedIf(5,3);
-    Expect.equals(result, "q<7");
+    Expect.equals("q<7", result);
     result = await awaitNestedIf(5,8);
-    Expect.equals(result, "q>=7");
+    Expect.equals("q>=7", result);
     result = await awaitNestedIf(3,8);
-    Expect.equals(result, "p!=5");
+    Expect.equals("p!=5", result);
     result = await awaitReturn();
-    Expect.equals(result, 17);
+    Expect.equals(17, result);
     result = await awaitSwitch();
-    Expect.equals(result, 3);
+    Expect.equals(3, result);
     result = await awaitElseIf(6);
-    Expect.equals(result, "p>5");
+    Expect.equals("p>5", result);
     result = await awaitElseIf(4);
-    Expect.equals(result, "p<5");
+    Expect.equals("p<5", result);
     result = await awaitElseIf(5);
-    Expect.equals(result, "p==5");
+    Expect.equals("p==5", result);
+    result = await awaitNestedWhile(5,3);
+    Expect.equals(15, result);
+    result = await awaitNestedWhile(4,6);
+    Expect.equals(24, result);
   }
 }

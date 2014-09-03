@@ -685,9 +685,11 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
 }
 
 
-void EffectGraphVisitor::TieLoop(intptr_t token_pos,
-                                 const TestGraphVisitor& test_fragment,
-                                 const EffectGraphVisitor& body_fragment) {
+void EffectGraphVisitor::TieLoop(
+    intptr_t token_pos,
+    const TestGraphVisitor& test_fragment,
+    const EffectGraphVisitor& body_fragment,
+    const EffectGraphVisitor& test_preamble_fragment) {
   // We have: a test graph fragment with zero, one, or two available exits;
   // and an effect graph fragment with zero or one available exits.  We want
   // to append the 'while loop' consisting of the test graph fragment as
@@ -702,6 +704,7 @@ void EffectGraphVisitor::TieLoop(intptr_t token_pos,
   // 2. Connect the test to this graph, including the body if reachable and
   // using a fresh join node if the body is reachable and has an open exit.
   if (body_exit == NULL) {
+    Append(test_preamble_fragment);
     Append(test_fragment);
   } else {
     JoinEntryInstr* join =
@@ -709,7 +712,12 @@ void EffectGraphVisitor::TieLoop(intptr_t token_pos,
     CheckStackOverflowInstr* check =
         new(I) CheckStackOverflowInstr(token_pos, owner()->loop_depth());
     join->LinkTo(check);
-    check->LinkTo(test_fragment.entry());
+    if (!test_preamble_fragment.is_empty()) {
+      check->LinkTo(test_preamble_fragment.entry());
+      test_preamble_fragment.exit()->LinkTo(test_fragment.entry());
+    } else {
+      check->LinkTo(test_fragment.entry());
+    }
     Goto(join);
     body_exit->Goto(join);
   }
@@ -1967,14 +1975,20 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 //                         body:      <Sequence> }
 // The fragment is composed as follows:
 // a) loop-join
-// b) [ test ] -> (body-entry-target, loop-exit-target)
-// c) body-entry-target
-// d) [ body ] -> (continue-join)
-// e) continue-join -> (loop-join)
-// f) loop-exit-target
-// g) break-join (optional)
+// b) [ test_preamble ]?
+// c) [ test ] -> (body-entry-target, loop-exit-target)
+// d) body-entry-target
+// e) [ body ] -> (continue-join)
+// f) continue-join -> (loop-join)
+// g) loop-exit-target
+// h) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   NestedLoop nested_loop(owner(), node->label());
+
+  EffectGraphVisitor for_preamble(owner());
+  if (node->condition_preamble() != NULL) {
+    node->condition_preamble()->Visit(&for_preamble);
+  }
 
   TestGraphVisitor for_test(owner(), node->condition()->token_pos());
   node->condition()->Visit(&for_test);
@@ -1989,7 +2003,7 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
     if (for_body.is_open()) for_body.Goto(join);
     for_body.exit_ = join;
   }
-  TieLoop(node->token_pos(), for_test, for_body);
+  TieLoop(node->token_pos(), for_test, for_body, for_preamble);
   join = nested_loop.break_target();
   if (join != NULL) {
     Goto(join);

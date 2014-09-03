@@ -954,10 +954,12 @@ class WhileNode : public AstNode {
   WhileNode(intptr_t token_pos,
             SourceLabel* label,
             AstNode* condition,
+            SequenceNode* condition_preamble,
             SequenceNode* body)
     : AstNode(token_pos),
       label_(label),
       condition_(condition),
+      condition_preamble_(condition_preamble),
       body_(body) {
     ASSERT(label_ != NULL);
     ASSERT(condition_ != NULL);
@@ -967,8 +969,12 @@ class WhileNode : public AstNode {
   SourceLabel* label() const { return label_; }
   AstNode* condition() const { return condition_; }
   SequenceNode* body() const { return body_; }
+  SequenceNode* condition_preamble() const { return condition_preamble_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
+    if (condition_preamble() != NULL) {
+      condition_preamble()->Visit(visitor);
+    }
     condition()->Visit(visitor);
     body()->Visit(visitor);
   }
@@ -978,6 +984,7 @@ class WhileNode : public AstNode {
  private:
   SourceLabel* label_;
   AstNode* condition_;
+  SequenceNode* condition_preamble_;
   SequenceNode* body_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(WhileNode);

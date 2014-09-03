@@ -5948,7 +5948,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     // Variable initialization.
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
-    AstNode* expr = ParseAwaitableExpr(is_const, kConsumeCascades);
+    AstNode* expr = ParseAwaitableExpr(is_const, kConsumeCascades, NULL);
     initialization = new(I) StoreLocalNode(
         assign_pos, variable, expr);
     if (is_const) {
@@ -6697,7 +6697,7 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
   }
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
-  AstNode* cond_expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
+  AstNode* cond_expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body = false;
   SequenceNode* true_branch = ParseNestedStatement(parsing_loop_body, NULL);
@@ -6870,7 +6870,8 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
   const intptr_t expr_pos = TokenPos();
-  AstNode* switch_expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
+  AstNode* switch_expr = ParseAwaitableExpr(
+      kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
   ExpectToken(Token::kLBRACE);
   OpenBlock();
@@ -6967,11 +6968,18 @@ AstNode* Parser::ParseWhileStatement(String* label_name) {
       SourceLabel::New(while_pos, label_name, SourceLabel::kWhile);
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
-  AstNode* cond_expr = ParseExpr(kAllowConst, kConsumeCascades);
+  SequenceNode* await_preamble = NULL;
+  AstNode* cond_expr = ParseAwaitableExpr(
+      kAllowConst, kConsumeCascades, &await_preamble);
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body =  true;
   SequenceNode* while_body = ParseNestedStatement(parsing_loop_body, label);
-  return new(I) WhileNode(while_pos, label, cond_expr, while_body);
+  WhileNode* while_node = new (I) WhileNode(while_pos,
+                                            label,
+                                            cond_expr,
+                                            await_preamble,
+                                            while_body);
+  return while_node;
 }
 
 
@@ -6985,7 +6993,14 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
   SequenceNode* dowhile_body = ParseNestedStatement(parsing_loop_body, label);
   ExpectToken(Token::kWHILE);
   ExpectToken(Token::kLPAREN);
-  AstNode* cond_expr = ParseExpr(kAllowConst, kConsumeCascades);
+  SequenceNode* await_preamble = NULL;
+  AstNode* cond_expr = ParseAwaitableExpr(
+      kAllowConst, kConsumeCascades, &await_preamble);
+  // No need for special handling of the await preamble as we can just append o
+  // it to the loop body.
+  if (await_preamble != NULL) {
+    dowhile_body->Add(await_preamble);
+  }
   ExpectToken(Token::kRPAREN);
   ExpectSemicolon();
   return new(I) DoWhileNode(do_pos, label, cond_expr, dowhile_body);
@@ -7095,7 +7110,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   SequenceNode* for_loop_statement = CloseBlock();
 
   AstNode* while_statement = new(I) WhileNode(
-      forin_pos, label, iterator_moveNext, for_loop_statement);
+      forin_pos, label, iterator_moveNext, NULL, for_loop_statement);
   current_block_->statements->Add(while_statement);
 
   return CloseBlock();  // Implicit block around while loop.
@@ -7849,7 +7864,7 @@ AstNode* Parser::ParseStatement() {
         ReportError(return_pos,
                     "return of a value not allowed in constructors");
       }
-      AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
+      AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
       statement = new(I) ReturnNode(statement_pos, expr);
     } else {
       statement = new(I) ReturnNode(statement_pos);
@@ -7914,7 +7929,7 @@ AstNode* Parser::ParseStatement() {
         new(I) LoadLocalNode(statement_pos, excp_var),
         new(I) LoadLocalNode(statement_pos, trace_var));
   } else {
-    statement = ParseAwaitableExpr(kAllowConst, kConsumeCascades);
+    statement = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
     ExpectSemicolon();
   }
   return statement;
@@ -8577,7 +8592,8 @@ static AstNode* LiteralIfStaticConst(Isolate* iso, AstNode* expr) {
 
 
 AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
-                                    bool consume_cascades) {
+                                    bool consume_cascades,
+                                    SequenceNode** await_preamble) {
   TRACE_PARSER("ParseAwaitableExpr");
   parsed_function()->reset_have_seen_await();
   AstNode* expr = ParseExpr(require_compiletime_const, consume_cascades);
@@ -8592,8 +8608,12 @@ AstNode* Parser::ParseAwaitableExpr(bool require_compiletime_const,
                         parsed_function(),
                         async_temp_scope_);
     AstNode* result = at.Transform(expr);
-    AstNode* await_preamble = CloseBlock();
-    current_block_->statements->Add(await_preamble);
+    SequenceNode* preamble = CloseBlock();
+    if (await_preamble == NULL) {
+      current_block_->statements->Add(preamble);
+    } else {
+      *await_preamble = preamble;
+    }
     parsed_function()->reset_have_seen_await();
     return result;
   }

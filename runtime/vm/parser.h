@@ -628,7 +628,8 @@ class Parser : public ValueObject {
   static const bool kConsumeCascades = true;
   static const bool kNoCascades = false;
   AstNode* ParseAwaitableExpr(bool require_compiletime_const,
-                              bool consume_cascades);
+                              bool consume_cascades,
+                              SequenceNode** await_preamble);
   AstNode* ParseExpr(bool require_compiletime_const, bool consume_cascades);
   AstNode* ParseExprList();
   AstNode* ParseConditionalExpr();

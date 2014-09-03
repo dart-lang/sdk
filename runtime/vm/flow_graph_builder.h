@@ -338,7 +338,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // successor of the loop condition.
   void TieLoop(intptr_t token_pos,
                const TestGraphVisitor& test_fragment,
-               const EffectGraphVisitor& body_fragment);
+               const EffectGraphVisitor& body_fragment,
+               const EffectGraphVisitor& test_preamble_fragment);
 
   // Wraps a value in a push-argument instruction and adds the result to the
   // graph.
