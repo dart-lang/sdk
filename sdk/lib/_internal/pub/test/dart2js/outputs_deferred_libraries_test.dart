@@ -10,14 +10,11 @@ import '../test_pub.dart';
 const MAIN = """
 import 'dart:async';
 
-@lazyA import 'a.dart' as a;
-@lazyB import 'b.dart' as b;
-
-const lazyA = const DeferredLibrary('a', uri: 'a.js');
-const lazyB = const DeferredLibrary('b', uri: 'b.js');
+import 'a.dart' deferred as a;
+import 'b.dart' deferred as b;
 
 void main() {
-  Future.wait([lazyA.load(), lazyB.load()]).then((_) {
+  Future.wait([lazyA.loadLibrary(), lazyB.loadLibrary()]).then((_) {
     a.fn();
     b.fn();
   });
@@ -60,8 +57,8 @@ main() {
         d.dir('web', [
           d.matcherFile('main.dart.js', isNot(isEmpty)),
           d.matcherFile('main.dart.precompiled.js', isNot(isEmpty)),
-          d.matcherFile('main.dart.js_a.part.js', isNot(isEmpty)),
-          d.matcherFile('main.dart.js_b.part.js', isNot(isEmpty)),
+          d.matcherFile('main.dart.js_1.part.js', isNot(isEmpty)),
+          d.matcherFile('main.dart.js_2.part.js', isNot(isEmpty)),
         ])
       ])
     ]).validate();

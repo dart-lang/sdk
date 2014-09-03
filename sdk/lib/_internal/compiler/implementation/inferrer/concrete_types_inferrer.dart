@@ -2242,6 +2242,12 @@ class ConcreteTypesInferrer
     // We handle default parameters our own way in associateArguments
   }
 
+  /**
+   * TODO(johnniwinther): Remove once synthetic parameters get their own default
+   * values.
+   */
+  bool hasAlreadyComputedTypeOfParameterDefault(Element parameter) => false;
+
   @override
   ConcreteType registerCalledClosure(Node node,
                                      Selector selector,

@@ -582,7 +582,7 @@ class Selector {
     // Combine the two hash values.
     int high = existing >> 15;
     int low = existing & 0x7fff;
-    return (high * 13) ^ (low * 997) ^ h;
+    return ((high * 13) ^ (low * 997) ^ h) & SMI_MASK;
   }
 
   List<String> getOrderedNamedArguments() {

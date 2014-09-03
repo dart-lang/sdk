@@ -426,6 +426,12 @@ Note: currently only implemented for dart2js.''',
               [],
               null),
           new _TestOptionSpecification(
+              'suite_dir',
+              'Additional directory to add to the testing matrix',
+              ['--suite-dir'],
+              [],
+              null),
+          new _TestOptionSpecification(
               'exclude_suite',
               'Exclude suites from default selector, only works when no'
               ' selector has been specified on the command line',
@@ -709,6 +715,7 @@ Note: currently only implemented for dart2js.''',
     var selectors = configuration['selectors'];
     if (selectors is !Map) {
       if (selectors == null) {
+        configuration['default_selector'] = true;
         selectors = new List.from(defaultTestSelectors);
         var exclude_suites = configuration['exclude_suite'] != null ?
               configuration['exclude_suite'].split(',') : [];

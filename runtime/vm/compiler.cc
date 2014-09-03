@@ -968,7 +968,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
     // Invoke the function to evaluate the expression.
     const Function& initializer = parsed_function->function();
-    const Object& result = Object::Handle(
+    const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(initializer, Object::empty_array()));
     return result.raw();
   } else {
@@ -1026,12 +1026,12 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // Non-optimized code generator.
     CompileParsedFunctionHelper(parsed_function, false, Isolate::kNoDeoptId);
 
-    const Object& result = Object::Handle(
+    const Object& result = PassiveObject::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));
     return result.raw();
   } else {
     const Object& result =
-      Object::Handle(isolate->object_store()->sticky_error());
+      PassiveObject::Handle(isolate->object_store()->sticky_error());
     isolate->object_store()->clear_sticky_error();
     return result.raw();
   }

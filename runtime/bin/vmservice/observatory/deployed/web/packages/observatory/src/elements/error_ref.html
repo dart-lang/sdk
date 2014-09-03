@@ -1,0 +1,26 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="curly_block.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="service_ref.html">
+
+<polymer-element name="error-ref" extends="service-ref">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      .errorBox {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        padding: 10px;
+        font-family: consolas, courier, monospace;
+        font-size: 1em;
+        line-height: 1.2em;
+        white-space: pre;
+      }
+    </style>
+    <span>
+      <pre class="errorBox">{{ ref.kind }}: {{ ref.message }}</pre>
+    </span>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="error_ref.dart"></script>

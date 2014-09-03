@@ -175,42 +175,56 @@ void testConfigurations(List<Map> configurations) {
       maxBrowserProcesses = math.max(1, maxBrowserProcesses ~/ 2);
     }
 
-    for (String key in selectors.keys) {
-      if (key == 'co19') {
-        testSuites.add(new Co19TestSuite(conf));
-      } else if (conf['compiler'] == 'none' &&
-                 conf['runtime'] == 'vm' &&
-                 key == 'vm') {
-        // vm tests contain both cc tests (added here) and dart tests (added
-        // in [TEST_SUITE_DIRECTORIES]).
-        testSuites.add(new VMTestSuite(conf));
-      } else if (conf['analyzer']) {
-        if (key == 'analyze_library') {
-          testSuites.add(new AnalyzeLibraryTestSuite(conf));
-        }
-      } else if (conf['compiler'] == 'none' &&
-                 conf['runtime'] == 'vm' &&
-                 key == 'pkgbuild') {
-        if (!conf['use_repository_packages'] && !conf['use_public_packages']) {
-          print("You need to use either --use-repository-packages or "
-                "--use-public-packages with the pkgbuild test suite!");
-          exit(1);
-        }
-        if (!conf['use_sdk']) {
-          print("Running the 'pkgbuild' test suite requires "
-                "passing the '--use-sdk' to test.py");
-          exit(1);
-        }
-        testSuites.add(
-            new PkgBuildTestSuite(conf, 'pkgbuild', 'pkg/pkgbuild.status'));
-      }
-    }
+    // If we specifically pass in a suite only run that.
+    if (conf['suite_dir'] != null) {
+      var suite_path = new Path(conf['suite_dir']);
 
-    for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
-      final name = testSuiteDir.filename;
-      if (selectors.containsKey(name)) {
-        testSuites.add(
-            new StandardTestSuite.forDirectory(conf, testSuiteDir));
+      // Add a selector if we did not specify a specific one
+      if (conf['default_selector'] != null) {
+        var regexp = new RegExp('.?');
+        conf['selectors'][suite_path.filename] = regexp;
+      }
+      testSuites.add(
+          new StandardTestSuite.forDirectory(conf, suite_path));
+    } else {
+      for (String key in selectors.keys) {
+        if (key == 'co19') {
+          testSuites.add(new Co19TestSuite(conf));
+        } else if (conf['compiler'] == 'none' &&
+                   conf['runtime'] == 'vm' &&
+                   key == 'vm') {
+          // vm tests contain both cc tests (added here) and dart tests (added
+          // in [TEST_SUITE_DIRECTORIES]).
+          testSuites.add(new VMTestSuite(conf));
+        } else if (conf['analyzer']) {
+          if (key == 'analyze_library') {
+            testSuites.add(new AnalyzeLibraryTestSuite(conf));
+          }
+        } else if (conf['compiler'] == 'none' &&
+                   conf['runtime'] == 'vm' &&
+                   key == 'pkgbuild') {
+          if (!conf['use_repository_packages'] &&
+              !conf['use_public_packages']) {
+            print("You need to use either --use-repository-packages or "
+                  "--use-public-packages with the pkgbuild test suite!");
+            exit(1);
+          }
+          if (!conf['use_sdk']) {
+            print("Running the 'pkgbuild' test suite requires "
+                  "passing the '--use-sdk' to test.py");
+            exit(1);
+          }
+          testSuites.add(
+              new PkgBuildTestSuite(conf, 'pkgbuild', 'pkg/pkgbuild.status'));
+        }
+      }
+
+      for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
+        final name = testSuiteDir.filename;
+        if (selectors.containsKey(name)) {
+          testSuites.add(
+              new StandardTestSuite.forDirectory(conf, testSuiteDir));
+        }
       }
     }
   }

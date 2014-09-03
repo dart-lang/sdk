@@ -1,0 +1,8 @@
+name: glob
+version: 1.0.0-dev
+description: Bash-style filename globbing.
+dependencies:
+  path: ">=1.0.0 <2.0.0"
+  string_scanner: ">=0.1.0 <0.2.0"
+dev_dependencies:
+  unittest: ">=0.11.0 <0.12.0"

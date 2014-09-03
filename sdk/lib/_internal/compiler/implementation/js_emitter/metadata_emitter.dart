@@ -69,10 +69,15 @@ class MetadataEmitter extends CodeEmitterHelper {
 
   int reifyType(DartType type) {
     jsAst.Expression representation =
-        backend.rti.getTypeRepresentation(type, (variable) {
-          return js.number(
-              task.typeVariableHandler.reifyTypeVariable(variable.element));
-        });
+        backend.rti.getTypeRepresentation(
+            type,
+            (variable) {
+              return js.number(
+                  task.typeVariableHandler.reifyTypeVariable(variable.element));
+            },
+            (TypedefType typedef) {
+              return backend.isAccessibleByReflection(typedef.element);
+            });
 
     return addGlobalMetadata(
         jsAst.prettyPrint(representation, compiler).getText());

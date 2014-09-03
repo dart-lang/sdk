@@ -235,8 +235,8 @@ FreeListElement* FreeList::DequeueElement(intptr_t index) {
 }
 
 
-intptr_t FreeList::Length(int index) const {
-  MutexLocker ml(mutex_);
+intptr_t FreeList::LengthLocked(int index) const {
+  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
   ASSERT(index >= 0);
   ASSERT(index < kNumLists);
   intptr_t result = 0;
@@ -258,7 +258,7 @@ void FreeList::PrintSmall() const {
       continue;
     }
     small_sizes += 1;
-    intptr_t list_length = Length(i);
+    intptr_t list_length = LengthLocked(i);
     small_objects += list_length;
     intptr_t list_bytes = list_length * i * kObjectAlignment;
     small_bytes += list_bytes;
@@ -339,6 +339,28 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
                                VirtualMemory::kReadExecute);
     ASSERT(status);
   }
+}
+
+
+FreeListElement* FreeList::TryAllocateLarge(intptr_t minimum_size) {
+  MutexLocker ml(mutex_);
+  FreeListElement* previous = NULL;
+  FreeListElement* current = free_lists_[kNumLists];
+  // TODO(koda): Find largest.
+  while (current != NULL) {
+    FreeListElement* next = current->next();
+    if (current->Size() >= minimum_size) {
+      if (previous == NULL) {
+        free_lists_[kNumLists] = next;
+      } else {
+        previous->set_next(next);
+      }
+      return current;
+    }
+    previous = current;
+    current = next;
+  }
+  return NULL;
 }
 
 }  // namespace dart

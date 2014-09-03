@@ -346,7 +346,7 @@ main() {
     expect(refactoring.oldName, 'Test');
     refactoring.newName = 'NewName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 class NewName implements Other {
   NewName() {}
   NewName.named() {}
@@ -375,7 +375,7 @@ main(f(Test p)) {
     expect(refactoring.oldName, 'Test');
     refactoring.newName = 'NewName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 class NewName {
 }
 main(f(NewName p)) {
@@ -396,7 +396,7 @@ main(Test t) {
     expect(refactoring.oldName, 'Test');
     refactoring.newName = 'NewName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 class A {}
 class NewName = Object with A;
 main(NewName t) {
@@ -420,7 +420,7 @@ main() {
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 newName() {}
 foo() {}
 main() {
@@ -483,7 +483,7 @@ main() {
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 get newName {}
 set newName(x) {}
 main() {
@@ -509,7 +509,7 @@ main() {
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 int newName = 0;
 main() {
   print(newName);

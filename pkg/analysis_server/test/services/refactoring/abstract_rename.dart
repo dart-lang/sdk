@@ -4,8 +4,6 @@
 
 library test.services.refactoring.rename;
 
-import 'dart:async';
-
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -67,19 +65,6 @@ class RenameRefactoringTest extends RefactoringTest {
     }
     // all potential offsets are marked as such
     expect(expectedOffsets, isEmpty);
-  }
-
-  /**
-   * Checks that all conditions are OK and the result of applying the [Change]
-   * to [testUnit] is [expectedCode].
-   */
-  Future assertSuccessfulRename(String expectedCode) {
-    return assertRefactoringConditionsOK().then((_) {
-      return refactoring.createChange().then((SourceChange refactoringChange) {
-        this.refactoringChange = refactoringChange;
-        assertTestChangeResult(expectedCode);
-      });
-    });
   }
 
   /**

@@ -808,6 +808,10 @@ class Primitives {
     return JS_STRING_CONCAT(string1, string2);
   }
 
+  static String flattenString(String str) {
+    return JS('', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
+  }
+
   static String getTimeZoneName(receiver) {
     // Firefox and Chrome emit the timezone in parenthesis.
     // Example: "Wed May 16 2012 21:13:00 GMT+0200 (CEST)".

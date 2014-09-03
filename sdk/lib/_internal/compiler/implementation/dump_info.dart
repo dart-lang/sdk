@@ -105,7 +105,8 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
   // If keeping the element is in question (like if a function has a size
   // of zero), only keep it if it holds dependencies to elsewhere.
   bool shouldKeep(Element element) {
-    return compiler.dumpInfoTask.selectorsFromElement.containsKey(element);
+    return compiler.dumpInfoTask.selectorsFromElement.containsKey(element)
+        || compiler.dumpInfoTask.inlineCount.containsKey(element);
   }
 
   Map<String, dynamic> toJson() {
@@ -229,10 +230,8 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
     List<String> children = [];
 
     int size = compiler.dumpInfoTask.sizeOf(element);
-
-    // Omit element if it is not needed.
     JavaScriptBackend backend = compiler.backend;
-    if (!backend.emitter.neededClasses.contains(element)) return null;
+
     Map<String, dynamic> modifiers = { 'abstract': element.isAbstract };
 
     element.forEachLocalMember((Element member) {
@@ -265,6 +264,11 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       }
     });
 
+    // Omit element if it is not needed.
+    if (!backend.emitter.neededClasses.contains(element) &&
+        children.length == 0) {
+      return null;
+    }
 
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(element);
@@ -308,6 +312,8 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
                enclosingElement.isConstructor) {
       kind = "closure";
       name = "<unnamed>";
+    } else if (modifiers['static']) {
+      kind = 'function';
     } else if (enclosingElement.isClass) {
       kind = 'method';
     }
@@ -341,6 +347,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       for (Element closure in member.nestedClosures) {
         Map<String, dynamic> child = this.process(closure);
         if (child != null) {
+          child['kind'] = 'closure';
           children.add(child['id']);
           size += child['size'];
         }
@@ -349,6 +356,11 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
 
     if (size == 0 && !shouldKeep(element)) {
       return null;
+    }
+
+    int inlinedCount = compiler.dumpInfoTask.inlineCount[element];
+    if (inlinedCount == null) {
+      inlinedCount = 0;
     }
 
     OutputUnit outputUnit =
@@ -365,6 +377,7 @@ class ElementToJsonVisitor extends ElementVisitor<Map<String, dynamic>> {
       'inferredReturnType': inferredReturnType,
       'parameters': parameters,
       'sideEffects': sideEffects,
+      'inlinedCount': inlinedCount,
       'code': code,
       'type': element.type.toString(),
       'outputUnit': mapper._outputUnit.add(outputUnit)
@@ -400,6 +413,12 @@ class DumpInfoTask extends CompilerTask {
   final Map<Element, int> _fieldNameToSize = <Element, int>{};
 
   final Map<Element, Set<Selector>> selectorsFromElement = {};
+  final Map<Element, int> inlineCount = <Element, int>{};
+
+  void registerInlined(Element element, Element inlinedFrom) {
+    inlineCount.putIfAbsent(element, () => 0);
+    inlineCount[element] += 1;
+  }
 
   /**
    * Registers that a function uses a selector in the

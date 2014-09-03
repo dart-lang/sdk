@@ -45,7 +45,9 @@ class Compiler extends leg.Compiler {
             enableMinification: hasOption(options, '--minify'),
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),
-            emitJavaScript: !hasOption(options, '--output-type=dart'),
+            emitJavaScript: !(hasOption(options, '--output-type=dart') ||
+                              hasOption(options, '--output-type=dart-multi')),
+            dart2dartMultiFile: hasOption(options, '--output-type=dart-multi'),
             generateSourceMap: !hasOption(options, '--no-source-maps'),
             analyzeAllFlag: hasOption(options, '--analyze-all'),
             analyzeOnly: hasOption(options, '--analyze-only'),
@@ -283,8 +285,11 @@ class Compiler extends leg.Compiler {
     return super.run(uri).then((bool success) {
       int cumulated = 0;
       for (final task in tasks) {
-        cumulated += task.timing;
-        log('${task.name} took ${task.timing}msec');
+        int elapsed = task.timing;
+        if (elapsed != 0) {
+          cumulated += elapsed;
+          log('${task.name} took ${elapsed}msec');
+        }
       }
       int total = totalCompileTime.elapsedMilliseconds;
       log('Total compile-time ${total}msec;'

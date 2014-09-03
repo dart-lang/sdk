@@ -926,10 +926,29 @@ class AssignmentExpression extends Expression {
    *         operand will be bound
    */
   ParameterElement get propagatedParameterElementForRightHandSide {
-    if (_propagatedElement == null) {
+    ExecutableElement executableElement = null;
+    if (_propagatedElement != null) {
+      executableElement = _propagatedElement;
+    } else {
+      if (_leftHandSide is Identifier) {
+        Identifier identifier = _leftHandSide as Identifier;
+        Element leftElement = identifier.propagatedElement;
+        if (leftElement is ExecutableElement) {
+          executableElement = leftElement;
+        }
+      }
+      if (_leftHandSide is PropertyAccess) {
+        SimpleIdentifier identifier = (_leftHandSide as PropertyAccess).propertyName;
+        Element leftElement = identifier.propagatedElement;
+        if (leftElement is ExecutableElement) {
+          executableElement = leftElement;
+        }
+      }
+    }
+    if (executableElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _propagatedElement.parameters;
+    List<ParameterElement> parameters = executableElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -947,10 +966,27 @@ class AssignmentExpression extends Expression {
    *         operand will be bound
    */
   ParameterElement get staticParameterElementForRightHandSide {
-    if (_staticElement == null) {
+    ExecutableElement executableElement = null;
+    if (_staticElement != null) {
+      executableElement = _staticElement;
+    } else {
+      if (_leftHandSide is Identifier) {
+        Element leftElement = (_leftHandSide as Identifier).staticElement;
+        if (leftElement is ExecutableElement) {
+          executableElement = leftElement;
+        }
+      }
+      if (_leftHandSide is PropertyAccess) {
+        Element leftElement = (_leftHandSide as PropertyAccess).propertyName.staticElement;
+        if (leftElement is ExecutableElement) {
+          executableElement = leftElement;
+        }
+      }
+    }
+    if (executableElement == null) {
       return null;
     }
-    List<ParameterElement> parameters = _staticElement.parameters;
+    List<ParameterElement> parameters = executableElement.parameters;
     if (parameters.length < 1) {
       return null;
     }
@@ -7518,6 +7554,21 @@ class FormalParameterList extends AstNode {
  * </pre>
  */
 abstract class FunctionBody extends AstNode {
+  /**
+   * Return the token representing the 'async' or 'sync' keyword, or `null` if there is no
+   * such keyword.
+   *
+   * @return the token representing the 'async' or 'sync' keyword
+   */
+  Token get keyword => null;
+
+  /**
+   * Return the star following the 'async' or 'sync' keyword, or `null` if there is no star.
+   *
+   * @return the star following the 'async' or 'sync' keyword
+   */
+  Token get star => null;
+
   /**
    * Return `true` if this function body is asynchronous.
    *

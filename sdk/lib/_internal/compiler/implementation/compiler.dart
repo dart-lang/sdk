@@ -73,6 +73,12 @@ class CodegenRegistry extends Registry {
     treeElements.registerDependency(element);
   }
 
+  void registerInlining(Element inlinedElement, Element context) {
+    if (compiler.dumpInfo) {
+      compiler.dumpInfoTask.registerInlined(inlinedElement, context);
+    }
+  }
+
   void registerInstantiatedClass(ClassElement element) {
     world.registerInstantiatedClass(element, this);
   }
@@ -852,6 +858,8 @@ abstract class Compiler implements DiagnosticListener {
   ti.TypesTask typesTask;
   Backend backend;
 
+  GenericTask reuseLibraryTask;
+
   /// The constant environment for the frontend interpretation of compile-time
   /// constants.
   ConstantEnvironment constants;
@@ -924,6 +932,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableMinification: false,
             this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
+            bool dart2dartMultiFile: false,
             bool generateSourceMap: true,
             bool analyzeAllFlag: false,
             bool analyzeOnly: false,
@@ -955,7 +964,7 @@ abstract class Compiler implements DiagnosticListener {
             : outputProvider {
     world = new World(this);
     types = new Types(this);
-    tracer = new Tracer(this.outputProvider);
+    tracer = new Tracer(this, this.outputProvider);
 
     if (verbose) {
       progress = new Stopwatch()..start();
@@ -974,7 +983,8 @@ abstract class Compiler implements DiagnosticListener {
       backend = jsBackend;
     } else {
       closureNamer = new closureMapping.ClosureNamer();
-      backend = new dart_backend.DartBackend(this, strips);
+      backend = new dart_backend.DartBackend(this, strips,
+                                             multiFile: dart2dartMultiFile);
     }
 
     tasks = [
@@ -992,7 +1002,9 @@ abstract class Compiler implements DiagnosticListener {
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
       enqueuer = new EnqueueTask(this),
-      dumpInfoTask = new DumpInfoTask(this)];
+      dumpInfoTask = new DumpInfoTask(this),
+      reuseLibraryTask = new GenericTask('Reuse library', this),
+    ];
 
     tasks.addAll(backend.tasks);
   }

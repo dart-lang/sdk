@@ -8,12 +8,13 @@ import 'dart:async';
 import 'test_helper.dart';
 import 'package:expect/expect.dart';
 
-class NullCollectionTest extends VmServiceRequestHelper {
-  NullCollectionTest(port, id) :
+class ExpiredCollectionTest extends VmServiceRequestHelper {
+  ExpiredCollectionTest(port, id) :
       super('http://127.0.0.1:$port/$id/objects/50');
 
   onRequestCompleted(Map reply) {
-    Expect.equals('Null', reply['type']);
+    Expect.equals('Sentinel', reply['type']);
+    Expect.equals('<expired>', reply['valueAsString']);
   }
 }
 
@@ -44,9 +45,10 @@ main() {
     test.makeRequest().then((_) {
       var badCollectionRequest =
           new BadCollectionTest(port, test._isolateId).makeRequest();
-      var nullCollectionRequest =
-          new NullCollectionTest(port, test._isolateId).makeRequest();
-      var requests = Future.wait([badCollectionRequest, nullCollectionRequest]);
+      var expiredCollectionRequest =
+          new ExpiredCollectionTest(port, test._isolateId).makeRequest();
+      var requests = Future.wait([badCollectionRequest,
+                                  expiredCollectionRequest]);
       requests.then((_) {
         process.requestExit();
       });

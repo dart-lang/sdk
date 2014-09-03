@@ -155,7 +155,8 @@ Future compile(List<String> argv) {
 
   setOutputType(String argument) {
     optionsImplyCompilation.add(argument);
-    if (argument == '--output-type=dart') {
+    if (argument == '--output-type=dart' ||
+        argument == '--output-type=dart-multi') {
       outputLanguage = OUTPUT_LANGUAGE_DART;
       if (!explicitOut) {
         out = currentDirectory.resolve('out.dart');
@@ -279,7 +280,9 @@ Future compile(List<String> argv) {
     }),
     new OptionHandler('--suppress-hints',
                       (_) => diagnosticHandler.showHints = false),
-    new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
+    new OptionHandler(
+        '--output-type=dart|--output-type=dart-multi|--output-type=js',
+        setOutputType),
     new OptionHandler('--verbose', setVerbose),
     new OptionHandler('--version', (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),

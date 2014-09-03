@@ -14,6 +14,10 @@ export 'maplet.dart';
 part 'indentation.dart';
 part 'link.dart';
 
+/// If an integer is masked by this constant, the result is guaranteed to be in
+/// Smi range.
+const int SMI_MASK = 0x3fffffff;
+
 /**
  * Tagging interface for classes from which source spans can be generated.
  */
@@ -193,4 +197,21 @@ int longestCommonPrefixLength(List a, List b) {
     }
   }
   return index;
+}
+
+/// Returns [suggestedName] if it is not in [usedNames]. Otherwise concatenates
+/// the smallest number that makes it not appear in [usedNames].
+///
+/// Adds the result to [usedNames].
+String makeUnique(String suggestedName, Set<String> usedNames) {
+  String result = suggestedName;
+  if (usedNames.contains(suggestedName)) {
+    int counter = 0;
+    while (usedNames.contains(result)) {
+      counter++;
+      result = "$suggestedName$counter";
+    }
+  }
+  usedNames.add(result);
+  return result;
 }

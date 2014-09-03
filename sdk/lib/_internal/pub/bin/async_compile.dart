@@ -7,6 +7,14 @@ import 'dart:io';
 import 'package:async_await/async_await.dart' as async_await;
 import 'package:path/path.dart' as p;
 
+/// A changing string that indicates the "version" or timestamp of the compiler
+/// that the current sources were compiled against.
+///
+/// Increment this whenever a meaningful change in the async/await compiler
+/// itself is landed. Bumping this will force all previously compiled files
+/// that were compiled against an older compiler to be recompiled.
+const COMPILER_VERSION = "1";
+
 /// The path to pub's root directory (sdk/lib/_internal/pub) in the Dart repo.
 ///
 /// This assumes this script is itself being run from within the repo.
@@ -20,6 +28,8 @@ String buildDir;
 
 /// `true` if any file failed to compile.
 bool hadFailure = false;
+
+final _compilerPattern = new RegExp(r"import '(\.\./)+compiler");
 
 /// This runs the async/await compiler on all of the pub source code.
 ///
@@ -39,6 +49,16 @@ void main(List<String> arguments) {
   buildDir = p.join(p.normalize(arguments[0]), "pub_async");
   new Directory(buildDir).createSync(recursive: true);
 
+  // See if the current sources were compiled against a different version of the
+  // compiler.
+  var versionPath = p.join(buildDir, "compiler.version");
+  var version = "none";
+  try {
+    version = new File(versionPath).readAsStringSync();
+  } on IOException catch (ex) {
+    // Do nothing. The version file didn't exist.
+  }
+
   var silent = arguments.length == 2 && arguments[1] == "--silent";
   var numFiles = 0;
   var numCompiled = 0;
@@ -57,7 +77,8 @@ void main(List<String> arguments) {
     var sourceFile = entry as File;
     var destPath = p.join(buildDir, relative);
     var destFile = new File(destPath);
-    if (!destFile.existsSync() ||
+    if (version != COMPILER_VERSION ||
+        !destFile.existsSync() ||
         entry.lastModifiedSync().isAfter(destFile.lastModifiedSync())) {
       _compile(sourceFile.path, sourceFile.readAsStringSync(), destPath);
       numCompiled++;
@@ -65,12 +86,12 @@ void main(List<String> arguments) {
     }
   }
 
+  _writeFile(versionPath, COMPILER_VERSION);
+
   if (!silent) print("Compiled $numCompiled out of $numFiles files.");
 
   if (hadFailure) exit(1);
 }
-
-final _compilerPattern = new RegExp(r"import '(\.\./)+compiler");
 
 void _compile(String sourcePath, String source, String destPath) {
   var destDir = new Directory(p.dirname(destPath));
@@ -79,19 +100,12 @@ void _compile(String sourcePath, String source, String destPath) {
   source = _translateAsyncAwait(sourcePath, source);
   if (source != null) source = _fixDart2jsImports(sourcePath, source, destPath);
 
-  try {
-    if (source == null) {
-      // If the async compile fails, delete the file so that we don't try to
-      // run the stale previous output and so that we try to recompile it later.
-      _deleteFile(destPath);
-    } else {
-      new File(destPath).writeAsStringSync(source);
-    }
-  } on IOException catch (ex) {
-    // Do nothing. This may happen if two instances of the compiler are running
-    // concurrently and compile the same file. The second one may fail because
-    // the first is still working on it. Since they will end up producing the
-    // same output anyway, just ignore the failure.
+  if (source == null) {
+    // If the async compile fails, delete the file so that we don't try to
+    // run the stale previous output and so that we try to recompile it later.
+    _deleteFile(destPath);
+  } else {
+    _writeFile(destPath, source);
   }
 }
 
@@ -134,4 +148,28 @@ void _validate(bool valid, String message) {
   stderr.writeln();
   stderr.writeln("Usage: dart async_compile.dart <build dir> [--silent]");
   exit(64);
+}
+
+/// Deletes the file at [path], ignoring any IO errors that occur.
+///
+/// This swallows errors to accommodate multiple compilers running concurrently.
+/// Since they will produce the same output anyway, a failure of one is fine.
+void _deleteFile(String path) {
+  try {
+    new File(path).deleteSync();
+  } on IOException catch (ex) {
+    // Do nothing.
+  }
+}
+
+/// Writes [contents] to [path], ignoring any IO errors that occur.
+///
+/// This swallows errors to accommodate multiple compilers running concurrently.
+/// Since they will produce the same output anyway, a failure of one is fine.
+void _writeFile(String path, String contents) {
+  try {
+    new File(path).writeAsStringSync(contents);
+  } on IOException catch (ex) {
+    // Do nothing.
+  }
 }

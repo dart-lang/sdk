@@ -6990,7 +6990,7 @@ class BinaryInt32OpInstr : public TemplateDefinition<2> {
   }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0 || idx == 1);
+    ASSERT((idx == 0) || (idx == 1));
     return kUnboxedInt32;
   }
 

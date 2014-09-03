@@ -10,6 +10,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/exceptions.h"
 #include "vm/heap.h"
+#include "vm/lockers.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -191,7 +192,7 @@ RawObject* SnapshotReader::ReadObject() {
   // Setup for long jump in case there is an exception while reading.
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Object& obj = Object::Handle(ReadObjectImpl());
+    PassiveObject& obj = PassiveObject::Handle(isolate(), ReadObjectImpl());
     for (intptr_t i = 0; i < backward_references_.length(); i++) {
       if (!backward_references_[i].is_deserialized()) {
         ReadObjectImpl();
@@ -412,32 +413,19 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
 
+  // First read the version string, and check that it matches.
+  RawApiError* error = VerifyVersion();
+  if (error != ApiError::null()) {
+    return error;
+  }
+
+  // The version string matches. Read the rest of the snapshot.
+
   // TODO(asiva): Add a check here to ensure we have the right heap
   // size for the full snapshot being read.
-
   {
     NoGCScope no_gc;
     HeapLocker hl(isolate, old_space());
-
-    // First read the version string, and check that it matches.
-    obj_ = ReadObject();
-
-    // If the version string doesn't match, return an error.
-    // NB: New things are allocated only if we're going to return an error.
-    if (!obj_.IsString() ||
-        !String::Cast(obj_).Equals(Version::SnapshotString())) {
-      const intptr_t kMessageBufferSize = 128;
-      char message_buffer[kMessageBufferSize];
-      OS::SNPrint(message_buffer,
-                  kMessageBufferSize,
-                  "Wrong full snapshot version. Found %s expected %s",
-                  obj_.ToCString(),
-                  Version::SnapshotString());
-      const String& msg = String::Handle(String::New(message_buffer));
-      return ApiError::New(msg);
-    }
-
-    // The version string matches. Read the rest of the snapshot.
 
     // Read in all the objects stored in the object store.
     intptr_t num_flds = (object_store->to() - object_store->from());
@@ -467,21 +455,9 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
   ASSERT(kind_ == Snapshot::kScript);
 
   // First read the version string, and check that it matches.
-  obj_ = ReadObject();
-
-  // If the version string doesn't match, return an error.
-  // NB: New things are allocated only if we're going to return an error.
-  if (!obj_.IsString() ||
-      !String::Cast(obj_).Equals(Version::SnapshotString())) {
-    const intptr_t kMessageBufferSize = 256;
-    char message_buffer[kMessageBufferSize];
-    OS::SNPrint(message_buffer,
-                kMessageBufferSize,
-                "Wrong script snapshot version. Found %s expected '%s'",
-                obj_.ToCString(),
-                Version::SnapshotString());
-    const String& msg = String::Handle(String::New(message_buffer));
-    return ApiError::New(msg);
+  RawApiError* error = VerifyVersion();
+  if (error != ApiError::null()) {
+    return error;
   }
 
   // The version string matches. Read the rest of the snapshot.
@@ -499,6 +475,44 @@ RawObject* SnapshotReader::ReadScriptSnapshot() {
     }
   }
   return obj_.raw();
+}
+
+
+RawApiError* SnapshotReader::VerifyVersion() {
+  // If the version string doesn't match, return an error.
+  // Note: New things are allocated only if we're going to return an error.
+
+  const char* expected_version = Version::SnapshotString();
+  ASSERT(expected_version != NULL);
+  const intptr_t version_len = strlen(expected_version);
+  if (PendingBytes() < version_len) {
+    const intptr_t kMessageBufferSize = 128;
+    char message_buffer[kMessageBufferSize];
+    OS::SNPrint(message_buffer,
+                kMessageBufferSize,
+                "No full snapshot version found, expected '%s'",
+                Version::SnapshotString());
+    const String& msg = String::Handle(String::New(message_buffer));
+    return ApiError::New(msg);
+  }
+
+  const char* version = reinterpret_cast<const char*>(CurrentBufferAddress());
+  ASSERT(version != NULL);
+  if (strncmp(version, expected_version, version_len)) {
+    const intptr_t kMessageBufferSize = 256;
+    char message_buffer[kMessageBufferSize];
+    char* actual_version = OS::StrNDup(version, version_len);
+    OS::SNPrint(message_buffer,
+                kMessageBufferSize,
+                "Wrong full snapshot version, expected '%s' found '%s'",
+                Version::SnapshotString(),
+                actual_version);
+    free(actual_version);
+    const String& msg = String::Handle(String::New(message_buffer));
+    return ApiError::New(msg);
+  }
+  Advance(version_len);
+  return ApiError::null();
 }
 
 
@@ -1045,8 +1059,9 @@ SnapshotWriter::SnapshotWriter(Snapshot::Kind kind,
                                intptr_t initial_size)
     : BaseWriter(buffer, alloc, initial_size),
       kind_(kind),
-      object_store_(Isolate::Current()->object_store()),
-      class_table_(Isolate::Current()->class_table()),
+      isolate_(Isolate::Current()),
+      object_store_(isolate_->object_store()),
+      class_table_(isolate_->class_table()),
       forward_list_(kMaxPredefinedObjectIds),
       exception_type_(Exceptions::kNone),
       exception_msg_(NULL) {
@@ -1232,15 +1247,14 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 
 
 void FullSnapshotWriter::WriteFullSnapshot() {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  ObjectStore* object_store = isolate->object_store();
+  ASSERT(isolate() != NULL);
+  ObjectStore* object_store = isolate()->object_store();
   ASSERT(object_store != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Ensure the class table is valid.
 #if defined(DEBUG)
-  isolate->ValidateClassTable();
+  isolate()->ValidateClassTable();
 #endif
 
   // Setup for long jump in case there is an exception while writing
@@ -1251,7 +1265,7 @@ void FullSnapshotWriter::WriteFullSnapshot() {
     ReserveHeader();
 
     // Write out the version string.
-    WriteObject(String::New(Version::SnapshotString()));
+    WriteVersion();
 
     // Write out the full snapshot.
     {
@@ -1282,6 +1296,30 @@ uword SnapshotWriter::GetObjectTags(RawObject* raw) {
   } else {
     return tags;
   }
+}
+
+
+ForwardList::ForwardList(intptr_t first_object_id)
+    : first_object_id_(first_object_id),
+      nodes_(),
+      first_unprocessed_object_id_(first_object_id) {
+  // The ForwardList encodes information in the header tag word. There cannot
+  // be any concurrent GC tasks while it is in use.
+  PageSpace* page_space = Isolate::Current()->heap()->old_space();
+  MonitorLocker ml(page_space->tasks_lock());
+  while (page_space->tasks() > 0) {
+    ml.Wait();
+  }
+  page_space->set_tasks(1);
+}
+
+
+ForwardList::~ForwardList() {
+  PageSpace* page_space = Isolate::Current()->heap()->old_space();
+  MonitorLocker ml(page_space->tasks_lock());
+  ASSERT(page_space->tasks() == 1);
+  page_space->set_tasks(0);
+  ml.Notify();
 }
 
 
@@ -1594,7 +1632,7 @@ void SnapshotWriter::SetWriteException(Exceptions::ExceptionType type,
   set_exception_type(type);
   set_exception_msg(msg);
   // The more specific error is set up in SnapshotWriter::ThrowException().
-  Isolate::Current()->long_jump_base()->
+  isolate()->long_jump_base()->
       Jump(1, Object::snapshot_writer_error());
 }
 
@@ -1659,7 +1697,7 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
 
 void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
                                     const char* msg) {
-  Isolate::Current()->object_store()->clear_sticky_error();
+  isolate()->object_store()->clear_sticky_error();
   UnmarkAll();
   if (msg != NULL) {
     const String& msg_obj = String::Handle(String::New(msg));
@@ -1673,10 +1711,17 @@ void SnapshotWriter::ThrowException(Exceptions::ExceptionType type,
 }
 
 
+void SnapshotWriter::WriteVersion() {
+  const char* expected_version = Version::SnapshotString();
+  ASSERT(expected_version != NULL);
+  const intptr_t version_len = strlen(expected_version);
+  WriteBytes(reinterpret_cast<const uint8_t*>(expected_version), version_len);
+}
+
+
 void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
   ASSERT(kind() == Snapshot::kScript);
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate() != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
   // Setup for long jump in case there is an exception while writing
@@ -1687,7 +1732,7 @@ void ScriptSnapshotWriter::WriteScriptSnapshot(const Library& lib) {
     ReserveHeader();
 
     // Write out the version string.
-    WriteObject(String::New(Version::SnapshotString()));
+    WriteVersion();
 
     // Write out the library object.
     {
@@ -1719,8 +1764,7 @@ void SnapshotWriterVisitor::VisitPointers(RawObject** first, RawObject** last) {
 
 void MessageWriter::WriteMessage(const Object& obj) {
   ASSERT(kind() == Snapshot::kMessage);
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
+  ASSERT(isolate() != NULL);
 
   // Setup for long jump in case there is an exception while writing
   // the message.

@@ -204,7 +204,7 @@ final Matcher isResponse = new MatchesJsonObject('response', {
   'id': isString
 }, optionalFields: {
   'result': anything,
-  'error': isError
+  'error': isRequestError
 });
 
 const Matcher isNotification = const MatchesJsonObject('notification', const {

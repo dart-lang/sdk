@@ -117,7 +117,10 @@ class _List<E> implements List<E> {
   }
 
   void forEach(f(E element)) {
-    IterableMixinWorkaround.forEach(this, f);
+    final length = this.length;
+    for (int i = 0; i < length; i++) {
+      f(this[i]);
+    }
   }
 
   String join([String separator = ""]) {
@@ -373,7 +376,10 @@ class _ImmutableList<E> implements List<E> {
   }
 
   void forEach(f(E element)) {
-    IterableMixinWorkaround.forEach(this, f);
+    final length = this.length;
+    for (int i = 0; i < length; i++) {
+      f(this[i]);
+    }
   }
 
   Iterable map(f(E element)) {
@@ -539,27 +545,23 @@ class _ImmutableList<E> implements List<E> {
 class _FixedSizeArrayIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length;  // Cache array length for faster access.
-  int _position;
+  int _index;
   E _current;
 
   _FixedSizeArrayIterator(List array)
-      : _array = array, _length = array.length, _position = -1 {
+      : _array = array, _length = array.length, _index = 0 {
     assert(array is _List || array is _ImmutableList);
   }
 
-  bool moveNext() {
-    int nextPosition = _position + 1;
-    if (nextPosition < _length) {
-      _current = _array[nextPosition];
-      _position = nextPosition;
-      return true;
-    }
-    _position = _length;
-    _current = null;
-    return false;
-  }
+  E get current => _current;
 
-  E get current {
-    return _current;
+  bool moveNext() {
+    if (_index >= _length) {
+      _current = null;
+      return false;
+    }
+    _current = _array[_index];
+    _index++;
+    return true;
   }
 }

@@ -178,6 +178,16 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   void setDefaultTypeOfParameter(ParameterElement parameter, T type);
 
   /**
+   * This helper breaks abstractions but is currently required to work around
+   * the wrong modelling of default values of optional parameters of
+   * synthetic constructors.
+   *
+   * TODO(johnniwinther): Remove once default values of synthetic parameters
+   * are fixed.
+   */
+  bool hasAlreadyComputedTypeOfParameterDefault(ParameterElement paramemter);
+
+  /**
    * Returns the type of [element].
    */
   T typeOfElement(Element element);
@@ -480,7 +490,19 @@ class SimpleTypeInferrerVisitor<T>
     FunctionSignature signature = function.functionSignature;
     signature.forEachOptionalParameter((ParameterElement element) {
       ast.Expression defaultValue = element.initializer;
-      T type = (defaultValue == null) ? types.nullType : visit(defaultValue);
+      // If this is a default value from a different context (because
+      // the current function is synthetic, e.g., a constructor from
+      // a mixin application), we have to start a new inferrer visitor
+      // with the correct context.
+      // TODO(johnniwinther): Remove once function signatures are fixed.
+      SimpleTypeInferrerVisitor visitor = this;
+      if (inferrer.hasAlreadyComputedTypeOfParameterDefault(element)) return;
+      if (element.enclosingElement != analyzedElement) {
+        visitor = new SimpleTypeInferrerVisitor(element.enclosingElement,
+            compiler, inferrer);
+      }
+      T type =
+          (defaultValue == null) ? types.nullType : visitor.visit(defaultValue);
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
@@ -979,6 +1001,15 @@ class SimpleTypeInferrerVisitor<T>
         analyzeSuperConstructorCall(element, arguments);
       }
     }
+    // If we are looking at a new expression on a forwarding factory,
+    // we have to forward the call to the effective target of the
+    // factory.
+    if (element.isFactoryConstructor) {
+      ConstructorElement constructor = element;
+      if (constructor.isRedirectingFactory) {
+        element = constructor.effectiveTarget.implementation;
+      }
+    }
     if (element.isForeign(compiler.backend)) {
       return handleForeignSend(node);
     }
@@ -1115,6 +1146,8 @@ class SimpleTypeInferrerVisitor<T>
                      Selector selector,
                      Element element,
                      ArgumentsTypes arguments) {
+    assert(!element.isFactoryConstructor ||
+           !(element as ConstructorElement).isRedirectingFactory);
     // Erroneous elements may be unresolved, for example missing getters.
     if (Elements.isUnresolved(element)) return types.dynamicType;
     // TODO(herhut): should we follow redirecting constructors here? We would

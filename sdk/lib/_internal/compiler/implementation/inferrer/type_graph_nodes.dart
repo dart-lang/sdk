@@ -159,6 +159,27 @@ abstract class ApplyableTypeInformation extends TypeInformation {
 }
 
 /**
+ * Marker node used only during tree construction but not during actual type
+ * refinement.
+ *
+ * Currently, this is used to give a type to an optional parameter even before
+ * the corresponding default expression has been analyzed. See
+ * [getDefaultTypeOfParameter] and [setDefaultTypeOfParameter] for details.
+ */
+class PlaceholderTypeInformation extends TypeInformation {
+
+  void accept(TypeInformationVisitor visitor) {
+    throw new UnsupportedError("Cannot visit placeholder");
+  }
+
+  TypeMask refine(TypeGraphInferrerEngine inferrer) {
+    throw new UnsupportedError("Cannot refine placeholder");
+  }
+
+  toString() => "Placeholder [$hashCode]";
+}
+
+/**
  * Parameters of instance functions behave differently than other
  * elements because the inferrer may remove assignments. This happens
  * when the receiver of a dynamic call site can be refined
@@ -185,6 +206,16 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
       assignments[info] = 1;
     } else {
       assignments[info] = existing + 1;
+    }
+  }
+
+  void replace(TypeInformation old, TypeInformation replacement) {
+    int existing = assignments[old];
+    if (existing != null) {
+      int other = assignments[replacement];
+      if (other != null) existing += other;
+      assignments[replacement] = existing;
+      assignments.remove(old);
     }
   }
 

@@ -594,6 +594,8 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitSourceLine(Instruction* instr);
 
+  intptr_t GetOptimizationThreshold() const;
+
   Isolate* isolate_;
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;

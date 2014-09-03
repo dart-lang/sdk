@@ -29,6 +29,7 @@ export 'package:observatory/src/elements/isolate_view.dart';
 export 'package:observatory/src/elements/json_view.dart';
 export 'package:observatory/src/elements/library_ref.dart';
 export 'package:observatory/src/elements/library_view.dart';
+export 'package:observatory/src/elements/metrics.dart';
 export 'package:observatory/src/elements/nav_bar.dart';
 export 'package:observatory/src/elements/observatory_application.dart';
 export 'package:observatory/src/elements/observatory_element.dart';

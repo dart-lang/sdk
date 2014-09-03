@@ -5825,6 +5825,18 @@ class SimpleParserTest extends ParserTestCase {
     EngineTestCase.assertInstanceOf((obj) => obj is VariableDeclarationStatement, VariableDeclarationStatement, statement);
   }
 
+  void test_parseAwaitExpression_inSync() {
+    MethodDeclaration method = ParserTestCase.parse("parseClassMember", <Object> ["C"], EngineTestCase.createSource(["m() { return await x + await y; }"]));
+    FunctionBody body = method.body;
+    EngineTestCase.assertInstanceOf((obj) => obj is BlockFunctionBody, BlockFunctionBody, body);
+    Statement statement = (body as BlockFunctionBody).block.statements[0];
+    EngineTestCase.assertInstanceOf((obj) => obj is ReturnStatement, ReturnStatement, statement);
+    Expression expression = (statement as ReturnStatement).expression;
+    EngineTestCase.assertInstanceOf((obj) => obj is BinaryExpression, BinaryExpression, expression);
+    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression, AwaitExpression, (expression as BinaryExpression).leftOperand);
+    EngineTestCase.assertInstanceOf((obj) => obj is AwaitExpression, AwaitExpression, (expression as BinaryExpression).rightOperand);
+  }
+
   void test_parseBitwiseAndExpression_normal() {
     BinaryExpression expression = ParserTestCase.parse4("parseBitwiseAndExpression", "x & y", []);
     JUnitTestCase.assertNotNull(expression.leftOperand);
@@ -7405,6 +7417,38 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(expression.rightOperand);
   }
 
+  void test_parseExpression_function_async() {
+    FunctionExpression expression = ParserTestCase.parseExpression("() async {}", []);
+    JUnitTestCase.assertNotNull(expression.body);
+    JUnitTestCase.assertTrue(expression.body.isAsynchronous);
+    JUnitTestCase.assertFalse(expression.body.isGenerator);
+    JUnitTestCase.assertNotNull(expression.parameters);
+  }
+
+  void test_parseExpression_function_asyncStar() {
+    FunctionExpression expression = ParserTestCase.parseExpression("() async* {}", []);
+    JUnitTestCase.assertNotNull(expression.body);
+    JUnitTestCase.assertTrue(expression.body.isAsynchronous);
+    JUnitTestCase.assertTrue(expression.body.isGenerator);
+    JUnitTestCase.assertNotNull(expression.parameters);
+  }
+
+  void test_parseExpression_function_sync() {
+    FunctionExpression expression = ParserTestCase.parseExpression("() {}", []);
+    JUnitTestCase.assertNotNull(expression.body);
+    JUnitTestCase.assertFalse(expression.body.isAsynchronous);
+    JUnitTestCase.assertFalse(expression.body.isGenerator);
+    JUnitTestCase.assertNotNull(expression.parameters);
+  }
+
+  void test_parseExpression_function_syncStar() {
+    FunctionExpression expression = ParserTestCase.parseExpression("() sync* {}", []);
+    JUnitTestCase.assertNotNull(expression.body);
+    JUnitTestCase.assertFalse(expression.body.isAsynchronous);
+    JUnitTestCase.assertTrue(expression.body.isGenerator);
+    JUnitTestCase.assertNotNull(expression.parameters);
+  }
+
   void test_parseExpression_invokeFunctionExpression() {
     FunctionExpressionInvocation invocation = ParserTestCase.parse4("parseExpression", "(a) {return a + a;} (3)", []);
     EngineTestCase.assertInstanceOf((obj) => obj is FunctionExpression, FunctionExpression, invocation.function);
@@ -8102,12 +8146,6 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(expression.body);
     JUnitTestCase.assertNotNull(expression.parameters);
     JUnitTestCase.assertNull((expression.body as ExpressionFunctionBody).semicolon);
-  }
-
-  void test_parseFunctionExpression_minimal() {
-    FunctionExpression expression = ParserTestCase.parse4("parseFunctionExpression", "() {}", []);
-    JUnitTestCase.assertNotNull(expression.body);
-    JUnitTestCase.assertNotNull(expression.parameters);
   }
 
   void test_parseGetter_nonStatic() {
@@ -10516,6 +10554,10 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseAwaitExpression_asStatement_inSync);
       });
+      _ut.test('test_parseAwaitExpression_inSync', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseAwaitExpression_inSync);
+      });
       _ut.test('test_parseBitwiseAndExpression_normal', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseBitwiseAndExpression_normal);
@@ -11220,6 +11262,22 @@ class SimpleParserTest extends ParserTestCase {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseExpression_comparison);
       });
+      _ut.test('test_parseExpression_function_async', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseExpression_function_async);
+      });
+      _ut.test('test_parseExpression_function_asyncStar', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseExpression_function_asyncStar);
+      });
+      _ut.test('test_parseExpression_function_sync', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseExpression_function_sync);
+      });
+      _ut.test('test_parseExpression_function_syncStar', () {
+        final __test = new SimpleParserTest();
+        runJUnitTest(__test, __test.test_parseExpression_function_syncStar);
+      });
       _ut.test('test_parseExpression_invokeFunctionExpression', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseExpression_invokeFunctionExpression);
@@ -11471,10 +11529,6 @@ class SimpleParserTest extends ParserTestCase {
       _ut.test('test_parseFunctionExpression_body_inExpression', () {
         final __test = new SimpleParserTest();
         runJUnitTest(__test, __test.test_parseFunctionExpression_body_inExpression);
-      });
-      _ut.test('test_parseFunctionExpression_minimal', () {
-        final __test = new SimpleParserTest();
-        runJUnitTest(__test, __test.test_parseFunctionExpression_minimal);
       });
       _ut.test('test_parseGetter_nonStatic', () {
         final __test = new SimpleParserTest();

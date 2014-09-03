@@ -33,11 +33,18 @@ DEFINE_FLAG(bool, verify_after_gc, false,
 DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
 DEFINE_FLAG(int, new_gen_ext_limit, 64,
             "maximum total external size (MB) in new gen before triggering GC");
+DEFINE_FLAG(int, pretenure_threshold, 98,
+            "Trigger pretenuring when this many percent are promoted.");
+DEFINE_FLAG(int, pretenure_interval, 10,
+            "Back off pretenuring after this many cycles.");
 
 Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)
-    : isolate_(isolate), read_only_(false), gc_in_progress_(false) {
+    : isolate_(isolate),
+      read_only_(false),
+      gc_in_progress_(false),
+      pretenure_policy_(0) {
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {
@@ -137,6 +144,15 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
       "Exhausted heap space, trying to allocate %" Pd " bytes.\n", size);
   return 0;
 }
+
+
+uword Heap::AllocatePretenured(intptr_t size) {
+  ASSERT(isolate()->no_gc_scope_depth() == 0);
+  uword addr = old_space_->TryAllocateDataBump(size, PageSpace::kControlGrowth);
+  if (addr != 0) return addr;
+  return AllocateOld(size, HeapPage::kData);
+}
+
 
 void Heap::AllocateExternal(intptr_t size, Space space) {
   ASSERT(isolate()->no_gc_scope_depth() == 0);
@@ -269,6 +285,7 @@ void Heap::CollectGarbage(Space space,
       UpdateClassHeapStatsBeforeGC(kNew);
       new_space_->Scavenge(invoke_api_callbacks);
       isolate()->class_table()->UpdatePromoted();
+      UpdatePretenurePolicy();
       RecordAfterGC();
       PrintStats();
       if (old_space_->NeedsGarbageCollection()) {
@@ -321,6 +338,7 @@ void Heap::CollectAllGarbage() {
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_->Scavenge(kInvokeApiCallbacks);
     isolate()->class_table()->UpdatePromoted();
+    UpdatePretenurePolicy();
     RecordAfterGC();
     PrintStats();
   }
@@ -331,6 +349,29 @@ void Heap::CollectAllGarbage() {
     old_space_->MarkSweep(kInvokeApiCallbacks);
     RecordAfterGC();
     PrintStats();
+  }
+}
+
+
+bool Heap::ShouldPretenure(intptr_t class_id) const {
+  if (class_id == kOneByteStringCid) {
+    return pretenure_policy_ > 0;
+  } else {
+    return false;
+  }
+}
+
+
+void Heap::UpdatePretenurePolicy() {
+  ClassHeapStats* stats =
+      isolate_->class_table()->StatsWithUpdatedSize(kOneByteStringCid);
+  int allocated = stats->pre_gc.new_count;
+  int promo_percent = (allocated == 0) ? 0 :
+      (100 * stats->promoted_count) / allocated;
+  if (promo_percent >= FLAG_pretenure_threshold) {
+    pretenure_policy_ += FLAG_pretenure_interval;
+  } else {
+    pretenure_policy_ = Utils::Maximum(0, pretenure_policy_ - 1);
   }
 }
 

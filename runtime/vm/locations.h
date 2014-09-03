@@ -631,6 +631,13 @@ class LocationSummary : public ZoneAllocated {
     return &live_registers_;
   }
 
+#if defined(DEBUG)
+  // Debug only verification that ensures that writable registers are correctly
+  // preserved on the slow path.
+  void DiscoverWritableInputs();
+  void CheckWritableInputs();
+#endif
+
  private:
   const intptr_t num_inputs_;
   Location* input_locations_;
@@ -642,6 +649,10 @@ class LocationSummary : public ZoneAllocated {
 
   const ContainsCall contains_call_;
   RegisterSet live_registers_;
+
+#if defined(DEBUG)
+  intptr_t writable_inputs_;
+#endif
 };
 
 

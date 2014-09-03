@@ -161,11 +161,10 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   test_keyword() {
-    addTestFile('^');
+    addTestFile('library A; cl^');
     return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.KEYWORD, 'library');
+      expect(replacementOffset, equals(completionOffset - 2));
+      expect(replacementLength, equals(2));
       assertHasResult(CompletionSuggestionKind.KEYWORD, 'import');
       assertHasResult(CompletionSuggestionKind.KEYWORD, 'class');
     });
@@ -199,8 +198,8 @@ class CompletionTest extends AbstractAnalysisTest {
       main() {tes^t}
     ''');
     return getSuggestions().then((_) {
-//      expect(replacementOffset, equals(completionOffset - 3));
-//      expect(replacementLength, equals(4));
+      expect(replacementOffset, equals(completionOffset - 3));
+      expect(replacementLength, equals(4));
       assertHasResult(CompletionSuggestionKind.CLASS, 'Object');
       assertHasResult(CompletionSuggestionKind.TOP_LEVEL_VARIABLE, 'test');
       assertNoResult('HtmlElement');

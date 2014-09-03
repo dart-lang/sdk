@@ -36,6 +36,15 @@ SourceRange rangeError(AnalysisError error) {
   return new SourceRange(error.offset, error.length);
 }
 
+/**
+ * Returns the [SourceRange] of [r] with offset from the given [base].
+ */
+SourceRange rangeFromBase(SourceRange r, int base) {
+  int start = r.offset - base;
+  int length = r.length;
+  return rangeStartLength(start, length);
+}
+
 SourceRange rangeNode(AstNode node) {
   return new SourceRange(node.offset, node.length);
 }

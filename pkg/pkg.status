@@ -99,6 +99,7 @@ collection/test/equality_test/none: Pass, Fail # Issue 14348
 docgen/test/*: Skip # Far too slow
 third_party/angular_tests/browser_test: Pass, Slow # Large dart2js compile time
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
+math/test/bigint_test: RuntimeError # Requires bigint support.
 
 analysis_server/test/search/element_references_test: Pass, Slow
 analysis_server/test/services/index/store/codec_test: Pass, Slow
@@ -261,6 +262,8 @@ third_party/angular_tests/vm_test: Fail # Uses removed APIs. See issue 18733.
 
 [ $runtime == vm && $system == windows ]
 intl/test/find_default_locale_standalone_test: Fail # Issue 8110
+glob/test/match_test: RuntimeError # Issue 20789
+glob/test/parse_test: RuntimeError # Issue 20789
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # These tests are runtime negative but statically positive, so we skip
@@ -427,6 +430,7 @@ http/test/html/*: Skip
 [ $browser ]
 docgen/test/*: Skip  # Uses dart:io
 scheduled_test/test/scheduled_server_test: Skip # Uses dart:io
+glob/test/match_test: RuntimeError # Issue 20788
 
 [ $browser || $runtime == vm ]
 unittest/test/missing_tick_test: Fail, OK # Expected to fail, due to timeout.

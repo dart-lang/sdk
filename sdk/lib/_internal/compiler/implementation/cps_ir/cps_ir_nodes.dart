@@ -543,7 +543,19 @@ class FunctionDefinition extends Node implements InteriorNode {
       this.parameters, this.body, this.localConstants,
       this.defaultParameterValues);
 
+  FunctionDefinition.abstract(this.element,
+                              this.parameters,
+                              this.defaultParameterValues)
+      : this.returnContinuation = null,
+        this.localConstants = const <ConstDeclaration>[];
+
   accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
+
+  /// Returns `true` if this function is abstract.
+  ///
+  /// If `true`, [body] and [returnContinuation] are `null` and [localConstants]
+  /// is empty.
+  bool get isAbstract => body == null;
 }
 
 List<Reference> _referenceList(List<Definition> definitions) {
@@ -814,7 +826,9 @@ class RegisterAllocator extends Visitor {
   }
 
   void visitFunctionDefinition(FunctionDefinition node) {
-    visit(node.body);
+    if (!node.isAbstract) {
+      visit(node.body);
+    }
     node.parameters.forEach(allocate); // Assign indices to unused parameters.
     elementRegisters.clear();
   }

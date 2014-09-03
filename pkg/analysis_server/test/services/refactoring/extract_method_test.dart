@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_testing/reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
@@ -131,7 +132,8 @@ main() {
 }
 ''');
     _createRefactoringForStartEndComments();
-    return _assertConditionsError("Created function will shadow method 'A.res'.");
+    return _assertConditionsError(
+        "Created function will shadow method 'A.res'.");
   }
 
   test_bad_constructor_initializer() {
@@ -1006,6 +1008,86 @@ class A {
 ''');
     _createRefactoringForString('1 + 2');
     expect(refactoring.refactoringName, 'Extract Method');
+  }
+
+  test_names_singleExpression() {
+    indexTestUnit('''
+class TreeItem {}
+TreeItem getSelectedItem() => null;
+process(my) {}
+main() {
+  process(getSelectedItem()); // marker
+  int treeItem = 0;
+}
+''');
+    _createRefactoringWithSuffix('getSelectedItem()', '); // marker');
+    // check names
+    return refactoring.checkInitialConditions().then((_) {
+      expect(
+          refactoring.names,
+          unorderedEquals(['selectedItem', 'item', 'my', 'treeItem2']));
+    });
+  }
+
+  test_offsets_lengths() {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+  int b = 1 +  2;
+}
+''');
+    _createRefactoringForString('1 +  2');
+    // apply refactoring
+    return refactoring.checkInitialConditions().then((_) {
+      expect(
+          refactoring.offsets,
+          unorderedEquals([findOffset('1 + 2'), findOffset('1 +  2')]));
+      expect(refactoring.lengths, unorderedEquals([5, 6]));
+    });
+  }
+
+  test_returnType_expression() {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+}
+''');
+    _createRefactoringForString('1 + 2');
+    // do check
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.returnType, 'int');
+    });
+  }
+
+  test_returnType_statements() {
+    indexTestUnit('''
+main() {
+// start
+  double v = 5.0;
+// end
+  print(v);
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.returnType, 'double');
+    });
+  }
+
+  test_returnType_statements_void() {
+    indexTestUnit('''
+main() {
+// start
+  print(42);
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    return refactoring.checkInitialConditions().then((_) {
+      expect(refactoring.returnType, 'void');
+    });
   }
 
   test_setExtractGetter() {
@@ -2189,7 +2271,7 @@ void res() {
 
   void _createRefactoring(int offset, int length) {
     refactoring =
-        new ExtractMethodRefactoringImpl(searchEngine, testUnit, offset, length);
+        new ExtractMethodRefactoring(searchEngine, testUnit, offset, length);
     refactoring.name = 'res';
   }
 

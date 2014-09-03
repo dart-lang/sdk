@@ -687,10 +687,10 @@ void RangeAnalysis::RemoveConstraints() {
 
 
 static void NarrowBinaryMintOp(BinaryMintOpInstr* mint_op) {
-  if (Range::Fits(mint_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
-      Range::Fits(mint_op->left()->definition()->range(),
+  if (RangeUtils::Fits(mint_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
+      RangeUtils::Fits(mint_op->left()->definition()->range(),
                   RangeBoundary::kRangeBoundaryInt32) &&
-      Range::Fits(mint_op->right()->definition()->range(),
+      RangeUtils::Fits(mint_op->right()->definition()->range(),
                   RangeBoundary::kRangeBoundaryInt32) &&
       BinaryInt32OpInstr::IsSupported(mint_op->op_kind(),
                                       mint_op->left(),
@@ -708,10 +708,10 @@ static void NarrowBinaryMintOp(BinaryMintOpInstr* mint_op) {
 
 
 static void NarrowShiftMintOp(ShiftMintOpInstr* mint_op) {
-  if (Range::Fits(mint_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
-      Range::Fits(mint_op->left()->definition()->range(),
+  if (RangeUtils::Fits(mint_op->range(), RangeBoundary::kRangeBoundaryInt32) &&
+      RangeUtils::Fits(mint_op->left()->definition()->range(),
                   RangeBoundary::kRangeBoundaryInt32) &&
-      Range::Fits(mint_op->right()->definition()->range(),
+      RangeUtils::Fits(mint_op->right()->definition()->range(),
                   RangeBoundary::kRangeBoundaryInt32) &&
       BinaryInt32OpInstr::IsSupported(mint_op->op_kind(),
                                       mint_op->left(),

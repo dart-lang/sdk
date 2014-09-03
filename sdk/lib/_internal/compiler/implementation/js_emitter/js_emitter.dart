@@ -19,10 +19,13 @@ import '../closure.dart' show
 import '../dart2jslib.dart' show
     CodeBuffer;
 
+import '../dart_types.dart' show
+    TypedefType;
+
 import '../elements/elements.dart' show
-    TypeVariableElement,
     ConstructorBodyElement,
-    ParameterElement;
+    ParameterElement,
+    TypeVariableElement;
 
 import '../js/js.dart' show
     js, templateManager;

@@ -2,7 +2,7 @@ name: observatory
 version: 1.6.0-dev.1
 dependencies:
   args: any
-  polymer: '>= 0.11.0-dev.6'
+  polymer: any
   unittest: any
 transformers:
 - polymer:

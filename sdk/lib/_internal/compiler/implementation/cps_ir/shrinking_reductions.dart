@@ -16,6 +16,8 @@ class ShrinkingReducer implements Pass {
 
   /// Applies shrinking reductions to root, mutating root in the process.
   void rewrite(FunctionDefinition root) {
+    if (root.isAbstract) return;
+
     _worklist = new Set<_ReductionTask>();
     _redexVisitor = new _RedexVisitor(_worklist);
 

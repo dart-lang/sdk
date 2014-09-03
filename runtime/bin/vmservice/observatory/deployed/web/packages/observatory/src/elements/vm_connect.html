@@ -17,10 +17,10 @@
     <link rel="stylesheet" href="css/shared.css">
     <span>
       <template if="{{ isCurrentTarget }}">
-        <a on-click="{{ connectToVm }}" href="{{ gotoLink('/vm') }}">{{ target.name }} (Connected)</a>
+        <a on-click="{{ connectToVm }}" _href="{{ gotoLink('/vm') }}">{{ target.name }} (Connected)</a>
       </template>
       <template if="{{ !isCurrentTarget }}">
-        <a on-click="{{ connectToVm }}" href="{{ gotoLink('/vm') }}">{{ target.name }}</a>
+        <a on-click="{{ connectToVm }}" _href="{{ gotoLink('/vm') }}">{{ target.name }}</a>
       </template>
       <template if="{{ !isChromeTarget }}">
         <button class="delete-button" on-click="{{ deleteVm }}">&#10006; Remove</button>

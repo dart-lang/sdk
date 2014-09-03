@@ -49,6 +49,8 @@ def PubSteps(build_info):
 
   # There are a number of big/integration tests in pkg, run with bigger timeout
   common_args.append('--timeout=120')
+  # We have some unreproducible vm crashes on these bots
+  common_args.append('--copy-coredumps')
 
   if build_info.system == 'windows':
     common_args.append('-j1')

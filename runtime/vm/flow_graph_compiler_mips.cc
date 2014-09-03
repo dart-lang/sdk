@@ -22,8 +22,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_type_checks);
 
 
@@ -1008,20 +1006,17 @@ void FlowGraphCompiler::EmitFrameEntry() {
     // Patch point is after the eventually inlined function object.
     entry_patch_pc_offset_ = assembler()->CodeSize();
 
-    intptr_t threshold = FLAG_optimization_counter_threshold;
     __ lw(T1, FieldAddress(function_reg, Function::usage_counter_offset()));
-    if (is_optimizing()) {
-      // Reoptimization of an optimized function is triggered by counting in
-      // IC stubs, but not at the entry of the function.
-      threshold = FLAG_reoptimization_counter_threshold;
-    } else {
+    // Reoptimization of an optimized function is triggered by counting in
+    // IC stubs, but not at the entry of the function.
+    if (!is_optimizing()) {
       __ addiu(T1, T1, Immediate(1));
       __ sw(T1, FieldAddress(function_reg, Function::usage_counter_offset()));
     }
 
     // Skip Branch if T1 is less than the threshold.
     Label dont_branch;
-    __ BranchSignedLess(T1, threshold, &dont_branch);
+    __ BranchSignedLess(T1, GetOptimizationThreshold(), &dont_branch);
 
     ASSERT(function_reg == T0);
     __ Branch(&stub_code->OptimizeFunctionLabel());
@@ -1456,6 +1451,10 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 // This function must be in sync with FlowGraphCompiler::RecordSafepoint and
 // FlowGraphCompiler::SlowPathEnvironmentFor.
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
+#if defined(DEBUG)
+  locs->CheckWritableInputs();
+#endif
+
   __ TraceSimMsg("SaveLiveRegisters");
   // TODO(vegorov): consider saving only caller save (volatile) registers.
   const intptr_t fpu_regs_count= locs->live_registers()->FpuRegisterCount();

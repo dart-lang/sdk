@@ -32,6 +32,9 @@ main() {
             Package foo is currently active at version 1.0.0.
             Resolving dependencies...
             + foo 1.0.0 from git ../foo.git
+            Precompiling executables...
+            Loading source assets...
+            Precompiled foo:foo.
             Activated foo 1.0.0 from Git repository "../foo.git".""");
 
     // Should now run the git one.

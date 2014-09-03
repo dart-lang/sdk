@@ -20,7 +20,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
   ServiceObjectViewElement.created() : super.created();
 
   ObservatoryElement _constructElementForObject() {
-    var type = object.serviceType;
+    var type = object.vmType;
     switch (type) {
       case 'AllocationProfile':
         HeapProfileElement element = new Element.tag('heap-profile');
@@ -198,7 +198,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
       Logger.root.info('Viewing null object.');
       return;
     }
-    var type = object.serviceType;
+    var type = object.vmType;
     var element = _constructElementForObject();
     if (element == null) {
       Logger.root.info('Unable to find a view element for \'${type}\'');

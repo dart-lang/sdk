@@ -14,18 +14,15 @@ import utils
 HOST_OS = utils.guessOS()
 
 if HOST_OS == 'mac':
-  VERSION_FILE = 'Chromium.app/Contents/MacOS/VERSION'
   CONTENTSHELL_FILES = ['Content Shell.app', 'ffmpegsumo.so', 'osmesa.so',
                         'lib']
   CHROMEDRIVER_FILES = ['chromedriver']
 elif HOST_OS == 'linux':
-  VERSION_FILE = 'VERSION'
   CONTENTSHELL_FILES = ['content_shell', 'content_shell.pak', 'fonts.conf',
                         'libffmpegsumo.so', 'libosmesa.so', 'lib',
                         'icudtl.dat']
   CHROMEDRIVER_FILES = ['chromedriver']
 elif HOST_OS == 'win':
-  VERSION_FILE = 'VERSION'
   # TODO: provide proper list.
   CONTENTSHELL_FILES = ['content_shell.exe', 'AHEM____.ttf']
   CHROMEDRIVER_FILES = ['chromedriver.exe']
@@ -34,17 +31,6 @@ else:
 
 # Append a file with size of the snapshot.
 CONTENTSHELL_FILES.append('snapshot-size.txt')
-
-
-def GenerateVersionFile():
-  # TODO: fix it.
-  if HOST_OS == 'win': return
-  versionInfo = utils.getCommandOutput(os.path.join('..', '..',
-                                                    'dart', 'tools', 'dartium',
-                                                    'print_dart_version.sh'))
-  file = open(VERSION_FILE, 'w')
-  file.write(versionInfo)
-  file.close()
 
 
 def GenerateDartiumFileList(mode, srcpath):
@@ -135,7 +121,6 @@ def StageAndZip(fileList, target):
   for oldFile in oldFiles:
     os.remove(oldFile)
 
-  GenerateVersionFile()
   GenerateZipFile(zipFile, stageDir, fileList)
   print 'last change: %s' % (zipFile)
 

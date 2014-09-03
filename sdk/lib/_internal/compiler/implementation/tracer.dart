@@ -29,23 +29,22 @@ final RegExp TRACE_FILTER =
  * readable by IR Hydra.
  */
 class Tracer extends TracerUtil {
-  Compiler compiler;
+  final Compiler compiler;
   ItemCompilationContext context;
   bool traceActive = false;
   final EventSink<String> output;
   final bool isEnabled = TRACE_FILTER != null;
 
-  Tracer(api.CompilerOutputProvider outputProvider) :
-    output = TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null;
+  Tracer(Compiler compiler, api.CompilerOutputProvider outputProvider)
+      : this.compiler = compiler,
+        output = TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null;
 
   void traceCompilation(String methodName,
-                        ItemCompilationContext compilationContext,
-                        Compiler compiler) {
+                        ItemCompilationContext compilationContext) {
     if (!isEnabled) return;
     traceActive = TRACE_FILTER.hasMatch(methodName);
     if (!traceActive) return;
     this.context = compilationContext;
-    this.compiler = compiler;
     tag("compilation", () {
       printProperty("name", methodName);
       printProperty("method", methodName);

@@ -5,8 +5,11 @@
 /** The entry point for the command-line version analyzer2dart. */
 library analyzer2dart.cmdline;
 
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 
 import '../lib/src/closed_world.dart';
@@ -16,10 +19,12 @@ void main(List<String> args) {
   // TODO(paulberry): hacky
   String path = args[0];
 
-  Driver analyzer2Dart = new Driver();
+  PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
+  DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+  Driver analyzer2Dart = new Driver(provider, sdk);
 
   // Tell the analysis server about the root
-  Source source = analyzer2Dart.setRealRoot(path);
+  Source source = analyzer2Dart.setRoot(path);
 
   // Get the library element associated with the source.
   FunctionElement entryPointElement = analyzer2Dart.resolveEntryPoint(source);

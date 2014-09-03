@@ -19,12 +19,14 @@ main() {
     schedulePub(args: ["global", "activate", "foo"], output: """
         Resolving dependencies...
         + foo 1.0.0
+        Precompiling executables...
+        Loading source assets...
         Activated foo 1.0.0.""");
 
     // Should be in global package cache.
     d.dir(cachePath, [
       d.dir('global_packages', [
-        d.matcherFile('foo.lock', contains('1.0.0'))
+        d.dir('foo', [d.matcherFile('pubspec.lock', contains('1.0.0'))])
       ])
     ]).validate();
   });

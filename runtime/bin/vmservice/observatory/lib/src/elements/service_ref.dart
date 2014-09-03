@@ -64,14 +64,18 @@ class AnyServiceRefElement extends ObservatoryElement {
   AnyServiceRefElement.created() : super.created();
 
   Element _constructElementForRef() {
-    var type = ref.serviceType;
+    var type = ref.vmType;
     switch (type) {
-      case 'Class':
+     case 'Class':
         ServiceRefElement element = new Element.tag('class-ref');
         element.ref = ref;
         return element;
       case 'Code':
         ServiceRefElement element = new Element.tag('code-ref');
+        element.ref = ref;
+        return element;
+      case 'Error':
+        ServiceRefElement element = new Element.tag('error-ref');
         element.ref = ref;
         return element;
       case 'Field':
@@ -95,6 +99,7 @@ class AnyServiceRefElement extends ObservatoryElement {
       case 'Instance':
       case 'Mint':
       case 'Null':
+      case 'Sentinel':  // TODO(rmacnak): Separate this out.
       case 'Smi':
       case 'String':
       case 'Type':
@@ -115,7 +120,7 @@ class AnyServiceRefElement extends ObservatoryElement {
       Logger.root.info('Viewing null object.');
       return;
     }
-    var type = ref.serviceType;
+    var type = ref.vmType;
     var element = _constructElementForRef();
     if (element == null) {
       Logger.root.info('Unable to find a ref element for \'${type}\'');

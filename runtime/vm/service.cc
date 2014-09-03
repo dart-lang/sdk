@@ -1120,8 +1120,9 @@ static bool HandleInstanceCommands(Isolate* isolate,
       return true;
     }
     const String& expr_str = String::Handle(isolate, String::New(expr));
-    ASSERT(obj->IsInstance());
-    const Instance& instance = Instance::Cast(*obj);
+    ASSERT(obj->IsInstance() || obj->IsNull());
+    Instance& instance = Instance::Handle();
+    instance ^= obj->raw();
     const Object& result =
         Object::Handle(instance.Evaluate(expr_str,
                                          Array::empty_array(),
@@ -1672,11 +1673,11 @@ static bool HandleLibraries(Isolate* isolate, JSONStream* js) {
 }
 
 
-static void PrintPseudoNull(JSONStream* js,
-                            const char* id,
-                            const char* preview) {
+static void PrintSentinel(JSONStream* js,
+                          const char* id,
+                          const char* preview) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Null");
+  jsobj.AddProperty("type", "Sentinel");
   jsobj.AddProperty("id", id);
   jsobj.AddProperty("valueAsString", preview);
 }
@@ -1864,7 +1865,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
       PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
                  js->num_arguments());
     } else {
-      PrintPseudoNull(js, "objects/collected", "<collected>");
+      PrintSentinel(js, "objects/collected", "<collected>");
     }
     return true;
 
@@ -1873,7 +1874,7 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
       PrintError(js, "expected at most 2 arguments but found %" Pd "\n",
                  js->num_arguments());
     } else {
-      PrintPseudoNull(js, "objects/expired", "<expired>");
+      PrintSentinel(js, "objects/expired", "<expired>");
     }
     return true;
   }
@@ -1890,11 +1891,11 @@ static bool HandleObjects(Isolate* isolate, JSONStream* js) {
     // Print.
     if (kind == ObjectIdRing::kCollected) {
       // The object has been collected by the gc.
-      PrintPseudoNull(js, "objects/collected", "<collected>");
+      PrintSentinel(js, "objects/collected", "<collected>");
       return true;
     } else if (kind == ObjectIdRing::kExpired) {
       // The object id has expired.
-      PrintPseudoNull(js, "objects/expired", "<expired>");
+      PrintSentinel(js, "objects/expired", "<expired>");
       return true;
     }
     obj.PrintJSON(js, false);

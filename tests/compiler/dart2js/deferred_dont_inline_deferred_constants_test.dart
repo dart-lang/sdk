@@ -51,10 +51,32 @@ void main() {
                                    [],
                                    {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
-    String mainOutput = outputs['main.js'].mem.toString();
-    String lib1Output = outputs['out_lib1.part.js'].mem.toString();
-    String lib2Output = outputs['out_lib2.part.js'].mem.toString();
-    String lib12Output = outputs['out_lib1_lib2.part.js'].mem.toString();
+    lookupLibrary(name) {
+      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
+    }
+
+    var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
+    Expect.isNotNull(main, "Could not find 'main'");
+    compiler.deferredLoadTask.onResolutionComplete(main);
+
+    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+
+    var lib1 = lookupLibrary("memory:lib1.dart");
+    var foo1 = lib1.find("foo");
+    var ou_lib1 = outputUnitForElement(foo1);
+
+    var lib2 = lookupLibrary("memory:lib2.dart");
+    var foo2 = lib2.find("foo");
+    var ou_lib2 = outputUnitForElement(foo2);
+
+    var fooMain = compiler.mainApp.find("foo");
+    var ou_lib1_lib2 = outputUnitForElement(fooMain);
+
+    String mainOutput = outputs["main.js"].mem.toString();
+    String lib1Output = outputs["out_${ou_lib1.name}.part.js"].mem.toString();
+    String lib2Output = outputs["out_${ou_lib2.name}.part.js"].mem.toString();
+    String lib12Output =
+        outputs["out_${ou_lib1_lib2.name}.part.js"].mem.toString();
     // Test that the deferred constants are not inlined into the main file.
     RegExp re1 = new RegExp(r"= .string1");
     RegExp re2 = new RegExp(r"= .string2");
@@ -107,9 +129,13 @@ class C {
   const C(this.p);
 }
 
+foo() => print("main");
+
 void main() {
   lib1.loadLibrary().then((_) {
     lib2.loadLibrary().then((_) {
+      lib1.foo();
+      lib2.foo();
       print(lib1.C1);
       print(lib1.C2);
       print(lib1.C.C3);
@@ -135,9 +161,17 @@ class C {
 const C4 = "string4";
 const C5 = const main.C(1);
 const C6 = const main.C(2);
+foo() {
+  print("lib1");
+  main.foo();
+}
 """, "lib2.dart": """
 import "main.dart" as main;
 const C4 = "string4";
 const C5 = const main.C(1);
 const C6 = const main.C(2);
+foo() {
+  print("lib2");
+  main.foo();
+}
 """};

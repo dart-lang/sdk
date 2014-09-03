@@ -84,6 +84,7 @@ main() {
       expect(el.nodes.length, equals(1));
       expect(el.nodes[0], isText);
       expect(el.nodes[0].text, equals(twoNewLines));
+      expect(el.text, equals(twoNewLines));
     });
 
     test('documentFragment', () {

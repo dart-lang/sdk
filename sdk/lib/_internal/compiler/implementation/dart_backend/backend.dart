@@ -25,6 +25,9 @@ class DartBackend extends Backend {
   final bool outputAst = false;
   final Map<ClassNode, List<Node>> memberNodes;
 
+  /// If `true`, libraries are generated into separate files.
+  final bool multiFile;
+
   PlaceholderRenamer placeholderRenamer;
 
   // TODO(zarah) Maybe change this to a command-line option.
@@ -102,7 +105,7 @@ class DartBackend extends Backend {
     return true;
   }
 
-  DartBackend(Compiler compiler, List<String> strips)
+  DartBackend(Compiler compiler, List<String> strips, {this.multiFile})
       : tasks = <CompilerTask>[],
         memberNodes = new Map<ClassNode, List<Node>>(),
         forceStripTypes = strips.indexOf('types') != -1,
@@ -147,6 +150,60 @@ class DartBackend extends Backend {
             !element.isSynthesized &&
             element is !AbstractFieldElement)
         || element.library == mirrorHelperLibrary;
+  }
+
+  /// Create an [ElementAst] from the CPS IR.
+  static ElementAst createElementAst(Compiler compiler,
+                                     Tracer tracer,
+                                     ConstantSystem constantSystem,
+                                     Element element,
+                                     cps_ir.FunctionDefinition function) {
+    // Transformations on the CPS IR.
+    if (tracer != null) {
+      tracer.traceCompilation(element.name, null);
+    }
+
+    void traceGraph(String title, var irObject) {
+      if (tracer != null) {
+        tracer.traceGraph(title, irObject);
+      }
+    }
+
+    new ConstantPropagator(compiler, constantSystem).rewrite(function);
+    traceGraph("Sparse constant propagation", function);
+    new RedundantPhiEliminator().rewrite(function);
+    traceGraph("Redundant phi elimination", function);
+    new ShrinkingReducer().rewrite(function);
+    traceGraph("Shrinking reductions", function);
+
+    // Do not rewrite the IR after variable allocation.  Allocation
+    // makes decisions based on an approximation of IR variable live
+    // ranges that can be invalidated by transforming the IR.
+    new cps_ir.RegisterAllocator().visit(function);
+
+    tree_builder.Builder builder = new tree_builder.Builder(compiler);
+    tree_ir.FunctionDefinition definition = builder.build(function);
+    assert(definition != null);
+    traceGraph('Tree builder', definition);
+
+    // Transformations on the Tree IR.
+    new StatementRewriter().rewrite(definition);
+    traceGraph('Statement rewriter', definition);
+    new CopyPropagator().rewrite(definition);
+    traceGraph('Copy propagation', definition);
+    new LoopRewriter().rewrite(definition);
+    traceGraph('Loop rewriter', definition);
+    new LogicalRewriter().rewrite(definition);
+    traceGraph('Logical rewriter', definition);
+    new backend_ast_emitter.UnshadowParameters().unshadow(definition);
+    traceGraph('Unshadow parameters', definition);
+
+    TreeElementMapping treeElements = new TreeElementMapping(element);
+    backend_ast.Node backendAst =
+        backend_ast_emitter.emit(definition);
+    Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
+    return new ElementAst.internal(frontend_ast, treeElements);
+
   }
 
   void assembleProgram() {
@@ -228,43 +285,13 @@ class DartBackend extends Backend {
         return new ElementAst(element);
       } else {
         cps_ir.FunctionDefinition function = compiler.irBuilder.getIr(element);
-        // Transformations on the CPS IR.
-        compiler.tracer.traceCompilation(element.name, null, compiler); 
-        new ConstantPropagator(compiler, constantSystem).rewrite(function);
-        compiler.tracer.traceGraph("Sparse constant propagation", function);
-        new RedundantPhiEliminator().rewrite(function);
-        compiler.tracer.traceGraph("Redundant phi elimination", function);
-        new ShrinkingReducer().rewrite(function);
-        compiler.tracer.traceGraph("Shrinking reductions", function);
-        // Do not rewrite the IR after variable allocation.  Allocation
-        // makes decisions based on an approximation of IR variable live
-        // ranges that can be invalidated by transforming the IR.
-        new cps_ir.RegisterAllocator().visit(function);
-
-        tree_builder.Builder builder = new tree_builder.Builder(compiler);
-        tree_ir.FunctionDefinition definition = builder.build(function);
-        assert(definition != null);
-        compiler.tracer.traceGraph('Tree builder', definition);
-
-        // Transformations on the Tree IR.
-        new StatementRewriter().rewrite(definition);
-        compiler.tracer.traceGraph('Statement rewriter', definition);
-        new CopyPropagator().rewrite(definition);
-        compiler.tracer.traceGraph('Copy propagation', definition);
-        new LoopRewriter().rewrite(definition);
-        compiler.tracer.traceGraph('Loop rewriter', definition);
-        new LogicalRewriter().rewrite(definition);
-        compiler.tracer.traceGraph('Logical rewriter', definition);
-        new backend_ast_emitter.UnshadowParameters().unshadow(definition);
-        compiler.tracer.traceGraph('Unshadow parameters', definition);
-
-        TreeElementMapping treeElements = new TreeElementMapping(element);
-        backend_ast.Node backendAst =
-            backend_ast_emitter.emit(definition);
-        Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
-        return new ElementAst.internal(frontend_ast, treeElements);
+        return createElementAst(compiler,
+            compiler.tracer, constantSystem, element, function);
       }
     }
+
+    List<LibraryElement> userLibraries =
+        compiler.libraryLoader.libraries.where(isUserLibrary).toList();
 
     Set<Element> topLevelElements = new Set<Element>();
     Map<ClassElement, Set<Element>> classMembers =
@@ -340,51 +367,9 @@ class DartBackend extends Backend {
       }
     });
 
-    // Add synthesized constructors to classes with no resolved constructors,
-    // but which originally had any constructor.  That should prevent
-    // those classes from being instantiable with default constructor.
-    Identifier synthesizedIdentifier = new Identifier(
-        new StringToken.fromString(IDENTIFIER_INFO, '', -1));
-
-    NextClassElement:
-    for (ClassElement classElement in classMembers.keys) {
-      if (emitNoMembersFor.contains(classElement)) continue;
-      for (Element member in classMembers[classElement]) {
-        if (member.isConstructor) continue NextClassElement;
-      }
-      if (classElement.constructors.isEmpty) continue NextClassElement;
-
-      // TODO(antonm): check with AAR team if there is better approach.
-      // As an idea: provide template as a Dart code---class C { C.name(); }---
-      // and then overwrite necessary parts.
-      var classNode = classElement.node;
-      SynthesizedConstructorElementX constructor =
-          new SynthesizedConstructorElementX(
-              classElement.name, null, classElement, false);
-      constructor.typeCache =
-          new FunctionType(constructor, const VoidType());
-      if (!constructor.isSynthesized) {
-        classMembers[classElement].add(constructor);
-      }
-      FunctionExpression node = new FunctionExpression(
-          new Send(classNode.name, synthesizedIdentifier),
-          new NodeList(new StringToken.fromString(OPEN_PAREN_INFO, '(', -1),
-                       const Link<Node>(),
-                       new StringToken.fromString(CLOSE_PAREN_INFO, ')', -1)),
-          new EmptyStatement(
-              new StringToken.fromString(SEMICOLON_INFO, ';', -1)),
-          null, Modifiers.EMPTY, null, null);
-
-      elementAsts[constructor] =
-          new ElementAst.internal(node, new TreeElementMapping(null));
-    }
-
     // Create all necessary placeholders.
     PlaceholderCollector collector =
         new PlaceholderCollector(compiler, fixedMemberNames, elementAsts);
-    // Add synthesizedIdentifier to set of unresolved names to rename it to
-    // some unused identifier.
-    collector.unresolvedNodes.add(synthesizedIdentifier);
     makePlaceholders(element) {
       bool oldUseHelper = useMirrorHelperLibrary;
       useMirrorHelperLibrary = (useMirrorHelperLibrary
@@ -454,18 +439,78 @@ class DartBackend extends Backend {
                                topLevelNodes, collector);
     }
 
-    final EmitterUnparser unparser =
-        new EmitterUnparser(placeholderRenamer.renames,
-                            stripTypes: forceStripTypes,
-                            minify: compiler.enableMinification);
-    for (LibraryElement library in placeholderRenamer.platformImports) {
-      if (library.isPlatformLibrary && !library.isInternalLibrary) {
-        unparser.unparseImportTag(library.canonicalUri.toString());
+    Map<LibraryElement, String> outputPaths = new Map<LibraryElement, String>();
+    Map<LibraryElement, EmitterUnparser> unparsers =
+        new Map<LibraryElement, EmitterUnparser>();
+
+    // The single unparser used if we collect all the output in one file.
+    EmitterUnparser mainUnparser = multiFile
+        ? null
+        : new EmitterUnparser(placeholderRenamer.renames,
+            stripTypes: forceStripTypes,
+            minify: compiler.enableMinification);
+
+    if (multiFile) {
+      // TODO(sigurdm): Factor handling of library-paths out from emitting.
+      String mainName = compiler.outputUri.pathSegments.last;
+      String mainBaseName = mainName.endsWith(".dart")
+          ? mainName.substring(0, mainName.length - 5)
+          : mainName;
+      // Map each library to a path based on the uri of the original
+      // library and [compiler.outputUri].
+      Set<String> usedLibraryPaths = new Set<String>();
+      for (LibraryElement library in userLibraries) {
+        if (library == compiler.mainApp) {
+          outputPaths[library] = mainBaseName;
+        } else {
+          List<String> names =
+              library.canonicalUri.pathSegments.last.split(".");
+          if (names.last == "dart") {
+            names = names.sublist(0, names.length - 1);
+          }
+          outputPaths[library] =
+              "$mainBaseName.${makeUnique(names.join("."), usedLibraryPaths)}";
+        }
+      }
+
+      /// Rewrites imports/exports to refer to the paths given in [outputPaths].
+      for(LibraryElement outputLibrary in userLibraries) {
+        EmitterUnparser unparser = new EmitterUnparser(
+            placeholderRenamer.renames,
+            stripTypes: forceStripTypes,
+            minify: compiler.enableMinification);
+        unparsers[outputLibrary] = unparser;
+        LibraryName libraryName = outputLibrary.libraryTag;
+        if (libraryName != null) {
+          unparser.visitLibraryName(libraryName);
+        }
+        for (LibraryTag tag in outputLibrary.tags) {
+          if (tag is! LibraryDependency) continue;
+          LibraryDependency dependency = tag;
+          LibraryElement libraryElement =
+              outputLibrary.getLibraryFromTag(dependency);
+          String uri = outputPaths.containsKey(libraryElement)
+              ? "${outputPaths[libraryElement]}.dart"
+              : libraryElement.canonicalUri.toString();
+          if (dependency is Import) {
+            unparser.unparseImportTag(uri);
+          } else {
+            unparser.unparseExportTag(uri);
+          }
+        }
+      }
+    } else {
+      for(LibraryElement library in placeholderRenamer.platformImports) {
+        if (library.isPlatformLibrary && !library.isInternalLibrary) {
+          mainUnparser.unparseImportTag(library.canonicalUri.toString());
+        }
       }
     }
+
     for (int i = 0; i < sortedTopLevels.length; i++) {
       Element element = sortedTopLevels[i];
       Node node = topLevelNodes[i];
+      Unparser unparser = multiFile ? unparsers[element.library] : mainUnparser;
       if (node is ClassNode) {
         // TODO(smok): Filter out default constructors here.
         unparser.unparseClassWithBody(node, memberNodes[node]);
@@ -475,16 +520,35 @@ class DartBackend extends Backend {
       unparser.newline();
     }
 
-    compiler.assembledCode = unparser.result;
-    compiler.outputProvider("", "dart")
-         ..add(compiler.assembledCode)
-         ..close();
+    int totalSize = 0;
+    if (multiFile) {
+      for(LibraryElement outputLibrary in userLibraries) {
+        // TODO(sigurdm): Make the unparser output directly into the buffer instead
+        // of caching in `.result`.
+        String code = unparsers[outputLibrary].result;
+        totalSize += code.length;
+        compiler.outputProvider(outputPaths[outputLibrary], "dart")
+             ..add(code)
+             ..close();
+      }
+      // TODO(sigurdm): We should get rid of compiler.assembledCode.
+      compiler.assembledCode = unparsers[compiler.mainApp].result;
+    } else {
+      compiler.assembledCode = mainUnparser.result;
+      compiler.outputProvider("", "dart")
+           ..add(compiler.assembledCode)
+           ..close();
+
+      totalSize = compiler.assembledCode.length;
+    }
+
     // Output verbose info about size ratio of resulting bundle to all
     // referenced non-platform sources.
-    logResultBundleSizeInfo(topLevelElements);
+    logResultBundleSizeInfo(topLevelElements, totalSize);
   }
 
-  void logResultBundleSizeInfo(Set<Element> topLevelElements) {
+  void logResultBundleSizeInfo(Set<Element> topLevelElements,
+                               int totalOutputSize) {
     Iterable<LibraryElement> referencedLibraries =
         compiler.libraryLoader.libraries.where(isUserLibrary);
     // Sum total size of scripts in each referenced library.
@@ -494,9 +558,9 @@ class DartBackend extends Backend {
         nonPlatformSize += compilationUnit.script.file.length;
       }
     }
-    int percentage = compiler.assembledCode.length * 100 ~/ nonPlatformSize;
+    int percentage = totalOutputSize * 100 ~/ nonPlatformSize;
     log('Total used non-platform files size: ${nonPlatformSize} bytes, '
-        'bundle size: ${compiler.assembledCode.length} bytes (${percentage}%)');
+        'Output total size: $totalOutputSize bytes (${percentage}%)');
   }
 
   log(String message) => compiler.log('[DartBackend] $message');

@@ -878,7 +878,24 @@ main() {
   testDart2Dart(src, expectedResult: expectedResult);
 }
 
-testUnresolvedNamedConstructor() {
+testUnresolvedNamedConstructor1() {
+  var src = '''
+class A {
+}
+
+main() {
+  new A.named();
+}
+''';
+  var expectedResult = """
+main() {
+  new Unresolved();
+}
+""";
+  testDart2Dart(src, expectedResult: expectedResult);
+}
+
+testUnresolvedNamedConstructor2() {
   var src = '''
 class A {
   A() {}
@@ -895,7 +912,30 @@ class A {
 }
 main() {
   new A();
-  new Unresolved_A();
+  new Unresolved();
+}
+""";
+  testDart2Dart(src, expectedResult: expectedResult);
+}
+
+testUnresolvedNamedConstructor3() {
+  var src = '''
+class A {
+  static method() {}
+}
+
+main() {
+  A.method();
+  new A.named();
+}
+''';
+  var expectedResult = """
+class A {
+  static method() {}
+}
+main() {
+  A.method();
+  new Unresolved();
 }
 """;
   testDart2Dart(src, expectedResult: expectedResult);
@@ -929,5 +969,7 @@ main() {
   testDeclarationTypePlaceholders();
   testPlatformLibraryMemberNamesAreFixed();
   testConflictsWithCoreLib();
-  testUnresolvedNamedConstructor();
+  testUnresolvedNamedConstructor1();
+  testUnresolvedNamedConstructor2();
+  testUnresolvedNamedConstructor3();
 }

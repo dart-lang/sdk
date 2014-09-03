@@ -28,6 +28,8 @@ class CopyPropagator extends RecursiveVisitor {
   FunctionElement functionElement;
 
   void rewrite(FunctionDefinition function) {
+    if (function.isAbstract) return;
+
     functionElement = function.element;
     visitFunctionDefinition(function);
   }

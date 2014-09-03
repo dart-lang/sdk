@@ -82,45 +82,51 @@ class ASTEmitter extends tree.Visitor<dynamic, Expression> {
       declaredVariables.add(param);
     }
 
-    firstStatement = definition.body;
-    visitStatement(definition.body);
-    removeTrailingReturn();
+    Statement body;
+    if (definition.isAbstract) {
+      body = new EmptyStatement();
+    } else {
+      firstStatement = definition.body;
+      visitStatement(definition.body);
+      removeTrailingReturn();
 
-    // Some of the variable declarations have already been added
-    // if their first assignment could be pulled into the initializer.
-    // Add the remaining variable declarations now.
-    for (tree.Variable variable in variableNames.keys) {
-      if (!declaredVariables.contains(variable)) {
-        addDeclaration(variable);
+      // Some of the variable declarations have already been added
+      // if their first assignment could be pulled into the initializer.
+      // Add the remaining variable declarations now.
+      for (tree.Variable variable in variableNames.keys) {
+        if (!declaredVariables.contains(variable)) {
+          addDeclaration(variable);
+        }
       }
-    }
 
-    // Add constant declarations.
-    List<VariableDeclaration> constants = <VariableDeclaration>[];
-    for (ConstDeclaration constDecl in definition.localConstants) {
-      if (!constantNames.containsKey(constDecl.element))
-        continue; // Discard unused constants declarations.
-      String name = getConstantName(constDecl.element);
-      Expression value = emitConstant(constDecl.expression);
-      VariableDeclaration decl = new VariableDeclaration(name, value);
-      decl.element = constDecl.element;
-      constants.add(decl);
-    }
+      // Add constant declarations.
+      List<VariableDeclaration> constants = <VariableDeclaration>[];
+      for (ConstDeclaration constDecl in definition.localConstants) {
+        if (!constantNames.containsKey(constDecl.element))
+          continue; // Discard unused constants declarations.
+        String name = getConstantName(constDecl.element);
+        Expression value = emitConstant(constDecl.expression);
+        VariableDeclaration decl = new VariableDeclaration(name, value);
+        decl.element = constDecl.element;
+        constants.add(decl);
+      }
 
-    List<Statement> bodyParts = [];
-    if (constants.length > 0) {
-      bodyParts.add(new VariableDeclarations(constants, isConst: true));
-    }
-    if (variables.length > 0) {
-      bodyParts.add(new VariableDeclarations(variables));
-    }
-    bodyParts.addAll(statementBuffer);
+      List<Statement> bodyParts = [];
+      if (constants.length > 0) {
+        bodyParts.add(new VariableDeclarations(constants, isConst: true));
+      }
+      if (variables.length > 0) {
+        bodyParts.add(new VariableDeclarations(variables));
+      }
+      bodyParts.addAll(statementBuffer);
 
+      body = new Block(bodyParts);
+    }
     FunctionType functionType = functionElement.type;
 
     return new FunctionExpression(
         parameters,
-        new Block(bodyParts),
+        body,
         name: functionElement.name,
         returnType: emitOptionalType(functionType.returnType))
         ..element = functionElement;
@@ -777,6 +783,8 @@ class UnshadowParameters extends tree.RecursiveVisitor {
   Set<tree.Variable> hasShadowedUse = new Set<tree.Variable>();
 
   void unshadow(tree.FunctionDefinition definition) {
+    if (definition.isAbstract) return;
+
     visitFunctionDefinition(definition);
   }
 

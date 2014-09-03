@@ -813,13 +813,20 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
 
     uword addr = RawObject::ToAddr(obj.raw()) + used_size;
     if (leftover_size >= TypedData::InstanceSize(0)) {
-      // Update the leftover space as an TypedDataInt8Array object.
+      // Update the leftover space as a TypedDataInt8Array object.
       RawTypedData* raw =
           reinterpret_cast<RawTypedData*>(RawObject::FromAddr(addr));
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, tags);
-      raw->ptr()->tags_ = tags;
+      uword new_tags = RawObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
+      new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
+      uword tags = raw->ptr()->tags_;
+      uword old_tags;
+      // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
+      do {
+        old_tags = tags;
+        tags = AtomicOperations::CompareAndSwapWord(
+            &raw->ptr()->tags_, old_tags, new_tags);
+      } while (tags != old_tags);
+
       intptr_t leftover_len = (leftover_size - TypedData::InstanceSize(0));
       ASSERT(TypedData::InstanceSize(leftover_len) == leftover_size);
       raw->ptr()->length_ = Smi::New(leftover_len);
@@ -827,10 +834,16 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       // Update the leftover space as a basic object.
       ASSERT(leftover_size == Object::InstanceSize());
       RawObject* raw = reinterpret_cast<RawObject*>(RawObject::FromAddr(addr));
-      uword tags = 0;
-      tags = RawObject::SizeTag::update(leftover_size, tags);
-      tags = RawObject::ClassIdTag::update(kInstanceCid, tags);
-      raw->ptr()->tags_ = tags;
+      uword new_tags = RawObject::ClassIdTag::update(kInstanceCid, 0);
+      new_tags = RawObject::SizeTag::update(leftover_size, new_tags);
+      uword tags = raw->ptr()->tags_;
+      uword old_tags;
+      // TODO(iposva): Investigate whether CompareAndSwapWord is necessary.
+      do {
+        old_tags = tags;
+        tags = AtomicOperations::CompareAndSwapWord(
+            &raw->ptr()->tags_, old_tags, new_tags);
+      } while (tags != old_tags);
     }
   }
 }
@@ -13101,15 +13114,13 @@ RawObject* Instance::Evaluate(const String& expr,
   const Function& eval_func =
       Function::Handle(EvaluateHelper(cls, expr, param_names, false));
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
-  Object& param = Object::Handle();
+  PassiveObject& param = PassiveObject::Handle();
   args.SetAt(0, *this);
   for (intptr_t i = 0; i < param_values.Length(); i++) {
     param = param_values.At(i);
     args.SetAt(i + 1, param);
   }
-  const Object& result =
-      Object::Handle(DartEntry::InvokeFunction(eval_func, args));
-  return result.raw();
+  return DartEntry::InvokeFunction(eval_func, args);
 }
 
 
@@ -13340,9 +13351,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
 bool Instance::OperatorEquals(const Instance& other) const {
   // TODO(koda): Optimize for all builtin classes and all classes
   // that do not override operator==.
-  const Object& result =
-      Object::Handle(DartLibraryCalls::Equals(*this, other));
-  return result.raw() == Object::bool_true().raw();
+  return DartLibraryCalls::Equals(*this, other) == Object::bool_true().raw();
 }
 
 
@@ -13597,12 +13606,12 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
   // Handle certain special instance values.
   if (raw() == Object::sentinel().raw()) {
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("type", "Sentinel");
     jsobj.AddProperty("id", "objects/not-initialized");
     jsobj.AddProperty("valueAsString", "<not initialized>");
     return;
   } else if (raw() == Object::transition_sentinel().raw()) {
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("type", "Sentinel");
     jsobj.AddProperty("id", "objects/being-initialized");
     jsobj.AddProperty("valueAsString", "<being initialized>");
     return;
@@ -17148,7 +17157,7 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
     // TODO(turnidge): This is a hack.  The user could have this
     // special string in their program.  Fixing this involves updating
     // the debugging api a bit.
-    jsobj.AddProperty("type", ref ? "@Null" : "Null");
+    jsobj.AddProperty("type", "Sentinel");
     jsobj.AddProperty("id", "objects/optimized-out");
     jsobj.AddProperty("valueAsString", "<optimized out>");
     return;
@@ -17198,14 +17207,11 @@ RawString* String::MakeExternal(void* array,
     intptr_t str_length = this->Length();
     ASSERT(length >= (str_length * this->CharSize()));
     intptr_t class_id = raw()->GetClassId();
-    intptr_t used_size = 0;
-    intptr_t original_size = 0;
-    uword tags = raw_ptr()->tags_;
 
     ASSERT(!InVMHeap());
     if (class_id == kOneByteStringCid) {
-      used_size = ExternalOneByteString::InstanceSize();
-      original_size = OneByteString::InstanceSize(str_length);
+      intptr_t used_size = ExternalOneByteString::InstanceSize();
+      intptr_t original_size = OneByteString::InstanceSize(str_length);
       ASSERT(original_size >= used_size);
 
       // Copy the data into the external array.
@@ -17213,11 +17219,22 @@ RawString* String::MakeExternal(void* array,
         memmove(array, OneByteString::CharAddr(*this, 0), str_length);
       }
 
+      // If there is any left over space fill it with either an Array object or
+      // just a plain object (depending on the amount of left over space) so
+      // that it can be traversed over successfully during garbage collection.
+      Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
+
       // Update the class information of the object.
       const intptr_t class_id = kExternalOneByteStringCid;
-      tags = RawObject::SizeTag::update(used_size, tags);
-      tags = RawObject::ClassIdTag::update(class_id, tags);
-      raw_ptr()->tags_ = tags;
+      uword tags = raw_ptr()->tags_;
+      uword old_tags;
+      do {
+        old_tags = tags;
+        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
+        tags = AtomicOperations::CompareAndSwapWord(
+            &raw_ptr()->tags_, old_tags, new_tags);
+      } while (tags != old_tags);
       result = this->raw();
       const uint8_t* ext_array = reinterpret_cast<const uint8_t*>(array);
       ExternalStringData<uint8_t>* ext_data = new ExternalStringData<uint8_t>(
@@ -17230,8 +17247,8 @@ RawString* String::MakeExternal(void* array,
       finalizer = ExternalOneByteString::Finalize;
     } else {
       ASSERT(class_id == kTwoByteStringCid);
-      used_size = ExternalTwoByteString::InstanceSize();
-      original_size = TwoByteString::InstanceSize(str_length);
+      intptr_t used_size = ExternalTwoByteString::InstanceSize();
+      intptr_t original_size = TwoByteString::InstanceSize(str_length);
       ASSERT(original_size >= used_size);
 
       // Copy the data into the external array.
@@ -17241,11 +17258,22 @@ RawString* String::MakeExternal(void* array,
                 (str_length * kTwoByteChar));
       }
 
+      // If there is any left over space fill it with either an Array object or
+      // just a plain object (depending on the amount of left over space) so
+      // that it can be traversed over successfully during garbage collection.
+      Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
+
       // Update the class information of the object.
       const intptr_t class_id = kExternalTwoByteStringCid;
-      tags = RawObject::SizeTag::update(used_size, tags);
-      tags = RawObject::ClassIdTag::update(class_id, tags);
-      raw_ptr()->tags_ = tags;
+      uword tags = raw_ptr()->tags_;
+      uword old_tags;
+      do {
+        old_tags = tags;
+        uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+        new_tags = RawObject::ClassIdTag::update(class_id, new_tags);
+        tags = AtomicOperations::CompareAndSwapWord(
+            &raw_ptr()->tags_, old_tags, new_tags);
+      } while (tags != old_tags);
       result = this->raw();
       const uint16_t* ext_array = reinterpret_cast<const uint16_t*>(array);
       ExternalStringData<uint16_t>* ext_data = new ExternalStringData<uint16_t>(
@@ -17257,11 +17285,6 @@ RawString* String::MakeExternal(void* array,
       external_data = ext_data;
       finalizer = ExternalTwoByteString::Finalize;
     }
-
-    // If there is any left over space fill it with either an Array object or
-    // just a plain object (depending on the amount of left over space) so
-    // that it can be traversed over successfully during garbage collection.
-    Object::MakeUnusedSpaceTraversable(*this, original_size, used_size);
   }  // NoGCScope
   AddFinalizer(result, external_data, finalizer);
   return this->raw();
@@ -18077,8 +18100,14 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
 void Array::MakeImmutable() const {
   NoGCScope no_gc;
   uword tags = raw_ptr()->tags_;
-  tags = RawObject::ClassIdTag::update(kImmutableArrayCid, tags);
-  raw_ptr()->tags_ = tags;
+  uword old_tags;
+  do {
+    old_tags = tags;
+    uword new_tags = RawObject::ClassIdTag::update(kImmutableArrayCid,
+                                                   old_tags);
+    tags = AtomicOperations::CompareAndSwapWord(
+        &raw_ptr()->tags_, old_tags, new_tags);
+  } while (tags != old_tags);
 }
 
 
@@ -18121,15 +18150,17 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
 RawArray* Array::Grow(const Array& source,
                       intptr_t new_length,
                       Heap::Space space) {
-  const Array& result = Array::Handle(Array::New(new_length, space));
+  Isolate* isolate = Isolate::Current();
+  const Array& result = Array::Handle(isolate, Array::New(new_length, space));
   intptr_t len = 0;
   if (!source.IsNull()) {
     len = source.Length();
-    result.SetTypeArguments(TypeArguments::Handle(source.GetTypeArguments()));
+    result.SetTypeArguments(
+        TypeArguments::Handle(isolate, source.GetTypeArguments()));
   }
   ASSERT(new_length >= len);  // Cannot copy 'source' into new array.
   ASSERT(new_length != len);  // Unnecessary copying of array.
-  Object& obj = Object::Handle();
+  PassiveObject& obj = PassiveObject::Handle(isolate);
   for (int i = 0; i < len; i++) {
     obj = source.At(i);
     result.SetAt(i, obj);
@@ -18157,21 +18188,26 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   intptr_t used_size = Array::InstanceSize(used_len);
   NoGCScope no_gc;
 
+  // If there is any left over space fill it with either an Array object or
+  // just a plain object (depending on the amount of left over space) so
+  // that it can be traversed over successfully during garbage collection.
+  Object::MakeUnusedSpaceTraversable(array, capacity_size, used_size);
+
   // Update the size in the header field and length of the array object.
   uword tags = array.raw_ptr()->tags_;
   ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
-  tags = RawObject::SizeTag::update(used_size, tags);
-  array.raw_ptr()->tags_ = tags;
+  uword old_tags;
+  do {
+    old_tags = tags;
+    uword new_tags = RawObject::SizeTag::update(used_size, old_tags);
+    tags = AtomicOperations::CompareAndSwapWord(
+        &array.raw_ptr()->tags_, old_tags, new_tags);
+  } while (tags != old_tags);
   array.SetLength(used_len);
 
   // Null the GrowableObjectArray, we are removing it's backing array.
   growable_array.SetLength(0);
   growable_array.SetData(Object::empty_array());
-
-  // If there is any left over space fill it with either an Array object or
-  // just a plain object (depending on the amount of left over space) so
-  // that it can be traversed over successfully during garbage collection.
-  Object::MakeUnusedSpaceTraversable(array, capacity_size, used_size);
 
   return array.raw();
 }
@@ -18249,7 +18285,7 @@ RawObject* GrowableObjectArray::RemoveLast() const {
   ASSERT(Length() > 0);
   intptr_t index = Length() - 1;
   const Array& contents = Array::Handle(data());
-  const Object& obj = Object::Handle(contents.At(index));
+  const PassiveObject& obj = PassiveObject::Handle(contents.At(index));
   contents.SetAt(index, Object::null_object());
   SetLength(index);
   return obj.raw();
@@ -18411,9 +18447,12 @@ void LinkedHashMap::InsertOrUpdate(const Object& key,
 RawObject* LinkedHashMap::LookUp(const Object& key) const {
   ASSERT(!IsNull());
   EnumIndexDefaultMap map(data());
-  const Object& result = Object::Handle(map.GetOrNull(key));
-  ASSERT(map.Release().raw() == data());
-  return result.raw();
+  {
+    NoGCScope no_gc;
+    RawObject* result = map.GetOrNull(key);
+    ASSERT(map.Release().raw() == data());
+    return result;
+  }
 }
 
 
@@ -18430,7 +18469,7 @@ RawObject* LinkedHashMap::Remove(const Object& key) const {
   ASSERT(!IsNull());
   EnumIndexDefaultMap map(data());
   // TODO(koda): Make 'Remove' also return the old value.
-  const Object& result = Object::Handle(map.GetOrNull(key));
+  const PassiveObject& result = PassiveObject::Handle(map.GetOrNull(key));
   if (map.Remove(key)) {
     SetModified();
   }
@@ -19106,15 +19145,16 @@ void Stacktrace::Append(const Array& code_list,
 
   // Grow the arrays for code, pc_offset pairs to accommodate the new stack
   // frames.
-  Array& code_array = Array::Handle(raw_ptr()->code_array_);
-  Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
+  Isolate* isolate = Isolate::Current();
+  Array& code_array = Array::Handle(isolate, raw_ptr()->code_array_);
+  Array& pc_offset_array = Array::Handle(isolate, raw_ptr()->pc_offset_array_);
   code_array = Array::Grow(code_array, new_length);
   pc_offset_array = Array::Grow(pc_offset_array, new_length);
   set_code_array(code_array);
   set_pc_offset_array(pc_offset_array);
   // Now append the new function and code list to the existing arrays.
   intptr_t j = start_index;
-  Object& obj = Object::Handle();
+  PassiveObject& obj = PassiveObject::Handle(isolate);
   for (intptr_t i = old_length; i < new_length; i++, j++) {
     obj = code_list.At(j);
     code_array.SetAt(i, obj);

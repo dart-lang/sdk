@@ -16,6 +16,8 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
   final Set<Continuation> workSet = new Set<Continuation>();
 
   void rewrite(final FunctionDefinition root) {
+    if (root.isAbstract) return;
+
     // Set all parent pointers.
     new _ParentVisitor().visit(root);
 

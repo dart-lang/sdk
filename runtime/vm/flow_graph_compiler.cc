@@ -6,6 +6,7 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "vm/bit_vector.h"
 #include "vm/cha.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
@@ -32,6 +33,11 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, optimization_counter_threshold);
+DEFINE_FLAG(int, optimization_counter_scale, 2000,
+    "The scale of invocation count, by size of the function.");
+DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
+    "The minimum invocation count for a function.");
+DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(int, stacktrace_every);
@@ -313,8 +319,32 @@ void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
 }
 
 
+static void LoopInfoComment(
+    Assembler* assembler,
+    const BlockEntryInstr& block,
+    const ZoneGrowableArray<BlockEntryInstr*>& loop_headers) {
+  if (Assembler::EmittingComments()) {
+    for (intptr_t loop_id = 0; loop_id < loop_headers.length(); ++loop_id) {
+      for (BitVector::Iterator loop_it(loop_headers[loop_id]->loop_info());
+           !loop_it.Done();
+           loop_it.Advance()) {
+        if (loop_it.Current() == block.preorder_number()) {
+           assembler->Comment("  Loop %" Pd "", loop_id);
+        }
+      }
+    }
+  }
+}
+
+
 void FlowGraphCompiler::VisitBlocks() {
   CompactBlocks();
+  const ZoneGrowableArray<BlockEntryInstr*>* loop_headers = NULL;
+  if (Assembler::EmittingComments()) {
+    // 'loop_headers' were cleared, recompute.
+    loop_headers = flow_graph().ComputeLoops();
+    ASSERT(loop_headers != NULL);
+  }
 
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
@@ -325,6 +355,8 @@ void FlowGraphCompiler::VisitBlocks() {
     if (WasCompacted(entry)) {
       continue;
     }
+
+    LoopInfoComment(assembler(), *entry, *loop_headers);
 
     entry->EmitNativeCode(this);
     // Compile all successors until an exit, branch, or a block entry.
@@ -1400,6 +1432,23 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
   ic_data.AddTarget(target);
   (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   return &ic_data;
+}
+
+
+intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
+  intptr_t threshold;
+  if (is_optimizing()) {
+    threshold = FLAG_reoptimization_counter_threshold;
+  } else {
+    const intptr_t basic_blocks = flow_graph().preorder().length();
+    ASSERT(basic_blocks > 0);
+    threshold = FLAG_optimization_counter_scale * basic_blocks +
+        FLAG_min_optimization_counter_threshold;
+    if (threshold > FLAG_optimization_counter_threshold) {
+      threshold = FLAG_optimization_counter_threshold;
+    }
+  }
+  return threshold;
 }
 
 }  // namespace dart

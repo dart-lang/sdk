@@ -511,6 +511,7 @@ BENCHMARK(SerializeNull) {
   Timer timer(true, "Serialize Null");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
+    StackZone zone(isolate);
     MessageWriter writer(&buffer, &message_allocator);
     writer.WriteMessage(null_object);
     intptr_t buffer_len = writer.BytesWritten();
@@ -533,6 +534,7 @@ BENCHMARK(SerializeSmi) {
   Timer timer(true, "Serialize Smi");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
+    StackZone zone(isolate);
     MessageWriter writer(&buffer, &message_allocator);
     writer.WriteMessage(smi_object);
     intptr_t buffer_len = writer.BytesWritten();
@@ -557,6 +559,7 @@ BENCHMARK(SimpleMessage) {
   Timer timer(true, "Simple Message");
   timer.Start();
   for (intptr_t i = 0; i < kLoopCount; i++) {
+    StackZone zone(isolate);
     MessageWriter writer(&buffer, &malloc_allocator);
     writer.WriteMessage(array_object);
     intptr_t buffer_len = writer.BytesWritten();

@@ -223,6 +223,10 @@ class BaseReader {
     stream_.Advance(value);
   }
 
+  intptr_t PendingBytes() const {
+    return stream_.PendingBytes();
+  }
+
   RawSmi* ReadAsSmi();
   intptr_t ReadSmiValue();
 
@@ -276,6 +280,9 @@ class SnapshotReader : public BaseReader {
 
   // Read a script snap shot.
   RawObject* ReadScriptSnapshot();
+
+  // Read version number of snapshot and verify.
+  RawApiError* VerifyVersion();
 
   // Helper functions for creating uninitialized versions
   // of various object types. These are used when reading a
@@ -421,7 +428,7 @@ class SnapshotReader : public BaseReader {
 };
 
 
-class BaseWriter {
+class BaseWriter : public StackResource {
  public:
   // Size of the snapshot.
   intptr_t BytesWritten() const { return stream_.bytes_written(); }
@@ -489,7 +496,9 @@ class BaseWriter {
  protected:
   BaseWriter(uint8_t** buffer,
              ReAlloc alloc,
-             intptr_t initial_size) : stream_(buffer, alloc, initial_size) {
+             intptr_t initial_size)
+      : StackResource(Isolate::Current()),
+        stream_(buffer, alloc, initial_size) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -515,10 +524,8 @@ class BaseWriter {
 
 class ForwardList {
  public:
-  explicit ForwardList(intptr_t first_object_id)
-      : first_object_id_(first_object_id),
-        nodes_(),
-        first_unprocessed_object_id_(first_object_id) {}
+  explicit ForwardList(intptr_t first_object_id);
+  ~ForwardList();
 
   class Node : public ZoneAllocated {
    public:
@@ -594,6 +601,9 @@ class SnapshotWriter : public BaseWriter {
   }
   void ThrowException(Exceptions::ExceptionType type, const char* msg);
 
+  // Write a version string for the snapshot.
+  void WriteVersion();
+
  protected:
   void UnmarkAll() {
     forward_list_.UnmarkAll();
@@ -621,10 +631,12 @@ class SnapshotWriter : public BaseWriter {
                      intptr_t tags);
   void WriteInstanceRef(RawObject* raw, RawClass* cls);
 
+  Isolate* isolate() const { return isolate_; }
   ObjectStore* object_store() const { return object_store_; }
 
  private:
   Snapshot::Kind kind_;
+  Isolate* isolate_;
   ObjectStore* object_store_;  // Object store for common classes.
   ClassTable* class_table_;  // Class table for the class index to class lookup.
   ForwardList forward_list_;

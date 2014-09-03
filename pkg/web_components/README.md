@@ -20,7 +20,7 @@ Include the polyfills in your HTML `<head>` to enable Shadow DOM:
 <script src="packages/web_components/dart_support.js"></script>
 ```
 
-You can also use an unminfied version for development:
+You can also use an unminified version for development:
 
 ```html
 <script src="packages/web_components/platform.concat.js"></script>

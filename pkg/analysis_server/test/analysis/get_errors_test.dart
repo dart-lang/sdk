@@ -74,8 +74,8 @@ main() {
       expect(errors, hasLength(1));
       {
         AnalysisError error = errors[0];
-        expect(error.severity, ErrorSeverity.ERROR);
-        expect(error.type, ErrorType.SYNTACTIC_ERROR);
+        expect(error.severity, AnalysisErrorSeverity.ERROR);
+        expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
         expect(error.location.file, testFile);
         expect(error.location.startLine, 2);
       }
@@ -113,7 +113,7 @@ main() {
       expect(result.errors, isEmpty);
       RequestError error = response.error;
       expect(error, isNotNull);
-      expect(error.code, 'GET_ERRORS_ERROR');
+      expect(error.code, RequestErrorCode.GET_ERRORS_ERROR);
     });
   }
 

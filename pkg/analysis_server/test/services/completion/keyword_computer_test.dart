@@ -145,4 +145,37 @@ class KeywordComputerTest extends AbstractCompletionTest {
             'typedef',
             'var']);
   }
+
+  test_partial_class() {
+    addTestSource('cl^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            'abstract',
+            'class',
+            'const',
+            'export',
+            'final',
+            'import',
+            'library',
+            'part',
+            'typedef',
+            'var']);
+  }
+
+  test_partial_class2() {
+    addTestSource('library a; cl^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(
+        [
+            'abstract',
+            'class',
+            'const',
+            'export',
+            'final',
+            'import',
+            'part',
+            'typedef',
+            'var']);
+  }
 }

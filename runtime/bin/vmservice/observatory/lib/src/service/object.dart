@@ -30,9 +30,24 @@ abstract class ServiceObject extends Observable {
   @reflectable String get id => _id;
   String _id;
 
-  /// The service type of this object.
-  @reflectable String get serviceType => _serviceType;
-  String _serviceType;
+  /// The user-level type of this object.
+  @reflectable String get type => _type;
+  String _type;
+
+  /// The vm type of this object.
+  @reflectable String get vmType => _vmType;
+  String _vmType;
+
+  bool get isBool => vmType == 'Bool';
+  bool get isDouble => vmType == 'Double';
+  bool get isError => vmType == 'Error';
+  bool get isInstance => vmType == 'Instance';
+  bool get isInt => vmType == 'Smi' || vmType == 'Mint' || vmType == 'Bigint';
+  bool get isList => vmType == 'GrowableObjectArray' || vmType == 'Array';
+  bool get isNull => vmType == 'Null';
+  bool get isSentinel => vmType == 'Sentinel';
+  bool get isString => vmType == 'String';
+  bool get isType => vmType == 'Type';
 
   /// The complete service url of this object.
   @reflectable String get link => _owner.relativeLink(_id);
@@ -76,11 +91,31 @@ abstract class ServiceObject extends Observable {
       case 'Code':
         obj = new Code._empty(owner);
         break;
+      case 'Counter':
+        obj = new ServiceMetric._empty(owner);
+        break;
       case 'Error':
         obj = new DartError._empty(owner);
         break;
       case 'Function':
         obj = new ServiceFunction._empty(owner);
+        break;
+      case 'Gauge':
+        obj = new ServiceMetric._empty(owner);
+        break;
+      case 'Array':
+      case 'Bigint':
+      case 'Bool':
+      case 'Double':
+      case 'GrowableObjectArray':
+      case 'Instance':
+      case 'Mint':
+      case 'Null':
+      case 'Sentinel':  // TODO(rmacnak): Separate this out.
+      case 'Smi':
+      case 'String':
+      case 'Type':
+        obj = new Instance._empty(owner);
         break;
       case 'Isolate':
         obj = new Isolate._empty(owner.vm);
@@ -127,7 +162,7 @@ abstract class ServiceObject extends Observable {
   Future<ServiceObject> reload() {
     if (id == '') {
       // Errors don't have ids.
-      assert(serviceType == 'Error');
+      assert(type == 'Error');
       return new Future.value(this);
     }
     if (loaded && immutable) {
@@ -136,9 +171,11 @@ abstract class ServiceObject extends Observable {
     if (_inProgressReload == null) {
       _inProgressReload = vm.getAsMap(link).then((ObservableMap map) {
           var mapType = _stripRef(map['type']);
-          if (mapType != _serviceType) {
+          if (mapType != _type) {
             // If the type changes, return a new object instead of
             // updating the existing one.
+            //
+            // TODO(turnidge): Check for vmType changing as well?
             assert(mapType == 'Error' || mapType == 'Null');
             return new ServiceObject._fromMap(owner, map);
           }
@@ -160,7 +197,7 @@ abstract class ServiceObject extends Observable {
     // TODO(turnidge): Make this a ServiceError?
     var mapIsRef = _hasRef(map['type']);
     var mapType = _stripRef(map['type']);
-    assert(_serviceType == null || _serviceType == mapType);
+    assert(_type == null || _type == mapType);
 
     if (_id != null && _id != map['id']) {
       // It is only safe to change an id when the object isn't cacheable.
@@ -168,7 +205,17 @@ abstract class ServiceObject extends Observable {
     }
     _id = map['id'];
 
-    _serviceType = mapType;
+    _type = mapType;
+
+    // When the response specifies a specific vmType, use it.
+    // Otherwise the vmType of the response is the same as the 'user'
+    // type.
+    if (map.containsKey('vmType')) {
+      _vmType = _stripRef(map['vmType']);
+    } else {
+      _vmType = _type;
+    }
+
     _update(map, mapIsRef);
   }
 
@@ -184,7 +231,7 @@ abstract class ServiceObject extends Observable {
 abstract class Coverage {
   // Following getters and functions will be provided by [ServiceObject].
   ServiceObjectOwner get owner;
-  String get serviceType;
+  String get type;
   VM get vm;
   String relativeLink(String id);
 
@@ -198,9 +245,9 @@ abstract class Coverage {
 
   Future refreshCoverage() {
     return vm.getAsMap(relativeLink('coverage')).then((ObservableMap map) {
-      var coverageOwner = (serviceType == 'Isolate') ? this : owner;
+      var coverageOwner = (type == 'Isolate') ? this : owner;
       var coverage = new ServiceObject._fromMap(coverageOwner, map);
-      assert(coverage.serviceType == 'CodeCoverage');
+      assert(coverage.type == 'CodeCoverage');
       var coverageList = coverage['coverage'];
       assert(coverageList != null);
       processCoverageData(coverageList);
@@ -625,7 +672,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void processProfile(ServiceMap profile) {
-    assert(profile.serviceType == 'Profile');
+    assert(profile.type == 'Profile');
     var codeTable = new List<Code>();
     var codeRegions = profile['codes'];
     for (var codeRegion in codeRegions) {
@@ -667,7 +714,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   /// Given the class list, loads each class.
   Future<List<Class>> _loadClasses(ServiceMap classList) {
-    assert(classList.serviceType == 'ClassList');
+    assert(classList.type == 'ClassList');
     var futureClasses = [];
     for (var cls in classList['members']) {
       // Skip over non-class classes.
@@ -701,6 +748,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     String id = map['id'];
     var obj = _cache[id];
     if (obj != null) {
+      // Consider calling update when map is not a reference.
       return obj;
     }
     // Build the object from the map directly.
@@ -767,18 +815,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
     loading = false;
 
     reloadBreakpoints();
-
-    // Remap DebuggerEvent to ServiceEvent so that the observatory can
-    // work against 1.5 vms in the short term.
-    //
-    // TODO(turnidge): Remove this when no longer needed.
-    var pause = map['pauseEvent'];
-    if (pause != null) {
-      if (pause['type'] == 'DebuggerEvent') {
-        pause['type'] = 'ServiceEvent';
-      }
-    }
-
     _upgradeCollection(map, isolate);
     if (map['rootLib'] == null ||
         map['timers'] == null ||
@@ -1013,7 +1049,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future stepInto() {
-    print('isolate.stepInto');
     return get("debug/resume?step=into").then((result) {
         if (result is DartError) {
           // TODO(turnidge): Handle this more gracefully.
@@ -1043,6 +1078,44 @@ class Isolate extends ServiceObjectOwner with Coverage {
       });
   }
 
+  final ObservableMap<String, ServiceMetric> dartMetrics =
+      new ObservableMap<String, ServiceMetric>();
+
+  final ObservableMap<String, ServiceMetric> vmMetrics =
+      new ObservableMap<String, ServiceMetric>();
+
+  Future<ObservableMap<String, ServiceMetric>> _refreshMetrics(
+      String id,
+      ObservableMap<String, ServiceMetric> metricsMap) {
+    return get(id).then((result) {
+      if (result is DartError) {
+        // TODO(turnidge): Handle this more gracefully.
+        Logger.root.severe(result.message);
+        return null;
+      }
+      // Clear metrics map.
+      metricsMap.clear();
+      // Repopulate metrics map.
+      var members = result['members'];
+      for (var metric in members) {
+        metricsMap[metric.id] = metric;
+      }
+      return metricsMap;
+    });
+  }
+
+  Future<ObservableMap<String, ServiceMetric>> refreshDartMetrics() {
+    return _refreshMetrics('metrics', dartMetrics);
+  }
+
+  Future<ObservableMap<String, ServiceMetric>> refreshVMMetrics() {
+    return _refreshMetrics('metrics/vm', vmMetrics);
+  }
+
+  Future refreshMetrics() {
+    return refreshDartMetrics().then((_) => refreshVMMetrics());
+  }
+
   String toString() => "Isolate($_id)";
 }
 
@@ -1052,9 +1125,9 @@ class ServiceMap extends ServiceObject implements ObservableMap {
   static String objectIdRingPrefix = 'objects/';
 
   bool get canCache {
-    return (_serviceType == 'Class' ||
-            _serviceType == 'Function' ||
-            _serviceType == 'Field') &&
+    return (_type == 'Class' ||
+            _type == 'Function' ||
+            _type == 'Field') &&
            !_id.startsWith(objectIdRingPrefix);
   }
   bool get immutable => false;
@@ -1115,7 +1188,7 @@ class DartError extends ServiceObject {
 
   @observable String kind;
   @observable String message;
-  @observable ServiceMap exception;
+  @observable Instance exception;
   @observable ServiceMap stacktrace;
 
   void _update(ObservableMap map, bool mapIsRef) {
@@ -1395,6 +1468,54 @@ class Class extends ServiceObject with Coverage {
   String toString() => 'Class($vmName)';
 }
 
+class Instance extends ServiceObject {
+  @observable Class clazz;
+  @observable String valueAsString;
+  @observable int size;
+  @observable ServiceFunction closureFunc;  // If a closure.
+  @observable String name;  // If a Type.
+
+  @observable var typeClass;
+  @observable var length;
+  @observable var fields;
+  @observable var nativeFields;
+  @observable var elements;
+  @observable var userName;
+
+  bool get isClosure => closureFunc != null;
+
+  Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    clazz = map['class'];
+    valueAsString = map['valueAsString'];
+    size = map['size'];
+    closureFunc = map['closureFunc'];
+    name = map['name'];
+
+    if (mapIsRef) {
+      return;
+    }
+
+    nativeFields = map['nativeFields'];
+    fields = map['fields'];
+    length = map['length'];
+    elements = map['elements'];
+    typeClass = map['type_class'];
+    userName = map['user_name'];
+
+    // We are fully loaded.
+    _loaded = true;
+  }
+
+  String get shortName => valueAsString != null ? valueAsString : 'a ${clazz.name}';
+
+  String toString() => 'Instance($shortName)';
+}
+
 // TODO(koda): Sync this with VM.
 class FunctionKind {
   final String _strValue;
@@ -1541,7 +1662,7 @@ class ScriptLine extends Observable {
 
   ScriptLine(this.script, this.line, this.text) {
     possibleBpt = !_isTrivialLine(text);
-    
+
     // TODO(turnidge): This is not so efficient.  Consider improving.
     for (var bpt in this.script.isolate.breakpoints['breakpoints']) {
       var bptScript = bpt['location']['script'];
@@ -2219,10 +2340,100 @@ class Socket extends ServiceObject {
   }
 }
 
+class MetricSample {
+  final double value;
+  final DateTime time;
+  MetricSample(this.value) : time = new DateTime.now();
+}
+
+class ServiceMetric extends ServiceObject {
+  ServiceMetric._empty(ServiceObjectOwner owner) : super._empty(owner) {
+  }
+
+  bool get canCache => true;
+  bool get immutable => false;
+
+  @observable bool recording = false;
+  MetricPoller poller;
+
+  final ObservableList<MetricSample> samples =
+      new ObservableList<MetricSample>();
+  int _sampleBufferSize = 100;
+  int get sampleBufferSize => _sampleBufferSize;
+  set sampleBufferSize(int size) {
+    _sampleBufferSize = size;
+    _removeOld();
+  }
+
+  void addSample(MetricSample sample) {
+    samples.add(sample);
+    _removeOld();
+  }
+
+  void _removeOld() {
+    // TODO(johnmccutchan): If this becomes hot, consider using a circular
+    // buffer.
+    if (samples.length > _sampleBufferSize) {
+      int count = samples.length - _sampleBufferSize;
+      samples.removeRange(0, count);
+    }
+  }
+
+  @observable String description;
+  @observable double value = 0.0;
+  // Only a guage has a non-null min and max.
+  @observable double min;
+  @observable double max;
+
+  bool get isGauge => (min != null) && (max != null);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    name = map['name'];
+    description = map['description'];
+    vmName = map['name'];
+    value = map['value'];
+    min = map['min'];
+    max = map['max'];
+  }
+
+  String toString() => "ServiceMetric($_id)";
+}
+
+class MetricPoller {
+  // Metrics to be polled.
+  final List<ServiceMetric> metrics = new List<ServiceMetric>();
+  final Duration pollPeriod;
+  Timer _pollTimer;
+
+  MetricPoller(int milliseconds) :
+      pollPeriod = new Duration(milliseconds: milliseconds) {
+    start();
+  }
+
+  void start() {
+    _pollTimer = new Timer.periodic(pollPeriod, _onPoll);
+  }
+
+  void cancel() {
+    if (_pollTimer != null) {
+      _pollTimer.cancel();
+    }
+    _pollTimer = null;
+  }
+
+  void _onPoll(_) {
+    // Reload metrics and add a sample to each.
+    for (var metric in metrics) {
+      metric.reload().then((m) {
+        m.addSample(new MetricSample(m.value));
+      });
+    }
+  }
+}
+
 // Convert any ServiceMaps representing a null instance into an actual null.
 _convertNull(obj) {
-  if (obj is ServiceMap &&
-      obj.serviceType == 'Null') {
+  if (obj.isNull) {
     return null;
   }
   return obj;

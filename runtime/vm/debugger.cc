@@ -1971,7 +1971,7 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
       Function::Handle(cls.LookupGetterFunction(field_name));
   ASSERT(!getter_func.IsNull());
 
-  Object& result = Object::Handle();
+  PassiveObject& result = PassiveObject::Handle();
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
 
@@ -2008,7 +2008,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
     return Object::null();
   }
 
-  Object& result = Object::Handle();
+  PassiveObject& result = PassiveObject::Handle();
   bool saved_ignore_flag = ignore_breakpoints_;
   ignore_breakpoints_ = true;
   LongJumpScope jump;
@@ -2029,7 +2029,7 @@ RawArray* Debugger::GetInstanceFields(const Instance& obj) {
   const GrowableObjectArray& field_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New(8));
   String& field_name = String::Handle();
-  Object& field_value = Object::Handle();
+  PassiveObject& field_value = PassiveObject::Handle();
   // Iterate over fields in class hierarchy to count all instance fields.
   while (!cls.IsNull()) {
     fields = cls.fields();
@@ -2054,7 +2054,7 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
   Array& fields = Array::Handle(cls.fields());
   Field& field = Field::Handle();
   String& field_name = String::Handle();
-  Object& field_value = Object::Handle();
+  PassiveObject& field_value = PassiveObject::Handle();
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field ^= fields.At(i);
     if (field.is_static()) {
@@ -2076,7 +2076,7 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
   Object& entry = Object::Handle(isolate_);
   Field& field = Field::Handle(isolate_);
   String& field_name = String::Handle(isolate_);
-  Object& field_value = Object::Handle(isolate_);
+  PassiveObject& field_value = PassiveObject::Handle(isolate_);
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {

@@ -348,7 +348,7 @@ class StringBuffer {
   }
 
   @patch
-  String toString() => _contents;
+  String toString() => Primitives.flattenString(_contents);
 }
 
 @patch

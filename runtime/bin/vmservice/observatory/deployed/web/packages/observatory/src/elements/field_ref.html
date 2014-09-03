@@ -17,7 +17,7 @@
       <template if="{{ (ref['declaredType'].name != 'dynamic') }}">
         <instance-ref ref="{{ ref['declaredType'] }}"></instance-ref>
       </template>
-      <a on-click="{{ goto }}" title="{{ hoverText }}" href="{{ url }}">{{ name }}</a>
+      <a on-click="{{ goto }}" title="{{ hoverText }}" _href="{{ url }}">{{ name }}</a>
     </span>
   </template>
 </polymer-element>

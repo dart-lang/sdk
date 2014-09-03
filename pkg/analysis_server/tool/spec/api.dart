@@ -284,9 +284,13 @@ class Request extends ApiNode {
    * "error" fields.
    */
   TypeDecl get responseType {
-    List<TypeObjectField> fields = [new TypeObjectField('id', new TypeReference(
-        'String', null), null), new TypeObjectField('error', new TypeReference('Error',
-        null), null, optional: true)];
+    List<TypeObjectField> fields = [
+        new TypeObjectField('id', new TypeReference('String', null), null),
+        new TypeObjectField(
+            'error',
+            new TypeReference('RequestError', null),
+            null,
+            optional: true)];
     if (result != null) {
       fields.add(new TypeObjectField('result', result, null));
     }

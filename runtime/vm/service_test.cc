@@ -534,7 +534,7 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("vmName");
   EXPECT_STREQ(
-      "{\"type\":\"Null\",\"id\":\"objects\\/not-initialized\","
+      "{\"type\":\"Sentinel\",\"id\":\"objects\\/not-initialized\","
       "\"valueAsString\":\"<not initialized>\"}",
       handler.msg());
 
@@ -545,7 +545,7 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("vmName");
   EXPECT_STREQ(
-      "{\"type\":\"Null\",\"id\":\"objects\\/being-initialized\","
+      "{\"type\":\"Sentinel\",\"id\":\"objects\\/being-initialized\","
       "\"valueAsString\":\"<being initialized>\"}",
       handler.msg());
 
@@ -555,7 +555,7 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("vmName");
   EXPECT_STREQ(
-      "{\"type\":\"Null\",\"id\":\"objects\\/optimized-out\","
+      "{\"type\":\"Sentinel\",\"id\":\"objects\\/optimized-out\","
       "\"valueAsString\":\"<optimized out>\"}",
       handler.msg());
 
@@ -565,7 +565,7 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("vmName");
   EXPECT_STREQ(
-      "{\"type\":\"Null\",\"id\":\"objects\\/collected\","
+      "{\"type\":\"Sentinel\",\"id\":\"objects\\/collected\","
       "\"valueAsString\":\"<collected>\"}",
       handler.msg());
 
@@ -575,7 +575,7 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("vmName");
   EXPECT_STREQ(
-      "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
+      "{\"type\":\"Sentinel\",\"id\":\"objects\\/expired\","
       "\"valueAsString\":\"<expired>\"}",
       handler.msg());
 
@@ -629,7 +629,7 @@ TEST_CASE(Service_Objects) {
   handler.HandleNextMessage();
   handler.filterMsg("vmName");
   EXPECT_STREQ(
-      "{\"type\":\"Null\",\"id\":\"objects\\/expired\","
+      "{\"type\":\"Sentinel\",\"id\":\"objects\\/expired\","
       "\"valueAsString\":\"<expired>\"}",
       handler.msg());
 

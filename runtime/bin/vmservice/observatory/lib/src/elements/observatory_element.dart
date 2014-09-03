@@ -105,69 +105,10 @@ class ObservatoryElement extends PolymerElement {
   String formatSize(int bytes) => Utils.formatSize(bytes);
 
   String fileAndLine(Map frame) {
-    var file = frame['script']['user_name'];
+    var file = frame['script'].name;
     var shortFile = file.substring(file.lastIndexOf('/') + 1);
     return "${shortFile}:${frame['line']}";
   }
 
   int parseInt(String value) => int.parse(value);
-
-  bool isNull(ref) {
-    return ref != null && ref.serviceType == 'Null' && ref.id == 'objects/null';
-  }
-
-  bool isPsuedoNull(ref) {
-    return ref != null && ref.serviceType == 'Null' && ref.id != 'objects/null';
-  }
-
-  bool isError(ref) {
-    return ref != null && ref.serviceType == 'Error';
-  }
-
-  bool isInt(ref) {
-    return ref != null && (ref.serviceType == 'Smi' ||
-                           ref.serviceType == 'Mint' ||
-                           ref.serviceType == 'Bigint');
-  }
-
-  bool isBool(ref) {
-    return ref != null && ref.serviceType == 'Bool';
-  }
-
-  bool isString(ref) {
-    return ref != null && ref.serviceType == 'String';
-  }
-
-  bool isInstance(ref) {
-    return ref != null && ref.serviceType == 'Instance';
-  }
-
-  bool isDouble(ref) {
-    return ref != null && ref.serviceType == 'Double';
-  }
-
-  bool isList(ref) {
-    return ref != null && (ref.serviceType == 'GrowableObjectArray' ||
-            ref.serviceType == 'Array');
-  }
-
-  bool isType(ref) {
-    return ref != null && (ref.serviceType == 'Type');
-  }
-
-  bool isUnexpected(ref) {
-    if (ref == null) return false;
-    return (!['Null',
-              'Smi',
-              'Mint',
-              'Bigint',
-              'Bool',
-              'String',
-              'Double',
-              'Instance',
-              'GrowableObjectArray',
-              'Array',
-              'Type',
-              'Error'].contains(ref.serviceType));
-  }
 }

@@ -765,7 +765,8 @@ abstract class InferrerVisitor
   T get thisType {
     if (_thisType != null) return _thisType;
     ClassElement cls = outermostElement.enclosingClass;
-    if (compiler.world.isUsedAsMixin(cls)) {
+    ClassWorld classWorld = compiler.world;
+    if (classWorld.isUsedAsMixin(cls)) {
       return _thisType = types.nonNullSubtype(cls);
     } else {
       return _thisType = types.nonNullSubclass(cls);

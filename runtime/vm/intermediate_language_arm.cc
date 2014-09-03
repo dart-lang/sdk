@@ -2014,6 +2014,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     const Register temp2 = locs()->temp(1).reg();
     const DRegister fpu_temp = EvenDRegisterOf(locs()->temp(2).fpu_reg());
 
+    if (ShouldEmitStoreBarrier()) {
+      // Value input is a writable register and should be manually preserved
+      // across allocation slow-path.
+      locs()->live_registers()->Add(locs()->in(1), kTagged);
+    }
+
     Label store_pointer;
     Label store_double;
     Label store_float32x4;
@@ -2892,8 +2898,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, max_right - 1);
+          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
       if (right_needs_check) {
         __ cmp(right, Operand(reinterpret_cast<int32_t>(Smi::New(max_right))));
         __ b(deopt, CS);
@@ -2905,7 +2910,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+      !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
   if (is_truncating) {
     if (right_needs_check) {
       const bool right_may_be_negative =
@@ -6348,8 +6353,8 @@ LocationSummary* ShiftMintOpInstr::MakeLocationSummary(Isolate* isolate,
 static const intptr_t kMintShiftCountLimit = 63;
 
 bool ShiftMintOpInstr::has_shift_count_check() const {
-  return (right()->definition()->range() == NULL)
-      || !right()->definition()->range()->IsWithin(0, kMintShiftCountLimit);
+  return !RangeUtils::IsWithin(
+      right()->definition()->range(), 0, kMintShiftCountLimit);
 }
 
 

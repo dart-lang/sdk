@@ -36,7 +36,7 @@ class ServerGetVersionParams {
  *   "version": String
  * }
  */
-class ServerGetVersionResult {
+class ServerGetVersionResult implements HasToJson {
   /**
    * The version number of the analysis server.
    */
@@ -144,7 +144,7 @@ class ServerShutdownResult {
  *   "subscriptions": List<ServerService>
  * }
  */
-class ServerSetSubscriptionsParams {
+class ServerSetSubscriptionsParams implements HasToJson {
   /**
    * A list of the services being subscribed to.
    */
@@ -254,7 +254,7 @@ class ServerConnectedParams {
  *   "stackTrace": String
  * }
  */
-class ServerErrorParams {
+class ServerErrorParams implements HasToJson {
   /**
    * True if the error is a fatal error, meaning that the server will shutdown
    * automatically after sending this notification.
@@ -350,7 +350,7 @@ class ServerErrorParams {
  *   "analysis": optional AnalysisStatus
  * }
  */
-class ServerStatusParams {
+class ServerStatusParams implements HasToJson {
   /**
    * The current status of analysis, including whether analysis is being
    * performed and if so what is being analyzed.
@@ -417,7 +417,7 @@ class ServerStatusParams {
  *   "file": FilePath
  * }
  */
-class AnalysisGetErrorsParams {
+class AnalysisGetErrorsParams implements HasToJson {
   /**
    * The file for which errors are being requested.
    */
@@ -483,7 +483,7 @@ class AnalysisGetErrorsParams {
  *   "errors": List<AnalysisError>
  * }
  */
-class AnalysisGetErrorsResult {
+class AnalysisGetErrorsResult implements HasToJson {
   /**
    * The errors associated with the file.
    */
@@ -550,7 +550,7 @@ class AnalysisGetErrorsResult {
  *   "offset": int
  * }
  */
-class AnalysisGetHoverParams {
+class AnalysisGetHoverParams implements HasToJson {
   /**
    * The file in which hover information is being requested.
    */
@@ -630,7 +630,7 @@ class AnalysisGetHoverParams {
  *   "hovers": List<HoverInformation>
  * }
  */
-class AnalysisGetHoverResult {
+class AnalysisGetHoverResult implements HasToJson {
   /**
    * The hover information associated with the location. The list will be empty
    * if no information could be determined for the location. The list can
@@ -743,7 +743,7 @@ class AnalysisReanalyzeResult {
  *   "excluded": List<FilePath>
  * }
  */
-class AnalysisSetAnalysisRootsParams {
+class AnalysisSetAnalysisRootsParams implements HasToJson {
   /**
    * A list of the files and directories that should be analyzed.
    */
@@ -845,7 +845,7 @@ class AnalysisSetAnalysisRootsResult {
  *   "files": List<FilePath>
  * }
  */
-class AnalysisSetPriorityFilesParams {
+class AnalysisSetPriorityFilesParams implements HasToJson {
   /**
    * The files that are to be a priority for analysis.
    */
@@ -932,7 +932,7 @@ class AnalysisSetPriorityFilesResult {
  *   "subscriptions": Map<AnalysisService, List<FilePath>>
  * }
  */
-class AnalysisSetSubscriptionsParams {
+class AnalysisSetSubscriptionsParams implements HasToJson {
   /**
    * A table mapping services to a list of the files being subscribed to the
    * service.
@@ -1020,7 +1020,7 @@ class AnalysisSetSubscriptionsResult {
  *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
  * }
  */
-class AnalysisUpdateContentParams {
+class AnalysisUpdateContentParams implements HasToJson {
   /**
    * A table mapping the files whose content has changed to a description of
    * the content change.
@@ -1108,7 +1108,7 @@ class AnalysisUpdateContentResult {
  *   "options": AnalysisOptions
  * }
  */
-class AnalysisUpdateOptionsParams {
+class AnalysisUpdateOptionsParams implements HasToJson {
   /**
    * The options that are to be used to control analysis.
    */
@@ -1196,7 +1196,7 @@ class AnalysisUpdateOptionsResult {
  *   "errors": List<AnalysisError>
  * }
  */
-class AnalysisErrorsParams {
+class AnalysisErrorsParams implements HasToJson {
   /**
    * The file containing the errors.
    */
@@ -1276,7 +1276,7 @@ class AnalysisErrorsParams {
  *   "files": List<FilePath>
  * }
  */
-class AnalysisFlushResultsParams {
+class AnalysisFlushResultsParams implements HasToJson {
   /**
    * The files that are no longer being analyzed.
    */
@@ -1343,7 +1343,7 @@ class AnalysisFlushResultsParams {
  *   "regions": List<FoldingRegion>
  * }
  */
-class AnalysisFoldingParams {
+class AnalysisFoldingParams implements HasToJson {
   /**
    * The file containing the folding regions.
    */
@@ -1424,7 +1424,7 @@ class AnalysisFoldingParams {
  *   "regions": List<HighlightRegion>
  * }
  */
-class AnalysisHighlightsParams {
+class AnalysisHighlightsParams implements HasToJson {
   /**
    * The file containing the highlight regions.
    */
@@ -1509,7 +1509,7 @@ class AnalysisHighlightsParams {
  *   "regions": List<NavigationRegion>
  * }
  */
-class AnalysisNavigationParams {
+class AnalysisNavigationParams implements HasToJson {
   /**
    * The file containing the navigation regions.
    */
@@ -1595,7 +1595,7 @@ class AnalysisNavigationParams {
  *   "occurrences": List<Occurrences>
  * }
  */
-class AnalysisOccurrencesParams {
+class AnalysisOccurrencesParams implements HasToJson {
   /**
    * The file in which the references occur.
    */
@@ -1676,7 +1676,7 @@ class AnalysisOccurrencesParams {
  *   "outline": Outline
  * }
  */
-class AnalysisOutlineParams {
+class AnalysisOutlineParams implements HasToJson {
   /**
    * The file with which the outline is associated.
    */
@@ -1757,7 +1757,7 @@ class AnalysisOutlineParams {
  *   "overrides": List<Override>
  * }
  */
-class AnalysisOverridesParams {
+class AnalysisOverridesParams implements HasToJson {
   /**
    * The file with which the overrides are associated.
    */
@@ -1838,7 +1838,7 @@ class AnalysisOverridesParams {
  *   "offset": int
  * }
  */
-class CompletionGetSuggestionsParams {
+class CompletionGetSuggestionsParams implements HasToJson {
   /**
    * The file containing the point at which suggestions are to be made.
    */
@@ -1918,7 +1918,7 @@ class CompletionGetSuggestionsParams {
  *   "id": CompletionId
  * }
  */
-class CompletionGetSuggestionsResult {
+class CompletionGetSuggestionsResult implements HasToJson {
   /**
    * The identifier used to associate results with this completion request.
    */
@@ -1988,7 +1988,7 @@ class CompletionGetSuggestionsResult {
  *   "isLast": bool
  * }
  */
-class CompletionResultsParams {
+class CompletionResultsParams implements HasToJson {
   /**
    * The id associated with the completion.
    */
@@ -2122,7 +2122,7 @@ class CompletionResultsParams {
  *   "includePotential": bool
  * }
  */
-class SearchFindElementReferencesParams {
+class SearchFindElementReferencesParams implements HasToJson {
   /**
    * The file containing the declaration of or reference to the element used to
    * define the search.
@@ -2215,13 +2215,16 @@ class SearchFindElementReferencesParams {
  * search.findElementReferences result
  *
  * {
- *   "id": SearchId
+ *   "id": optional SearchId
  *   "element": optional Element
  * }
  */
-class SearchFindElementReferencesResult {
+class SearchFindElementReferencesResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
+   *
+   * If no element was found at the given location, this field will be absent,
+   * and no results will be reported via the search.results notification.
    */
   String id;
 
@@ -2233,7 +2236,7 @@ class SearchFindElementReferencesResult {
    */
   Element element;
 
-  SearchFindElementReferencesResult(this.id, {this.element});
+  SearchFindElementReferencesResult({this.id, this.element});
 
   factory SearchFindElementReferencesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -2243,14 +2246,12 @@ class SearchFindElementReferencesResult {
       String id;
       if (json.containsKey("id")) {
         id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "id");
       }
       Element element;
       if (json.containsKey("element")) {
         element = new Element.fromJson(jsonDecoder, jsonPath + ".element", json["element"]);
       }
-      return new SearchFindElementReferencesResult(id, element: element);
+      return new SearchFindElementReferencesResult(id: id, element: element);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "search.findElementReferences result");
     }
@@ -2263,7 +2264,9 @@ class SearchFindElementReferencesResult {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["id"] = id;
+    if (id != null) {
+      result["id"] = id;
+    }
     if (element != null) {
       result["element"] = element.toJson();
     }
@@ -2302,7 +2305,7 @@ class SearchFindElementReferencesResult {
  *   "name": String
  * }
  */
-class SearchFindMemberDeclarationsParams {
+class SearchFindMemberDeclarationsParams implements HasToJson {
   /**
    * The name of the declarations to be found.
    */
@@ -2368,7 +2371,7 @@ class SearchFindMemberDeclarationsParams {
  *   "id": SearchId
  * }
  */
-class SearchFindMemberDeclarationsResult {
+class SearchFindMemberDeclarationsResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
@@ -2434,7 +2437,7 @@ class SearchFindMemberDeclarationsResult {
  *   "name": String
  * }
  */
-class SearchFindMemberReferencesParams {
+class SearchFindMemberReferencesParams implements HasToJson {
   /**
    * The name of the references to be found.
    */
@@ -2500,7 +2503,7 @@ class SearchFindMemberReferencesParams {
  *   "id": SearchId
  * }
  */
-class SearchFindMemberReferencesResult {
+class SearchFindMemberReferencesResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
@@ -2566,7 +2569,7 @@ class SearchFindMemberReferencesResult {
  *   "pattern": String
  * }
  */
-class SearchFindTopLevelDeclarationsParams {
+class SearchFindTopLevelDeclarationsParams implements HasToJson {
   /**
    * The regular expression used to match the names of the declarations to be
    * found.
@@ -2633,7 +2636,7 @@ class SearchFindTopLevelDeclarationsParams {
  *   "id": SearchId
  * }
  */
-class SearchFindTopLevelDeclarationsResult {
+class SearchFindTopLevelDeclarationsResult implements HasToJson {
   /**
    * The identifier used to associate results with this search request.
    */
@@ -2700,7 +2703,7 @@ class SearchFindTopLevelDeclarationsResult {
  *   "offset": int
  * }
  */
-class SearchGetTypeHierarchyParams {
+class SearchGetTypeHierarchyParams implements HasToJson {
   /**
    * The file containing the declaration or reference to the type for which a
    * hierarchy is being requested.
@@ -2781,7 +2784,7 @@ class SearchGetTypeHierarchyParams {
  *   "hierarchyItems": optional List<TypeHierarchyItem>
  * }
  */
-class SearchGetTypeHierarchyResult {
+class SearchGetTypeHierarchyResult implements HasToJson {
   /**
    * A list of the types in the requested hierarchy. The first element of the
    * list is the item representing the type for which the hierarchy was
@@ -2863,7 +2866,7 @@ class SearchGetTypeHierarchyResult {
  *   "isLast": bool
  * }
  */
-class SearchResultsParams {
+class SearchResultsParams implements HasToJson {
   /**
    * The id associated with the search.
    */
@@ -2960,7 +2963,7 @@ class SearchResultsParams {
  *   "length": int
  * }
  */
-class EditGetAssistsParams {
+class EditGetAssistsParams implements HasToJson {
   /**
    * The file containing the code for which assists are being requested.
    */
@@ -3054,7 +3057,7 @@ class EditGetAssistsParams {
  *   "assists": List<SourceChange>
  * }
  */
-class EditGetAssistsResult {
+class EditGetAssistsResult implements HasToJson {
   /**
    * The assists that are available at the given location.
    */
@@ -3122,7 +3125,7 @@ class EditGetAssistsResult {
  *   "length": int
  * }
  */
-class EditGetAvailableRefactoringsParams {
+class EditGetAvailableRefactoringsParams implements HasToJson {
   /**
    * The file containing the code on which the refactoring would be based.
    */
@@ -3216,7 +3219,7 @@ class EditGetAvailableRefactoringsParams {
  *   "kinds": List<RefactoringKind>
  * }
  */
-class EditGetAvailableRefactoringsResult {
+class EditGetAvailableRefactoringsResult implements HasToJson {
   /**
    * The kinds of refactorings that are valid for the given selection.
    */
@@ -3283,7 +3286,7 @@ class EditGetAvailableRefactoringsResult {
  *   "offset": int
  * }
  */
-class EditGetFixesParams {
+class EditGetFixesParams implements HasToJson {
   /**
    * The file containing the errors for which fixes are being requested.
    */
@@ -3360,10 +3363,10 @@ class EditGetFixesParams {
  * edit.getFixes result
  *
  * {
- *   "fixes": List<ErrorFixes>
+ *   "fixes": List<AnalysisErrorFixes>
  * }
  */
-class EditGetFixesResult {
+class EditGetFixesResult implements HasToJson {
   /**
    * The fixes that are available for each of the analysis errors. There is a
    * one-to-one correspondence between the analysis errors in the request and
@@ -3372,7 +3375,7 @@ class EditGetFixesResult {
    * for the error in errors[i]. The list of changes corresponding to an error
    * can be empty if there are no fixes available for that error.
    */
-  List<ErrorFixes> fixes;
+  List<AnalysisErrorFixes> fixes;
 
   EditGetFixesResult(this.fixes);
 
@@ -3381,9 +3384,9 @@ class EditGetFixesResult {
       json = {};
     }
     if (json is Map) {
-      List<ErrorFixes> fixes;
+      List<AnalysisErrorFixes> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new ErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
@@ -3400,7 +3403,7 @@ class EditGetFixesResult {
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["fixes"] = fixes.map((ErrorFixes value) => value.toJson()).toList();
+    result["fixes"] = fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
     return result;
   }
 
@@ -3414,7 +3417,7 @@ class EditGetFixesResult {
   @override
   bool operator==(other) {
     if (other is EditGetFixesResult) {
-      return _listEqual(fixes, other.fixes, (ErrorFixes a, ErrorFixes b) => a == b);
+      return _listEqual(fixes, other.fixes, (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b);
     }
     return false;
   }
@@ -3439,7 +3442,7 @@ class EditGetFixesResult {
  *   "options": optional object
  * }
  */
-class EditGetRefactoringParams {
+class EditGetRefactoringParams implements HasToJson {
   /**
    * The kind of refactoring to be performed.
    */
@@ -3473,7 +3476,7 @@ class EditGetRefactoringParams {
    * as “Options”. This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
-  Object options;
+  Map options;
 
   EditGetRefactoringParams(this.kind, this.file, this.offset, this.length, this.validateOnly, {this.options});
 
@@ -3512,7 +3515,7 @@ class EditGetRefactoringParams {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "validateOnly");
       }
-      Object options;
+      Map options;
       if (json.containsKey("options")) {
         options = json["options"];
       }
@@ -3583,7 +3586,7 @@ class EditGetRefactoringParams {
  *   "potentialEdits": optional List<String>
  * }
  */
-class EditGetRefactoringResult {
+class EditGetRefactoringResult implements HasToJson {
   /**
    * The status of the refactoring. The array will be empty if there are no
    * known problems.
@@ -3596,7 +3599,7 @@ class EditGetRefactoringResult {
    * returned is documented in the section titled Refactorings, labeled as
    * “Feedback”.
    */
-  Object feedback;
+  Map feedback;
 
   /**
    * The changes that are to be applied to affect the refactoring. This field
@@ -3633,7 +3636,7 @@ class EditGetRefactoringResult {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "problems");
       }
-      Object feedback;
+      Map feedback;
       if (json.containsKey("feedback")) {
         feedback = json["feedback"];
       }
@@ -3709,7 +3712,7 @@ class EditGetRefactoringResult {
  *   "contextRoot": FilePath
  * }
  */
-class DebugCreateContextParams {
+class DebugCreateContextParams implements HasToJson {
   /**
    * The path of the Dart or HTML file that will be launched.
    */
@@ -3775,7 +3778,7 @@ class DebugCreateContextParams {
  *   "id": DebugContextId
  * }
  */
-class DebugCreateContextResult {
+class DebugCreateContextResult implements HasToJson {
   /**
    * The identifier used to refer to the debugging context that was created.
    */
@@ -3841,7 +3844,7 @@ class DebugCreateContextResult {
  *   "id": DebugContextId
  * }
  */
-class DebugDeleteContextParams {
+class DebugDeleteContextParams implements HasToJson {
   /**
    * The identifier of the debugging context that is to be deleted.
    */
@@ -3930,7 +3933,7 @@ class DebugDeleteContextResult {
  *   "uri": optional String
  * }
  */
-class DebugMapUriParams {
+class DebugMapUriParams implements HasToJson {
   /**
    * The identifier of the debugging context in which the URI is to be mapped.
    */
@@ -4025,7 +4028,7 @@ class DebugMapUriParams {
  *   "uri": optional String
  * }
  */
-class DebugMapUriResult {
+class DebugMapUriResult implements HasToJson {
   /**
    * The file to which the URI was mapped. This field is omitted if the uri
    * field was not given in the request.
@@ -4107,7 +4110,7 @@ class DebugMapUriResult {
  *   "subscriptions": List<DebugService>
  * }
  */
-class DebugSetSubscriptionsParams {
+class DebugSetSubscriptionsParams implements HasToJson {
   /**
    * A list of the services being subscribed to.
    */
@@ -4196,7 +4199,7 @@ class DebugSetSubscriptionsResult {
  *   "htmlToDart": Map<FilePath, List<FilePath>>
  * }
  */
-class DebugLaunchDataParams {
+class DebugLaunchDataParams implements HasToJson {
   /**
    * A list of the files that are executable in the given context. This list
    * replaces any previous list provided for the given context.
@@ -4294,7 +4297,7 @@ class DebugLaunchDataParams {
  *   "content": String
  * }
  */
-class AddContentOverlay {
+class AddContentOverlay implements HasToJson {
   /**
    * The new content of the file.
    */
@@ -4353,14 +4356,14 @@ class AddContentOverlay {
  * AnalysisError
  *
  * {
- *   "severity": ErrorSeverity
- *   "type": ErrorType
+ *   "severity": AnalysisErrorSeverity
+ *   "type": AnalysisErrorType
  *   "location": Location
  *   "message": String
  *   "correction": optional String
  * }
  */
-class AnalysisError {
+class AnalysisError implements HasToJson {
   /**
    * Returns a list of AnalysisErrors correponding to the given list of Engine
    * errors.
@@ -4371,12 +4374,12 @@ class AnalysisError {
   /**
    * The severity of the error.
    */
-  ErrorSeverity severity;
+  AnalysisErrorSeverity severity;
 
   /**
    * The type of the error.
    */
-  ErrorType type;
+  AnalysisErrorType type;
 
   /**
    * The location associated with the error.
@@ -4403,15 +4406,15 @@ class AnalysisError {
       json = {};
     }
     if (json is Map) {
-      ErrorSeverity severity;
+      AnalysisErrorSeverity severity;
       if (json.containsKey("severity")) {
-        severity = new ErrorSeverity.fromJson(jsonDecoder, jsonPath + ".severity", json["severity"]);
+        severity = new AnalysisErrorSeverity.fromJson(jsonDecoder, jsonPath + ".severity", json["severity"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "severity");
       }
-      ErrorType type;
+      AnalysisErrorType type;
       if (json.containsKey("type")) {
-        type = new ErrorType.fromJson(jsonDecoder, jsonPath + ".type", json["type"]);
+        type = new AnalysisErrorType.fromJson(jsonDecoder, jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "type");
       }
@@ -4483,6 +4486,202 @@ class AnalysisError {
 }
 
 /**
+ * AnalysisErrorFixes
+ *
+ * {
+ *   "error": AnalysisError
+ *   "fixes": List<SourceChange>
+ * }
+ */
+class AnalysisErrorFixes implements HasToJson {
+  /**
+   * The error with which the fixes are associated.
+   */
+  AnalysisError error;
+
+  /**
+   * The fixes associated with the error.
+   */
+  List<SourceChange> fixes;
+
+  AnalysisErrorFixes(this.error, {this.fixes}) {
+    if (fixes == null) {
+      fixes = <SourceChange>[];
+    }
+  }
+
+  factory AnalysisErrorFixes.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      AnalysisError error;
+      if (json.containsKey("error")) {
+        error = new AnalysisError.fromJson(jsonDecoder, jsonPath + ".error", json["error"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "error");
+      }
+      List<SourceChange> fixes;
+      if (json.containsKey("fixes")) {
+        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "fixes");
+      }
+      return new AnalysisErrorFixes(error, fixes: fixes);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorFixes");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["error"] = error.toJson();
+    result["fixes"] = fixes.map((SourceChange value) => value.toJson()).toList();
+    return result;
+  }
+
+  /**
+   * Add a [Fix]
+   */
+  void addFix(Fix fix) {
+    fixes.add(fix.change);
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisErrorFixes) {
+      return error == other.error &&
+          _listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, error.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * AnalysisErrorSeverity
+ *
+ * enum {
+ *   INFO
+ *   WARNING
+ *   ERROR
+ * }
+ */
+class AnalysisErrorSeverity {
+  static const INFO = const AnalysisErrorSeverity._("INFO");
+
+  static const WARNING = const AnalysisErrorSeverity._("WARNING");
+
+  static const ERROR = const AnalysisErrorSeverity._("ERROR");
+
+  final String name;
+
+  const AnalysisErrorSeverity._(this.name);
+
+  factory AnalysisErrorSeverity(String name) {
+    switch (name) {
+      case "INFO":
+        return INFO;
+      case "WARNING":
+        return WARNING;
+      case "ERROR":
+        return ERROR;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory AnalysisErrorSeverity.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new AnalysisErrorSeverity(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorSeverity");
+  }
+
+  @override
+  String toString() => "AnalysisErrorSeverity.$name";
+
+  String toJson() => name;
+}
+
+/**
+ * AnalysisErrorType
+ *
+ * enum {
+ *   COMPILE_TIME_ERROR
+ *   HINT
+ *   STATIC_TYPE_WARNING
+ *   STATIC_WARNING
+ *   SYNTACTIC_ERROR
+ *   TODO
+ * }
+ */
+class AnalysisErrorType {
+  static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
+
+  static const HINT = const AnalysisErrorType._("HINT");
+
+  static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
+
+  static const STATIC_WARNING = const AnalysisErrorType._("STATIC_WARNING");
+
+  static const SYNTACTIC_ERROR = const AnalysisErrorType._("SYNTACTIC_ERROR");
+
+  static const TODO = const AnalysisErrorType._("TODO");
+
+  final String name;
+
+  const AnalysisErrorType._(this.name);
+
+  factory AnalysisErrorType(String name) {
+    switch (name) {
+      case "COMPILE_TIME_ERROR":
+        return COMPILE_TIME_ERROR;
+      case "HINT":
+        return HINT;
+      case "STATIC_TYPE_WARNING":
+        return STATIC_TYPE_WARNING;
+      case "STATIC_WARNING":
+        return STATIC_WARNING;
+      case "SYNTACTIC_ERROR":
+        return SYNTACTIC_ERROR;
+      case "TODO":
+        return TODO;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory AnalysisErrorType.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new AnalysisErrorType(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorType");
+  }
+
+  @override
+  String toString() => "AnalysisErrorType.$name";
+
+  String toJson() => name;
+}
+
+/**
  * AnalysisOptions
  *
  * {
@@ -4493,7 +4692,7 @@ class AnalysisError {
  *   "generateHints": optional bool
  * }
  */
-class AnalysisOptions {
+class AnalysisOptions implements HasToJson {
   /**
    * True if the client wants to enable support for the proposed async feature.
    */
@@ -4674,7 +4873,7 @@ class AnalysisService {
  *   "analysisTarget": optional String
  * }
  */
-class AnalysisStatus {
+class AnalysisStatus implements HasToJson {
   /**
    * True if analysis is currently being performed.
    */
@@ -4747,7 +4946,7 @@ class AnalysisStatus {
  *   "edits": List<SourceEdit>
  * }
  */
-class ChangeContentOverlay {
+class ChangeContentOverlay implements HasToJson {
   /**
    * The edits to be applied to the file.
    */
@@ -4874,7 +5073,7 @@ class CompletionRelevance {
  *   "parameterType": optional String
  * }
  */
-class CompletionSuggestion {
+class CompletionSuggestion implements HasToJson {
   /**
    * The kind of element being suggested.
    */
@@ -5369,7 +5568,7 @@ class DebugService {
  *   "returnType": optional String
  * }
  */
-class Element {
+class Element implements HasToJson {
   static const int FLAG_ABSTRACT = 0x01;
   static const int FLAG_CONST = 0x02;
   static const int FLAG_FINAL = 0x04;
@@ -5664,309 +5863,25 @@ class ElementKind {
 }
 
 /**
- * Error
- *
- * {
- *   "code": String
- *   "message": String
- *   "data": optional object
- * }
- */
-class Error {
-  /**
-   * A code that uniquely identifies the error that occurred.
-   */
-  String code;
-
-  /**
-   * A short description of the error.
-   */
-  String message;
-
-  /**
-   * Additional data related to the error. This field is omitted if there is no
-   * additional data available.
-   */
-  Object data;
-
-  Error(this.code, this.message, {this.data});
-
-  factory Error.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      String code;
-      if (json.containsKey("code")) {
-        code = jsonDecoder._decodeString(jsonPath + ".code", json["code"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "code");
-      }
-      String message;
-      if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "message");
-      }
-      Object data;
-      if (json.containsKey("data")) {
-        data = json["data"];
-      }
-      return new Error(code, message, data: data);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath, "Error");
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    result["code"] = code;
-    result["message"] = message;
-    if (data != null) {
-      result["data"] = data;
-    }
-    return result;
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator==(other) {
-    if (other is Error) {
-      return code == other.code &&
-          message == other.message &&
-          data == other.data;
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, code.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, data.hashCode);
-    return _JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
- * ErrorFixes
- *
- * {
- *   "error": AnalysisError
- *   "fixes": List<SourceChange>
- * }
- */
-class ErrorFixes {
-  /**
-   * The error with which the fixes are associated.
-   */
-  AnalysisError error;
-
-  /**
-   * The fixes associated with the error.
-   */
-  List<SourceChange> fixes;
-
-  ErrorFixes(this.error, {this.fixes}) {
-    if (fixes == null) {
-      fixes = <SourceChange>[];
-    }
-  }
-
-  factory ErrorFixes.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json == null) {
-      json = {};
-    }
-    if (json is Map) {
-      AnalysisError error;
-      if (json.containsKey("error")) {
-        error = new AnalysisError.fromJson(jsonDecoder, jsonPath + ".error", json["error"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "error");
-      }
-      List<SourceChange> fixes;
-      if (json.containsKey("fixes")) {
-        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "fixes");
-      }
-      return new ErrorFixes(error, fixes: fixes);
-    } else {
-      throw jsonDecoder.mismatch(jsonPath, "ErrorFixes");
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
-    result["error"] = error.toJson();
-    result["fixes"] = fixes.map((SourceChange value) => value.toJson()).toList();
-    return result;
-  }
-
-  /**
-   * Add a [Fix]
-   */
-  void addFix(Fix fix) {
-    fixes.add(fix.change);
-  }
-
-  @override
-  String toString() => JSON.encode(toJson());
-
-  @override
-  bool operator==(other) {
-    if (other is ErrorFixes) {
-      return error == other.error &&
-          _listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
-    }
-    return false;
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, error.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return _JenkinsSmiHash.finish(hash);
-  }
-}
-
-/**
- * ErrorSeverity
- *
- * enum {
- *   INFO
- *   WARNING
- *   ERROR
- * }
- */
-class ErrorSeverity {
-  static const INFO = const ErrorSeverity._("INFO");
-
-  static const WARNING = const ErrorSeverity._("WARNING");
-
-  static const ERROR = const ErrorSeverity._("ERROR");
-
-  final String name;
-
-  const ErrorSeverity._(this.name);
-
-  factory ErrorSeverity(String name) {
-    switch (name) {
-      case "INFO":
-        return INFO;
-      case "WARNING":
-        return WARNING;
-      case "ERROR":
-        return ERROR;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory ErrorSeverity.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new ErrorSeverity(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "ErrorSeverity");
-  }
-
-  @override
-  String toString() => "ErrorSeverity.$name";
-
-  String toJson() => name;
-}
-
-/**
- * ErrorType
- *
- * enum {
- *   COMPILE_TIME_ERROR
- *   HINT
- *   STATIC_TYPE_WARNING
- *   STATIC_WARNING
- *   SYNTACTIC_ERROR
- *   TODO
- * }
- */
-class ErrorType {
-  static const COMPILE_TIME_ERROR = const ErrorType._("COMPILE_TIME_ERROR");
-
-  static const HINT = const ErrorType._("HINT");
-
-  static const STATIC_TYPE_WARNING = const ErrorType._("STATIC_TYPE_WARNING");
-
-  static const STATIC_WARNING = const ErrorType._("STATIC_WARNING");
-
-  static const SYNTACTIC_ERROR = const ErrorType._("SYNTACTIC_ERROR");
-
-  static const TODO = const ErrorType._("TODO");
-
-  final String name;
-
-  const ErrorType._(this.name);
-
-  factory ErrorType(String name) {
-    switch (name) {
-      case "COMPILE_TIME_ERROR":
-        return COMPILE_TIME_ERROR;
-      case "HINT":
-        return HINT;
-      case "STATIC_TYPE_WARNING":
-        return STATIC_TYPE_WARNING;
-      case "STATIC_WARNING":
-        return STATIC_WARNING;
-      case "SYNTACTIC_ERROR":
-        return SYNTACTIC_ERROR;
-      case "TODO":
-        return TODO;
-    }
-    throw new Exception('Illegal enum value: $name');
-  }
-
-  factory ErrorType.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
-    if (json is String) {
-      try {
-        return new ErrorType(json);
-      } catch(_) {
-        // Fall through
-      }
-    }
-    throw jsonDecoder.mismatch(jsonPath, "ErrorType");
-  }
-
-  @override
-  String toString() => "ErrorType.$name";
-
-  String toJson() => name;
-}
-
-/**
  * ExecutableFile
  *
  * {
  *   "file": FilePath
- *   "offset": ExecutableKind
+ *   "kind": ExecutableKind
  * }
  */
-class ExecutableFile {
+class ExecutableFile implements HasToJson {
   /**
    * The path of the executable file.
    */
   String file;
 
   /**
-   * The offset of the region to be highlighted.
+   * The kind of the executable file.
    */
-  ExecutableKind offset;
+  ExecutableKind kind;
 
-  ExecutableFile(this.file, this.offset);
+  ExecutableFile(this.file, this.kind);
 
   factory ExecutableFile.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -5979,13 +5894,13 @@ class ExecutableFile {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
-      ExecutableKind offset;
-      if (json.containsKey("offset")) {
-        offset = new ExecutableKind.fromJson(jsonDecoder, jsonPath + ".offset", json["offset"]);
+      ExecutableKind kind;
+      if (json.containsKey("kind")) {
+        kind = new ExecutableKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
       } else {
-        throw jsonDecoder.missingKey(jsonPath, "offset");
+        throw jsonDecoder.missingKey(jsonPath, "kind");
       }
-      return new ExecutableFile(file, offset);
+      return new ExecutableFile(file, kind);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ExecutableFile");
     }
@@ -5994,7 +5909,7 @@ class ExecutableFile {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
-    result["offset"] = offset.toJson();
+    result["kind"] = kind.toJson();
     return result;
   }
 
@@ -6005,7 +5920,7 @@ class ExecutableFile {
   bool operator==(other) {
     if (other is ExecutableFile) {
       return file == other.file &&
-          offset == other.offset;
+          kind == other.kind;
     }
     return false;
   }
@@ -6014,7 +5929,7 @@ class ExecutableFile {
   int get hashCode {
     int hash = 0;
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }
@@ -6136,7 +6051,7 @@ class FoldingKind {
  *   "length": int
  * }
  */
-class FoldingRegion {
+class FoldingRegion implements HasToJson {
   /**
    * The kind of the region.
    */
@@ -6223,7 +6138,7 @@ class FoldingRegion {
  *   "length": int
  * }
  */
-class HighlightRegion {
+class HighlightRegion implements HasToJson {
   /**
    * The type of highlight associated with the region.
    */
@@ -6526,7 +6441,7 @@ class HighlightRegionType {
  *   "staticType": optional String
  * }
  */
-class HoverInformation {
+class HoverInformation implements HasToJson {
   /**
    * The offset of the range of characters that encompases the cursor position
    * and has the same hover information as the cursor position.
@@ -6727,7 +6642,7 @@ class HoverInformation {
  *   "suggestions": List<LinkedEditSuggestion>
  * }
  */
-class LinkedEditGroup {
+class LinkedEditGroup implements HasToJson {
   /**
    * The positions of the regions that should be edited simultaneously.
    */
@@ -6834,7 +6749,7 @@ class LinkedEditGroup {
  *   "kind": LinkedEditSuggestionKind
  * }
  */
-class LinkedEditSuggestion {
+class LinkedEditSuggestion implements HasToJson {
   /**
    * The value that could be used to replace all of the linked edit regions.
    */
@@ -6963,7 +6878,7 @@ class LinkedEditSuggestionKind {
  *   "startColumn": int
  * }
  */
-class Location {
+class Location implements HasToJson {
   /**
    * The file containing the range.
    */
@@ -7104,7 +7019,7 @@ class Location {
  *   "targets": List<Element>
  * }
  */
-class NavigationRegion {
+class NavigationRegion implements HasToJson {
   /**
    * The offset of the region from which the user can navigate.
    */
@@ -7192,7 +7107,7 @@ class NavigationRegion {
  *   "length": int
  * }
  */
-class Occurrences {
+class Occurrences implements HasToJson {
   /**
    * The element that was referenced.
    */
@@ -7280,7 +7195,7 @@ class Occurrences {
  *   "children": optional List<Outline>
  * }
  */
-class Outline {
+class Outline implements HasToJson {
   /**
    * A description of the element represented by this node.
    */
@@ -7392,7 +7307,7 @@ class Outline {
  *   "interfaceMembers": optional List<OverriddenMember>
  * }
  */
-class Override {
+class Override implements HasToJson {
   /**
    * The offset of the name of the overriding member.
    */
@@ -7502,7 +7417,7 @@ class Override {
  *   "className": String
  * }
  */
-class OverriddenMember {
+class OverriddenMember implements HasToJson {
   /**
    * The element that is being overridden.
    */
@@ -7580,7 +7495,7 @@ class OverriddenMember {
  *   "offset": int
  * }
  */
-class Position {
+class Position implements HasToJson {
   /**
    * The file containing the position.
    */
@@ -7724,7 +7639,7 @@ class RefactoringKind {
  *   "parameters": optional String
  * }
  */
-class RefactoringMethodParameter {
+class RefactoringMethodParameter implements HasToJson {
   /**
    * The unique identifier of the parameter. Clients may omit this field for
    * the parameters they want to add.
@@ -7892,7 +7807,7 @@ class RefactoringMethodParameterKind {
  *   "location": optional Location
  * }
  */
-class RefactoringProblem {
+class RefactoringProblem implements HasToJson {
   /**
    * The severity of the problem being represented.
    */
@@ -8039,7 +7954,7 @@ class RefactoringProblemSeverity {
  *   "type": "remove"
  * }
  */
-class RemoveContentOverlay {
+class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
 
   factory RemoveContentOverlay.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -8082,6 +7997,189 @@ class RemoveContentOverlay {
 }
 
 /**
+ * RequestError
+ *
+ * {
+ *   "code": RequestErrorCode
+ *   "message": String
+ *   "data": optional object
+ * }
+ */
+class RequestError implements HasToJson {
+  /**
+   * A code that uniquely identifies the error that occurred.
+   */
+  RequestErrorCode code;
+
+  /**
+   * A short description of the error.
+   */
+  String message;
+
+  /**
+   * Additional data related to the error. This field is omitted if there is no
+   * additional data available.
+   */
+  Map data;
+
+  RequestError(this.code, this.message, {this.data});
+
+  factory RequestError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      RequestErrorCode code;
+      if (json.containsKey("code")) {
+        code = new RequestErrorCode.fromJson(jsonDecoder, jsonPath + ".code", json["code"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "code");
+      }
+      String message;
+      if (json.containsKey("message")) {
+        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "message");
+      }
+      Map data;
+      if (json.containsKey("data")) {
+        data = json["data"];
+      }
+      return new RequestError(code, message, data: data);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "RequestError");
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["code"] = code.toJson();
+    result["message"] = message;
+    if (data != null) {
+      result["data"] = data;
+    }
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is RequestError) {
+      return code == other.code &&
+          message == other.message &&
+          data == other.data;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, data.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * RequestErrorCode
+ *
+ * enum {
+ *   GET_ERRORS_ERROR
+ *   INVALID_PARAMETER
+ *   INVALID_REQUEST
+ *   SERVER_ALREADY_STARTED
+ *   UNANALYZED_PRIORITY_FILES
+ *   UNKNOWN_REQUEST
+ *   UNSUPPORTED_FEATURE
+ * }
+ */
+class RequestErrorCode {
+  /**
+   * An error occurred during the processing of an "analysis.getErrors"
+   * request.
+   */
+  static const GET_ERRORS_ERROR = const RequestErrorCode._("GET_ERRORS_ERROR");
+
+  /**
+   * One of the method parameters was invalid.
+   */
+  static const INVALID_PARAMETER = const RequestErrorCode._("INVALID_PARAMETER");
+
+  /**
+   * A malformed request was received.
+   */
+  static const INVALID_REQUEST = const RequestErrorCode._("INVALID_REQUEST");
+
+  /**
+   * The analysis server has already been started (and hence won't accept new
+   * connections).
+   */
+  static const SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
+
+  /**
+   * An "analysis.setPriorityFiles" request includes one or more files that are
+   * not being analyzed.
+   */
+  static const UNANALYZED_PRIORITY_FILES = const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
+
+  /**
+   * A request was received which the analysis server does not recognize, or
+   * cannot handle in its current configuation.
+   */
+  static const UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
+
+  /**
+   * The analysis server was requested to perform an action which is not
+   * supported.
+   */
+  static const UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
+
+  final String name;
+
+  const RequestErrorCode._(this.name);
+
+  factory RequestErrorCode(String name) {
+    switch (name) {
+      case "GET_ERRORS_ERROR":
+        return GET_ERRORS_ERROR;
+      case "INVALID_PARAMETER":
+        return INVALID_PARAMETER;
+      case "INVALID_REQUEST":
+        return INVALID_REQUEST;
+      case "SERVER_ALREADY_STARTED":
+        return SERVER_ALREADY_STARTED;
+      case "UNANALYZED_PRIORITY_FILES":
+        return UNANALYZED_PRIORITY_FILES;
+      case "UNKNOWN_REQUEST":
+        return UNKNOWN_REQUEST;
+      case "UNSUPPORTED_FEATURE":
+        return UNSUPPORTED_FEATURE;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory RequestErrorCode.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new RequestErrorCode(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "RequestErrorCode");
+  }
+
+  @override
+  String toString() => "RequestErrorCode.$name";
+
+  String toJson() => name;
+}
+
+/**
  * SearchResult
  *
  * {
@@ -8091,7 +8189,7 @@ class RemoveContentOverlay {
  *   "path": List<Element>
  * }
  */
-class SearchResult {
+class SearchResult implements HasToJson {
   /**
    * The location of the code that matched the search criteria.
    */
@@ -8340,7 +8438,7 @@ class ServerService {
  *   "selection": optional Position
  * }
  */
-class SourceChange {
+class SourceChange implements HasToJson {
   /**
    * A human-readable description of the change to be applied.
    */
@@ -8476,7 +8574,7 @@ class SourceChange {
  *   "id": optional String
  * }
  */
-class SourceEdit {
+class SourceEdit implements HasToJson {
   /**
    * Get the result of applying a set of [edits] to the given [code]. Edits are
    * applied in the order they appear in [edits].
@@ -8606,7 +8704,7 @@ class SourceEdit {
  *   "edits": List<SourceEdit>
  * }
  */
-class SourceFileEdit {
+class SourceFileEdit implements HasToJson {
   /**
    * The file containing the code to be modified.
    */
@@ -8698,7 +8796,7 @@ class SourceFileEdit {
  *   "subclasses": List<int>
  * }
  */
-class TypeHierarchyItem {
+class TypeHierarchyItem implements HasToJson {
   /**
    * The class element represented by this item.
    */
@@ -8930,7 +9028,7 @@ class ConvertMethodToGetterOptions {
  *   "lengths": List<int>
  * }
  */
-class ExtractLocalVariableFeedback {
+class ExtractLocalVariableFeedback implements HasToJson {
   /**
    * The proposed names for the local variable.
    */
@@ -9025,7 +9123,7 @@ class ExtractLocalVariableFeedback {
  *   "extractAll": bool
  * }
  */
-class ExtractLocalVariableOptions {
+class ExtractLocalVariableOptions implements HasToJson {
   /**
    * The name that the local variable should be given.
    */
@@ -9107,12 +9205,11 @@ class ExtractLocalVariableOptions {
  *   "names": List<String>
  *   "canCreateGetter": bool
  *   "parameters": List<RefactoringMethodParameter>
- *   "occurrences": int
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
  */
-class ExtractMethodFeedback {
+class ExtractMethodFeedback implements HasToJson {
   /**
    * The offset to the beginning of the expression or statements that will be
    * extracted.
@@ -9145,11 +9242,6 @@ class ExtractMethodFeedback {
   List<RefactoringMethodParameter> parameters;
 
   /**
-   * The number of times the expression or statements occurs.
-   */
-  int occurrences;
-
-  /**
    * The offsets of the expressions or statements that would be replaced by an
    * invocation of the method.
    */
@@ -9164,7 +9256,7 @@ class ExtractMethodFeedback {
    */
   List<int> lengths;
 
-  ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names, this.canCreateGetter, this.parameters, this.occurrences, this.offsets, this.lengths);
+  ExtractMethodFeedback(this.offset, this.length, this.returnType, this.names, this.canCreateGetter, this.parameters, this.offsets, this.lengths);
 
   factory ExtractMethodFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
     if (json == null) {
@@ -9207,12 +9299,6 @@ class ExtractMethodFeedback {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "parameters");
       }
-      int occurrences;
-      if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder._decodeInt(jsonPath + ".occurrences", json["occurrences"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "occurrences");
-      }
       List<int> offsets;
       if (json.containsKey("offsets")) {
         offsets = jsonDecoder._decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder._decodeInt);
@@ -9225,7 +9311,7 @@ class ExtractMethodFeedback {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
-      return new ExtractMethodFeedback(offset, length, returnType, names, canCreateGetter, parameters, occurrences, offsets, lengths);
+      return new ExtractMethodFeedback(offset, length, returnType, names, canCreateGetter, parameters, offsets, lengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback");
     }
@@ -9244,7 +9330,6 @@ class ExtractMethodFeedback {
     result["names"] = names;
     result["canCreateGetter"] = canCreateGetter;
     result["parameters"] = parameters.map((RefactoringMethodParameter value) => value.toJson()).toList();
-    result["occurrences"] = occurrences;
     result["offsets"] = offsets;
     result["lengths"] = lengths;
     return result;
@@ -9262,7 +9347,6 @@ class ExtractMethodFeedback {
           _listEqual(names, other.names, (String a, String b) => a == b) &&
           canCreateGetter == other.canCreateGetter &&
           _listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
-          occurrences == other.occurrences &&
           _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
           _listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
@@ -9278,7 +9362,6 @@ class ExtractMethodFeedback {
     hash = _JenkinsSmiHash.combine(hash, names.hashCode);
     hash = _JenkinsSmiHash.combine(hash, canCreateGetter.hashCode);
     hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, occurrences.hashCode);
     hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
     hash = _JenkinsSmiHash.combine(hash, lengths.hashCode);
     return _JenkinsSmiHash.finish(hash);
@@ -9296,7 +9379,7 @@ class ExtractMethodFeedback {
  *   "extractAll": bool
  * }
  */
-class ExtractMethodOptions {
+class ExtractMethodOptions implements HasToJson {
   /**
    * The return type that should be defined for the method.
    */
@@ -9478,7 +9561,7 @@ class InlineMethodFeedback {
  *   "inlineAll": bool
  * }
  */
-class InlineMethodOptions {
+class InlineMethodOptions implements HasToJson {
   /**
    * True if the method being inlined should be removed. It is an error if this
    * field is true and inlineAll is false.
@@ -9557,7 +9640,7 @@ class InlineMethodOptions {
  *   "length": int
  * }
  */
-class RenameFeedback {
+class RenameFeedback implements HasToJson {
   /**
    * The offset to the beginning of the name selected to be renamed.
    */
@@ -9633,7 +9716,7 @@ class RenameFeedback {
  *   "newName": String
  * }
  */
-class RenameOptions {
+class RenameOptions implements HasToJson {
   /**
    * The name that the element should have after the refactoring.
    */

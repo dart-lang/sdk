@@ -142,7 +142,7 @@ class IsolateProfileElement extends ObservatoryElement {
     var request = 'profile?tags=$tagSelector';
     profile.isolate.get(request).then((ServiceMap m) {
       // Assert we got back the a profile.
-      assert(m.serviceType == 'Profile');
+      assert(m.type == 'Profile');
       profile = m;
     }).whenComplete(done);
   }

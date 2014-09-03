@@ -1681,6 +1681,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register temp2 = locs()->temp(1).reg();
     FpuRegister fpu_temp = locs()->temp(2).fpu_reg();
 
+    if (ShouldEmitStoreBarrier()) {
+      // Value input is a writable register and should be manually preserved
+      // across allocation slow-path.
+      locs()->live_registers()->Add(locs()->in(1), kTagged);
+    }
+
     Label store_pointer;
     Label store_double;
     Label store_float32x4;
@@ -2487,7 +2493,7 @@ static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
                                         Range* range,
                                         Label* overflow,
                                         Register result) {
-  if (!range->IsWithin(-0x20000000000000LL, 0x20000000000000LL)) {
+  if (!RangeUtils::IsWithin(range, -0x20000000000000LL, 0x20000000000000LL)) {
     ASSERT(overflow != NULL);
     // TODO(zra): This can be tightened to one compare/branch using:
     // overflow = (result + 2^52) > 2^53 with an unsigned comparison.
@@ -2561,8 +2567,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, max_right - 1);
+          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
       if (right_needs_check) {
         __ CompareImmediate(right,
             Immediate(reinterpret_cast<int64_t>(Smi::New(max_right))), PP);
@@ -2578,7 +2583,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+      !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
   ASSERT(right == RCX);  // Count must be in RCX
   if (is_truncating) {
     if (right_needs_check) {

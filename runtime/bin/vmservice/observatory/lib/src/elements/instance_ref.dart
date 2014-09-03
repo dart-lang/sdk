@@ -14,7 +14,7 @@ class InstanceRefElement extends ServiceRefElement {
 
   String get hoverText {
     if (ref != null) {
-      if (ref.serviceType == 'Null') {
+      if (ref.type == 'Sentinel') {
         if (ref.id == 'objects/optimized-out') {
           return 'This object is no longer needed and has been removed by the optimizing compiler.';
         } else if (ref.id == 'objects/collected') {
@@ -37,20 +37,20 @@ class InstanceRefElement extends ServiceRefElement {
   }
 
   void expandEvent(bool expand, var done) {
-    assert(ref is ServiceMap);
+    assert(ref is Instance);
     if (expand) {
       ref.reload().then((result) {
-        if (result['valueAsString'] != null) {
-          result.name = result['valueAsString'];
-          result.vmName = result['valueAsString'];
+        if (result.valueAsString != null) {
+          result.name = result.valueAsString;
+          result.vmName = result.valueAsString;
         }
         ref = result;
         notifyPropertyChange(#ref, 0, 1);
       }).whenComplete(done);
     } else {
-      ServiceMap refMap = ref;
-      refMap['fields'] = null;
-      refMap['elements'] = null;
+      Instance refMap = ref;
+      refMap.fields = null;
+      refMap.elements = null;
       done();
     }
   }

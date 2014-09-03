@@ -59,7 +59,7 @@ main() {
     expect(refactoring.refactoringName, 'Rename Import Prefix');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 import 'dart:async';
 import 'dart:math' as newName show Random, min hide max;
 main() {
@@ -84,7 +84,7 @@ main() {
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 import 'dart:math' as test;
 import 'dart:async' as newName;
 main() {
@@ -108,7 +108,7 @@ main() {
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 import 'dart:math' as newName;
 import 'dart:async' as test;
 main() {
@@ -134,7 +134,7 @@ main() {
     expect(refactoring.oldName, 'test');
     refactoring.newName = 'newName';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 import 'dart:async' as test;
 import 'dart:math' as newName;
 main() {
@@ -159,7 +159,7 @@ main() {
     expect(refactoring.oldName, 'test');
     refactoring.newName = '';
     // validate change
-    return assertSuccessfulRename('''
+    return assertSuccessfulRefactoring('''
 import 'dart:math' as test;
 import 'dart:async';
 main() {

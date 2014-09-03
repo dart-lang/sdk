@@ -866,11 +866,16 @@
           </field>
         </params>
         <result>
-          <field name="id">
+          <field name="id" optional="true">
             <ref>SearchId</ref>
             <p>
               The identifier used to associate results with this
               search request.
+            </p>
+            <p>
+              If no element was found at the given location, this
+              field will be absent, and no results will be reported
+              via the search.results notification.
             </p>
           </field>
           <field name="element" optional="true">
@@ -1151,7 +1156,7 @@
         </params>
         <result>
           <field name="fixes">
-            <list><ref>ErrorFixes</ref></list>
+            <list><ref>AnalysisErrorFixes</ref></list>
             <p>
               The fixes that are available for each of the analysis
               errors. There is a one-to-one correspondence between the
@@ -1455,13 +1460,13 @@
         </p>
         <object>
           <field name="severity">
-            <ref>ErrorSeverity</ref>
+            <ref>AnalysisErrorSeverity</ref>
             <p>
               The severity of the error.
             </p>
           </field>
           <field name="type">
-            <ref>ErrorType</ref>
+            <ref>AnalysisErrorType</ref>
             <p>
               The type of the error.
             </p>
@@ -1490,6 +1495,49 @@
             </p>
           </field>
         </object>
+      </type>
+      <type name="AnalysisErrorFixes">
+        <p>
+          A list of fixes associated with a specific error
+        </p>
+        <object>
+          <field name="error">
+            <ref>AnalysisError</ref>
+            <p>
+              The error with which the fixes are associated.
+            </p>
+          </field>
+          <field name="fixes">
+            <list><ref>SourceChange</ref></list>
+            <p>
+              The fixes associated with the error.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="AnalysisErrorSeverity">
+        <p>
+          An enumeration of the possible severities of analysis
+          errors.
+        </p>
+        <enum>
+          <value><code>INFO</code></value>
+          <value><code>WARNING</code></value>
+          <value><code>ERROR</code></value>
+        </enum>
+      </type>
+      <type name="AnalysisErrorType">
+        <p>
+          An enumeration of the possible types of analysis errors.
+        </p>
+        <enum>
+          <value><code>COMPILE_TIME_ERROR</code></value>
+          <value><code>HINT</code></value>
+          <value><code>STATIC_TYPE_WARNING</code></value>
+          <value><code>STATIC_WARNING</code></value>
+          <value><code>SYNTACTIC_ERROR</code></value>
+          <value><code>TODO</code></value>
+        </enum>
       </type>
       <type name="AnalysisOptions">
         <p>
@@ -1876,77 +1924,6 @@
           <value><code>UNKNOWN</code></value>
         </enum>
       </type>
-      <type name="Error">
-        <p>
-          An indication of a problem with the execution of the server,
-          typically in response to a request. The error codes that can
-          be returned are documented in the section titled Errors.
-        </p>
-        <object>
-          <field name="code">
-            <ref>String</ref>
-            <p>
-              A code that uniquely identifies the error that occurred.
-            </p>
-          </field>
-          <field name="message">
-            <ref>String</ref>
-            <p>
-              A short description of the error.
-            </p>
-          </field>
-          <field name="data" optional="true">
-            <ref>object</ref>
-            <p>
-              Additional data related to the error. This field is
-              omitted if there is no additional data available.
-            </p>
-          </field>
-        </object>
-      </type>
-      <type name="ErrorFixes">
-        <p>
-          A list of fixes associated with a specific error
-        </p>
-        <object>
-          <field name="error">
-            <ref>AnalysisError</ref>
-            <p>
-              The error with which the fixes are associated.
-            </p>
-          </field>
-          <field name="fixes">
-            <list><ref>SourceChange</ref></list>
-            <p>
-              The fixes associated with the error.
-            </p>
-          </field>
-        </object>
-      </type>
-      <type name="ErrorSeverity">
-        <p>
-          An enumeration of the possible severities of analysis
-          errors.
-        </p>
-        <enum>
-          <value><code>INFO</code></value>
-          <value><code>WARNING</code></value>
-          <value><code>ERROR</code></value>
-        </enum>
-      </type>
-      <type name="ErrorType">
-        <p>
-          An enumeration of the possible types of analysis errors.
-        </p>
-        <enum>
-          <value><code>COMPILE_TIME_ERROR</code></value>
-          <value><code>HINT</code></value>
-          <value><code>STATIC_TYPE_WARNING</code></value>
-          <value><code>STATIC_WARNING</code></value>
-          <value><code>SYNTACTIC_ERROR</code></value>
-          <value><code>TODO</code></value>
-        </enum>
-      </type>
       <type name="ExecutableFile">
         <p>
           A description of an executable file.
@@ -1958,10 +1935,10 @@
               The path of the executable file.
             </p>
           </field>
-          <field name="offset">
+          <field name="kind">
             <ref>ExecutableKind</ref>
             <p>
-              The offset of the region to be highlighted.
+              The kind of the executable file.
             </p>
           </field>
         </object>
@@ -2572,6 +2549,97 @@
           <field name="type" value="remove"><ref>String</ref></field>
         </object>
       </type>
+      <type name="RequestError">
+        <p>
+          An indication of a problem with the execution of the server,
+          typically in response to a request.
+        </p>
+        <object>
+          <field name="code">
+            <ref>RequestErrorCode</ref>
+            <p>
+              A code that uniquely identifies the error that occurred.
+            </p>
+          </field>
+          <field name="message">
+            <ref>String</ref>
+            <p>
+              A short description of the error.
+            </p>
+          </field>
+          <field name="data" optional="true">
+            <ref>object</ref>
+            <p>
+              Additional data related to the error. This field is
+              omitted if there is no additional data available.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="RequestErrorCode">
+        <p>
+          An enumeration of the types of errors that can occur in the
+          execution of the server.
+        </p>
+        <enum>
+          <value>
+            <code>GET_ERRORS_ERROR</code>
+            <p>
+              An error occurred during the processing of an
+              "analysis.getErrors" request.
+            </p>
+            <!-- TODO(paulberry): this is vague.  We should be more
+                 specific about the nature of the error if we can. -->
+          </value>
+          <value>
+            <code>INVALID_PARAMETER</code>
+            <p>
+              One of the method parameters was invalid.
+            </p>
+          </value>
+          <value>
+            <code>INVALID_REQUEST</code>
+            <p>
+              A malformed request was received.
+            </p>
+          </value>
+          <value>
+            <code>SERVER_ALREADY_STARTED</code>
+            <!-- TODO(paulberry): this error code doesn't make sense
+                 anymore. -->
+            <p>
+              The analysis server has already been started (and hence
+              won't accept new connections).
+            </p>
+          </value>
+          <value>
+            <code>UNANALYZED_PRIORITY_FILES</code>
+            <!-- TODO(paulberry): this error shouldn't be issued under
+                 our new "eventual consistency" model. -->
+            <p>
+              An "analysis.setPriorityFiles" request includes one or
+              more files that are not being analyzed.
+            </p>
+          </value>
+          <value>
+            <code>UNKNOWN_REQUEST</code>
+            <p>
+              A request was received which the analysis server does
+              not recognize, or cannot handle in its current
+              configuation.
+            </p>
+          </value>
+          <value>
+            <code>UNSUPPORTED_FEATURE</code>
+            <p>
+              The analysis server was requested to perform an action
+              which is not supported.
+            </p>
+            <!-- TODO(paulberry): how does this differ from
+                 UNKNOWN_REQUEST?  Do we really need both? -->
+          </value>
+        </enum>
+      </type>
       <type name="SearchId">
         <ref>String</ref>
         <p>
@@ -2843,11 +2911,9 @@
         This section contains additional information for each kind of
         refactoring. In addition to a brief description of the
         refactoring, there is a specification of the feedback that is
-        provided when a refactoring is created using the
-        edit.createRefactoring request (designed to improve the UX)
-        and the options that must be set using the
-        edit.setRefactoringOptions request before the refactoring can
-        be applied.
+        provided when a refactoring is requested using the
+        edit.getRefactoring request (designed to improve the UX)
+        and the options that may be provided to edit.getRefactoring.
       </p>
       <refactoring kind="CONVERT_GETTER_TO_METHOD">
         <p>
@@ -2971,12 +3037,6 @@
             <list><ref>RefactoringMethodParameter</ref></list>
             <p>
               The proposed parameters for the method.
-            </p>
-          </field>
-          <field name="occurrences">
-            <ref>int</ref>
-            <p>
-              The number of times the expression or statements occurs.
             </p>
           </field>
           <field name="offsets">

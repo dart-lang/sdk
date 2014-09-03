@@ -295,12 +295,17 @@ namespace dart {
   V(_GrowableList, get:length, GrowableArrayLength, 778505107)                 \
   V(_StringBase, get:length, StringBaseLength, 784399628)                      \
   V(ListIterator, moveNext, ListIteratorMoveNext, 210829138)                   \
+  V(_FixedSizeArrayIterator, moveNext, FixedListIteratorMoveNext, 1147271335)  \
   V(_GrowableList, get:iterator, GrowableArrayIterator, 1812933946)            \
   V(_GrowableList, forEach, GrowableArrayForEach, 2085943947)                  \
   V(_List, ., ObjectArrayAllocate, 1595327584)                                 \
   V(_List, [], ObjectArrayGetIndexed, 795612476)                               \
   V(_List, []=, ObjectArraySetIndexed, 1288827575)                             \
   V(_List, get:isEmpty, ObjectArrayIsEmpty, 2130247737)                        \
+  V(_List, get:iterator, ObjectArrayIterator, 458612415)                       \
+  V(_List, forEach, ObjectArrayForEach, 592525445)                             \
+  V(_ImmutableList, get:iterator, ImmutableArrayIterator, 362084797)           \
+  V(_ImmutableList, forEach, ImmutableArrayForEach, 63658053)                  \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 1990177341)                  \
   V(_GrowableList, [], GrowableArrayGetIndexed, 919108233)                     \
   V(_GrowableList, []=, GrowableArraySetIndexed, 1218649853)                   \

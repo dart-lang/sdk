@@ -7,6 +7,7 @@ library pub.package;
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:barback/barback.dart';
 
 import 'io.dart';
 import 'git.dart' as git;
@@ -73,6 +74,20 @@ class Package {
     dependencyOverrides.forEach(addToMap);
 
     return deps.values.toSet();
+  }
+
+  /// Returns a list of asset ids for all Dart executables in this package's bin
+  /// directory.
+  List<AssetId> get executableIds {
+    var binDir = path.join(dir, 'bin');
+    if (!dirExists(binDir)) return [];
+
+    return ordered(listFiles(beneath: binDir, recursive: false))
+        .where((executable) => path.extension(executable) == '.dart')
+        .map((executable) {
+      return new AssetId(
+          name, path.toUri(path.relative(executable, from: dir)).toString());
+    }).toList();
   }
 
   /// Returns the path to the README file at the root of the entrypoint, or null
@@ -154,7 +169,13 @@ class Package {
       // If we're not listing recursively, strip out paths that contain
       // separators. Since git always prints forward slashes, we always detect
       // them.
-      if (!recursive) files = files.where((file) => !file.contains('/'));
+      if (!recursive) {
+        // If we're listing a subdirectory, we only want to look for slashes
+        // after the subdirectory prefix.
+        var relativeStart = relativeBeneath == '.' ? 0 :
+            relativeBeneath.length + 1;
+        files = files.where((file) => !file.contains('/', relativeStart));
+      }
 
       // Git always prints files relative to the repository root, but we want
       // them relative to the working directory. It also prints forward slashes

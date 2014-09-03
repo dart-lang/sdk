@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 import 'package:watcher/watcher.dart';
 
 import '../entrypoint.dart';
+import '../exceptions.dart';
 import '../io.dart';
 import '../log.dart' as log;
 import '../package.dart';
@@ -231,6 +232,54 @@ class AssetEnvironment {
         (_) => BarbackServer.bind(this, _hostname, 0, package: package,
             rootDirectory: "bin"));
   }
+
+  /// Precompiles all of [packageName]'s executables to snapshots in
+  /// [directory].
+  ///
+  /// If [executableIds] is passed, only those executables are precompiled.
+  Future precompileExecutables(String packageName, String directory,
+      {Iterable<AssetId> executableIds}) {
+    if (executableIds == null) {
+      executableIds = graph.packages[packageName].executableIds;
+    }
+    log.fine("executables for $packageName: $executableIds");
+    if (executableIds.isEmpty) return null;
+
+    var package = graph.packages[packageName];
+    return servePackageBinDirectory(packageName).then((server) {
+      return waitAndPrintErrors(executableIds.map((id) {
+        var basename = path.url.basename(id.path);
+        var snapshotPath = path.join(directory, "$basename.snapshot");
+        return runProcess(Platform.executable, [
+          '--snapshot=$snapshotPath',
+          server.url.resolve(basename).toString()
+        ]).then((result) {
+          if (result.success) {
+            log.message("Precompiled ${_formatExecutable(id)}.");
+          } else {
+            // TODO(nweiz): Stop manually deleting this when issue 20504 is
+            // fixed.
+            deleteEntry(snapshotPath);
+            throw new ApplicationException(
+                log.yellow("Failed to precompile "
+                    "${_formatExecutable(id)}:\n") +
+                result.stderr.join('\n'));
+          }
+        });
+      })).whenComplete(() {
+        // Don't return this future, since we have no need to wait for the
+        // server to fully shut down.
+        server.close();
+      });
+    });
+  }
+
+  /// Returns the executable name for [id].
+  ///
+  /// [id] is assumed to be an executable in a bin directory. The return value
+  /// is intended for log output and may contain formatting.
+  String _formatExecutable(AssetId id) =>
+      log.bold("${id.package}:${path.basenameWithoutExtension(id.path)}");
 
   /// Stops the server bound to [rootDirectory].
   ///

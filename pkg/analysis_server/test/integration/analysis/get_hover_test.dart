@@ -78,7 +78,7 @@ main() {
       tests.add(checkHover('length =', 6, ['set', 'length', 'int'], 'setter',
           ['int'], isCore: true, docRegexp: '.*'));
       tests.add(checkHover('param;', 5, ['int', 'param'], 'parameter', ['int'],
-          docRegexp: 'Documentation for func'));
+          docRegexp: 'Documentation for func', parameterRegexps: ['.*']));
       tests.add(checkHover('add(', 3, ['List', 'add'], 'method', null, isCore:
           true, docRegexp: '.*'));
       tests.add(checkHover('localVar)', 8, ['num', 'localVar'],

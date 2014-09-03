@@ -111,6 +111,19 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     expect(actualCode, expectedCode);
   }
 
+  /**
+   * Checks that all conditions of [refactoring] are OK and the result of
+   * applying the [Change] to [testUnit] is [expectedCode].
+   */
+  Future assertSuccessfulRefactoring(String expectedCode) {
+    return assertRefactoringConditionsOK().then((_) {
+      return refactoring.createChange().then((SourceChange change) {
+        this.refactoringChange = change;
+        assertTestChangeResult(expectedCode);
+      });
+    });
+  }
+
   void indexTestUnit(String code) {
     resolveTestUnit(code);
     index.indexUnit(context, testUnit);

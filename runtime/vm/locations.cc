@@ -32,6 +32,9 @@ LocationSummary::LocationSummary(Isolate* isolate,
       stack_bitmap_(NULL),
       contains_call_(contains_call),
       live_registers_() {
+#if defined(DEBUG)
+  writable_inputs_ = 0;
+#endif
   input_locations_ = isolate->current_zone()->Alloc<Location>(num_inputs_);
   temp_locations_ = isolate->current_zone()->Alloc<Location>(num_temps_);
 }
@@ -256,5 +259,35 @@ void LocationSummary::PrintTo(BufferFormatter* f) const {
 
   if (always_calls()) f->Print(" C");
 }
+
+
+#if defined(DEBUG)
+void LocationSummary::DiscoverWritableInputs() {
+  if (!HasCallOnSlowPath()) {
+    return;
+  }
+
+  for (intptr_t i = 0; i < input_count(); i++) {
+    if (in(i).IsUnallocated() &&
+        (in(i).policy() == Location::kWritableRegister)) {
+      writable_inputs_ |= 1 << i;
+    }
+  }
+}
+
+
+void LocationSummary::CheckWritableInputs() {
+  ASSERT(HasCallOnSlowPath());
+  for (intptr_t i = 0; i < input_count(); i++) {
+    if ((writable_inputs_ & (1 << i)) != 0) {
+      // Writable registers have to be manually preserved because
+      // with the right representation because register allocator does not know
+      // how they are used within the instruction template.
+      ASSERT(in(i).IsMachineRegister());
+      ASSERT(live_registers()->Contains(in(i)));
+    }
+  }
+}
+#endif
 
 }  // namespace dart

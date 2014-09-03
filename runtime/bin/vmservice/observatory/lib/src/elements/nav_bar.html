@@ -82,7 +82,7 @@
     </style>
 
     <li class="menu">
-      <a on-click="{{ goto }}" href="{{ gotoLink(link) }}">{{ anchor }}</a>
+      <a on-click="{{ goto }}" _href="{{ gotoLink(link) }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
     <template if="{{ !last }}">
@@ -130,7 +130,7 @@
         text-decoration: none;
       }
     </style>
-    <li><a on-click="{{ goto }}" href="{{ gotoLink(link) }}">{{ anchor }}</a>
+    <li><a on-click="{{ goto }}" _href="{{ gotoLink(link) }}">{{ anchor }}</a>
       <ul><content></content></ul>
     </li>
   </template>
@@ -322,7 +322,7 @@
       <div class="item">
         Isolate
         <a class="link" on-click="{{ goto }}"
-           href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
+           _href="{{ event.isolate.link }}">{{ event.isolate.name }}</a>
         is paused
         <template if="{{ event.breakpoint != null }}">
           at breakpoint

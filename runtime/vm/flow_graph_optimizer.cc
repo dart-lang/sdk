@@ -921,12 +921,23 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
 static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
                                               intptr_t receiver_class_id,
                                               intptr_t argument_class_id) {
-  GrowableArray<intptr_t> receiver_cids(1);
-  receiver_cids.Add(receiver_class_id);
-  GrowableArray<intptr_t> argument_cids(1);
-  argument_cids.Add(argument_class_id);
-  return ICDataHasOnlyReceiverArgumentClassIds(
-      ic_data, receiver_cids, argument_cids);
+  if (ic_data.NumArgsTested() != 2) {
+    return false;
+  }
+  Function& target = Function::Handle();
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    if (ic_data.IsUsedAt(i)) {
+      GrowableArray<intptr_t> class_ids;
+      ic_data.GetCheckAt(i, &class_ids, &target);
+      ASSERT(class_ids.length() == 2);
+      if ((class_ids[0] == receiver_class_id) &&
+          (class_ids[1] == argument_class_id)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 
@@ -1003,10 +1014,7 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
   }
 
   // Check that it have seen only smis and doubles.
-  GrowableArray<intptr_t> class_ids(2);
-  class_ids.Add(kSmiCid);
-  class_ids.Add(kDoubleCid);
-  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
+  return HasTwoDoubleOrSmi(ic_data);
 }
 
 
@@ -4625,37 +4633,37 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
 // Smi widening pass is only meaningful on platforms where Smi
 // is smaller than 32bit. For now only support it on ARM and ia32.
 
-class DefinitionWorklist {
+class DefinitionWorklist : public ValueObject {
  public:
   DefinitionWorklist(FlowGraph* flow_graph,
                      intptr_t initial_capacity)
       : defs_(initial_capacity),
-        contains_(new BitVector(flow_graph->current_ssa_temp_index())) {
+        contains_vector_(new BitVector(flow_graph->current_ssa_temp_index())) {
   }
 
   void Add(Definition* defn) {
     if (!Contains(defn)) {
       defs_.Add(defn);
-      contains_->Add(defn->ssa_temp_index());
+      contains_vector_->Add(defn->ssa_temp_index());
     }
   }
 
   bool Contains(Definition* defn) const {
     return (defn->ssa_temp_index() >= 0) &&
-        contains_->Contains(defn->ssa_temp_index());
+        contains_vector_->Contains(defn->ssa_temp_index());
   }
 
   const GrowableArray<Definition*>& definitions() const { return defs_; }
-  BitVector* contains() const { return contains_; }
+  BitVector* contains_vector() const { return contains_vector_; }
 
   void Clear() {
     defs_.TruncateTo(0);
-    contains_->Clear();
+    contains_vector_->Clear();
   }
 
  private:
   GrowableArray<Definition*> defs_;
-  BitVector* contains_;
+  BitVector* contains_vector_;
 };
 
 
@@ -4694,7 +4702,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
          !instr_it.Done();
          instr_it.Advance()) {
       BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
-      if (smi_op != NULL &&
+      if ((smi_op != NULL) &&
           BenefitsFromWidening(smi_op) &&
           CanBeWidened(smi_op)) {
         candidates.Add(smi_op);
@@ -4702,7 +4710,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
     }
   }
 
-  if (candidates.length() == 0) {
+  if (candidates.is_empty()) {
     return;
   }
 
@@ -4712,7 +4720,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
   // same loop should be counted against the gain, all other conversions
   // can be hoisted and thus cost nothing compared to the loop cost itself.
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-    flow_graph()->loop_headers();
+      flow_graph()->LoopHeaders();
 
   GrowableArray<intptr_t> loops(flow_graph_->preorder().length());
   for (intptr_t i = 0; i < flow_graph_->preorder().length(); i++) {
@@ -4777,7 +4785,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
         if (input->IsBinarySmiOp() &&
             CanBeWidened(input->AsBinarySmiOp())) {
           worklist.Add(input);
-        } else if (input->IsPhi() && input->Type()->ToCid() == kSmiCid) {
+        } else if (input->IsPhi() && (input->Type()->ToCid() == kSmiCid)) {
           worklist.Add(input);
         } else if (input->IsBinaryMintOp()) {
           // Mint operation produces untagged result. We avoid tagging.
@@ -4844,7 +4852,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
       }
     }
 
-    processed->AddAll(worklist.contains());
+    processed->AddAll(worklist.contains_vector());
 
     if (FLAG_trace_smi_widening) {
       OS::Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
@@ -5080,7 +5088,7 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->loop_headers();
+      flow_graph()->LoopHeaders();
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     JoinEntryInstr* header = loop_headers[i]->AsJoinEntry();
@@ -5103,7 +5111,7 @@ void LICM::Optimize() {
   }
 
   const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-      flow_graph()->loop_headers();
+      flow_graph()->LoopHeaders();
 
   ZoneGrowableArray<BitVector*>* loop_invariant_loads =
       flow_graph()->loop_invariant_loads();
@@ -6630,7 +6638,7 @@ class LoadOptimizer : public ValueObject {
 
   void MarkLoopInvariantLoads() {
     const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
-        graph_->loop_headers();
+        graph_->LoopHeaders();
 
     ZoneGrowableArray<BitVector*>* invariant_loads =
         new(I) ZoneGrowableArray<BitVector*>(loop_headers.length());

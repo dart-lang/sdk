@@ -77,7 +77,7 @@ class SsaBuilderTask extends CompilerTask {
             name = "${element.name}";
           }
           compiler.tracer.traceCompilation(
-              name, work.compilationContext, compiler);
+              name, work.compilationContext);
           compiler.tracer.traceGraph('builder', graph);
         }
         return graph;
@@ -1313,6 +1313,9 @@ class SsaBuilder extends ResolvedVisitor {
 
     if (meetsHardConstraints() && heuristicSayGoodToGo()) {
       doInlining();
+      registry.registerInlining(
+          element,
+          compiler.currentElement);
       return true;
     }
 
@@ -1395,7 +1398,8 @@ class SsaBuilder extends ResolvedVisitor {
     if (result == null) {
       ThisLocal local = localsHandler.closureData.thisLocal;
       ClassElement cls = local.enclosingClass;
-      if (compiler.world.isUsedAsMixin(cls)) {
+      ClassWorld classWorld = compiler.world;
+      if (classWorld.isUsedAsMixin(cls)) {
         // If the enclosing class is used as a mixin, [:this:] can be
         // of the class that mixins the enclosing class. These two
         // classes do not have a subclass relationship, so, for
@@ -3881,7 +3885,8 @@ class SsaBuilder extends ResolvedVisitor {
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
-    if (compiler.world.isUsedAsMixin(cls)) return true;
+    ClassWorld classWorld = compiler.world;
+    if (classWorld.isUsedAsMixin(cls)) return true;
 
     Iterable<ClassElement> subclasses = compiler.world.strictSubclassesOf(cls);
     return subclasses.any((ClassElement subclass) {

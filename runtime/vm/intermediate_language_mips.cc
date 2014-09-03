@@ -1829,6 +1829,12 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register temp2 = locs()->temp(1).reg();
     DRegister fpu_temp = locs()->temp(2).fpu_reg();
 
+    if (ShouldEmitStoreBarrier()) {
+      // Value input is a writable register and should be manually preserved
+      // across allocation slow-path.
+      locs()->live_registers()->Add(locs()->in(1), kTagged);
+    }
+
     Label store_pointer;
     Label store_double;
 
@@ -2655,8 +2661,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
-          (right_range == NULL) ||
-          !right_range->IsWithin(0, max_right - 1);
+          !RangeUtils::IsWithin(right_range, 0, max_right - 1);
       if (right_needs_check) {
         __ BranchUnsignedGreaterEqual(
             right, reinterpret_cast<int32_t>(Smi::New(max_right)), deopt);
@@ -2668,7 +2673,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
   }
 
   const bool right_needs_check =
-      (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+      !RangeUtils::IsWithin(right_range, 0, (Smi::kBits - 1));
   if (is_truncating) {
     if (right_needs_check) {
       const bool right_may_be_negative =

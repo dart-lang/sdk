@@ -6,8 +6,9 @@ library pub.command.global_run;
 
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
+
 import '../command.dart';
-import '../executable.dart';
 import '../io.dart';
 import '../utils.dart';
 
@@ -37,10 +38,14 @@ class GlobalRunCommand extends PubCommand {
     }
 
     var args = commandOptions.rest.skip(1).toList();
+    if (p.split(executable).length > 1) {
+      // TODO(nweiz): Use adjacent strings when the new async/await compiler
+      // lands.
+      usageError('Cannot run an executable in a subdirectory of a global ' +
+          'package.');
+    }
 
-    var entrypoint = await globals.find(package);
-    var exitCode = await runExecutable(this, entrypoint, package, executable,
-          args, isGlobal: true);
+    var exitCode = await globals.runExecutable(package, executable, args);
     await flushThenExit(exitCode);
   }
 }

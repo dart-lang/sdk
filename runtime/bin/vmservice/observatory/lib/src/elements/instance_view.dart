@@ -11,7 +11,7 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('instance-view')
 class InstanceViewElement extends ObservatoryElement {
-  @published ServiceMap instance;
+  @published Instance instance;
   @published ServiceMap path;
   @published ServiceMap inboundReferences;
   @observable int retainedBytes = null;

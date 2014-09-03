@@ -1,6 +1,8 @@
-## 2.0.2
+## 2.0.1+1
 
 * Fix an import in a test.
+
+* Widen the version constraint on the `collection` package.
 
 ## 2.0.1
 

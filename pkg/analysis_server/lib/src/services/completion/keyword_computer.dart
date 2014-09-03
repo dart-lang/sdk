@@ -62,6 +62,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     int startOfDeclarations = node.end;
     if (node.declarations.length > 0) {
       startOfDeclarations = node.declarations[0].offset;
+      // If the first token is a simple identifier
+      // and cursor position in within that first token
+      // then consider cursor to be before the first declaration
+      Token token = node.declarations[0].firstTokenAfterCommentAndMetadata;
+      if (token.offset <= request.offset && request.offset <= token.end) {
+        startOfDeclarations = token.end;
+      }
     }
 
     // Simplistic check for library as first directive
@@ -98,6 +105,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       if (token != null && !token.isSynthetic) {
         if (token.lexeme == ';' || token.lexeme == '}') {
           node.parent.accept(this);
+        }
+      }
+    }
+  }
+
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    AstNode parent =
+        node.getAncestor((n) => n is TopLevelVariableDeclaration);
+    if (parent is TopLevelVariableDeclaration) {
+      if (parent.variables != null && parent.variables.type != null
+          && parent.variables.type.name == node) {
+        AstNode unit = node.getAncestor((n) => n is CompilationUnit);
+        if (unit is CompilationUnit) {
+          visitCompilationUnit(unit);
         }
       }
     }
