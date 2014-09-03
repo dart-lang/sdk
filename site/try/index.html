@@ -275,6 +275,14 @@ Except as otherwise <a href="http://code.google.com/policies.html#restrictions">
 <script type="application/javascript" src="https://dart.googlecode.com/svn/branches/bleeding_edge/dart/pkg/browser/lib/dart.js"></script>
 <script type="application/dart" src="leap.dart"></script>
 -->
+<script type="application/javascript">
+  if (self.localStorage &&
+      !Object.prototype.hasOwnProperty.call(
+          self.localStorage, 'hasSelectionModify')) {
+    self.localStorage.hasSelectionModify =
+        typeof window.getSelection().modify != 'undefined';
+  }
+</script>
 <script type="application/javascript" src="leap.dart.js"></script>
 </body>
 </html>

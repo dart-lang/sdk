@@ -21,8 +21,6 @@ import 'dart:async' show
 import 'dart:collection' show
     Queue;
 
-import 'dart:js' as hack;
-
 import 'package:compiler/implementation/scanner/scannerlib.dart' show
     BeginGroupToken,
     EOF_TOKEN,
@@ -1303,17 +1301,14 @@ void workAroundFirefoxBug() {
   if (!isCollapsed(selection)) return;
   Node node = selection.anchorNode;
   int offset = selection.anchorOffset;
-  if (selection.anchorNode is Element && selection.anchorOffset != 0) {
+  if (node is Element && offset != 0) {
     // In some cases, Firefox reports the wrong anchorOffset (always seems to
     // be 6) when anchorNode is an Element. Moving the cursor back and forth
     // adjusts the anchorOffset.
     // Safari can also reach this code, but the offset isn't wrong, just
     // inconsistent.  After moving the cursor back and forth, Safari will make
     // the offset relative to a text node.
-    // TODO(ahe): Come up with a better way to encapsulate the method below.
-    var selectionProxy = new hack.JsObject.fromBrowserObject(selection);
-    var modify = selectionProxy['modify'];
-    if (modify != null) {
+    if (settings.hasSelectionModify.value) {
       // IE doesn't support selection.modify, but it's okay since the code
       // above is for Firefox, IE doesn't have problems with anchorOffset.
       selection

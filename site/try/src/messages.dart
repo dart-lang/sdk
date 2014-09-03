@@ -40,5 +40,8 @@ const Map<String, dynamic> messages = const <String, dynamic> {
     'Theme:',
 
   'incrementalCompilation':
-    'Enable incremental compilation (EXPERIMENTAL)',
+    'Enable incremental compilation (EXPERIMENTAL).',
+
+  'hasSelectionModify':
+    'Use Selection.modify.',
 };
