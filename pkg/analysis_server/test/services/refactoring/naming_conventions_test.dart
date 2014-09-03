@@ -8,7 +8,7 @@ import 'package:analysis_server/src/protocol.dart' show
     RefactoringProblemSeverity;
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_refactoring.dart';

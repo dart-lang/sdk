@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:unittest/unittest.dart';
 

@@ -10,8 +10,8 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analysis_testing/abstract_single_unit.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../abstract_single_unit.dart';
+import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart';
 

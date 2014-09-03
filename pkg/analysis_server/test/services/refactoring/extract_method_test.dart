@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:unittest/unittest.dart';
 
 import 'abstract_refactoring.dart';

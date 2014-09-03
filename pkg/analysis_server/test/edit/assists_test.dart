@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';

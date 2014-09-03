@@ -4,7 +4,7 @@
 
 library test.services.src.index.abstract_single_file;
 
-import 'package:analysis_testing/abstract_context.dart';
+import 'abstract_context.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';

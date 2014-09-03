@@ -6,7 +6,7 @@ library test.integration.analysis.get.hover;
 
 import 'dart:async';
 
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 

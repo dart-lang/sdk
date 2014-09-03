@@ -7,7 +7,7 @@ library test.services.refactoring.inline_local;
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_testing/reflective_tests.dart';
+import '../../reflective_tests.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart';

@@ -4,7 +4,7 @@
 
 library testing.abstract_context;
 
-import 'package:analysis_testing/mock_sdk.dart';
+import 'mock_sdk.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
