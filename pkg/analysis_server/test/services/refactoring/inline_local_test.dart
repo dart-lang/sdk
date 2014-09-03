@@ -5,13 +5,12 @@
 library test.services.refactoring.inline_local;
 
 import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import '../../reflective_tests.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../reflective_tests.dart';
 import 'abstract_refactoring.dart';
 
 
@@ -199,6 +198,28 @@ main() {
     });
   }
 
+  test_bad_selectionMethod() {
+    indexTestUnit(r'''
+main() {
+}
+''');
+    _createRefactoring('main() {');
+    return refactoring.checkInitialConditions().then((status) {
+      _assert_fatalError_selection(status);
+    });
+  }
+
+  test_bad_selectionParameter() {
+    indexTestUnit(r'''
+main(int test) {
+}
+''');
+    _createRefactoring('test) {');
+    return refactoring.checkInitialConditions().then((status) {
+      _assert_fatalError_selection(status);
+    });
+  }
+
   test_bad_selectionVariable_hasAssignments_1() {
     indexTestUnit(r'''
 main() {
@@ -256,9 +277,16 @@ main() {
     });
   }
 
+  void _assert_fatalError_selection(RefactoringStatus status) {
+    assertRefactoringStatus(
+        status,
+        RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Local variable declaration or reference must be '
+            'selected to activate this refactoring.');
+  }
+
   void _createRefactoring(String search) {
-    SimpleIdentifier identifier = findIdentifier(search);
-    LocalVariableElement element = identifier.bestElement;
-    refactoring = new InlineLocalRefactoring(searchEngine, testUnit, element);
+    int offset = findOffset(search);
+    refactoring = new InlineLocalRefactoring(searchEngine, testUnit, offset);
   }
 }

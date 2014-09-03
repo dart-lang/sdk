@@ -187,8 +187,8 @@ abstract class InlineLocalRefactoring implements Refactoring {
    * Returns a new [InlineLocalRefactoring] instance.
    */
   factory InlineLocalRefactoring(SearchEngine searchEngine,
-      CompilationUnit unit, LocalVariableElement element) {
-    return new InlineLocalRefactoringImpl(searchEngine, unit, element);
+      CompilationUnit unit, int offset) {
+    return new InlineLocalRefactoringImpl(searchEngine, unit, offset);
   }
 
   /**

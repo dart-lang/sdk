@@ -29,14 +29,15 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     InlineLocalRefactoring {
   final SearchEngine searchEngine;
   final CompilationUnit unit;
-  final LocalVariableElement element;
+  final int offset;
   String file;
   CorrectionUtils utils;
 
+  Element _variableElement;
   VariableDeclaration _variableNode;
   List<SearchMatch> _references;
 
-  InlineLocalRefactoringImpl(this.searchEngine, this.unit, this.element) {
+  InlineLocalRefactoringImpl(this.searchEngine, this.unit, this.offset) {
     file = unit.element.source.fullName;
     utils = new CorrectionUtils(unit);
   }
@@ -60,10 +61,19 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     RefactoringStatus result = new RefactoringStatus();
     // prepare variable
     {
-      AstNode elementNode = utils.findNode(element.nameOffset);
-      _variableNode = elementNode != null ?
-          elementNode.getAncestor((node) => node is VariableDeclaration) :
-          null;
+      AstNode offsetNode = new NodeLocator.con1(offset).searchWithin(unit);
+      if (offsetNode is SimpleIdentifier) {
+        Element element = offsetNode.staticElement;
+        if (element is LocalVariableElement) {
+          _variableElement = element;
+          _variableNode = element.node;
+        }
+      }
+    }
+    if (_variableNode == null) {
+      result = new RefactoringStatus.fatal(
+          'Local variable declaration or reference must be selected to activate this refactoring.');
+      return new Future.value(result);
     }
     // should be normal variable declaration statement
     if (_variableNode.parent is! VariableDeclarationList ||
@@ -78,20 +88,20 @@ class InlineLocalRefactoringImpl extends RefactoringImpl implements
     if (_variableNode.initializer == null) {
       String message = format(
           "Local variable '{0}' is not initialized at declaration.",
-          element.displayName);
+          _variableElement.displayName);
       result =
           new RefactoringStatus.fatal(message, new Location.fromNode(_variableNode));
       return new Future.value(result);
     }
     // prepare references
-    return searchEngine.searchReferences(element).then((references) {
+    return searchEngine.searchReferences(_variableElement).then((references) {
       this._references = references;
       // should not have assignments
       for (SearchMatch reference in _references) {
         if (reference.kind != MatchKind.READ) {
           String message = format(
               "Local variable '{0}' is assigned more than once.",
-              [element.displayName]);
+              [_variableElement.displayName]);
           return new RefactoringStatus.fatal(
               message,
               new Location.fromMatch(reference));
