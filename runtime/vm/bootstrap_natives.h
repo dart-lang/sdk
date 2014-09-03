@@ -92,7 +92,7 @@ namespace dart {
   V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
   V(List_getLength, 1)                                                         \
-  V(List_copyFromObjectArray, 5)                                               \
+  V(List_slice, 4)                                                             \
   V(ImmutableList_from, 4)                                                     \
   V(StringBase_createFromCodePoints, 1)                                        \
   V(StringBase_substringUnchecked, 3)                                          \

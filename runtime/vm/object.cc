@@ -18093,6 +18093,32 @@ RawArray* Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
 }
 
 
+RawArray* Array::Slice(intptr_t start,
+                       intptr_t count,
+                       bool with_type_argument) const {
+  // TODO(vegorov) introduce an array allocation method that fills newly
+  // allocated array with values from the given source array instead of
+  // null-initializing all elements.
+  Array& dest = Array::Handle(Array::New(count));
+  if (dest.raw()->IsNewObject()) {
+    NoGCScope no_gc_scope;
+    memmove(dest.ObjectAddr(0), ObjectAddr(start), count * kWordSize);
+  } else {
+    PassiveObject& obj = PassiveObject::Handle();
+    for (intptr_t i = 0; i < count; i++) {
+      obj = At(start + i);
+      dest.SetAt(i, obj);
+    }
+  }
+
+  if (with_type_argument) {
+    dest.SetTypeArguments(TypeArguments::Handle(GetTypeArguments()));
+  }
+
+  return dest.raw();
+}
+
+
 void Array::MakeImmutable() const {
   NoGCScope no_gc;
   uword tags = raw_ptr()->tags_;

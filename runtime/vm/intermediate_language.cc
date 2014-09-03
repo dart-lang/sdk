@@ -1601,6 +1601,13 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       return call->ArgumentAt(0);
     }
   }
+
+  CreateArrayInstr* create_array = instance()->definition()->AsCreateArray();
+  if ((create_array != NULL) &&
+      (recognized_kind() == MethodRecognizer::kObjectArrayLength)) {
+    return create_array->num_elements()->definition();
+  }
+
   // For arrays with guarded lengths, replace the length load
   // with a constant.
   LoadFieldInstr* load_array = instance()->definition()->AsLoadField();

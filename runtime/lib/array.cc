@@ -51,46 +51,25 @@ DEFINE_NATIVE_ENTRY(List_getLength, 1) {
 }
 
 
-// ObjectArray src, int srcStart, int dstStart, int count.
-DEFINE_NATIVE_ENTRY(List_copyFromObjectArray, 5) {
-  const Array& dest = Array::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Array, source, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, src_start, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, dst_start, arguments->NativeArgAt(3));
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(4));
+// ObjectArray src, int start, int count, bool needTypeArgument.
+DEFINE_NATIVE_ENTRY(List_slice, 4) {
+  const Array& src = Array::CheckedHandle(arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, start, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, needs_type_arg, arguments->NativeArgAt(3));
   intptr_t icount = count.Value();
-  if (icount < 0) {
+  // Zero count should be handled outside already.
+  if ((icount <= 0) || (icount >= Array::kMaxElements)) {
     Exceptions::ThrowByType(Exceptions::kArgument, Object::empty_array());
   }
-  if (icount == 0) {
-    return Object::null();
-  }
-  intptr_t isrc_start = src_start.Value();
-  intptr_t idst_start = dst_start.Value();
-  if ((isrc_start < 0) || ((isrc_start + icount) > source.Length())) {
+  intptr_t istart = start.Value();
+  if ((istart < 0) || ((istart + icount) > src.Length())) {
     const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, src_start);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
-  }
-  if ((idst_start < 0) || ((idst_start + icount) > dest.Length())) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, dst_start);
+    args.SetAt(0, start);
     Exceptions::ThrowByType(Exceptions::kRange, args);
   }
 
-  Object& src_obj = Object::Handle();
-  if (isrc_start < idst_start) {
-    for (intptr_t i = icount - 1; i >= 0; i--) {
-      src_obj = source.At(isrc_start + i);
-      dest.SetAt(idst_start + i, src_obj);
-    }
-  } else {
-    for (intptr_t i = 0; i < icount; i++) {
-      src_obj = source.At(isrc_start + i);
-      dest.SetAt(idst_start + i, src_obj);
-    }
-  }
-  return Object::null();
+  return src.Slice(istart, icount, needs_type_arg.value());
 }
 
 

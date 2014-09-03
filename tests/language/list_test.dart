@@ -5,6 +5,9 @@
 
 import "package:expect/expect.dart";
 
+class A { }
+class B { }
+
 class ListTest {
   static void TestIterator() {
     List<int> a = new List<int>(10);
@@ -40,6 +43,16 @@ class ListTest {
       sum2 += elem;
     }
     Expect.equals(sum, sum2);
+  }
+
+  static void testSublistTypeArguments() {
+    final list1 = new List<A>(0).sublist(0);
+    Expect.isTrue(list1 is List<A>);
+    Expect.isTrue(list1 is! List<B>);
+
+    final list2 = new List<A>(0).toList(growable: false);
+    Expect.isTrue(list2 is List<A>);
+    Expect.isTrue(list2 is! List<B>);
   }
 
   static void testMain() {
@@ -115,4 +128,5 @@ class ListTest {
 
 main() {
   ListTest.testMain();
+  ListTest.testSublistTypeArguments();
 }

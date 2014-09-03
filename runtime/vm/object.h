@@ -6242,6 +6242,10 @@ class Array : public Instance {
   // set to an empty array.
   static RawArray* MakeArray(const GrowableObjectArray& growable_array);
 
+  RawArray* Slice(intptr_t start,
+                  intptr_t count,
+                  bool with_type_argument) const;
+
  protected:
   static RawArray* New(intptr_t class_id,
                        intptr_t len,

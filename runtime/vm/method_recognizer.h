@@ -304,7 +304,7 @@ namespace dart {
   V(_List, get:isEmpty, ObjectArrayIsEmpty, 2130247737)                        \
   V(_List, get:iterator, ObjectArrayIterator, 458612415)                       \
   V(_List, forEach, ObjectArrayForEach, 592525445)                             \
-  V(_List, _copyFromObjectArray, ObjectArrayCopyFromObjectArray, 1985480605)   \
+  V(_List, _slice, ObjectArraySlice, 1891508040)                               \
   V(_ImmutableList, get:iterator, ImmutableArrayIterator, 362084797)           \
   V(_ImmutableList, forEach, ImmutableArrayForEach, 63658053)                  \
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 1990177341)                  \
