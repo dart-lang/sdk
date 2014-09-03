@@ -77,7 +77,7 @@ void main() {
 }
 """;
 
-const String TEST_INLINED = r"""
+const String TEST_INLINED_1 = r"""
 class Doubler {
   int double(int x) {
     return x + 2;
@@ -87,6 +87,12 @@ void main() {
   var f = new Doubler();
   print(f.double(4));
 }
+""";
+
+const String TEST_INLINED_2 = r"""
+  funcA() => funcB();
+  funcB() => print("hello");
+   main() => funcA();
 """;
 
 typedef void JsonTaking(Map<String, dynamic> json);
@@ -147,7 +153,7 @@ main() {
     }));
   });
 
-  jsonTest(TEST_INLINED, (map) {
+  jsonTest(TEST_INLINED_1, (map) {
     var functions = map['elements']['function'].values;
     var classes = map['elements']['class'].values;
     Expect.isTrue(functions.any((fn) {
@@ -158,5 +164,21 @@ main() {
       return cls['name'] == 'Doubler' &&
           cls['children'].length >= 1;
     }));
+  });
+
+  jsonTest(TEST_INLINED_2, (map) {
+    var functions = map['elements']['function'].values;
+    var deps = map['holding'];
+    var main_ = functions.firstWhere((v) => v['name'] == 'main');
+    var fn1 = functions.firstWhere((v) => v['name'] == 'funcA');
+    var fn2 = functions.firstWhere((v) => v['name'] == 'funcB');
+    Expect.isTrue(main_ != null);
+    Expect.isTrue(fn1 != null);
+    Expect.isTrue(fn2 != null);
+    Expect.isTrue(deps.containsKey(main_['id']));
+    Expect.isTrue(deps.containsKey(fn1['id']));
+    Expect.isTrue(deps.containsKey(fn2['id']));
+    Expect.isTrue(deps[main_['id']].any((dep) => dep['id'] == fn1['id']));
+    Expect.isTrue(deps[fn1['id']].any((dep) => dep['id'] == fn2['id']));
   });
 }
