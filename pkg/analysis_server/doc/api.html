@@ -2186,14 +2186,16 @@ dt.typeDefinition {
             <p>
               The path to the defining compilation unit of the library
               in which the referenced element is declared. This data is
-              omitted if there is no referenced element.
+              omitted if there is no referenced element, or if the
+              element is declared inside an HTML file.
             </p>
           </dd><dt class="field"><b><i>containingLibraryName ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
             
             <p>
               The name of the library in which the referenced element is
               declared. This data is omitted if there is no referenced
-              element.
+              element, or if the element is declared inside an HTML
+              file.
             </p>
           </dd><dt class="field"><b><i>dartdoc ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
             
@@ -2202,7 +2204,8 @@ dt.typeDefinition {
               than the removal of the comment delimiters, including
               leading asterisks in the case of a block comment, the
               dartdoc is unprocessed markdown. This data is omitted if
-              there is no referenced element.
+              there is no referenced element, or if the element has no
+              dartdoc.
             </p>
           </dd><dt class="field"><b><i>elementDescription ( <span style="color:#999999">optional</span> String )</i></b></dt><dd>
             

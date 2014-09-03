@@ -6457,13 +6457,14 @@ class HoverInformation implements HasToJson {
   /**
    * The path to the defining compilation unit of the library in which the
    * referenced element is declared. This data is omitted if there is no
-   * referenced element.
+   * referenced element, or if the element is declared inside an HTML file.
    */
   String containingLibraryPath;
 
   /**
    * The name of the library in which the referenced element is declared. This
-   * data is omitted if there is no referenced element.
+   * data is omitted if there is no referenced element, or if the element is
+   * declared inside an HTML file.
    */
   String containingLibraryName;
 
@@ -6471,7 +6472,7 @@ class HoverInformation implements HasToJson {
    * The dartdoc associated with the referenced element. Other than the removal
    * of the comment delimiters, including leading asterisks in the case of a
    * block comment, the dartdoc is unprocessed markdown. This data is omitted
-   * if there is no referenced element.
+   * if there is no referenced element, or if the element has no dartdoc.
    */
   String dartdoc;
 

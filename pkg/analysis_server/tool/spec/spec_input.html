@@ -2091,7 +2091,8 @@
             <p>
               The path to the defining compilation unit of the library
               in which the referenced element is declared. This data is
-              omitted if there is no referenced element.
+              omitted if there is no referenced element, or if the
+              element is declared inside an HTML file.
             </p>
           </field>
           <field name="containingLibraryName" optional="true">
@@ -2099,7 +2100,8 @@
             <p>
               The name of the library in which the referenced element is
               declared. This data is omitted if there is no referenced
-              element.
+              element, or if the element is declared inside an HTML
+              file.
             </p>
           </field>
           <field name="dartdoc" optional="true">
@@ -2109,7 +2111,8 @@
               than the removal of the comment delimiters, including
               leading asterisks in the case of a block comment, the
               dartdoc is unprocessed markdown. This data is omitted if
-              there is no referenced element.
+              there is no referenced element, or if the element has no
+              dartdoc.
             </p>
           </field>
           <field name="elementDescription" optional="true">
