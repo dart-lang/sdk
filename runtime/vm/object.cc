@@ -5442,9 +5442,7 @@ void Function::set_result_type(const AbstractType& value) const {
 
 RawAbstractType* Function::ParameterTypeAt(intptr_t index) const {
   const Array& parameter_types = Array::Handle(raw_ptr()->parameter_types_);
-  AbstractType& parameter_type = AbstractType::Handle();
-  parameter_type ^= parameter_types.At(index);
-  return parameter_type.raw();
+  return AbstractType::RawCast(parameter_types.At(index));
 }
 
 
@@ -5463,9 +5461,7 @@ void Function::set_parameter_types(const Array& value) const {
 
 RawString* Function::ParameterNameAt(intptr_t index) const {
   const Array& parameter_names = Array::Handle(raw_ptr()->parameter_names_);
-  String& parameter_name = String::Handle();
-  parameter_name ^= parameter_names.At(index);
-  return parameter_name.raw();
+  return String::RawCast(parameter_names.At(index));
 }
 
 

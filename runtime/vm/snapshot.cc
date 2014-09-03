@@ -504,7 +504,8 @@ RawApiError* SnapshotReader::VerifyVersion() {
     char* actual_version = OS::StrNDup(version, version_len);
     OS::SNPrint(message_buffer,
                 kMessageBufferSize,
-                "Wrong full snapshot version, expected '%s' found '%s'",
+                "Wrong %s snapshot version, expected '%s' found '%s'",
+                (kind_ == Snapshot::kFull) ? "full" : "script",
                 Version::SnapshotString(),
                 actual_version);
     free(actual_version);

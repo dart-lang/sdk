@@ -9432,12 +9432,12 @@ bool Parser::ParsingStaticMember() const {
 
 const AbstractType* Parser::ReceiverType(const Class& cls) {
   ASSERT(!cls.IsNull());
-  TypeArguments& type_arguments = TypeArguments::Handle();
-  if (cls.NumTypeParameters() > 0) {
-    type_arguments = cls.type_parameters();
-  }
+  const TypeArguments& type_arguments = TypeArguments::Handle(
+      I,
+      (cls.NumTypeParameters() > 0) ?
+          cls.type_parameters() : TypeArguments::null());
   AbstractType& type = AbstractType::ZoneHandle(
-      Type::New(cls, type_arguments, cls.token_pos()));
+      I, Type::New(cls, type_arguments, cls.token_pos()));
   if (cls.is_type_finalized()) {
     type ^= ClassFinalizer::FinalizeType(
         cls, type, ClassFinalizer::kCanonicalizeWellFormed);
