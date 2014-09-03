@@ -10524,21 +10524,23 @@ const char* PcDescriptors::ToCString() const {
       "%#-*" Px "\t%s\t%" Pd "\t\t%" Pd "\t%" Pd "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
-  Iterator iter(*this, RawPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    len += OS::SNPrint(NULL, 0, kFormat, addr_width,
-                       iter.Pc(),
-                       KindAsStr(iter.Kind()),
-                       iter.DeoptId(),
-                       iter.TokenPos(),
-                       iter.TryIndex());
+  {
+    Iterator iter(*this, RawPcDescriptors::kAnyKind);
+    while (iter.MoveNext()) {
+      len += OS::SNPrint(NULL, 0, kFormat, addr_width,
+                         iter.Pc(),
+                         KindAsStr(iter.Kind()),
+                         iter.DeoptId(),
+                         iter.TokenPos(),
+                         iter.TryIndex());
+    }
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t index = 0;
-  Iterator iter2(*this, RawPcDescriptors::kAnyKind);
-  while (iter2.MoveNext()) {
+  Iterator iter(*this, RawPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
     index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
                          iter.Pc(),
                          KindAsStr(iter.Kind()),
