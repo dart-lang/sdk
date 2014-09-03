@@ -12,7 +12,6 @@ import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'barback/asset_environment.dart';
-import 'command.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'io.dart';
@@ -30,19 +29,18 @@ import 'utils.dart';
 /// Arguments from [args] will be passed to the spawned Dart application.
 ///
 /// Returns the exit code of the spawned app.
-Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
-    String package, String executable, Iterable<String> args,
-    {bool isGlobal: false}) {
+Future<int> runExecutable(Entrypoint entrypoint, String package,
+    String executable, Iterable<String> args, {bool isGlobal: false}) {
   // Unless the user overrides the verbosity, we want to filter out the
   // normal pub output shown while loading the environment.
   if (log.verbosity == log.Verbosity.NORMAL) {
     log.verbosity = log.Verbosity.WARNING;
   }
 
-  var snapshotPath = p.join(".pub", "bin", package,
+  var localSnapshotPath = p.join(".pub", "bin", package,
       "$executable.dart.snapshot");
-  if (!isGlobal && fileExists(snapshotPath)) {
-    return _runCachedExecutable(entrypoint, snapshotPath, args);
+  if (!isGlobal && fileExists(localSnapshotPath)) {
+    return _runCachedExecutable(entrypoint, localSnapshotPath, args);
   }
 
   // If the command has a path separator, then it's a path relative to the
@@ -51,14 +49,7 @@ Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
   var rootDir = "bin";
   var parts = p.split(executable);
   if (parts.length > 1) {
-    if (isGlobal) {
-      command.usageError(
-          'Cannot run an executable in a subdirectory of a global package.');
-    } else if (package != entrypoint.root.name) {
-      command.usageError(
-          "Cannot run an executable in a subdirectory of a dependency.");
-    }
-
+    assert(!isGlobal && package == entrypoint.root.name);
     rootDir = parts.first;
   } else {
     executable = p.join("bin", executable);
@@ -136,6 +127,26 @@ Future<int> runExecutable(PubCommand command, Entrypoint entrypoint,
       log.fine(new Chain.forTrace(stackTrace));
       return exit_codes.NO_INPUT;
     });
+  });
+}
+
+/// Runs the snapshot at [path] with [args] and hooks its stdout, stderr, and
+/// sdtin to this process's.
+///
+/// Returns the snapshot's exit code.
+///
+/// This doesn't do any validation of the snapshot's SDK version.
+Future<int> runSnapshot(String path, Iterable<String> args) {
+  var vmArgs = [path]..addAll(args);
+
+  return Process.start(Platform.executable, vmArgs).then((process) {
+    // Note: we're not using process.std___.pipe(std___) here because
+    // that prevents pub from also writing to the output streams.
+    process.stderr.listen(stderr.add);
+    process.stdout.listen(stdout.add);
+    stdin.listen(process.stdin.add);
+
+    return process.exitCode;
   });
 }
 

@@ -8,14 +8,19 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:barback/barback.dart';
 
+import 'barback/asset_environment.dart';
 import 'entrypoint.dart';
+import 'executable.dart' as exe;
 import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
+import 'package_graph.dart';
 import 'system_cache.dart';
+import 'sdk.dart' as sdk;
 import 'solver/version_solver.dart';
 import 'source/cached.dart';
 import 'source/git.dart';
@@ -69,6 +74,10 @@ class GlobalPackages {
       // Call this just to log what the current active package is, if any.
       _describeActive(name);
 
+      // TODO(nweiz): Add some special handling for git repos that contain path
+      // dependencies. Their executables shouldn't be cached, and there should
+      // be a mechanism for redoing dependency resolution if a path pubspec has
+      // changed (see also issue 20499).
       return _installInCache(
           new PackageDep(name, "git", VersionConstraint.any, repo));
     });
@@ -96,7 +105,13 @@ class GlobalPackages {
       var fullPath = canonicalize(entrypoint.root.dir);
       var id = new PackageId(name, "path", entrypoint.root.version,
           PathSource.describePath(fullPath));
+
+      // TODO(rnystrom): Look in "bin" and display list of binaries that
+      // user can run.
       _writeLockFile(name, new LockFile([id]));
+
+      var binDir = p.join(_directory, name, 'bin');
+      if (dirExists(binDir)) deleteEntry(binDir);
     });
   }
 
@@ -120,9 +135,36 @@ class GlobalPackages {
       result.showReport(SolveType.GET);
 
       // Make sure all of the dependencies are locally installed.
-      return Future.wait(result.packages.map(_cacheDependency));
-    }).then((ids) {
-      _writeLockFile(dep.name, new LockFile(ids));
+      return Future.wait(result.packages.map(_cacheDependency)).then((ids) {
+        var lockFile = new LockFile(ids);
+
+        // Load the package graph from [result] so we don't need to re-parse all
+        // the pubspecs.
+        return new Entrypoint.inMemory(root, lockFile, cache)
+            .loadPackageGraph(result)
+            .then((graph) => _precompileExecutables(graph.entrypoint, dep.name))
+            .then((_) => _writeLockFile(dep.name, lockFile));
+      });
+    });
+  }
+
+  /// Precompiles the executables for [package] and saves them in the global
+  /// cache.
+  Future _precompileExecutables(Entrypoint entrypoint, String package) {
+    return log.progress("Precompiling executables", () {
+      var binDir = p.join(_directory, package, 'bin');
+      var sdkVersionPath = p.join(binDir, 'sdk-version');
+      cleanDir(binDir);
+      writeTextFile(sdkVersionPath, "${sdk.version}\n");
+
+      return AssetEnvironment.create(entrypoint, BarbackMode.RELEASE,
+          useDart2JS: false).then((environment) {
+        environment.barback.errors.listen((error) {
+          log.error(log.red("Build error:\n$error"));
+        });
+
+        return environment.precompileExecutables(package, binDir);
+      });
     });
   }
 
@@ -142,15 +184,20 @@ class GlobalPackages {
 
   /// Finishes activating package [package] by saving [lockFile] in the cache.
   void _writeLockFile(String package, LockFile lockFile) {
-    ensureDir(_directory);
+    ensureDir(p.join(_directory, package));
+
+    // TODO(nweiz): This cleans up Dart 1.6's old lockfile location. Remove it
+    // when Dart 1.6 is old enough that we don't think anyone will have these
+    // lockfiles anymore (issue 20703).
+    var oldPath = p.join(_directory, "$package.lock");
+    if (fileExists(oldPath)) deleteEntry(oldPath);
+
     writeTextFile(_getLockFilePath(package),
         lockFile.serialize(cache.rootDir, cache.sources));
 
     var id = lockFile.packages[package];
     log.message('Activated ${_formatPackage(id)}.');
 
-    // TODO(rnystrom): Look in "bin" and display list of binaries that
-    // user can run.
   }
 
   /// Shows the user the currently active package with [name], if any.
@@ -184,17 +231,16 @@ class GlobalPackages {
   ///
   /// Returns `false` if no package with [name] was currently active.
   bool deactivate(String name, {bool logDeactivate: false}) {
-    var lockFilePath = _getLockFilePath(name);
-    if (!fileExists(lockFilePath)) return false;
-
-    var lockFile = new LockFile.load(lockFilePath, cache.sources);
-    var id = lockFile.packages[name];
-
-    deleteEntry(lockFilePath);
+    var dir = p.join(_directory, name);
+    if (!dirExists(dir)) return false;
 
     if (logDeactivate) {
+      var lockFile = new LockFile.load(_getLockFilePath(name), cache.sources);
+      var id = lockFile.packages[name];
       log.message('Deactivated package ${_formatPackage(id)}.');
     }
+
+    deleteEntry(dir);
 
     return true;
   }
@@ -204,12 +250,25 @@ class GlobalPackages {
   /// Returns an [Entrypoint] loaded with the active package if found.
   Future<Entrypoint> find(String name) {
     return syncFuture(() {
+      var lockFilePath = _getLockFilePath(name);
       var lockFile;
       try {
-        lockFile = new LockFile.load(_getLockFilePath(name), cache.sources);
+        lockFile = new LockFile.load(lockFilePath, cache.sources);
       } on IOException catch (error) {
-        // If we couldn't read the lock file, it's not activated.
-        dataError("No active package ${log.bold(name)}.");
+        var oldLockFilePath = p.join(_directory, '$name.lock');
+        try {
+          // TODO(nweiz): This looks for Dart 1.6's old lockfile location.
+          // Remove it when Dart 1.6 is old enough that we don't think anyone
+          // will have these lockfiles anymore (issue 20703).
+          lockFile = new LockFile.load(oldLockFilePath, cache.sources);
+        } on IOException catch (error) {
+          // If we couldn't read the lock file, it's not activated.
+          dataError("No active package ${log.bold(name)}.");
+        }
+
+        // Move the old lockfile to its new location.
+        ensureDir(p.dirname(lockFilePath));
+        new File(oldLockFilePath).renameSync(lockFilePath);
       }
 
       // Load the package from the cache.
@@ -235,25 +294,65 @@ class GlobalPackages {
     });
   }
 
+  /// Runs [package]'s [executable] with [args].
+  ///
+  /// If [executable] is available in its precompiled form, that will be
+  /// recompiled if the SDK has been upgraded since it was first compiled and
+  /// then run. Otherwise, it will be run from source.
+  ///
+  /// Returns the exit code from the executable.
+  Future<int> runExecutable(String package, String executable,
+      Iterable<String> args) {
+    var binDir = p.join(_directory, package, 'bin');
+    if (!fileExists(p.join(binDir, '$executable.dart.snapshot'))) {
+      return find(package).then((entrypoint) {
+        return exe.runExecutable(entrypoint, package, executable, args,
+            isGlobal: true);
+      });
+    }
+
+    // Unless the user overrides the verbosity, we want to filter out the
+    // normal pub output shown while loading the environment.
+    if (log.verbosity == log.Verbosity.NORMAL) {
+      log.verbosity = log.Verbosity.WARNING;
+    }
+
+    return syncFuture(() {
+      var sdkVersionPath = p.join(binDir, 'sdk-version');
+      var snapshotVersion = readTextFile(sdkVersionPath);
+      if (snapshotVersion == "${sdk.version}\n") return null;
+      log.fine("$package:$executable was compiled with Dart "
+          "${snapshotVersion.trim()} and needs to be recompiled.");
+
+      return find(package)
+          .then((entrypoint) => entrypoint.loadPackageGraph())
+          .then((graph) => _precompileExecutables(graph.entrypoint, package));
+    }).then((_) =>
+        exe.runSnapshot(p.join(binDir, '$executable.dart.snapshot'), args));
+  }
+
   /// Gets the path to the lock file for an activated cached package with
   /// [name].
-  String _getLockFilePath(name) => p.join(_directory, name + ".lock");
+  String _getLockFilePath(String name) =>
+      p.join(_directory, name, "pubspec.lock");
 
   /// Shows to the user formatted list of globally activated packages.
   void listActivePackages() {
     if (!dirExists(_directory)) return;
 
     // Loads lock [file] and returns [PackageId] of the activated package.
-    loadPackageId(file) {
-      var name = p.basenameWithoutExtension(file);
+    loadPackageId(file, name) {
       var lockFile = new LockFile.load(p.join(_directory, file), cache.sources);
       return lockFile.packages[name];
     }
 
-    var packages = listDir(_directory, includeDirs: false)
-        .where((file) => p.extension(file) == '.lock')
-        .map(loadPackageId)
-        .toList();
+    var packages = listDir(_directory).map((entry) {
+      if (fileExists(entry)) {
+        return loadPackageId(entry, p.basenameWithoutExtension(entry));
+      } else {
+        return loadPackageId(p.join(entry, 'pubspec.lock'), p.basename(entry));
+      }
+    }).toList();
 
     packages
         ..sort((id1, id2) => id1.name.compareTo(id2.name))

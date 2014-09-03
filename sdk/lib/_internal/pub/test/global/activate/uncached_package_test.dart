@@ -20,12 +20,14 @@ main() {
         Resolving dependencies...
         + foo 1.2.3 (2.0.0-wildly.unstable available)
         Downloading foo 1.2.3...
+        Precompiling executables...
+        Loading source assets...
         Activated foo 1.2.3.""");
 
     // Should be in global package cache.
     d.dir(cachePath, [
       d.dir('global_packages', [
-        d.matcherFile('foo.lock', contains('1.2.3'))
+        d.dir('foo', [d.matcherFile('pubspec.lock', contains('1.2.3'))])
       ])
     ]).validate();
   });

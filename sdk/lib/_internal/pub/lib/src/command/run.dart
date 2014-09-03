@@ -6,6 +6,8 @@ library pub.command.run;
 
 import 'dart:async';
 
+import 'package:path/path.dart' as p;
+
 import '../command.dart';
 import '../executable.dart';
 import '../io.dart';
@@ -34,10 +36,16 @@ class RunCommand extends PubCommand {
       var components = split1(executable, ":");
       package = components[0];
       executable = components[1];
+
+      if (p.split(executable).length > 1) {
+      // TODO(nweiz): Use adjacent strings when the new async/await compiler
+      // lands.
+        usageError("Cannot run an executable in a subdirectory of a " +
+            "dependency.");
+      }
     }
 
-    var exitCode = await runExecutable(this, entrypoint, package, executable,
-        args);
+    var exitCode = await runExecutable(entrypoint, package, executable, args);
     await flushThenExit(exitCode);
   }
 }

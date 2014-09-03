@@ -21,7 +21,7 @@ main() {
 
     d.dir(cachePath, [
       d.dir('global_packages', [
-        d.matcherFile('foo.lock', contains('1.0.1'))
+        d.dir('foo', [d.matcherFile('pubspec.lock', contains('1.0.1'))])
       ])
     ]).validate();
   });

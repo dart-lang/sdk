@@ -9,23 +9,23 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('can activate an already cached package', () {
+  integration('removes the 1.6-style lockfile', () {
     servePackages((builder) {
       builder.serve("foo", "1.0.0");
     });
 
-    schedulePub(args: ["cache", "add", "foo"]);
-
-    schedulePub(args: ["global", "activate", "foo"], output: """
-        Resolving dependencies...
-        + foo 1.0.0
-        Precompiling executables...
-        Loading source assets...
-        Activated foo 1.0.0.""");
-
-    // Should be in global package cache.
     d.dir(cachePath, [
       d.dir('global_packages', [
+        d.file('foo.lock', 'packages: {foo: {description: foo, source: hosted, '
+            'version: "1.0.0"}}}')
+      ])
+    ]).create();
+
+    schedulePub(args: ["global", "activate", "foo"]);
+
+    d.dir(cachePath, [
+      d.dir('global_packages', [
+        d.nothing('foo.lock'),
         d.dir('foo', [d.matcherFile('pubspec.lock', contains('1.0.0'))])
       ])
     ]).validate();
