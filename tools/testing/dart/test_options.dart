@@ -7,6 +7,7 @@ library test_options_parser;
 import "dart:io";
 import "drt_updater.dart";
 import "test_suite.dart";
+import "utils.dart";
 import "compiler_configuration.dart" show CompilerConfiguration;
 import "runtime_configuration.dart" show RuntimeConfiguration;
 
@@ -715,8 +716,13 @@ Note: currently only implemented for dart2js.''',
     var selectors = configuration['selectors'];
     if (selectors is !Map) {
       if (selectors == null) {
-        configuration['default_selector'] = true;
-        selectors = new List.from(defaultTestSelectors);
+        if (configuration['suite_dir'] != null) {
+          var suite_path = new Path(configuration['suite_dir']);
+          selectors = [suite_path.filename];
+        } else {
+          selectors = new List.from(defaultTestSelectors);
+        }
+
         var exclude_suites = configuration['exclude_suite'] != null ?
               configuration['exclude_suite'].split(',') : [];
         for (var exclude in exclude_suites) {

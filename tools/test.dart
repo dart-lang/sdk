@@ -178,12 +178,6 @@ void testConfigurations(List<Map> configurations) {
     // If we specifically pass in a suite only run that.
     if (conf['suite_dir'] != null) {
       var suite_path = new Path(conf['suite_dir']);
-
-      // Add a selector if we did not specify a specific one
-      if (conf['default_selector'] != null) {
-        var regexp = new RegExp('.?');
-        conf['selectors'][suite_path.filename] = regexp;
-      }
       testSuites.add(
           new StandardTestSuite.forDirectory(conf, suite_path));
     } else {
