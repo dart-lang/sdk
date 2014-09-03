@@ -25,6 +25,7 @@ WHITELIST = [
     r'(\S+)\.idl',
     r'(\S+)\.json',
     r'(\S+)\.py',
+    r'(\S+)\.txt',
     ]
 
 # WebKit / WebCore info.
@@ -33,6 +34,8 @@ WEBKIT_URL_PATTERN = r'"dartium_webkit_branch": "(\S+)",'
 WEBKIT_REV_PATTERN = r'"dartium_webkit_revision": "(\d+)",'
 WEBCORE_SUBPATH = 'Source/core'
 MODULES_SUBPATH = 'Source/modules'
+BINDINGS_SUBPATH = 'Source/bindings'
+
 LOCAL_WEBKIT_IDL_PATH = os.path.join(DART_PATH, 'third_party', 'WebCore')
 LOCAL_WEBKIT_README = """\
 This directory contains a copy of WebKit/WebCore IDL files.
@@ -89,11 +92,13 @@ UPDATE_LIST = [
     # (component, remote subpath, local path, local readme file, depth)
 
     # WebKit IDL.
-    ('webkit', WEBCORE_SUBPATH, os.path.join(LOCAL_WEBKIT_IDL_PATH, 'core'), LOCAL_WEBKIT_README,
+    ('webkit', WEBCORE_SUBPATH, os.path.join(LOCAL_WEBKIT_IDL_PATH, 'core'),
+     LOCAL_WEBKIT_README, DEPTH_INFINITY),
+    ('webkit', MODULES_SUBPATH, os.path.join(LOCAL_WEBKIT_IDL_PATH, 'modules'),
+     LOCAL_WEBKIT_README, DEPTH_INFINITY),
+    ('webkit', BINDINGS_SUBPATH, os.path.join(LOCAL_WEBKIT_IDL_PATH, 'bindings'),
+     LOCAL_WEBKIT_README, DEPTH_INFINITY),
 
-     DEPTH_INFINITY),
-    ('webkit', MODULES_SUBPATH, os.path.join(LOCAL_WEBKIT_IDL_PATH, 'modules'), LOCAL_WEBKIT_README,
-     DEPTH_INFINITY),
     # Chrome IDL.
     ('chrome', CHROME_IDL_SUBPATH, LOCAL_CHROME_IDL_PATH, LOCAL_CHROME_README,
      DEPTH_INFINITY),
