@@ -23,10 +23,52 @@ main() {
 
 
 class ElementKindTest {
-  void test_toString() {
-    expect(ElementKind.CLASS.toString(), 'ElementKind.CLASS');
-    expect(ElementKind.COMPILATION_UNIT.toString(),
-        'ElementKind.COMPILATION_UNIT');
+  void test_fromEngine() {
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.CLASS),
+        ElementKind.CLASS);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.COMPILATION_UNIT),
+        ElementKind.COMPILATION_UNIT);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.CONSTRUCTOR),
+        ElementKind.CONSTRUCTOR);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.FIELD),
+        ElementKind.FIELD);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.FUNCTION),
+        ElementKind.FUNCTION);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
+        ElementKind.FUNCTION_TYPE_ALIAS);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.GETTER),
+        ElementKind.GETTER);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.LIBRARY),
+        ElementKind.LIBRARY);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.LOCAL_VARIABLE),
+        ElementKind.LOCAL_VARIABLE);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.METHOD),
+        ElementKind.METHOD);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.PARAMETER),
+        ElementKind.PARAMETER);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.SETTER),
+        ElementKind.SETTER);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
+        ElementKind.TOP_LEVEL_VARIABLE);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.TYPE_PARAMETER),
+        ElementKind.TYPE_PARAMETER);
+    expect(
+        new ElementKind.fromEngine(engine.ElementKind.ANGULAR_COMPONENT),
+        ElementKind.UNKNOWN);
   }
 
   void test_string_constructor() {
@@ -75,52 +117,10 @@ class ElementKindTest {
     }, throws);
   }
 
-  void test_fromEngine() {
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.CLASS),
-        ElementKind.CLASS);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.COMPILATION_UNIT),
-        ElementKind.COMPILATION_UNIT);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.CONSTRUCTOR),
-        ElementKind.CONSTRUCTOR);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.FIELD),
-        ElementKind.FIELD);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.FUNCTION),
-        ElementKind.FUNCTION);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.FUNCTION_TYPE_ALIAS),
-        ElementKind.FUNCTION_TYPE_ALIAS);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.GETTER),
-        ElementKind.GETTER);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.LIBRARY),
-        ElementKind.LIBRARY);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.LOCAL_VARIABLE),
-        ElementKind.LOCAL_VARIABLE);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.METHOD),
-        ElementKind.METHOD);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.PARAMETER),
-        ElementKind.PARAMETER);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.SETTER),
-        ElementKind.SETTER);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.TOP_LEVEL_VARIABLE),
-        ElementKind.TOP_LEVEL_VARIABLE);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.TYPE_PARAMETER),
-        ElementKind.TYPE_PARAMETER);
-    expect(
-        new ElementKind.fromEngine(engine.ElementKind.ANGULAR_COMPONENT),
-        ElementKind.UNKNOWN);
+  void test_toString() {
+    expect(ElementKind.CLASS.toString(), 'ElementKind.CLASS');
+    expect(ElementKind.COMPILATION_UNIT.toString(),
+        'ElementKind.COMPILATION_UNIT');
   }
 }
 
@@ -253,5 +253,17 @@ class A {
     expect(element.parameters, '(int a, {String b})');
     expect(element.returnType, 'List<String>');
     expect(element.flags, Element.FLAG_STATIC);
+  }
+
+  void test_fromElement_dynamic() {
+    var engineElement = engine.DynamicElementImpl.instance;
+    // create notification Element
+    Element element = new Element.fromEngine(engineElement);
+    expect(element.kind, ElementKind.UNKNOWN);
+    expect(element.name, 'dynamic');
+    expect(element.location, isNull);
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    expect(element.flags, 0);
   }
 }

@@ -294,6 +294,9 @@ Location _locationForArgs(engine.AnalysisContext context, engine.Source source,
 Location _locationFromElement(engine.Element element) {
   engine.AnalysisContext context = element.context;
   engine.Source source = element.source;
+  if (context == null || source == null) {
+    return null;
+  }
   String name = element.displayName;
   int offset = element.nameOffset;
   int length = name != null ? name.length : 0;
