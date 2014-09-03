@@ -359,6 +359,24 @@
         ],
       },
 
+      'DebugAndroidARM64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_arm64_Base', 'Dart_Debug',
+          'Dart_Android_Base',
+          'Dart_Android_arm64_Base',
+          'Dart_Android_Debug',
+        ],
+      },
+
+      'ReleaseAndroidARM64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_arm64_Base', 'Dart_Release',
+          'Dart_Android_Base',
+          'Dart_Android_arm64_Base',
+          'Dart_Android_Release',
+        ],
+      },
+
       # These targets assume that target_arch is passed in explicitly
       # by the containing project (e.g., chromium).
       'Debug': {

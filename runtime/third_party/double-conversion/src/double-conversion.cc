@@ -28,14 +28,14 @@
 #include <limits.h>
 #include <math.h>
 
-#include "double-conversion.h"
+#include "double-conversion.h"  /* NOLINT */
 
-#include "bignum-dtoa.h"
-#include "fast-dtoa.h"
-#include "fixed-dtoa.h"
-#include "ieee.h"
-#include "strtod.h"
-#include "utils.h"
+#include "bignum-dtoa.h"  /* NOLINT */
+#include "fast-dtoa.h"  /* NOLINT */
+#include "fixed-dtoa.h"  /* NOLINT */
+#include "ieee.h"  /* NOLINT */
+#include "strtod.h"  /* NOLINT */
+#include "utils.h"  /* NOLINT */
 
 namespace double_conversion {
 
@@ -577,7 +577,8 @@ static double RadixStringToIeee(const char* current,
   } while (current != end);
 
   ASSERT(number < ((int64_t)1 << kSignificandSize));
-  ASSERT(static_cast<int64_t>(static_cast<double>(number)) == number);
+  const double double_number = static_cast<double>(number);
+  ASSERT(static_cast<int64_t>(double_number) == number);
 
   *trailing_pointer = current;
 

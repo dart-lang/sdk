@@ -7,8 +7,8 @@
 """
 This script performs the final link step for Android NDK executables.
 Usage:
-./android_link {arm,ia32} {executable,library,shared_library} {host,target}
-               [linker args]
+./android_link {arm,arm64,ia32} {executable,library,shared_library}
+               {host,target} [linker args]
 """
 
 import os
@@ -48,8 +48,9 @@ def main():
   link_args = sys.argv[4:]
 
   # Check arguments.
-  if target_arch not in ['arm', 'ia32']:
-    raise Exception(sys.argv[0] + " first argument must be 'arm' or 'ia32'")
+  if target_arch not in ['arm', 'arm64', 'ia32']:
+    raise Exception(sys.argv[0] +
+        " first argument must be 'arm', 'arm64', or 'ia32'")
   if link_type not in ['executable', 'library', 'shared_library']:
     raise Exception(sys.argv[0] +
                     " second argument must be 'executable' or 'library'")
@@ -76,6 +77,8 @@ def main():
 
   # Set up the directory of the Android NDK cross-compiler toolchain.
   toolchain_arch = 'arm-linux-androideabi-4.6'
+  if target_arch == 'arm64':
+    toolchain_arch = 'aarch64-linux-android-4.9'
   if target_arch == 'ia32':
     toolchain_arch = 'x86-4.6'
   toolchain_dir = 'linux-x86_64'
@@ -86,12 +89,17 @@ def main():
 
   # Set up the path to the linker executable.
   android_linker = os.path.join(android_toolchain, 'arm-linux-androideabi-g++')
+  if target_arch == 'arm64':
+    android_linker = os.path.join(
+        android_toolchain, 'aarch64-linux-android-c++')
   if target_arch == 'ia32':
     android_linker = os.path.join(android_toolchain, 'i686-linux-android-g++')
 
   # Grab the path to libgcc.a, which we must explicitly add to the link,
   # by invoking the cross-compiler with the -print-libgcc-file-name flag.
   android_gcc = os.path.join(android_toolchain, 'arm-linux-androideabi-gcc')
+  if target_arch == 'arm64':
+    android_gcc = os.path.join(android_toolchain, 'aarch64-linux-android-gcc')
   if target_arch == 'ia32':
     android_gcc = os.path.join(android_toolchain, 'i686-linux-android-gcc')
   android_libgcc = subprocess.check_output(
@@ -101,6 +109,9 @@ def main():
   # Android specific system includes and libraries.
   android_ndk_sysroot = os.path.join(android_ndk_root,
       'platforms', 'android-14', 'arch-arm')
+  if target_arch == 'arm64':
+    android_ndk_sysroot = os.path.join(android_ndk_root,
+      'platforms', 'android-L', 'arch-arm64')
   if target_arch == 'ia32':
     android_ndk_sysroot = os.path.join(android_ndk_root,
         'platforms', 'android-14', 'arch-x86')
