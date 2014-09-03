@@ -10,7 +10,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analysis_server/src/services/index/store/memory_node_manager.dart';
 import 'package:analysis_server/src/services/index/store/split_store.dart';
-import '../../../mocks2.dart';
+import '../../../mocks.dart';
 import '../../../reflective_tests.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';

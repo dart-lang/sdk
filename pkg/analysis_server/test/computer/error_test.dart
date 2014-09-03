@@ -7,7 +7,7 @@ library test.computer.error;
 import 'package:analysis_server/src/computer/error.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import '../mocks2.dart';
+import '../mocks.dart';
 import '../reflective_tests.dart';
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';

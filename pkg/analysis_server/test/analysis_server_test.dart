@@ -14,7 +14,7 @@ import 'mock_sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:mock/mock.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
@@ -23,17 +23,16 @@ main() {
   group('AnalysisServer', () {
     test('server.status notifications', () {
       AnalysisServerTestHelper helper = new AnalysisServerTestHelper();
-      MockAnalysisContext context = new MockAnalysisContext();
-      MockSource source = new MockSource();
-      source.when(callsTo('get fullName')).alwaysReturn('foo.dart');
-      source.when(callsTo('get isInSystemLibrary')).alwaysReturn(false);
+      MockAnalysisContext context = new MockAnalysisContext('context');
+      MockSource source = new MockSource('source');
+      when(source.fullName).thenReturn('foo.dart');
+      when(source.isInSystemLibrary).thenReturn(false);
       ChangeNoticeImpl notice = new ChangeNoticeImpl(source);
       notice.setErrors([], new LineInfo([0]));
       AnalysisResult firstResult = new AnalysisResult([notice], 0, '', 0);
       AnalysisResult lastResult = new AnalysisResult(null, 1, '', 1);
-      context.when(callsTo("performAnalysisTask"))
-        ..thenReturn(firstResult, 3)
-        ..thenReturn(lastResult);
+      when(context.performAnalysisTask).thenReturnList(
+          [firstResult, firstResult, firstResult, lastResult]);
       helper.server.serverServices.add(ServerService.STATUS);
       helper.server.schedulePerformAnalysisOperation(context);
       // Pump the event queue to make sure the server has finished any
