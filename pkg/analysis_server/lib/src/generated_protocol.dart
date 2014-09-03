@@ -8102,6 +8102,9 @@ class RequestErrorCode {
   /**
    * An error occurred during the processing of an "analysis.getErrors"
    * request.
+   *
+   * This is a legacy error; it will be removed before the API reaches version
+   * 1.0.
    */
   static const GET_ERRORS_ERROR = const RequestErrorCode._("GET_ERRORS_ERROR");
 
@@ -8118,12 +8121,19 @@ class RequestErrorCode {
   /**
    * The analysis server has already been started (and hence won't accept new
    * connections).
+   *
+   * This error is included for future expansion; at present the analysis
+   * server can only speak to one client at a time so this error will never
+   * occur.
    */
   static const SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
 
   /**
    * An "analysis.setPriorityFiles" request includes one or more files that are
    * not being analyzed.
+   *
+   * This is a legacy error; it will be removed before the API reaches version
+   * 1.0.
    */
   static const UNANALYZED_PRIORITY_FILES = const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
 
@@ -8136,6 +8146,9 @@ class RequestErrorCode {
   /**
    * The analysis server was requested to perform an action which is not
    * supported.
+   *
+   * This is a legacy error; it will be removed before the API reaches version
+   * 1.0.
    */
   static const UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
 

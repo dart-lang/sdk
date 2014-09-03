@@ -2591,8 +2591,12 @@
               An error occurred during the processing of an
               "analysis.getErrors" request.
             </p>
-            <!-- TODO(paulberry): this is vague.  We should be more
-                 specific about the nature of the error if we can. -->
+            <p>
+              This is a legacy error; it will be removed before the
+              API reaches version 1.0.
+            </p>
+            <!-- TODO(paulberry): remove this error and the code that
+                 generates it. -->
           </value>
           <value>
             <code>INVALID_PARAMETER</code>
@@ -2608,21 +2612,28 @@
           </value>
           <value>
             <code>SERVER_ALREADY_STARTED</code>
-            <!-- TODO(paulberry): this error code doesn't make sense
-                 anymore. -->
             <p>
               The analysis server has already been started (and hence
               won't accept new connections).
             </p>
+            <p>
+              This error is included for future expansion; at present
+              the analysis server can only speak to one client at a
+              time so this error will never occur.
+            </p>
           </value>
           <value>
             <code>UNANALYZED_PRIORITY_FILES</code>
-            <!-- TODO(paulberry): this error shouldn't be issued under
-                 our new "eventual consistency" model. -->
             <p>
               An "analysis.setPriorityFiles" request includes one or
               more files that are not being analyzed.
             </p>
+            <p>
+              This is a legacy error; it will be removed before the
+              API reaches version 1.0.
+            </p>
+            <!-- TODO(paulberry): remove this error and the code that
+                 generates it. -->
           </value>
           <value>
             <code>UNKNOWN_REQUEST</code>
@@ -2638,8 +2649,12 @@
               The analysis server was requested to perform an action
               which is not supported.
             </p>
-            <!-- TODO(paulberry): how does this differ from
-                 UNKNOWN_REQUEST?  Do we really need both? -->
+            <p>
+              This is a legacy error; it will be removed before the
+              API reaches version 1.0.
+            </p>
+            <!-- TODO(paulberry): remove this error and the code that
+                 generates it. -->
           </value>
         </enum>
       </type>
