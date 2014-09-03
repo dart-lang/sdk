@@ -1005,13 +1005,13 @@ class SimpleTypeInferrerVisitor<T>
     // we have to forward the call to the effective target of the
     // factory.
     if (element.isFactoryConstructor) {
-      ConstructorElement constructor = element;
       // TODO(herhut): Remove the while loop once effectiveTarget forwards to
       //               patches.
-      while (constructor.isRedirectingFactory) {
-        constructor = constructor.effectiveTarget.implementation;
+      while (element.isFactoryConstructor) {
+        ConstructorElement constructor = element;
+        if (!constructor.isRedirectingFactory) break;
+        element = constructor.effectiveTarget.implementation;
       }
-      element = constructor;
     }
     if (element.isForeign(compiler.backend)) {
       return handleForeignSend(node);
