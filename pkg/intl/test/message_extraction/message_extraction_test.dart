@@ -67,6 +67,7 @@ main(arguments) {
     useLocalDirectory = true;
   }
   setUp(copyFilesToTempDirectory);
+  tearDown(deleteGeneratedFiles);
   test("Test round trip message extraction, translation, code generation, "
       "and printing", () {
     var makeSureWeVerify = expectAsync(runAndVerify);
@@ -76,7 +77,6 @@ main(arguments) {
       return generateCodeFromTranslation(result);
     }).then(makeSureWeVerify).then(checkResult);
   });
-  tearDown(deleteGeneratedFiles);
 }
 
 void copyFilesToTempDirectory() {
@@ -95,9 +95,7 @@ void copyFilesToTempDirectory() {
 void deleteGeneratedFiles() {
   if (useLocalDirectory) return;
   try {
-    var dir = new Directory(tempDir);
-    dir.listSync().forEach((x) => x.deleteSync());
-    dir.deleteSync();
+    new Directory(tempDir).deleteSync(recursive: true);
   } on Error catch (e) {
     print("Failed to delete $tempDir");
     print("Exception:\n$e");
