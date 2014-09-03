@@ -1199,10 +1199,9 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 // Input parameters:
 //   ESP : points to return address.
 //   ESP + 4 : address of last argument.
-//   ECX : ic-data.
 //   EDX : arguments descriptor array.
 // Uses EAX, EBX, EDI as temporary registers.
-void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   // Load the receiver.
@@ -1213,22 +1212,16 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Setup space on stack for result from noSuchMethod.
   __ pushl(EAX);  // Receiver.
-  __ pushl(ECX);  // IC data array.
   __ pushl(EDX);  // Arguments descriptor array.
 
   __ movl(EDX, EDI);
   // EDX: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
-  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry, 4);
-
-  // Remove arguments.
-  __ Drop(4);
-  __ popl(EAX);  // Get result into EAX.
-
-  // Remove the stub frame as we are about to return.
-  __ LeaveFrame();
-  __ ret();
+  const intptr_t kNumArgs = 3;
+  __ CallRuntime(kInvokeClosureNoSuchMethodRuntimeEntry, kNumArgs);
+  // noSuchMethod on closures always throws an error, so it will never return.
+  __ int3();
 }
 
 

@@ -892,17 +892,10 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
-    // Invoke noSuchMethod function passing "call" as the original name.
-    StubCode* stub_code = isolate()->stub_code();
-    const int kNumArgsChecked = 1;
-    const ICData& ic_data = ICData::ZoneHandle(
-        ICData::New(function, Symbols::Call(), Object::empty_array(),
-                    Isolate::kNoDeoptId, kNumArgsChecked));
-    __ LoadObject(R5, ic_data, PP);
     __ LeaveDartFrame();  // The arguments are still on the stack.
-    __ BranchPatchable(&stub_code->CallNoSuchMethodFunctionLabel());
+    __ BranchPatchable(
+        &isolate()->stub_code()->CallClosureNoSuchMethodLabel());
     // The noSuchMethod call may return to the caller, but not here.
-    __ brk(0);
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
   }
@@ -1059,21 +1052,10 @@ void FlowGraphCompiler::CompileGraph() {
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
-        // Invoke noSuchMethod function passing the original function name.
-        // For closure functions, use "call" as the original name.
-        const String& name =
-            String::Handle(function.IsClosureFunction()
-                             ? Symbols::Call().raw()
-                             : function.name());
-        const int kNumArgsChecked = 1;
-        const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, name, Object::empty_array(),
-                        Isolate::kNoDeoptId, kNumArgsChecked));
-        __ LoadObject(R5, ic_data, PP);
         __ LeaveDartFrame();  // The arguments are still on the stack.
-        __ BranchPatchable(&stub_code->CallNoSuchMethodFunctionLabel());
+        __ BranchPatchable(
+            &isolate()->stub_code()->CallClosureNoSuchMethodLabel());
         // The noSuchMethod call may return to the caller, but not here.
-        __ brk(0);
       } else {
         __ Stop("Wrong number of arguments");
       }

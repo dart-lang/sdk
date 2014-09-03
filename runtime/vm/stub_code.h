@@ -51,7 +51,7 @@ class RawCode;
 // embedded objects and hence cannot be shared across isolates.
 #define STUB_CODE_LIST(V)                                                      \
   V(AllocateArray)                                                             \
-  V(CallNoSuchMethodFunction)                                                  \
+  V(CallClosureNoSuchMethod)                                                   \
   V(AllocateContext)                                                           \
   V(UpdateStoreBuffer)                                                         \
   V(OneArgCheckInlineCache)                                                    \

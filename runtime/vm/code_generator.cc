@@ -1003,24 +1003,21 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
 
 
 // Invoke appropriate noSuchMethod function.
-// Arg0: receiver.
-// Arg1: ic-data.
-// Arg2: arguments descriptor array.
-// Arg3: arguments array.
-DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
+// Arg0: receiver (closure object)
+// Arg1: arguments descriptor array.
+// Arg2: arguments array.
+DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
   const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
-  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
+  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(1));
+  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(2));
 
-  String& original_function_name = String::Handle(ic_data.target_name());
-  if (receiver.IsClosure()) {
-    // For closure the function name is always 'call'. Replace it with the
-    // name of the closurized function so that exception contains more
-    // relevant information.
-    const Function& function = Function::Handle(Closure::function(receiver));
-    original_function_name = function.QualifiedUserVisibleName();
-  }
+  // For closure the function name is always 'call'. Replace it with the
+  // name of the closurized function so that exception contains more
+  // relevant information.
+  ASSERT(receiver.IsClosure());
+  const Function& function = Function::Handle(Closure::function(receiver));
+  const String& original_function_name =
+      String::Handle(function.QualifiedUserVisibleName());
   const Object& result = Object::Handle(
       DartEntry::InvokeNoSuchMethod(receiver,
                                     original_function_name,

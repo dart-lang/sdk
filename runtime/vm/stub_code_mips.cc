@@ -1299,9 +1299,8 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
 // Input parameters:
 //  RA : return address.
 //  SP : address of last argument.
-//  S5: inline cache data object.
 //  S4: arguments descriptor array.
-void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
+void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   // Load the receiver.
@@ -1312,22 +1311,20 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 
   // Push space for the return value.
   // Push the receiver.
-  // Push IC data object.
   // Push arguments descriptor array.
-  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  const intptr_t kNumArgs = 3;
+  __ addiu(SP, SP, Immediate(-kNumArgs * kWordSize));
   __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(TMP, Address(SP, 3 * kWordSize));
-  __ sw(T6, Address(SP, 2 * kWordSize));
-  __ sw(S5, Address(SP, 1 * kWordSize));
+  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(T6, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
 
   // A1: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
-  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry, 4);
-
-  __ lw(V0, Address(SP, 4 * kWordSize));  // Get result into V0.
-  __ LeaveStubFrameAndReturn();
+  __ CallRuntime(kInvokeClosureNoSuchMethodRuntimeEntry, kNumArgs);
+  // noSuchMethod on closures always throws an error, so it will never return.
+  __ break_(0);
 }
 
 
