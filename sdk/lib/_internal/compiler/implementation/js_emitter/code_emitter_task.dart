@@ -1419,12 +1419,14 @@ class CodeEmitterTask extends CompilerTask {
       if (compiler.deferredLoadTask.isProgramSplit) {
         /// For deferred loading we communicate the initializers via this global
         /// var. The deferred hunks will add their initialization to this.
-        mainBuffer.add('var ${deferredInitializers} = {}$N');
+        /// The semicolon is important in minified mode, without it the
+        /// following parenthesis looks like a call to the object literal.
+        mainBuffer.add('var ${deferredInitializers} = {};$n');
       }
 
       // Using a named function here produces easier to read stack traces in
       // Chrome/V8.
-      mainBuffer.add('(function(${namer.currentIsolate})$_{$n');
+      mainBuffer.add('(function(${namer.currentIsolate})$_{\n');
       if (compiler.deferredLoadTask.isProgramSplit) {
         /// We collect all the global state of the, so it can be passed to the
         /// initializer of deferred files.
