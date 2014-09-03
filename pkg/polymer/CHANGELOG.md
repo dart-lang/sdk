@@ -4,6 +4,10 @@ This file contains highlights of what changes on each version of the polymer
 package. We will also note important changes to the polyfill packages (observe,
 web_components, and template_binding) if they impact polymer.
 
+#### Pub version 0.13.0+2
+  * Update internal transformers to delete .concat.js and .map files when in
+    release mode, saving about 1MB of space in the built output.
+
 #### Pub version 0.13.0+1
   * Bug fix for http://dartbug.com/18171. Elements that extend other elements
     but don't have a template will still inherit styles from those elements.

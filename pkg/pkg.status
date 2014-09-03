@@ -340,6 +340,7 @@ polymer/test/build/script_compactor_test: Fail, OK # Uses dart:io.
 polymer/test/build/utils_test: Fail, OK # Uses dart:io.
 polymer/test/build/import_inliner_test: Fail, OK # Uses dart:io.
 polymer/test/build/linter_test: Fail, OK # Uses dart:io.
+polymer/test/build/remove_sourcemap_comment_test: Fail, OK # Uses dart:io.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 shelf_web_socket/test/*: Fail, OK # Uses dart:io.
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.
