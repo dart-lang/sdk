@@ -1185,6 +1185,12 @@ main() => A.A = 1;
           howToFix:
             "Try adding a prefix to the import.");
 
+  static const MessageKind DEFERRED_OLD_SYNTAX =
+      const MessageKind(
+          "The DeferredLibrary annotation is obsolete.",
+          howToFix:
+            "Use the \"import 'lib.dart' deferred as prefix\" syntax instead.");
+
   static const MessageKind DEFERRED_LIBRARY_DUPLICATE_PREFIX =
       const MessageKind(
           "The prefix of this deferred import is not unique.",

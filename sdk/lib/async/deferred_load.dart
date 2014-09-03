@@ -7,24 +7,10 @@ part of dart.async;
 /**
  * Indicates that loading of [libraryName] is deferred.
  *
- * Applies to library imports, when used as metadata.
- *
- * Example usage:
- *
- *     @lazy
- *     import 'foo.dart' as foo;
- *
- *     const lazy = const DeferredLibrary('com.example.foo');
- *
- *     void main() {
- *       foo.method(); // Throws a NoSuchMethodError, foo is not loaded yet.
- *       lazy.load().then(onFooLoaded);
- *     }
- *
- *     void onFooLoaded(_) {
- *       foo.method();
- *     }
+ * This class is obsolete. Instead use the syntax:
+ * import "library.dart" deferred as prefix;
  */
+@Deprecated("Dart sdk v. 1.8")
 class DeferredLibrary {
   final String libraryName;
   final String uri;

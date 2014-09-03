@@ -11,6 +11,7 @@ LibTest/core/List/List_class_A01_t02: Crash # issue 19953
 Language/12_Expressions/18_Assignment_A04_t09: RuntimeError # co19-roll r667: Please triage this failure
 
 [ $compiler == dart2dart ]
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: CompileTimeError # co19 issue 700
 Language/07_Classes/07_Classes_A13_t02: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t03: Fail # Missing CT error on member with same name a type parameter
 Language/07_Classes/07_Classes_A13_t05: Fail # Missing CT error on member with same name a type parameter

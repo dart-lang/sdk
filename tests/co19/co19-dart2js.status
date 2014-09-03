@@ -16,6 +16,8 @@ WebPlatformTest/html/dom/elements/global-attributes/dataset-enumeration_t01: Run
 # Crashes first, please. Then untriaged bugs. There is a section below
 # for co19 bugs.
 [ $compiler == dart2js ]
+# This test uses the old annotation-based syntax.
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: CompileTimeError # co19 issue 700
 LibTest/core/List/removeAt_A02_t01: RuntimeError # Issue 1533
 LibTest/isolate/ReceivePort/receive_A01_t02: RuntimeError # Issue 6750
 Language/05_Variables/05_Variables_A11_t01: fail # Please triage this issue.

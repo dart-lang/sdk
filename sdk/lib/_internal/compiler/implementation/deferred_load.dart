@@ -238,41 +238,6 @@ class DeferredLoadTask extends CompilerTask {
         .imports.add(import);
   }
 
-  /// Answers whether the [import] has a [DeferredLibrary] annotation.
-  bool _isImportDeferred(Import import) {
-    return _allDeferredImports.containsKey(import);
-  }
-
-  /// Checks whether the [import] has a [DeferredLibrary] annotation and stores
-  /// the information in [_allDeferredImports] and on the corresponding
-  /// prefixElement.
-  void _markIfDeferred(Import import, LibraryElement library) {
-    // Check if the import is deferred by a keyword.
-    if (import.isDeferred) {
-      _allDeferredImports[import] = library.getLibraryFromTag(import);
-      return;
-    }
-    // Check if the import is deferred by a metadata annotation.
-    Link<MetadataAnnotation> metadataList = import.metadata;
-    if (metadataList == null) return;
-    for (MetadataAnnotation metadata in metadataList) {
-      metadata.ensureResolved(compiler);
-      Element element = metadata.value.computeType(compiler).element;
-      if (element == deferredLibraryClass) {
-        _allDeferredImports[import] = library.getLibraryFromTag(import);
-        // On encountering a deferred library without a prefix we report an
-        // error, but continue the compilation to possibly give more
-        // information. Therefore it is neccessary to check if there is a prefix
-        // here.
-        Element maybePrefix = library.find(import.prefix.toString());
-        if (maybePrefix != null && maybePrefix.isPrefix) {
-          PrefixElement prefix = maybePrefix;
-          prefix.markAsDeferred(import);
-        }
-      }
-    }
-  }
-
   /// Answers whether [element] is explicitly deferred when referred to from
   /// [library].
   bool _isExplicitlyDeferred(Element element, LibraryElement library) {
@@ -284,7 +249,7 @@ class DeferredLoadTask extends CompilerTask {
     // is explicitly deferred, we say the element is explicitly deferred.
     // TODO(sigurdm): We might want to give a warning if the imports do not
     // agree.
-    return imports.every(_isImportDeferred);
+    return imports.every((Import import) => import.isDeferred);
   }
 
   /// Returns a [Link] of every [Import] that imports [element] into [library].
@@ -413,8 +378,7 @@ class DeferredLoadTask extends CompilerTask {
         for (LibraryTag tag in library.tags) {
           if (tag is! LibraryDependency) continue;
           LibraryDependency libraryDependency = tag;
-          if (!(libraryDependency is Import
-              && _isImportDeferred(libraryDependency))) {
+          if (!(libraryDependency is Import && libraryDependency.isDeferred)) {
             LibraryElement importedLibrary = library.getLibraryFromTag(tag);
             traverseLibrary(importedLibrary);
           }
@@ -687,14 +651,27 @@ class DeferredLoadTask extends CompilerTask {
         for (LibraryTag tag in library.tags) {
           if (tag is! Import) continue;
           Import import = tag;
-          _markIfDeferred(import, library);
+
+          /// Give an error if the old annotation-based syntax has been used.
+          Link<MetadataAnnotation> metadataList = import.metadata;
+          if (metadataList != null) {
+            for (MetadataAnnotation metadata in metadataList) {
+              metadata.ensureResolved(compiler);
+              Element element = metadata.value.computeType(compiler).element;
+              if (element == deferredLibraryClass) {
+                 compiler.reportFatalError(import, MessageKind.DEFERRED_OLD_SYNTAX);
+              }
+            }
+          }
+
           String prefix = (import.prefix != null)
               ? import.prefix.toString()
               : null;
           // The last import we saw with the same prefix.
           Import previousDeferredImport = prefixDeferredImport[prefix];
-          bool isDeferred = _isImportDeferred(import);
-          if (isDeferred) {
+          if (import.isDeferred) {
+            _allDeferredImports[import] = library.getLibraryFromTag(import);
+
             if (prefix == null) {
               compiler.reportError(import,
                   MessageKind.DEFERRED_LIBRARY_WITHOUT_PREFIX);
@@ -706,7 +683,7 @@ class DeferredLoadTask extends CompilerTask {
           }
           if (prefix != null) {
             if (previousDeferredImport != null ||
-                (isDeferred && usedPrefixes.contains(prefix))) {
+                (import.isDeferred && usedPrefixes.contains(prefix))) {
               Import failingImport = (previousDeferredImport != null)
                   ? previousDeferredImport
                   : import;

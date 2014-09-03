@@ -435,9 +435,6 @@ compile_time_constant_checked3_test/05: CompileTimeError # Language Issue 16391
 list_literal1_test/01: CompileTimeError # Issue 16391
 map_literal1_test/01: CompileTimeError # Issue 16391
 
-# Issue 18562- Old syntax (@lazy) for deferred libraries
-deferred_constraints_type_annotation_old_syntax_test/*: Pass, Fail
-deferred_constraints_constants_old_syntax_test/*: Pass, Fail
 
 # The following lines have been left in to quickly switch back to having deferred loading
 # off by default again.

@@ -20,16 +20,6 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 mixin_forwarding_constructor2_test: Fail # Issue 13641
 
-# These test use the old syntax, and will be phased out.
-deferred_constraints_constants_old_syntax_test/reference1: Fail, Ok
-deferred_constraints_constants_old_syntax_test/reference2: Fail, Ok
-deferred_constraints_constants_old_syntax_test/metadata1: Fail, Ok
-deferred_constraints_constants_old_syntax_test/metadata2: Fail, Ok
-deferred_constraints_constants_old_syntax_test/metadata3: Fail, Ok
-deferred_constraints_constants_old_syntax_test/default_argument1: Fail, Ok
-deferred_constraints_constants_old_syntax_test/default_argument2: Fail, Ok
-deferred_constraints_constants_old_syntax_test/constructor1: Fail, Ok
-deferred_constraints_constants_old_syntax_test/constructor2: Fail, Ok
 
 [ $runtime != vm ]
 # Async/await is currently only supported by the vm.
@@ -60,31 +50,11 @@ override_inheritance_mixed_test/08: Fail # Issue 18124
 override_inheritance_mixed_test/09: Fail # Issue 18124
 
 [ $compiler == none || $compiler == dart2dart]
-# These test use the old syntax, and will be phased out.
-deferred_constraints_type_annotation_old_syntax_test/as_operation: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/is_check: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/catch_check: Fail, Ok
-deferred_constraints_type_annotation_old_syntax_test/new_before_load: Fail, Ok
-
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK
 cyclic_type_test/04: Fail, OK
 cyclic_type2_test: Fail, OK
 least_upper_bound_expansive_test/*: Fail, OK
-
-[ ($compiler == none || $compiler == dart2dart) && $checked ]
-# Issue 17521, 17523
-# Dart2dart does not support deferred loading.
-deferred_constraints_type_annotation_old_syntax_test/type_annotation1: Fail
-deferred_constraints_type_annotation_old_syntax_test/type_annotation_generic1: Fail
-deferred_constraints_type_annotation_old_syntax_test/type_annotation_generic4: Fail
-
-[ $compiler == none || $compiler == dartanalyzer || $compiler == dart2analyzer ]
-# Issue 17521, 17522
-deferred_no_prefix_old_syntax_test/01: Fail
-deferred_duplicate_prefix1_old_syntax_test/01: Fail
-deferred_duplicate_prefix2_old_syntax_test/01: Fail
-deferred_duplicate_prefix3_old_syntax_test/01: Fail
 
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627

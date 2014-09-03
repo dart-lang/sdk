@@ -8,7 +8,6 @@ import 'dart:_js_helper' show
     patch,
     Primitives,
     convertDartClosureToJS,
-    loadDeferredLibrary,
     requiresPreamble;
 import 'dart:_isolate_helper' show
     IsolateNatives,
@@ -91,7 +90,8 @@ class _AsyncRun {
 class DeferredLibrary {
   @patch
   Future<Null> load() {
-    return loadDeferredLibrary(libraryName, uri);
+    throw 'DeferredLibrary not supported. '
+          'please use the `import "lib.dart" deferred as lib` syntax.';
   }
 }
 

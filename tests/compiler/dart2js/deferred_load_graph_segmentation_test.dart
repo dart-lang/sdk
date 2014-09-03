@@ -108,18 +108,15 @@ void main() {
 const Map MEMORY_SOURCE_FILES = const {
   "main.dart":"""
 import "dart:async";
-@def_main_1 import 'lib1.dart' as l1;
-@def_main_2 import 'lib2.dart' as l2;
-
-const def_main_1 = const DeferredLibrary("lib1");
-const def_main_2 = const DeferredLibrary("lib2");
+import 'lib1.dart' deferred as lib1;
+import 'lib2.dart' deferred as lib2;
 
 void main() {
-  def_main_1.load().then((_) {
-        l1.foo1();
-        new l1.C();
-    def_main_2.load().then((_) {
-        l2.foo2();
+  lib1.loadLibrary().then((_) {
+        lib1.foo1();
+        new lib1.C();
+    lib2.loadLibrary().then((_) {
+        lib2.foo2();
     });
   });
 }
@@ -130,16 +127,14 @@ import "dart:async";
 import "dart:html";
 
 import "lib3.dart" as l3;
-@def_1_1 import "lib4.dart" as l4;
-
-const def_1_1 = const DeferredLibrary("lib4_1");
+import "lib4.dart" deferred as lib4_1;
 
 class C {}
 
 foo1() {
   new InputElement();
-  def_1_1.load().then((_) {
-    l4.bar1();
+  lib4_1.loadLibrary().then((_) {
+    lib4_1.bar1();
   });
   return () {return 1 + l3.foo3();} ();
 }
@@ -148,13 +143,11 @@ foo1() {
 library lib2;
 import "dart:async";
 import "lib3.dart" as l3;
-@def_2_1 import "lib4.dart" as l4;
-
-const def_2_1 = const DeferredLibrary("lib4_2");
+import "lib4.dart" deferred as lib4_2;
 
 foo2() {
-  def_2_1.load().then((_) {
-    l4.bar2();
+  lib4_2.loadLibrary().then((_) {
+    lib4_2.bar2();
   });
   return () {return 2+l3.foo3();} ();
 }

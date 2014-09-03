@@ -3235,13 +3235,13 @@ LoadLibraryFunctionType _loadLibraryWrapper(String loadId) {
 final Map<String, Future<Null>> _loadingLibraries = <String, Future<Null>>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
-Future<Null> loadDeferredLibrary(String loadId, [String uri]) {
+Future<Null> loadDeferredLibrary(String loadId) {
   List<String> librariesToLoad = JS('JSExtendableArray|Null',
       'init.librariesToLoad[#]',
       loadId);
   if (librariesToLoad == null) return new Future.value(null);
   return Future.wait(librariesToLoad.map(
-      (String hunkName) => _loadHunk(hunkName, uri))).then((_) {
+      (String hunkName) => _loadHunk(hunkName))).then((_) {
     for (String hunkName in librariesToLoad) {
       // TODO(floitsch): Replace unsafe access to embedded global.
       JS('void', 'init.initializeLoadedHunk(#)', hunkName);
@@ -3250,7 +3250,7 @@ Future<Null> loadDeferredLibrary(String loadId, [String uri]) {
   });
 }
 
-Future<Null> _loadHunk(String hunkName, String uri) {
+Future<Null> _loadHunk(String hunkName) {
   // TODO(ahe): Validate libraryName.  Kasper points out that you want
   // to be able to experiment with the effect of toggling @DeferLoad,
   // so perhaps we should silently ignore "bad" library names.
@@ -3259,9 +3259,8 @@ Future<Null> _loadHunk(String hunkName, String uri) {
     return future.then((_) => null);
   }
 
-  if (uri == null) {
-    uri = IsolateNatives.thisScript;
-  }
+  String uri = IsolateNatives.thisScript;
+
   int index = uri.lastIndexOf('/');
   uri = '${uri.substring(0, index + 1)}$hunkName';
 
