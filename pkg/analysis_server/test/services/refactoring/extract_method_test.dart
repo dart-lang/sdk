@@ -376,7 +376,7 @@ main() {
     // update parameters
     return refactoring.checkInitialConditions().then((_) {
       {
-        var parameters = refactoring.parameters.toList();
+        var parameters = _getParametersCopy();
         expect(parameters, hasLength(2));
         parameters[0].name = 'dup';
         parameters[1].name = 'dup';
@@ -400,7 +400,7 @@ main() {
     // update parameters
     return refactoring.checkInitialConditions().then((_) {
       {
-        var parameters = refactoring.parameters.toList();
+        var parameters = _getParametersCopy();
         expect(parameters, hasLength(2));
         parameters[0].name = 'a';
         refactoring.parameters = parameters;
@@ -1563,7 +1563,7 @@ main() {
     // apply refactoring
     return refactoring.checkInitialConditions().then((_) {
       {
-        var parameters = refactoring.parameters.toList();
+        var parameters = _getParametersCopy();
         expect(parameters, hasLength(2));
         expect(parameters[0].name, 'v1');
         expect(parameters[1].name, 'v2');
@@ -1602,7 +1602,7 @@ main() {
     // apply refactoring
     return refactoring.checkInitialConditions().then((_) {
       {
-        var parameters = refactoring.parameters.toList();
+        var parameters = _getParametersCopy();
         expect(parameters, hasLength(2));
         expect(parameters[0].name, 'v1');
         expect(parameters[1].name, 'v2');
@@ -1663,7 +1663,7 @@ main() {
     // apply refactoring
     return refactoring.checkInitialConditions().then((_) {
       {
-        var parameters = refactoring.parameters.toList();
+        var parameters = _getParametersCopy();
         expect(parameters, hasLength(3));
         expect(parameters[0].name, 'v1');
         expect(parameters[1].name, 'v2');
@@ -2302,5 +2302,16 @@ void res() {
     int offset = findOffset(selectionSearch + suffix);
     int length = selectionSearch.length;
     _createRefactoring(offset, length);
+  }
+
+  /**
+   * Returns a deep copy of [refactoring] parameters.
+   * There was a bug masked by updating parameter instances shared between the
+   * refactoring and the test.
+   */
+  List<RefactoringMethodParameter> _getParametersCopy() {
+    return refactoring.parameters.map((p) {
+      return new RefactoringMethodParameter(p.kind, p.type, p.name, id: p.id);
+    }).toList();
   }
 }

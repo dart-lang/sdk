@@ -460,7 +460,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     String source = utils.getRangeText(selectionRange);
     // prepare operations to replace variables with parameters
     List<SourceEdit> replaceEdits = [];
-    for (RefactoringMethodParameter parameter in _parametersMap.values) {
+    for (RefactoringMethodParameter parameter in _parameters) {
       List<SourceRange> ranges = _parameterReferencesMap[parameter.id];
       if (ranges != null) {
         for (SourceRange range in ranges) {

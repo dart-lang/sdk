@@ -111,7 +111,8 @@ class EditDomainHandler implements RequestHandler {
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   new AnalysisError.fromEngine(lineInfo, error);
-              AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
+              AnalysisErrorFixes errorFixes =
+                  new AnalysisErrorFixes(serverError);
               errorFixesList.add(errorFixes);
               fixes.forEach((fix) {
                 errorFixes.addFix(fix);
@@ -247,6 +248,15 @@ class _RefactoringManager {
         feedback = new ExtractLocalVariableFeedback([], [], []);
       }
     }
+    if (kind == RefactoringKind.EXTRACT_METHOD) {
+      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+      if (units.isNotEmpty) {
+        refactoring =
+            new ExtractMethodRefactoring(searchEngine, units[0], offset, length);
+        feedback =
+            new ExtractMethodFeedback(offset, length, null, [], false, [], [], []);
+      }
+    }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
       List<Element> elements = server.getElementsAtOffset(file, offset);
@@ -269,6 +279,16 @@ class _RefactoringManager {
         ExtractLocalRefactoring refactoring = this.refactoring;
         ExtractLocalVariableFeedback feedback = this.feedback;
         feedback.names = refactoring.names;
+        feedback.offsets = refactoring.offsets;
+        feedback.lengths = refactoring.lengths;
+      }
+      if (refactoring is ExtractMethodRefactoring) {
+        ExtractMethodRefactoring refactoring = this.refactoring;
+        ExtractMethodFeedback feedback = this.feedback;
+        feedback.canCreateGetter = refactoring.canCreateGetter;
+        feedback.returnType = refactoring.returnType;
+        feedback.names = refactoring.names;
+        feedback.parameters = refactoring.parameters;
         feedback.offsets = refactoring.offsets;
         feedback.lengths = refactoring.lengths;
       }
@@ -302,13 +322,26 @@ class _RefactoringManager {
   }
 
   RefactoringStatus _setOptions(EditGetRefactoringParams params,
-                                Request request) {
+      Request request) {
     if (refactoring is ExtractLocalRefactoring) {
       ExtractLocalRefactoring extractRefactoring = refactoring;
       ExtractLocalVariableOptions extractOptions =
           new ExtractLocalVariableOptions.fromRefactoringParams(params, request);
       extractRefactoring.name = extractOptions.name;
       extractRefactoring.extractAll = extractOptions.extractAll;
+      return extractRefactoring.checkName();
+    }
+    if (refactoring is ExtractMethodRefactoring) {
+      ExtractMethodRefactoring extractRefactoring = this.refactoring;
+      ExtractMethodOptions extractOptions =
+          new ExtractMethodOptions.fromRefactoringParams(params, request);
+      extractRefactoring.createGetter = extractOptions.createGetter;
+      extractRefactoring.extractAll = extractOptions.extractAll;
+      extractRefactoring.name = extractOptions.name;
+      if (extractOptions.parameters != null) {
+        extractRefactoring.parameters = extractOptions.parameters;
+      }
+      extractRefactoring.returnType = extractOptions.returnType;
       return extractRefactoring.checkName();
     }
     if (refactoring is RenameRefactoring) {
