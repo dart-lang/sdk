@@ -260,6 +260,10 @@ class Namer implements ClosureNamer {
   final Map<Constant, String> constantLongNames;
   ConstantCanonicalHasher constantHasher;
 
+  // All alphanumeric characters.
+  static const String _alphaNumeric =
+      'abcdefghijklmnopqrstuvwxyzABZDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
   Namer(Compiler compiler)
       : compiler = compiler,
         globals = new Map<Element, String>(),
@@ -605,6 +609,28 @@ class Namer implements ClosureNamer {
     }
     usedNames.add(candidate);
     return candidate;
+  }
+
+  /// Returns a random alphanumeric string of length 14 prefixed with [prefix].
+  /// There are more than 2^80 such strings, so the chance that the same string
+  /// will be chosen twice is negligible.
+  /// To further decrease the chance of collision in case of bad PRG we also
+  /// incorporate a time-stamp.
+  static String computeRandomIdentifier(String prefix) {
+    math.Random random = new math.Random();
+    String randomPart = new String.fromCharCodes(new List.generate(14, (_) {
+          return _alphaNumeric.codeUnitAt(random.nextInt(_alphaNumeric.length));
+        }));
+    int time = new DateTime.now().millisecondsSinceEpoch;
+
+    List<int> digits = new List<int>();
+    while (time > 0) {
+      digits.add(time % _alphaNumeric.length);
+      time = time ~/ _alphaNumeric.length;
+    }
+    String timePart = new String.fromCharCodes(digits.reversed.map(
+         (int index) => _alphaNumeric.codeUnitAt(index)));
+    return "$prefix$randomPart$timePart";
   }
 
   String getClosureVariableName(String name, int id) {

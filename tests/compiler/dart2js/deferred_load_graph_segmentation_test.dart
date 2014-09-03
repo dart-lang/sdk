@@ -82,27 +82,14 @@ void main() {
 
     var hunksToLoad = compiler.deferredLoadTask.hunksToLoad;
 
-    mapToNames(id) {
-      return hunksToLoad[id];
-    }
-
     var hunksLib1 = hunksToLoad["lib1"];
     var hunksLib2 = hunksToLoad["lib2"];
     var hunksLib4_1 = hunksToLoad["lib4_1"];
     var hunksLib4_2 = hunksToLoad["lib4_2"];
-    Expect.equals(hunksLib1.length, 2);
-    print(hunksToLoad);
-    Expect.listEquals([ou_lib1_lib2], hunksLib1[0]);
-    Expect.listEquals([ou_lib1], hunksLib1[1]);
-
-    Expect.equals(hunksLib2.length, 2);
-    Expect.listEquals([ou_lib1_lib2], hunksLib2[0]);
-    Expect.listEquals([ou_lib2], hunksLib2[1]);
-
-    Expect.equals(hunksLib4_1.length, 1);
-    Expect.listEquals([ou_lib4_1], hunksLib4_1[0]);
-    Expect.equals(hunksLib4_2.length, 1);
-    Expect.listEquals([ou_lib4_2], hunksLib4_2[0]);
+    Expect.listEquals([ou_lib1_lib2, ou_lib1], hunksLib1);
+    Expect.listEquals([ou_lib1_lib2, ou_lib2], hunksLib2);
+    Expect.listEquals([ou_lib4_1], hunksLib4_1);
+    Expect.listEquals([ou_lib4_2], hunksLib4_2);
     Expect.equals(hunksToLoad["main"], null);
   }));
 }

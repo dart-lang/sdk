@@ -3236,15 +3236,18 @@ final Map<String, Future<Null>> _loadingLibraries = <String, Future<Null>>{};
 final Set<String> _loadedLibraries = new Set<String>();
 
 Future<Null> loadDeferredLibrary(String loadId, [String uri]) {
-  List<List<String>> hunkLists = JS('JSExtendableArray|Null',
-      '\$.libraries_to_load[#]', loadId);
-  if (hunkLists == null) return new Future.value(null);
-
-  return Future.forEach(hunkLists, (hunkNames) {
-    Iterable<Future<Null>> allLoads =
-        hunkNames.map((hunkName) => _loadHunk(hunkName, uri));
-    return Future.wait(allLoads).then((_) => null);
-  }).then((_) => _loadedLibraries.add(loadId));
+  List<String> librariesToLoad = JS('JSExtendableArray|Null',
+      'init.librariesToLoad[#]',
+      loadId);
+  if (librariesToLoad == null) return new Future.value(null);
+  return Future.wait(librariesToLoad.map(
+      (String hunkName) => _loadHunk(hunkName, uri))).then((_) {
+    for (String hunkName in librariesToLoad) {
+      // TODO(floitsch): Replace unsafe access to embedded global.
+      JS('void', 'init.initializeLoadedHunk(#)', hunkName);
+    }
+    _loadedLibraries.add(loadId);
+  });
 }
 
 Future<Null> _loadHunk(String hunkName, String uri) {

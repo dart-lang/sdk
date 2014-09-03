@@ -4,6 +4,7 @@
 
 library js_backend;
 
+import 'dart:math' as math;
 import 'dart:async' show EventSink, Future;
 import 'dart:collection' show Queue, LinkedHashMap, LinkedHashSet;
 

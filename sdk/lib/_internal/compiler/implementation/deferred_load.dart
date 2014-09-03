@@ -138,8 +138,8 @@ class DeferredLoadTask extends CompilerTask {
   /// [lib1]]} would mean that in order to load "lib1" first the hunk
   /// lib1_lib2_lib2 should be loaded, then the hunks lib1_lib2 and lib1_lib3
   /// can be loaded in parallel. And finally lib1 can be loaded.
-  final Map<String, List<List<OutputUnit>>> hunksToLoad =
-      new Map<String, List<List<OutputUnit>>>();
+  final Map<String, List<OutputUnit>> hunksToLoad =
+      new Map<String, List<OutputUnit>>();
   final Map<Import, String> importDeferName = new Map<Import, String>();
 
   /// A mapping from elements and constants to their output unit. Query this via
@@ -585,18 +585,11 @@ class DeferredLoadTask extends CompilerTask {
     // For each deferred import we find out which outputUnits to load.
     for (Import import in _allDeferredImports.keys) {
       if (import == _fakeMainImport) continue;
-      hunksToLoad[importDeferName[import]] = new List<List<OutputUnit>>();
-      int lastNumberOfImports = 0;
-      List<OutputUnit> currentLastList;
+      hunksToLoad[importDeferName[import]] = new List<OutputUnit>();
       for (OutputUnit outputUnit in sortedOutputUnits) {
         if (outputUnit == mainOutputUnit) continue;
         if (outputUnit.imports.contains(import)) {
-          if (outputUnit.imports.length != lastNumberOfImports) {
-            lastNumberOfImports = outputUnit.imports.length;
-            currentLastList = new List<OutputUnit>();
-            hunksToLoad[importDeferName[import]].add(currentLastList);
-          }
-          currentLastList.add(outputUnit);
+          hunksToLoad[importDeferName[import]].add(outputUnit);
         }
       }
     }
