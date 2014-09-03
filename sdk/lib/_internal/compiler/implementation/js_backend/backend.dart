@@ -375,7 +375,7 @@ class JavaScriptBackend extends Backend {
 
   /// Set of methods that are needed by reflection. Computed using
   /// [computeMembersNeededForReflection] on first use.
-  Iterable<Element> _membersNeededForReflection = null;
+  Set<Element> _membersNeededForReflection = null;
   Iterable<Element> get membersNeededForReflection {
     assert(_membersNeededForReflection != null);
     return _membersNeededForReflection;
@@ -1798,15 +1798,6 @@ class JavaScriptBackend extends Backend {
     if (element.isClass) {
       element = getDartClass(element);
     }
-    // We have to treat closure classes specially here, as they only come into
-    // existence after [membersNeededForReflection] has been computed.
-    if (element is SynthesizedCallMethodElementX) {
-      SynthesizedCallMethodElementX closure = element;
-      element = closure.expression;
-    } else if (element is ClosureClassElement) {
-      ClosureClassElement closure = element;
-      element = closure.methodElement;
-    }
     return membersNeededForReflection.contains(element);
   }
 
@@ -1870,7 +1861,8 @@ class JavaScriptBackend extends Backend {
   computeMembersNeededForReflection() {
     if (_membersNeededForReflection != null) return;
     if (compiler.mirrorsLibrary == null) {
-      _membersNeededForReflection = const [];
+      _membersNeededForReflection = new Set<Element>();
+      return;
     }
     // Compute a mapping from class to the closures it contains, so we
     // can include the correct ones when including the class.
@@ -1988,6 +1980,17 @@ class JavaScriptBackend extends Backend {
       symbolsUsed.add(element.name);
     }
     _membersNeededForReflection = reflectableMembers;
+  }
+
+  // TODO(20791): compute closure classes after resolution and move this code to
+  // [computeMembersNeededForReflection].
+  void maybeMarkClosureAsNeededForReflection(
+      ClosureClassElement globalizedElement,
+      FunctionElement callFunction,
+      FunctionElement function) {
+    if (!_membersNeededForReflection.contains(function)) return;
+    _membersNeededForReflection.add(callFunction);
+    _membersNeededForReflection.add(globalizedElement);
   }
 
   jsAst.Call generateIsJsIndexableCall(jsAst.Expression use1,
