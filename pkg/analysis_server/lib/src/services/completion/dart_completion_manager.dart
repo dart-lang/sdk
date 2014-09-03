@@ -8,11 +8,11 @@ import 'dart:async';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/completion/imported_type_computer.dart';
 import 'package:analysis_server/src/services/completion/invocation_computer.dart';
 import 'package:analysis_server/src/services/completion/keyword_computer.dart';
 import 'package:analysis_server/src/services/completion/local_computer.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -73,6 +73,9 @@ class DartCompletionManager extends CompletionManager {
     CompilationUnit unit = context.parseCompilationUnit(source);
     request.unit = unit;
     request.node = new NodeLocator.con1(offset).searchWithin(unit);
+    if (request.node != null) {
+      request.node.accept(new _ReplacementOffsetBuilder(request));
+    }
     computers.removeWhere((DartCompletionComputer c) => c.computeFast(request));
     sendResults(computers.isEmpty);
   }
@@ -119,7 +122,11 @@ class DartCompletionManager extends CompletionManager {
    */
   void sendResults(bool last) {
     controller.add(
-        new CompletionResult(request.offset, 0, request.suggestions, last));
+        new CompletionResult(
+            request.replacementOffset,
+            request.replacementLength,
+            request.suggestions,
+            last));
     if (last) {
       controller.close();
     }
@@ -182,10 +189,44 @@ class DartCompletionRequest {
   AstNode node;
 
   /**
+   * The offset of the start of the text to be replaced.
+   * This will be different than the offset used to request the completion
+   * suggestions if there was a portion of an identifier before the original
+   * offset. In particular, the replacementOffset will be the offset of the
+   * beginning of said identifier.
+   */
+  int replacementOffset;
+
+  /**
+   * The length of the text to be replaced if the remainder of the identifier
+   * containing the cursor is to be replaced when the suggestion is applied
+   * (that is, the number of characters in the existing identifier).
+   */
+  int replacementLength;
+
+  /**
    * The list of suggestions to be sent to the client.
    */
   final List<CompletionSuggestion> suggestions = [];
 
   DartCompletionRequest(this.context, this.searchEngine, this.source,
       this.offset);
+}
+
+/**
+ * Visitor used to determine the replacement offset and length
+ * based upon the cursor location.
+ */
+class _ReplacementOffsetBuilder extends SimpleAstVisitor {
+  final DartCompletionRequest request;
+
+  _ReplacementOffsetBuilder(this.request) {
+    request.replacementOffset = request.offset;
+    request.replacementLength = 0;
+  }
+
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    request.replacementOffset = node.offset;
+    request.replacementLength = node.length;
+  }
 }
