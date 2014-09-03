@@ -11,16 +11,17 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/json.dart';
-import '../reflective_tests.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
+import '../reflective_tests.dart';
 
 
 main() {
   groupSep = ' | ';
   runReflectiveTests(ExtractLocalVariableTest);
   runReflectiveTests(ExtractMethodTest);
+  runReflectiveTests(InlineLocalTest);
   runReflectiveTests(InlineMethodTest);
   runReflectiveTests(GetAvailableRefactoringsTest);
   runReflectiveTests(RenameTest);
@@ -517,6 +518,51 @@ main() {
           getRefactoringsAtString('// not an element');
       expect(kinds, isNot(contains(RefactoringKind.RENAME)));
     });
+  }
+}
+
+
+@ReflectiveTestCase()
+class InlineLocalTest extends _AbstractGetRefactoring_Test {
+  test_OK() {
+    addTestFile('''
+main() {
+  int test = 42;
+  int a = test + 2;
+  print(test);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return _sendInlineRequest('test + 2');
+    }, '''
+main() {
+  int a = 42 + 2;
+  print(42);
+}
+''');
+  }
+
+  test_init_fatalError_notVariable() {
+    addTestFile('main() {}');
+    return getRefactoringResult(() {
+      return _sendInlineRequest('main() {}');
+    }).then((result) {
+      assertResultProblemsFatal(
+          result,
+          'Local variable declaration or reference must be selected to activate this refactoring.');
+      // ...there is no any change
+      expect(result.change, isNull);
+    });
+  }
+
+  Future<Response> _sendInlineRequest(String search) {
+    Request request = new EditGetRefactoringParams(
+        RefactoringKind.INLINE_LOCAL_VARIABLE,
+        testFile,
+        findOffset(search),
+        0,
+        false).toRequest('0');
+    return serverChannel.sendRequest(request);
   }
 }
 

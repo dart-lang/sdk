@@ -185,6 +185,16 @@ class _RefactoringManager {
         finalStatus.hasFatalError;
   }
 
+  /**
+   * Checks if [refactoring] requires options.
+   */
+  bool get _requiresOptions {
+    if (refactoring is InlineLocalRefactoring) {
+      return false;
+    }
+    return true;
+  }
+
   void getRefactoring(Request request) {
     // prepare for processing the request
     requestId = request.id;
@@ -196,12 +206,14 @@ class _RefactoringManager {
         return _sendResultResponse();
       }
       // set options
-      if (params.options == null) {
-        return _sendResultResponse();
-      }
-      optionsStatus = _setOptions(params, request);
-      if (_hasFatalError) {
-        return _sendResultResponse();
+      if (_requiresOptions) {
+        if (params.options == null) {
+          return _sendResultResponse();
+        }
+        optionsStatus = _setOptions(params, request);
+        if (_hasFatalError) {
+          return _sendResultResponse();
+        }
       }
       // done if just validation
       if (params.validateOnly) {
@@ -257,10 +269,18 @@ class _RefactoringManager {
             new ExtractMethodFeedback(offset, length, null, [], false, [], [], []);
       }
     }
+    if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
+      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+      if (units.isNotEmpty) {
+        refactoring =
+            new InlineLocalRefactoring(searchEngine, units[0], offset);
+      }
+    }
     if (kind == RefactoringKind.INLINE_METHOD) {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
-        refactoring = new InlineMethodRefactoring(searchEngine, units[0], offset);
+        refactoring =
+            new InlineMethodRefactoring(searchEngine, units[0], offset);
       }
     }
     if (kind == RefactoringKind.RENAME) {
@@ -351,6 +371,9 @@ class _RefactoringManager {
       }
       extractRefactoring.returnType = extractOptions.returnType;
       return extractRefactoring.checkName();
+    }
+    if (refactoring is InlineLocalRefactoring) {
+      return new RefactoringStatus();
     }
     if (refactoring is InlineMethodRefactoring) {
       InlineMethodRefactoring inlineRefactoring = this.refactoring;
