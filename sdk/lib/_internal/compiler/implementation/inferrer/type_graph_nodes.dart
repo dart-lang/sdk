@@ -21,7 +21,7 @@ part of type_graph_inferrer;
  * changes.
  */
 abstract class TypeInformation {
-  var /* List|Set */ users;
+  Set users;
   var /* List|ParameterAssignments */ assignments;
 
   /// The type the inferrer has found for this [TypeInformation].
@@ -60,10 +60,17 @@ abstract class TypeInformation {
 
   bool get isConcrete => false;
 
-  TypeInformation([users, assignments])
-      : users = (users == null) ? new Setlet<TypeInformation>() : users,
-        assignments = (assignments == null) ? <TypeInformation>[] : assignments;
+  TypeInformation() : assignments = <TypeInformation>[],
+                      users = new Setlet<TypeInformation>();
 
+  TypeInformation.noAssignments() : assignments = const <TypeInformation>[],
+                                    users = new Setlet<TypeInformation>();
+
+  TypeInformation.untracked () : assignments = const <TypeInformation>[],
+                                 users = const ImmutableEmptySet();
+
+  TypeInformation.withAssignments(this.assignments)
+      : users = new Setlet<TypeInformation>();
 
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
@@ -135,7 +142,7 @@ abstract class TypeInformation {
 
   void clear() {
     assignments = STOP_TRACKING_ASSIGNMENTS_MARKER;
-    users = const <TypeInformation>[];
+    users = const ImmutableEmptySet();
   }
 
   /// Reset the analysis of this node by making its type empty.
@@ -178,10 +185,8 @@ abstract class TypeInformation {
   }
 }
 
-abstract class ApplyableTypeInformation extends TypeInformation {
+abstract class ApplyableTypeInformation implements TypeInformation {
   bool mightBePassedToFunctionApply = false;
-
-  ApplyableTypeInformation([users, assignments]) : super(users, assignments);
 }
 
 /**
@@ -280,7 +285,8 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  *   trust their type annotation.
  *
  */
-class ElementTypeInformation extends ApplyableTypeInformation  {
+class ElementTypeInformation extends TypeInformation
+    with ApplyableTypeInformation  {
   final Element element;
 
   /// Marker to disable inference for closures in [handleSpecialCases].
@@ -304,16 +310,19 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
 
   bool isTearOffClosureParameter = false;
 
-  ElementTypeInformation.internal(this.element, assignments)
-      : super(null, assignments);
+  ElementTypeInformation.parameters(this.element, assignments)
+      : super.withAssignments(assignments);
+
+  ElementTypeInformation.members(this.element) : super();
 
   factory ElementTypeInformation(Element element) {
     var assignments = null;
     if (element.enclosingElement.isInstanceMember &&
         (element.isParameter || element.isInitializingFormal)) {
-      assignments = new ParameterAssignments();
+      return new ElementTypeInformation.parameters(element,
+                                                   new ParameterAssignments());
     }
-    return new ElementTypeInformation.internal(element, assignments);
+    return new ElementTypeInformation.members(element);
   }
 
   void addCall(Element caller, Spannable node) {
@@ -491,7 +500,8 @@ class ElementTypeInformation extends ApplyableTypeInformation  {
  * any assignment. They rely on the [caller] field for static calls,
  * and [selector] and [receiver] fields for dynamic calls.
  */
-abstract class CallSiteTypeInformation extends ApplyableTypeInformation {
+abstract class CallSiteTypeInformation extends TypeInformation
+    with ApplyableTypeInformation {
   final Spannable call;
   final Element caller;
   final Selector selector;
@@ -503,7 +513,7 @@ abstract class CallSiteTypeInformation extends ApplyableTypeInformation {
       this.caller,
       this.selector,
       this.arguments,
-      this.inLoop) : super(null, const <TypeInformation>[]);
+      this.inLoop) : super.noAssignments();
 
   String toString() => 'Call site $call $type';
 
@@ -901,7 +911,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
  */
 class ConcreteTypeInformation extends TypeInformation {
   ConcreteTypeInformation(TypeMask type)
-      : super(const <TypeInformation>[], const <TypeInformation>[]) {
+      : super.untracked() {
     this.type = type;
     this.isStable = true;
   }
@@ -975,7 +985,8 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
 class NarrowTypeInformation extends TypeInformation {
   final TypeMask typeAnnotation;
 
-  NarrowTypeInformation(narrowedType, this.typeAnnotation) {
+  NarrowTypeInformation(narrowedType, this.typeAnnotation)
+      : super() {
     addAssignment(narrowedType);
   }
 
@@ -1320,7 +1331,8 @@ class PhiElementTypeInformation extends TypeInformation {
   }
 }
 
-class ClosureTypeInformation extends ApplyableTypeInformation {
+class ClosureTypeInformation extends TypeInformation
+    with ApplyableTypeInformation {
   final ast.Node node;
   final Element element;
 

@@ -22,7 +22,7 @@ import '../dart2jslib.dart'
          TreeElementMapping;
 import 'inferrer_visitor.dart' show TypeSystem, ArgumentsTypes;
 import '../native_handler.dart' as native;
-import '../util/util.dart' show Spannable, Setlet;
+import '../util/util.dart' show Spannable, Setlet, ImmutableEmptySet;
 import 'simple_types_inferrer.dart';
 
 part 'type_graph_nodes.dart';
