@@ -284,12 +284,14 @@ void _asyncLoadError(uri, libraryUri, error) {
 
 // Asynchronously loads script data through a http or file uri.
 _loadDataAsync(int tag, String uri, String libraryUri) {
-  var filePath = _filePathFromUri(uri);
+  var filePath;
   Uri sourceUri;
   if (tag == null) {
     uri = _resolveScriptUri(uri);
     sourceUri = Uri.parse(uri);
+    filePath = _filePathFromUri(uri);
   } else {
+    filePath = _filePathFromUri(uri);
     sourceUri = Uri.parse(filePath);
   }
   _numOutstandingLoadRequests++;
