@@ -28,9 +28,6 @@ const Map<String, List<String>> WHITE_LIST = const {
   // from the generated code.
   "implementation/runtime_data.dart": const [" is never "],
 
-  // Setlet implements the Set interface: Issue 18959.
-  "implementation/util/setlet.dart": const [" is never "],
-
   // MethodElement
   // TODO(20377): Why is MethodElement unused?
   "implementation/elements/elements.dart": const [" is never "]

@@ -55,6 +55,7 @@ void main(List<String> arguments) {
   useNode(null);
   useUtil(null);
   useSetlet(null);
+  useImmutableEmptySet(null);
   useElementVisitor(new ElementVisitor());
   useJs(new js.Program(null));
   useJs(new js.Blob(null));
@@ -130,6 +131,11 @@ void useUtil(util.Link link) {
 
 void useSetlet(util.Setlet setlet) {
   setlet.difference(setlet);
+  setlet.retainWhere(null);
+}
+
+void useImmutableEmptySet(util.ImmutableEmptySet set) {
+  set.retainWhere(null);
 }
 
 void useElementVisitor(ElementVisitor visitor) {
