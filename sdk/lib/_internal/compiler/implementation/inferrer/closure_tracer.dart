@@ -15,8 +15,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
       e.functionSignature.forEachParameter((Element parameter) {
         ElementTypeInformation info =
             inferrer.types.getInferredTypeOf(parameter);
-        info.abandonInferencing = info.abandonInferencing &&
-                                  !info.mightResume;
+        info.maybeResume();
       });
     }
     analyze();
@@ -26,8 +25,6 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
             inferrer.types.getInferredTypeOf(parameter);
         if (continueAnalyzing) {
           info.disableInferenceForClosures = false;
-        } else {
-          info.giveUp(inferrer);
         }
       });
     }

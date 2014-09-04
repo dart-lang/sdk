@@ -442,8 +442,8 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 }
 
 /**
- * A work queue for the inferrer. It filters out nodes on
- * which we gave up on inferencing, as well as ensures through
+ * A work queue for the inferrer. It filters out nodes that are tagged as
+ * [TypeInformation.doNotEnqueue], as well as ensures through
  * [TypeInformation.inQueue] that a node is in the queue only once at
  * a time.
  */
@@ -451,7 +451,7 @@ class WorkQueue {
   final Queue<TypeInformation> queue = new Queue<TypeInformation>();
 
   void add(TypeInformation element) {
-    if (element.abandonInferencing) return;
+    if (element.doNotEnqueue) return;
     if (element.inQueue) return;
     queue.addLast(element);
     element.inQueue = true;
@@ -538,7 +538,7 @@ class TypeGraphInferrerEngine
     info.bailedOut = false;
     info.elementType.inferred = true;
     TypeMask fixedListType = compiler.typesTask.fixedListType;
-    if (info.originalContainerType.forwardTo == fixedListType) {
+    if (info.originalType.forwardTo == fixedListType) {
       info.checksGrowable = tracer.callsGrowableMethod;
     }
     tracer.assignments.forEach(info.elementType.addAssignment);
@@ -663,14 +663,14 @@ class TypeGraphInferrerEngine
     if (_PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((ListTypeInformation info) {
         print('${info.type} '
-              'for ${info.originalContainerType.allocationNode} '
-              'at ${info.originalContainerType.allocationElement} '
+              'for ${info.originalType.allocationNode} '
+              'at ${info.originalType.allocationElement} '
               'after ${info.refineCount}');
       });
       types.allocatedMaps.values.forEach((MapTypeInformation info) {
         print('${info.type} '
-              'for ${(info.type as MapTypeMask).allocationNode} '
-              'at ${(info.type as MapTypeMask).allocationElement} '
+              'for ${info.originalType.allocationNode} '
+              'at ${info.originalType.allocationElement} '
               'after ${info.refineCount}');
       });
       types.allocatedClosures.forEach((TypeInformation info) {
@@ -797,17 +797,23 @@ class TypeGraphInferrerEngine
       TypeInformation info = workQueue.remove();
       TypeMask oldType = info.type;
       TypeMask newType = info.refine(this);
+      // Check that refinement has not accidentially changed the type.
+      assert(oldType == info.type);
+      if (info.abandonInferencing) info.doNotEnqueue = true;
       if ((info.type = newType) != oldType) {
         overallRefineCount++;
         info.refineCount++;
-        workQueue.addAll(info.users);
-        if (info.hasStableType(this)) {
-          info.stabilize(this);
-        } else if (info.refineCount > MAX_CHANGE_COUNT) {
+        if (info.refineCount > MAX_CHANGE_COUNT) {
           if (_ANOMALY_WARN) {
             print("ANOMALY WARNING: max refinement reached for $info");
           }
           info.giveUp(this);
+          info.type = info.refine(this);
+          info.doNotEnqueue = true;
+        }
+        workQueue.addAll(info.users);
+        if (info.hasStableType(this)) {
+          info.stabilize(this);
         }
       }
     }
@@ -862,8 +868,8 @@ class TypeGraphInferrerEngine
         FunctionSignature signature = function.functionSignature;
         signature.forEachParameter((Element parameter) {
           ElementTypeInformation info = types.getInferredTypeOf(parameter);
-          info.giveUp(this, clearAssignments: false);
-          if (addToQueue) workQueue.addAll(info.users);
+          info.tagAsTearOffClosureParameter(this);
+          if (addToQueue) workQueue.add(info);
         });
       }
     } else {
