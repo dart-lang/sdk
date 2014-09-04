@@ -15475,7 +15475,7 @@ RawInteger* Integer::New(int64_t value, Heap::Space space, const bool silent) {
       !IsJavascriptInt(value)) {
     const Integer& i = is_smi ?
         Integer::Handle(Smi::New(static_cast<intptr_t>(value))) :
-        Integer::Handle(Mint::New(value));
+        Integer::Handle(Mint::New(value, space));
     ThrowJavascriptIntegerOverflow(i);
   }
   if (is_smi) {
@@ -15489,12 +15489,12 @@ RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
     if (FLAG_throw_on_javascript_int_overflow) {
       const Integer &i =
-          Integer::Handle(BigintOperations::NewFromUint64(value));
+          Integer::Handle(BigintOperations::NewFromUint64(value, space));
       ThrowJavascriptIntegerOverflow(i);
     }
-    return BigintOperations::NewFromUint64(value);
+    return BigintOperations::NewFromUint64(value, space);
   } else {
-    return Integer::New(value);
+    return Integer::New(value, space);
   }
 }
 
@@ -17018,7 +17018,10 @@ RawString* String::SubString(const String& str,
   if (begin_index >= str.Length()) {
     return String::null();
   }
-  return String::SubString(str, begin_index, (str.Length() - begin_index));
+  return String::SubString(str,
+                           begin_index,
+                           (str.Length() - begin_index),
+                           space);
 }
 
 
