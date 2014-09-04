@@ -1256,6 +1256,13 @@ class SsaBuilder extends ResolvedVisitor {
 
       if (cachedCanBeInlined == true) return cachedCanBeInlined;
 
+      if (backend.functionsToAlwaysInline.contains(function)) {
+        // Inline this function regardless of it's size.
+        assert(InlineWeeder.canBeInlined(function.node, -1, false,
+                                         allowLoops: true));
+        return true;
+      }
+
       int numParameters = function.functionSignature.parameterCount;
       int maxInliningNodes;
       bool useMaxInliningNodes = true;
@@ -6000,6 +6007,9 @@ class StringBuilderVisitor extends ast.Visitor {
  * This class visits the method that is a candidate for inlining and
  * finds whether it is too difficult to inline.
  */
+// TODO(karlklose): refactor to make it possible to distinguish between
+// implementation restrictions (for example, we *can't* inline multiple returns)
+// and heuristics (we *shouldn't* inline large functions).
 class InlineWeeder extends ast.Visitor {
   // Invariant: *INSIDE_LOOP* > *OUTSIDE_LOOP*
   static const INLINING_NODES_OUTSIDE_LOOP = 18;
@@ -6012,14 +6022,18 @@ class InlineWeeder extends ast.Visitor {
   int nodeCount = 0;
   final int maxInliningNodes;
   final bool useMaxInliningNodes;
+  final bool allowLoops;
 
-  InlineWeeder(this.maxInliningNodes, this.useMaxInliningNodes);
+  InlineWeeder(this.maxInliningNodes,
+               this.useMaxInliningNodes,
+               this.allowLoops);
 
   static bool canBeInlined(ast.FunctionExpression functionExpression,
                            int maxInliningNodes,
-                           bool useMaxInliningNodes) {
+                           bool useMaxInliningNodes,
+                           {bool allowLoops: false}) {
     InlineWeeder weeder =
-        new InlineWeeder(maxInliningNodes, useMaxInliningNodes);
+        new InlineWeeder(maxInliningNodes, useMaxInliningNodes, allowLoops);
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     return !weeder.tooDifficult;
@@ -6067,7 +6081,7 @@ class InlineWeeder extends ast.Visitor {
     // It's actually not difficult to inline a method with a loop, but
     // our measurements show that it's currently better to not inline a
     // method that contains a loop.
-    tooDifficult = true;
+    if (!allowLoops) tooDifficult = true;
   }
 
   void visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {

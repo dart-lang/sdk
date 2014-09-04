@@ -56,6 +56,8 @@ class JavaScriptBackend extends Backend {
   static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
   static final Uri DART_INTERCEPTORS =
       new Uri(scheme: 'dart', path: '_interceptors');
+  static final Uri DART_INTERNAL =
+      new Uri(scheme: 'dart', path: '_internal');
   static final Uri DART_FOREIGN_HELPER =
       new Uri(scheme: 'dart', path: '_foreign_helper');
   static final Uri DART_JS_MIRRORS =
@@ -69,6 +71,24 @@ class JavaScriptBackend extends Backend {
 
   static const String INVOKE_ON = '_getCachedInvocation';
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
+
+
+  /// The list of functions for classes in the [internalLibrary] that we want
+  /// to inline always.  Any function in this list must be inlinable with
+  /// respect to the conditions used in [InlineWeeder.canInline], except for
+  /// size/complexity heuristics.
+  static const Map<String, List<String>> ALWAYS_INLINE =
+      const <String, List<String>> {
+    'IterableMixinWorkaround': const <String>['forEach'],
+  };
+
+  /// List of [FunctionElement]s that we want to inline always.  This list is
+  /// filled when resolution is complete by looking up in [internalLibrary].
+  List<FunctionElement> functionsToAlwaysInline;
+
+  /// Reference to the internal library to lookup functions to always inline.
+  LibraryElement internalLibrary;
+
 
   /// Set of classes that need to be considered for reflection although not
   /// otherwise visible during resolution.
@@ -886,6 +906,26 @@ class JavaScriptBackend extends Backend {
     super.onResolutionComplete();
     computeMembersNeededForReflection();
     rti.computeClassesNeedingRti();
+    computeFunctionsToAlwaysInline();
+  }
+
+  void computeFunctionsToAlwaysInline() {
+    functionsToAlwaysInline = <FunctionElement>[];
+    if (internalLibrary == null) return;
+
+    // Try to find all functions intended to always inline.  If their enclosing
+    // class is not resolved we skip the methods, but it is an error to mention
+    // a function or class that cannot be found.
+    for (String className in ALWAYS_INLINE.keys) {
+      ClassElement cls = find(internalLibrary, className);
+      if (cls.resolutionState != STATE_DONE) continue;
+      for (String functionName in ALWAYS_INLINE[className]) {
+        Element function = cls.lookupMember(functionName);
+        assert(invariant(cls, function is FunctionElement,
+            message: 'unable to find function $functionName in $className'));
+        functionsToAlwaysInline.add(function);
+      }
+    }
   }
 
   void registerGetRuntimeTypeArgument(Registry registry) {
@@ -1584,6 +1624,8 @@ class JavaScriptBackend extends Backend {
     Uri uri = library.canonicalUri;
     if (uri == DART_JS_HELPER) {
       jsHelperLibrary = library;
+    } else if (uri == DART_INTERNAL) {
+      internalLibrary = library;
     } else if (uri ==  DART_INTERCEPTORS) {
       interceptorsLibrary = library;
     } else if (uri ==  DART_FOREIGN_HELPER) {
