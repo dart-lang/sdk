@@ -109,7 +109,7 @@ mirrors/type_variable_is_static_test: RuntimeError # Issue 6335
 mirrors/type_variable_owner_test/01: RuntimeError # Issue 12785
 mirrors/variable_is_const_test/none: RuntimeError # Issue 14671
 mirrors/raw_type_test/01: RuntimeError # http://dartbug.com/6490
-mirrors/mirrors_reader_test: Slow # Issue 20806
+mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/setRange_2_test: Fail # Safari doesn't fully implement spec for TypedArray.set
@@ -211,7 +211,7 @@ mirrors/mirrors_used_get_name2_test: RuntimeError
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
 convert/streamed_conversion_utf8_decode_test: Pass, Slow  # Issue 12029
 convert/streamed_conversion_utf8_encode_test: Pass, Slow # Issue 12029
-mirrors/mirrors_reader_test: Timeout, Slow # Issue 20806
+mirrors/mirrors_reader_test: Timeout, Slow, RuntimeError # Issue 16589
 
 [ $runtime == ie9 ]
 # IE9 doesn't support typed arrays.
@@ -223,7 +223,7 @@ mirrors/deferred*: Pass, Fail # http://dartbug.com/12635
 convert/streamed_conversion_utf8_decode_test: Skip # http://dartbug.com/12768
 convert/utf85_test: Skip # Issue 12029.
 convert/json_util_test: Fail # Issue 16109
-mirrors/mirrors_reader_test: Slow # Issue 20806
+mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 
 [ $compiler == dart2js ]
 typed_data/typed_data_hierarchy_int64_test: RuntimeError # Issue 10275
