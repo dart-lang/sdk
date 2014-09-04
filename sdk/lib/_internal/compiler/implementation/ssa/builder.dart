@@ -1269,9 +1269,7 @@ class SsaBuilder extends ResolvedVisitor {
       // inlining stack are called only once as well, we know we will
       // save on output size by inlining this method.
       TypesInferrer inferrer = compiler.typesTask.typesInferrer;
-      if (inferrer.isCalledOnce(element)
-          && (inliningStack.every(
-                  (entry) => inferrer.isCalledOnce(entry.function)))) {
+      if (inferrer.isCalledOnce(element) && allInlinedFunctionsCalledOnce) {
         useMaxInliningNodes = false;
       }
       bool canInline;
@@ -1320,6 +1318,10 @@ class SsaBuilder extends ResolvedVisitor {
     }
 
     return false;
+  }
+
+  bool get allInlinedFunctionsCalledOnce {
+    return inliningStack.isEmpty || inliningStack.last.allFunctionsCalledOnce;
   }
 
   inlinedFrom(Element element, f()) {
@@ -5867,9 +5869,11 @@ class SsaBuilder extends ResolvedVisitor {
   void enterInlinedMethod(FunctionElement function,
                           ast.Node _,
                           List<HInstruction> compiledArguments) {
+    TypesInferrer inferrer = compiler.typesTask.typesInferrer;
     AstInliningState state = new AstInliningState(
         function, returnLocal, returnType, elements, stack, localsHandler,
-        inTryStatement);
+        inTryStatement,
+        allInlinedFunctionsCalledOnce && inferrer.isCalledOnce(function));
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -6116,6 +6120,7 @@ class AstInliningState extends InliningState {
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
+  final bool allFunctionsCalledOnce;
 
   AstInliningState(FunctionElement function,
                    this.oldReturnLocal,
@@ -6123,7 +6128,9 @@ class AstInliningState extends InliningState {
                    this.oldElements,
                    this.oldStack,
                    this.oldLocalsHandler,
-                   this.inTryStatement): super(function);
+                   this.inTryStatement,
+                   this.allFunctionsCalledOnce)
+      : super(function);
 }
 
 class SsaBranch {
