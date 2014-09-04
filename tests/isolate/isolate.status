@@ -28,6 +28,9 @@ handle_error3_test: Fail  # Not implemented yet
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 *: Skip # Isolate tests are timing out flakily on Android content_shell.  Issue 19795
 
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+isolate/compile_time_error_test/none: Pass, Slow
+
 [ $compiler == dart2js && $jscl ]
 browser/*: SkipByDesign  # Browser specific tests
 
