@@ -47,9 +47,7 @@ main() {
 
   test_fileDoesNotExist() {
     String file = '$projectPath/doesNotExist.dart';
-    return _getErrors(file).then((List<AnalysisError> errors) {
-      expect(errors, isEmpty);
-    });
+    return _checkInvalid(file);
   }
 
   test_fileWithoutContext() {
@@ -59,9 +57,7 @@ main() {
   print(42);
 }
 ''');
-    return _getErrors(file).then((List<AnalysisError> errors) {
-      expect(errors, isEmpty);
-    });
+    return _checkInvalid(file);
   }
 
   test_hasErrors() {
@@ -102,18 +98,15 @@ main() {
     // handle the request synchronously
     Request request = _createGetErrorsRequest();
     server.handleRequest(request);
-    // remove context, causes sending a 'cancelled' error
+    // remove context, causes sending an "invalid file" error
     {
       Folder projectFolder = resourceProvider.getResource(projectPath);
       server.contextDirectoryManager.removeContext(projectFolder);
     }
     // wait for an error response
     return serverChannel.waitForResponse(request).then((Response response) {
-      var result = new AnalysisGetErrorsResult.fromResponse(response);
-      expect(result.errors, isEmpty);
-      RequestError error = response.error;
-      expect(error, isNotNull);
-      expect(error.code, RequestErrorCode.GET_ERRORS_ERROR);
+      expect(response.error, isNotNull);
+      expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
     });
   }
 
@@ -125,6 +118,14 @@ main() {
     Request request = _createGetErrorsRequest();
     return serverChannel.sendRequest(request).then((Response response) {
       return new AnalysisGetErrorsResult.fromResponse(response).errors;
+    });
+  }
+
+  Future _checkInvalid(String file) {
+    Request request = _createGetErrorsRequest();
+    return serverChannel.sendRequest(request).then((Response response) {
+      expect(response.error, isNotNull);
+      expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
     });
   }
 }

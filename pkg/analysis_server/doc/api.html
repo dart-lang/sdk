@@ -368,6 +368,13 @@ dt.typeDefinition {
           should use the information provided by the 'analysis.errors'
           notification.
         </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          GET_ERRORS_INVALID_FILE will be generated.
+        </p>
         
         
       <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
@@ -2578,17 +2585,13 @@ dt.typeDefinition {
           execution of the server.
         </p>
         
-      <dl><dt class="value">GET_ERRORS_ERROR</dt><dd>
+      <dl><dt class="value">GET_ERRORS_INVALID_FILE</dt><dd>
             
             <p>
-              An error occurred during the processing of an
-              "analysis.getErrors" request.
+              An "analysis.getErrors" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
             </p>
-            <p>
-              This is a legacy error; it will be removed before the
-              API reaches version 1.0.
-            </p>
-            
           </dd><dt class="value">INVALID_PARAMETER</dt><dd>
             
             <p>

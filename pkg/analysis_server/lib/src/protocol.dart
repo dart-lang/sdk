@@ -851,15 +851,14 @@ class Response {
   }
 
   /**
-   * Initialize a newly created instance to represent an error condition caused
-   * by an error during `analysis.getErrors`.
+   * Initialize a newly created instance to represent the
+   * GET_ERRORS_INVALID_FILE error condition.
    */
-  Response.getErrorsError(Request request, String message,
-      Map<String, Object> result)
+  Response.getErrorsInvalidFile(Request request)
     : this(
         request.id,
-        error: new RequestError(RequestErrorCode.GET_ERRORS_ERROR, 'Error during `analysis.getErrors`: $message.'),
-        result: result);
+        error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
+            'Error during `analysis.getErrors`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused

@@ -63,9 +63,9 @@ class ServerContextManager extends ContextManager {
   @override
   void removeContext(Folder folder) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
-    analysisServer.sendContextAnalysisCancelledNotifications(
+    analysisServer.sendContextAnalysisDoneNotifications(
         context,
-        'Context was removed');
+        AnalysisDoneReason.CONTEXT_REMOVED);
   }
 
   @override
@@ -89,6 +89,32 @@ class ServerContextManager extends ContextManager {
     return new SourceFactory(resolvers);
   }
 }
+
+
+/**
+ * Enum representing reasons why analysis might be done for a given file.
+ */
+class AnalysisDoneReason {
+  /**
+   * Analysis of the file completed successfully.
+   */
+  static const AnalysisDoneReason COMPLETE =
+      const AnalysisDoneReason._('COMPLETE');
+
+  /**
+   * Analysis of the file was aborted because the context was removed.
+   */
+  static const AnalysisDoneReason CONTEXT_REMOVED =
+      const AnalysisDoneReason._('CONTEXT_REMOVED');
+
+  /**
+   * Textual description of this [AnalysisDoneReason].
+   */
+  final String text;
+
+  const AnalysisDoneReason._(this.text);
+}
+
 
 /**
  * Instances of the class [AnalysisServer] implement a server that listens on a
@@ -177,8 +203,8 @@ class AnalysisServer {
    * A table mapping [AnalysisContext]s to the completers that should be
    * completed when analysis of this context is finished.
    */
-  Map<AnalysisContext, Completer> contextAnalysisDoneCompleters =
-      new HashMap<AnalysisContext, Completer>();
+  Map<AnalysisContext, Completer<AnalysisDoneReason>> contextAnalysisDoneCompleters =
+      new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
    * True if any exceptions thrown by analysis should be propagated up the call
@@ -619,10 +645,11 @@ class AnalysisServer {
    * Return an analysis error info containing the array of all of the errors and
    * the line info associated with [file].
    *
-   * Returns `null` if [file] does not belong to any [AnalysisContext].
+   * Returns `null` if [file] does not belong to any [AnalysisContext], or the
+   * file does not exist.
    *
-   * The array of errors will be empty if [file] does not exist or if there are
-   * no errors in [file]. The errors contained in the array can be incomplete.
+   * The array of errors will be empty if there are no errors in [file]. The
+   * errors contained in the array can be incomplete.
    *
    * This method does not wait for all errors to be computed, and returns just
    * the current state.
@@ -633,8 +660,12 @@ class AnalysisServer {
     if (context == null) {
       return null;
     }
-    // get errors for the file
+    // prepare Source
     Source source = getSource(file);
+    if (context.getKindOf(source) == SourceKind.UNKNOWN) {
+      return null;
+    }
+    // get errors for the file
     return context.getErrors(source);
   }
 
@@ -711,7 +742,11 @@ class AnalysisServer {
 
   /**
    * Returns a [Future] completing when [file] has been completely analyzed, in
-   * particular, all its errors have been computed.
+   * particular, all its errors have been computed.  The future is completed
+   * with an [AnalysisDoneReason] indicating what caused the file's analysis to
+   * be considered complete.
+   *
+   * If the given file doesn't belong to any context, null is returned.
    *
    * TODO(scheglov) this method should be improved.
    *
@@ -720,18 +755,19 @@ class AnalysisServer {
    * 2. We should complete the future as soon as the file is analyzed (not wait
    *    until the context is completely finished)
    */
-  Future onFileAnalysisComplete(String file) {
+  Future<AnalysisDoneReason> onFileAnalysisComplete(String file) {
     // prepare AnalysisContext
     AnalysisContext context = getAnalysisContext(file);
     if (context == null) {
-      return new Future.value();
+      return null;
     }
     // schedule context analysis
     schedulePerformAnalysisOperation(context);
     // associate with the context completer
-    Completer completer = contextAnalysisDoneCompleters[context];
+    Completer<AnalysisDoneReason> completer =
+        contextAnalysisDoneCompleters[context];
     if (completer == null) {
-      completer = new Completer();
+      completer = new Completer<AnalysisDoneReason>();
       contextAnalysisDoneCompleters[context] = completer;
     }
     return completer.future;
@@ -741,21 +777,12 @@ class AnalysisServer {
    * This method is called when analysis of the given [AnalysisContext] is
    * done.
    */
-  void sendContextAnalysisDoneNotifications(AnalysisContext context) {
-    Completer completer = contextAnalysisDoneCompleters.remove(context);
+  void sendContextAnalysisDoneNotifications(AnalysisContext context,
+                                            AnalysisDoneReason reason) {
+    Completer<AnalysisDoneReason> completer =
+        contextAnalysisDoneCompleters.remove(context);
     if (completer != null) {
-      completer.complete();
-    }
-  }
-
-  /**
-   * This method is called when analysis of the given [AnalysisContext] is
-   * cancelled.
-   */
-  void sendContextAnalysisCancelledNotifications(AnalysisContext context, String message) {
-    Completer completer = contextAnalysisDoneCompleters.remove(context);
-    if (completer != null) {
-      completer.completeError(message);
+      completer.complete(reason);
     }
   }
 

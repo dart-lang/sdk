@@ -4,6 +4,8 @@
 
 library domain.analysis;
 
+import 'dart:async';
+
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -32,25 +34,33 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response getErrors(Request request) {
     String file = new AnalysisGetErrorsParams.fromRequest(request).file;
-    server.onFileAnalysisComplete(file).then((_) {
-      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
-      List<AnalysisError> errors;
-      if (errorInfo == null) {
-        errors = [];
-      } else {
-        errors = AnalysisError.listFromEngine(errorInfo.lineInfo,
-            errorInfo.errors);
+    Future<AnalysisDoneReason> completionFuture =
+        server.onFileAnalysisComplete(file);
+    if (completionFuture == null) {
+      return new Response.getErrorsInvalidFile(request);
+    }
+    completionFuture.then((AnalysisDoneReason reason) {
+      switch (reason) {
+        case AnalysisDoneReason.COMPLETE:
+          engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
+          List<AnalysisError> errors;
+          if (errorInfo == null) {
+            server.sendResponse(new Response.getErrorsInvalidFile(request));
+          } else {
+            errors = AnalysisError.listFromEngine(errorInfo.lineInfo,
+                errorInfo.errors);
+            server.sendResponse(new AnalysisGetErrorsResult(errors).toResponse(
+                request.id));
+          }
+          break;
+        case AnalysisDoneReason.CONTEXT_REMOVED:
+          // The active contexts have changed, so try again.
+          Response response = getErrors(request);
+          if (response != Response.DELAYED_RESPONSE) {
+            server.sendResponse(response);
+          }
+          break;
       }
-      server.sendResponse(new AnalysisGetErrorsResult(errors).toResponse(
-          request.id));
-    }).catchError((message) {
-      if (message is! String) {
-        engine.AnalysisEngine.instance.logger.logError(
-            'Illegal error message during getErrors: $message');
-        message = '';
-      }
-      server.sendResponse(new Response.getErrorsError(request, message,
-          new AnalysisGetErrorsResult([]).toJson()));
     });
     // delay response
     return Response.DELAYED_RESPONSE;

@@ -274,6 +274,13 @@
           should use the information provided by the 'analysis.errors'
           notification.
         </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          GET_ERRORS_INVALID_FILE will be generated.
+        </p>
         <params>
           <field name="file">
             <ref>FilePath</ref>
@@ -2586,17 +2593,12 @@
         </p>
         <enum>
           <value>
-            <code>GET_ERRORS_ERROR</code>
+            <code>GET_ERRORS_INVALID_FILE</code>
             <p>
-              An error occurred during the processing of an
-              "analysis.getErrors" request.
+              An "analysis.getErrors" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
             </p>
-            <p>
-              This is a legacy error; it will be removed before the
-              API reaches version 1.0.
-            </p>
-            <!-- TODO(paulberry): remove this error and the code that
-                 generates it. -->
           </value>
           <value>
             <code>INVALID_PARAMETER</code>

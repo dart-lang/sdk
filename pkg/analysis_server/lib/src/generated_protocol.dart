@@ -8089,7 +8089,7 @@ class RequestError implements HasToJson {
  * RequestErrorCode
  *
  * enum {
- *   GET_ERRORS_ERROR
+ *   GET_ERRORS_INVALID_FILE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
@@ -8100,13 +8100,10 @@ class RequestError implements HasToJson {
  */
 class RequestErrorCode {
   /**
-   * An error occurred during the processing of an "analysis.getErrors"
-   * request.
-   *
-   * This is a legacy error; it will be removed before the API reaches version
-   * 1.0.
+   * An "analysis.getErrors" request specified a FilePath which does not match
+   * a file currently subject to analysis.
    */
-  static const GET_ERRORS_ERROR = const RequestErrorCode._("GET_ERRORS_ERROR");
+  static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
 
   /**
    * One of the method parameters was invalid.
@@ -8158,8 +8155,8 @@ class RequestErrorCode {
 
   factory RequestErrorCode(String name) {
     switch (name) {
-      case "GET_ERRORS_ERROR":
-        return GET_ERRORS_ERROR;
+      case "GET_ERRORS_INVALID_FILE":
+        return GET_ERRORS_INVALID_FILE;
       case "INVALID_PARAMETER":
         return INVALID_PARAMETER;
       case "INVALID_REQUEST":
