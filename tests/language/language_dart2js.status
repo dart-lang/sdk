@@ -274,3 +274,4 @@ deferred_no_such_method_test*: Skip # Issue 16898
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 *deferred*: Skip # Issue 17458
+cha_deopt*: Skip # Issue 17458
