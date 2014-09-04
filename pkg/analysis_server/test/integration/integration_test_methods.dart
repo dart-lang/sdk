@@ -1147,7 +1147,7 @@ abstract class IntegrationTestMixin {
    *   The status of the refactoring. The array will be empty if there are no
    *   known problems.
    *
-   * feedback ( optional object )
+   * feedback ( optional RefactoringFeedback )
    *
    *   Data used to provide feedback to the user. The structure of the data is
    *   dependent on the kind of refactoring being created. The data that is

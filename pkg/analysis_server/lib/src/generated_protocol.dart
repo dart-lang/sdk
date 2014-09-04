@@ -63,7 +63,7 @@ class ServerGetVersionResult implements HasToJson {
 
   factory ServerGetVersionResult.fromResponse(Response response) {
     return new ServerGetVersionResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -305,7 +305,7 @@ class ServerErrorParams implements HasToJson {
 
   factory ServerErrorParams.fromNotification(Notification notification) {
     return new ServerErrorParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -376,7 +376,7 @@ class ServerStatusParams implements HasToJson {
 
   factory ServerStatusParams.fromNotification(Notification notification) {
     return new ServerStatusParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -510,7 +510,7 @@ class AnalysisGetErrorsResult implements HasToJson {
 
   factory AnalysisGetErrorsResult.fromResponse(Response response) {
     return new AnalysisGetErrorsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -661,7 +661,7 @@ class AnalysisGetHoverResult implements HasToJson {
 
   factory AnalysisGetHoverResult.fromResponse(Response response) {
     return new AnalysisGetHoverResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -1234,7 +1234,7 @@ class AnalysisErrorsParams implements HasToJson {
 
   factory AnalysisErrorsParams.fromNotification(Notification notification) {
     return new AnalysisErrorsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1303,7 +1303,7 @@ class AnalysisFlushResultsParams implements HasToJson {
 
   factory AnalysisFlushResultsParams.fromNotification(Notification notification) {
     return new AnalysisFlushResultsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1381,7 +1381,7 @@ class AnalysisFoldingParams implements HasToJson {
 
   factory AnalysisFoldingParams.fromNotification(Notification notification) {
     return new AnalysisFoldingParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1466,7 +1466,7 @@ class AnalysisHighlightsParams implements HasToJson {
 
   factory AnalysisHighlightsParams.fromNotification(Notification notification) {
     return new AnalysisHighlightsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1552,7 +1552,7 @@ class AnalysisNavigationParams implements HasToJson {
 
   factory AnalysisNavigationParams.fromNotification(Notification notification) {
     return new AnalysisNavigationParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1633,7 +1633,7 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   factory AnalysisOccurrencesParams.fromNotification(Notification notification) {
     return new AnalysisOccurrencesParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1714,7 +1714,7 @@ class AnalysisOutlineParams implements HasToJson {
 
   factory AnalysisOutlineParams.fromNotification(Notification notification) {
     return new AnalysisOutlineParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1795,7 +1795,7 @@ class AnalysisOverridesParams implements HasToJson {
 
   factory AnalysisOverridesParams.fromNotification(Notification notification) {
     return new AnalysisOverridesParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -1945,7 +1945,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
 
   factory CompletionGetSuggestionsResult.fromResponse(Response response) {
     return new CompletionGetSuggestionsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2069,7 +2069,7 @@ class CompletionResultsParams implements HasToJson {
 
   factory CompletionResultsParams.fromNotification(Notification notification) {
     return new CompletionResultsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -2259,7 +2259,7 @@ class SearchFindElementReferencesResult implements HasToJson {
 
   factory SearchFindElementReferencesResult.fromResponse(Response response) {
     return new SearchFindElementReferencesResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2398,7 +2398,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
 
   factory SearchFindMemberDeclarationsResult.fromResponse(Response response) {
     return new SearchFindMemberDeclarationsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2530,7 +2530,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
 
   factory SearchFindMemberReferencesResult.fromResponse(Response response) {
     return new SearchFindMemberReferencesResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2663,7 +2663,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
 
   factory SearchFindTopLevelDeclarationsResult.fromResponse(Response response) {
     return new SearchFindTopLevelDeclarationsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2823,7 +2823,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
 
   factory SearchGetTypeHierarchyResult.fromResponse(Response response) {
     return new SearchGetTypeHierarchyResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -2916,7 +2916,7 @@ class SearchResultsParams implements HasToJson {
 
   factory SearchResultsParams.fromNotification(Notification notification) {
     return new SearchResultsParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -3084,7 +3084,7 @@ class EditGetAssistsResult implements HasToJson {
 
   factory EditGetAssistsResult.fromResponse(Response response) {
     return new EditGetAssistsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3246,7 +3246,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
 
   factory EditGetAvailableRefactoringsResult.fromResponse(Response response) {
     return new EditGetAvailableRefactoringsResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3398,7 +3398,7 @@ class EditGetFixesResult implements HasToJson {
 
   factory EditGetFixesResult.fromResponse(Response response) {
     return new EditGetFixesResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -3526,8 +3526,10 @@ class EditGetRefactoringParams implements HasToJson {
   }
 
   factory EditGetRefactoringParams.fromRequest(Request request) {
-    return new EditGetRefactoringParams.fromJson(
+    var params = new EditGetRefactoringParams.fromJson(
         new RequestDecoder(request), "params", request._params);
+    REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;
+    return params;
   }
 
   Map<String, dynamic> toJson() {
@@ -3581,7 +3583,7 @@ class EditGetRefactoringParams implements HasToJson {
  *
  * {
  *   "problems": List<RefactoringProblem>
- *   "feedback": optional object
+ *   "feedback": optional RefactoringFeedback
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
  * }
@@ -3599,7 +3601,7 @@ class EditGetRefactoringResult implements HasToJson {
    * returned is documented in the section titled Refactorings, labeled as
    * “Feedback”.
    */
-  Map feedback;
+  RefactoringFeedback feedback;
 
   /**
    * The changes that are to be applied to affect the refactoring. This field
@@ -3636,9 +3638,9 @@ class EditGetRefactoringResult implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "problems");
       }
-      Map feedback;
+      RefactoringFeedback feedback;
       if (json.containsKey("feedback")) {
-        feedback = json["feedback"];
+        feedback = new RefactoringFeedback.fromJson(jsonDecoder, jsonPath + ".feedback", json["feedback"], json);
       }
       SourceChange change;
       if (json.containsKey("change")) {
@@ -3658,14 +3660,14 @@ class EditGetRefactoringResult implements HasToJson {
 
   factory EditGetRefactoringResult.fromResponse(Response response) {
     return new EditGetRefactoringResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["problems"] = problems.map((RefactoringProblem value) => value.toJson()).toList();
     if (feedback != null) {
-      result["feedback"] = feedback;
+      result["feedback"] = feedback.toJson();
     }
     if (change != null) {
       result["change"] = change.toJson();
@@ -3805,7 +3807,7 @@ class DebugCreateContextResult implements HasToJson {
 
   factory DebugCreateContextResult.fromResponse(Response response) {
     return new DebugCreateContextResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -4064,7 +4066,7 @@ class DebugMapUriResult implements HasToJson {
 
   factory DebugMapUriResult.fromResponse(Response response) {
     return new DebugMapUriResult.fromJson(
-        new ResponseDecoder(), "result", response._result);
+        new ResponseDecoder(response), "result", response._result);
   }
 
   Map<String, dynamic> toJson() {
@@ -4251,7 +4253,7 @@ class DebugLaunchDataParams implements HasToJson {
 
   factory DebugLaunchDataParams.fromNotification(Notification notification) {
     return new DebugLaunchDataParams.fromJson(
-        new ResponseDecoder(), "params", notification._params);
+        new ResponseDecoder(null), "params", notification._params);
   }
 
   Map<String, dynamic> toJson() {
@@ -7751,6 +7753,42 @@ class RefactoringMethodParameter implements HasToJson {
 }
 
 /**
+ * RefactoringFeedback
+ *
+ * {
+ * }
+ */
+class RefactoringFeedback implements HasToJson {
+  RefactoringFeedback();
+
+  factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
+    return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, json, responseJson);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is RefactoringFeedback) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * RefactoringOptions
  *
  * {
@@ -9075,7 +9113,7 @@ class ConvertMethodToGetterOptions {
  *   "lengths": List<int>
  * }
  */
-class ExtractLocalVariableFeedback implements HasToJson {
+class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
   /**
    * The proposed names for the local variable.
    */
@@ -9124,11 +9162,6 @@ class ExtractLocalVariableFeedback implements HasToJson {
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback");
     }
-  }
-
-  factory ExtractLocalVariableFeedback.fromRefactoringResult(EditGetRefactoringResult refactoringResult) {
-    return new ExtractLocalVariableFeedback.fromJson(
-        new ResponseDecoder(), "feedback", refactoringResult.feedback);
   }
 
   Map<String, dynamic> toJson() {
@@ -9256,7 +9289,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
  *   "lengths": List<int>
  * }
  */
-class ExtractMethodFeedback implements HasToJson {
+class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
   /**
    * The offset to the beginning of the expression or statements that will be
    * extracted.
@@ -9362,11 +9395,6 @@ class ExtractMethodFeedback implements HasToJson {
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractMethod feedback");
     }
-  }
-
-  factory ExtractMethodFeedback.fromRefactoringResult(EditGetRefactoringResult refactoringResult) {
-    return new ExtractMethodFeedback.fromJson(
-        new ResponseDecoder(), "feedback", refactoringResult.feedback);
   }
 
   Map<String, dynamic> toJson() {
@@ -9687,7 +9715,7 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
  *   "length": int
  * }
  */
-class RenameFeedback implements HasToJson {
+class RenameFeedback extends RefactoringFeedback implements HasToJson {
   /**
    * The offset to the beginning of the name selected to be renamed.
    */
@@ -9721,11 +9749,6 @@ class RenameFeedback implements HasToJson {
     } else {
       throw jsonDecoder.mismatch(jsonPath, "rename feedback");
     }
-  }
-
-  factory RenameFeedback.fromRefactoringResult(EditGetRefactoringResult refactoringResult) {
-    return new RenameFeedback.fromJson(
-        new ResponseDecoder(), "feedback", refactoringResult.feedback);
   }
 
   Map<String, dynamic> toJson() {

@@ -23,6 +23,10 @@ import 'package:analyzer/src/generated/source.dart' as engine;
 
 part 'generated_protocol.dart';
 
+
+final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
+    new HashMap<String, RefactoringKind>();
+
 /**
  * Translate the input [map], applying [keyCallback] to all its keys, and
  * [valueCallback] to all its values.
@@ -392,6 +396,29 @@ OverriddenMember _overriddenMemberFromEngine(engine.Element member) {
   Element element = elementFromEngine(member);
   String className = member.enclosingElement.displayName;
   return new OverriddenMember(element, className);
+}
+
+
+/**
+ * Create a [RefactoringFeedback] corresponding the given [kind].
+ */
+RefactoringFeedback _refactoringFeedbackFromJson(JsonDecoder jsonDecoder,
+    String jsonPath, Object json, Map feedbackJson) {
+  String requestId;
+  if (jsonDecoder is ResponseDecoder) {
+    requestId = jsonDecoder.response.id;
+  }
+  RefactoringKind kind = REQUEST_ID_REFACTORING_KINDS.remove(requestId);
+  if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
+    return new ExtractLocalVariableFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.EXTRACT_METHOD) {
+    return new ExtractMethodFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.RENAME) {
+    return new RenameFeedback.fromJson(jsonDecoder, jsonPath, json);
+  }
+  return null;
 }
 
 
@@ -856,7 +883,7 @@ class Response {
       Object error = json[Response.ERROR];
       RequestError decodedError;
       if (error is Map) {
-        decodedError = new RequestError.fromJson(new ResponseDecoder(),
+        decodedError = new RequestError.fromJson(new ResponseDecoder(null),
             '.error', error);
       }
       Object result = json[Response.RESULT];
@@ -939,6 +966,10 @@ class Response {
  * used only for testing.  Errors are reported using bare [Exception] objects.
  */
 class ResponseDecoder extends JsonDecoder {
+  final Response response;
+
+  ResponseDecoder(this.response);
+
   @override
   dynamic mismatch(String jsonPath, String expected) {
     return new Exception('Expected $expected at $jsonPath');

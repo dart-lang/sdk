@@ -112,7 +112,7 @@ class RequestErrorTest {
         'ints': [1, 2, 3]
       }
     };
-    RequestError error = new RequestError.fromJson(new ResponseDecoder(), '',
+    RequestError error = new RequestError.fromJson(new ResponseDecoder(null), '',
         json);
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
     expect(error.message, "foo");

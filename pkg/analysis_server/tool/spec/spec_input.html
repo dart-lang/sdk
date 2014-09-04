@@ -1237,7 +1237,7 @@
             </p>
           </field>
           <field name="feedback" optional="true">
-            <ref>object</ref>
+            <ref>RefactoringFeedback</ref>
             <p>
               Data used to provide feedback to the user. The structure
               of the data is dependent on the kind of refactoring
@@ -2492,6 +2492,13 @@
               field will have a value of "()".
             </p>
           </field>
+        </object>
+      </type>
+      <type name="RefactoringFeedback">
+        <p>
+          An abstract superclass of all refactoring feedbacks.
+        </p>
+        <object>
         </object>
       </type>
       <type name="RefactoringOptions">

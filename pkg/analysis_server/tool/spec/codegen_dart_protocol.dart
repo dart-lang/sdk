@@ -292,6 +292,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       }
     }));
     write('class $className');
+    if (impliedType.kind == 'refactoringFeedback') {
+      write(' extends RefactoringFeedback');
+    }
     if (impliedType.kind == 'refactoringOptions') {
       write(' extends RefactoringOptions');
     }
@@ -968,6 +971,16 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       ImpliedType impliedType) {
     String humanReadableNameString =
         literalString(impliedType.humanReadableName);
+    if (className == 'RefactoringFeedback') {
+      writeln('factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
+          'String jsonPath, Object json, Map responseJson) {');
+      indent(() {
+        writeln('return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
+            'json, responseJson);');
+      });
+      writeln('}');
+      return;
+    }
     if (className == 'RefactoringOptions') {
       writeln('factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
           'String jsonPath, Object json, RefactoringKind kind) {');
@@ -1090,7 +1103,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
           return new FromJsonSnippet(
               (String jsonPath, String json) {
                 String typeName = dartType(type);
-                if (typeName == 'RefactoringOptions') {
+                if (typeName == 'RefactoringFeedback') {
+                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, json)';
+                } else if (typeName == 'RefactoringOptions') {
                   return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
                 } else {
                   return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json)';
@@ -1203,22 +1218,15 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         inputType = 'Response';
         inputName = 'response';
         fieldName = '_result';
-        makeDecoder = 'new ResponseDecoder()';
+        makeDecoder = 'new ResponseDecoder(response)';
         constructorName = 'fromResponse';
         break;
       case 'notificationParams':
         inputType = 'Notification';
         inputName = 'notification';
         fieldName = '_params';
-        makeDecoder = 'new ResponseDecoder()';
+        makeDecoder = 'new ResponseDecoder(null)';
         constructorName = 'fromNotification';
-        break;
-      case 'refactoringFeedback':
-        inputType = 'EditGetRefactoringResult';
-        inputName = 'refactoringResult';
-        fieldName = 'feedback';
-        makeDecoder = 'new ResponseDecoder()';
-        constructorName = 'fromRefactoringResult';
         break;
       case 'refactoringOptions':
         inputType = 'EditGetRefactoringParams';
@@ -1237,8 +1245,15 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
     indent(() {
       String fieldNameString =
           literalString(fieldName.replaceFirst(new RegExp('^_'), ''));
-      writeln('return new $className.fromJson(');
-      writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
+      if (className == 'EditGetRefactoringParams') {
+        writeln('var params = new $className.fromJson(');
+        writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
+        writeln('REQUEST_ID_REFACTORING_KINDS[request.id] = params.kind;');
+        writeln('return params;');
+      } else {
+        writeln('return new $className.fromJson(');
+        writeln('    $makeDecoder, $fieldNameString, $inputName.$fieldName);');
+      }
     });
     writeln('}');
     return true;

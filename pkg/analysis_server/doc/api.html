@@ -1405,7 +1405,7 @@ dt.typeDefinition {
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
   "result": {
     "<b>problems</b>": List&lt;<a href="#type_RefactoringProblem">RefactoringProblem</a>&gt;
-    "<b>feedback</b>": <span style="color:#999999">optional</span> object
+    "<b>feedback</b>": <span style="color:#999999">optional</span> <a href="#type_RefactoringFeedback">RefactoringFeedback</a>
     "<b>change</b>": <span style="color:#999999">optional</span> <a href="#type_SourceChange">SourceChange</a>
     "<b>potentialEdits</b>": <span style="color:#999999">optional</span> List&lt;String&gt;
   }
@@ -1459,7 +1459,7 @@ dt.typeDefinition {
               The status of the refactoring. The array will be empty
               if there are no known problems.
             </p>
-          </dd><dt class="field"><b><i>feedback ( <span style="color:#999999">optional</span> object )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>feedback ( <span style="color:#999999">optional</span> <a href="#type_RefactoringFeedback">RefactoringFeedback</a> )</i></b></dt><dd>
             
             <p>
               Data used to provide feedback to the user. The structure
@@ -1679,6 +1679,7 @@ dt.typeDefinition {
         This section contains descriptions of the data types referenced
         in the API’s of the various domains.
       </p>
+      
       
       
       
@@ -2512,7 +2513,12 @@ dt.typeDefinition {
               not be defined. If the function type has zero parameters, this
               field will have a value of "()".
             </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringOptions">RefactoringOptions: object</a></dt><dd>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringFeedback">RefactoringFeedback: object</a></dt><dd>
+        <p>
+          An abstract superclass of all refactoring feedbacks.
+        </p>
+        
+      <dl></dl></dd><dt class="typeDefinition"><a name="type_RefactoringOptions">RefactoringOptions: object</a></dt><dd>
         <p>
           An abstract superclass of all refactoring options.
         </p>

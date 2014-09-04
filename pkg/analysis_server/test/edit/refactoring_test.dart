@@ -120,8 +120,7 @@ main() {
     return getRefactoringResult(() {
       return sendStringSuffixRequest('getSelectedItem()', ';', null, true);
     }).then((result) {
-      ExtractLocalVariableFeedback feedback =
-          new ExtractLocalVariableFeedback.fromRefactoringResult(result);
+      ExtractLocalVariableFeedback feedback = result.feedback;
       expect(
           feedback.names,
           unorderedEquals(['treeItem', 'item', 'selectedItem']));
@@ -139,8 +138,7 @@ main() {
     return getRefactoringResult(() {
       return sendStringRequest('1 + 2', 'res', true);
     }).then((result) {
-      ExtractLocalVariableFeedback feedback =
-          new ExtractLocalVariableFeedback.fromRefactoringResult(result);
+      ExtractLocalVariableFeedback feedback = result.feedback;
       expect(feedback.offsets, [findOffset('1 + 2'), findOffset('1 +  2')]);
       expect(feedback.lengths, [5, 6]);
     });
@@ -206,8 +204,7 @@ main() {
 ''');
     _setOffsetLengthForString('a + b');
     return getRefactoringResult(_computeChange).then((result) {
-      ExtractMethodFeedback feedback =
-          new ExtractMethodFeedback.fromRefactoringResult(result);
+      ExtractMethodFeedback feedback = result.feedback;
       List<RefactoringMethodParameter> parameters = feedback.parameters;
       parameters[0].name = 'aaa';
       parameters[1].name = 'bbb';
@@ -300,7 +297,7 @@ void res(int a, int b) {
       return _sendExtractRequest();
     }).then((Response response) {
       var result = new EditGetRefactoringResult.fromResponse(response);
-      return new ExtractMethodFeedback.fromRefactoringResult(result);
+      return result.feedback;
     });
   }
 
@@ -311,7 +308,7 @@ void res(int a, int b) {
     }).then((result) {
       assertResultProblemsOK(result);
       // fill options from result
-      var feedback = new ExtractMethodFeedback.fromRefactoringResult(result);
+      ExtractMethodFeedback feedback = result.feedback;
       options = new ExtractMethodOptions(
           feedback.returnType,
           false,
@@ -867,8 +864,7 @@ main() {
     return getRefactoringResult(() {
       return sendRenameRequest('st v;', 'NewName');
     }).then((result) {
-      RenameFeedback feedback =
-          new RenameFeedback.fromRefactoringResult(result);
+      RenameFeedback feedback = result.feedback;
       expect(feedback, isNotNull);
       expect(feedback.offset, findOffset('Test v;'));
       expect(feedback.length, 'Test'.length);

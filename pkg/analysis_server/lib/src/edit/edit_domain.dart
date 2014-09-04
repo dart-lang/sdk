@@ -332,7 +332,7 @@ class _RefactoringManager {
 
   void _sendResultResponse() {
     if (feedback != null) {
-      result.feedback = feedback.toJson();
+      result.feedback = feedback;
     }
     // set problems
     {

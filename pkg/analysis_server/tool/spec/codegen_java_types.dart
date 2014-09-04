@@ -616,7 +616,9 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
     TypeDecl type = impliedType.type;
     String typeNameInSpec = capitalize(impliedType.camelName);
     bool isRefactoringOption = impliedType.kind == 'refactoringOptions';
-    if (impliedType.kind == 'typeDefinition' || isRefactoringOption) {
+    if (impliedType.kind == 'typeDefinition' ||
+        impliedType.kind == 'refactoringFeedback' ||
+        isRefactoringOption) {
       TypeDecl type = impliedType.type;
       if (type is TypeObject || type is TypeEnum) {
         // This is for situations such as 'Override' where the name in the spec
