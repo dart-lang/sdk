@@ -12,7 +12,7 @@ import 'analysis_notification_occurrences_test.dart' as analysis_notification_oc
 import 'analysis_notification_outline_test.dart' as analysis_notification_outline_test;
 import 'analysis_notification_overrides_test.dart' as analysis_notification_overrides_test;
 import 'analysis_server_test.dart' as analysis_server_test;
-import 'channel_test.dart' as channel_test;
+import 'channel/test_all.dart' as channel_test;
 import 'computer/test_all.dart' as computer_test_all;
 import 'context_manager_test.dart' as context_manager_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;

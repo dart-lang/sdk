@@ -7,7 +7,7 @@ library stdio.server;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analysis_server/src/socket_server.dart';
 
 /**

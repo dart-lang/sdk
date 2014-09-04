@@ -5,7 +5,7 @@
 library socket.server;
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';

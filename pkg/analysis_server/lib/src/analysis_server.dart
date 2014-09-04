@@ -9,7 +9,7 @@ import 'dart:collection';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
-import 'package:analysis_server/src/channel.dart';
+import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation.dart';
