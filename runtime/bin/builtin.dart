@@ -157,7 +157,7 @@ String _resolveUri(String base, String userString) {
     var uri = userString.substring(_DART_EXT.length);
     return '$_DART_EXT${baseUri.resolve(uri)}';
   } else {
-    return '${baseUri.resolve(userString)}';
+    return baseUri.resolve(userString).toString();
   }
 }
 
@@ -205,42 +205,33 @@ String _filePathFromPackageUri(Uri uri) {
 
 
 int _numOutstandingLoadRequests = 0;
-
+var _httpClient;
 
 void _httpGet(Uri uri, String libraryUri, loadCallback(List<int> data)) {
-  var httpClient = new HttpClient();
-  try {
-    httpClient.getUrl(uri)
-      .then((HttpClientRequest request) {
-        request.persistentConnection = false;
-        return request.close();
-      })
-      .then((HttpClientResponse response) {
-        // Only create a ByteBuilder if multiple chunks are received.
-        var builder = new BytesBuilder(copy: false);
-        response.listen(
-            builder.add,
-            onDone: () {
-              if (response.statusCode != 200) {
-                var msg = 'Failure getting $uri: '
-                          '${response.statusCode} ${response.reasonPhrase}';
-                _asyncLoadError(uri.toString(), libraryUri, msg);
-              }
-
-              List<int> data = builder.takeBytes();
-              httpClient.close();
-              loadCallback(data);
-            },
-            onError: (error) {
-              _asyncLoadError(uri.toString(), libraryUri, error);
-            });
-      })
-      .catchError((error) {
-        _asyncLoadError(uri.toString(), libraryUri, error);
-      });
-  } catch (error) {
-    _asyncLoadError(uri.toString(), libraryUri, error);
+  if (_httpClient == null) {
+    _httpClient = new HttpClient()..maxConnectionsPerHost = 6;
   }
+  _httpClient.getUrl(uri)
+    .then((HttpClientRequest request) => request.close())
+    .then((HttpClientResponse response) {
+      var builder = new BytesBuilder(copy: false);
+      response.listen(
+          builder.add,
+          onDone: () {
+            if (response.statusCode != 200) {
+              var msg = 'Failure getting $uri: '
+                        '${response.statusCode} ${response.reasonPhrase}';
+              _asyncLoadError(uri.toString(), libraryUri, msg);
+            }
+            loadCallback(builder.takeBytes());
+          },
+          onError: (error) {
+            _asyncLoadError(uri.toString(), libraryUri, error);
+          });
+    })
+    .catchError((error) {
+      _asyncLoadError(uri.toString(), libraryUri, error);
+    });
   // TODO(floitsch): remove this line. It's just here to push an event on the
   // event loop so that we invoke the scheduled microtasks. Also remove the
   // import of dart:async when this line is not needed anymore.
@@ -249,6 +240,13 @@ void _httpGet(Uri uri, String libraryUri, loadCallback(List<int> data)) {
 
 
 void _signalDoneLoading() native "Builtin_DoneLoading";
+
+void _cleanup() {
+  if (_httpClient != null) {
+    _httpClient.close();
+    _httpClient = null;
+  }
+}
 
 void _loadScriptCallback(int tag, String uri, String libraryUri, List<int> data)
     native "Builtin_LoadScript";
@@ -264,6 +262,7 @@ void _loadScript(int tag, String uri, String libraryUri, List<int> data) {
                  "${_numOutstandingLoadRequests} requests remaining");
   if (_numOutstandingLoadRequests == 0) {
     _signalDoneLoading();
+    _cleanup();
   }
 }
 
@@ -278,6 +277,7 @@ void _asyncLoadError(uri, libraryUri, error) {
   _asyncLoadErrorCallback(uri, libraryUri, error);
   if (_numOutstandingLoadRequests == 0) {
     _signalDoneLoading();
+    _cleanup();
   }
 }
 
