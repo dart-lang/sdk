@@ -16,10 +16,15 @@ void testScheme() {
     var uri = new Uri(scheme: scheme);
     Expect.equals(expectedScheme, uri.scheme);
     Expect.equals(expectedUri, uri.toString());
+    uri = Uri.parse("$scheme:");
+    Expect.equals(expectedScheme, uri.scheme);
+    Expect.equals(expectedUri, uri.toString());
   }
 
   test("http", "http:", "http");
   test("http", "http:", "HTTP");
+  test("http", "http:", "hTTP");
+  test("http", "http:", "Http");
   test("http+ssl", "http+ssl:", "HTTP+ssl");
   test("urn", "urn:", "urn");
   test("urn", "urn:", "UrN");

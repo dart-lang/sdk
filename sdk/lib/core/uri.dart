@@ -1102,17 +1102,17 @@ class Uri {
    */
   static String _makeScheme(String scheme, int end) {
     if (end == 0) return "";
-    int char = scheme.codeUnitAt(0);
-    if (!_isAlphabeticCharacter(char)) {
+    final int firstCodeUnit = scheme.codeUnitAt(0);
+    if (!_isAlphabeticCharacter(firstCodeUnit)) {
       _fail(scheme, 0, "Scheme not starting with alphabetic character");
     }
-    bool allLowercase = char >= _LOWER_CASE_A;
+    bool allLowercase = firstCodeUnit >= _LOWER_CASE_A;
     for (int i = 0; i < end; i++) {
-      int codeUnit = scheme.codeUnitAt(i);
+      final int codeUnit = scheme.codeUnitAt(i);
       if (!_isSchemeCharacter(codeUnit)) {
         _fail(scheme, i, "Illegal scheme character");
       }
-      if (_LOWER_CASE_A <= char && _LOWER_CASE_Z >= char) {
+      if (codeUnit < _LOWER_CASE_A || codeUnit > _LOWER_CASE_Z) {
         allLowercase = false;
       }
     }
