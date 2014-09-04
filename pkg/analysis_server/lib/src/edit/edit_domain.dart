@@ -210,7 +210,7 @@ class _RefactoringManager {
         if (params.options == null) {
           return _sendResultResponse();
         }
-        optionsStatus = _setOptions(params, request);
+        optionsStatus = _setOptions(params);
         if (_hasFatalError) {
           return _sendResultResponse();
         }
@@ -349,20 +349,17 @@ class _RefactoringManager {
     result = null;
   }
 
-  RefactoringStatus _setOptions(EditGetRefactoringParams params,
-      Request request) {
+  RefactoringStatus _setOptions(EditGetRefactoringParams params) {
     if (refactoring is ExtractLocalRefactoring) {
       ExtractLocalRefactoring extractRefactoring = refactoring;
-      ExtractLocalVariableOptions extractOptions =
-          new ExtractLocalVariableOptions.fromRefactoringParams(params, request);
+      ExtractLocalVariableOptions extractOptions = params.options;
       extractRefactoring.name = extractOptions.name;
       extractRefactoring.extractAll = extractOptions.extractAll;
       return extractRefactoring.checkName();
     }
     if (refactoring is ExtractMethodRefactoring) {
       ExtractMethodRefactoring extractRefactoring = this.refactoring;
-      ExtractMethodOptions extractOptions =
-          new ExtractMethodOptions.fromRefactoringParams(params, request);
+      ExtractMethodOptions extractOptions = params.options;
       extractRefactoring.createGetter = extractOptions.createGetter;
       extractRefactoring.extractAll = extractOptions.extractAll;
       extractRefactoring.name = extractOptions.name;
@@ -372,21 +369,16 @@ class _RefactoringManager {
       extractRefactoring.returnType = extractOptions.returnType;
       return extractRefactoring.checkName();
     }
-    if (refactoring is InlineLocalRefactoring) {
-      return new RefactoringStatus();
-    }
     if (refactoring is InlineMethodRefactoring) {
       InlineMethodRefactoring inlineRefactoring = this.refactoring;
-      InlineMethodOptions inlineOptions =
-          new InlineMethodOptions.fromRefactoringParams(params, request);
+      InlineMethodOptions inlineOptions = params.options;
       inlineRefactoring.deleteSource = inlineOptions.deleteSource;
       inlineRefactoring.inlineAll = inlineOptions.inlineAll;
       return new RefactoringStatus();
     }
     if (refactoring is RenameRefactoring) {
       RenameRefactoring renameRefactoring = refactoring;
-      RenameOptions renameOptions =
-          new RenameOptions.fromRefactoringParams(params, request);
+      RenameOptions renameOptions = params.options;
       renameRefactoring.newName = renameOptions.newName;
       return renameRefactoring.checkNewName();
     }

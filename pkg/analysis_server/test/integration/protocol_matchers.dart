@@ -631,7 +631,7 @@ final Matcher isEditGetFixesResult = new LazyMatcher(() => new MatchesJsonObject
  *   "offset": int
  *   "length": int
  *   "validateOnly": bool
- *   "options": optional object
+ *   "options": optional RefactoringOptions
  * }
  */
 final Matcher isEditGetRefactoringParams = new LazyMatcher(() => new MatchesJsonObject(
@@ -642,7 +642,7 @@ final Matcher isEditGetRefactoringParams = new LazyMatcher(() => new MatchesJson
     "length": isInt,
     "validateOnly": isBool
   }, optionalFields: {
-    "options": isObject
+    "options": isRefactoringOptions
   }));
 
 /**
@@ -1531,6 +1531,15 @@ final Matcher isRefactoringMethodParameter = new LazyMatcher(() => new MatchesJs
     "id": isString,
     "parameters": isString
   }));
+
+/**
+ * RefactoringOptions
+ *
+ * {
+ * }
+ */
+final Matcher isRefactoringOptions = new LazyMatcher(() => new MatchesJsonObject(
+  "RefactoringOptions", null));
 
 /**
  * RefactoringMethodParameterKind

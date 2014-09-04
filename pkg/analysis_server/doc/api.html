@@ -1398,7 +1398,7 @@ dt.typeDefinition {
     "<b>offset</b>": int
     "<b>length</b>": int
     "<b>validateOnly</b>": bool
-    "<b>options</b>": <span style="color:#999999">optional</span> object
+    "<b>options</b>": <span style="color:#999999">optional</span> <a href="#type_RefactoringOptions">RefactoringOptions</a>
   }
 }</pre><br><pre>response: {
   "id": String
@@ -1442,7 +1442,7 @@ dt.typeDefinition {
               True if the client is only requesting that the values of
               the options be validated and no change be generated.
             </p>
-          </dd><dt class="field"><b><i>options ( <span style="color:#999999">optional</span> object )</i></b></dt><dd>
+          </dd><dt class="field"><b><i>options ( <span style="color:#999999">optional</span> <a href="#type_RefactoringOptions">RefactoringOptions</a> )</i></b></dt><dd>
             
             <p>
               Data used to provide values provided by the user. The
@@ -1679,6 +1679,7 @@ dt.typeDefinition {
         This section contains descriptions of the data types referenced
         in the API’s of the various domains.
       </p>
+      
       
       
       
@@ -2511,7 +2512,12 @@ dt.typeDefinition {
               not be defined. If the function type has zero parameters, this
               field will have a value of "()".
             </p>
-          </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameterKind">RefactoringMethodParameterKind: String</a></dt><dd>
+          </dd></dl></dd><dt class="typeDefinition"><a name="type_RefactoringOptions">RefactoringOptions: object</a></dt><dd>
+        <p>
+          An abstract superclass of all refactoring options.
+        </p>
+        
+      <dl></dl></dd><dt class="typeDefinition"><a name="type_RefactoringMethodParameterKind">RefactoringMethodParameterKind: String</a></dt><dd>
         <p>
           An enumeration of the kinds of parameters.
         </p>

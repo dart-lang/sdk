@@ -1132,7 +1132,7 @@ abstract class IntegrationTestMixin {
    *   True if the client is only requesting that the values of the options be
    *   validated and no change be generated.
    *
-   * options ( optional object )
+   * options ( optional RefactoringOptions )
    *
    *   Data used to provide values provided by the user. The structure of the
    *   data is dependent on the kind of refactoring being performed. The data

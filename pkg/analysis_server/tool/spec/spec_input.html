@@ -1215,7 +1215,7 @@
             </p>
           </field>
           <field name="options" optional="true">
-            <ref>object</ref>
+            <ref>RefactoringOptions</ref>
             <p>
               Data used to provide values provided by the user. The
               structure of the data is dependent on the kind of
@@ -2492,6 +2492,13 @@
               field will have a value of "()".
             </p>
           </field>
+        </object>
+      </type>
+      <type name="RefactoringOptions">
+        <p>
+          An abstract superclass of all refactoring options.
+        </p>
+        <object>
         </object>
       </type>
       <type name="RefactoringMethodParameterKind">

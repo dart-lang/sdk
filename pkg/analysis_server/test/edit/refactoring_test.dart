@@ -10,7 +10,6 @@ import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_server/src/services/json.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
@@ -666,7 +665,7 @@ main() {
         findOffset(search),
         0,
         false,
-        options: options.toJson()).toRequest('0');
+        options: options).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 }
@@ -676,13 +675,14 @@ main() {
 class RenameTest extends _AbstractGetRefactoring_Test {
   Future<Response> sendRenameRequest(String search, String newName,
       [bool validateOnly = false]) {
+    RenameOptions options = newName != null ? new RenameOptions(newName) : null;
     Request request = new EditGetRefactoringParams(
         RefactoringKind.RENAME,
         testFile,
         findOffset(search),
         0,
         validateOnly,
-        options: new RenameOptions(newName).toJson()).toRequest('0');
+        options: options).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 
@@ -1044,15 +1044,14 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future<Response> sendRequest(RefactoringKind kind, int offset, int length,
-      HasToJson options, [bool validateOnly = false]) {
-    Map optionsJson = options != null ? options.toJson() : null;
+      RefactoringOptions options, [bool validateOnly = false]) {
     Request request = new EditGetRefactoringParams(
         kind,
         testFile,
         offset,
         length,
         validateOnly,
-        options: optionsJson).toRequest('0');
+        options: options).toRequest('0');
     return serverChannel.sendRequest(request);
   }
 

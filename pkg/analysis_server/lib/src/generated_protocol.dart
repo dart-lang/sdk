@@ -3439,7 +3439,7 @@ class EditGetFixesResult implements HasToJson {
  *   "offset": int
  *   "length": int
  *   "validateOnly": bool
- *   "options": optional object
+ *   "options": optional RefactoringOptions
  * }
  */
 class EditGetRefactoringParams implements HasToJson {
@@ -3476,7 +3476,7 @@ class EditGetRefactoringParams implements HasToJson {
    * as “Options”. This field can be omitted if the refactoring does not
    * require any options or if the values of those options are not known.
    */
-  Map options;
+  RefactoringOptions options;
 
   EditGetRefactoringParams(this.kind, this.file, this.offset, this.length, this.validateOnly, {this.options});
 
@@ -3515,9 +3515,9 @@ class EditGetRefactoringParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "validateOnly");
       }
-      Map options;
+      RefactoringOptions options;
       if (json.containsKey("options")) {
-        options = json["options"];
+        options = new RefactoringOptions.fromJson(jsonDecoder, jsonPath + ".options", json["options"], kind);
       }
       return new EditGetRefactoringParams(kind, file, offset, length, validateOnly, options: options);
     } else {
@@ -3538,7 +3538,7 @@ class EditGetRefactoringParams implements HasToJson {
     result["length"] = length;
     result["validateOnly"] = validateOnly;
     if (options != null) {
-      result["options"] = options;
+      result["options"] = options.toJson();
     }
     return result;
   }
@@ -7751,6 +7751,42 @@ class RefactoringMethodParameter implements HasToJson {
 }
 
 /**
+ * RefactoringOptions
+ *
+ * {
+ * }
+ */
+class RefactoringOptions implements HasToJson {
+  RefactoringOptions();
+
+  factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, RefactoringKind kind) {
+    return _refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is RefactoringOptions) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * RefactoringMethodParameterKind
  *
  * enum {
@@ -9134,7 +9170,7 @@ class ExtractLocalVariableFeedback implements HasToJson {
  *   "extractAll": bool
  * }
  */
-class ExtractLocalVariableOptions implements HasToJson {
+class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJson {
   /**
    * The name that the local variable should be given.
    */
@@ -9390,7 +9426,7 @@ class ExtractMethodFeedback implements HasToJson {
  *   "extractAll": bool
  * }
  */
-class ExtractMethodOptions implements HasToJson {
+class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
   /**
    * The return type that should be defined for the method.
    */
@@ -9572,7 +9608,7 @@ class InlineMethodFeedback {
  *   "inlineAll": bool
  * }
  */
-class InlineMethodOptions implements HasToJson {
+class InlineMethodOptions extends RefactoringOptions implements HasToJson {
   /**
    * True if the method being inlined should be removed. It is an error if this
    * field is true and inlineAll is false.
@@ -9727,7 +9763,7 @@ class RenameFeedback implements HasToJson {
  *   "newName": String
  * }
  */
-class RenameOptions implements HasToJson {
+class RenameOptions extends RefactoringOptions implements HasToJson {
   /**
    * The name that the element should have after the refactoring.
    */

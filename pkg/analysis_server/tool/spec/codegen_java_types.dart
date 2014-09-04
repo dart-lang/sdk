@@ -7,10 +7,13 @@
  */
 library java.generator.types;
 
+import 'package:html5lib/dom.dart' as dom;
+
 import 'api.dart';
 import 'codegen_java.dart';
 import 'codegen_tools.dart';
 import 'from_html.dart';
+import 'implied_types.dart';
 
 /**
  * Type references in the spec that are named something else in Java.
@@ -21,7 +24,7 @@ const Map<String, String> _typeRenames = const {
 
 /**
  * A map between the field names and values for the Element object such as:
- * 
+ *
  * private static final int ABSTRACT = 0x01;
  */
 const Map<String, String> _extraFieldsOnElement = const {
@@ -35,7 +38,7 @@ const Map<String, String> _extraFieldsOnElement = const {
 
 /**
  * A map between the method names and field names to generate additional methods on the Element object:
- * 
+ *
  * public boolean isFinal() {
  *   return (flags & FINAL) != 0;
  * }
@@ -52,25 +55,23 @@ const Map<String, String> _extraMethodsOnElement = const {
 class CodegenJavaType extends CodegenJavaVisitor {
 
   String className;
-  TypeDefinition typeDef;
+  String superclassName;
 
-  CodegenJavaType(Api api, String className)
-      : super(api),
-        this.className = className;
+  CodegenJavaType(Api api, this.className, this.superclassName)
+      : super(api);
 
-  @override
-  void visitTypeDefinition(TypeDefinition typeDef) {
+  void emitType(TypeDecl type, dom.Element html) {
     outputHeader(javaStyle: true);
     writeln('package com.google.dart.server.generated.types;');
     writeln();
-    if (typeDef.type is TypeObject) {
-      _writeTypeObject(typeDef);
-    } else if (typeDef.type is TypeEnum) {
-      _writeTypeEnum(typeDef);
+    if (type is TypeObject) {
+      _writeTypeObject(type, html);
+    } else if (type is TypeEnum) {
+      _writeTypeEnum(type, html);
     }
   }
 
-  void _writeTypeObject(TypeDefinition typeDef) {
+  void _writeTypeObject(TypeDecl type, dom.Element html) {
     writeln('import java.util.Arrays;');
     writeln('import java.util.List;');
     writeln('import java.util.Map;');
@@ -87,12 +88,16 @@ class CodegenJavaType extends CodegenJavaVisitor {
     writeln('import org.apache.commons.lang3.StringUtils;');
     writeln();
     javadocComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.translateHtml(typeDef.html);
+      toHtmlVisitor.translateHtml(html);
       toHtmlVisitor.br();
       toHtmlVisitor.write('@coverage dart.server.generated.types');
     }));
     writeln('@SuppressWarnings("unused")');
-    makeClass('public class ${className}', () {
+    String header = 'public class ${className}';
+    if (superclassName != null) {
+      header += ' extends $superclassName';
+    }
+    makeClass(header, () {
       //
       // fields
       //
@@ -115,7 +120,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // "private static String name;" fields:
       //
-      TypeObject typeObject = typeDef.type as TypeObject;
+      TypeObject typeObject = type as TypeObject;
       List<TypeObjectField> fields = typeObject.fields;
       for (TypeObjectField field in fields) {
         if (!(className == 'Outline' && javaName(field.name) == 'children')) {
@@ -288,16 +293,16 @@ class CodegenJavaType extends CodegenJavaVisitor {
 }''');
         });
         publicMethod('getParent', () {
-                  writeln('''public Outline getParent() {
+          writeln('''public Outline getParent() {
   return parent;
 }''');
-                });
+        });
       }
 
       //
       // fromJson(JsonArray) factory constructor
       //
-      if (className != 'Outline') {
+      if (className != 'Outline' && className != 'RefactoringOptions') {
         publicMethod('fromJsonArray', () {
           writeln(
               'public static List<${className}> fromJsonArray(JsonArray jsonArray) {');
@@ -365,7 +370,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
               for (TypeObjectField field in fields) {
                 equalsForField.add(_getEqualsLogicForField(field, 'other'));
               }
-              write(equalsForField.join(' && \n'));
+              if (equalsForField.isNotEmpty) {
+                write(equalsForField.join(' && \n'));
+              } else {
+                write('true');
+              }
             });
             writeln(';');
           });
@@ -455,14 +464,14 @@ class CodegenJavaType extends CodegenJavaVisitor {
     });
   }
 
-  void _writeTypeEnum(TypeDefinition typeDef) {
+  void _writeTypeEnum(TypeDecl type, dom.Element html) {
     javadocComment(toHtmlVisitor.collectHtml(() {
-      toHtmlVisitor.translateHtml(typeDef.html);
+      toHtmlVisitor.translateHtml(html);
       toHtmlVisitor.br();
       toHtmlVisitor.write('@coverage dart.server.generated.types');
     }));
     makeClass('public class ${className}', () {
-      TypeEnum typeEnum = typeDef.type as TypeEnum;
+      TypeEnum typeEnum = type as TypeEnum;
       List<TypeEnumValue> values = typeEnum.values;
       //
       // enum fields
@@ -600,24 +609,39 @@ final String pathToGenTypes =
 
 final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
   Api api = readApi();
+  Map<String, ImpliedType> impliedTypes = computeImpliedTypes(api);
   Map<String, FileContentsComputer> map =
       new Map<String, FileContentsComputer>();
-  for (String typeNameInSpec in api.types.keys) {
-    TypeDefinition typeDef = api.types[typeNameInSpec];
-    if (typeDef.type is TypeObject || typeDef.type is TypeEnum) {
-      // This is for situations such as 'Override' where the name in the spec
-      // doesn't match the java object that we generate:
-      String typeNameInJava = typeNameInSpec;
-      if (_typeRenames.containsKey(typeNameInSpec)) {
-        typeNameInJava = _typeRenames[typeNameInSpec];
+  for (ImpliedType impliedType in impliedTypes.values) {
+    TypeDecl type = impliedType.type;
+    String typeNameInSpec = capitalize(impliedType.camelName);
+    bool isRefactoringOption = impliedType.kind == 'refactoringOptions';
+    if (impliedType.kind == 'typeDefinition' || isRefactoringOption) {
+      TypeDecl type = impliedType.type;
+      if (type is TypeObject || type is TypeEnum) {
+        // This is for situations such as 'Override' where the name in the spec
+        // doesn't match the java object that we generate:
+        String typeNameInJava = typeNameInSpec;
+        if (_typeRenames.containsKey(typeNameInSpec)) {
+          typeNameInJava = _typeRenames[typeNameInSpec];
+        }
+        map['${typeNameInJava}.java'] = () {
+          String superclassName = null;
+          if (isRefactoringOption) {
+            superclassName = 'RefactoringOptions';
+          }
+          // create the visitor
+          CodegenJavaType visitor =
+              new CodegenJavaType(api, typeNameInJava, superclassName);
+          return visitor.collectCode(() {
+            dom.Element doc = type.html;
+            if (impliedType.apiNode is TypeDefinition) {
+              doc = (impliedType.apiNode as TypeDefinition).html;
+            }
+            visitor.emitType(type, doc);
+          });
+        };
       }
-      map['${typeNameInJava}.java'] = () {
-        // create the visitor
-        CodegenJavaType visitor = new CodegenJavaType(api, typeNameInJava);
-        return visitor.collectCode(() {
-          visitor.visitTypeDefinition(typeDef);
-        });
-      };
     }
   }
   return map;

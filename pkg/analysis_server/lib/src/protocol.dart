@@ -396,6 +396,27 @@ OverriddenMember _overriddenMemberFromEngine(engine.Element member) {
 
 
 /**
+ * Create a [RefactoringOptions] corresponding the given [kind].
+ */
+RefactoringOptions _refactoringOptionsFromJson(JsonDecoder jsonDecoder,
+    String jsonPath, Object json, RefactoringKind kind) {
+  if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
+    return new ExtractLocalVariableOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.EXTRACT_METHOD) {
+    return new ExtractMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.INLINE_METHOD) {
+    return new InlineMethodOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  if (kind == RefactoringKind.RENAME) {
+    return new RenameOptions.fromJson(jsonDecoder, jsonPath, json);
+  }
+  return null;
+}
+
+
+/**
  * Create a SearchResultKind based on a value from the search engine.
  */
 SearchResultKind _searchResultKindFromEngine(engine.MatchKind kind) {

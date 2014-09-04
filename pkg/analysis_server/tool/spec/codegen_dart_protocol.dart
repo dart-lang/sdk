@@ -291,7 +291,11 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         toHtmlVisitor.showType(null, impliedType.type);
       }
     }));
-    writeln('class $className implements HasToJson {');
+    write('class $className');
+    if (impliedType.kind == 'refactoringOptions') {
+      write(' extends RefactoringOptions');
+    }
+    writeln(' implements HasToJson {');
     indent(() {
       if (emitSpecialStaticMembers(className)) {
         writeln();
@@ -964,6 +968,16 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
       ImpliedType impliedType) {
     String humanReadableNameString =
         literalString(impliedType.humanReadableName);
+    if (className == 'RefactoringOptions') {
+      writeln('factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
+          'String jsonPath, Object json, RefactoringKind kind) {');
+      indent(() {
+        writeln('return _refactoringOptionsFromJson(jsonDecoder, jsonPath, '
+            'json, kind);');
+      });
+      writeln('}');
+      return;
+    }
     writeln(
         'factory $className.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {');
     indent(() {
@@ -1000,9 +1014,9 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
           writeln('$fieldDartType ${field.name};');
           writeln('if (json.containsKey($fieldNameString)) {');
           indent(() {
-            String toJson =
+            String fromJson =
                 fromJsonCode(fieldType).asSnippet(jsonPath, fieldAccessor);
-            writeln('${field.name} = $toJson;');
+            writeln('${field.name} = $fromJson;');
           });
           write('}');
           if (!field.optional) {
@@ -1074,8 +1088,14 @@ class CodegenProtocolVisitor extends HierarchicalApiVisitor with CodeGenerator {
         TypeDecl referencedType = referencedDefinition.type;
         if (referencedType is TypeObject || referencedType is TypeEnum) {
           return new FromJsonSnippet(
-              (String jsonPath, String json) =>
-                  'new ${dartType(type)}.fromJson(jsonDecoder, $jsonPath, $json)');
+              (String jsonPath, String json) {
+                String typeName = dartType(type);
+                if (typeName == 'RefactoringOptions') {
+                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json, kind)';
+                } else {
+                  return 'new $typeName.fromJson(jsonDecoder, $jsonPath, $json)';
+                }
+              });
         } else {
           return fromJsonCode(referencedType);
         }
