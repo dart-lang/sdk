@@ -1033,12 +1033,14 @@ class ForNode : public AstNode {
           SourceLabel* label,
           SequenceNode* initializer,
           AstNode* condition,
+          SequenceNode* condition_preamble,
           SequenceNode* increment,
           SequenceNode* body)
     : AstNode(token_pos),
       label_(label),
       initializer_(initializer),
       condition_(condition),
+      condition_preamble_(condition_preamble),
       increment_(increment),
       body_(body) {
     ASSERT(label_ != NULL);
@@ -1050,11 +1052,16 @@ class ForNode : public AstNode {
   SourceLabel* label() const { return label_; }
   SequenceNode* initializer() const { return initializer_; }
   AstNode* condition() const { return condition_; }
+  AstNode* condition_preamble() const { return condition_preamble_; }
   SequenceNode* increment() const { return increment_; }
   SequenceNode* body() const { return body_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     initializer()->Visit(visitor);
+    if (condition_preamble() != NULL) {
+      ASSERT(condition() != NULL);
+      condition_preamble()->Visit(visitor);
+    }
     if (condition() != NULL) {
       condition()->Visit(visitor);
     }
@@ -1068,6 +1075,7 @@ class ForNode : public AstNode {
   SourceLabel* label_;
   SequenceNode* initializer_;
   AstNode* condition_;
+  AstNode* condition_preamble_;
   SequenceNode* increment_;
   SequenceNode* body_;
 

@@ -5935,7 +5935,8 @@ AstNode* Parser::CallGetter(intptr_t token_pos,
 // Returns ast nodes of the variable initialization.
 AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
                                           bool is_final,
-                                          bool is_const) {
+                                          bool is_const,
+                                          SequenceNode** await_preamble) {
   TRACE_PARSER("ParseVariableDeclaration");
   ASSERT(IsIdentifier());
   const intptr_t ident_pos = TokenPos();
@@ -5948,7 +5949,8 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     // Variable initialization.
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
-    AstNode* expr = ParseAwaitableExpr(is_const, kConsumeCascades, NULL);
+    AstNode* expr = ParseAwaitableExpr(
+        is_const, kConsumeCascades, await_preamble);
     initialization = new(I) StoreLocalNode(
         assign_pos, variable, expr);
     if (is_const) {
@@ -6061,8 +6063,14 @@ AstNode* Parser::ParseVariableDeclarationList() {
     ReportError("identifier expected");
   }
 
-  AstNode* initializers = ParseVariableDeclaration(type, is_final, is_const);
+  SequenceNode* preamble = NULL;
+  AstNode* initializers =
+      ParseVariableDeclaration(type, is_final, is_const, &preamble);
   ASSERT(initializers != NULL);
+  if (preamble != NULL) {
+    preamble->Add(initializers);
+    initializers = preamble;
+  }
   while (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
     if (!IsIdentifier()) {
@@ -6073,7 +6081,13 @@ AstNode* Parser::ParseVariableDeclarationList() {
     SequenceNode* sequence = NodeAsSequenceNode(initializers->token_pos(),
                                                 initializers,
                                                 NULL);
-    sequence->Add(ParseVariableDeclaration(type, is_final, is_const));
+    preamble = NULL;
+    AstNode* declaration = ParseVariableDeclaration(
+        type, is_final, is_const, &preamble);
+    if (preamble != NULL) {
+      sequence->Add(preamble);
+    }
+    sequence->Add(declaration);
     initializers = sequence;
   }
   return initializers;
@@ -7035,7 +7049,8 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   }
   ExpectToken(Token::kIN);
   const intptr_t collection_pos = TokenPos();
-  AstNode* collection_expr = ParseExpr(kAllowConst, kConsumeCascades);
+  AstNode* collection_expr =
+      ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
 
   OpenBlock();  // Implicit block around while loop.
@@ -7136,19 +7151,21 @@ AstNode* Parser::ParseForStatement(String* label_name) {
     if (IsVariableDeclaration()) {
       initializer = ParseVariableDeclarationList();
     } else {
-      initializer = ParseExpr(kAllowConst, kConsumeCascades);
+      initializer = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
     }
   }
   ExpectSemicolon();
   AstNode* condition = NULL;
+  SequenceNode* condition_preamble = NULL;
   if (CurrentToken() != Token::kSEMICOLON) {
-    condition = ParseExpr(kAllowConst, kConsumeCascades);
+    condition = ParseAwaitableExpr(
+        kAllowConst, kConsumeCascades, &condition_preamble);
   }
   ExpectSemicolon();
   AstNode* increment = NULL;
   const intptr_t incr_pos = TokenPos();
   if (CurrentToken() != Token::kRPAREN) {
-    increment = ParseExprList();
+    increment = ParseAwaitableExprList();
   }
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body =  true;
@@ -7175,6 +7192,7 @@ AstNode* Parser::ParseForStatement(String* label_name) {
       label,
       NodeAsSequenceNode(init_pos, initializer, NULL),
       condition,
+      condition_preamble,
       NodeAsSequenceNode(incr_pos, increment, NULL),
       body);
   current_block_->statements->Add(for_node);
@@ -8262,16 +8280,27 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
 }
 
 
-AstNode* Parser::ParseExprList() {
-  TRACE_PARSER("ParseExprList");
-  AstNode* expressions = ParseExpr(kAllowConst, kConsumeCascades);
+AstNode* Parser::ParseAwaitableExprList() {
+  TRACE_PARSER("ParseAwaitableExprList");
+  SequenceNode* preamble = NULL;
+  AstNode* expressions = ParseAwaitableExpr(
+      kAllowConst, kConsumeCascades, &preamble);
+  if (preamble != NULL) {
+    preamble->Add(expressions);
+    expressions = preamble;
+  }
   if (CurrentToken() == Token::kCOMMA) {
     // Collect comma-separated expressions in a non scope owning sequence node.
     SequenceNode* list = new(I) SequenceNode(TokenPos(), NULL);
     list->Add(expressions);
     while (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
-      AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+      preamble = NULL;
+      AstNode* expr = ParseAwaitableExpr(
+          kAllowConst, kConsumeCascades, &preamble);
+      if (preamble != NULL) {
+        list->Add(preamble);
+      }
       list->Add(expr);
     }
     expressions = list;

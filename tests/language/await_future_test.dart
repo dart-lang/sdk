@@ -158,6 +158,27 @@ awaitNestedDoWhile(int i, int j) async {
   return k;
 }
 
+awaitFor() async {
+  var asyncInc = (p) async => p+1;
+  var k = 0;
+  for (int j = (await bar(0)), i = (await bar(1));
+       j < (await bar(5));
+       j = (await asyncInc(j)), i = (await asyncInc(i))) {
+    k += i;
+    k += j;
+  }
+  return k;
+}
+
+awaitForIn() async {
+  var list = ['a', 'b', 'c'];
+  var k = '';
+  for (var c in (await bar(list))) {
+    k += c;
+  }
+  return k;
+}
+
 main() async {
   var result;
   for (int i = 0; i < 10; i++) {
@@ -195,5 +216,9 @@ main() async {
     Expect.equals(24, result);
     result = await awaitAsUnary(bar(1), bar(2));
     Expect.equals(3, result);
+    result = await awaitFor();
+    Expect.equals(25, result);
+    result = await awaitForIn();
+    Expect.equals('abc', result);
   }
 }

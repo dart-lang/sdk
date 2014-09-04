@@ -2115,6 +2115,12 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     Append(for_body);
     exit_ = nested_loop.break_target();  // May be NULL.
   } else {
+    EffectGraphVisitor for_test_preamble(owner());
+    if (node->condition_preamble() != NULL) {
+      node->condition_preamble()->Visit(&for_test_preamble);
+      Append(for_test_preamble);
+    }
+
     TestGraphVisitor for_test(owner(), node->condition()->token_pos());
     node->condition()->Visit(&for_test);
     Append(for_test);

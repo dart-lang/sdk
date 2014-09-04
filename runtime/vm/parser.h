@@ -600,7 +600,8 @@ class Parser : public ValueObject {
       ClassFinalizer::FinalizationKind finalization);
   AstNode* ParseVariableDeclaration(const AbstractType& type,
                                     bool is_final,
-                                    bool is_const);
+                                    bool is_const,
+                                    SequenceNode** await_preamble);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);
   AstNode* ParseStatement();
@@ -631,7 +632,7 @@ class Parser : public ValueObject {
                               bool consume_cascades,
                               SequenceNode** await_preamble);
   AstNode* ParseExpr(bool require_compiletime_const, bool consume_cascades);
-  AstNode* ParseExprList();
+  AstNode* ParseAwaitableExprList();
   AstNode* ParseConditionalExpr();
   AstNode* ParseUnaryExpr();
   AstNode* ParsePostfixExpr();
