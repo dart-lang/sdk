@@ -84,6 +84,26 @@
           </div>
         </curly-block>
       </template>
+
+      <template if="{{ ref.isWeakProperty }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">key</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ ref.key }}"></any-service-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">value</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ ref.value }}"></any-service-ref>
+              </div>
+            </div>
+          </div>
+        </curly-block>
+      </template>
     </span>
   </template>
 </polymer-element>

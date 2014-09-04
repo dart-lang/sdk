@@ -89,6 +89,23 @@
             </div>
           </template>
 
+          <template if="{{ instance.isWeakProperty }}">
+            <div class="memberItem">
+              <div class="memberName">key</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.key }}">
+                </any-service-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">value</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.value }}">
+                </any-service-ref>
+              </div>
+            </div>
+          </template>
+
           <div class="memberItem">
             <div class="memberName">toString()</div>
             <div class="memberValue">

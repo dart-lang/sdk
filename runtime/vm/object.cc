@@ -19483,7 +19483,20 @@ const char* WeakProperty::ToCString() const {
 
 
 void WeakProperty::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+
+  if (ref) {
+    return;
+  }
+
+  const Object& key_handle = Object::Handle(key());
+  jsobj.AddProperty("key", key_handle);
+  const Object& value_handle = Object::Handle(value());
+  jsobj.AddProperty("value", value_handle);
 }
 
 RawAbstractType* MirrorReference::GetAbstractTypeReferent() const {

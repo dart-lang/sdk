@@ -51,6 +51,7 @@ abstract class ServiceObject extends Observable {
   bool get isSentinel => vmType == 'Sentinel';
   bool get isString => vmType == 'String';
   bool get isType => vmType == 'Type';
+  bool get isWeakProperty => vmType == 'WeakProperty';
 
   /// The complete service url of this object.
   @reflectable String get link => _owner.relativeLink(_id);
@@ -122,6 +123,7 @@ abstract class ServiceObject extends Observable {
       case 'Smi':
       case 'String':
       case 'Type':
+      case 'WeakProperty':
         obj = new Instance._empty(owner);
         break;
       case 'Isolate':
@@ -1490,6 +1492,8 @@ class Instance extends ServiceObject {
   @observable var elements;
   @observable var userName;
   @observable var referent;  // If a MirrorReference.
+  @observable Instance key;  // If a WeakProperty.
+  @observable Instance value;  // If a WeakProperty.
 
   bool get isClosure => closureFunc != null;
 
@@ -1517,6 +1521,8 @@ class Instance extends ServiceObject {
     typeClass = map['type_class'];
     userName = map['user_name'];
     referent = map['referent'];
+    key = map['key'];
+    value = map['value'];
 
     // We are fully loaded.
     _loaded = true;

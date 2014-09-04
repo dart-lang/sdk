@@ -76,7 +76,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'SendPort':
       case 'Stacktrace':
       case 'JSRegExp':
-      case 'WeakProperty':
       case 'UserTag':
         // TODO(turnidge): The types above this comment are instance
         // types and should be handled by the InstanceViewElement.  We
@@ -95,6 +94,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Null':
       case 'Bigint':
       case 'String':
+      case 'WeakProperty':
         InstanceViewElement element = new Element.tag('instance-view');
         element.instance = object;
         return element;

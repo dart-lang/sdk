@@ -108,6 +108,7 @@ class AnyServiceRefElement extends ObservatoryElement {
       case 'Smi':
       case 'String':
       case 'Type':
+      case 'WeakProperty':
         ServiceRefElement element = new Element.tag('instance-ref');
         element.ref = ref;
         return element;
