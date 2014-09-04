@@ -792,7 +792,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable String name;
   @observable String vmName;
   @observable String mainPort;
-  @observable Map entry;
+  @observable ServiceFunction entry;
 
   @observable final Map<String, double> timers =
       toObservable(new Map<String, double>());
