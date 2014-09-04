@@ -70,6 +70,10 @@ nesting() async {
   }
 }
 
+awaitAsUnary(a,b) async {
+  return await a + await b;
+}
+
 awaitIf(p) async {
   if (p < (await bar(5))) {
     return "p<5";
@@ -189,5 +193,7 @@ main() async {
     Expect.equals(15, result);
     result = await awaitNestedWhile(4,6);
     Expect.equals(24, result);
+    result = await awaitAsUnary(bar(1), bar(2));
+    Expect.equals(3, result);
   }
 }

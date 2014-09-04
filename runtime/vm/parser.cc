@@ -8712,7 +8712,12 @@ AstNode* Parser::ParseUnaryExpr() {
   TRACE_PARSER("ParseUnaryExpr");
   AstNode* expr = NULL;
   const intptr_t op_pos = TokenPos();
-  if (IsPrefixOperator(CurrentToken())) {
+  if (IsAwaitAsKeyword()) {
+    TRACE_PARSER("ParseAwaitExpr");
+    ConsumeToken();
+    parsed_function()->record_await();
+    expr = new (I) AwaitNode(TokenPos(), ParseUnaryExpr());
+  } else if (IsPrefixOperator(CurrentToken())) {
     Token::Kind unary_op = CurrentToken();
     if (unary_op == Token::kSUB) {
       unary_op = Token::kNEGATE;
@@ -10998,16 +11003,6 @@ AstNode* Parser::ParsePrimary() {
     OpenBlock();
     primary = ParseFunctionStatement(true);
     CloseBlock();
-  } else if (IsAwaitAsKeyword()) {
-    // The body of an async function is parsed multiple times. The first time
-    // when setting up an AsyncFunction() for generating relevant scope
-    // information. The second time the body is parsed for actually generating
-    // code.
-    TRACE_PARSER("ParseAwaitExpr");
-    ConsumeToken();
-    parsed_function()->record_await();
-    primary = new(I) AwaitNode(
-        TokenPos(), ParseExpr(kAllowConst, kConsumeCascades));
   } else if (IsIdentifier()) {
     intptr_t qual_ident_pos = TokenPos();
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(I, ParsePrefix());
