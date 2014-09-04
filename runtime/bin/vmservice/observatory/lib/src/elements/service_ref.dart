@@ -102,6 +102,7 @@ class AnyServiceRefElement extends ObservatoryElement {
       case 'GrowableObjectArray':
       case 'Instance':
       case 'Mint':
+      case 'MirrorReference':
       case 'Null':
       case 'Sentinel':  // TODO(rmacnak): Separate this out.
       case 'Smi':

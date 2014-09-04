@@ -70,6 +70,20 @@
           </div>
         </curly-block>
       </template>
+
+      <template if="{{ ref.isMirrorReference }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">referent</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ ref.referent }}"></any-service-ref>
+              </div>
+            </div>
+          </div>
+        </curly-block>
+      </template>
     </span>
   </template>
 </polymer-element>

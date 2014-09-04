@@ -19543,7 +19543,18 @@ const char* MirrorReference::ToCString() const {
 
 
 void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+
+  if (ref) {
+    return;
+  }
+
+  const Object& referent_handle = Object::Handle(referent());
+  jsobj.AddProperty("referent", referent_handle);
 }
 
 

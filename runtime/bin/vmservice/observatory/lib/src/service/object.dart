@@ -46,6 +46,7 @@ abstract class ServiceObject extends Observable {
   bool get isInstance => vmType == 'Instance';
   bool get isInt => vmType == 'Smi' || vmType == 'Mint' || vmType == 'Bigint';
   bool get isList => vmType == 'GrowableObjectArray' || vmType == 'Array';
+  bool get isMirrorReference => vmType == 'MirrorReference';
   bool get isNull => vmType == 'Null';
   bool get isSentinel => vmType == 'Sentinel';
   bool get isString => vmType == 'String';
@@ -115,6 +116,7 @@ abstract class ServiceObject extends Observable {
       case 'GrowableObjectArray':
       case 'Instance':
       case 'Mint':
+      case 'MirrorReference':
       case 'Null':
       case 'Sentinel':  // TODO(rmacnak): Separate this out.
       case 'Smi':
@@ -1487,6 +1489,7 @@ class Instance extends ServiceObject {
   @observable var nativeFields;
   @observable var elements;
   @observable var userName;
+  @observable var referent;  // If a MirrorReference.
 
   bool get isClosure => closureFunc != null;
 
@@ -1513,6 +1516,7 @@ class Instance extends ServiceObject {
     elements = map['elements'];
     typeClass = map['type_class'];
     userName = map['user_name'];
+    referent = map['referent'];
 
     // We are fully loaded.
     _loaded = true;

@@ -1,45 +1,36 @@
 BUILD LOG
 ---------
-Build Time: 2014-07-24T18:04:50
+Build Time: 2014-08-28T12:39:13
 
 NODEJS INFORMATION
 ==================
-nodejs: v0.10.21
-chai: 1.9.0
-grunt: 0.4.2
-grunt-audit: 0.0.2
-grunt-concat-sourcemap: 0.4.1
-grunt-contrib-concat: 0.3.0
-grunt-contrib-uglify: 0.3.2
-grunt-contrib-yuidoc: 0.5.1
-grunt-karma: 0.6.2
-karma: 0.10.9
-karma-chrome-launcher: 0.1.2
-karma-coffee-preprocessor: 0.1.3
+nodejs: v0.10.29
+chai: 1.9.1
+grunt: 0.4.5
+grunt-audit: 0.0.3
+grunt-concat-sourcemap: 0.4.3
+grunt-contrib-concat: 0.4.0
+grunt-contrib-uglify: 0.5.1
+grunt-karma: 0.8.3
+karma: 0.12.22
 karma-crbot-reporter: 0.0.4
-karma-firefox-launcher: 0.1.3
-karma-html2js-preprocessor: 0.1.0
-karma-ie-launcher: 0.1.1
-karma-jasmine: 0.1.5
-karma-mocha: 0.1.1
-karma-phantomjs-launcher: 0.1.2
-karma-requirejs: 0.2.1
 karma-safari-launcher: 0.1.1
-karma-script-launcher: 0.1.0
-mocha: 1.17.1
-requirejs: 2.1.11
+mocha: 1.21.4
+karma-ie-launcher: 0.1.5
+karma-mocha: 0.1.9
+karma-firefox-launcher: 0.1.3
 
 REPO REVISIONS
 ==============
-CustomElements: 2df917e8b1fb1928651a71372ae901a400ddf726
-HTMLImports: d240c62fe5b784239f08f77eff40efb4aabf0105
-NodeBind: 9f0089946c312d9ac9ca45d06913fce507a8b185
-ShadowDOM: 86943c29aa8a10da214bc2f42e3067cf0f190279
-TemplateBinding: d9f4543dc06935824bfd43564c442b0897ce1c54
-WeakMap: 43ab1056a0d821af9b6028fc27ddf30db817c05a
-observe-js: e212e7473962067c099a3d1859595c2f8baa36d7
-platform-dev: 02a0f66b65c34585b4b986e6a3a73cc0d743683a
+CustomElements: 65bb151f33891864b28eee305bdf299653ef351c
+HTMLImports: 0d3133d19b35d899ef3e33fbd65ad62e0571d1d5
+NodeBind: f41e84f3deb2cad22eef89ded1072060f7b1b183
+ShadowDOM: 57232dc6d07dd921009679dfbab622b52174df80
+TemplateBinding: f15094216a6b3f64a6d6b0f017b6bd7576b8b44e
+WeakMap: 6662df5cb7146707238b08e7a65cf70056ae516a
+observe-js: ca7b6ba385006f200c7ec3537c7730710e428c60
+platform-dev: fe549bc7f05ec668bc496108958eaee0bd174a06
 
 BUILD HASHES
 ============
-build/platform.js: 9ca6c8137fefb7461693d8ec7bac2af8d5a4fd1a
+build/platform.js: a15f487ef6424420af4d2e64f0f5d5740306b691

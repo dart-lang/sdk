@@ -50,6 +50,16 @@
             </div>
           </template>
 
+          <template if="{{ instance.isMirrorReference }}">
+            <div class="memberItem">
+              <div class="memberName">referent</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.referent }}">
+                </any-service-ref>
+              </div>
+            </div>
+          </template>
+
           <template if="{{ instance.typeClass != null }}">
             <div class="memberItem">
               <div class="memberName">type class</div>

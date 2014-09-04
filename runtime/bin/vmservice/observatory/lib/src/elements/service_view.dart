@@ -77,7 +77,6 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Stacktrace':
       case 'JSRegExp':
       case 'WeakProperty':
-      case 'MirrorReference':
       case 'UserTag':
         // TODO(turnidge): The types above this comment are instance
         // types and should be handled by the InstanceViewElement.  We
@@ -92,6 +91,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
       case 'Instance':
       case 'Smi':
       case 'Mint':
+      case 'MirrorReference':
       case 'Null':
       case 'Bigint':
       case 'String':
