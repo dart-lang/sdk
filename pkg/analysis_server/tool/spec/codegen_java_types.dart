@@ -302,7 +302,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // fromJson(JsonArray) factory constructor
       //
-      if (className != 'Outline' && className != 'RefactoringOptions') {
+      if (className != 'Outline' &&
+          className != 'RefactoringFeedback' &&
+          className != 'RefactoringOptions') {
         publicMethod('fromJsonArray', () {
           writeln(
               'public static List<${className}> fromJsonArray(JsonArray jsonArray) {');
@@ -615,9 +617,10 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
   for (ImpliedType impliedType in impliedTypes.values) {
     TypeDecl type = impliedType.type;
     String typeNameInSpec = capitalize(impliedType.camelName);
+    bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
     bool isRefactoringOption = impliedType.kind == 'refactoringOptions';
     if (impliedType.kind == 'typeDefinition' ||
-        impliedType.kind == 'refactoringFeedback' ||
+        isRefactoringFeedback ||
         isRefactoringOption) {
       TypeDecl type = impliedType.type;
       if (type is TypeObject || type is TypeEnum) {
@@ -629,6 +632,9 @@ final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
         }
         map['${typeNameInJava}.java'] = () {
           String superclassName = null;
+          if (isRefactoringFeedback) {
+            superclassName = 'RefactoringFeedback';
+          }
           if (isRefactoringOption) {
             superclassName = 'RefactoringOptions';
           }
