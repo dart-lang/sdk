@@ -243,112 +243,6 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib, const char* method,
   *error_msg = msg
 
 
-Dart_Handle MakeHttpRequest(Dart_Handle uri, Dart_Handle builtin_lib,
-                            uint8_t** buffer, intptr_t* buffer_len) {
-  const intptr_t HttpResponseCodeOK = 200;
-  ASSERT(buffer != NULL);
-  ASSERT(buffer_len != NULL);
-  ASSERT(!Dart_HasLivePorts());
-
-  // MakeHttpRequest uses the event loop (Dart_RunLoop) to handle the
-  // asynchronous request. This interferes with the use of Dart_RunLoop
-  // for asynchronous loading.
-  ASSERT(!Dart_IsVMFlagSet("load_async"));
-
-  SingleArgDart_Invoke(builtin_lib, "_makeHttpRequest", uri);
-  // Run until all ports to isolate are closed.
-  Dart_Handle result = Dart_RunLoop();
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  result = Dart_Invoke(builtin_lib,
-                       DartUtils::NewString("_getHttpRequestResponseCode"),
-                       0,
-                       NULL);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  int64_t responseCode = DartUtils::GetIntegerValue(result);
-  if (responseCode != HttpResponseCodeOK) {
-    // Return error.
-    Dart_Handle responseStatus =
-        Dart_Invoke(builtin_lib,
-                    DartUtils::NewString("_getHttpRequestStatusString"),
-                    0,
-                    NULL);
-    if (Dart_IsError(responseStatus)) {
-      return responseStatus;
-    }
-    if (Dart_IsNull(responseStatus)) {
-      return Dart_NewApiError("HTTP error.");
-    }
-    return Dart_NewApiError(DartUtils::GetStringValue(responseStatus));
-  }
-  Dart_Handle response =
-      Dart_Invoke(builtin_lib, DartUtils::NewString("_getHttpRequestResponse"),
-                  0, NULL);
-  if (Dart_IsError(response)) {
-    return response;
-  }
-  if (Dart_IsString(response)) {
-    // Received response as string.
-    uint8_t* responseString = NULL;
-    intptr_t responseStringLength;
-    Dart_Handle r = Dart_StringToUTF8(response, &responseString,
-                                      &responseStringLength);
-    if (Dart_IsError(r)) {
-      *buffer = NULL;
-      *buffer_len = 0;
-      return r;
-    }
-    // Get payload as bytes.
-    *buffer_len = responseStringLength;
-    *buffer = reinterpret_cast<uint8_t*>(malloc(responseStringLength));
-    memmove(*buffer, responseString, responseStringLength);
-  } else {
-    // Received response as list of bytes.
-    ASSERT(Dart_IsList(response));
-    // Query list length.
-    result = Dart_ListLength(response, buffer_len);
-    if (Dart_IsError(result)) {
-      *buffer_len = 0;
-      *buffer = NULL;
-      return result;
-    }
-    // Get payload as bytes.
-    *buffer = reinterpret_cast<uint8_t*>(malloc(*buffer_len));
-    result = Dart_ListGetAsBytes(response, 0, *buffer, *buffer_len);
-    if (Dart_IsError(result)) {
-      free(*buffer);
-      *buffer_len = 0;
-      *buffer = NULL;
-      return result;
-    }
-  }
-  return result;
-}
-
-
-Dart_Handle DartUtils::ReadStringFromHttp(const char* script_uri) {
-  Dart_Handle uri = NewString(script_uri);
-  if (Dart_IsError(uri)) {
-    return uri;
-  }
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  uint8_t* buffer;
-  intptr_t bufferLen;
-  Dart_Handle result = MakeHttpRequest(uri, builtin_lib, &buffer, &bufferLen);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  Dart_Handle str = Dart_NewStringFromUTF8(buffer,
-                                           bufferLen);
-  free(buffer);
-  return str;
-}
-
-
 static const uint8_t* ReadFileFully(const char* filename,
                                     intptr_t* file_len,
                                     const char** error_msg) {
@@ -433,6 +327,22 @@ Dart_Handle DartUtils::ResolveUri(Dart_Handle library_url,
   dart_args[1] = url;
   return Dart_Invoke(
       builtin_lib, NewString("_resolveUri"), kNumArgs, dart_args);
+}
+
+
+static Dart_Handle LoadDataAsync_Invoke(Dart_Handle tag,
+                                        Dart_Handle url,
+                                        Dart_Handle library_url,
+                                        Dart_Handle builtin_lib) {
+  const int kNumArgs = 3;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = tag;
+  dart_args[1] = url;
+  dart_args[2] = library_url;
+  return Dart_Invoke(builtin_lib,
+                     DartUtils::NewString("_loadDataAsync"),
+                     kNumArgs,
+                     dart_args);
 }
 
 
@@ -533,32 +443,14 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
                                      extension_filename,
                                      extension_name,
                                      library);
-  } else {
-    // Handle 'import' or 'part' requests for all other URIs.
-
-    if (Dart_IsVMFlagSet("load_async")) {
-      // Call dart code to read the source code asynchronously.
-      const int kNumArgs = 3;
-      Dart_Handle dart_args[kNumArgs];
-      dart_args[0] = Dart_NewInteger(tag);
-      dart_args[1] = url;
-      dart_args[2] = library_url;
-      return Dart_Invoke(builtin_lib,
-                         NewString("_loadSourceAsync"),
-                         kNumArgs,
-                         dart_args);
-    }
-
-    // Get the file path out of the url.
-    Dart_Handle file_path = DartUtils::FilePathFromUri(url, builtin_lib);
-    if (Dart_IsError(file_path)) {
-      return file_path;
-    }
-    const char* final_path = NULL;
-    Dart_StringToCString(file_path, &final_path);
-    result = DartUtils::LoadSource(library, url, tag, final_path);
-    return result;
   }
+
+  // Handle 'import' or 'part' requests for all other URIs. Call dart code to
+  // read the source code asynchronously.
+  return LoadDataAsync_Invoke(Dart_NewInteger(tag),
+                              url,
+                              library_url,
+                              builtin_lib);
 }
 
 
@@ -586,125 +478,10 @@ void DartUtils::WriteMagicNumber(File* file) {
 }
 
 
-Dart_Handle DartUtils::LoadScriptHttp(Dart_Handle uri,
-                                      Dart_Handle builtin_lib) {
-  intptr_t len = 0;
-  uint8_t* buffer = NULL;
-  Dart_Handle result = MakeHttpRequest(uri, builtin_lib, &buffer, &len);
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  const uint8_t* payload = buffer;
-  bool is_snapshot = false;
-  payload = SniffForMagicNumber(payload, &len, &is_snapshot);
-  if (is_snapshot) {
-    return Dart_LoadScriptFromSnapshot(payload, len);
-  } else {
-    Dart_Handle source = Dart_NewStringFromUTF8(payload, len);
-    free(buffer);
-    if (Dart_IsError(source)) {
-      return source;
-    }
-    return Dart_LoadScript(uri, source, 0, 0);
-  }
-}
-
-
-Dart_Handle DartUtils::LoadScriptDataAsync(Dart_Handle script_uri,
-                     Dart_Handle builtin_lib) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = script_uri;
-  return Dart_Invoke(builtin_lib,
-                     NewString("_loadDataAsync"),
-                     kNumArgs,
-                     dart_args);
-}
-
-
 Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                   Dart_Handle builtin_lib) {
-  if (Dart_IsVMFlagSet("load_async")) {
-    Dart_Handle uri_handle = Dart_NewStringFromCString(script_uri);
-    return LoadScriptDataAsync(uri_handle, builtin_lib);
-  }
-
-  Dart_Handle resolved_script_uri =
-      ResolveScriptUri(NewString(script_uri), builtin_lib);
-  if (Dart_IsError(resolved_script_uri)) {
-    return resolved_script_uri;
-  }
-  // Handle http: requests separately.
-  if (DartUtils::IsHttpSchemeURL(script_uri)) {
-    return LoadScriptHttp(resolved_script_uri, builtin_lib);
-  }
-  Dart_Handle script_path = DartUtils::FilePathFromUri(resolved_script_uri,
-                                                       builtin_lib);
-  if (Dart_IsError(script_path)) {
-    return script_path;
-  }
-  const char* script_path_cstr;
-  Dart_StringToCString(script_path, &script_path_cstr);
-  const char* error_msg = NULL;
-  intptr_t len;
-  const uint8_t* buffer = ReadFileFully(script_path_cstr,
-                                        &len,
-                                        &error_msg);
-  if (buffer == NULL) {
-    return Dart_NewApiError(error_msg);
-  }
-  bool is_snapshot = false;
-  const uint8_t *payload = SniffForMagicNumber(buffer, &len, &is_snapshot);
-  Dart_Handle returnValue;
-  if (is_snapshot) {
-    returnValue = Dart_LoadScriptFromSnapshot(payload, len);
-  } else {
-    Dart_Handle source = Dart_NewStringFromUTF8(buffer, len);
-    if (Dart_IsError(source)) {
-      returnValue = NewError("%s is not a valid UTF-8 script", script_uri);
-    } else {
-      returnValue = Dart_LoadScript(resolved_script_uri, source, 0, 0);
-    }
-  }
-  free(const_cast<uint8_t *>(buffer));
-  return returnValue;
-}
-
-
-// Callback function that gets called from asynchronous script loading code
-// when the data has been read. Loads the script or snapshot into the VM.
-void FUNCTION_NAME(Builtin_LoadScript)(Dart_NativeArguments args) {
-  Dart_Handle resolved_script_uri = Dart_GetNativeArgument(args, 0);
-  Dart_Handle data = Dart_GetNativeArgument(args, 1);
-
-  intptr_t num_bytes = 0;
-  Dart_Handle result = Dart_ListLength(data, &num_bytes);
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
-
-  uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(num_bytes));
-  Dart_ListGetAsBytes(data, 0, buffer, num_bytes);
-
-  bool is_snapshot = false;
-  const uint8_t *payload =
-      DartUtils::SniffForMagicNumber(buffer, &num_bytes, &is_snapshot);
-
-  if (is_snapshot) {
-    result = Dart_LoadScriptFromSnapshot(payload, num_bytes);
-  } else {
-    Dart_Handle source = Dart_NewStringFromUTF8(buffer, num_bytes);
-    if (Dart_IsError(source)) {
-      result = DartUtils::NewError("%s is not a valid UTF-8 script",
-                                   resolved_script_uri);
-    } else {
-      result = Dart_LoadScript(resolved_script_uri, source, 0, 0);
-    }
-  }
-  free(const_cast<uint8_t *>(buffer));
-  if (Dart_IsError(result)) {
-    Dart_PropagateError(result);
-  }
+  Dart_Handle uri = Dart_NewStringFromCString(script_uri);
+  return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null(), builtin_lib);
 }
 
 
@@ -734,27 +511,71 @@ void FUNCTION_NAME(Builtin_AsyncLoadError)(Dart_NativeArguments args) {
 
 // Callback function that gets called from dartutils when the library
 // source has been read. Loads the library or part into the VM.
-void FUNCTION_NAME(Builtin_LoadLibrarySource)(Dart_NativeArguments args) {
+void FUNCTION_NAME(Builtin_LoadScript)(Dart_NativeArguments args) {
   Dart_Handle tag_in = Dart_GetNativeArgument(args, 0);
   Dart_Handle resolved_script_uri = Dart_GetNativeArgument(args, 1);
   Dart_Handle library_uri = Dart_GetNativeArgument(args, 2);
-  Dart_Handle sourceText = Dart_GetNativeArgument(args, 3);
+  Dart_Handle source_data = Dart_GetNativeArgument(args, 3);
 
-  int64_t tag = DartUtils::GetIntegerValue(tag_in);
+  Dart_TypedData_Type type = Dart_GetTypeOfExternalTypedData(source_data);
+  bool external = type == Dart_TypedData_kUint8;
+  uint8_t* data = NULL;
+  intptr_t num_bytes;
+  Dart_Handle result = Dart_TypedDataAcquireData(
+      source_data, &type, reinterpret_cast<void**>(&data), &num_bytes);
+  if (Dart_IsError(result)) Dart_PropagateError(result);
 
-  Dart_Handle result;
-  if (tag == Dart_kImportTag) {
-    result = Dart_LoadLibrary(resolved_script_uri, sourceText, 0, 0);
-  } else {
-    ASSERT(tag == Dart_kSourceTag);
-    Dart_Handle library = Dart_LookupLibrary(library_uri);
-    DART_CHECK_VALID(library);
-    result = Dart_LoadSource(library, resolved_script_uri, sourceText, 0, 0);
+  uint8_t* buffer_copy = NULL;
+  if (!external) {
+    // If the buffer is not external, take a copy.
+    buffer_copy = reinterpret_cast<uint8_t*>(malloc(num_bytes));
+    memmove(buffer_copy, data, num_bytes);
+    data = buffer_copy;
   }
+
+  Dart_TypedDataReleaseData(source_data);
+
+  if (Dart_IsNull(tag_in) && Dart_IsNull(library_uri)) {
+    // Entry file. Check for payload and load accordingly.
+    bool is_snapshot = false;
+    const uint8_t *payload =
+        DartUtils::SniffForMagicNumber(data, &num_bytes, &is_snapshot);
+
+    if (is_snapshot) {
+      result = Dart_LoadScriptFromSnapshot(payload, num_bytes);
+    } else {
+      Dart_Handle source = Dart_NewStringFromUTF8(data, num_bytes);
+      if (Dart_IsError(source)) {
+        result = DartUtils::NewError("%s is not a valid UTF-8 script",
+                                     resolved_script_uri);
+      } else {
+        result = Dart_LoadScript(resolved_script_uri, source, 0, 0);
+      }
+    }
+  } else {
+    int64_t tag = DartUtils::GetIntegerValue(tag_in);
+
+    Dart_Handle source = Dart_NewStringFromUTF8(data, num_bytes);
+    if (Dart_IsError(source)) {
+      result = DartUtils::NewError("%s is not a valid UTF-8 script",
+                                   resolved_script_uri);
+    } else {
+      if (tag == Dart_kImportTag) {
+        result = Dart_LoadLibrary(resolved_script_uri, source, 0, 0);
+      } else {
+        ASSERT(tag == Dart_kSourceTag);
+        Dart_Handle library = Dart_LookupLibrary(library_uri);
+        DART_CHECK_VALID(library);
+        result = Dart_LoadSource(library, resolved_script_uri, source, 0, 0);
+      }
+    }
+  }
+
+  if (buffer_copy != NULL) {
+    free(const_cast<uint8_t *>(buffer_copy));
+  }
+
   if (Dart_IsError(result)) {
-    // TODO(hausner): If compilation/loading errors are supposed to
-    // be observable by the program, we need to mark the bad library
-    // with the error instead of propagating it.
     Dart_PropagateError(result);
   }
 }
@@ -773,31 +594,11 @@ void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
 }
 
 
-Dart_Handle DartUtils::LoadSource(Dart_Handle library,
-                                  Dart_Handle url,
-                                  Dart_LibraryTag tag,
-                                  const char* url_string) {
-  bool is_http_scheme_url = DartUtils::IsHttpSchemeURL(url_string);
-  Dart_Handle source;
-  if (is_http_scheme_url) {
-    // Read the file over http.
-    source = DartUtils::ReadStringFromHttp(url_string);
-  } else {
-    // Read the file.
-    source = DartUtils::ReadStringFromFile(url_string);
-  }
-  if (Dart_IsError(source)) {
-    return source;  // source contains the error string.
-  }
-  // The tag is either an import or a source tag.
-  // Load it according to the specified tag.
-  if (tag == Dart_kImportTag) {
-    // Return library object or an error string.
-    return Dart_LoadLibrary(url, source, 0, 0);
-  } else if (tag == Dart_kSourceTag) {
-    return Dart_LoadSource(library, url, source, 0, 0);
-  }
-  return Dart_NewApiError("wrong tag");
+Dart_Handle DartUtils::LoadSourceAsync(Dart_Handle library,
+                                       Dart_Handle url,
+                                       Dart_LibraryTag tag,
+                                       Dart_Handle builtin_lib) {
+  return LoadDataAsync_Invoke(Dart_NewInteger(tag), url, library, builtin_lib);
 }
 
 

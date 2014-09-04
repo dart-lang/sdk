@@ -352,10 +352,16 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
     return file_path;
   }
 
-  return DartUtils::LoadSource(library,
-                               url,
-                               tag,
-                               DartUtils::GetStringValue(file_path));
+  Dart_Handle builtin_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+  Dart_Handle result = DartUtils::LoadSourceAsync(library,
+                                                  url,
+                                                  tag,
+                                                  builtin_lib);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  return Dart_RunLoop();
 }
 
 

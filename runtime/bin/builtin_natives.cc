@@ -64,8 +64,7 @@ namespace bin {
   V(File_GetType, 2)                                                           \
   V(File_AreIdentical, 2)                                                      \
   V(Logger_PrintString, 1)                                                     \
-  V(Builtin_LoadScript, 2)                                                     \
-  V(Builtin_LoadLibrarySource, 4)                                              \
+  V(Builtin_LoadScript, 4)                                                     \
   V(Builtin_AsyncLoadError, 3)                                                 \
   V(Builtin_DoneLoading, 0)                                                    \
 

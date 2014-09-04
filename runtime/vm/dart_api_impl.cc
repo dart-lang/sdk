@@ -46,7 +46,6 @@ DEFINE_FLAG(bool, check_function_fingerprints, false,
             "Check function fingerprints");
 DEFINE_FLAG(bool, trace_api, false,
             "Trace invocation of API calls (debug mode only)");
-DEFINE_FLAG(bool, load_async, true, "load source code asynchronously");
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;

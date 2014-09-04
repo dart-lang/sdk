@@ -41,112 +41,8 @@ Uri _uriBase() {
   return new Uri.file(Directory.current.path + "/");
 }
 
+
 _getUriBaseClosure() => _uriBase;
-
-
-var _httpRequestResponseCode = 0;
-var _httpRequestStatusString;
-var _httpRequestResponse;
-
-_getHttpRequestResponseCode() => _httpRequestResponseCode;
-_getHttpRequestStatusString() => _httpRequestStatusString;
-_getHttpRequestResponse() => _httpRequestResponse;
-
-void _requestCompleted(List<int> data, HttpClientResponse response) {
-  _httpRequestResponseCode = response.statusCode;
-  _httpRequestStatusString = '${response.statusCode} ${response.reasonPhrase}';
-  _httpRequestResponse = null;
-  if (response.statusCode != 200 ||
-      (response.headers.contentType != null &&
-       response.headers.contentType.mimeType == 'application/json')) {
-    return;
-  }
-  _httpRequestResponse = data;
-}
-
-
-void _requestFailed(error) {
-  _httpRequestResponseCode = 0;
-  _httpRequestStatusString = error.toString();
-  _httpRequestResponse = null;
-}
-
-
-void _makeHttpRequest(String uri) {
-  var _client = new HttpClient();
-  _httpRequestResponseCode = 0;
-  _httpRequestStatusString = null;
-  _httpRequestResponse = null;
-  try {
-    Uri requestUri = Uri.parse(uri);
-    _client.getUrl(requestUri)
-        .then((HttpClientRequest request) {
-          request.persistentConnection = false;
-          return request.close();
-        })
-        .then((HttpClientResponse response) {
-          // Only create a ByteBuilder, if multiple chunks are received.
-          var builder = new BytesBuilder(copy: false);
-          response.listen(
-            builder.add,
-            onDone: () {
-              _requestCompleted(builder.takeBytes(), response);
-              // Close the client to stop any timers currently held alive.
-              _client.close();
-            },
-            onError: _requestFailed);
-        }).catchError((error) {
-          _requestFailed(error);
-        });
-  } catch (error) {
-    _requestFailed(error);
-  }
-  // TODO(floitsch): remove this line. It's just here to push an event on the
-  // event loop so that we invoke the scheduled microtasks. Also remove the
-  // import of dart:async when this line is not needed anymore.
-  Timer.run(() {});
-}
-
-
-void _httpGet(Uri uri, String libraryUri, loadCallback(List<int> data)) {
-  var httpClient = new HttpClient();
-  try {
-    httpClient.getUrl(uri)
-      .then((HttpClientRequest request) {
-        request.persistentConnection = false;
-        return request.close();
-      })
-      .then((HttpClientResponse response) {
-        // Only create a ByteBuilder if multiple chunks are received.
-        var builder = new BytesBuilder(copy: false);
-        response.listen(
-            builder.add,
-            onDone: () {
-              if (response.statusCode != 200) {
-                var msg = 'Failure getting $uri: '
-                          '${response.statusCode} ${response.reasonPhrase}';
-                _asyncLoadError(uri.toString(), libraryUri, msg);
-              }
-
-              List<int> data = builder.takeBytes();
-              httpClient.close();
-              loadCallback(data);
-            },
-            onError: (error) {
-              _asyncLoadError(uri.toString(), libraryUri, error);
-            });
-      })
-      .catchError((error) {
-        _asyncLoadError(uri.toString(), libraryUri, error);
-      });
-  } catch (error) {
-    _asyncLoadError(uri.toString(), libraryUri, error);
-  }
-  // TODO(floitsch): remove this line. It's just here to push an event on the
-  // event loop so that we invoke the scheduled microtasks. Also remove the
-  // import of dart:async when this line is not needed anymore.
-  Timer.run(() {});
-}
 
 
 // Are we running on Windows?
@@ -310,15 +206,58 @@ String _filePathFromPackageUri(Uri uri) {
 
 int _numOutstandingLoadRequests = 0;
 
+
+void _httpGet(Uri uri, String libraryUri, loadCallback(List<int> data)) {
+  var httpClient = new HttpClient();
+  try {
+    httpClient.getUrl(uri)
+      .then((HttpClientRequest request) {
+        request.persistentConnection = false;
+        return request.close();
+      })
+      .then((HttpClientResponse response) {
+        // Only create a ByteBuilder if multiple chunks are received.
+        var builder = new BytesBuilder(copy: false);
+        response.listen(
+            builder.add,
+            onDone: () {
+              if (response.statusCode != 200) {
+                var msg = 'Failure getting $uri: '
+                          '${response.statusCode} ${response.reasonPhrase}';
+                _asyncLoadError(uri.toString(), libraryUri, msg);
+              }
+
+              List<int> data = builder.takeBytes();
+              httpClient.close();
+              loadCallback(data);
+            },
+            onError: (error) {
+              _asyncLoadError(uri.toString(), libraryUri, error);
+            });
+      })
+      .catchError((error) {
+        _asyncLoadError(uri.toString(), libraryUri, error);
+      });
+  } catch (error) {
+    _asyncLoadError(uri.toString(), libraryUri, error);
+  }
+  // TODO(floitsch): remove this line. It's just here to push an event on the
+  // event loop so that we invoke the scheduled microtasks. Also remove the
+  // import of dart:async when this line is not needed anymore.
+  Timer.run(() {});
+}
+
+
 void _signalDoneLoading() native "Builtin_DoneLoading";
 
-void _loadScriptCallback(String uri, List<int> data) native "Builtin_LoadScript";
+void _loadScriptCallback(int tag, String uri, String libraryUri, List<int> data)
+    native "Builtin_LoadScript";
 
-void _loadScript(String uri, List<int> data) {
+void _loadScript(int tag, String uri, String libraryUri, List<int> data) {
   // TODO: Currently a compilation error while loading the script is
   // fatal for the isolate. _loadScriptCallback() does not return and
   // the _numOutstandingLoadRequests counter remains out of sync.
-  _loadScriptCallback(uri, data);
+  _loadScriptCallback(tag, uri, libraryUri, data);
   assert(_numOutstandingLoadRequests > 0);
   _numOutstandingLoadRequests--;
   _logResolution("native Builtin_LoadScript($uri) completed, "
@@ -343,71 +282,33 @@ void _asyncLoadError(uri, libraryUri, error) {
 }
 
 
-// Asynchronously loads script data (source or snapshot) through
-// an http or file uri.
-_loadDataAsync(String uri) {
-  uri = _resolveScriptUri(uri);
-  Uri sourceUri = Uri.parse(uri);
+// Asynchronously loads script data through a http or file uri.
+_loadDataAsync(int tag, String uri, String libraryUri) {
+  var filePath = _filePathFromUri(uri);
+  Uri sourceUri;
+  if (tag == null) {
+    uri = _resolveScriptUri(uri);
+    sourceUri = Uri.parse(uri);
+  } else {
+    sourceUri = Uri.parse(filePath);
+  }
   _numOutstandingLoadRequests++;
   _logResolution("_loadDataAsync($uri), "
                  "${_numOutstandingLoadRequests} requests outstanding");
   if (sourceUri.scheme == 'http') {
-    _httpGet(sourceUri, null, (data) {
-      _loadScript(uri, data);
-    });
-  } else {
-    var sourceFile = new File(_filePathFromUri(uri));
-    sourceFile.readAsBytes().then((data) {
-      _loadScript(uri, data);
-    },
-    onError: (e) {
-      _asyncLoadError(uri, null, e);
-    });
-  }
-}
-
-
-void _loadLibrarySourceCallback(tag, uri, libraryUri, text)
-    native "Builtin_LoadLibrarySource";
-
-void _loadLibrarySource(tag, uri, libraryUri, text) {
-  // TODO: Currently a compilation error while loading the library is
-  // fatal for the isolate. _loadLibraryCallback() does not return and
-  // the _numOutstandingLoadRequests counter remains out of sync.
-  _loadLibrarySourceCallback(tag, uri, libraryUri, text);
-  assert(_numOutstandingLoadRequests > 0);
-  _numOutstandingLoadRequests--;
-  _logResolution("native Builtin_LoadLibrarySource($uri) completed, "
-                 "${_numOutstandingLoadRequests} requests remaining");
-  if (_numOutstandingLoadRequests == 0) {
-    _signalDoneLoading();
-  }
-}
-
-
-// Asynchronously loads source code through an http or file uri.
-_loadSourceAsync(int tag, String uri, String libraryUri) {
-  var filePath = _filePathFromUri(uri);
-  Uri sourceUri = Uri.parse(filePath);
-  _numOutstandingLoadRequests++;
-  _logResolution("_loadLibrarySource($uri), "
-                 "${_numOutstandingLoadRequests} requests outstanding");
-  if (sourceUri.scheme == 'http') {
     _httpGet(sourceUri, libraryUri, (data) {
-      var text = UTF8.decode(data);
-      _loadLibrarySource(tag, uri, libraryUri, text);
+      _loadScript(tag, uri, libraryUri, data);
     });
   } else {
     var sourceFile = new File(filePath);
-    sourceFile.readAsString().then((text) {
-      _loadLibrarySource(tag, uri, libraryUri, text);
+    sourceFile.readAsBytes().then((data) {
+      _loadScript(tag, uri, libraryUri, data);
     },
     onError: (e) {
       _asyncLoadError(uri, libraryUri, e);
     });
   }
 }
-
 
 // Returns the directory part, the filename part, and the name
 // of a native extension URL as a list [directory, filename, name].

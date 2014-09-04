@@ -70,6 +70,10 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return result;
   }
 
+  Dart_Handle builtin_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+  DART_CHECK_VALID(builtin_lib);
+
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_chars);
   bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
   if (tag == Dart_kCanonicalizeUrl) {
@@ -78,9 +82,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     if (is_dart_scheme_url || is_io_library) {
       return url;
     }
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    DART_CHECK_VALID(builtin_lib);
 
     Dart_Handle library_url = Dart_LibraryUrl(library);
     if (Dart_IsError(library_url)) {
@@ -94,7 +95,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     if (DartUtils::IsDartIOLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
     } else if (DartUtils::IsDartBuiltinLibURL(url_chars)) {
-      return Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+      return builtin_lib;
     } else {
       return DartUtils::NewError("Do not know how to load '%s'", url_chars);
     }
@@ -107,7 +108,15 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                                url_chars),
                            0, 0);
   }
-  return DartUtils::LoadSource(library, url, tag, url_chars);
+  // Do sync loading since unit_test doesn't support async.
+  Dart_Handle source = DartUtils::ReadStringFromFile(url_chars);
+  EXPECT_VALID(source);
+  if (tag == Dart_kImportTag) {
+    return Dart_LoadLibrary(url, source, 0, 0);
+  } else {
+    ASSERT(tag == Dart_kSourceTag);
+    return Dart_LoadSource(library, url, source, 0, 0);
+  }
 }
 
 

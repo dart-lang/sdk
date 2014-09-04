@@ -118,20 +118,16 @@ class DartUtils {
   static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream);
   static void CloseFile(void* stream);
   static bool EntropySource(uint8_t* buffer, intptr_t length);
-
   static Dart_Handle ReadStringFromFile(const char* filename);
-  static Dart_Handle ReadStringFromHttp(const char* filename);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
                                        Dart_Handle url);
   static Dart_Handle LoadScript(const char* script_uri,
                                 Dart_Handle builtin_lib);
-  static Dart_Handle LoadScriptHttp(Dart_Handle script_uri,
-                                    Dart_Handle builtin_lib);
-  static Dart_Handle LoadSource(Dart_Handle library,
-                                Dart_Handle url,
-                                Dart_LibraryTag tag,
-                                const char* filename);
+  static Dart_Handle LoadSourceAsync(Dart_Handle library,
+                                     Dart_Handle url,
+                                     Dart_LibraryTag tag,
+                                     Dart_Handle builtin_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
                                              Dart_Handle builtin_lib);
 
@@ -187,9 +183,6 @@ class DartUtils {
   static Dart_Handle ResolveUri(Dart_Handle library_url,
                                 Dart_Handle url,
                                 Dart_Handle builtin_lib);
-
-  static Dart_Handle LoadScriptDataAsync(Dart_Handle script_uri,
-                                         Dart_Handle builtin_lib);
 
   // Sniffs the specified text_buffer to see if it contains the magic number
   // representing a script snapshot. If the text_buffer is a script snapshot
