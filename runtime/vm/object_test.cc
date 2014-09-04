@@ -4229,7 +4229,7 @@ TEST_CASE(PrintJSON) {
 //    out = "\"id\":\"\""
 //
 static void elideSubstring(const char* prefix, const char* in, char* out) {
-  char* pos = strstr(in, prefix);
+  const char* pos = strstr(in, prefix);
   while (pos != NULL) {
     // Copy up to pos into the output buffer.
     while (in < pos) {
