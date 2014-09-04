@@ -124,10 +124,6 @@ class DartUtils {
                                        Dart_Handle url);
   static Dart_Handle LoadScript(const char* script_uri,
                                 Dart_Handle builtin_lib);
-  static Dart_Handle LoadSourceAsync(Dart_Handle library,
-                                     Dart_Handle url,
-                                     Dart_LibraryTag tag,
-                                     Dart_Handle builtin_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
                                              Dart_Handle builtin_lib);
 

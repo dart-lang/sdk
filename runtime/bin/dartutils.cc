@@ -594,14 +594,6 @@ void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
 }
 
 
-Dart_Handle DartUtils::LoadSourceAsync(Dart_Handle library,
-                                       Dart_Handle url,
-                                       Dart_LibraryTag tag,
-                                       Dart_Handle builtin_lib) {
-  return LoadDataAsync_Invoke(Dart_NewInteger(tag), url, library, builtin_lib);
-}
-
-
 Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
                                                Dart_Handle builtin_lib) {
   // First ensure all required libraries are available.
