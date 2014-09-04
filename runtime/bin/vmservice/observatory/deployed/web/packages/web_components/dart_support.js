@@ -20,7 +20,7 @@
   // TODO(jmesserly): we need to wrap document somehow (a dart:html hook?)
 
   // dartNativeDispatchHooksTransformer is described on initHooks() in
-  // sdk/lib/_internal/lib/native_helper.dart.
+  // sdk/lib/_internal/compiler/js_lib/native_helper.dart.
   if (typeof window.dartNativeDispatchHooksTransformer == 'undefined')
     window.dartNativeDispatchHooksTransformer = [];
 
@@ -163,7 +163,7 @@
   var ShadowDOMPolyfill = window.ShadowDOMPolyfill;
   if (!ShadowDOMPolyfill) {
     // dartNativeDispatchHooksTransformer is described on initHooks() in
-    // sdk/lib/_internal/lib/native_helper.dart.
+    // sdk/lib/_internal/compiler/js_lib/native_helper.dart.
     if (typeof window.dartNativeDispatchHooksTransformer == 'undefined')
     window.dartNativeDispatchHooksTransformer = [];
 

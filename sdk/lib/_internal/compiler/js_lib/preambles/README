@@ -4,10 +4,10 @@ execute the preambles before executing the output of dart2js.
 
 =Usage=
 - d8:
-    d8 <sdk>/lib/_internal/lib/preambles/d8.js <output>.js
+    d8 <sdk>/lib/_internal/compiler/js_lib/preambles/d8.js <output>.js
 
 - jsshell:
-    jsshell -f <sdk>/lib/_internal/lib/preambles/d8.js -f <output>.js
+    jsshell -f <sdk>/lib/_internal/compiler/js_lib/preambles/d8.js -f <output>.js
 
 - node.js:
   The d8 preamble file works for most programs.

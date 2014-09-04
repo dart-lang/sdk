@@ -93,7 +93,7 @@ mixin_mixin_bound_test: RuntimeError # Issue 12605
 mixin_mixin_bound2_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js ]
-malformed_test/none: Fail # Expect failure in lib/_internal/lib/preambles/d8.js
+malformed_test/none: Fail # Expect failure in lib/_internal/compiler/js_lib/preambles/d8.js
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 

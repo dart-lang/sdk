@@ -275,7 +275,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     Uri sdk = useSdk ?
         nativeDirectoryToUri(buildDir).resolve('dart-sdk/') :
         nativeDirectoryToUri(TestUtils.dartDir.toNativePath()).resolve('sdk/');
-    Uri preambleDir = sdk.resolve('lib/_internal/lib/preambles/');
+    Uri preambleDir = sdk.resolve('lib/_internal/compiler/js_lib/preambles/');
     return runtimeConfiguration.dart2jsPreambles(preambleDir)
         ..add(artifact.filename);
   }
