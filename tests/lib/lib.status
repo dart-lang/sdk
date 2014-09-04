@@ -280,6 +280,9 @@ convert/streamed_conversion_utf8_decode_test: Skip # Times out or passes. Issue 
 mirrors/lazy_static_test: Skip # Times out. Issue 19127
 mirrors/mirrors_reader_test: Skip # Times out. Issue 19127
 
+[ $compiler == dart2js && $runtime == safarimobilesim ]
+mirrors/mirrors_reader_test: Skip # Times out. Issue 20806.
+
 [ $compiler == dart2dart ]
 # Deferred loading is not supported by dart2dart.
 async/deferred/deferred_in_isolate_test: Skip # Issue 17523
