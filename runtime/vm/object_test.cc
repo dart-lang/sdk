@@ -4214,6 +4214,284 @@ TEST_CASE(PrintJSON) {
 }
 
 
+// Elide a substring which starts with some prefix and ends with a ".
+//
+// This is used to remove non-deterministic or fragile substrings from
+// JSON output.
+//
+// For example:
+//
+//    prefix = "classes"
+//    in = "\"id\":\"classes/46\""
+//
+// Yields:
+//
+//    out = "\"id\":\"\""
+//
+static void elideSubstring(const char* prefix, const char* in, char* out) {
+  char* pos = strstr(in, prefix);
+  while (pos != NULL) {
+    // Copy up to pos into the output buffer.
+    while (in < pos) {
+      *out++ = *in++;
+    }
+
+    // Skip to the close quote.
+    in += strcspn(in, "\"");
+    pos = strstr(in, prefix);
+  }
+  // Copy the remainder of in to out.
+  while (*in != '\0') {
+    *out++ = *in++;
+  }
+  *out = '\0';
+}
+
+
+TEST_CASE(PrintJSONPrimitives) {
+  char buffer[1024];
+  Isolate* isolate = Isolate::Current();
+
+  // Class reference
+  {
+    JSONStream js;
+    Class& cls = Class::Handle(isolate->object_store()->bool_class());
+    cls.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"}",
+        buffer);
+  }
+  // Function reference
+  {
+    JSONStream js;
+    Class& cls = Class::Handle(isolate->object_store()->bool_class());
+    const String& func_name = String::Handle(String::New("toString"));
+    Function& func = Function::Handle(cls.LookupFunction(func_name));
+    ASSERT(!func.IsNull());
+    func.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Function\",\"id\":\"\",\"name\":\"toString\","
+        "\"owningClass\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"kind\":\"kRegularFunction\"}",
+        buffer);
+  }
+  // Library reference
+  {
+    JSONStream js;
+    Library& lib = Library::Handle(isolate->object_store()->core_library());
+    lib.PrintJSON(&js, true);
+    elideSubstring("libraries", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Library\",\"id\":\"\",\"name\":\"dart.core\","
+        "\"url\":\"dart:core\"}",
+        buffer);
+  }
+  // Bool reference
+  {
+    JSONStream js;
+    Bool::True().PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    EXPECT_STREQ("{\"type\":\"@Bool\",\"id\":\"objects\\/bool-true\","
+                 "\"class\":{\"type\":\"@Class\",\"id\":\"\","
+                 "\"name\":\"bool\"},\"valueAsString\":\"true\"}",
+                 buffer);
+  }
+  // Smi reference
+  {
+    JSONStream js;
+    const Integer& smi = Integer::Handle(Integer::New(7));
+    smi.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("_Smi@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Smi\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Smi\","
+        "\"vmName\":\"\"},"
+        "\"id\":\"objects\\/int-7\",\"valueAsString\":\"7\"}",
+        buffer);
+  }
+  // Mint reference
+  {
+    JSONStream js;
+    const Integer& smi = Integer::Handle(Integer::New(Mint::kMinValue));
+    smi.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_Mint@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Mint\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Mint\","
+        "\"vmName\":\"\"},"
+        "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
+        buffer);
+  }
+  // Bigint reference
+  {
+    JSONStream js;
+    const String& bigint_str =
+        String::Handle(String::New("44444444444444444444444444444444"));
+    const Integer& bigint = Integer::Handle(Integer::New(bigint_str));
+    bigint.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_Bigint@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Bigint\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Bigint\","
+        "\"vmName\":\"\"},"
+        "\"id\":\"\",\"valueAsString\":\"44444444444444444444444444444444\"}",
+        buffer);
+  }
+  // Double reference
+  {
+    JSONStream js;
+    const Double& dub = Double::Handle(Double::New(0.1234));
+    dub.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_Double@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Double\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Double\","
+        "\"vmName\":\"\"},"
+        "\"id\":\"\",\"valueAsString\":\"0.1234\"}",
+        buffer);
+  }
+  // String reference
+  {
+    JSONStream js;
+    const String& str = String::Handle(String::New("dw"));
+    str.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_OneByteString@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@String\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\","
+        "\"name\":\"_OneByteString\",\"vmName\":\"\"},"
+        "\"id\":\"\",\"valueAsString\":\"\\\"dw\\\"\"}",
+        buffer);
+  }
+  // Array reference
+  {
+    JSONStream js;
+    const Array& array = Array::Handle(Array::New(0));
+    array.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_List@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Array\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_List\","
+        "\"vmName\":\"\"},"
+        "\"id\":\"\",\"length\":0}",
+        buffer);
+  }
+  // GrowableObjectArray reference
+  {
+    JSONStream js;
+    const GrowableObjectArray& array =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    array.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_GrowableList@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@GrowableObjectArray\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_GrowableList\","
+        "\"vmName\":\"\"},\"id\":\"\",\"length\":0}",
+        buffer);
+  }
+  // LinkedHashMap reference
+  {
+    JSONStream js;
+    const LinkedHashMap& array = LinkedHashMap::Handle(LinkedHashMap::New());
+    array.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_InternalLinkedHashMap@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@LinkedHashMap\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\","
+        "\"name\":\"_InternalLinkedHashMap\",\"vmName\":\"\"},\"id\":\"\"}",
+        buffer);
+  }
+  // UserTag reference
+  {
+    JSONStream js;
+    Instance& tag = Instance::Handle(isolate->object_store()->default_tag());
+    tag.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_UserTag@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@UserTag\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_UserTag\","
+        "\"vmName\":\"\"},"
+        "\"id\":\"\"}",
+        buffer);
+  }
+  // Type reference
+  // TODO(turnidge): Add in all of the other Type siblings.
+  {
+    JSONStream js;
+    Instance& type = Instance::Handle(isolate->object_store()->bool_type());
+    type.PrintJSON(&js, true);
+    elideSubstring("classes", js.ToCString(), buffer);
+    elideSubstring("objects", buffer, buffer);
+    elideSubstring("_Type@", buffer, buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@Type\","
+        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Type\","
+        "\"vmName\":\"\"},\"id\":\"\","
+        "\"typeClass\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"name\":\"bool\"}",
+        buffer);
+  }
+  // Null reference
+  {
+    JSONStream js;
+    Object::null_object().PrintJSON(&js, true);
+    EXPECT_STREQ(
+        "{\"type\":\"@Null\",\"id\":\"objects\\/null\","
+        "\"valueAsString\":\"null\"}",
+        js.ToCString());
+  }
+  // Sentinel reference
+  {
+    JSONStream js;
+    Object::sentinel().PrintJSON(&js, true);
+    EXPECT_STREQ(
+        "{\"type\":\"Sentinel\",\"id\":\"objects\\/not-initialized\","
+        "\"valueAsString\":\"<not initialized>\"}",
+        js.ToCString());
+  }
+  // Transition sentinel reference
+  {
+    JSONStream js;
+    Object::transition_sentinel().PrintJSON(&js, true);
+    EXPECT_STREQ(
+        "{\"type\":\"Sentinel\",\"id\":\"objects\\/being-initialized\","
+        "\"valueAsString\":\"<being initialized>\"}",
+        js.ToCString());
+  }
+  // LiteralToken reference.  This is meant to be an example of a
+  // "weird" type that isn't usually returned by the VM Service except
+  // when we are doing direct heap inspection.
+  {
+    JSONStream js;
+    LiteralToken& tok = LiteralToken::Handle(LiteralToken::New());
+    tok.PrintJSON(&js, true);
+    elideSubstring("objects", js.ToCString(), buffer);
+    EXPECT_STREQ(
+        "{\"type\":\"@LiteralToken\",\"id\":\"\"}",
+        buffer);
+  }
+}
+
+
 TEST_CASE(InstanceEquality) {
   // Test that Instance::OperatorEquals can call a user-defined operator==.
   const char* kScript =
