@@ -1528,11 +1528,9 @@ class Context extends ServiceObject {
   @observable Class clazz;
   @observable int size;
 
-  @observable ServiceObject parentContext;
-  @observable var length;
+  @observable var parentContext;
+  @observable int length;
   @observable var variables;
-
-  bool get isClosure => closureFunc != null;
 
   Context._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1554,8 +1552,6 @@ class Context extends ServiceObject {
     // We are fully loaded.
     _loaded = true;
   }
-
-  String get shortName => valueAsString != null ? valueAsString : 'a ${clazz.name}';
 
   String toString() => 'Context($length)';
 }

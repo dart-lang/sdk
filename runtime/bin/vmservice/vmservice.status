@@ -9,13 +9,3 @@ observatory/test/*: Skip
 
 [ $browser ]
 observatory/test/*: Skip # Uses dart:io
-
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
-observatory/test/inbound_references_test: StaticWarning # Issue 20805
-observatory/test/functions_test: StaticWarning # Issue 20805
-observatory/test/metrics_test: StaticWarning # Issue 20805
-observatory/test/gc_test: StaticWarning # Issue 20805
-observatory/test/vm_metrics_test: StaticWarning # Issue 20805
-observatory/test/echo_test: StaticWarning # Issue 20805
-observatory/test/contexts_test: StaticWarning # Issue 20805
-observatory/test/allocations_test: StaticWarning # Issue 20805

@@ -52,7 +52,7 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceObject field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
+    ServiceMap field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
     return field['value'].load().then((Instance block) {
       expect(block.isClosure, isTrue);
       expect(block.closureCtxt.isContext, isTrue);
@@ -65,7 +65,7 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceObject field = lib.variables.singleWhere((v) => v.name == 'copyingBlock');
+    ServiceMap field = lib.variables.singleWhere((v) => v.name == 'copyingBlock');
     return field['value'].load().then((Instance block) {
       expect(block.isClosure, isTrue);
       expect(block.closureCtxt.isContext, isTrue);
@@ -80,7 +80,7 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceObject field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
+    ServiceMap field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
     return field['value'].load().then((Instance block) {
       expect(block.isClosure, isTrue);
       expect(block.closureCtxt.isContext, isTrue);
@@ -95,7 +95,7 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLib.load().then((Library lib) {
-    ServiceObject field = lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
+    ServiceMap field = lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
     return field['value'].load().then((Instance block) {
       expect(block.isClosure, isTrue);
       expect(block.closureCtxt.isContext, isTrue);
