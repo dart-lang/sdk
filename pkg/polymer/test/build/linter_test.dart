@@ -625,6 +625,73 @@ void main() {
         'warning: custom element "x-a" extends from "li". Did you mean '
         'to write <li is="x-a">? (lib/test.html 2 0)'
       ]);
+
+    const String foucWarning =
+        'warning: Custom element found in document body without an '
+        '"unresolved" attribute on it or one of its parents. This means '
+        'your app probably has a flash of unstyled content before it '
+        'finishes loading. See http://goo.gl/iN03Pj for more info.';
+
+    _testLinter('FOUC warning works', {
+        'a|lib/a.html': '''
+            <html><body>
+              <link rel="import" href="../../packages/polymer/polymer.html">
+              <polymer-element name="my-element" noscript></polymer-element>
+              <my-element>hello!</my-element>
+            </body></html>
+            ''',
+        'a|lib/b.html': '''
+            <html><body>
+              <link rel="import" href="../../packages/polymer/polymer.html">
+              <polymer-element name="my-element" noscript></polymer-element>
+              <div><my-element>hello!</my-element></div>
+            </body></html>
+            ''',
+        'a|lib/c.html': '''
+            <html unresolved><body>
+              <link rel="import" href="../../packages/polymer/polymer.html">
+              <polymer-element name="my-element" noscript></polymer-element>
+              <my-element>hello!</my-element>
+            </body></html>
+            '''
+      }, [
+        '$foucWarning (lib/a.html 3 14)',
+        '$foucWarning (lib/b.html 3 19)',
+        '$foucWarning (lib/c.html 3 14)',
+      ]);
+
+    _testLinter('FOUC, no false positives.', {
+        'a|lib/a.html': '''
+            <html><body><div unresolved>
+              <link rel="import" href="../../packages/polymer/polymer.html">
+              <polymer-element name="my-element" noscript></polymer-element>
+              <my-element>hello!</my-element>
+            </div></body></html>
+            ''',
+        'a|lib/b.html': '''
+            <html><body unresolved>
+              <link rel="import" href="../../packages/polymer/polymer.html">
+              <polymer-element name="my-element" noscript></polymer-element>
+              <my-element>hello!</my-element>
+            </body></html>
+            ''',
+        'a|lib/c.html': '''
+            <html><body>
+              <link rel="import" href="../../packages/polymer/polymer.html">
+              <polymer-element name="my-element" noscript></polymer-element>
+              <polymer-element name="foo-element">
+                <template><my-element>hello!</my-element></template>
+              </polymer-element>
+            </body></html>
+            ''',
+        'a|lib/d.html': '''
+            <html><body>
+              <link rel="import" href="../../packages/polymer/polymer.html">
+              <polymer-element name="my-element" noscript></polymer-element>
+              <my-element></my-element>
+            </body></html>
+            ''',
+      }, []);
   });
 
   group('custom attributes', () {

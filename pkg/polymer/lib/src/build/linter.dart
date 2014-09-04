@@ -393,6 +393,28 @@ class _LinterVisitor extends TreeVisitor {
           'Did you mean to write <$baseTag is="$customTagName">?',
           span: node.sourceSpan);
     }
+
+    // FOUC check, if content is supplied
+    if (!node.innerHtml.isEmpty) {
+      var parent = node;
+      var hasFoucFix = false;
+      while (parent != null && !hasFoucFix) {
+        if (parent.localName == 'polymer-element' ||
+            parent.attributes['unresolved'] != null) {
+          hasFoucFix = true;
+        }
+        if (parent.localName == 'body') break;
+        parent = parent.parent;
+      }
+      if (!hasFoucFix) {
+        _logger.warning(
+            'Custom element found in document body without an '
+            '"unresolved" attribute on it or one of its parents. This means '
+            'your app probably has a flash of unstyled content before it '
+            'finishes loading. See http://goo.gl/iN03Pj for more info.',
+            span: node.sourceSpan);
+      }
+    }
   }
 
   /// Validate an attribute on a custom-element. Returns true if valid.
