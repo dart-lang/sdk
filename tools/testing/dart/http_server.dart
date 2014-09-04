@@ -17,6 +17,35 @@ import 'test_suite.dart';  // For TestUtils.
 import 'vendored_pkg/args/args.dart';
 import 'utils.dart';
 
+class DispatchingServer {
+  HttpServer server;
+  Map<String, Function> _handlers = new Map<String, Function>();
+  Function _notFound;
+
+  DispatchingServer(this.server,
+                    void onError(e),
+                    void this._notFound(HttpRequest request)) {
+    server.listen(_dispatchRequest, onError: onError);
+  }
+
+  void addHandler(String prefix, void handler(HttpRequest request)) {
+    _handlers[prefix] = handler;
+  }
+
+  void _dispatchRequest(HttpRequest request) {
+    // If the request path matches a prefix in _handlers, send it to that
+    // handler.  Otherwise, run the notFound handler.
+    for (String prefix in _handlers.keys) {
+      if (request.uri.path.startsWith(prefix)) {
+        _handlers[prefix](request);
+        return;
+      }
+    }
+    _notFound(request);
+  }
+}
+
+
 
 /// Interface of the HTTP server:
 ///
@@ -109,6 +138,7 @@ class TestingServers {
   Path _dartDirectory = null;
   final bool useContentSecurityPolicy;
   final String runtime;
+  DispatchingServer _server;
 
   TestingServers(Path buildDirectory,
                  this.useContentSecurityPolicy,
@@ -120,6 +150,7 @@ class TestingServers {
 
   int get port => _serverList[0].port;
   int get crossOriginPort => _serverList[1].port;
+  DispatchingServer get server => _server;
 
   /**
    * [startServers] will start two Http servers.
@@ -131,6 +162,7 @@ class TestingServers {
    */
   Future startServers(String host, {int port: 0, int crossOriginPort: 0}) {
     return _startHttpServer(host, port: port).then((server) {
+      _server = server;
       return _startHttpServer(host,
                               port: crossOriginPort,
                               allowedPort:_serverList[0].port);
@@ -153,29 +185,30 @@ class TestingServers {
     }
   }
 
+  void _onError(e) {
+    DebugLogger.error('HttpServer: an error occured', e);
+  }
+
   Future _startHttpServer(String host, {int port: 0, int allowedPort: -1}) {
     return HttpServer.bind(host, port).then((HttpServer httpServer) {
-      httpServer.listen((HttpRequest request) {
-        if (request.uri.path == "/echo") {
-          _handleEchoRequest(request, request.response);
-        } else if (request.uri.path == '/ws') {
-          _handleWebSocketRequest(request);
-        } else {
-          _handleFileOrDirectoryRequest(
-              request, request.response, allowedPort);
-        }
-      },
-      onError: (e) {
-        DebugLogger.error('HttpServer: an error occured', e);
-      });
+      var server = new DispatchingServer(httpServer, _onError, _sendNotFound);
+      server.addHandler('/echo', _handleEchoRequest);
+      server.addHandler('/ws', _handleWebSocketRequest);
+      fileHandler(request) {
+        _handleFileOrDirectoryRequest(request, allowedPort);
+      }
+      server.addHandler('/$PREFIX_BUILDDIR', fileHandler);
+      server.addHandler('/$PREFIX_DARTDIR', fileHandler);
+      server.addHandler('/packages', fileHandler);
       _serverList.add(httpServer);
+      return server;
     });
   }
 
   void _handleFileOrDirectoryRequest(HttpRequest request,
-                                     HttpResponse response,
                                      int allowedPort) {
     // Enable browsers to cache file/directory responses.
+    var response = request.response;
     response.headers.set("Cache-Control",
                          "max-age=$_CACHE_EXPIRATION_IN_SECONDS");
     var path = _getFilePathFromRequestPath(request.uri.path);
@@ -192,7 +225,7 @@ class TestingServers {
                 _sendDirectoryListing(entries, request, response);
               });
             } else {
-              _sendNotFound(request, response);
+              _sendNotFound(request);
             }
           });
         }
@@ -204,14 +237,14 @@ class TestingServers {
                        new _Entry('echo', 'echo')];
         _sendDirectoryListing(entries, request, response);
       } else {
-        _sendNotFound(request, response);
+        _sendNotFound(request);
       }
     }
   }
 
-  void _handleEchoRequest(HttpRequest request, HttpResponse response) {
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    request.pipe(response).catchError((e) {
+  void _handleEchoRequest(HttpRequest request) {
+    request.response.headers.set("Access-Control-Allow-Origin", "*");
+    request.pipe(request.response).catchError((e) {
       DebugLogger.warning(
           'HttpServer: error while closing the response stream', e);
     });
@@ -373,7 +406,7 @@ class TestingServers {
     });
   }
 
-  void _sendNotFound(HttpRequest request, HttpResponse response) {
+  void _sendNotFound(HttpRequest request) {
     bool isHarmlessPath(String path) {
       return _HARMLESS_REQUEST_PATH_ENDINGS.any((ending) {
         return path.endsWith(ending);
@@ -383,6 +416,7 @@ class TestingServers {
       DebugLogger.warning('HttpServer: could not find file for request path: '
                           '"${request.uri.path}"');
     }
+    var response = request.response;
     response.statusCode = HttpStatus.NOT_FOUND;
 
     // Send a nice HTML page detailing the error message.  Most browsers expect

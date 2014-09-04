@@ -133,10 +133,13 @@ void testConfigurations(List<Map> configurations) {
   List<Future> serverFutures = [];
   var testSuites = new List<TestSuite>();
   var maxBrowserProcesses = maxProcesses;
-  // If the server ports are fixed, then we can only have one configuration.
-  assert(((configurations[0]['test_server_port'] == 0) &&
-          (configurations[0]['test_server_cross_origin_port'] == 0)) ||
-         (configurations.length == 1));
+  if (configurations.length > 1 &&
+      (configurations[0]['test_server_port'] != 0 ||
+       configurations[0]['test_server_cross_origin_port'] != 0)) {
+    print("If the http server ports are specified, only one configuration"
+          " may be run at a time");
+    exit(1);
+  }
   for (var conf in configurations) {
     Map<String, RegExp> selectors = conf['selectors'];
     var useContentSecurityPolicy = conf['csp'];
