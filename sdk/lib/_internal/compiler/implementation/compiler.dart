@@ -278,9 +278,9 @@ abstract class Backend {
   /// Called during codegen when [constant] has been used.
   void registerCompileTimeConstant(Constant constant, Registry registry) {}
 
-  /// Called during resolution when a metadata [constant] for [annotatedElement]
-  /// has been evaluated.
-  void registerMetadataConstant(Constant constant,
+  /// Called during resolution when a constant value for [metadata] on
+  /// [annotatedElement] has been evaluated.
+  void registerMetadataConstant(MetadataAnnotation metadata,
                                 Element annotatedElement,
                                 Registry registry) {}
 

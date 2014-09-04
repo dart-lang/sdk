@@ -205,8 +205,9 @@ class ResolutionRegistry extends Registry {
     backend.resolutionCallbacks.onLazyField(this);
   }
 
-  void registerMetadataConstant(Constant constant, Element annotatedElement) {
-    backend.registerMetadataConstant(constant, annotatedElement, this);
+  void registerMetadataConstant(MetadataAnnotation metadata,
+                                Element annotatedElement) {
+    backend.registerMetadataConstant(metadata, annotatedElement, this);
   }
 
   void registerThrowRuntimeError() {

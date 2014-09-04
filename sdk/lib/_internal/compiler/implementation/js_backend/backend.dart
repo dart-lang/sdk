@@ -726,10 +726,11 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerMetadataConstant(Constant constant,
+  void registerMetadataConstant(MetadataAnnotation metadata,
                                 Element annotatedElement,
                                 Registry registry) {
     assert(registry.isForResolution);
+    Constant constant = constants.getConstantForMetadata(metadata);
     registerCompileTimeConstant(constant, registry);
     metadataConstants.add(new Dependency(constant, annotatedElement));
   }
