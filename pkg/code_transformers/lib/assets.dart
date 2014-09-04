@@ -11,6 +11,9 @@ import 'package:barback/barback.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 
+import 'messages/build_logger.dart';
+import 'src/messages.dart';
+
 /// Create an [AssetId] for a [url] seen in the [source] asset.
 ///
 /// By default this is used to resolve relative urls that occur in HTML assets,
@@ -39,7 +42,8 @@ AssetId uriToAssetId(AssetId source, String url, TransformLogger logger,
     }
 
     if (errorOnAbsolute) {
-      logger.warning('absolute paths not allowed: "$url"', span: span);
+      var msg = NO_ABSOLUTE_PATHS.create({'url': url});
+      logger.warning(logger is BuildLogger ? msg : msg.snippet, span: span);
     }
     return null;
   }
@@ -81,10 +85,9 @@ AssetId uriToAssetId(AssetId source, String url, TransformLogger logger,
       fixedSegments.addAll(sourceSegments.map((_) => '..'));
       fixedSegments.addAll(segments.sublist(index));
       var fixedUrl = urlBuilder.joinAll(fixedSegments);
-      logger.warning('Invalid url to reach to another package: $url. Path '
-          'reaching to other packages must first reach up all the '
-          'way to the $prefix folder. For example, try changing the url above '
-          'to: $fixedUrl', span: span);
+      var msg = INVALID_URL_TO_OTHER_PACKAGE.create(
+          {'url': url, 'prefix': prefix, 'fixedUrl': fixedUrl});
+      logger.warning(logger is BuildLogger ? msg : msg.snippet, span: span);
       return null;
     }
   }
@@ -100,8 +103,8 @@ AssetId _extractOtherPackageId(int index, List segments,
   if (prefix != 'packages' && prefix != 'assets') return null;
   var folder = prefix == 'packages' ? 'lib' : 'asset';
   if (segments.length < index + 3) {
-    logger.warning("incomplete $prefix/ path. It should have at least 3 "
-        "segments $prefix/name/path-from-name's-$folder-dir", span: span);
+    var msg = INVALID_PREFIX_PATH.create({'prefix': prefix, 'folder': folder});
+    logger.warning(logger is BuildLogger ? msg : msg.snippet, span: span);
     return null;
   }
   return new AssetId(segments[index + 1],

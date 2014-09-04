@@ -8,6 +8,7 @@ import 'dart:convert';
 
 import 'package:polymer/src/build/common.dart';
 import 'package:polymer/src/build/linter.dart';
+import 'package:polymer/src/build/messages.dart';
 import 'package:unittest/unittest.dart';
 
 import 'common.dart';
@@ -59,7 +60,7 @@ void main() {
 
     test('usePolymerHtmlMessage looks right', () {
       _check(int i, String url) {
-        expect(usePolymerHtmlMessage(i),
+        expect(_usePolymerHtmlMessage(i),
             contains('<link rel="import" href="$url">'));
       }
       _check(0, 'packages/polymer/polymer.html');
@@ -76,7 +77,8 @@ void main() {
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, [
-        'warning: ${usePolymerHtmlMessage(0)} (web/test.html 1 0)',
+        'warning: ${_usePolymerHtmlMessage(0)} '
+        '(web/test.html 1 0)',
       ]);
 
     _testLinter('missing polymer.html in web/foo', {
@@ -87,7 +89,8 @@ void main() {
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, [
-        'warning: ${usePolymerHtmlMessage(1)} (web/foo/test.html 1 0)',
+        'warning: ${_usePolymerHtmlMessage(1)} '
+        '(web/foo/test.html 1 0)',
       ]);
 
     _testLinter('missing polymer.html in lib', {
@@ -98,7 +101,8 @@ void main() {
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, [
-        'warning: ${usePolymerHtmlMessage(2)} (lib/test.html 1 0)',
+        'warning: ${_usePolymerHtmlMessage(2)} '
+        '(lib/test.html 1 0)',
       ]);
 
     _testLinter('missing polymer.html in lib/foo/bar', {
@@ -109,7 +113,8 @@ void main() {
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, [
-        'warning: ${usePolymerHtmlMessage(4)} (lib/foo/bar/test.html 1 0)',
+        'warning: ${_usePolymerHtmlMessage(4)} '
+        '(lib/foo/bar/test.html 1 0)',
       ]);
 
     _testLinter('missing Dart code', {
@@ -118,7 +123,7 @@ void main() {
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, [
-        'warning: $USE_INIT_DART',
+        'warning: ${MISSING_INIT_POLYMER.snippet}',
       ]);
 
     _testLinter('nothing to report, experimental with no Dart code', {
@@ -138,13 +143,14 @@ void main() {
             '<script src="packages/browser/dart.js"></script>'
             '</html>',
       }, [
-        'warning: $NO_DART_SCRIPT_AND_EXPERIMENTAL (web/test.html 1 0)',
+        'warning: ${NO_DART_SCRIPT_AND_EXPERIMENTAL.snippet} '
+        '(web/test.html 1 0)',
       ]);
 
     _testLinter('missing Dart code and polymer.html', {
         'a|web/test.html': '<!DOCTYPE html><html></html>',
       }, [
-        'warning: $USE_INIT_DART',
+        'warning: ${MISSING_INIT_POLYMER.snippet}',
       ]);
   });
 
@@ -194,9 +200,9 @@ void main() {
     _testLinter('in web', {
         'a|web/test.html': '<html></html>',
       }, [
-        'warning: Unexpected start tag (html). Expected DOCTYPE. '
-        '(web/test.html 0 0)',
-        'warning: $USE_INIT_DART',
+        'warning: (from html5lib) Unexpected start tag (html). '
+        'Expected DOCTYPE. (web/test.html 0 0)',
+        'warning: ${MISSING_INIT_POLYMER.snippet}',
       ]);
 
     _testLinter('in lib', {
@@ -214,7 +220,7 @@ void main() {
       }, [
         'warning: duplicate definition for custom tag "x-a". '
         '(lib/test.html 2 0)',
-        'warning: duplicate definition for custom tag "x-a"  '
+        'warning: duplicate definition for custom tag "x-a". '
         '(second definition). (lib/test.html 3 0)'
       ]);
 
@@ -230,7 +236,7 @@ void main() {
       }, [
         'warning: duplicate definition for custom tag "x-a". '
         '(lib/b.html 2 0)',
-        'warning: duplicate definition for custom tag "x-a"  '
+        'warning: duplicate definition for custom tag "x-a". '
         '(second definition). (lib/test.html 2 0)'
       ]);
 
@@ -257,7 +263,7 @@ void main() {
       }, [
         'warning: duplicate definition for custom tag "x-a". '
         '(package:b/b.html 2 0)',
-        'warning: duplicate definition for custom tag "x-a"  '
+        'warning: duplicate definition for custom tag "x-a". '
         '(second definition). (lib/test.html 2 0)'
       ]);
   });
@@ -309,7 +315,7 @@ void main() {
           </polymer-element>
           </html>'''.replaceAll('          ', ''),
     }, [
-      'error: $NO_IMPORT_WITHIN_ELEMENT (lib/test.html 3 2)'
+      'error: ${NO_IMPORT_WITHIN_ELEMENT.snippet} (lib/test.html 3 2)'
     ]);
 
   _testLinter('need a name for <polymer-element>', {
@@ -329,7 +335,7 @@ void main() {
           </html>'''.replaceAll('          ', ''),
     }, [
       'error: Invalid name "a". Custom element names must have at least one'
-      ' dash and can\'t be any of the following names: annotation-xml, '
+      ' dash (-) and can\'t be any of the following names: annotation-xml, '
       'color-profile, font-face, font-face-src, font-face-uri, '
       'font-face-format, font-face-name, missing-glyph. (lib/test.html 2 0)'
     ]);
@@ -507,15 +513,15 @@ void main() {
     _testLinter('tag exists (x-tag)', {
         'a|lib/test.html': '<x-foo></x-foo>',
       }, [
-        'warning: definition for Polymer element with tag name "x-foo" not '
-        'found. (lib/test.html 0 0)'
+        'warning: custom element with name "x-foo" not found. '
+        '(lib/test.html 0 0)'
       ]);
 
     _testLinter('tag exists (type extension)', {
         'a|lib/test.html': '<div is="x-foo"></div>',
       }, [
-        'warning: definition for Polymer element with tag name "x-foo" not '
-        'found. (lib/test.html 0 0)'
+        'warning: custom element with name "x-foo" not found. '
+        '(lib/test.html 0 0)'
       ]);
     
     _testLinter('tag exists (internally defined in code)', {
@@ -626,12 +632,6 @@ void main() {
         'to write <li is="x-a">? (lib/test.html 2 0)'
       ]);
 
-    const String foucWarning =
-        'warning: Custom element found in document body without an '
-        '"unresolved" attribute on it or one of its parents. This means '
-        'your app probably has a flash of unstyled content before it '
-        'finishes loading. See http://goo.gl/iN03Pj for more info.';
-
     _testLinter('FOUC warning works', {
         'a|lib/a.html': '''
             <html><body>
@@ -655,9 +655,9 @@ void main() {
             </body></html>
             '''
       }, [
-        '$foucWarning (lib/a.html 3 14)',
-        '$foucWarning (lib/b.html 3 19)',
-        '$foucWarning (lib/c.html 3 14)',
+        'warning: ${POSSIBLE_FUOC.snippet} (lib/a.html 3 14)',
+        'warning: ${POSSIBLE_FUOC.snippet} (lib/b.html 3 19)',
+        'warning: ${POSSIBLE_FUOC.snippet} (lib/c.html 3 14)',
       ]);
 
     _testLinter('FOUC, no false positives.', {
@@ -729,21 +729,38 @@ void main() {
           '</html>',
       }, {
         'a|web/test.html._buildLogs.1':
-          '[{'
+          '{"polymer#3":[{'
             '"level":"Warning",'
-            '"message":${JSON.encode(const HtmlEscape().convert(
-                usePolymerHtmlMessage(0)))},'
+            '"message":{'
+               '"id":"polymer#3",'
+               '"snippet":"${_usePolymerHtmlMessage(0).replaceAll('"','\\"')}"'
+            '},'
             '"span":{'
-              '"location":"web/test.html:2:1",'
-              '"text":'
-                '"${const HtmlEscape().convert('<polymer-element name="x-a">')}"'
+              '"start":{'
+                '"url":"web/test.html",'
+                '"offset":22,'
+                '"line":1,'
+                '"column":0'
+              '},'
+              '"end":{'
+                '"url":"web/test.html",'
+                '"offset":50,'
+                '"line":1,'
+                '"column":28'
+              '},'
+              '"text":"<polymer-element name=\\"x-a\\">"'
             '}'
-          '}]',
+          '}]}',
     }, [
         // Logs should still make it to barback too.
-        'warning: ${usePolymerHtmlMessage(0)} (web/test.html 1 0)',
+        'warning: ${_usePolymerHtmlMessage(0)} (web/test.html 1 0)',
     ]);
   });
+}
+
+_usePolymerHtmlMessage(int i) {
+  var prefix = '../' * i;
+  return USE_POLYMER_HTML.create({'reachOutPrefix': prefix}).snippet;
 }
 
 _testLinter(String name, Map inputFiles, List outputMessages,

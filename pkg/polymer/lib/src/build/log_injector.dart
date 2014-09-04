@@ -12,6 +12,8 @@ import 'dart:convert';
 import 'dart:html';
 
 import 'package:path/path.dart' as path;
+import 'package:source_span/source_span.dart';
+import 'package:code_transformers/messages/messages.dart';
 
 class LogInjector {
   Element selectedMenu;
@@ -27,13 +29,16 @@ class LogInjector {
   // multiple scripts running independently so we could ensure that this would
   // always be running.
   injectLogs(String data) {
+    var logs = new LogEntryTable.fromJson(JSON.decode(data));
+    if (logs.entries.isEmpty) return;
+
     // Group all logs by level.
     var logsByLevel = {
     };
-    JSON.decode(data).forEach((log) {
-      logsByLevel.putIfAbsent(log['level'], () => []);
-      logsByLevel[log['level']].add(log);
-    });
+    logs.entries.values.forEach((list) => list.forEach((log) {
+      logsByLevel.putIfAbsent(log.level, () => []);
+      logsByLevel[log.level].add(log);
+    }));
     if (logsByLevel.isEmpty) return;
 
     // Build the wrapper, menu, and content divs.
@@ -84,25 +89,23 @@ class LogInjector {
       for (var log in logs) {
         var logHtml = new StringBuffer();
         logHtml.write('<div class="log">');
-        var message = log['message'].replaceAllMapped(_urlRegex,
+
+        var id = log.message.id;
+        var hashTag = 'msg_${id.package}_${id.id}';
+        var message = new HtmlEscape().convert(log.message.snippet);
+        message.replaceAllMapped(_urlRegex,
             (m) => '<a href="${m.group(0)}" target="blank">${m.group(0)}</a>');
-        logHtml.write('<div class="message $levelClassName">$message</div>');
-        var assetId = log['assetId'];
-        var span = log['span'];
-        bool hasLocation = assetId != null || span != null;
-        if (hasLocation) logHtml.write('<div class="location">');
-        if (assetId != null) {
-          logHtml.write(
-              '  <span class="package">${assetId['package']}</span>:');
-          if (span == null) {
-            logHtml.write('  <span class="location">${assetId['path']}</span>');
-          }
-        }
+        logHtml.write('<div class="message $levelClassName">$message '
+            '<a target="blank" href='
+            '"/packages/polymer/src/build/generated/messages.html#$hashTag">'
+            '(more details)</a></div>');
+        var span = log.span;
         if (span != null) {
+          logHtml.write('<div class="location">');
+          var text = new HtmlEscape().convert(span.text);
           logHtml.write(
-              '  <span class="location">${span['location']}</span></div>'
-              '  <span class="text">${span['text']}</span>''</div>');
-        } else if (hasLocation) {
+              '  <span class="location">${span.start.toolString}</span></div>'
+              '  <span class="text">$text</span>''</div>');
           logHtml.write('</div>');
         }
         logHtml.write('</div>');

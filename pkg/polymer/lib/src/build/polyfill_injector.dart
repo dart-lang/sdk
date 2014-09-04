@@ -11,6 +11,7 @@ import 'package:barback/barback.dart';
 import 'package:html5lib/dom.dart' show
     Document, DocumentFragment, Element, Node;
 import 'package:html5lib/parser.dart' show parseFragment;
+import 'package:code_transformers/messages/build_logger.dart';
 import 'common.dart';
 
 /// Ensures that any scripts and polyfills needed to run a polymer application
@@ -32,7 +33,9 @@ class PolyfillInjector extends Transformer with PolymerTransformer {
   }
 
   Future apply(Transform transform) {
-    return readPrimaryAsHtml(transform).then((document) {
+    var logger = new BuildLogger(transform,
+        convertErrorsToWarnings: !options.releaseMode);
+    return readPrimaryAsHtml(transform, logger).then((document) {
       bool webComponentsFound = false;
       Element dartJs;
       final dartScripts = <Element>[];

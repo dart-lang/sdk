@@ -680,20 +680,31 @@ void importTests() {
             '</head></html>',
       }, {
         'a|web/test.html._buildLogs.1':
-          '[{'
+          '{"polymer#25":[{'
             '"level":"Error",'
-            '"message":"${const HtmlEscape().convert(
-                'Failed to inline html import: '
-                'Could not find asset a|web/foo.html.')}",'
-            '"assetId":{"package":"a","path":"web/foo.html"},'
+            '"message":{'
+               '"id":"polymer#25",'
+               '"snippet":"Failed to inline HTML import: '
+                'Could not find asset a|web/foo.html."'
+            '},'
             '"span":{'
-              '"location":"web/test.html:1:28",'
-              '"text":"${const HtmlEscape().convert(
-                '<link rel="import" href="foo.html">')}"'
-              '}'
-            '}]',
+              '"start":{'
+                '"url":"web/test.html",'
+                '"offset":27,'
+                '"line":0,'
+                '"column":27'
+              '},'
+              '"end":{'
+                '"url":"web/test.html",'
+                '"offset":62,'
+                '"line":0,'
+                '"column":62'
+              '},'
+              '"text":"<link rel=\\"import\\" href=\\"foo.html\\">"'
+            '}'
+          '}]}',
       }, [
-        'error: Failed to inline html import: '
+        'error: Failed to inline HTML import: '
             'Could not find asset a|web/foo.html. (web/test.html 0 27)',
       ]);
 }
@@ -1022,8 +1033,7 @@ void urlAttributeTests() {
       }, {}, [
           'warning: When using bindings with the "src" attribute you may '
               'experience errors in certain browsers. Please use the "_src" '
-              'attribute instead. For more information, see '
-              'http://goo.gl/5av8cU (web/test.html 0 40)',
+              'attribute instead. (web/test.html 0 40)',
           'warning: The "_href" attribute is only supported when using '
               'bindings. Please change to the "href" attribute. '
               '(web/test.html 0 63)',

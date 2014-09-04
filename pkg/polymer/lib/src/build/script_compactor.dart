@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart' hide Element;
 import 'package:analyzer/src/generated/element.dart' as analyzer show Element;
 import 'package:barback/barback.dart';
+import 'package:code_transformers/messages/build_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:smoke/codegen/generator.dart';
@@ -27,9 +28,9 @@ import 'package:polymer_expressions/expression.dart' as pe;
 import 'package:polymer_expressions/parser.dart' as pe;
 import 'package:polymer_expressions/visitor.dart' as pe;
 
-import 'import_inliner.dart' show ImportInliner; // just for docs.
 import 'common.dart';
-import 'wrapped_logger.dart';
+import 'import_inliner.dart' show ImportInliner; // just for docs.
+import 'messages.dart';
 
 /// Combines Dart script tags into a single script tag, and creates a new Dart
 /// file that calls the main function of each of the original script tags.
@@ -108,7 +109,7 @@ class ScriptCompactor extends Transformer {
 class _ScriptCompactor extends PolymerTransformer {
   final TransformOptions options;
   final Transform transform;
-  final TransformLogger logger;
+  final BuildLogger logger;
   final AssetId docId;
   final AssetId bootstrapId;
 
@@ -146,8 +147,8 @@ class _ScriptCompactor extends PolymerTransformer {
   _ScriptCompactor(Transform transform, options, this.resolvers)
       : transform = transform,
         options = options,
-        logger = options.releaseMode ? transform.logger :
-          new WrappedLogger(transform, convertErrorsToWarnings: true),
+        logger = new BuildLogger(
+            transform, convertErrorsToWarnings: !options.releaseMode),
         docId = transform.primaryInput.id,
         bootstrapId = transform.primaryInput.id.addExtension('_bootstrap.dart');
 
@@ -157,15 +158,13 @@ class _ScriptCompactor extends PolymerTransformer {
       .then(_processHtml)
       .then(_emitNewEntrypoint)
       .then((_) {
-        // Write out the logs collected by our [WrappedLogger].
-        if (options.injectBuildLogsInOutput && logger is WrappedLogger) {
-          return (logger as WrappedLogger).writeOutput();
-        }
+        // Write out the logs collected by our [BuildLogger].
+        if (options.injectBuildLogsInOutput) return logger.writeOutput();
       });
 
   /// Loads the primary input as an html document.
   Future _loadDocument() =>
-      readPrimaryAsHtml(transform).then((doc) { document = doc; });
+      readPrimaryAsHtml(transform, logger).then((doc) { document = doc; });
 
   /// Populates [entryLibraries] as a list containing the asset ids of each
   /// library loaded on a script tag. The actual work of computing this is done
@@ -177,6 +176,7 @@ class _ScriptCompactor extends PolymerTransformer {
         entryLibraries = map['script_ids']
               .map((id) => new AssetId.deserialize(id))
               .toList();
+        return Future.forEach(entryLibraries, logger.addLogFilesFromAsset);
       });
 
   /// Removes unnecessary script tags, and identifies the main entry point Dart
@@ -189,9 +189,7 @@ class _ScriptCompactor extends PolymerTransformer {
         continue;
       }
       if (tag.attributes['type'] == 'application/dart') {
-        logger.warning('unexpected script. The '
-          'ScriptCompactor transformer should run after running the '
-          'ImportInliner', span: tag.sourceSpan);
+        logger.warning(INTERNAL_ERROR_UNEXPECTED_SCRIPT, span: tag.sourceSpan);
       }
     }
   }
@@ -287,10 +285,8 @@ class _ScriptCompactor extends PolymerTransformer {
 
     if (cls.isPrivate && tagNames.isNotEmpty) {
       var name = tagNames.first;
-      logger.error('@CustomTag is not currently supported on private classes:'
-          ' $name. Consider making this class public, or create a '
-          'public initialization method marked with `@initMethod` that calls '
-          '`Polymer.register($name, ${cls.name})`.',
+      logger.error(PRIVATE_CUSTOM_TAG.create(
+              {'name': name, 'class': cls.name}),
           span: _spanForNode(cls, cls.node.name));
       return;
     }
@@ -372,7 +368,7 @@ class _ScriptCompactor extends PolymerTransformer {
     // Read argument from the AST
     var args = meta.arguments.arguments;
     if (args == null || args.length == 0) {
-      logger.warning('Missing argument in @$name annotation',
+      logger.warning(MISSING_ANNOTATION_ARGUMENT.create({'name': name}),
           span: _spanForNode(context, meta));
       return null;
     }
@@ -381,7 +377,7 @@ class _ScriptCompactor extends PolymerTransformer {
     while (lib is! LibraryElement) lib = lib.enclosingElement;
     var res = resolver.evaluateConstant(lib, args[0]);
     if (!res.isValid || res.value.type != types.stringType) {
-      logger.warning('The parameter to @$name seems to be invalid.',
+      logger.warning(INVALID_ANNOTATION_ARGUMENT.create({'name': name}),
           span: _spanForNode(context, args[0]));
       return null;
     }
@@ -402,8 +398,7 @@ class _ScriptCompactor extends PolymerTransformer {
     }
     if (!initMethodFound) return;
     if (function.isPrivate) {
-      logger.error('@initMethod is no longer supported on private '
-          'functions: ${function.displayName}',
+      logger.error(PRIVATE_INIT_METHOD.create({'name': function.displayName}),
           span: _spanForNode(function, function.node.name));
       return;
     }
@@ -471,7 +466,7 @@ class _ScriptCompactor extends PolymerTransformer {
       }
       code.writeln('    ]);');
     } else {
-      if (experimentalBootstrap) logger.warning(NO_INITIALIZERS_ERROR);
+      if (experimentalBootstrap) logger.warning(NO_INITIALIZATION);
       code.writeln(']);');
     }
     if (!experimentalBootstrap) {
@@ -536,12 +531,6 @@ library app_bootstrap;
 import 'package:polymer/polymer.dart';
 """;
 
-const NO_INITIALIZERS_ERROR =
-    'No polymer initializers were found. Make sure to either '
-    'annotate your polymer elements with @CustomTag or include a '
-    'top level method annotated with @initMethod that registers your '
-    'elements. Both annotations are defined in the polymer library ('
-    'package:polymer/polymer.dart).';
 
 /// An html visitor that:
 ///   * finds all polymer expressions and records the getters and setters that
@@ -552,7 +541,7 @@ class _HtmlExtractor extends TreeVisitor {
   final Map<String, List<String>> publishedAttributes;
   final SmokeCodeGenerator generator;
   final _SubExpressionVisitor expressionVisitor;
-  final TransformLogger logger;
+  final BuildLogger logger;
   bool _inTemplate = false;
 
   _HtmlExtractor(this.logger, this.generator, this.publishedAttributes,
@@ -625,15 +614,13 @@ class _HtmlExtractor extends TreeVisitor {
 
     if (inEvent) {
       if (stringExpression.startsWith('@')) {
-        logger.warning('event bindings with @ are no longer supported',
-            span: span);
+        logger.warning(AT_EXPRESSION_REMOVED, span: span);
         return;
       }
 
       if (stringExpression == '') return;
       if (stringExpression.startsWith('_')) {
-        logger.warning('private symbols cannot be used in event handlers',
-            span: span);
+        logger.warning(NO_PRIVATE_EVENT_HANDLERS, span: span);
         return;
       }
       generator.addGetter(stringExpression);
@@ -647,7 +634,7 @@ class _HtmlExtractor extends TreeVisitor {
 /// be needed to evaluate a single expression at runtime.
 class _SubExpressionVisitor extends pe.RecursiveVisitor {
   final SmokeCodeGenerator generator;
-  final TransformLogger logger;
+  final BuildLogger logger;
   bool _includeSetter;
   SourceSpan _currentSpan;
 
@@ -666,7 +653,7 @@ class _SubExpressionVisitor extends pe.RecursiveVisitor {
   /// Adds a getter and symbol for [name], and optionally a setter.
   _add(String name) {
     if (name.startsWith('_')) {
-      logger.warning('private symbols are not supported', span: _currentSpan);
+      logger.warning(NO_PRIVATE_SYMBOLS_IN_BINDINGS, span: _currentSpan);
       return;
     }
     generator.addGetter(name);

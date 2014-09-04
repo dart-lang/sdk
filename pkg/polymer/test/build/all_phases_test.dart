@@ -6,8 +6,7 @@ library polymer.test.build.all_phases_test;
 
 import 'package:code_transformers/tests.dart' show testingDartSdkDirectory;
 import 'package:polymer/src/build/common.dart';
-import 'package:polymer/src/build/linter.dart' show USE_POLYMER_HTML,
-    USE_INIT_DART, ONLY_ONE_TAG;
+import 'package:polymer/src/build/messages.dart';
 import 'package:polymer/src/build/script_compactor.dart' show MAIN_HEADER;
 import 'package:polymer/transformer.dart';
 import 'package:smoke/codegen/generator.dart' show DEFAULT_IMPORTS;
@@ -23,7 +22,7 @@ void main() {
   testPhases('no changes', phases, {
       'a|web/test.html': '<!DOCTYPE html><html></html>',
     }, {}, [
-      'warning: $USE_INIT_DART'
+      'warning: ${MISSING_INIT_POLYMER.snippet}'
     ]);
 
   testPhases('observable changes', phases, {
@@ -175,9 +174,9 @@ void main() {
     }, [
       // These should not be emitted multiple times. See:
       // https://code.google.com/p/dart/issues/detail?id=17197
-      'warning: $ONLY_ONE_TAG (web/test.html 2 0)',
-      'warning: $ONLY_ONE_TAG (web/test.html 18 0)',
-      'warning: $ONLY_ONE_TAG (web/test.html 34 0)',
+      'warning: ${ONLY_ONE_TAG.snippet} (web/test.html 2 0)',
+      'warning: ${ONLY_ONE_TAG.snippet} (web/test.html 18 0)',
+      'warning: ${ONLY_ONE_TAG.snippet} (web/test.html 34 0)',
       'warning: Script file at "d.dart" not found. (web/test.html 34 0)',
     ]);
 

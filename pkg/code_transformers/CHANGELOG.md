@@ -1,3 +1,7 @@
+## 0.2.3-dev
+
+* Added support for logging stable error messages from transformers.
+
 ## 0.2.2
 
 * Added two transformers, 'delete_file' and 'remove_sourcemap_comment'.

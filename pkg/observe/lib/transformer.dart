@@ -14,8 +14,11 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:barback/barback.dart';
+import 'package:code_transformers/messages/build_logger.dart';
 import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
+
+import 'src/messages.dart';
 
 /// A [Transformer] that replaces observables based on dirty-checking with an
 /// implementation based on change notifications.
@@ -24,10 +27,13 @@ import 'package:source_span/source_span.dart';
 /// system of the change.
 class ObservableTransformer extends Transformer {
 
+  final bool releaseMode;
   final List<String> _files;
-  ObservableTransformer([List<String> files]) : _files = files;
+  ObservableTransformer([List<String> files, bool releaseMode])
+      : _files = files, releaseMode = releaseMode == true;
   ObservableTransformer.asPlugin(BarbackSettings settings)
-      : _files = _readFiles(settings.configuration['files']);
+      : _files = _readFiles(settings.configuration['files']),
+        releaseMode = settings.mode == BarbackMode.RELEASE;
 
   static List<String> _readFiles(value) {
     if (value == null) return null;
@@ -59,36 +65,38 @@ class ObservableTransformer extends Transformer {
       // Do a quick string check to determine if this is this file even
       // plausibly might need to be transformed. If not, we can avoid an
       // expensive parse.
-      if (!observableMatcher.hasMatch(content)) return;
+      if (!observableMatcher.hasMatch(content)) return null;
 
       var id = transform.primaryInput.id;
       // TODO(sigmund): improve how we compute this url
       var url = id.path.startsWith('lib/')
             ? 'package:${id.package}/${id.path.substring(4)}' : id.path;
       var sourceFile = new SourceFile(content, url: url);
+      var logger = new BuildLogger(transform,
+          convertErrorsToWarnings: !releaseMode);
       var transaction = _transformCompilationUnit(
-          content, sourceFile, transform.logger);
+          content, sourceFile, logger);
       if (!transaction.hasEdits) {
         transform.addOutput(transform.primaryInput);
-        return;
+      } else {
+        var printer = transaction.commit();
+        // TODO(sigmund): emit source maps when barback supports it (see
+        // dartbug.com/12340)
+        printer.build(url);
+        transform.addOutput(new Asset.fromString(id, printer.text));
       }
-      var printer = transaction.commit();
-      // TODO(sigmund): emit source maps when barback supports it (see
-      // dartbug.com/12340)
-      printer.build(url);
-      transform.addOutput(new Asset.fromString(id, printer.text));
+      return logger.writeOutput();
     });
   }
 }
 
 TextEditTransaction _transformCompilationUnit(
-    String inputCode, SourceFile sourceFile, TransformLogger logger) {
+    String inputCode, SourceFile sourceFile, BuildLogger logger) {
   var unit = parseCompilationUnit(inputCode, suppressErrors: true);
   var code = new TextEditTransaction(inputCode, sourceFile);
   for (var directive in unit.directives) {
     if (directive is LibraryDirective && _hasObservable(directive)) {
-      logger.warning('@observable on a library no longer has any effect. '
-          'It should be placed on individual fields.',
+      logger.warning(NO_OBSERVABLE_ON_LIBRARY,
           span: _getSpan(sourceFile, directive));
       break;
     }
@@ -99,8 +107,7 @@ TextEditTransaction _transformCompilationUnit(
       _transformClass(declaration, code, sourceFile, logger);
     } else if (declaration is TopLevelVariableDeclaration) {
       if (_hasObservable(declaration)) {
-        logger.warning('Top-level fields can no longer be observable. '
-            'Observable fields should be put in an observable objects.',
+        logger.warning(NO_OBSERVABLE_ON_TOP_LEVEL,
             span: _getSpan(sourceFile, declaration));
       }
     }
@@ -130,12 +137,10 @@ bool _isAnnotationContant(Annotation m, String name) =>
 bool _isAnnotationType(Annotation m, String name) => m.name.name == name;
 
 void _transformClass(ClassDeclaration cls, TextEditTransaction code,
-    SourceFile file, TransformLogger logger) {
+    SourceFile file, BuildLogger logger) {
 
   if (_hasObservable(cls)) {
-    logger.warning('@observable on a class no longer has any effect. '
-        'It should be placed on individual fields.',
-        span: _getSpan(file, cls));
+    logger.warning(NO_OBSERVABLE_ON_CLASS, span: _getSpan(file, cls));
   }
 
   // We'd like to track whether observable was declared explicitly, otherwise
@@ -192,18 +197,14 @@ void _transformClass(ClassDeclaration cls, TextEditTransaction code,
     if (member is FieldDeclaration) {
       if (member.isStatic) {
         if (_hasObservable(member)){
-          logger.warning('Static fields can no longer be observable. '
-              'Observable fields should be put in an observable objects.',
+          logger.warning(NO_OBSERVABLE_ON_STATIC_FIELD,
               span: _getSpan(file, member));
         }
         continue;
       }
       if (_hasObservable(member)) {
         if (!declaresObservable) {
-          logger.warning('Observable fields should be put in an observable '
-              'objects. Please declare that this class extends from '
-              'Observable, includes Observable, or implements '
-              'Observable.',
+          logger.warning(REQUIRE_OBSERVABLE_INTERFACE,
               span: _getSpan(file, member));
         }
         _transformFields(file, member, code, logger);
@@ -312,7 +313,7 @@ bool _isReadOnly(VariableDeclarationList fields) {
 }
 
 void _transformFields(SourceFile file, FieldDeclaration member,
-    TextEditTransaction code, TransformLogger logger) {
+    TextEditTransaction code, BuildLogger logger) {
 
   final fields = member.fields;
   if (_isReadOnly(fields)) return;

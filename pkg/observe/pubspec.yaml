@@ -1,5 +1,5 @@
 name: observe
-version: 0.12.0
+version: 0.12.1-dev
 author: Polymer.dart Authors <web-ui-dev@dartlang.org>
 description: >
   Observable properties and objects for use in template_binding.
@@ -17,7 +17,9 @@ dependencies:
   source_maps: '>=0.9.4 <0.11.0'
   source_span: '>=1.0.0 <2.0.0'
   utf: '>=0.9.0 <0.10.0'
+  code_transformers: '>=0.2.3-dev <0.3.0'
 dev_dependencies:
   unittest: '>=0.10.0 <0.11.0'
+  stack_trace: '>=1.0.2 <2.0.0'
 environment:
   sdk: '>=1.2.0 <2.0.0'

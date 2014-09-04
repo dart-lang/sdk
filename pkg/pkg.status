@@ -109,6 +109,10 @@ analysis_server/test/services/index/store/codec_test: Pass, Slow
 # subprocess.
 analysis_server/test/integration: Skip
 
+observe/test/unique_message_test: Skip # Intended only as a vm test.
+polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
+code_transformers/test/unique_message_test: Skip # Intended only as a vm test.
+
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 http/test/html/client_test: Fail # Issue 19750
 scheduled_test/test/scheduled_stream/scheduled_stream_test: Fail # Issue 19750
@@ -317,7 +321,11 @@ analysis_server/tool/spec/check_all_test: Skip # Uses dart:io.
 analyzer2dart/*: Skip # Uses dart:io.
 analyzer/test/*: Skip # Uses dart:io.
 barback/test/*: Fail, OK # Uses dart:io.
-code_transformers/test/*: Skip # Uses dart:io.
+code_transformers/test/assets_test: Skip # Uses dart:io
+code_transformers/test/entry_point_test: Skip # Uses dart:io
+code_transformers/test/resolver_test: Skip # Uses dart:io
+code_transformers/test/unique_message_test: Skip # Uses dart:io
+code_transformers/test/remove_sourcemap_comment_test: Skip # Uses dart:io.
 http/test/io/*: Fail, OK # Uses dart:io.
 http_parser/test/web_socket_test: Fail, OK # Uses dart:io
 http_multi_server/test/http_multi_server_test: Skip # Uses dart:io
@@ -331,6 +339,7 @@ intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/message_extraction_no_deferred_test: Fail, OK # Uses dart:io.
 intl/test/message_extraction/really_fail_extraction_test: Fail, OK # Users dart:io
 observe/test/transformer_test: Fail, OK # Uses dart:io.
+observe/test/unique_message_test: Skip # Intended only as a vm test.
 path/test/io_test: Fail, OK # Uses dart:io.
 polymer/test/build/all_phases_test: Fail, OK # Uses dart:io.
 polymer/test/build/polyfill_injector_test: Fail, OK # Uses dart:io.
@@ -341,6 +350,7 @@ polymer/test/build/utils_test: Fail, OK # Uses dart:io.
 polymer/test/build/import_inliner_test: Fail, OK # Uses dart:io.
 polymer/test/build/linter_test: Fail, OK # Uses dart:io.
 polymer/test/build/remove_sourcemap_comment_test: Fail, OK # Uses dart:io.
+polymer/test/build/unique_message_test: Skip # Intended only as a vm test.
 shelf/test/shelf_io_test: Fail, OK # Uses dart:io
 shelf_web_socket/test/*: Fail, OK # Uses dart:io.
 smoke/test/codegen/end_to_end_test: Skip # Uses dart:io.

@@ -12,6 +12,7 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:barback/barback.dart';
 import 'package:code_transformers/assets.dart';
+import 'package:code_transformers/messages/build_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:html5lib/dom.dart' show
     Document, DocumentFragment, Element, Node;
@@ -20,13 +21,13 @@ import 'package:source_maps/refactor.dart' show TextEditTransaction;
 import 'package:source_span/source_span.dart';
 
 import 'common.dart';
-import 'wrapped_logger.dart';
+import 'messages.dart';
 
 // TODO(sigmund): move to web_components package (dartbug.com/18037).
 class _HtmlInliner extends PolymerTransformer {
   final TransformOptions options;
   final Transform transform;
-  final TransformLogger logger;
+  final BuildLogger logger;
   final AssetId docId;
   final seen = new Set<AssetId>();
   final scriptIds = <AssetId>[];
@@ -40,8 +41,8 @@ class _HtmlInliner extends PolymerTransformer {
   _HtmlInliner(TransformOptions options, Transform transform)
       : options = options,
         transform = transform,
-        logger = options.releaseMode ? transform.logger :
-            new WrappedLogger(transform, convertErrorsToWarnings: true),
+        logger = new BuildLogger(transform,
+            convertErrorsToWarnings: !options.releaseMode),
         docId = transform.primaryInput.id;
 
   Future apply() {
@@ -50,7 +51,7 @@ class _HtmlInliner extends PolymerTransformer {
     Document document;
     bool changed = false;
 
-    return readPrimaryAsHtml(transform).then((doc) {
+    return readPrimaryAsHtml(transform, logger).then((doc) {
       document = doc;
       changed = new _UrlNormalizer(transform, docId, logger).visit(document)
         || changed;
@@ -78,9 +79,9 @@ class _HtmlInliner extends PolymerTransformer {
             'script_ids': scriptIds,
           }, toEncodable: (id) => id.serialize())));
 
-      // Write out the logs collected by our [WrappedLogger].
-      if (options.injectBuildLogsInOutput && logger is WrappedLogger) {
-        return (logger as WrappedLogger).writeOutput();
+      // Write out the logs collected by our [BuildLogger].
+      if (options.injectBuildLogsInOutput) {
+        return logger.writeOutput();
       }
     });
   }
@@ -154,9 +155,8 @@ class _HtmlInliner extends PolymerTransformer {
   /// Loads an asset identified by [id], visits its imports and collects its
   /// html imports. Then inlines it into the main document.
   Future _inlineImport(AssetId id, Element link) {
-    return readAsHtml(id, transform).catchError((error) {
-      logger.error(
-          "Failed to inline html import: $error", asset: id,
+    return readAsHtml(id, transform, logger).catchError((error) {
+      logger.error(INLINE_IMPORT_FAIL.create({'error': error}),
           span: link.sourceSpan);
     }).then((doc) {
       if (doc == null) return false;
@@ -172,9 +172,7 @@ class _HtmlInliner extends PolymerTransformer {
         link.replaceWith(imported);
 
         // Make sure to grab any logs from the inlined import.
-        if (logger is WrappedLogger) {
-          return (logger as WrappedLogger).addLogFilesFromAsset(id);
-        }
+        return logger.addLogFilesFromAsset(id);
       });
     });
   }
@@ -184,8 +182,7 @@ class _HtmlInliner extends PolymerTransformer {
       // TODO(jakemac): Move this warning to the linter once we can make it run
       // always (see http://dartbug.com/17199). Then hide this error and replace
       // with a comment pointing to the linter error (so we don't double warn).
-      logger.warning(
-          "Failed to inline stylesheet: $error", asset: id,
+      logger.warning(INLINE_STYLE_FAIL.create({'error': error}),
           span: link.sourceSpan);
     }).then((css) {
       if (css == null) return null;
@@ -225,7 +222,7 @@ class _HtmlInliner extends PolymerTransformer {
 
         return transform.hasInput(srcId).then((exists) {
           if (!exists) {
-            logger.warning('Script file at "$src" not found.',
+            logger.warning(SCRIPT_FILE_NOT_FOUND.create({'url': src}),
               span: script.sourceSpan);
           } else {
             scriptIds.add(srcId);
@@ -342,7 +339,7 @@ class _UrlNormalizer extends TreeVisitor {
   /// Whether or not the normalizer has changed something in the tree.
   bool changed = false;
 
-  final TransformLogger logger;
+  final BuildLogger logger;
 
   _UrlNormalizer(transform, this.sourceId, this.logger)
       : transform = transform,
@@ -362,15 +359,11 @@ class _UrlNormalizer extends TreeVisitor {
       node.attributes.forEach((name, value) {
         if (_urlAttributes.contains(name)) {
           if (!name.startsWith('_') && value.contains(_BINDING_REGEX)) {
-            logger.warning(
-                'When using bindings with the "$name" attribute you may '
-                'experience errors in certain browsers. Please use the '
-                '"_$name" attribute instead. For more information, see '
-                'http://goo.gl/5av8cU', span: node.sourceSpan, asset: sourceId);
+            logger.warning(USE_UNDERSCORE_PREFIX.create({'name': name}),
+                span: node.sourceSpan, asset: sourceId);
           } else if (name.startsWith('_') && !value.contains(_BINDING_REGEX)) {
-            logger.warning(
-                'The "$name" attribute is only supported when using bindings. '
-                'Please change to the "${name.substring(1)}" attribute.',
+            logger.warning(DONT_USE_UNDERSCORE_PREFIX.create(
+                  {'name': name.substring(1)}),
                 span: node.sourceSpan, asset: sourceId);
           }
           if (value != '' && !value.trim().startsWith(_BINDING_REGEX)) {
@@ -403,7 +396,7 @@ class _UrlNormalizer extends TreeVisitor {
   // TODO(jmesserly): use csslib here instead? Parsing with RegEx is sadness.
   // Maybe it's reliable enough for finding URLs in CSS? I'm not sure.
   String visitCss(String cssText) {
-    var url = spanUrlFor(sourceId, transform);
+    var url = spanUrlFor(sourceId, transform, logger);
     var src = new SourceFile(cssText, url: url);
     return cssText.replaceAllMapped(_URL, (match) {
       // Extract the URL, without any surrounding quotes.
@@ -416,7 +409,8 @@ class _UrlNormalizer extends TreeVisitor {
 
   String visitInlineDart(String code) {
     var unit = parseDirectives(code, suppressErrors: true);
-    var file = new SourceFile(code, url: spanUrlFor(sourceId, transform));
+    var file = new SourceFile(code,
+        url: spanUrlFor(sourceId, transform, logger));
     var output = new TextEditTransaction(code, file);
     var foundLibraryDirective = false;
     for (Directive directive in unit.directives) {
@@ -493,7 +487,8 @@ class _UrlNormalizer extends TreeVisitor {
 
     if (primaryId.package != id.package) {
       // Techincally we shouldn't get there
-      logger.error("don't know how to include $id from $primaryId", span: span);
+      logger.error(INTERNAL_ERROR_DONT_KNOW_HOW_TO_IMPORT.create({
+          'target': id, 'source': primaryId, 'extra': ''}), span: span);
       return href;
     }
 

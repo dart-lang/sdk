@@ -9,6 +9,7 @@ library polymer.src.build.build_filter;
 import 'dart:async';
 
 import 'package:barback/barback.dart';
+import 'package:code_transformers/messages/build_logger.dart';
 import 'common.dart';
 
 /// Removes any files not needed for deployment, such as internal build
@@ -34,7 +35,9 @@ class BuildFilter extends Transformer with PolymerTransformer {
     if (transform.primaryInput.id.extension == _DATA_EXTENSION) {
       return null;
     }
-    return readPrimaryAsHtml(transform).then((document) {
+    var logger = new BuildLogger(transform,
+        convertErrorsToWarnings: !options.releaseMode);
+    return readPrimaryAsHtml(transform, logger).then((document) {
       // Keep .html files that don't use polymer, since the app developer might
       // have non-polymer entrypoints.
       if (document.querySelectorAll('polymer-element').isEmpty) {

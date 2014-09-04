@@ -1,30 +1,28 @@
-# changelog
+#### 0.12.1-dev
+  * Upgraded error messages to have a unique and stable identifier.
 
-This file contains highlights of what changes on each version of the observe
-package.
-
-#### Pub version 0.12.0
+#### 0.12.0
   * Old transform.dart file removed. If you weren't use it it, this change is
     backwards compatible with version 0.11.0.
 
-#### Pub version 0.11.0+5
+#### 0.11.0+5
   * Widen the constraint on analyzer.
 
-#### Pub version 0.11.0+4
+#### 0.11.0+4
   * Raise the lower bound on the source_maps constraint to exclude incompatible
     versions.
 
-#### Pub version 0.11.0+3
+#### 0.11.0+3
   * Widen the constraint on source_maps.
 
-#### Pub version 0.11.0+2
+#### 0.11.0+2
   * Widen the constraint on barback.
 
-#### Pub version 0.11.0+1
+#### 0.11.0+1
   * Switch from `source_maps`' `Span` class to `source_span`'s `SourceSpan`
     class.
 
-#### Pub version 0.11.0
+#### 0.11.0
   * Updated to match [observe-js#e212e74][e212e74] (release 0.3.4)
   * ListPathObserver has been deprecated  (it was deleted a while ago in
     observe-js). We plan to delete it in a future release. You may copy the code
@@ -38,11 +36,11 @@ package.
     in combination with a change in template_binding and polymer to improve
     interop with JS custom elements).
 
-#### Pub version 0.10.0+3
+#### 0.10.0+3
   * minor changes to documentation, deprecated `discardListChages` in favor of
     `discardListChanges` (the former had a typo).
 
-#### Pub version 0.10.0
+#### 0.10.0
   * package:observe no longer declares @MirrorsUsed. The package uses mirrors
     for development time, but assumes frameworks (like polymer) and apps that
     use it directly will either generate code that replaces the use of mirrors,
