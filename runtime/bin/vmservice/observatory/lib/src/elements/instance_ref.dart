@@ -36,7 +36,7 @@ class InstanceRefElement extends ServiceRefElement {
     return expandEvent;
   }
 
-  void expandEvent(bool expand, var done) {
+  void expandEvent(bool expand, Function onDone) {
     assert(ref is Instance);
     if (expand) {
       ref.reload().then((result) {
@@ -46,12 +46,12 @@ class InstanceRefElement extends ServiceRefElement {
         }
         ref = result;
         notifyPropertyChange(#ref, 0, 1);
-      }).whenComplete(done);
+      }).whenComplete(onDone);
     } else {
       Instance refMap = ref;
       refMap.fields = null;
       refMap.elements = null;
-      done();
+      onDone();
     }
   }
 }

@@ -12443,7 +12443,33 @@ void Context::Dump(int indent) const {
 
 
 void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  jsobj.AddProperty("type", JSONType(ref));
+  ObjectIdRing* ring = Isolate::Current()->object_id_ring();
+  const intptr_t id = ring->GetIdForObject(raw());
+  jsobj.AddPropertyF("id", "objects/%" Pd "", id);
+
+  jsobj.AddProperty("length", num_variables());
+
+  if (ref) {
+    return;
+  }
+
+  Class& cls = Class::Handle(this->clazz());
+  jsobj.AddProperty("class", cls);
+
+  jsobj.AddProperty("size", raw()->Size());
+
+  const Context& parent_context = Context::Handle(parent());
+  jsobj.AddProperty("parent", parent_context);
+
+  JSONArray jsarr(&jsobj, "variables");
+  for (intptr_t i = 0; i < num_variables(); i++) {
+    const Instance& var = Instance::Handle(At(i));
+    JSONObject jselement(&jsarr);
+    jselement.AddProperty("index", i);
+    jselement.AddProperty("value", var);
+  }
 }
 
 
@@ -13621,6 +13647,8 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (IsClosure()) {
     const Function& closureFunc = Function::Handle(Closure::function(*this));
     jsobj.AddProperty("closureFunc", closureFunc);
+    const Context& closureCtxt = Context::Handle(Closure::context(*this));
+    jsobj.AddProperty("closureCtxt", closureCtxt);
   }
   jsobj.AddPropertyF("id", "objects/%" Pd "", id);
   if (ref) {

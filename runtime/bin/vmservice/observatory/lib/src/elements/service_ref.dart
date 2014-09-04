@@ -74,6 +74,10 @@ class AnyServiceRefElement extends ObservatoryElement {
         ServiceRefElement element = new Element.tag('code-ref');
         element.ref = ref;
         return element;
+      case 'Context':
+        ServiceRefElement element = new Element.tag('context-ref');
+        element.ref = ref;
+        return element;
       case 'Error':
         ServiceRefElement element = new Element.tag('error-ref');
         element.ref = ref;

@@ -39,6 +39,8 @@ abstract class ServiceObject extends Observable {
   String _vmType;
 
   bool get isBool => vmType == 'Bool';
+  bool get isClosure => false;
+  bool get isContext => vmType == 'Context';
   bool get isDouble => vmType == 'Double';
   bool get isError => vmType == 'Error';
   bool get isInstance => vmType == 'Instance';
@@ -90,6 +92,9 @@ abstract class ServiceObject extends Observable {
         break;
       case 'Code':
         obj = new Code._empty(owner);
+        break;
+      case 'Context':
+        obj = new Context._empty(owner);
         break;
       case 'Counter':
         obj = new ServiceMetric._empty(owner);
@@ -1470,13 +1475,14 @@ class Class extends ServiceObject with Coverage {
 
 class Instance extends ServiceObject {
   @observable Class clazz;
-  @observable String valueAsString;
   @observable int size;
+  @observable String valueAsString;  // If primitive.
   @observable ServiceFunction closureFunc;  // If a closure.
+  @observable Context closureCtxt;  // If a closure.
   @observable String name;  // If a Type.
+  @observable int length; // If a List.
 
   @observable var typeClass;
-  @observable var length;
   @observable var fields;
   @observable var nativeFields;
   @observable var elements;
@@ -1491,10 +1497,12 @@ class Instance extends ServiceObject {
     _upgradeCollection(map, isolate);
 
     clazz = map['class'];
-    valueAsString = map['valueAsString'];
     size = map['size'];
+    valueAsString = map['valueAsString'];
     closureFunc = map['closureFunc'];
+    closureCtxt = map['closureCtxt'];
     name = map['name'];
+    length = map['length'];
 
     if (mapIsRef) {
       return;
@@ -1502,7 +1510,6 @@ class Instance extends ServiceObject {
 
     nativeFields = map['nativeFields'];
     fields = map['fields'];
-    length = map['length'];
     elements = map['elements'];
     typeClass = map['type_class'];
     userName = map['user_name'];
@@ -1515,6 +1522,44 @@ class Instance extends ServiceObject {
 
   String toString() => 'Instance($shortName)';
 }
+
+
+class Context extends ServiceObject {
+  @observable Class clazz;
+  @observable int size;
+
+  @observable ServiceObject parentContext;
+  @observable var length;
+  @observable var variables;
+
+  bool get isClosure => closureFunc != null;
+
+  Context._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    // Extract full properties.
+    _upgradeCollection(map, isolate);
+
+    size = map['size'];
+    length = map['length'];
+    parentContext = map['parent'];
+
+    if (mapIsRef) {
+      return;
+    }
+
+    clazz = map['class'];
+    variables = map['variables'];
+
+    // We are fully loaded.
+    _loaded = true;
+  }
+
+  String get shortName => valueAsString != null ? valueAsString : 'a ${clazz.name}';
+
+  String toString() => 'Context($length)';
+}
+
 
 // TODO(koda): Sync this with VM.
 class FunctionKind {
@@ -2003,7 +2048,7 @@ class Code extends ServiceObject {
   @reflectable final addressTicks = new ObservableMap<int, CodeTick>();
   @observable String formattedInclusiveTicks = '';
   @observable String formattedExclusiveTicks = '';
-  @observable ServiceMap objectPool;
+  @observable Instance objectPool;
   @observable ServiceFunction function;
   @observable Script script;
   @observable bool isOptimized = false;

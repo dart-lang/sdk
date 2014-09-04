@@ -2,25 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library instance_view_element;
+library context_view_element;
 
 import 'dart:async';
 import 'observatory_element.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
-@CustomTag('instance-view')
-class InstanceViewElement extends ObservatoryElement {
-  @published Instance instance;
+@CustomTag('context-view')
+class ContextViewElement extends ObservatoryElement {
+  @published Context context;
 
-  InstanceViewElement.created() : super.created();
-
-  Future<ServiceObject> eval(String text) {
-    return instance.isolate.get(
-        instance.id + "/eval?expr=${Uri.encodeComponent(text)}");
-  }
+  ContextViewElement.created() : super.created();
 
   void refresh(Function onDone) {
-    instance.reload().whenComplete(onDone);
+    context.reload().whenComplete(onDone);
   }
 }

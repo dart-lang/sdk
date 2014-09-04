@@ -7,18 +7,18 @@ library inbound_reference_element;
 import 'dart:async';
 import 'package:polymer/polymer.dart';
 import 'package:observatory/service.dart';
-import 'service_ref.dart';
+import 'observatory_element.dart';
 
 @CustomTag('inbound-reference')
-class InboundReferenceElement extends ServiceRefElement {
+class InboundReferenceElement extends ObservatoryElement {
   @published ObservableMap ref;
   InboundReferenceElement.created() : super.created();
 
-  dynamic get slot => (ref as ServiceMap)['slot'];
+  dynamic get slot => ref['slot'];
   bool get slotIsArrayIndex => slot is num;
   bool get slotIsField => slot is ServiceMap && slot['type'] == '@Field';
 
-  ServiceObject get source => (ref as ServiceMap)['source'];
+  ServiceObject get source => ref['source'];
 
   // I.e., inbound references to 'source' for recursive pointer chasing.
   @observable ObservableList inboundReferences;
@@ -34,15 +34,14 @@ class InboundReferenceElement extends ServiceRefElement {
     return expandEvent;
   }
 
-  void expandEvent(bool expand, var done) {
-    assert(ref is ServiceMap);
+  void expandEvent(bool expand, Function onDone) {
     if (expand) {
       fetchInboundReferences(100).then((result) {
         notifyPropertyChange(#ref, 0, 1);
-      }).whenComplete(done);
+      }).whenComplete(onDone);
     } else {
       inboundReferences = null;
-      done();
+      onDone();
     }
   }
 }
