@@ -1648,25 +1648,28 @@ class CodeEmitterTask extends CompilerTask {
       computeNeededConstants();
       emitCompileTimeConstants(mainBuffer, mainOutputUnit);
 
-      mainBuffer.write('init.initializeLoadedHunk$_=${_}function(hunkName)$_{$_'
-                         '$deferredInitializers[hunkName]($globalsHolder)'
-                       '$_}$N');
-      // Write a javascript mapping from Deferred import load ids (derrived from
-      // the import prefix.) to a list of lists of js hunks to load.
-      // TODO(sigurdm): Create a syntax tree for this.
-      // TODO(sigurdm): Also find out where to place it.
-      mainBuffer.write("$initName.librariesToLoad = {");
-      compiler.deferredLoadTask.hunksToLoad.forEach(
-          (String loadId, List<OutputUnit>outputUnits) {
-        mainBuffer.write('"$loadId": ');
-        mainBuffer.write("[");
-        for (OutputUnit outputUnit in outputUnits) {
-          mainBuffer
-              .write('"${outputUnit.partFileName(compiler)}.part.js", ');
-        }
-        mainBuffer.write("],");
-      });
-      mainBuffer.write("}$N");
+      if (compiler.deferredLoadTask.isProgramSplit) {
+        mainBuffer.write('init.initializeLoadedHunk$_=${_}'
+            'function(hunkName)$_{$_'
+              '$deferredInitializers[hunkName]($globalsHolder)'
+            '$_}$N');
+        // Write a javascript mapping from Deferred import load ids (derrived
+        // from the import prefix.) to a list of lists of js hunks to load.
+        // TODO(sigurdm): Create a syntax tree for this.
+        // TODO(sigurdm): Also find out where to place it.
+        mainBuffer.write("$initName.librariesToLoad = {");
+        compiler.deferredLoadTask.hunksToLoad.forEach(
+            (String loadId, List<OutputUnit>outputUnits) {
+          mainBuffer.write('"$loadId": ');
+          mainBuffer.write("[");
+          for (OutputUnit outputUnit in outputUnits) {
+            mainBuffer
+                .write('"${outputUnit.partFileName(compiler)}.part.js", ');
+          }
+          mainBuffer.write("],");
+        });
+        mainBuffer.write("}$N");
+      }
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
