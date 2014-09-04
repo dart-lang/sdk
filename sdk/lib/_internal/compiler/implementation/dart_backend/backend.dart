@@ -19,36 +19,21 @@ class ElementAst {
 
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
-  final bool forceStripTypes;
   final bool stripAsserts;
-  // TODO(antonm): make available from command-line options.
-  final bool outputAst = false;
-  final Map<ClassNode, List<Node>> memberNodes;
-
-  /// If `true`, libraries are generated into separate files.
-  final bool multiFile;
-
-  PlaceholderRenamer placeholderRenamer;
 
   // TODO(zarah) Maybe change this to a command-line option.
   // Right now, it is set by the tests.
   bool useMirrorHelperLibrary = false;
 
-  /// Initialized if the useMirrorHelperLibrary field is set.
-  MirrorRenamer mirrorRenamer;
+  /// Updated to a [MirrorRenamerImpl] instance if the [useMirrorHelperLibrary]
+  /// field is set and mirror are needed.
+  MirrorRenamer mirrorRenamer = const MirrorRenamer();
 
-  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
-  /// field is set.
-  LibraryElement mirrorHelperLibrary;
-  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
-  /// field is set.
-  FunctionElement mirrorHelperGetNameFunction;
-  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
-  /// field is set.
-  Element mirrorHelperSymbolsMap;
+  final DartOutputter outputter;
 
-  Iterable<Element> get resolvedElements =>
-      compiler.enqueuer.resolution.resolvedElements;
+  // Used in test.
+  PlaceholderRenamer get placeholderRenamer => outputter.renamer;
+  Map<ClassNode, List<Node>> get memberNodes => outputter.output.memberNodes;
 
   ConstantSystem get constantSystem {
     return constantCompilerTask.constantCompiler.constantSystem;
@@ -72,7 +57,7 @@ class DartBackend extends Backend {
    * These restrictions can be less strict.
    */
   bool isSafeToRemoveTypeDeclarations(
-      Map<ClassElement, Set<Element>> classMembers) {
+      Map<ClassElement, Iterable<Element>> classMembers) {
     ClassElement typeErrorElement = compiler.coreLibrary.find('TypeError');
     if (classMembers.containsKey(typeErrorElement) ||
         compiler.resolverWorld.isChecks.any(
@@ -105,12 +90,15 @@ class DartBackend extends Backend {
     return true;
   }
 
-  DartBackend(Compiler compiler, List<String> strips, {this.multiFile})
+  DartBackend(Compiler compiler, List<String> strips, {bool multiFile})
       : tasks = <CompilerTask>[],
-        memberNodes = new Map<ClassNode, List<Node>>(),
-        forceStripTypes = strips.indexOf('types') != -1,
         stripAsserts = strips.indexOf('asserts') != -1,
-        constantCompilerTask  = new DartConstantTask(compiler),
+        constantCompilerTask = new DartConstantTask(compiler),
+        outputter = new DartOutputter(
+            compiler, compiler.outputProvider,
+            forceStripTypes: strips.indexOf('types') != -1,
+            multiFile: multiFile,
+            enableMinification: compiler.enableMinification),
         super(compiler) {
     resolutionCallbacks = new DartResolutionCallbacks(this);
   }
@@ -138,19 +126,6 @@ class DartBackend extends Backend {
   }
 
   void codegen(CodegenWorkItem work) { }
-
-  bool isUserLibrary(LibraryElement lib) => !lib.isPlatformLibrary;
-
-  /**
-   * Tells whether we should output given element. Corelib classes like
-   * Object should not be in the resulting code.
-   */
-  bool shouldOutput(Element element) {
-    return (isUserLibrary(element.library) &&
-            !element.isSynthesized &&
-            element is !AbstractFieldElement)
-        || element.library == mirrorHelperLibrary;
-  }
 
   /// Create an [ElementAst] from the CPS IR.
   static ElementAst createElementAst(Compiler compiler,
@@ -207,80 +182,8 @@ class DartBackend extends Backend {
   }
 
   void assembleProgram() {
-    // Conservatively traverse all platform libraries and collect member names.
-    // TODO(antonm): ideally we should only collect names of used members,
-    // however as of today there are problems with names of some core library
-    // interfaces, most probably for interfaces of literals.
-    final fixedMemberNames = new Set<String>();
 
-    Map<Element, LibraryElement> reexportingLibraries =
-        <Element, LibraryElement>{};
-
-    for (final library in compiler.libraryLoader.libraries) {
-      if (!library.isPlatformLibrary) continue;
-      library.forEachLocalMember((Element element) {
-        if (element.isClass) {
-          ClassElement classElement = element;
-          assert(invariant(classElement, classElement.isResolved,
-              message: "Unresolved platform class."));
-          classElement.forEachLocalMember((member) {
-            final name = member.name;
-            // Skip operator names.
-            if (!name.startsWith(r'operator$')) {
-              // Fetch name of named constructors and factories if any,
-              // otherwise store regular name.
-              // TODO(antonm): better way to analyze the name.
-              fixedMemberNames.add(name.split(r'$').last);
-            }
-          });
-        }
-        // Even class names are added due to a delicate problem we have:
-        // if one imports dart:core with a prefix, we cannot tell prefix.name
-        // from dynamic invocation (alas!).  So we'd better err on preserving
-        // those names.
-        fixedMemberNames.add(element.name);
-      });
-
-      for (Element export in library.exports) {
-        if (!library.isInternalLibrary &&
-            export.library.isInternalLibrary) {
-          // If an element of an internal library is reexported by a platform
-          // library, we have to import the reexporting library instead of the
-          // internal library, because the internal library is an
-          // implementation detail of dart2js.
-          reexportingLibraries[export] = library;
-        }
-      }
-    }
-    // As of now names of named optionals are not renamed. Therefore add all
-    // field names used as named optionals into [fixedMemberNames].
-    for (final element in resolvedElements) {
-      if (!element.isConstructor) continue;
-      Link<Element> optionalParameters =
-          element.functionSignature.optionalParameters;
-      for (final optional in optionalParameters) {
-        if (!optional.isInitializingFormal) continue;
-        fixedMemberNames.add(optional.name);
-      }
-    }
-    // The VM will automatically invoke the call method of objects
-    // that are invoked as functions. Make sure to not rename that.
-    fixedMemberNames.add('call');
-    // TODO(antonm): TypeError.srcType and TypeError.dstType are defined in
-    // runtime/lib/error.dart. Overall, all DartVM specific libs should be
-    // accounted for.
-    fixedMemberNames.add('srcType');
-    fixedMemberNames.add('dstType');
-
-    if (useMirrorHelperLibrary && compiler.mirrorsLibrary != null) {
-        mirrorRenamer = new MirrorRenamer(compiler, this);
-    } else {
-      useMirrorHelperLibrary = false;
-    }
-
-    final elementAsts = new Map<Element, ElementAst>();
-
-    ElementAst parse(AstElement element) {
+    ElementAst computeElementAst(AstElement element) {
       if (!compiler.irBuilder.hasIr(element)) {
         return new ElementAst(element);
       } else {
@@ -290,17 +193,11 @@ class DartBackend extends Backend {
       }
     }
 
-    List<LibraryElement> userLibraries =
-        compiler.libraryLoader.libraries.where(isUserLibrary).toList();
-
-    Set<Element> topLevelElements = new Set<Element>();
-    Map<ClassElement, Set<Element>> classMembers =
-        new Map<ClassElement, Set<Element>>();
-
-    // Build all top level elements to emit and necessary class members.
-    var newTypedefElementCallback, newClassElementCallback;
-
-    void processElement(Element element, ElementAst elementAst) {
+    // TODO(johnniwinther): Remove the need for this method.
+    void postProcessElementAst(
+        AstElement element, ElementAst elementAst,
+        newTypedefElementCallback,
+        newClassElementCallback) {
       ReferencedElementCollector collector =
           new ReferencedElementCollector(compiler,
                                          element,
@@ -308,252 +205,50 @@ class DartBackend extends Backend {
                                          newTypedefElementCallback,
                                          newClassElementCallback);
       collector.collect();
-      elementAsts[element] = elementAst;
     }
 
-    addTopLevel(AstElement element, ElementAst elementAst) {
-      if (topLevelElements.contains(element)) return;
-      topLevelElements.add(element);
-      processElement(element, elementAst);
+    /**
+     * Tells whether we should output given element. Corelib classes like
+     * Object should not be in the resulting code.
+     */
+    bool shouldOutput(Element element) {
+      return (!element.library.isPlatformLibrary &&
+              !element.isSynthesized &&
+              element is! AbstractFieldElement)
+          || mirrorRenamer.isMirrorHelperLibrary(element.library);
     }
 
-    addClass(ClassElement classElement) {
-      addTopLevel(classElement, new ElementAst(classElement));
-      classMembers.putIfAbsent(classElement, () => new Set());
-    }
+    String assembledCode = outputter.assembleProgram(
+        libraries: compiler.libraryLoader.libraries,
+        instantiatedClasses: compiler.resolverWorld.instantiatedClasses,
+        resolvedElements: compiler.enqueuer.resolution.resolvedElements,
+        usedTypeLiterals: usedTypeLiterals,
+        postProcessElementAst: postProcessElementAst,
+        computeElementAst: computeElementAst,
+        shouldOutput: shouldOutput,
+        isSafeToRemoveTypeDeclarations: isSafeToRemoveTypeDeclarations,
+        mirrorRenamer: mirrorRenamer,
+        mainLibrary: compiler.mainApp,
+        mainFunction: compiler.mainFunction,
+        outputUri: compiler.outputUri);
+    compiler.assembledCode = assembledCode;
 
-    newTypedefElementCallback = (TypedefElement element) {
-      if (!shouldOutput(element)) return;
-      addTopLevel(element, new ElementAst(element));
-    };
-    newClassElementCallback = (ClassElement classElement) {
-      if (!shouldOutput(classElement)) return;
-      addClass(classElement);
-    };
-
-    compiler.resolverWorld.instantiatedClasses.forEach(
-        (ClassElement classElement) {
-      if (shouldOutput(classElement)) addClass(classElement);
-    });
-    resolvedElements.forEach((element) {
-      if (!shouldOutput(element) ||
-          !compiler.enqueuer.resolution.hasBeenResolved(element)) {
-        return;
-      }
-      ElementAst elementAst = parse(element);
-
-      if (element.isClassMember) {
-        ClassElement enclosingClass = element.enclosingClass;
-        assert(enclosingClass.isClass);
-        assert(enclosingClass.isTopLevel);
-        assert(shouldOutput(enclosingClass));
-        addClass(enclosingClass);
-        classMembers[enclosingClass].add(element);
-        processElement(element, elementAst);
-      } else {
-        if (element.isTopLevel) {
-          addTopLevel(element, elementAst);
-        }
-      }
-    });
-    Set<ClassElement> emitNoMembersFor = new Set<ClassElement>();
-    usedTypeLiterals.forEach((ClassElement element) {
-      if (shouldOutput(element)) {
-        if (!topLevelElements.contains(element)) {
-          // The class is only referenced by type literals.
-          emitNoMembersFor.add(element);
-        }
-        addClass(element);
-      }
-    });
-
-    // Create all necessary placeholders.
-    PlaceholderCollector collector =
-        new PlaceholderCollector(compiler, fixedMemberNames, elementAsts);
-    makePlaceholders(element) {
-      bool oldUseHelper = useMirrorHelperLibrary;
-      useMirrorHelperLibrary = (useMirrorHelperLibrary
-                               && element.library != mirrorHelperLibrary);
-      collector.collect(element);
-      useMirrorHelperLibrary = oldUseHelper;
-
-      if (element.isClass) {
-        classMembers[element].forEach(makePlaceholders);
-      }
-    }
-    topLevelElements.forEach(makePlaceholders);
-    // Create renames.
-    bool shouldCutDeclarationTypes = forceStripTypes
-        || (compiler.enableMinification
-            && isSafeToRemoveTypeDeclarations(classMembers));
-
-    placeholderRenamer =
-        new PlaceholderRenamer(compiler, fixedMemberNames, reexportingLibraries,
-            cutDeclarationTypes: shouldCutDeclarationTypes);
-
-    placeholderRenamer.computeRenames(collector);
-
-    // Sort elements.
-    final List<Element> sortedTopLevels = sortElements(topLevelElements);
-    final Map<ClassElement, List<Element>> sortedClassMembers =
-        new Map<ClassElement, List<Element>>();
-    classMembers.forEach((classElement, members) {
-      sortedClassMembers[classElement] = sortElements(members);
-    });
-
-    if (outputAst) {
-      // TODO(antonm): Ideally XML should be a separate backend.
-      // TODO(antonm): obey renames and minification, at least as an option.
-      StringBuffer sb = new StringBuffer();
-      outputElement(element) {
-        sb.write(element.parseNode(compiler).toDebugString());
-      }
-
-      // Emit XML for AST instead of the program.
-      for (final topLevel in sortedTopLevels) {
-        if (topLevel.isClass && !emitNoMembersFor.contains(topLevel)) {
-          // TODO(antonm): add some class info.
-          sortedClassMembers[topLevel].forEach(outputElement);
-        } else {
-          outputElement(topLevel);
-        }
-      }
-      compiler.assembledCode = '<Program>\n$sb</Program>\n';
-      return;
-    }
-
-    final List<Node> topLevelNodes = <Node>[];
-    for (final element in sortedTopLevels) {
-      topLevelNodes.add(elementAsts[element].ast);
-      if (element.isClass && !element.isMixinApplication) {
-        final members = <Node>[];
-        for (final member in sortedClassMembers[element]) {
-          members.add(elementAsts[member].ast);
-        }
-        memberNodes[elementAsts[element].ast] = members;
-      }
-    }
-
-    if (useMirrorHelperLibrary) {
-      mirrorRenamer.addRenames(placeholderRenamer.renames,
-                               topLevelNodes, collector);
-    }
-
-    Map<LibraryElement, String> outputPaths = new Map<LibraryElement, String>();
-    Map<LibraryElement, EmitterUnparser> unparsers =
-        new Map<LibraryElement, EmitterUnparser>();
-
-    // The single unparser used if we collect all the output in one file.
-    EmitterUnparser mainUnparser = multiFile
-        ? null
-        : new EmitterUnparser(placeholderRenamer.renames,
-            stripTypes: forceStripTypes,
-            minify: compiler.enableMinification);
-
-    if (multiFile) {
-      // TODO(sigurdm): Factor handling of library-paths out from emitting.
-      String mainName = compiler.outputUri.pathSegments.last;
-      String mainBaseName = mainName.endsWith(".dart")
-          ? mainName.substring(0, mainName.length - 5)
-          : mainName;
-      // Map each library to a path based on the uri of the original
-      // library and [compiler.outputUri].
-      Set<String> usedLibraryPaths = new Set<String>();
-      for (LibraryElement library in userLibraries) {
-        if (library == compiler.mainApp) {
-          outputPaths[library] = mainBaseName;
-        } else {
-          List<String> names =
-              library.canonicalUri.pathSegments.last.split(".");
-          if (names.last == "dart") {
-            names = names.sublist(0, names.length - 1);
-          }
-          outputPaths[library] =
-              "$mainBaseName.${makeUnique(names.join("."), usedLibraryPaths)}";
-        }
-      }
-
-      /// Rewrites imports/exports to refer to the paths given in [outputPaths].
-      for(LibraryElement outputLibrary in userLibraries) {
-        EmitterUnparser unparser = new EmitterUnparser(
-            placeholderRenamer.renames,
-            stripTypes: forceStripTypes,
-            minify: compiler.enableMinification);
-        unparsers[outputLibrary] = unparser;
-        LibraryName libraryName = outputLibrary.libraryTag;
-        if (libraryName != null) {
-          unparser.visitLibraryName(libraryName);
-        }
-        for (LibraryTag tag in outputLibrary.tags) {
-          if (tag is! LibraryDependency) continue;
-          LibraryDependency dependency = tag;
-          LibraryElement libraryElement =
-              outputLibrary.getLibraryFromTag(dependency);
-          String uri = outputPaths.containsKey(libraryElement)
-              ? "${outputPaths[libraryElement]}.dart"
-              : libraryElement.canonicalUri.toString();
-          if (dependency is Import) {
-            unparser.unparseImportTag(uri);
-          } else {
-            unparser.unparseExportTag(uri);
-          }
-        }
-      }
-    } else {
-      for(LibraryElement library in placeholderRenamer.platformImports) {
-        if (library.isPlatformLibrary && !library.isInternalLibrary) {
-          mainUnparser.unparseImportTag(library.canonicalUri.toString());
-        }
-      }
-    }
-
-    for (int i = 0; i < sortedTopLevels.length; i++) {
-      Element element = sortedTopLevels[i];
-      Node node = topLevelNodes[i];
-      Unparser unparser = multiFile ? unparsers[element.library] : mainUnparser;
-      if (node is ClassNode) {
-        // TODO(smok): Filter out default constructors here.
-        unparser.unparseClassWithBody(node, memberNodes[node]);
-      } else {
-        unparser.unparse(node);
-      }
-      unparser.newline();
-    }
-
-    int totalSize = 0;
-    if (multiFile) {
-      for(LibraryElement outputLibrary in userLibraries) {
-        // TODO(sigurdm): Make the unparser output directly into the buffer instead
-        // of caching in `.result`.
-        String code = unparsers[outputLibrary].result;
-        totalSize += code.length;
-        compiler.outputProvider(outputPaths[outputLibrary], "dart")
-             ..add(code)
-             ..close();
-      }
-      // TODO(sigurdm): We should get rid of compiler.assembledCode.
-      compiler.assembledCode = unparsers[compiler.mainApp].result;
-    } else {
-      compiler.assembledCode = mainUnparser.result;
-      compiler.outputProvider("", "dart")
-           ..add(compiler.assembledCode)
-           ..close();
-
-      totalSize = compiler.assembledCode.length;
-    }
+    int totalSize = assembledCode.length;
 
     // Output verbose info about size ratio of resulting bundle to all
     // referenced non-platform sources.
-    logResultBundleSizeInfo(topLevelElements, totalSize);
+    logResultBundleSizeInfo(
+        outputter.libraryInfo.userLibraries,
+        outputter.elementInfo.topLevelElements,
+        assembledCode.length);
   }
 
-  void logResultBundleSizeInfo(Set<Element> topLevelElements,
+  void logResultBundleSizeInfo(Iterable<LibraryElement> userLibraries,
+                               Iterable<Element> topLevelElements,
                                int totalOutputSize) {
-    Iterable<LibraryElement> referencedLibraries =
-        compiler.libraryLoader.libraries.where(isUserLibrary);
     // Sum total size of scripts in each referenced library.
     int nonPlatformSize = 0;
-    for (LibraryElement lib in referencedLibraries) {
+    for (LibraryElement lib in userLibraries) {
       for (CompilationUnitElement compilationUnit in lib.compilationUnits) {
         nonPlatformSize += compilationUnit.script.file.length;
       }
@@ -583,35 +278,20 @@ class DartBackend extends Backend {
       return compiler.libraryLoader.loadLibrary(
           compiler.translateResolvedUri(
               loadedLibraries[Compiler.DART_MIRRORS],
-              MirrorRenamer.DART_MIRROR_HELPER, null)).
-          then((LibraryElement element) {
-        mirrorHelperLibrary = element;
-        mirrorHelperGetNameFunction = mirrorHelperLibrary.find(
-            MirrorRenamer.MIRROR_HELPER_GET_NAME_FUNCTION);
-        mirrorHelperSymbolsMap = mirrorHelperLibrary.find(
-            MirrorRenamer.MIRROR_HELPER_SYMBOLS_MAP_NAME);
+              MirrorRenamerImpl.DART_MIRROR_HELPER, null)).
+          then((LibraryElement library) {
+        mirrorRenamer = new MirrorRenamerImpl(compiler, this, library);
       });
     }
     return new Future.value();
   }
 
-  void registerStaticSend(Element element, Node node) {
-    if (useMirrorHelperLibrary) {
-      mirrorRenamer.registerStaticSend(element, node);
-    }
-  }
-
-  void registerMirrorHelperElement(Element element, Node node) {
-    if (mirrorHelperLibrary != null
-        && element.library == mirrorHelperLibrary) {
-      mirrorRenamer.registerHelperElement(element, node);
-    }
-  }
-
   void registerStaticUse(Element element, Enqueuer enqueuer) {
-    if (useMirrorHelperLibrary &&
-        element == compiler.mirrorSystemGetNameFunction) {
-      enqueuer.addToWorkList(mirrorHelperGetNameFunction);
+    if (element == compiler.mirrorSystemGetNameFunction) {
+      FunctionElement getNameFunction = mirrorRenamer.getNameFunction;
+      if (getNameFunction != null) {
+        enqueuer.addToWorkList(getNameFunction);
+      }
     }
   }
 }

@@ -4,39 +4,57 @@
 
 part of mirror_renamer;
 
-class MirrorRenamer {
+class MirrorRenamerImpl implements MirrorRenamer {
   static const String MIRROR_HELPER_GET_NAME_FUNCTION = 'helperGetName';
   static final Uri DART_MIRROR_HELPER =
       new Uri(scheme: 'dart', path: '_mirror_helper');
   static const String MIRROR_HELPER_SYMBOLS_MAP_NAME = '_SYMBOLS';
 
+  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
+  /// field is set.
+  final LibraryElement helperLibrary;
+
+  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
+  /// field is set.
+  final FunctionElement getNameFunction;
+
+  /// Initialized when dart:mirrors is loaded if the useMirrorHelperLibrary
+  /// field is set.
+  final FieldElement symbolsMapVariable;
+
   /// Maps mangled name to original name.
   Map<String, String> symbols = new Map<String, String>();
+
   /// Contains all occurrencs of MirrorSystem.getName() calls in the user code.
   List<Node> mirrorSystemGetNameNodes = <Node>[];
+
   /**
    *  Initialized when the placeholderCollector collects the FunctionElement
    *  backend.mirrorHelperGetNameFunction which represents the helperGetName
    *  function in _mirror_helper.
    */
-  FunctionExpression mirrorHelperGetNameFunctionNode;
-  VariableDefinitions mirrorHelperSymbolsMapNode;
+  FunctionExpression get getNameFunctionNode => getNameFunction.node;
+  VariableDefinitions get symbolsMapNode => symbolsMapVariable.node;
   Compiler compiler;
   DartBackend backend;
 
-  MirrorRenamer(this.compiler, this.backend);
+  MirrorRenamerImpl(this.compiler, this.backend, LibraryElement library)
+      : this.helperLibrary = library,
+        getNameFunction = library.find(
+            MirrorRenamerImpl.MIRROR_HELPER_GET_NAME_FUNCTION),
+        symbolsMapVariable = library.find(
+            MirrorRenamerImpl.MIRROR_HELPER_SYMBOLS_MAP_NAME);
 
-  void registerStaticSend(Element element, Send node) {
-  if (element == compiler.mirrorSystemGetNameFunction) {
-    mirrorSystemGetNameNodes.add(node);
+  bool isMirrorHelperLibrary(LibraryElement element) {
+    return element == helperLibrary;
   }
- }
 
-  void registerHelperElement(Element element, Node node) {
-    if (element == backend.mirrorHelperGetNameFunction) {
-      mirrorHelperGetNameFunctionNode = node;
-    } else if (element == backend.mirrorHelperSymbolsMap) {
-      mirrorHelperSymbolsMapNode = node;
+  void registerStaticSend(Element currentElement, Element target, Send node) {
+    if (target == compiler.mirrorSystemGetNameFunction &&
+        currentElement.library != helperLibrary) {
+      // Access to `MirrorSystem.getName` that needs to be redirected to the
+      // [getNameFunction].
+      mirrorSystemGetNameNodes.add(node);
     }
   }
 
@@ -70,9 +88,9 @@ class MirrorRenamer {
     }
 
     Identifier symbolsMapIdentifier =
-        mirrorHelperSymbolsMapNode.definitions.nodes.head.asSend().selector;
+        symbolsMapNode.definitions.nodes.head.asSend().selector;
     assert(symbolsMapIdentifier != null);
-    topLevelNodes.remove(mirrorHelperSymbolsMapNode);
+    topLevelNodes.remove(symbolsMapNode);
 
     StringBuffer sb = new StringBuffer(
         'const ${renames[symbolsMapIdentifier]} = const<String,String>{');
@@ -93,7 +111,7 @@ class MirrorRenamer {
 
     // Replace calls to Mirrorsystem.getName with calls to helper function.
     mirrorSystemGetNameNodes.forEach((node) {
-      renames[node.selector] = renames[mirrorHelperGetNameFunctionNode.name];
+      renames[node.selector] = renames[getNameFunctionNode.name];
       renames[node.receiver] = '';
     });
   }

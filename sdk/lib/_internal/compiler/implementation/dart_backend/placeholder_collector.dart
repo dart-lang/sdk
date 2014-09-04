@@ -40,9 +40,8 @@ class DeclarationTypePlaceholder {
 class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
-  SendVisitor(collector, TreeElements elements)
-      : this.collector = collector,
-        super(elements, collector.compiler);
+  SendVisitor(this.collector, TreeElements elements)
+      : super(elements);
 
   visitOperatorSend(Send node) {
   }
@@ -107,7 +106,8 @@ class SendVisitor extends ResolvedVisitor {
 
   visitStaticSend(Send node) {
     Element element = elements[node];
-    collector.backend.registerStaticSend(element, node);
+    collector.mirrorRenamer.registerStaticSend(
+        collector.currentElement, element, node);
 
     if (Elements.isUnresolved(element)
         || elements.isAssert(node)
@@ -155,7 +155,9 @@ class SendVisitor extends ResolvedVisitor {
 }
 
 class PlaceholderCollector extends Visitor {
-  final Compiler compiler;
+  final DiagnosticListener listener;
+  final MirrorRenamer mirrorRenamer;
+  final FunctionElement mainFunction;
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
   final Map<Element, ElementAst> elementAsts;
   final Set<Node> prefixNodesToErase = new Set<Node>();
@@ -176,14 +178,12 @@ class PlaceholderCollector extends Visitor {
   FunctionElement topmostEnclosingFunction;
   TreeElements treeElements;
 
-  LibraryElement get coreLibrary => compiler.coreLibrary;
-  FunctionElement get entryFunction => compiler.mainFunction;
-  DartBackend get backend => compiler.backend;
-
   get currentFunctionScope => functionScopes.putIfAbsent(
       topmostEnclosingFunction, () => new FunctionScope());
 
-  PlaceholderCollector(this.compiler, this.fixedMemberNames, this.elementAsts);
+  PlaceholderCollector(this.listener, this.mirrorRenamer,
+                       this.fixedMemberNames, this.elementAsts,
+                       this.mainFunction);
 
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
@@ -245,12 +245,9 @@ class PlaceholderCollector extends Visitor {
     currentLocalPlaceholders = new Map<String, LocalPlaceholder>();
     if (!(element is ConstructorElement && element.isRedirectingFactory)) {
       // Do not visit the body of redirecting factories.
-      compiler.withCurrentElement(element, () {
+      listener.withCurrentElement(element, () {
         elementNode.accept(this);
       });
-    }
-    if (element == backend.mirrorHelperSymbolsMap) {
-      backend.registerMirrorHelperElement(element, elementNode);
     }
   }
 
@@ -342,8 +339,8 @@ class PlaceholderCollector extends Visitor {
     assert(node != null);
     assert(element != null);
     LibraryElement library = element.library;
-    if (identical(element, entryFunction)) return;
-    if (identical(library, coreLibrary)) return;
+    if (identical(element, mainFunction)) return;
+    if (library.canonicalUri == Compiler.DART_CORE) return;
 
     if (library.isPlatformLibrary && !element.isTopLevel) {
       return;
@@ -458,7 +455,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   void internalError(String reason, {Node node}) {
-    compiler.internalError(node, reason);
+    listener.internalError(node, reason);
   }
 
   visit(Node node) => (node == null) ? null : node.accept(this);
@@ -626,9 +623,6 @@ class PlaceholderCollector extends Visitor {
     if (element != null) {
       tryMakePrivateIdentifier(node.name, element);
 
-      if (element == backend.mirrorHelperGetNameFunction) {
-        backend.registerMirrorHelperElement(element, node);
-      }
       // Rename only local functions.
       if (topmostEnclosingFunction == null) {
         topmostEnclosingFunction = element;

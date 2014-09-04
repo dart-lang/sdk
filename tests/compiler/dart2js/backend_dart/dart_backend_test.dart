@@ -329,17 +329,6 @@ main() {
 }
 ''';
   var expectedResult = '''
-globalfoo_A() {}
-var globalVar_A;
-var globalVarInitialized_A = 6;
-var globalVarInitialized2_A = 7;
-class A_A {
-  A_A() {}
-  A_A.fromFoo_A() {}
-  static staticfoo_A() {}
-  foo() {}
-  static const field_A = 5;
-}
 globalfoo() {}
 var globalVar;
 var globalVarInitialized = 6;
@@ -351,16 +340,18 @@ class A {
   foo() {}
   static const field = 5;
 }
+globalfoo_A() {}
+var globalVar_A;
+var globalVarInitialized_A = 6;
+var globalVarInitialized2_A = 7;
+class A_A {
+  A_A() {}
+  A_A.fromFoo_A() {}
+  static staticfoo_A() {}
+  foo() {}
+  static const field_A = 5;
+}
 main() {
-  globalVar;
-  globalVarInitialized;
-  globalVarInitialized2;
-  globalfoo();
-  A.field;
-  A.staticfoo();
-  new A();
-  new A.fromFoo();
-  new A().foo();
   globalVar_A;
   globalVarInitialized_A;
   globalVarInitialized2_A;
@@ -370,6 +361,15 @@ main() {
   new A_A();
   new A_A.fromFoo_A();
   new A_A().foo();
+  globalVar;
+  globalVarInitialized;
+  globalVarInitialized2;
+  globalfoo();
+  A.field;
+  A.staticfoo();
+  new A();
+  new A.fromFoo();
+  new A().foo();
 }
 ''';
   testDart2Dart(mainSrc, librarySrc: librarySrc,
@@ -492,11 +492,11 @@ main() {
 }
 ''';
   var expectedResult = '''
-topfoo_A() {}
+topfoo() {}
 class A {
   foo() {}
 }
-topfoo() {
+topfoo_A() {
   var x = 5;
 }
 class A_A {
@@ -514,8 +514,8 @@ main() {
   var GREATVAR = b.myliba;
   b.mylist;
   a = getA();
-  topfoo();
   topfoo_A();
+  topfoo();
 }
 ''';
   testDart2Dart(mainSrc, librarySrc: librarySrc,
@@ -562,15 +562,15 @@ main() {
 }
 ''';
   var expectedResult = '''
-get topgetset_A => 5;
-set topgetset_A(arg) {}
-get topgetset => 6;
+get topgetset => 5;
 set topgetset(arg) {}
+get topgetset_A => 6;
+set topgetset_A(arg) {}
 main() {
-  topgetset;
-  topgetset = 6;
   topgetset_A;
-  topgetset_A = 5;
+  topgetset_A = 6;
+  topgetset;
+  topgetset = 5;
 }
 ''';
   testDart2Dart(mainSrc, librarySrc: librarySrc,
@@ -598,9 +598,15 @@ class DynoMap implements Map<Element, ElementAst> {
   noSuchMethod(Invocation invocation) => throw 'unimplemented method';
 }
 
-PlaceholderCollector collectPlaceholders(compiler, element) =>
-  new PlaceholderCollector(compiler, new Set<String>(), new DynoMap(compiler))
-      ..collect(element);
+PlaceholderCollector collectPlaceholders(compiler, element) {
+  DartBackend backend = compiler.backend;
+  return new PlaceholderCollector(compiler,
+      backend.mirrorRenamer,
+      new Set<String>(),
+      new DynoMap(compiler),
+      compiler.mainFunction)
+    ..collect(element);
+}
 
 testLocalFunctionPlaceholder() {
   var src = '''
@@ -656,25 +662,25 @@ main() {
 }
 ''';
   var expectedResult = '''
-typedef void MyFunction_A<T_B extends num>(T_B arg);
-class T_A {}
-class B_A<T_B> {}
-class A_A<T_B> extends B_A<T_B> {
-  T_B f;
-}
 typedef void MyFunction<T_B extends num>(T_B arg);
 class T {}
 class B<T_B> {}
 class A<T_B> extends B<T_B> {
   T_B f;
 }
+typedef void MyFunction_A<T_B extends num>(T_B arg);
+class T_A {}
+class B_A<T_B> {}
+class A_A<T_B> extends B_A<T_B> {
+  T_B f;
+}
 main() {
-  MyFunction myf1;
-  MyFunction_A myf2;
-  new A<int>().f;
-  new T();
+  MyFunction_A myf1;
+  MyFunction myf2;
   new A_A<int>().f;
   new T_A();
+  new A<int>().f;
+  new T();
 }
 ''';
   testDart2Dart(mainSrc, librarySrc: librarySrc,
@@ -701,13 +707,13 @@ main() {
 }
 ''';
   var expectedResult = '''
-class I_A {}
-class A_A<T extends I_A> {}
 class I {}
 class A<T extends I> {}
+class I_A {}
+class A_A<T extends I_A> {}
 main() {
-  new A();
   new A_A();
+  new A();
 }
 ''';
   testDart2Dart(mainSrc, librarySrc: librarySrc,

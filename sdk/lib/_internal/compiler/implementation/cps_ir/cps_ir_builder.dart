@@ -52,32 +52,33 @@ class IrBuilderTask extends CompilerTask {
         if (canBuild(element)) {
           TreeElements elementsMapping = element.resolvedAst.elements;
           element = element.implementation;
+          compiler.withCurrentElement(element, () {
+            SourceFile sourceFile = elementSourceFile(element);
+            IrBuilderVisitor builder =
+                new IrBuilderVisitor(elementsMapping, compiler, sourceFile);
+            ir.FunctionDefinition function;
+            ElementKind kind = element.kind;
+            if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+              // TODO(lry): build ir for constructors.
+            } else if (element.isDeferredLoaderGetter) {
+              // TODO(sigurdm): Build ir for deferred loader functions.
+            } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
+                kind == ElementKind.FUNCTION ||
+                kind == ElementKind.GETTER ||
+                kind == ElementKind.SETTER) {
+              function = builder.buildFunction(element);
+            } else if (kind == ElementKind.FIELD) {
+              // TODO(lry): build ir for lazy initializers of static fields.
+            } else {
+              compiler.internalError(element, 'Unexpected element kind $kind.');
+            }
 
-          SourceFile sourceFile = elementSourceFile(element);
-          IrBuilderVisitor builder =
-              new IrBuilderVisitor(elementsMapping, compiler, sourceFile);
-          ir.FunctionDefinition function;
-          ElementKind kind = element.kind;
-          if (kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-            // TODO(lry): build ir for constructors.
-          } else if (element.isDeferredLoaderGetter) {
-            // TODO(sigurdm): Build ir for deferred loader functions.
-          } else if (kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY ||
-              kind == ElementKind.FUNCTION ||
-              kind == ElementKind.GETTER ||
-              kind == ElementKind.SETTER) {
-            function = builder.buildFunction(element);
-          } else if (kind == ElementKind.FIELD) {
-            // TODO(lry): build ir for lazy initializers of static fields.
-          } else {
-            compiler.internalError(element, 'Unexpected element kind $kind.');
-          }
-
-          if (function != null) {
-            nodes[element] = function;
-            compiler.tracer.traceCompilation(element.name, null);
-            compiler.tracer.traceGraph("IR Builder", function);
-          }
+            if (function != null) {
+              nodes[element] = function;
+              compiler.tracer.traceCompilation(element.name, null);
+              compiler.tracer.traceGraph("IR Builder", function);
+            }
+          });
         }
       });
     });
@@ -365,6 +366,7 @@ class IrBuilder {
  * an expression.
  */
 class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
+  final Compiler compiler;
   final SourceFile sourceFile;
   final List<ir.Parameter> parameters;
 
@@ -402,14 +404,14 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   final DetectClosureVariables closureLocals;
 
   /// Construct a top-level visitor.
-  IrBuilderVisitor(TreeElements elements, Compiler compiler, this.sourceFile)
+  IrBuilderVisitor(TreeElements elements, this.compiler, this.sourceFile)
       : parameters = <ir.Parameter>[],
         environment = new Environment.empty(),
         breakCollectors = <JumpCollector>[],
         continueCollectors = <JumpCollector>[],
         localConstants = <ConstDeclaration>[],
         closureLocals = new DetectClosureVariables(elements),
-        super(elements, compiler) {
+        super(elements) {
     constantSystem = compiler.backend.constantSystem;
     constantBuilder = new ConstExpBuilder(this);
   }
@@ -421,7 +423,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   /// environment.  It has its own context for building an IR expression, so
   /// the built expression is not plugged into the parent's context.
   IrBuilderVisitor.delimited(IrBuilderVisitor parent)
-      : sourceFile = parent.sourceFile,
+      : compiler = parent.compiler,
+        sourceFile = parent.sourceFile,
         parameters = <ir.Parameter>[],
         environment = new Environment.from(parent.environment),
         breakCollectors = parent.breakCollectors,
@@ -430,7 +433,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         localConstants = parent.localConstants,
         currentFunction = parent.currentFunction,
         closureLocals = parent.closureLocals,
-        super(parent.elements, parent.compiler) {
+        super(parent.elements) {
     constantSystem = parent.constantSystem;
     returnContinuation = parent.returnContinuation;
   }
@@ -444,7 +447,8 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
   /// which may be eliminated later if they are redundant---if they take on
   /// the same value at all invocation sites.
   IrBuilderVisitor.recursive(IrBuilderVisitor parent)
-      : sourceFile = parent.sourceFile,
+      : compiler = parent.compiler,
+        sourceFile = parent.sourceFile,
         parameters = <ir.Parameter>[],
         environment = new Environment.empty(),
         breakCollectors = parent.breakCollectors,
@@ -453,7 +457,7 @@ class IrBuilderVisitor extends ResolvedVisitor<ir.Primitive> with IrBuilder {
         localConstants = parent.localConstants,
         currentFunction = parent.currentFunction,
         closureLocals = parent.closureLocals,
-        super(parent.elements, parent.compiler) {
+        super(parent.elements) {
     constantSystem = parent.constantSystem;
     returnContinuation = parent.returnContinuation;
     for (Element element in parent.environment.index2variable) {
