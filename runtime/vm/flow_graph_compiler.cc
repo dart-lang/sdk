@@ -1351,18 +1351,23 @@ ParallelMoveResolver::ScratchFpuRegisterScope::~ScratchFpuRegisterScope() {
 }
 
 
+static inline intptr_t MaskBit(Register reg) {
+  return (reg != kNoRegister) ? (1 << reg) : 0;
+}
+
+
 ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
     ParallelMoveResolver* resolver, Register blocked)
     : resolver_(resolver),
       reg_(kNoRegister),
       spilled_(false) {
-  uword blocked_mask = ((blocked > kNoRegister) ? 1 << blocked : 0)
-                     | 1 << CTX
-                     | 1 << SPREG
-                     | 1 << FPREG
-                     | ((TMP > kNoRegister) ? 1 << TMP : 0)
-                     | ((TMP2 > kNoRegister) ? 1 << TMP2 : 0)
-                     | ((PP > kNoRegister) ? 1 << PP : 0);
+  uword blocked_mask = MaskBit(blocked)
+                     | MaskBit(CTX)
+                     | MaskBit(SPREG)
+                     | MaskBit(FPREG)
+                     | MaskBit(TMP)
+                     | MaskBit(TMP2)
+                     | MaskBit(PP);
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
                                          blocked_mask,
