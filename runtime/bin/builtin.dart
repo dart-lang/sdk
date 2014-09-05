@@ -307,7 +307,9 @@ Uri _createUri(String userUri) {
     default:
       // Only handling file, http, and package URIs
       // in standalone binary.
-      _logResolution('# Unknown scheme (${uri.scheme}) in $uri.');
+      if (_logBuiltin) {
+        _print('# Unknown scheme (${uri.scheme}) in $uri.');
+      }
       throw 'Not a known scheme: $uri';
   }
 }
