@@ -380,10 +380,6 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     // Resolve the url within the context of the library's URL.
     Dart_Handle builtin_lib =
         Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    Dart_Handle library_url = Dart_LibraryUrl(library);
-    if (Dart_IsError(library_url)) {
-      return library_url;
-    }
     return ResolveUri(library_url, url, builtin_lib);
   }
 

@@ -172,10 +172,8 @@ String _filePathFromUri(String userUri) {
     case '':
     case 'file':
       return uri.toFilePath();
-      break;
     case 'package':
       return _filePathFromPackageUri(uri);
-      break;
     case 'http':
       return uri.toString();
     default:
@@ -282,27 +280,43 @@ void _asyncLoadError(uri, libraryUri, error) {
 }
 
 
+// Create a Uri of 'userUri'. If the input uri is a package uri, then the
+// package uri is resolved.
+Uri _createUri(String userUri) {
+  var uri = Uri.parse(userUri);
+  _logResolution('# Creating uri for: $uri');
+
+  switch (uri.scheme) {
+    case '':
+    case 'file':
+    case 'http':
+      return uri;
+    case 'package':
+      return Uri.parse(_filePathFromPackageUri(uri));
+    default:
+      // Only handling file, http, and package URIs
+      // in standalone binary.
+      _logResolution('# Unknown scheme (${uri.scheme}) in $uri.');
+      throw 'Not a known scheme: $uri';
+  }
+}
+
+
 // Asynchronously loads script data through a http or file uri.
 _loadDataAsync(int tag, String uri, String libraryUri) {
-  var filePath;
-  Uri sourceUri;
   if (tag == null) {
     uri = _resolveScriptUri(uri);
-    sourceUri = Uri.parse(uri);
-    filePath = _filePathFromUri(uri);
-  } else {
-    filePath = _filePathFromUri(uri);
-    sourceUri = Uri.parse(filePath);
   }
+  Uri resourceUri = _createUri(uri);
   _numOutstandingLoadRequests++;
   _logResolution("_loadDataAsync($uri), "
                  "${_numOutstandingLoadRequests} requests outstanding");
-  if (sourceUri.scheme == 'http') {
-    _httpGet(sourceUri, libraryUri, (data) {
+  if (resourceUri.scheme == 'http') {
+    _httpGet(resourceUri, libraryUri, (data) {
       _loadScript(tag, uri, libraryUri, data);
     });
   } else {
-    var sourceFile = new File(filePath);
+    var sourceFile = new File(resourceUri.toFilePath());
     sourceFile.readAsBytes().then((data) {
       _loadScript(tag, uri, libraryUri, data);
     },
