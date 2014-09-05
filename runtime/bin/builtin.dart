@@ -27,14 +27,7 @@ class _Logger {
 
 _getPrintClosure() => _print;
 
-
-void _logResolution(String msg) {
-  final enabled = false;
-  if (enabled) {
-    _Logger._printString(msg);
-  }
-}
-
+const _logBuiltin = false;
 
 // Corelib 'Uri.base' implementation.
 Uri _uriBase() {
@@ -112,7 +105,9 @@ void _setWorkingDirectory(cwd) {
   cwd = _sanitizeWindowsPath(cwd);
   cwd = _enforceTrailingSlash(cwd);
   _workingDirectoryUri = new Uri(scheme: 'file', path: cwd);
-  _logResolution('# Working Directory: $cwd');
+  if (_logBuiltin) {
+    _print('# Working Directory: $cwd');
+  }
 }
 
 
@@ -125,7 +120,9 @@ _setPackageRoot(String packageRoot) {
   } else {
     _packageRoot = _workingDirectoryUri.resolveUri(new Uri.file(packageRoot));
   }
-  _logResolution('# Package root: $packageRoot -> $_packageRoot');
+  if (_logBuiltin) {
+    _print('# Package root: $packageRoot -> $_packageRoot');
+  }
 }
 
 
@@ -144,14 +141,18 @@ String _resolveScriptUri(String scriptName) {
     // resolve it against the working directory.
     _entryPointScript = _workingDirectoryUri.resolve(scriptName);
   }
-  _logResolution('# Resolved entry point to: $_entryPointScript');
+  if (_logBuiltin) {
+    _print('# Resolved entry point to: $_entryPointScript');
+  }
   return _entryPointScript.toString();
 }
 
 const _DART_EXT = 'dart-ext:';
 
 String _resolveUri(String base, String userString) {
-  _logResolution('# Resolving: $userString from $base');
+  if (_logBuiltin) {
+    _print('# Resolving: $userString from $base');
+  }
   var baseUri = Uri.parse(base);
   if (userString.startsWith(_DART_EXT)) {
     var uri = userString.substring(_DART_EXT.length);
@@ -165,7 +166,9 @@ String _resolveUri(String base, String userString) {
 // Returns either a file path or a URI starting with http:, as a String.
 String _filePathFromUri(String userUri) {
   var uri = Uri.parse(userUri);
-  _logResolution('# Getting file path from: $uri');
+  if (_logBuiltin) {
+    _print('# Getting file path from: $uri');
+  }
 
   var path;
   switch (uri.scheme) {
@@ -179,7 +182,9 @@ String _filePathFromUri(String userUri) {
     default:
       // Only handling file, http, and package URIs
       // in standalone binary.
-      _logResolution('# Unknown scheme (${uri.scheme}) in $uri.');
+      if (_logBuiltin) {
+        _print('# Unknown scheme (${uri.scheme}) in $uri.');
+      }
       throw 'Not a known scheme: $uri';
   }
 }
@@ -256,8 +261,10 @@ void _loadScript(int tag, String uri, String libraryUri, List<int> data) {
   _loadScriptCallback(tag, uri, libraryUri, data);
   assert(_numOutstandingLoadRequests > 0);
   _numOutstandingLoadRequests--;
-  _logResolution("native Builtin_LoadScript($uri) completed, "
-                 "${_numOutstandingLoadRequests} requests remaining");
+  if (_logBuiltin) {
+    _print("native Builtin_LoadScript($uri) completed, "
+           "${_numOutstandingLoadRequests} requests remaining");
+  }
   if (_numOutstandingLoadRequests == 0) {
     _signalDoneLoading();
     _cleanup();
@@ -270,7 +277,9 @@ void _asyncLoadErrorCallback(uri, libraryUri, error)
 
 void _asyncLoadError(uri, libraryUri, error) {
   assert(_numOutstandingLoadRequests > 0);
-  _logResolution("_asyncLoadError($uri), error: $error");
+  if (_logBuiltin) {
+    _print("_asyncLoadError($uri), error: $error");
+  }
   _numOutstandingLoadRequests--;
   _asyncLoadErrorCallback(uri, libraryUri, error);
   if (_numOutstandingLoadRequests == 0) {
@@ -284,7 +293,9 @@ void _asyncLoadError(uri, libraryUri, error) {
 // package uri is resolved.
 Uri _createUri(String userUri) {
   var uri = Uri.parse(userUri);
-  _logResolution('# Creating uri for: $uri');
+  if (_logBuiltin) {
+    _print('# Creating uri for: $uri');
+  }
 
   switch (uri.scheme) {
     case '':
@@ -309,8 +320,10 @@ _loadDataAsync(int tag, String uri, String libraryUri) {
   }
   Uri resourceUri = _createUri(uri);
   _numOutstandingLoadRequests++;
-  _logResolution("_loadDataAsync($uri), "
-                 "${_numOutstandingLoadRequests} requests outstanding");
+  if (_logBuiltin) {
+    _print("_loadDataAsync($uri), "
+           "${_numOutstandingLoadRequests} requests outstanding");
+  }
   if (resourceUri.scheme == 'http') {
     _httpGet(resourceUri, libraryUri, (data) {
       _loadScript(tag, uri, libraryUri, data);
@@ -364,8 +377,9 @@ _extensionPathFromUri(String userUri) {
   } else if (Platform.isWindows) {
     filename = '$name.dll';
   } else {
-    _logResolution(
-        'Native extensions not supported on ${Platform.operatingSystem}');
+    if (_logBuiltin) {
+      _print('Native extensions not supported on ${Platform.operatingSystem}');
+    }
     throw 'Native extensions not supported on ${Platform.operatingSystem}';
   }
 
