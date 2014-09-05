@@ -274,8 +274,11 @@ patch class Isolate {
   }
 
   /* patch */ static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message, { bool paused: false }) {
+      Uri uri, List<String> args, var message,
+      { bool paused: false, Uri packageRoot }) {
     // `paused` isn't handled yet.
+    // `packageRoot` isn't handled yet.
+    if (packageRoot != null) throw new UnimplementedError("packageRoot");
     RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] and not `main`.
