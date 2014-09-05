@@ -299,6 +299,7 @@ const uword kUwordMax = kMaxUint64;
 const int kBitsPerByte = 8;
 const int kBitsPerByteLog2 = 3;
 const int kBitsPerWord = kWordSize * kBitsPerByte;
+const int kBitsPerWordLog2 = kWordSizeLog2 + kBitsPerByteLog2;
 
 // System-wide named constants.
 const intptr_t KB = 1024;

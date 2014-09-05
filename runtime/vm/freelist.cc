@@ -196,6 +196,7 @@ void FreeList::FreeLocked(uword addr, intptr_t size) {
 void FreeList::Reset() {
   MutexLocker ml(mutex_);
   free_map_.Reset();
+  last_free_small_size_ = -1;
   for (int i = 0; i < (kNumLists + 1); i++) {
     free_lists_[i] = NULL;
   }
@@ -206,7 +207,7 @@ intptr_t FreeList::IndexForSize(intptr_t size) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 
-  intptr_t index = size / kObjectAlignment;
+  intptr_t index = size >> kObjectAlignmentLog2;
   if (index >= kNumLists) {
     index = kNumLists;
   }
@@ -218,6 +219,8 @@ void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
   FreeListElement* next = free_lists_[index];
   if (next == NULL && index != kNumLists) {
     free_map_.Set(index, true);
+    last_free_small_size_ = Utils::Maximum(last_free_small_size_,
+                                           index << kObjectAlignmentLog2);
   }
   element->set_next(next);
   free_lists_[index] = element;
@@ -229,6 +232,12 @@ FreeListElement* FreeList::DequeueElement(intptr_t index) {
   FreeListElement* next = result->next();
   if (next == NULL && index != kNumLists) {
     free_map_.Set(index, false);
+    intptr_t size = index << kObjectAlignmentLog2;
+    if (size == last_free_small_size_) {
+      // Note: Last() returns -1 if none are set; avoid shift of negative.
+      last_free_small_size_ = free_map_.Last() * kObjectAlignment;
+      // TODO(koda): Consider adding BitSet::Previous(i).
+    }
   }
   free_lists_[index] = next;
   return result;
@@ -344,6 +353,12 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
 
 FreeListElement* FreeList::TryAllocateLarge(intptr_t minimum_size) {
   MutexLocker ml(mutex_);
+  return TryAllocateLargeLocked(minimum_size);
+}
+
+
+FreeListElement* FreeList::TryAllocateLargeLocked(intptr_t minimum_size) {
+  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
   FreeListElement* previous = NULL;
   FreeListElement* current = free_lists_[kNumLists];
   // TODO(koda): Find largest.
@@ -361,6 +376,27 @@ FreeListElement* FreeList::TryAllocateLarge(intptr_t minimum_size) {
     current = next;
   }
   return NULL;
+}
+
+
+uword FreeList::TryAllocateSmallLocked(intptr_t size) {
+  DEBUG_ASSERT(mutex_->Owner() == Isolate::Current());
+  if (size > last_free_small_size_) {
+    return 0;
+  }
+  int index = IndexForSize(size);
+  if (index != kNumLists && free_map_.Test(index)) {
+    return reinterpret_cast<uword>(DequeueElement(index));
+  }
+  if ((index + 1) < kNumLists) {
+    intptr_t next_index = free_map_.Next(index + 1);
+    if (next_index != -1) {
+      FreeListElement* element = DequeueElement(next_index);
+      SplitElementAfterAndEnqueue(element, size, false);
+      return reinterpret_cast<uword>(element);
+    }
+  }
+  return 0;
 }
 
 }  // namespace dart

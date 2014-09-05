@@ -305,6 +305,8 @@ class PageSpace {
 
   // Attempt to allocate from bump block rather than normal freelist.
   uword TryAllocateDataBump(intptr_t size, GrowthPolicy growth_policy);
+  uword TryAllocateDataBumpLocked(intptr_t size, GrowthPolicy growth_policy);
+  uword TryAllocatePromoLocked(intptr_t size, GrowthPolicy growth_policy);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -332,6 +334,9 @@ class PageSpace {
                                HeapPage::PageType type,
                                GrowthPolicy growth_policy,
                                bool is_locked);
+  uword TryAllocateDataBumpInternal(intptr_t size,
+                                    GrowthPolicy growth_policy,
+                                    bool is_locked);
   HeapPage* AllocatePage(HeapPage::PageType type);
   void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);

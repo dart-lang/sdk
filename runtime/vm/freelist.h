@@ -94,6 +94,11 @@ class FreeList {
 
   // Returns a large element, at least 'minimum_size', or NULL if none exists.
   FreeListElement* TryAllocateLarge(intptr_t minimum_size);
+  FreeListElement* TryAllocateLargeLocked(intptr_t minimum_size);
+
+  // Allocates locked and unprotected memory, but only from small elements
+  // (i.e., fixed size lists).
+  uword TryAllocateSmallLocked(intptr_t size);
 
  private:
   static const int kNumLists = 128;
@@ -118,6 +123,9 @@ class FreeList {
   BitSet<kNumLists> free_map_;
 
   FreeListElement* free_lists_[kNumLists + 1];
+
+  // The largest available small size in bytes, or negative if there is none.
+  intptr_t last_free_small_size_;
 
   DISALLOW_COPY_AND_ASSIGN(FreeList);
 };
