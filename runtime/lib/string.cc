@@ -234,21 +234,15 @@ DEFINE_NATIVE_ENTRY(String_getLength, 1) {
 
 static int32_t StringValueAt(const String& str, const Integer& index) {
   if (index.IsSmi()) {
-    const Smi& smi = Smi::Cast(index);
-    intptr_t index = smi.Value();
-    if ((index < 0) || (index >= str.Length())) {
-      const Array& args = Array::Handle(Array::New(1));
-      args.SetAt(0, smi);
-      Exceptions::ThrowByType(Exceptions::kRange, args);
+    const intptr_t index_value = Smi::Cast(index).Value();
+    if ((0 <= index_value) && (index_value < str.Length())) {
+      return str.CharAt(index_value);
     }
-    return str.CharAt(index);
-  } else {
-    // An index larger than Smi is always illegal.
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, index);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
-    return 0;
   }
+
+  // An index larger than Smi is always illegal.
+  Exceptions::ThrowRangeError("index", index, 0, str.Length());
+  return 0;
 }
 
 
@@ -336,9 +330,7 @@ DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
   intptr_t array_length = codeUnits.Length();
   intptr_t length_value = length.Value();
   if (length_value < 0 || length_value > array_length) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, length);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
+    Exceptions::ThrowRangeError("length", length, 0, array_length + 1);
   }
   const String& result = isLatin1.value()
       ? String::Handle(OneByteString::New(length_value, Heap::kNew))

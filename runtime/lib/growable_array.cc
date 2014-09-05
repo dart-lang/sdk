@@ -16,11 +16,12 @@ DEFINE_NATIVE_ENTRY(GrowableList_allocate, 2) {
   const TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, data, arguments->NativeArgAt(1));
-  if ((data.Length() <= 0)) {
-    const Integer& index = Integer::Handle(Integer::New(data.Length()));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, index);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
+  if (data.Length() <= 0) {
+    Exceptions::ThrowRangeError(
+        "length",
+        Integer::Handle(Integer::New(data.Length())),
+        1,
+        Array::kMaxElements);
   }
   const GrowableObjectArray& new_array =
       GrowableObjectArray::Handle(GrowableObjectArray::New(data));
@@ -34,9 +35,7 @@ DEFINE_NATIVE_ENTRY(GrowableList_getIndexed, 2) {
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, index);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
+    Exceptions::ThrowRangeError("index", index, 0, array.Length());
   }
   const Instance& obj = Instance::CheckedHandle(array.At(index.Value()));
   return obj.raw();
@@ -48,9 +47,7 @@ DEFINE_NATIVE_ENTRY(GrowableList_setIndexed, 3) {
       GrowableObjectArray::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, index);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
+    Exceptions::ThrowRangeError("index", index, 0, array.Length());
   }
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(2));
   array.SetAt(index.Value(), value);

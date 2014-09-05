@@ -21,13 +21,12 @@ static void RangeCheck(intptr_t offset_in_bytes,
                        intptr_t length_in_bytes,
                        intptr_t element_size_in_bytes) {
   if (!Utils::RangeCheck(offset_in_bytes, access_size, length_in_bytes)) {
-    const String& error = String::Handle(String::NewFormatted(
-        "index (%" Pd ") must be in the range [0..%" Pd ")",
-        (offset_in_bytes + access_size) / element_size_in_bytes,
-        (length_in_bytes / element_size_in_bytes)));
-    const Array& args = Array::Handle(Array::New(1));
-    args.SetAt(0, error);
-    Exceptions::ThrowByType(Exceptions::kRange, args);
+    const intptr_t index =
+        (offset_in_bytes + access_size) / element_size_in_bytes;
+    const intptr_t length =
+        length_in_bytes / element_size_in_bytes;
+    Exceptions::ThrowRangeError(
+        "index", Integer::Handle(Integer::New(index)), 0, length);
   }
 }
 
