@@ -26,8 +26,7 @@ main() {
     pubGet(output: contains("Precompiled foo:hello."));
 
     d.dir(p.join(appPath, '.pub', 'bin'), [
-      d.file('sdk-version', '0.0.1'),
-      d.dir('foo', [d.file('hello.dart.snapshot', 'junk')])
+      d.dir('foo', [d.outOfDateSnapshot('hello.dart.snapshot')])
     ]).create();
 
     var process = pubRun(args: ['foo:hello']);

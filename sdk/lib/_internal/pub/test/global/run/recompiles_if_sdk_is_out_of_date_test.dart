@@ -24,10 +24,7 @@ main() {
     d.dir(cachePath, [
       d.dir('global_packages', [
         d.dir('foo', [
-          d.dir('bin', [
-            d.file('sdk-version', '0.0.1\n'),
-            d.file('script.dart.snapshot', 'junk')
-          ])
+          d.dir('bin', [d.outOfDateSnapshot('script.dart.snapshot')])
         ])
       ])
     ]).create();
@@ -43,7 +40,6 @@ main() {
       d.dir('global_packages', [
         d.dir('foo', [
           d.dir('bin', [
-            d.file('sdk-version', '0.1.2+3\n'),
             d.matcherFile('script.dart.snapshot', contains('ok'))
           ])
         ])

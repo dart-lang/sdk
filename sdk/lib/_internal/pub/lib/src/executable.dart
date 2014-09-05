@@ -16,7 +16,6 @@ import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'io.dart';
 import 'log.dart' as log;
-import 'sdk.dart' as sdk;
 import 'utils.dart';
 
 /// Runs [executable] from [package] reachable from [entrypoint].
@@ -131,45 +130,61 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
 /// Runs the snapshot at [path] with [args] and hooks its stdout, stderr, and
 /// sdtin to this process's.
 ///
+/// If [recompile] is passed, it's called if the snapshot is out-of-date. It's
+/// expected to regenerate a snapshot at [path], after which the snapshot will
+/// be re-run. It may return a Future.
+///
+/// If [checked] is set, runs the snapshot in checked mode.
+///
 /// Returns the snapshot's exit code.
 ///
 /// This doesn't do any validation of the snapshot's SDK version.
-Future<int> runSnapshot(String path, Iterable<String> args) async {
+Future<int> runSnapshot(String path, Iterable<String> args, {recompile(),
+    bool checked: false}) async {
   var vmArgs = [path]..addAll(args);
 
-  var process = await Process.start(Platform.executable, vmArgs);
-  // Note: we're not using process.std___.pipe(std___) here because
-  // that prevents pub from also writing to the output streams.
-  process.stderr.listen(stderr.add);
-  process.stdout.listen(stdout.add);
-  stdin.listen(process.stdin.add);
+  // TODO(nweiz): pass a flag to silence the "Wrong full snapshot version"
+  // message when issue 20784 is fixed.
+  if (checked) vmArgs.insert(0, "--checked");
 
-  return process.exitCode;
+  // We need to split stdin so that we can send the same input both to the
+  // first and second process, if we start more than one.
+  var stdin1;
+  var stdin2;
+  if (recompile == null) {
+    stdin1 = stdin;
+  } else {
+    var pair = tee(stdin);
+    stdin1 = pair.first;
+    stdin2 = pair.last;
+  }
+
+  runProcess(input) async {
+    var process = await Process.start(Platform.executable, vmArgs);
+
+    // Note: we're not using process.std___.pipe(std___) here because
+    // that prevents pub from also writing to the output streams.
+    process.stderr.listen(stderr.add);
+    process.stdout.listen(stdout.add);
+    input.listen(process.stdin.add);
+
+    return process.exitCode;
+  }
+
+  var exitCode = await runProcess(stdin1);
+  if (recompile == null || exitCode != 255) return exitCode;
+
+  // Exit code 255 indicates that the snapshot version was out-of-date. If we
+  // can recompile, do so.
+  await recompile();
+  return runProcess(stdin2);
 }
 
 /// Runs the executable snapshot at [snapshotPath].
 Future<int> _runCachedExecutable(Entrypoint entrypoint, String snapshotPath,
-    List<String> args) async {
-  // If the snapshot was compiled with a different SDK version, we need to
-  // recompile it.
-  var sdkVersionPath = p.join(".pub", "bin", "sdk-version");
-  if (!fileExists(sdkVersionPath) ||
-      readTextFile(sdkVersionPath) != "${sdk.version}\n") {
-    log.fine("Precompiled executables are out of date.");
-    await entrypoint.precompileExecutables();
-  }
-
-  // TODO(rnystrom): Use cascade here when async_await compiler supports it.
-  // See: https://github.com/dart-lang/async_await/issues/26.
-  var vmArgs = ["--checked", snapshotPath];
-  vmArgs.addAll(args);
-
-  var process = await Process.start(Platform.executable, vmArgs);
-  // Note: we're not using process.std___.pipe(std___) here because
-  // that prevents pub from also writing to the output streams.
-  process.stderr.listen(stderr.add);
-  process.stdout.listen(stdout.add);
-  stdin.listen(process.stdin.add);
-
-  return process.exitCode;
+    List<String> args) {
+  return runSnapshot(snapshotPath, args, checked: true, recompile: () {
+    log.fine("Precompiled executable is out of date.");
+    return entrypoint.precompileExecutables();
+  });
 }

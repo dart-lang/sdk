@@ -18,9 +18,7 @@ import 'lock_file.dart';
 import 'log.dart' as log;
 import 'package.dart';
 import 'pubspec.dart';
-import 'package_graph.dart';
 import 'system_cache.dart';
-import 'sdk.dart' as sdk;
 import 'solver/version_solver.dart';
 import 'source/cached.dart';
 import 'source/git.dart';
@@ -149,9 +147,7 @@ class GlobalPackages {
   Future _precompileExecutables(Entrypoint entrypoint, String package) {
     return log.progress("Precompiling executables", () {
       var binDir = p.join(_directory, package, 'bin');
-      var sdkVersionPath = p.join(binDir, 'sdk-version');
       cleanDir(binDir);
-      writeTextFile(sdkVersionPath, "${sdk.version}\n");
 
       return AssetEnvironment.create(entrypoint, BarbackMode.RELEASE,
           useDart2JS: false).then((environment) {
@@ -314,18 +310,14 @@ class GlobalPackages {
       log.verbosity = log.Verbosity.WARNING;
     }
 
-    return syncFuture(() {
-      var sdkVersionPath = p.join(binDir, 'sdk-version');
-      var snapshotVersion = readTextFile(sdkVersionPath);
-      if (snapshotVersion == "${sdk.version}\n") return null;
-      log.fine("$package:$executable was compiled with Dart "
-          "${snapshotVersion.trim()} and needs to be recompiled.");
-
+    var snapshotPath = p.join(binDir, '$executable.dart.snapshot');
+    return exe.runSnapshot(snapshotPath, args, recompile: () {
+      log.fine("$package:$executable is out of date and needs to be "
+          "recompiled.");
       return find(package)
           .then((entrypoint) => entrypoint.loadPackageGraph())
           .then((graph) => _precompileExecutables(graph.entrypoint, package));
-    }).then((_) =>
-        exe.runSnapshot(p.join(binDir, '$executable.dart.snapshot'), args));
+    });
   }
 
   /// Gets the path to the lock file for an activated cached package with

@@ -33,7 +33,6 @@ main() {
         d.dir('foo', [
           d.matcherFile('pubspec.lock', contains('1.0.0')),
           d.dir('bin', [
-            d.file('sdk-version', '0.1.2+3\n'),
             d.matcherFile('hello.dart.snapshot', contains('hello!')),
             d.matcherFile('goodbye.dart.snapshot', contains('goodbye!')),
             d.nothing('shell.sh.snapshot'),
