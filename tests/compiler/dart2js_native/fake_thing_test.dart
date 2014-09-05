@@ -7,6 +7,9 @@ import "package:expect/expect.dart";
 // Test that native objects cannot accidentally or maliciously be mistaken for
 // Dart objects.
 
+// This test currently fails because we do not recognize the need for
+// interceptors without native *classes*.
+
 class Thing {
 }
 
@@ -20,10 +23,16 @@ make1 = function(){return new A;};
 make2 = function(){return {$isThing: true}};
 """;
 
-var inscrutable;
+inscrutable(x) {
+  if (new DateTime.now().millisecondsSinceEpoch == 0) {
+    return x;
+  } else {
+    return 42;
+  }
+}
+
 main() {
   setup();
-  inscrutable = (x) => x;
 
   var a = new Thing();
   var b = make1();
