@@ -3,11 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:glob/glob.dart';
+import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
 void main() {
   test("supports backslash-escaped characters", () {
     expect(r"\*[]{,}?()", contains(new Glob(r"\\\*\[\]\{\,\}\?\(\)")));
+    if (p.style != p.Style.windows) {
+      expect(r"foo\bar", contains(new Glob(r"foo\\bar")));
+    }
   });
 
   test("disallows an empty glob", () {

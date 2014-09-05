@@ -6,8 +6,12 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
-const ASCII_WITHOUT_SLASH = "\t\n\r !\"#\$%&'()*+`-.0123456789:;<=>?@ABCDEFGHIJ"
-    "KLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+const RAW_ASCII_WITHOUT_SLASH = "\t\n\r !\"#\$%&'()*+`-.0123456789:;<=>?@ABCDEF"
+    "GHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
+// URL-encode the path for a URL context.
+final asciiWithoutSlash = p.style == p.Style.url ?
+    Uri.encodeFull(RAW_ASCII_WITHOUT_SLASH) : RAW_ASCII_WITHOUT_SLASH;
 
 void main() {
   test("literals match exactly", () {
@@ -16,10 +20,15 @@ void main() {
     expect("foo*", contains(new Glob(r"foo\*")));
   });
 
+  test("backslashes match nothing on Windows", () {
+    expect(r"foo\bar",
+        isNot(contains(new Glob(r"foo\\bar", context: p.windows))));
+  });
+
   group("star", () {
     test("matches non-separator characters", () {
       var glob = new Glob("*");
-      expect(ASCII_WITHOUT_SLASH, contains(glob));
+      expect(asciiWithoutSlash, contains(glob));
     });
 
     test("matches the empty string", () {
@@ -36,7 +45,7 @@ void main() {
   group("double star", () {
     test("matches non-separator characters", () {
       var glob = new Glob("**");
-      expect(ASCII_WITHOUT_SLASH, contains(glob));
+      expect(asciiWithoutSlash, contains(glob));
     });
 
     test("matches the empty string", () {
@@ -65,7 +74,8 @@ void main() {
   group("any char", () {
     test("matches any non-separator character", () {
       var glob = new Glob("foo?");
-      for (var char in ASCII_WITHOUT_SLASH.split('')) {
+      for (var char in RAW_ASCII_WITHOUT_SLASH.split('')) {
+        if (p.style == p.Style.url) char = Uri.encodeFull(char);
         expect("foo$char", contains(glob));
       }
     });
