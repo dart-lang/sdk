@@ -13,7 +13,7 @@ import 'package:path/path.dart' as p;
 /// Increment this whenever a meaningful change in the async/await compiler
 /// itself is landed. Bumping this will force all previously compiled files
 /// that were compiled against an older compiler to be recompiled.
-const COMPILER_VERSION = "1";
+const COMPILER_VERSION = "2";
 
 /// The path to pub's root directory (sdk/lib/_internal/pub) in the Dart repo.
 ///

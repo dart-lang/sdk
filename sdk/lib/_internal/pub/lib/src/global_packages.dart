@@ -68,19 +68,18 @@ class GlobalPackages {
 
   /// Caches the package located in the Git repository [repo] and makes it the
   /// active global version.
-  Future activateGit(String repo) {
+  Future activateGit(String repo) async {
     var source = cache.sources["git"] as GitSource;
-    return source.getPackageNameFromRepo(repo).then((name) {
-      // Call this just to log what the current active package is, if any.
-      _describeActive(name);
+    var name = await source.getPackageNameFromRepo(repo);
+    // Call this just to log what the current active package is, if any.
+    _describeActive(name);
 
-      // TODO(nweiz): Add some special handling for git repos that contain path
-      // dependencies. Their executables shouldn't be cached, and there should
-      // be a mechanism for redoing dependency resolution if a path pubspec has
-      // changed (see also issue 20499).
-      return _installInCache(
-          new PackageDep(name, "git", VersionConstraint.any, repo));
-    });
+    // TODO(nweiz): Add some special handling for git repos that contain path
+    // dependencies. Their executables shouldn't be cached, and there should
+    // be a mechanism for redoing dependency resolution if a path pubspec has
+    // changed (see also issue 20499).
+    await _installInCache(
+        new PackageDep(name, "git", VersionConstraint.any, repo));
   }
 
   /// Finds the latest version of the hosted package with [name] that matches
@@ -91,32 +90,31 @@ class GlobalPackages {
   }
 
   /// Makes the local package at [path] globally active.
-  Future activatePath(String path) {
+  Future activatePath(String path) async {
     var entrypoint = new Entrypoint(path, cache);
 
     // Get the package's dependencies.
-    return entrypoint.ensureLockFileIsUpToDate().then((_) {
-      var name = entrypoint.root.name;
+    await entrypoint.ensureLockFileIsUpToDate();
+    var name = entrypoint.root.name;
 
-      // Call this just to log what the current active package is, if any.
-      _describeActive(name);
+    // Call this just to log what the current active package is, if any.
+    _describeActive(name);
 
-      // Write a lockfile that points to the local package.
-      var fullPath = canonicalize(entrypoint.root.dir);
-      var id = new PackageId(name, "path", entrypoint.root.version,
-          PathSource.describePath(fullPath));
+    // Write a lockfile that points to the local package.
+    var fullPath = canonicalize(entrypoint.root.dir);
+    var id = new PackageId(name, "path", entrypoint.root.version,
+        PathSource.describePath(fullPath));
 
-      // TODO(rnystrom): Look in "bin" and display list of binaries that
-      // user can run.
-      _writeLockFile(name, new LockFile([id]));
+    // TODO(rnystrom): Look in "bin" and display list of binaries that
+    // user can run.
+    _writeLockFile(name, new LockFile([id]));
 
-      var binDir = p.join(_directory, name, 'bin');
-      if (dirExists(binDir)) deleteEntry(binDir);
-    });
+    var binDir = p.join(_directory, name, 'bin');
+    if (dirExists(binDir)) deleteEntry(binDir);
   }
 
   /// Installs the package [dep] and its dependencies into the system cache.
-  Future _installInCache(PackageDep dep) {
+  Future _installInCache(PackageDep dep) async {
     var source = cache.sources[dep.source];
 
     // Create a dummy package with just [dep] so we can do resolution on it.
@@ -124,28 +122,26 @@ class GlobalPackages {
         dependencies: [dep], sources: cache.sources));
 
     // Resolve it and download its dependencies.
-    return resolveVersions(SolveType.GET, cache.sources, root).then((result) {
-      if (!result.succeeded) {
-        // If the package specified by the user doesn't exist, we want to
-        // surface that as a [DataError] with the associated exit code.
-        if (result.error.package != dep.name) throw result.error;
-        if (result.error is NoVersionException) dataError(result.error.message);
-        throw result.error;
-      }
-      result.showReport(SolveType.GET);
+    var result = await resolveVersions(SolveType.GET, cache.sources, root);
+    if (!result.succeeded) {
+      // If the package specified by the user doesn't exist, we want to
+      // surface that as a [DataError] with the associated exit code.
+      if (result.error.package != dep.name) throw result.error;
+      if (result.error is NoVersionException) dataError(result.error.message);
+      throw result.error;
+    }
+    result.showReport(SolveType.GET);
 
-      // Make sure all of the dependencies are locally installed.
-      return Future.wait(result.packages.map(_cacheDependency)).then((ids) {
-        var lockFile = new LockFile(ids);
+    // Make sure all of the dependencies are locally installed.
+    var ids = await Future.wait(result.packages.map(_cacheDependency));
+    var lockFile = new LockFile(ids);
 
-        // Load the package graph from [result] so we don't need to re-parse all
-        // the pubspecs.
-        return new Entrypoint.inMemory(root, lockFile, cache)
-            .loadPackageGraph(result)
-            .then((graph) => _precompileExecutables(graph.entrypoint, dep.name))
-            .then((_) => _writeLockFile(dep.name, lockFile));
-      });
-    });
+    // Load the package graph from [result] so we don't need to re-parse all
+    // the pubspecs.
+    var graph = await new Entrypoint.inMemory(root, lockFile, cache)
+        .loadPackageGraph(result);
+    await _precompileExecutables(graph.entrypoint, dep.name);
+    _writeLockFile(dep.name, lockFile);
   }
 
   /// Precompiles the executables for [package] and saves them in the global
@@ -171,15 +167,14 @@ class GlobalPackages {
   /// Downloads [id] into the system cache if it's a cached package.
   ///
   /// Returns the resolved [PackageId] for [id].
-  Future<PackageId> _cacheDependency(PackageId id) {
+  Future<PackageId> _cacheDependency(PackageId id) async {
     var source = cache.sources[id.source];
 
-    return syncFuture(() {
-      if (id.isRoot) return null;
-      if (source is! CachedSource) return null;
+    if (!id.isRoot && source is CachedSource) {
+      await source.downloadToSystemCache(id);
+    }
 
-      return source.downloadToSystemCache(id);
-    }).then((_) => source.resolveId(id));
+    return source.resolveId(id);
   }
 
   /// Finishes activating package [package] by saving [lockFile] in the cache.
@@ -249,6 +244,8 @@ class GlobalPackages {
   ///
   /// Returns an [Entrypoint] loaded with the active package if found.
   Future<Entrypoint> find(String name) {
+    // TODO(rnystrom): Use async/await here when on __ catch is supported.
+    // See: https://github.com/dart-lang/async_await/issues/27
     return syncFuture(() {
       var lockFilePath = _getLockFilePath(name);
       var lockFile;

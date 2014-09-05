@@ -129,7 +129,7 @@ int chooseExitCode(exception) {
 }
 
 /// Walks the command tree and runs the selected pub command.
-Future invokeCommand(String cacheDir, ArgResults mainOptions) {
+Future invokeCommand(String cacheDir, ArgResults mainOptions) async {
   var commands = PubCommand.mainCommands;
   var command;
   var commandString = "pub";
@@ -174,26 +174,25 @@ Future invokeCommand(String cacheDir, ArgResults mainOptions) {
         'Command "${options.name}" does not take any arguments.');
   }
 
-  return syncFuture(() {
+  try {
+    // TODO(rnystrom): Use await here when this is fixed:
+    // https://github.com/dart-lang/async_await/issues/40.
     return command.run(cacheDir, mainOptions, options);
-  }).whenComplete(() {
+  } finally {
     command.cache.deleteTempDir();
-  });
+  }
 }
 
 /// Checks that pub is running on a supported platform.
 ///
 /// If it isn't, it prints an error message and exits. Completes when the
 /// validation is done.
-Future validatePlatform() {
-  return syncFuture(() {
-    if (Platform.operatingSystem != 'windows') return null;
+Future validatePlatform() async {
+  if (Platform.operatingSystem != 'windows') return;
 
-    return runProcess('ver', []).then((result) {
-      if (result.stdout.join('\n').contains('XP')) {
-        log.error('Sorry, but pub is not supported on Windows XP.');
-        return flushThenExit(exit_codes.USAGE);
-      }
-    });
-  });
+  var result = await runProcess('ver', []);
+  if (result.stdout.join('\n').contains('XP')) {
+    log.error('Sorry, but pub is not supported on Windows XP.');
+    await flushThenExit(exit_codes.USAGE);
+  }
 }

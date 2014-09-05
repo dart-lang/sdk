@@ -28,14 +28,13 @@ class DowngradeCommand extends PubCommand {
         help: "Report what dependencies would change but don't change any.");
   }
 
-  Future onRun() {
+  Future onRun() async {
     var dryRun = commandOptions['dry-run'];
-    return entrypoint.acquireDependencies(SolveType.DOWNGRADE,
-        useLatest: commandOptions.rest, dryRun: dryRun).then((_) {
-      if (isOffline) {
-        log.warning("Warning: Downgrading when offline may not update you to "
-            "the oldest versions of your dependencies.");
-      }
-    });
+    await entrypoint.acquireDependencies(SolveType.DOWNGRADE,
+        useLatest: commandOptions.rest, dryRun: dryRun);
+    if (isOffline) {
+      log.warning("Warning: Downgrading when offline may not update you to "
+          "the oldest versions of your dependencies.");
+    }
   }
 }

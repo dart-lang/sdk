@@ -30,7 +30,7 @@ import 'utils.dart';
 ///
 /// Returns the exit code of the spawned app.
 Future<int> runExecutable(Entrypoint entrypoint, String package,
-    String executable, Iterable<String> args, {bool isGlobal: false}) {
+    String executable, Iterable<String> args, {bool isGlobal: false}) async {
   // Unless the user overrides the verbosity, we want to filter out the
   // normal pub output shown while loading the environment.
   if (log.verbosity == log.Verbosity.NORMAL) {
@@ -55,24 +55,21 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
     executable = p.join("bin", executable);
   }
 
-  var environment;
   // TODO(nweiz): Use [packages] to only load assets from packages that the
   // executable might load.
-  return AssetEnvironment.create(entrypoint, BarbackMode.RELEASE,
-      useDart2JS: false).then((_environment) {
-    environment = _environment;
+  var environment = await AssetEnvironment.create(entrypoint,
+      BarbackMode.RELEASE, useDart2JS: false);
+  environment.barback.errors.listen((error) {
+    log.error(log.red("Build error:\n$error"));
+  });
 
-    environment.barback.errors.listen((error) {
-      log.error(log.red("Build error:\n$error"));
-    });
-
-    if (package == entrypoint.root.name) {
-      // Serve the entire root-most directory containing the entrypoint. That
-      // ensures that, for example, things like `import '../../utils.dart';`
-      // will work from within some deeply nested script.
-      return environment.serveDirectory(rootDir);
-    }
-
+  var server;
+  if (package == entrypoint.root.name) {
+    // Serve the entire root-most directory containing the entrypoint. That
+    // ensures that, for example, things like `import '../../utils.dart';`
+    // will work from within some deeply nested script.
+    server = await environment.serveDirectory(rootDir);
+  } else {
     // Make sure the dependency exists.
     var dep = entrypoint.root.immediateDependencies.firstWhere(
         (dep) => dep.name == package, orElse: () => null);
@@ -87,46 +84,47 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
     }
 
     // For other packages, always use the "bin" directory.
-    return environment.servePackageBinDirectory(package);
-  }).then((server) {
-    // Try to make sure the entrypoint script exists (or is generated) before
-    // we spawn the process to run it.
-    var assetPath = "${p.url.joinAll(p.split(executable))}.dart";
-    var id = new AssetId(server.package, assetPath);
-    return environment.barback.getAssetById(id).then((_) {
-      var vmArgs = [];
+    server = await environment.servePackageBinDirectory(package);
+  }
 
-      // Run in checked mode.
-      // TODO(rnystrom): Make this configurable.
-      vmArgs.add("--checked");
+  // Try to make sure the entrypoint script exists (or is generated) before
+  // we spawn the process to run it.
+  var assetPath = "${p.url.joinAll(p.split(executable))}.dart";
+  var id = new AssetId(server.package, assetPath);
+  // TODO(rnystrom): Use try/catch here when
+  // https://github.com/dart-lang/async_await/issues/4 is fixed.
+  return environment.barback.getAssetById(id).then((_) async {
+    var vmArgs = [];
 
-      // Get the URL of the executable, relative to the server's root directory.
-      var relativePath = p.url.relative(assetPath,
-          from: p.url.joinAll(p.split(server.rootDirectory)));
-      vmArgs.add(server.url.resolve(relativePath).toString());
-      vmArgs.addAll(args);
+    // Run in checked mode.
+    // TODO(rnystrom): Make this configurable.
+    vmArgs.add("--checked");
 
-      return Process.start(Platform.executable, vmArgs).then((process) {
-        // Note: we're not using process.std___.pipe(std___) here because
-        // that prevents pub from also writing to the output streams.
-        process.stderr.listen(stderr.add);
-        process.stdout.listen(stdout.add);
-        stdin.listen(process.stdin.add);
+    // Get the URL of the executable, relative to the server's root directory.
+    var relativePath = p.url.relative(assetPath,
+        from: p.url.joinAll(p.split(server.rootDirectory)));
+    vmArgs.add(server.url.resolve(relativePath).toString());
+    vmArgs.addAll(args);
 
-        return process.exitCode;
-      });
-    }).catchError((error, stackTrace) {
-      if (error is! AssetNotFoundException) throw error;
+    var process = await Process.start(Platform.executable, vmArgs);
+    // Note: we're not using process.std___.pipe(std___) here because
+    // that prevents pub from also writing to the output streams.
+    process.stderr.listen(stderr.add);
+    process.stdout.listen(stdout.add);
+    stdin.listen(process.stdin.add);
 
-      var message = "Could not find ${log.bold(executable + ".dart")}";
-      if (package != entrypoint.root.name) {
-        message += " in package ${log.bold(server.package)}";
-      }
+    return process.exitCode;
+  }).catchError((error, stackTrace) {
+    if (error is! AssetNotFoundException) throw error;
 
-      log.error("$message.");
-      log.fine(new Chain.forTrace(stackTrace));
-      return exit_codes.NO_INPUT;
-    });
+    var message = "Could not find ${log.bold(executable + ".dart")}";
+    if (package != entrypoint.root.name) {
+      message += " in package ${log.bold(server.package)}";
+    }
+
+    log.error("$message.");
+    log.fine(new Chain.forTrace(stackTrace));
+    return exit_codes.NO_INPUT;
   });
 }
 
@@ -136,45 +134,42 @@ Future<int> runExecutable(Entrypoint entrypoint, String package,
 /// Returns the snapshot's exit code.
 ///
 /// This doesn't do any validation of the snapshot's SDK version.
-Future<int> runSnapshot(String path, Iterable<String> args) {
+Future<int> runSnapshot(String path, Iterable<String> args) async {
   var vmArgs = [path]..addAll(args);
 
-  return Process.start(Platform.executable, vmArgs).then((process) {
-    // Note: we're not using process.std___.pipe(std___) here because
-    // that prevents pub from also writing to the output streams.
-    process.stderr.listen(stderr.add);
-    process.stdout.listen(stdout.add);
-    stdin.listen(process.stdin.add);
+  var process = await Process.start(Platform.executable, vmArgs);
+  // Note: we're not using process.std___.pipe(std___) here because
+  // that prevents pub from also writing to the output streams.
+  process.stderr.listen(stderr.add);
+  process.stdout.listen(stdout.add);
+  stdin.listen(process.stdin.add);
 
-    return process.exitCode;
-  });
+  return process.exitCode;
 }
 
 /// Runs the executable snapshot at [snapshotPath].
-Future _runCachedExecutable(Entrypoint entrypoint, String snapshotPath,
-    List<String> args) {
-  return syncFuture(() {
-    // If the snapshot was compiled with a different SDK version, we need to
-    // recompile it.
-    var sdkVersionPath = p.join(".pub", "bin", "sdk-version");
-    if (fileExists(sdkVersionPath) &&
-        readTextFile(sdkVersionPath) == "${sdk.version}\n") {
-      return null;
-    }
-
+Future<int> _runCachedExecutable(Entrypoint entrypoint, String snapshotPath,
+    List<String> args) async {
+  // If the snapshot was compiled with a different SDK version, we need to
+  // recompile it.
+  var sdkVersionPath = p.join(".pub", "bin", "sdk-version");
+  if (!fileExists(sdkVersionPath) ||
+      readTextFile(sdkVersionPath) != "${sdk.version}\n") {
     log.fine("Precompiled executables are out of date.");
-    return entrypoint.precompileExecutables();
-  }).then((_) {
-    var vmArgs = ["--checked", snapshotPath]..addAll(args);
+    await entrypoint.precompileExecutables();
+  }
 
-    return Process.start(Platform.executable, vmArgs).then((process) {
-      // Note: we're not using process.std___.pipe(std___) here because
-      // that prevents pub from also writing to the output streams.
-      process.stderr.listen(stderr.add);
-      process.stdout.listen(stdout.add);
-      stdin.listen(process.stdin.add);
+  // TODO(rnystrom): Use cascade here when async_await compiler supports it.
+  // See: https://github.com/dart-lang/async_await/issues/26.
+  var vmArgs = ["--checked", snapshotPath];
+  vmArgs.addAll(args);
 
-      return process.exitCode;
-    });
-  });
+  var process = await Process.start(Platform.executable, vmArgs);
+  // Note: we're not using process.std___.pipe(std___) here because
+  // that prevents pub from also writing to the output streams.
+  process.stderr.listen(stderr.add);
+  process.stdout.listen(stdout.add);
+  stdin.listen(process.stdin.add);
+
+  return process.exitCode;
 }

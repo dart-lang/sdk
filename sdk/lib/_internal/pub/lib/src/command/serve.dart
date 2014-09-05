@@ -79,7 +79,7 @@ class ServeCommand extends BarbackCommand {
         help: 'Force the use of a polling filesystem watcher.');
   }
 
-  Future onRunTransformerCommand() {
+  Future onRunTransformerCommand() async {
     var port = parseInt(commandOptions['port'], 'port');
     var adminPort = commandOptions['admin-port'] == null ? null :
         parseInt(commandOptions['admin-port'], 'admin port');
@@ -87,91 +87,87 @@ class ServeCommand extends BarbackCommand {
     var watcherType = commandOptions['force-poll'] ?
         WatcherType.POLLING : WatcherType.AUTO;
 
-    return AssetEnvironment.create(entrypoint, mode, watcherType: watcherType,
-        hostname: hostname, basePort: port, useDart2JS: useDart2JS)
-        .then((environment) {
+    var environment = await AssetEnvironment.create(entrypoint, mode,
+        watcherType: watcherType, hostname: hostname, basePort: port,
+        useDart2JS: useDart2JS);
+    var directoryLength = sourceDirectories.map((dir) => dir.length)
+        .reduce(math.max);
 
-      var directoryLength = sourceDirectories.map((dir) => dir.length)
-          .reduce(math.max);
+    var server = await environment.startAdminServer(adminPort);
+    server.results.listen((_) {
+      // The admin server produces no result values.
+      assert(false);
+    }, onError: _fatalError);
 
-      return environment.startAdminServer(adminPort).then((server) {
-        server.results.listen((_) {
-          // The admin server produces no result values.
-          assert(false);
-        }, onError: _fatalError);
+    if (logAdminUrl) {
+      log.message("Running admin server on "
+          "${log.bold('http://$hostname:${server.port}')}");
+    }
 
-        if (logAdminUrl) {
-          log.message("Running admin server on "
-              "${log.bold('http://$hostname:${server.port}')}");
-        }
+    // Start up the servers. We pause updates while this is happening so
+    // that we don't log spurious build results in the middle of listing
+    // out the bound servers.
+    environment.pauseUpdates();
+    for (var directory in sourceDirectories) {
+      await _startServer(environment, directory, directoryLength);
+    }
 
-        // Start up the servers. We pause updates while this is happening so
-        // that we don't log spurious build results in the middle of listing
-        // out the bound servers.
-        environment.pauseUpdates();
-        return Future.forEach(sourceDirectories, (directory) {
-          return _startServer(environment, directory, directoryLength);
-        });
-      }).then((_) {
-        // Now that the servers are up and logged, send them to barback.
-        environment.barback.errors.listen((error) {
-          log.error(log.red("Build error:\n$error"));
-        });
-
-        environment.barback.results.listen((result) {
-          if (result.succeeded) {
-            // TODO(rnystrom): Report using growl/inotify-send where available.
-            log.message("Build completed ${log.green('successfully')}");
-          } else {
-            log.message("Build completed with "
-                "${log.red(result.errors.length)} errors.");
-          }
-        }, onError: _fatalError);
-
-        environment.resumeUpdates();
-        return _completer.future;
-      });
+    // Now that the servers are up and logged, send them to barback.
+    environment.barback.errors.listen((error) {
+      log.error(log.red("Build error:\n$error"));
     });
+
+    environment.barback.results.listen((result) {
+      if (result.succeeded) {
+        // TODO(rnystrom): Report using growl/inotify-send where available.
+        log.message("Build completed ${log.green('successfully')}");
+      } else {
+        log.message("Build completed with "
+            "${log.red(result.errors.length)} errors.");
+      }
+    }, onError: _fatalError);
+
+    environment.resumeUpdates();
+    await _completer.future;
   }
 
   Future _startServer(AssetEnvironment environment, String rootDirectory,
-      int directoryLength) {
-    return environment.serveDirectory(rootDirectory).then((server) {
-      // In release mode, strip out .dart files since all relevant ones have
-      // been compiled to JavaScript already.
-      if (mode == BarbackMode.RELEASE) {
-        server.allowAsset = (url) => !url.path.endsWith(".dart");
+      int directoryLength) async {
+    var server = await environment.serveDirectory(rootDirectory);
+    // In release mode, strip out .dart files since all relevant ones have
+    // been compiled to JavaScript already.
+    if (mode == BarbackMode.RELEASE) {
+      server.allowAsset = (url) => !url.path.endsWith(".dart");
+    }
+
+    // Add two characters to account for "[" and "]".
+    var prefix = log.gray(
+        padRight("[${server.rootDirectory}]", directoryLength + 2));
+
+    server.results.listen((result) {
+      var buffer = new StringBuffer();
+      buffer.write("$prefix ");
+
+      if (result.isSuccess) {
+        buffer.write(
+            "${log.green('GET')} ${result.url.path} $_arrow ${result.id}");
+      } else {
+        buffer.write("${log.red('GET')} ${result.url.path} $_arrow");
+
+        var error = result.error.toString();
+        if (error.contains("\n")) {
+          buffer.write("\n${prefixLines(error)}");
+        } else {
+          buffer.write(" $error");
+        }
       }
 
-      // Add two characters to account for "[" and "]".
-      var prefix = log.gray(
-          padRight("[${server.rootDirectory}]", directoryLength + 2));
+      log.message(buffer);
+    }, onError: _fatalError);
 
-      server.results.listen((result) {
-        var buffer = new StringBuffer();
-        buffer.write("$prefix ");
-
-        if (result.isSuccess) {
-          buffer.write(
-              "${log.green('GET')} ${result.url.path} $_arrow ${result.id}");
-        } else {
-          buffer.write("${log.red('GET')} ${result.url.path} $_arrow");
-
-          var error = result.error.toString();
-          if (error.contains("\n")) {
-            buffer.write("\n${prefixLines(error)}");
-          } else {
-            buffer.write(" $error");
-          }
-        }
-
-        log.message(buffer);
-      }, onError: _fatalError);
-
-      log.message("Serving ${entrypoint.root.name} "
-          "${padRight(server.rootDirectory, directoryLength)} "
-          "on ${log.bold('http://$hostname:${server.port}')}");
-    });
+    log.message("Serving ${entrypoint.root.name} "
+        "${padRight(server.rootDirectory, directoryLength)} "
+        "on ${log.bold('http://$hostname:${server.port}')}");
   }
 
   /// Reports [error] and exits the server.
