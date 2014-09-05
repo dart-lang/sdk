@@ -21,7 +21,7 @@ part of type_graph_inferrer;
  * changes.
  */
 abstract class TypeInformation {
-  Set users;
+  Set<TypeInformation> users;
   var /* List|ParameterAssignments */ assignments;
 
   /// The type the inferrer has found for this [TypeInformation].
@@ -285,13 +285,40 @@ class ParameterAssignments extends IterableBase<TypeInformation> {
  *   trust their type annotation.
  *
  */
-class ElementTypeInformation extends TypeInformation
-    with ApplyableTypeInformation  {
+abstract class ElementTypeInformation extends TypeInformation {
   final Element element;
 
   /// Marker to disable inference for closures in [handleSpecialCases].
   bool disableInferenceForClosures = true;
 
+  factory ElementTypeInformation(Element element) {
+    if (element.isParameter || element.isInitializingFormal) {
+      ParameterElement parameter = element;
+      if (parameter.functionDeclaration.isInstanceMember) {
+        return new ParameterTypeInformation._instanceMember(element);
+      }
+      return new ParameterTypeInformation._internal(element);
+    }
+    return new MemberTypeInformation._internal(element);
+  }
+
+  ElementTypeInformation._internal(this.element);
+  ElementTypeInformation._withAssignments(this.element, assignments)
+      : super.withAssignments(assignments);
+}
+
+/**
+ * A node representing members in the broadest sense:
+ *
+ * - Functions
+ * - Constructors
+ * - Fields (also synthetic ones due to closures)
+ *
+ * These should never be created directly but instead are constructed by
+ * the [ElementTypeInformation] factory.
+ */
+class MemberTypeInformation extends ElementTypeInformation
+    with ApplyableTypeInformation {
   /**
    * If [element] is a function, [closurizedCount] is the number of
    * times it is closurized. The value gets updated while infering.
@@ -308,22 +335,7 @@ class ElementTypeInformation extends TypeInformation
    */
   final Map<Element, Setlet<Spannable>> _callers = new Map<Element, Setlet>();
 
-  bool isTearOffClosureParameter = false;
-
-  ElementTypeInformation.parameters(this.element, assignments)
-      : super.withAssignments(assignments);
-
-  ElementTypeInformation.members(this.element) : super();
-
-  factory ElementTypeInformation(Element element) {
-    var assignments = null;
-    if (element.enclosingElement.isInstanceMember &&
-        (element.isParameter || element.isInitializingFormal)) {
-      return new ElementTypeInformation.parameters(element,
-                                                   new ParameterAssignments());
-    }
-    return new ElementTypeInformation.members(element);
-  }
+  MemberTypeInformation._internal(Element element) : super._internal(element);
 
   void addCall(Element caller, Spannable node) {
     assert(node is ast.Node || node is cps_ir.Node || node is Element);
@@ -337,11 +349,6 @@ class ElementTypeInformation extends TypeInformation
     if (calls.isEmpty) {
       _callers.remove(caller);
     }
-  }
-
-  void tagAsTearOffClosureParameter(TypeGraphInferrerEngine inferrer) {
-    assert(element.isParameter);
-    isTearOffClosureParameter = true;
   }
 
   Iterable<Element> get callers => _callers.keys;
@@ -364,42 +371,11 @@ class ElementTypeInformation extends TypeInformation
   bool get isStable => super.isStable && !isClosurized;
 
   TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {
-    if (element.isParameter) {
-      Element enclosing = element.enclosingElement;
-      if ((isTearOffClosureParameter || Elements.isLocal(enclosing)) &&
-          disableInferenceForClosures) {
-        // Do not infer types for parameters of closures. We do not
-        // clear the assignments in case the closure is successfully
-        // traced.
-        giveUp(inferrer, clearAssignments: false);
-        return safeType(inferrer);
-      } else if (enclosing.isInstanceMember &&
-                 (enclosing.name == Compiler.NO_SUCH_METHOD ||
-                  (enclosing.name == Compiler.CALL_OPERATOR_NAME &&
-                   disableInferenceForClosures))) {
-        // Do not infer types for parameters of [noSuchMethod] and
-        // [call] instance methods.
-        giveUp(inferrer);
-        return safeType(inferrer);
-      } else if (enclosing == inferrer.mainElement) {
-        // The implicit call to main is not seen by the inferrer,
-        // therefore we explicitly set the type of its parameters as
-        // dynamic.
-        // TODO(14566): synthesize a call instead to get the exact
-        // types.
-        giveUp(inferrer);
-        return safeType(inferrer);
-      }
-    }
-    if (element.isField ||
-        element.isParameter ||
-        element.isInitializingFormal) {
-      if (!inferrer.compiler.backend.canBeUsedForGlobalOptimizations(element)) {
-        // Do not infer types for fields and parameters being assigned
-        // by synthesized calls.
-        giveUp(inferrer);
-        return safeType(inferrer);
-      }
+    if (element.isField &&
+        !inferrer.compiler.backend.canBeUsedForGlobalOptimizations(element)) {
+      // Do not infer types for fields being assigned by synthesized calls.
+      giveUp(inferrer);
+      return safeType(inferrer);
     }
     if (inferrer.isNativeElement(element)) {
       // Use the type annotation as the type for native elements. We
@@ -441,8 +417,6 @@ class ElementTypeInformation extends TypeInformation
   TypeMask potentiallyNarrowType(TypeMask mask,
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
-    // Parameters are being explicitly checked in the method.
-    if (element.isParameter || element.isInitializingFormal) return mask;
     if (!compiler.trustTypeAnnotations && !compiler.enableTypeAssertions) {
       return mask;
     }
@@ -463,21 +437,15 @@ class ElementTypeInformation extends TypeInformation
         inferrer.types.computeTypeMask(assignments), inferrer);
   }
 
-  String toString() => 'Element $element $type';
+  String toString() => 'MemberElement $element $type';
 
   accept(TypeInformationVisitor visitor) {
-    return visitor.visitElementTypeInformation(this);
+    return visitor.visitMemberTypeInformation(this);
   }
 
   Element get owner => element.outermostEnclosingMemberOrTopLevel;
 
   bool hasStableType(TypeGraphInferrerEngine inferrer) {
-    // The number of assignments of parameters of instance methods is
-    // not stable. Therefore such a parameter cannot be stable.
-    if (element.isParameter && element.enclosingElement.isInstanceMember) {
-      return false;
-    }
-
     // The number of assignments of non-final fields is
     // not stable. Therefore such a field cannot be stable.
     if (element.isField && !(element.isConst || element.isFinal)) {
@@ -487,6 +455,96 @@ class ElementTypeInformation extends TypeInformation
     if (element.isFunction) return false;
 
     return super.hasStableType(inferrer);
+  }
+}
+
+/**
+ * A node representing parameters:
+ *
+ * - Parameters
+ * - Initializing formals
+ *
+ * These should never be created directly but instead are constructed by
+ * the [ElementTypeInformation] factory.
+ */
+class ParameterTypeInformation extends ElementTypeInformation {
+  ParameterTypeInformation._internal(ParameterElement element)
+      : super._internal(element) {
+    assert(!element.functionDeclaration.isInstanceMember);
+  }
+  ParameterTypeInformation._instanceMember(ParameterElement element)
+      : super._withAssignments(element, new ParameterAssignments()) {
+    assert(element.functionDeclaration.isInstanceMember);
+  }
+
+  bool isTearOffClosureParameter = false;
+
+  void tagAsTearOffClosureParameter(TypeGraphInferrerEngine inferrer) {
+    assert(element.isParameter);
+    isTearOffClosureParameter = true;
+  }
+
+  // TODO(herhut): Cleanup into one conditional.
+  TypeMask handleSpecialCases(TypeGraphInferrerEngine inferrer) {
+    if (!inferrer.compiler.backend.canBeUsedForGlobalOptimizations(element)) {
+      // Do not infer types for fields and parameters being assigned
+      // by synthesized calls.
+      giveUp(inferrer);
+      return safeType(inferrer);
+    }
+
+    // The below do not apply to parameters of constructors, so skip
+    // initializing formals.
+    if (element.isInitializingFormal) return null;
+
+    Element enclosing = element.enclosingElement;
+    if ((isTearOffClosureParameter || Elements.isLocal(enclosing)) &&
+        disableInferenceForClosures) {
+      // Do not infer types for parameters of closures. We do not
+      // clear the assignments in case the closure is successfully
+      // traced.
+      giveUp(inferrer, clearAssignments: false);
+      return safeType(inferrer);
+    }
+    if (enclosing.isInstanceMember &&
+        (enclosing.name == Compiler.NO_SUCH_METHOD ||
+        (enclosing.name == Compiler.CALL_OPERATOR_NAME &&
+         disableInferenceForClosures))) {
+      // Do not infer types for parameters of [noSuchMethod] and
+      // [call] instance methods.
+      giveUp(inferrer);
+      return safeType(inferrer);
+    }
+    if (enclosing == inferrer.mainElement) {
+      // The implicit call to main is not seen by the inferrer,
+      // therefore we explicitly set the type of its parameters as
+      // dynamic.
+      // TODO(14566): synthesize a call instead to get the exact
+      // types.
+      giveUp(inferrer);
+      return safeType(inferrer);
+    }
+
+    return null;
+  }
+
+  TypeMask computeType(TypeGraphInferrerEngine inferrer) {
+    TypeMask special = handleSpecialCases(inferrer);
+    if (special != null) return special;
+    return inferrer.types.computeTypeMask(assignments);
+  }
+
+  bool hasStableType(TypeGraphInferrerEngine inferrer) {
+    // The number of assignments of parameters of instance methods is
+    // not stable. Therefore such a parameter cannot be stable.
+    if (element.enclosingElement.isInstanceMember) {
+      return false;
+    }
+    return super.hasStableType(inferrer);
+  }
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitParameterTypeInformation(this);
   }
 }
 
@@ -538,7 +596,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       bool inLoop) : super(call, enclosing, selector, arguments, inLoop);
 
   void addToGraph(TypeGraphInferrerEngine inferrer) {
-    ElementTypeInformation callee =
+    MemberTypeInformation callee =
         inferrer.types.getInferredTypeOf(calledElement);
     callee.addCall(caller, call);
     callee.addUser(this);
@@ -612,7 +670,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       arguments.forEach((info) => info.addUser(this));
     }
     for (Element element in targets) {
-      ElementTypeInformation callee = inferrer.types.getInferredTypeOf(element);
+      MemberTypeInformation callee = inferrer.types.getInferredTypeOf(element);
       callee.addCall(caller, call);
       callee.addUser(this);
       inferrer.updateParameterAssignments(
@@ -744,7 +802,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     // for all these targets.
     TypeMask newType = inferrer.types.joinTypeMasks(targets.map((element) {
       if (!oldTargets.contains(element)) {
-        ElementTypeInformation callee =
+        MemberTypeInformation callee =
             inferrer.types.getInferredTypeOf(element);
         callee.addCall(caller, call);
         callee.addUser(this);
@@ -802,7 +860,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     // anymore.
     oldTargets.forEach((element) {
       if (!targets.contains(element)) {
-        ElementTypeInformation callee =
+        MemberTypeInformation callee =
             inferrer.types.getInferredTypeOf(element);
         callee.removeCall(caller, call);
         callee.removeUser(this);
@@ -822,7 +880,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       targets = inferrer.compiler.world.allFunctions.filter(selector);
       for (Element element in targets) {
         if (!oldTargets.contains(element)) {
-          ElementTypeInformation callee =
+          MemberTypeInformation callee =
               inferrer.types.getInferredTypeOf(element);
           callee.addCall(caller, call);
           inferrer.updateParameterAssignments(
@@ -1369,6 +1427,7 @@ abstract class TypeInformationVisitor<T> {
   T visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info);
   T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);
   T visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info);
-  T visitElementTypeInformation(ElementTypeInformation info);
+  T visitMemberTypeInformation(MemberTypeInformation info);
+  T visitParameterTypeInformation(ParameterTypeInformation info);
   T visitClosureTypeInformation(ClosureTypeInformation info);
 }

@@ -852,7 +852,7 @@ class TypeGraphInferrerEngine
     } else if (selector != null && selector.isGetter) {
       // We are tearing a function off and thus create a closure.
       assert(callee.isFunction);
-      ElementTypeInformation info = types.getInferredTypeOf(callee);
+      MemberTypeInformation info = types.getInferredTypeOf(callee);
       if (remove) {
         info.closurizedCount--;
       } else {
@@ -867,7 +867,7 @@ class TypeGraphInferrerEngine
         FunctionElement function = callee.implementation;
         FunctionSignature signature = function.functionSignature;
         signature.forEachParameter((Element parameter) {
-          ElementTypeInformation info = types.getInferredTypeOf(parameter);
+          ParameterTypeInformation info = types.getInferredTypeOf(parameter);
           info.tagAsTearOffClosureParameter(this);
           if (addToQueue) workQueue.add(info);
         });
@@ -924,7 +924,7 @@ class TypeGraphInferrerEngine
         List<TypeInformation> assignments = info.assignments;
         for (int i = 0; i < assignments.length; i++) {
           if (assignments[i] == existing) {
-            info.assignments[i] = type;
+            assignments[i] = type;
             type.addUser(info);
           }
         }
@@ -1119,7 +1119,8 @@ class TypeGraphInferrerEngine
       throw new UnsupportedError(
           "Cannot query the type inferrer when type inference is disabled.");
     }
-    return types.getInferredTypeOf(element).callers;
+    MemberTypeInformation info = types.getInferredTypeOf(element);
+    return info.callers;
   }
 
   /**
@@ -1237,7 +1238,7 @@ class TypeGraphInferrer implements TypesInferrer {
 
   bool isCalledOnce(Element element) {
     if (compiler.disableTypeInference) return false;
-    ElementTypeInformation info = inferrer.types.getInferredTypeOf(element);
+    MemberTypeInformation info = inferrer.types.getInferredTypeOf(element);
     return info.isCalledOnce();
   }
 
