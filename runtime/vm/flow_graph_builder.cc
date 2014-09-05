@@ -1469,22 +1469,25 @@ void EffectGraphVisitor::BuildAwaitJump(LocalScope* lookup_scope,
       Symbols::AwaitContextVar(), false);
   LocalVariable* continuation_result = lookup_scope->LookupVariable(
       Symbols::AsyncOperationParam(), false);
+  LocalVariable* continuation_error = lookup_scope->LookupVariable(
+      Symbols::AsyncOperationErrorParam(), false);
   ASSERT((continuation_result != NULL) && continuation_result->is_captured());
+  ASSERT((continuation_error != NULL) && continuation_error->is_captured());
   ASSERT((old_ctx != NULL) && old_ctx->is_captured());
   // Before restoring the continuation context we need to temporary save the
-  // current continuation result.
-  Value* continuation_result_value = Bind(BuildLoadLocal(*continuation_result));
-  Do(BuildStoreExprTemp(continuation_result_value));
-
+  // result and error parameter.
+  LocalVariable* temp_result_var = EnterTempLocalScope(
+      Bind(BuildLoadLocal(*continuation_result)));
+  LocalVariable* temp_error_var = EnterTempLocalScope(
+      Bind(BuildLoadLocal(*continuation_error)));
   // Restore the saved continuation context.
   BuildRestoreContext(*old_ctx);
 
   // Pass over the continuation result.
-  Value* saved_continuation_result = Bind(BuildLoadExprTemp());
+
   // FlowGraphBuilder is at top context level, but the await target has possibly
   // been recorded in a nested context (old_ctx_level). We need to unroll
   // manually here.
-  LocalVariable* tmp_var = EnterTempLocalScope(saved_continuation_result);
   intptr_t delta = old_ctx_level -
                    continuation_result->owner()->context_level();
   ASSERT(delta >= 0);
@@ -1494,15 +1497,30 @@ void EffectGraphVisitor::BuildAwaitJump(LocalScope* lookup_scope,
         context, Context::parent_offset(), Type::ZoneHandle(I, Type::null()),
         Scanner::kNoSourcePos));
   }
-  Value* tmp_val = Bind(new(I) LoadLocalInstr(*tmp_var));
+  LocalVariable* temp_context_var = EnterTempLocalScope(context);
+
+  Value* context_val = Bind(new(I) LoadLocalInstr(*temp_context_var));
+  Value* store_val = Bind(new(I) LoadLocalInstr(*temp_result_var));
   StoreInstanceFieldInstr* store = new(I) StoreInstanceFieldInstr(
       Context::variable_offset(continuation_result->index()),
-      context,
-      tmp_val,
+      context_val,
+      store_val,
       kEmitStoreBarrier,
       Scanner::kNoSourcePos);
   Do(store);
-  Do(ExitTempLocalScope(tmp_var));
+  context_val = Bind(new(I) LoadLocalInstr(*temp_context_var));
+  store_val = Bind(new(I) LoadLocalInstr(*temp_error_var));
+  StoreInstanceFieldInstr* store2 = new(I) StoreInstanceFieldInstr(
+      Context::variable_offset(continuation_error->index()),
+      context_val,
+      store_val,
+      kEmitStoreBarrier,
+      Scanner::kNoSourcePos);
+  Do(store2);
+
+  Do(ExitTempLocalScope(temp_context_var));
+  Do(ExitTempLocalScope(temp_error_var));
+  Do(ExitTempLocalScope(temp_result_var));
 
   // Goto saved join.
   Goto(target);

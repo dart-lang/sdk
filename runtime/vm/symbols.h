@@ -60,6 +60,8 @@ class ObjectPointerVisitor;
   V(SavedCurrentContextVar, ":saved_current_context_var")                      \
   V(SavedEntryContextVar, ":saved_entry_context_var")                          \
   V(SavedTryContextVar, ":saved_try_context_var")                              \
+  V(ExceptionParameter, ":exception")                                          \
+  V(StackTraceParameter, ":stack_trace")                                       \
   V(ExceptionVar, ":exception_var")                                            \
   V(StackTraceVar, ":stack_trace_var")                                         \
   V(ListLiteralElement, "list literal element")                                \
@@ -71,14 +73,18 @@ class ObjectPointerVisitor;
   V(AsyncCompleter, ":async_completer")                                        \
   V(AsyncOperation, ":async_op")                                               \
   V(AsyncOperationParam, ":async_result")                                      \
+  V(AsyncOperationErrorParam, ":async_error_param")                            \
+  V(AsyncCatchHelper, "_asyncCatchHelper")                                     \
   V(Await, "await")                                                            \
   V(AwaitContextVar, ":await_ctx_var")                                         \
   V(AwaitJumpVar, ":await_jump_var")                                           \
   V(Future, "Future")                                                          \
   V(FutureConstructor, "Future.")                                              \
   V(FutureThen, "then")                                                        \
+  V(FutureCatchError, "catchError")                                            \
   V(Completer, "Completer")                                                    \
   V(CompleterComplete, "complete")                                             \
+  V(CompleterCompleteError, "completeError")                                   \
   V(CompleterConstructor, "Completer.")                                        \
   V(CompleterFuture, "future")                                                 \
   V(Native, "native")                                                          \

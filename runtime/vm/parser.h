@@ -543,10 +543,12 @@ class Parser : public ValueObject {
   void OpenFunctionBlock(const Function& func);
   void OpenAsyncClosure();
   RawFunction* OpenAsyncFunction(intptr_t formal_param_pos);
+  void OpenAsyncTryBlock();
   SequenceNode* CloseBlock();
   SequenceNode* CloseAsyncFunction(const Function& closure,
                                    SequenceNode* closure_node);
-  void CloseAsyncClosure(SequenceNode* body);
+  SequenceNode* CloseAsyncClosure(SequenceNode* body);
+  SequenceNode* CloseAsyncTryBlock(SequenceNode* try_block);
   void AddAsyncClosureVariables();
 
 

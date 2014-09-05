@@ -116,7 +116,8 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   //   :result_param = :await_temp_var_X;
   //   if (:result_param is Future) {
   //     AwaitMarker(kNewContinuationState);
-  //     :result_param.then(:async_op);
+  //     :result_param = :result_param.then(:async_op);
+  //     _asyncCatchHelper(:result_param.catchError, :async_op);
   //     return;  // (return_type() == kContinuation)
   //   }
   //   AwaitMarker(kTargetForContinuation);  // Join happens here.
@@ -127,6 +128,8 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       preamble_->scope(), Symbols::AsyncOperation());
   LocalVariable* result_param = GetVariableInScope(
       preamble_->scope(), Symbols::AsyncOperationParam());
+  LocalVariable* error_param = GetVariableInScope(
+      preamble_->scope(), Symbols::AsyncOperationErrorParam());
 
   node->expr()->Visit(this);
   preamble_->Add(new(I) StoreLocalNode(
@@ -144,8 +147,31 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   is_future_branch->Add(await_marker);
   ArgumentListNode* args = new(I) ArgumentListNode(Scanner::kNoSourcePos);
   args->Add(new(I) LoadLocalNode(Scanner::kNoSourcePos, async_op));
-  is_future_branch->Add(new(I) InstanceCallNode(
-      Scanner::kNoSourcePos, load_result_param, Symbols::FutureThen(), args));
+  is_future_branch->Add(new (I) StoreLocalNode(
+      Scanner::kNoSourcePos,
+      result_param,
+      new(I) InstanceCallNode(
+          Scanner::kNoSourcePos,
+          load_result_param,
+          Symbols::FutureThen(),
+          args)));
+  const Library& core_lib = Library::Handle(Library::CoreLibrary());
+  const Function& async_catch_helper = Function::ZoneHandle(
+      I, core_lib.LookupFunctionAllowPrivate(Symbols::AsyncCatchHelper()));
+  ASSERT(!async_catch_helper.IsNull());
+  ArgumentListNode* catch_helper_args = new (I) ArgumentListNode(
+      Scanner::kNoSourcePos);
+  InstanceGetterNode* catch_error_getter = new (I) InstanceGetterNode(
+      Scanner::kNoSourcePos,
+      load_result_param,
+      Symbols::FutureCatchError());
+  catch_helper_args->Add(catch_error_getter);
+  catch_helper_args->Add(new (I) LoadLocalNode(
+      Scanner::kNoSourcePos, async_op));
+  is_future_branch->Add(new (I) StaticCallNode(
+      Scanner::kNoSourcePos,
+      async_catch_helper,
+      catch_helper_args));
   ReturnNode* continuation_return = new(I) ReturnNode(Scanner::kNoSourcePos);
   continuation_return->set_return_type(ReturnNode::kContinuation);
   is_future_branch->Add(continuation_return);
@@ -178,6 +204,25 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
         parsed_function_->saved_try_ctx(),
         new (I) LoadLocalNode(Scanner::kNoSourcePos, async_saved_try_ctx)));
   }
+
+  LoadLocalNode* load_error_param = new (I) LoadLocalNode(
+      Scanner::kNoSourcePos, error_param);
+  SequenceNode* error_ne_null_branch = new (I) SequenceNode(
+      Scanner::kNoSourcePos, ChainNewScope(preamble_->scope()));
+  error_ne_null_branch->Add(new (I) ThrowNode(
+      Scanner::kNoSourcePos,
+      load_error_param,
+      NULL));
+  preamble_->Add(new (I) IfNode(
+      Scanner::kNoSourcePos,
+      new (I) ComparisonNode(
+          Scanner::kNoSourcePos,
+          Token::kNE,
+          load_error_param,
+          new (I) LiteralNode(Scanner::kNoSourcePos,
+                              Object::null_instance())),
+          error_ne_null_branch,
+          NULL));
 
   LocalVariable* result = AddToPreambleNewTempVar(new(I) LoadLocalNode(
       Scanner::kNoSourcePos, result_param));

@@ -223,6 +223,16 @@ void ParsedFunction::AllocateVariables() {
 }
 
 
+struct CatchParamDesc {
+  CatchParamDesc()
+      : token_pos(0), type(NULL), name(NULL), var(NULL) { }
+  intptr_t token_pos;
+  const AbstractType* type;
+  const String* name;
+  LocalVariable* var;
+};
+
+
 struct Parser::Block : public ZoneAllocated {
   Block(Block* outer_block, LocalScope* local_scope, SequenceNode* seq)
     : parent(outer_block), scope(local_scope), statements(seq) {
@@ -2994,13 +3004,23 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // we are compiling a getter this will at most populate the receiver.
     AddFormalParamsToScope(&params, current_block_->scope);
   } else if (func.is_async_closure()) {
-    // Async closures have one optional parameter for continuation results.
+    // Async closures have two optional parameters:
+    // * A continuation result.
+    // * A continuation error.
+    //
+    // If the error!=null we rethrow the error at the next await.
+    const Type& dynamic_type = Type::ZoneHandle(I, Type::DynamicType());
     ParamDesc result_param;
     result_param.name = &Symbols::AsyncOperationParam();
     result_param.default_value = &Object::null_instance();
-    result_param.type = &Type::ZoneHandle(I, Type::DynamicType());
+    result_param.type = &dynamic_type;
+    ParamDesc error_param;
+    error_param.name = &Symbols::AsyncOperationErrorParam();
+    error_param.default_value = &Object::null_instance();
+    error_param.type = &dynamic_type;
     params.parameters->Add(result_param);
-    params.num_optional_parameters++;
+    params.parameters->Add(error_param);
+    params.num_optional_parameters += 2;
     params.has_optional_positional_parameters = true;
     SetupDefaultsForOptionalParams(&params, default_parameter_values);
     AddFormalParamsToScope(&params, current_block_->scope);
@@ -3062,10 +3082,8 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   Function& async_closure = Function::ZoneHandle(I);
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
     async_closure = OpenAsyncFunction(formal_params_pos);
-    async_temp_scope_ = current_block_->scope;
   } else if (func.is_async_closure()) {
     OpenAsyncClosure();
-    async_temp_scope_ = current_block_->scope;
   }
 
   bool saved_await_is_keyword = await_is_keyword_;
@@ -3136,7 +3154,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   if (func.IsAsyncFunction() && !func.is_async_closure()) {
     body = CloseAsyncFunction(async_closure, body);
   } else if (func.is_async_closure()) {
-    CloseAsyncClosure(body);
+    body = CloseAsyncClosure(body);
   }
   current_block_->statements->Add(body);
   innermost_function_ = saved_innermost_function.raw();
@@ -5545,6 +5563,175 @@ void Parser::OpenFunctionBlock(const Function& func) {
 
 void Parser::OpenAsyncClosure() {
   TRACE_PARSER("OpenAsyncClosure");
+
+  async_temp_scope_ = current_block_->scope;
+
+  OpenAsyncTryBlock();
+}
+
+
+SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
+  try_blocks_list_->enter_catch();
+
+  OpenBlock();
+  OpenBlock();
+  const AbstractType& dynamic_type =
+      AbstractType::ZoneHandle(I, Type::DynamicType());
+  CatchParamDesc exception_param;
+  CatchParamDesc stack_trace_param;
+  exception_param.token_pos = Scanner::kNoSourcePos;
+  exception_param.type = &dynamic_type;
+  exception_param.name = &Symbols::ExceptionParameter();
+  stack_trace_param.token_pos = Scanner::kNoSourcePos;
+  stack_trace_param.type = &dynamic_type;
+  stack_trace_param.name = &Symbols::StackTraceParameter();
+
+  AddCatchParamsToScope(
+      &exception_param, &stack_trace_param, current_block_->scope);
+
+  LocalVariable* context_var = current_block_->scope->LookupVariable(
+      Symbols::SavedTryContextVar(), false);
+  ASSERT(context_var != NULL);
+  LocalVariable* exception_var = current_block_->scope->LookupVariable(
+      Symbols::ExceptionVar(), false);
+  if (exception_param.var != NULL) {
+    // Generate code to load the exception object (:exception_var) into
+    // the exception variable specified in this block.
+    ASSERT(exception_var != NULL);
+    current_block_->statements->Add(new(I) StoreLocalNode(
+        Scanner::kNoSourcePos,
+        exception_param.var,
+        new(I) LoadLocalNode(Scanner::kNoSourcePos, exception_var)));
+  }
+  LocalVariable* stack_trace_var =
+      current_block_->scope->LookupVariable(Symbols::StackTraceVar(), false);
+  if (stack_trace_param.var != NULL) {
+    // A stack trace variable is specified in this block, so generate code
+    // to load the stack trace object (:stack_trace_var) into the stack
+    // trace variable specified in this block.
+    ArgumentListNode* no_args = new(I) ArgumentListNode(Scanner::kNoSourcePos);
+    ASSERT(stack_trace_var != NULL);
+    current_block_->statements->Add(new(I) StoreLocalNode(
+        Scanner::kNoSourcePos,
+        stack_trace_param.var,
+        new(I) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_var)));
+    current_block_->statements->Add(new(I) InstanceCallNode(
+        Scanner::kNoSourcePos,
+        new(I) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_param.var),
+        Library::PrivateCoreLibName(Symbols::_setupFullStackTrace()),
+        no_args));
+  }
+
+  ASSERT(try_blocks_list_ != NULL);
+  if (innermost_function().is_async_closure() ||
+      innermost_function().IsAsyncFunction()) {
+    if ((try_blocks_list_->outer_try_block() != NULL) &&
+        (try_blocks_list_->outer_try_block()->try_block()
+            ->scope->function_level() ==
+         current_block_->scope->function_level())) {
+      // We need to unchain three scope levels: catch clause, catch
+      // parameters, and the general try block.
+      RestoreSavedTryContext(
+          current_block_->scope->parent()->parent()->parent(),
+          try_blocks_list_->outer_try_block()->try_index(),
+          current_block_->statements);
+    } else {
+      parsed_function()->reset_saved_try_ctx_vars();
+    }
+  }
+
+  // Complete the async future with an error.
+  // Since we control the catch block there is no need to generate a nested
+  // if/then/else.
+  LocalVariable* async_completer = current_block_->scope->LookupVariable(
+      Symbols::AsyncCompleter(), false);
+  ASSERT(async_completer != NULL);
+  ArgumentListNode* completer_args =
+      new (I) ArgumentListNode(Scanner::kNoSourcePos);
+  completer_args->Add(
+      new (I) LoadLocalNode(Scanner::kNoSourcePos, exception_param.var));
+  completer_args->Add(
+      new (I) LoadLocalNode(Scanner::kNoSourcePos, stack_trace_param.var));
+  current_block_->statements->Add(new (I) InstanceCallNode(
+      Scanner::kNoSourcePos,
+      new (I) LoadLocalNode(Scanner::kNoSourcePos, async_completer),
+      Symbols::CompleterCompleteError(),
+      completer_args));
+  ReturnNode* return_node = new (I) ReturnNode(Scanner::kNoSourcePos);
+  // Behavior like a continuation return, i.e,. don't call a completer.
+  return_node->set_return_type(ReturnNode::kContinuation);
+  current_block_->statements->Add(return_node);
+  AstNode* catch_block = CloseBlock();
+  current_block_->statements->Add(catch_block);
+  SequenceNode* catch_handler_list = CloseBlock();
+
+  const GrowableObjectArray& handler_types =
+      GrowableObjectArray::Handle(I, GrowableObjectArray::New());
+  handler_types.SetLength(0);
+  handler_types.Add(*exception_param.type);
+
+  TryBlocks* inner_try_block = PopTryBlock();
+  const intptr_t try_index = inner_try_block->try_index();
+
+  CatchClauseNode* catch_clause = new (I) CatchClauseNode(
+      Scanner::kNoSourcePos,
+      catch_handler_list,
+      Array::ZoneHandle(I, Array::MakeArray(handler_types)),
+      context_var,
+      exception_var,
+      stack_trace_var,
+      CatchClauseNode::kInvalidTryIndex,
+      true);
+  AstNode* try_catch_node = new (I) TryCatchNode(
+      Scanner::kNoSourcePos,
+      try_block,
+      context_var,
+      catch_clause,
+      NULL,
+      try_index);
+  current_block_->statements->Add(try_catch_node);
+  return CloseBlock();
+}
+
+
+void Parser::OpenAsyncTryBlock() {
+  // Manually wrapping the actual body into a try/catch block.
+  LocalVariable* context_var =
+      current_block_->scope->LocalLookupVariable(Symbols::SavedTryContextVar());
+  if (context_var == NULL) {
+    context_var = new(I) LocalVariable(
+        TokenPos(),
+        Symbols::SavedTryContextVar(),
+        Type::ZoneHandle(I, Type::DynamicType()));
+    current_block_->scope->AddVariable(context_var);
+  }
+  LocalVariable* exception_var =
+      current_block_->scope->LocalLookupVariable(Symbols::ExceptionVar());
+  if (exception_var == NULL) {
+    exception_var = new(I) LocalVariable(
+        TokenPos(),
+        Symbols::ExceptionVar(),
+        Type::ZoneHandle(I, Type::DynamicType()));
+    current_block_->scope->AddVariable(exception_var);
+  }
+  LocalVariable* stack_trace_var =
+      current_block_->scope->LocalLookupVariable(Symbols::StackTraceVar());
+  if (stack_trace_var == NULL) {
+    stack_trace_var = new(I) LocalVariable(
+        TokenPos(),
+        Symbols::StackTraceVar(),
+        Type::ZoneHandle(I, Type::DynamicType()));
+    current_block_->scope->AddVariable(stack_trace_var);
+  }
+
+  // Open the try block.
+  OpenBlock();
+  PushTryBlock(current_block_);
+
+  if (innermost_function().is_async_closure() ||
+      innermost_function().IsAsyncFunction()) {
+    SetupSavedTryContext(context_var);
+  }
 }
 
 
@@ -5559,17 +5746,21 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   Function& closure = Function::ZoneHandle(I);
   String& sig = String::ZoneHandle(I);
   ParamList closure_params;
+  const Type& dynamic_type = Type::ZoneHandle(I, Type::DynamicType());
   closure_params.AddFinalParameter(
-      formal_param_pos,
-      &Symbols::ClosureParameter(),
-      &Type::ZoneHandle(I, Type::DynamicType()));
+      formal_param_pos, &Symbols::ClosureParameter(), &dynamic_type);
   ParamDesc result_param;
   result_param.name = &Symbols::AsyncOperationParam();
   result_param.default_value = &Object::null_instance();
-  result_param.type = &Type::ZoneHandle(I, Type::DynamicType());
+  result_param.type = &dynamic_type;
+  ParamDesc error_param;
+  error_param.name = &Symbols::AsyncOperationErrorParam();
+  error_param.default_value = &Object::null_instance();
+  error_param.type = &dynamic_type;
   closure_params.parameters->Add(result_param);
+  closure_params.parameters->Add(error_param);
   closure_params.has_optional_positional_parameters = true;
-  closure_params.num_optional_parameters++;
+  closure_params.num_optional_parameters += 2;
   closure = Function::NewClosureFunction(
       Symbols::AnonymousClosure(),
       innermost_function(),
@@ -5594,6 +5785,9 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t formal_param_pos) {
   OpenFunctionBlock(closure);
   AddFormalParamsToScope(&closure_params, current_block_->scope);
   OpenBlock();
+
+  async_temp_scope_ = current_block_->scope;
+
   return closure.raw();
 }
 
@@ -5737,17 +5931,22 @@ SequenceNode* Parser::CloseAsyncFunction(const Function& closure,
 }
 
 
-void Parser::CloseAsyncClosure(SequenceNode* body) {
+SequenceNode* Parser::CloseAsyncClosure(SequenceNode* body) {
   TRACE_PARSER("CloseAsyncClosure");
+
   // We need a temporary expression to store intermediate return values.
   parsed_function()->EnsureExpressionTemp();
   // Implicitly mark those variables below as captured. We currently mark all
   // variables of all scopes as captured (below), but as soon as we do something
   // smarter we rely on these internal variables to be available.
-  body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
-  body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
-  body->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
-  body->scope()->RecursivelyCaptureAllVariables();
+  SequenceNode* new_body = CloseAsyncTryBlock(body);
+  ASSERT(new_body != NULL);
+  ASSERT(new_body->scope() != NULL);
+  new_body->scope()->LookupVariable(Symbols::AwaitJumpVar(), false);
+  new_body->scope()->LookupVariable(Symbols::AwaitContextVar(), false);
+  new_body->scope()->LookupVariable(Symbols::AsyncCompleter(), false);
+  new_body->scope()->RecursivelyCaptureAllVariables();
+  return new_body;
 }
 
 
@@ -7270,16 +7469,6 @@ AstNode* Parser::ParseAssertStatement() {
 }
 
 
-struct CatchParamDesc {
-  CatchParamDesc()
-      : token_pos(0), type(NULL), name(NULL), var(NULL) { }
-  intptr_t token_pos;
-  const AbstractType* type;
-  const String* name;
-  LocalVariable* var;
-};
-
-
 // Populate local scope of the catch block with the catch parameters.
 void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
                                    CatchParamDesc* stack_trace_param,
@@ -7583,6 +7772,27 @@ SequenceNode* Parser::ParseCatchClauses(
   while (!type_tests.is_empty()) {
     AstNode* type_test = type_tests.RemoveLast();
     SequenceNode* catch_block = catch_blocks.RemoveLast();
+
+    // In case of async closures we need to restore the saved try index of an
+    // outer try block (if it exists).
+    ASSERT(try_blocks_list_ != NULL);
+    if (innermost_function().is_async_closure() ||
+        innermost_function().IsAsyncFunction()) {
+      if ((try_blocks_list_->outer_try_block() != NULL) &&
+          (try_blocks_list_->outer_try_block()->try_block()
+              ->scope->function_level() ==
+           current_block_->scope->function_level())) {
+        // We need to unchain three scope levels: catch clause, catch
+        // parameters, and the general try block.
+        RestoreSavedTryContext(
+            current_block_->scope->parent()->parent(),
+            try_blocks_list_->outer_try_block()->try_index(),
+            current_block_->statements);
+      } else {
+        parsed_function()->reset_saved_try_ctx_vars();
+      }
+    }
+
     current_block_->statements->Add(new(I) IfNode(
         type_test->token_pos(), type_test, catch_block, current));
     current = CloseBlock();
