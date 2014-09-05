@@ -9,9 +9,10 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:unittest/unittest.dart';
+
 import '../../abstract_single_unit.dart';
 import '../../reflective_tests.dart';
-import 'package:unittest/unittest.dart';
 
 
 main() {
@@ -1711,6 +1712,15 @@ main() {
 var v = true ? 111 : 222;
 ''');
     assertNoAssistAt('? 111', AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE);
+  }
+
+  void test_replaceConditionalWithIfElse_wrong_notConditional() {
+    _indexTestUnit('''
+main() {
+  var v = 42;
+}
+''');
+    assertNoAssistAt('v = 42', AssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE);
   }
 
   void test_replaceIfElseWithConditional_OK_assignment() {

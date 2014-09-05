@@ -9,14 +9,15 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import '../../abstract_context.dart';
-import '../../abstract_single_unit.dart';
-import '../../reflective_tests.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
+
+import '../../abstract_context.dart';
+import '../../abstract_single_unit.dart';
+import '../../reflective_tests.dart';
 
 
 main() {
