@@ -1358,12 +1358,41 @@ class Uri {
   bool get isAbsolute => scheme != "" && fragment == "";
 
   String _merge(String base, String reference) {
-    if (base == "") return "/$reference";
-    return "${base.substring(0, base.lastIndexOf("/") + 1)}$reference";
+    if (base.isEmpty) return "/$reference";
+    // Optimize for the case: absolute base, reference beginning with "../".
+    int backCount = 0;
+    int refStart = 0;
+    // Count number of "../" at beginning of reference.
+    while (reference.startsWith("../", refStart)) {
+      refStart += 3;
+      backCount++;
+    }
+
+    // Drop last segment - everything after last '/' of base.
+    int baseEnd = base.lastIndexOf('/');
+    // Drop extra segments for each leading "../" of reference.
+    while (baseEnd > 0 && backCount > 0) {
+      int newEnd = base.lastIndexOf('/', baseEnd - 1);
+      if (newEnd < 0) {
+        break;
+      }
+      int delta = baseEnd - newEnd;
+      // If we see a "." or ".." segment in base, stop here and let
+      // _removeDotSegments handle it.
+      if ((delta == 2 || delta == 3) &&
+          base.codeUnitAt(newEnd + 1) == _DOT &&
+          (delta == 2 || base.codeUnitAt(newEnd + 2) == _DOT)) {
+        break;
+      }
+      baseEnd = newEnd;
+      backCount--;
+    }
+    return base.substring(0, baseEnd + 1) +
+           reference.substring(refStart - 3 * backCount);
   }
 
   bool _hasDotSegments(String path) {
-    if (path.length > 0 && path.codeUnitAt(0) == _COLON) return true;
+    if (path.length > 0 && path.codeUnitAt(0) == _DOT) return true;
     int index = path.indexOf("/.");
     return index != -1;
   }
@@ -1996,6 +2025,7 @@ class Uri {
   static const int _PERCENT = 0x25;
   static const int _ASTERISK = 0x2A;
   static const int _PLUS = 0x2B;
+  static const int _DOT = 0x2E;
   static const int _SLASH = 0x2F;
   static const int _ZERO = 0x30;
   static const int _NINE = 0x39;
