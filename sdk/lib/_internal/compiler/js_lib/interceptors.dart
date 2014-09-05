@@ -72,6 +72,9 @@ setDispatchProperty(object, value) {
   defineProperty(object, JS('String', 'init.dispatchPropertyName'), value);
 }
 
+// Avoid inlining this method because inlining gives us multiple allocation
+// points for records which is bad because it leads to polymorphic access.
+@NoInline()
 makeDispatchRecord(interceptor, proto, extension, indexability) {
   // Dispatch records are stored in the prototype chain, and in some cases, on
   // instances.
@@ -101,10 +104,6 @@ makeDispatchRecord(interceptor, proto, extension, indexability) {
   //     P      I                     if object's prototype is P, use I
   //     F      -           P         if object's prototype is P, call F
 
-  // BUG(10903): Remove this hack. It is needed to avoid inlining this
-  // method because inlining gives us multiple allocation points for
-  // records which is bad because it leads to polymorphic access.
-  if (false) return null;
   return JS('', '{i: #, p: #, e: #, x: #}',
             interceptor, proto, extension, indexability);
 }
