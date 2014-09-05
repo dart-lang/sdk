@@ -1633,6 +1633,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *
  * enum {
  *   GET_ERRORS_INVALID_FILE
+ *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
@@ -1643,6 +1644,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  */
 final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "GET_ERRORS_INVALID_FILE",
+  "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
   "INVALID_REQUEST",
   "SERVER_ALREADY_STARTED",

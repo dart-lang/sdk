@@ -282,28 +282,40 @@ class _IsResponseSuccess extends Matcher {
 
 /**
  * A [Matcher] that check that the given [Response] has an expected identifier
- * and has an error.
+ * and has an error.  The error code may optionally be checked.
  */
-Matcher isResponseFailure(String id) => new _IsResponseFailure(id);
+Matcher isResponseFailure(String id, [RequestErrorCode code]) =>
+    new _IsResponseFailure(id, code);
 
 /**
  * A [Matcher] that check that there are no `error` in a given [Response].
  */
 class _IsResponseFailure extends Matcher {
   final String _id;
+  final RequestErrorCode _code;
 
-  _IsResponseFailure(this._id);
+  _IsResponseFailure(this._id, this._code);
 
   @override
   Description describe(Description description) {
-    return description.addDescriptionOf(
+    description = description.add(
         'response with identifier "$_id" and an error');
+    if (_code != null) {
+      description = description.add(' with code ${this._code.name}');
+    }
+    return description;
   }
 
   @override
   bool matches(item, Map matchState) {
     Response response = item;
-    return response.id == _id && response.error != null;
+    if (response.id != _id || response.error == null) {
+      return false;
+    }
+    if (_code != null && response.error.code != _code) {
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -315,6 +327,8 @@ class _IsResponseFailure extends Matcher {
     mismatchDescription.add('has identifier "$id"');
     if (error == null) {
       mismatchDescription.add(' and has no error');
+    } else {
+      mismatchDescription.add(' and has error code ${response.error.code.name}');
     }
     return mismatchDescription;
   }

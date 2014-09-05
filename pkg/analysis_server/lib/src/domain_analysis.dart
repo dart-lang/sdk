@@ -149,7 +149,7 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response updateContent(Request request) {
     var params = new AnalysisUpdateContentParams.fromRequest(request);
-    server.updateContent(params.files);
+    server.updateContent(request.id, params.files);
     return new AnalysisUpdateContentResult().toResponse(request.id);
   }
 

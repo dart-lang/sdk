@@ -1884,6 +1884,11 @@ dt.typeDefinition {
           a file content overlay or that has had its overlay removed via
           <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
         </p>
+        <p>
+          If any of the edits cannot be applied due to its offset or
+          length being out of range, an INVALID_OVERLAY_CHANGE error
+          will be reported.
+        </p>
         
       <dl><dt class="field"><b><i>type = "change"</i></b></dt><dd></dd><dt class="field"><b><i>edits ( List&lt;<a href="#type_SourceEdit">SourceEdit</a>&gt; )</i></b></dt><dd>
             
@@ -2603,6 +2608,14 @@ dt.typeDefinition {
               An "analysis.getErrors" request specified a FilePath
               which does not match a file currently subject to
               analysis.
+            </p>
+          </dd><dt class="value">INVALID_OVERLAY_CHANGE</dt><dd>
+            
+            <p>
+              An analysis.updateContent request contained a
+              ChangeContentOverlay object which can't be applied, due
+              to an edit having an offset or length that is out of
+              range.
             </p>
           </dd><dt class="value">INVALID_PARAMETER</dt><dd>
             

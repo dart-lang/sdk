@@ -262,6 +262,36 @@ testUpdateContent() {
       });
     });
   });
+
+  group('out of range', () {
+    Future outOfRangeTest(SourceEdit edit) {
+      AnalysisTestHelper helper = new AnalysisTestHelper();
+      helper.createSingleFileProject('library A;');
+      return helper.waitForOperationsFinished().then((_) {
+        helper.sendContentChange(new AddContentOverlay('library B;'));
+        return helper.waitForOperationsFinished().then((_) {
+          ChangeContentOverlay contentChange = new ChangeContentOverlay([edit]);
+          Request request = new AnalysisUpdateContentParams({
+            helper.testFile: contentChange}).toRequest('0');
+          Response response = helper.handler.handleRequest(request);
+          expect(response, isResponseFailure('0',
+              RequestErrorCode.INVALID_OVERLAY_CHANGE));
+        });
+      });
+    }
+
+    test('negative length', () {
+      return outOfRangeTest(new SourceEdit(3, -1, 'foo'));
+    });
+
+    test('negative offset', () {
+      return outOfRangeTest(new SourceEdit(-1, 3, 'foo'));
+    });
+
+    test('beyond end', () {
+      return outOfRangeTest(new SourceEdit(6, 6, 'foo'));
+    });
+  });
 }
 
 

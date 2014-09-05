@@ -8164,6 +8164,7 @@ class RequestError implements HasToJson {
  *
  * enum {
  *   GET_ERRORS_INVALID_FILE
+ *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
  *   SERVER_ALREADY_STARTED
@@ -8178,6 +8179,13 @@ class RequestErrorCode {
    * a file currently subject to analysis.
    */
   static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
+
+  /**
+   * An analysis.updateContent request contained a ChangeContentOverlay object
+   * which can't be applied, due to an edit having an offset or length that is
+   * out of range.
+   */
+  static const INVALID_OVERLAY_CHANGE = const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
   /**
    * One of the method parameters was invalid.
@@ -8231,6 +8239,8 @@ class RequestErrorCode {
     switch (name) {
       case "GET_ERRORS_INVALID_FILE":
         return GET_ERRORS_INVALID_FILE;
+      case "INVALID_OVERLAY_CHANGE":
+        return INVALID_OVERLAY_CHANGE;
       case "INVALID_PARAMETER":
         return INVALID_PARAMETER;
       case "INVALID_REQUEST":

@@ -497,7 +497,7 @@ class AnalysisServer {
   /**
    * Implementation for `analysis.updateContent`.
    */
-  void updateContent(Map<String, dynamic> changes) {
+  void updateContent(String id, Map<String, dynamic> changes) {
     changes.forEach((file, change) {
       AnalysisContext analysisContext = getAnalysisContext(file);
       // TODO(paulberry): handle the case where a file is referred to by more
@@ -513,7 +513,15 @@ class AnalysisServer {
           // currently in the content cache.
           TimestampedData<String> oldContents = analysisContext.getContents(
               source);
-          String newContents = SourceEdit.applySequence(oldContents.data, change.edits);
+          String newContents;
+          try {
+            newContents = SourceEdit.applySequence(oldContents.data,
+                change.edits);
+          } on RangeError {
+            throw new RequestFailure(new Response(id, error: new RequestError(
+                RequestErrorCode.INVALID_OVERLAY_CHANGE,
+                'Invalid overlay change')));
+          }
           // TODO(paulberry): to aid in incremental processing it would be
           // better to use setChangedContents.
           analysisContext.setContents(source, newContents);

@@ -1638,6 +1638,11 @@
           a file content overlay or that has had its overlay removed via
           <a href="#type_RemoveContentOverlay">RemoveContentOverlay</a>.
         </p>
+        <p>
+          If any of the edits cannot be applied due to its offset or
+          length being out of range, an INVALID_OVERLAY_CHANGE error
+          will be reported.
+        </p>
         <object>
           <field name="type" value="change"><ref>String</ref></field>
           <field name="edits">
@@ -2612,6 +2617,15 @@
               An "analysis.getErrors" request specified a FilePath
               which does not match a file currently subject to
               analysis.
+            </p>
+          </value>
+          <value>
+            <code>INVALID_OVERLAY_CHANGE</code>
+            <p>
+              An analysis.updateContent request contained a
+              ChangeContentOverlay object which can't be applied, due
+              to an edit having an offset or length that is out of
+              range.
             </p>
           </value>
           <value>

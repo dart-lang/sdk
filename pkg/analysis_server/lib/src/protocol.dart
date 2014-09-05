@@ -130,6 +130,9 @@ List<AnalysisError> _analysisErrorListFromEngine(engine.LineInfo lineInfo,
  * SourceEdit.apply().
  */
 String _applyEdit(String code, SourceEdit edit) {
+  if (edit.length < 0) {
+    throw new RangeError('length is negative');
+  }
   return code.substring(0, edit.offset) +
       edit.replacement +
       code.substring(edit.end);
