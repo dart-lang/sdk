@@ -293,11 +293,13 @@ void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnboxedConstantInstr::MakeLocationSummary(Isolate* isolate,
                                                            bool opt) const {
   const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = (representation_ == kUnboxedInt32) ? 0 : 1;
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_out(0, Location::RequiresFpuRegister());
-  locs->set_temp(0, Location::RequiresRegister());
+  if (representation_ != kUnboxedInt32) {
+    locs->set_temp(0, Location::RequiresRegister());
+  }
   return locs;
 }
 
@@ -7115,12 +7117,26 @@ LocationSummary* StrictCompareInstr::MakeLocationSummary(Isolate* isolate,
   }
   LocationSummary* locs = new(isolate) LocationSummary(
       isolate, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterOrConstant(left()));
-  // Only one of the inputs can be a constant. Choose register if the first one
-  // is a constant.
-  locs->set_in(1, locs->in(0).IsConstant()
-                      ? Location::RequiresRegister()
-                      : Location::RegisterOrConstant(right()));
+
+  // If a constant has more than one use, make sure it is loaded in register
+  // so that multiple immediate loads can be avoided.
+  ConstantInstr* constant = left()->definition()->AsConstant();
+  if ((constant != NULL) && !left()->IsSingleUse()) {
+    locs->set_in(0, Location::RequiresRegister());
+  } else {
+    locs->set_in(0, Location::RegisterOrConstant(left()));
+  }
+
+  constant = right()->definition()->AsConstant();
+  if ((constant != NULL) && !right()->IsSingleUse()) {
+    locs->set_in(1, Location::RequiresRegister());
+  } else {
+    // Only one of the inputs can be a constant. Choose register if the first
+    // one is a constant.
+    locs->set_in(1, locs->in(0).IsConstant()
+        ? Location::RequiresRegister()
+        : Location::RegisterOrConstant(right()));
+  }
   locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
